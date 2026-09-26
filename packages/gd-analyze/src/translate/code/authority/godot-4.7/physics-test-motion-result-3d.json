@@ -280,7 +280,7 @@
         "observedOutputSha256": "72148809fbc0e8a088704b8a6d448052119ae96bac97bacbfb1c00e0ff00bb22"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_travel",
         "observedOutputSha256": "458ce063f16dd366fff26eba3bb9f7490cebe244abcbfec59348dfb7011fc600"
       },
@@ -319,7 +319,7 @@
         "observedOutputSha256": "7b74d4796f8fe9846f090294e5aa00739201fc546ca81b2029bd001d5fb37029"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_remainder",
         "observedOutputSha256": "53d06d576738a7784c893051611adbd33530fcb4a6323f133729e3350c0c16d8"
       },
@@ -358,7 +358,7 @@
         "observedOutputSha256": "5348fba7d2fbc4e04accf968171109148030f112b0b71a189323ed24ee53a83d"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_safe_fraction",
         "observedOutputSha256": "622084730aaa7c0193fea700409b105a23174bdac04958e70ee090b9badce21e"
       },
@@ -397,7 +397,7 @@
         "observedOutputSha256": "e6b5f55f7d8161702710a3e638de048b2b924f1c716be44455b760e720ab3519"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_unsafe_fraction",
         "observedOutputSha256": "6d90af4affb8955a2146fa6a202301e3a4c93463afda9e8758f44c24ce04c276"
       },
@@ -436,7 +436,7 @@
         "observedOutputSha256": "406c9d98f3a89dab0a4b3ac6c291c9ff7da47a30159ae0af885998c5d320e984"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_count",
         "observedOutputSha256": "77daab268ce234b861a1eabee0e2cd813ae7ec5316a3960f5101b5af2294ca19"
       },
@@ -475,7 +475,7 @@
         "observedOutputSha256": "ec8f004bbbf35ef9135ade0dd0480d2675a49df6a93937cd5ba767d912dc2d00"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_point",
         "observedOutputSha256": "7515e821dbf9ac7a6989cc8dc7dd1ead4b098bd85d31ba91bd5080b2f917e565"
       },
@@ -514,7 +514,7 @@
         "observedOutputSha256": "11c74d0bc45f5ec992c596f1004d8005bc787a235e31b07dc31ceb383c5daf5d"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_normal",
         "observedOutputSha256": "165c67bf76cefeea8e4b8a2dbba471e2f16ffb809102e7c7061a517dc96b4657"
       },
@@ -553,7 +553,7 @@
         "observedOutputSha256": "f1e3317deae505159cb687370fd273559e6bbae615ad1a0c27ac5e8b5b453233"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collider_velocity",
         "observedOutputSha256": "a6b9a1ea0c16bcf11763133349d4246b6f39cee60ac43c9f14ac13a1b6cd6ec5"
       },
@@ -592,7 +592,7 @@
         "observedOutputSha256": "39fcf3993390f09da90b503a2d938129177996883dd151e9e6f2ccc2a80e2348"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collider",
         "observedOutputSha256": "87313ef17907ddc3d1cca8931c4bd1cde5dc8778938cda692243f46e2bab8880"
       },
@@ -631,7 +631,7 @@
         "observedOutputSha256": "5248904012e53e876e1736e54d26e8d8a313c20026aa3fdb7c08c63a07c579bb"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collider_shape",
         "observedOutputSha256": "8616d45e35d056a20288f2a177024876bbb09328ab9637b76596d71a30c243d4"
       },
@@ -670,7 +670,7 @@
         "observedOutputSha256": "43d5235504079bcee0ac4b93ccc5b94a773575c67df5bd291290294324137dc7"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_local_shape",
         "observedOutputSha256": "b0a15c8c4ea715f953d21dde4e9c3d918f609fc1d255b7db18072a68b67480dc"
       },
@@ -709,7 +709,7 @@
         "observedOutputSha256": "8f05bc2bb212a41d164d1d5ae4b45dbd446920a3758b0add1a785faceee4e837"
       },
       "target": {
-        "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482",
+        "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766",
         "callsite": "lib/godot-compat/physics-test-motion-result-3d.ts get_collision_depth",
         "observedOutputSha256": "cbc0c3eb2cf801632b8ceea4f7ddfff43c625c8d169d430f76f430636d1ef455"
       },
@@ -736,7 +736,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "13de8038774cab2708bc24bc53525b650fcd15106d67fffc4e93fde37dbf3148",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_remainder",
@@ -744,7 +744,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "92cc0c7eb8ff82f8b49acf515f9ec6aee601a2db047c54c9afc519af5c9dec9b",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_safe_fraction",
@@ -752,7 +752,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7fc79919b52b378dd56e9c9e5dad75aeae5ba48d88c0b861dba5682586a91fc7",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_unsafe_fraction",
@@ -760,7 +760,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "281b1347fc5d59844093994a9f70cadda622c78661411561b9d4a114a293c19c",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_count",
@@ -768,7 +768,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f75026de58a5922d99d4d13b6cf95e3862ae5afe19a24c9810311651fd8a72ea",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_point",
@@ -776,7 +776,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "07b5136187c0524b7a26bc5e4a6db37c9506aece23c24934f76a879b12d1ce77",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_normal",
@@ -784,7 +784,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "34fec2105de249df0b7fcd694494196d5c510bc5ea3aeb768348580785dddd4f",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collider_velocity",
@@ -792,7 +792,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "36eda9e323b301a710318a6905af82aa7830f7a0bff0e706ea54a4b2c1992507",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collider",
@@ -800,7 +800,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "d4e42ce15a55ed88655c236125bbb374a123a5ece39c9cd614d259d37da36393",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collider_shape",
@@ -808,7 +808,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e2e628abf55fd04bb9f94897223782a85baee219571cfc9784a290d55510606a",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_local_shape",
@@ -816,7 +816,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "661a470699ed073102340ace90cfba917e1cc4938e741ce090ac014c4904efe8",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsTestMotionResult3D.get_collision_depth",
@@ -824,7 +824,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f157cf427abbacae37ca7ec217f19b55f6594c0de3a6629a22d2877deeae9da1",
-      "implementationSha256": "3fda8f3dad912caf4d671b8cf9966477a75dc60f1a8417430ac3e3d99276b482"
+      "implementationSha256": "71fbabe39042a36ae957b127f68d9a2a16918769a1143e497352b6001d908766"
     }
   ]
 }

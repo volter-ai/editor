@@ -11,14 +11,13 @@
  * values). A scene declares one as `<GodotCPUParticles3D>`: the buffer is drawn as a three
  * `InstancedMesh` of the particle mesh. Real values are `real_t` (float), times `double`.
  *
- * Drawn: the instance transforms, and the colour as three's instance colour when the mesh's material
- * uses vertex colour as albedo (`vertex_color_use_as_albedo`); three's instance colour has no alpha,
- * so a particle's colour alpha is not drawn (`particle-alpha`, a named deviation). Not transcribed:
+ * Drawn: the instance transforms, and each particle's colour and custom values as the per-instance
+ * attributes the scene shader's vertex colour and particle billboard read. Not transcribed:
  * the draw orders other than by index, `request_particles_process`, sub-emitters.
  */
 
 import type { ReactElement } from 'react';
-import { type BufferGeometry, Color as ThreeColor, Group, InstancedMesh, type Material, Matrix4, type Object3D } from 'three';
+import { type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, type Material, Matrix4, type Object3D } from 'three';
 import { godot_base_material_3d_three } from './base-material-3d';
 import { type Color, construct as color } from './color';
 import { type Curve, godot_curve_ensure_default_setup, sample as curveSample } from './curve';
@@ -602,12 +601,14 @@ function updateBuffer(entity: object, s: CPUParticles3D): void {
 }
 
 const scratch = new Matrix4();
-const scratchColor = new ThreeColor();
 
 /**
- * The buffer drawn (`_update_render_thread`, `cpu_particles_3d.cpp:1382`): each particle's rows as an
- * instance matrix of an `InstancedMesh` of the mesh, a child the Node protocol does not count; its
- * colour as the instance colour where the material takes vertex colour as albedo (no alpha).
+ * The buffer drawn (`_update_render_thread`, `cpu_particles_3d.cpp:1382`): an `InstancedMesh` of the
+ * mesh, a child the Node protocol does not count, each particle's rows its instance matrix; its
+ * colour and custom values the per-instance `godotInstanceColor` and `godotInstanceCustom` Godot's
+ * scene shader reads as `COLOR` and `INSTANCE_CUSTOM` (`godot_base_material_3d_scene_shader`: a
+ * material using vertex colour as albedo, a particle billboard), on the system's own copy of the
+ * geometry.
  */
 function draw(entity: object, s: CPUParticles3D): void {
   const geometry = s.geometry ?? (s.mesh === null ? null : godot_primitive_mesh_geometry(s.mesh));
@@ -617,7 +618,10 @@ function draw(entity: object, s: CPUParticles3D): void {
     if (s.drawn !== null) (entity as Object3D).remove(s.drawn);
     const source = s.mesh === null ? null : get_material(s.mesh);
     const material = s.material ?? (source === null ? undefined : godot_base_material_3d_three(source as never));
-    const drawn = new InstancedMesh(geometry, material, count);
+    const own = geometry.clone();
+    own.setAttribute('godotInstanceColor', new InstancedBufferAttribute(new Float32Array(count * 4), 4));
+    own.setAttribute('godotInstanceCustom', new InstancedBufferAttribute(new Float32Array(count * 4), 4));
+    const drawn = new InstancedMesh(own, material, count);
     drawn.frustumCulled = false;
     drawn.castShadow = s.cast_shadow;
     godot_node_foreign(drawn);
@@ -625,18 +629,20 @@ function draw(entity: object, s: CPUParticles3D): void {
     s.drawn = drawn;
   }
   const drawn = s.drawn;
-  // `vertex_color_use_as_albedo`, which three's instance colour always is: set only where Godot uses it.
-  const colored = (drawn.material as Material).userData['vertex_color_use_as_albedo'] === true;
+  const colors = drawn.geometry.getAttribute('godotInstanceColor') as InstancedBufferAttribute;
+  const customs = drawn.geometry.getAttribute('godotInstanceCustom') as InstancedBufferAttribute;
   const d = s.data;
   for (let i = 0; i < count; i += 1) {
     const at = i * 20;
     scratch.set(d[at] as number, d[at + 1] as number, d[at + 2] as number, d[at + 3] as number, d[at + 4] as number, d[at + 5] as number, d[at + 6] as number, d[at + 7] as number, d[at + 8] as number, d[at + 9] as number, d[at + 10] as number, d[at + 11] as number, 0, 0, 0, 1);
     drawn.setMatrixAt(i, scratch);
-    if (colored) drawn.setColorAt(i, scratchColor.setRGB(d[at + 12] as number, d[at + 13] as number, d[at + 14] as number));
+    (colors.array as Float32Array).set(d.subarray(at + 12, at + 16), i * 4);
+    (customs.array as Float32Array).set(d.subarray(at + 16, at + 20), i * 4);
   }
   drawn.visible = s.redraw;
   drawn.instanceMatrix.needsUpdate = true;
-  if (drawn.instanceColor !== null) drawn.instanceColor.needsUpdate = true;
+  colors.needsUpdate = true;
+  customs.needsUpdate = true;
 }
 
 /** `Node3D::is_visible_in_tree`: the node and every ancestor visible. */

@@ -696,6 +696,15 @@ export function nativeMethodLookup(apiDump: GodotApiDump): NativeMethodLookup {
   };
 }
 
+/**
+ * Properties whose internal setter the dump leaves out of its methods and which only forward to a
+ * public method, which a write calls: `Control::_set_global_position` is `set_global_position(p_point)`
+ * (scene/gui/control.cpp:1492).
+ */
+export const GODOT_FORWARDED_SETTERS: Readonly<Record<string, string>> = {
+  'Control.global_position': 'set_global_position',
+};
+
 export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
   const method = (className: string, name: string): NativePropertyAccessor | undefined => {
@@ -711,7 +720,8 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
       const found = current.properties.find((entry) => entry.name === property);
       if (found !== undefined) {
         const getter = found.getter ? method(current.name, found.getter) : undefined;
-        const setter = found.setter ? method(current.name, found.setter) : undefined;
+        const forwarded = GODOT_FORWARDED_SETTERS[`${current.name}.${property}`];
+        const setter = (found.setter ? method(current.name, found.setter) : undefined) ?? (forwarded === undefined ? undefined : method(current.name, forwarded));
         return {
           owner: current.name,
           ...(getter === undefined ? {} : { getter }),

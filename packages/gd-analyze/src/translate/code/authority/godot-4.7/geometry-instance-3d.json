@@ -45,6 +45,216 @@
         },
         "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_cast_shadows_setting"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "set_visibility_range_begin",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "set_visibility_range_begin",
+        "localName": "GeometryInstance3D_set_visibility_range_begin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_begin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "get_visibility_range_begin",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "get_visibility_range_begin",
+        "localName": "GeometryInstance3D_get_visibility_range_begin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_begin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "set_visibility_range_end",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "set_visibility_range_end",
+        "localName": "GeometryInstance3D_set_visibility_range_end",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_end"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "get_visibility_range_end",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "get_visibility_range_end",
+        "localName": "GeometryInstance3D_get_visibility_range_end",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_end"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "set_visibility_range_begin_margin",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "set_visibility_range_begin_margin",
+        "localName": "GeometryInstance3D_set_visibility_range_begin_margin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_begin_margin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "get_visibility_range_begin_margin",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "get_visibility_range_begin_margin",
+        "localName": "GeometryInstance3D_get_visibility_range_begin_margin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_begin_margin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "set_visibility_range_end_margin",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "set_visibility_range_end_margin",
+        "localName": "GeometryInstance3D_set_visibility_range_end_margin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_end_margin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "get_visibility_range_end_margin",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "get_visibility_range_end_margin",
+        "localName": "GeometryInstance3D_get_visibility_range_end_margin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_end_margin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "set_visibility_range_fade_mode",
+        "kind": "native-member",
+        "signature": "hash:1440117808"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "set_visibility_range_fade_mode",
+        "localName": "GeometryInstance3D_set_visibility_range_fade_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_fade_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "get_visibility_range_fade_mode",
+        "kind": "native-member",
+        "signature": "hash:2067221882"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "get_visibility_range_fade_mode",
+        "localName": "GeometryInstance3D_get_visibility_range_fade_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_fade_mode"
+      }
     }
   ],
   "rules": [],
@@ -70,7 +280,7 @@
         "observedOutputSha256": "39b8a1c16a0efd27c5f1d0186d15fd14fab724cfa2ea50183ce6e7fd151cab8d"
       },
       "target": {
-        "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b",
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
         "callsite": "lib/godot-compat/geometry-instance-3d.ts get_cast_shadows_setting",
         "observedOutputSha256": "39b8a1c16a0efd27c5f1d0186d15fd14fab724cfa2ea50183ce6e7fd151cab8d"
       },
@@ -109,7 +319,7 @@
         "observedOutputSha256": "bdef47903b755fc6aa1f0a319d7f602503c6fd31ce9e3e2d326ae462d5909964"
       },
       "target": {
-        "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b",
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
         "callsite": "lib/godot-compat/geometry-instance-3d.ts set_cast_shadows_setting",
         "observedOutputSha256": "bdef47903b755fc6aa1f0a319d7f602503c6fd31ce9e3e2d326ae462d5909964"
       },
@@ -117,6 +327,396 @@
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
         "resultSha256": "f0fb42ae6b8be8dcae1cc92b6802ab790a2b7c5eaf4b304ba3b3da0a5cab0706"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_begin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000set_visibility_range_begin\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.set_visibility_range_begin",
+        "sourceLine": 252
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b78dad75e51e353ebf5da43a052bc29f947124fdefb70e78390790b9e568c8f8",
+        "callsite": "res://probe.gd _init() set_visibility_range_begin",
+        "observedOutputSha256": "aff5e82ae5c546892add3a09785f695697527aa9dd0fc674d95ac4e0a1e94388"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts set_visibility_range_begin",
+        "observedOutputSha256": "aff5e82ae5c546892add3a09785f695697527aa9dd0fc674d95ac4e0a1e94388"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "449f07a8d443ce64797bb13d38f3481c06f718de7f44c39ae390af23ba31aebc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_begin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000get_visibility_range_begin\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.get_visibility_range_begin",
+        "sourceLine": 258
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9f93af508bd8acf09d4df070efdc26b1ce006a92702cf9e2bb95d34be1444640",
+        "callsite": "res://probe.gd _init() get_visibility_range_begin-default",
+        "observedOutputSha256": "159a96eaff333f55b6f6ca518d7e3c5ee40c718a8dfef9f3c871c3a1c6f64414"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts get_visibility_range_begin",
+        "observedOutputSha256": "159a96eaff333f55b6f6ca518d7e3c5ee40c718a8dfef9f3c871c3a1c6f64414"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a9a0599023a2b37f2b7c85ca1eb89d353ea87dda7cb3adc9b4af48b631165e12"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_end",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000set_visibility_range_end\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.set_visibility_range_end",
+        "sourceLine": 262
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f83ca13441af66124fe0edd481a6703307c9aa73a4bbcd9862f31357118696e9",
+        "callsite": "res://probe.gd _init() set_visibility_range_end",
+        "observedOutputSha256": "d33ef66cbcb81e2de40fa002a4c1b058412a5b8e9235dfd9d6405acae081ecf4"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts set_visibility_range_end",
+        "observedOutputSha256": "d33ef66cbcb81e2de40fa002a4c1b058412a5b8e9235dfd9d6405acae081ecf4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "46bd79dfa9739b18c633485378d583c9d2c2fc384e501d7ff1d1c656bd9dce83"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_end",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000get_visibility_range_end\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.get_visibility_range_end",
+        "sourceLine": 268
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5b408dbac64ecf089ec2ac2395b2a2f07d44fd7a53788ab36c560c61e415e5f0",
+        "callsite": "res://probe.gd _init() get_visibility_range_end-default",
+        "observedOutputSha256": "8985a28d41bb3345024aff007d511e4d3ab0b19c231655e60c5594368e5747c0"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts get_visibility_range_end",
+        "observedOutputSha256": "8985a28d41bb3345024aff007d511e4d3ab0b19c231655e60c5594368e5747c0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e940fd6ce361ac15636148146edee40fda4a2b46d580002ae1dbaac5fcb1e995"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_begin_margin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000set_visibility_range_begin_margin\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.set_visibility_range_begin_margin",
+        "sourceLine": 272
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8b58e30d706397fa16717ec51833d7182206b82485043ba83bcf10d035c2df5d",
+        "callsite": "res://probe.gd _init() set_visibility_range_begin_margin",
+        "observedOutputSha256": "3772d1b6e9061c75137cd0ffd3e9d171bd1efda87e97dcab2249513d1a9a52ab"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts set_visibility_range_begin_margin",
+        "observedOutputSha256": "3772d1b6e9061c75137cd0ffd3e9d171bd1efda87e97dcab2249513d1a9a52ab"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7af2add6bf2a887f8f0a327415bdb21ef0da9c3269d62f48fabcc23a50121a2e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_begin_margin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000get_visibility_range_begin_margin\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.get_visibility_range_begin_margin",
+        "sourceLine": 278
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "37aa04b88ad3ecdcdea7b66cd95e7710d04d682adad62fc5de4d558fdb23841a",
+        "callsite": "res://probe.gd _init() get_visibility_range_begin_margin-default",
+        "observedOutputSha256": "52be0246c5d24fff5ff3555161c4facfe9ebdf6dad87918e52082971994c0fa2"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts get_visibility_range_begin_margin",
+        "observedOutputSha256": "52be0246c5d24fff5ff3555161c4facfe9ebdf6dad87918e52082971994c0fa2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0f2f658ca46a9f61a5948c1caa7e4c8785a8a61504532c822169a47683def32e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_end_margin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000set_visibility_range_end_margin\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.set_visibility_range_end_margin",
+        "sourceLine": 282
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "90e2865f0ad2b7efdb1d06f7d5e92001edf5d1daa99d9f65cc219760e7e51ba5",
+        "callsite": "res://probe.gd _init() set_visibility_range_end_margin",
+        "observedOutputSha256": "931264579404b8d0d1bb5c50a03a8d35586e9676d8a69922850e946aef94b882"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts set_visibility_range_end_margin",
+        "observedOutputSha256": "931264579404b8d0d1bb5c50a03a8d35586e9676d8a69922850e946aef94b882"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f02a797a2beb0108c50e8cdf97ed48cf7791e852bd2fbcf96b10e24899472afc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_end_margin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000get_visibility_range_end_margin\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.get_visibility_range_end_margin",
+        "sourceLine": 288
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a0865a7b1b579d3b91b6aee85a611fb69d39c51fa7f9076e0bbf4e026e558525",
+        "callsite": "res://probe.gd _init() get_visibility_range_end_margin-default",
+        "observedOutputSha256": "44f30128b1babadb2cc4bbc45c1f6884df0c167aca91421f4d2073e0a5534fa0"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts get_visibility_range_end_margin",
+        "observedOutputSha256": "44f30128b1babadb2cc4bbc45c1f6884df0c167aca91421f4d2073e0a5534fa0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "466a785c866919edf683cb1d5be5de95c54f4fc77461d7ecc6e423c37cf796e2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_fade_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000set_visibility_range_fade_mode\u0000hash:1440117808",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.set_visibility_range_fade_mode",
+        "sourceLine": 292
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "55c6a41ce9937d01c125ed8659140b9927d06f782ca037cd866bb3e8732ad46c",
+        "callsite": "res://probe.gd _init() set_visibility_range_fade_mode",
+        "observedOutputSha256": "c2323a744328bc280bce362b30c1f2320841ec60cc1ab1a8af3fce7f4098b013"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts set_visibility_range_fade_mode",
+        "observedOutputSha256": "c2323a744328bc280bce362b30c1f2320841ec60cc1ab1a8af3fce7f4098b013"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f81e954cb8c7554fa3c671d1b7f549ee4daf94c8c38ab8bebf94d6004016fd9e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_fade_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000get_visibility_range_fade_mode\u0000hash:2067221882",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.get_visibility_range_fade_mode",
+        "sourceLine": 298
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a8ce6de436075579b4d00a7c460608743658b430fb431bb92eda73f2230b2285",
+        "callsite": "res://probe.gd _init() get_visibility_range_fade_mode-default",
+        "observedOutputSha256": "7bfd06f4faba14fb61544cca8d13de5f848a992c0784ac65f9a7039e8e6ce7be"
+      },
+      "target": {
+        "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts get_visibility_range_fade_mode",
+        "observedOutputSha256": "7bfd06f4faba14fb61544cca8d13de5f848a992c0784ac65f9a7039e8e6ce7be"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b4ae844e029af49f331e80846780fda4740e4a946713de90700ba04cb0196659"
       },
       "reproductionCommand": [
         "npx",
@@ -136,7 +736,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "24ebd91bf01f62529490e50f86eafcc85100808d7ef0316341b9dd79cf239a09",
-      "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b"
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
     },
     {
       "claimId": "godot-4.7-binding-GeometryInstance3D.set_cast_shadows_setting",
@@ -144,7 +744,87 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "298c5e426860cbb85e1cf36789f7f6a1bdd42f3bc60a0198f27ef26d2ea081aa",
-      "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b"
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_begin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b78dad75e51e353ebf5da43a052bc29f947124fdefb70e78390790b9e568c8f8",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_begin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9f93af508bd8acf09d4df070efdc26b1ce006a92702cf9e2bb95d34be1444640",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_end",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f83ca13441af66124fe0edd481a6703307c9aa73a4bbcd9862f31357118696e9",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_end",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5b408dbac64ecf089ec2ac2395b2a2f07d44fd7a53788ab36c560c61e415e5f0",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_begin_margin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8b58e30d706397fa16717ec51833d7182206b82485043ba83bcf10d035c2df5d",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_begin_margin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "37aa04b88ad3ecdcdea7b66cd95e7710d04d682adad62fc5de4d558fdb23841a",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_end_margin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "90e2865f0ad2b7efdb1d06f7d5e92001edf5d1daa99d9f65cc219760e7e51ba5",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_end_margin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a0865a7b1b579d3b91b6aee85a611fb69d39c51fa7f9076e0bbf4e026e558525",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_visibility_range_fade_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "55c6a41ce9937d01c125ed8659140b9927d06f782ca037cd866bb3e8732ad46c",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_visibility_range_fade_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a8ce6de436075579b4d00a7c460608743658b430fb431bb92eda73f2230b2285",
+      "implementationSha256": "64072b75174683c52ee9a8322caaf689f64630bf33126b72ecbfaea474e6179b"
     }
   ]
 }

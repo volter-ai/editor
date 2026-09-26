@@ -6,8 +6,8 @@
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): an image of `width` by `height` whose every pixel is
  * its gradient sampled at the pixel's fill offset (linear, radial, square or conic from `fill_from`
  * to `fill_to`, clamped, repeated or mirrored), stored as 8-bit RGBA, drawn as a three
- * `DataTexture` whose rows are laid out as three's image textures are (the image's first row at
- * `v = 1`). High-dynamic-range images are not transcribed.
+ * `DataTexture` of the image's rows in Godot's order, which a material samples as it samples any
+ * image (`godot_base_material_3d_scene_map`). High-dynamic-range images are not transcribed.
  */
 
 import { DataTexture, RGBAFormat, SRGBColorSpace, UnsignedByteType } from 'three';
@@ -139,23 +139,35 @@ export function godot_gradient_texture_2d_pixels(self: GradientTexture2D): Uint8
 }
 
 /**
- * The image as three draws it: a `DataTexture` of the bytes, sRGB, its rows bottom-up so the
- * image's first row is at `v = 1` as in three's image textures. Made once, remade after a change.
+ * The image as three holds it: a `DataTexture` of the bytes, sRGB, its rows in the image's order.
+ * Made once, remade after a change.
  *
  * @godot GradientTexture2D (protocol)
  * @source scene/resources/gradient_texture.cpp:231
  */
 export function godot_gradient_texture_2d_texture(self: GradientTexture2D): DataTexture {
   if (self.texture !== null) return self.texture;
-  const pixels = godot_gradient_texture_2d_pixels(self);
-  const flipped = new Uint8Array(pixels.length);
-  const row = self.width * 4;
-  for (let y = 0; y < self.height; y += 1) flipped.set(pixels.subarray(y * row, (y + 1) * row), (self.height - 1 - y) * row);
-  const texture = new DataTexture(flipped, self.width, self.height, RGBAFormat, UnsignedByteType);
+  const texture = new DataTexture(godot_gradient_texture_2d_pixels(self), self.width, self.height, RGBAFormat, UnsignedByteType);
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
   self.texture = texture;
+  OF_TEXTURE.set(texture, self);
   return texture;
+}
+
+const OF_TEXTURE = new WeakMap<object, GradientTexture2D>();
+
+/**
+ * The GradientTexture2D a three texture draws (`godot_gradient_texture_2d_texture`): what a
+ * material's albedo texture is, read back.
+ *
+ * @godot GradientTexture2D (protocol)
+ * @source scene/resources/gradient_texture.cpp:231
+ */
+export function godot_gradient_texture_2d_of(texture: unknown): GradientTexture2D {
+  const self = typeof texture === 'object' && texture !== null ? OF_TEXTURE.get(texture) : undefined;
+  if (self === undefined) throw new TypeError('godot-compat: a texture no GradientTexture2D draws');
+  return self;
 }
 
 function changed(self: GradientTexture2D): void {

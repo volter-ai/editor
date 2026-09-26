@@ -199,5 +199,42 @@ for (const mipmapped of [true, false]) {
   }
 }
 
+// Culling, billboards, particle animation and proximity fade: each set and read back (the enemy's and
+// coin's particle materials), with Godot's defaults.
+for (const [member, getter, values] of [
+  ['set_cull_mode', 'get_cull_mode', [2, 1]],
+  ['set_billboard_mode', 'get_billboard_mode', [3, 1]],
+  ['set_particles_anim_h_frames', 'get_particles_anim_h_frames', [1, 4]],
+  ['set_particles_anim_v_frames', 'get_particles_anim_v_frames', [1, 3]],
+] as const) {
+  for (const value of values) {
+    c.add(`${member}-${String(value)}`, member, ['var m := StandardMaterial3D.new()', `m.${member}(${String(value)})`, `return m.${getter}()`], () => {
+      const m = S.construct();
+      B[member](m, value);
+      return B[getter](m);
+    });
+  }
+  c.add(`${getter}-default`, getter, [`return StandardMaterial3D.new().${getter}()`], () => B[getter](S.construct()));
+}
+for (const [member, getter] of [
+  ['set_particles_anim_loop', 'get_particles_anim_loop'],
+  ['set_proximity_fade_enabled', 'is_proximity_fade_enabled'],
+] as const) {
+  c.add(member, member, ['var m := StandardMaterial3D.new()', `m.${member}(true)`, `return m.${getter}()`], () => {
+    const m = S.construct();
+    B[member](m, true);
+    return B[getter](m);
+  });
+  c.add(`${getter}-default`, getter, [`return StandardMaterial3D.new().${getter}()`], () => B[getter](S.construct()));
+}
+for (const value of [0.5, 0.001]) {
+  c.add(`set_proximity_fade_distance-${gd(value)}`, 'set_proximity_fade_distance', ['var m := StandardMaterial3D.new()', `m.set_proximity_fade_distance(${gd(value)})`, 'return m.get_proximity_fade_distance()'], () => {
+    const m = S.construct();
+    B.set_proximity_fade_distance(m, value);
+    return B.get_proximity_fade_distance(m);
+  });
+}
+c.add('get_proximity_fade_distance-default', 'get_proximity_fade_distance', ['return StandardMaterial3D.new().get_proximity_fade_distance()'], () => B.get_proximity_fade_distance(S.construct()));
+
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'BaseMaterial3D', compatModule: 'lib/godot-compat/base-material-3d', cases: c.cases };
 export default EVIDENCE;

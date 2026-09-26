@@ -372,8 +372,14 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
   if (albedo !== undefined && albedo.slice(0, 3).some((value) => value !== 1)) props.push(attribute('color', colourProp(albedo)));
   const filter = numberValue(setterValue(set, 'set_texture_filter')) ?? 3;
   const repeat = boolValue(setterValue(set, 'set_flag', 16)) ?? true;
-  if (texture !== undefined) props.push(attribute('map', identifier(textureHook(emission, texture, { filter, repeat, srgb: true }))));
-  if (transparency !== 0) props.push(flag('transparent'), attribute('opacity', literal(albedo?.[3] ?? 1)));
+  if (texture !== undefined) {
+    const map = texture.className === 'GradientTexture2D' ? gradientMap(emission, texture, filter, repeat) : textureHook(emission, texture, { filter, repeat, srgb: true });
+    props.push(attribute('map', identifier(map)));
+  }
+  // Proximity fade draws through the alpha pass (`material.cpp:1807`); its fade is not drawn
+  // (`proximity-fade`, base-material-3d.ts).
+  const proximity = boolValue(setterValue(set, 'set_proximity_fade_enabled')) === true;
+  if (transparency !== 0 || proximity) props.push(flag('transparent'), attribute('opacity', literal(transparency !== 0 ? (albedo?.[3] ?? 1) : 1)));
   if (transparency === 2) props.push(attribute('alphaTest', literal(0.5)));
   const blending = BLENDING[blend];
   if (blending !== undefined && blending !== '') {
@@ -392,6 +398,28 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
       props.push(attribute('emissive', numbers(colour.slice(0, 3).map((value) => srgbToLinear(f32(value * energy))))));
     }
   }
+  // `CULL_FRONT` and `CULL_DISABLED` as the side three draws (`material.h:296`).
+  const cull = numberValue(setterValue(set, 'set_cull_mode')) ?? 0;
+  if (cull !== 0) {
+    const side = cull === 1 ? 'BackSide' : 'DoubleSide';
+    emission.three.add(side);
+    props.push(attribute('side', identifier(side)));
+  }
+  // The Godot-only parameters the draw reads back: vertex colour (a particle system's instance
+  // colour), the billboard, proximity fade.
+  const data: TargetTsObjectProperty[] = [];
+  const billboard = numberValue(setterValue(set, 'set_billboard_mode')) ?? 0;
+  if (billboard !== 0) data.push({ key: 'billboard_mode', value: literal(billboard) });
+  if (boolValue(setterValue(set, 'set_flag', 5)) === true) data.push({ key: 'billboard_keep_scale', value: literal(true) });
+  if (boolValue(setterValue(set, 'set_flag', 1)) === true) data.push({ key: 'vertex_color_use_as_albedo', value: literal(true) });
+  if (boolValue(setterValue(set, 'set_flag', 2)) === true) data.push({ key: 'vertex_color_is_srgb', value: literal(true) });
+  if (proximity) {
+    data.push({ key: 'proximity_fade_enabled', value: literal(true) });
+    data.push({ key: 'proximity_fade_distance', value: literal(Math.max(f32(numberValue(setterValue(set, 'set_proximity_fade_distance')) ?? 1), f32(0.01))) });
+  }
+  if (data.length > 0) props.push(attribute('userData', { kind: 'object-expression', properties: data }));
+  // A billboard or vertex colour draws through Godot's vertex code (`godot_base_material_3d_scene_shader`).
+  if (billboard !== 0 || boolValue(setterValue(set, 'set_flag', 1)) === true) props.push(attribute('onUpdate', identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_shader'))));
   return element(unshaded ? 'meshBasicMaterial' : 'meshStandardMaterial', props);
 }
 
@@ -661,7 +689,11 @@ function sharedMaterial(emission: FamilyEmission, resource: TargetGodotSceneReso
     }
     return [{ key: entry.name, value }];
   });
-  const made: TargetTsExpression = { kind: 'new-expression', callee: identifier(three), arguments: properties.length === 0 ? [] : [{ kind: 'object-expression', properties }] };
+  const onUpdate = properties.find((property) => property.key === 'onUpdate');
+  const own = properties.filter((property) => property !== onUpdate);
+  const constructed: TargetTsExpression = { kind: 'new-expression', callee: identifier(three), arguments: own.length === 0 ? [] : [{ kind: 'object-expression', properties: own }] };
+  // What an element's `onUpdate` does to its material, done once to the declared one.
+  const made: TargetTsExpression = onUpdate === undefined ? constructed : { kind: 'call-expression', callee: onUpdate.value, arguments: [constructed] };
   return declareShared(emission, resource.key, stemOf(resource.key), made, uses);
 }
 
@@ -754,6 +786,24 @@ export function familyInstanceProps(
   const same = (entry: TargetGodotSceneSetterPlan) =>
     own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
   return elementProps(emission, node.nodePath, node.setters.filter((entry) => !same(entry)));
+}
+
+/**
+ * A GradientTexture2D a material samples: its image made from the properties the scene states, as
+ * three's texture sampled with the material's filter and repeat, declared once in the module.
+ */
+function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResourcePlan, filter: number, repeat: boolean): string {
+  const image: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: identifier(useCompat(emission, 'gradient-texture-2d', 'godot_gradient_texture_2d_texture')),
+    arguments: [identifier(resourceLocal(emission, texture.key))],
+  };
+  const made: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_map')),
+    arguments: [image, literal(filter), literal(repeat)],
+  };
+  return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}`, `${stemOf(texture.key)} map`, made, []);
 }
 
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */

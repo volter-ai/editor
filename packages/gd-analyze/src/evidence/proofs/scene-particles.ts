@@ -68,7 +68,19 @@ colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
 [sub_resource type="StandardMaterial3D" id="Burst_material"]
 transparency = 1
+blend_mode = 1
+cull_mode = 2
 shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(1, 1, 0.759137, 1)
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+proximity_fade_enabled = true
+proximity_fade_distance = 0.5
 
 [sub_resource type="PlaneMesh" id="Burst_mesh"]
 material = SubResource("Burst_material")
@@ -85,7 +97,38 @@ interpolation_mode = 2
 offsets = PackedFloat32Array(0, 0.642276, 1)
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.180392, 1, 1, 1, 0)
 
+[sub_resource type="QuadMesh" id="Glow_mesh"]
+
+[sub_resource type="Gradient" id="Glow_gradient"]
+interpolation_mode = 2
+offsets = PackedFloat32Array(0, 0.642276, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.180392, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="Glow_texture"]
+gradient = SubResource("Glow_gradient")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0.01)
+
+[sub_resource type="StandardMaterial3D" id="Glow_material"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.858824, 0.572549, 0.25098)
+albedo_texture = SubResource("Glow_texture")
+billboard_mode = 1
+proximity_fade_enabled = true
+proximity_fade_distance = 0.15
+
 [node name="Main" type="Node3D"]
+
+[node name="Glow" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+visibility_range_begin = 3.0
+visibility_range_begin_margin = 3.0
+visibility_range_fade_mode = 1
+mesh = SubResource("Glow_mesh")
+surface_material_override/0 = SubResource("Glow_material")
 
 [node name="Trail" type="CPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -2)
@@ -132,6 +175,12 @@ const OBSERVE = `extends SceneTree
 
 var rows: Array = []
 
+func _bits(value: float) -> String:
+\treturn PackedFloat64Array([value]).to_byte_array().hex_encode()
+
+func _material(m: BaseMaterial3D) -> Array:
+\treturn [m.cull_mode, m.billboard_mode, m.get_flag(BaseMaterial3D.FLAG_ALBEDO_FROM_VERTEX_COLOR), m.get_flag(BaseMaterial3D.FLAG_SRGB_VERTEX_COLOR), m.get_flag(BaseMaterial3D.FLAG_BILLBOARD_KEEP_SCALE), m.proximity_fade_enabled, _bits(m.proximity_fade_distance), m.transparency, m.blend_mode]
+
 func _initialize() -> void:
 \tprocess_frame.connect(_run, CONNECT_ONE_SHOT)
 
@@ -146,6 +195,17 @@ func _run() -> void:
 \t\t\tvar p: CPUParticles3D = main.get_node(name)
 \t\t\trow.append([RenderingServer.multimesh_get_buffer(p.get_base()).to_byte_array().hex_encode(), p.emitting])
 \t\trows.append(row)
+\tvar materials: Array = []
+\tfor name in ${JSON.stringify(SYSTEMS)}:
+\t\tvar m: BaseMaterial3D = main.get_node(name).mesh.surface_get_material(0)
+\t\tmaterials.append(_material(m))
+\tvar glow: MeshInstance3D = main.get_node("Glow")
+\tvar g: BaseMaterial3D = glow.get_surface_override_material(0)
+\tmaterials.append(_material(g))
+\tvar t: GradientTexture2D = g.albedo_texture
+\tmaterials.append([t.get_width(), t.get_height(), t.fill, _bits(t.fill_from.x), _bits(t.fill_from.y), _bits(t.fill_to.x), _bits(t.fill_to.y), t.gradient.interpolation_mode, t.gradient.get_point_count()])
+\tmaterials.append([_bits(glow.visibility_range_begin), _bits(glow.visibility_range_begin_margin), glow.visibility_range_fade_mode])
+\trows.append(materials)
 \tprint("PARTICLES " + JSON.stringify(rows))
 \tquit()
 `;
@@ -169,6 +229,11 @@ import { writeFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import * as P from './src/lib/godot-compat/cpu-particles-3d';
+import * as B from './src/lib/godot-compat/base-material-3d';
+import * as G from './src/lib/godot-compat/geometry-instance-3d';
+import * as T from './src/lib/godot-compat/texture-2d';
+import * as GT from './src/lib/godot-compat/gradient-texture-2d';
+import * as GR from './src/lib/godot-compat/gradient';
 import * as N from './src/lib/godot-compat/node';
 import * as ST from './src/lib/godot-compat/scene-tree';
 
@@ -213,6 +278,27 @@ for (let guard = 0; frame < ${String(FRAMES)} && guard < 1000; guard += 1) {
   ST.godot_tree_physics_step(1 / 60);
   ST.godot_tree_frame(1 / 60);
 }
+const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
+const material = (m) => {
+  const b = B.godot_base_material_3d_of(m);
+  return [B.get_cull_mode(b), B.get_billboard_mode(b), B.get_flag(b, 1), B.get_flag(b, 2), B.get_flag(b, 5), B.is_proximity_fade_enabled(b), bits(B.get_proximity_fade_distance(b)), B.get_transparency(b), B.get_blend_mode(b)];
+};
+const glow = main.getObjectByName('Glow');
+// The drawn material holds its Godot state: the particles' instanced mesh, the glow's mesh.
+const drawnMaterial = (name) => main.getObjectByName(name).children.find((child) => child.isInstancedMesh).material;
+const map = glow.material.map;
+rows.push([
+  ...${JSON.stringify(SYSTEMS)}.map((name) => material(drawnMaterial(name))),
+  material(glow.material),
+  (() => {
+    const t = GT.godot_gradient_texture_2d_of(B.godot_base_material_3d_of(glow.material).textures[0]);
+    const from = GT.get_fill_from(t);
+    const to = GT.get_fill_to(t);
+    const gradient = GT.get_gradient(t);
+    return [T.get_width(map), T.get_height(map), GT.get_fill(t), bits(from.x), bits(from.y), bits(to.x), bits(to.y), GR.get_interpolation_mode(gradient), GR.get_point_count(gradient)];
+  })(),
+  [bits(G.get_visibility_range_begin(glow)), bits(G.get_visibility_range_begin_margin(glow)), G.get_visibility_range_fade_mode(glow)],
+]);
 await act(async () => { root.unmount(); });
 // The rows are larger than a pipe takes before the process exits: written to a file.
 writeFileSync('particles.json', JSON.stringify(rows));

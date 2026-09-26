@@ -1,9 +1,10 @@
 /**
  * Particles: `CPUParticles3D` nodes (compat's `<GodotCPUParticles3D>`, its simulation transcribed,
- * drawing its mesh as an `InstancedMesh`) and the `Curve` and `Gradient` resources their parameters
- * take. Their own proof (`src/evidence/proofs/scene-particles.ts`) instantiates particle systems in
- * official Godot and reads each one's multimesh buffer frame by frame, against the emitted scene
- * mounted in Node and stepped by compat's tree clock.
+ * drawing its mesh as an `InstancedMesh`), the `Curve` and `Gradient` resources their parameters
+ * take, and the `GradientTexture2D` a material samples. Their own proof
+ * (`src/evidence/proofs/scene-particles.ts`) instantiates particle systems in official Godot and
+ * reads each one's multimesh buffer frame by frame and its material back, and a gradient texture's
+ * image, against the emitted scene mounted in Node and stepped by compat's tree clock.
  */
 import {
   GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
@@ -44,6 +45,7 @@ export const GODOT_4_7_PARTICLE_RESOURCE_RULES: readonly (GodotSceneResourceRule
   [
     ['Curve', 'curve', 'godot_curve_new', 'scene/resources/curve.cpp', 41],
     ['Gradient', 'gradient', 'godot_gradient_new', 'scene/resources/gradient.cpp', 36],
+    ['GradientTexture2D', 'gradient-texture-2d', 'godot_gradient_texture_2d_new', 'scene/resources/gradient_texture.cpp', 193],
   ] as const
 ).map(([className, module, exportName, file, line]) => ({
   sourceRevision: REVISION,

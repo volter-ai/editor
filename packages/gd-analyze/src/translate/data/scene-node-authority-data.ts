@@ -272,7 +272,7 @@ export const GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',
   'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
   'packages/gd-analyze/src/translate/artifacts/plan.ts',
-  ...['cpu-particles-3d.ts', 'random-pcg.ts', 'curve.ts', 'gradient.ts', 'react-lifecycle.tsx', 'node.ts', 'node-3d.ts', 'scene-tree.ts', 'primitive-mesh.ts', 'base-material-3d.ts'].map(
+  ...['cpu-particles-3d.ts', 'random-pcg.ts', 'curve.ts', 'gradient.ts', 'gradient-texture-2d.ts', 'geometry-instance-3d.ts', 'react-lifecycle.tsx', 'node.ts', 'node-3d.ts', 'scene-tree.ts', 'primitive-mesh.ts', 'base-material-3d.ts'].map(
     (file) => `${COMPAT}/${file}`,
   ),
 ] as const;

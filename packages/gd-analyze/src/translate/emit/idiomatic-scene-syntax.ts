@@ -507,6 +507,15 @@ function sameSetter(left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSet
   return left.setter.exportName === right.setter.exportName && left.index === right.index;
 }
 
+/** A GeometryInstance3D's visibility range setters, by the `<GodotVisibilityRange>` prop each states. */
+const VISIBILITY_RANGE_PROPS: Readonly<Record<string, string>> = {
+  set_visibility_range_begin: 'begin',
+  set_visibility_range_begin_margin: 'beginMargin',
+  set_visibility_range_end: 'end',
+  set_visibility_range_end_margin: 'endMargin',
+  set_visibility_range_fade_mode: 'fadeMode',
+};
+
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
@@ -545,13 +554,20 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...[...props].map(([prop, value]) => attribute(prop, value)),
     ], children());
   }
-  // A carried family's element (`scene-family-elements.ts`).
-  const family = familyElement(emission.family, node);
+  // A carried family's element (`scene-family-elements.ts`), inside its visibility range when it has one.
+  const range = node.setters.filter((entry) => VISIBILITY_RANGE_PROPS[entry.setter.exportName] !== undefined);
+  const family = familyElement(emission.family, range.length === 0 ? node : { ...node, setters: node.setters.filter((entry) => !range.includes(entry)) });
   if (family !== undefined) {
-    return element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...family.attributes, ...nodeDataAttribute(node)], [
+    const drawn = element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...family.attributes, ...nodeDataAttribute(node)], [
       ...family.children,
       ...children(),
     ]);
+    if (range.length === 0) return drawn;
+    return element(
+      useCompat(emission, 'geometry-instance-3d', 'GodotVisibilityRange'),
+      range.map((entry) => attribute(VISIBILITY_RANGE_PROPS[entry.setter.exportName] as string, dataExpression(plainValue(entry.value)))),
+      [drawn],
+    );
   }
   switch (className) {
     case 'Node':

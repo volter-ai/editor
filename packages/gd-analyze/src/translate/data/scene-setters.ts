@@ -10,6 +10,7 @@ import type { GodotValue } from '../../read/godot-value';
 import type { GodotCodeTranslationAuthority } from '../code/authority';
 import { GodotCodeTranslationAuthorityResolver } from '../code/authority';
 import { godotOfficialSymbolKey } from '../code/bindings';
+import { GODOT_FORWARDED_SETTERS } from '../code/lower-official-bound';
 
 /** A setter's compat binding: `exportName` from `module`, imported as `localName`. */
 export interface SceneSetterBinding {
@@ -37,10 +38,6 @@ export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<
   Curve: { _limits: '_set_limits', _data: '_set_data' },
 };
 
-/** Properties whose internal setter forwards to a public method, which the write calls. */
-const FORWARDED_SETTERS: Readonly<Record<string, string>> = {
-  'Control.global_position': 'set_global_position',
-};
 const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;
 
 /**
@@ -119,11 +116,11 @@ export function sceneSetterLookup(
         break;
       }
     }
-    // A property whose setter the dump leaves out (`PROPERTY_USAGE_NONE`) and whose internal setter
-    // only forwards to a public method: `Control::_set_global_position` is
-    // `set_global_position(p_point)` (scene/gui/control.cpp:1492).
-    if (owner !== undefined && setter === undefined) {
-      const forwarded = FORWARDED_SETTERS[`${owner}.${property}`];
+    // A property whose internal setter the dump leaves out of the class's methods and which only
+    // forwards to a public method: `Control::_set_global_position` is `set_global_position(p_point)`
+    // (scene/gui/control.cpp:1492).
+    if (owner !== undefined && (setter === undefined || method(owner, setter) === undefined)) {
+      const forwarded = GODOT_FORWARDED_SETTERS[`${owner}.${property}`];
       if (forwarded !== undefined) setter = forwarded;
     }
     if (owner === undefined) {

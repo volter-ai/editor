@@ -21,7 +21,9 @@
 
 import {
   AdditiveBlending,
+  BackSide,
   type Blending,
+  DoubleSide,
   ClampToEdgeWrapping,
   FrontSide,
   LinearFilter,
@@ -31,7 +33,7 @@ import {
   RepeatWrapping,
   SRGBColorSpace,
   type Texture,
-  type Material,
+  Material,
   MeshBasicMaterial,
   MeshStandardMaterial,
   MultiplyBlending,
@@ -181,7 +183,7 @@ function apply(self: BaseMaterial3D, target: Material): void {
   target.opacity = self.transparency !== 0 ? self.albedo.a : 1;
   target.alphaTest = self.transparency === 2 ? 0.5 : 0;
   target.blending = blending(self.blend_mode);
-  target.side = FrontSide;
+  applyExtra(self, target);
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
   (target as MeshStandardMaterial).map =
     albedo === null ? null : sampledMap(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true, self.sceneUv === true);
@@ -254,6 +256,15 @@ export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
     self.texture_filter = (nearest ? 0 : 1) + (mipmapped || (map.mipmaps?.length ?? 0) <= 1 ? 2 : 0);
     self.flags[FLAG_USE_TEXTURE_REPEAT] = map.wrapS === RepeatWrapping;
   }
+  const extra = extraOf(self);
+  extra.cull_mode = target.side === BackSide ? 1 : target.side === DoubleSide ? 2 : 0;
+  const data = target.userData as Readonly<Record<string, unknown>>;
+  if (typeof data['billboard_mode'] === 'number') extra.billboard_mode = data['billboard_mode'];
+  if (data['billboard_keep_scale'] === true) self.flags[FLAG_BILLBOARD_KEEP_SCALE] = true;
+  if (data['vertex_color_use_as_albedo'] === true) self.flags[FLAG_ALBEDO_FROM_VERTEX_COLOR] = true;
+  if (data['vertex_color_is_srgb'] === true) self.flags[FLAG_SRGB_VERTEX_COLOR] = true;
+  if (data['proximity_fade_enabled'] === true) extra.proximity_fade_enabled = true;
+  if (typeof data['proximity_fade_distance'] === 'number') extra.proximity_fade_distance = f32(data['proximity_fade_distance']);
   self.sceneUv = true;
   THREE_MATERIAL.set(self, target);
   OF_THREE.set(target, self);
@@ -493,4 +504,264 @@ export function set_texture_filter(self: BaseMaterial3D, filter: number): void {
  */
 export function get_texture_filter(self: BaseMaterial3D): number {
   return self.texture_filter;
+}
+
+// --- Culling, billboards, vertex colour and proximity fade.
+
+/** `BaseMaterial3D::Flags` (`material.h:255`) this section reads. */
+const FLAG_ALBEDO_FROM_VERTEX_COLOR = 1;
+const FLAG_SRGB_VERTEX_COLOR = 2;
+const FLAG_BILLBOARD_KEEP_SCALE = 5;
+
+/** The parameters beyond the shared ones (`material.h`), at their initial values (`material.cpp:3938`). */
+interface Extra {
+  cull_mode: number;
+  billboard_mode: number;
+  particles_anim_h_frames: number;
+  particles_anim_v_frames: number;
+  particles_anim_loop: boolean;
+  proximity_fade_enabled: boolean;
+  proximity_fade_distance: number;
+}
+
+const EXTRA = new WeakMap<BaseMaterial3D, Extra>();
+
+function extraOf(self: BaseMaterial3D): Extra {
+  let extra = EXTRA.get(self);
+  if (extra === undefined) {
+    extra = {
+      cull_mode: 0,
+      billboard_mode: 0,
+      particles_anim_h_frames: 1,
+      particles_anim_v_frames: 1,
+      particles_anim_loop: false,
+      proximity_fade_enabled: false,
+      proximity_fade_distance: 1,
+    };
+    EXTRA.set(self, extra);
+  }
+  return extra;
+}
+
+/** `CULL_BACK`, `CULL_FRONT`, `CULL_DISABLED` (`material.h:296`) as three's side drawn. */
+const SIDES = [FrontSide, BackSide, DoubleSide] as const;
+
+/**
+ * The parameters beyond the shared ones onto the three material: the side the cull mode draws, the
+ * Godot-only ones in its `userData` (what a particle system reads of vertex colour), and the
+ * billboard (`godot_base_material_3d_scene_shader`). Proximity fade draws through the alpha pass
+ * (`material.cpp:1807`), three's `transparent`; its fade, which samples the scene's depth, is not
+ * drawn (`proximity-fade`, a named deviation: three gives a material no depth texture of the scene).
+ */
+function applyExtra(self: BaseMaterial3D, target: Material): void {
+  const extra = extraOf(self);
+  target.side = SIDES[extra.cull_mode] ?? FrontSide;
+  if (extra.proximity_fade_enabled) target.transparent = true;
+  Object.assign(target.userData, {
+    billboard_mode: extra.billboard_mode,
+    billboard_keep_scale: self.flags[FLAG_BILLBOARD_KEEP_SCALE] === true,
+    vertex_color_use_as_albedo: self.flags[FLAG_ALBEDO_FROM_VERTEX_COLOR] === true,
+    vertex_color_is_srgb: self.flags[FLAG_SRGB_VERTEX_COLOR] === true,
+    proximity_fade_enabled: extra.proximity_fade_enabled,
+    proximity_fade_distance: extra.proximity_fade_distance,
+  });
+  godot_base_material_3d_scene_shader(target);
+}
+
+/**
+ * The billboard modes' vertex code (`BaseMaterial3D::_update_shader`, `material.cpp:1231`) in three's
+ * `project_vertex` chunk: the model-view matrix faces the camera (`MAIN_CAM_INV_VIEW_MATRIX`'s basis
+ * at the model's origin; a particle billboard normalized and turned by the particle's angle,
+ * `INSTANCE_CUSTOM.x`, a particle system's `godotInstanceCustom`), keeping the model's scale when
+ * the flag is set. The normal matrix is not replaced (`billboard-normals`, a named deviation: a lit
+ * billboard shades with its unturned normals; the platformer's billboards are unshaded).
+ */
+function billboardChunk(mode: number, keepScale: boolean): string {
+  const model = [
+    'mat4 godotModel = modelMatrix;',
+    '#ifdef USE_INSTANCING',
+    '\tgodotModel = modelMatrix * instanceMatrix;',
+    '#endif',
+    'mat4 godotInvView = inverse( viewMatrix );',
+  ];
+  const facing =
+    mode === 3
+      ? [
+          'mat4 godotWorld = mat4( normalize( godotInvView[ 0 ] ), normalize( godotInvView[ 1 ] ), normalize( godotInvView[ 2 ] ), godotModel[ 3 ] );',
+          'godotWorld = godotWorld * mat4( vec4( cos( godotInstanceCustom.x ), -sin( godotInstanceCustom.x ), 0.0, 0.0 ), vec4( sin( godotInstanceCustom.x ), cos( godotInstanceCustom.x ), 0.0, 0.0 ), vec4( 0.0, 0.0, 1.0, 0.0 ), vec4( 0.0, 0.0, 0.0, 1.0 ) );',
+          'mat4 godotModelView = viewMatrix * godotWorld;',
+        ]
+      : mode === 2
+        ? [
+            'mat4 godotModelView = viewMatrix * mat4( vec4( normalize( cross( vec3( 0.0, 1.0, 0.0 ), godotInvView[ 2 ].xyz ) ), 0.0 ), vec4( 0.0, 1.0, 0.0, 0.0 ), vec4( normalize( cross( godotInvView[ 0 ].xyz, vec3( 0.0, 1.0, 0.0 ) ) ), 0.0 ), godotModel[ 3 ] );',
+          ]
+        : ['mat4 godotModelView = viewMatrix * mat4( godotInvView[ 0 ], godotInvView[ 1 ], godotInvView[ 2 ], godotModel[ 3 ] );'];
+  const scale = keepScale
+    ? ['godotModelView = godotModelView * mat4( vec4( length( godotModel[ 0 ].xyz ), 0.0, 0.0, 0.0 ), vec4( 0.0, length( godotModel[ 1 ].xyz ), 0.0, 0.0 ), vec4( 0.0, 0.0, length( godotModel[ 2 ].xyz ), 0.0 ), vec4( 0.0, 0.0, 0.0, 1.0 ) );']
+    : [];
+  return [...model, ...facing, ...scale, 'vec4 mvPosition = godotModelView * vec4( transformed, 1.0 );', 'gl_Position = projectionMatrix * mvPosition;'].join('\n');
+}
+
+/**
+ * The material drawn as Godot's scene shader draws its billboard and vertex colour: three's
+ * `project_vertex` replaced by the billboard mode's model-view matrix (`material.cpp:1231`), and an
+ * instanced draw's `godotInstanceColor` (a particle's `COLOR`) multiplying the albedo and its alpha
+ * where the material takes vertex colour as albedo (`albedo_tex *= COLOR`, `material.cpp:1643`).
+ * The Compatibility shader converts the product to linear (`SHADER_IS_SRGB`, `scene.glsl:2398`);
+ * three's colour is already linear, so the vertex colour is converted by the same polynomial and
+ * multiplied (`vertex-colour-linearization`, a named deviation: a product of conversions for the
+ * conversion of a product, equal for a white colour and its alpha). Particle animation frames
+ * other than one by one are not drawn (the platformer's are one by one). Returns the material.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source scene/resources/material.cpp:1231
+ */
+export function godot_base_material_3d_scene_shader<M extends Material>(target: M): M {
+  const data = target.userData as Readonly<Record<string, unknown>>;
+  const mode = typeof data['billboard_mode'] === 'number' ? data['billboard_mode'] : 0;
+  const keepScale = data['billboard_keep_scale'] === true;
+  const coloured = data['vertex_color_use_as_albedo'] === true;
+  const key = `godot-scene:${String(mode)}:${String(keepScale)}:${String(coloured)}`;
+  const plain = mode === 0 && !coloured;
+  if (target.customProgramCacheKey() === key || (plain && target.onBeforeCompile === Material.prototype.onBeforeCompile)) return target;
+  if (plain) {
+    target.onBeforeCompile = Material.prototype.onBeforeCompile;
+    target.customProgramCacheKey = Material.prototype.customProgramCacheKey;
+  } else {
+    target.onBeforeCompile = (shader) => {
+      let vertex = shader.vertexShader;
+      let fragment = shader.fragmentShader;
+      if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
+      if (coloured) {
+        vertex = `attribute vec4 godotInstanceColor;\nvarying vec4 vGodotColor;\n${vertex.replace('#include <color_vertex>', '#include <color_vertex>\nvGodotColor = vec4( 1.0 );\n#ifdef USE_INSTANCING\n\tvGodotColor = godotInstanceColor;\n#endif')}`;
+        fragment = `varying vec4 vGodotColor;\n${fragment.replace(
+          '#include <color_fragment>',
+          '#include <color_fragment>\ndiffuseColor *= vec4( vGodotColor.rgb * ( vGodotColor.rgb * ( vGodotColor.rgb * 0.305306011 + 0.682171111 ) + 0.012522878 ), vGodotColor.a );',
+        )}`;
+      }
+      shader.vertexShader = vertex;
+      shader.fragmentShader = fragment;
+    };
+    target.customProgramCacheKey = () => key;
+  }
+  target.needsUpdate = true;
+  return target;
+}
+
+/**
+ * @godot BaseMaterial3D.set_cull_mode
+ * @source scene/resources/material.cpp:2420
+ */
+export function set_cull_mode(self: BaseMaterial3D, mode: number): void {
+  extraOf(self).cull_mode = mode;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_cull_mode
+ * @source scene/resources/material.cpp:2429
+ */
+export function get_cull_mode(self: BaseMaterial3D): number {
+  return extraOf(self).cull_mode;
+}
+
+/**
+ * @godot BaseMaterial3D.set_billboard_mode
+ * @source scene/resources/material.cpp:2793
+ */
+export function set_billboard_mode(self: BaseMaterial3D, mode: number): void {
+  extraOf(self).billboard_mode = mode;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_billboard_mode
+ * @source scene/resources/material.cpp:2799
+ */
+export function get_billboard_mode(self: BaseMaterial3D): number {
+  return extraOf(self).billboard_mode;
+}
+
+/**
+ * @godot BaseMaterial3D.set_particles_anim_h_frames
+ * @source scene/resources/material.cpp:2803
+ */
+export function set_particles_anim_h_frames(self: BaseMaterial3D, frames: number): void {
+  extraOf(self).particles_anim_h_frames = frames;
+}
+
+/**
+ * @godot BaseMaterial3D.get_particles_anim_h_frames
+ * @source scene/resources/material.cpp:2808
+ */
+export function get_particles_anim_h_frames(self: BaseMaterial3D): number {
+  return extraOf(self).particles_anim_h_frames;
+}
+
+/**
+ * @godot BaseMaterial3D.set_particles_anim_v_frames
+ * @source scene/resources/material.cpp:2812
+ */
+export function set_particles_anim_v_frames(self: BaseMaterial3D, frames: number): void {
+  extraOf(self).particles_anim_v_frames = frames;
+}
+
+/**
+ * @godot BaseMaterial3D.get_particles_anim_v_frames
+ * @source scene/resources/material.cpp:2817
+ */
+export function get_particles_anim_v_frames(self: BaseMaterial3D): number {
+  return extraOf(self).particles_anim_v_frames;
+}
+
+/**
+ * @godot BaseMaterial3D.set_particles_anim_loop
+ * @source scene/resources/material.cpp:2821
+ */
+export function set_particles_anim_loop(self: BaseMaterial3D, loop: boolean): void {
+  extraOf(self).particles_anim_loop = loop;
+}
+
+/**
+ * @godot BaseMaterial3D.get_particles_anim_loop
+ * @source scene/resources/material.cpp:2826
+ */
+export function get_particles_anim_loop(self: BaseMaterial3D): boolean {
+  return extraOf(self).particles_anim_loop;
+}
+
+/**
+ * @godot BaseMaterial3D.set_proximity_fade_enabled
+ * @source scene/resources/material.cpp:3047
+ */
+export function set_proximity_fade_enabled(self: BaseMaterial3D, enabled: boolean): void {
+  extraOf(self).proximity_fade_enabled = enabled;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.is_proximity_fade_enabled
+ * @source scene/resources/material.cpp:3053
+ */
+export function is_proximity_fade_enabled(self: BaseMaterial3D): boolean {
+  return extraOf(self).proximity_fade_enabled;
+}
+
+/**
+ * At least 0.01.
+ *
+ * @godot BaseMaterial3D.set_proximity_fade_distance
+ * @source scene/resources/material.cpp:3057
+ */
+export function set_proximity_fade_distance(self: BaseMaterial3D, distance: number): void {
+  extraOf(self).proximity_fade_distance = f32(Math.max(f32(distance), f32(0.01)));
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_proximity_fade_distance
+ * @source scene/resources/material.cpp:3062
+ */
+export function get_proximity_fade_distance(self: BaseMaterial3D): number {
+  return extraOf(self).proximity_fade_distance;
 }

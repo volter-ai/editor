@@ -33,11 +33,19 @@ const CONTROL = [
   'set_mouse_filter',
   'set_force_pass_scroll_events',
 ];
+// `GeometryInstance3D`'s visibility range: `<GodotVisibilityRange>` around the node's element.
+const VISIBILITY_RANGE = [
+  'set_visibility_range_begin',
+  'set_visibility_range_begin_margin',
+  'set_visibility_range_end',
+  'set_visibility_range_end_margin',
+  'set_visibility_range_fade_mode',
+];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  MeshInstance3D: ['set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting'],
+  MeshInstance3D: ['set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', ...VISIBILITY_RANGE],
   // Shadow max distance (9), fade start (13), normal bias (14), bias (15), blur (18): `shadow-mapping`.
   DirectionalLight3D: ['set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:18', 'set_shadow_mode'],
   OmniLight3D: ['set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:18'],
@@ -71,6 +79,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_line_spacing',
     'set_autowrap_mode',
     'set_width',
+    ...VISIBILITY_RANGE,
   ],
   CPUParticles3D: [
     'set_emitting',
@@ -104,6 +113,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_param_curve:*',
     'set_particle_flag:*',
     'set_cast_shadows_setting',
+    ...VISIBILITY_RANGE,
   ],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
@@ -151,6 +161,17 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_texture:2',
     'set_texture_filter',
     'set_flag:16',
+    // Culling, vertex colour (as albedo, sRGB), the billboard and proximity fade (`base-material-3d.ts`).
+    'set_cull_mode',
+    'set_flag:1',
+    'set_flag:2',
+    'set_flag:5',
+    'set_billboard_mode',
+    'set_particles_anim_h_frames',
+    'set_particles_anim_v_frames',
+    'set_particles_anim_loop',
+    'set_proximity_fade_enabled',
+    'set_proximity_fade_distance',
   ],
   ArrayMesh: [],
   CompressedTexture2D: [],
@@ -171,6 +192,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   AudioStreamWAV: [],
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
+  GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
   AudioStreamRandomizer: ['set_playback_mode', 'set_random_pitch', 'set_random_volume_offset_db', 'set_streams_count', 'set_stream:*', 'set_stream_probability_weight:*'],
 };
 
@@ -239,7 +261,11 @@ export function godotFamilyRefusal(
       const blend = numberOf(setters, 'set_blend_mode', 0);
       if (blend > 3) return `blend_mode=${String(blend)} has no three form`;
       const shading = numberOf(setters, 'set_shading_mode', 1);
-      return shading > 1 ? `shading_mode=${String(shading)} has no three form` : undefined;
+      if (shading > 1) return `shading_mode=${String(shading)} has no three form`;
+      if (numberOf(setters, 'set_particles_anim_h_frames', 1) !== 1 || numberOf(setters, 'set_particles_anim_v_frames', 1) !== 1) {
+        return 'particle animation frames other than one by one are not drawn';
+      }
+      return undefined;
     }
     default:
       return undefined;
