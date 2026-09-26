@@ -184,9 +184,10 @@ export plays every note and controller on its exact sample (two passes of one sl
 −104 dB wherever the loop falls against the synth's 128-sample block).
 
 For a game, `add music` brings the packages, the `vgai-music` skill and a player;
-`render-piece --sections` writes each marker section as its own seamless loop at the mix's
-level (lengths exact to the frame against the report's `barSeconds`) and `--one-shot` a
-stinger. Driven in the editor page on an OfflineAudioContext, the player switched from one
+the `project.music.render` tool (and the `render-piece` CLI it shares its code with) writes
+through the project-output door, so `.vgai/provenance.json` records every file a game ships,
+with renders byte-deterministic down to the OGG; `sections` writes each marker section as its
+own seamless loop at the mix's level (lengths exact to the frame against the report's `barSeconds`) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext, the player switched from one
 section loop to the next on the bar line it computed (6.05 s, the report's bar 3 plus the
 lead), with the output equal to each loop's own samples on either side of the fade.
 
@@ -200,9 +201,6 @@ Open, with what closes each:
   sfizz on the box. Proposed, not yet measured: sfizz's WASM in both the preview's worklet and the
   export (one engine, as SpessaSynth is today), checked against a native sfizz render of the same
   notes, with a CC0 library (VSCO 2 Community Edition) so a game can ship its renders freely.
-- Renders are written by the CLI, not through the project-output door, so
-  `.vgai/provenance.json` does not record the OGGs a game ships; a render tool on the bake
-  tools' precedent closes it.
 - A section loop's audio equals its bars in the whole piece only where the synthesizer's
   state does not depend on what it played before: events match to the sample, and a pass
   preceded by the same music is bit-identical. In the probe piece, section A′ nulls against

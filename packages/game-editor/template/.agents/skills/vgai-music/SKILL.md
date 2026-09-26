@@ -133,13 +133,18 @@ Say what the numbers show; never claim how something sounds.
 
 ## Deliver to the game
 
-The game ships the piece as mastered audio, never as its code. Render it into the game's
-public folder:
+The game ships the piece as mastered audio, never as its code. Render it with the project's
+render tool, which writes into `public/music/<piece>/` and records every file it writes in
+`.vgai/provenance.json`:
 
 ```bash
-npx tsx node_modules/@volter/editor-dawproject/scripts/render-piece.ts . src/music/theme.tsx --out public/music/theme --sections
-npx tsx node_modules/@volter/editor-dawproject/scripts/render-piece.ts . src/music/victory.tsx --out public/music/victory --one-shot
+npm run --silent vgai -- eval 'return await tools.run("project.music.render", { piece: "src/music/theme.tsx", sections: true }, { confirm: true })'
+npm run --silent vgai -- eval 'return await tools.run("project.music.render", { piece: "src/music/victory.tsx", oneShot: true }, { confirm: true })'
 ```
+
+The answer's `data.report` is the render's `report.json`. For a draft you only want to measure,
+`npx tsx node_modules/@volter/editor-dawproject/scripts/render-piece.ts . src/music/theme.tsx --out out/theme`
+renders the same files outside `public/`, unrecorded.
 
 - The folder gets the whole piece as a seamless loop (`theme.ogg`; `theme.wav` carries a
   `smpl` loop), `sections/<marker>.ogg` with `--sections` (each section its own seamless loop,
