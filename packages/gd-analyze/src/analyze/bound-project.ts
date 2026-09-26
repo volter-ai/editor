@@ -525,7 +525,15 @@ function boundDocuments(
   };
 }
 
-function refuseDecodedDiagnostics(diagnostics: readonly Diagnostic[]): void {
+/**
+ * A reader ERROR (a missing file, an unreadable document) refuses the project here. A reader
+ * WARNING is a fact translation must discharge where it is used: an opaque asset format is copied
+ * or converted by the family that references it, and a model instanced as a scene is planned by
+ * its node family. Translation refuses at that use when no family plans it; a warning never
+ * disappears silently, because the read product carries it into the bound project.
+ */
+function refuseDecodedDiagnostics(all: readonly Diagnostic[]): void {
+  const diagnostics = all.filter((diagnostic) => diagnostic.severity === 'error');
   if (diagnostics.length === 0) return;
   throw new Error(
     diagnostics
