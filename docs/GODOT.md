@@ -230,6 +230,25 @@ unrounded `cos`) produce 23 mismatches and write nothing. One finding: GDScript'
 generator merges `-0.0` into an earlier `0.0` constant in the same function
 (`gdscript_byte_codegen.h:107`), so each case runs in its own function.
 
+## Scene structure
+
+What a `.tscn` says about structure, independent of any node class, lowers as follows. Each row
+is one evidenced rule, measured by building the same scene in official Godot and in the generated
+component:
+
+- **An instanced scene** (`instance=ExtResource(...)`) is that scene's generated component used as
+  a JSX element (`<MobScene />`), the prefab form. Properties authored on the instance root are
+  the component's props. Children authored under it are its children. Editable-children overrides
+  deeper in the instance refuse until their own rule lands.
+- **Groups** are data handed to compat's Node protocol at the composition site
+  (`add_to_group` on mount, in authored order); the protocol owns group queries.
+- **NodePath properties** (an exported `@export var target: Node3D` set in the scene) resolve at
+  the composition site to the referenced node's native entity, passed to the script instance.
+- **Authored sibling order** is JSX order.
+- **Property values** convert by type: a built-in value becomes its compat record through
+  `construct`, and a resource becomes its planned native object. A native property's value goes
+  through the property rule of its node family.
+
 ## Node families
 
 A scene node becomes native JSX in the generated scene component. The JSX element is its native
