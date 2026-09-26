@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/float"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "float",
+        "member": "OP_MULTIPLY",
+        "kind": "builtin-operator",
+        "signature": "right:Vector3"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/float",
+        "exportName": "op_multiply",
+        "localName": "float_op_multiply",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-float.OP_MULTIPLY.right:Vector3"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "float",
+        "member": "OP_MULTIPLY",
+        "kind": "builtin-operator",
+        "signature": "right:Vector2"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/float",
+        "exportName": "op_multiply",
+        "localName": "float_op_multiply",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-float.OP_MULTIPLY.right:Vector2"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-float.OP_MULTIPLY.right:Vector3",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000float\u0000OP_MULTIPLY\u0000right:Vector3",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_op.cpp",
+        "sourceSymbol": "float.OP_MULTIPLY",
+        "sourceLine": 269
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "571cc10bf8ea5c20116e9e2d0f34a6f1f8997e4f8ef094a9e9aede6ea0681c83",
+        "callsite": "res://probe.gd _init() op_multiply-vector3-0.1-zero op_multiply-vector3-0.1-down op_multiply-vector3-0.1-decimals op_multiply-vector3-0.1-negative op_multiply-vector3-0.1-subnormal op_multiply-vector3-0.1-large op_multiply-vector3-0.1-negative-zero op_multiply-vector3--3.0-zero op_multiply-vector3--3.0-down op_multiply-vector3--3.0-decimals op_multiply-vector3--3.0-negative op_multiply-vector3--3.0-subnormal op_multiply-vector3--3.0-large op_multiply-vector3--3.0-negative-zero op_multiply-vector3-0.0-zero op_multiply-vector3-0.0-down op_multiply-vector3-0.0-decimals op_multiply-vector3-0.0-negative op_multiply-vector3-0.0-subnormal op_multiply-vector3-0.0-large op_multiply-vector3-0.0-negative-zero op_multiply-vector3--0.0-zero op_multiply-vector3--0.0-down op_multiply-vector3--0.0-decimals op_multiply-vector3--0.0-negative op_multiply-vector3--0.0-subnormal op_multiply-vector3--0.0-large op_multiply-vector3--0.0-negative-zero op_multiply-vector3-1e+30-zero op_multiply-vector3-1e+30-down op_multiply-vector3-1e+30-decimals op_multiply-vector3-1e+30-negative op_multiply-vector3-1e+30-subnormal op_multiply-vector3-1e+30-large op_multiply-vector3-1e+30-negative-zero op_multiply-vector3-1e+39-zero op_multiply-vector3-1e+39-down op_multiply-vector3-1e+39-decimals op_multiply-vector3-1e+39-negative op_multiply-vector3-1e+39-subnormal op_multiply-vector3-1e+39-large op_multiply-vector3-1e+39-negative-zero op_multiply-vector3-14.0-zero op_multiply-vector3-14.0-down op_multiply-vector3-14.0-decimals op_multiply-vector3-14.0-negative op_multiply-vector3-14.0-subnormal op_multiply-vector3-14.0-large op_multiply-vector3-14.0-negative-zero op_multiply-vector3-9.8-zero op_multiply-vector3-9.8-down op_multiply-vector3-9.8-decimals op_multiply-vector3-9.8-negative op_multiply-vector3-9.8-subnormal op_multiply-vector3-9.8-large op_multiply-vector3-9.8-negative-zero op_multiply-vector3-16777217.5-zero op_multiply-vector3-16777217.5-down op_multiply-vector3-16777217.5-decimals op_multiply-vector3-16777217.5-negative op_multiply-vector3-16777217.5-subnormal op_multiply-vector3-16777217.5-large op_multiply-vector3-16777217.5-negative-zero op_multiply-vector3-INF-zero op_multiply-vector3-INF-down op_multiply-vector3-INF-decimals op_multiply-vector3-INF-negative op_multiply-vector3-INF-subnormal op_multiply-vector3-INF-large op_multiply-vector3-INF-negative-zero op_multiply-vector3-NAN-zero op_multiply-vector3-NAN-down op_multiply-vector3-NAN-decimals op_multiply-vector3-NAN-negative op_multiply-vector3-NAN-subnormal op_multiply-vector3-NAN-large op_multiply-vector3-NAN-negative-zero",
+        "observedOutputSha256": "f039c51849bfce85bef3e753c1b91d2598839ea8ca65de95e450a8e92c2b141d"
+      },
+      "target": {
+        "implementationSha256": "12cb583a1ed9725e6191e0994f7cdc152002cdc3984e2d447d6a3e55e1bba7de",
+        "callsite": "lib/godot-compat/float.ts op_multiply",
+        "observedOutputSha256": "f039c51849bfce85bef3e753c1b91d2598839ea8ca65de95e450a8e92c2b141d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3aea0ed3a72810c604f2cecb9028b39b8235c37caf7902e02d731bfeb29d9937"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "float",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-float.OP_MULTIPLY.right:Vector2",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000float\u0000OP_MULTIPLY\u0000right:Vector2",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_op.cpp",
+        "sourceSymbol": "float.OP_MULTIPLY",
+        "sourceLine": 269
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "11bbf6608142d935c1bb254e389447f2252ebd67ed523acfb0d26ce15d750fc8",
+        "callsite": "res://probe.gd _init() op_multiply-vector2-0.1-zero op_multiply-vector2-0.1-down op_multiply-vector2-0.1-decimals op_multiply-vector2-0.1-negative op_multiply-vector2-0.1-subnormal op_multiply-vector2-0.1-large op_multiply-vector2-0.1-negative-zero op_multiply-vector2--3.0-zero op_multiply-vector2--3.0-down op_multiply-vector2--3.0-decimals op_multiply-vector2--3.0-negative op_multiply-vector2--3.0-subnormal op_multiply-vector2--3.0-large op_multiply-vector2--3.0-negative-zero op_multiply-vector2-0.0-zero op_multiply-vector2-0.0-down op_multiply-vector2-0.0-decimals op_multiply-vector2-0.0-negative op_multiply-vector2-0.0-subnormal op_multiply-vector2-0.0-large op_multiply-vector2-0.0-negative-zero op_multiply-vector2--0.0-zero op_multiply-vector2--0.0-down op_multiply-vector2--0.0-decimals op_multiply-vector2--0.0-negative op_multiply-vector2--0.0-subnormal op_multiply-vector2--0.0-large op_multiply-vector2--0.0-negative-zero op_multiply-vector2-1e+30-zero op_multiply-vector2-1e+30-down op_multiply-vector2-1e+30-decimals op_multiply-vector2-1e+30-negative op_multiply-vector2-1e+30-subnormal op_multiply-vector2-1e+30-large op_multiply-vector2-1e+30-negative-zero op_multiply-vector2-1e+39-zero op_multiply-vector2-1e+39-down op_multiply-vector2-1e+39-decimals op_multiply-vector2-1e+39-negative op_multiply-vector2-1e+39-subnormal op_multiply-vector2-1e+39-large op_multiply-vector2-1e+39-negative-zero op_multiply-vector2-14.0-zero op_multiply-vector2-14.0-down op_multiply-vector2-14.0-decimals op_multiply-vector2-14.0-negative op_multiply-vector2-14.0-subnormal op_multiply-vector2-14.0-large op_multiply-vector2-14.0-negative-zero op_multiply-vector2-9.8-zero op_multiply-vector2-9.8-down op_multiply-vector2-9.8-decimals op_multiply-vector2-9.8-negative op_multiply-vector2-9.8-subnormal op_multiply-vector2-9.8-large op_multiply-vector2-9.8-negative-zero op_multiply-vector2-16777217.5-zero op_multiply-vector2-16777217.5-down op_multiply-vector2-16777217.5-decimals op_multiply-vector2-16777217.5-negative op_multiply-vector2-16777217.5-subnormal op_multiply-vector2-16777217.5-large op_multiply-vector2-16777217.5-negative-zero op_multiply-vector2-INF-zero op_multiply-vector2-INF-down op_multiply-vector2-INF-decimals op_multiply-vector2-INF-negative op_multiply-vector2-INF-subnormal op_multiply-vector2-INF-large op_multiply-vector2-INF-negative-zero op_multiply-vector2-NAN-zero op_multiply-vector2-NAN-down op_multiply-vector2-NAN-decimals op_multiply-vector2-NAN-negative op_multiply-vector2-NAN-subnormal op_multiply-vector2-NAN-large op_multiply-vector2-NAN-negative-zero",
+        "observedOutputSha256": "fa81f708b9817a1b59cba21bd9a426a13d7d01441c3aa3d06e9637b8d7dbba05"
+      },
+      "target": {
+        "implementationSha256": "12cb583a1ed9725e6191e0994f7cdc152002cdc3984e2d447d6a3e55e1bba7de",
+        "callsite": "lib/godot-compat/float.ts op_multiply",
+        "observedOutputSha256": "fa81f708b9817a1b59cba21bd9a426a13d7d01441c3aa3d06e9637b8d7dbba05"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "93f7c54dd072698f69363b3b861b4fa41b7666b7198f3f1ed8de30658f8b91ec"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "float",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-float.OP_MULTIPLY.right:Vector3",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "571cc10bf8ea5c20116e9e2d0f34a6f1f8997e4f8ef094a9e9aede6ea0681c83",
+      "implementationSha256": "12cb583a1ed9725e6191e0994f7cdc152002cdc3984e2d447d6a3e55e1bba7de"
+    },
+    {
+      "claimId": "godot-4.7-binding-float.OP_MULTIPLY.right:Vector2",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "11bbf6608142d935c1bb254e389447f2252ebd67ed523acfb0d26ce15d750fc8",
+      "implementationSha256": "12cb583a1ed9725e6191e0994f7cdc152002cdc3984e2d447d6a3e55e1bba7de"
+    }
+  ]
+}
