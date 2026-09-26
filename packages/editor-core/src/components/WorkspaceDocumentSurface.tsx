@@ -12,6 +12,7 @@ import {
 } from '@volter/editor-sdk/kit/document-viewports';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
+import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
 import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,
@@ -114,6 +115,10 @@ export function WorkspaceDocumentSurface({
   const placesStage = chrome && stage !== null && stage !== undefined && !backdrop;
   // The transform tools alone move to the bar; a document's own shelf stays on its rail.
   const toolsOnBar = placesStage && stageChrome.bar !== 'none' && stageChrome.tools !== 'shelf';
+  // The rail's own switch (`EditorWorkspaceRegions.shelf`), which `DocumentShelfRail` also reads.
+  const shelfHidden = useSyncExternalStore(subscribeChromeRegions, chromeRegionsKey, chromeRegionsKey).includes(
+    'shelf:hidden',
+  );
   const transformTools =
     driver === 'none' || !TransformTools ? null : (
       <Suspense fallback={null}>
@@ -153,7 +158,7 @@ export function WorkspaceDocumentSurface({
         data-vgai-stage-tools={placesStage && driver !== 'none' ? stageChrome.tools : undefined}
         // Whether the shelf rail draws anything, so a control placed at the stage's left edge
         // (Godot's view pill) stands past it only when it is there.
-        data-vgai-stage-rail={chrome && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
+        data-vgai-stage-rail={chrome && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
         {/* THE STAGE'S BAR, when the look draws one: only its band; the controls it carries
