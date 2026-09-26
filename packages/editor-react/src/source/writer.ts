@@ -1721,13 +1721,11 @@ export function insertChildElement(
   tag = 'div',
   snippet?: string,
 ): StructEditResult {
-  const closingTagStart = closingTagStartOf(code, parentStart);
-  if (closingTagStart == null) return { code, changed: false };
+  const tagEnd = findTagEnd(code, parentStart);
+  if (tagEnd < 0) return { code, changed: false };
   let parentLineStart = parentStart;
   while (parentLineStart > 0 && code[parentLineStart - 1] !== '\n') parentLineStart--;
   const parentIndent = code.slice(parentLineStart, parentStart).match(/^(\s*)/)?.[1] ?? '';
-  let insertPos = closingTagStart;
-  while (insertPos > 0 && code[insertPos - 1] !== '\n') insertPos--;
   const childIndent = `${parentIndent}  `;
   let child: string;
   if (snippet !== undefined) {
@@ -1739,6 +1737,26 @@ export function insertChildElement(
       .join('\n')}\n`;
   } else {
     child = `${childIndent}<${tag} />\n`;
+  }
+  // A self-closing parent (`<Transport tempo={92} />`) has no children yet: it opens, takes the
+  // child, and closes on its own line. Walking back to a `<` from its end would find the parent's
+  // OWN tag and put the child beside it.
+  if (code[tagEnd - 1] === '/') {
+    const name = code.slice(parentStart + 1, tagEnd).match(/^([A-Za-z0-9_.$:-]+)/)?.[1];
+    if (!name) return { code, changed: false };
+    let open = tagEnd - 1;
+    while (open > parentStart && /\s/.test(code[open - 1] ?? '')) open--;
+    const opened = `${code.slice(0, open)}>\n${child}${parentIndent}</${name}>`;
+    return { code: opened + code.slice(tagEnd + 1), changed: true };
+  }
+  const closingTagStart = closingTagStartOf(code, parentStart);
+  if (closingTagStart == null) return { code, changed: false };
+  // The child goes on its own line before the closing tag: at that line's start when the closing
+  // tag begins its line, else (a one-line parent, `<Clip>…</Clip>`) broken onto a new line there.
+  let insertPos = closingTagStart;
+  while (insertPos > 0 && (code[insertPos - 1] === ' ' || code[insertPos - 1] === '\t')) insertPos--;
+  if (insertPos > 0 && code[insertPos - 1] !== '\n') {
+    return { code: `${code.slice(0, closingTagStart)}\n${child}${parentIndent}${code.slice(closingTagStart)}`, changed: true };
   }
   return { code: code.slice(0, insertPos) + child + code.slice(insertPos), changed: true };
 }
