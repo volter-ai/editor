@@ -134,10 +134,12 @@ Remaining:
    (three's 50° vertical, the three-quarter view, its own axis colours for the compass); the grid's
    and axes' colours were already the look's. Measured: the Blender stage opens unchanged, and
    the game editor's Unity, Godot and Unreal views read 60, 70 and 72.3 (90 horizontal) degrees.
-   Remaining in unit 3: the SDK's `surfaces.Object3D*` stay on the
-   contribution contract, forwarding to what the Three integration registers, because project
-   contributions mount them (the authored viewport's own door, `viewport-door`, is already
-   `@volter/editor-threejs`'s). The workbench's stage and panel chords stand down on the Game
+   The Object3D contribution types are Three's own API (`@volter/editor-threejs/object3d-contributions`),
+   which adds `Object3DPreview` and `Object3DAuthoring` to `ToolContributionSurfaces`; the SDK
+   imports nothing from three. The surfaces stay on the contribution props, registered by name in
+   the kit's medium-neutral `contribution-surfaces`, because a project's contributions live in the
+   project's graph and cannot import the editor's components. Walked: a `.blend` Model document
+   mounts through the registered surface. The workbench's stage and panel chords stand down on the Game
    document (`vgai.document.kind != 'game'`): a W held in Play had run `transform.translate`,
    which refused and warned into every Play log. The Scene's W still sets translate through the
    workbench's own keybinding (walked through the document door on the regenerated keymap: W and E

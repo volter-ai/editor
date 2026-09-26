@@ -94,9 +94,9 @@ Rules:
   names gameplay sessions and play, and taking the rest out is an inversion per use.
 - The Three viewport is `@volter/editor-threejs`'s (unit 3): no module in `@volter/editor-core`
   imports three.js or `@volter/editor-threejs`, and Pixi's story and canvas captures are
-  `@volter/editor-game`'s. The kit's one remaining media edge is the contribution
-  contract's Object3D surface props in `@volter/editor-sdk/contributions` (project contributions
-  compile against them). The TypeScript compiler still runs over project source in 6 kit modules,
+  `@volter/editor-game`'s. The kit imports no three.js: the Object3D surface props are
+  `@volter/editor-threejs/object3d-contributions`, which adds its surfaces to the contribution
+  contract, and the kit forwards surfaces by name (`kit/contribution-surfaces`). The TypeScript compiler still runs over project source in 6 kit modules,
   and the Play purpose lives here too (`gameplay-*`, `play-boot-phase`, `reported-play-state`,
   `scoped-game-css`, the game globals shadow, `play-stall`).
 - On the code side, gameplay modules import nothing of the editor, and the standalone boot

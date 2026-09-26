@@ -114,8 +114,8 @@ viewport migration is one reviewable unit with these obligations:
 | Blender lens, opening direction, grid, axis compass and handle presentation inside that file | Blender's specialization of the Three viewport |
 | `StageHost.tsx`, `Object3DDocumentSession`, Three stage registries and dressing | Three document/view implementation; generic occurrence attachment remains core-owned |
 | `EditorShellStore` camera, native scene/object map, rendering and transform state | Three evaluation/view owners; do not inject the whole shell store into the extracted viewport |
-| SDK `Object3DAuthoring`, `Object3DPreview`, `ViewportRig` and native helper contracts | Three's public API; migrate callers and remove core factory/forwarding doors |
-| `ToolContributionSurfaces` lazy Three factories | Remove; Blender and other Three consumers import Three's exports directly |
+| SDK `Object3DAuthoring`, `Object3DPreview`, `ViewportRig` and native helper contracts | Three's public API (`@volter/editor-threejs/object3d-contributions`); the SDK imports no three |
+| `ToolContributionSurfaces` lazy Three factories | Three registers its surfaces by name in the kit's neutral `contribution-surfaces`; they stay on the props because project contributions cannot import editor components |
 | Game authoring chrome, Play transitions and gameplay defaults | Game's integration/product; not the shared Three viewport or Blender |
 
 Retain useful shared rendering/capture exports. Do not move whole host files

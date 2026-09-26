@@ -27,16 +27,6 @@ Completion:
 - Unreal's remaining differences (a faint floor shadow, a hard floor-sky line, thin Move shafts) are closed or named as limits.
 - Blender's Rendered mode and Unreal's capability row are accepted, and the world stage is seen on a project with a world.
 
-## architecture-plan: The architecture plan's remaining units
-
-Status: active
-[ARCHITECTURE.md](ARCHITECTURE.md) §The plan: the model editor rename and the frozen reverse-edge baseline are
-done (`@volter/model-editor`; `release/boundary-baseline.json`); the Three viewport has left the kit for
-`@volter/editor-threejs` and no kit module imports three, Blender's viewport defaults are `@volter/editor-blender`'s specialization (the stage's camera is the view's), and Blender is walked as its first consumer
-(`WORK.md` lists what remains of unit 3).
-Completion:
-- The SDK's Object3D and viewport doors are Three's own exports.
-
 ## game-editor-gaps: The game editor's remaining walks and gates
 
 Status: active
