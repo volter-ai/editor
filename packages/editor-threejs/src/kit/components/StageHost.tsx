@@ -122,6 +122,7 @@ import {
   startingPresentation,
   subscribeViewportPresentation,
   viewPresentation,
+  viewPresentationSnapshot,
   type ViewportDrawMode,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { subscribeEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
@@ -1630,10 +1631,10 @@ export function Object3DDocumentViewport({
                 ? { all: { lighting: { source: 'scene' } } }
                 : null,
         );
-        // THE DRAW MODE IS ONE FACT IN TWO PLACES, kept equal: the session draws it and keeps it,
-        // and the view's presentation resolves its per-mode lighting by it. The session's is written
-        // first, so binding never changes what is drawn; a shading cell changes the session and the
-        // view follows; a named view changes the view and the session follows. Modes the view does
+        // THE DRAW MODE IS ONE FACT IN TWO PLACES, kept equal: the session draws it, and the view's
+        // presentation resolves its per-mode lighting by it and persists it. A shading cell changes
+        // the session and the view follows; a named view or a restored view changes the view and
+        // the session follows. Modes the view does
         // not carry (UV, vertex colours) change only the session.
         const viewModes = new Set<string>(VIEW_DRAW_MODES);
         const sessionToView = (): void => {
@@ -1642,7 +1643,12 @@ export function Object3DDocumentViewport({
           if (viewPresentation(documentId).drawMode !== mode)
             setViewPresentation(documentId, { drawMode: mode as ViewportDrawMode });
         };
-        sessionToView();
+        // A draw mode the person chose and the view restored is theirs: the session takes it. Only
+        // a view with no such choice is given the session's.
+        const restoredMode = viewPresentationSnapshot(documentId).drawMode;
+        if (restoredMode !== undefined && viewModes.has(restoredMode) && host.session)
+          host.session.setMode(restoredMode);
+        else sessionToView();
         const stopSessionMode = host.session?.subscribe(sessionToView);
         const stopViewMode = subscribeViewportPresentation(() => {
           const session = host.session;

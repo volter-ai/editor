@@ -150,7 +150,8 @@ export function Object3DDocumentToolbar({
   // mode (Blender's Solid, Material Preview and Rendered each keep theirs), else every mode's.
   const perMode = binding ? stageLightsPerMode(binding.stageKind) : false;
   const lightingChoice = (choice: NonNullable<NonNullable<PresentationLayer['all']>['lighting']>): PresentationLayer =>
-    perMode ? { modes: { [presentation.mode]: { lighting: choice } } } : { all: { lighting: choice } };
+    // Keyed by the mode the view resolves its lighting by (UV and vertex colours draw under it).
+    perMode ? { modes: { [viewPresentation(documentId).drawMode]: { lighting: choice } } } : { all: { lighting: choice } };
   // THE MODES THE STAGE LIGHTS ITS OWN WAY, which are the cells it draws (`perModeShadingSegments`).
   const declaredModes = new Set(
     Object.entries(starting?.modes ?? {})

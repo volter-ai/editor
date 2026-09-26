@@ -24,7 +24,11 @@ import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
 import { editorHost } from '@volter/editor-sdk/host';
 import { entityObject3D } from './entity-object';
 import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
-import { setViewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/kit/viewport-presentation';
+import {
+  setViewGridVisible,
+  startingPresentation,
+  viewPresentationBinding,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { threeStoreForHost } from './three-state';
 import { threeStateOf } from './three-state';
 
@@ -235,6 +239,19 @@ export const viewportCommands: CommandContribution['commands'] = {
   }),
   'set-shading-mode': verb((store, cmd) => {
     const documentSession = activeObject3DDocumentSession();
+    // `preview` and `rendered` are lit as a stage says (Blender's Material Preview and Rendered);
+    // where no stage says, they would draw as Solid under another name.
+    const mode = cmd['mode'];
+    if (mode === 'preview' || mode === 'rendered') {
+      const documentId = activeWorkspaceDocumentId();
+      const stageKind = documentId ? viewPresentationBinding(documentId)?.stageKind : undefined;
+      if (!documentSession || !stageKind || startingPresentation(stageKind)?.modes?.[mode]?.lighting === undefined) {
+        return {
+          ok: false,
+          error: `Shading mode "${mode}" is lit as a stage says, and the active document's stage says nothing for it.`,
+        };
+      }
+    }
     if (documentSession) documentSession.setMode(cmd['mode'] as ShadingMode);
     else store.setShadingMode(cmd['mode'] as ShadingMode);
     return OK;

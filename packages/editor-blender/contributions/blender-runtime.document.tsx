@@ -222,7 +222,7 @@ function BlenderModelViewport({
   }, [documentId]);
   /**
    * BLENDER'S RENDERED SHADING IS THE SCENE'S OWN LIGHT. When this stage's view lights by the
-   * `scene` (the Lighting row's Scene, or the Rendered view), the presenter holds the viewport
+   * `scene` (the Rendered shading cell, or the Lighting row's Scene), the presenter holds the viewport
    * in the lighting its render photographs with (`BlenderRuntimeView.holdRendered`): the
    * scene's lights, its World, `hide_render` and shadows, through the camera the stage draws
    * with, re-applied from the stage's frame loop when that camera or the World changes. Any

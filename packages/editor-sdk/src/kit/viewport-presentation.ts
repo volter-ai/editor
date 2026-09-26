@@ -370,8 +370,12 @@ export function viewPresets(): readonly ViewPreset[] {
 export function applyViewPreset(viewId: string, presetId: string): boolean {
   const preset = viewPresetsById.get(presetId);
   if (!preset) return false;
-  resetViewPresentation(viewId);
-  setViewPresentation(viewId, preset.layer);
+  // ONE write, so no listener sees the choices emptied in between; and a view that does not choose
+  // a draw mode keeps the one being drawn, rather than falling back to the kit's.
+  const current = views.get(viewId) ?? { stageKind: '', documentLayer: null, chosen: {} };
+  const drawMode = preset.layer.drawMode ?? current.chosen.drawMode;
+  views.set(viewId, { ...current, chosen: { ...preset.layer, ...(drawMode ? { drawMode } : {}) } });
+  bump();
   return true;
 }
 

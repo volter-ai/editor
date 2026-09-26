@@ -1,6 +1,6 @@
 # Blender's factory 3D-viewport shading, read from the installed Blender (docs/VIEWPORT-STAGE.md).
 #   Blender -b --factory-startup --python docs/reference-probes/blender-view3d-shading.py
-# Prints the Material Preview defaults the editor's `blender-material-preview` view transcribes:
+# Prints the Material Preview defaults the Blender stage's `preview` mode transcribes (`@volter/editor-blender` `src/presentation.ts`):
 # studio light, its strength and rotation, World Opacity and blur, World Space Lighting, and
 # whether scene lights and the scene world are used.
 import bpy
