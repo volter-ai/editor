@@ -97,6 +97,9 @@ export interface KeyChord {
   readonly key: string;
   readonly code?: string;
   readonly mod?: boolean;
+  /** The Control key itself on every platform, macOS included (Blender's Ctrl), where `mod`
+   *  would be ⌘. */
+  readonly ctrl?: boolean;
   readonly shift?: boolean;
   readonly alt?: boolean;
 }

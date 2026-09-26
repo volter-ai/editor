@@ -28,6 +28,8 @@ export interface HotkeyBinding {
   code?: string;
   /** Require Ctrl (Win/Linux) or Cmd (Mac). */
   mod?: boolean;
+  /** Require the Control key itself, on every platform. */
+  ctrl?: boolean;
   /** Require Shift. */
   shift?: boolean;
   /** Require Alt/Option (D4 — `wrap`'s `Ctrl+Alt+G`). */

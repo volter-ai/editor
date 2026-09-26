@@ -2009,6 +2009,33 @@ export class EditorViewport {
     const up = new THREE.Vector3(0, 1, 0);
     const viewX = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
     const viewZ = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+    const viewUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+    // A step ends a gizmo turn and any leftover inertia, and is a whole gesture to whoever
+    // follows the view (a camera lock writes it).
+    this._snapAnimating = false;
+    const pending = this.orbitControls as unknown as { _sphericalDelta: THREE.Spherical; _panOffset: THREE.Vector3 };
+    pending._sphericalDelta.set(0, 0, 0);
+    pending._panOffset.set(0, 0, 0);
+    this.orbitControls.dispatchEvent({ type: 'start' });
+    // The opposite of an axis view is the opposite axis at the same roll
+    // (`ED_view3d_axis_view_opposite`, `view_axis_roll` carried), which a turn about the up
+    // cannot reach from Top or Bottom.
+    if (step === 'opposite' && axisViewName(viewZ, viewUp) !== null) {
+      const axisUp = (direction: THREE.Vector3): THREE.Vector3 =>
+        direction.y > 0.5 ? new THREE.Vector3(0, 0, -1) : direction.y < -0.5 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+      const from = viewZ.clone().round();
+      const to = from.clone().negate();
+      const roll = axisUp(from).angleTo(viewUp) * Math.sign(axisUp(from).cross(viewUp).dot(from) || 1);
+      const rolledUp = axisUp(to).applyAxisAngle(to, roll);
+      const rotation = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(to, new THREE.Vector3(), rolledUp));
+      const distance = camera.position.distanceTo(target);
+      camera.quaternion.copy(rotation);
+      camera.position.copy(target).addScaledVector(to, distance);
+      camera.up.copy(rolledUp);
+      this.orbitControls.update();
+      this.orbitControls.dispatchEvent({ type: 'end' });
+      return;
+    }
     const turn = new THREE.Quaternion();
     switch (step) {
       case 'orbit-left':
@@ -2039,6 +2066,7 @@ export class EditorViewport {
     camera.position.copy(target).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance);
     camera.up.set(0, 1, 0).applyQuaternion(rotation);
     this.orbitControls.update();
+    this.orbitControls.dispatchEvent({ type: 'end' });
   }
 
   /** One turntable step of `dx`, `dy` CSS pixels (right and down positive). */

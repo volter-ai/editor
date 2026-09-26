@@ -354,7 +354,8 @@ function keyCodeFor(chord, KeyCode) {
 /**
  * `key` is the default (and Windows/Linux) binding; `mac` is the same chord with ⌘ where the
  * table says `mod`. That IS what `mod` means — `KeyMod.CtrlCmd`, which U6 translated the same
- * way — and it is why a chord without `mod` needs no `mac` at all.
+ * way — and it is why a chord without `mod` needs no `mac` at all. `ctrl` is the Control key
+ * itself (`KeyMod.WinCtrl`), the same on every platform.
  */
 function keybindingStrings(chord, apis) {
 	const keyCode = keyCodeFor(chord, apis.KeyCode);
@@ -364,8 +365,9 @@ function keybindingStrings(chord, apis) {
 	const tail = [];
 	if (chord.shift) { tail.push('shift'); }
 	if (chord.alt) { tail.push('alt'); }
-	const key = [...(chord.mod ? ['ctrl'] : []), ...tail, name].join('+');
-	const mac = chord.mod ? [...tail, 'cmd', name].join('+') : undefined;
+	const control = chord.mod || chord.ctrl;
+	const key = [...(control ? ['ctrl'] : []), ...tail, name].join('+');
+	const mac = chord.mod ? [...(chord.ctrl ? ['ctrl'] : []), ...tail, 'cmd', name].join('+') : undefined;
 	// PROVE the strings, with VS Code's own parser: what we wrote has to mean what the chord
 	// means, modifier for modifier and key for key. Nothing here is emitted on faith.
 	const check = (text, expectCtrl, expectMeta) => {
@@ -374,8 +376,8 @@ function keybindingStrings(chord, apis) {
 		return !!one && one.keyCode === keyCode && one.ctrlKey === expectCtrl && one.shiftKey === !!chord.shift
 			&& one.altKey === !!chord.alt && one.metaKey === expectMeta;
 	};
-	if (!check(key, !!chord.mod, false)) { return null; }
-	if (mac !== undefined && !check(mac, false, true)) { return null; }
+	if (!check(key, !!control, false)) { return null; }
+	if (mac !== undefined && !check(mac, !!chord.ctrl, true)) { return null; }
 	return mac === undefined ? { key } : { key, mac };
 }
 

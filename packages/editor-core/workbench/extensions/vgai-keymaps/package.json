@@ -76,10 +76,10 @@
 		],
 		"rules": 93,
 		"sources": {
-			"packages/editor-sdk/src/kit/keymap-presets.ts": "52b02cab8a2d4ff652fca1dfe1f15783c6a07491f17a32a6bcbc33058f2ae2dc",
+			"packages/editor-sdk/src/kit/keymap-presets.ts": "6c58e39b7e8c2303743cb8d505f329b4f472ad4d7b8b3c9c1d71c7ab1e290743",
 			"packages/editor-core/src/editor-hotkeys.ts": "2a05e31762620b0cf734310744c95db38a1912d4f084605296aca335f31c2d89",
 			"packages/editor-threejs/src/kit/viewport-hotkeys.ts": "7841f00f64c7ce51126d0c6e7ebc96d81bf02d747e428aaa703e7d3fac8b1a2c",
-			"packages/editor-blender/contributions/blender.keymap.ts": "b90ec336d515b4d26ec2f919388a27b9b2a907e5b0f24249e8c2dda7fdcd49d8"
+			"packages/editor-blender/contributions/blender.keymap.ts": "3ec8a2cf4011cdfc866d450b90125c4ccdeabd7f16de84e204099790ec1c3cbc"
 		}
 	},
 	"contributes": {
@@ -519,19 +519,16 @@
 			{
 				"command": "vgai.view.bottom",
 				"key": "ctrl+NumPad7",
-				"mac": "cmd+NumPad7",
 				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.keymap == 'blender'"
 			},
 			{
 				"command": "vgai.view.back",
 				"key": "ctrl+NumPad1",
-				"mac": "cmd+NumPad1",
 				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.keymap == 'blender'"
 			},
 			{
 				"command": "vgai.view.left",
 				"key": "ctrl+NumPad3",
-				"mac": "cmd+NumPad3",
 				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.keymap == 'blender'"
 			},
 			{

@@ -40,11 +40,10 @@ export const keymap: KeymapContribution = {
     'view.projection': [{ key: '', code: 'Numpad5' }],
     // `km_view3d` — `view3d.view_axis` with Ctrl for the opposite side, `view3d.view_orbit` on
     // NUMPAD_2/4/6/8 (15°, `pad_rot_angle`) and NUMPAD_9 (π), `view3d.view_roll` on Shift+4/6.
-    // Blender's Ctrl is the Control key on every platform; a chord's `mod` is Control off macOS
-    // and ⌘ on it, which has no Control-key form here.
-    'view.back': [{ key: '', code: 'Numpad1', mod: true }],
-    'view.left': [{ key: '', code: 'Numpad3', mod: true }],
-    'view.bottom': [{ key: '', code: 'Numpad7', mod: true }],
+    // Blender's Ctrl is the Control key on every platform, macOS included (`ctrl`, not `mod`).
+    'view.back': [{ key: '', code: 'Numpad1', ctrl: true }],
+    'view.left': [{ key: '', code: 'Numpad3', ctrl: true }],
+    'view.bottom': [{ key: '', code: 'Numpad7', ctrl: true }],
     'view.orbitLeft': [{ key: '', code: 'Numpad4' }],
     'view.orbitRight': [{ key: '', code: 'Numpad6' }],
     'view.orbitUp': [{ key: '', code: 'Numpad8' }],

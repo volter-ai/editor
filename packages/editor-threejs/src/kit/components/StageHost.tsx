@@ -2164,8 +2164,9 @@ export function Object3DDocumentViewport({
                   host.session?.toggleCameraView();
                   break;
                 case 'step-view':
-                  // A camera view's orbit is the lock's to make (Blender cancels it otherwise).
-                  if (host.session?.cameraView()) break;
+                  // In a camera view only the lock orbits, moving the camera (Blender cancels
+                  // it otherwise).
+                  if (host.session?.cameraView() && !host.session.cameraViewLocked()) break;
                   viewport.stepView(action.step);
                   break;
                 case 'toggle-projection': {

@@ -403,6 +403,7 @@ export function formatChord(chord: KeyChord): string {
     return `${mod}${chord.alt ? '⌥' : ''}${chord.shift ? '⇧' : ''}${label}`;
   }
   const parts: string[] = [];
+  if (chord.ctrl) parts.push('Ctrl');
   if (chord.alt) parts.push('Alt');
   if (chord.shift) parts.push('Shift');
   parts.push(label);
