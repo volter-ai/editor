@@ -27,6 +27,9 @@ export interface LivePiece {
 
 let importCounter = 0;
 
+/** How long a source revision waits for its module change before re-mounting on its own. */
+const REVISION_FALLBACK_MS = 1500;
+
 async function importPiece(file: string): Promise<ComponentType> {
   const url = projectModuleUrl(file);
   if (!url) throw new Error(`This host serves no address for ${file}.`);
@@ -70,14 +73,27 @@ export function useLivePiece(file: string): LivePiece {
     load();
     // Any saved project module may be one the piece imports (a helper, a shared chord table),
     // so every save re-mounts; the renderer diffs, so an unchanged piece commits nothing new.
-    const unsubscribeChanges = subscribeProjectModuleChange(() => load());
+    // This is the signal that re-mounts: it arrives once the server has stamped the changed
+    // module's importers stale, so the re-import evaluates the helper's new code too.
+    let fallback: ReturnType<typeof setTimeout> | undefined;
+    const unsubscribeChanges = subscribeProjectModuleChange(() => {
+      clearTimeout(fallback);
+      load();
+    });
     // The session's source revisions, over the collaboration stream: every edit by anyone
-    // (the agent, another participant, this document) advances it. Subscribing also keeps this
+    // (the agent, another participant, this document) advances it. Subscribing keeps this
     // page's write attribution at the current revision, so a gesture after the agent's last edit
-    // is not refused as stale.
-    const unsubscribeRevisions = subscribeCollaborationRevision(() => load());
+    // is not refused as stale. A revision arrives before the module change it causes (measured
+    // on a note drag: 19 ms after the write, the module change 93 ms later); re-mounting on it
+    // too mounted every edit twice, the first against the helpers' stale copies. It re-mounts
+    // only when no module change follows, as when the HMR socket has dropped.
+    const unsubscribeRevisions = subscribeCollaborationRevision(() => {
+      clearTimeout(fallback);
+      fallback = setTimeout(load, REVISION_FALLBACK_MS);
+    });
     return () => {
       disposed = true;
+      clearTimeout(fallback);
       unsubscribeChanges();
       unsubscribeRevisions();
       unsubscribeRoot();
