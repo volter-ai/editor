@@ -114,8 +114,9 @@ only what you were asked to, and leave their edits where they put them.
 When the person asks for another take on part of the music ("try the bridge melody another
 way"), change only that region and offer choices rather than replacing their version: write each
 alternative as a copy of the track (`Flute (alt 2)`) with `mute` on its channel, holding only
-the region you were asked about. They compare in the mixer by soloing one track at a time,
-and keep one; then fold the kept notes back into the original track and delete the copies.
+the region you were asked about. They compare in context by swapping mutes in the mixer
+(mute the original, unmute one alternative) and keep one; then fold the kept notes back into
+the original track and delete the copies.
 Two or three alternatives that differ in one clear way each (contour, rhythm, register) are
 worth more than many that differ a little.
 
