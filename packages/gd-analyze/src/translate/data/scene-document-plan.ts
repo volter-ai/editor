@@ -1736,7 +1736,9 @@ const AXIS_LOCKS = [1, 2, 4, 8, 16, 32].map((axis) => `set_axis_lock:${String(ax
  */
 export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Node: [],
-  Node3D: [],
+  // A Node3D's `visible` is three's own (`node_3d.cpp:1120`); a body's has no Rapier prop, and a
+  // collision shape mounts no object to hide.
+  Node3D: ['set_visible'],
   StaticBody3D: [...COLLISION_OBJECT_SETTERS, 'set_physics_material_override'],
   RigidBody3D: [
     ...COLLISION_OBJECT_SETTERS,
@@ -1768,8 +1770,8 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
   ],
   Area3D: [...COLLISION_OBJECT_SETTERS, 'set_monitoring'],
   CollisionShape3D: ['set_shape', 'set_disabled'],
-  RayCast3D: ['set_enabled', 'set_target_position', 'set_collision_mask', 'set_exclude_parent_body', 'set_collide_with_areas'],
-  Marker3D: ['set_gizmo_extents'],
+  RayCast3D: ['set_visible', 'set_enabled', 'set_target_position', 'set_collision_mask', 'set_exclude_parent_body', 'set_collide_with_areas'],
+  Marker3D: ['set_visible', 'set_gizmo_extents'],
 };
 const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   BoxShape3D: ['set_size'],

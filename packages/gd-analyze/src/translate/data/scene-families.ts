@@ -41,16 +41,21 @@ const VISIBILITY_RANGE = [
   'set_visibility_range_end_margin',
   'set_visibility_range_fade_mode',
 ];
+// A Node3D's `visible` (`node_3d.cpp:1120`): three's own `visible`, which hides the subtree as
+// Godot's visibility in the tree does.
+const NODE_3D = ['set_visible'];
+// A GeometryInstance3D's `transparency`: stored, never drawn by the web's renderer (`geometry-instance-3d.ts`).
+const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency'];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  MeshInstance3D: ['set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
+  MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
   // Shadow max distance (9), fade start (13), normal bias (14), bias (15), blur (18): `shadow-mapping`.
-  DirectionalLight3D: ['set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:18', 'set_shadow_mode'],
-  OmniLight3D: ['set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:18'],
+  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:18', 'set_shadow_mode'],
+  OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
-  Camera3D: ['set_current'],
+  Camera3D: [...NODE_3D, 'set_current'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
@@ -61,6 +66,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Sprite2D: [...NODE_2D, 'set_texture', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v', 'set_hframes', 'set_vframes', 'set_frame'],
   TouchScreenButton: [...NODE_2D, 'set_texture_normal', 'set_texture_pressed', 'set_passby_press', 'set_action', 'set_visibility_mode'],
   Label3D: [
+    ...GEOMETRY_INSTANCE_3D,
     'set_meta:*',
     'set_pixel_size',
     'set_offset',
@@ -82,6 +88,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     ...VISIBILITY_RANGE,
   ],
   CPUParticles3D: [
+    ...GEOMETRY_INSTANCE_3D,
     'set_emitting',
     'set_amount',
     'set_lifetime',
@@ -117,6 +124,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   // `<GodotDecal>`, which draws nothing as the web export's Compatibility renderer (`decal.ts`).
   Decal: [
+    ...NODE_3D,
     'set_size',
     'set_texture:*',
     'set_emission_energy',
@@ -153,6 +161,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
   GridMap: [
+    ...NODE_3D,
     'set_meta:*',
     'set_mesh_library',
     'set_cell_size',
@@ -193,6 +202,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_callback_mode_discrete',
   ],
   AudioStreamPlayer3D: [
+    ...NODE_3D,
     ...AUDIO_PLAYER,
     'set_attenuation_model',
     'set_unit_size',

@@ -397,14 +397,18 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
 /**
  * A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`; a
  * MeshInstance3D's `skeleton` path, which draws nothing on the unskinned meshes a scene carries
- * (`MeshInstance3D::_resolve_skeleton_path`, mesh_instance_3d.cpp:184; skinned surfaces refuse).
+ * (`MeshInstance3D::_resolve_skeleton_path`, mesh_instance_3d.cpp:184; skinned surfaces refuse); a
+ * GeometryInstance3D's `transparency`.
  */
 function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const skeleton = setterValue(node.setters, 'set_skeleton_path');
+  // A GeometryInstance3D's `transparency`, which the web's renderer never draws (`geometry-instance-3d.ts`).
+  const transparency = setterValue(node.setters, 'set_transparency');
   return {
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
     ...(node.unique === true ? { unique_name_in_owner: true } : {}),
     ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),
+    ...(transparency?.kind === 'number' ? { transparency: transparency.value } : {}),
   };
 }
 
@@ -419,6 +423,22 @@ function componentProp(entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute 
   const camel = entry.propertyName.replace(/_([a-z])/gu, (_, letter: string) => letter.toUpperCase());
   const value = plainValue(entry.value);
   return attribute(camel, dataExpression(value));
+}
+
+/** The setters every Node3D element states the same way: `visible` (three's), `transparency` (`userData`'s). */
+const SPATIAL_SETTERS = new Set(['set_visible', 'set_transparency']);
+
+/** A Node3D's authored `visible`, as three's own prop, which hides the subtree as Godot does (`node_3d.cpp:1120`). */
+function visibleProp(setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
+  const visible = setterValue(setters, 'set_visible');
+  return visible?.kind === 'bool' ? [attribute('visible', { kind: 'literal-expression', value: visible.value })] : [];
+}
+
+/** A node with the setters `SPATIAL_SETTERS` states taken out, for the element's own props. */
+function withoutSpatial(node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan {
+  return node.setters.some((entry) => SPATIAL_SETTERS.has(entry.setter.exportName))
+    ? { ...node, setters: node.setters.filter((entry) => !SPATIAL_SETTERS.has(entry.setter.exportName)) }
+    : node;
 }
 
 /** An instanced scene's root as its prefab element, with the instance's overrides as props. */
@@ -437,7 +457,10 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     ...ownData,
     ...(ownData['groups'] === undefined ? {} : { groups: [...new Set([...((rootData['groups'] ?? []) as string[]), ...(ownData['groups'] as string[])])] }),
   };
-  const familyProps = node.setters.length > 0 ? familyInstanceProps(emission.family, rootClass, node, instanced.root.setters) : undefined;
+  // `visible` is the root element's three prop; `transparency` its `userData`'s.
+  const stated = withoutSpatial(node);
+  overrides.push(...visibleProp(node.setters));
+  const familyProps = stated.setters.length > 0 ? familyInstanceProps(emission.family, rootClass, stated, instanced.root.setters) : undefined;
   if (familyProps !== undefined) {
     overrides.push(...familyProps);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
@@ -452,7 +475,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
       if (JSON.stringify(own.get(prop)) !== JSON.stringify(value)) overrides.push(attribute(prop, value));
     }
   } else {
-    if (node.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
+    if (stated.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
   }
   const children = node.children.map((child) => nodeElement(emission, child));
@@ -576,11 +599,13 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...[...props].map(([prop, value]) => attribute(prop, value)),
     ], children());
   }
+  const visible = visibleProp(node.setters);
+  const own = withoutSpatial(node);
   // A carried family's element (`scene-family-elements.ts`), inside its visibility range when it has one.
-  const range = node.setters.filter((entry) => VISIBILITY_RANGE_PROPS[entry.setter.exportName] !== undefined);
-  const family = familyElement(emission.family, range.length === 0 ? node : { ...node, setters: node.setters.filter((entry) => !range.includes(entry)) });
+  const range = own.setters.filter((entry) => VISIBILITY_RANGE_PROPS[entry.setter.exportName] !== undefined);
+  const family = familyElement(emission.family, range.length === 0 ? own : { ...own, setters: own.setters.filter((entry) => !range.includes(entry)) });
   if (family !== undefined) {
-    const drawn = element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...family.attributes, ...nodeDataAttribute(node)], [
+    const drawn = element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...visible, ...family.attributes, ...nodeDataAttribute(node)], [
       ...family.children,
       ...children(),
     ]);
@@ -596,15 +621,15 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       useCompat(emission, 'react-lifecycle', 'GodotNode');
       return element('GodotNode', [name, ...nodeRef(emission, node, 'Group'), ...nodeDataAttribute(node)], children());
     case 'Node3D':
-      return element('group', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...nodeDataAttribute(node)], children());
+      return element('group', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...visible, ...nodeDataAttribute(node)], children());
     case 'CollisionShape3D':
       return collider(emission, node, name, transform, at);
     case 'RayCast3D':
       useCompat(emission, 'ray-cast-3d', 'GodotRayCast3D');
-      return element('GodotRayCast3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...node.setters.map(componentProp), ...nodeDataAttribute(node)], children());
+      return element('GodotRayCast3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...visible, ...own.setters.map(componentProp), ...nodeDataAttribute(node)], children());
     case 'Marker3D':
       useCompat(emission, 'marker-3d', 'GodotMarker3D');
-      return element('GodotMarker3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...node.setters.map(componentProp), ...nodeDataAttribute(node)], children());
+      return element('GodotMarker3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...visible, ...own.setters.map(componentProp), ...nodeDataAttribute(node)], children());
     default:
       throw new Error(`${at}: ${className} has no idiomatic element`);
   }

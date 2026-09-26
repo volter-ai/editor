@@ -33,13 +33,14 @@ export function set_layer_mask(self: Object3D, mask: number): void {
 }
 
 /**
- * Layer 1 until set (`visual_instance_3d.h:44`).
+ * Layer 1 until set (`visual_instance_3d.h:44`); a scene's element states its mask as three's
+ * `layers`, which this reads back until a script sets it.
  *
  * @godot VisualInstance3D.get_layer_mask
  * @source scene/3d/visual_instance_3d.cpp:135
  */
 export function get_layer_mask(self: Object3D): number {
-  return LAYERS.get(self) ?? 1;
+  return LAYERS.get(self) ?? self.layers.mask >>> 0;
 }
 
 /** An axis-aligned box as `AABB` holds it. */

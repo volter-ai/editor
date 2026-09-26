@@ -33,6 +33,7 @@ import {
   mountGodotScriptForest,
   mountGodotScriptTree,
 } from './node';
+import { set_visible } from './node-3d';
 import { set_meta } from './object';
 import { godot_tree_root } from './scene-tree';
 import { godot_world_3d_declared_object } from './world-3d';
@@ -324,7 +325,8 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
         for (const [name, entry] of Object.entries(value as Readonly<Record<string, unknown>>)) set_meta(made, name, entry);
         continue;
       }
-      const set = element.props.get(property);
+      // A Node3D's `visible`, which every spatial class inherits (`node_3d.cpp:1120`).
+      const set = element.props.get(property) ?? (property === 'visible' && element.classes.includes('Node3D') ? set_visible : undefined);
       if (set === undefined) throw new Error(`godot-compat: ${element.classes[0] ?? 'a node'} has no ${property} prop`);
       (set as (entity: Entity, value: unknown) => void)(made, value);
     }

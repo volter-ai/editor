@@ -75,7 +75,9 @@ export function set_transparency(self: object, transparency: number): void {
  * @source scene/3d/visual_instance_3d.cpp:248
  */
 export function get_transparency(self: object): number {
-  return TRANSPARENCY.get(self) ?? 0;
+  // A scene states it in the node's `userData` (0 until set, `visual_instance_3d.h:134`).
+  const stated = (self as Partial<Object3D>).userData?.['transparency'];
+  return TRANSPARENCY.get(self) ?? (typeof stated === 'number' ? stated : 0);
 }
 
 // --- Visibility range: `RendererSceneCull::_visibility_range_check`, as the Compatibility renderer draws it.
