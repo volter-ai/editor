@@ -48,7 +48,9 @@ export function set_cast_shadows_setting(self: Object3D, setting: number): void 
  * @source scene/3d/visual_instance_3d.cpp:379
  */
 export function get_cast_shadows_setting(self: Object3D): number {
-  return SETTING.get(self) ?? (self.castShadow ? 1 : 0);
+  // A scene states the setting in the node's `userData` beside three's `castShadow`.
+  const stated = self.userData['cast_shadow'];
+  return SETTING.get(self) ?? (typeof stated === 'number' ? stated : self.castShadow ? 1 : 0);
 }
 
 // --- Transparency: stored, and drawn as the web's renderer draws it.
@@ -66,8 +68,13 @@ const TRANSPARENCY = new WeakMap<object, number>();
  * @source scene/3d/visual_instance_3d.cpp:242
  */
 export function set_transparency(self: object, transparency: number): void {
+  TRANSPARENCY.set(self, stored(transparency));
+}
+
+/** A transparency as the node's `float` holds it, clamped (`visual_instance_3d.cpp:243`). */
+function stored(transparency: number): number {
   const value = Math.fround(transparency);
-  TRANSPARENCY.set(self, Number.isNaN(value) ? value : Math.min(Math.max(value, 0), 1));
+  return Number.isNaN(value) ? value : Math.min(Math.max(value, 0), 1);
 }
 
 /**
@@ -77,7 +84,7 @@ export function set_transparency(self: object, transparency: number): void {
 export function get_transparency(self: object): number {
   // A scene states it in the node's `userData` (0 until set, `visual_instance_3d.h:134`).
   const stated = (self as Partial<Object3D>).userData?.['transparency'];
-  return TRANSPARENCY.get(self) ?? (typeof stated === 'number' ? stated : 0);
+  return TRANSPARENCY.get(self) ?? (typeof stated === 'number' ? stored(stated) : 0);
 }
 
 // --- Visibility range: `RendererSceneCull::_visibility_range_check`, as the Compatibility renderer draws it.

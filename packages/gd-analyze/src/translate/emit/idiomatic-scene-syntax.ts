@@ -398,17 +398,20 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
  * A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`; a
  * MeshInstance3D's `skeleton` path, which draws nothing on the unskinned meshes a scene carries
  * (`MeshInstance3D::_resolve_skeleton_path`, mesh_instance_3d.cpp:184; skinned surfaces refuse); a
- * GeometryInstance3D's `transparency`.
+ * GeometryInstance3D's `transparency` and shadow casting setting.
  */
 function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const skeleton = setterValue(node.setters, 'set_skeleton_path');
   // A GeometryInstance3D's `transparency`, which the web's renderer never draws (`geometry-instance-3d.ts`).
   const transparency = setterValue(node.setters, 'set_transparency');
+  // Its shadow casting setting, which three's `castShadow` holds only as on or off.
+  const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
   return {
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
     ...(node.unique === true ? { unique_name_in_owner: true } : {}),
     ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),
     ...(transparency?.kind === 'number' ? { transparency: transparency.value } : {}),
+    ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
   };
 }
 

@@ -43,6 +43,23 @@ for (const value of [0.25, 1.5, -0.5, 1]) {
     return G.get_transparency(n);
   });
 }
+// A scene's instance: its transparency and casting setting in `userData` (casting also as three's
+// `castShadow`), as the idiomatic scene states them.
+for (const value of [0.3, 1.5]) {
+  c.add(`scene-transparency-${String(value)}`, 'get_transparency', ['var n := MeshInstance3D.new()', `n.transparency = ${gd(value)}`, 'return n.get_transparency()'], () => {
+    const n = mounted();
+    n.userData = { transparency: value };
+    return G.get_transparency(n);
+  });
+}
+for (const setting of [0, 2, 3]) {
+  c.add(`scene-cast_shadow-${String(setting)}`, 'get_cast_shadows_setting', ['var n := MeshInstance3D.new()', `n.cast_shadow = ${String(setting)}`, 'return n.get_cast_shadows_setting()'], () => {
+    const n = mounted();
+    n.castShadow = setting !== 0;
+    n.userData = { cast_shadow: setting };
+    return G.get_cast_shadows_setting(n);
+  });
+}
 c.add('get_transparency-default', 'get_transparency', ['return MeshInstance3D.new().get_transparency()'], () => G.get_transparency(mounted()));
 c.cases.push({
   id: 'three-set_transparency-material',

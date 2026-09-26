@@ -13,6 +13,12 @@ for (const mask of [2, 1048575, 0]) {
     return V.get_layer_mask(n);
   });
 }
+// A scene's instance: its mask as three's `layers`, as the idiomatic scene states it.
+c.add('scene-layers-5', 'get_layer_mask', ['var n := MeshInstance3D.new()', 'n.layers = 5', 'return n.get_layer_mask()'], () => {
+  const n = new Mesh();
+  n.layers.mask = 5;
+  return V.get_layer_mask(n);
+});
 // A Label3D's layout box, in the tree (its update is deferred to the next frame).
 const EVIDENCE: GodotEvidenceCaseFile = { kind: 'node', godotClass: 'VisualInstance3D', compatModule: 'lib/godot-compat/visual-instance-3d', cases: [...c.cases.map((entry) => ({ ...entry, gdscript: entry.gdscript.includes('return') ? entry.gdscript : `return ${entry.gdscript}` })), ...LABEL3D_AABB_CASES] };
 export default EVIDENCE;
