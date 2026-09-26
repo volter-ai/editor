@@ -28,6 +28,9 @@ import {
 import type { ObservationBinding } from '@volter/editor-project/adapter/binding';
 import { adapterInputBinding, adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
 import { observedGameAudio } from '../services/game-audio';
+import { observedRapierPhysics, rapierContextFor } from '../services/game-physics';
+import { projectDependencyNames, projectVerbFacts } from '../coverage/live-project-verbs';
+import type * as THREE from 'three';
 import type { NativeSystemsBinding } from '@volter/editor-project/adapter/native-entry-surface';
 
 const ADAPTER_REGISTRATION_ID = '__adapter__';
@@ -68,6 +71,37 @@ function withObservedAudio(game: Game, bindings: NativeSystemsBinding[]): Native
     const own = bindings.find((binding) => binding.rootId === root.id);
     return { rootId: root.id, slots: { ...own?.slots, audio: observedGameAudio }, absent: own?.absent ?? [] };
   });
+}
+
+/** The libraries whose presence says a project simulates Rapier physics. */
+const RAPIER_LIBRARIES = ['@react-three/rapier', '@dimforge/rapier3d-compat'];
+
+/**
+ * A three world that declares no physics, and whose own mount carries none, is edited through
+ * the editor's observer of its `@react-three/rapier` world (`services/game-physics.ts`) when the
+ * world has one: a `<Physics>` already mounted, or a project that ships Rapier (its provider
+ * mounts only once the WASM loads). A world with neither gets nothing that pretends. While the
+ * project's dependency list is still loading (`projectVerbFacts` starts that read) the answer is
+ * unknown, not no, so the observer is attached; it answers `unresolved` until a world mounts.
+ */
+function withObservedPhysics(game: Game, bindings: NativeSystemsBinding[]): NativeSystemsBinding[] {
+  projectVerbFacts();
+  const dependencies = projectDependencyNames();
+  const shipsRapier = dependencies === null || dependencies.some((name) => RAPIER_LIBRARIES.includes(name));
+  const out = [...bindings];
+  for (const root of game.roots) {
+    if (root.mounted.kind !== 'three' || root.mounted.systems?.physics) continue;
+    const index = out.findIndex((binding) => binding.rootId === root.id);
+    const own = index >= 0 ? out[index] : undefined;
+    if (own && (own.slots.physics || own.absent.some((slot) => slot.slot === 'physics'))) continue;
+    const scene = root.mounted.scene as THREE.Object3D;
+    if (!shipsRapier && !rapierContextFor(scene)) continue;
+    const physics = observedRapierPhysics(scene);
+    const binding: NativeSystemsBinding = { rootId: root.id, slots: { ...own?.slots, physics }, absent: own?.absent ?? [] };
+    if (index >= 0) out[index] = binding;
+    else out.push(binding);
+  }
+  return out;
 }
 
 function installObservations(
@@ -293,7 +327,7 @@ function installInput(game: Game, registry: DebugRegistry, binding: AdapterInput
 export function installAdapterRuntimeBindings(game: Game): void {
   if (installedGames.has(game)) return;
   installNativeDebugBindings(game, entryBindings(game, 'entryDebug'));
-  installNativeSystemsBindings(game, withObservedAudio(game, entryBindings(game, 'entrySystems')));
+  installNativeSystemsBindings(game, withObservedPhysics(game, withObservedAudio(game, entryBindings(game, 'entrySystems'))));
   // The engine's universal instruments (time scale, pause/frame-step,
   // collider draw, frame time) — HOST-published, so every game gets them for
   // zero lines and no in-world mount. The disposer is deliberately dropped:

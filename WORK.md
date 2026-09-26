@@ -150,8 +150,13 @@ Remaining:
    files), the template's `validate-asset-content.ts` (the input-map schema) and dev aliases,
    and `arena` (vgai-engine's `examples/arena`), whose mount, `react-root`, input manager and
    `<RapierPhysicsBridge>` are the framework's. The framework retires only after `arena` no
-   longer mounts through it, and `arena`'s physics needs what audio now has: the editor
-   observing a game's own `@react-three/rapier` world for the freeze/commit a drag needs.
+   longer mounts through it. Its physics no longer needs the bridge: the editor finds a game's
+   own `<Physics>` world in the project Fiber's root registry (`services/game-physics.ts`,
+   through the R3F doorway) and answers ownership and freeze/commit from it for a `three` root
+   that declares no physics (walked on `arena` with the bridge and its physics system removed:
+   during Play, EnemyBody's transform reads "Moves the physics body that owns this node.", with
+   no console error). Not walked: a drag visibly holding a body, since `arena`'s moving bodies are
+   kinematic and driven by its own code.
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:

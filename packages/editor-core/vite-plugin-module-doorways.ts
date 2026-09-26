@@ -181,7 +181,8 @@
  * The three lane's original doorway, and the pattern the canvas and
  * three-ingest ones were transcribed from: the R3F entry adjudicator, plus
  * `projectThree` for the same reason `projectPixi` exists on the canvas
- * doorway.
+ * doorway, and `r3fRoots` — the project Fiber's own root registry, where the
+ * editor finds a game's `<Physics>` world (`editor-game/src/services/game-physics.ts`).
  *
  * ## Why the module BODY is exported (`doorwayModuleSource`)
  *
@@ -270,7 +271,7 @@ export const R3F_DOORWAY: ModuleDoorway = {
     { from: 'react', names: ['createElement'] },
     {
       from: '@react-three/fiber',
-      names: ['createRoot as createR3FRoot', 'extend as extendThree'],
+      names: ['createRoot as createR3FRoot', 'extend as extendThree', '_roots as r3fRoots'],
     },
   ],
 };
