@@ -26,7 +26,7 @@
 import RAPIER, { type Collider, type RigidBody, type World } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_shape_3d_declare, godot_collision_shape_3d_of } from './collision-shape-3d';
-import { godot_node_entity, godot_node_is_freed, godot_node_object, is_inside_tree } from './node';
+import { godot_node_class_reader, godot_node_entity, godot_node_is_freed, godot_node_object, is_inside_tree } from './node';
 import { get_global_transform, get_transform } from './node-3d';
 import { godot_physics_material_computed, type PhysicsMaterial } from './physics-material';
 import { godot_shape_3d_collider } from './shape-3d';
@@ -137,6 +137,11 @@ export function godot_collision_objects_reset(): void {
   ENTITY_OF_COLLIDER.clear();
   DECLARED.clear();
 }
+
+const STATIC_BODY_3D = Object.freeze(['StaticBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object']);
+
+// A declared body's class is its collision object kind's.
+godot_node_class_reader((entity) => (DECLARED.has(entity) && OBJECT.get(entity)?.kind === 'static' ? STATIC_BODY_3D : undefined));
 
 /** A declared body's Godot class, by its Rapier body type: a fixed body is a StaticBody3D. */
 function declaredKind(body: RigidBody): CollisionObjectKind {

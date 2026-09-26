@@ -267,10 +267,48 @@ export function godot_as_script(value: unknown, script: abstract new (...args: n
   return object !== null && objectOf(object) instanceof script ? value : null;
 }
 
-/** The recorded Godot classes of an object's native entity; an unrecorded object is an error. */
+const CLASS_READERS: ((entity: object) => readonly string[] | undefined)[] = [];
+
+/**
+ * Registers a module's reading of the Godot class (with its ancestry) of a node the scene's JSX
+ * declares without recording one: the physics bodies and colliders `@react-three/rapier` mounts.
+ *
+ * @godot Node (protocol)
+ * @source core/object/class_db.cpp:307
+ */
+export function godot_node_class_reader(reader: (entity: object) => readonly string[] | undefined): void {
+  if (!CLASS_READERS.includes(reader)) CLASS_READERS.push(reader);
+}
+
+const CAMERA_3D = Object.freeze(['Camera3D', 'Node3D', 'Node', 'Object']);
+const DIRECTIONAL_LIGHT_3D = Object.freeze(['DirectionalLight3D', 'Light3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
+const MESH_INSTANCE_3D = Object.freeze(['MeshInstance3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
+const NODE_3D = Object.freeze(['Node3D', 'Node', 'Object']);
+
+/**
+ * A node's Godot classes: the ones its composition recorded, else the ones its JSX states, read
+ * from the three object it mounts (a named camera, directional light or mesh, else a Node3D) or
+ * from a module's reader.
+ */
+function nodeClasses(entity: object): readonly string[] | undefined {
+  const recorded = NODE.get(entity)?.classes;
+  if (recorded !== undefined) return recorded;
+  for (const reader of CLASS_READERS) {
+    const read = reader(entity);
+    if (read !== undefined) return read;
+  }
+  const three = entity as { readonly isObject3D?: boolean; readonly isCamera?: boolean; readonly isDirectionalLight?: boolean; readonly isMesh?: boolean };
+  if (three.isObject3D !== true || nameOf(entity) === '') return undefined;
+  if (three.isCamera === true) return CAMERA_3D;
+  if (three.isDirectionalLight === true) return DIRECTIONAL_LIGHT_3D;
+  if (three.isMesh === true) return MESH_INSTANCE_3D;
+  return NODE_3D;
+}
+
+/** The Godot classes of an object's native entity; one with none is an error. */
 function classesOf(object: object, test: string): readonly string[] {
   const entity = NATIVE_OF_OWNER.get(object) ?? object;
-  const classes = NODE.get(entity)?.classes;
+  const classes = nodeClasses(entity);
   if (classes === undefined) {
     throw new Error(`godot-compat: '${test}' needs the Godot class of an object the scene did not record.`);
   }
@@ -554,7 +592,7 @@ export function godot_node_duplicate_state(className: string, copy: (from: objec
  */
 function duplicateEntity(source: object, flags: number): object {
   const state = NODE.get(source);
-  const classes = state?.classes;
+  const classes = nodeClasses(source);
   if (state === undefined || classes === undefined) {
     throw new Error('godot-compat: Node.duplicate needs the Godot class of a node the scene did not record.');
   }

@@ -11,7 +11,7 @@
 
 import { type Collider, type Cuboid, ShapeType } from '@dimforge/rapier3d-compat';
 import { construct as box, set_size } from './box-shape-3d';
-import { godot_node_entity } from './node';
+import { godot_node_class_reader, godot_node_entity } from './node';
 import { construct as vector3 } from './vector3';
 
 interface ShapeState {
@@ -41,6 +41,11 @@ export function godot_collision_shape_3d_adopt(entity: object): void {
   stateOf(entity);
 }
 
+/** The colliders the scene's JSX declares: CollisionShape3D nodes. */
+const DECLARED = new WeakSet<object>();
+const COLLISION_SHAPE_3D = Object.freeze(['CollisionShape3D', 'Node3D', 'Node', 'Object']);
+godot_node_class_reader((entity) => (DECLARED.has(entity) ? COLLISION_SHAPE_3D : undefined));
+
 /**
  * Registers a collider the scene's JSX declares as a CollisionShape3D, its shape the Godot shape
  * the collider holds: a cuboid is a BoxShape3D of twice its half extents (`BoxShape3D` hands the
@@ -51,6 +56,7 @@ export function godot_collision_shape_3d_adopt(entity: object): void {
  */
 export function godot_collision_shape_3d_declare(entity: object, collider: Collider): void {
   if (SHAPE.has(entity)) return;
+  DECLARED.add(entity);
   if (collider.shape.type !== ShapeType.Cuboid) {
     throw new Error(`godot-compat: a declared collider of Rapier shape ${String(collider.shape.type)} has no Godot shape yet.`);
   }

@@ -162,8 +162,10 @@ const LIFECYCLE_METHODS = [
  * Attaches a script to the node its ref holds: the script instance over the mounted Object3D, its
  * authored exported values (`SceneState::instantiate` sets them after the instance exists,
  * packed_scene.cpp:494), and its virtual methods (the ones the script or its base scripts define)
- * registered with the Node protocol, which calls them on the SceneTree's clock. At project startup
- * the enclosing startup transaction enters the tree; a node mounted later enters at once.
+ * registered with the Node protocol, which calls them on the SceneTree's clock. `autoloads` are
+ * the autoload singletons the script reads, each by its field, as the refs the world mounts them
+ * into. At project startup the enclosing startup transaction enters the tree; a node mounted
+ * later enters at once.
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:494
@@ -172,6 +174,7 @@ export function useGodotScript<Instance extends object>(
   ref: RefObject<object | null>,
   Script: new (native: object) => Instance,
   exported?: Partial<Instance>,
+  autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
 ): void {
   const startup = useContext(GodotStartupContext);
   useLayoutEffect(() => {
@@ -179,6 +182,11 @@ export function useGodotScript<Instance extends object>(
     if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
     const instance = new Script(native);
     if (exported !== undefined) Object.assign(instance, exported);
+    for (const [field, singleton] of Object.entries(autoloads ?? {})) {
+      const value = singleton?.current;
+      if (value === null || value === undefined) throw new Error(`godot-compat: the autoload ${field} reads was not mounted.`);
+      (instance as Record<string, unknown>)[field] = value;
+    }
     const methods = instance as unknown as Readonly<Record<string, unknown>>;
     const slots: Record<string, unknown> = {};
     for (const [slot, name] of LIFECYCLE_METHODS) {

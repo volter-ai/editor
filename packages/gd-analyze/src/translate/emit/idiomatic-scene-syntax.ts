@@ -23,6 +23,7 @@ import type {
   TargetTsJsxElementShape,
   TargetTsSourceFile,
   TargetTsStatement,
+  TargetTsType,
 } from '../code/target-ts-syntax';
 import { TARGET_TS_SYNTAX_VERSION } from '../code/target-ts-syntax';
 import type {
@@ -31,6 +32,7 @@ import type {
   DirectGodotSceneNodePlan,
 } from '../data/direct-project-composition-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
+import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
 
 const f32 = Math.fround;
 
@@ -132,6 +134,8 @@ interface Emission {
   readonly scripts: Map<string, { readonly local: string; readonly module: string; readonly exportName: string }>;
   readonly hooks: TargetTsStatement[];
   readonly refNames: Set<string>;
+  /** The scene's autoload context (`<Scene>Autoloads`), when its scripts read autoloads. */
+  readonly autoloads: string | undefined;
   /** The Camera3D Godot makes current: the authored current one, else the first in tree order. */
   currentCamera: string | undefined;
 }
@@ -239,7 +243,7 @@ function scriptAttachment(emission: Emission, node: DirectGodotSceneNodePlan, th
         arguments: [
           { kind: 'identifier-expression', name: refName },
           { kind: 'identifier-expression', name: local },
-          ...(script.fields.length === 0
+          ...(script.fields.length === 0 && script.autoloadReferences.length === 0
             ? []
             : [
                 {
@@ -247,6 +251,22 @@ function scriptAttachment(emission: Emission, node: DirectGodotSceneNodePlan, th
                   properties: script.fields.map((field) => ({
                     key: field.fieldName,
                     value: { kind: 'literal-expression' as const, value: field.value.value },
+                  })),
+                },
+              ]),
+          // The autoloads the script reads, each its field and the ref the world mounts it into.
+          ...(script.autoloadReferences.length === 0 || emission.autoloads === undefined
+            ? []
+            : [
+                {
+                  kind: 'object-expression' as const,
+                  properties: script.autoloadReferences.map((reference) => ({
+                    key: reference.fieldName,
+                    value: {
+                      kind: 'property-expression' as const,
+                      object: { kind: 'identifier-expression' as const, name: 'autoloads' },
+                      property: reference.name,
+                    },
                   })),
                 },
               ]),
@@ -359,11 +379,33 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
   return { ...(first === undefined ? {} : { first }), ...(authored === undefined ? {} : { authored }) };
 }
 
+/** The props an instancing scene hands the root, by the root element. */
+function rootPropsType(tag: string): { readonly type: TargetTsType; readonly children: boolean; readonly from?: { readonly module: string; readonly name: string } } {
+  const omitRef = (type: TargetTsType): TargetTsType => ({ kind: 'type-reference', name: 'Omit', arguments: [type, { kind: 'literal-type', value: 'ref' }] });
+  if (tag === 'PerspectiveCamera') {
+    return { type: { kind: 'type-reference', name: 'PerspectiveCameraProps', arguments: [] }, children: false, from: { module: '@react-three/drei', name: 'PerspectiveCameraProps' } };
+  }
+  if (tag === 'RigidBody') {
+    return { type: omitRef({ kind: 'type-reference', name: 'RigidBodyProps', arguments: [] }), children: true, from: { module: '@react-three/rapier', name: 'RigidBodyProps' } };
+  }
+  return {
+    type: omitRef({ kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'ThreeElements', arguments: [] }, index: { kind: 'literal-type', value: tag } }),
+    children: true,
+    from: { module: '@react-three/fiber', name: 'ThreeElements' },
+  };
+}
+
 export function idiomaticSceneSourceFile(
-  _project: DirectGodotProjectCompositionPlan,
+  project: DirectGodotProjectCompositionPlan,
   scene: DirectGodotSceneDocumentPlan,
 ): TargetTsSourceFile {
   const cameras = currentCamera(scene.root);
+  const autoloadReferences = directGodotSceneAutoloadReferences(scene.root);
+  const referencedAutoloads = autoloadReferences.map((reference) => {
+    const autoload = project.scriptAutoloads.find((candidate) => candidate.name === reference.name && candidate.scriptResPath === reference.resPath);
+    if (autoload === undefined) throw new Error(`${reference.name}: singleton ${reference.resPath} is absent from composition`);
+    return autoload;
+  });
   const emission: Emission = {
     scene,
     resources: new Map(scene.resources.map((resource) => [resource.key, resource] as const)),
@@ -374,14 +416,71 @@ export function idiomaticSceneSourceFile(
     scripts: new Map(),
     hooks: [],
     refNames: new Set(),
-    currentCamera: cameras.authored ?? cameras.first,
+    autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
+    // Godot makes the first camera to enter the viewport current when none is authored so: the
+    // main scene's first.
+    currentCamera: cameras.authored ?? (scene.sourceResPath === project.mainScene ? cameras.first : undefined),
   };
-  const root = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
+  const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
+  // An instancing scene's props (its name, transform, …) reach the root, and its children follow
+  // the scene's own: the prefab form.
+  const props = rootPropsType(node.tag);
+  const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
+    ...node,
+    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: 'props' } }],
+    children: props.children
+      ? [...node.children, { kind: 'jsx-expression-child', value: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'props' }, property: 'children' } }]
+      : node.children,
+  };
+  if (emission.autoloads !== undefined) {
+    emission.hooks.unshift(
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: 'autoloads',
+        initializer: {
+          kind: 'call-expression',
+          callee: { kind: 'identifier-expression', name: 'useContext' },
+          arguments: [{ kind: 'identifier-expression', name: emission.autoloads }],
+        },
+      },
+      {
+        kind: 'if-statement',
+        condition: {
+          kind: 'binary-expression',
+          operator: '===',
+          left: { kind: 'identifier-expression', name: 'autoloads' },
+          right: { kind: 'literal-expression', value: null },
+        },
+        // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
+        then: [
+          {
+            kind: 'throw-statement',
+            expression: {
+              kind: 'new-expression',
+              callee: { kind: 'identifier-expression', name: 'Error' },
+              arguments: [{ kind: 'literal-expression', value: 'The world provides no autoloads to this scene.' }],
+            },
+          },
+        ],
+      },
+    );
+  }
   const compatModule = (name: string) => moduleSpecifier(scene.targetPath, `src/lib/godot-compat/${name}.ts`);
+  const reactNames = [
+    ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
+    ...(emission.refNames.size === 0 ? [] : ['useRef']),
+  ];
   const imports: TargetTsStatement[] = [
-    ...(emission.hooks.length === 0
+    ...(reactNames.length === 0
       ? []
-      : [{ kind: 'import-statement' as const, module: 'react', namedBindings: [{ imported: 'useRef', local: 'useRef' }] }]),
+      : [{ kind: 'import-statement' as const, module: 'react', namedBindings: reactNames.map((name) => ({ imported: name, local: name })) }]),
+    ...(emission.autoloads === undefined
+      ? []
+      : [{ kind: 'import-statement' as const, module: 'react', namedBindings: [{ imported: 'RefObject', local: 'RefObject' }], typeOnly: true as const }]),
+    ...(props.from === undefined
+      ? []
+      : [{ kind: 'import-statement' as const, module: props.from.module, namedBindings: [{ imported: props.from.name, local: props.from.name }], typeOnly: true as const }]),
     ...(emission.three.size === 0
       ? []
       : [
@@ -408,17 +507,69 @@ export function idiomaticSceneSourceFile(
       module: script.module,
       namedBindings: [{ imported: script.exportName, local: script.local }],
     })),
+    ...referencedAutoloads.map((autoload) => ({
+      kind: 'import-statement' as const,
+      module: moduleSpecifier(scene.targetPath, autoload.generatedClass.modulePath),
+      namedBindings: [{ imported: autoload.generatedClass.exportName, local: `${autoload.name}Autoload` }],
+      typeOnly: true as const,
+    })),
   ];
+  // The autoloads the world mounts, as the refs its context hands this scene's scripts.
+  const autoloadContext: TargetTsStatement[] =
+    emission.autoloads === undefined
+      ? []
+      : [
+          {
+            kind: 'variable-statement',
+            declaration: 'const',
+            name: emission.autoloads,
+            modifiers: ['export'],
+            initializer: {
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'createContext' },
+              typeArguments: [
+                {
+                  kind: 'union-type',
+                  members: [
+                    {
+                      kind: 'object-type',
+                      properties: referencedAutoloads.map((autoload) => ({
+                        name: autoload.name,
+                        readonly: true as const,
+                        type: {
+                          kind: 'type-reference' as const,
+                          name: 'RefObject',
+                          arguments: [
+                            {
+                              kind: 'union-type' as const,
+                              members: [
+                                { kind: 'type-reference' as const, name: `${autoload.name}Autoload`, arguments: [] },
+                                { kind: 'literal-type' as const, value: null },
+                              ],
+                            },
+                          ],
+                        },
+                      })),
+                    },
+                    { kind: 'literal-type', value: null },
+                  ],
+                },
+              ],
+              arguments: [{ kind: 'literal-expression', value: null }],
+            },
+          },
+        ];
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
     sourcePath: scene.targetPath,
     statements: [
       ...imports,
+      ...autoloadContext,
       {
         kind: 'function-statement',
         name: scene.exportName,
         modifiers: ['export'],
-        parameters: [],
+        parameters: [{ name: 'props', type: props.type }],
         body: [...emission.hooks, { kind: 'return-statement', expression: { ...root, kind: 'jsx-element-expression' } }],
       },
     ],

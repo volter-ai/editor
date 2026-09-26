@@ -1074,12 +1074,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     resources: context.document.order,
     connections,
   };
-  // The reference unit writes the project's main scene only: an instanced or loaded scene still
-  // mounts under a scene that reads the Node protocol's recorded classes.
-  const idiomatic =
-    scene.resPath === context.project?.entrypoints.mainScene &&
-    idiomaticRefusal(document) === undefined &&
-    structure(context, scene.resPath, 'idiomatic-scene');
+  const idiomatic = idiomaticRefusal(document) === undefined && structure(context, scene.resPath, 'idiomatic-scene');
   return idiomatic ? { ...document, idiomatic: true } : document;
 }
 

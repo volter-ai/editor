@@ -238,6 +238,18 @@ export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly 
       if (specifier === 'react/jsx-runtime') return { jsx, jsxs: jsx };
       if (specifier.includes('/godot-compat')) {
         return {
+          // The scene's script attachment: the instance over its node, with the autoloads it reads.
+          useGodotScript: (
+            ref: { readonly current: object | null },
+            Script: new (native: object) => Record<string, unknown>,
+            exported: Readonly<Record<string, unknown>> | undefined,
+            autoloads: Readonly<Record<string, { readonly current: unknown }>> | undefined,
+          ) => {
+            const instance = new Script(ref.current ?? {});
+            Object.assign(instance, exported);
+            for (const [field, singleton] of Object.entries(autoloads ?? {})) instance[field] = singleton.current;
+            attachedOwner = instance;
+          },
           useGodotScriptTreeAttachment: (
             _root: unknown,
             attach: () => {
@@ -305,7 +317,7 @@ export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly 
       consumerBaseSource.includes('return this.$autoload_Globals') === false ||
       consumerSource.includes('export class Consumer extends ConsumerBase') === false ||
       sceneSource.includes('export const MainSceneAutoloads = createContext') === false ||
-      sceneSource.includes('$instance_0.$autoload_Globals = $autoload_0_Globals') === false ||
+      sceneSource.includes('"$autoload_Globals": autoloads.Globals') === false ||
       worldSource.includes('$instance_autoload_1.$autoload_Settings') ||
       worldSource.includes(
         '$autoloadInstance_1.current.$autoload_Settings = $autoloadInstance_0.current',

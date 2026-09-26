@@ -398,15 +398,7 @@ function attachScriptInstances(
         : { placements: placements.map((placed) => ({ at: placed.at, node: attach(scene, placed.node) })) }),
     };
   };
-  const referencesAutoload = (node: DirectGodotSceneNodePlan): boolean =>
-    (node.scriptInstance?.autoloadReferences.length ?? 0) > 0 || node.children.some(referencesAutoload);
-  const result = scenes.map((scene) => {
-    const composed = { ...scene, root: attach(scene, scene.root) };
-    // The idiomatic reference unit does not yet write a scene whose scripts read an autoload.
-    if (composed.idiomatic !== true || !referencesAutoload(composed.root)) return composed;
-    const { idiomatic: _idiomatic, ...earlier } = composed;
-    return earlier;
-  });
+  const result = scenes.map((scene) => ({ ...scene, root: attach(scene, scene.root) }));
   // A script attached to a node this document copied from an instanced scene, the same script
   // the instanced scene attaches there, is that scene's component's own attachment.
   const byDocument = new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const));
