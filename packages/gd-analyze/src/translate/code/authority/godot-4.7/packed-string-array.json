@@ -70,7 +70,7 @@
         "observedOutputSha256": "cd155369b63190d1b7c3cc6aa814958f35faed4a84e3f5e232a71466a8c2e91d"
       },
       "target": {
-        "implementationSha256": "f32f0b2d450c56abd8f45e378dafb66c0813926ec65e9facb2fa0e5530da4135",
+        "implementationSha256": "1d7b83eb00b19cf62850d6b7fdea7e7f1a3f6c193a5a7f60082d8f39f32a2680",
         "callsite": "lib/godot-compat/packed-string-array.ts construct",
         "observedOutputSha256": "cd155369b63190d1b7c3cc6aa814958f35faed4a84e3f5e232a71466a8c2e91d"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "c6e5dace08d1d347e3b6e56e21afc2418c4c7cdf7937f48708bd69c1a1835922"
       },
       "target": {
-        "implementationSha256": "f32f0b2d450c56abd8f45e378dafb66c0813926ec65e9facb2fa0e5530da4135",
+        "implementationSha256": "1d7b83eb00b19cf62850d6b7fdea7e7f1a3f6c193a5a7f60082d8f39f32a2680",
         "callsite": "lib/godot-compat/packed-string-array.ts size",
         "observedOutputSha256": "c6e5dace08d1d347e3b6e56e21afc2418c4c7cdf7937f48708bd69c1a1835922"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1f0a2791524416ecfb928a89bfd6c95d9850c9f84bd4579331f1ef87e70e8705",
-      "implementationSha256": "f32f0b2d450c56abd8f45e378dafb66c0813926ec65e9facb2fa0e5530da4135"
+      "implementationSha256": "1d7b83eb00b19cf62850d6b7fdea7e7f1a3f6c193a5a7f60082d8f39f32a2680"
     },
     {
       "claimId": "godot-4.7-binding-PackedStringArray.size",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "15d491b3f62c8b48d90e64356d143f4d7096f86d363a69a322ef140f921653ea",
-      "implementationSha256": "f32f0b2d450c56abd8f45e378dafb66c0813926ec65e9facb2fa0e5530da4135"
+      "implementationSha256": "1d7b83eb00b19cf62850d6b7fdea7e7f1a3f6c193a5a7f60082d8f39f32a2680"
     }
   ]
 }
