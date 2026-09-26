@@ -511,19 +511,14 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     const promoted = path.join(temp, 'translation-output');
     mkdirSync(staging);
     writeGodotTranslationArtifacts(emitted, staging);
-    mkdirSync(path.join(staging, '.vgai', 'doctor'), { recursive: true });
-    mkdirSync(path.join(staging, '.vgai', 'recordings'), { recursive: true });
-    writeFileSync(path.join(staging, '.vgai', 'doctor', 'acceptance.txt'), 'derived\n');
-    writeFileSync(path.join(staging, '.vgai', 'recordings', 'acceptance.webm'), 'derived\n');
-    writeFileSync(path.join(staging, '.vgai', 'collaboration.json'), '{}\n');
-    writeFileSync(path.join(staging, '.vgai', 'tripwire-gate.json'), '{}\n');
+    // What acceptance leaves in the candidate: its install and its build.
+    mkdirSync(path.join(staging, 'node_modules', 'three'), { recursive: true });
+    mkdirSync(path.join(staging, 'dist', 'assets'), { recursive: true });
+    writeFileSync(path.join(staging, 'node_modules', 'three', 'package.json'), '{}\n');
+    writeFileSync(path.join(staging, 'dist', 'assets', 'index.js'), 'derived\n');
+    writeFileSync(path.join(staging, 'dist', 'index.html'), 'derived\n');
     restoreGodotTranslationArtifacts(artifacts, staging);
-    if (
-      existsSync(path.join(staging, '.vgai', 'doctor')) ||
-      existsSync(path.join(staging, '.vgai', 'recordings')) ||
-      existsSync(path.join(staging, '.vgai', 'collaboration.json')) ||
-      existsSync(path.join(staging, '.vgai', 'tripwire-gate.json'))
-    ) {
+    if (existsSync(path.join(staging, 'node_modules')) || existsSync(path.join(staging, 'dist'))) {
       throw new Error('acceptance-derived state survived exact artifact restoration');
     }
     promoteGodotTranslation(staging, promoted);

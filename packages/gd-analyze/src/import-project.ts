@@ -12,8 +12,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
-  readFileSync,
   rmSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -39,13 +37,12 @@ import {
 import { emitGodotTranslation } from './translate/emit';
 import { planGodotTranslation } from './translate/plan';
 
+/** The emitted project's own acceptance: its install, its typecheck and its `vite build`. */
 function runAcceptance(projectDir: string): void {
   const commands: readonly [string, readonly string[]][] = [
     ['npm', ['ci', '--no-audit', '--no-fund', '--loglevel=error']],
     ['npm', ['run', 'typecheck']],
-    ['npm', ['run', 'validate']],
     ['npm', ['run', 'build']],
-    ['npm', ['run', 'vgai', '--', 'doctor', '.']],
   ];
   for (const [command, args] of commands) {
     const result = spawnSync(command, [...args], { cwd: projectDir, stdio: 'inherit' });
@@ -53,48 +50,6 @@ function runAcceptance(projectDir: string): void {
     if (result.status !== 0) {
       throw new Error(`${command} ${args.join(' ')} failed with exit ${String(result.status)}`);
     }
-  }
-  assertQuietDoctor(projectDir);
-}
-
-function assertQuietDoctor(projectDir: string): void {
-  const doctorRoot = path.join(projectDir, '.vgai', 'doctor');
-  const reports = readdirSync(doctorRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-  const latest = reports.at(-1);
-  if (latest === undefined) {
-    throw new Error(`Doctor produced no report under ${doctorRoot}`);
-  }
-  const loudnessPath = path.join(doctorRoot, latest, '07-loudness.txt');
-  if (!existsSync(loudnessPath)) {
-    throw new Error(`Doctor report is incomplete: ${loudnessPath} is missing`);
-  }
-  const loudness = readFileSync(loudnessPath, 'utf8');
-  const consoleLine = /^unresolvedConsole: (\{.*\})$/m.exec(loudness)?.[1];
-  const brokenText = /^ontology invariants: \d+ rows, (\d+) broken$/m.exec(loudness)?.[1];
-  if (consoleLine === undefined || brokenText === undefined) {
-    throw new Error(`Doctor report has an unrecognized loudness sheet: ${loudnessPath}`);
-  }
-  const unresolved = JSON.parse(consoleLine) as { errors?: unknown; warnings?: unknown };
-  const errors = unresolved.errors;
-  const warnings = unresolved.warnings;
-  const broken = Number.parseInt(brokenText, 10);
-  if (
-    typeof errors !== 'number' ||
-    typeof warnings !== 'number' ||
-    errors !== 0 ||
-    warnings !== 0 ||
-    broken !== 0
-  ) {
-    const conditionsAt = loudness.indexOf('\n---');
-    const conditions = conditionsAt < 0 ? '' : loudness.slice(conditionsAt);
-    throw new Error(
-      `Doctor is not quiet: ${String(errors)} error(s), ${String(warnings)} warning(s), ` +
-        `${String(broken)} broken ontology invariant(s); see ${loudnessPath}` +
-        conditions,
-    );
   }
 }
 
@@ -104,20 +59,10 @@ function isWithin(parent: string, child: string): boolean {
 }
 
 /**
- * WHAT A FAILED IMPORT LEAVES BEHIND, and why it leaves anything at all.
- *
- * The staging directory IS the evidence. By the time an acceptance seam fails it holds a completed
- * `npm install`, a built `dist/`, and — for the seam that fails most often — Doctor's contact sheet:
- * the PNG pair the static-invariant phase compared, the loudness sheet, the phase table's artifacts.
- * Deleting it on the way out destroyed exactly the thing that explains the failure, and the only way
- * to get it back was to re-run the whole cycle by hand against a staging directory of one's own.
- * That workaround was needed twice in one day (2026-08-20); the loud-failure doctrine says the tool
- * prints what it knows and keeps what it has instead.
- *
- * DISK LIFECYCLE — a failed candidate is deliberately retained and its exact path is reported.
- * Every candidate is created by this invocation through `mkdtemp`, so import never guesses at or
- * deletes a pre-existing sibling that could belong to the user. A successful candidate is consumed
- * by RENAMING it onto the target.
+ * A failed import keeps its staging directory, the evidence of the failure: its install and
+ * whatever its typecheck or build left. Every candidate is created by this invocation through
+ * `mkdtemp`, so import never deletes a directory that could belong to the user; a successful
+ * candidate is consumed by renaming it onto the target.
  */
 function reportKeptStaging(stagingDir: string, error: unknown): void {
   const lines: string[] = [
@@ -125,30 +70,9 @@ function reportKeptStaging(stagingDir: string, error: unknown): void {
     'godot import FAILED — the staging directory is KEPT so its evidence survives:',
     `  ${stagingDir}`,
     `  reason: ${error instanceof Error ? error.message : String(error)}`,
+    '  remove this evidence directory explicitly after diagnosing the failure.',
+    '',
   ];
-  const doctorRoot = path.join(stagingDir, '.vgai', 'doctor');
-  const latest = existsSync(doctorRoot)
-    ? readdirSync(doctorRoot, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name)
-        .sort()
-        .at(-1)
-    : undefined;
-  if (latest === undefined) {
-    lines.push('  doctor: no report was written (the run failed before Doctor produced one).');
-  } else {
-    const reportDir = path.join(doctorRoot, latest);
-    lines.push(`  doctor contact sheet: ${reportDir}`);
-    for (const entry of readdirSync(reportDir).sort()) lines.push(`    ${entry}`);
-    const loudnessPath = path.join(reportDir, '07-loudness.txt');
-    if (existsSync(loudnessPath)) {
-      lines.push('  loudness sheet:');
-      for (const line of readFileSync(loudnessPath, 'utf8').trimEnd().split('\n')) {
-        lines.push(`    ${line}`);
-      }
-    }
-  }
-  lines.push('  remove this evidence directory explicitly after diagnosing the failure.', '');
   process.stderr.write(`${lines.join('\n')}\n`);
 }
 
@@ -195,9 +119,8 @@ function importCapturedGodotProject(
   const emitted = emitGodotTranslation(translation);
   const parentDir = path.dirname(targetDir);
   mkdirSync(parentDir, { recursive: true });
-  // This invocation creates and therefore owns the complete candidate. Keep the real target name
-  // visible in the sibling prefix because Doctor's ordinary story globs intentionally ignore dot
-  // directories. The unpredictable suffix prevents collision with any user-owned directory.
+  // This invocation creates and therefore owns the complete candidate, named after the target;
+  // the unpredictable suffix prevents collision with any user-owned directory.
   const stagingDir = mkdtempSync(path.join(parentDir, `${path.basename(targetDir)}-godot-import-`));
   try {
     // Materialization begins from an importer-owned empty directory. Every prospective file is

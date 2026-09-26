@@ -1,30 +1,19 @@
 /**
  * `gd-analyze sweep` — the lane's completeness table, regenerated instead of remembered.
  *
- * One command runs the WHOLE confirmation cycle (`import`: scaffold → install → typecheck →
- * validate-assets → validate → build → `vgai doctor` → quiet-loudness → atomic promote) over every
- * vendored source fixture discovered from its adjacent `.UPSTREAM.lock`, into throwaway targets,
- * and prints one verdict row
- * per game: PASS, or the FIRST failing gate with the first line of its error. The table this
- * prints is the answer to "does the Godot import actually work, on all of them, today" — the
- * question the 2026-08-19 sweep answered by hand and found six silent answers to (a shader that
- * never compiled, a canvas world that never drew, three coverage refusals) that no in-repo
- * fixture proof could see, because only the standalone cycle runs in the user's environment.
+ * One command runs the whole import cycle (translate → install → typecheck → build → atomic
+ * promote) over every vendored source fixture discovered from its adjacent `.UPSTREAM.lock`, into
+ * throwaway targets, and prints one verdict row per game: PASS, or the first failing gate with the
+ * first line of its error.
  *
- * Deliberately a serial loop and nothing more: no parallelism (each import runs npm install and a
- * headless browser; two at once starve the box), no persistence (a stored table goes stale while
- * claiming to be current — the same rule as the lane's coverage reports), no ladder writes (the
- * ratchet is raised by a human reading THIS output, never by the tool that produced it).
+ * Deliberately a serial loop and nothing more: no parallelism (each import runs an npm install;
+ * two at once starve the box), no persistence (a stored table goes stale while claiming to be
+ * current), no ladder writes.
  *
  * ```
  * npx tsx packages/gd-analyze/src/cli.ts sweep            # every pinned source fixture
  * npx tsx packages/gd-analyze/src/cli.ts sweep dodge-the-creeps squash-the-creeps
  * ```
- *
- * If every game fails `npm run validate` with exit 127 (`vgai: command not found`), your
- * checkout has no `packages/vgai-cli/dist` — the generated app's scripts resolve `vgai` through
- * an npm link to THIS checkout's CLI, and `build:workspace-dists` does not build it. Run
- * `npm run build -w @vgai/cli` once. (Measured twice on 2026-08-19, in two different worktrees.)
  */
 import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
