@@ -49,7 +49,7 @@
         "observedOutputSha256": "1cf950a32793bd20e95a8e9013f5e15926005c5d1aa56ff4830c876d4ae55b3b"
       },
       "target": {
-        "implementationSha256": "a01313787c4150cf4454c0a4ea046666d9fd9cf91e5b5420a30ba4567d3c0c9b",
+        "implementationSha256": "8bb8a03e02b34e67258712146e4f82aa478de5e04f7bac80185f76d833828399",
         "callsite": "lib/godot-compat/input-event-mouse.ts get_position",
         "observedOutputSha256": "1cf950a32793bd20e95a8e9013f5e15926005c5d1aa56ff4830c876d4ae55b3b"
       },
@@ -76,7 +76,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7a6fc37cc1c2998e52822d54753b3f50211b2ca33cd3c1eb0fd5207f84ba4435",
-      "implementationSha256": "a01313787c4150cf4454c0a4ea046666d9fd9cf91e5b5420a30ba4567d3c0c9b"
+      "implementationSha256": "8bb8a03e02b34e67258712146e4f82aa478de5e04f7bac80185f76d833828399"
     }
   ]
 }

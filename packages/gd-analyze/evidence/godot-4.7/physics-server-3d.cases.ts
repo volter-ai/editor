@@ -1,10 +1,36 @@
-import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
+import type { GodotEvidenceCase, GodotEvidenceCaseFile, GodotEvidenceGeometryFact } from '../../src/evidence/case';
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment, type Triple } from './physics-timeline';
 
 const cases: GodotEvidenceCase[] = [];
-function add(id: string, member: string, segments: readonly Segment[]): void {
+/**
+ * A motion record's sixth value is its collision count, a collision per contact point, and its
+ * seventh the deepest collision: a capsule's side resting on a box face is two contact points at the
+ * ends of the line contact in GodotPhysics3D's SAT manifold, one point along it in Rapier's contact
+ * query.
+ */
+export const CONTACT_POINTS: readonly GodotEvidenceGeometryFact[] = [
+  { at: ['*', 5], within: 1, fact: 'contact points per collision: Godot 2 / Rapier 1 on a capsule\'s side against a box face' },
+  // Both points lie on the line contact, the capsule's segment (1.8 high less two 0.4 caps): at most
+  // its length apart.
+  {
+    at: ['*', 6, 0, 'y'],
+    within: 1,
+    fact: 'the reported contact point along that line contact (the capsule\'s 1.0 segment): Godot its end, Rapier a point on it',
+  },
+];
+/** How a motion record compares its safe and unsafe fractions. */
+export const MOTION_DERIVATION =
+  'the safe and unsafe fractions are compared as the motion scaled by them (the displacement to the safe and unsafe points), under the position bound';
+function add(id: string, member: string, segments: readonly Segment[], geometryFacts?: readonly GodotEvidenceGeometryFact[]): void {
   const built = physicsCase(segments);
-  cases.push({ id, symbol: { kind: 'singleton-member', owner: 'PhysicsServer3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'rapier-geometry' });
+  cases.push({
+    id,
+    symbol: { kind: 'singleton-member', owner: 'PhysicsServer3D', member },
+    gdscript: built.gdscript,
+    target: built.target,
+    comparator: 'rapier-geometry',
+    ...(geometryFacts === undefined ? {} : { geometryFacts, derivation: MOTION_DERIVATION }),
+  });
 }
 add('space_get_direct_state', 'space_get_direct_state', [
   { ops: [{ body: 'a', kind: 'static', shapes: [{ shape: { box: [2, 1, 2] } }] }, { read: ['ray', [0, 10, 0], [0, -10, 0]] }] },
@@ -34,7 +60,7 @@ const tests: readonly (readonly [string, string, Triple, Triple, Partial<{ margi
 add('body_test_motion', 'body_test_motion', [
   { ops: WORLD },
   { await: 'physics', ops: tests.map(([, body, from, motion, options]): Op => ({ testMotion: body, from, motion, ...options })) },
-]);
+], CONTACT_POINTS);
 
 // A character sliding along a wall on a floor: the two calls move_and_slide makes each frame.
 const SLIDE_WORLD: Op[] = [
@@ -51,7 +77,7 @@ add('body_test_motion-along-wall', 'body_test_motion', [
       { testMotion: 'player', from: [1.0833332538604736, 0.9003148078918457, z], motion: [0, 0, 0.05000000447034836], max: 6, recovery: true },
     ]),
   },
-]);
+], CONTACT_POINTS);
 
 // A character walking into a crate beside it on the floor: the calls of two frames.
 add('body_test_motion-into-crate', 'body_test_motion', [
@@ -75,7 +101,7 @@ add('body_test_motion-into-crate', 'body_test_motion', [
       ] as const
     ).map(([from, motion]): Op => ({ testMotion: 'player', from, motion, max: 6, recovery: true })),
   },
-]);
+], CONTACT_POINTS);
 
 const EVIDENCE: GodotEvidenceCaseFile = { kind: 'node', godotClass: 'PhysicsServer3D', compatModule: 'lib/godot-compat/physics-server-3d', probeHelpers: PHYSICS_PROBE_HELPERS, cases };
 export default EVIDENCE;

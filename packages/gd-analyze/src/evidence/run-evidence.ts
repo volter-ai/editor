@@ -43,6 +43,7 @@ import {
   GODOT_4_7_EVIDENCE_DIR,
   type GodotEvidenceFile,
   type GodotEvidenceImplementation,
+  godotEvidenceCaseReads,
   godotEvidenceImplementationDigest,
 } from '../translate/code/authority/godot-4.7-evidence';
 import {
@@ -67,6 +68,7 @@ import type {
   GodotEvidenceCase,
   GodotEvidenceCaseFile,
   GodotEvidenceComparator,
+  GodotEvidenceGeometryFact,
   GodotEvidenceSymbol,
   GodotLanguageEvidenceFile,
 } from './case';
@@ -148,6 +150,45 @@ interface Comparable {
   readonly id: string;
   readonly comparator: GodotEvidenceComparator;
   readonly shown: string;
+  readonly geometryFacts?: readonly GodotEvidenceGeometryFact[];
+}
+
+type Place = readonly (number | 'x' | 'y' | 'z')[];
+
+/** The geometry fact declared at `place`, if any. */
+function geometryFactAt(facts: readonly GodotEvidenceGeometryFact[] | undefined, place: Place): GodotEvidenceGeometryFact | undefined {
+  return facts?.find(
+    (fact) => fact.at.length === place.length && fact.at.every((index, depth) => index === place[depth] || (index === '*' && typeof place[depth] === 'number')),
+  );
+}
+
+/** Every declared geometry fact's native and target values. */
+function geometryFactPairs(
+  facts: readonly GodotEvidenceGeometryFact[],
+  native: Encoded,
+  target: Encoded,
+  place: Place = [],
+): (readonly [GodotEvidenceGeometryFact, number, number])[] {
+  if (native.t === 'int' && target.t === 'int') {
+    const fact = geometryFactAt(facts, place);
+    return fact === undefined ? [] : [[fact, Number(native.v), Number(target.v)] as const];
+  }
+  if (native.t === 'float' && target.t === 'float') {
+    const fact = geometryFactAt(facts, place);
+    return fact === undefined ? [] : [[fact, bitsFloat(native.v), bitsFloat(target.v)] as const];
+  }
+  if (native.t === 'Vector3' && target.t === 'Vector3') {
+    return (['x', 'y', 'z'] as const).flatMap((axis) => {
+      const fact = geometryFactAt(facts, [...place, axis]);
+      return fact === undefined ? [] : [[fact, bitsFloat(native[axis]), bitsFloat(target[axis])] as const];
+    });
+  }
+  if (native.t === 'Array' && target.t === 'Array') {
+    return native.v.flatMap((entry, index) =>
+      target.v[index] === undefined ? [] : geometryFactPairs(facts, entry, target.v[index] as Encoded, [...place, index]),
+    );
+  }
+  return [];
 }
 
 function sha256(value: Uint8Array | string): string {
@@ -458,16 +499,26 @@ function float64UlpDistance(left: number, right: number): bigint {
 }
 
 /** Every native/target float pair of two agreeing encoded values, in order. */
-function floatPairs(native: Encoded, target: Encoded): (readonly [number, number])[] {
-  if (native.t === 'float') return [[bitsFloat(native.v), bitsFloat((target as typeof native).v)]];
+function floatPairs(
+  native: Encoded,
+  target: Encoded,
+  facts?: readonly GodotEvidenceGeometryFact[],
+  place: Place = [],
+): (readonly [number, number])[] {
+  // A declared geometry fact's value is measured on its own, not under the bound.
+  if (native.t === 'float') {
+    return geometryFactAt(facts, place) === undefined ? [[bitsFloat(native.v), bitsFloat((target as typeof native).v)]] : [];
+  }
   if (native.t === 'Vector3') {
     const other = target as typeof native;
-    return (['x', 'y', 'z'] as const).map((axis) => [bitsFloat(native[axis]), bitsFloat(other[axis])] as const);
+    return (['x', 'y', 'z'] as const)
+      .filter((axis) => geometryFactAt(facts, [...place, axis]) === undefined)
+      .map((axis) => [bitsFloat(native[axis]), bitsFloat(other[axis])] as const);
   }
   if (native.t === 'Array' || isPackedArrayType(native.t)) {
     const packed = native as { readonly v: readonly Encoded[] };
     const other = target as typeof packed;
-    return packed.v.flatMap((entry, index) => floatPairs(entry, other.v[index] as Encoded));
+    return packed.v.flatMap((entry, index) => floatPairs(entry, other.v[index] as Encoded, facts, [...place, index]));
   }
   if (native.t === 'Dictionary') {
     const other = target as typeof native;
@@ -498,6 +549,8 @@ function floatPairs(native: Encoded, target: Encoded): (readonly [number, number
 function measuredTolerance(
   comparators: readonly string[],
   rows: readonly (readonly [Encoded, Encoded])[],
+  counts: readonly (readonly GodotEvidenceGeometryFact[])[] = [],
+  derivations: readonly string[] = [],
 ): string {
   if (comparators.includes('platform-libm')) {
     let largest = 0n;
@@ -512,13 +565,25 @@ function measuredTolerance(
   }
   if (comparators.includes('rapier-geometry')) {
     let largest = 0;
-    for (const [native, target] of rows) {
-      for (const [left, right] of floatPairs(native, target)) {
+    for (const [index, [native, target]] of rows.entries()) {
+      for (const [left, right] of floatPairs(native, target, counts[index])) {
         if (Number.isNaN(left) || Number.isNaN(right)) continue;
         largest = Math.max(largest, Math.abs(left - right));
       }
     }
-    return `Rapier's query geometry: within 0.05; measured max ${String(largest)} over ${String(rows.length)} cases`;
+    // Each declared geometry count: its fact and the largest difference measured.
+    const differences = new Map<string, number>();
+    rows.forEach(([native, target], index) => {
+      for (const [count, left, right] of geometryFactPairs(counts[index] ?? [], native, target)) {
+        const key = `${count.fact} (within ${String(count.within)})`;
+        differences.set(key, Math.max(differences.get(key) ?? 0, Math.abs(left - right)));
+      }
+    });
+    const facts = [
+      ...[...differences].map(([fact, largest]) => `; ${fact}: measured max difference ${String(largest)}`),
+      ...derivations.map((derivation) => `; ${derivation}`),
+    ].join('');
+    return `Rapier's query geometry: within 0.05; measured max ${String(largest)} over ${String(rows.length)} cases${facts}`;
   }
   if (comparators.includes('physics-trajectory')) {
     let largest = 0;
@@ -550,25 +615,40 @@ function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvid
   return Math.abs(float32OrderedBits(native) - float32OrderedBits(target)) <= 1;
 }
 
-function valuesAgree(native: Encoded, target: Encoded, comparator: GodotEvidenceComparator): boolean {
+function valuesAgree(
+  native: Encoded,
+  target: Encoded,
+  comparator: GodotEvidenceComparator,
+  facts?: readonly GodotEvidenceGeometryFact[],
+  place: Place = [],
+): boolean {
+  const declared = (at: Place): GodotEvidenceGeometryFact | undefined =>
+    comparator === 'rapier-geometry' ? geometryFactAt(facts, at) : undefined;
   if (native.t === 'unsupported' || target.t === 'unsupported' || native.t !== target.t) return false;
   switch (native.t) {
     case 'Nil':
       return true;
+    case 'int': {
+      const fact = declared(place);
+      const other = Number((target as typeof native).v);
+      return fact === undefined ? native.v === (target as typeof native).v : Math.abs(Number(native.v) - other) <= fact.within;
+    }
     case 'bool':
-    case 'int':
     case 'String':
     case 'StringName':
       return native.v === (target as typeof native).v;
-    case 'float':
-      return floatsAgree(native.v, (target as typeof native).v, comparator);
+    case 'float': {
+      const fact = declared(place);
+      const other = (target as typeof native).v;
+      return fact === undefined ? floatsAgree(native.v, other, comparator) : Math.abs(bitsFloat(native.v) - bitsFloat(other)) <= fact.within;
+    }
     case 'Vector3': {
       const other = target as typeof native;
-      return (
-        floatsAgree(native.x, other.x, comparator) &&
-        floatsAgree(native.y, other.y, comparator) &&
-        floatsAgree(native.z, other.z, comparator)
-      );
+      return (['x', 'y', 'z'] as const).every((axis) => {
+        const fact = declared([...place, axis]);
+        if (fact === undefined) return floatsAgree(native[axis], other[axis], comparator);
+        return Math.abs(bitsFloat(native[axis]) - bitsFloat(other[axis])) <= fact.within;
+      });
     }
     case 'Array':
     case 'PackedStringArray':
@@ -579,7 +659,7 @@ function valuesAgree(native: Encoded, target: Encoded, comparator: GodotEvidence
       const other = target as typeof native;
       return (
         native.v.length === other.v.length &&
-        native.v.every((entry, index) => valuesAgree(entry, other.v[index] as Encoded, comparator))
+        native.v.every((entry, index) => valuesAgree(entry, other.v[index] as Encoded, comparator, facts, [...place, index]))
       );
     }
     case 'Dictionary': {
@@ -651,7 +731,7 @@ function mismatches(
       found.push(`${entry.id}: native row order differs`);
       return;
     }
-    if (!valuesAgree(native[1], target[1], entry.comparator)) {
+    if (!valuesAgree(native[1], target[1], entry.comparator, entry.geometryFacts)) {
       found.push(
         `${entry.id} (${entry.comparator})\n    ${entry.shown}\n    native:   ${readable(native[1])}\n    target:   ${readable(target[1])}`,
       );
@@ -970,11 +1050,17 @@ async function runCompatEvidence(
     const value = entry.target();
     return [entry.id, native === undefined ? encodeTarget(value) : encodeLike(native[1], value)];
   });
+  for (const entry of evidence.cases) {
+    if ((entry.geometryFacts !== undefined || entry.derivation !== undefined) && entry.comparator !== 'rapier-geometry') {
+      throw new Error(`${entry.id}: geometry counts and derivations belong to a rapier-geometry case`);
+    }
+  }
   const disagreements = mismatches(
     evidence.cases.map((entry) => ({
       id: entry.id,
       comparator: entry.comparator,
       shown: `gdscript: ${entry.gdscript.split('\n').join(' ; ')}`,
+      geometryFacts: entry.geometryFacts,
     })),
     nativeRows,
     targetRows,
@@ -998,7 +1084,11 @@ async function runCompatEvidence(
     kind: 'compat-module',
     module: evidence.compatModule,
   };
-  const implementationSha256 = godotEvidenceImplementationDigest(implementation, loweringDigest());
+  const implementationSha256 = godotEvidenceImplementationDigest(
+    implementation,
+    loweringDigest(),
+    godotEvidenceCaseReads(path.join(CASES_DIR, `${name}.cases.ts`)),
+  );
   const caseInput = (entry: GodotEvidenceCase) => ({
     id: entry.id,
     symbol: entry.symbol,
@@ -1052,6 +1142,8 @@ async function runCompatEvidence(
       measuredTolerance(
         [...new Set(symbolCases.map((entry) => entry.comparator))],
         indexes.map((index) => [(nativeRows[index] as Row)[1], (targetRows[index] as Row)[1]] as const),
+        indexes.map((index) => evidence.cases[index]?.geometryFacts ?? []),
+        [...new Set(symbolCases.flatMap((entry) => (entry.derivation === undefined ? [] : [entry.derivation])))],
       ),
     );
     claims.push(record.claim);

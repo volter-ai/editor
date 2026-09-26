@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { withLiveImplementation } from '../../../godot-frontend/implementation-liveness';
 import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
@@ -14,6 +14,9 @@ export const COMPAT_SOURCE_ROOT = path.join(PACKAGE_ROOT, 'capabilities/catalog/
 
 /** The files `gd-analyze evidence <name>` writes: one per compat module, one per language file. */
 export const GODOT_4_7_EVIDENCE_DIR = path.join(PACKAGE_ROOT, 'src/translate/code/authority/godot-4.7');
+
+/** The case files those claims were measured by (`evidence/godot-4.7/<name>.cases.ts`). */
+const GODOT_4_7_CASES_DIR = path.join(PACKAGE_ROOT, 'evidence/godot-4.7');
 
 /**
  * What a file's claims ran on the target side: one compat module's bytes, or production code
@@ -57,22 +60,55 @@ function compatImports(module: string): readonly string[] {
 }
 
 /**
+ * Every compat module a case file's targets read: the modules it imports, and those the evidence
+ * helpers it imports (`physics-timeline.ts`) import, by relative specifier, sorted. A result class's
+ * cases run the server that fills it; its claims are only as live as that server.
+ */
+export function godotEvidenceCaseReads(caseFile: string): readonly string[] {
+  const modules = new Set<string>();
+  const seen = new Set<string>();
+  const visit = (file: string): void => {
+    if (seen.has(file)) return;
+    seen.add(file);
+    for (const match of readFileSync(file, 'utf8').matchAll(/(?:from|import)\s+'(\.{1,2}\/[^']+)'/g)) {
+      const resolved = path.resolve(path.dirname(file), match[1] as string);
+      const relative = path.relative(COMPAT_SOURCE_ROOT, resolved);
+      if (!relative.startsWith('..') && !path.isAbsolute(relative)) {
+        modules.add(relative.split(path.sep).join('/'));
+      } else if (resolved.startsWith(GODOT_4_7_CASES_DIR + path.sep) && existsSync(`${resolved}.ts`)) {
+        visit(`${resolved}.ts`);
+      }
+    }
+  };
+  visit(caseFile);
+  return [...modules].sort();
+}
+
+/**
  * The live identity of an implementation. `loweringDigest` is the digest of the code-lowering
  * files (authority-data's GODOT_CODE_IMPLEMENTATION_FILES), passed in to keep this module below it.
+ * `reads` are the compat modules the claims' case file ran besides the module itself
+ * (`godotEvidenceCaseReads`); each is part of the identity with everything it imports.
  */
 export function godotEvidenceImplementationDigest(
   implementation: GodotEvidenceImplementation,
   loweringDigest: string,
+  reads: readonly string[] = [],
 ): string {
   if (implementation.kind === 'compat-module') {
-    const imported = compatImports(implementation.module);
+    const imported = new Set(compatImports(implementation.module));
+    for (const module of reads) {
+      if (module === implementation.module) continue;
+      imported.add(module);
+      for (const next of compatImports(module)) if (next !== implementation.module) imported.add(next);
+    }
     const own = readFileSync(compatModuleFile(implementation.module));
-    // A module with no compat imports is its own bytes; one that imports others also runs theirs.
-    if (imported.length === 0) return sha256(own);
+    // A module that runs no other compat module is its own bytes; one that does also runs theirs.
+    if (imported.size === 0) return sha256(own);
     return sha256(
       JSON.stringify([
         [implementation.module, sha256(own)],
-        ...imported.map((module) => [module, sha256(readFileSync(compatModuleFile(module)))]),
+        ...[...imported].sort().map((module) => [module, sha256(readFileSync(compatModuleFile(module)))]),
       ]),
     );
   }
@@ -98,11 +134,13 @@ export function godot47EvidenceFiles(loweringDigest: string): readonly GodotEvid
       const file = JSON.parse(
         readFileSync(path.join(GODOT_4_7_EVIDENCE_DIR, name), 'utf8'),
       ) as GodotEvidenceFile;
+      const caseFile = path.join(GODOT_4_7_CASES_DIR, name.replace(/\.json$/, '.cases.ts'));
+      const reads = existsSync(caseFile) ? godotEvidenceCaseReads(caseFile) : [];
       return {
         ...file,
         liveness: withLiveImplementation(
           file.liveness,
-          godotEvidenceImplementationDigest(file.implementation, loweringDigest),
+          godotEvidenceImplementationDigest(file.implementation, loweringDigest, reads),
         ),
       };
     });

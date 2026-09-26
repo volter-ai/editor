@@ -307,7 +307,7 @@ function gdOp(op: Op): string[] {
       ...(op.max === undefined ? [] : [`tm_p${k}.max_collisions = ${String(op.max)}`]),
       ...(op.recovery === undefined ? [] : [`tm_p${k}.recovery_as_collision = ${String(op.recovery)}`]),
       `var tm_r${k} := PhysicsTestMotionResult3D.new()`,
-      `log.append(_motion(PhysicsServer3D.body_test_motion(${v(op.testMotion)}.get_rid(), tm_p${k}, tm_r${k}), tm_r${k}))`,
+      `log.append(_motion(PhysicsServer3D.body_test_motion(${v(op.testMotion)}.get_rid(), tm_p${k}, tm_r${k}), tm_r${k}, tm_p${k}))`,
     ];
   }
   if ('rigid' in op) {
@@ -362,14 +362,14 @@ func _raycast(r: RayCast3D) -> Variant:
 \t\treturn [false]
 \treturn [true, r.get_collision_point(), r.get_collision_normal(), String(r.get_collider().name), r.get_collider_shape()]
 
-func _motion(hit: bool, r: PhysicsTestMotionResult3D) -> Variant:
-\tvar collisions := []
-\tfor i in r.get_collision_count():
-\t\tcollisions.append([r.get_collision_point(i), r.get_collision_normal(i), r.get_collision_depth(i), String(r.get_collider(i).name), r.get_collider_shape(i), r.get_collision_local_shape(i), r.get_collider_velocity(i)])
-\treturn [hit, r.get_travel(), r.get_remainder(), r.get_collision_safe_fraction(), r.get_collision_unsafe_fraction(), collisions]
+func _motion(hit: bool, r: PhysicsTestMotionResult3D, p: PhysicsTestMotionParameters3D) -> Variant:
+\tvar deepest := []
+\tif r.get_collision_count() > 0:
+\t\tdeepest = [r.get_collision_point(0), r.get_collision_normal(0), r.get_collision_depth(0), String(r.get_collider(0).name), r.get_collider_shape(0), r.get_collision_local_shape(0), r.get_collider_velocity(0)]
+\treturn [hit, r.get_travel(), r.get_remainder(), p.motion * r.get_collision_safe_fraction(), p.motion * r.get_collision_unsafe_fraction(), r.get_collision_count(), deepest]
 
 func _char(c: CharacterBody3D) -> Variant:
-\treturn [c.position, c.velocity, c.is_on_floor(), c.is_on_wall(), c.is_on_ceiling(), c.get_floor_normal(), c.get_wall_normal(), c.get_slide_collision_count(), c.get_real_velocity(), c.get_last_motion()]
+\treturn [c.position, c.velocity, c.is_on_floor(), c.is_on_wall(), c.is_on_ceiling(), c.get_floor_normal(), c.get_wall_normal(), c.get_slide_collision_count(), c.get_real_velocity() / 60.0, c.get_last_motion()]
 `;
 
 function gdscript(segments: readonly Segment[]): string {
@@ -451,7 +451,7 @@ function target(segments: readonly Segment[]): () => unknown {
             CB.get_floor_normal(c),
             CB.get_wall_normal(c),
             CB.get_slide_collision_count(c),
-            CB.get_real_velocity(c),
+            V.op_divide(CB.get_real_velocity(c), 60),
             CB.get_last_motion(c),
           ]);
           return;
@@ -588,16 +588,31 @@ function target(segments: readonly Segment[]): () => unknown {
         if (op.recovery !== undefined) TMP.set_recovery_as_collision_enabled(p, op.recovery);
         const r = TMR.godot_test_motion_result();
         const hit = PS.body_test_motion(CO.get_rid(node(op.testMotion)), p, r);
-        const collisions = Array.from({ length: TMR.get_collision_count(r) }, (_, i) => [
-          TMR.get_collision_point(r, i),
-          TMR.get_collision_normal(r, i),
-          TMR.get_collision_depth(r, i),
-          N.get_name(TMR.get_collider(r, i) as object),
-          TMR.get_collider_shape(r, i),
-          TMR.get_collision_local_shape(r, i),
-          TMR.get_collider_velocity(r, i),
+        // The deepest collision (index 0) and how many there are: the others are contact points of
+        // the same collisions, whose number is the narrow phase's (a geometry count).
+        const deepest =
+          TMR.get_collision_count(r) > 0
+            ? [
+                TMR.get_collision_point(r, 0),
+                TMR.get_collision_normal(r, 0),
+                TMR.get_collision_depth(r, 0),
+                N.get_name(TMR.get_collider(r, 0) as object),
+                TMR.get_collider_shape(r, 0),
+                TMR.get_collision_local_shape(r, 0),
+                TMR.get_collider_velocity(r, 0),
+              ]
+            : [];
+        // The fractions as the motion scaled by them (the safe and unsafe points), compared as positions.
+        const motion = V.construct(...op.motion);
+        log.push([
+          hit,
+          TMR.get_travel(r),
+          TMR.get_remainder(r),
+          V.op_multiply(motion, TMR.get_collision_safe_fraction(r)),
+          V.op_multiply(motion, TMR.get_collision_unsafe_fraction(r)),
+          TMR.get_collision_count(r),
+          deepest,
         ]);
-        log.push([hit, TMR.get_travel(r), TMR.get_remainder(r), TMR.get_collision_safe_fraction(r), TMR.get_collision_unsafe_fraction(r), collisions]);
       }
       else if ('except' in op) PB.add_collision_exception_with(node(op.except), node(op.with));
       else if ('rigid' in op) {

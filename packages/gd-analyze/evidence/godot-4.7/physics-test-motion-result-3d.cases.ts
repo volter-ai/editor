@@ -1,4 +1,5 @@
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
+import { CONTACT_POINTS, MOTION_DERIVATION } from './physics-server-3d.cases';
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase } from './physics-timeline';
 
 const WORLD: Op[] = [
@@ -36,6 +37,8 @@ const cases: GodotEvidenceCase[] = [
   gdscript: built.gdscript,
   target: built.target,
   comparator: 'rapier-geometry',
+  geometryFacts: CONTACT_POINTS,
+  derivation: MOTION_DERIVATION,
 }));
 
 const EVIDENCE: GodotEvidenceCaseFile = {

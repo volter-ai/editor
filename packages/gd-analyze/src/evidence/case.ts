@@ -94,6 +94,32 @@ export interface GodotEvidenceCase {
   readonly comparator: GodotEvidenceComparator;
   /** For a `web-platform-fact` or `render-mapping` case, the cited value in place of a native run. */
   readonly fact?: GodotEvidenceFact;
+  /** For a `rapier-geometry` case, the values its collision geometry decides beyond the 0.05 bound. */
+  readonly geometryFacts?: readonly GodotEvidenceGeometryFact[];
+  /**
+   * For a `rapier-geometry` case, how a derived value is compared through what it derives from
+   * (`get_real_velocity() / 60`, the frame's displacement, as a position); the claim records it.
+   */
+  readonly derivation?: string;
+}
+
+/**
+ * A value in a `rapier-geometry` case that Rapier's collision geometry decides and that is not a
+ * stable fact: how many contact points one collision has and where along a line contact the
+ * reported one lies (GodotPhysics3D's SAT manifold against Rapier's single contact), how many
+ * collisions one frame's slides meet (a graze Godot's GJK sweep misses and Rapier's query meets).
+ * It may differ by at most `within`; the claim records `fact` and the measured largest difference.
+ * Every other integer in the case agrees exactly and every other float within 0.05.
+ */
+export interface GodotEvidenceGeometryFact {
+  /**
+   * The value's place: indexes from the case's value down, `'*'` for any index, ending in `'x'`,
+   * `'y'` or `'z'` for one component of a Vector3.
+   */
+  readonly at: readonly (number | '*' | 'x' | 'y' | 'z')[];
+  readonly within: number;
+  /** What the value is and where Godot's and Rapier's differ (`contact points: Godot 2 / Rapier 1 …`). */
+  readonly fact: string;
 }
 
 export interface GodotEvidenceCaseFile {
