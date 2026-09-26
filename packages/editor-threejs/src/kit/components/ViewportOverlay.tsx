@@ -1,7 +1,7 @@
 import { faBorderAll, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import { EditorIcon, FloatingToolbar, IconButton, Tooltip } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { memo, useEffect, useMemo, useReducer, useState, useSyncExternalStore } from 'react';
+import { memo, useEffect, useId, useMemo, useReducer, useState, useSyncExternalStore } from 'react';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   object3DDocumentSession,
@@ -73,13 +73,26 @@ export function ViewportOverlay({
     anchor
       ?.closest('.vgai-dock-document-content')
       ?.querySelector<HTMLElement>(':scope > .vgai-stage-bar [data-stage-bar-slot="display"]') ?? null;
-  const slot = findSlot();
+  // ONE OVERLAY PER SLOT: a document hosting two stages has one bar, so the first overlay to
+  // claim its slot draws there and any other keeps its own place.
+  const owner = useId();
+  const found = findSlot();
+  const slot = found && (found.dataset['owner'] === undefined || found.dataset['owner'] === owner) ? found : null;
   // The surface's bar can commit after this render (a change of look reaches both at once), so
   // the slot is looked for again once the page has settled.
   const [, reslot] = useReducer((value: number) => value + 1, 0);
   useEffect(() => {
-    if (findSlot() !== slot) reslot();
+    const now = findSlot();
+    if (now && now.dataset['owner'] === undefined) now.dataset['owner'] = owner;
+    const claimable = now && now.dataset['owner'] === owner ? now : null;
+    if (claimable !== slot) reslot();
   });
+  useEffect(
+    () => () => {
+      if (slot?.dataset['owner'] === owner) delete slot.dataset['owner'];
+    },
+    [slot, owner],
+  );
   const toolbar = (
     <FloatingToolbar
       label="Viewport display"
@@ -124,11 +137,11 @@ export function ViewportOverlay({
   );
 }
 
-/** The shading mode a document stage is painting, when it is one of the menu's (a Model
- *  document's UV and vertex-colour views are its own toolbar's). */
-function sessionShading(session: ReturnType<typeof object3DDocumentSession>): ViewportShadingMode | null {
-  const mode = session?.presentation().mode;
-  return mode === undefined || mode === 'uv' || mode === 'vertex-colors' ? null : mode;
+/** The shading mode a document stage is painting (the menu names one it does not offer). */
+function sessionShading(
+  session: ReturnType<typeof object3DDocumentSession>,
+): ViewportShadingMode | 'uv' | 'vertex-colors' | null {
+  return session?.presentation().mode ?? null;
 }
 
 const NO_SESSION_SUBSCRIBE = () => () => {};

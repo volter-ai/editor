@@ -33,7 +33,6 @@ import {
 } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useEditorStore } from '../editor-runtime';
-import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
 import type { GizmoAnchor, PivotMode } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import {
@@ -523,8 +522,11 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
   const store = stage ?? shell;
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);
-  // On the look's bar (Unreal's row) the snap steps are shown, as Unreal's row shows them.
-  const onBar = useViewportChrome().transformControls === 'bar';
+  // ON THE STAGE'S BAR (Unreal's row) the snap steps are shown, as Unreal's row shows them. The
+  // host decides whether these controls ride the bar (a placed stage whose look puts them there),
+  // so where they are mounted is the answer, not the look alone.
+  const [mark, setMark] = useState<HTMLSpanElement | null>(null);
+  const onBar = mark?.closest('.vgai-stage-bar') != null;
   return (
     <EditorToolbar
       compact
@@ -532,6 +534,7 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
       data-testid="transform-header-controls"
       className="vgai-transform-header-controls"
     >
+      <span ref={setMark} hidden />
       <TransformOrientationButton store={store} />
       <SplitButtonGroup>
         <PivotButton store={store} />

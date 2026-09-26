@@ -26,6 +26,14 @@ export const viewportShadingModes: ReadonlyArray<{
   { mode: 'overdraw', label: 'Overdraw', description: 'Additive overlap visualization' },
 ];
 
+/** The names of the modes a stage may paint that this menu does not offer. */
+const OWN_MODE_NAMES: Readonly<Record<string, string>> = {
+  preview: 'Material Preview',
+  rendered: 'Rendered',
+  uv: 'UV',
+  'vertex-colors': 'Vertex Colors',
+};
+
 export interface ViewportDisplayModeChoice<T extends string> {
   readonly mode: T;
   readonly label: string;
@@ -307,19 +315,23 @@ export function ViewportShadingMenu({
   disabled = false,
   words,
 }: {
-  mode: ViewportShadingMode;
+  /** The mode the stage paints. One this menu does not offer (a stage's Material Preview or
+   *  Rendered, a Model document's UV or vertex colours) is still shown by its own name. */
+  mode: ViewportShadingMode | 'uv' | 'vertex-colors';
   onChange: (mode: ViewportShadingMode) => void;
   disabled?: boolean;
   /** Each mode's name in the target's own words (the look's `stage.words.shading`). */
   words?: Readonly<Partial<Record<string, string>>>;
 }) {
-  const choices = useMemo(
-    () => viewportShadingModes.map((choice) => ({ ...choice, label: words?.[choice.mode] ?? choice.label })),
-    [words],
-  );
+  const choices = useMemo(() => {
+    const offered = viewportShadingModes.map((choice) => ({ ...choice, label: words?.[choice.mode] ?? choice.label }));
+    if (offered.some((choice) => choice.mode === mode)) return offered;
+    const label = words?.[mode] ?? OWN_MODE_NAMES[mode] ?? mode;
+    return [...offered, { mode: mode as ViewportShadingMode, label, description: 'The mode this view is drawn in' }];
+  }, [words, mode]);
   return (
     <ViewportDisplayModeMenu
-      mode={mode}
+      mode={mode as ViewportShadingMode}
       onChange={onChange}
       choices={choices}
       disabled={disabled}
