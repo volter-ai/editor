@@ -823,15 +823,22 @@ class Compiler {
           if (extension === 'CLIP')
             body.push(`if (any(lessThan(${co}.xy, vec2(0.0))) || any(greaterThan(${co}.xy, vec2(1.0)))) { ${color} = vec4(0.0); ${alpha} = 0.0; }`);
         }
-        // node_shader_gpu_tex_image's Color output, for three's straight-alpha
-        // upload: cleared for ignored/packed/data alpha; premultiplied (and
-        // cleared) when Alpha is used; straight otherwise.
+        // node_shader_gpu_tex_image's Color output over the file's own texels (straight, or
+        // premultiplied for a PREMUL image, as Blender's GPU texture holds them): alpha cleared for
+        // ignored, packed or data alpha; otherwise straight when Alpha is used, so a factor does
+        // not multiply it in twice, and premultiplied when it is not. Measured in Blender 5.2's
+        // EEVEE: a straight red texel at alpha 0.5 emits 0.502 with Alpha unused, 1.0 with it used.
         const mode = prop<string>(node, 'image_alpha_mode');
         const alphaUsed = this.uses(key, 1);
-        if (mode === 'NONE' || mode === 'CHANNEL_PACKED' || prop<boolean>(node, 'image_is_data') || !alphaUsed)
-          body.push(`${outs([0])}.a = 1.0;`);
+        const c = outs([0]);
+        if (mode === 'NONE' || mode === 'CHANNEL_PACKED' || prop<boolean>(node, 'image_is_data'))
+          body.push(`${c}.a = 1.0;`);
+        else if (mode === 'PREMUL')
+          body.push(alphaUsed
+            ? `if (${c}.a != 0.0 && ${c}.a != 1.0) ${c}.rgb /= ${c}.a;`
+            : `${c}.a = 1.0;`);
         else
-          body.push(`${outs([0])} = vec4(${outs([0])}.rgb * ${outs([0])}.a, 1.0);`);
+          body.push(alphaUsed ? `${c}.a = 1.0;` : `${c}.rgb *= ${c}.a;`);
         break;
       }
     }
