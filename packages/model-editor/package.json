@@ -39,8 +39,8 @@
       "displayName": "Volter Model Editor",
       "colorTheme": "dark",
       "workbench": {
-        "release": "model-editor-9ef15b1f345b-7b9222405623-darwin-arm64",
-        "tarballSha256": "043e8a7c0986dc3c4b7129f970ac04e97d7309291325036ca02c3eca2d28ab05"
+        "release": "model-editor-50214fb55829-e2af50dac829-darwin-arm64",
+        "tarballSha256": "6c2a1b8294056f4f7ce758d6cdeec5dceeb69dbd2b09d36d4920fd848fbab855"
       }
     }
   },
