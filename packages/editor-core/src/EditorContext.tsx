@@ -2,7 +2,6 @@ import { type ReactNode, useEffect, useRef } from 'react';
 import { SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY } from './authoring/shell-object3d-document-write-policy';
 
 import { connectCommandListener } from './command-listener';
-import { registerStoryMediaCaptures } from './stories/story-media-captures';
 import { startSceneDocuments } from './components/scene-documents';
 import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
@@ -63,8 +62,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return connectCommandListener(storeRef.current!, sessionRef.current!.historyCommands);
   }, []);
-  useEffect(() => registerStoryMediaCaptures(), []);
-
   // Project-tool discovery is EDITOR-INIT lifecycle, not a side effect of any
   // one surface — it runs (and keeps re-running on project change / tool-file
   // add/unlink) whether or not a workspace is mounted.

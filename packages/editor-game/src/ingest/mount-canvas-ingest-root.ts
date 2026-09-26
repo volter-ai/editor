@@ -43,7 +43,7 @@ import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
 import {
   capturePixiDisplayObjectThumbnail,
   registerPresentedPixiApps,
-} from '@volter/editor-core/canvas-preview-frames';
+} from '../host/canvas-preview-frames';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';

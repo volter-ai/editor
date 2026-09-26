@@ -10,6 +10,8 @@ import type {
   DomHostContext,
   ThreeHostContext,
 } from '@volter/editor-project/adapter/host-context';
+import type { AssetCache } from '@volter/threejs-runtime/assets';
+import type * as THREE from 'three';
 import type { Game } from './game';
 
 /**
@@ -56,7 +58,7 @@ export interface HostGameHandle extends Game {
  * headless harnesses and foreign hosts — everything must keep working when
  * this is undefined.
  */
-export interface GameThreeHostContext extends ThreeHostContext {
+export interface GameThreeHostContext extends ThreeHostContext<typeof THREE, THREE.WebGLRenderer, AssetCache> {
   readonly game?: HostGameHandle | undefined;
 }
 

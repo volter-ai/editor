@@ -128,6 +128,7 @@ import {
 import { subscribeEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
 import { StagePresentationRig } from './standard-viewport-dressing';
 import { threeStoreForHost } from '../three-state';
+import { threeObject } from '../../adapter/three-contract';
 
 /** The kind of stage a document's view is, for its starting presentation: the document's own
  *  kind, its id's prefix inside the workspace's `document:` wrapper
@@ -1317,7 +1318,7 @@ export function Object3DDocumentViewport({
           if (dressingGrid === true) host.viewport.grid.removeFromParent();
           const open = (event: MouseEvent) => {
             const id = pick(event.clientX, event.clientY);
-            const object = id ? host.adapter?.hierarchy.object3D?.(id) : null;
+            const object = id && host.adapter ? threeObject(host.adapter.hierarchy, id) : null;
             if (object) onOpenNodeRef.current?.(object);
           };
           container.addEventListener('dblclick', open);
@@ -1681,7 +1682,7 @@ export function Object3DDocumentViewport({
         const kept = new Set<THREE.Object3D | string>();
         store.shell.selectMultiple(
           selected.filter((id) => {
-            const object = store.objectMap.get(id) ?? adapter.hierarchy.object3D?.(id) ?? null;
+            const object = store.objectMap.get(id) ?? threeObject(adapter.hierarchy, id);
             if (object === null && !store.objectMap.has(id)) return false;
             const key = object ?? id;
             if (kept.has(key)) return false;
@@ -2090,7 +2091,7 @@ export function Object3DDocumentViewport({
                     viewport.focusOn(host.session.root);
                   break;
                 case 'focus-entity': {
-                  const object = host.adapter?.hierarchy.object3D?.(action.id) ?? null;
+                  const object = host.adapter ? threeObject(host.adapter.hierarchy, action.id) : null;
                   if (object) viewport.focusOn(object);
                   break;
                 }
@@ -2368,7 +2369,7 @@ export function Object3DDocumentViewport({
               displayName={displayName}
               {...(statistics ? { statistics } : {})}
               objectName={(id) =>
-                documentHostRef.current?.adapter?.hierarchy.object3D?.(id)?.name ??
+                ((adapter) => (adapter ? threeObject(adapter.hierarchy, id)?.name : undefined))(documentHostRef.current?.adapter) ??
                 // Document builders may supply names through their store index.
                 documentHostRef.current?.store.objectMap.get(id)?.name ??
                 null

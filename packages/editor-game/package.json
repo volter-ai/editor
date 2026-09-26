@@ -24,7 +24,11 @@
   "exports": {
     "./contributions/*": "./contributions/*",
     "./*": "./src/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./host/canvas-preview-frames": "./src/host/canvas-preview-frames.ts",
+    "./host/stories/pixi-story-model": "./src/host/stories/pixi-story-model.ts",
+    "./host/stories/story-pixi-preview": "./src/host/stories/story-pixi-preview.ts",
+    "./host/stories/story-media-captures": "./src/host/stories/story-media-captures.ts"
   },
   "vgai": {
     "contributions": [
@@ -87,7 +91,8 @@
       "./contributions/three/reflection-probe-capture.inspector.tsx",
       "./contributions/three/story-documents.service.ts",
       "./contributions/three/three-authoring.service.ts",
-      "./contributions/three-story-capture.service.ts"
+      "./contributions/three-story-capture.service.ts",
+      "./contributions/canvas-story-capture.service.ts"
     ],
     "serving": "./dist-node/serving.mjs"
   },

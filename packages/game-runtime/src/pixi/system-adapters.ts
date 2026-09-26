@@ -1,8 +1,9 @@
-import type { PhysicsAdapter2D } from '@volter/editor-project/adapter/physics-adapter-2d';
+import type { PhysicsAdapter2D as PhysicsAdapter2DSeam } from '@volter/editor-project/adapter/physics-adapter-2d';
 import type { Container } from 'pixi.js';
 import type { Physics2DRegistry } from './physics-registry';
 
-export type { PhysicsAdapter2D } from '@volter/editor-project/adapter/physics-adapter-2d';
+/** The canvas physics seam, keyed by Pixi's display object. */
+export type PhysicsAdapter2D = PhysicsAdapter2DSeam<Container>;
 
 export function createPhysicsAdapter2D(physics: Physics2DRegistry): PhysicsAdapter2D {
   // Remember each frozen body's prior type so unfreeze restores it.

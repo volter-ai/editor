@@ -47,10 +47,10 @@
  */
 
 import { createRoot, extend } from '@pixi/react';
-import type { MountedPixiRoot, RootAdapter } from '@volter/editor-project/adapter';
+import type { MountedCanvasRoot, MountedCanvasSubstrate, RootAdapter } from '@volter/editor-project/adapter';
 import type { GameCanvasHostContext } from '../runtime/host-context';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
-import type { Application, ApplicationOptions } from 'pixi.js';
+import type { Application, ApplicationOptions, Container } from 'pixi.js';
 import * as PIXI from 'pixi.js';
 import { type ComponentType, createElement, Fragment, useEffect, useLayoutEffect } from 'react';
 import { WorldProvider } from '../react/world-state';
@@ -85,6 +85,12 @@ interface CanvasEntryModuleExports {
    * same explicit boundary the three entry adjudicator accepts; gameplay
    * modules remain ecosystem-native. */
   readonly adapter?: unknown;
+}
+
+/** Pixi's substrate-narrowed mounted shape: generic canvas hosts depend on
+ * {@link MountedCanvasRoot}. */
+export interface MountedPixiRoot extends MountedCanvasRoot {
+  readonly substrate: MountedCanvasSubstrate<Container> & { readonly name: 'pixi' };
 }
 
 function isCanvasRootAdapter(candidate: unknown): candidate is RootAdapter<'canvas'> {

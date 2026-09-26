@@ -12,7 +12,7 @@
  * whose camera pose) — handed in as `renderScene`.
  */
 
-import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
+import { registerPresentedCanvasFrame } from '../canvas-preview-frames';
 import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 /**

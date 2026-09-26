@@ -7,8 +7,6 @@
  * root.
  */
 
-import type { Container } from 'pixi.js';
-import type * as THREE from 'three';
 import type { AdapterSurface } from './adapter-surface';
 import type { AuthoringAdapter } from './authoring';
 import type { HostContextFor } from './host-context';
@@ -108,12 +106,13 @@ export interface MountedRootBase {
 }
 
 /** A live, mounted Three world. The host obtains `scene`/`camera` to render
- * and author it. */
-export interface MountedThreeRoot extends MountedRootBase {
+ * and author it; they are opaque here, and `@volter/editor-threejs` names the
+ * Three-typed root. */
+export interface MountedThreeRoot<Scene = unknown, Camera = unknown> extends MountedRootBase {
   readonly kind: 'three';
   /** The live scene + camera the editor inspects/renders for authoring. */
-  readonly scene: THREE.Scene;
-  readonly camera: THREE.Camera;
+  readonly scene: Scene;
+  readonly camera: Camera;
   /**
    * The colour pipeline this world was authored for, REPORTED rather than
    * applied — the adapter has already applied it to the renderer its own host
@@ -157,12 +156,6 @@ export interface MountedCanvasRoot extends MountedRootBase {
   /** The same host-owned canvas passed to `mount`. */
   readonly canvas: HTMLCanvasElement;
   readonly substrate: MountedCanvasSubstrate;
-}
-
-/** Pixi's substrate-narrowed mounted shape. This is an implementer type, not
- * the host contract: generic canvas hosts depend on {@link MountedCanvasRoot}. */
-export interface MountedPixiRoot extends MountedCanvasRoot {
-  readonly substrate: MountedCanvasSubstrate<Container> & { readonly name: 'pixi' };
 }
 
 /** A live, mounted react world (T6.2) — the react analog of

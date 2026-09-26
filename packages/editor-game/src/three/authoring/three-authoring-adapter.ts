@@ -801,7 +801,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       return node ? this.toEditorNode(node) : null;
     },
     object3D: (id) => this.objectOf(id),
-    idForObject3D: (object) => this.projector.idOf(object),
+    idForObject3D: (object: THREE.Object3D) => this.projector.idOf(object),
   };
 
   readonly selection: SelectionProvider = {

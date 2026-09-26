@@ -2,9 +2,7 @@
  * Product-specific execution handles belong in that product's extension of
  * these contexts; the shared project contract must not import its runtime.
  */
-import type * as THREE from 'three';
 import type { AdapterSurface } from './adapter-surface';
-import type { AssetCache } from './asset-cache';
 
 /** The canvas/container the game renders into, plus its size. */
 export interface HostSurface {
@@ -33,17 +31,20 @@ export interface HostContextBase {
 /**
  * What a `three`-surface root is handed. This is the ONLY context carrying
  * three's own objects — the split's entire point (see the header): a Pixi or
- * React root is never handed a `WebGLRenderer` it cannot use.
+ * React root is never handed a `WebGLRenderer` it cannot use. The objects are
+ * opaque here; `@volter/editor-threejs` names the Three-typed context, and a
+ * runtime names its own.
  */
-export interface ThreeHostContext extends HostContextBase {
+export interface ThreeHostContext<Three = unknown, Renderer = unknown, Assets = unknown>
+  extends HostContextBase {
   /** The ONE shared three instance — identity matters for capture (see ingest). */
-  readonly three: typeof THREE;
+  readonly three: Three;
   /** Canvas/container + size; a self-driven game may take the surface over. */
   readonly surface: HostSurface;
   /** Host renderer — host-driven games render through it. */
-  readonly renderer: THREE.WebGLRenderer;
-  /** Shared GLTF/texture cache — three-flavored today; see the header. */
-  readonly assets: AssetCache;
+  readonly renderer: Renderer;
+  /** Shared GLTF/texture cache. */
+  readonly assets: Assets;
 }
 
 /**

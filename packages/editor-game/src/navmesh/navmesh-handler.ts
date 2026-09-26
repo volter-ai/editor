@@ -11,6 +11,7 @@ import {
   navBakeBusy,
   resetNavMeshBaked,
 } from './navmesh-workflow-store';
+import { threeNavigation } from '@volter/editor-threejs/adapter/three-contract';
 import { hostHierarchyObjects } from '@volter/editor-threejs/host-hierarchy-objects';
 import { setViewportHelper, viewportRig } from '@volter/editor-threejs/viewport-door';
 
@@ -78,7 +79,8 @@ export function setupNavMeshHandlers(): () => void {
   /** Follow late registration/replacement of the primary mounted adapter. A
    * root may register navigation only after its async WASM setup completes. */
   function syncMountedNavigation(): void {
-    const nav = getActiveSystems().navigation ?? null;
+    const active = getActiveSystems().navigation;
+    const nav = active ? threeNavigation(active) : null;
     if (nav !== boundNavigation) {
       boundNavigation = nav;
       clearPresentation();
@@ -126,7 +128,8 @@ export function setupNavMeshHandlers(): () => void {
     // Recast's solo bake is synchronous WASM — yield a frame so the Bake
     // button visibly paints its busy state before the build blocks the thread.
     await new Promise((r) => requestAnimationFrame(() => r(null)));
-    const nav = getActiveSystems().navigation;
+    const active = getActiveSystems().navigation;
+    const nav = active ? threeNavigation(active) : undefined;
     if (!nav) {
       const reason = 'The mounted game has no NavigationAdapter';
       editorHost().console.warn(`${reason} — nothing can be baked`, 'navigation');
@@ -204,7 +207,8 @@ export function setupNavMeshHandlers(): () => void {
   };
 
   const onClear = () => {
-    const nav = getActiveSystems().navigation;
+    const active = getActiveSystems().navigation;
+    const nav = active ? threeNavigation(active) : undefined;
     if (!nav) {
       editorHost().console.warn('The mounted game has no NavigationAdapter to clear', 'navigation');
       return;

@@ -1587,7 +1587,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     object3D: (id) => {
       return this.transformObject(id);
     },
-    idForObject3D: (object) => this.idByObject.get(object) ?? null,
+    idForObject3D: (object: THREE.Object3D) => this.idByObject.get(object) ?? null,
   };
 
   /** The same OID source address every guarded JSX write uses, exposed for

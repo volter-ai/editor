@@ -37,7 +37,7 @@ export const ROOT_STATE_OBSERVER_SHAPE = defineSeamShape<RootStateObserver>()({
   snapshot: { optional: false, kind: 'function', required: 'operation' },
 });
 
-type ThreeSurface = Omit<MountedThreeRoot, keyof MountedRootBase>;
+type ThreeSurface = Omit<MountedThreeRoot<object, object>, keyof MountedRootBase>;
 type CanvasSurface = Omit<MountedCanvasRoot, keyof MountedRootBase>;
 type DomSurface = Omit<MountedReactRoot, keyof MountedRootBase>;
 

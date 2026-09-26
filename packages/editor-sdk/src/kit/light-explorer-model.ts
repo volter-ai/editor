@@ -97,7 +97,7 @@ export function lightExplorerRows(adapter: AuthoringAdapter): LightExplorerRow[]
     } catch {
       // A broken per-node inspector must not take the scene-wide inventory down.
     }
-    const nativeType = adapter.hierarchy.object3D?.(node.id)?.type;
+    const nativeType = (adapter.hierarchy.object3D?.(node.id) as { readonly type?: string } | null | undefined)?.type;
     return {
       id: node.id,
       name: node.label,

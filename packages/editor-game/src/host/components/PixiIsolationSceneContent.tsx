@@ -18,7 +18,7 @@ import { PixiAuthoringAdapter } from '../authoring/pixi-authoring-adapter';
 import { createCreationSiteCanvasWriteTarget } from '../authoring/pixi-creation-site-write-target';
 import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/react-canvas-navigation';
 import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
-import { capturePixiDisplayObjectThumbnail } from '@volter/editor-core/canvas-preview-frames';
+import { capturePixiDisplayObjectThumbnail } from '../canvas-preview-frames';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
 import { authoringJournal } from '../history/json-history-resource';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';

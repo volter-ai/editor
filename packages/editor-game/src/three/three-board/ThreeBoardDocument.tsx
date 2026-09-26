@@ -1,3 +1,4 @@
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
 /**
  * The 3D COMPONENTS board — a generated, never-persisted 3D scene laying out
@@ -737,7 +738,7 @@ export function BoardExhibitSection({ adapter, nodeId }: InspectorSectionProps) 
   useSyncExternalStore(subscribeThreeBoard, threeBoardVersion);
   const candidateIds = [...(nodeId ? [nodeId] : []), ...(adapter.selection?.get() ?? [])];
   const exhibit = candidateIds.reduce<BoardExhibit | null>(
-    (found, id) => found ?? findExhibitIn(_scene, adapter.hierarchy.object3D?.(id) ?? null),
+    (found, id) => found ?? findExhibitIn(_scene, threeObject(adapter.hierarchy, id)),
     null,
   );
   return (

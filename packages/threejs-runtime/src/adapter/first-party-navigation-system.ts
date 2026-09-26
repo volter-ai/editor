@@ -40,7 +40,7 @@ export function createNavigationAdapter(
     hasNavMesh: () => nav.hasNavMesh(),
     findPath: (start: NavPoint, end: NavPoint) => nav.findPath(start, end) as NavPoint[],
     debugMesh: (scene: THREE.Scene) => nav.getDebugMesh(scene) as unknown as THREE.Object3D | null,
-    bake: ownerCapabilities.bake ?? ((meshes, params) => nav.buildFromMeshes(meshes, params)),
+    bake: ownerCapabilities.bake ?? ((meshes: THREE.Mesh[], params?: NavBakeParams) => nav.buildFromMeshes(meshes, params)),
     exportData: () => nav.exportData(),
     ...(ownerCapabilities.clear ? { clear: ownerCapabilities.clear } : {}),
     crowdAgents: () => nav.getCrowdAgents(),

@@ -18,6 +18,7 @@ import { type ParticleSystem, QuarksLoader } from 'three.quarks';
 import { quarksParticleSystems } from '../../authoring/quarks-particle-systems';
 import { projectOutputPath } from '@volter/editor-sdk/kit/project-provenance';
 import { Object3DDocumentViewport } from '../StageHost';
+import { threeObject } from '../../../adapter/three-contract';
 
 type JsonObject = Record<string, unknown>;
 
@@ -366,7 +367,7 @@ const createQuarksAuthoring: ToolObject3DDocumentAuthoringFactory = ({
     for (const listener of listeners) listener();
   };
   const emitterFor = (id: string): QuarksEmitterArtifact | null => {
-    const object = defaultAdapter.hierarchy.object3D?.(id);
+    const object = threeObject(defaultAdapter.hierarchy, id);
     return object ? (artifact.emitters.get(object) ?? null) : null;
   };
   const inspector: InspectorProvider = {

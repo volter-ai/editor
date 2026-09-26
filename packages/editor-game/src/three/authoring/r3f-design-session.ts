@@ -91,6 +91,7 @@ import type {
   SystemAdapters,
 } from '@volter/editor-project/adapter';
 import type { GameThreeHostContext } from '@volter/game-runtime/runtime/host-context';
+import type { ThreeMountedRoot } from '@volter/editor-threejs/adapter/three-contract';
 import { nodeKeyedPhysics } from '@volter/editor-project/adapter';
 import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import {
@@ -479,7 +480,7 @@ export async function mountR3FDesignSession(
    * Ownership is `adoptMount`'s, and only after `disposeMounted`.
    */
   interface DesignMount {
-    root: MountedThreeRoot;
+    root: ThreeMountedRoot;
     game: GameInternal;
     disposeHost: () => void;
   }
@@ -508,7 +509,7 @@ export async function mountR3FDesignSession(
     // (Rapier, game debug providers, and future native systems) on
     // `mounted.systems` even though the component registered successfully.
     registerR3FDesignRoot(hostGame, adapterExport, result, worldId, entryDebug, entrySystems);
-    return { root: result, game: hostGame, disposeHost };
+    return { root: result as ThreeMountedRoot, game: hostGame, disposeHost };
   };
 
   /** Install a freshly-mounted design world as THE live one. The previous one

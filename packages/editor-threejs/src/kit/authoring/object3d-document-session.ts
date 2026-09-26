@@ -11,6 +11,7 @@ import {
 } from '@volter/editor-threejs/render/viewport-shading';
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
+import { threeObject } from '../../adapter/three-contract';
 import { cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { type EditorViewport } from '../editor-viewport';
@@ -241,7 +242,7 @@ export class Object3DDocumentSession {
       const selected = new THREE.Box3();
       let found = false;
       for (const id of selection) {
-        const object = this.authoring?.hierarchy.object3D?.(id);
+        const object = this.authoring ? threeObject(this.authoring.hierarchy, id) : null;
         if (!object) continue;
         const bounds = contentWorldBounds(object);
         if (bounds.isEmpty()) continue;
@@ -464,7 +465,7 @@ export class Object3DDocumentSession {
   syncSelectionPresentation(): void {
     invalidateStages();
     const selected = (this.authoring?.selection?.get() ?? [])
-      .map((id) => this.authoring?.hierarchy.object3D?.(id) ?? null)
+      .map((id) => (this.authoring ? threeObject(this.authoring.hierarchy, id) : null))
       .filter((object): object is THREE.Object3D => object !== null);
     this.selectedObjects = selected;
     if (this.selectionOutline) {
@@ -502,7 +503,7 @@ export class Object3DDocumentSession {
   frameIds(ids: readonly string[]): boolean {
     this.settleFlight('superseded');
     const objects = ids
-      .map((id) => this.authoring?.hierarchy.object3D?.(id) ?? null)
+      .map((id) => (this.authoring ? threeObject(this.authoring.hierarchy, id) : null))
       .filter((object): object is THREE.Object3D => object !== null);
     if (objects.length === 0) return false;
     if (objects.every((object) => (object as THREE.Bone).isBone)) {

@@ -88,9 +88,8 @@ Rules:
   the kit's 259 modules, so it leaves by dissolving the package (the plan's last paragraph), not
   by moving more of the kit. `@volter/editor-core` exports `./*`, so nothing stops it.
 - The Three viewport is `@volter/editor-threejs`'s (unit 3): no module in `@volter/editor-core`
-  imports three.js or `@volter/editor-threejs`. The kit's remaining media edges are Pixi's canvas
-  story previews in `@volter/editor-core` (3 modules), the adapter contract in
-  `@volter/editor-project` (3 Three-typed and 2 Pixi-typed modules), and the contribution
+  imports three.js or `@volter/editor-threejs`, and Pixi's story and canvas captures are
+  `@volter/editor-game`'s. The kit's one remaining media edge is the contribution
   contract's Object3D surface props in `@volter/editor-sdk/contributions` (project contributions
   compile against them). The TypeScript compiler still runs over project source in 6 kit modules,
   and the Play purpose lives here too (`gameplay-*`, `play-boot-phase`, `reported-play-state`,

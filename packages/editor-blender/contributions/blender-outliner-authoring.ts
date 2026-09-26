@@ -75,6 +75,7 @@ import type {
   WriteAck,
 } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import { blenderExecute, blenderRnaSet, beginBlenderGesture, endBlenderGesture } from '../host/blender-runtime-host';
 import {
   blenderEngineSelection,
@@ -1047,7 +1048,7 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
    */
   const rowIdFor = (id: string): string | null => {
     if (rows().has(id)) return id;
-    const object = defaultAdapter.hierarchy.object3D?.(id) ?? null;
+    const object = threeObject(defaultAdapter.hierarchy, id);
     return object === null ? null : rowIdForObject(object);
   };
 
@@ -1084,7 +1085,7 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
       return row === undefined ? null : nodeFor(row, state.parentOf.get(row.id) ?? null);
     },
     object3D: (id) => objectFor(id),
-    idForObject3D: (object) => rowIdForObject(object),
+    idForObject3D: (object: THREE.Object3D) => rowIdForObject(object),
   };
 
   /** The Blender object NAMES our selection covers — what the door wants. */

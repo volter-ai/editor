@@ -240,7 +240,7 @@ export {
   REACT_WORLD_RUNTIME_PATH,
   THREE_INGEST_RUNTIME_PATH,
 };
-/** The dynamic-import-facing URL `stories/story-dom-runtime.ts` imports. Its
+/** The dynamic-import-facing URL `@volter/editor-sdk/kit/stories/story-dom-runtime` imports. Its
  *  one spelling is `@volter/editor-sdk/host`, because a reader reaches a host
  *  fact through the published door and never through this build tier; this
  *  plugin still owns WHAT is served at that address, below. */

@@ -30,7 +30,6 @@
  * false` means hidden from renders.
  */
 
-import type * as THREE from 'three';
 import type { Transform } from './transform';
 
 /**
@@ -217,17 +216,18 @@ export interface HierarchyProvider {
    */
   crossSurfaceStructureSignature?(): string | null;
   /**
-   * OPTIONAL, THREE-SPECIFIC — the live `Object3D` for raycast/gizmo binding
-   * (null for a node this adapter has no object for). A Pixi, DOM or React
-   * adapter has no `Object3D` at all: it OMITS this method rather than
+   * OPTIONAL, THREE-SURFACE — the live scene object for raycast/gizmo binding
+   * (null for a node this adapter has no object for), opaque here: its Three
+   * typing is `@volter/editor-threejs`'s `threeHierarchy`. A Pixi, DOM or React
+   * adapter has no scene object at all: it OMITS this method rather than
    * implementing a `() => null` stub that pretends the concept applies. Callers
    * already treat `null` as "no object here", so absence and `null` mean the
    * same thing to them — optional-chain it (`hierarchy.object3D?.(id) ?? null`).
    */
-  object3D?(id: string): THREE.Object3D | null;
-  /** OPTIONAL, THREE-SPECIFIC — inverse of {@link object3D}. Same rule: an
-   *  adapter with no `Object3D` tree omits it. */
-  idForObject3D?(o: THREE.Object3D): string | null;
+  object3D?(id: string): unknown;
+  /** OPTIONAL, THREE-SURFACE — inverse of {@link object3D}. Same rule: an
+   *  adapter with no scene-object tree omits it. */
+  idForObject3D?(o: unknown): string | null;
 }
 
 export interface SelectionProvider {

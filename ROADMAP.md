@@ -36,7 +36,7 @@ done (`@volter/model-editor`; `release/boundary-baseline.json`); the Three viewp
 `@volter/editor-threejs` and no kit module imports three, and Blender is walked as its first consumer
 (`WORK.md` lists what remains of unit 3).
 Completion:
-- Blender's viewport defaults are `@volter/editor-blender`'s specialization; the adapter contract names no medium; the SDK's Object3D and viewport doors are Three's own exports.
+- Blender's viewport defaults are `@volter/editor-blender`'s specialization; the SDK's Object3D and viewport doors are Three's own exports.
 - Games are idiomatic (unit 5): the template and `arena` in plain libraries, the runtime framework retired into the ingest-style adapter.
 - `@volter/editor-game` imports no kit internals.
 

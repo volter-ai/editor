@@ -324,7 +324,7 @@ export class SourceObject3DAuthoringAdapter implements AuthoringAdapter {
       return object ? this.view.node(object) : null;
     },
     object3D: (id) => this.byId.get(id) ?? null,
-    idForObject3D: (object) => this.idByObject.get(object) ?? null,
+    idForObject3D: (object: THREE.Object3D) => this.idByObject.get(object) ?? null,
   };
 
   readonly selection: SelectionProvider = {

@@ -117,15 +117,16 @@ Remaining:
    through `blender-execute` shows moved and its `.blend` is rewritten on disk; undo returns it;
    the Outliner eye hides and reveals it; the state survives a full editor reopen; closing the
    Model document unbinds it from the engine and returns its renderer to the pool. The game
-   editor's Scene edit and Play were walked on the same code.
+   editor's Scene edit and Play were walked on the same code. The adapter contract names no
+   medium: `@volter/editor-project` states the `three` surface's scene, camera, renderer,
+   hierarchy objects, physics debug draw and navigation mesh opaquely (generic parameters or
+   `unknown`), `@volter/editor-threejs/adapter/three-contract` names them as three.js objects for
+   the editor, and each runtime names its own (the Pixi mounted root and 2D physics key are
+   `@volter/game-runtime`'s, the asset cache `@volter/threejs-runtime`'s).
    `@volter/editor-game` imports kit internals from 80 files (their closure is 254 of the kit's 259
    modules, so they leave by dissolving the package, unit 5, not by moving the kit). Remaining in
    unit 3: Blender's lens,
-   opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the
-   Three- and Pixi-typed adapter contract leaves `@volter/editor-project` (`hierarchy.object3D`,
-   a mounted Three root's scene and camera, navigation's `debugMesh`/`bake`) for
-   `@volter/editor-threejs` (DOCUMENT-VIEW-OWNERSHIP.md's corrections; the runtime framework's
-   retirement is the later unit); the SDK's `surfaces.Object3D*` stay on the
+   opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the SDK's `surfaces.Object3D*` stay on the
    contribution contract, forwarding to what the Three integration registers, because project
    contributions mount them (the authored viewport's own door, `viewport-door`, is already
    `@volter/editor-threejs`'s); `packaged.ts`'s Blender prebundle exclusion. A W held

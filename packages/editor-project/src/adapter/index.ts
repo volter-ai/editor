@@ -112,7 +112,6 @@ export type { OfflineAudioRenderer, RenderedAudio } from './render-audio';
 export type {
   MountedCanvasRoot,
   MountedCanvasSubstrate,
-  MountedPixiRoot,
   MountedReactRoot,
   MountedRoot,
   MountedRootBase,

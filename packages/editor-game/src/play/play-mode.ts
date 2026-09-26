@@ -83,7 +83,7 @@ import {
   formatProjectModuleSplitMessage,
 } from '@volter/editor-sdk/kit/project-module-split';
 import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-story-model';
+import { mountedStoryHasPixiContent } from '../host/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
 import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { publishToolContributionPlay } from '@volter/editor-core/tool-contribution-play';
@@ -118,6 +118,7 @@ import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest
 import { readOidSourceAnchors } from '../three/authoring/oid-source-persistence';
 import { oidThree, structuralThree } from '../three/authoring/three-authoring-adapter';
 import type * as THREE from 'three';
+import { threeRoot } from '@volter/editor-threejs/adapter/three-contract';
 import { deviceEmulatedPixelRatio } from '../game-document/device-preview';
 import { exitDeferredIngestPlay, mountDeferredIngestForPlay } from '../ingest/deferred-ingest-play';
 import { getIngestPlayControl } from '../ingest/ingest-play-control';
@@ -673,24 +674,25 @@ async function installPlayRootAuthoring(
     }
     const mounted = world.mounted;
     if (mounted.kind === 'three') {
+      const scene = threeRoot(mounted).scene;
       // The presented subject uses OID identity so Edit→Play selection stays
       // continuous. A headless or non-Three host can omit presentation; its
       // mounted tree still gets an honest structural live projection.
       // `frameControl: 'host'` on the structural branch follows from the same
       // tick-ownership fact: play's own loop drives the root and this adapter
       // holds no handle that can stop it for a gesture.
-      const isPresentedSubject = world.id === presentedWorldId && mounted.scene === store.scene;
+      const isPresentedSubject = world.id === presentedWorldId && scene === store.scene;
       const sourceAnchor = isPresentedSubject ? await readOidSourceAnchors() : undefined;
       if (!isCurrentGeneration()) {
         abandon();
         return;
       }
       const adapter = isPresentedSubject
-        ? oidThree(store, mounted.scene, liveWorldId(world.id), playRunJournal(world.id), {
+        ? oidThree(store, scene, liveWorldId(world.id), playRunJournal(world.id), {
             explicitSourceCommit: true,
             sourceAnchor,
           })
-        : structuralThree(store, mounted.scene, {
+        : structuralThree(store, scene, {
             frameControl: 'host',
             journal: playRunJournal(world.id),
           });
@@ -1136,7 +1138,7 @@ export function getPlayRuntimeAccess(): {
 /** Get the running game's scene (for editor Scene tab rendering). */
 export function getGameScene(): THREE.Scene | null {
   const mounted = _instance.session?.game.defaultRoot.mounted;
-  return mounted?.kind === 'three' ? mounted.scene : null;
+  return mounted?.kind === 'three' ? threeRoot(mounted).scene : null;
 }
 
 export interface GameRootSurfaceFact {
@@ -1153,7 +1155,7 @@ export function gameRootSurfaceFacts(): readonly GameRootSurfaceFact[] {
     const mounted = root.mounted;
     let hasRenderableContent = false;
     if (mounted.kind === 'three') {
-      hasRenderableContent = threeSceneHasRenderableContent(mounted.scene);
+      hasRenderableContent = threeSceneHasRenderableContent(threeRoot(mounted).scene);
     } else if (mounted.kind === 'canvas') {
       try {
         hasRenderableContent =

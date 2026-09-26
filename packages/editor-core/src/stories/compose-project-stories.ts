@@ -37,7 +37,7 @@
  */
 
 import type { ComposedStoryFn } from 'storybook/internal/types';
-import { resolveStoryDomRuntime } from './story-dom-runtime';
+import { resolveStoryDomRuntime } from '@volter/editor-sdk/kit/stories/story-dom-runtime';
 
 let projectAnnotationsApplied: Promise<void> | null = null;
 

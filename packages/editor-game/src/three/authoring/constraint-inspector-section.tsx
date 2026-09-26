@@ -1,3 +1,4 @@
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import { instanceStampOf } from '@volter/editor-threejs/kit/authoring/component-instance-root';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
@@ -19,7 +20,7 @@ import type * as THREE from 'three';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 
 function objectFor(adapter: AuthoringAdapter, nodeId: string | null) {
-  return nodeId ? (adapter.hierarchy.object3D?.(nodeId) ?? null) : null;
+  return nodeId ? threeObject(adapter.hierarchy, nodeId) : null;
 }
 
 /** Marks owned by this semantic component, including same-instance host nodes

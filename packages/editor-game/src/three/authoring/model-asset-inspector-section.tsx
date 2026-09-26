@@ -1,6 +1,7 @@
 // The section's own styles travel with it: the kit's `editor-styles.css` may
 // not @import a package's stylesheet (it would name a package), so the module
 // that draws them imports them.
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import './model-asset-inspector-section.css';
 import {
   inspectModel,
@@ -766,7 +767,7 @@ function modelDocumentSections(adapter: AuthoringAdapter): InspectionSection[] {
  *  clicked decides the data, and each block of that data is its own named,
  *  glyphed thing. */
 function object3dNodeSections(node: EditorNode | null, adapter: AuthoringAdapter) {
-  const object = node ? adapter.hierarchy.object3D?.(node.id) : null;
+  const object = node ? threeObject(adapter.hierarchy, node.id) : null;
   if (!object) return [];
   // A native subject proxy already describes itself through the adapter's
   // ordinary field currency. Treating its visualization mesh as model

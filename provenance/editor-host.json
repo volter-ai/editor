@@ -619,7 +619,7 @@
     },
     {
       "source": "packages/editor/src/canvas-preview-frames.ts",
-      "path": "packages/editor-core/src/canvas-preview-frames.ts",
+      "path": "packages/editor-game/src/host/canvas-preview-frames.ts",
       "sha256": "b26f116cc966b54b1a5df163e4872c3bd99a3df387dfb1c55d917219eb994aff"
     },
     {
@@ -2194,7 +2194,7 @@
     },
     {
       "source": "packages/editor/src/stories/pixi-story-model.ts",
-      "path": "packages/editor-core/src/stories/pixi-story-model.ts",
+      "path": "packages/editor-game/src/host/stories/pixi-story-model.ts",
       "sha256": "23812cb2072886ea8eb218361315856830a1a15f29b106a28b3f2901bb877038"
     },
     {
@@ -2249,7 +2249,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-dom-runtime.ts",
-      "path": "packages/editor-core/src/stories/story-dom-runtime.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-dom-runtime.ts",
       "sha256": "09202317c7b0a2a806d8581e9ca48d6f6bb3b054e3bb448566efd8834740857e"
     },
     {
@@ -2274,7 +2274,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-pixi-preview.ts",
-      "path": "packages/editor-core/src/stories/story-pixi-preview.ts",
+      "path": "packages/editor-game/src/host/stories/story-pixi-preview.ts",
       "sha256": "e1fb6ae381ad2d7773899a5c9d5c76d07660bcd19d8e1ae62d1ada0dd14e6610"
     },
     {

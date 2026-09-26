@@ -11,7 +11,6 @@
  * edit it".
  */
 
-import type * as THREE from 'three';
 import type { FrameCapture } from './frame-capture';
 import type { PhysicsAdapter2D } from './physics-adapter-2d';
 import type { OfflineAudioRenderer } from './render-audio';
@@ -127,8 +126,9 @@ export interface PhysicsAdapter {
   commit(nodeId: string, t: Transform): void;
   /** Resume simulation of `nodeId`. */
   unfreeze(nodeId: string): void;
-  /** Optional debug-draw object (collider wireframes). */
-  debugDraw?(): THREE.Object3D | null;
+  /** Optional debug-draw object (collider wireframes), in the surface's own
+   *  medium; opaque to the neutral contract. */
+  debugDraw?(): unknown;
   /**
    * Optional: turn the engine's per-frame physics debug rendering on/off —
    * the first-party implementation drives Rapier's `debugRender()` into the
@@ -384,6 +384,10 @@ export interface NavCrowdAgentState {
  * omits them. `clear` lets that same owner release its navmesh; the editor never
  * disposes implementation handles itself. `crowdAgents` feeds the play-mode
  * crowd debug draw.
+ *
+ * `debugMesh`/`bake`/`clear` trade in the surface's own scene, objects and
+ * meshes, which this neutral contract leaves opaque; `@volter/editor-threejs`
+ * names the Three-typed view (`threeNavigation`).
  */
 export interface NavigationAdapter {
   hasNavMesh(): boolean;
@@ -395,16 +399,16 @@ export interface NavigationAdapter {
    * Gate on {@link hasNavMesh} where the first case is reachable.
    */
   findPath(start: NavPoint, end: NavPoint): NavPoint[];
-  debugMesh(scene: THREE.Scene): THREE.Object3D | null;
+  debugMesh(scene: unknown): unknown;
   /** (Re)build the navmesh from source meshes. Synchronous in the blessed
    *  recast/WASM implementation; returns `false` on a failed bake. */
-  bake?(meshes: THREE.Mesh[], params?: NavBakeParams): boolean;
+  bake?(meshes: readonly unknown[], params?: NavBakeParams): boolean;
   /** Serialize the current navmesh to a binary blob (the editor persists it
    *  as the scene's `.navmesh` sidecar). Throws when nothing is built. */
   exportData?(): Uint8Array;
   /** Release the current navmesh and any debug object it attached to `scene`.
    * Optional because an external game's navigation may be inspect-only. */
-  clear?(scene: THREE.Scene): void;
+  clear?(scene: unknown): void;
   /** Live crowd-agent snapshots for debug draw. Empty when no crowd. */
   crowdAgents?(): NavCrowdAgentState[];
 }

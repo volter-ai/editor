@@ -70,7 +70,7 @@ import {
   cameraAuthoringPresentation,
   installCameraAuthoringHost,
 } from '@volter/editor-threejs/kit/camera-authoring';
-import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
+import { registerPresentedCanvasFrame } from '../canvas-preview-frames';
 import { collectState } from '@volter/editor-core/command-listener';
 import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';

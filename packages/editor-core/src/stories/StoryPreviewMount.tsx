@@ -47,7 +47,7 @@ import type { Root } from 'react-dom/client';
 import type { ComposedStoryFn } from 'storybook/internal/types';
 import { getCurrentProject } from '../project-manager';
 import { ensureScopedGameStyles } from '../scoped-game-css';
-import { resolveStoryDomRuntime } from './story-dom-runtime';
+import { resolveStoryDomRuntime } from '@volter/editor-sdk/kit/stories/story-dom-runtime';
 
 interface StoryPreviewErrorBoundaryProps {
   modulePath: string;

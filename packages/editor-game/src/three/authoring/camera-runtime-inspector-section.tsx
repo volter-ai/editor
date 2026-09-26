@@ -9,6 +9,7 @@
  * the editor creates no camera graph or sidecar.
  */
 
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import { getActiveCamera } from '@volter/editor-sdk/kit/authoring/active-systems';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type {
@@ -26,7 +27,7 @@ function selectedNativeCamera(
   adapter: AuthoringAdapter,
   nodeId: string | null,
 ): THREE.Camera | null {
-  const object = nodeId ? adapter.hierarchy.object3D?.(nodeId) : null;
+  const object = nodeId ? threeObject(adapter.hierarchy, nodeId) : null;
   if (!object) return null;
   if ((object as THREE.Camera).isCamera) return object as THREE.Camera;
   const owned = object.userData['_camera'] as THREE.Camera | undefined;

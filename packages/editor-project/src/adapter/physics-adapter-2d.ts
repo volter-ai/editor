@@ -1,11 +1,8 @@
 /**
- * The canvas surface's physics seam. `pixi.js` is a TYPE-ONLY import here: the
- * contract names `Container` because the seam is keyed by the display object,
- * and it ships no Pixi code (the implementer is
- * `@vgai/game-runtime/pixi/system-adapters`).
+ * The canvas surface's physics seam, keyed by the substrate's display object
+ * (`D`, opaque by default). The implementer names its own display type
+ * (`@volter/game-runtime/pixi/system-adapters` is `PhysicsAdapter2D<Container>`).
  */
-
-import type { Container } from 'pixi.js';
 
 /**
  * PhysicsAdapter2D — the Pixi analog of the 3D PhysicsAdapter (rapier-physics-adapter).
@@ -22,12 +19,12 @@ import type { Container } from 'pixi.js';
  * see that interface's doc comment for why the union has to be tagged, and why
  * the newcomer is the shape obliged to say so.
  */
-export interface PhysicsAdapter2D {
+export interface PhysicsAdapter2D<D = unknown> {
   /** Discriminates this shape from the node-id-keyed {@link PhysicsAdapter}
    *  inside `SystemAdapters['physics']`. */
   readonly keyedBy: 'display';
-  ownerOf(display: Container): 'physics' | 'none';
-  freeze(display: Container): void;
-  commit(display: Container, position: [number, number], rotation: number): void;
-  unfreeze(display: Container): void;
+  ownerOf(display: D): 'physics' | 'none';
+  freeze(display: D): void;
+  commit(display: D, position: [number, number], rotation: number): void;
+  unfreeze(display: D): void;
 }
