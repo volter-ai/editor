@@ -11,7 +11,7 @@
 import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
 import { articulationPrograms } from './articulations';
-import { type ImpulseResponse, mix } from './mix/offline-mix';
+import { type DynamicsReport, type ImpulseResponse, mix } from './mix/offline-mix';
 import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
 const PPQ = 480;
@@ -300,10 +300,10 @@ export async function renderChannels(
  * One seamless loop from rendered channels: the mix (strips, sends, buses, master), second pass
  * kept. `only` (track ids) mixes just those tracks, with their buses (a stem).
  */
-export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>): RenderedLoop {
+export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>, dynamics?: (report: DynamicsReport) => void): RenderedLoop {
   const { piece, sampleRate, loopSeconds, irs } = rendered;
   const channelOf = new Map([...assignChannels(piece)].map(([trackId, assignment]) => [trackId, assignment.channel]));
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}) });
+  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const loopSamples = Math.round(loopSeconds * sampleRate);
   const start = loopSamples;
   const outLeft = left.slice(start, start + loopSamples);
@@ -322,10 +322,10 @@ export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>):
 }
 
 /** Mix a single pass and its entire tail, with a 10 ms fade to silence at the end. */
-export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string>): RenderedLoop {
+export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string>, dynamics?: (report: DynamicsReport) => void): RenderedLoop {
   const { piece, sampleRate, irs } = rendered;
   const channelOf = new Map([...assignChannels(piece)].map(([id, assignment]) => [id, assignment.channel]));
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}) });
+  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const fade = Math.min(Math.round(0.01 * sampleRate), left.length);
   for (const channel of [left, right]) {
     for (let i = 0; i < fade; i++) channel[channel.length - fade + i]! *= (fade - 1 - i) / Math.max(1, fade - 1);

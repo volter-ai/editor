@@ -10,7 +10,7 @@ import type { ComponentType } from 'react';
 import { checkPiece } from './checks';
 import { measureLoop, nullResidualDb } from './measure';
 import { assignChannels, audibleTracks, mixLoop, mixOneShot, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from './render-offline';
-import type { ImpulseResponse } from './mix/offline-mix';
+import type { DynamicsReport, ImpulseResponse } from './mix/offline-mix';
 import { loopWav24, wav24, readWav } from './wav';
 
 const TARGETS: Record<string, number> = { console: -24, portable: -18 };
@@ -75,7 +75,16 @@ export async function renderPiece({
     const rendered = await renderChannels(piece, bank, undefined, undefined, irs, oneShot ? 1 : 2);
     const mixRender = oneShot ? mixOneShot : mixLoop;
     const writeWav = oneShot ? wav24 : loopWav24;
-    const loop = mixRender(rendered);
+    // What the mix's compressors and limiters did, for a composer who cannot hear them.
+    const dynamics: DynamicsReport[] = [];
+    const loop = mixRender(rendered, undefined, (report) => dynamics.push(report));
+    for (const stage of dynamics) {
+      if (stage.device === 'compressor' && stage.maxReductionDb < 0.1) {
+        problems.push(
+          `${stage.track}: the compressor never acts: its threshold is ${stage.threshold} dB and the loudest peak it hears is ${stage.maxInputDb?.toFixed(1)} dB. Lower the threshold, or take the device out.`,
+        );
+      }
+    }
     // Each audible track alone, through the same render: the same channels, the same performance.
     const stems: { track: string; loop: RenderedLoop }[] = [];
     for (const track of audibleTracks(piece)) {
@@ -208,7 +217,12 @@ export async function renderPiece({
         truePeakDbfs: truePeak,
       },
       measures: measureLoop(loop.left, loop.right, loop.sampleRate),
-      stems: {
+      dynamics: dynamics.map((stage) => ({
+    ...stage,
+    maxReductionDb: Math.round(stage.maxReductionDb * 10) / 10,
+    ...(stage.maxInputDb === undefined ? {} : { maxInputDb: Math.round(stage.maxInputDb * 10) / 10 }),
+  })),
+  stems: {
         files: stemFiles,
         // Residual energy of (mix − sum of stems) against the mix, dB; null is an exact null.
         nullResidualDb: Number.isFinite(residual) ? residual : null,

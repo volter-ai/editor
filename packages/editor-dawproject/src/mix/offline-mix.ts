@@ -27,6 +27,17 @@ export interface MixInputs {
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
   /** Render only these tracks (their buses still sound); all when absent. */
   readonly only?: ReadonlySet<string>;
+  /** Told what each compressor and limiter did: its most gain reduction, and a compressor's loudest input. */
+  readonly dynamics?: (report: DynamicsReport) => void;
+}
+
+export interface DynamicsReport {
+  readonly track: string;
+  readonly device: 'compressor' | 'limiter';
+  readonly maxReductionDb: number;
+  /** The loudest peak the compressor heard, dBFS (a limiter's is its ceiling's business). */
+  readonly maxInputDb?: number;
+  readonly threshold?: number;
 }
 
 function copy(signal: Stereo): Stereo {
@@ -49,9 +60,14 @@ function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stere
     if (device.plugin === 'equalizer') {
       for (const band of (Array.isArray(params['bands']) ? params['bands'] : []) as Band[]) new Biquad(band, inputs.sampleRate).process(current);
     } else if (device.plugin === 'compressor') {
-      new Compressor(compressorParams(params), inputs.sampleRate).process(current);
+      const settings = compressorParams(params);
+      const compressor = new Compressor(settings, inputs.sampleRate);
+      compressor.process(current);
+      inputs.dynamics?.({ track: track.name, device: 'compressor', maxReductionDb: compressor.maxReductionDb, maxInputDb: compressor.maxInputDb, threshold: settings.threshold });
     } else if (device.plugin === 'limiter') {
-      new Limiter(params, inputs.sampleRate).process(current);
+      const limiter = new Limiter(params, inputs.sampleRate);
+      limiter.process(current);
+      inputs.dynamics?.({ track: track.name, device: 'limiter', maxReductionDb: limiter.maxReductionDb });
     } else if (device.plugin === 'convolution') {
       const path = typeof params['ir'] === 'string' ? params['ir'] : '';
       const ir = inputs.irs.get(path);

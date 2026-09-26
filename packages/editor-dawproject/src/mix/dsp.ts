@@ -215,6 +215,9 @@ export function compressorParams(params: Readonly<Record<string, unknown>>): Com
  */
 export class Compressor {
   private reduction = 0;
+  /** The most gain reduction applied so far, dB, and the loudest peak heard, dBFS: what it did. */
+  maxReductionDb = 0;
+  maxInputDb = -Infinity;
   private readonly attackCoef: number;
   private readonly releaseCoef: number;
   constructor(
@@ -236,9 +239,12 @@ export class Compressor {
     const makeup = dbToGain(this.params.makeup);
     for (let i = 0; i < left.length; i++) {
       const peak = Math.max(Math.abs(left[i]!), Math.abs(right[i]!));
-      const target = -this.gainComputer(20 * Math.log10(peak + 1e-12));
+      const levelDb = 20 * Math.log10(peak + 1e-12);
+      if (levelDb > this.maxInputDb) this.maxInputDb = levelDb;
+      const target = -this.gainComputer(levelDb);
       const coef = target > this.reduction ? this.attackCoef : this.releaseCoef;
       this.reduction = coef * this.reduction + (1 - coef) * target;
+      if (this.reduction > this.maxReductionDb) this.maxReductionDb = this.reduction;
       const g = dbToGain(-this.reduction) * makeup;
       left[i] = left[i]! * g;
       right[i] = right[i]! * g;
@@ -258,6 +264,11 @@ export class Limiter {
   private readonly delay: [Float32Array, Float32Array];
   private write = 0;
   private gainNow = 1;
+  private minGain = 1;
+  /** The most gain reduction applied so far, dB. */
+  get maxReductionDb(): number {
+    return -20 * Math.log10(this.minGain);
+  }
   /** The window's minimum need, kept by a monotonic queue of (sample index, need). */
   private readonly queueIndex: Float64Array;
   private readonly queueNeed: Float32Array;
@@ -292,6 +303,7 @@ export class Limiter {
       const need = this.windowMinimum(peak > this.ceiling ? this.ceiling / peak : 1);
       // Down immediately toward what the window needs; recover smoothly.
       this.gainNow = need < this.gainNow ? need : this.releaseCoef * this.gainNow + (1 - this.releaseCoef) * need;
+      if (this.gainNow < this.minGain) this.minGain = this.gainNow;
       const delayedL = this.delay[0][this.write]!;
       const delayedR = this.delay[1][this.write]!;
       this.delay[0][this.write] = left[i]!;
