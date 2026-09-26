@@ -3,7 +3,7 @@ import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-reg
 import { shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { projectAdapterFacet, type ResolvedDocumentTable, subscribeProjectAdapter } from '../project-adapter';
 import { planSceneDocument, sceneTabRow } from '../scene-document-plan';
-import { openAvailableWorkspaceDocument } from '../workspace-available-documents';
+import { openAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import { activateWorkspaceDocument, setWorkspaceDocumentTitle } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { rootDocumentId } from '../world-document-routing';
 import { kindDocumentId, openKindDocument } from './kind-documents';

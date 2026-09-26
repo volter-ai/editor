@@ -664,7 +664,7 @@
     },
     {
       "source": "packages/editor/src/component-board-registry.ts",
-      "path": "packages/editor-core/src/component-board-registry.ts",
+      "path": "packages/editor-sdk/src/kit/component-board-registry.ts",
       "sha256": "ccc7d2082cfe0e28fd0f4a48c38f7cd9ba6753d8838ba497b2dc50b5ce017365"
     },
     {
@@ -1899,7 +1899,7 @@
     },
     {
       "source": "packages/editor/src/manifest-project.ts",
-      "path": "packages/editor-core/src/manifest-project.ts",
+      "path": "packages/editor-sdk/src/kit/manifest-project.ts",
       "sha256": "8ac399723e8cd8121a6720179d83207ef3e5c79209f83a1d94eedbe808147148"
     },
     {
@@ -2464,12 +2464,12 @@
     },
     {
       "source": "packages/editor/src/ui-source/source-write-backend.ts",
-      "path": "packages/editor-core/src/ui-source/source-write-backend.ts",
+      "path": "packages/editor-sdk/src/kit/ui-source/source-write-backend.ts",
       "sha256": "cf4c5f4e3d3ac9ffbc507f8607ec5150476af29820d595dc546fabb11c11bb5f"
     },
     {
       "source": "packages/editor/src/ui-source/tier-source-write-backend.ts",
-      "path": "packages/editor-core/src/ui-source/tier-source-write-backend.ts",
+      "path": "packages/editor-sdk/src/kit/ui-source/tier-source-write-backend.ts",
       "sha256": "44a79d1f1e28dc04dd54d6e212bc0b318f269bcc115a22894cb56fcb38eba89f"
     },
     {
@@ -2534,7 +2534,7 @@
     },
     {
       "source": "packages/editor/src/workspace-available-documents.ts",
-      "path": "packages/editor-core/src/workspace-available-documents.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-available-documents.ts",
       "sha256": "0f23595889564264457396ab75c2f54fc0450325b0b36672f00cddcccd0d1056"
     },
     {

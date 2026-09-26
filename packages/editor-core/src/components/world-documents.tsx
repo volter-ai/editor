@@ -1,7 +1,7 @@
 import {
   registerAvailableWorkspaceDocument,
   unregisterAvailableWorkspaceDocument,
-} from '../workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * Edit-time center documents for a project, beside the native Three.js scene
  * document. Runtime composition belongs to the Game document (which exists
@@ -51,7 +51,7 @@ import {
   componentBoardForMedium,
   componentBoards,
   subscribeComponentBoards,
-} from '../component-board-registry';
+} from '@volter/editor-sdk/kit/component-board-registry';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';

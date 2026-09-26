@@ -4,7 +4,7 @@ import { runProjectReady } from '../project-ready';
 import {
   availableWorkspaceDocuments,
   requestAvailableWorkspaceDocument,
-} from '../workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 import { activeWorkspaceDocumentId, openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {

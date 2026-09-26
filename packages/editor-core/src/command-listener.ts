@@ -170,7 +170,7 @@ import {
   closeWorkspaceDocument,
   openWorkspaceDocuments,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { availableWorkspaceDocuments } from './workspace-available-documents';
+import { availableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
 import { activeWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 import {
   activeEditorWorkspace,

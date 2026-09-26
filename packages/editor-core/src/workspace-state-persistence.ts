@@ -1,7 +1,7 @@
 import {
   openAvailableWorkspaceDocument,
   requestAvailableWorkspaceDocument,
-} from './workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * PERSISTED WORKSPACE STATE: which named workspace the project was left in,
  * which documents were open, which one was in front, and each kind's own

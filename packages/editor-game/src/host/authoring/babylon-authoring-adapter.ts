@@ -16,7 +16,7 @@ import type {
   Transform,
   WriteAck,
 } from '@volter/editor-project/adapter';
-import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
+import type { ChannelValue } from '@volter/editor-sdk/kit/creation-site-edit';
 import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';

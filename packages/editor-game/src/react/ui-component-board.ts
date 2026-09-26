@@ -13,7 +13,7 @@
  */
 
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
+import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   getStoryMediaPresence,

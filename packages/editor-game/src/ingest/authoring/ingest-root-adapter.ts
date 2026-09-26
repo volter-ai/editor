@@ -25,7 +25,7 @@ import { GAME_SURFACE_CONTAINMENT_CSS } from '../../host/game-realm-page';
 import { clearGameSurface, gameLoopGate, setGameSurface } from '../../host/gated-globals';
 import { authoringJournal } from '../../host/history/json-history-resource';
 import { clearPresentationSurface, recordPresentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import {
   type SameRealmLoopGate,
@@ -35,8 +35,8 @@ import {
 import { ensureScopedGameStyles } from '@volter/editor-core/scoped-game-css';
 import { resolveThreeIngestRuntimeForEditor } from '../../host/three-ingest-runtime';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
-import { createHttpSourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
-import { serverRecordsSourceWrites } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { createHttpSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import { serverRecordsSourceWrites } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/editor-core/world-adoption';
 import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
 import type { MountedThreeRoot } from '@volter/editor-project/adapter';

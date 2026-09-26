@@ -38,17 +38,17 @@
 import { reportIngestSourceRefusal } from '../../host/authoring/ingest-source-persistence';
 import type { SourcePersistenceBackend } from '../../host/authoring/source-persistence-backend';
 import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
-import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
-import { channelFor } from '@volter/editor-core/creation-site-edit';
+import type { ChannelValue } from '@volter/editor-sdk/kit/creation-site-edit';
+import { channelFor } from '@volter/editor-sdk/kit/creation-site-edit';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-react/source/r3f-physics-binding';
-import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import type { NodeCreationSite, WriteAck } from '@volter/editor-project/adapter';
 
 /** What `AuthoringAdapter.persistence.destination` reports once this backend is

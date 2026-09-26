@@ -3,7 +3,7 @@ import type {
   PreparedSourceEdit,
   SourceEditRequest,
   SourceWriteBackend,
-} from '../ui-source/source-write-backend';
+} from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import {
   type AppliedResourceChange,
   HistoryOperationError,

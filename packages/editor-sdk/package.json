@@ -268,7 +268,13 @@
     "./kit/workspace-document-restore": "./src/kit/workspace-document-restore.ts",
     "./kit/play-camera-flight": "./src/kit/play-camera-flight.ts",
     "./kit/workspace-storage": "./src/kit/workspace-storage.ts",
-    "./kit/stories/story-dom-runtime": "./src/kit/stories/story-dom-runtime.ts"
+    "./kit/stories/story-dom-runtime": "./src/kit/stories/story-dom-runtime.ts",
+    "./kit/ui-source/source-write-backend": "./src/kit/ui-source/source-write-backend.ts",
+    "./kit/ui-source/tier-source-write-backend": "./src/kit/ui-source/tier-source-write-backend.ts",
+    "./kit/creation-site-edit": "./src/kit/creation-site-edit.ts",
+    "./kit/workspace-available-documents": "./src/kit/workspace-available-documents.ts",
+    "./kit/manifest-project": "./src/kit/manifest-project.ts",
+    "./kit/component-board-registry": "./src/kit/component-board-registry.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

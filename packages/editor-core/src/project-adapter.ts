@@ -108,7 +108,7 @@ import {
   readProjectSourceText,
 } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { fetchGameManifest } from './manifest-project';
+import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { setPresentationRegions } from '@volter/editor-sdk/kit/presentation-surface';
 import { type ActiveProject, getCurrentProject, onProjectChange } from './project-manager';
 import { projectModuleChangeMatches, subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';

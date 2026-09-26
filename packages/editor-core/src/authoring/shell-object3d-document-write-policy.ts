@@ -33,7 +33,7 @@ import type {
   Object3DDocumentThumbnailFraming,
   Object3DDocumentWritePolicy,
 } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { sourceWriteBackendIfPrimed } from '../ui-source/tier-source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { openObject3DDocumentPersistence } from '@volter/editor-sdk/kit/authoring/object3d-document-persistence';
 
 async function persistThumbnailFraming(

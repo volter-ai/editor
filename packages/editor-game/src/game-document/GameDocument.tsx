@@ -13,7 +13,7 @@ import { PlayBar } from '../play-bar/PlayBar';
 
 import { ResolutionPicker } from '../host/components/ResolutionPicker';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
+import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import type { LiveDocumentContentProps } from '@volter/editor-sdk/host';
 import {
   AnchoredMenu,

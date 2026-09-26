@@ -14,7 +14,7 @@
  * the same question as "do you want three?".
  */
 
-import { registerComponentBoard } from '@volter/editor-core/component-board-registry';
+import { registerComponentBoard } from '@volter/editor-sdk/kit/component-board-registry';
 import { threeComponentBoard } from '../../src/three/three-board/three-component-board';
 
 export const point = 'workspace.service';

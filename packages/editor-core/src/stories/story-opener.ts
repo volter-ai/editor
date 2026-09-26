@@ -44,7 +44,7 @@ import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { openRegisteredDocument, registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { getCurrentProject } from '../project-manager';
-import { tierSourceWriteBackend } from '../ui-source/tier-source-write-backend';
+import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';
 import type { WorkspaceStateStore } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';

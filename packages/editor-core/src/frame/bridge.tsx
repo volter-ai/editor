@@ -112,7 +112,7 @@ import {
   subscribeEditorTheme,
 } from '../theme-preference';
 import { lookColorCustomizations } from './look-colors';
-import { primeSourceWriteRuntime } from '../ui-source/tier-source-write-backend';
+import { primeSourceWriteRuntime } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { installViteErrorSurface } from '../vite-error-surface';
 import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '../workspace-areas';
 import {
@@ -127,7 +127,7 @@ import {
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { reopenKindDocument } from '../components/kind-documents';
-import { requestAvailableWorkspaceDocument } from '../workspace-available-documents';
+import { requestAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,

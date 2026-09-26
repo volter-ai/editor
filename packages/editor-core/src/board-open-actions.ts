@@ -5,7 +5,7 @@ import type { EditorAction } from './action-registry';
 import {
   availableWorkspaceDocuments,
   openAvailableWorkspaceDocument,
-} from './workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 
 /** Commands stay available when a board's tab is closed. */
 export function buildBoardOpenActions(): EditorAction[] {

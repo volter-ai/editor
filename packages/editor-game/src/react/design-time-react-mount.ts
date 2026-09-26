@@ -99,7 +99,7 @@ import {
 } from '@volter/editor-core/stories/story-registry';
 import { domStoryBoardMembers } from '@volter/editor-threejs/kit/stories/three-story-model';
 import { getDesignTokens } from '@volter/editor-core/ui-source/inspect';
-import { tierSourceWriteBackend } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { createAssetCache } from '@volter/threejs-runtime/assets';
 import { createGameLoop } from '@volter/game-runtime/core/game-loop';

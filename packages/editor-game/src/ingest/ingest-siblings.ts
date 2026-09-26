@@ -58,7 +58,7 @@ import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-s
 import { authoringJournal } from '../host/history/json-history-resource';
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
 import { ReactRootAuthoringAdapter, walkOidTree } from '../react/react-world-authoring-adapter';
 import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';

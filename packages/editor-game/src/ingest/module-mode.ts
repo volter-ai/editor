@@ -17,8 +17,8 @@ import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-auth
 import { resolveAllRoots } from '../host/binding-resolver';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { fetchGameManifest } from '@volter/editor-core/manifest-project';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import type { GameSession, RootMountSpec } from '@volter/game-runtime/runtime/create-runtime';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { declaredRoots, ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';

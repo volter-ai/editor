@@ -71,8 +71,8 @@ import {
 } from '@volter/editor-core/ui-source/inspect';
 import type { ComponentPropSpec, OidEntry } from '@volter/editor-react/source/oid-transform';
 import { relativeImportSpecifier } from '@volter/editor-react/source/relative-import-specifier';
-import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
-import { writeCsfStory, writeNamedStyle } from '@volter/editor-core/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import { writeCsfStory, writeNamedStyle } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import {
   type CssRuleTarget,
   namedStyleRuleFor,

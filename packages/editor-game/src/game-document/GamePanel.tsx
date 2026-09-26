@@ -17,7 +17,7 @@ import {
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
+import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { domHasRenderableContent } from '../host/surface-content';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';

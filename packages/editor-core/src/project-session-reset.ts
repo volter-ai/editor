@@ -1,4 +1,4 @@
-import { resetAvailableWorkspaceDocuments } from './workspace-available-documents';
+import { resetAvailableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * What must NOT survive a project switch.
  *

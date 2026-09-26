@@ -26,12 +26,12 @@ import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-prev
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore, ViewportTab } from '@volter/editor-threejs/kit/editor-shell-store';
 import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-core/project-adapter';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { isolationTabsReplaceGenericScene, sceneTabRow } from '@volter/editor-core/scene-document-plan';
 import {
   registerAvailableWorkspaceDocument,
   unregisterAvailableWorkspaceDocument,
-} from '@volter/editor-core/workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,

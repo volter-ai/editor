@@ -39,7 +39,7 @@ import {
   type ProjectVerbFacts,
 } from '../host/coverage/project-verb-coverage';
 import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 
 /** What the server answers on `/__editor/project-verbs` — facts only. */
 interface ProjectFileFacts {

@@ -48,7 +48,7 @@ import type {
   TransformEditability,
 } from '@volter/editor-project/adapter';
 import type { Container } from 'pixi.js';
-import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-core/creation-site-edit';
+import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-sdk/kit/creation-site-edit';
 import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { JsonHistoryResource } from '../history/json-history-resource';

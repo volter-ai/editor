@@ -100,7 +100,7 @@ import type { ReparentChannel, ReparentRebase } from '@volter/editor-react/sourc
 import type {
   SourceWriteBackend,
   StructReparentContext,
-} from '@volter/editor-core/ui-source/source-write-backend';
+} from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import {
   analyzeJsxAttributes,
   type DuplicateRewrite,

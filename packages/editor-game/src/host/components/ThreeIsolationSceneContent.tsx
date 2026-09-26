@@ -29,7 +29,7 @@ import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState } from 'react';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
 import { captureAuthoredThreeScenePreview } from '../document-preview-three';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   type MountedStoryViewportSource,
   mountedStoryViewportSource,

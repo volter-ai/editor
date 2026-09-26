@@ -22,7 +22,7 @@ import { capturePixiDisplayObjectThumbnail } from '../canvas-preview-frames';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
 import { authoringJournal } from '../history/json-history-resource';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { takeNamedExport } from '../take-named-export';
 import { registerWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {

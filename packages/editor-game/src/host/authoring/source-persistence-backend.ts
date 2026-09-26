@@ -46,11 +46,11 @@ import type {
   CreationSiteLiteralReport,
   CreationSiteSurface,
   CreationSiteWriteScope,
-} from '@volter/editor-core/creation-site-edit';
+} from '@volter/editor-sdk/kit/creation-site-edit';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { ingestSourceWritesRecordedIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { ingestSourceWritesRecordedIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import type { IngestInspectRequest } from './ingest-source-persistence';
 import {
   IngestSourcePersistence,

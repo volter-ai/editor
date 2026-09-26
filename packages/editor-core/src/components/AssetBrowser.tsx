@@ -99,7 +99,7 @@ import {
   availableWorkspaceDocuments,
   openAvailableWorkspaceDocument,
   subscribeAvailableWorkspaceDocuments,
-} from '../workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 import { planSceneDocument } from '../scene-document-plan';
 import {
   activeWorkspaceDocumentId,

@@ -1,5 +1,5 @@
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
-import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
+import { registerAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * The 3D COMPONENTS board — a generated, never-persisted 3D scene laying out
  * every qualifying `three` story's mounted `Object3D` at TRUE SCALE, so a

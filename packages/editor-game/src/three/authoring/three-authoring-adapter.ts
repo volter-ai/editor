@@ -82,7 +82,7 @@ import {
   type ChannelValue,
   type CreationSiteLiteralReport,
   channelFor,
-} from '@volter/editor-core/creation-site-edit';
+} from '@volter/editor-sdk/kit/creation-site-edit';
 import {
   creationSiteAnchor,
   instancesAtSite,
@@ -101,7 +101,7 @@ import {
   ThreeProjector,
   type ThreeWalkStats,
 } from '@volter/editor-threejs/kit/projection/three';
-import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import type {
   AuthoringAdapter,
   AuthoringCapabilities,

@@ -10,10 +10,10 @@ import {
   deriveCapabilityCoverage,
 } from '../host/coverage/capability-coverage';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { authoringSurfaceFromTable } from '@volter/editor-core/scene-document-plan';
 import { projectStoriesReady } from '@volter/editor-core/stories/story-registry';
-import { availableWorkspaceDocuments } from '@volter/editor-core/workspace-available-documents';
+import { availableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
 import { openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 export function authoringSurfaceCoverage(): CapabilityCoverageReport | null {

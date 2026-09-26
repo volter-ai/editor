@@ -66,7 +66,7 @@ import { type JournalSubject, playJournal } from '../host/history/json-history-r
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { projectBootstrapSettled } from '@volter/editor-core/initial-project';
 import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
-import { fetchGameManifest } from '@volter/editor-core/manifest-project';
+import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import {
   beginPlayBoot,
@@ -75,7 +75,7 @@ import {
   type PlayBootPhase,
 } from '@volter/editor-core/play-boot-phase';
 import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   beginProjectModuleSplitWatch,
   clearProjectModuleSplitReports,

@@ -55,7 +55,7 @@ import {
   planCreationSiteEdit,
   planCreationSiteRemoval,
   readCreationSiteLiteral,
-} from '../src/creation-site-edit';
+} from '@volter/editor-sdk/kit/creation-site-edit';
 import {
   type HmrInvalidationGraph,
   staleModuleWarning,

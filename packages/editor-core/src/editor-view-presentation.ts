@@ -29,7 +29,7 @@ import {
   openWorkspaceDocuments,
   workspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { openAvailableWorkspaceDocument } from './workspace-available-documents';
+import { openAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import {
   activeWorkspaceStaticPanel,
   showWorkspaceStaticPanel,

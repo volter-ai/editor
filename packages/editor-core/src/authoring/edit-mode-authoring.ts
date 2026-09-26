@@ -27,7 +27,7 @@ import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session
 import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { getProjectFileHistory, type ProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import { getManifestHistoryBackend } from '@volter/editor-sdk/kit/history/project-root-history-backends';
-import { fetchRawGameManifest } from '../manifest-project';
+import { fetchRawGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { getCurrentProject } from '../project-manager';
 import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import {

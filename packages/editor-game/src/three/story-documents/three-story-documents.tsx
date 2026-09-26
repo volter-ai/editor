@@ -60,7 +60,7 @@ import {
 } from '../../host/stories/story-three-preview';
 import { mountedStoryHasThreeContent } from '@volter/editor-threejs/kit/stories/three-story-model';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import {
   activeWorkspaceDocument,
   closeWorkspaceDocument,
