@@ -1004,29 +1004,6 @@ async function main(): Promise<void> {
   /** Let the dev server serve every root a project's packages resolve to: on opening a project,
    *  and before a `/@fs/` request outside every allowed root (below). Add-only, like the boot
    *  set. */
-  /**
-   * A contribution package the project declares while the session runs (`add music`) brings
-   * CommonJS imports the boot-time optimizer never saw (`PackageContributionCrawl.commonJs`),
-   * and served raw they fail to link. Each missing one is handed to the running optimizer, which
-   * prebundles it and reloads the page once it has; the page's import then takes the bundle.
-   */
-  const optimizeNewContributionDeps = (projectRoot: string): void => {
-    const optimizer = vite.environments.client.depsOptimizer;
-    if (!optimizer) return;
-    const resolveFrom = createRequire(path.join(projectRoot, 'package.json'));
-    for (const name of computePackageContributionCrawlEntries(projectRoot).commonJs) {
-      if (optimizer.metadata.optimized[name] || optimizer.metadata.discovered[name]) continue;
-      try {
-        optimizer.registerMissingImport(name, resolveFrom.resolve(name));
-        console.log(`[vgai-editor] prebundling ${name}, which a newly declared contribution package imports.`);
-      } catch {
-        // Not resolvable from the project: the crawl's `unresolvable` names it at the next boot.
-      }
-    }
-  };
-  vite.watcher.on('change', (file) => {
-    if (path.basename(file) === 'package.json' && projectRoots.has(path.dirname(file))) optimizeNewContributionDeps(path.dirname(file));
-  });
   const allowServingRoots = (projectRoot: string): void => {
     const allowed = vite.config.server.fs.allow;
     for (const root of projectServingRoots(projectRoot)) {
