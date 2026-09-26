@@ -20,6 +20,7 @@
 import { pack, unpack } from '@colyseus/msgpackr';
 import { type DataChange, decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
+import { editorHost } from '@volter/editor-sdk/host';
 import type {
   ConnectionState,
   NetConditioning,
@@ -103,11 +104,14 @@ interface Mirror {
   socket: WebSocket;
   /** When the last delayed frame is due, per direction: a later frame never overtakes it. */
   dueIn: number;
+  /** The game's own `onmessage`, handed each frame when the conditioned delay lets it through. */
+  receive: ((event: MessageEvent) => unknown) | null;
   dueOut: number;
 }
 
 const mirrors: Mirror[] = [];
 const mirrorOf = new WeakMap<WebSocket, Mirror>();
+const gameHandlers = new WeakMap<WebSocket, ((this: WebSocket, event: MessageEvent) => unknown) | null>();
 const pingWaiters = new WeakMap<Mirror, (rttMs: number) => void>();
 /** The link conditioner (Unity's network simulator): latency and jitter on every observed room
  *  socket, both directions, in order. A WebSocket is reliable and ordered, so loss is not one of
@@ -157,7 +161,11 @@ interface MutableEntity {
 }
 
 /** Whether traffic and the log are tallied (Godot's profiler Start/Stop). */
-let recording = true;
+let recording = false;
+
+/** The project-local choice Godot calls Autostart: a run starts recording when its first room
+ *  socket opens. Off unless chosen, as Godot's is. */
+export const NETWORK_AUTOSTART_SECTION = 'networkProfilerAutostart';
 
 /** Each object of a decoded state by its path from the root: schema fields and collection entries. */
 function statePaths(state: unknown): Map<object, readonly string[]> {
@@ -373,11 +381,21 @@ function attach(socket: WebSocket, url: string): void {
     socket,
     dueIn: 0,
     dueOut: 0,
+    receive: null,
   };
+  // A run begins when a room socket opens with none already live: Autostart decides its recording.
+  if (!mirrors.some((other) => other.state === 'connected' || other.state === 'connecting')) {
+    recording = editorHost().projectLocalState.read<boolean>(NETWORK_AUTOSTART_SECTION) ?? false;
+  }
   mirrors.push(mirror);
   mirrorOf.set(socket, mirror);
+  // ONE conditioned delivery per frame: the mirror reads it and the game receives it at the same
+  // moment, so the tables and Ping see the link the game sees (both directions of the delay).
   socket.addEventListener('message', (event: MessageEvent) => {
-    if (event.data instanceof ArrayBuffer) observeIncoming(mirror, new Uint8Array(event.data));
+    conditioned(mirror, 'in', () => {
+      if (event.data instanceof ArrayBuffer) observeIncoming(mirror, new Uint8Array(event.data));
+      mirror.receive?.(event);
+    });
   });
   socket.addEventListener('close', (event: CloseEvent) => {
     mirror.state = 'disconnected';
@@ -430,18 +448,20 @@ export function installGameNetwork(): void {
         attach(this, String(url));
       }
 
-      // The SDK receives through `onmessage`; a room socket's handler is handed each frame
-      // after the conditioner's delay. The mirror's own listener reads it on arrival.
+      // The SDK receives through `onmessage`; a room socket's handler is handed each frame by the
+      // mirror's conditioned delivery (`attach`), in the same turn the mirror reads it.
       override set onmessage(handler: ((this: WebSocket, event: MessageEvent) => unknown) | null) {
         const mirror = mirrorOf.get(this);
-        super.onmessage =
-          handler && mirror
-            ? (event: MessageEvent) => conditioned(mirror, 'in', () => handler.call(this, event))
-            : handler;
+        if (!mirror) {
+          super.onmessage = handler;
+          return;
+        }
+        gameHandlers.set(this, handler);
+        mirror.receive = handler ? (event) => handler.call(this, event) : null;
       }
 
       override get onmessage(): ((this: WebSocket, event: MessageEvent) => unknown) | null {
-        return super.onmessage;
+        return mirrorOf.has(this) ? (gameHandlers.get(this) ?? null) : super.onmessage;
       }
     };
     window.WebSocket = Observed as typeof WebSocket;

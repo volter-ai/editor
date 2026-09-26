@@ -1382,9 +1382,10 @@ export function RootSelectionOverlay({
   /** Opens Godot's Add Node menu at a client point; assigned once the host frame is known below. */
   const openAddMenuRef = useRef<(clientX: number, clientY: number) => void>(() => undefined);
   const openPickMenuAt = useCallback(
-    (clientX: number, clientY: number) => {
+    (clientX: number, clientY: number, includeLocked = false) => {
       const ids = pickCandidates(store, clientX, clientY, {
         ...(scopedAdapter ? { adapter: scopedAdapter } : {}),
+        ...(includeLocked ? { includeLocked } : {}),
       });
       if (ids.length === 0) {
         setPickMenu(null);
@@ -1421,7 +1422,8 @@ export function RootSelectionOverlay({
       if (event.type === 'pointerup' && !press.moved) {
         // Godot's 2D scene: RMB adds a node where it lands, Alt+RMB lists the nodes there.
         if (transformModeAware && !event.altKey) openAddMenuRef.current(event.clientX, event.clientY);
-        else openPickMenuAt(event.clientX, event.clientY);
+        // Godot's Alt+RMB lists every node there, locked ones included.
+        else openPickMenuAt(event.clientX, event.clientY, transformModeAware);
       }
     };
     window.addEventListener('pointermove', onPointerMove);

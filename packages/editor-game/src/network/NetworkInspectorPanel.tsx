@@ -25,6 +25,7 @@
  */
 
 import { editorHost } from '@volter/editor-sdk/host';
+import { NETWORK_AUTOSTART_SECTION } from '../services/game-network';
 import {
   Button,
   Checkbox,
@@ -576,7 +577,7 @@ function NetworkHeader({
   );
 }
 
-const AUTOSTART_SECTION = 'networkProfilerAutostart';
+const AUTOSTART_SECTION = NETWORK_AUTOSTART_SECTION;
 
 // --- The panel ------------------------------------------------------------
 
@@ -589,10 +590,9 @@ export function NetworkInspectorPanel() {
   const [filter, setFilter] = useState('');
   // Godot's Autostart: whether a game that starts running starts recording (kept per checkout).
   const [autostart, setAutostart] = useState(
-    () => editorHost().projectLocalState.read<boolean>(AUTOSTART_SECTION) ?? true,
+    // Off unless chosen, as Godot's is: a run records once Start is pressed.
+    () => editorHost().projectLocalState.read<boolean>(AUTOSTART_SECTION) ?? false,
   );
-  const autostartRef = useRef(autostart);
-  autostartRef.current = autostart;
   // The one message draft: sent as this client, or from the server to one client or all.
   const [draft, setDraft] = useState<MessageDraft>({ type: '', payload: '' });
 
@@ -602,7 +602,6 @@ export function NetworkInspectorPanel() {
       if (adapter !== adapterRef.current) {
         // New mount (or unmount): the old game's log/rate history is stale.
         adapterRef.current = adapter;
-        if (adapter) adapter.setRecording?.(autostartRef.current);
         logRef.current = new MessageLogModel();
         logRef.current.paused = paused;
         ratesRef.current = new RateHistory();
@@ -709,6 +708,63 @@ export function NetworkInspectorPanel() {
           draft={draft}
         />
       ) : null}
+      {caps.recording || caps.traffic ? (
+        // Godot's profiler bar, above the tables it governs: Start/Stop, Clear, Autostart.
+        <div
+          data-testid="net-profiler-bar"
+          style={{
+            display: 'flex',
+            gap: spaceVar[3],
+            alignItems: 'center',
+            padding: spaceVar[2],
+            borderBottom: `1px solid ${themeVars.boundary.default}`,
+          }}
+        >
+          {caps.recording ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                data-testid="net-recording"
+                aria-pressed={adapter.isRecording?.() === true}
+                onClick={() => {
+                  adapter.setRecording?.(!adapter.isRecording?.());
+                  force();
+                }}
+              >
+                {adapter.isRecording?.() ? 'Stop' : 'Start'}
+              </Button>
+            </>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            data-testid="net-log-clear"
+            onClick={() => {
+              // Godot's Clear resets its tables; the log clears with them.
+              logRef.current.clear();
+              adapter.clearTraffic?.();
+              force();
+            }}
+          >
+            Clear
+          </Button>
+          {caps.recording ? (
+            <label style={{ display: 'flex', gap: spaceVar[1], alignItems: 'center', whiteSpace: 'nowrap' }}>
+              <Checkbox
+                data-testid="net-autostart"
+                checked={autostart}
+                onChange={(event) => {
+                  const on = event.currentTarget.checked;
+                  editorHost().projectLocalState.write(AUTOSTART_SECTION, on);
+                  setAutostart(on);
+                }}
+              />
+              Autostart
+            </label>
+          ) : null}
+        </div>
+      ) : null}
       {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
       {caps.entityTraffic ? <EntityTrafficTable rows={adapter.getTrafficByEntity?.() ?? []} /> : null}
       {caps.send ? <SendControls adapter={adapter} ping={caps.ping} draft={draft} setDraft={setDraft} /> : null}
@@ -759,35 +815,7 @@ export function NetworkInspectorPanel() {
                   padding: spaceVar[2],
                 }}
               >
-                {caps.recording ? (
-                  // Godot's profiler Start/Stop: stopped, nothing is tallied (traffic, entities, log).
-                  <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      data-testid="net-recording"
-                      aria-pressed={adapter.isRecording?.() === true}
-                      onClick={() => {
-                        adapter.setRecording?.(!adapter.isRecording?.());
-                        force();
-                      }}
-                    >
-                      {adapter.isRecording?.() ? 'Stop' : 'Start'}
-                    </Button>
-                    <label style={{ display: 'flex', gap: spaceVar[1], alignItems: 'center', whiteSpace: 'nowrap' }}>
-                      <Checkbox
-                        data-testid="net-autostart"
-                        checked={autostart}
-                        onChange={(event) => {
-                          const on = event.currentTarget.checked;
-                          editorHost().projectLocalState.write(AUTOSTART_SECTION, on);
-                          setAutostart(on);
-                        }}
-                      />
-                      Autostart
-                    </label>
-                  </>
-                ) : (
+                {caps.recording ? null : (
                   <Button
                     type="button"
                     variant="ghost"
@@ -801,19 +829,6 @@ export function NetworkInspectorPanel() {
                     {paused ? 'Resume' : 'Pause'}
                   </Button>
                 )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-testid="net-log-clear"
-                  onClick={() => {
-                    // Godot's Clear resets its tables too: the log and the traffic totals.
-                    logRef.current.clear();
-                    adapter.clearTraffic?.();
-                    force();
-                  }}
-                >
-                  Clear
-                </Button>
                 <TextInput
                   data-testid="net-log-filter"
                   placeholder="Filter by type"
@@ -891,6 +906,31 @@ function EntityTrafficTable({ rows }: { rows: readonly NetEntityTraffic[] }) {
       )}
     </div>
   );
+}
+
+type RoomSortKey = 'name' | 'roomId' | 'clients' | 'locked' | 'elapsedMs';
+const ROOM_COLUMNS: readonly (readonly [RoomSortKey, string])[] = [
+  ['name', 'Name'],
+  ['roomId', 'Room'],
+  ['clients', 'Clients'],
+  ['locked', 'Locked'],
+  ['elapsedMs', 'Elapsed'],
+];
+
+function sortRooms<Room extends Record<RoomSortKey, unknown>>(
+  rooms: readonly Room[],
+  sort: { key: RoomSortKey; descending: boolean },
+): Room[] {
+  const value = (room: Room): number | string => {
+    const field = room[sort.key];
+    return typeof field === 'number' ? field : typeof field === 'boolean' ? Number(field) : String(field);
+  };
+  return [...rooms].sort((a, b) => {
+    const left = value(a);
+    const right = value(b);
+    const order = left < right ? -1 : left > right ? 1 : 0;
+    return sort.descending ? -order : order;
+  });
 }
 
 function TrafficTable({ rows }: { rows: readonly NetTypeTraffic[] }) {
@@ -1038,6 +1078,8 @@ function ServerView({
 }) {
   const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
   const [inspected, setInspected] = useState<string | undefined>(undefined);
+  // Monitor's room grid sorts by any column.
+  const [sort, setSort] = useState<{ key: RoomSortKey; descending: boolean }>({ key: 'elapsedMs', descending: true });
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
@@ -1098,8 +1140,25 @@ function ServerView({
         {inspection.room ? ` · state ${inspection.room.stateBytes} B` : ''}
       </div>
       <table style={{ borderCollapse: 'collapse', ...MONO }}>
+        <thead>
+          <tr style={{ color: themeVars.content.muted }}>
+            {ROOM_COLUMNS.map(([key, label]) => (
+              <th
+                key={key}
+                data-testid={`net-server-sort-${key}`}
+                aria-sort={sort.key === key ? (sort.descending ? 'descending' : 'ascending') : 'none'}
+                style={{ ...cell, textAlign: 'left', cursor: 'pointer', fontWeight: 'normal' }}
+                onClick={() => setSort({ key, descending: sort.key === key ? !sort.descending : false })}
+              >
+                {label}
+                {sort.key === key ? (sort.descending ? ' ▾' : ' ▴') : ''}
+              </th>
+            ))}
+            <th style={cell} />
+          </tr>
+        </thead>
         <tbody>
-          {inspection.rooms.map((room) => (
+          {sortRooms(inspection.rooms, sort).map((room) => (
             <tr key={room.roomId} data-testid="net-server-room" data-inspected={room.roomId === roomId || undefined}>
               <td style={cell}>{room.name}</td>
               <td style={cell}>{room.roomId}</td>
@@ -1111,18 +1170,17 @@ function ServerView({
               <td style={cell}>{seconds(room.elapsedMs)}</td>
               <td style={cell}>
                 {room.roomId === roomId ? (
-                  <>
-                    {actButton('net-server-broadcast', 'Broadcast', () => {
-                      const message = draftMessage(draft);
-                      return adapter.broadcast?.(message.type, message.payload, room.roomId);
-                    })}
-                    {actButton('net-server-dispose', 'Dispose', () => adapter.disposeRoom?.(room.roomId))}
-                  </>
+                  actButton('net-server-broadcast', 'Broadcast', () => {
+                    const message = draftMessage(draft);
+                    return adapter.broadcast?.(message.type, message.payload, room.roomId);
+                  })
                 ) : (
                   <Button type="button" variant="ghost" data-testid="net-server-inspect" onClick={() => setInspected(room.roomId)}>
                     Inspect
                   </Button>
                 )}
+                {/* Monitor offers Dispose on every room of its list. */}
+                {actButton('net-server-dispose', 'Dispose', () => adapter.disposeRoom?.(room.roomId))}
               </td>
             </tr>
           ))}

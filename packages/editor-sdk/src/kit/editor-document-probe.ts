@@ -524,8 +524,13 @@ function pointerInit(element: HTMLElement, at: readonly [number, number] = [0.5,
  * nothing else, so a rename driven by two separate single clicks never starts
  * (measured against the Outliner's own `onDoubleClick` → `onStartEditing`).
  */
-function dispatchClick(element: HTMLElement, clicks = 1, at?: readonly [number, number]): void {
-  const init = pointerInit(element, at);
+function dispatchClick(
+  element: HTMLElement,
+  clicks = 1,
+  at?: readonly [number, number],
+  modifiers: { altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean } = {},
+): void {
+  const init = { ...pointerInit(element, at), ...modifiers };
   const total = Math.max(1, Math.round(clicks));
   withoutPointerCapture(element, () => {
     for (let n = 1; n <= total; n++) {
@@ -936,7 +941,12 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       if (at !== undefined && !(Array.isArray(at) && at.length === 2 && at.every((v) => typeof v === 'number' && Number.isFinite(v)))) {
         throw new Error(`click's \`at\` is [x, y], fractions of the element's box; got ${JSON.stringify(at)}.`);
       }
-      dispatchClick(element, step.clicks ?? 1, at);
+      dispatchClick(element, step.clicks ?? 1, at, {
+        ...(step.altKey ? { altKey: true } : {}),
+        ...(step.ctrlKey ? { ctrlKey: true } : {}),
+        ...(step.metaKey ? { metaKey: true } : {}),
+        ...(step.shiftKey ? { shiftKey: true } : {}),
+      });
       return drove(element);
     }
     case 'type': {

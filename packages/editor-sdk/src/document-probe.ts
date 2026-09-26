@@ -135,6 +135,11 @@ export interface DocumentClickStep extends ScopedStep {
    * double-click adds a point there — can only be driven at a chosen point with it.
    */
   at?: [number, number];
+  /** Modifier keys held through the click (a Shift range pick, a Cmd/Ctrl toggle pick). */
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+  shiftKey?: boolean;
 }
 
 /**

@@ -712,9 +712,10 @@ export interface PickProvider {
    * Every authorable subject below the point, frontmost first. The shell uses
    * this for the ordinary scene-editor "pick from overlap" menu; adapters
    * that cannot enumerate an overlap may omit it and still provide the
-   * single-hit floor through {@link pick}.
+   * single-hit floor through {@link pick}. `includeLocked` lists nodes the editor's lock keeps
+   * clicks away from too (Godot's Alt+RMB: "all nodes … including locked").
    */
-  candidates?(clientX: number, clientY: number): readonly string[];
+  candidates?(clientX: number, clientY: number, options?: { includeLocked?: boolean }): readonly string[];
 }
 
 /** D4 — storybook stories. */

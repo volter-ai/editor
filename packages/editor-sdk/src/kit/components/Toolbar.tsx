@@ -673,10 +673,17 @@ export function ToolStrip({
   dimensions = '3d',
   door,
   store: stage,
+  otherToolActive = false,
+  onToolArmed,
 }: {
   dimensions?: '2d' | '3d';
   door?: StageTransformDoor;
   store?: ShellStore;
+  /** Another tool of the same exclusive group is on (a 2D view's List Select, Pivot, Pan or
+   *  Ruler, which Godot keeps in one radio group with these), so none of these is lit. */
+  otherToolActive?: boolean;
+  /** Called when one of these is armed, so the group's other tools can let go. */
+  onToolArmed?: () => void;
 } = {}) {
   const shell = useEditorStore();
   const store = stage ?? shell;
@@ -729,8 +736,14 @@ export function ToolStrip({
           action="transform.select"
           label="Select"
           // On a 2D surface Select is the handle mode, which the store names `combined`.
-          active={store.transformMode === 'select' || (dimensions === '2d' && store.transformMode === 'combined')}
-          onArm={() => requestTransformMode(store, 'select')}
+          active={
+            !otherToolActive &&
+            (store.transformMode === 'select' || (dimensions === '2d' && store.transformMode === 'combined'))
+          }
+          onArm={() => {
+            onToolArmed?.();
+            requestTransformMode(store, 'select');
+          }}
         />
       )}
       {single.map((tool) => (
@@ -739,8 +752,12 @@ export function ToolStrip({
           faIcon={tool.faIcon}
           action={tool.action}
           label={tool.label}
-          active={door ? armed === tool.mode : store.transformMode === tool.mode}
-          onArm={() => (door ? door.begin(tool.mode) : requestTransformMode(store, tool.mode))}
+          active={!otherToolActive && (door ? armed === tool.mode : store.transformMode === tool.mode)}
+          onArm={() => {
+            onToolArmed?.();
+            if (door) door.begin(tool.mode);
+            else requestTransformMode(store, tool.mode);
+          }}
         />
       ))}
       {door || dimensions === '2d' ? null : (

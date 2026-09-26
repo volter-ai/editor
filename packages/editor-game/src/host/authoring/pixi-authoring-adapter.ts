@@ -748,8 +748,10 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
           const hit = this.projector.pick(clientX, clientY, (id) => this.isPickLocked(id));
           return hit ? this.groupOf(hit) : hit;
         },
-        candidates: (clientX, clientY) =>
-          this.projector.candidates(clientX, clientY, (id) => this.isPickLocked(id)),
+        candidates: (clientX, clientY, options) =>
+          this.projector.candidates(clientX, clientY, (id) =>
+            options?.includeLocked ? false : this.isPickLocked(id),
+          ),
       };
       this.rects = {
         rect: (id) => this.projector.rect(id),

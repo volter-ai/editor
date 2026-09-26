@@ -600,7 +600,9 @@ export function CanvasSceneControls({
        *  declared-prop transform refusal — could only speak in the Console,
        *  which a user watching the board does not read (pass 65). */}
       <TransientHintOverlay />
-      <ToolStrip dimensions="2d" />
+      {/* Godot's 2D modes are ONE radio group: a transform tool leaves List Select, Pivot, Pan and
+          Ruler, and while one of those is on no transform tool is lit. */}
+      <ToolStrip dimensions="2d" otherToolActive={mode !== null} onToolArmed={() => setMode(null)} />
       <CanvasSceneEditGizmos adapter={adapter} view={view} documentId={documentId} />
       {mode ? (
         <CanvasSceneModeLayer
@@ -821,7 +823,6 @@ function CanvasSceneViewMenu({
     { label: 'Hide Grid', on: !gridShown, pick: () => setViewGridVisible(documentId, false) },
   ];
   const switches: readonly { label: string; on: boolean; toggle: () => void }[] = [
-    { label: 'Show Helpers', on: store.showHelpers, toggle: () => store.toggleHelpers() },
     { label: 'Rulers', on: drafting.rulers, toggle: () => setViewDrafting(documentId, { rulers: !drafting.rulers }) },
     { label: 'Guides', on: drafting.guides, toggle: () => setViewDrafting(documentId, { guides: !drafting.guides }) },
     { label: 'Origin', on: drafting.origin, toggle: () => setViewDrafting(documentId, { origin: !drafting.origin }) },
@@ -909,18 +910,20 @@ function CanvasSceneViewMenu({
  * the lock the hierarchy owns (`locked`, the same session-local flag its row toggles).
  */
 function CanvasSceneLockButton({ adapter, selected }: { adapter: AuthoringAdapter | undefined; selected: readonly string[] }) {
-  const id = selected.length === 1 ? selected[0]! : null;
-  const locked = id !== null && adapter?.inspector?.get(id, 'locked') === true;
-  const label = locked ? 'Unlock selected node' : 'Lock selected node';
+  // Godot's Lock acts on every selected node: all locked, it unlocks them; else it locks them all.
+  const offered = selected.filter((id) => adapter?.inspector?.properties(id).some((p) => p.path === 'locked'));
+  const locked = offered.length > 0 && offered.every((id) => adapter?.inspector?.get(id, 'locked') === true);
+  const plural = offered.length > 1 ? 'nodes' : 'node';
+  const label = locked ? `Unlock selected ${plural}` : `Lock selected ${plural}`;
   return (
-    <Tooltip text={id ? label : 'Select one node to lock it'}>
+    <Tooltip text={offered.length > 0 ? label : 'Select a node to lock it'}>
       <IconButton
         aria-label={label}
         aria-pressed={locked}
         size="comfortable"
-        disabled={id === null || !adapter?.inspector?.set}
+        disabled={offered.length === 0 || !adapter?.inspector?.set}
         onClick={() => {
-          if (id) adapter?.inspector?.set?.(id, 'locked', !locked);
+          for (const id of offered) adapter?.inspector?.set?.(id, 'locked', !locked);
         }}
       >
         <EditorIcon icon={locked ? faLock : faLockOpen} size="md" />
@@ -1082,19 +1085,20 @@ function CanvasSceneModeLayer({
  * it then selects the group (`grouped`, beside `locked`; the hierarchy still reaches every child).
  */
 function CanvasSceneGroupButton({ adapter, selected }: { adapter: AuthoringAdapter | undefined; selected: readonly string[] }) {
-  const id = selected.length === 1 ? selected[0]! : null;
-  const offered = id !== null && adapter?.inspector?.properties(id).some((property) => property.path === 'grouped') === true;
-  const grouped = id !== null && adapter?.inspector?.get(id, 'grouped') === true;
-  const label = grouped ? 'Ungroup selected node' : 'Group selected node with its children';
+  // Godot's Group acts on every selected node, as Lock does.
+  const offered = selected.filter((id) => adapter?.inspector?.properties(id).some((p) => p.path === 'grouped'));
+  const grouped = offered.length > 0 && offered.every((id) => adapter?.inspector?.get(id, 'grouped') === true);
+  const plural = offered.length > 1 ? 'nodes' : 'node';
+  const label = grouped ? `Ungroup selected ${plural}` : `Group selected ${plural} with their children`;
   return (
-    <Tooltip text={id ? label : 'Select one node to group it'}>
+    <Tooltip text={offered.length > 0 ? label : 'Select a node to group it'}>
       <IconButton
         aria-label={label}
         aria-pressed={grouped}
         size="comfortable"
-        disabled={!offered || !adapter?.inspector?.set}
+        disabled={offered.length === 0 || !adapter?.inspector?.set}
         onClick={() => {
-          if (id) adapter?.inspector?.set?.(id, 'grouped', !grouped);
+          for (const id of offered) adapter?.inspector?.set?.(id, 'grouped', !grouped);
         }}
       >
         <EditorIcon icon={faLayerGroup} size="md" />
