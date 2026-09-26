@@ -125,8 +125,8 @@ Remaining:
    `unknown`), `@volter/editor-threejs/adapter/three-contract` names them as three.js objects for
    the editor, and each runtime names its own (the Pixi mounted root and 2D physics key are
    `@volter/game-runtime`'s, the asset cache `@volter/threejs-runtime`'s).
-   `@volter/editor-game` imports kit internals from 80 files (their closure is 254 of the kit's 259
-   modules, so they leave by dissolving the package, unit 5, not by moving the kit). Remaining in
+   `@volter/editor-game` imports kit internals from 37 files (ARCHITECTURE.md §Measured state names
+   what remains: the Play purpose the kit still imports, and the large modules). Remaining in
    unit 3: Blender's lens,
    opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the SDK's `surfaces.Object3D*` stay on the
    contribution contract, forwarding to what the Three integration registers, because project
