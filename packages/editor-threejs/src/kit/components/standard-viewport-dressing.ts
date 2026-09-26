@@ -515,9 +515,42 @@ function cloudLayer(
  *  and a full-resolution strip costs a second of main thread per rebuild. */
 const CLOUD_STEP = 4;
 
-/** The floor's width in scene units: past any preview sun's shadow reach and fading into the
- *  sky's ground at the horizon well before the camera's far plane. */
+/** The floor's width in scene units: past any preview sun's shadow reach, and well inside the
+ *  camera's far plane. */
 const FLOOR_EXTENT = 400;
+
+/**
+ * THE FLOOR DISSOLVES INTO THE SKY instead of ending on its square's edge: its alpha falls off
+ * with distance from its centre, from 30% to 95% of its half-width, so the horizon is the sky
+ * showing through a floor that thins toward it — soft and round, as a level's floor meets its
+ * atmosphere — never a hard line with the square's corner in it. Drawn just behind anything on
+ * its plane, so a grid lying there stays on top.
+ */
+function fadingFloorMaterial(): THREE.MeshStandardMaterial {
+  const material = new THREE.MeshStandardMaterial({
+    roughness: 0.9,
+    metalness: 0,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+  });
+  const half = FLOOR_EXTENT / 2;
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('void main() {', 'varying vec2 vFloorPlane;\nvoid main() {')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorPlane = position.xz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('void main() {', 'varying vec2 vFloorPlane;\nvoid main() {')
+      .replace(
+        '#include <dithering_fragment>',
+        `#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(${(half * 0.3).toFixed(1)}, ${(half * 0.95).toFixed(1)}, length(vFloorPlane));`,
+      );
+  };
+  material.customProgramCacheKey = () => 'vgai-fading-floor';
+  return material;
+}
 
 export class StagePresentationRig {
   private readonly group = new THREE.Group();
@@ -535,8 +568,7 @@ export class StagePresentationRig {
   private floorContent: THREE.Object3D | null = null;
   private readonly floor = new THREE.Mesh(
     new THREE.PlaneGeometry(FLOOR_EXTENT, FLOOR_EXTENT).rotateX(-Math.PI / 2),
-    // Drawn just behind anything on its plane, so a grid lying there stays on top.
-    new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }),
+    fadingFloorMaterial(),
   );
   /** The preview sky, built from its three colours: the background drawn behind the scene and
    *  the environment that lights it, rebuilt only when the colours change. */
@@ -578,6 +610,8 @@ export class StagePresentationRig {
     this.floor.name = 'vgai:preview-floor';
     this.floor.userData['editorHelper'] = true;
     this.floor.receiveShadow = true;
+    // Transparent now (its fade), so it is sorted with the grid: drawn first, under it.
+    this.floor.renderOrder = -1;
     this.floor.visible = false;
     scene.add(this.floor);
   }
