@@ -26,7 +26,12 @@ export type GodotEvidenceSymbolKind =
    * A method of an engine singleton (`Input.is_action_pressed`), bound like a native member but
    * with no receiver: lowering drops the singleton.
    */
-  | 'singleton-member';
+  | 'singleton-member'
+  /**
+   * A native class's static method (`PhysicsRayQueryParameters3D.create`): the API dump's method
+   * identity, called with no receiver.
+   */
+  | 'native-static';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;

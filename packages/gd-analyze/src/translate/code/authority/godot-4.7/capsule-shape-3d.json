@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/capsule-shape-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CapsuleShape3D",
+        "member": "get_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/capsule-shape-3d",
+        "exportName": "get_radius",
+        "localName": "CapsuleShape3D_get_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CapsuleShape3D.get_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CapsuleShape3D",
+        "member": "get_height",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/capsule-shape-3d",
+        "exportName": "get_height",
+        "localName": "CapsuleShape3D_get_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CapsuleShape3D.get_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CapsuleShape3D",
+        "member": "set_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/capsule-shape-3d",
+        "exportName": "set_radius",
+        "localName": "CapsuleShape3D_set_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CapsuleShape3D.set_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CapsuleShape3D",
+        "member": "set_height",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/capsule-shape-3d",
+        "exportName": "set_height",
+        "localName": "CapsuleShape3D_set_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CapsuleShape3D.set_height"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CapsuleShape3D.get_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CapsuleShape3D\u0000get_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/capsule_shape_3d.cpp",
+        "sourceSymbol": "CapsuleShape3D.get_radius",
+        "sourceLine": 112
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6d9fa1a5d3b4a5c6585cf12cafa7e91cc1cab3185cf5f5c15855f38f87780da6",
+        "callsite": "res://probe.gd _init() get_radius-default",
+        "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
+      },
+      "target": {
+        "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31",
+        "callsite": "lib/godot-compat/capsule-shape-3d.ts get_radius",
+        "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3894e3882e09a356c2f761f5418f754915e9cbbb3d8cdc10b044ebd3f3a143d6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "capsule-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CapsuleShape3D.get_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CapsuleShape3D\u0000get_height\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/capsule_shape_3d.cpp",
+        "sourceSymbol": "CapsuleShape3D.get_height",
+        "sourceLine": 126
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "376405c5bb841568a59afad0a421f4b37382c02248c7a48129539204bcb0c244",
+        "callsite": "res://probe.gd _init() get_height-default",
+        "observedOutputSha256": "996b95e9498a022f23d29249d77367c63fdd54a44cecbb603bf5a303c0c07f0f"
+      },
+      "target": {
+        "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31",
+        "callsite": "lib/godot-compat/capsule-shape-3d.ts get_height",
+        "observedOutputSha256": "996b95e9498a022f23d29249d77367c63fdd54a44cecbb603bf5a303c0c07f0f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dc30c8114f560de3cf4ee9f01c5765ac8a9dd0b1e091f5691cf2c93d07e1e657"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "capsule-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CapsuleShape3D.set_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CapsuleShape3D\u0000set_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/capsule_shape_3d.cpp",
+        "sourceSymbol": "CapsuleShape3D.set_radius",
+        "sourceLine": 102
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "742b9ad163c13b73845b81266dba946f3866d719e47ce2fffc5bcc9e69f3e9d4",
+        "callsite": "res://probe.gd _init() set_radius-0.25-3 set_radius-2-1 set_radius-0.3-0.1 set_radius--1-2 set_radius-0.5--3 set_radius-0.1-0.7",
+        "observedOutputSha256": "945369dcf654282518bac4d515405c795f1ec0074de61c9149745b9c8b29d59e"
+      },
+      "target": {
+        "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31",
+        "callsite": "lib/godot-compat/capsule-shape-3d.ts set_radius",
+        "observedOutputSha256": "945369dcf654282518bac4d515405c795f1ec0074de61c9149745b9c8b29d59e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f4e791fff56244087ad59c46c80d94f7658cd076ca89bcf9c90ff081d3fc1931"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "capsule-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CapsuleShape3D.set_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CapsuleShape3D\u0000set_height\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/capsule_shape_3d.cpp",
+        "sourceSymbol": "CapsuleShape3D.set_height",
+        "sourceLine": 116
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ee70b016ac47d4f216f8b4d9cdd34d86fb64c02ba3a96bb5b2e2c208f080de33",
+        "callsite": "res://probe.gd _init() set_height-0.25-3 set_height-2-1 set_height-0.3-0.1 set_height--1-2 set_height-0.5--3 set_height-0.1-0.7",
+        "observedOutputSha256": "d8dd3cf3bcc15eae5bcd1f0d828ac86a9683bf05d4f31f38a4f67a58519c1634"
+      },
+      "target": {
+        "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31",
+        "callsite": "lib/godot-compat/capsule-shape-3d.ts set_height",
+        "observedOutputSha256": "d8dd3cf3bcc15eae5bcd1f0d828ac86a9683bf05d4f31f38a4f67a58519c1634"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4c1af608096bb1c8092f8d6bc202e9e8ee3a77babb6f91b31b529883b6a00107"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "capsule-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CapsuleShape3D.get_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6d9fa1a5d3b4a5c6585cf12cafa7e91cc1cab3185cf5f5c15855f38f87780da6",
+      "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31"
+    },
+    {
+      "claimId": "godot-4.7-binding-CapsuleShape3D.get_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "376405c5bb841568a59afad0a421f4b37382c02248c7a48129539204bcb0c244",
+      "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31"
+    },
+    {
+      "claimId": "godot-4.7-binding-CapsuleShape3D.set_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "742b9ad163c13b73845b81266dba946f3866d719e47ce2fffc5bcc9e69f3e9d4",
+      "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31"
+    },
+    {
+      "claimId": "godot-4.7-binding-CapsuleShape3D.set_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ee70b016ac47d4f216f8b4d9cdd34d86fb64c02ba3a96bb5b2e2c208f080de33",
+      "implementationSha256": "0cf1b854458edf8379075e536e7cd49dda45605f340753615e40ef8622782e31"
+    }
+  ]
+}

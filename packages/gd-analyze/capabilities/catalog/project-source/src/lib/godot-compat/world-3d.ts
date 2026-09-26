@@ -13,7 +13,7 @@
 
 import type { World } from '@dimforge/rapier3d-compat';
 import {
-  godot_collision_objects_integrate_kinematic,
+  godot_collision_objects_step,
   godot_collision_objects_reset,
   godot_collision_objects_sync,
   godot_collision_objects_transforms_changed,
@@ -70,7 +70,7 @@ export function godot_world_3d_attach(world: World): World3D {
     step: (delta: number) => {
       godot_collision_objects_sync(world);
       for (const handler of stepHandlers) handler(world, delta);
-      godot_collision_objects_integrate_kinematic();
+      godot_collision_objects_step();
       world.timestep = delta;
       world.step();
     },

@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/world-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "World3D",
+        "member": "get_space",
+        "kind": "native-member",
+        "signature": "hash:2944877500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/world-3d",
+        "exportName": "get_space",
+        "localName": "World3D_get_space",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-World3D.get_space"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "World3D",
+        "member": "get_direct_space_state",
+        "kind": "native-member",
+        "signature": "hash:2069328350"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/world-3d",
+        "exportName": "get_direct_space_state",
+        "localName": "World3D_get_direct_space_state",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-World3D.get_direct_space_state"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-World3D.get_space",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000World3D\u0000get_space\u0000hash:2944877500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/world_3d.cpp",
+        "sourceSymbol": "World3D.get_space",
+        "sourceLine": 52
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b0f7731fd9acd48a924e0a7086005314eb08a754c6600d173a7a204993041f76",
+        "callsite": "res://probe.gd _init() get_space",
+        "observedOutputSha256": "1cfb2d0d1bc4491c0e787464663fa2d730ef0e5908b1b9968642c2e8e7bd75e0"
+      },
+      "target": {
+        "implementationSha256": "c174d056a21e4c495e5db60fee45ae44fc2982c28d526e0b0f908becdfc79c3f",
+        "callsite": "lib/godot-compat/world-3d.ts get_space",
+        "observedOutputSha256": "1cfb2d0d1bc4491c0e787464663fa2d730ef0e5908b1b9968642c2e8e7bd75e0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a47a3d0c577e9778b073897f8220631bae4d740a906f53b561410ace7d606ae7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "world-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-World3D.get_direct_space_state",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000World3D\u0000get_direct_space_state\u0000hash:2069328350",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/world_3d.cpp",
+        "sourceSymbol": "World3D.get_direct_space_state",
+        "sourceLine": 152
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bc13d70be57649cdccac4c14275bf46a4885c32c969f504a597d15bca6fd871b",
+        "callsite": "res://probe.gd _init() get_direct_space_state",
+        "observedOutputSha256": "7e2ee10171a9510a94b0db9a280e508a86602a8ae8450eeb9b2130cefdd9f1c8"
+      },
+      "target": {
+        "implementationSha256": "c174d056a21e4c495e5db60fee45ae44fc2982c28d526e0b0f908becdfc79c3f",
+        "callsite": "lib/godot-compat/world-3d.ts get_direct_space_state",
+        "observedOutputSha256": "7e2ee10171a9510a94b0db9a280e508a86602a8ae8450eeb9b2130cefdd9f1c8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "592c8605761624d006ad1debb35af6a19cccd1304891b1e8c216067f8b8fe951"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "world-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-World3D.get_space",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b0f7731fd9acd48a924e0a7086005314eb08a754c6600d173a7a204993041f76",
+      "implementationSha256": "c174d056a21e4c495e5db60fee45ae44fc2982c28d526e0b0f908becdfc79c3f"
+    },
+    {
+      "claimId": "godot-4.7-binding-World3D.get_direct_space_state",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bc13d70be57649cdccac4c14275bf46a4885c32c969f504a597d15bca6fd871b",
+      "implementationSha256": "c174d056a21e4c495e5db60fee45ae44fc2982c28d526e0b0f908becdfc79c3f"
+    }
+  ]
+}

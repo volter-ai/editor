@@ -62,7 +62,9 @@ function candidates(self: PhysicsDirectSpaceState3D, begin: Vector3, end: Vector
   for (const [entity, state] of godot_collision_objects()) {
     if (!admits(entity, query)) continue;
     state.colliders.forEach((entry, index) => {
-      if (near.has(entry.collider.handle)) found.push({ entity, index, entry, transform: state.transform, inverse: state.inverse });
+      if (entry.inBroadphase && entry.collider !== undefined && near.has(entry.collider.handle)) {
+        found.push({ entity, index, entry, transform: state.transform, inverse: state.inverse });
+      }
     });
   }
   return found;

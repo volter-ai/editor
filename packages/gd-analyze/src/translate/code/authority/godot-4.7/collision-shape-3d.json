@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/collision-shape-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CollisionShape3D",
+        "member": "set_shape",
+        "kind": "native-member",
+        "signature": "hash:1549710052"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/collision-shape-3d",
+        "exportName": "set_shape",
+        "localName": "CollisionShape3D_set_shape",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CollisionShape3D.set_shape"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CollisionShape3D",
+        "member": "get_shape",
+        "kind": "native-member",
+        "signature": "hash:3214262478"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/collision-shape-3d",
+        "exportName": "get_shape",
+        "localName": "CollisionShape3D_get_shape",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CollisionShape3D.get_shape"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CollisionShape3D",
+        "member": "set_disabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/collision-shape-3d",
+        "exportName": "set_disabled",
+        "localName": "CollisionShape3D_set_disabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CollisionShape3D.set_disabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CollisionShape3D",
+        "member": "is_disabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/collision-shape-3d",
+        "exportName": "is_disabled",
+        "localName": "CollisionShape3D_is_disabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CollisionShape3D.is_disabled"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CollisionShape3D.set_shape",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CollisionShape3D\u0000set_shape\u0000hash:1549710052",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/collision_shape_3d.cpp",
+        "sourceSymbol": "CollisionShape3D.set_shape",
+        "sourceLine": 192
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "afb0d4ad33e8f2dd078685d38a5d238325058ea723e81ce0cdabcf809b3c0e78",
+        "callsite": "res://probe.gd _init() set_shape",
+        "observedOutputSha256": "77d7f23b89810762fb02b663bdc827a554f77e41ff44b1cb56e03037760459bc"
+      },
+      "target": {
+        "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389",
+        "callsite": "lib/godot-compat/collision-shape-3d.ts set_shape",
+        "observedOutputSha256": "77d7f23b89810762fb02b663bdc827a554f77e41ff44b1cb56e03037760459bc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "aa68fbdff3c3eb1e2ebf7e6c87d736228c3a8feeb57ad4365cc79301318bf5d0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "collision-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CollisionShape3D.get_shape",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CollisionShape3D\u0000get_shape\u0000hash:3214262478",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/collision_shape_3d.cpp",
+        "sourceSymbol": "CollisionShape3D.get_shape",
+        "sourceLine": 234
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "60ea84d1b5596cc7a82f623f5efe02c01f5006182aa9dbf46a40a481aac4c159",
+        "callsite": "res://probe.gd _init() get_shape",
+        "observedOutputSha256": "cd7a2d700b907544aa92a635ef30ed6aa347d7d5495186b1e0200134ecb3b594"
+      },
+      "target": {
+        "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389",
+        "callsite": "lib/godot-compat/collision-shape-3d.ts get_shape",
+        "observedOutputSha256": "cd7a2d700b907544aa92a635ef30ed6aa347d7d5495186b1e0200134ecb3b594"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b539900a87bbc3e24b58f683d0f82f76849d0d7396eda6a139bead579d6878a2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "collision-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CollisionShape3D.set_disabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CollisionShape3D\u0000set_disabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/collision_shape_3d.cpp",
+        "sourceSymbol": "CollisionShape3D.set_disabled",
+        "sourceLine": 238
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fc852d37aaf4e01cae240c5d9d0b613ee33f661381aeaf1c9eed3c2257885f30",
+        "callsite": "res://probe.gd _init() set_disabled",
+        "observedOutputSha256": "dcb3933301dfe64a96aaac28ed8a25f67682388e3774f34a7692b41bbe8826fd"
+      },
+      "target": {
+        "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389",
+        "callsite": "lib/godot-compat/collision-shape-3d.ts set_disabled",
+        "observedOutputSha256": "dcb3933301dfe64a96aaac28ed8a25f67682388e3774f34a7692b41bbe8826fd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7b4dabfb3965d31ea542632a22b19e9853670a23bc4d71395fe0e681b2e0bee0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "collision-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CollisionShape3D.is_disabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CollisionShape3D\u0000is_disabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/collision_shape_3d.cpp",
+        "sourceSymbol": "CollisionShape3D.is_disabled",
+        "sourceLine": 246
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "506a7260a53398d9be3e6136b120637a4846d17d68bbf3ed70382fed0570479d",
+        "callsite": "res://probe.gd _init() is_disabled",
+        "observedOutputSha256": "7c31ae1fbd90d9f7724ecd6cf42b02dc0f74ad099e028ff200ea8bac65d59a25"
+      },
+      "target": {
+        "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389",
+        "callsite": "lib/godot-compat/collision-shape-3d.ts is_disabled",
+        "observedOutputSha256": "7c31ae1fbd90d9f7724ecd6cf42b02dc0f74ad099e028ff200ea8bac65d59a25"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ff5815c1471e5520f84b75d229659bbcc0a5d18596197cd8ddeab2e5599bc1a9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "collision-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CollisionShape3D.set_shape",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "afb0d4ad33e8f2dd078685d38a5d238325058ea723e81ce0cdabcf809b3c0e78",
+      "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389"
+    },
+    {
+      "claimId": "godot-4.7-binding-CollisionShape3D.get_shape",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "60ea84d1b5596cc7a82f623f5efe02c01f5006182aa9dbf46a40a481aac4c159",
+      "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389"
+    },
+    {
+      "claimId": "godot-4.7-binding-CollisionShape3D.set_disabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fc852d37aaf4e01cae240c5d9d0b613ee33f661381aeaf1c9eed3c2257885f30",
+      "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389"
+    },
+    {
+      "claimId": "godot-4.7-binding-CollisionShape3D.is_disabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "506a7260a53398d9be3e6136b120637a4846d17d68bbf3ed70382fed0570479d",
+      "implementationSha256": "c57c8f08088f33888484d0739dad8642cc86dcd176c5848a4c3f7894faba5389"
+    }
+  ]
+}

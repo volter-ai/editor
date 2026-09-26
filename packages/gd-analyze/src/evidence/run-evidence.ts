@@ -824,6 +824,7 @@ function bindingSymbol(
       return { ...base, kind: 'builtin-member-set', signature: 'set' };
     case 'native-member':
     case 'singleton-member':
+    case 'native-static':
       return {
         ...base,
         kind: 'native-member',
@@ -851,6 +852,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
     case 'builtin-operator':
     case 'utility-function':
     case 'singleton-member':
+    case 'native-static':
       return { kind: 'call', sourceReceiver: 'absent' };
     case 'builtin-constant':
       return { kind: 'value' };

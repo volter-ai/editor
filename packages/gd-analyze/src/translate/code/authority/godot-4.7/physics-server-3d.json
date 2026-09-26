@@ -1,0 +1,82 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physics-server-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsServer3D",
+        "member": "space_get_direct_state",
+        "kind": "native-member",
+        "signature": "hash:2048616813"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-server-3d",
+        "exportName": "space_get_direct_state",
+        "localName": "PhysicsServer3D_space_get_direct_state",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsServer3D.space_get_direct_state"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsServer3D.space_get_direct_state",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsServer3D\u0000space_get_direct_state\u0000hash:2048616813",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_physics_server_3d.cpp",
+        "sourceSymbol": "PhysicsServer3D.space_get_direct_state",
+        "sourceLine": 191
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "050781512d3b6af1d3bb49b49f6e61d47fc8e6e63941b73462918a2cab4da2b4",
+        "callsite": "res://probe.gd _init() space_get_direct_state",
+        "observedOutputSha256": "10cd1859c94366f9518aaa69e184e2323caaeef10f04af5a4539b4d286b4a31f"
+      },
+      "target": {
+        "implementationSha256": "575bff84980f805e7b7aa07639c01d2eb5c8d98412386e176763765a4d2f02b9",
+        "callsite": "lib/godot-compat/physics-server-3d.ts space_get_direct_state",
+        "observedOutputSha256": "10cd1859c94366f9518aaa69e184e2323caaeef10f04af5a4539b4d286b4a31f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a8314d82cd0e2d6fb7a2e8ef2cdd6c4e100af94b5899e40da60d38e872f10d63"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-server-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicsServer3D.space_get_direct_state",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "050781512d3b6af1d3bb49b49f6e61d47fc8e6e63941b73462918a2cab4da2b4",
+      "implementationSha256": "575bff84980f805e7b7aa07639c01d2eb5c8d98412386e176763765a4d2f02b9"
+    }
+  ]
+}

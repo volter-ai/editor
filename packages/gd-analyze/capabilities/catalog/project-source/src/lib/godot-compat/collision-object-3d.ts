@@ -9,6 +9,14 @@
  * transform. The body kind is the node class's: fixed for a StaticBody3D, kinematic for a
  * CharacterBody3D, dynamic for a RigidBody3D, fixed with sensor colliders for an Area3D.
  *
+ * The body's shapes keep GodotPhysics3D's server order (`GodotCollisionObject3D::shapes`,
+ * `modules/godot_physics_3d/godot_collision_object_3d.cpp`), which query results index: a shape
+ * is appended when its CollisionShape3D gets it, removed (the later ones moving down) when it loses
+ * it, and a disabled shape keeps its place. Whether a shape is in the broad phase follows the same
+ * file: a removed shape and every shape after it, and a disabled shape, leave it at once; added or
+ * re-enabled shapes join it at the next shape update (a static body's move, the space's step), or
+ * at once when the body enters the space.
+ *
  * Godot's 32-bit collision layer and mask, which Rapier's 16-bit groups cannot hold, live in
  * `OBJECT` with the body and colliders, keyed by the node's entity; queries and contacts filter
  * through them. The RID of a collision object is represented by its entity. Scale in a body's
@@ -25,15 +33,18 @@ import { affine_inverse, construct as transform3d, type Transform3D } from './tr
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
 
-/** One shape of a collision object: its Rapier collider and Godot's shape and local transform. */
+/** One server shape of a collision object: Godot's shape, local transform and Rapier collider. */
 export interface CollisionShapeEntry {
-  readonly collider: Collider;
-  readonly key: string;
   readonly shapeNode: object;
   readonly shape: object;
   /** The shape's transform in the body, and its `affine_inverse` (`godot_collision_object_3d.cpp:66`). */
-  readonly local: Transform3D;
-  readonly localInverse: Transform3D;
+  local: Transform3D;
+  localInverse: Transform3D;
+  disabled: boolean;
+  /** In the broad phase (`Shape::bpid != 0`): queries see it. */
+  inBroadphase: boolean;
+  collider: Collider | undefined;
+  key: string;
 }
 
 interface ObjectState {
@@ -167,8 +178,26 @@ function bodyDesc(kind: CollisionObjectKind): RAPIER.RigidBodyDesc {
   return RAPIER.RigidBodyDesc.fixed();
 }
 
+function sameTransform(a: Transform3D, b: Transform3D): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function dropCollider(world: World, entry: CollisionShapeEntry): void {
+  if (entry.collider === undefined) return;
+  ENTITY_OF_COLLIDER.delete(entry.collider.handle);
+  world.removeCollider(entry.collider, false);
+  entry.collider = undefined;
+}
+
+/** `GodotCollisionObject3D::_update_shapes`: every enabled shape joins the broad phase (`:155`). */
+function updateShapes(state: ObjectState): void {
+  for (const entry of state.colliders) if (!entry.disabled) entry.inBroadphase = true;
+}
+
 function removeBody(world: World, state: ObjectState): void {
-  for (const entry of state.colliders) ENTITY_OF_COLLIDER.delete(entry.collider.handle);
+  for (const entry of state.colliders) {
+    if (entry.collider !== undefined) ENTITY_OF_COLLIDER.delete(entry.collider.handle);
+  }
   state.colliders = [];
   if (state.body !== undefined) world.removeRigidBody(state.body);
   state.body = undefined;
@@ -186,8 +215,66 @@ export function godot_collision_object_place(entity: object, global: Transform3D
   if (state?.body === undefined) return;
   state.transform = global;
   state.inverse = affine_inverse(global);
+  // A static body's or area's new transform updates its shapes at once (`_set_transform`,
+  // `godot_collision_object_3d.h:86`).
+  if (state.kind === 'static' || state.kind === 'area') updateShapes(state);
   state.body.setTranslation({ x: global.origin.x, y: global.origin.y, z: global.origin.z }, false);
   state.body.setRotation(rotationOf(global), false);
+}
+
+/**
+ * The server shape list brought up to the CollisionShape3D children, as their calls reach the
+ * server (`scene/3d/physics/collision_object_3d.cpp`, `shape_owner_*`): a child that left or whose
+ * shape changed has its shape removed (`remove_shape`, `godot_collision_object_3d.cpp:112`), then
+ * each child's new shape is appended (`add_shape`, `:35`); `disabled` and the local transform are
+ * set in place (`set_shape_disabled`, `:72`; `set_shape_transform`, `:60`).
+ */
+function syncShapes(world: World, entity: object, state: ObjectState): void {
+  const children = (entity as Object3D).children;
+  const current = (entry: CollisionShapeEntry): boolean =>
+    (entry.shapeNode as Object3D).parent === entity && !godot_node_is_freed(entry.shapeNode) && godot_collision_shape_3d_of(entry.shapeNode)?.shape === entry.shape;
+  for (let index = 0; index < state.colliders.length; index += 1) {
+    const entry = state.colliders[index] as CollisionShapeEntry;
+    if (current(entry)) continue;
+    for (const later of state.colliders.slice(index)) later.inBroadphase = false;
+    dropCollider(world, entry);
+    state.colliders.splice(index, 1);
+    index -= 1;
+  }
+  for (const child of children) {
+    const shapeState = godot_collision_shape_3d_of(child);
+    if (shapeState === undefined || shapeState.shape === null) continue;
+    let entry = state.colliders.find((candidate) => candidate.shapeNode === child);
+    if (entry === undefined) {
+      const local = get_transform(child);
+      entry = { shapeNode: child, shape: shapeState.shape, local, localInverse: affine_inverse(local), disabled: shapeState.disabled, inBroadphase: false, collider: undefined, key: '' };
+      state.colliders.push(entry);
+    }
+    if (entry.disabled !== shapeState.disabled) {
+      entry.disabled = shapeState.disabled;
+      if (entry.disabled) entry.inBroadphase = false;
+    }
+    const local = get_transform(child);
+    if (JSON.stringify(local) !== JSON.stringify(entry.local)) {
+      entry.local = local;
+      entry.localInverse = affine_inverse(local);
+    }
+    const described = godot_shape_3d_collider(entry.shape);
+    const key = `${described.key}|${JSON.stringify(entry.local)}|${state.kind}`;
+    if (entry.disabled || described.desc === null) {
+      dropCollider(world, entry);
+      continue;
+    }
+    if (entry.collider !== undefined && entry.key === key) continue;
+    dropCollider(world, entry);
+    described.desc
+      .setTranslation(entry.local.origin.x, entry.local.origin.y, entry.local.origin.z)
+      .setRotation(rotationOf(entry.local))
+      .setSensor(state.kind === 'area');
+    entry.collider = world.createCollider(described.desc, state.body);
+    entry.key = key;
+    ENTITY_OF_COLLIDER.set(entry.collider.handle, entity);
+  }
 }
 
 /**
@@ -205,46 +292,15 @@ export function godot_collision_objects_sync(world: World): void {
       if (godot_node_is_freed(entity)) OBJECT.delete(entity);
       continue;
     }
-    if (state.body === undefined) {
-      // Entering the world sends the transform at once (`_notification`, ENTER_WORLD).
+    const entering = state.body === undefined;
+    if (entering) {
+      // Entering the world sends the transform at once (`_notification`, ENTER_WORLD), and the
+      // space registers every shape (`GodotCollisionObject3D::_set_space`).
       state.body = world.createRigidBody(bodyDesc(state.kind));
       godot_collision_object_place(entity);
     }
-    const wanted: { shapeNode: object; shape: object; local: Transform3D; key: string; desc: RAPIER.ColliderDesc }[] = [];
-    for (const child of (entity as Object3D).children) {
-      const shapeState = godot_collision_shape_3d_of(child);
-      if (shapeState === undefined || shapeState.disabled || shapeState.shape === null) continue;
-      const described = godot_shape_3d_collider(shapeState.shape);
-      if (described.desc === null) continue;
-      const local = get_transform(child);
-      const rotation = rotationOf(local);
-      described.desc
-        .setTranslation(local.origin.x, local.origin.y, local.origin.z)
-        .setRotation(rotation)
-        .setSensor(state.kind === 'area');
-      wanted.push({ shapeNode: child, shape: shapeState.shape, local, key: `${described.key}|${JSON.stringify(local)}|${state.kind}`, desc: described.desc });
-    }
-    const same =
-      wanted.length === state.colliders.length &&
-      wanted.every((entry, index) => state.colliders[index]?.key === entry.key && state.colliders[index]?.shapeNode === entry.shapeNode);
-    if (!same) {
-      for (const entry of state.colliders) {
-        ENTITY_OF_COLLIDER.delete(entry.collider.handle);
-        world.removeCollider(entry.collider, false);
-      }
-      state.colliders = wanted.map((entry) => {
-        const collider = world.createCollider(entry.desc, state.body);
-        ENTITY_OF_COLLIDER.set(collider.handle, entity);
-        return {
-          collider,
-          key: entry.key,
-          shapeNode: entry.shapeNode,
-          shape: entry.shape,
-          local: entry.local,
-          localInverse: affine_inverse(entry.local),
-        };
-      });
-    }
+    syncShapes(world, entity, state);
+    if (entering) updateShapes(state);
   }
   world.propagateModifiedBodyPositionsToColliders();
   world.updateSceneQueries();
@@ -262,19 +318,24 @@ export function godot_collision_objects_sync(world: World): void {
 export function godot_collision_objects_transforms_changed(): void {
   for (const [entity, state] of OBJECT) {
     if (state.body === undefined || godot_node_is_freed(entity) || !is_inside_tree(entity)) continue;
-    if (state.kind === 'static' || state.kind === 'area') godot_collision_object_place(entity);
-    else if (state.kind === 'character') state.pending = get_global_transform(entity as Object3D);
+    const global = get_global_transform(entity as Object3D);
+    if (sameTransform(global, state.pending ?? state.transform)) continue;
+    if (state.kind === 'static' || state.kind === 'area') godot_collision_object_place(entity, global);
+    else if (state.kind === 'character') state.pending = global;
   }
 }
 
 /**
- * A kinematic body's held transform becomes its transform as the space steps
- * (`GodotBody3D::integrate_forces`, `modules/godot_physics_3d/godot_body_3d.cpp:701`).
+ * The space's step: pending shapes join the broad phase (`GodotPhysicsServer3D::step` runs
+ * `_update_shapes`, `modules/godot_physics_3d/godot_physics_server_3d.cpp:1679`), then a kinematic
+ * body's held transform becomes its transform (`GodotBody3D::integrate_forces`,
+ * `godot_body_3d.cpp:701`).
  *
  * @godot CollisionObject3D (protocol)
- * @source modules/godot_physics_3d/godot_body_3d.cpp:701
+ * @source modules/godot_physics_3d/godot_physics_server_3d.cpp:1679
  */
-export function godot_collision_objects_integrate_kinematic(): void {
+export function godot_collision_objects_step(): void {
+  for (const state of OBJECT.values()) updateShapes(state);
   for (const [entity, state] of OBJECT) {
     if (state.pending === undefined) continue;
     godot_collision_object_place(entity, state.pending);

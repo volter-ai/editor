@@ -49,16 +49,26 @@ export type Op =
     }
   | { readonly raycast: string; readonly parent?: string; readonly at?: Triple; readonly target?: Triple; readonly mask?: number; readonly areas?: boolean; readonly excludeParent?: boolean }
   | { readonly move: string; readonly at: Triple }
+  | { readonly rayTarget: string; readonly target: Triple }
+  | { readonly rayEnabled: string; readonly on: boolean }
+  | { readonly forceRay: string }
+  | { readonly rayException: string; readonly except: string }
   | { readonly layer: string; readonly value: number }
   | { readonly mask: string; readonly value: number }
   | { readonly layerBit: string; readonly bit: number; readonly on: boolean }
+  | { readonly maskBit: string; readonly bit: number; readonly on: boolean }
   | { readonly disable: string; readonly index: number; readonly on: boolean }
+  | { readonly reshape: string; readonly index: number; readonly shape: Shape | null }
   | { readonly remove: string }
   | { readonly read: Read };
 
 export type Read =
-  | readonly ['ray', Triple, Triple, { readonly mask?: number; readonly exclude?: readonly string[]; readonly areas?: boolean; readonly bodies?: boolean; readonly inside?: boolean; readonly backFaces?: boolean }?]
+  | readonly ['ray', Triple, Triple, { readonly mask?: number; readonly exclude?: readonly string[]; readonly areas?: boolean; readonly bodies?: boolean; readonly inside?: boolean; readonly backFaces?: boolean; readonly via?: 'server' | 'world' }?]
   | readonly ['raycast', string]
+  | readonly ['rayMask', string]
+  | readonly ['rayTarget', string]
+  | readonly ['shapeDisabled', string, number]
+  | readonly ['shapeNull', string, number]
   | readonly ['layer', string]
   | readonly ['mask', string]
   | readonly ['layerBit', string, number]
@@ -129,11 +139,21 @@ function gdRead(read: Read): string[] {
         ...(options.bodies === undefined ? [] : [`q.collide_with_bodies = ${String(options.bodies)}`]),
         ...(options.inside === undefined ? [] : [`q.hit_from_inside = ${String(options.inside)}`]),
         ...(options.backFaces === undefined ? [] : [`q.hit_back_faces = ${String(options.backFaces)}`]),
-        'log.append(_hit(PhysicsServer3D.space_get_direct_state(get_root().find_world_3d().space).intersect_ray(q)))',
+        options.via === 'world'
+          ? 'log.append(_hit(get_root().find_world_3d().direct_space_state.intersect_ray(q)))'
+          : 'log.append(_hit(PhysicsServer3D.space_get_direct_state(get_root().find_world_3d().space).intersect_ray(q)))',
       ];
     }
     case 'raycast':
       return [`log.append(_raycast(${v(read[1])}))`];
+    case 'rayMask':
+      return [`log.append(${v(read[1])}.get_collision_mask())`];
+    case 'rayTarget':
+      return [`log.append(${v(read[1])}.get_target_position())`];
+    case 'shapeDisabled':
+      return [`log.append(${v(read[1])}.get_child(${String(read[2])}).is_disabled())`];
+    case 'shapeNull':
+      return [`log.append(${v(read[1])}.get_child(${String(read[2])}).get_shape() == null)`];
     case 'layer':
       return [`log.append(${v(read[1])}.get_collision_layer())`];
     case 'mask':
@@ -178,9 +198,19 @@ function gdOp(op: Op): string[] {
     return lines;
   }
   if ('move' in op) return [`${v(op.move)}.position = ${gv(op.at)}`];
+  if ('rayTarget' in op) return [`${v(op.rayTarget)}.target_position = ${gv(op.target)}`];
+  if ('rayEnabled' in op) return [`${v(op.rayEnabled)}.enabled = ${String(op.on)}`];
+  if ('forceRay' in op) return [`${v(op.forceRay)}.force_raycast_update()`];
+  if ('rayException' in op) return [`${v(op.rayException)}.add_exception(${v(op.except)})`];
   if ('layer' in op) return [`${v(op.layer)}.set_collision_layer(${String(op.value)})`];
   if ('mask' in op) return [`${v(op.mask)}.set_collision_mask(${String(op.value)})`];
   if ('layerBit' in op) return [`${v(op.layerBit)}.set_collision_layer_value(${String(op.bit)}, ${String(op.on)})`];
+  if ('maskBit' in op) return [`${v(op.maskBit)}.set_collision_mask_value(${String(op.bit)}, ${String(op.on)})`];
+  if ('reshape' in op) {
+    if (op.shape === null) return [`${v(op.reshape)}.get_child(${String(op.index)}).set_shape(null)`];
+    const name = `re${String((shapeNumber += 1))}`;
+    return [...gdShape(name, op.shape), `${v(op.reshape)}.get_child(${String(op.index)}).set_shape(${name})`];
+  }
   if ('disable' in op) return [`${v(op.disable)}.get_child(${String(op.index)}).set_disabled(${String(op.on)})`];
   if ('remove' in op) return [`${v(op.remove)}.get_parent().remove_child(${v(op.remove)})`];
   return gdRead(op.read);
@@ -232,7 +262,8 @@ function target(segments: readonly Segment[]): () => unknown {
           if (options.bodies !== undefined) RQ.set_collide_with_bodies(q, options.bodies);
           if (options.inside !== undefined) RQ.set_hit_from_inside(q, options.inside);
           if (options.backFaces !== undefined) RQ.set_hit_back_faces(q, options.backFaces);
-          log.push(hit(DSS.intersect_ray(PS.space_get_direct_state(W.get_space(W.godot_world_3d())), q)));
+          const state = options.via === 'world' ? W.get_direct_space_state(W.godot_world_3d()) : PS.space_get_direct_state(W.get_space(W.godot_world_3d()));
+          log.push(hit(DSS.intersect_ray(state, q)));
           return;
         }
         case 'raycast': {
@@ -244,6 +275,18 @@ function target(segments: readonly Segment[]): () => unknown {
           );
           return;
         }
+        case 'rayMask':
+          log.push(RC.get_collision_mask(node(r[1])));
+          return;
+        case 'rayTarget':
+          log.push(RC.get_target_position(node(r[1])));
+          return;
+        case 'shapeDisabled':
+          log.push(CS.is_disabled(node(r[1]).children[r[2]] as object));
+          return;
+        case 'shapeNull':
+          log.push(CS.get_shape(node(r[1]).children[r[2]] as object) === null);
+          return;
         case 'layer':
           log.push(CO.get_collision_layer(node(r[1])));
           return;
@@ -291,9 +334,15 @@ function target(segments: readonly Segment[]): () => unknown {
         N.add_child(op.parent === undefined ? holder : node(op.parent), ray);
         nodes.set(op.raycast, ray);
       } else if ('move' in op) N3.set_position(node(op.move), V.construct(...op.at));
+      else if ('rayTarget' in op) RC.set_target_position(node(op.rayTarget), V.construct(...op.target));
+      else if ('rayEnabled' in op) RC.set_enabled(node(op.rayEnabled), op.on);
+      else if ('forceRay' in op) RC.force_raycast_update(node(op.forceRay));
+      else if ('rayException' in op) RC.add_exception(node(op.rayException), node(op.except));
       else if ('layer' in op) CO.set_collision_layer(node(op.layer), op.value);
       else if ('mask' in op) CO.set_collision_mask(node(op.mask), op.value);
       else if ('layerBit' in op) CO.set_collision_layer_value(node(op.layerBit), op.bit, op.on);
+      else if ('maskBit' in op) CO.set_collision_mask_value(node(op.maskBit), op.bit, op.on);
+      else if ('reshape' in op) CS.set_shape(node(op.reshape).children[op.index] as object, op.shape === null ? null : jsShape(op.shape));
       else if ('disable' in op) CS.set_disabled(node(op.disable).children[op.index] as object, op.on);
       else if ('remove' in op) N.remove_child(node(op.remove).parent as object, node(op.remove));
       else read(op.read);

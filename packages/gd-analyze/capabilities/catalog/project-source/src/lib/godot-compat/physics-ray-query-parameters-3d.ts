@@ -51,7 +51,7 @@ export function create(from: Vector3, to: Vector3, collision_mask = 0xffffffff, 
   query.from = vector3(from);
   query.to = vector3(to);
   query.collision_mask = collision_mask >>> 0;
-  query.exclude = [...exclude];
+  set_exclude(query, exclude);
   return query;
 }
 
@@ -92,7 +92,7 @@ export function set_hit_from_inside(self: PhysicsRayQueryParameters3D, enable: b
  * @source servers/physics_3d/physics_server_3d.cpp:185
  */
 export function set_exclude(self: PhysicsRayQueryParameters3D, exclude: readonly object[]): void {
-  self.exclude = [...exclude];
+  self.exclude = [...new Set(exclude)];
 }
 
 /**
@@ -117,4 +117,60 @@ export function set_from(self: PhysicsRayQueryParameters3D, from: Vector3): void
  */
 export function set_to(self: PhysicsRayQueryParameters3D, to: Vector3): void {
   self.to = vector3(to);
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.get_from
+ * @source servers/physics_3d/physics_server_3d.h:848
+ */
+export function get_from(self: PhysicsRayQueryParameters3D): Vector3 {
+  return self.from;
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.get_to
+ * @source servers/physics_3d/physics_server_3d.h:851
+ */
+export function get_to(self: PhysicsRayQueryParameters3D): Vector3 {
+  return self.to;
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.get_collision_mask
+ * @source servers/physics_3d/physics_server_3d.h:854
+ */
+export function get_collision_mask(self: PhysicsRayQueryParameters3D): number {
+  return self.collision_mask;
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.is_collide_with_bodies_enabled
+ * @source servers/physics_3d/physics_server_3d.h:857
+ */
+export function is_collide_with_bodies_enabled(self: PhysicsRayQueryParameters3D): boolean {
+  return self.collide_with_bodies;
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.is_collide_with_areas_enabled
+ * @source servers/physics_3d/physics_server_3d.h:860
+ */
+export function is_collide_with_areas_enabled(self: PhysicsRayQueryParameters3D): boolean {
+  return self.collide_with_areas;
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.is_hit_from_inside_enabled
+ * @source servers/physics_3d/physics_server_3d.h:863
+ */
+export function is_hit_from_inside_enabled(self: PhysicsRayQueryParameters3D): boolean {
+  return self.hit_from_inside;
+}
+
+/**
+ * @godot PhysicsRayQueryParameters3D.is_hit_back_faces_enabled
+ * @source servers/physics_3d/physics_server_3d.h:866
+ */
+export function is_hit_back_faces_enabled(self: PhysicsRayQueryParameters3D): boolean {
+  return self.hit_back_faces;
 }

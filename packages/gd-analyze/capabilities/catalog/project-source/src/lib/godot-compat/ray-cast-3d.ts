@@ -15,10 +15,9 @@ import { godot_node_entity, godot_node_set_internal_physics, is_inside_tree } fr
 import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
 import { godot_ray_query_new } from './physics-ray-query-parameters-3d';
+import { op_multiply as transform } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 import { godot_world_3d, godot_world_3d_direct_state } from './world-3d';
-
-const f32 = Math.fround;
 
 interface RayState {
   enabled: boolean;
@@ -48,23 +47,12 @@ function stateOf(object: object): RayState {
   return state;
 }
 
-/** `Transform3D::xform` of a point in float32 (`core/math/transform_3d.h:177`). */
-function xform(t: ReturnType<typeof get_global_transform>, v: Vector3): Vector3 {
-  const b = t.basis;
-  const dot = (r0: number, r1: number, r2: number): number => f32(f32(f32(r0 * v.x) + f32(r1 * v.y)) + f32(r2 * v.z));
-  return vector3(
-    f32(dot(b.x.x, b.y.x, b.z.x) + t.origin.x),
-    f32(dot(b.x.y, b.y.y, b.z.y) + t.origin.y),
-    f32(dot(b.x.z, b.y.z, b.z.z) + t.origin.z),
-  );
-}
-
 function update(entity: object, state: RayState): void {
   const global = get_global_transform(entity as Object3D);
   const to = state.target.x === 0 && state.target.y === 0 && state.target.z === 0 ? vector3(0, 0.01, 0) : state.target;
   const query = godot_ray_query_new();
   query.from = global.origin;
-  query.to = xform(global, to);
+  query.to = transform(global, to);
   const exclude = new Set(state.exceptions);
   const parent = (entity as Object3D).parent;
   if (state.excludeParent && parent !== null && godot_collision_object_state(parent) !== undefined) exclude.add(parent);

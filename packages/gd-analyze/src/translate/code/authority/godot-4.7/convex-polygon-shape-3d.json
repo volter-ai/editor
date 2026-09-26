@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/convex-polygon-shape-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ConvexPolygonShape3D",
+        "member": "get_points",
+        "kind": "native-member",
+        "signature": "hash:497664490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/convex-polygon-shape-3d",
+        "exportName": "get_points",
+        "localName": "ConvexPolygonShape3D_get_points",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ConvexPolygonShape3D.get_points"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ConvexPolygonShape3D",
+        "member": "set_points",
+        "kind": "native-member",
+        "signature": "hash:334873810"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/convex-polygon-shape-3d",
+        "exportName": "set_points",
+        "localName": "ConvexPolygonShape3D_set_points",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ConvexPolygonShape3D.set_points"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ConvexPolygonShape3D.get_points",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ConvexPolygonShape3D\u0000get_points\u0000hash:497664490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/convex_polygon_shape_3d.cpp",
+        "sourceSymbol": "ConvexPolygonShape3D.get_points",
+        "sourceLine": 118
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a12a6fcffb0e27e37c11fccb1064e1aa042c224141da5cae2d1e00fcca2fc265",
+        "callsite": "res://probe.gd _init() get_points-default",
+        "observedOutputSha256": "99e97d2880f21d699dcff01d4e23da5c383b4e91209974f125454e01c29529aa"
+      },
+      "target": {
+        "implementationSha256": "18a949a64ab7cee96fb60c0f2676539542332fa7dc8efccb6820ff251cf4d357",
+        "callsite": "lib/godot-compat/convex-polygon-shape-3d.ts get_points",
+        "observedOutputSha256": "99e97d2880f21d699dcff01d4e23da5c383b4e91209974f125454e01c29529aa"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6e0a7eceec1644dbbc6e636e381ddd731221492870c781c4ddd9102cbc550185"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "convex-polygon-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ConvexPolygonShape3D.set_points",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ConvexPolygonShape3D\u0000set_points\u0000hash:334873810",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/convex_polygon_shape_3d.cpp",
+        "sourceSymbol": "ConvexPolygonShape3D.set_points",
+        "sourceLine": 112
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "52e71a45c2339e799d890de9b70a01dbe4e337f0c20d03b751c87efd657bc0b5",
+        "callsite": "res://probe.gd _init() set_points-tetra set_points-decimals set_points-empty",
+        "observedOutputSha256": "912629a5551a41f9922ab637c7e767d037856fe5eb3d7e644fca2d69319174a5"
+      },
+      "target": {
+        "implementationSha256": "18a949a64ab7cee96fb60c0f2676539542332fa7dc8efccb6820ff251cf4d357",
+        "callsite": "lib/godot-compat/convex-polygon-shape-3d.ts set_points",
+        "observedOutputSha256": "912629a5551a41f9922ab637c7e767d037856fe5eb3d7e644fca2d69319174a5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b27f77e6e0f38a26120aa65c14699966b0f97707efdd8434c6336f24a5788d1e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "convex-polygon-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-ConvexPolygonShape3D.get_points",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a12a6fcffb0e27e37c11fccb1064e1aa042c224141da5cae2d1e00fcca2fc265",
+      "implementationSha256": "18a949a64ab7cee96fb60c0f2676539542332fa7dc8efccb6820ff251cf4d357"
+    },
+    {
+      "claimId": "godot-4.7-binding-ConvexPolygonShape3D.set_points",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "52e71a45c2339e799d890de9b70a01dbe4e337f0c20d03b751c87efd657bc0b5",
+      "implementationSha256": "18a949a64ab7cee96fb60c0f2676539542332fa7dc8efccb6820ff251cf4d357"
+    }
+  ]
+}

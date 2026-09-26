@@ -1,0 +1,966 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/ray-cast-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "is_colliding",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "is_colliding",
+        "localName": "RayCast3D_is_colliding",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.is_colliding"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "get_collision_point",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "get_collision_point",
+        "localName": "RayCast3D_get_collision_point",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.get_collision_point"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "get_collision_normal",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "get_collision_normal",
+        "localName": "RayCast3D_get_collision_normal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.get_collision_normal"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "get_collider",
+        "kind": "native-member",
+        "signature": "hash:1981248198"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "get_collider",
+        "localName": "RayCast3D_get_collider",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.get_collider"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "get_collider_shape",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "get_collider_shape",
+        "localName": "RayCast3D_get_collider_shape",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.get_collider_shape"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "set_target_position",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "set_target_position",
+        "localName": "RayCast3D_set_target_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.set_target_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "get_target_position",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "get_target_position",
+        "localName": "RayCast3D_get_target_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.get_target_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "set_collision_mask",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "set_collision_mask",
+        "localName": "RayCast3D_set_collision_mask",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.set_collision_mask"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "get_collision_mask",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "get_collision_mask",
+        "localName": "RayCast3D_get_collision_mask",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.get_collision_mask"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "add_exception",
+        "kind": "native-member",
+        "signature": "hash:1976431078"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "add_exception",
+        "localName": "RayCast3D_add_exception",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.add_exception"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "set_enabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "set_enabled",
+        "localName": "RayCast3D_set_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.set_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "set_collide_with_areas",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "set_collide_with_areas",
+        "localName": "RayCast3D_set_collide_with_areas",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.set_collide_with_areas"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "set_exclude_parent_body",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "set_exclude_parent_body",
+        "localName": "RayCast3D_set_exclude_parent_body",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.set_exclude_parent_body"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RayCast3D",
+        "member": "force_raycast_update",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/ray-cast-3d",
+        "exportName": "force_raycast_update",
+        "localName": "RayCast3D_force_raycast_update",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RayCast3D.force_raycast_update"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.is_colliding",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000is_colliding\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.is_colliding",
+        "sourceLine": 83
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6a0fdd8d1f673c791ac8cd39e98954c96cf80354a3dfa1191cf1b7a793f3ec4b",
+        "callsite": "res://probe.gd _init() is_colliding-under-parent",
+        "observedOutputSha256": "39088583ac6e0a26299353ade50a9ee62212c2d50fff552505e07c969941e3f9"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts is_colliding",
+        "observedOutputSha256": "39088583ac6e0a26299353ade50a9ee62212c2d50fff552505e07c969941e3f9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9ee58c90e779559ca1deabcdd4eec0da3cd8fa541267153251960e76caee626a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.get_collision_point",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000get_collision_point\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.get_collision_point",
+        "sourceLine": 103
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3e095a1f602aeaa97258da46087e0c28f7c77312ec6a70014eaba914c8d629b8",
+        "callsite": "res://probe.gd _init() get_collision_point-under-parent",
+        "observedOutputSha256": "8e0e42b61442f29a1282930ab2201a2b752d8d537142e2600ccb7ee37668bc1d"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts get_collision_point",
+        "observedOutputSha256": "8e0e42b61442f29a1282930ab2201a2b752d8d537142e2600ccb7ee37668bc1d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5fcbc2412902e6504f0d1ec39af2a4b4ed19796484beccd5911aa49a0519a958"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.get_collision_normal",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000get_collision_normal\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.get_collision_normal",
+        "sourceLine": 107
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e96f08dde3eec518a0e0dd65e8db680e1c0ac3118d6a31618d9ae0e73ccd54bb",
+        "callsite": "res://probe.gd _init() get_collision_normal-under-parent",
+        "observedOutputSha256": "c112a0177106051a3e7b7383d59cd962c71ed2890ce30c6aa786b7264d2cee8e"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts get_collision_normal",
+        "observedOutputSha256": "c112a0177106051a3e7b7383d59cd962c71ed2890ce30c6aa786b7264d2cee8e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6e89758505bb467ab07ee8f922e393f9a7784a96d7ca239658bf7b2896c79567"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.get_collider",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000get_collider\u0000hash:1981248198",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.get_collider",
+        "sourceLine": 87
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "efb42339850e673d47452ec92f7a9b5be87e6f82ee8e27c688b3390a96ef17b9",
+        "callsite": "res://probe.gd _init() get_collider-under-parent",
+        "observedOutputSha256": "a4f29593168aafa2bb250317d776cb3e5b116c39467afef6f8066f776c1710a6"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts get_collider",
+        "observedOutputSha256": "a4f29593168aafa2bb250317d776cb3e5b116c39467afef6f8066f776c1710a6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cccaf9fc43edcda7625c6b3ada305b4fc1933b8aef0f6b297f4b4f71b9e95e90"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.get_collider_shape",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000get_collider_shape\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.get_collider_shape",
+        "sourceLine": 99
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b4a17da9b3aee4049c88450e0482e4cd01984fbb71b4daa70b2d93afd83d2812",
+        "callsite": "res://probe.gd _init() get_collider_shape-under-parent",
+        "observedOutputSha256": "4d49d3fd7c23f0c9678a0d4b4f1750c9822cc3b9bc41d8423a202ef2876d0ca1"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts get_collider_shape",
+        "observedOutputSha256": "4d49d3fd7c23f0c9678a0d4b4f1750c9822cc3b9bc41d8423a202ef2876d0ca1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1271be8184fecae7907e038df24e4c271230b8e2e0258f10b6e3727e75cf56b3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.set_target_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000set_target_position\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.set_target_position",
+        "sourceLine": 40
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e9147d37cf45f981e4ed0afa866d7521aa837b5818538f4373b8410d5f72d702",
+        "callsite": "res://probe.gd _init() set_target_position-across-frames",
+        "observedOutputSha256": "d570a16390716b6810be8b37444d8748221ebce010a192922287ab569b220380"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts set_target_position",
+        "observedOutputSha256": "d570a16390716b6810be8b37444d8748221ebce010a192922287ab569b220380"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "717cbeb79432721d26249270ba54712cf0f105c83f819d33bdc212c959437c7b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.get_target_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000get_target_position\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.get_target_position",
+        "sourceLine": 53
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b442c4102770378aa7b6f4887205225c6e20b8f987f9a254151bbf47e6d35cce",
+        "callsite": "res://probe.gd _init() get_target_position",
+        "observedOutputSha256": "4048fddef6be3fd782549ccdb2f5437c644282d9674a656e6446f1be646f5d5c"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts get_target_position",
+        "observedOutputSha256": "4048fddef6be3fd782549ccdb2f5437c644282d9674a656e6446f1be646f5d5c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "445bbf306452f14a0ccb1c3a673ab6006e19814bb8ccba17a8921af5665f3609"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.set_collision_mask",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000set_collision_mask\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.set_collision_mask",
+        "sourceLine": 57
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b4fb48db7a214f95a27dbac0f38ed34fa37df66351f193d2be468132e26f48fa",
+        "callsite": "res://probe.gd _init() set_collision_mask",
+        "observedOutputSha256": "c59b4dadd07d9a6e7d965d67df3bba50657313b27e6e40d4a085c96f086f3393"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts set_collision_mask",
+        "observedOutputSha256": "c59b4dadd07d9a6e7d965d67df3bba50657313b27e6e40d4a085c96f086f3393"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4451cf724fcb88e668b3bebd42963b1b528b52f1b701ee1e921b9e750987a3c2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.get_collision_mask",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000get_collision_mask\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.get_collision_mask",
+        "sourceLine": 61
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ac514ae00d9bc8bee8a538f32abf63c71c4d304ecfb87ecc48fd5fdabe22bead",
+        "callsite": "res://probe.gd _init() get_collision_mask",
+        "observedOutputSha256": "06681b1ca9c1be3699e031e4889b62db87ada041f582c4684df7d75741102580"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts get_collision_mask",
+        "observedOutputSha256": "06681b1ca9c1be3699e031e4889b62db87ada041f582c4684df7d75741102580"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e9b8b4e61e996bb0a847f23ecd59753b53145051feed7827f99ec6a3b37c46dd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.add_exception",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000add_exception\u0000hash:1976431078",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.add_exception",
+        "sourceLine": 272
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6b994fcef8898e8f83ff3e91f76d88227190dd6303d2f94a5a36c181b98573c7",
+        "callsite": "res://probe.gd _init() add_exception",
+        "observedOutputSha256": "de78e07daa7561e4b293a857c1b86438cac20fed4fbe5ee9a8b18d6c655a8e0c"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts add_exception",
+        "observedOutputSha256": "de78e07daa7561e4b293a857c1b86438cac20fed4fbe5ee9a8b18d6c655a8e0c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "40398b1423eee8b96c9bd2c125ce413795e715e1a22a39db8a2e2a02ac74ca33"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.set_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000set_enabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.set_enabled",
+        "sourceLine": 115
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "20d71bf15bf28c04f0a72179066ffb4dc8915f6c44b792fb88c13886b6edbcce",
+        "callsite": "res://probe.gd _init() set_enabled",
+        "observedOutputSha256": "44cf5a8f1e45bd36db16d32e332012b1aa60c4e675f59ab4a17d61fd5f6b4b78"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts set_enabled",
+        "observedOutputSha256": "44cf5a8f1e45bd36db16d32e332012b1aa60c4e675f59ab4a17d61fd5f6b4b78"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "55e1b50f2b22c9729105433296fe9acb33625c7a14160b510be93353ed37c6f1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.set_collide_with_areas",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000set_collide_with_areas\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.set_collide_with_areas",
+        "sourceLine": 297
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "70a0e2ba8cb30c06821f2a4a3da46d2877b264244dd4c5448a1342d4573bc1aa",
+        "callsite": "res://probe.gd _init() set_collide_with_areas",
+        "observedOutputSha256": "f5f5faf7f829f606fe230c93523396df7e0dc4afddec8f7430512ba291155ee9"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts set_collide_with_areas",
+        "observedOutputSha256": "f5f5faf7f829f606fe230c93523396df7e0dc4afddec8f7430512ba291155ee9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "46694f3f6533806b78878f6ff86a333599d77abe29bfa3907f8d3691f1df948c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.set_exclude_parent_body",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000set_exclude_parent_body\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.set_exclude_parent_body",
+        "sourceLine": 139
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "92e7d09e889c8185ba39f59d15cc0953b8d02d438f6d0709691a9ed04dd8b87a",
+        "callsite": "res://probe.gd _init() set_exclude_parent_body",
+        "observedOutputSha256": "d1881a377eac39c349686dee5d3151661b6dbeaf9a733bdfa93a827b1a0a7345"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts set_exclude_parent_body",
+        "observedOutputSha256": "d1881a377eac39c349686dee5d3151661b6dbeaf9a733bdfa93a827b1a0a7345"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "31cc1ff9a686ff11de5785079f5289aa8ce97f20c3ce929c3d90e06667385bff"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RayCast3D.force_raycast_update",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RayCast3D\u0000force_raycast_update\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/ray_cast_3d.cpp",
+        "sourceSymbol": "RayCast3D.force_raycast_update",
+        "sourceLine": 264
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "643ac599e3fed36c067a60aba48f83cb856be1e3a319829b5ba5cded7ec38362",
+        "callsite": "res://probe.gd _init() force_raycast_update",
+        "observedOutputSha256": "3b1934ab1d1c0cb11a664e2825a006723835d06e1f6dfe6e311417c587ad75a0"
+      },
+      "target": {
+        "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab",
+        "callsite": "lib/godot-compat/ray-cast-3d.ts force_raycast_update",
+        "observedOutputSha256": "3b1934ab1d1c0cb11a664e2825a006723835d06e1f6dfe6e311417c587ad75a0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "49b606543b9f41644c08500445dd8855afcda5d84159a5ea3238252bfa28975d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "ray-cast-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.is_colliding",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6a0fdd8d1f673c791ac8cd39e98954c96cf80354a3dfa1191cf1b7a793f3ec4b",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.get_collision_point",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3e095a1f602aeaa97258da46087e0c28f7c77312ec6a70014eaba914c8d629b8",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.get_collision_normal",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e96f08dde3eec518a0e0dd65e8db680e1c0ac3118d6a31618d9ae0e73ccd54bb",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.get_collider",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "efb42339850e673d47452ec92f7a9b5be87e6f82ee8e27c688b3390a96ef17b9",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.get_collider_shape",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b4a17da9b3aee4049c88450e0482e4cd01984fbb71b4daa70b2d93afd83d2812",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.set_target_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e9147d37cf45f981e4ed0afa866d7521aa837b5818538f4373b8410d5f72d702",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.get_target_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b442c4102770378aa7b6f4887205225c6e20b8f987f9a254151bbf47e6d35cce",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.set_collision_mask",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b4fb48db7a214f95a27dbac0f38ed34fa37df66351f193d2be468132e26f48fa",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.get_collision_mask",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ac514ae00d9bc8bee8a538f32abf63c71c4d304ecfb87ecc48fd5fdabe22bead",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.add_exception",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6b994fcef8898e8f83ff3e91f76d88227190dd6303d2f94a5a36c181b98573c7",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.set_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "20d71bf15bf28c04f0a72179066ffb4dc8915f6c44b792fb88c13886b6edbcce",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.set_collide_with_areas",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "70a0e2ba8cb30c06821f2a4a3da46d2877b264244dd4c5448a1342d4573bc1aa",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.set_exclude_parent_body",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "92e7d09e889c8185ba39f59d15cc0953b8d02d438f6d0709691a9ed04dd8b87a",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-RayCast3D.force_raycast_update",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "643ac599e3fed36c067a60aba48f83cb856be1e3a319829b5ba5cded7ec38362",
+      "implementationSha256": "a9307f1be8bd58b31a10d7782f263b06dc5c75a9e3531b26693944e3838ee2ab"
+    }
+  ]
+}

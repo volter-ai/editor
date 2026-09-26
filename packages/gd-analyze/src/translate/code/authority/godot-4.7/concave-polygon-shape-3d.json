@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/concave-polygon-shape-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ConcavePolygonShape3D",
+        "member": "get_faces",
+        "kind": "native-member",
+        "signature": "hash:497664490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/concave-polygon-shape-3d",
+        "exportName": "get_faces",
+        "localName": "ConcavePolygonShape3D_get_faces",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ConcavePolygonShape3D.get_faces"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ConcavePolygonShape3D",
+        "member": "is_backface_collision_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/concave-polygon-shape-3d",
+        "exportName": "is_backface_collision_enabled",
+        "localName": "ConcavePolygonShape3D_is_backface_collision_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ConcavePolygonShape3D.is_backface_collision_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ConcavePolygonShape3D",
+        "member": "set_faces",
+        "kind": "native-member",
+        "signature": "hash:334873810"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/concave-polygon-shape-3d",
+        "exportName": "set_faces",
+        "localName": "ConcavePolygonShape3D_set_faces",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ConcavePolygonShape3D.set_faces"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ConcavePolygonShape3D",
+        "member": "set_backface_collision_enabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/concave-polygon-shape-3d",
+        "exportName": "set_backface_collision_enabled",
+        "localName": "ConcavePolygonShape3D_set_backface_collision_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ConcavePolygonShape3D.set_backface_collision_enabled"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.get_faces",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ConcavePolygonShape3D\u0000get_faces\u0000hash:497664490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/concave_polygon_shape_3d.cpp",
+        "sourceSymbol": "ConcavePolygonShape3D.get_faces",
+        "sourceLine": 106
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "82a063558b1b24a06ec72a14db28083fb202c6563f5c23a56832963dc59dce5a",
+        "callsite": "res://probe.gd _init() get_faces-default",
+        "observedOutputSha256": "f1ba4fb125f2adaa500c0cba30de3611a0f3b76a4fd910beddd0df52d0d4c409"
+      },
+      "target": {
+        "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab",
+        "callsite": "lib/godot-compat/concave-polygon-shape-3d.ts get_faces",
+        "observedOutputSha256": "f1ba4fb125f2adaa500c0cba30de3611a0f3b76a4fd910beddd0df52d0d4c409"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "766c60b6e7e0ed5f8cb3551936594d18c87e8a29191df2f33d7b91e778b8d6c0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "concave-polygon-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.is_backface_collision_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ConcavePolygonShape3D\u0000is_backface_collision_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/concave_polygon_shape_3d.cpp",
+        "sourceSymbol": "ConcavePolygonShape3D.is_backface_collision_enabled",
+        "sourceLine": 119
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "75539792183dc895a01904ac2ffb37b9009621cb8759cc2b5b9c79a921128a5e",
+        "callsite": "res://probe.gd _init() is_backface_collision_enabled-default",
+        "observedOutputSha256": "6054d4355ce55d480d8fe4634a3a86fc017be1227c7c7c0f7a5936e52a3d4541"
+      },
+      "target": {
+        "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab",
+        "callsite": "lib/godot-compat/concave-polygon-shape-3d.ts is_backface_collision_enabled",
+        "observedOutputSha256": "6054d4355ce55d480d8fe4634a3a86fc017be1227c7c7c0f7a5936e52a3d4541"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d7f9987fdd8b0e024aff67112b71bf0136308ba2d6553b9dc087d0cd2134372c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "concave-polygon-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.set_faces",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ConcavePolygonShape3D\u0000set_faces\u0000hash:334873810",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/concave_polygon_shape_3d.cpp",
+        "sourceSymbol": "ConcavePolygonShape3D.set_faces",
+        "sourceLine": 100
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "feb43519575653ced8a083c93b9aac9cd47918ab30130442f81755b87a9e495c",
+        "callsite": "res://probe.gd _init() set_faces-one set_faces-two set_faces-empty",
+        "observedOutputSha256": "6c3f7150b88249a030272374a1f7f4322053075132345d7e423f547a4801b648"
+      },
+      "target": {
+        "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab",
+        "callsite": "lib/godot-compat/concave-polygon-shape-3d.ts set_faces",
+        "observedOutputSha256": "6c3f7150b88249a030272374a1f7f4322053075132345d7e423f547a4801b648"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8779509a13af9a746289fd79b759a92073bab06475ffbc1130b9ae034790cc95"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "concave-polygon-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.set_backface_collision_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ConcavePolygonShape3D\u0000set_backface_collision_enabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/concave_polygon_shape_3d.cpp",
+        "sourceSymbol": "ConcavePolygonShape3D.set_backface_collision_enabled",
+        "sourceLine": 110
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6b12cad1a05fe7f113047a01f7b9b5b4aa3918be379ea1ae4e54bd43e225c4de",
+        "callsite": "res://probe.gd _init() set_backface_collision_enabled-true set_backface_collision_enabled-false",
+        "observedOutputSha256": "4d7322c81f416294af904d500953507d27f3043753890511f89ff63632efdc71"
+      },
+      "target": {
+        "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab",
+        "callsite": "lib/godot-compat/concave-polygon-shape-3d.ts set_backface_collision_enabled",
+        "observedOutputSha256": "4d7322c81f416294af904d500953507d27f3043753890511f89ff63632efdc71"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f46f52a527b841ac0d9a85923d520bf4ec9fabb39232488a0f7808fd15196088"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "concave-polygon-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.get_faces",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "82a063558b1b24a06ec72a14db28083fb202c6563f5c23a56832963dc59dce5a",
+      "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.is_backface_collision_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "75539792183dc895a01904ac2ffb37b9009621cb8759cc2b5b9c79a921128a5e",
+      "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.set_faces",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "feb43519575653ced8a083c93b9aac9cd47918ab30130442f81755b87a9e495c",
+      "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab"
+    },
+    {
+      "claimId": "godot-4.7-binding-ConcavePolygonShape3D.set_backface_collision_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6b12cad1a05fe7f113047a01f7b9b5b4aa3918be379ea1ae4e54bd43e225c4de",
+      "implementationSha256": "d2fb42c6953b98831805a551694f53ad5c493f0c19093477a5b4630cb74fe8ab"
+    }
+  ]
+}

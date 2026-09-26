@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/sphere-shape-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereShape3D",
+        "member": "get_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-shape-3d",
+        "exportName": "get_radius",
+        "localName": "SphereShape3D_get_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereShape3D.get_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereShape3D",
+        "member": "set_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-shape-3d",
+        "exportName": "set_radius",
+        "localName": "SphereShape3D_set_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereShape3D.set_radius"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereShape3D.get_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereShape3D\u0000get_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sphere_shape_3d.cpp",
+        "sourceSymbol": "SphereShape3D.get_radius",
+        "sourceLine": 93
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0f5fde61e8c615689409f6a007f1af52744c7d370e66ede34bd97899b3802571",
+        "callsite": "res://probe.gd _init() get_radius-default",
+        "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
+      },
+      "target": {
+        "implementationSha256": "73e4c3b0f98fc7f9d6817d1a1e311be313f984bc087d321af996f7400d6f0b50",
+        "callsite": "lib/godot-compat/sphere-shape-3d.ts get_radius",
+        "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3894e3882e09a356c2f761f5418f754915e9cbbb3d8cdc10b044ebd3f3a143d6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereShape3D.set_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereShape3D\u0000set_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sphere_shape_3d.cpp",
+        "sourceSymbol": "SphereShape3D.set_radius",
+        "sourceLine": 86
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4ceb30b17bcd817477b54fae6aa18091a6e03d301d5f10ead20ee88f09313f28",
+        "callsite": "res://probe.gd _init() set_radius-1 set_radius-0.1 set_radius-0 set_radius--0.5 set_radius-1e-7 set_radius-123.456",
+        "observedOutputSha256": "8348a2de2c75e1248fc612986f2ec290fa3837702b1bce0d341ab9d0cf52500a"
+      },
+      "target": {
+        "implementationSha256": "73e4c3b0f98fc7f9d6817d1a1e311be313f984bc087d321af996f7400d6f0b50",
+        "callsite": "lib/godot-compat/sphere-shape-3d.ts set_radius",
+        "observedOutputSha256": "8348a2de2c75e1248fc612986f2ec290fa3837702b1bce0d341ab9d0cf52500a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "352fe35458911946df308e3720f3a93b7a254fad648965f2dd3c6875f5607bb1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-SphereShape3D.get_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0f5fde61e8c615689409f6a007f1af52744c7d370e66ede34bd97899b3802571",
+      "implementationSha256": "73e4c3b0f98fc7f9d6817d1a1e311be313f984bc087d321af996f7400d6f0b50"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereShape3D.set_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4ceb30b17bcd817477b54fae6aa18091a6e03d301d5f10ead20ee88f09313f28",
+      "implementationSha256": "73e4c3b0f98fc7f9d6817d1a1e311be313f984bc087d321af996f7400d6f0b50"
+    }
+  ]
+}

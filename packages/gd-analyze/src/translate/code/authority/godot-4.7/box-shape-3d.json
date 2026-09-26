@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/box-shape-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BoxShape3D",
+        "member": "get_size",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/box-shape-3d",
+        "exportName": "get_size",
+        "localName": "BoxShape3D_get_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BoxShape3D.get_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BoxShape3D",
+        "member": "set_size",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/box-shape-3d",
+        "exportName": "set_size",
+        "localName": "BoxShape3D_set_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BoxShape3D.set_size"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BoxShape3D.get_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BoxShape3D\u0000get_size\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/box_shape_3d.cpp",
+        "sourceSymbol": "BoxShape3D.get_size",
+        "sourceLine": 107
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0b6d7dbd3970e98691e640603b4968a8db5ba341c3eb71bd155d3d3b18bb5f30",
+        "callsite": "res://probe.gd _init() get_size-default",
+        "observedOutputSha256": "ddfc6420a0140d59bb67f63bfdd0ad61e875c9c383d37caaf23c1acae46e9e90"
+      },
+      "target": {
+        "implementationSha256": "8b5c8f741fea06486dff89c37eb67ec94377b89e132feffd0213202cbb0ea9e1",
+        "callsite": "lib/godot-compat/box-shape-3d.ts get_size",
+        "observedOutputSha256": "ddfc6420a0140d59bb67f63bfdd0ad61e875c9c383d37caaf23c1acae46e9e90"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1d5ec1f6563e19a5ca2626e1344fb19c6d122f127b07222cc841d539ef9a4532"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "box-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BoxShape3D.set_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BoxShape3D\u0000set_size\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/box_shape_3d.cpp",
+        "sourceSymbol": "BoxShape3D.set_size",
+        "sourceLine": 100
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e91bcc2e08026eeecfe24f9fe40ac22df38ab39291a12fabc9be85f5315c0ed0",
+        "callsite": "res://probe.gd _init() set_size-unit set_size-decimals set_size-zero set_size-negative set_size-large",
+        "observedOutputSha256": "6b032cea7fb3a65de056119e02dca42107fc092baf9d1d1b4273cb804ae64d06"
+      },
+      "target": {
+        "implementationSha256": "8b5c8f741fea06486dff89c37eb67ec94377b89e132feffd0213202cbb0ea9e1",
+        "callsite": "lib/godot-compat/box-shape-3d.ts set_size",
+        "observedOutputSha256": "6b032cea7fb3a65de056119e02dca42107fc092baf9d1d1b4273cb804ae64d06"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b4b2ecac217cdc2c519c429c963fd9fdb70124f61cc62dfc96c97ddfbbc724c8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "box-shape-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-BoxShape3D.get_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0b6d7dbd3970e98691e640603b4968a8db5ba341c3eb71bd155d3d3b18bb5f30",
+      "implementationSha256": "8b5c8f741fea06486dff89c37eb67ec94377b89e132feffd0213202cbb0ea9e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-BoxShape3D.set_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e91bcc2e08026eeecfe24f9fe40ac22df38ab39291a12fabc9be85f5315c0ed0",
+      "implementationSha256": "8b5c8f741fea06486dff89c37eb67ec94377b89e132feffd0213202cbb0ea9e1"
+    }
+  ]
+}
