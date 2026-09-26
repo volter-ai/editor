@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/container"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Container",
+        "member": "fit_child_in_rect",
+        "kind": "native-member",
+        "signature": "hash:1993438598"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/container",
+        "exportName": "fit_child_in_rect",
+        "localName": "Container_fit_child_in_rect",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Container.fit_child_in_rect"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Container",
+        "member": "queue_sort",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/container",
+        "exportName": "queue_sort",
+        "localName": "Container_queue_sort",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Container.queue_sort"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Container.fit_child_in_rect",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Container\u0000fit_child_in_rect\u0000hash:1993438598",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/gui/container.cpp",
+        "sourceSymbol": "Container.fit_child_in_rect",
+        "sourceLine": 109
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "29e103b0fe73538eda4a75867bc9c0e88ae31f54646e615cf324c2c2567138ff",
+        "callsite": "res://probe.gd _init() fit_child_in_rect-flags fit_child_in_rect-touch-buttons fit_child_in_rect-box",
+        "observedOutputSha256": "0bec385a51c6c1bd8a6a3620b74263f1f6e6ff3e8f1acd69c17ed6b83d258694"
+      },
+      "target": {
+        "implementationSha256": "7e353df51f200e666e542016e4cf08b893bdae67a2b27da1ce595bf9284294ea",
+        "callsite": "lib/godot-compat/container.ts fit_child_in_rect",
+        "observedOutputSha256": "3be2eded20347bd6074433dab464b8e2f112203f3ba52c906049e2d88dbadb72"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f9fbd387ed13499a58a536aa201b5248864f57e9616b7ff3612f6bcd62d59d23"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "container",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Container.queue_sort",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Container\u0000queue_sort\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/gui/container.cpp",
+        "sourceSymbol": "Container.queue_sort",
+        "sourceLine": 156
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "75a5302faefdec4fa378f0696d8d946e1c34a9759f4eca66f16d25b4cea96869",
+        "callsite": "res://probe.gd _init() queue_sort-flags",
+        "observedOutputSha256": "ffe3da85542ede18778c3664d6d0206198ec5699e9d7a93342e68aaed59eb470"
+      },
+      "target": {
+        "implementationSha256": "7e353df51f200e666e542016e4cf08b893bdae67a2b27da1ce595bf9284294ea",
+        "callsite": "lib/godot-compat/container.ts queue_sort",
+        "observedOutputSha256": "ffe3da85542ede18778c3664d6d0206198ec5699e9d7a93342e68aaed59eb470"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8b9e2e78cff0739140faedaf640ff7556760c0bd8e608dce13c6014771dc356a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "container",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Container.fit_child_in_rect",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "29e103b0fe73538eda4a75867bc9c0e88ae31f54646e615cf324c2c2567138ff",
+      "implementationSha256": "7e353df51f200e666e542016e4cf08b893bdae67a2b27da1ce595bf9284294ea"
+    },
+    {
+      "claimId": "godot-4.7-binding-Container.queue_sort",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "75a5302faefdec4fa378f0696d8d946e1c34a9759f4eca66f16d25b4cea96869",
+      "implementationSha256": "7e353df51f200e666e542016e4cf08b893bdae67a2b27da1ce595bf9284294ea"
+    }
+  ]
+}

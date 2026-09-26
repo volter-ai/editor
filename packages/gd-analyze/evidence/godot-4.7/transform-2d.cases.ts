@@ -63,6 +63,31 @@ for (const rotation of [0, 0.3, Math.PI / 2, Math.PI, -2, 100, 1e-8]) {
   }
 }
 
+// Products, inverses and the vector transforms a Control's global transform composes.
+const POINTS: readonly (readonly [string, Pair])[] = [
+  ['zero', [0, 0]],
+  ['unit', [1, 1]],
+  ['decimals', [0.3, -12.7]],
+  ['large', [1024.5, 600.25]],
+];
+for (const [name, x, y, o] of TRANSFORMS) {
+  c.add(`get_origin-${name}`, c.member('get_origin'), `${gt(x, y, o)}.get_origin()`, () => T.get_origin(tt(x, y, o)));
+  c.add(`affine_inverse-${name}`, c.member('affine_inverse'), `${gt(x, y, o)}.affine_inverse()`, () => T.affine_inverse(tt(x, y, o)));
+  for (const [pointName, point] of POINTS) {
+    c.add(`basis_xform-${name}-${pointName}`, c.member('basis_xform'), `${gt(x, y, o)}.basis_xform(${gv(point)})`, () =>
+      T.basis_xform(tt(x, y, o), tv(point)),
+    );
+    c.add(`op_multiply-${name}-vector-${pointName}`, c.operator('OP_MULTIPLY', 'Vector2'), `${gt(x, y, o)} * ${gv(point)}`, () =>
+      T.op_multiply(tt(x, y, o), tv(point)),
+    );
+  }
+  for (const [otherName, ox, oy, oo] of TRANSFORMS) {
+    c.add(`op_multiply-${name}-${otherName}`, c.operator('OP_MULTIPLY', 'Transform2D'), `${gt(x, y, o)} * ${gt(ox, oy, oo)}`, () =>
+      T.op_multiply(tt(x, y, o), tt(ox, oy, oo)),
+    );
+  }
+}
+
 const TRANSFORM2D_EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'Transform2D',
   compatModule: 'lib/godot-compat/transform-2d',

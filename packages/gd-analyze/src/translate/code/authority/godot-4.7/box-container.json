@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/box-container"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BoxContainer",
+        "member": "set_alignment",
+        "kind": "native-member",
+        "signature": "hash:2456745134"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/box-container",
+        "exportName": "set_alignment",
+        "localName": "BoxContainer_set_alignment",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BoxContainer.set_alignment"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BoxContainer",
+        "member": "get_alignment",
+        "kind": "native-member",
+        "signature": "hash:1915476527"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/box-container",
+        "exportName": "get_alignment",
+        "localName": "BoxContainer_get_alignment",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BoxContainer.get_alignment"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BoxContainer",
+        "member": "is_vertical",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/box-container",
+        "exportName": "is_vertical",
+        "localName": "BoxContainer_is_vertical",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BoxContainer.is_vertical"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BoxContainer.set_alignment",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BoxContainer\u0000set_alignment\u0000hash:2456745134",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/gui/box_container.cpp",
+        "sourceSymbol": "BoxContainer.set_alignment",
+        "sourceLine": 360
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8dcc0daa4bf709bea4eec1786e266241c06c519ace2af35fff672af514dc9dd5",
+        "callsite": "res://probe.gd _init() set_alignment-box",
+        "observedOutputSha256": "d2c50c27dd0d256f42eb08421d688124f6a540cc4780a224a003a2abcd9d272e"
+      },
+      "target": {
+        "implementationSha256": "4e0d7ff476147f980ac71b83a6f7c17eec42ec2118d7008fed30da195fb08111",
+        "callsite": "lib/godot-compat/box-container.ts set_alignment",
+        "observedOutputSha256": "116fe9360909478233efdec998244fbd67bd7a5bcbd6edf77829991bd426b8ed"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ff8fe19c8fdbe7c4cf9a30a7b93c4284d69adabc67bd9960b73a31b77beebced"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "box-container",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BoxContainer.get_alignment",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BoxContainer\u0000get_alignment\u0000hash:1915476527",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/gui/box_container.cpp",
+        "sourceSymbol": "BoxContainer.get_alignment",
+        "sourceLine": 368
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "62fb2f044b3ac2d1543dcf35f1f6e679f631238fc38c16847694da06799e4d4e",
+        "callsite": "res://probe.gd _init() get_alignment-box",
+        "observedOutputSha256": "46be25d0917f11236344a0184a0e5ca6b03e2bbe24bf8240cde4c3515e915d9b"
+      },
+      "target": {
+        "implementationSha256": "4e0d7ff476147f980ac71b83a6f7c17eec42ec2118d7008fed30da195fb08111",
+        "callsite": "lib/godot-compat/box-container.ts get_alignment",
+        "observedOutputSha256": "068fa7ddae5c19bda52907303d9e0d852fe2a8d001ec01f8ae53ac80b6bd8143"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "43ff11fe0e0938e65a210182f0b25330ee681e2ebd9351127bebb1551abfcdbe"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "box-container",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BoxContainer.is_vertical",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BoxContainer\u0000is_vertical\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/gui/box_container.cpp",
+        "sourceSymbol": "BoxContainer.is_vertical",
+        "sourceLine": 379
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f185b8222fd71af1cb6fafbb30fec30d3025d75b665d230c0c109dcc9f93520b",
+        "callsite": "res://probe.gd _init() is_vertical-box",
+        "observedOutputSha256": "7a935b68257f7f43ce0e9dbc9105c5991de84fc37807e5fd38c153da3be5bd9d"
+      },
+      "target": {
+        "implementationSha256": "4e0d7ff476147f980ac71b83a6f7c17eec42ec2118d7008fed30da195fb08111",
+        "callsite": "lib/godot-compat/box-container.ts is_vertical",
+        "observedOutputSha256": "48d64d462e1aa106c9a95e67cf78710e4dd4cb17d3b3a5684c8a77e40a7c406e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c3d274c4084f61ba05351350f44864eb657968e90b935bb8f8118ae59a961c14"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "box-container",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-BoxContainer.set_alignment",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8dcc0daa4bf709bea4eec1786e266241c06c519ace2af35fff672af514dc9dd5",
+      "implementationSha256": "4e0d7ff476147f980ac71b83a6f7c17eec42ec2118d7008fed30da195fb08111"
+    },
+    {
+      "claimId": "godot-4.7-binding-BoxContainer.get_alignment",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "62fb2f044b3ac2d1543dcf35f1f6e679f631238fc38c16847694da06799e4d4e",
+      "implementationSha256": "4e0d7ff476147f980ac71b83a6f7c17eec42ec2118d7008fed30da195fb08111"
+    },
+    {
+      "claimId": "godot-4.7-binding-BoxContainer.is_vertical",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f185b8222fd71af1cb6fafbb30fec30d3025d75b665d230c0c109dcc9f93520b",
+      "implementationSha256": "4e0d7ff476147f980ac71b83a6f7c17eec42ec2118d7008fed30da195fb08111"
+    }
+  ]
+}

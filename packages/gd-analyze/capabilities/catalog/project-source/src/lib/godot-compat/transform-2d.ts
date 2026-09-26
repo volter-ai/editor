@@ -102,3 +102,65 @@ export function with_y(self: Transform2D, value: Vector2): Transform2D {
 export function with_origin(self: Transform2D, value: Vector2): Transform2D {
   return make(self.x, self.y, value);
 }
+
+/** `tdotx`, `tdoty` (`core/math/transform_2d.h:64`): a row of the basis dotted with a vector. */
+function tdotx(self: Transform2D, v: Vector2): number {
+  return f32(f32(self.x.x * v.x) + f32(self.y.x * v.y));
+}
+
+function tdoty(self: Transform2D, v: Vector2): number {
+  return f32(f32(self.x.y * v.x) + f32(self.y.y * v.y));
+}
+
+/**
+ * @godot Transform2D.get_origin
+ * @source core/math/transform_2d.h:94
+ */
+export function get_origin(self: Transform2D): Vector2 {
+  return self.origin;
+}
+
+/**
+ * @godot Transform2D.basis_xform
+ * @source core/math/transform_2d.h:202
+ */
+export function basis_xform(self: Transform2D, v: Vector2): Vector2 {
+  return vector2(tdotx(self, v), tdoty(self, v));
+}
+
+/**
+ * `affine_invert` (`core/math/transform_2d.cpp:48`): `idet = 1 / determinant()`, the diagonal
+ * swapped, the columns scaled by `(idet, -idet)` and `(-idet, idet)`, then the origin is the new
+ * basis applied to the negated origin. A zero determinant fails `MATH_CHECKS` (the official build
+ * has them) and leaves the copy as it was.
+ *
+ * @godot Transform2D.affine_inverse
+ * @source core/math/transform_2d.cpp:62
+ */
+export function affine_inverse(self: Transform2D): Transform2D {
+  const det = f32(f32(self.x.x * self.y.y) - f32(self.x.y * self.y.x));
+  if (det === 0) return self;
+  const idet = f32(1 / det);
+  const x = vector2(f32(self.y.y * idet), f32(self.x.y * -idet));
+  const y = vector2(f32(self.y.x * -idet), f32(self.x.x * idet));
+  const basis = make(x, y, vector2(0, 0));
+  return make(x, y, basis_xform(basis, vector2(-self.origin.x, -self.origin.y)));
+}
+
+/**
+ * `Transform2D * Vector2` is `xform` (`core/math/transform_2d.h:214`); `Transform2D * Transform2D`
+ * is `origin = xform(p.origin)`, then each basis column through `tdotx`, `tdoty`
+ * (`core/math/transform_2d.cpp:199`).
+ *
+ * @godot Transform2D.OP_MULTIPLY
+ * @source core/math/transform_2d.cpp:215
+ */
+export function op_multiply(left: Transform2D, right: Vector2): Vector2;
+export function op_multiply(left: Transform2D, right: Transform2D): Transform2D;
+export function op_multiply(left: Transform2D, right: Vector2 | Transform2D): Vector2 | Transform2D {
+  if ('origin' in right) {
+    return make(basis_xform(left, right.x), basis_xform(left, right.y), op_multiply(left, right.origin));
+  }
+  const b = basis_xform(left, right);
+  return vector2(f32(b.x + left.origin.x), f32(b.y + left.origin.y));
+}

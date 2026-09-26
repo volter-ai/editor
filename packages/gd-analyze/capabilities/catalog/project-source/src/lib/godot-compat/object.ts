@@ -55,6 +55,17 @@ export function set_deferred(self: object, property: string, value: unknown): vo
 }
 
 /**
+ * Queues a bound native call for the next flush (`callable_mp(object, &Class::method).call_deferred()`,
+ * `core/object/callable_mp.h`), as an engine class queues its own deferred updates.
+ *
+ * @godot Object (protocol)
+ * @source core/variant/callable.cpp:40
+ */
+export function godot_message_queue_push(target: object, run: () => void): void {
+  queue.push({ target, run });
+}
+
+/**
  * `CallQueue::flush` (`core/object/message_queue.cpp:224`): runs messages in order, including those
  * queued while flushing; a message whose target was freed is dropped; a nested flush does nothing.
  *

@@ -1,0 +1,966 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/canvas-layer"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "set_layer",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "set_layer",
+        "localName": "CanvasLayer_set_layer",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.set_layer"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "get_layer",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "get_layer",
+        "localName": "CanvasLayer_get_layer",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.get_layer"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "set_visible",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "set_visible",
+        "localName": "CanvasLayer_set_visible",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.set_visible"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "is_visible",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "is_visible",
+        "localName": "CanvasLayer_is_visible",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.is_visible"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "show",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "show",
+        "localName": "CanvasLayer_show",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.show"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "hide",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "hide",
+        "localName": "CanvasLayer_hide",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.hide"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "set_offset",
+        "kind": "native-member",
+        "signature": "hash:743155724"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "set_offset",
+        "localName": "CanvasLayer_set_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.set_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "get_offset",
+        "kind": "native-member",
+        "signature": "hash:3341600327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "get_offset",
+        "localName": "CanvasLayer_get_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.get_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "set_rotation",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "set_rotation",
+        "localName": "CanvasLayer_set_rotation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.set_rotation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "get_rotation",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "get_rotation",
+        "localName": "CanvasLayer_get_rotation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.get_rotation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "set_scale",
+        "kind": "native-member",
+        "signature": "hash:743155724"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "set_scale",
+        "localName": "CanvasLayer_set_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.set_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "get_scale",
+        "kind": "native-member",
+        "signature": "hash:3341600327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "get_scale",
+        "localName": "CanvasLayer_get_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.get_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "get_transform",
+        "kind": "native-member",
+        "signature": "hash:3814499831"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "get_transform",
+        "localName": "CanvasLayer_get_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.get_transform"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasLayer",
+        "member": "get_final_transform",
+        "kind": "native-member",
+        "signature": "hash:3814499831"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-layer",
+        "exportName": "get_final_transform",
+        "localName": "CanvasLayer_get_final_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasLayer.get_final_transform"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.set_layer",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000set_layer\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.set_layer",
+        "sourceLine": 40
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9b9ba009fd7fe95c56e1d355c6635aad7596db64f8e74a181f7af5d869993841",
+        "callsite": "res://probe.gd _init() set_layer-layer",
+        "observedOutputSha256": "9e6307df5b06e801953a74e34622d7cd65369d0e2cdef62809bbf2ecfb16890b"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts set_layer",
+        "observedOutputSha256": "92c828b5dab6d9662cf05ce2f811a0ac0783e9c16e316735109ab623cb23e410"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fa0d7889cbc3f59995991a247f973ed8f14a3e338f62c6bd921eb3065dc70bad"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.get_layer",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000get_layer\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.get_layer",
+        "sourceLine": 48
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4d16334e95e7e1399ae645b9121bd62f4ce3d11d6a05fa089f7699d52fa29e19",
+        "callsite": "res://probe.gd _init() get_layer-layer",
+        "observedOutputSha256": "51dda198dbeb0038d5eedf75b7c4f254ff7f05d4d59953c1cc2fa1ac1f56f11a"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts get_layer",
+        "observedOutputSha256": "5cf5329557e4f84e439c2a408db04b2830c020777bd27b3cd1df2fef20b0a97c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bf10871ec52e2e03c50d4491184740d81849222cf422b29c871f4a7b136e875e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.set_visible",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000set_visible\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.set_visible",
+        "sourceLine": 52
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e2d35f67fe6499afe95ee5a1775e915d78cc3a8ce1cafba6788c98870acaa54d",
+        "callsite": "res://probe.gd _init() set_visible-layer",
+        "observedOutputSha256": "bafb4e71c2a0a079716227a266e27353dd66b5bcedd660e56c745d442d37c061"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts set_visible",
+        "observedOutputSha256": "20ae0df8145e07f6c1fca7c199e3a06950a6863109311e80a2c4e6a2b18a6134"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1a03543ff33c87ca30c691221aa86475a00a1eee73e7ba61dacfd20b28c2c7c9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.is_visible",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000is_visible\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.is_visible",
+        "sourceLine": 78
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ddfa84c3626c0e3fe6b6d5db428084481f66b51c947760818b91a8536c7c8780",
+        "callsite": "res://probe.gd _init() is_visible-layer",
+        "observedOutputSha256": "76b631d0579b9e3fe71b76186cd07578a602e8505693f2d97c172504acf5b9ed"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts is_visible",
+        "observedOutputSha256": "83db85df25adab89145614a11210e970c34da167221e8a332ebc8fbccb43ed98"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c16f5043b92b2d841b9ee2857f52701c0bf9a09cbebef95016b04aea1b5a5238"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.show",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000show\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.show",
+        "sourceLine": 70
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3790abc239e4f077239ed4de447ee0b1165c607dbf20fb8ef66daeee76836a5e",
+        "callsite": "res://probe.gd _init() show-layer",
+        "observedOutputSha256": "a70ea9b9d40d8592ad1490f5672defe0c8db235950aa79a65ae3204c17428747"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts show",
+        "observedOutputSha256": "8715637bc32720b3bb291edcc2e34f03f538717189490a8f896ea2063387e349"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "86bd265720f1a461f2dfd226f6df9ce883c9fd032127478db4722ab56e1db616"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.hide",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000hide\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.hide",
+        "sourceLine": 74
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "be44a1e48eee3f682d775515fc313bbbc56fcef812e43e68e3ec069a5132a03a",
+        "callsite": "res://probe.gd _init() hide-layer",
+        "observedOutputSha256": "7a691e69b2a062c503eb0a85435908a1474288d1e183c7087a1dfa8e0d5b10f4"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts hide",
+        "observedOutputSha256": "e7a700b58bf3b4a2e6b0f1e5764a0085ec67ebd5763c39a9809e9a8936ca093d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "602e8a76d576b1e8eb56e6e207f90c2126cc34824a5f771b66082cb342f26f0b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.set_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000set_offset\u0000hash:743155724",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.set_offset",
+        "sourceLine": 121
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3461a6496c2ac408a4e256a21d72e46e5f06db59680da3f3f058f34579e79f30",
+        "callsite": "res://probe.gd _init() set_offset-layer",
+        "observedOutputSha256": "888078fd2e993c099fdb3c2a4774b71156724f1e189bda22b58c3bf73b74764b"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts set_offset",
+        "observedOutputSha256": "523d1ff2726ba838d6259be1665c1e2f5ebd97c3edf0b2b94e7d7f6cf07fedc8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dba01cca4efec9af25dc420862d6d343be9e63ec3f07ee03c3e4580040e961b9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.get_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000get_offset\u0000hash:3341600327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.get_offset",
+        "sourceLine": 130
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aee84c46c8310ef5b5734b8db9171384b78dbc6952e3dfde86dec9161ededf63",
+        "callsite": "res://probe.gd _init() get_offset-layer",
+        "observedOutputSha256": "a8a4737d0636ae449446fb875beaf4c1c29fa6c5dd2dcb59fd6bbc20e9e06055"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts get_offset",
+        "observedOutputSha256": "58df46b1c5eea7c1ed4131268871b459907c6ec02154c0b13c02ae92051f9828"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ef62bb999cbb6184afc47ed0523bd59c17b5454188b947c72f9d1c86abf89258"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.set_rotation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000set_rotation\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.set_rotation",
+        "sourceLine": 138
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dc980ca5ebf746440036fcfe0c8c47d05be270008a4f59670f79e5af61bd97c6",
+        "callsite": "res://probe.gd _init() set_rotation-layer",
+        "observedOutputSha256": "068fb6b229e386b2089b461efd131552d5701fa163aa9dbcbeaf8c1db0357904"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts set_rotation",
+        "observedOutputSha256": "cbc3e42c24c9330958f79b4ef3c60b21d026e389aa58b59a0e6ada5cf80cc5e8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6479291437f3ef24d11019765009a9e5c52144dd497048cb0ca8b335a7a7c6a3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.get_rotation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000get_rotation\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.get_rotation",
+        "sourceLine": 147
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3a8b8526c2a7f689487c079ba98fade0649b45c5f68948a63473f6995e48b382",
+        "callsite": "res://probe.gd _init() get_rotation-layer",
+        "observedOutputSha256": "c52a927a822f41e64bd7df092aeb31427b3f2444650ddf7ee9a1932b9a3d2aa7"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts get_rotation",
+        "observedOutputSha256": "7ccc87e0036ebdf91efdf9a47e35ebc2209e894a99f2cf24e078fb8a92f8a796"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4573198ab8a5834b855edded1bbbd90c31445363a8ef55a715902ddacff1d001"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.set_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000set_scale\u0000hash:743155724",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.set_scale",
+        "sourceLine": 155
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "35563178b5ddf9bdb3d9f582becf0147ba15391ea8142de6cf1457b8d9492647",
+        "callsite": "res://probe.gd _init() set_scale-layer",
+        "observedOutputSha256": "60d161ffdb0e887af3f2d388d550b7c8e874cf37f336f49cfb1d66ee9a73d653"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts set_scale",
+        "observedOutputSha256": "0e4229f8ee78fabf048aa971a3fa03f9ee3536dd674507d3163f5c9102ccc6af"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f4edda7a9d0e5fe634b8b8a33198de1366f18f240aa0b0cb1ddf5c409bbe256b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.get_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000get_scale\u0000hash:3341600327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.get_scale",
+        "sourceLine": 164
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b0c4901bfc7537c0c285302702f0372c35913b9294fc669dd7cbcd51e1a9a85e",
+        "callsite": "res://probe.gd _init() get_scale-layer",
+        "observedOutputSha256": "32df077331b0ab6a3cec8048d4398451c455d71fdcbd65b25eb8d69889dc482a"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts get_scale",
+        "observedOutputSha256": "727808adc37d5efaf5acd868c72bb468e83e342bd3ff112335241247299abf15"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "62f341d72f42ac43f45da2fdb6cc7b1918725e83d5ede5cfdf99ab1bd7389a17"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.get_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000get_transform\u0000hash:3814499831",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.get_transform",
+        "sourceLine": 90
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "23ede038919940c7626caa84980e684237c5eaeeb7d89c5bd38d49a4de271a98",
+        "callsite": "res://probe.gd _init() get_transform-layer",
+        "observedOutputSha256": "c6f87389927931fa0d3fa869b6ec7a84605f5f4e7485a035e0e29d61e8813d11"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts get_transform",
+        "observedOutputSha256": "81943f0406844dec4026c588a6b4ffb03b07febe0565ad98625245700b6a523f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eed5f7f2128d96bddc5ae39916a496dff2b7502a96210deef102c2796b2c4195"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasLayer.get_final_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasLayer\u0000get_final_transform\u0000hash:3814499831",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_layer.cpp",
+        "sourceSymbol": "CanvasLayer.get_final_transform",
+        "sourceLine": 94
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "19f2a350bfe28b541606ed32eca32335d1c506e950460a7c261b7286c2d7e3c5",
+        "callsite": "res://probe.gd _init() get_final_transform-layer",
+        "observedOutputSha256": "ce99b4770f65782d62407e41a858d12ea40a3e9b42b780d9f3e3ffea349a8edf"
+      },
+      "target": {
+        "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19",
+        "callsite": "lib/godot-compat/canvas-layer.ts get_final_transform",
+        "observedOutputSha256": "2f6baef34e0bd9d45591f4b618201d086160b267cad9aa327c3d584b702d4ed9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b00a55447c5f4e863fc712be3adf45c8ecde3951eadcb6a201b9977499d51d8e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-layer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.set_layer",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9b9ba009fd7fe95c56e1d355c6635aad7596db64f8e74a181f7af5d869993841",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.get_layer",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4d16334e95e7e1399ae645b9121bd62f4ce3d11d6a05fa089f7699d52fa29e19",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.set_visible",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e2d35f67fe6499afe95ee5a1775e915d78cc3a8ce1cafba6788c98870acaa54d",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.is_visible",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ddfa84c3626c0e3fe6b6d5db428084481f66b51c947760818b91a8536c7c8780",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.show",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3790abc239e4f077239ed4de447ee0b1165c607dbf20fb8ef66daeee76836a5e",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.hide",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "be44a1e48eee3f682d775515fc313bbbc56fcef812e43e68e3ec069a5132a03a",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.set_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3461a6496c2ac408a4e256a21d72e46e5f06db59680da3f3f058f34579e79f30",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.get_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aee84c46c8310ef5b5734b8db9171384b78dbc6952e3dfde86dec9161ededf63",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.set_rotation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dc980ca5ebf746440036fcfe0c8c47d05be270008a4f59670f79e5af61bd97c6",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.get_rotation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3a8b8526c2a7f689487c079ba98fade0649b45c5f68948a63473f6995e48b382",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.set_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "35563178b5ddf9bdb3d9f582becf0147ba15391ea8142de6cf1457b8d9492647",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.get_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b0c4901bfc7537c0c285302702f0372c35913b9294fc669dd7cbcd51e1a9a85e",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.get_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "23ede038919940c7626caa84980e684237c5eaeeb7d89c5bd38d49a4de271a98",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasLayer.get_final_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "19f2a350bfe28b541606ed32eca32335d1c506e950460a7c261b7286c2d7e3c5",
+      "implementationSha256": "06dbf3b396a536cc1481a33833e799ed512f37b40447af5ea7dbc72fef174c19"
+    }
+  ]
+}
