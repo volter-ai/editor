@@ -40,11 +40,6 @@
  * - `gaussianSplat`       — native Spark splat metadata used for renderer discovery,
  *                           inspector facts, bounds, and deterministic disposal.
  *
- * Animation (load-bearing — ED5 disposal contract):
- * - `_animMixer`          — THREE.AnimationMixer driving this subtree's clips.
- * - `_availableClips`     — string[] of clip names discovered on the GLTF
- *                           (inspector dropdown).
- *
  * Disposal contract:
  * - `__sharedGeometry`    — `true` when a mesh's geometry is shared/cached and MUST
  *                           NOT be disposed by per-object cleanup (P0.2 contract).
@@ -137,8 +132,6 @@ export interface UserDataSchema extends ObjectMarkSchema {
   _camera: THREE.Camera;
   _particleSystem: ParticleSystem;
   gaussianSplat: { src: string; numSplats: number };
-  _animMixer: THREE.AnimationMixer;
-  _availableClips: string[];
   __sharedGeometry: boolean;
   __shadeOrig: THREE.Material | THREE.Material[];
   __shadeUnlit: THREE.Material[];
@@ -189,8 +182,6 @@ export const UserDataKeys = {
   _camera: '_camera',
   _particleSystem: '_particleSystem',
   gaussianSplat: 'gaussianSplat',
-  _animMixer: '_animMixer',
-  _availableClips: '_availableClips',
   __sharedGeometry: '__sharedGeometry',
   __shadeOrig: '__shadeOrig',
   __shadeUnlit: '__shadeUnlit',

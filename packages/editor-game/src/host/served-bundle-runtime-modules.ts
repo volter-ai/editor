@@ -172,10 +172,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // cannot mount hosted without it registered.
   '@volter/threejs-runtime/asset-parse-error': () =>
     import('@volter/threejs-runtime/asset-parse-error'),
-  // rendering-scale's render lab drives the engine's batch renderer + scoped
-  // render settings directly:
-  '@volter/threejs-runtime/render/render-batch-system': () =>
-    import('@volter/threejs-runtime/render/render-batch-system'),
   '@volter/threejs-runtime/render/render-settings': () =>
     import('@volter/threejs-runtime/render/render-settings'),
   // The bundle inlines @colyseus/schema (modular-action's rooms), and the

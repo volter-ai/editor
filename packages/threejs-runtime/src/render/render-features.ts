@@ -13,9 +13,7 @@ import { z } from 'zod';
  * until `schema-consumption-map.ts` names the file that reads it.
  *
  * Three entries were deleted when that enforcement first ran, having reached it
- * with no reader at all: `autoBatch` (its only mention was a COMMENT in
- * `render-batch-system.ts`, a class whose own header says nothing calls it),
- * `lod`, and `backend` (which offered a `webgpu` option while
+ * with no reader at all: `autoBatch`, `lod`, and `backend` (which offered a `webgpu` option while
  * `setup-renderer.ts` unconditionally constructs a `THREE.WebGLRenderer`). A
  * toggle that changes nothing is worse than a missing one — it tells an author
  * the engine has a dial it does not have.
