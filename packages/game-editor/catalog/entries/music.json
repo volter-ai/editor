@@ -9,7 +9,10 @@
     "dependencies": {
       "@volter/dawproject": "0.5.66",
       "@volter/editor-dawproject": "0.5.66"
-    }
+    },
+    "vgaiTools": [
+      "./src/tools/music-render.tool.ts"
+    ]
   },
   "requires": [],
   "skills": [

@@ -116,7 +116,9 @@ export async function renderPiece({
     scale(loop, 10 ** (gainDb / 20));
     writeFileSync(wavPath, writeWav(loop.left, loop.right, loop.sampleRate));
     function encodeOgg(wav: string, ogg: string): void {
-      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', ogg]);
+      // Bitexact: the Ogg muxer otherwise draws a random stream serial per run, so the same render
+      // gave a different file (and a new provenance digest) every time.
+      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, '-fflags', '+bitexact', '-flags:a', '+bitexact', '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', ogg]);
     }
     const safeName = (value: string): string => value.replace(/[/\\:*?"<>|]/g, '-') || 'unnamed';
     const stemFiles: { track: string; file: string }[] = [];
