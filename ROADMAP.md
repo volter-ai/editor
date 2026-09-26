@@ -45,7 +45,7 @@ Completion:
 Status: planned
 What `WORK.md` records as unwalked or ungated in the game editor.
 Completion:
-- A machine document fits on its first size, and an initial arrow cannot enter its state from below.
+- An initial arrow cannot enter its state from below (a machine document's fit on first size is walked).
 - Network is walked through a networking adapter.
 
 ## project-model-program: The project shape and settings layers on Code-OSS
