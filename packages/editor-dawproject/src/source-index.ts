@@ -201,3 +201,49 @@ export async function setProps(
     redo: () => writeProps(oid, props).then(() => true, () => false),
   });
 }
+
+/**
+ * One entry on the workbench's undo stack for a structural write: undo puts back the whole file
+ * as it was, redo the file as the write left it, each only while the file is still exactly what
+ * the other left (a later edit by anyone, the agent included, makes the entry refuse rather than
+ * overwrite it).
+ */
+export function recordStructWrite(
+  label: string,
+  write: StructWrite,
+  where: { readonly index: SourceIndex; readonly pieceFile: string; readonly documentId: string | null },
+  onMessage: (message: string | null) => void,
+): void {
+  const file = projectPath(where.index, where.pieceFile, write.file);
+  const documentId = where.documentId;
+  if (file === null) {
+    onMessage(`“${label}” wrote ${write.file}, outside the project, so it cannot be undone here.`);
+    return;
+  }
+  const restore = async (expected: string, next: string): Promise<boolean> => {
+    const files = editorHost().files;
+    const current = await files.read(file);
+    if (current !== expected) {
+      let at = 0;
+      while (at < current.length && current[at] === expected[at]) at++;
+      const line = current.slice(0, at).split('\n').length;
+      onMessage(`${file} changed after “${label}” (line ${line} differs), so it was left as it is.`);
+      return false;
+    }
+    await files.write(file, next);
+    return true;
+  };
+  const fail = (error: unknown): boolean => {
+    onMessage(`“${label}” could not be undone: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  };
+  editorHost().history.record({
+    id: globalThis.crypto?.randomUUID?.() ?? `struct-${Date.now()}`,
+    label,
+    resources: [file],
+    document: documentId,
+    undo: () => restore(write.newSource, write.prevSource).catch(fail),
+    redo: () => restore(write.prevSource, write.newSource).catch(fail),
+  });
+}
+

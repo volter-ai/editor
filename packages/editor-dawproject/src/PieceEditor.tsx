@@ -19,10 +19,11 @@ import type { ToolNotice } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AutomationLane } from './AutomationLane';
 import { useLivePiece } from './live-piece';
 import { Mixer } from './Mixer';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
-import { projectPath, propRefusal, readSourceIndex, type SourceIndex, type StructWrite, writeProps, writeStruct } from './source-index';
+import { propRefusal, readSourceIndex, recordStructWrite, type SourceIndex, writeProps, writeStruct } from './source-index';
 
 const HEADER_W = 190;
 const LANE_H = 44;
@@ -446,50 +447,6 @@ function ClipBlock(props: {
   );
 }
 
-/**
- * One entry on the workbench's undo stack for a structural write: undo puts back the whole file
- * as it was, redo the file as the write left it, each only while the file is still exactly what
- * the other left (a later edit by anyone, the agent included, makes the entry refuse rather than
- * overwrite it).
- */
-function recordStructWrite(
-  label: string,
-  write: StructWrite,
-  file: string | null,
-  documentId: string | null,
-  onMessage: (message: string | null) => void,
-): void {
-  if (file === null) {
-    onMessage(`“${label}” wrote ${write.file}, outside the project, so it cannot be undone here.`);
-    return;
-  }
-  const restore = async (expected: string, next: string): Promise<boolean> => {
-    const files = editorHost().files;
-    const current = await files.read(file);
-    if (current !== expected) {
-      let at = 0;
-      while (at < current.length && current[at] === expected[at]) at++;
-      const line = current.slice(0, at).split('\n').length;
-      onMessage(`${file} changed after “${label}” (line ${line} differs), so it was left as it is.`);
-      return false;
-    }
-    await files.write(file, next);
-    return true;
-  };
-  const fail = (error: unknown): boolean => {
-    onMessage(`“${label}” could not be undone: ${error instanceof Error ? error.message : String(error)}`);
-    return false;
-  };
-  editorHost().history.record({
-    id: globalThis.crypto?.randomUUID?.() ?? `struct-${Date.now()}`,
-    label,
-    resources: [file],
-    document: documentId,
-    undo: () => restore(write.newSource, write.prevSource).catch(fail),
-    redo: () => restore(write.prevSource, write.newSource).catch(fail),
-  });
-}
-
 interface Drag {
   readonly note: PieceNote;
   readonly startX: number;
@@ -681,7 +638,7 @@ function PianoRoll(props: {
     setSelected(null);
     writeStruct(note.oid, 'delete').then(
       (write) => {
-        if (write) recordStructWrite('Delete Note', write, projectPath(index, props.file, write.file), props.documentId, props.onMessage);
+        if (write) recordStructWrite('Delete Note', write, { index, pieceFile: props.file, documentId: props.documentId }, props.onMessage);
       },
       (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
     );
@@ -707,7 +664,7 @@ function PianoRoll(props: {
     const write = before?.oid ? writeStruct(before.oid, 'create-sibling', snippet) : writeStruct(clip.oid, 'create', snippet);
     write.then(
       (result) => {
-        if (result) recordStructWrite('Add Note', result, projectPath(index, props.file, result.file), props.documentId, props.onMessage);
+        if (result) recordStructWrite('Add Note', result, { index, pieceFile: props.file, documentId: props.documentId }, props.onMessage);
       },
       (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
     );
@@ -797,8 +754,30 @@ function PianoRoll(props: {
           ) : null}
         </div>
         </div>
+        <div style={{ position: 'sticky', bottom: 0, zIndex: 2, width: KEY_W + width, background: themeVars.surface.panel }}>
+        {clip.lanes.map((lane) => (
+          <div key={lane.id} style={{ display: 'flex', borderTop: `1px solid ${themeVars.boundary.default}` }}>
+            <div style={{ width: KEY_W, flex: 'none', position: 'sticky', left: 0, zIndex: 1, background: themeVars.surface.panel, ...small, fontSize: 9, padding: 3 }}>
+              {lane.target}
+            </div>
+            <AutomationLane
+              lane={lane}
+              piece={piece}
+              index={index}
+              clipTime={clip.time}
+              clipDuration={clip.duration}
+              pxPerBeat={pxPerBeat}
+              snap={SNAP}
+              width={width}
+              color={color}
+              pieceFile={props.file}
+              documentId={props.documentId}
+              onMessage={props.onMessage}
+            />
+          </div>
+        ))}
         <div
-          style={{ display: 'flex', width: KEY_W + width, height: VEL_H, position: 'sticky', bottom: 0, zIndex: 2, background: themeVars.surface.panel, borderTop: `1px solid ${themeVars.boundary.default}` }}
+          style={{ display: 'flex', height: VEL_H, background: themeVars.surface.panel, borderTop: `1px solid ${themeVars.boundary.default}` }}
         >
           <div style={{ width: KEY_W, flex: 'none', position: 'sticky', left: 0, zIndex: 1, background: themeVars.surface.panel, ...small, fontSize: 9, padding: 3 }}>vel</div>
           <div style={{ position: 'relative', width, flex: 'none' }} onPointerMove={onVelMove} onPointerUp={onVelUp}>
@@ -832,6 +811,7 @@ function PianoRoll(props: {
               );
             })}
           </div>
+        </div>
         </div>
       </div>
     </div>
