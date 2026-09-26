@@ -1531,6 +1531,13 @@ export class Object3DDocumentSession {
       perspective.updateProjectionMatrix();
       this.renderer.setRenderTarget(previousTarget);
       this.renderer.setPixelRatio(previousPixelRatio);
+      // THE COMPOSER IS SIZED AGAIN AT THE DISPLAY'S RATIO. The capture's own draw restores the
+      // composer's size while the ratio is still 1 (`renderSolidForCapture`), and the composer
+      // sizes its buffers from the renderer's drawing buffer: every capture (a selection's
+      // preview takes one) left the view and its outline mask at CSS resolution until the next
+      // resize. Measured on the stage: a crisp outline stating 4 device px drew 10 right after a
+      // selection and 4 after a repaint that resized.
+      this.composer?.setSize(this.renderWidth, this.renderHeight, false);
       target.dispose();
       sceneTarget.dispose();
     }
