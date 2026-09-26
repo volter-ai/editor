@@ -1,5 +1,4 @@
 import { optionalThreeStateOf, threeStateOf } from '../three-state';
-import { setStoreAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type {
   ToolObject3DAuthoringProps,
@@ -874,8 +873,6 @@ export function Object3DDocumentViewport({
       );
       documentHostRef.current = host;
       host.cleanups.push(registerStageStore(documentId, host.store.shell));
-      // The stage's own adapter answers for its store's selection (`setStoreAuthoring`).
-      host.cleanups.push(() => setStoreAuthoring(host.store.shell, null));
       host.cleanups.push(registerStageTransport(documentId, host.transport));
       host.cleanups.push(
         registerDocumentViewport(documentId, {
@@ -1504,7 +1501,6 @@ export function Object3DDocumentViewport({
           if (sourceParent) sourceParent.add(source.root);
           if (previous) host.scene.add(previous.scene);
           host.adapter = previousAdapter;
-          if (previousAdapter) setStoreAuthoring(store.shell, previousAdapter);
           host.content = previous;
           host.frame = previousFrame;
           host.syncHostScene = previousSyncHostScene;
@@ -1540,7 +1536,6 @@ export function Object3DDocumentViewport({
         previous?.scene.removeFromParent();
         host.scene.add(scene);
         host.adapter = adapter;
-        setStoreAuthoring(store.shell, adapter);
         host.content = binding;
         store.bindScene(scene, renderer, viewport.batchedRenderer, viewport.camera);
         store.setOrbitTarget(viewport.orbitControls.target);

@@ -91,25 +91,6 @@ let _override: AuthoringAdapter | null = null;
 const _listeners = new Set<() => void>();
 let _version = 0;
 
-/**
- * A STAGE'S OWN ADAPTER, for its own store: a document stage's (`StageHost`), which never takes
- * the active slot above — that slot is the world's while one is mounted. A question about a
- * store's selection (may this be transformed?) is its own adapter's before the slot's: a
- * document's ids are nothing the world's composite owns.
- */
-const ownByStore = new WeakMap<ShellDocumentState, AuthoringAdapter>();
-
-/** Register (or, with null, forget) the adapter a stage drives its own store with. */
-export function setStoreAuthoring(store: ShellDocumentState, adapter: AuthoringAdapter | null): void {
-  if (adapter) ownByStore.set(store, adapter);
-  else ownByStore.delete(store);
-}
-
-/** The adapter a stage registered for `store`, or null for a store no stage owns. */
-export function storeAuthoring(store: ShellDocumentState): AuthoringAdapter | null {
-  return ownByStore.get(store) ?? null;
-}
-
 /** Subscribe to override changes (`useSyncExternalStore` shape). */
 export function subscribeActiveAuthoring(listener: () => void): () => void {
   _listeners.add(listener);

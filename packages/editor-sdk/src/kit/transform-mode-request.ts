@@ -27,7 +27,7 @@
  * invent a sentence to paraphrase it with.
  */
 
-import { getActiveAuthoring, storeAuthoring } from './authoring/active-adapter';
+import { resolvePanelAuthoring } from './authoring/panel-authoring';
 import type { TransformMode } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { transformLockSummary } from '@volter/editor-sdk/kit/hierarchy-row-model';
@@ -44,8 +44,9 @@ export function requestTransformMode(store: ShellStore, mode: TransformMode): vo
   if (mode === 'select') return;
   const ids = [...store.selectedEntityIds];
   if (ids.length === 0) return;
-  // The store's own adapter first: a document stage's selection is its document's.
-  const editability = (storeAuthoring(store) ?? getActiveAuthoring(store)).transforms?.editability;
+  // The adapter the panels drive: the active document's own before the world's (a document
+  // stage's selection holds its document's ids, which the world's composite does not own).
+  const editability = resolvePanelAuthoring(store).adapter.transforms?.editability;
   if (!editability) return;
   let reason: string | undefined;
   for (const id of ids) {
