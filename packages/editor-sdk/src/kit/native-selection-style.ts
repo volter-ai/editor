@@ -208,7 +208,7 @@ export interface NativeGizmoLook {
   readonly arrowLength: number | null;
   readonly arrowHead: number | null;
   readonly ringWidth: number | null;
-  readonly navigationForm: 'balls' | 'cones' | 'triad';
+  readonly navigationForm: 'balls' | 'godot' | 'cones' | 'triad';
   /** The viewport's background, which the ball form mixes its colours toward by depth. */
   readonly background: number | null;
   readonly navigationSize: number | null;
@@ -246,7 +246,7 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     ringWidth: number('--vgai-viewport-gizmo-ring-width'),
     navigationSize: number('--vgai-viewport-navigation-size'),
     background: color('--vgai-viewport-background'),
-    navigationForm: ((form) => (form === 'cones' || form === 'triad' ? form : 'balls'))(
+    navigationForm: ((form) => (form === 'cones' || form === 'triad' || form === 'godot' ? form : 'balls'))(
       themeToken(root, '--vgai-viewport-navigation-gizmo'),
     ),
     navigationCorner:

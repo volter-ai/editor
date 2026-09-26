@@ -4140,7 +4140,7 @@ export class EditorViewport {
 
   private _initOrientationGizmo(): void {
     const form = this._gizmoLook.navigationForm;
-    if (form !== 'balls') {
+    if (form !== 'balls' && form !== 'godot') {
       this._initNavigationForm(form);
       return;
     }
@@ -4304,6 +4304,10 @@ export class EditorViewport {
     // ball, fills its near negative one (ringed halfway to white) and letters it `-Y`. Checked
     // against both reference frames: the default view's +X fill (245,54,81) is this mix at depth
     // 0.82, the front view's (204,55,78) at depth 0.
+    if (this._gizmoLook.navigationForm === 'godot') {
+      this._syncGodotNavigation(view);
+      return;
+    }
     const background = new THREE.Color(this._gizmoLook.background ?? 0x3d3d3d);
     const white = new THREE.Color(1, 1, 1);
     // Blender mixes its theme's display values, so the mix is done in sRGB, not three's linear.
@@ -4370,6 +4374,52 @@ export class EditorViewport {
     }
     for (const { mesh, direction } of this._vcSolids) {
       mesh.renderOrder = Math.round(((direction.dot(view) + 1) / 2) * 100);
+    }
+  }
+
+  /**
+   * GODOT'S BALLS, as `ViewportRotationControl::_draw_axis` (`node_3d_editor_plugin.cpp`, 4.4)
+   * draws them: every ball in its axis colour at an opacity of `remap((z + 1) / 2, 0, 0.5, 0.35,
+   * 1)`; a positive ball filled, with its stalk and a black letter at 0.6 of that opacity; a
+   * negative one a disc whose inner 0.8 is the colour darkened by 0.4, which is the soft light
+   * rim of its frames. One size for every ball (`AXIS_CIRCLE_RADIUS` 8), and no axis-aligned
+   * rule.
+   */
+  private _syncGodotNavigation(view: THREE.Vector3): void {
+    const perUnit = COMPASS_BOX_PX / 3;
+    const scale = 16 / perUnit;
+    const dark = (color: THREE.Color): THREE.Color => {
+      const c = color.getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+      return new THREE.Color().setRGB(c.r * 0.6, c.g * 0.6, c.b * 0.6, THREE.SRGBColorSpace);
+    };
+    for (const { fill, ring, letter, direction, positive, color } of this._vcBalls) {
+      const facing = (direction.dot(view) + 1) / 2;
+      const alpha = Math.min(1, 0.35 + (facing / 0.5) * 0.65);
+      const fillMaterial = fill.material as THREE.SpriteMaterial;
+      const ringMaterial = ring.material as THREE.SpriteMaterial;
+      const letterMaterial = letter.material as THREE.SpriteMaterial;
+      fillMaterial.color.copy(positive ? color : dark(color));
+      fillMaterial.opacity = alpha;
+      ringMaterial.color.copy(color);
+      ringMaterial.opacity = alpha;
+      letterMaterial.color.setRGB(0, 0, 0);
+      letterMaterial.opacity = alpha * 0.6;
+      fill.visible = true;
+      ring.visible = true;
+      letter.visible = positive;
+      const order = 10 + Math.round(facing * 100) * 3;
+      for (const [part, rank] of [[fill, 0], [ring, 1], [letter, 2]] as const) {
+        part.scale.setScalar(scale);
+        part.renderOrder = order + rank;
+      }
+    }
+    for (const { mesh, direction, positive, color } of this._vcStalks) {
+      const facing = (direction.dot(view) + 1) / 2;
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      material.color.copy(color);
+      material.opacity = Math.min(1, 0.35 + (facing / 0.5) * 0.65);
+      mesh.visible = positive;
+      mesh.renderOrder = Math.round(facing * 100);
     }
   }
 

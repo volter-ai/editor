@@ -256,7 +256,7 @@ export interface StageContribution {
    * (Unreal's); `top-right` (the editor's own) or `bottom-left` (Unreal's). Whether a click on
    * it turns the view is the view's (`overlays.navigation`).
    */
-  readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+  readonly navigationGizmo?: 'balls' | 'godot' | 'cones' | 'triad';
   readonly navigationCorner?: 'top-right' | 'bottom-left';
   /** The triad's size, a multiple of its own 24 px; line and letter stay inside the gizmo's
    *  90 px box up to about 1.3 (Unreal's triad, letters included, is about 40 px). */

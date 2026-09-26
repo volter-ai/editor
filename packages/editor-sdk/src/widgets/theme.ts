@@ -225,7 +225,7 @@ export interface EditorStage {
     readonly gizmoArrowLength?: number;
     readonly gizmoArrowHead?: number;
     readonly gizmoRingWidth?: number;
-    readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+    readonly navigationGizmo?: 'balls' | 'godot' | 'cones' | 'triad';
     readonly navigationCorner?: 'top-right' | 'bottom-left';
     readonly navigationSize?: number;
     readonly gizmoOpacity?: number;

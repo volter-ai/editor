@@ -44,6 +44,9 @@ export const style: StyleContribution = {
       // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
       // saturation and full value (`node_3d_editor_plugin.cpp`).
       gizmoOpacity: 0.9,
+      // Its orientation gizmo is its own (`ViewportRotationControl::_draw_axis`): opacity by
+      // depth, darkened negatives, no mix toward the viewport (the editor's `godot` form).
+      navigationGizmo: 'godot',
       gizmoHighlightSaturation: 0.25,
       gizmoHighlightValue: 1,
       // Godot's grid lines are hairlines at both levels.
