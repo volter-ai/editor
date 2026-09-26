@@ -313,9 +313,16 @@ export function rewriteNotes(
  * or inline where the anchor is written on one line with other code; a self-closing parent opens
  * to hold it.
  */
-export function insertElement(source: string, file: ts.SourceFile, anchor: SourceElement, where: 'after' | 'child', snippet: string): string {
+export function insertElement(source: string, file: ts.SourceFile, anchor: SourceElement, where: 'before' | 'after' | 'child', snippet: string): string {
   const newline = source.includes('\r\n') ? '\r\n' : '\n';
   const indent = indentOf(source, file, anchor);
+  if (where === 'before') {
+    // On its own line above the anchor when the anchor starts its line, else inline before it.
+    const at = anchor.getStart(file);
+    return indent.length === at - (source.lastIndexOf('\n', at - 1) + 1)
+      ? `${source.slice(0, at)}${snippet}${newline}${indent}${source.slice(at)}`
+      : `${source.slice(0, at)}${snippet}${source.slice(at)}`;
+  }
   const lineEnd = source.indexOf('\n', anchor.end);
   const alone = (text: string): boolean => text.trim() === '';
   if (where === 'after') {

@@ -16,7 +16,7 @@ import { formatAt } from '@volter/dawproject/notation';
 import type { Piece, PiecePoint, PiecePoints } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
-import { formatNumber, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
+import { createElement, formatNumber, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
 
 export const LANE_H = 48;
 const DOT = 7;
@@ -113,6 +113,14 @@ export function AutomationLane(props: {
       .sort((a, b) => a.time - b.time)
       .at(-1);
     props.onMessage(null);
+    // A point earlier than every other goes first in the lane, ahead of the one it now precedes.
+    const after = before ? undefined : lane.points.filter((point) => point.time > time && refusal(point) === null).sort((a, b) => a.time - b.time)[0];
+    if (after?.oid) {
+      createElement(`Add ${lane.target} Point`, after.oid, 'before', snippet, { index, pieceFile: props.pieceFile, documentId: props.documentId }, props.onMessage).catch(
+        (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
+      );
+      return;
+    }
     (before?.oid ? writeStruct(before.oid, 'create-sibling', snippet) : writeStruct(lane.oid, 'create', snippet)).then(
       (write) => {
         if (write) recordStructWrite(`Add ${lane.target} Point`, write, { index, pieceFile: props.pieceFile, documentId: props.documentId }, props.onMessage);

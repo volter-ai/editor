@@ -338,15 +338,15 @@ export function recordStructWrite(
 
 
 /**
- * Create one element: `snippet` as the next sibling of the element `oid` names (`after`) or as
- * its last child (`child`), written as ONE whole-file edit and ONE undo entry. The file is read
+ * Create one element: `snippet` as the next or previous sibling of the element `oid` names
+ * (`after`, `before`) or as its last child (`child`), written as ONE whole-file edit and ONE undo entry. The file is read
  * fresh and the element found at its index position, so it lands where the source puts it
  * (`insertElement`): on its own line, inline beside inline siblings, a self-closing parent opened.
  */
 export async function createElement(
   label: string,
   oid: string,
-  where: 'after' | 'child',
+  where: 'before' | 'after' | 'child',
   snippet: string,
   at: { readonly index: SourceIndex; readonly pieceFile: string; readonly documentId: string | null },
   onMessage: (message: string | null) => void,
