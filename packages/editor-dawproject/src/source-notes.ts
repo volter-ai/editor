@@ -188,3 +188,121 @@ export function indentOf(source: string, file: ts.SourceFile, node: ts.Node): st
   const lineStart = source.lastIndexOf('\n', start - 1) + 1;
   return /^[\t ]*/.exec(source.slice(lineStart, start))?.[0] ?? '';
 }
+
+/** An attribute as source text: a string between quotes, a number or boolean in braces. */
+export function attributeText(name: string, value: Literal): string {
+  if (typeof value === 'string') return `${name}="${value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}"`;
+  if (typeof value === 'number') return `${name}={${Math.round(value * 1e6) / 1e6}}`;
+  return `${name}={${value}}`;
+}
+
+/** One note a whole-file gesture changes: found by where its element starts (the source index's `line`/`col`). */
+export interface NoteRewrite {
+  /** 1-based line and 0-based column of the element's `<`. */
+  readonly line: number;
+  readonly col: number;
+  /** What the element must still write: an index older than the file refuses instead of editing the wrong note. */
+  readonly expect: Readonly<Record<string, string>>;
+  /** Attributes to write; `null` takes one off. */
+  readonly set?: Readonly<Record<string, Literal | null>>;
+  readonly remove?: boolean;
+}
+
+/** A new note: its absolute start in beats and its `<Note … />` text. */
+export interface NoteInsert {
+  readonly start: number;
+  readonly text: string;
+}
+
+/**
+ * A multi-note gesture as ONE new source text: each target element edited or taken out, and each
+ * new note put after the literal sibling that precedes it in time (first in the clip when none
+ * does). Throws, naming why, when any target is not a static literal note where the index says
+ * it is, so a gesture is never written in part.
+ */
+export function rewriteNotes(
+  source: string,
+  clip: { readonly line: number; readonly col: number } | null,
+  notes: readonly NoteRewrite[],
+  inserts: readonly NoteInsert[],
+  meter: number,
+): string {
+  const file = parseSource(source);
+  const at = (line: number, col: number): number => file.getPositionOfLineAndCharacter(line - 1, col);
+  const byStart = new Map<number, SourceElement>();
+  for (const element of elements(file, 'Note')) byStart.set(element.getStart(file), element);
+  const edits: { start: number; end: number; text: string }[] = [];
+  const removed = new Set<SourceElement>();
+  for (const note of notes) {
+    const element = byStart.get(at(note.line, note.col));
+    if (!element) throw new Error(`No <Note> starts at line ${note.line}: the source index is behind the file; try again.`);
+    if (!isStaticElement(element) || !literalProps(element)) {
+      throw new Error(`The <Note> at line ${note.line} is generated or computed, not a literal: edit its code, or Freeze the clip first.`);
+    }
+    for (const [name, value] of Object.entries(note.expect)) {
+      const written = literalProp(element, name);
+      if (written === undefined || String(written) !== value) throw new Error(`The <Note> at line ${note.line} no longer writes ${name}="${value}": the source index is behind the file; try again.`);
+    }
+    if (note.remove) {
+      removed.add(element);
+      const start = element.getStart(file);
+      const lineStart = source.lastIndexOf('\n', start - 1) + 1;
+      const lineEnd = source.indexOf('\n', element.end);
+      const alone = !source.slice(lineStart, start).trim() && !source.slice(element.end, lineEnd < 0 ? source.length : lineEnd).trim();
+      edits.push(alone ? { start: lineStart, end: lineEnd < 0 ? source.length : lineEnd + 1, text: '' } : { start, end: element.end, text: '' });
+      continue;
+    }
+    const open = opening(element);
+    const attributes = open.attributes.properties;
+    let added = '';
+    for (const [name, value] of Object.entries(note.set ?? {})) {
+      const i = attributes.findIndex((attr) => ts.isJsxAttribute(attr) && attr.name.getText(file) === name);
+      const attr = attributes[i];
+      if (attr && value === null) {
+        const from = i > 0 ? attributes[i - 1]!.end : open.tagName.end;
+        edits.push({ start: from, end: attr.end, text: '' });
+      } else if (attr && value !== null) {
+        edits.push({ start: attr.getStart(file), end: attr.end, text: attributeText(name, value) });
+      } else if (value !== null) {
+        added += ` ${attributeText(name, value)}`;
+      }
+    }
+    if (added) {
+      const end = attributes.length > 0 ? attributes[attributes.length - 1]!.end : open.tagName.end;
+      edits.push({ start: end, end, text: added });
+    }
+  }
+  if (inserts.length > 0) {
+    const target = clip ? elements(file, 'Clip').find((element) => element.getStart(file) === at(clip.line, clip.col)) : undefined;
+    if (!target || !ts.isJsxElement(target) || !isStaticElement(target)) throw new Error('This clip is not a literal <Clip> with children in the source, so new notes have no single place to go.');
+    const siblings = target.children
+      .filter((child): child is SourceElement => (ts.isJsxSelfClosingElement(child) || ts.isJsxElement(child)) && opening(child).tagName.getText(file) === 'Note' && !removed.has(child))
+      .flatMap((element) => {
+        const props = literalProps(element);
+        return props ? [{ element, start: noteIdentity(props, meter).start }] : [];
+      });
+    const newline = source.includes('\r\n') ? '\r\n' : '\n';
+    const lineStart = source.lastIndexOf('\n', target.getStart(file)) + 1;
+    const parentIndent = /^\s*/.exec(source.slice(lineStart, target.getStart(file)))?.[0] ?? '';
+    const childIndent = /\r?\n([\t ]+)\S/.exec(source.slice(target.openingElement.end, target.closingElement.getStart(file)))?.[1] ?? `${parentIndent}  `;
+    const groups = new Map<number, NoteInsert[]>();
+    for (const insert of inserts) {
+      const before = siblings.filter((sibling) => sibling.start <= insert.start + 1e-9).at(-1);
+      const position = before ? before.element.end : target.openingElement.end;
+      groups.set(position, [...(groups.get(position) ?? []), insert]);
+    }
+    for (const [position, group] of groups) {
+      const text = [...group].sort((a, b) => a.start - b.start).map((insert) => `${newline}${childIndent}${insert.text}`).join('');
+      edits.push({ start: position, end: position, text });
+    }
+  }
+  edits.sort((a, b) => b.start - a.start || b.end - a.end);
+  let next = source;
+  let floor = Number.POSITIVE_INFINITY;
+  for (const edit of edits) {
+    if (edit.end > floor) throw new Error('Two parts of this gesture touch the same source; nothing was written.');
+    next = next.slice(0, edit.start) + edit.text + next.slice(edit.end);
+    floor = edit.start;
+  }
+  return next;
+}
