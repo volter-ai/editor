@@ -310,19 +310,29 @@ Node3D and Camera3D, 724 cases, exact.
   notifications, `_process`, `_physics_process`, deferred calls, timers (`create_timer`), tweens
   and signals. Compat implements the ordering (`scene/main/scene_tree.cpp`) over those two
   events and creates no loop of its own.
-- **Host duties the composition site performs** (the generated `world.tsx`, from plan data):
-  1. make R3F's scene the tree root and enter the main scene;
-  2. run the clock: fixed physics steps at the project's tick rate, then the frame, in
-     `Main::iteration` order (this also flushes Input);
-  3. create the Rapier world with the project's gravity and hand it to compat;
-  4. set the root window size from the canvas on every resize, and hand the renderer to compat;
-  5. layer a DOM root over the canvas, draw the canvas into it every frame, and load Godot's
-     default font from its copied bytes;
-  6. turn DOM keyboard, mouse and touch events into Godot's event records (keyboard device 16,
-     mouse device 32) and deliver them through the viewport; the InputMap includes Godot's
-     default `ui_*` actions;
-  7. let the scene's current Camera3D drive R3F's camera, with Godot's defaults (fov 75, near
-     0.05, far 4000).
+- **The composition site is `<GodotMain>`** (compat `main.tsx`), which the generated `world.tsx`
+  renders from plan data:
+  1. R3F's scene is the tree root; autoloads and then the main scene enter the tree, scripted or
+     not.
+  2. Each R3F frame runs one `Main::iteration`: the page's buffered keys are delivered, then the
+     iteration runs, then the canvas is drawn. Timing is a transcription of `MainTimerSync` with its
+     delta smoother, the project's physics tick rate, and the cap of 8 physics steps per frame.
+  3. It creates the Rapier world and hands it to World3D. Rapier's own gravity is zero, because
+     compat applies the project's gravity and damping. The world is stepped only by the clock.
+  4. The root window takes the canvas's drawing-buffer size on every resize; the renderer is
+     handed to the viewport.
+  5. Canvas items draw into a layer over the canvas, which the pointer passes through. Godot's
+     default font comes from the capability's copied bytes.
+  6. DOM keyboard, mouse and touch events become Godot's event records as the web display server
+     makes them (its key table and modifier rules). The InputMap is plan data: Godot's 91 built-in
+     actions, with the project's `[input]` actions over them.
+  7. The viewport's current Camera3D, under Godot's current-camera rules, becomes R3F's camera each
+     frame.
+
+  The `project-world` proof runs a generated world in Node for 23 frames against official Godot.
+  It presses real DOM keys, and callbacks, action states, the Label, the camera and a rigid body's
+  path agree. Not yet measured: irregular frame timing (native Godot runs at fixed fps here),
+  wheel, gamepad and IME input, and device-pixel ratios above 1.
 
 ## The canvas: Controls, Node2D and text
 
