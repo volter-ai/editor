@@ -21,11 +21,10 @@ Completion:
 ## viewport-stage: The viewport stage themes into Blender, Unity, Godot and Unreal
 
 Status: active
-Design and measurements: [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md) (ARCHITECTURE.md rule 6: a component is themable only when it can be themed into each of several real targets). An independent judge passes Godot, Unity and Unreal and not Blender; the judged frames left out the viewport's overlay pass, so the navigation gizmos went unseen.
+Design and measurements: [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md) (ARCHITECTURE.md rule 6: a component is themable only when it can be themed into each of several real targets). An independent judge passes all four; Blender's judged objections are closed by Blender's own rules, and a blind walk of a fresh Blender model has its defects fixed. Unity's Move handle is at Unity's own 80-point size.
 Completion:
-- Blender passes the independent judgement: the 3D cursor and the origin dot are drawn.
-- Unreal's remaining differences (a faint floor shadow, a hard floor-sky line, short thin Move arrows) and Unity's short Move arrows are closed or named as limits.
 - Every target is judged again from the page capture cropped to its viewport, with the overlay pass in it.
+- Unreal's remaining differences (a faint floor shadow, a hard floor-sky line, thin Move shafts) are closed or named as limits.
 - Blender's Rendered mode and Unreal's capability row are accepted, and the world stage is seen on a project with a world.
 
 ## architecture-plan: The architecture plan's remaining units
