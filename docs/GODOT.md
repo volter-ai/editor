@@ -234,7 +234,16 @@ type Godot itself guarantees there, and records the rule as evidence:
   from the API dump;
 - `$Path` and `get_node("Path")` take the class of the node at that path in every scene the script
   is attached to (they must agree);
-- an untyped local takes its initializer's type while no other assignment reaches it.
+- an untyped local takes its initializer's type while no other assignment reaches it;
+- an `@onready` member initialized from `$Path` or `get_node(literal)` (optionally `as T`), with no
+  setter, not exported and assigned nowhere else in the project, takes the node's class
+  (`@implicit_ready`, `gdscript_compiler.cpp:2409`). An `AnimationTree` subscript on such a
+  member must name a parameter of that tree's graph. Assignment through reflection
+  (`set("name", …)`) is not seen.
+
+Compound assignment on a Variant subscript (`x[k] += v`) refuses: Godot's evaluator picks the
+operator from the runtime type, and compat's numbers carry no int/float tag. No game in the
+corpus uses it; when one does, the element is typed by analysis so the typed operator applies.
 
 A call whose receiver is still unknown lowers to a callsite-local switch over the finite set of
 classes that can reach it, the pattern ARCHITECTURE-CORE already rules for dynamic resource paths.
