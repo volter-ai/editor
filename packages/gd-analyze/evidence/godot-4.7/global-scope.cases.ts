@@ -36,6 +36,14 @@ for (const x of INTS) {
   c.add(`sign-int-${idn(x)}`, u('sign'), `sign(${idn(x)})`, () => G.sign(x));
   c.add(`round-int-${idn(x)}`, u('round'), `round(${idn(x)})`, () => G.round(x));
 }
+const ANGLES = [0, 0.1, 0.5, 1, 1.5707963267948966, 2, 3, 3.141592653589793, 4, 6.283185307179586, 0.7, 10, 100, 1e5, 1e-8, 12345.678, Infinity];
+for (const x of [...ANGLES, ...ANGLES.map((a) => -a), Number.NaN]) {
+  c.add(`sin-${idn(x)}`, u('sin'), `sin(${gd(x)})`, () => G.sin(x), 'platform-libm');
+  c.add(`cos-${idn(x)}`, u('cos'), `cos(${gd(x)})`, () => G.cos(x), 'platform-libm');
+}
+for (const x of [-2, -1, -0.99, -0.5, 0, 0.3, 0.5, 0.7071067811865476, 0.99, 1, 1.5, Number.NaN]) {
+  c.add(`acos-${idn(x)}`, u('acos'), `acos(${gd(x)})`, () => G.acos(x), 'platform-libm');
+}
 for (const [y, x] of [
   [0, 1], [1, 0], [0, -1], [-0, -1], [1, 1], [-1, -1], [0.5, -2], [3, 4], [-1e-300, -1], [Infinity, -Infinity], [1e-8, -1],
 ] as const) {

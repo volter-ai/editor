@@ -30,8 +30,12 @@ export interface GodotEvidenceSymbol {
 /**
  * `exact`: every float agrees bit for bit (a NaN only equals a NaN).
  * `float32-ulp`: every float is a 32-bit value within one float32 ulp of the native one.
+ * `platform-libm`: every float is within one float64 ulp of the native one. Only for a member
+ * Godot delegates to the platform C library (`Math::sin` is `std::sin`), whose result Godot does
+ * not fix across its platforms; never for anything Godot computes itself. The claim records the
+ * measured maximum distance.
  */
-export type GodotEvidenceComparator = 'exact' | 'float32-ulp';
+export type GodotEvidenceComparator = 'exact' | 'float32-ulp' | 'platform-libm';
 
 export interface GodotEvidenceCase {
   readonly id: string;

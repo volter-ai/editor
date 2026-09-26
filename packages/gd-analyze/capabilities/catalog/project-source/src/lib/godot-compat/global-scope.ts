@@ -11,10 +11,11 @@
  * float in every case measured; their built-in vector arguments are not transcribed and throw.
  * `str` cannot tell `1` from `1.0` and throws for numbers.
  *
- * `sin`, `cos` and `acos` are `std::sin`/`std::cos`/`std::acos` on doubles, which the official
- * macOS build takes from the platform libm: it is not correctly rounded (`sin(4.0)` is one ulp
- * off) and V8's `Math.sin`/`Math.cos`/`Math.acos` differ from it by one ulp on other inputs
- * (`cos(0.1)`, `acos(0.3)`), so they are not transcribed here.
+ * `sin`, `cos` and `acos` are `std::sin`/`std::cos`/`std::acos` on doubles: Godot delegates them to
+ * the platform C library, whose result differs across Godot's own platforms. The official macOS
+ * build's libm is not correctly rounded (`sin(4.0)` is one ulp off) and V8's `Math.sin`/`Math.cos`/
+ * `Math.acos` differ from it by one ulp on other inputs (`cos(0.1)`, `acos(0.3)`); their claims are
+ * within the platform C library's error, and record the measured distance.
  *
  * The global random number generator is Godot's `static RandomPCG default_rand`
  * (`core/math/math_funcs.cpp:36`), a PCG32 (`thirdparty/misc/pcg.cpp`), held here as module state.
@@ -164,6 +165,37 @@ export function clamp(value: unknown, min: unknown, max: unknown): number {
  */
 export function clampf(x: number, min: number, max: number): number {
   return x < min ? min : x > max ? max : x;
+}
+
+/**
+ * `Math::sin(double)` is `std::sin` (`core/math/math_funcs.h:41`), the platform C library's.
+ *
+ * @godot @GlobalScope.sin
+ * @source core/variant/variant_utility.cpp:43
+ */
+export function sin(x: number): number {
+  return Math.sin(x);
+}
+
+/**
+ * `Math::cos(double)` is `std::cos` (`core/math/math_funcs.h:48`), the platform C library's.
+ *
+ * @godot @GlobalScope.cos
+ * @source core/variant/variant_utility.cpp:47
+ */
+export function cos(x: number): number {
+  return Math.cos(x);
+}
+
+/**
+ * `Math::acos(double)` clamps its argument's domain and otherwise is `std::acos`
+ * (`core/math/math_funcs.h:106`), the platform C library's.
+ *
+ * @godot @GlobalScope.acos
+ * @source core/variant/variant_utility.cpp:71
+ */
+export function acos(x: number): number {
+  return x < -1 ? PI : x > 1 ? 0 : Math.acos(x);
 }
 
 /**

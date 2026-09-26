@@ -366,6 +366,72 @@ function float32OrderedBits(value: number): number {
   return bits < 0 ? -2147483648 - bits : bits;
 }
 
+function float64OrderedBits(value: number): bigint {
+  const bits = new BigInt64Array(new Float64Array([value]).buffer)[0] as bigint;
+  return bits < 0n ? -9223372036854775808n - bits : bits;
+}
+
+/** The number of float64 values between two finite or infinite doubles. */
+function float64UlpDistance(left: number, right: number): bigint {
+  const distance = float64OrderedBits(left) - float64OrderedBits(right);
+  return distance < 0n ? -distance : distance;
+}
+
+/** Every native/target float pair of two agreeing encoded values, in order. */
+function floatPairs(native: Encoded, target: Encoded): (readonly [number, number])[] {
+  if (native.t === 'float') return [[bitsFloat(native.v), bitsFloat((target as typeof native).v)]];
+  if (native.t === 'Vector3') {
+    const other = target as typeof native;
+    return (['x', 'y', 'z'] as const).map((axis) => [bitsFloat(native[axis]), bitsFloat(other[axis])] as const);
+  }
+  if (native.t === 'Array' || native.t === 'PackedStringArray') {
+    const other = target as typeof native;
+    return native.v.flatMap((entry, index) => floatPairs(entry, other.v[index] as Encoded));
+  }
+  if (native.t === 'Dictionary') {
+    const other = target as typeof native;
+    return native.v.flatMap(([key, item], index) => {
+      const pair = other.v[index] as readonly [Encoded, Encoded];
+      return [...floatPairs(key, pair[0]), ...floatPairs(item, pair[1])];
+    });
+  }
+  if (isStructured(native.t)) {
+    const fields: Readonly<Record<string, string>> = STRUCTURED[native.t];
+    const left = native as StructuredEncoded;
+    const right = target as StructuredEncoded;
+    return Object.entries(fields).flatMap(([field, fieldType]) =>
+      fieldType === 'float'
+        ? [[bitsFloat(left[field] as string), bitsFloat(right[field] as string)] as const]
+        : fieldType === 'int'
+          ? []
+          : floatPairs(left[field] as Encoded, right[field] as Encoded),
+    );
+  }
+  return [];
+}
+
+/**
+ * The recorded tolerance of one claim's cases. A `platform-libm` claim records the largest float64
+ * ulp distance it measured and over how many cases.
+ */
+function measuredTolerance(
+  comparators: readonly string[],
+  rows: readonly (readonly [Encoded, Encoded])[],
+): string {
+  if (comparators.includes('platform-libm')) {
+    let largest = 0n;
+    for (const [native, target] of rows) {
+      for (const [left, right] of floatPairs(native, target)) {
+        if (Number.isNaN(left) || Number.isNaN(right)) continue;
+        const distance = float64UlpDistance(left, right);
+        if (distance > largest) largest = distance;
+      }
+    }
+    return `platform C library: within 1 float64 ulp; measured max ${String(largest)} ulp over ${String(rows.length)} cases`;
+  }
+  return comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact';
+}
+
 function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvidenceComparator): boolean {
   const native = bitsFloat(nativeHex);
   const target = bitsFloat(targetHex);
@@ -373,6 +439,7 @@ function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvid
     return Number.isNaN(native) && Number.isNaN(target);
   }
   if (comparator === 'exact') return nativeHex === targetHex;
+  if (comparator === 'platform-libm') return float64UlpDistance(native, target) <= 1n;
   if (Math.fround(native) !== native || Math.fround(target) !== target) return false;
   return Math.abs(float32OrderedBits(native) - float32OrderedBits(target)) <= 1;
 }
@@ -579,6 +646,7 @@ function claimRecord(
   native: { readonly inputSha256: string; readonly callsite: string; readonly observed: string },
   target: { readonly implementationSha256: string; readonly callsite: string; readonly observed: string },
   comparators: readonly string[],
+  tolerance: string = comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact',
 ): { readonly claim: SemanticClaimRecord; readonly liveness: GodotCodeClaimLiveness } {
   return {
     claim: {
@@ -607,7 +675,7 @@ function claimRecord(
       },
       comparison: {
         comparator: `typed float64-bit JSON: ${comparators.join(', ')}`,
-        tolerance: comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact',
+        tolerance,
         resultSha256: sha256(
           JSON.stringify({ native: native.observed, target: target.observed, comparators, equal: true }),
         ),
@@ -816,6 +884,10 @@ async function runCompatEvidence(
         observed: sha256(JSON.stringify(indexes.map((index) => targetRows[index]))),
       },
       [...new Set(symbolCases.map((entry) => entry.comparator))].sort(),
+      measuredTolerance(
+        [...new Set(symbolCases.map((entry) => entry.comparator))],
+        indexes.map((index) => [(nativeRows[index] as Row)[1], (targetRows[index] as Row)[1]] as const),
+      ),
     );
     claims.push(record.claim);
     liveness.push(record.liveness);
