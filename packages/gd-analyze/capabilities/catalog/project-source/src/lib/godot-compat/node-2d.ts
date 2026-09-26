@@ -167,7 +167,7 @@ export function set_global_position(self: object, p_pos: Vector2): void {
  * A plain Node2D as its class creates it, for the scene's mount.
  *
  * @godot Node2D (protocol)
- * @source scene/2d/node_2d.cpp:139
+ * @source scene/2d/node_2d.cpp:519
  */
 export function godot_node_2d_node_mount(entity: Object3D): void {
   godot_node_2d_mount(entity, ['Node2D', 'CanvasItem', 'Node']);

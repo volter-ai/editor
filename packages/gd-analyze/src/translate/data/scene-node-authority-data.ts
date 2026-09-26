@@ -32,6 +32,12 @@ import {
   GODOT_4_7_RENDER_STRUCTURE_RULES,
 } from './authority/godot-4.7-scene-render';
 import {
+  GODOT_4_7_UI_CLAIMS,
+  GODOT_4_7_UI_LIVENESS,
+  GODOT_4_7_UI_NODE_RULES,
+  GODOT_4_7_UI_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-ui';
+import {
   GODOT_SCENE_NODE_AUTHORITY_VERSION,
   type GodotSceneNodeAuthority,
 } from './scene-node-authority';
@@ -87,6 +93,41 @@ export const GODOT_SCENE_RENDER_IMPLEMENTATION_FILES = [
   ].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-ui proof runs: planning, emission and the UI compat it mounts. */
+export const GODOT_SCENE_UI_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-node-authority.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  ...[
+    'node.ts',
+    'object.ts',
+    'scene-tree.ts',
+    'window.ts',
+    'viewport.ts',
+    'canvas-item.ts',
+    'canvas-layer.ts',
+    'control.ts',
+    'container.ts',
+    'box-container.ts',
+    'h-box-container.ts',
+    'font.ts',
+    'label.ts',
+    'label-settings.ts',
+    'texture-2d.ts',
+    'placeholder-texture-2d.ts',
+    'canvas-texture.ts',
+    'texture-rect.ts',
+    'node-2d.ts',
+    'sprite-2d.ts',
+    'touch-screen-button.ts',
+    'transform-2d.ts',
+    'OpenSans_SemiBold.woff2',
+  ].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** What the scene-imported proof runs: the importer model, planning, emission, packed-scene. */
 export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/read/gltf-godot-scene.ts',
@@ -109,7 +150,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
     sourceRevision: source.revision,
     apiDumpSha256: source.apiDumpSha256,
     rules: supported
-      ? [...GODOT_4_7_SCENE_NODE_RULES, ...GODOT_4_7_STRUCTURE_NODE_RULES, ...GODOT_4_7_RENDER_NODE_RULES]
+      ? [...GODOT_4_7_SCENE_NODE_RULES, ...GODOT_4_7_STRUCTURE_NODE_RULES, ...GODOT_4_7_RENDER_NODE_RULES, ...GODOT_4_7_UI_NODE_RULES]
       : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
     propertyRules: supported
@@ -119,12 +160,13 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES, ...GODOT_4_7_IMPORTED_STRUCTURE_RULES]
       : [],
     signalRules: supported ? GODOT_4_7_SIGNAL_RULES : [],
-    resourceRules: supported ? GODOT_4_7_RENDER_RESOURCE_RULES : [],
+    resourceRules: supported ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES] : [],
     claims: supported
       ? [
           ...GODOT_4_7_SCENE_NODE_CLAIMS,
           ...GODOT_4_7_STRUCTURE_CLAIMS,
           ...GODOT_4_7_RENDER_CLAIMS,
+          ...GODOT_4_7_UI_CLAIMS,
           ...GODOT_4_7_IMPORTED_CLAIMS,
         ]
       : [],
@@ -141,6 +183,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_RENDER_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_RENDER_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_UI_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_UI_IMPLEMENTATION_FILES),
           ),
           ...withLiveImplementation(
             GODOT_4_7_IMPORTED_LIVENESS,

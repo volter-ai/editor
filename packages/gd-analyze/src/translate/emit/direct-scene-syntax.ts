@@ -571,15 +571,16 @@ function sceneSourceFile(
   };
   collectTypes(scene.root);
   const renderImports: TargetTsStatement[] = [
-    ...scene.resources.map((resource) => resource.construct.module + '\0' + resource.className),
+    ...scene.resources.map((resource) => [resource.construct.module, resource.construct.exportName, resource.className].join('\0')),
   ]
     .filter((entry, index, all) => all.indexOf(entry) === index)
     .map((entry) => {
-      const [module, className] = entry.split('\0') as [string, string];
+      // The resource rule's constructor export, whatever its module names it.
+      const [module, exportName, className] = entry.split('\0') as [string, string, string];
       return {
         kind: 'import-statement' as const,
         module: moduleSpecifier(scene.targetPath, `src/${module}.ts`),
-        namedBindings: [{ imported: 'construct', local: `${className}_construct` }],
+        namedBindings: [{ imported: exportName, local: `${className}_construct` }],
       };
     });
   const setterModules = new Map<string, Map<string, string>>();
