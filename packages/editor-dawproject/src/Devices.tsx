@@ -6,13 +6,14 @@
  * member's literal (`@volter/editor-react`'s member writer), one undoable edit. A parameter the
  * device does not write yet shows the value the DSP uses in its absence and is added by the
  * first drag; double-click takes it out again. A member bound to an expression (`bank: BANK`)
- * is shown and refuses. Numbers are dragged sideways; switches toggle.
+ * is shown and refuses. Numbers are dragged sideways; switches toggle. "+ Device" appends an
+ * effect to the chain, written with the values its DSP falls back to.
  */
 
 import type { Piece, PieceDevice, PieceTrack } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
-import { type Literal, setProps, setRefusal, type SourceIndex } from './source-index';
+import { createElement, type Literal, setProps, setRefusal, type SourceIndex } from './source-index';
 
 interface NumberSpec {
   readonly key: string;
@@ -63,6 +64,18 @@ const BAND: readonly NumberSpec[] = [
   { key: 'gain', label: 'gain', min: -24, max: 24, fallback: 0, unit: 'dB' },
   { key: 'q', label: 'q', min: 0.1, max: 18, fallback: 0.707, log: true },
 ];
+/** The effects "+ Device" offers, in the order a chain usually runs. */
+const ADDABLE = ['equalizer', 'compressor', 'limiter', 'convolution', 'humanize'] as const;
+
+/** A new device's `params={{ … }}`: every parameter it reads, at its fallback (an equalizer: one flat bell). */
+function newDeviceParams(plugin: (typeof ADDABLE)[number]): string {
+  if (plugin === 'equalizer') {
+    const bell = BAND.map((spec) => `${spec.key}: ${spec.fallback}`).join(', ');
+    return `{{ bands: [{ type: 'bell', ${bell} }] }}`;
+  }
+  return `{{ ${(PARAMS[plugin] ?? []).map((spec) => `${spec.key}: ${spec.fallback}`).join(', ')} }}`;
+}
+
 /** Pixels of drag across a parameter's whole range. */
 const SWEEP = 200;
 
@@ -96,13 +109,45 @@ export function Devices(props: Context & { readonly track: PieceTrack | null }) 
   const devices = props.track?.channel?.devices ?? [];
   if (!props.track) return <div style={{ padding: 16, ...small }}>Select a clip to see its track's devices.</div>;
   return (
-    <div style={{ display: 'flex', gap: 6, padding: 6, height: '100%', overflowX: 'auto', alignItems: 'flex-start', background: themeVars.surface.panel }}>
+    <div tabIndex={-1} style={{ outline: 'none', display: 'flex', gap: 6, padding: 6, height: '100%', overflowX: 'auto', alignItems: 'flex-start', background: themeVars.surface.panel }}>
       <div style={{ ...small, writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: themeVars.content.primary }}>{props.track.name}</div>
       {devices.length === 0 ? <div style={small}>No devices on this channel.</div> : null}
       {devices.map((device) => (
         <DeviceCard key={device.id} device={device} {...props} />
       ))}
+      <select
+        data-control="add-device"
+        value=""
+        title="Add a device at the end of the chain"
+        onChange={(event) => addDevice(props, event.currentTarget.value as (typeof ADDABLE)[number])}
+        style={{ ...small, background: themeVars.surface.raised, color: themeVars.content.primary, border: `1px solid ${themeVars.boundary.default}`, borderRadius: 3 }}
+      >
+        <option value="">+ Device</option>
+        {ADDABLE.map((plugin) => (
+          <option key={plugin} value={plugin}>
+            {plugin}
+          </option>
+        ))}
+      </select>
     </div>
+  );
+}
+
+/** Append `plugin` after the channel's last device (so before its sends), or into an empty channel. */
+function addDevice(props: Context & { readonly track: PieceTrack | null }, plugin: (typeof ADDABLE)[number]): void {
+  if (!ADDABLE.includes(plugin)) return;
+  const channel = props.track?.channel;
+  const own = (oid: string | null | undefined): oid is string => !!oid && (props.piece.oidCounts.get(oid) ?? 0) === 1;
+  const last = channel?.devices.at(-1);
+  if (!channel || !own(channel.oid) || (last && !own(last.oid))) {
+    props.onMessage(`${props.track?.name ?? 'This track'}'s channel is generated or missing, so a device has no single place to go.`);
+    return;
+  }
+  const snippet = `<Device plugin="${plugin}" params=${newDeviceParams(plugin)} />`;
+  props.onMessage(null);
+  const where = { index: props.index, pieceFile: props.resource.file, documentId: props.resource.documentId };
+  (last?.oid ? createElement(`Add ${plugin}`, last.oid, 'after', snippet, where, props.onMessage) : createElement(`Add ${plugin}`, channel.oid, 'child', snippet, where, props.onMessage)).catch(
+    (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
   );
 }
 

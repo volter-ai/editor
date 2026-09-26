@@ -12,6 +12,7 @@
  *   drag a marker           moves it by whole bars
  *   double-click a marker   renames it in place (Enter writes, Escape leaves it)
  *   Delete on a marker      takes it out
+ *   + Track                 a new instrument track before the effect and master tracks
  *   the Tempo row           the transport's tempo lane (`<Points target="tempo">`), edited as a
  *                           clip's automation lane is; a piece without one gets a button adding it
  *
@@ -27,7 +28,7 @@ import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type Mous
 import ts from 'typescript';
 import { AutomationLane, LANE_H as TEMPO_H } from './AutomationLane';
 import type { EngineState } from './preview-engine';
-import { applySource, readSource, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
+import { applySource, createElement, readSource, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
 import { applyEdits, elementAt, indentOf, literalProp, parseSource, shiftClipEdits, SourceRefusal, type SourceElement } from './source-notes';
 
 const HEADER_W = 190;
@@ -364,12 +365,8 @@ export function Arranger(props: {
     const before = track.clips.filter((clip) => clip.time <= bar * beatsPerBar && own(clip.oid)).at(-1);
     const after = before?.oid ?? (own(track.channel?.oid ?? null) ? track.channel!.oid : null);
     writes.onMessage(null);
-    (after ? writeStruct(after, 'create-sibling', snippet) : writeStruct(track.oid, 'create', snippet)).then(
-      (write) => {
-        if (write) recordStructWrite('Add Clip', write, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage);
-      },
-      say,
-    );
+    const where = { index: writes.index, pieceFile: writes.file, documentId: writes.documentId };
+    (after ? createElement('Add Clip', after, 'after', snippet, where, writes.onMessage) : createElement('Add Clip', track.oid, 'child', snippet, where, writes.onMessage)).catch(say);
   };
 
   // MARKERS: `<Marker at name>`, children of the `<Project>`. The one selected (clicked last)
@@ -397,9 +394,7 @@ export function Arranger(props: {
       return;
     }
     writes.onMessage(null);
-    writeStruct(after, 'create-sibling', snippet).then((write) => {
-      if (write) recordStructWrite('Add Marker', write, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage);
-    }, say);
+    createElement('Add Marker', after, 'after', snippet, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage).catch(say);
   };
 
   const beginMarker = (marker: PieceMarker, event: ReactPointerEvent): void => {
@@ -481,6 +476,28 @@ export function Arranger(props: {
       const before = source.slice(0, close).trimEnd();
       return `${before}${newline}${indent}  ${lane}${newline}${indent}${source.slice(close)}`;
     }).catch(say);
+  };
+
+  // + TRACK: an instrument track on the bank the piece already plays, before the first effect or
+  // master track (Bitwig adds instrument tracks above the buses).
+  const addTrack = (): void => {
+    container.current?.focus({ preventScroll: true });
+    const own = (oid: string | null): oid is string => oid !== null && (piece.oidCounts.get(oid) ?? 0) === 1;
+    const bank = piece.tracks.flatMap((track) => track.channel?.devices ?? []).find((device) => device.plugin === 'soundfont')?.params['bank'];
+    const names = new Set(piece.tracks.map((track) => track.name));
+    let number = piece.tracks.length + 1;
+    while (names.has(`Track ${number}`)) number++;
+    const params = typeof bank === 'string' ? `{{ bank: ${JSON.stringify(bank)}, program: 0 }}` : '{{ program: 0 }}';
+    const snippet = `<Track name="Track ${number}"><Channel><Device plugin="soundfont" params=${params} /></Channel></Track>`;
+    const firstBus = piece.tracks.findIndex((track) => track.channel?.role === 'effect' || track.channel?.role === 'master');
+    const previous = firstBus < 0 ? piece.tracks.at(-1) : piece.tracks[firstBus - 1];
+    const after = previous ? previous.oid : (piece.markers.at(-1)?.oid ?? piece.transport.oid);
+    if (!own(after)) {
+      writes.onMessage('The element a new track would follow is generated, so the track has no single place to go.');
+      return;
+    }
+    writes.onMessage(typeof bank === 'string' ? null : 'No soundfont bank in this piece yet: the new track has no instrument until its device names one.');
+    createElement('Add Track', after, 'after', snippet, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage).catch(say);
   };
 
   const selected = piece.tracks.flatMap((track) => track.clips.map((clip) => ({ clip, track }))).find(({ clip }) => clip.id === props.selectedClip) ?? null;
@@ -584,6 +601,9 @@ export function Arranger(props: {
             <span style={{ ...small, color: track.channel?.solo ? themeVars.semantic.success : themeVars.content.muted }}>S</span>
           </div>
         ))}
+        <button type="button" data-control="add-track" onClick={addTrack} title="Add an instrument track" style={{ ...button, margin: 6, fontSize: 11 }}>
+          + Track
+        </button>
       </div>
       <div style={{ position: 'relative', width }} onPointerMove={moveClip} onPointerUp={endClip}>
         <div

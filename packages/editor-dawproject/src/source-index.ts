@@ -17,6 +17,8 @@ import {
   sourceMutationAttribution,
 } from '@volter/editor-sdk/kit/editor-session-attribution';
 
+import { elementAt, insertElement, parseSource } from './source-notes';
+
 export type SourceIndex = ReadonlyMap<string, OidEntry>;
 
 /** A value a gesture writes into an attribute: `at="9:2"`, `vel={0.6}`, `mute={true}`. */
@@ -334,3 +336,28 @@ export function recordStructWrite(
   });
 }
 
+
+/**
+ * Create one element: `snippet` as the next sibling of the element `oid` names (`after`) or as
+ * its last child (`child`), written as ONE whole-file edit and ONE undo entry. The file is read
+ * fresh and the element found at its index position, so it lands where the source puts it
+ * (`insertElement`): on its own line, inline beside inline siblings, a self-closing parent opened.
+ */
+export async function createElement(
+  label: string,
+  oid: string,
+  where: 'after' | 'child',
+  snippet: string,
+  at: { readonly index: SourceIndex; readonly pieceFile: string; readonly documentId: string | null },
+  onMessage: (message: string | null) => void,
+): Promise<void> {
+  const entry = at.index.get(oid);
+  if (!entry) throw new Error('The source index has not caught up with the piece yet; try again.');
+  const prevSource = await readSource(at.pieceFile);
+  const file = parseSource(prevSource, at.pieceFile);
+  const anchor = elementAt(file, entry.line, entry.col, entry.tag);
+  if (!anchor) throw new Error('The source index has not caught up with the piece yet; try again.');
+  const newSource = insertElement(prevSource, file, anchor, where, snippet);
+  if (!(await applySource(at.pieceFile, newSource, prevSource))) throw new Error(`${at.pieceFile} changed during “${label}”; try again.`);
+  recordStructWrite(label, { file: at.pieceFile, prevSource, newSource }, at, onMessage);
+}

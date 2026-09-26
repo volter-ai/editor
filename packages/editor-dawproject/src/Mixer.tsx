@@ -7,13 +7,14 @@
  * `<Send to="Hall" level={-12}>`), in the piece's own source, as one undoable edit; the
  * re-mounted piece sets the preview's levels in place (`LiveMix.apply`), so the change is heard as
  * it lands, reverb tails and all. A channel or send that the source generates, or whose value is
- * computed, refuses with the reason.
+ * computed, refuses with the reason. "+ Send" on an instrument strip adds a send at −12 dB to an
+ * effect bus it does not feed yet.
  */
 
 import type { Piece, PieceChannel, PieceSend, PieceTrack } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
-import { type Literal, setProps, setRefusal, type SourceIndex } from './source-index';
+import { createElement, type Literal, setProps, setRefusal, type SourceIndex } from './source-index';
 
 const STRIP_W = 84;
 const FADER_H = 120;
@@ -107,7 +108,7 @@ export function Mixer(props: {
   const order = (track: PieceTrack): number => ({ regular: 0, effect: 1, master: 2 })[track.channel?.role ?? 'regular'];
   const strips = piece.tracks.filter((track) => track.channel).sort((a, b) => order(a) - order(b));
   return (
-    <div style={{ display: 'flex', height: '100%', overflowX: 'auto', background: themeVars.surface.panel }}>
+    <div tabIndex={-1} style={{ outline: 'none', display: 'flex', height: '100%', overflowX: 'auto', background: themeVars.surface.panel }}>
       {strips.map((track) => (
         <Strip key={track.id} track={track} channel={track.channel!} {...props} />
       ))}
@@ -153,6 +154,27 @@ function Strip(props: {
     (start, dx) => Math.max(-1, Math.min(1, Math.round((start + dx / 60) * 100) / 100)),
     (value) => set('Set Pan', 'pan', value),
   );
+  // The first effect bus this strip does not send to yet: where "+ Send" goes.
+  const freeBus = piece.tracks.find((candidate) => candidate.channel?.role === 'effect' && !channel.sends.some((send) => send.to === candidate.name));
+  const addSend = (event: { readonly currentTarget: Element }): void => {
+    if (!freeBus) return;
+    // The button goes once the strip feeds every bus: focus moves to the mixer first, or it would
+    // fall to the page and the workbench's Undo would no longer know which document it is in.
+    (event.currentTarget.closest('[tabindex]') as HTMLElement | null)?.focus({ preventScroll: true });
+    const own = (oid: string | null | undefined): oid is string => !!oid && (piece.oidCounts.get(oid) ?? 0) === 1;
+    const last = channel.sends.at(-1);
+    if (!own(channel.oid) || (last && !own(last.oid))) {
+      props.onMessage(`${track.name}'s channel is generated, so a send has no single place to go.`);
+      return;
+    }
+    const snippet = `<Send to=${JSON.stringify(freeBus.name)} level={-12} />`;
+    props.onMessage(null);
+    const where = { index, pieceFile: props.resource.file, documentId: props.resource.documentId };
+    const label = `Add Send to ${freeBus.name}`;
+    (last?.oid ? createElement(label, last.oid, 'after', snippet, where, props.onMessage) : createElement(label, channel.oid, 'child', snippet, where, props.onMessage)).catch(
+      (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
+    );
+  };
   const color = props.colorOf(track);
   const volumeRefusal = refusal('volume');
   const panRefusal = refusal('pan');
@@ -184,6 +206,11 @@ function Strip(props: {
       {channel.sends.map((send) => (
         <SendControl key={`${send.to}:${send.pre}`} send={send} {...props} />
       ))}
+      {channel.role === 'regular' && freeBus ? (
+        <button type="button" data-control="add-send" onClick={addSend} title={`Send to ${freeBus.name}`} style={{ ...button(false, ''), flex: 'none' }}>
+          + Send
+        </button>
+      ) : null}
       <div
         data-control="pan"
         {...pan.handlers}

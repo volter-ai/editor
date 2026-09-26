@@ -306,3 +306,32 @@ export function rewriteNotes(
   }
   return next;
 }
+
+/**
+ * `snippet` put into `source` as `anchor`'s next sibling (`after`) or its last child (`child`):
+ * on a line of its own at the anchor's indentation (a child one level in, or at its siblings'),
+ * or inline where the anchor is written on one line with other code; a self-closing parent opens
+ * to hold it.
+ */
+export function insertElement(source: string, file: ts.SourceFile, anchor: SourceElement, where: 'after' | 'child', snippet: string): string {
+  const newline = source.includes('\r\n') ? '\r\n' : '\n';
+  const indent = indentOf(source, file, anchor);
+  const lineEnd = source.indexOf('\n', anchor.end);
+  const alone = (text: string): boolean => text.trim() === '';
+  if (where === 'after') {
+    const rest = source.slice(anchor.end, lineEnd < 0 ? source.length : lineEnd);
+    const at = anchor.end;
+    return alone(rest) ? `${source.slice(0, at)}${newline}${indent}${snippet}${source.slice(at)}` : `${source.slice(0, at)}${snippet}${source.slice(at)}`;
+  }
+  if (ts.isJsxSelfClosingElement(anchor)) {
+    const tag = anchor.tagName.getText(file);
+    const attributes = source.slice(anchor.tagName.end, anchor.end - 2).trimEnd();
+    return `${source.slice(0, anchor.getStart(file))}<${tag}${attributes}>${newline}${indent}  ${snippet}${newline}${indent}</${tag}>${source.slice(anchor.end)}`;
+  }
+  const close = anchor.closingElement.getStart(file);
+  const inner = source.slice(anchor.openingElement.end, close);
+  if (!inner.includes('\n')) return `${source.slice(0, close)}${snippet}${source.slice(close)}`;
+  const lastChild = [...anchor.children].reverse().find((child) => ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxExpression(child));
+  const childIndent = lastChild ? indentOf(source, file, lastChild) : `${indent}  `;
+  return `${source.slice(0, close).trimEnd()}${newline}${childIndent}${snippet}${newline}${indent}${source.slice(close)}`;
+}
