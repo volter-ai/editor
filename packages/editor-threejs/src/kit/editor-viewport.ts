@@ -1877,7 +1877,8 @@ export class EditorViewport {
   private applyKeymapNavigation(): void {
     const { orbit } = activeKeymapNavigation();
     this.orbitControls.mouseButtons = {
-      LEFT: this.orbitControls.mouseButtons.LEFT ?? (-1 as THREE.MOUSE),
+      // The left button selects; only an Alt-drag in progress orbits with it (`_onAltOrbitStart`).
+      LEFT: this._altDragOrbit ? THREE.MOUSE.ROTATE : (-1 as THREE.MOUSE),
       MIDDLE: orbit === 'middle' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
       RIGHT: orbit === 'middle' ? (-1 as THREE.MOUSE) : THREE.MOUSE.ROTATE,
     };
