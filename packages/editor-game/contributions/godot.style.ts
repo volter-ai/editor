@@ -31,12 +31,14 @@ export const style: StyleContribution = {
       large: '0 6px 18px rgba(0,0,0,0.5)',
     },
     stage: {
-      // Godot's `manipulator_gizmo_size` is 80, but its unit is not ours: the stage's px per
-      // gizmo unit is fitted, not transcribed. At 128 the rotation rings measure ~80 px in
-      // radius on a 1x capture, against ~85 px in `engine-reference/godot/tuto_3d5.png`.
-      gizmoSize: 128,
-      // The move arrows reach 1.6 ring radii with a head about half again three's
-      // (`tuto_3d5.png`: a 142 px tip against a 90 px ring, a 25 px head).
+      // The stage's ring radius in CSS px. Godot's gizmo unit is `manipulator_gizmo_size` (80)
+      // px on screen (`gizmo_scale = gizmo_size / dd`, `node_3d_editor_plugin.cpp`, at EDSCALE 1
+      // in a viewport at least 400 px tall) and its ring stands at `GIZMO_CIRCLE_SIZE` 1.1 of
+      // it: 88 px, as `engine-reference/godot/tuto_3d5.png`'s ~90 px ring.
+      gizmoSize: 88,
+      // The move arrows' tips stand at `GIZMO_ARROW_OFFSET` + `GIZMO_ARROW_SIZE` (1.4 + 0.35)
+      // units, 1.6 ring radii, with a head about half again three's (`tuto_3d5.png`: a 142 px
+      // tip against a 90 px ring, a 25 px head).
       gizmoArrowLength: 1.6,
       gizmoArrowHead: 1.5,
       // Its rotation rings are about twice three's thickness (`tuto_3d5.png`).

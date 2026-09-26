@@ -32,8 +32,9 @@ export const style: StyleContribution = {
     },
     stage: {
       // Unreal keeps its widget a constant size on screen; in `level-editor.png` the Move
-      // arrows reach 85 to 100 px from the centre sphere. Fitted, not transcribed.
-      gizmoSize: 128,
+      // arrows reach 85 to 100 px from the centre sphere. Fitted, not transcribed: the stage's
+      // ring radius is this many CSS px, so the 0.85 tip below stands at 94 px.
+      gizmoSize: 110,
       // The axis triad in the viewport's bottom-left corner (`level-editor.png`).
       navigationGizmo: 'triad',
       navigationCorner: 'bottom-left',
