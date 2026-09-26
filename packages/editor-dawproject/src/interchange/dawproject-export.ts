@@ -4,10 +4,12 @@
  * nouns, so the export is a transcription: `project.xml` and `metadata.xml` in a zip.
  *
  *   - `Transport`: `Tempo` (bpm) and `TimeSignature`;
- *   - `Structure`: a `Track` per track (content `notes`) with its `Channel` (role `regular`,
- *     volume as linear gain, pan normalized 0…1, mute, solo) routed to one master channel; its
- *     devices as generic `Device`s with their parameters (the soundfont's bank as the device's
- *     external `State` file, since no DAW has a SpessaSynth plugin to load);
+ *   - `Structure`: a `Track` per track with its `Channel` (its role: `regular`, an `effect` bus or
+ *     the `master`; volume as linear gain, pan normalized 0…1, mute, solo, its sends as `Sends` to
+ *     the bus channels they feed) routed to the master channel (the piece's own, else one made
+ *     for it); its devices as generic `Device`s with their parameters, the soundfont as the
+ *     instrument (its bank the device's external `State` file, since no DAW has a SpessaSynth
+ *     plugin to load), humanize as a note effect and every other device as an audio effect;
  *   - `Arrangement`: `Lanes` in beats, per track `Lanes` > `Clips` > `Clip` > `Lanes` holding the
  *     clip's `Notes` (times from the clip's start) and its controller lanes as `Points`
  *     (`channelController` / `pitchBend`); the tempo lane as `TempoAutomation`; markers.
@@ -64,18 +66,26 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
 
   out(1, '<Structure>');
   const trackIds = new Map<string, string>();
-  const masterId = 'master';
+  // Every channel's id first, so a send can name the bus it feeds wherever that bus is listed.
+  const channelIds = new Map<string, string>();
   for (const track of piece.tracks) {
-    const trackId = id();
-    trackIds.set(track.id, trackId);
+    trackIds.set(track.id, id());
+    channelIds.set(track.id, id());
+  }
+  const pieceMaster = piece.tracks.find((track) => track.channel?.role === 'master');
+  const masterId = pieceMaster ? channelIds.get(pieceMaster.id)! : 'master';
+  const busIds = new Map(piece.tracks.filter((track) => track.channel?.role === 'effect').map((track) => [track.name, channelIds.get(track.id)!]));
+  for (const track of piece.tracks) {
+    const trackId = trackIds.get(track.id)!;
     const channel = track.channel;
-    out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType: 'notes', loaded: true })}>`);
-    out(3, `<Channel${attrs({ id: id(), role: 'regular', audioChannels: 2, destination: masterId, solo: channel?.solo ?? false })}>`);
+    const role = channel?.role ?? 'regular';
+    out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType: role === 'regular' ? 'notes' : 'audio', loaded: true })}>`);
+    out(3, `<Channel${attrs({ id: channelIds.get(track.id), role, audioChannels: 2, destination: role === 'master' ? null : masterId, solo: channel?.solo ?? false })}>`);
     if (channel && channel.devices.length > 0) {
       out(4, '<Devices>');
       for (const device of channel.devices) {
-        const role = device.plugin === 'soundfont' ? 'instrument' : 'noteFX';
-        out(5, `<Device${attrs({ id: id(), name: device.name ?? device.plugin, deviceName: device.plugin, deviceRole: role, deviceVendor: 'Volter', loaded: false })}>`);
+        const deviceRole = device.plugin === 'soundfont' ? 'instrument' : device.plugin === 'humanize' ? 'noteFX' : 'audioFX';
+        out(5, `<Device${attrs({ id: id(), name: device.name ?? device.plugin, deviceName: device.plugin, deviceRole, deviceVendor: 'Volter', loaded: false })}>`);
         // Single numbers and switches are parameters; a list (an equaliser's bands) has no
         // generic-parameter form and is left to the device-specific elements.
         const numeric = Object.entries(device.params).filter(
@@ -98,17 +108,29 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     }
     out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: channel?.mute ?? false })}/>`);
     out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: beats(((channel?.pan ?? 0) + 1) / 2), min: 0, max: 1 })}/>`);
+    const sends = (channel?.sends ?? []).filter((send) => busIds.has(send.to));
+    if (sends.length > 0) {
+      out(4, '<Sends>');
+      for (const send of sends) {
+        out(5, `<Send${attrs({ id: id(), name: `Send to ${send.to}`, destination: busIds.get(send.to), type: send.pre ? 'pre' : 'post' })}>`);
+        out(6, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: beats(10 ** (send.level / 20)), min: 0, max: 2 })}/>`);
+        out(5, '</Send>');
+      }
+      out(4, '</Sends>');
+    }
     out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: beats(10 ** ((channel?.volume ?? 0) / 20)), min: 0, max: 2 })}/>`);
     out(3, '</Channel>');
     out(2, '</Track>');
   }
-  out(2, `<Track${attrs({ id: id(), name: 'Master', contentType: 'audio notes', loaded: true })}>`);
-  out(3, `<Channel${attrs({ id: masterId, role: 'master', audioChannels: 2 })}>`);
-  out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: false })}/>`);
-  out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: 0.5, min: 0, max: 1 })}/>`);
-  out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: 1, min: 0, max: 2 })}/>`);
-  out(3, '</Channel>');
-  out(2, '</Track>');
+  if (!pieceMaster) {
+    out(2, `<Track${attrs({ id: id(), name: 'Master', contentType: 'audio notes', loaded: true })}>`);
+    out(3, `<Channel${attrs({ id: masterId, role: 'master', audioChannels: 2 })}>`);
+    out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: false })}/>`);
+    out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: 0.5, min: 0, max: 1 })}/>`);
+    out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: 1, min: 0, max: 2 })}/>`);
+    out(3, '</Channel>');
+    out(2, '</Track>');
+  }
   out(1, '</Structure>');
 
   const lane = (depth: number, points: PiecePoints, midiChannel: number, origin: number): void => {
@@ -180,8 +202,13 @@ export function metadataXml(options: DawprojectOptions): string {
 
 /** The `.dawproject` file: a zip of `project.xml` and `metadata.xml`. */
 export function pieceToDawproject(piece: Piece, options: DawprojectOptions): Uint8Array {
-  return zipSync({
-    'project.xml': strToU8(pieceToProjectXml(piece, options)),
-    'metadata.xml': strToU8(metadataXml(options)),
-  });
+  // A fixed timestamp: the zip otherwise stamps each entry with the time of export, so the same
+  // piece gave a different file every time.
+  return zipSync(
+    {
+      'project.xml': strToU8(pieceToProjectXml(piece, options)),
+      'metadata.xml': strToU8(metadataXml(options)),
+    },
+    { mtime: new Date(1980, 0, 1) },
+  );
 }
