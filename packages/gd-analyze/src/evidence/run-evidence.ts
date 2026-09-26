@@ -228,6 +228,7 @@ function encodeLike(native: Encoded, value: unknown): Encoded {
 function encodeTarget(value: unknown): Encoded {
   if (typeof value === 'boolean') return { t: 'bool', v: value };
   if (typeof value === 'number') return { t: 'float', v: floatBits(value) };
+  if (typeof value === 'string') return { t: 'String', v: value };
   if (typeof value === 'object' && value !== null) {
     const keys = Object.keys(value).sort().join(',');
     const record = value as Readonly<Record<string, unknown>>;
@@ -500,13 +501,16 @@ function measuredTolerance(
   return comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact';
 }
 
+/** Comparators whose case carries a cited fact in place of a native run, compared exactly. */
+const FACT_COMPARATORS: ReadonlySet<GodotEvidenceComparator> = new Set(['web-platform-fact', 'render-mapping']);
+
 function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvidenceComparator): boolean {
   const native = bitsFloat(nativeHex);
   const target = bitsFloat(targetHex);
   if (Number.isNaN(native) || Number.isNaN(target)) {
     return Number.isNaN(native) && Number.isNaN(target);
   }
-  if (comparator === 'exact') return nativeHex === targetHex;
+  if (comparator === 'exact' || FACT_COMPARATORS.has(comparator)) return nativeHex === targetHex;
   if (comparator === 'platform-libm') return float64UlpDistance(native, target) <= 1n;
   if (Math.fround(native) !== native || Math.fround(target) !== target) return false;
   if (comparator === 'float32-geometry') return Math.abs(native - target) <= 2 ** -20 * Math.max(1, Math.abs(native));
@@ -890,21 +894,36 @@ async function runCompatEvidence(
     throw new Error('evidence case ids are not unique');
   }
 
+  for (const entry of evidence.cases) {
+    if (FACT_COMPARATORS.has(entry.comparator) !== (entry.fact !== undefined)) {
+      throw new Error(`${entry.id}: a ${entry.comparator} case ${entry.fact === undefined ? 'needs' : 'takes no'} cited fact`);
+    }
+  }
+  // A cited fact stands in for the native run of its case; every other case runs in the binary.
+  const probed = evidence.cases.filter((entry) => entry.fact === undefined);
   const temp = mkdtempSync(path.join(tmpdir(), 'gd-analyze-evidence-'));
-  let nativeRows: Row[];
+  let probedRows: Row[] = [];
   try {
     writeFileSync(path.join(temp, 'project.godot'), PROJECT_SOURCE);
     writeFileSync(path.join(temp, 'main.tscn'), MAIN_SCENE);
-    nativeRows = runNativeProbe(
-      officialBinary,
-      temp,
-      evidence.kind === 'node' ? nodeProbeSource(evidence.cases, evidence.probeHelpers) : compatProbeSource(evidence.cases),
-      evidence.cases.length,
-      evidence.kind === 'node' ? ['--fixed-fps', '60'] : [],
-    );
+    if (probed.length > 0) {
+      probedRows = runNativeProbe(
+        officialBinary,
+        temp,
+        evidence.kind === 'node' ? nodeProbeSource(probed, evidence.probeHelpers) : compatProbeSource(probed),
+        probed.length,
+        evidence.kind === 'node' ? ['--fixed-fps', '60'] : [],
+      );
+    }
   } finally {
     rmSync(temp, { recursive: true, force: true });
   }
+  const probedById = new Map(probedRows.map((row) => [row[0], row] as const));
+  const nativeRows: Row[] = evidence.cases.map((entry) =>
+    entry.fact === undefined
+      ? (probedById.get(entry.id) as Row)
+      : [entry.id, encodeTarget(entry.fact.value)],
+  );
   const targetRows: Row[] = evidence.cases.map((entry, index) => {
     const native = nativeRows[index];
     const value = entry.target();
@@ -944,6 +963,7 @@ async function runCompatEvidence(
     symbol: entry.symbol,
     gdscript: entry.gdscript,
     comparator: entry.comparator,
+    ...(entry.fact === undefined ? {} : { fact: entry.fact }),
   });
   const bindings: GodotBindingEntry[] = [];
   const claims: SemanticClaimRecord[] = [];
@@ -977,7 +997,9 @@ async function runCompatEvidence(
       { file: compat.sourceFile, symbol: `${symbol.owner}.${symbol.member}`, line: compat.sourceLine },
       {
         inputSha256: sha256(JSON.stringify(symbolCases.map(caseInput))),
-        callsite: `res://probe.gd _init() ${symbolCases.map((entry) => entry.id).join(' ')}`,
+        callsite: symbolCases.every((entry) => entry.fact !== undefined)
+          ? `cited ${[...new Set(symbolCases.map((entry) => `${entry.fact?.source.file}:${String(entry.fact?.source.line)}`))].join(' ')}`
+          : `res://probe.gd _init() ${symbolCases.map((entry) => entry.id).join(' ')}`,
         observed: sha256(JSON.stringify(indexes.map((index) => nativeRows[index]))),
       },
       {

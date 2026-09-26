@@ -50,8 +50,26 @@ export interface GodotEvidenceSymbol {
  * result whose formula is transcribed but whose operand order Godot takes from a construction the
  * compat module names as a bounded deviation (which corner of a convex hull face Godot lists
  * first); never where Godot's operand order is transcribed. The claim records the measured maximum.
+ * `web-platform-fact`: the value Godot's web export gives where it differs from the native binary's
+ * platform (the rendering method): the case's `fact`, cited to the web platform's code path, stands
+ * in for the native run, and the target must equal it exactly.
+ * `render-mapping`: a renderer setting the target maps a Godot rasterizer state to, as the case's
+ * `fact` cites (the Godot kernel and the library setting chosen for it); the target must produce
+ * exactly that setting. What it looks like is judged visually, not by this comparator.
  */
-export type GodotEvidenceComparator = 'exact' | 'float32-ulp' | 'platform-libm' | 'float32-geometry';
+export type GodotEvidenceComparator =
+  | 'exact'
+  | 'float32-ulp'
+  | 'platform-libm'
+  | 'float32-geometry'
+  | 'web-platform-fact'
+  | 'render-mapping';
+
+/** A cited value that stands in for the native run of a `web-platform-fact` or `render-mapping` case. */
+export interface GodotEvidenceFact {
+  readonly value: unknown;
+  readonly source: { readonly file: string; readonly symbol: string; readonly line: number };
+}
 
 export interface GodotEvidenceCase {
   readonly id: string;
@@ -64,6 +82,8 @@ export interface GodotEvidenceCase {
   /** The same inputs through the compat export. */
   readonly target: () => unknown;
   readonly comparator: GodotEvidenceComparator;
+  /** For a `web-platform-fact` or `render-mapping` case, the cited value in place of a native run. */
+  readonly fact?: GodotEvidenceFact;
 }
 
 export interface GodotEvidenceCaseFile {
