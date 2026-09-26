@@ -197,15 +197,17 @@ const FACING_Y = new WeakSet<object>();
 /**
  * Turns three's plane (in XY, facing +Z) to face +Y as Godot's `PlaneMesh` does by default
  * (`ORIENTATION_FACE_Y`, `primitive_meshes.cpp`): a rotation of -90 degrees about X, applied
- * once to a geometry however often R3F reports its update.
+ * once to a geometry however often R3F reports its update; the geometry is returned.
  *
  * @godot PlaneMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:1467
  */
-export function godot_plane_mesh_face_y(geometry: { rotateX(angle: number): unknown }): void {
-  if (FACING_Y.has(geometry)) return;
-  FACING_Y.add(geometry);
-  geometry.rotateX(-Math.PI / 2);
+export function godot_plane_mesh_face_y<Geometry extends { rotateX(angle: number): unknown }>(geometry: Geometry): Geometry {
+  if (!FACING_Y.has(geometry)) {
+    FACING_Y.add(geometry);
+    geometry.rotateX(-Math.PI / 2);
+  }
+  return geometry;
 }
 
 const FACING_X = new WeakSet<object>();
@@ -213,13 +215,15 @@ const FACING_X = new WeakSet<object>();
 /**
  * Turns three's plane (in XY, facing +Z) to face +X as Godot's `ORIENTATION_FACE_X` plane does
  * (`primitive_meshes.cpp:1465`: its width along Z, its height along Y): a rotation of 90 degrees
- * about Y, applied once to a geometry however often R3F reports its update.
+ * about Y, applied once to a geometry however often R3F reports its update; the geometry is returned.
  *
  * @godot PlaneMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:1465
  */
-export function godot_plane_mesh_face_x(geometry: { rotateY(angle: number): unknown }): void {
-  if (FACING_X.has(geometry)) return;
-  FACING_X.add(geometry);
-  geometry.rotateY(Math.PI / 2);
+export function godot_plane_mesh_face_x<Geometry extends { rotateY(angle: number): unknown }>(geometry: Geometry): Geometry {
+  if (!FACING_X.has(geometry)) {
+    FACING_X.add(geometry);
+    geometry.rotateY(Math.PI / 2);
+  }
+  return geometry;
 }

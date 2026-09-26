@@ -102,3 +102,34 @@ export function godot_array_mesh_new(data: { readonly resource_name?: string; re
   godot_mesh_register(mesh, () => mesh.surfaces.map((surface) => ({ geometry: geometryOf(surface), material: surface.material ?? null, arrays: () => arraysOf(surface) })));
   return mesh;
 }
+
+/** An ArrayMesh's data file as the translation writes it (three's conventions, `scene-families.ts`). */
+export interface GodotArrayMeshData {
+  readonly position: readonly number[];
+  readonly normal?: readonly number[];
+  readonly tangent?: readonly number[];
+  readonly color?: readonly number[];
+  readonly uv?: readonly number[];
+  readonly uv1?: readonly number[];
+  readonly index: readonly number[];
+  readonly groups: readonly { readonly start: number; readonly count: number; readonly materialIndex: number }[];
+}
+
+/**
+ * The geometry a scene shares between the nodes that draw one ArrayMesh: three's geometry of its
+ * data file, a group per surface.
+ *
+ * @godot ArrayMesh (protocol)
+ * @source scene/resources/mesh.cpp:1842
+ */
+export function godot_array_mesh_geometry(data: GodotArrayMeshData): BufferGeometry {
+  const geometry = new BufferGeometry();
+  const sizes = [['position', 3], ['normal', 3], ['tangent', 4], ['color', 4], ['uv', 2], ['uv1', 2]] as const;
+  for (const [name, size] of sizes) {
+    const values = data[name];
+    if (values !== undefined) geometry.setAttribute(name, new BufferAttribute(Float32Array.from(values), size));
+  }
+  geometry.setIndex(new BufferAttribute(Uint32Array.from(data.index), 1));
+  for (const group of data.groups) geometry.addGroup(group.start, group.count, group.materialIndex);
+  return geometry;
+}

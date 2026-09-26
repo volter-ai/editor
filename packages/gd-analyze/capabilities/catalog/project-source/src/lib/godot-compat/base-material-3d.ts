@@ -37,6 +37,7 @@ import {
   MultiplyBlending,
   NoColorSpace,
   LinearSRGBColorSpace,
+  Color as ThreeColor,
   NormalBlending,
   SubtractiveBlending,
 } from 'three';
@@ -69,6 +70,8 @@ export interface BaseMaterial3D {
   flags: boolean[];
   textures: (Texture | null)[];
   texture_filter: number;
+  /** Drawn on three's own geometry (a scene's material): its maps' UV origin is three's. */
+  sceneUv?: boolean;
 }
 
 const THREE_MATERIAL = new WeakMap<BaseMaterial3D, Material>();
@@ -115,6 +118,8 @@ function srgbToLinear(value: number): number {
 }
 
 const MAPS = new WeakMap<Texture, Map<string, Texture>>();
+/** A sampled variant's texture resource. */
+const VARIANT_OF = new WeakMap<Texture, Texture>();
 
 /**
  * The albedo texture as the material samples it: one three texture per sampler state over the
@@ -132,6 +137,7 @@ function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY = f
     map = texture.clone();
     map.source = texture.source;
     variants.set(key, map);
+    VARIANT_OF.set(map, texture);
     // The variant is the same texture resource: its image is the texture's.
     godot_texture_2d_image(map, () => get_image(texture));
   }
@@ -164,6 +170,7 @@ export function godot_base_material_3d_scene_map(texture: Texture, filter: numbe
 /** The parameters onto a three material of the class the shading mode selects. */
 function apply(self: BaseMaterial3D, target: Material): void {
   const shaded = target as MeshStandardMaterial;
+  if (!((shaded.color as unknown) instanceof ThreeColor)) shaded.color = new ThreeColor();
   shaded.color.setRGB(
     srgbToLinear(self.albedo.r),
     srgbToLinear(self.albedo.g),
@@ -177,8 +184,9 @@ function apply(self: BaseMaterial3D, target: Material): void {
   target.side = FrontSide;
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
   (target as MeshStandardMaterial).map =
-    albedo === null ? null : sampledMap(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true);
+    albedo === null ? null : sampledMap(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true, self.sceneUv === true);
   if (target instanceof MeshStandardMaterial) {
+    if (!((target.emissive as unknown) instanceof ThreeColor)) target.emissive = new ThreeColor();
     target.metalness = self.metallic;
     target.roughness = self.roughness;
     if (self.features[FEATURE_EMISSION] === true) {
@@ -195,6 +203,61 @@ function apply(self: BaseMaterial3D, target: Material): void {
     target.emissiveIntensity = 1;
   }
   target.needsUpdate = true;
+}
+
+const OF_THREE = new WeakMap<Material, BaseMaterial3D>();
+
+/** A colour prop as three holds it (in Node, R3F may leave the literal it was given). */
+function threeColor(value: unknown): ThreeColor {
+  if (value instanceof ThreeColor) return value;
+  if (Array.isArray(value)) return new ThreeColor(value[0] as number, value[1] as number, value[2] as number);
+  if (typeof value === 'string') return new ThreeColor(value);
+  const c = value as { readonly r: number; readonly g: number; readonly b: number };
+  return new ThreeColor(c.r, c.g, c.b);
+}
+
+/**
+ * The material a scene's three material is (`<meshStandardMaterial>`, `<meshBasicMaterial>`): one
+ * Godot material per three material, so every node that shares it shares the Godot resource, its
+ * parameters read back from what the scene states (the albedo from the colour, the albedo texture
+ * from the map with its sampler, transparency, blending, shading, metallic, roughness, emission),
+ * its setters drawing onto that same three material.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source scene/resources/material.cpp:3908
+ */
+export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
+  const existing = OF_THREE.get(target);
+  if (existing !== undefined) return existing;
+  const self = godot_base_material_3d_initial();
+  const shaded = target as MeshStandardMaterial;
+  const srgb = threeColor(shaded.color).clone().convertLinearToSRGB();
+  self.transparency = target.transparent ? (target.alphaTest > 0 ? 2 : 1) : 0;
+  self.albedo = color(f32(srgb.r), f32(srgb.g), f32(srgb.b), self.transparency === 0 ? 1 : f32(target.opacity));
+  self.blend_mode = target.blending === AdditiveBlending ? 1 : target.blending === SubtractiveBlending ? 2 : target.blending === MultiplyBlending ? 3 : 0;
+  self.shading_mode = target instanceof MeshBasicMaterial || target.type === 'MeshBasicMaterial' ? 0 : 1;
+  if (self.shading_mode === 1) {
+    self.metallic = f32(shaded.metalness);
+    self.roughness = f32(shaded.roughness);
+    const emissive = threeColor(shaded.emissive);
+    if (emissive.r !== 0 || emissive.g !== 0 || emissive.b !== 0) {
+      const e = emissive.clone().convertLinearToSRGB();
+      self.features[FEATURE_EMISSION] = true;
+      self.emission = color(f32(e.r), f32(e.g), f32(e.b), 1);
+    }
+  }
+  const map = shaded.map ?? null;
+  if (map !== null) {
+    self.textures[TEXTURE_ALBEDO] = VARIANT_OF.get(map) ?? map;
+    const nearest = map.magFilter === NearestFilter;
+    const mipmapped = map.minFilter !== map.magFilter;
+    self.texture_filter = (nearest ? 0 : 1) + (mipmapped || (map.mipmaps?.length ?? 0) <= 1 ? 2 : 0);
+    self.flags[FLAG_USE_TEXTURE_REPEAT] = map.wrapS === RepeatWrapping;
+  }
+  self.sceneUv = true;
+  THREE_MATERIAL.set(self, target);
+  OF_THREE.set(target, self);
+  return self;
 }
 
 /**

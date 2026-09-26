@@ -16,7 +16,10 @@
  * `light-direction`), and the material colour's 8-bit quantization (`colour-quantization`). The
  * sun and camera state no scale (they draw with it removed, `disable_scale`): their global
  * transforms carry the authored basis's rounding as the measured difference, and the camera's
- * `get_scale` the rounding itself (`disabled-scale-omitted`). Exact as well: a space query down
+ * `get_scale` the rounding itself (`disabled-scale-omitted`). Two tiles share a quad and a
+ * material; the first's script paints the material and the second's reads the colour it painted,
+ * the scene holding one three material and one geometry for both (exact), drawn as the
+ * Compatibility shader's linear colour (`painted-colour`). Exact as well: a space query down
  * onto the floor finds the StaticBody3D the scene declares as a `@react-three/rapier` body, its
  * shape, and the hit.
  */
@@ -73,9 +76,18 @@ func _process(delta: float) -> void:
 \tif Input.is_action_pressed("ui_accept"):
 \t\tposition.y += delta
 `,
+  // Two tiles share one quad and one material; the first's script paints the material, which the
+  // second draws (a resource Godot shares is one object in the scene).
+  'paint.gd': `extends MeshInstance3D
+
+func _ready() -> void:
+\tvar m: StandardMaterial3D = get_surface_override_material(0)
+\tm.albedo_color = Color(0.1, 0.9, 0.3)
+`,
   'main.tscn': `[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://spin.gd" id="1"]
+[ext_resource type="Script" path="res://paint.gd" id="2"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_1"]
 size = Vector2(4, 4)
@@ -84,6 +96,11 @@ size = Vector2(4, 4)
 albedo_color = Color(0.8, 0.3, 0.2, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_1"]
+
+[sub_resource type="QuadMesh" id="Quad_1"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_2"]
+albedo_color = Color(0.5, 0.5, 0.5, 1)
 
 [sub_resource type="BoxShape3D" id="Box_1"]
 size = Vector3(4, 0.2, 4)
@@ -111,6 +128,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("SphereMesh_1")
 script = ExtResource("1")
 speed = 2.0
+
+[node name="TileA" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.5, 0)
+mesh = SubResource("Quad_1")
+surface_material_override/0 = SubResource("Mat_2")
+script = ExtResource("2")
+
+[node name="TileB" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.5, 0)
+mesh = SubResource("Quad_1")
+surface_material_override/0 = SubResource("Mat_2")
 `,
 };
 
@@ -121,6 +149,10 @@ var main: Node
 
 func _bits(value: float) -> String:
 \treturn PackedFloat64Array([value]).to_byte_array().hex_encode()
+
+# The Compatibility shader's srgb_to_linear (tonemap_inc.glsl:22).
+func _poly(c: float) -> float:
+\treturn c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878)
 
 func _f32(value: float) -> String:
 \treturn _bits(PackedFloat32Array([value])[0])
@@ -174,6 +206,7 @@ func _physics_process(_delta: float) -> bool:
 \tvar plane: PlaneMesh = main.get_node("Floor/Mesh").mesh
 \tvar albedo: Color = main.get_node("Floor/Mesh").get_surface_override_material(0).albedo_color
 \tvar box: BoxShape3D = main.get_node("Floor/Shape").shape
+\tvar painted: Color = main.get_node("TileB").get_surface_override_material(0).albedo_color
 \tvar exact := {
 \t\t"names": names,
 \t\t"ball": _tb(ball.global_transform),
@@ -184,6 +217,8 @@ func _physics_process(_delta: float) -> bool:
 \t\t"plane": [_f32(plane.size.x), _f32(plane.size.y), "face_y" if plane.orientation == PlaneMesh.FACE_Y else "other"],
 \t\t"collider": [_f32(box.size.x / 2), _f32(box.size.y / 2), _f32(box.size.z / 2), main.get_node("Floor").get_class()],
 \t\t"colour": _hex(albedo),
+\t\t"painted": [_f32(painted.r), _f32(painted.g), _f32(painted.b)],
+\t\t"shared": [main.get_node("TileA").get_surface_override_material(0) == main.get_node("TileB").get_surface_override_material(0), main.get_node("TileA").mesh == main.get_node("TileB").mesh],
 \t\t"floor_ray": _ray(ball.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(1, 3, 1), Vector3(1, -3, 1)))),
 \t}
 \tvar measured := {
@@ -192,6 +227,7 @@ func _physics_process(_delta: float) -> bool:
 \t\t"light": _v(-sun.global_transform.basis.z.normalized()),
 \t\t"camera_scale": _v(camera.scale),
 \t\t"albedo": [albedo.r, albedo.g, albedo.b],
+\t\t"painted": [_poly(painted.r), _poly(painted.g), _poly(painted.b)],
 \t}
 \tprint("WORLD " + JSON.stringify({"exact": exact, "measured": measured}))
 \treturn true
@@ -221,6 +257,8 @@ import { _roots, advance, createRoot, extend } from '@react-three/fiber';
 import World from './src/world';
 import * as N from './src/lib/godot-compat/node';
 import * as N3 from './src/lib/godot-compat/node-3d';
+import * as MI from './src/lib/godot-compat/mesh-instance-3d';
+import * as B from './src/lib/godot-compat/base-material-3d';
 import * as W3 from './src/lib/godot-compat/world-3d';
 import { intersect_ray } from './src/lib/godot-compat/physics-direct-space-state-3d';
 import { create as rayQuery } from './src/lib/godot-compat/physics-ray-query-parameters-3d';
@@ -283,6 +321,9 @@ const ball = find('Ball');
 const camera = find('Camera');
 const sun = find('Sun');
 const floorMesh = find('Floor/Mesh');
+const tileA = find('TileA');
+const tileB = find('TileB');
+const paintedColour = MI.get_surface_override_material(tileB, 0) === null ? null : B.get_albedo(MI.get_surface_override_material(tileB, 0));
 const shape = find('Floor/Shape');
 const sphere = ball.geometry.parameters;
 const plane = floorMesh.geometry.parameters;
@@ -322,6 +363,9 @@ state = {
     plane: [f32(plane.width), f32(plane.height), facing],
     collider: [...half, floorClass],
     colour: '#' + colour.getHexString(),
+    // The script painted the material both tiles draw: one three material, one geometry.
+    painted: paintedColour === null ? null : [f32(paintedColour.r), f32(paintedColour.g), f32(paintedColour.b)],
+    shared: [tileA.material === tileB.material && MI.get_surface_override_material(tileA, 0) === MI.get_surface_override_material(tileB, 0), tileA.geometry === tileB.geometry],
     // Compat's space query finds the floor body the JSX declares.
     floor_ray: (() => {
       const hit = intersect_ray(W3.get_direct_space_state(N3.get_world_3d(ball)), rayQuery(vector3(1, 3, 1), vector3(1, -3, 1)));
@@ -341,6 +385,8 @@ state = {
       return [d.x, d.y, d.z];
     })(),
     albedo: (() => { const c = colour.clone().convertLinearToSRGB(); return [c.r, c.g, c.b]; })(),
+    // What three draws the second tile with: the painted colour, linear.
+    painted: [tileB.material.color.r, tileB.material.color.g, tileB.material.color.b],
   },
 };
 await act(async () => { root.unmount(); });
@@ -371,6 +417,7 @@ interface WorldState {
     readonly light: readonly number[];
     readonly camera_scale: readonly number[];
     readonly albedo: readonly number[];
+    readonly painted: readonly number[];
   };
 }
 
@@ -435,6 +482,7 @@ export async function measureSceneIdiomaticProof(tools: GodotProofTools): Promis
       'colour-quantization': maxDifference(native.measured.albedo, target.measured.albedo),
       'light-direction': maxDifference(native.measured.light, target.measured.light),
       'disabled-scale-omitted': maxDifference(native.measured.camera_scale, target.measured.camera_scale),
+      'painted-colour': maxDifference(native.measured.painted, target.measured.painted),
     };
     const exactAgree = JSON.stringify(canonical(native.exact)) === JSON.stringify(canonical(target.exact));
     const agree =
@@ -442,7 +490,8 @@ export async function measureSceneIdiomaticProof(tools: GodotProofTools): Promis
       deviations['transform-decomposition'] <= TRANSFORM_TOLERANCE &&
       deviations['light-direction'] <= TRANSFORM_TOLERANCE &&
       deviations['disabled-scale-omitted'] <= SCALE_TOLERANCE &&
-      deviations['colour-quantization'] <= COLOUR_TOLERANCE;
+      deviations['colour-quantization'] <= COLOUR_TOLERANCE &&
+      deviations['painted-colour'] <= TRANSFORM_TOLERANCE;
     const comparison = JSON.stringify({
       exact: canonical(native.exact),
       tolerances: {
@@ -450,6 +499,7 @@ export async function measureSceneIdiomaticProof(tools: GodotProofTools): Promis
         'light-direction': TRANSFORM_TOLERANCE,
         'disabled-scale-omitted': SCALE_TOLERANCE,
         'colour-quantization': COLOUR_TOLERANCE,
+        'painted-colour': TRANSFORM_TOLERANCE,
       },
       agree,
     });

@@ -8,11 +8,12 @@
  * (`mesh.ts`, an `ArrayMesh`'s), shared by every instance of that resource, drawn as one geometry
  * with a group per surface; each surface's material is its override, else the mesh's own, else the
  * Compatibility renderer's default material (`rasterizer_scene_gles3.cpp:4624`: albedo 0.6,
- * roughness 0.8, metallic 0.2).
+ * roughness 0.8, metallic 0.2). A scene's `<mesh>` reads its surface materials back as its
+ * overrides (three does not tell an override from the mesh's own material).
  */
 
 import { BufferAttribute, BufferGeometry, type Material, type Mesh } from 'three';
-import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_three } from './base-material-3d';
+import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_of, godot_base_material_3d_three } from './base-material-3d';
 import { construct as color } from './color';
 import type { ArrayMesh } from './array-mesh';
 import { godot_mesh_surfaces, type GodotMeshSurface } from './mesh';
@@ -24,6 +25,8 @@ type MeshResource = PrimitiveMesh | ArrayMesh;
 interface MeshInstanceState {
   mesh: MeshResource | null;
   overrides: (BaseMaterial3D | null)[];
+  /** A scene's `<mesh>`: its geometry is the scene's, its surface materials the scene's materials. */
+  scene?: true;
 }
 
 const STATE = new WeakMap<Mesh, MeshInstanceState>();
@@ -68,13 +71,25 @@ function defaultMaterial(): Material {
 function stateOf(self: Mesh): MeshInstanceState {
   let state = STATE.get(self);
   if (state === undefined) {
-    state = { mesh: null, overrides: [] };
+    // A mesh the scene's JSX states reads its surface materials back as the node's overrides: one
+    // Godot material per three material, so nodes sharing one share it.
+    const materials = self.material === undefined ? [] : Array.isArray(self.material) ? self.material : [self.material];
+    const scene = self.geometry !== undefined && Object.keys(self.geometry.attributes).length > 0;
+    state = scene
+      ? { mesh: null, overrides: materials.map((material) => godot_base_material_3d_of(material)), scene: true }
+      : { mesh: null, overrides: [] };
     STATE.set(self, state);
   }
   return state;
 }
 
 function draw(self: Mesh, state: MeshInstanceState): void {
+  if (state.scene === true && state.mesh === null) {
+    const current = Array.isArray(self.material) ? self.material : [self.material];
+    const materials = state.overrides.map((material, surface) => (material === null ? (current[surface] as Material) : godot_base_material_3d_three(material)));
+    self.material = materials.length === 1 ? (materials[0] as Material) : materials;
+    return;
+  }
   if (state.mesh === null) {
     self.visible = false;
     return;

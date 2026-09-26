@@ -131,6 +131,10 @@ export interface FamilyEmission {
   readonly data: Map<string, string>;
   /** Local names in use in the component and its module. */
   readonly taken: Set<string>;
+  /** How many of the scene's nodes draw each mesh and material resource (`familyCountUses`). */
+  readonly uses: Map<string, number>;
+  /** Shared resources' locals, by resource key. */
+  readonly shared: Map<string, string>;
 }
 
 export function familyEmission(
@@ -152,6 +156,8 @@ export function familyEmission(
     hookLocals: new Map(),
     data: new Map(),
     taken: new Set(),
+    uses: new Map(),
+    shared: new Map(),
   };
 }
 
@@ -234,6 +240,19 @@ function textureHook(
   return local;
 }
 
+/** An ArrayMesh's data file, imported once: its local. */
+function arrayMeshData(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const file = godotArrayMeshDataPath(emission.targetPath, resource.key);
+  const specifier = moduleSpecifier(emission.targetPath, file);
+  let local = emission.data.get(specifier);
+  if (local === undefined) {
+    const name = resource.mesh?.resourceName ?? '';
+    local = freshLocal(emission, `${name === '' ? path.posix.basename(file).replace(/\..*$/u, '') : name} mesh`);
+    emission.data.set(specifier, local);
+  }
+  return local;
+}
+
 /** A primitive or array mesh resource as three's geometry element. */
 function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): TargetTsJsxChild {
   const set = resource.setters;
@@ -285,14 +304,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
     case 'ArrayMesh': {
       const mesh = resource.mesh;
       if (mesh === undefined) throw new Error(`${resource.key}: an ArrayMesh without surfaces`);
-      const file = godotArrayMeshDataPath(emission.targetPath, resource.key);
-      const specifier = moduleSpecifier(emission.targetPath, file);
-      let local = emission.data.get(specifier);
-      if (local === undefined) {
-        local = freshLocal(emission, `${mesh.resourceName === '' ? path.posix.basename(file).replace(/\..*$/u, '') : mesh.resourceName} mesh`);
-        emission.data.set(specifier, local);
-      }
-      const data = local;
+      const data = arrayMeshData(emission, resource);
       const first = mesh.surfaces[0];
       const attributeElement = (name: string, attach: string, size: number, array: 'Float32Array' | 'Uint32Array') =>
         element('bufferAttribute', [
@@ -522,6 +534,123 @@ function shadowMapping(directional: boolean, param: (index: number, initial: num
   return [attribute('shadow-bias', literal(-param(15, 0.1) / (range - 0.5))), attribute('shadow-mapSize', numbers([1024, 1024]))];
 }
 
+/** A MeshInstance3D's mesh and, per surface, the material it draws (its override, else the mesh's own). */
+function meshSurfaces(emission: FamilyEmission, node: DirectGodotSceneNodePlan): {
+  readonly mesh: TargetGodotSceneResourcePlan | undefined;
+  readonly materials: readonly (TargetGodotSceneResourcePlan | undefined)[];
+} {
+  const mesh = resourceOf(emission, setterValue(node.setters, 'set_mesh'));
+  if (mesh === undefined) return { mesh, materials: [] };
+  const surfaces = mesh.mesh?.surfaces.length ?? 1;
+  const own = (surface: number) => {
+    if (mesh.mesh === undefined) return resourceOf(emission, setterValue(mesh.setters, 'set_material'));
+    const key = mesh.mesh.surfaces[surface]?.material;
+    return key === undefined ? undefined : emission.resources.get(key);
+  };
+  return {
+    mesh,
+    materials: Array.from({ length: surfaces }, (_, surface) => resourceOf(emission, setterValue(node.setters, 'set_surface_override_material', surface)) ?? own(surface)),
+  };
+}
+
+/**
+ * Counts, over the scene's nodes, the drawers of each mesh and material resource: one Godot shares
+ * between nodes is one three object the scene declares once (`sharedGeometry`, `sharedMaterial`), so
+ * a script that changes it changes every node that draws it.
+ */
+export function familyCountUses(emission: FamilyEmission, root: DirectGodotSceneNodePlan): void {
+  const walk = (node: DirectGodotSceneNodePlan): void => {
+    if (node.classes[0] === 'MeshInstance3D') {
+      const { mesh, materials } = meshSurfaces(emission, node);
+      for (const resource of [mesh, ...materials]) {
+        if (resource !== undefined) emission.uses.set(resource.key, (emission.uses.get(resource.key) ?? 0) + 1);
+      }
+    }
+    for (const child of [...node.children, ...(node.placements ?? []).map((placed) => placed.node)]) walk(child);
+  };
+  walk(root);
+}
+
+function sharedResource(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): boolean {
+  return (emission.uses.get(resource.key) ?? 0) > 1;
+}
+
+/** A local declared once for a shared resource: at module level, or in the component (`useMemo`) over the loaded resources it holds. */
+function declareShared(emission: FamilyEmission, key: string, base: string, made: TargetTsExpression, uses: readonly string[]): string {
+  const existing = emission.shared.get(key);
+  if (existing !== undefined) return existing;
+  const local = freshLocal(emission, base);
+  emission.shared.set(key, local);
+  if (uses.length === 0) {
+    emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+    return local;
+  }
+  emission.loaded.add(local);
+  emission.react.add('useMemo');
+  emission.hooks.push({
+    kind: 'variable-statement',
+    declaration: 'const',
+    name: local,
+    initializer: {
+      kind: 'call-expression',
+      callee: identifier('useMemo'),
+      arguments: [
+        { kind: 'arrow-expression', parameters: [], body: made },
+        { kind: 'array-expression', elements: uses.map(identifier) },
+      ],
+    },
+  });
+  return local;
+}
+
+/** A resource key's local stem: `sub:StandardMaterial3D_abcde` is `standardMaterial3D`. */
+function stemOf(key: string): string {
+  return key.replace(/^.*[:/#]/u, '').replace(/\.[^.]+$/u, '').replace(/_[A-Za-z0-9]{5}$/u, '');
+}
+
+/** A shared mesh resource: three's geometry made once with the element's own arguments. */
+function sharedGeometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const made = ((): TargetTsExpression => {
+    if (resource.className === 'ArrayMesh') {
+      const data = arrayMeshData(emission, resource);
+      return { kind: 'call-expression', callee: identifier(useCompat(emission, 'array-mesh', 'godot_array_mesh_geometry')), arguments: [identifier(data)] };
+    }
+    const child = geometry(emission, resource) as TargetTsJsxChild & { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[] };
+    const args = child.attributes.find((entry) => entry.kind === 'jsx-expression-attribute' && entry.name === 'args');
+    const turn = child.attributes.find((entry) => entry.kind === 'jsx-expression-attribute' && entry.name === 'onUpdate');
+    const three = child.tag.charAt(0).toUpperCase() + child.tag.slice(1);
+    emission.three.add(three);
+    const construct: TargetTsExpression = {
+      kind: 'new-expression',
+      callee: identifier(three),
+      arguments: args?.kind === 'jsx-expression-attribute' && args.value.kind === 'array-expression' ? args.value.elements : [],
+    };
+    return turn?.kind === 'jsx-expression-attribute' ? { kind: 'call-expression', callee: turn.value, arguments: [construct] } : construct;
+  })();
+  return declareShared(emission, resource.key, `${stemOf(resource.key)} geometry`, made, []);
+}
+
+/** A shared material: three's material made once from the element's own props. */
+function sharedMaterial(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const child = material(emission, resource, []) as TargetTsJsxChild & { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[] };
+  const three = child.tag.charAt(0).toUpperCase() + child.tag.slice(1);
+  emission.three.add(three);
+  const uses: string[] = [];
+  const properties = child.attributes.flatMap((entry) => {
+    if (entry.kind !== 'jsx-expression-attribute') return [];
+    let value = entry.value;
+    if (value.kind === 'identifier-expression' && emission.loaded.has(value.name)) uses.push(value.name);
+    // A colour's linear components are three's `Color`.
+    if ((entry.name === 'color' || entry.name === 'emissive') && value.kind === 'array-expression') {
+      emission.three.add('Color');
+      value = { kind: 'new-expression', callee: identifier('Color'), arguments: value.elements };
+    }
+    return [{ key: entry.name, value }];
+  });
+  const made: TargetTsExpression = { kind: 'new-expression', callee: identifier(three), arguments: properties.length === 0 ? [] : [{ kind: 'object-expression', properties }] };
+  return declareShared(emission, resource.key, stemOf(resource.key), made, uses);
+}
+
 /** A carried node's element (tag, family props and resource children), or undefined for another class. */
 export function familyElement(
   emission: FamilyEmission,
@@ -542,32 +671,31 @@ export function familyElement(
   switch (className) {
     case 'MeshInstance3D': {
       const set = node.setters;
-      const mesh = resourceOf(emission, setterValue(set, 'set_mesh'));
       const layers = numberValue(setterValue(set, 'set_layer_mask')) ?? 1;
       // Any setting but `SHADOW_CASTING_SETTING_OFF` casts (`geometry-instance-3d.ts`).
       const castShadow = (numberValue(setterValue(set, 'set_cast_shadows_setting')) ?? 1) !== 0;
-      const attributes = [
+      const attributes: TargetTsJsxAttribute[] = [
         ...(castShadow ? [flag('castShadow')] : []),
         flag('receiveShadow'),
         ...(layers === 1 ? [] : [attribute('layers-mask', literal(layers))]),
       ];
+      const { mesh, materials } = meshSurfaces(emission, node);
       if (mesh === undefined) return { tag: 'mesh', attributes, children: [] };
-      const surfaces = mesh.mesh?.surfaces.length ?? 1;
-      const own = (surface: number) =>
-        mesh.mesh === undefined
-          ? resourceOf(emission, setterValue(mesh.setters, 'set_material'))
-          : (() => {
-              const key = mesh.mesh.surfaces[surface]?.material;
-              return key === undefined ? undefined : emission.resources.get(key);
-            })();
-      const materials = Array.from({ length: surfaces }, (_, surface) =>
-        material(
-          emission,
-          resourceOf(emission, setterValue(set, 'set_surface_override_material', surface)) ?? own(surface),
-          surfaces === 1 ? [] : [{ kind: 'jsx-string-attribute', name: 'attach', value: `material-${String(surface)}` }],
-        ),
-      );
-      return { tag: 'mesh', attributes, children: [geometry(emission, mesh), ...materials] };
+      const children: TargetTsJsxChild[] = [];
+      // A resource shared with another node is the one object the scene declares, by reference.
+      if (sharedResource(emission, mesh)) attributes.push(attribute('geometry', identifier(sharedGeometry(emission, mesh))));
+      else children.push(geometry(emission, mesh));
+      materials.forEach((resource, surface) => {
+        const attach = materials.length === 1 ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'attach', value: `material-${String(surface)}` }];
+        if (resource !== undefined && sharedResource(emission, resource)) {
+          const local = identifier(sharedMaterial(emission, resource));
+          if (materials.length === 1) attributes.push(attribute('material', local));
+          else children.push(element('primitive', [attribute('object', local), ...attach]));
+        } else {
+          children.push(material(emission, resource, attach));
+        }
+      });
+      return { tag: 'mesh', attributes, children };
     }
     case 'DirectionalLight3D':
     case 'OmniLight3D': {

@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { idiomaticSceneSourceFile, idiomaticTransformAttributes } from './idiomatic-scene-syntax';
-import { type FamilyEmission, familyElement, familyEmission, familyImports } from './scene-family-elements';
+import { type FamilyEmission, familyCountUses, familyElement, familyEmission, familyImports } from './scene-family-elements';
 import { godotFamilyCarriesNode } from '../data/scene-families';
 import type {
   TargetTsExpression,
@@ -622,6 +622,7 @@ function sceneSourceFile(
   const constructed = constructedResources(scene);
   const resourceNames = new Map(constructed.map((resource, index) => [resource.key, `$resource_${String(index)}`] as const));
   const family = familyEmission(scene.targetPath, scene.resources);
+  familyCountUses(family, scene.root);
   const emission: SceneEmission = {
     family,
     resourceNames,

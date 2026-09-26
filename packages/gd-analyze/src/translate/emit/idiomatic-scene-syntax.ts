@@ -36,6 +36,7 @@ import {
   element,
   type FamilyEmission,
   familyElement,
+  familyCountUses,
   familyEmission,
   familyImports,
   familyThreeType,
@@ -540,6 +541,7 @@ export function idiomaticSceneSourceFile(
   // main scene's first.
   const current = cameras.authored ?? (scene.sourceResPath === project.mainScene ? cameras.first : undefined);
   const family = familyEmission(scene.targetPath, scene.resources, current);
+  familyCountUses(family, scene.root);
   const emission: Emission = {
     scene,
     family,
