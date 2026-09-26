@@ -367,6 +367,8 @@ rule('assign-convert-int-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion',
 // error the target does not raise.)
 rule('assign-convert-variant-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion', [FLOAT, 'VARIANT:Variant'], 'VARIANT:Variant', { kind: 'assignment', operator: '=' }, CONVERSION);
 rule('variable-convert-int-float', 'VARIABLE', 'variable:declared:instance:conversion', [INT, FLOAT], '', structural('variable'), CONVERSION);
+// A bare `return` leaves the function with no value (`OPCODE_RETURN` of nil in a void function).
+rule('return-bare', 'RETURN', 'return:value', [], '', structural('return'), BLOCK);
 rule('return-convert-int-float', 'RETURN', 'return:value:conversion', [INT, FLOAT], '', structural('return'), CONVERSION);
 
 // Defaults: a typed variable before assignment (implicit initializer / clear_address).
@@ -641,6 +643,18 @@ static func convert_int(a: int) -> float:
 \tvar f: float = 0.5
 \tf = a
 \treturn f
+
+static func push_until_done(items: Array, done: bool) -> void:
+\titems.append(1)
+\tif done:
+\t\treturn
+\titems.append(2)
+
+static func early_return() -> Array:
+\tvar a := []
+\tpush_until_done(a, true)
+\tpush_until_done(a, false)
+\treturn a
 
 static func variant_into_float(a: float, b: int) -> Vector3:
 \tvar v := Vector3(1.0, 2.0, 3.0)
@@ -1257,6 +1271,7 @@ add('compound-int', 'compound_int', '4', () => [4]);
 add('convert-int', 'convert_int', '3', () => [3]);
 add('declared-convert', 'declared_convert', '-2', () => [-2]);
 add('variant-into-float', 'variant_into_float', '2.75, 7', () => [2.75, 7]);
+cases.push({ id: 'early-return', call: 'early_return', comparator: 'exact' });
 add('variant-into-float-clamped', 'variant_into_float', '-0.5, 12', () => [-0.5, 12]);
 add('return-convert', 'return_convert', '9', () => [9]);
 for (const a of [true, false]) {
@@ -1438,6 +1453,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'type_cases.tscn', source: TYPE_SCENE },
   ],
   compatModules: [
+    'lib/godot-compat/array',
     'lib/godot-compat/engine',
     'lib/godot-compat/float',
     'lib/godot-compat/global-scope',
