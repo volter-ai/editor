@@ -69,7 +69,8 @@ export type EditorKeyActionId =
   | 'view.top'
   | 'view.front'
   | 'view.right'
-  | 'view.perspective';
+  | 'view.perspective'
+  | 'view.camera';
 
 /**
  * One chord. `key` is matched case-insensitively against `KeyboardEvent.key`;

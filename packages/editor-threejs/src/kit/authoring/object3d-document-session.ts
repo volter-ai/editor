@@ -27,6 +27,7 @@ import {
 import { styleEditorSkeletonHelper } from '../three-viewport/skeleton-helper';
 import { isEditorViewportShadingTarget } from '../viewport-shading-boundary';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
+import type { ToolCameraView, ToolCameraViewSource } from '@volter/editor-sdk/contributions';
 
 export type Object3DDocumentViewMode = ViewportShadingMode | 'uv' | 'vertex-colors';
 
@@ -144,6 +145,24 @@ export class Object3DDocumentSession {
    *  only way to photograph from another camera was to move the viewport onto
    *  it and move it back, which is why that code had a restore dance at all. */
   private cameraOverride: THREE.Camera | null = null;
+  /** The document's cameras a camera view can look through (`ToolObject3DAuthoringProps.cameraView`). */
+  private cameraViewSource: ToolCameraViewSource | null = null;
+  /** A camera view in progress: the camera, the frame's zoom and offset, the view it left, and
+   *  how to put its input back. */
+  private through: {
+    readonly camera: string;
+    zoom: number;
+    offset: [number, number];
+    readonly left: {
+      readonly position: THREE.Vector3;
+      readonly target: THREE.Vector3;
+      readonly up: THREE.Vector3;
+      readonly projection: 'perspective' | 'orthographic';
+    };
+    readonly release: () => void;
+  } | null = null;
+  private readonly throughPerspective = new THREE.PerspectiveCamera();
+  private readonly throughOrthographic = new THREE.OrthographicCamera();
   /** The host's mirror of the document scene onto the rendered scene — see
    *  {@link Object3DDocumentSession.setBeforeRender}. */
   private beforeRender: (() => void) | null = null;
@@ -261,6 +280,7 @@ export class Object3DDocumentSession {
    * the tight fit the toolbar's Frame button has always used, >1 pulls back.
    */
   frame(fit = 1): boolean {
+    this.leaveCameraView(false);
     const bounds = this.resolveFrameBounds();
     if (bounds.isEmpty()) {
       // A Frame that does nothing must say why — a model document whose
@@ -501,6 +521,7 @@ export class Object3DDocumentSession {
   }
 
   frameIds(ids: readonly string[]): boolean {
+    this.leaveCameraView(false);
     this.settleFlight('superseded');
     const objects = ids
       .map((id) => (this.authoring ? threeObject(this.authoring.hierarchy, id) : null))
@@ -537,6 +558,7 @@ export class Object3DDocumentSession {
    */
   setViewPreset(preset: ModelCameraPreset, around: 'bounds' | 'view' = 'bounds'): void {
     invalidateStages();
+    this.leaveCameraView(false);
     this.settleFlight('superseded');
     const direction = cameraPresetDirection(preset);
     let center: THREE.Vector3;
@@ -562,6 +584,7 @@ export class Object3DDocumentSession {
     fov?: number,
   ): void {
     invalidateStages();
+    this.leaveCameraView(false);
     this.settleFlight('superseded');
     this.viewport.setPose(position, target, fov);
   }
@@ -580,9 +603,230 @@ export class Object3DDocumentSession {
 
   camera(): THREE.Camera {
     if (this.cameraOverride) return this.cameraOverride;
+    const through = this.through ? this.cameraView() : null;
+    if (through) return this.throughCamera(through);
     if (this.state.projection === 'perspective') return this.viewport.camera;
     this.syncOrthographicCamera();
     return this.orthographicCamera;
+  }
+
+  /**
+   * THE CAMERA VIEW (Blender's `view3d.view_camera`): the stage draws through one of the
+   * document's own cameras, with that camera's frame on the region. Entering remembers the view
+   * it leaves; the toggle puts that view back. Any other navigation leaves it where it is —
+   * a preset, a Frame, a set pose — and ROTATING leaves it at the camera's own pose, as Blender
+   * switches a rotated camera view to a user view from the camera (`ED_view3d_persp_switch_
+   * from_camera`). While it lasts the wheel zooms the frame, a pan moves it and a dolly drag
+   * zooms it, each by Blender's rule (`view_zoomstep_apply_ex`'s 1.2 a step, `view_move`,
+   * `viewzoom_scale_value`), and the orbit controls stand down.
+   */
+  setCameraViewSource(source: ToolCameraViewSource | null): void {
+    if (this.cameraViewSource === source) return;
+    this.cameraViewSource = source;
+    if (!source) this.leaveCameraView(false);
+    this.notify();
+  }
+
+  /** Whether the document has cameras to look through at all. */
+  hasCameraView(): boolean {
+    return this.cameraViewSource !== null;
+  }
+
+  /** The camera view in progress on the current region, or null. */
+  cameraView(): ToolCameraView | null {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source) return null;
+    const canvas = this.renderer.domElement;
+    return source.view(
+      through.camera,
+      { width: canvas.clientWidth, height: canvas.clientHeight },
+      through.zoom,
+      through.offset,
+    );
+  }
+
+  /** Enter or leave the camera view; false when there is no camera to look through. */
+  toggleCameraView(): boolean {
+    if (this.through) {
+      this.leaveCameraView(true);
+      return true;
+    }
+    const source = this.cameraViewSource;
+    const camera = source?.camera() ?? null;
+    if (!source || camera === null) return false;
+    invalidateStages();
+    this.settleFlight('superseded');
+    const viewport = this.viewport;
+    this.through = {
+      camera,
+      zoom: source.zoom.opening,
+      offset: [0, 0],
+      left: {
+        position: viewport.camera.position.clone(),
+        target: viewport.orbitControls.target.clone(),
+        up: viewport.camera.up.clone(),
+        projection: this.state.projection,
+      },
+      release: this.captureCameraViewInput(),
+    };
+    this.notify();
+    return true;
+  }
+
+  /** Zoom the camera view's frame by `factor`, within the source's range. */
+  zoomCameraView(factor: number): void {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source || !Number.isFinite(factor) || factor <= 0) return;
+    through.zoom = Math.min(source.zoom.max, Math.max(source.zoom.min, through.zoom * factor));
+    invalidateStages();
+    this.notify();
+  }
+
+  /** Move the camera view's frame by fractions of the region. */
+  panCameraView(dx: number, dy: number): void {
+    const through = this.through;
+    if (!through) return;
+    through.offset = [through.offset[0] + dx, through.offset[1] + dy];
+    invalidateStages();
+    this.notify();
+  }
+
+  /**
+   * Leave the camera view: back to the view it left (`restore`), or, when navigation moves on
+   * from it, with the view standing at the camera's pose at the distance it had.
+   */
+  private leaveCameraView(restore: boolean): void {
+    const through = this.through;
+    if (!through) return;
+    const view = this.cameraView();
+    this.through = null;
+    through.release();
+    const viewport = this.viewport;
+    if (restore) {
+      viewport.camera.position.copy(through.left.position);
+      viewport.camera.up.copy(through.left.up);
+      viewport.orbitControls.target.copy(through.left.target);
+      this.state = { ...this.state, projection: through.left.projection };
+    } else if (view) {
+      const distance = through.left.position.distanceTo(through.left.target);
+      const eye = new THREE.Vector3(...view.position);
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(new THREE.Quaternion(...view.quaternion));
+      viewport.camera.up.set(0, 1, 0);
+      viewport.camera.position.copy(eye);
+      viewport.orbitControls.target.copy(eye).addScaledVector(forward, distance);
+      this.state = { ...this.state, projection: view.projection };
+    }
+    viewport.camera.lookAt(viewport.orbitControls.target);
+    viewport.orbitControls.update();
+    invalidateStages();
+    this.notify();
+  }
+
+  /** The stage's drawing camera for `view`: its pose, and its window as the projection. */
+  private throughCamera(view: ToolCameraView): THREE.Camera {
+    const { left, right, top, bottom } = view.window;
+    const layers = this.viewport.camera.layers.mask;
+    if (view.projection === 'orthographic') {
+      const camera = this.throughOrthographic;
+      Object.assign(camera, { left, right, top, bottom, near: view.near, far: view.far, zoom: 1 });
+      camera.position.set(...view.position);
+      camera.quaternion.set(...view.quaternion);
+      camera.layers.mask = layers;
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld(true);
+      return camera;
+    }
+    const camera = this.throughPerspective;
+    camera.near = view.near;
+    camera.far = view.far;
+    // Readers of the angle (the 3D cursor's size) see the window's; the matrix is the window.
+    camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan((top - bottom) / 2));
+    camera.aspect = (right - left) / (top - bottom);
+    camera.zoom = 1;
+    camera.position.set(...view.position);
+    camera.quaternion.set(...view.quaternion);
+    camera.layers.mask = layers;
+    camera.projectionMatrix.makePerspective(
+      left * view.near,
+      right * view.near,
+      top * view.near,
+      bottom * view.near,
+      view.near,
+      view.far,
+    );
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    camera.updateMatrixWorld(true);
+    return camera;
+  }
+
+  /**
+   * The pointer while a camera view lasts, read ahead of the orbit controls (a capturing
+   * listener on the canvas's parent), which stand down. A gesture the controls would read as
+   * ROTATE leaves the view at the camera and hands the same press back to them; PAN moves the
+   * frame and DOLLY zooms it. Returns the undo.
+   */
+  private captureCameraViewInput(): () => void {
+    const controls = this.viewport.orbitControls;
+    const canvas = this.renderer.domElement;
+    const host = canvas.parentElement ?? canvas;
+    const enabled = controls.enabled;
+    controls.enabled = false;
+    const onWheel = (event: WheelEvent): void => {
+      if (event.target !== canvas || event.deltaY === 0) return;
+      event.preventDefault();
+      this.zoomCameraView(event.deltaY < 0 ? 1.2 : 1 / 1.2);
+    };
+    const onPointerDown = (event: PointerEvent): void => {
+      if (event.target !== canvas) return;
+      const buttons = controls.mouseButtons as Record<string, THREE.MOUSE | null | undefined>;
+      let action = [buttons['LEFT'], buttons['MIDDLE'], buttons['RIGHT']][event.button] ?? null;
+      const modified = event.ctrlKey || event.metaKey || event.shiftKey;
+      if (modified && action === THREE.MOUSE.ROTATE) action = THREE.MOUSE.PAN;
+      else if (modified && action === THREE.MOUSE.PAN) action = THREE.MOUSE.ROTATE;
+      if (action === THREE.MOUSE.ROTATE) {
+        this.leaveCameraView(false);
+        return;
+      }
+      if (action !== THREE.MOUSE.PAN && action !== THREE.MOUSE.DOLLY) return;
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      let lastX = event.clientX;
+      let lastY = event.clientY;
+      const zoom0 = this.through?.zoom ?? 1;
+      const lenOld = Math.max(5 + event.clientY - rect.top, 1);
+      const move = (moveEvent: PointerEvent): void => {
+        if (action === THREE.MOUSE.PAN) {
+          this.panCameraView(
+            (moveEvent.clientX - lastX) / Math.max(rect.width, 1),
+            (moveEvent.clientY - lastY) / Math.max(rect.height, 1),
+          );
+          lastX = moveEvent.clientX;
+          lastY = moveEvent.clientY;
+          return;
+        }
+        const through = this.through;
+        if (!through) return;
+        const factor = Math.max(0.01, 2 * ((5 + moveEvent.clientY - rect.top) / lenOld - 1) + 1);
+        this.zoomCameraView(zoom0 / factor / through.zoom);
+      };
+      const end = (): void => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', end);
+        window.removeEventListener('pointercancel', end);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end);
+      window.addEventListener('pointercancel', end);
+    };
+    host.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    host.addEventListener('pointerdown', onPointerDown, { capture: true });
+    return () => {
+      host.removeEventListener('wheel', onWheel, { capture: true });
+      host.removeEventListener('pointerdown', onPointerDown, { capture: true });
+      controls.enabled = enabled;
+    };
   }
 
   /** Which projection the session is drawing with. Public because a caller
@@ -1040,6 +1284,7 @@ export class Object3DDocumentSession {
 
   dispose(): void {
     this.disposed = true;
+    this.leaveCameraView(false);
     this.selectionOrigins?.dispose();
     this.selectionOrigins = null;
     this.settleFlight('closed');

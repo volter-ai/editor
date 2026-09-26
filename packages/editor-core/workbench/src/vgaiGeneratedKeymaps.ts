@@ -10,11 +10,11 @@
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write
  *  Sources (sha256 at generation; the generator refuses when one has moved):
- *    6f108bdb96992dcb37eefacb44b81c051742f8981014224810c60a08af288c2f  packages/editor-sdk/src/kit/keymap-presets.ts
+ *    247c91b019cc2b7a6fd1563a152a2105e66c7bb06fda5535ae391fc2d77fe09d  packages/editor-sdk/src/kit/keymap-presets.ts
  *    2a05e31762620b0cf734310744c95db38a1912d4f084605296aca335f31c2d89  packages/editor-core/src/editor-hotkeys.ts
- *    491c47e51c07365561ab63735e998d28017ce2602ab792ebaf96e6c9cf1a32df  packages/editor-threejs/src/kit/viewport-hotkeys.ts
+ *    f4a4f5c2cf4e782cea5647f5aa6905dbd1e7b53558fa9ff8439f6a17f90cd630  packages/editor-threejs/src/kit/viewport-hotkeys.ts
  *    868c4b53787de4c9ef2ee58a43c753d31f906fa8471b6d9cae3cee26e951d6cb  packages/editor-blender/contributions/blender.keymap.ts
- *  81 rules over 42 commands (vgai 39, blender 42).
+ *  83 rules over 43 commands (vgai 40, blender 43).
  *--------------------------------------------------------------------------------------------*/
 
 /** Every keymap the generated extension carries chords for. */
@@ -50,6 +50,7 @@ export const CARRIED_ACTION_IDS: readonly string[] = [
 	'transform.scale',
 	'transform.select',
 	'transform.translate',
+	'view.camera',
 	'view.commandPalette',
 	'view.focusMode',
 	'view.front',

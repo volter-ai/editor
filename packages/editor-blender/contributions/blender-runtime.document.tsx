@@ -101,6 +101,17 @@ const subjectOfView = () => {
   return view.subjectLine(playhead === null ? null : Math.floor(playhead));
 };
 const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel);
+/** BLENDER'S CAMERA VIEW (`blender-runtime-camera-view.ts`): which camera, and how it fits. */
+const cameraView = {
+  camera: () => view.cameraViewCamera(),
+  zoom: view.cameraViewZoom,
+  view: (
+    camera: string,
+    region: { readonly width: number; readonly height: number },
+    zoom: number,
+    offset: readonly [number, number],
+  ) => view.cameraView(camera, region, zoom, offset),
+};
 
 export default function BlenderModelDocument(props: ToolContributionProps) {
   const { active, document, documentId, notify, publishContext } = props;
@@ -374,6 +385,7 @@ function BlenderModelViewport({
       // the scene (`session.py` `_subject_line`) and names the grid's step in the scene's units.
       {...(subject === null ? {} : { subject })}
       gridScale={gridScale}
+      cameraView={cameraView}
       build={build}
       audit={false}
       // ON A MODEL DOCUMENT THE HIERARCHY IS BLENDER'S OUTLINER, for the same

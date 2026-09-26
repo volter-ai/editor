@@ -598,6 +598,7 @@ export function Object3DDocumentViewport({
   openingFrameBounds,
   openingFit,
   openingView,
+  cameraView,
   stageKind,
   statistics,
   subject,
@@ -776,6 +777,8 @@ export function Object3DDocumentViewport({
   openingFrameBoundsRef.current = openingFrameBounds;
   const openingViewRef = useRef(openingView);
   openingViewRef.current = openingView;
+  const cameraViewRef = useRef(cameraView);
+  cameraViewRef.current = cameraView;
   // The current prop is still read by asynchronous installation. Attachment
   // lifetime is controlled separately by `surfaceAttached` above.
   const activeRef = useRef(active);
@@ -1581,6 +1584,7 @@ export function Object3DDocumentViewport({
             overviewFrame,
           );
           host.session.selectionOutlineEnabled = !shared && selectionOutlineRef.current;
+          host.session.setCameraViewSource(cameraViewRef.current ?? null);
           // The view's presentation, now that the viewport and session exist to take it.
           host.applyPresentation?.();
           // A saved view's projection is part of where the file opens.
@@ -2123,6 +2127,9 @@ export function Object3DDocumentViewport({
                   if (host.session)
                     host.session.setViewPreset(action.preset === 'perspective' ? 'isometric' : action.preset, 'view');
                   else viewport.setViewPreset(action.preset);
+                  break;
+                case 'toggle-camera-view':
+                  host.session?.toggleCameraView();
                   break;
                 case 'set-camera-pose':
                   viewport.setPose(action.position, action.target, action.fov);

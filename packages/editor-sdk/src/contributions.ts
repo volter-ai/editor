@@ -289,6 +289,52 @@ export interface ToolObject3DAuthoringProps {
    * line is drawn.
    */
   readonly gridScale?: (worldPerDevicePixel: number) => string | null;
+  /**
+   * A CAMERA VIEW: looking through one of the document's own cameras, the way Blender's
+   * `view3d.view_camera` (numpad 0, the navigation cluster's camera button) does. The document
+   * says which camera and how its view fits a region; the stage owns the toggle, the frame's
+   * zoom and offset, and leaving the view. Omit it and the stage has no camera view.
+   */
+  readonly cameraView?: ToolCameraViewSource;
+}
+
+/** See {@link ToolObject3DAuthoringProps.cameraView}. */
+export interface ToolCameraViewSource {
+  /** The camera a camera view entered now would look through, or null when there is none. */
+  readonly camera: () => string | null;
+  /** The frame zoom a camera view opens at, and the range it keeps to. */
+  readonly zoom: { readonly opening: number; readonly min: number; readonly max: number };
+  /**
+   * `camera`'s view on a region `width` × `height` pixels, at frame zoom `zoom` and with the
+   * frame moved `offset` (fractions of the region's width and height, down and right
+   * positive); null when that camera is gone.
+   */
+  readonly view: (
+    camera: string,
+    region: { readonly width: number; readonly height: number },
+    zoom: number,
+    offset: readonly [number, number],
+  ) => ToolCameraView | null;
+}
+
+/** One camera view, in the stage's frame. */
+export interface ToolCameraView {
+  readonly name: string;
+  /** The eye, looking down its own -Z with +Y up. */
+  readonly position: readonly [number, number, number];
+  readonly quaternion: readonly [number, number, number, number];
+  readonly projection: 'perspective' | 'orthographic';
+  /** The window: at unit distance for a perspective view, in world units for an orthographic
+   *  one; up positive. */
+  readonly window: { readonly left: number; readonly right: number; readonly top: number; readonly bottom: number };
+  readonly near: number;
+  readonly far: number;
+  /** The camera's frame on the region, as fractions of its width and height from the top left. */
+  readonly frame: { readonly left: number; readonly top: number; readonly width: number; readonly height: number };
+  /** Outside the frame: its colour and opacity (0 draws none). */
+  readonly passepartout: { readonly color: string; readonly opacity: number };
+  /** The frame's edge: a solid line under a dashed one, each a CSS colour. */
+  readonly border: { readonly solid: string; readonly dashed: string };
 }
 
 /** One row of the viewport overlay's statistics block: Blender's label column

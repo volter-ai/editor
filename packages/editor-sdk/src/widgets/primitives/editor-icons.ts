@@ -60,6 +60,7 @@ import {
   faUpDownLeftRight,
   faUpRightAndDownLeftFromCenter,
   faUsers,
+  faVideo,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -144,6 +145,10 @@ export const editorIcons = {
     projection: meshGlyph('viewport-projection', faBorderAll),
     /** The same toggle in an orthographic view: Blender's flat grid (`VIEW_ORTHO`). */
     projectionOrthographic: meshGlyph('viewport-orthographic', faBorderAll),
+    /** Look through the document's camera (Blender's `VIEW_CAMERA_UNSELECTED`)… */
+    camera: meshGlyph('viewport-camera', faVideo),
+    /** …and the same button while looking through it (`VIEW_CAMERA`). */
+    cameraView: meshGlyph('viewport-camera-view', faVideo),
   },
   /**
    * Mesh-modeling operators — the shelf glyphs a modeling document shows

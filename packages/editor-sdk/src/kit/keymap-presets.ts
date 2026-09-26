@@ -193,6 +193,7 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   'view.front': [{ key: '', code: 'Numpad1' }],
   'view.right': [{ key: '', code: 'Numpad3' }],
   'view.perspective': [{ key: '', code: 'Numpad5' }],
+  'view.camera': [{ key: '', code: 'Numpad0' }],
 } satisfies EditorKeymapTable);
 
 // ---------------------------------------------------------------------------

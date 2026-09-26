@@ -94,6 +94,7 @@ export type ViewportAction =
   | { type: 'focus-scene' }
   | { type: 'snap-selection-to-floor' }
   | { type: 'set-view-preset'; preset: 'top' | 'front' | 'right' | 'perspective' }
+  | { type: 'toggle-camera-view' }
   | {
       type: 'set-camera-pose';
       position: { x: number; y: number; z: number };
@@ -373,6 +374,11 @@ export class ShellStore implements ShellDocumentState {
   /** Switch the viewport camera to a preset view (top, front, right, perspective). */
   setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
     this.requestViewportAction({ type: 'set-view-preset', preset });
+  }
+
+  /** Enter or leave the camera view, where the document has cameras to look through. */
+  toggleCameraView(): void {
+    this.requestViewportAction({ type: 'toggle-camera-view' });
   }
 
   /** Move the viewport camera to an arbitrary position/target/fov pose. */

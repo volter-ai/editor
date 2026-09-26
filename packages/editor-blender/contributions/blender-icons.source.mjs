@@ -147,6 +147,10 @@ const OUTLINER_ICON_NAMES = [
   // under names of OURS for the same reason the render pair has them.
   ['outliner-exclude-on', 'checkbox_hlt'],
   ['outliner-exclude-off', 'checkbox_dehlt'],
+  // The navigation cluster's camera button (`view3d_gizmo_navigate.cc`): `VIEW_CAMERA_UNSELECTED`
+  // outside the camera view and `VIEW_CAMERA` in it, under names of OURS for the same reason.
+  ['viewport-camera', 'view_camera_unselected'],
+  ['viewport-camera-view', 'view_camera'],
 ];
 
 const TRACED = new URL('./blender.icons.traced.json', import.meta.url);

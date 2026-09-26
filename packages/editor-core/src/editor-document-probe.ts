@@ -804,9 +804,17 @@ function keyCodeOf(key: string): number {
   return NAMED_KEY_CODES[key] ?? 0;
 }
 
+/** A numpad key's legacy code follows its PHYSICAL key: Numpad0..9 are 96..105 and the
+ *  decimal 110, where the digit they type would say 48..57. */
+function numpadKeyCode(code: string | undefined): number | null {
+  const digit = code === undefined ? null : /^Numpad([0-9])$/.exec(code);
+  if (digit) return 96 + Number(digit[1]);
+  return code === 'NumpadDecimal' ? 110 : null;
+}
+
 function keyEvent(type: 'keydown' | 'keyup', step: DocumentKeyStep): KeyboardEvent {
   const event = new KeyboardEvent(type, keyInit(step));
-  const keyCode = keyCodeOf(step.key);
+  const keyCode = numpadKeyCode(step.code) ?? keyCodeOf(step.key);
   Object.defineProperty(event, 'keyCode', { get: () => keyCode });
   Object.defineProperty(event, 'which', { get: () => keyCode });
   return event;

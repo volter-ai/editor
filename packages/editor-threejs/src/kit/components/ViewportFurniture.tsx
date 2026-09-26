@@ -18,7 +18,7 @@
  * comment below for the measurement, and do not route a new control to
  * `viewport.*` without checking which side of that line it falls on.
  */
-import type { ToolViewportStatistic } from '@volter/editor-sdk/contributions';
+import type { ToolCameraView, ToolViewportStatistic } from '@volter/editor-sdk/contributions';
 import {
   EditorIcon,
   editorIcons,
@@ -27,7 +27,7 @@ import {
   Tooltip,
   themeVars,
 } from '@volter/editor-sdk/widgets';
-import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useSyncExternalStore } from 'react';
+import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
@@ -198,7 +198,12 @@ export function ViewportFurniture({
   const axis =
     axisViewName(viewport.camera.position.clone().sub(viewport.orbitControls.target)) ?? 'User';
   const drawn = session?.projection() ?? projection;
-  const viewText = `${axis} ${drawn === 'perspective' ? 'Perspective' : 'Orthographic'}`;
+  // A CAMERA VIEW names itself as Blender's does: "Camera Perspective" / "Camera Orthographic",
+  // after the camera's own projection.
+  const through = session?.cameraView() ?? null;
+  const viewText = through
+    ? `Camera ${through.projection === 'perspective' ? 'Perspective' : 'Orthographic'}`
+    : `${axis} ${drawn === 'perspective' ? 'Perspective' : 'Orthographic'}`;
   // THE SUBJECT LINE. Blender's is `(frame) <active collection> | <active
   // object>` — THREE parts, and which part is which was settled by CONTRAST
   // across the frames, never from one of them. `modeling-object-none.png`,
@@ -242,7 +247,7 @@ export function ViewportFurniture({
   // is the document's; the host hands it the world units one device pixel spans.
   const drawnCamera = session?.camera() ?? viewport.renderCamera;
   const gridLine =
-    gridScale && axis !== 'User' && (drawnCamera as THREE.OrthographicCamera).isOrthographicCamera
+    gridScale && !through && axis !== 'User' && (drawnCamera as THREE.OrthographicCamera).isOrthographicCamera
       ? gridScale(orthographicWorldPerDevicePixel(drawnCamera as THREE.OrthographicCamera, viewport, session))
       : null;
 
@@ -261,10 +266,15 @@ export function ViewportFurniture({
     const offset = camera.position.clone().sub(target);
     const ortho = !session && viewport.renderCamera instanceof THREE.OrthographicCamera ? viewport.renderCamera : null;
     const zoom0 = ortho?.zoom ?? 1;
+    // In a camera view the same drag zooms the camera's frame (`view_zoom_to_window_xy_camera`).
+    let frameZoom = 1;
     const move = (moveEvent: PointerEvent): void => {
       const lenNew = 5 + moveEvent.clientY - regionTop;
       const factor = Math.max(0.01, 2 * (lenNew / lenOld - 1) + 1);
-      if (ortho) {
+      if (session?.cameraView()) {
+        session.zoomCameraView(frameZoom / factor);
+        frameZoom = factor;
+      } else if (ortho) {
         ortho.zoom = zoom0 / factor;
         ortho.updateProjectionMatrix();
       } else camera.position.copy(target).addScaledVector(offset, factor);
@@ -295,6 +305,12 @@ export function ViewportFurniture({
       const dy = moveEvent.clientY - lastY;
       lastX = moveEvent.clientX;
       lastY = moveEvent.clientY;
+      // In a camera view a pan moves the camera's frame with the pointer (`view_move`).
+      if (session?.cameraView()) {
+        const region = session.renderer.domElement;
+        session.panCameraView(dx / Math.max(region.clientWidth, 1), dy / Math.max(region.clientHeight, 1));
+        return;
+      }
       const camera = viewport.camera;
       const target = viewport.orbitControls.target;
       const distance = camera.position.distanceTo(target);
@@ -431,6 +447,16 @@ export function ViewportFurniture({
             copied the phantom pose home. Transcribed from the sibling door
             (`Object3DDocumentToolbar`), with the viewport kept as the answer
             for a stage that has no session. */}
+        {session?.hasCameraView() ? (
+          <Tooltip text={through ? 'Leave the camera view' : 'Look through the camera'}>
+            <IconButton size="comfortable" aria-label="Toggle the camera view" onClick={() => session.toggleCameraView()}>
+              {/* Blender's `VIEW_CAMERA_UNSELECTED` out of the camera view, `VIEW_CAMERA` in it. */}
+              <EditorIcon size="2xl" icon={through ? editorIcons.viewport.cameraView : editorIcons.viewport.camera} />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {/* A camera view has its camera's projection, so the toggle stands down in it. */}
+        {through ? null : (
         <Tooltip text={drawn === 'perspective' ? 'Orthographic' : 'Perspective'}>
           <IconButton
             size="comfortable"
@@ -449,7 +475,63 @@ export function ViewportFurniture({
             />
           </IconButton>
         </Tooltip>
+        )}
       </div>
+      {through && session ? <CameraFrame view={through} canvas={session.renderer.domElement} /> : null}
     </>
+  );
+}
+
+/**
+ * THE CAMERA'S FRAME over the region, as Blender's `drawviewborder` draws it: the passepartout
+ * outside it at the camera's opacity, and one device pixel outside the frame a solid box (only
+ * with a passepartout) under a dashed one (`dash_width` 6 at half, in device pixels).
+ */
+function CameraFrame({ view, canvas }: { view: ToolCameraView; canvas: HTMLCanvasElement }) {
+  const [host, setHost] = useState<HTMLDivElement | null>(null);
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const ratio = canvas.ownerDocument.defaultView?.devicePixelRatio ?? 1;
+  const canvasRect = canvas.getBoundingClientRect();
+  const hostRect = host?.getBoundingClientRect();
+  const px = 1 / ratio;
+  const x = view.frame.left * width - px;
+  const y = view.frame.top * height - px;
+  const w = view.frame.width * width + 2 * px;
+  const h = view.frame.height * height + 2 * px;
+  return (
+    <div ref={setHost} aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      {hostRect ? (
+        <svg
+          data-testid="viewport-camera-frame"
+          width={width}
+          height={height}
+          style={{ position: 'absolute', left: canvasRect.left - hostRect.left, top: canvasRect.top - hostRect.top }}
+        >
+          {view.passepartout.opacity > 0 ? (
+            <path
+              d={`M0 0H${width}V${height}H0Z M${x} ${y}V${y + h}H${x + w}V${y}Z`}
+              fill={view.passepartout.color}
+              fillOpacity={view.passepartout.opacity}
+              fillRule="evenodd"
+            />
+          ) : null}
+          {view.passepartout.opacity > 0 ? (
+            <rect x={x} y={y} width={w} height={h} fill="none" stroke={view.border.solid} strokeWidth={px} shapeRendering="crispEdges" />
+          ) : null}
+          <rect
+            x={x}
+            y={y}
+            width={w}
+            height={h}
+            fill="none"
+            stroke={view.border.dashed}
+            strokeWidth={px}
+            strokeDasharray={`${3 * px} ${3 * px}`}
+            shapeRendering="crispEdges"
+          />
+        </svg>
+      ) : null}
+    </div>
   );
 }

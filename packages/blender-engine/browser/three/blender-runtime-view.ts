@@ -33,6 +33,7 @@ import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 import { CursorOverlay, type CursorPlacement, cursorSchema } from './blender-runtime-cursor';
+import { type BlenderCameraView, blenderCameraView, CAMERA_ZOOM, cameraDataSchema } from './blender-runtime-camera-view';
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 
 const scalar = z.number().finite();
@@ -798,6 +799,36 @@ export class BlenderRuntimeView {
       distance: saved.distance,
       projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
     };
+  }
+
+  /**
+   * THE CAMERA A CAMERA VIEW ENTERED NOW WOULD LOOK THROUGH, as `view_camera_exec` picks it:
+   * the scene's camera, else the active object when it is a camera, else the view layer's first
+   * camera; null when there is none (Blender's operator then does nothing).
+   */
+  cameraViewCamera(): string | null {
+    const frame = this.frame;
+    const view = frame?.camera_view;
+    if (!frame || !view) return null;
+    if (view.scene_camera !== null && frame.cameras[view.scene_camera]) return view.scene_camera;
+    if (frame.active !== null && frame.cameras[frame.active]) return frame.active;
+    return view.view_layer_cameras.find((name) => frame.cameras[name]) ?? null;
+  }
+
+  /** The zoom a camera view opens at and keeps within (`blender-runtime-camera-view.ts`). */
+  readonly cameraViewZoom = CAMERA_ZOOM;
+
+  /** `camera`'s view on a region (`blenderCameraView`), or null when it is not in the frame. */
+  cameraView(
+    camera: string,
+    region: { readonly width: number; readonly height: number },
+    zoom: number,
+    offset: readonly [number, number],
+  ): BlenderCameraView | null {
+    const frame = this.frame;
+    const data = cameraDataSchema.safeParse(frame?.cameras[camera]);
+    if (!frame?.camera_view || !data.success) return null;
+    return blenderCameraView(data.data, this.root.matrix, region, zoom, offset, frame.camera_view.aspect);
   }
 
   /** The viewport's subject line at `frame`, `(1) Collection | Cube`: the engine's body with

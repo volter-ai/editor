@@ -89,6 +89,7 @@ export function registerViewportActions(store: EditorShellStore): () => void {
     { id: 'view.front', label: 'Front View', shortcut: 'view.front', execute: () => store.shell.setViewPreset('front') },
     { id: 'view.right', label: 'Right View', shortcut: 'view.right', execute: () => store.shell.setViewPreset('right') },
     { id: 'view.perspective', label: 'Perspective View', shortcut: 'view.perspective', execute: () => store.shell.setViewPreset('perspective') },
+    { id: 'view.camera', label: 'Camera View', shortcut: 'view.camera', execute: () => store.shell.toggleCameraView() },
     { id: 'focus.selected', label: 'Focus Selected', shortcut: 'viewport.frameSelection', execute: () => store.shell.focusOnSelection() },
   ];
   const contribution: ActionContribution = {
