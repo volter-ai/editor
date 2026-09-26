@@ -29,6 +29,7 @@ import { measureSceneRenderProof } from './proofs/scene-render';
 import { measureSceneImportedProof } from './proofs/scene-imported';
 import { measureScenePhysicsProof } from './proofs/scene-physics';
 import { measureSceneStructureProof } from './proofs/scene-structure';
+import { measureSceneAudioProof } from './proofs/scene-audio';
 import { measureSceneMeshesProof } from './proofs/scene-meshes';
 import { measureSceneTexturesProof } from './proofs/scene-textures';
 import { measureSceneUiProof } from './proofs/scene-ui';
@@ -56,6 +57,7 @@ const PROOFS: readonly (readonly [
   ['scene-ui', measureSceneUiProof],
   ['scene-textures', measureSceneTexturesProof],
   ['scene-meshes', measureSceneMeshesProof],
+  ['scene-audio', measureSceneAudioProof],
   ['scene-imported', measureSceneImportedProof],
   ['scene-physics', measureScenePhysicsProof],
   ['code-seed', measureCodeSeedProof],

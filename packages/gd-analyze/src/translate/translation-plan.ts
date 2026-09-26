@@ -57,14 +57,14 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
   });
 }
 
-/** The images the scenes load as imported textures: copied beside the app, as the models are. */
+/** The images and sounds the scenes load as imported resources: copied beside the app, as the models are. */
 function importedTextures(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
   const paths = new Set(
     composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))),
   );
-  return project.documents.textures
-    .filter((texture) => paths.has(texture.resPath))
-    .map((texture) => ({ resPath: texture.resPath, sourceDigest: texture.sourceDigest, bytes: texture.bytes }));
+  return [...project.documents.textures, ...project.documents.sounds]
+    .filter((file) => paths.has(file.resPath))
+    .map((file) => ({ resPath: file.resPath, sourceDigest: file.sourceDigest, bytes: file.bytes }));
 }
 
 function validateInputClosure(

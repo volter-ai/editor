@@ -36,6 +36,13 @@ const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;
  */
 const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/;
 
+/**
+ * `AudioStreamRandomizer`'s pool entries (`PropertyListHelper` with prefix `stream_`,
+ * `servers/audio/audio_stream.cpp:781`): `stream_N/stream` is `set_stream(N, value)`,
+ * `stream_N/weight` is `set_stream_probability_weight(N, value)`.
+ */
+const RANDOMIZER_ENTRY = /^stream_(\d+)\/(stream|weight)$/;
+
 export function sceneSetterLookup(
   codeAuthority: GodotCodeTranslationAuthority,
   apiDump: GodotApiDump,
@@ -73,6 +80,11 @@ export function sceneSetterLookup(
       owner = 'Skeleton3D';
       setter = `set_bone_pose_${bone[2] as string}`;
       index = Number(bone[1]);
+    } else if (RANDOMIZER_ENTRY.test(property) && ancestry.includes('AudioStreamRandomizer')) {
+      const entry = RANDOMIZER_ENTRY.exec(property) as RegExpExecArray;
+      owner = 'AudioStreamRandomizer';
+      setter = entry[2] === 'stream' ? 'set_stream' : 'set_stream_probability_weight';
+      index = Number(entry[1]);
     } else {
       for (const className of ancestry) {
         const found = classes.get(className)?.properties.find((entry) => entry.name === property);

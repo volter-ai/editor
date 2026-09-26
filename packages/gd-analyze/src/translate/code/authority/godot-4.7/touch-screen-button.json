@@ -259,7 +259,7 @@
         "observedOutputSha256": "e4a4c00548c184d458081c8df5814485ecfc4a80fc01001e564bcd5a9e1e0b85"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts set_texture_normal",
         "observedOutputSha256": "e4a4c00548c184d458081c8df5814485ecfc4a80fc01001e564bcd5a9e1e0b85"
       },
@@ -298,7 +298,7 @@
         "observedOutputSha256": "c4696375309787be09da2a4d2f0535e612705f1afd00027875a554975fb59a4d"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts get_texture_normal",
         "observedOutputSha256": "c4696375309787be09da2a4d2f0535e612705f1afd00027875a554975fb59a4d"
       },
@@ -337,7 +337,7 @@
         "observedOutputSha256": "646ab6a2d37386d9fe15007edf69cf904c3daba1461d0f5e912fcc3206fffbb8"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts set_texture_pressed",
         "observedOutputSha256": "646ab6a2d37386d9fe15007edf69cf904c3daba1461d0f5e912fcc3206fffbb8"
       },
@@ -376,7 +376,7 @@
         "observedOutputSha256": "3d5ebef7e52c3d983b68bc8de83e282155ddfcd390a81331b109e4ccd145d1f8"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts get_texture_pressed",
         "observedOutputSha256": "3d5ebef7e52c3d983b68bc8de83e282155ddfcd390a81331b109e4ccd145d1f8"
       },
@@ -415,7 +415,7 @@
         "observedOutputSha256": "b44b8cb2d39e0ef740bed192630acea89af64738c047c61f9c1c97148c0eefc6"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts is_pressed",
         "observedOutputSha256": "b44b8cb2d39e0ef740bed192630acea89af64738c047c61f9c1c97148c0eefc6"
       },
@@ -454,7 +454,7 @@
         "observedOutputSha256": "e6fd832343091bfbb696f175c0f9a38966d455e5f66087254f759c9d2f70b6e1"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts set_action",
         "observedOutputSha256": "e6fd832343091bfbb696f175c0f9a38966d455e5f66087254f759c9d2f70b6e1"
       },
@@ -493,7 +493,7 @@
         "observedOutputSha256": "2bd11886ce3842287a93137a498a4c75066ae4696aa6b1ff18c7441de10d05f3"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts get_action",
         "observedOutputSha256": "2bd11886ce3842287a93137a498a4c75066ae4696aa6b1ff18c7441de10d05f3"
       },
@@ -532,7 +532,7 @@
         "observedOutputSha256": "44291b561e3bfa8f3699d1c63f882fa820b280de7a11432897f21a625334ee13"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts set_visibility_mode",
         "observedOutputSha256": "44291b561e3bfa8f3699d1c63f882fa820b280de7a11432897f21a625334ee13"
       },
@@ -571,7 +571,7 @@
         "observedOutputSha256": "57dcd5da6aaf5cc804e80f506e61c8e429e2bf06f1e03d8a39da1701f5dd5069"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts get_visibility_mode",
         "observedOutputSha256": "57dcd5da6aaf5cc804e80f506e61c8e429e2bf06f1e03d8a39da1701f5dd5069"
       },
@@ -610,7 +610,7 @@
         "observedOutputSha256": "f3eb853d9ca662f0946a90d1927a66347931cf78dfb471e7c3db3f8caaf9e5b6"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts set_passby_press",
         "observedOutputSha256": "f3eb853d9ca662f0946a90d1927a66347931cf78dfb471e7c3db3f8caaf9e5b6"
       },
@@ -649,7 +649,7 @@
         "observedOutputSha256": "5088eeea3240016b60d05afc54ac1b34389d2f8351bacbae3a37e2df2ed419ed"
       },
       "target": {
-        "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c",
+        "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741",
         "callsite": "lib/godot-compat/touch-screen-button.ts is_passby_press_enabled",
         "observedOutputSha256": "5088eeea3240016b60d05afc54ac1b34389d2f8351bacbae3a37e2df2ed419ed"
       },
@@ -676,7 +676,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6be7b542d57d4767b2d94d2eb93666118639dc60859c278772d14ef648acca74",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.get_texture_normal",
@@ -684,7 +684,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "75cfc357e0e5bc9f86f873556fc0c9506c015e0335369d6606cf81baa48a8d69",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.set_texture_pressed",
@@ -692,7 +692,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5544eefa87c0545d6b220b692b259852a2aa9c892b8ab9d44a1d769fa0062986",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.get_texture_pressed",
@@ -700,7 +700,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "9d567bf39669409ab7cafb0b381c11842e4abe687b99f9c4d1476932d9a1d934",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.is_pressed",
@@ -708,7 +708,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "da9697bb2e3c8d80df42240c63c79b4ba25691d3d3a4d4e17f7f2a7f5d771126",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.set_action",
@@ -716,7 +716,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "81e566de34201a23b9c4a8e2dd65c6b12855654064d771c20118541b246ba42b",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.get_action",
@@ -724,7 +724,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7c5edcdaf5bfc003d4b441fc4ccd5839fb793cc2cf7d13096c87187cc8cea5ca",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.set_visibility_mode",
@@ -732,7 +732,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "56c94ce08ae01d86800954c6aab8b8cca784d58c89aae427de26864c880c9236",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.get_visibility_mode",
@@ -740,7 +740,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3e2df162f53ee88daae991af66e6aff46c2522008807eb9fa6d9fea19510acb3",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.set_passby_press",
@@ -748,7 +748,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6400aff52d96b888d55b733b34e0579bd05d65b12622b91c98910c45627adc7b",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     },
     {
       "claimId": "godot-4.7-binding-TouchScreenButton.is_passby_press_enabled",
@@ -756,7 +756,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "85c9aaf578143c9bd68762d36411f627493f03bb76e26bcd79a5235d0ba1d1d3",
-      "implementationSha256": "a09f6f5d0ea8fdb2dc1285875058e1b56247200eca5b624270f6a74d44836e3c"
+      "implementationSha256": "713960a84df97484fcc87b85190f2e9143e15bc48d68c07d163a586a87555741"
     }
   ]
 }

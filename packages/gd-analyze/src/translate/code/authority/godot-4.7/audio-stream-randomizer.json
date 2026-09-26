@@ -1,0 +1,830 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/audio-stream-randomizer"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "set_streams_count",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "set_streams_count",
+        "localName": "AudioStreamRandomizer_set_streams_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.set_streams_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "get_streams_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "get_streams_count",
+        "localName": "AudioStreamRandomizer_get_streams_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.get_streams_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "set_stream",
+        "kind": "native-member",
+        "signature": "hash:111075094"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "set_stream",
+        "localName": "AudioStreamRandomizer_set_stream",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.set_stream"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "get_stream",
+        "kind": "native-member",
+        "signature": "hash:2739380747"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "get_stream",
+        "localName": "AudioStreamRandomizer_get_stream",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.get_stream"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "set_stream_probability_weight",
+        "kind": "native-member",
+        "signature": "hash:1602489585"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "set_stream_probability_weight",
+        "localName": "AudioStreamRandomizer_set_stream_probability_weight",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.set_stream_probability_weight"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "get_stream_probability_weight",
+        "kind": "native-member",
+        "signature": "hash:2339986948"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "get_stream_probability_weight",
+        "localName": "AudioStreamRandomizer_get_stream_probability_weight",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.get_stream_probability_weight"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "set_random_pitch",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "set_random_pitch",
+        "localName": "AudioStreamRandomizer_set_random_pitch",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.set_random_pitch"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "get_random_pitch",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "get_random_pitch",
+        "localName": "AudioStreamRandomizer_get_random_pitch",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.get_random_pitch"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "set_random_volume_offset_db",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "set_random_volume_offset_db",
+        "localName": "AudioStreamRandomizer_set_random_volume_offset_db",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.set_random_volume_offset_db"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "get_random_volume_offset_db",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "get_random_volume_offset_db",
+        "localName": "AudioStreamRandomizer_get_random_volume_offset_db",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.get_random_volume_offset_db"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "set_playback_mode",
+        "kind": "native-member",
+        "signature": "hash:3950967023"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "set_playback_mode",
+        "localName": "AudioStreamRandomizer_set_playback_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.set_playback_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AudioStreamRandomizer",
+        "member": "get_playback_mode",
+        "kind": "native-member",
+        "signature": "hash:3943055077"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/audio-stream-randomizer",
+        "exportName": "get_playback_mode",
+        "localName": "AudioStreamRandomizer_get_playback_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AudioStreamRandomizer.get_playback_mode"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_streams_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000set_streams_count\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.set_streams_count",
+        "sourceLine": 548
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "59997dd05a5e082151d1324de6d03fd8eba252e378f15092286e8eb39698a029",
+        "callsite": "res://probe.gd _init() set_streams_count-0 set_streams_count-1 set_streams_count-3",
+        "observedOutputSha256": "e7dc47a1489ebb25fa32afe5f2be3562f38a2104c1d9ab8be3e331ffd9ed30d8"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts set_streams_count",
+        "observedOutputSha256": "e7dc47a1489ebb25fa32afe5f2be3562f38a2104c1d9ab8be3e331ffd9ed30d8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "22fc5e19d014073728bb521a995e31bcd7f7fed7f6b21716265f9ed7c0efa6db"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_streams_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000get_streams_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.get_streams_count",
+        "sourceLine": 552
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "634e0f5613e9b5ddcc50de4d56db7c2e1dc8292f7d97c7c00c9e2a43f21342ce",
+        "callsite": "res://probe.gd _init() get_streams_count-default",
+        "observedOutputSha256": "68a27ac44b8adc74f0c8e4590ea946d9db58584d4937a1ad1aec6ac1c6a59981"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts get_streams_count",
+        "observedOutputSha256": "68a27ac44b8adc74f0c8e4590ea946d9db58584d4937a1ad1aec6ac1c6a59981"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fd63ff8a277a66a85bc18a88205ae1e04652c250c11633e0fad33c5622c6ca5d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_stream",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000set_stream\u0000hash:111075094",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.set_stream",
+        "sourceLine": 526
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9e8c79cd62fb1c82b11fca4e998516aab04bdbe9681dbdcabd3fed2f44ef114d",
+        "callsite": "res://probe.gd _init() set_stream-0 set_stream-1 set_stream-5",
+        "observedOutputSha256": "3e7cef2434041610dd0f0630e643d598cdb627389d46c982e069495938f6cbcc"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts set_stream",
+        "observedOutputSha256": "3e7cef2434041610dd0f0630e643d598cdb627389d46c982e069495938f6cbcc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "55593bc5ebd1df75bd692afbfdcd7128df66633eee2ba17ba483026c439a315a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_stream",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000get_stream\u0000hash:2739380747",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.get_stream",
+        "sourceLine": 532
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fcb60dc4c38050905f4ddc8d5ede00b02f01baae0186a43105362e47b453cb55",
+        "callsite": "res://probe.gd _init() get_stream-default",
+        "observedOutputSha256": "d701a2ecbce8d861bc90870ff67eca3b64c03318b7bafee109ccbbf1f5bd2cca"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts get_stream",
+        "observedOutputSha256": "d701a2ecbce8d861bc90870ff67eca3b64c03318b7bafee109ccbbf1f5bd2cca"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "faa9043ecbf5ad5bd3c1c9848c901d58b273676d96e11ef565235cfed45eb8d6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_stream_probability_weight",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000set_stream_probability_weight\u0000hash:1602489585",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.set_stream_probability_weight",
+        "sourceLine": 537
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d4250bf2700ece22960db2a62f637115c9caf948f9ae08f4ffed0602205c1e58",
+        "callsite": "res://probe.gd _init() set_stream_probability_weight-0.25 set_stream_probability_weight-3.0",
+        "observedOutputSha256": "6f266d9ba4626ef074da665759f83843525cffd1dcb5e130a2b2d90fea970f7e"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts set_stream_probability_weight",
+        "observedOutputSha256": "6f266d9ba4626ef074da665759f83843525cffd1dcb5e130a2b2d90fea970f7e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b257daa2b3dd58d17421c3a775cb65ab99ee36388b742853cba70a2484286b75"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_stream_probability_weight",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000get_stream_probability_weight\u0000hash:2339986948",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.get_stream_probability_weight",
+        "sourceLine": 543
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "90c5127d5d536cbec9fa2c8a1aed565d871dff131228a1b0f3d0a53dbb5e54d5",
+        "callsite": "res://probe.gd _init() get_stream_probability_weight-default",
+        "observedOutputSha256": "b006d928ab9680c6545f23c17c01543bd39ea285eaed06c4a7afbf37a2371880"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts get_stream_probability_weight",
+        "observedOutputSha256": "b006d928ab9680c6545f23c17c01543bd39ea285eaed06c4a7afbf37a2371880"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "09590ae732b089ccac6e7abeb3425921f56d672b6edc109cf7da81f97981317e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_random_pitch",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000set_random_pitch\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.set_random_pitch",
+        "sourceLine": 556
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "570ddfa299bbcbf44d990a64559fae7980af5d3b028cd440d64036764a0ca737",
+        "callsite": "res://probe.gd _init() set_random_pitch-1.03 set_random_pitch-0.5 set_random_pitch-2.0",
+        "observedOutputSha256": "2deba48db068dec9f2845a35684741a7c60b1e950e5a6018f56332c75f2cb405"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts set_random_pitch",
+        "observedOutputSha256": "2deba48db068dec9f2845a35684741a7c60b1e950e5a6018f56332c75f2cb405"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cb1395684153604223d615f5ada357c22f5b4808c71bf83aa9e7cf19934abb2f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_random_pitch",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000get_random_pitch\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.get_random_pitch",
+        "sourceLine": 563
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9df2aaf749556f5f6b32d755c1aa08ae7e17d8f4f780c2274e5bef36cd956be8",
+        "callsite": "res://probe.gd _init() get_random_pitch-default",
+        "observedOutputSha256": "84545015d150c10aa15cac25893ae4ee89c4975d4d93a50dbc7f0f90018750da"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts get_random_pitch",
+        "observedOutputSha256": "84545015d150c10aa15cac25893ae4ee89c4975d4d93a50dbc7f0f90018750da"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8a126bf6d14f054390e4be6a5a8f0ceccf8767d83e821c6b67a94ea60931e216"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_random_volume_offset_db",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000set_random_volume_offset_db\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.set_random_volume_offset_db",
+        "sourceLine": 575
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2846b7f08db8f94dfdee128ad630bed3f0140c081255c7cf4b3d715128b3bdd5",
+        "callsite": "res://probe.gd _init() set_random_volume_offset_db-3.3 set_random_volume_offset_db--1.0 set_random_volume_offset_db-0.0",
+        "observedOutputSha256": "2af6fab1b4ed370a6a716b4ecfa252578b000574adf1dfa3f3243d04a42195f6"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts set_random_volume_offset_db",
+        "observedOutputSha256": "2af6fab1b4ed370a6a716b4ecfa252578b000574adf1dfa3f3243d04a42195f6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9539bb3af66f010ab0eb932bc3d959bf63e60584d4b3126ea864ba665ae71226"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_random_volume_offset_db",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000get_random_volume_offset_db\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.get_random_volume_offset_db",
+        "sourceLine": 582
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "debfdf8128773220d2353c9d63e956715524fe161c2bd6368e3e7c67e9962333",
+        "callsite": "res://probe.gd _init() get_random_volume_offset_db-default",
+        "observedOutputSha256": "348563dc70900256f564555da5835e833be01ccda8ca68ff684ead10b03fb375"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts get_random_volume_offset_db",
+        "observedOutputSha256": "348563dc70900256f564555da5835e833be01ccda8ca68ff684ead10b03fb375"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ce7588d1d6054ec79c352fffec39b26922e7eee5181e513d6b61565d58211f81"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_playback_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000set_playback_mode\u0000hash:3950967023",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.set_playback_mode",
+        "sourceLine": 586
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2f0446aa22b54bafd750796cfdb9baefc0b6742f0f2f5203d9eb13cbd9828662",
+        "callsite": "res://probe.gd _init() set_playback_mode-0 set_playback_mode-1 set_playback_mode-2",
+        "observedOutputSha256": "9541ee5527c15142f69621d086b2f57fdf353f6b762b3c4a1d618e09945e0d65"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts set_playback_mode",
+        "observedOutputSha256": "9541ee5527c15142f69621d086b2f57fdf353f6b762b3c4a1d618e09945e0d65"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e0023fefe1a98e9553e150fc9a80e4a5f4e231d0da3b2e15025c0ef30612a50b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_playback_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AudioStreamRandomizer\u0000get_playback_mode\u0000hash:3943055077",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/audio/audio_stream.cpp",
+        "sourceSymbol": "AudioStreamRandomizer.get_playback_mode",
+        "sourceLine": 590
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f5fc2f9504aa6ef3e71973d838003067dd0e6f7945eb73d439e45d2da7818da1",
+        "callsite": "res://probe.gd _init() get_playback_mode-default",
+        "observedOutputSha256": "f8b99c0591e0d5a498818ac99530cc4422c5b6a0549384145acfb5ef9b31b293"
+      },
+      "target": {
+        "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7",
+        "callsite": "lib/godot-compat/audio-stream-randomizer.ts get_playback_mode",
+        "observedOutputSha256": "f8b99c0591e0d5a498818ac99530cc4422c5b6a0549384145acfb5ef9b31b293"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f98859eeea0a682535fae94d5c95c8d07fad1279830584f27d43fb4d50534945"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "audio-stream-randomizer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_streams_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "59997dd05a5e082151d1324de6d03fd8eba252e378f15092286e8eb39698a029",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_streams_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "634e0f5613e9b5ddcc50de4d56db7c2e1dc8292f7d97c7c00c9e2a43f21342ce",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_stream",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9e8c79cd62fb1c82b11fca4e998516aab04bdbe9681dbdcabd3fed2f44ef114d",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_stream",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fcb60dc4c38050905f4ddc8d5ede00b02f01baae0186a43105362e47b453cb55",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_stream_probability_weight",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d4250bf2700ece22960db2a62f637115c9caf948f9ae08f4ffed0602205c1e58",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_stream_probability_weight",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "90c5127d5d536cbec9fa2c8a1aed565d871dff131228a1b0f3d0a53dbb5e54d5",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_random_pitch",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "570ddfa299bbcbf44d990a64559fae7980af5d3b028cd440d64036764a0ca737",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_random_pitch",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9df2aaf749556f5f6b32d755c1aa08ae7e17d8f4f780c2274e5bef36cd956be8",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_random_volume_offset_db",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2846b7f08db8f94dfdee128ad630bed3f0140c081255c7cf4b3d715128b3bdd5",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_random_volume_offset_db",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "debfdf8128773220d2353c9d63e956715524fe161c2bd6368e3e7c67e9962333",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.set_playback_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2f0446aa22b54bafd750796cfdb9baefc0b6742f0f2f5203d9eb13cbd9828662",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-AudioStreamRandomizer.get_playback_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f5fc2f9504aa6ef3e71973d838003067dd0e6f7945eb73d439e45d2da7818da1",
+      "implementationSha256": "ff0d36d6542e04a0bf88ea8d22a6e6cd81d08154e4b77e9a826dbab7eb412eb7"
+    }
+  ]
+}

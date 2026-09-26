@@ -4,6 +4,7 @@ import type {
   BoundGodotImportedBone,
   BoundGodotSceneDocument,
   BoundGodotSceneNode,
+  BoundGodotSoundDocument,
   BoundGodotTextureDocument,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
@@ -122,10 +123,34 @@ export interface TargetGodotArrayMeshPlan {
   }[];
 }
 
-/** An imported image as `CompressedTexture2D`'s load receives it (`compat/compressed-texture-2d`). */
+/** An imported file as its class's load receives it: the copied file and the importer's options. */
 export interface TargetGodotImportedLoad {
   readonly sourceResPath: string;
-  readonly options: { readonly fixAlphaBorder: boolean; readonly premultAlpha: boolean; readonly mipmaps: boolean };
+  readonly options: Readonly<Record<string, boolean | number>>;
+}
+
+/**
+ * The `wav` importer's options as `AudioStreamWAV`'s load applies them; an absent option is the
+ * importer's default (`resource_importer_wav.cpp:76`). The rate limit is not applied.
+ */
+function soundLoad(sound: BoundGodotSoundDocument): TargetGodotImportedLoad | string {
+  const params = sound.importParams;
+  if (params.forceMaxRate === true) return 'force/max_rate is not applied';
+  return {
+    sourceResPath: sound.resPath,
+    options: {
+      force8Bit: params.force8Bit ?? false,
+      forceMono: params.forceMono ?? false,
+      forceMaxRate: false,
+      maxRateHz: params.maxRateHz ?? 44100,
+      trim: params.trim ?? false,
+      normalize: params.normalize ?? false,
+      loopMode: params.loopMode ?? 0,
+      loopBegin: params.loopBegin ?? 0,
+      loopEnd: params.loopEnd ?? -1,
+      compressMode: params.compressMode ?? 0,
+    },
+  };
 }
 
 /**
@@ -429,15 +454,18 @@ function planResource(
   document.planned.set(key, null);
   // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file.
   const texture = data === undefined ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key) : undefined;
-  if (texture !== undefined) {
-    const load = textureLoad(texture);
-    const rule = context.authority.resourceRule('CompressedTexture2D');
+  // A sound the wav importer imports: an `AudioStreamWAV` loaded from its copied file.
+  const sound = data === undefined && texture === undefined ? context.project?.documents.sounds.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  const imported = texture !== undefined ? { className: 'CompressedTexture2D', load: textureLoad(texture) } : sound !== undefined ? { className: 'AudioStreamWAV', load: soundLoad(sound) } : undefined;
+  if (imported !== undefined) {
+    const { className, load } = imported;
+    const rule = context.authority.resourceRule(className);
     if (typeof load === 'string' || rule === undefined) {
-      refuse(context, at, typeof load === 'string' ? `${key}: ${load}` : 'no live resource rule constructs CompressedTexture2D', 'resource', 'CompressedTexture2D');
+      refuse(context, at, typeof load === 'string' ? `${key}: ${load}` : `no live resource rule constructs ${className}`, 'resource', className);
       return undefined;
     }
     context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className: 'CompressedTexture2D', construct: rule.construct, load, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className, construct: rule.construct, load, setters: [], evidenceClaimId: rule.evidenceClaimId };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;

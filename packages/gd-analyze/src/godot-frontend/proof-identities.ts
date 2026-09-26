@@ -22,6 +22,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-ui',
   'scene-textures',
   'scene-meshes',
+  'scene-audio',
   'scene-imported',
   'scene-physics',
   'lifecycle',

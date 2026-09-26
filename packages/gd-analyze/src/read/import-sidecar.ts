@@ -158,6 +158,38 @@ export interface ImportSidecar {
   readonly objParams?: GodotObjImportParams;
   /** Godot 4's `texture` importer options (`editor/import/resource_importer_texture.cpp:230`). */
   readonly textureImport?: GodotTextureImportParams;
+  /** The `wav` importer's options (`editor/import/resource_importer_wav.cpp:76`). */
+  readonly wavImport?: GodotWavImportParams;
+}
+
+/** The `wav` importer's `[params]` (`ResourceImporterWAV::get_import_options`); absent stays absent. */
+export interface GodotWavImportParams {
+  readonly force8Bit?: boolean;
+  readonly forceMono?: boolean;
+  readonly forceMaxRate?: boolean;
+  readonly maxRateHz?: number;
+  readonly trim?: boolean;
+  readonly normalize?: boolean;
+  readonly loopMode?: number;
+  readonly loopBegin?: number;
+  readonly loopEnd?: number;
+  readonly compressMode?: number;
+}
+
+function readWavImportParams(properties: Readonly<Record<string, GodotValue>> | undefined): GodotWavImportParams | undefined {
+  if (properties === undefined) return undefined;
+  return {
+    ...withKey('force8Bit', boolOf(properties['force/8_bit'])),
+    ...withKey('forceMono', boolOf(properties['force/mono'])),
+    ...withKey('forceMaxRate', boolOf(properties['force/max_rate'])),
+    ...withKey('maxRateHz', asNumber(properties['force/max_rate_hz'])),
+    ...withKey('trim', boolOf(properties['edit/trim'])),
+    ...withKey('normalize', boolOf(properties['edit/normalize'])),
+    ...withKey('loopMode', asNumber(properties['edit/loop_mode'])),
+    ...withKey('loopBegin', asNumber(properties['edit/loop_begin'])),
+    ...withKey('loopEnd', asNumber(properties['edit/loop_end'])),
+    ...withKey('compressMode', asNumber(properties['compress/mode'])),
+  };
 }
 
 /**
@@ -429,6 +461,7 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
   const storeInSubdirValue = params?.properties['external_files/store_in_subdir'];
   const textureFlags = readTextureFlags(params?.properties);
   const textureImport = importer === 'texture' ? readTextureImportParams(params?.properties) : undefined;
+  const wavImport = importer === 'wav' ? readWavImportParams(params?.properties) : undefined;
   const objParams = importer === 'wavefront_obj'
     ? readObjImportParams(remap?.properties ?? {}, params?.properties ?? {})
     : undefined;
@@ -443,6 +476,7 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
     ...(storeInSubdirValue?.kind === 'bool' ? { storeInSubdir: storeInSubdirValue.value } : {}),
     ...(textureFlags === undefined ? {} : { textureFlags }),
     ...(textureImport === undefined ? {} : { textureImport }),
+    ...(wavImport === undefined ? {} : { wavImport }),
     ...(cubemapArrangement === undefined ? {} : { cubemapArrangement }),
     ...(bitmapThreshold === undefined ? {} : { bitmapThreshold }),
     ...(bitmapCreateFrom === undefined ? {} : { bitmapCreateFrom }),

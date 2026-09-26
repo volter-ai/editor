@@ -14,10 +14,11 @@
  * record carries what `input-event.ts` models: no unicode, double click, button mask, pressure,
  * relative motion or velocity; the wheel, gamepads and IME are not bound. `Input`'s mouse button
  * mask is kept here from the buttons this binding delivered (emulated mouse buttons from touches
- * do not change it).
+ * do not change it). A key, mouse button or touch resumes the page's audio (`resume_audio`).
  */
 
 import type { Object3D } from 'three';
+import { godot_audio_resume } from './audio-stream';
 import { flush_buffered_events, parse_input_event } from './input';
 import type { InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
@@ -216,6 +217,7 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
       location: domLocation(event.code),
       ...modifiers(event, fixed),
     });
+    godot_audio_resume();
     flush_buffered_events();
     event.preventDefault();
   };
@@ -231,6 +233,7 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
     else if ((web.mask & flag) !== 0) web.mask &= ~flag;
     else return;
     parse_input_event({ type: 'mouse_button', pressed, button_index: index, position: canvasPoint(canvas, event), ...modifiers(event, 0) });
+    godot_audio_resume();
     flush_buffered_events();
     event.preventDefault();
   };
@@ -255,6 +258,7 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
       if (type === 2) {
         parse_input_event({ type: 'screen_drag', index: point.identifier, position });
       } else {
+        godot_audio_resume();
         parse_input_event({ type: 'screen_touch', index: point.identifier, position, pressed: type === 0 });
         flush_buffered_events();
       }

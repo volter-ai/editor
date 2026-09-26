@@ -49,6 +49,12 @@ import {
   GODOT_4_7_MESH_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-meshes';
 import {
+  GODOT_4_7_AUDIO_CLAIMS,
+  GODOT_4_7_AUDIO_LIVENESS,
+  GODOT_4_7_AUDIO_NODE_RULES,
+  GODOT_4_7_AUDIO_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-audio';
+import {
   GODOT_4_7_PHYSICS_CLAIMS,
   GODOT_4_7_PHYSICS_LIVENESS,
   GODOT_4_7_PHYSICS_NODE_RULES,
@@ -176,6 +182,17 @@ export const GODOT_SCENE_MESH_IMPLEMENTATION_FILES = [
   ...['array-mesh.ts', 'mesh.ts', 'mesh-instance-3d.ts', 'base-material-3d.ts', 'image.ts', 'compressed-texture-2d.ts', 'label-3d.ts', 'font.ts', 'visual-instance-3d.ts'].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-audio proof runs: the sound reader, planning, emission, the audio compat. */
+export const GODOT_SCENE_AUDIO_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/read/import-sidecar.ts',
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/translation-plan.ts',
+  ...['audio-stream.ts', 'audio-stream-wav.ts', 'audio-stream-randomizer.ts', 'audio-stream-player.ts', 'audio-stream-player-3d.ts', 'resource-loader.ts'].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** What the scene-imported proof runs: the importer model, planning, emission, packed-scene. */
 export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/read/gltf-godot-scene.ts',
@@ -243,6 +260,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_UI_NODE_RULES,
           ...GODOT_4_7_PHYSICS_NODE_RULES,
           ...GODOT_4_7_MESH_NODE_RULES,
+          ...GODOT_4_7_AUDIO_NODE_RULES,
         ]
       : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
@@ -254,7 +272,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       : [],
     signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
-      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES]
+      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES]
       : [],
     claims: supported
       ? [
@@ -266,6 +284,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_PHYSICS_CLAIMS,
           ...GODOT_4_7_TEXTURE_CLAIMS,
           ...GODOT_4_7_MESH_CLAIMS,
+          ...GODOT_4_7_AUDIO_CLAIMS,
         ]
       : [],
     liveness: supported
@@ -301,6 +320,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_MESH_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_MESH_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_AUDIO_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_AUDIO_IMPLEMENTATION_FILES),
           ),
         ]
       : [],

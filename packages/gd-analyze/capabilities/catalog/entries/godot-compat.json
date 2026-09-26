@@ -7,6 +7,11 @@
     "src/lib/godot-compat/area-3d.ts",
     "src/lib/godot-compat/array-mesh.ts",
     "src/lib/godot-compat/array.ts",
+    "src/lib/godot-compat/audio-stream-player-3d.ts",
+    "src/lib/godot-compat/audio-stream-player.ts",
+    "src/lib/godot-compat/audio-stream-randomizer.ts",
+    "src/lib/godot-compat/audio-stream-wav.ts",
+    "src/lib/godot-compat/audio-stream.ts",
     "src/lib/godot-compat/base-material-3d.ts",
     "src/lib/godot-compat/basis.ts",
     "src/lib/godot-compat/box-container.ts",
@@ -127,5 +132,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.858.0"
+  "version": "0.859.0"
 }

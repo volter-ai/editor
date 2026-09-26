@@ -24,7 +24,7 @@ import type {
 import { walkSceneNodes } from '../read/godot-types';
 import type { GodotValue } from '../read/godot-value';
 import { indexParsedSceneScriptAttachments } from '../read/scene-attachment-index';
-import type { GodotTextureImportParams } from '../read/import-sidecar';
+import type { GodotTextureImportParams, GodotWavImportParams } from '../read/import-sidecar';
 import type { GodotProjectSnapshot, GodotProjectSnapshotEntry } from '../snapshot/project-snapshot';
 import { GodotProjectSnapshotReader } from '../snapshot/project-snapshot-reader';
 import type { GodotToolchainApiDumpSnapshot } from '../snapshot/toolchain-snapshot';
@@ -280,6 +280,16 @@ export interface BoundGodotProjectDocuments {
   readonly resources: readonly BoundGodotResourceDocument[];
   /** Images Godot's `texture` importer imports: the source bytes and the importer's options. */
   readonly textures: readonly BoundGodotTextureDocument[];
+  /** Sounds Godot's `wav` importer imports: the source bytes and the importer's options. */
+  readonly sounds: readonly BoundGodotSoundDocument[];
+}
+
+/** A `.wav` imported as an `AudioStreamWAV` (`[remap] importer="wav"`). */
+export interface BoundGodotSoundDocument {
+  readonly resPath: string;
+  readonly sourceDigest: string;
+  readonly bytes: Uint8Array;
+  readonly importParams: GodotWavImportParams;
 }
 
 /** An image imported as a `CompressedTexture2D` (`[remap] importer="texture"`). */
@@ -647,6 +657,16 @@ function boundDocuments(
             importParams: sidecar.textureImport,
           },
         ];
+      }),
+    ),
+    sounds: unique(
+      'sound',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'wav' || sidecar.resourceType !== 'AudioStreamWAV') return [];
+        if (sidecar.sourceFile === undefined || sidecar.wavImport === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, bytes: snapshot.bytesByResPath(sidecar.sourceFile), importParams: sidecar.wavImport }];
       }),
     ),
     resources: unique(
