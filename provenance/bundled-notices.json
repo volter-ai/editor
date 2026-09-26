@@ -1,32 +1,8 @@
 {
   "editor-core": [
     {
-      "name": "@volter-ai-dev/supercode-frontend",
-      "version": "0.2.3",
-      "license": "MIT OR Apache-2.0",
-      "notices": [
-        {
-          "file": "release/licenses/supercode-frontend.txt",
-          "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6",
-          "source": "https://github.com/volter-ai/supercode/blob/fc9962d0f88520c5661f299663a298bc17edda40/LICENSE-MIT"
-        }
-      ]
-    },
-    {
-      "name": "@volter-ai-dev/supercode-ui",
-      "version": "0.1.83",
-      "license": "MIT OR Apache-2.0",
-      "notices": [
-        {
-          "file": "release/licenses/supercode.txt",
-          "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6",
-          "source": "https://github.com/volter-ai/supercode/blob/b4bac5b48aaae2691b8662b7987ff208d6265d2d/LICENSE-MIT"
-        }
-      ]
-    },
-    {
       "name": "@volter/editor-project",
-      "version": "0.5.66",
+      "version": "0.5.67",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -37,7 +13,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.66",
+      "version": "0.5.67",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -49,100 +25,12 @@
           "sha256": "bde5e9f904a6ff37dc20514dc4197a22237076622795e2228773cb9236e3cdb2"
         }
       ]
-    },
-    {
-      "name": "es-module-lexer",
-      "version": "1.7.0",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/es-module-lexer/LICENSE",
-          "sha256": "fecc38b5e10d889686b3862e7ade17e8b3e5c94b24b7256b05a354d8524b3274"
-        }
-      ]
-    },
-    {
-      "name": "fdir",
-      "version": "6.5.0",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/fdir/LICENSE",
-          "sha256": "9a39f2aadab11a3697edd668ff2d8ad885b649737b7ab4d3bf12b34e5ada0c86"
-        }
-      ]
-    },
-    {
-      "name": "fflate",
-      "version": "0.8.3",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/fflate/LICENSE",
-          "sha256": "0a1df3a083d0c010560aa342e87959c8c1070e6fd54545741f083f22d0c8b551"
-        }
-      ]
-    },
-    {
-      "name": "picomatch",
-      "version": "4.0.7",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/picomatch/LICENSE",
-          "sha256": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9"
-        }
-      ]
-    },
-    {
-      "name": "react",
-      "version": "19.2.7",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/react/LICENSE",
-          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
-        }
-      ]
-    },
-    {
-      "name": "semver",
-      "version": "7.8.5",
-      "license": "ISC",
-      "notices": [
-        {
-          "file": "node_modules/semver/LICENSE",
-          "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b"
-        }
-      ]
-    },
-    {
-      "name": "tinyglobby",
-      "version": "0.2.17",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/tinyglobby/LICENSE",
-          "sha256": "22c68811e174cbbfb3813d4135918df4f540959c14d872e601d9abe83d3cde8f"
-        }
-      ]
-    },
-    {
-      "name": "zod",
-      "version": "4.3.6",
-      "license": "MIT",
-      "notices": [
-        {
-          "file": "node_modules/zod/LICENSE",
-          "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
-        }
-      ]
     }
   ],
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.66",
+      "version": "0.5.67",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -153,7 +41,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.66",
+      "version": "0.5.67",
       "license": "Apache-2.0",
       "notices": [
         {

@@ -2,7 +2,7 @@
   "name": "@volter/threejs-runtime",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.66",
+  "version": "0.5.67",
   "publishConfig": {
     "access": "public"
   },
@@ -43,7 +43,7 @@
     "@dimforge/rapier3d-compat": "^0.14.0",
     "@recast-navigation/three": "^0.43.0",
     "@sparkjsdev/spark": "^2.1.0",
-    "@volter/editor-project": "0.5.66",
+    "@volter/editor-project": "0.5.67",
     "n8ao": "^1.10.1",
     "postprocessing": "^6.38.0",
     "quarks.core": "0.16.0",
