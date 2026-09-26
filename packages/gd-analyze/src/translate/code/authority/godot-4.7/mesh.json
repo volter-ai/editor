@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/mesh"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Mesh",
+        "member": "get_surface_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh",
+        "exportName": "get_surface_count",
+        "localName": "Mesh_get_surface_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Mesh.get_surface_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Mesh",
+        "member": "surface_get_arrays",
+        "kind": "native-member",
+        "signature": "hash:663333327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh",
+        "exportName": "surface_get_arrays",
+        "localName": "Mesh_surface_get_arrays",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Mesh.surface_get_arrays"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Mesh",
+        "member": "surface_get_material",
+        "kind": "native-member",
+        "signature": "hash:2897466400"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh",
+        "exportName": "surface_get_material",
+        "localName": "Mesh_surface_get_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Mesh.surface_get_material"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Mesh.get_surface_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Mesh\u0000get_surface_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/mesh.cpp",
+        "sourceSymbol": "Mesh.get_surface_count",
+        "sourceLine": 1857
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "799d7c8d9c29fcea5a8326e39077e0ce6750156539c76c1cd76e1ff87308e13c",
+        "callsite": "res://probe.gd _init() get_surface_count-quad get_surface_count-tri get_surface_count-two",
+        "observedOutputSha256": "a5c997a86c0678a76989a2a08e94d38fab61a73a6f1af134d0fc419e120d1ff3"
+      },
+      "target": {
+        "implementationSha256": "019dfe54fd7c811a5ab39d0ca83a00f9a59c3f25b5690ab41c7a78cd784f210c",
+        "callsite": "lib/godot-compat/mesh.ts get_surface_count",
+        "observedOutputSha256": "a5c997a86c0678a76989a2a08e94d38fab61a73a6f1af134d0fc419e120d1ff3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3ba8808ddae17627c078882acf263dadf3defa70f20d88d9ac2b1645e2b53366"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Mesh.surface_get_arrays",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Mesh\u0000surface_get_arrays\u0000hash:663333327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/mesh.cpp",
+        "sourceSymbol": "Mesh.surface_get_arrays",
+        "sourceLine": 1842
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7faf81952925998f0de26cf73b06b7a6921c67d8143fc1d7018c796d7d6ba350",
+        "callsite": "res://probe.gd _init() surface_get_arrays-quad-0 surface_get_arrays-tri-0 surface_get_arrays-two-0 surface_get_arrays-two-1",
+        "observedOutputSha256": "efa744ee0dce987c54c6eaded9ba741f8141e440f1e008d050b5f7964f12293f"
+      },
+      "target": {
+        "implementationSha256": "019dfe54fd7c811a5ab39d0ca83a00f9a59c3f25b5690ab41c7a78cd784f210c",
+        "callsite": "lib/godot-compat/mesh.ts surface_get_arrays",
+        "observedOutputSha256": "a961b44417afdc66190475126f01dad75d877fcd73f75b7fb8df903dac9a3df7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "32e3f34a0c5842bad27c935402b11b2bf1330730b0ed9617822fa881f517ba8a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Mesh.surface_get_material",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Mesh\u0000surface_get_material\u0000hash:2897466400",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/mesh.cpp",
+        "sourceSymbol": "Mesh.surface_get_material",
+        "sourceLine": 2004
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d1998290ee3d31df5aa491e5aa9c33a3710dfe11cbee5dafab423a92acc772fb",
+        "callsite": "res://probe.gd _init() surface_get_material-quad-0-false surface_get_material-quad-0-true surface_get_material-tri-0-false surface_get_material-tri-0-true surface_get_material-two-0-false surface_get_material-two-0-true surface_get_material-two-1-false surface_get_material-two-1-true",
+        "observedOutputSha256": "2cf63aafe892ac778fb189ce9495591726d97a2ed2c5861abd721ce0f82abb95"
+      },
+      "target": {
+        "implementationSha256": "019dfe54fd7c811a5ab39d0ca83a00f9a59c3f25b5690ab41c7a78cd784f210c",
+        "callsite": "lib/godot-compat/mesh.ts surface_get_material",
+        "observedOutputSha256": "2cf63aafe892ac778fb189ce9495591726d97a2ed2c5861abd721ce0f82abb95"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5daec8bc93d703cf98ac47d4ee318badc0c4c05902dd8d509a14fd96d1e24641"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Mesh.get_surface_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "799d7c8d9c29fcea5a8326e39077e0ce6750156539c76c1cd76e1ff87308e13c",
+      "implementationSha256": "019dfe54fd7c811a5ab39d0ca83a00f9a59c3f25b5690ab41c7a78cd784f210c"
+    },
+    {
+      "claimId": "godot-4.7-binding-Mesh.surface_get_arrays",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7faf81952925998f0de26cf73b06b7a6921c67d8143fc1d7018c796d7d6ba350",
+      "implementationSha256": "019dfe54fd7c811a5ab39d0ca83a00f9a59c3f25b5690ab41c7a78cd784f210c"
+    },
+    {
+      "claimId": "godot-4.7-binding-Mesh.surface_get_material",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d1998290ee3d31df5aa491e5aa9c33a3710dfe11cbee5dafab423a92acc772fb",
+      "implementationSha256": "019dfe54fd7c811a5ab39d0ca83a00f9a59c3f25b5690ab41c7a78cd784f210c"
+    }
+  ]
+}

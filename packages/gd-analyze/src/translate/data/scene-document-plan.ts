@@ -7,6 +7,8 @@ import type {
   BoundGodotTextureDocument,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
+import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
+import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { isImportedResourceId } from '../../read/instance-expansion';
 import { type SceneSetterLookup, type TargetSceneValue, targetSceneValue } from './scene-setters';
 import {
@@ -103,8 +105,21 @@ export interface TargetGodotSceneResourcePlan {
   readonly construct: GodotCompatExport;
   /** An imported file the constructor loads: its copied URL and the importer options it applies. */
   readonly load?: TargetGodotImportedLoad;
+  /** An `ArrayMesh`'s surfaces, decoded from its `_surfaces` (`read/godot4-surfaces.ts`). */
+  readonly mesh?: TargetGodotArrayMeshPlan;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
+}
+
+/** An `ArrayMesh` as `godot_array_mesh_new` receives it: each surface's arrays and material. */
+export interface TargetGodotArrayMeshPlan {
+  readonly resourceName: string;
+  readonly surfaces: readonly {
+    readonly primitive: number;
+    readonly arrays: Readonly<Record<'vertex' | 'normal' | 'tangent' | 'color' | 'tex_uv' | 'tex_uv2' | 'index', readonly number[] | undefined>>;
+    /** The planned material resource's key, when the surface names one. */
+    readonly material?: string;
+  }[];
 }
 
 /** An imported image as `CompressedTexture2D`'s load receives it (`compat/compressed-texture-2d`). */
@@ -436,6 +451,15 @@ function planResource(
     refuse(context, at, `no live resource rule constructs ${data.type}`, 'resource', data.type);
     return undefined;
   }
+  if (data.type === 'ArrayMesh') {
+    const mesh = arrayMeshPlan(context, `${at}(${key})`, data, nestedScope);
+    if (mesh === undefined) return undefined;
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   const setters: TargetGodotSceneSetterPlan[] = [];
   let ok = true;
   for (const [propertyName, value] of Object.entries(data.properties)) {
@@ -449,6 +473,81 @@ function planResource(
   document.planned.set(key, planned);
   document.order.push(planned);
   return key;
+}
+
+/** `ARRAY_MESH_PRIMITIVE` (Godot 3's numbering, `read/array-mesh.ts`) to Godot 4's `PrimitiveType`. */
+const GODOT4_PRIMITIVE: Readonly<Record<number, number>> = {
+  [ARRAY_MESH_PRIMITIVE.POINTS]: 0,
+  [ARRAY_MESH_PRIMITIVE.LINES]: 1,
+  [ARRAY_MESH_PRIMITIVE.LINE_STRIP]: 2,
+  [ARRAY_MESH_PRIMITIVE.TRIANGLES]: 3,
+  [ARRAY_MESH_PRIMITIVE.TRIANGLE_STRIP]: 4,
+};
+
+/**
+ * An `ArrayMesh` resource as data: its `_surfaces` decoded by the reader's transcription of
+ * `RenderingServer::_get_array_from_surface`, each surface's material planned as a resource. Its
+ * other stored properties are its name, the blend-shape mode (no surface carries blend shapes) and
+ * a null script; anything else refuses.
+ */
+function arrayMeshPlan(context: PlanContext, at: string, data: BoundGodotResourceData, scope: string): TargetGodotArrayMeshPlan | undefined {
+  for (const [name, value] of Object.entries(data.properties)) {
+    if (name === '_surfaces' || name === 'resource_name' || name === 'blend_shape_mode') continue;
+    if (name === 'script' && value.kind === 'null') continue;
+    refuse(context, `${at}.${name}`, `ArrayMesh.${name} is not translated`, 'property', name);
+    return undefined;
+  }
+  let decoded: ReturnType<typeof readGodot4Surfaces>;
+  try {
+    decoded = readGodot4Surfaces(data.properties, at);
+  } catch (error) {
+    refuse(context, at, error instanceof Error ? error.message : String(error), 'resource', 'ArrayMesh');
+    return undefined;
+  }
+  const surfaces: TargetGodotArrayMeshPlan['surfaces'][number][] = [];
+  for (const surface of decoded) {
+    if (surface.blendShapeCount > 0 || surface.bones !== undefined || surface.weights !== undefined) {
+      refuse(context, `${at}#_surfaces/${String(surface.index)}`, 'a skinned or blend-shape surface is not translated', 'resource', 'ArrayMesh');
+      return undefined;
+    }
+    let material: string | undefined;
+    const ref = surface.materialRef;
+    if (ref !== undefined && ref.kind !== 'null') {
+      // A binary resource names its resources by index (`ExtResource(0)`), a text one by string id.
+      const [id] = ref.kind === 'ctor' ? ref.args : [];
+      const reference = ref.kind === 'ctor' && (ref.name === 'SubResource' || ref.name === 'ExtResource') && id !== undefined && (id.kind === 'string' || id.kind === 'number')
+        ? { reference: ref.name === 'SubResource' ? ('sub' as const) : ('ext' as const), id: id.kind === 'string' ? id.value : String(id.value) }
+        : undefined;
+      if (reference === undefined) {
+        refuse(context, at, 'a surface material that is not a resource reference', 'resource', 'ArrayMesh');
+        return undefined;
+      }
+      material = planResource(context, at, reference.reference, reference.id, scope);
+      if (material === undefined) return undefined;
+    }
+    const flat = (values: ArrayLike<number> | undefined): readonly number[] | undefined => (values === undefined ? undefined : Array.from(values));
+    // The reader numbers primitives as Godot 3 did; Godot 4's `PrimitiveType` (`rendering_server_enums.h:208`).
+    const primitive = GODOT4_PRIMITIVE[surface.primitive];
+    if (primitive === undefined) {
+      refuse(context, at, `a surface of primitive ${String(surface.primitive)} is not translated`, 'resource', 'ArrayMesh');
+      return undefined;
+    }
+    surfaces.push({
+      primitive,
+      arrays: {
+        vertex: flat(surface.positions),
+        normal: flat(surface.normals),
+        tangent: flat(surface.tangents),
+        color: flat(surface.colors),
+        tex_uv: flat(surface.uvs),
+        tex_uv2: flat(surface.uv2s),
+        index: flat(surface.indices),
+      },
+      ...(material === undefined ? {} : { material }),
+    });
+  }
+  const name = data.properties['resource_name'];
+  return { resourceName: name?.kind === 'string' ? name.value : '', surfaces };
 }
 
 /** One authored property of `className` (a node's or a resource's) as its setter's call. */

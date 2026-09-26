@@ -4,23 +4,53 @@
  *
  * Godot 4.7's `MeshInstance3D` (`scene/3d/mesh_instance_3d.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) bound onto a three `Mesh`: its geometry is the mesh
- * resource's stored surface (`primitive-mesh.ts`), shared by every instance of that resource, and
- * its material the surface's override, else the mesh's own, else the Compatibility renderer's
- * default material (`rasterizer_scene_gles3.cpp:4624`: albedo 0.6, roughness 0.8, metallic 0.2).
+ * resource's stored surface (`primitive-mesh.ts`), or the surfaces a mesh class registers
+ * (`mesh.ts`, an `ArrayMesh`'s), shared by every instance of that resource, drawn as one geometry
+ * with a group per surface; each surface's material is its override, else the mesh's own, else the
+ * Compatibility renderer's default material (`rasterizer_scene_gles3.cpp:4624`: albedo 0.6,
+ * roughness 0.8, metallic 0.2).
  */
 
-import type { BufferGeometry, Material, Mesh } from 'three';
+import { BufferAttribute, BufferGeometry, type Material, type Mesh } from 'three';
 import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_three } from './base-material-3d';
 import { construct as color } from './color';
+import type { ArrayMesh } from './array-mesh';
+import { godot_mesh_surfaces, type GodotMeshSurface } from './mesh';
 import { godot_primitive_mesh_geometry, type PrimitiveMesh } from './primitive-mesh';
 
+/** A mesh resource a MeshInstance3D draws. */
+type MeshResource = PrimitiveMesh | ArrayMesh;
+
 interface MeshInstanceState {
-  mesh: PrimitiveMesh | null;
+  mesh: MeshResource | null;
   overrides: (BaseMaterial3D | null)[];
 }
 
 const STATE = new WeakMap<Mesh, MeshInstanceState>();
-const GEOMETRY = new WeakMap<PrimitiveMesh, BufferGeometry>();
+const GEOMETRY = new WeakMap<object, BufferGeometry>();
+
+/** The surfaces' geometries as one, a group per surface in order (each surface's own attributes). */
+function joined(surfaces: readonly GodotMeshSurface[]): BufferGeometry {
+  if (surfaces.length === 1) return (surfaces[0] as GodotMeshSurface).geometry;
+  const names = Object.keys((surfaces[0] as GodotMeshSurface).geometry.attributes);
+  const geometry = new BufferGeometry();
+  for (const name of names) {
+    const parts = surfaces.map((surface) => surface.geometry.getAttribute(name));
+    if (parts.some((part) => part === undefined)) throw new Error(`godot-compat: mesh surfaces differ in their ${name} array`);
+    const size = (parts[0] as BufferAttribute).itemSize;
+    geometry.setAttribute(name, new BufferAttribute(Float32Array.from(parts.flatMap((part) => [...(part as BufferAttribute).array])), size));
+  }
+  const index: number[] = [];
+  let base = 0;
+  surfaces.forEach((surface, group) => {
+    const start = index.length;
+    for (const value of surface.geometry.getIndex()?.array ?? []) index.push(value + base);
+    geometry.addGroup(start, index.length - start, group);
+    base += surface.geometry.getAttribute('position').count;
+  });
+  geometry.setIndex(index);
+  return geometry;
+}
 let fallback: Material | undefined;
 
 /** The Compatibility renderer's default material (`rasterizer_scene_gles3.cpp:4624`). */
@@ -49,15 +79,19 @@ function draw(self: Mesh, state: MeshInstanceState): void {
     self.visible = false;
     return;
   }
+  const surfaces = godot_mesh_surfaces(state.mesh);
   let geometry = GEOMETRY.get(state.mesh);
   if (geometry === undefined) {
-    geometry = godot_primitive_mesh_geometry(state.mesh);
+    geometry = surfaces === undefined ? godot_primitive_mesh_geometry(state.mesh as PrimitiveMesh) : joined(surfaces);
     GEOMETRY.set(state.mesh, geometry);
   }
   self.geometry = geometry;
-  const own = (state.mesh as PrimitiveMesh & { material?: BaseMaterial3D | null }).material ?? null;
-  const material = state.overrides[0] ?? own;
-  self.material = material === null ? defaultMaterial() : godot_base_material_3d_three(material);
+  const own = surfaces === undefined ? [(state.mesh as PrimitiveMesh & { material?: BaseMaterial3D | null }).material ?? null] : surfaces.map((surface) => surface.material);
+  const materials = own.map((material, surface) => {
+    const chosen = state.overrides[surface] ?? material;
+    return chosen === null ? defaultMaterial() : godot_base_material_3d_three(chosen);
+  });
+  self.material = materials.length === 1 ? (materials[0] as Material) : materials;
   self.visible = true;
 }
 
@@ -68,11 +102,13 @@ function draw(self: Mesh, state: MeshInstanceState): void {
  * @godot MeshInstance3D.set_mesh
  * @source scene/3d/mesh_instance_3d.cpp:120
  */
-export function set_mesh(self: Mesh, mesh: PrimitiveMesh | null): void {
+export function set_mesh(self: Mesh, mesh: MeshResource | null): void {
   const state = stateOf(self);
   if (state.mesh === mesh) return;
   state.mesh = mesh;
-  state.overrides = mesh === null ? [] : [state.overrides[0] ?? null];
+  // `_mesh_changed` (`mesh_instance_3d.cpp:412`): one override per surface of the new mesh.
+  const count = mesh === null ? 0 : (godot_mesh_surfaces(mesh)?.length ?? 1);
+  state.overrides = Array.from({ length: count }, (_, surface) => state.overrides[surface] ?? null);
   draw(self, state);
 }
 
@@ -80,7 +116,7 @@ export function set_mesh(self: Mesh, mesh: PrimitiveMesh | null): void {
  * @godot MeshInstance3D.get_mesh
  * @source scene/3d/mesh_instance_3d.cpp:148
  */
-export function get_mesh(self: Mesh): PrimitiveMesh | null {
+export function get_mesh(self: Mesh): MeshResource | null {
   return stateOf(self).mesh;
 }
 

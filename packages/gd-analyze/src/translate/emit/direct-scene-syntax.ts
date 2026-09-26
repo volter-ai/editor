@@ -7,7 +7,7 @@ import type {
   TargetTsType,
 } from '../code/target-ts-syntax';
 import { TARGET_TS_SYNTAX_VERSION, type TargetTsSourceFile } from '../code/target-ts-syntax';
-import type { TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
+import type { TargetGodotArrayMeshPlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import type {
   DirectGodotProjectCompositionPlan,
   DirectGodotSceneNodePlan,
@@ -436,6 +436,36 @@ function nativeEntity(entity: TargetTsExpression, kind: DirectGodotSceneNodePlan
   return three === undefined ? entity : { kind: 'as-expression', expression: entity, type: referenceType(three) };
 }
 
+/** An ArrayMesh's surfaces as `godot_array_mesh_new`'s argument (`compat/array-mesh`). */
+function arrayMeshArgument(mesh: TargetGodotArrayMeshPlan, resources: ReadonlyMap<string, string>): TargetTsExpression {
+  const numbers = (values: readonly number[]): TargetTsExpression => ({
+    kind: 'array-expression',
+    elements: values.map((value) => ({ kind: 'literal-expression' as const, value })),
+  });
+  return {
+    kind: 'object-expression',
+    properties: [
+      { key: 'resource_name', value: { kind: 'literal-expression', value: mesh.resourceName } },
+      {
+        key: 'surfaces',
+        value: {
+          kind: 'array-expression',
+          elements: mesh.surfaces.map((surface) => ({
+            kind: 'object-expression' as const,
+            properties: [
+              { key: 'primitive', value: { kind: 'literal-expression' as const, value: surface.primitive } },
+              ...Object.entries(surface.arrays).flatMap(([key, values]) => (values === undefined ? [] : [{ key, value: numbers(values) }])),
+              ...(surface.material === undefined
+                ? []
+                : [{ key: 'material', value: { kind: 'identifier-expression' as const, name: resources.get(surface.material) as string } }]),
+            ],
+          })),
+        },
+      },
+    ],
+  };
+}
+
 /** A compat protocol export's local name: its own export name. */
 function compatLocal(entry: { readonly exportName: string }): string {
   return entry.exportName;
@@ -555,9 +585,12 @@ function sceneSourceFile(
         initializer: {
           kind: 'call-expression' as const,
           callee: { kind: 'identifier-expression' as const, name: `${resource.className}_construct` },
-          // An imported file's resource loads it from its copy beside the app, with its importer options.
+          // An imported file's resource loads it from its copy beside the app, with its importer
+          // options; an ArrayMesh receives its decoded surfaces.
           arguments:
-            resource.load === undefined
+            resource.mesh !== undefined
+              ? [arrayMeshArgument(resource.mesh, resourceNames)]
+              : resource.load === undefined
               ? []
               : [
                   { kind: 'literal-expression' as const, value: godotImportedModelUrl(resource.load.sourceResPath) },
