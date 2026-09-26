@@ -58,6 +58,23 @@ render; Play runs the three.js world under its React HUD with enemies engaging;
 moving the Center Jump Pad wrote `src/scenes/ArenaScene.tsx:33` and undo
 restored it. The one console warning is Rapier's own initialization notice.
 
+The canvas root (Pixi) authors in Edit, held to Godot's 2D editor
+([docs/CANVAS-EDITOR.md](docs/CANVAS-EDITOR.md) maps each control to its owner there).
+Walked on a canvas root: the selection frame and its eight handles resize from the opposite
+corner; the View menu switches rulers, guides, origin and the game's viewport rectangle; Smart
+Snap aligns a move to a neighbour's edge (580 against the free 581.5); an edit made on disk
+remounts the scene. Open, from the reference: List Select, Pan and Ruler modes, a frame turned
+with a rotated node, Pivot, Lock and Group in the toolbar.
+
+Netcode: the editor observes a game's own Colyseus rooms (`services/game-network.ts`), held
+to Godot's network profiler and Colyseus Monitor ([docs/NETCODE.md](docs/NETCODE.md)). The
+`server` addition brings the `server` and `play + server` configurations and the client half
+(`src/net/`); Play starts the room server from the button and the relayed verb alike. Walked on
+a scaffold carrying the addition's output: connection, room, 10 entities, the state tree, the log
+and a Traffic table of join, state, position and patch. Not walked: the focus gate that keeps a
+view's keystrokes out of a running game, and Send's typed payload, until a workbench is built
+with that overlay.
+
 Released as 0.5.65 with modeling from one revision
 ([provenance/public-npm-release.json](provenance/public-npm-release.json)):
 from an empty npm cache, `npx @volter/game-editor@0.5.65 create` installed the
