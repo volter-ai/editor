@@ -71,9 +71,12 @@ to Godot's network profiler and Colyseus Monitor ([docs/NETCODE.md](docs/NETCODE
 `server` addition brings the `server` and `play + server` configurations and the client half
 (`src/net/`); Play starts the room server from the button and the relayed verb alike. Walked on
 a scaffold carrying the addition's output: connection, room, 10 entities, the state tree, the log
-and a Traffic table of join, state, position and patch. Not walked: the focus gate that keeps a
-view's keystrokes out of a running game, and Send's typed payload, until a workbench is built
-with that overlay.
+and a Traffic table of join, state, position and patch; the room server's side through Colyseus
+Monitor (rooms, clients, Disconnect), Ping, Send, and state edited from the tree. The workbench
+focus gate keeps a view's keystrokes out of a running game (walked on a release built locally from
+this overlay at the fork pin: typing into Send left the player where it was); the product's
+declared workbench release does not carry it until the next release is cut. Not walked: the
+conditioner (scrub fields the door does not drive).
 
 Released as 0.5.65 with modeling from one revision
 ([provenance/public-npm-release.json](provenance/public-npm-release.json)):
