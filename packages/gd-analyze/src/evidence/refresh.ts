@@ -1,6 +1,7 @@
 /**
  * `gd-analyze evidence --refresh`: run every authority's native/target proof against the pinned
- * official binary and bound exporter, and rewrite the identities of each proof that agrees.
+ * official binary and bound exporter, rewrite the identities of each proof that agrees, then
+ * re-run every evidence case file (compat modules, then language rules).
  */
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -19,7 +20,11 @@ import { measureLifecycleProof } from './proofs/lifecycle';
 import type { GodotProofMeasurement, GodotProofTools } from './proofs/proof';
 import { measureReadProof } from './proofs/read';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
-import { GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256 } from './run-evidence';
+import {
+  GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256,
+  godotEvidenceCaseNames,
+  runEvidence,
+} from './run-evidence';
 
 /** Upstream authorities first; the lifecycle proof mounts a DOM on the process, so it runs last. */
 const PROOFS: readonly (readonly [string, (tools: GodotProofTools) => readonly GodotProofMeasurement[]])[] = [
@@ -42,7 +47,7 @@ function same(left: GodotProofIdentities, right: GodotProofIdentities): boolean 
   );
 }
 
-export function refreshEvidence(tools: GodotProofTools): number {
+export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
   const executable = createHash('sha256').update(readFileSync(tools.officialBinary)).digest('hex');
   if (executable !== GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256) {
     throw new Error(`refusing ${tools.officialBinary}: it is not the official Godot 4.7-stable executable`);
@@ -81,6 +86,17 @@ export function refreshEvidence(tools: GodotProofTools): number {
         (key) => recorded[key] !== measurement.identities[key],
       );
       process.stdout.write(`${measurement.name}: agrees, refreshed ${changed.join(', ')}\n`);
+    }
+  }
+  // Then every case file: compat modules, then the language rules lowered through them.
+  for (const name of godotEvidenceCaseNames()) {
+    try {
+      if ((await runEvidence(name, tools.officialBinary, tools.exporterBinary)) !== 0) failed.push(name);
+    } catch (error) {
+      failed.push(name);
+      process.stdout.write(
+        `${name}: the case file failed; nothing written\n  ${error instanceof Error ? error.message : String(error)}\n`,
+      );
     }
   }
   if (failed.length > 0) {

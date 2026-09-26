@@ -1,13 +1,19 @@
 /**
- * One differential evidence case: a GDScript expression the official Godot binary evaluates and a
- * target thunk that runs the same inputs through a compat export. `gd-analyze evidence <class>`
- * runs both and compares the typed results.
+ * Differential evidence cases. A compat case is a GDScript expression the official Godot binary
+ * evaluates beside a target thunk that runs the same inputs through a compat export. A language
+ * case is a GDScript function the official binary runs beside the same function lowered by
+ * production code lowering and executed. `gd-analyze evidence <name>` runs both and compares the
+ * typed results.
  */
+import type { GodotBoundNode } from '../godot-frontend/bound-program';
+import type { GodotCodeRuleRecipe } from '../translate/code/lowering-rules';
+
 export type GodotEvidenceSymbolKind =
   | 'builtin-member'
   | 'builtin-constructor'
-  | 'constant'
-  | 'operator';
+  | 'builtin-constant'
+  | 'builtin-member-set'
+  | 'builtin-operator';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;
@@ -15,6 +21,8 @@ export interface GodotEvidenceSymbol {
   readonly owner: string;
   /** Godot's member name; for an operator, the `Variant::Operator` name (`OP_ADD`). */
   readonly member: string;
+  /** An operator's right operand type (`Vector3`, `float`, `int`); absent for a unary one. */
+  readonly right?: string;
 }
 
 /**
@@ -26,7 +34,10 @@ export type GodotEvidenceComparator = 'exact' | 'float32-ulp';
 export interface GodotEvidenceCase {
   readonly id: string;
   readonly symbol: GodotEvidenceSymbol;
-  /** One GDScript expression over literal inputs, evaluated in the official binary. */
+  /**
+   * One GDScript expression over literal inputs, or a function body (several lines, ending in
+   * `return`), evaluated in the official binary.
+   */
   readonly gdscript: string;
   /** The same inputs through the compat export. */
   readonly target: () => unknown;
@@ -34,9 +45,51 @@ export interface GodotEvidenceCase {
 }
 
 export interface GodotEvidenceCaseFile {
+  readonly kind?: 'compat';
   /** The Godot class the compat module transcribes (`Vector3`). */
   readonly godotClass: string;
   /** The compat module, relative to the project-source catalog's `src/` (`lib/godot-compat/vector3`). */
   readonly compatModule: string;
+  /** The module's exported value type, the TS type of this class's datatype (`Vector3`). */
+  readonly typeExport?: string;
+  /** Where Godot declares the type (`core/variant/variant.h`, `Variant::VECTOR3`). */
+  readonly typeSource?: { readonly file: string; readonly symbol: string; readonly line: number };
   readonly cases: readonly GodotEvidenceCase[];
+}
+
+/** A code rule a language case file proposes, keyed by exact datatypes or datatype classes. */
+export interface GodotLanguageRuleDefinition {
+  readonly id: string;
+  readonly nodeKind: GodotBoundNode['kind'];
+  /** The rule's semantic key including its annotation suffix (`return:value|annotations:[]`). */
+  readonly semanticKey: string;
+  readonly inputDatatypes: readonly string[];
+  readonly resultDatatype: string;
+  readonly target: GodotCodeRuleRecipe;
+  /** Where the official compiler gives the construct this meaning. */
+  readonly source: { readonly file: string; readonly symbol: string; readonly line: number };
+}
+
+export interface GodotLanguageCase {
+  readonly id: string;
+  /** A static function of `source`, called on both sides. */
+  readonly call: string;
+  /** Its arguments, as GDScript and as the same values in Node; none when absent. */
+  readonly arguments?: {
+    readonly gdscript: string;
+    readonly target: () => readonly unknown[];
+  };
+  readonly comparator: GodotEvidenceComparator;
+}
+
+export interface GodotLanguageEvidenceFile {
+  readonly kind: 'language';
+  /** `class_name` of `source`. */
+  readonly className: string;
+  /** One GDScript file of static case functions. */
+  readonly source: string;
+  /** Compat modules the lowered cases import; their bytes join the implementation identity. */
+  readonly compatModules: readonly string[];
+  readonly rules: readonly GodotLanguageRuleDefinition[];
+  readonly cases: readonly GodotLanguageCase[];
 }

@@ -74,7 +74,9 @@ export function godotCodeTranslationAuthority(
   const seeded =
     source.revision === GODOT_4_7_CODE_SEED_SOURCE_REVISION &&
     source.apiDumpSha256 === GODOT_4_7_CODE_SEED_API_DUMP_SHA256;
-  const evidence = seeded ? godot47EvidenceFiles() : [];
+  const evidence = seeded
+    ? godot47EvidenceFiles(packageImplementationDigest(GODOT_CODE_IMPLEMENTATION_FILES))
+    : [];
   return {
     version: GODOT_CODE_TRANSLATION_AUTHORITY_VERSION,
     sourceRevision: source.revision,
@@ -92,9 +94,16 @@ export function godotCodeTranslationAuthority(
             ...GODOT_4_7_CODE_SEED_RULES,
             ...GODOT_4_7_LANGUAGE_RULES,
             ...GODOT_4_7_AUTOLOAD_REFERENCE_RULES,
+            ...evidence.flatMap((file) => file.rules),
           ]
         : [],
-      datatypes: seeded ? [...GODOT_4_7_CODE_SEED_DATATYPES, ...GODOT_4_7_LANGUAGE_DATATYPES] : [],
+      datatypes: seeded
+        ? [
+            ...GODOT_4_7_CODE_SEED_DATATYPES,
+            ...GODOT_4_7_LANGUAGE_DATATYPES,
+            ...evidence.flatMap((file) => file.datatypes),
+          ]
+        : [],
     },
     claims: seeded
       ? [

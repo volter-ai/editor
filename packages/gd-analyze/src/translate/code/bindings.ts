@@ -8,7 +8,15 @@ export interface GodotOfficialSymbolIdentity {
     | 'native-class'
     | 'native-member'
     | 'builtin-constructor'
-    | 'builtin-member';
+    | 'builtin-member'
+    /** `left <op> right` on a built-in left operand: owner is the left type, member the
+     *  `Variant::Operator` name, signature `right:<type>` or `unary`. */
+    | 'builtin-operator'
+    /** A built-in type's constant (`Vector3.UP`); signature `constant`. */
+    | 'builtin-constant'
+    /** A write to a built-in value's member (`v.x = e`), lowered as `v = with_x(v, e)`;
+     *  signature `set`. */
+    | 'builtin-member-set';
   readonly owner: string;
   readonly member: string;
   readonly signature: string;
@@ -44,6 +52,38 @@ export type GodotTargetBinding =
       readonly kind: 'refusal-binding';
       readonly reason: string;
     };
+
+/**
+ * `Variant::Operator` by value (`core/variant/variant.h:566`), the operator identity the official
+ * frontend records as `variantOperatorId`.
+ */
+export const GODOT_VARIANT_OPERATOR_NAMES = [
+  'OP_EQUAL',
+  'OP_NOT_EQUAL',
+  'OP_LESS',
+  'OP_LESS_EQUAL',
+  'OP_GREATER',
+  'OP_GREATER_EQUAL',
+  'OP_ADD',
+  'OP_SUBTRACT',
+  'OP_MULTIPLY',
+  'OP_DIVIDE',
+  'OP_NEGATE',
+  'OP_POSITIVE',
+  'OP_MODULE',
+  'OP_POWER',
+  'OP_SHIFT_LEFT',
+  'OP_SHIFT_RIGHT',
+  'OP_BIT_AND',
+  'OP_BIT_OR',
+  'OP_BIT_XOR',
+  'OP_BIT_NEGATE',
+  'OP_AND',
+  'OP_OR',
+  'OP_XOR',
+  'OP_NOT',
+  'OP_IN',
+] as const;
 
 export interface GodotBindingEntry {
   readonly source: GodotOfficialSymbolIdentity;

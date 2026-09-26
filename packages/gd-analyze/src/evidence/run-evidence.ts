@@ -1,28 +1,67 @@
 /**
- * `gd-analyze evidence <class>`: run one compat module's cases in the official Godot 4.7 binary
- * and in Node, compare them, and on full agreement write the binding rows and the semantic claims
- * that make those rows usable (`src/translate/code/authority/godot-4.7/<class>.json`).
+ * `gd-analyze evidence <name>`: run one case file in the official Godot 4.7 binary and in Node,
+ * compare them, and on full agreement write what the cases prove to
+ * `src/translate/code/authority/godot-4.7/<name>.json`:
+ *
+ * - a compat case file (`vector3.cases.ts`) proves its compat module's exports, and yields their
+ *   binding rows and the TS datatype rule for the class's own value type;
+ * - a language case file (`language.cases.ts`) proves the code rules it proposes, by running its
+ *   GDScript natively and the same GDScript lowered by production code lowering in Node.
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { SemanticClaimRecord } from '../godot-frontend/semantic-claims';
-import { godotSourceAuthority } from '../godot-frontend/source-authority';
-import type { GodotCodeClaimLiveness } from '../translate/code/authority';
+import { godotAnalysisAuthority } from '../analyze/authority-data';
+import { bindGodotProject } from '../analyze/bound-project';
 import {
+  enterEvidenceMeasurement,
+  packageImplementationDigest,
+} from '../godot-frontend/implementation-liveness';
+import { captureGodotBoundProgram } from '../godot-frontend/run-bound-program';
+import type { SemanticClaimRecord } from '../godot-frontend/semantic-claims';
+import { type GodotSourceAuthority, godotSourceAuthority } from '../godot-frontend/source-authority';
+import { godotReadAuthority } from '../read/authority-data';
+import { readGodotProjectSnapshot } from '../read/godot-project';
+import { bindGodotResources } from '../read/resource-program';
+import { captureGodotProjectSnapshot } from '../snapshot/project-snapshot';
+import { captureGodotApiDumpSnapshot } from '../snapshot/toolchain-snapshot';
+import type { GodotCodeClaimLiveness, GodotCodeTranslationAuthority } from '../translate/code/authority';
+import {
+  COMPAT_SOURCE_ROOT,
   compatModuleFile,
   GODOT_4_7_EVIDENCE_DIR,
   type GodotEvidenceFile,
+  type GodotEvidenceImplementation,
+  godotEvidenceImplementationDigest,
 } from '../translate/code/authority/godot-4.7-evidence';
+import {
+  GODOT_CODE_IMPLEMENTATION_FILES,
+  godotCodeTranslationAuthority,
+} from '../translate/code/authority-data';
 import {
   type GodotBindingEntry,
   type GodotOfficialSymbolIdentity,
+  type GodotTargetBindingUse,
   godotOfficialSymbolKey,
 } from '../translate/code/bindings';
-import type { GodotEvidenceCase, GodotEvidenceCaseFile, GodotEvidenceComparator } from './case';
+import { lowerOfficialBoundProgram } from '../translate/code/lower-official-bound';
+import {
+  type GodotCodeRuleEntry,
+  type GodotDatatypeRuleEntry,
+  godotCodeRuleKey,
+  godotDatatypeRuleKey,
+} from '../translate/code/lowering-rules';
+import { printTargetTsSourceFile } from '../translate/emit/target-ts-printer';
+import type {
+  GodotEvidenceCase,
+  GodotEvidenceCaseFile,
+  GodotEvidenceComparator,
+  GodotEvidenceSymbol,
+  GodotLanguageEvidenceFile,
+} from './case';
 
 /** The official Godot 4.7-stable macOS executable this lane's native evidence is taken from. */
 export const GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256 =
@@ -47,6 +86,12 @@ interface CompatExport {
   readonly godotMember: string;
   readonly sourceFile: string;
   readonly sourceLine: number;
+}
+
+interface Comparable {
+  readonly id: string;
+  readonly comparator: GodotEvidenceComparator;
+  readonly shown: string;
 }
 
 function sha256(value: Uint8Array | string): string {
@@ -85,9 +130,7 @@ function encodeTarget(value: unknown): Encoded {
   return { t: 'unsupported', type: typeof value };
 }
 
-const PROBE_HEADER = `extends SceneTree
-
-func _bits(value: float) -> String:
+const PROBE_ENCODER = `func _bits(value: float) -> String:
 \treturn PackedFloat64Array([value]).to_byte_array().hex_encode()
 
 func _enc(value: Variant) -> Dictionary:
@@ -107,17 +150,27 @@ func _enc(value: Variant) -> Dictionary:
  * Each case is its own function. The GDScript compiler pools a function's constants in a
  * `HashMap<Variant, int>` (`modules/gdscript/gdscript_byte_codegen.h:107`) whose key equality
  * merges `-0.0` into an earlier `0.0`; one folded constant per function keeps each value intact.
+ * A one-line case is returned; a several-line case is a function body that returns.
  */
-function probeSource(cases: readonly GodotEvidenceCase[]): string {
+function compatProbeSource(cases: readonly GodotEvidenceCase[]): string {
   const functions = cases.map((entry, index) => {
-    if (/[\n\r]/.test(entry.gdscript)) throw new Error(`${entry.id}: GDScript must be one line`);
-    return `\nfunc _case_${String(index)}() -> Variant:\n\treturn ${entry.gdscript}\n`;
+    const lines = entry.gdscript.split('\n');
+    const body = lines.length === 1 ? [`return ${entry.gdscript}`] : lines;
+    return `\nfunc _case_${String(index)}() -> Variant:\n${body.map((line) => `\t${line}`).join('\n')}\n`;
   });
   const rows = cases.map(
     (entry, index) =>
       `\trows.append([${JSON.stringify(entry.id)}, _enc(_case_${String(index)}())])\n`,
   );
-  return `${PROBE_HEADER}${functions.join('')}\nfunc _init() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+  return `extends SceneTree\n\n${PROBE_ENCODER}${functions.join('')}\nfunc _init() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+}
+
+function languageProbeSource(evidence: GodotLanguageEvidenceFile, resPath: string): string {
+  const rows = evidence.cases.map(
+    (entry) =>
+      `\trows.append([${JSON.stringify(entry.id)}, _enc(cases.${entry.call}(${entry.arguments?.gdscript ?? ''}))])\n`,
+  );
+  return `extends SceneTree\n\n${PROBE_ENCODER}\nfunc _init() -> void:\n\tvar cases = load(${JSON.stringify(resPath)})\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
 
 const PROJECT_SOURCE = `config_version=5
@@ -125,7 +178,9 @@ const PROJECT_SOURCE = `config_version=5
 [application]
 config/name="gd-analyze evidence"
 config/features=PackedStringArray("4.7")
+run/main_scene="res://main.tscn"
 `;
+const MAIN_SCENE = `[gd_scene format=3]\n\n[node name="Main" type="Node"]\n`;
 
 function officialBuildIdentity(officialBinary: string): string {
   const result = spawnSync(officialBinary, ['--headless', '--version'], { encoding: 'utf8' });
@@ -135,37 +190,33 @@ function officialBuildIdentity(officialBinary: string): string {
   return `Godot ${result.stdout.trim()}`;
 }
 
-function runNative(officialBinary: string, cases: readonly GodotEvidenceCase[]): Row[] {
-  const temp = mkdtempSync(path.join(tmpdir(), 'gd-analyze-evidence-'));
-  try {
-    writeFileSync(path.join(temp, 'project.godot'), PROJECT_SOURCE);
-    writeFileSync(path.join(temp, 'probe.gd'), probeSource(cases));
-    const result = spawnSync(
-      officialBinary,
-      ['--headless', '--path', temp, '--script', 'res://probe.gd'],
-      { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
-    );
-    if (result.error !== undefined) {
-      throw new Error(`could not run the official Godot binary: ${result.error.message}`);
-    }
-    const line = result.stdout.split('\n').find((entry) => entry.startsWith(OUTPUT_MARKER));
-    if (result.status !== 0 || line === undefined) {
-      throw new Error(
-        `official Godot probe exited ${String(result.status)} without its result.\n${result.stdout}\n${result.stderr}`.trim(),
-      );
-    }
-    const rows = JSON.parse(line.slice(OUTPUT_MARKER.length)) as Row[];
-    if (rows.length !== cases.length) {
-      throw new Error(`official Godot probe returned ${String(rows.length)} of ${String(cases.length)} cases`);
-    }
-    return rows;
-  } finally {
-    rmSync(temp, { recursive: true, force: true });
+function runNativeProbe(
+  officialBinary: string,
+  project: string,
+  probe: string,
+  expected: number,
+): Row[] {
+  writeFileSync(path.join(project, 'probe.gd'), probe);
+  const result = spawnSync(
+    officialBinary,
+    ['--headless', '--path', project, '--script', 'res://probe.gd'],
+    { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
+  );
+  rmSync(path.join(project, 'probe.gd'));
+  if (result.error !== undefined) {
+    throw new Error(`could not run the official Godot binary: ${result.error.message}`);
   }
-}
-
-function runTarget(cases: readonly GodotEvidenceCase[]): Row[] {
-  return cases.map((entry) => [entry.id, encodeTarget(entry.target())]);
+  const line = result.stdout.split('\n').find((entry) => entry.startsWith(OUTPUT_MARKER));
+  if (result.status !== 0 || line === undefined) {
+    throw new Error(
+      `official Godot probe exited ${String(result.status)} without its result.\n${result.stdout}\n${result.stderr}`.trim(),
+    );
+  }
+  const rows = JSON.parse(line.slice(OUTPUT_MARKER.length)) as Row[];
+  if (rows.length !== expected) {
+    throw new Error(`official Godot probe returned ${String(rows.length)} of ${String(expected)} cases`);
+  }
+  return rows;
 }
 
 function float32OrderedBits(value: number): number {
@@ -216,6 +267,28 @@ function readable(value: Encoded): string {
   }
 }
 
+function mismatches(
+  cases: readonly Comparable[],
+  nativeRows: readonly Row[],
+  targetRows: readonly Row[],
+): string[] {
+  const found: string[] = [];
+  cases.forEach((entry, index) => {
+    const native = nativeRows[index];
+    const target = targetRows[index];
+    if (native === undefined || target === undefined || native[0] !== entry.id) {
+      found.push(`${entry.id}: native row order differs`);
+      return;
+    }
+    if (!valuesAgree(native[1], target[1], entry.comparator)) {
+      found.push(
+        `${entry.id} (${entry.comparator})\n    ${entry.shown}\n    native:   ${readable(native[1])}\n    target:   ${readable(target[1])}`,
+      );
+    }
+  });
+  return found;
+}
+
 /** Every export of a compat module with its `@godot` member and `@source` citation. */
 function compatExports(moduleSource: string): CompatExport[] {
   const found: CompatExport[] = [];
@@ -254,16 +327,21 @@ function apiMethodHash(apiDumpFile: string, owner: string, member: string): numb
 }
 
 function kebab(name: string): string {
-  return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2').toLowerCase();
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase();
 }
 
-export async function runEvidence(classArgument: string, officialBinary: string): Promise<number> {
-  const className = kebab(classArgument);
-  const caseFile = path.join(CASES_DIR, `${className}.cases.ts`);
-  const loaded = (await import(pathToFileURL(caseFile).href)) as { default?: GodotEvidenceCaseFile };
-  const evidence = loaded.default;
-  if (evidence === undefined) throw new Error(`${caseFile} has no default GodotEvidenceCaseFile`);
+interface Pins {
+  readonly source: GodotSourceAuthority;
+  readonly apiDumpFile: string;
+  readonly executableSha256: string;
+  readonly buildIdentity: string;
+  readonly reproductionCommand: readonly string[];
+}
 
+function pins(name: string, officialBinary: string, exporterBinary?: string): Pins {
   const source = godotSourceAuthority(4);
   const apiDumpFile = path.join(PACKAGE_ROOT, 'vendor/extension-api', source.apiDumpFile);
   if (sha256(readFileSync(apiDumpFile)) !== source.apiDumpSha256) {
@@ -275,12 +353,150 @@ export async function runEvidence(classArgument: string, officialBinary: string)
       `refusing ${officialBinary}: sha256 ${executableSha256} is not the official Godot 4.7-stable executable`,
     );
   }
+  return {
+    source,
+    apiDumpFile,
+    executableSha256,
+    buildIdentity: officialBuildIdentity(officialBinary),
+    reproductionCommand: [
+      'npx',
+      'tsx',
+      'packages/gd-analyze/src/cli.ts',
+      'evidence',
+      name,
+      '--official-binary',
+      officialBinary,
+      ...(exporterBinary === undefined ? [] : ['--bound-exporter-binary', exporterBinary]),
+    ],
+  };
+}
 
-  const moduleFile = compatModuleFile(evidence.compatModule);
-  const moduleBytes = readFileSync(moduleFile);
+function claimRecord(
+  pins: Pins,
+  claimId: string,
+  layer: SemanticClaimRecord['layer'],
+  canonicalIdentity: string,
+  godot: { readonly file: string; readonly symbol: string; readonly line: number },
+  native: { readonly inputSha256: string; readonly callsite: string; readonly observed: string },
+  target: { readonly implementationSha256: string; readonly callsite: string; readonly observed: string },
+  comparators: readonly string[],
+): { readonly claim: SemanticClaimRecord; readonly liveness: GodotCodeClaimLiveness } {
+  return {
+    claim: {
+      registryVersion: 1,
+      claimId,
+      layer,
+      canonicalIdentity,
+      godot: {
+        sourceRevision: pins.source.revision,
+        apiDumpSha256: pins.source.apiDumpSha256,
+        sourceFile: godot.file,
+        sourceSymbol: godot.symbol,
+        sourceLine: godot.line,
+      },
+      native: {
+        executableSha256: pins.executableSha256,
+        buildIdentity: pins.buildIdentity,
+        inputSha256: native.inputSha256,
+        callsite: native.callsite,
+        observedOutputSha256: native.observed,
+      },
+      target: {
+        implementationSha256: target.implementationSha256,
+        callsite: target.callsite,
+        observedOutputSha256: target.observed,
+      },
+      comparison: {
+        comparator: `typed float64-bit JSON: ${comparators.join(', ')}`,
+        tolerance: comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact',
+        resultSha256: sha256(
+          JSON.stringify({ native: native.observed, target: target.observed, comparators, equal: true }),
+        ),
+      },
+      reproductionCommand: pins.reproductionCommand,
+    },
+    liveness: {
+      claimId,
+      sourceRevision: pins.source.revision,
+      apiDumpSha256: pins.source.apiDumpSha256,
+      executableSha256: pins.executableSha256,
+      inputSha256: native.inputSha256,
+      implementationSha256: target.implementationSha256,
+    },
+  };
+}
+
+function writeEvidenceFile(name: string, file: GodotEvidenceFile): string {
+  const outputFile = path.join(GODOT_4_7_EVIDENCE_DIR, `${name}.json`);
+  writeFileSync(outputFile, `${JSON.stringify(file, null, 2)}\n`);
+  return path.relative(MONOREPO_ROOT, outputFile);
+}
+
+function loweringDigest(): string {
+  return packageImplementationDigest(GODOT_CODE_IMPLEMENTATION_FILES);
+}
+
+/** The binding identity a compat case symbol is selected by, exactly as lowering spells it. */
+function bindingSymbol(
+  pins: Pins,
+  symbol: GodotEvidenceSymbol,
+): GodotOfficialSymbolIdentity {
+  const base = { sourceRevision: pins.source.revision, owner: symbol.owner, member: symbol.member };
+  switch (symbol.kind) {
+    case 'builtin-member':
+      return {
+        ...base,
+        kind: 'builtin-member',
+        signature: `hash:${String(apiMethodHash(pins.apiDumpFile, symbol.owner, symbol.member))}`,
+      };
+    case 'builtin-constructor':
+      return { ...base, kind: 'builtin-constructor', signature: 'unhashed' };
+    case 'builtin-operator':
+      return {
+        ...base,
+        kind: 'builtin-operator',
+        signature: symbol.right === undefined ? 'unary' : `right:${symbol.right}`,
+      };
+    case 'builtin-constant':
+      return { ...base, kind: 'builtin-constant', signature: 'constant' };
+    case 'builtin-member-set':
+      return { ...base, kind: 'builtin-member-set', signature: 'set' };
+    default:
+      return symbol.kind satisfies never;
+  }
+}
+
+function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
+  switch (kind) {
+    case 'builtin-member':
+    case 'builtin-member-set':
+      return { kind: 'call', sourceReceiver: 'first-argument' };
+    case 'builtin-constructor':
+    case 'builtin-operator':
+      return { kind: 'call', sourceReceiver: 'absent' };
+    case 'builtin-constant':
+      return { kind: 'value' };
+    default:
+      return kind satisfies never;
+  }
+}
+
+async function runCompatEvidence(
+  name: string,
+  evidence: GodotEvidenceCaseFile,
+  officialBinary: string,
+): Promise<number> {
+  const pinned = pins(name, officialBinary);
+  const moduleBytes = readFileSync(compatModuleFile(evidence.compatModule));
   const moduleSource = moduleBytes.toString('utf8');
   if (!new RegExp(`@godot-class\\s+${evidence.godotClass}\\b`).test(moduleSource)) {
     throw new Error(`${evidence.compatModule} does not declare @godot-class ${evidence.godotClass}`);
+  }
+  if (
+    evidence.typeExport !== undefined &&
+    !new RegExp(`^export (?:interface|type) ${evidence.typeExport}\\b`, 'm').test(moduleSource)
+  ) {
+    throw new Error(`${evidence.compatModule} does not export the type ${evidence.typeExport}`);
   }
   const exports = compatExports(moduleSource);
   const exportByMember = new Map(exports.map((entry) => [entry.godotMember, entry]));
@@ -300,84 +516,67 @@ export async function runEvidence(classArgument: string, officialBinary: string)
     throw new Error('evidence case ids are not unique');
   }
 
-  const buildIdentity = officialBuildIdentity(officialBinary);
-  const nativeRows = runNative(officialBinary, evidence.cases);
-  const targetRows = runTarget(evidence.cases);
-
-  const mismatches: string[] = [];
-  evidence.cases.forEach((entry, index) => {
-    const native = nativeRows[index];
-    const target = targetRows[index];
-    if (native === undefined || target === undefined || native[0] !== entry.id) {
-      mismatches.push(`${entry.id}: native row order differs`);
-      return;
-    }
-    if (!valuesAgree(native[1], target[1], entry.comparator)) {
-      mismatches.push(
-        `${entry.id} (${entry.comparator})\n    gdscript: ${entry.gdscript}\n    native:   ${readable(native[1])}\n    target:   ${readable(target[1])}`,
-      );
-    }
-  });
+  const temp = mkdtempSync(path.join(tmpdir(), 'gd-analyze-evidence-'));
+  let nativeRows: Row[];
+  try {
+    writeFileSync(path.join(temp, 'project.godot'), PROJECT_SOURCE);
+    writeFileSync(path.join(temp, 'main.tscn'), MAIN_SCENE);
+    nativeRows = runNativeProbe(
+      officialBinary,
+      temp,
+      compatProbeSource(evidence.cases),
+      evidence.cases.length,
+    );
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+  const targetRows: Row[] = evidence.cases.map((entry) => [entry.id, encodeTarget(entry.target())]);
+  const disagreements = mismatches(
+    evidence.cases.map((entry) => ({
+      id: entry.id,
+      comparator: entry.comparator,
+      shown: `gdscript: ${entry.gdscript.split('\n').join(' ; ')}`,
+    })),
+    nativeRows,
+    targetRows,
+  );
   const bySymbol = new Map<string, number[]>();
   evidence.cases.forEach((entry, index) => {
-    const key = `${entry.symbol.kind}\0${entry.symbol.owner}\0${entry.symbol.member}`;
+    const key = godotOfficialSymbolKey(bindingSymbol(pinned, entry.symbol));
     bySymbol.set(key, [...(bySymbol.get(key) ?? []), index]);
   });
   process.stdout.write(
-    `gd-analyze evidence ${evidence.godotClass}: ${String(evidence.cases.length)} cases over ${String(bySymbol.size)} symbols, ${buildIdentity}\n`,
+    `gd-analyze evidence ${evidence.godotClass}: ${String(evidence.cases.length)} cases over ${String(bySymbol.size)} bound symbols, ${pinned.buildIdentity}\n`,
   );
-  if (mismatches.length > 0) {
+  if (disagreements.length > 0) {
     process.stdout.write(
-      `${String(mismatches.length)} of ${String(evidence.cases.length)} cases disagree; nothing written.\n  ${mismatches.join('\n  ')}\n`,
+      `${String(disagreements.length)} of ${String(evidence.cases.length)} cases disagree; nothing written.\n  ${disagreements.join('\n  ')}\n`,
     );
     return 1;
   }
 
-  const implementationSha256 = sha256(moduleBytes);
-  const reproductionCommand = [
-    'npx',
-    'tsx',
-    'packages/gd-analyze/src/cli.ts',
-    'evidence',
-    classArgument,
-    '--official-binary',
-    officialBinary,
-  ];
+  const implementation: GodotEvidenceImplementation = {
+    kind: 'compat-module',
+    module: evidence.compatModule,
+  };
+  const implementationSha256 = godotEvidenceImplementationDigest(implementation, loweringDigest());
+  const caseInput = (entry: GodotEvidenceCase) => ({
+    id: entry.id,
+    symbol: entry.symbol,
+    gdscript: entry.gdscript,
+    comparator: entry.comparator,
+  });
   const bindings: GodotBindingEntry[] = [];
   const claims: SemanticClaimRecord[] = [];
   const liveness: GodotCodeClaimLiveness[] = [];
-  const unbound: string[] = [];
   for (const indexes of bySymbol.values()) {
-    const first = evidence.cases[indexes[0] as number] as GodotEvidenceCase;
-    const { kind, owner, member } = first.symbol;
-    const compat = exportByMember.get(`${owner}.${member}`) as CompatExport;
-    if (kind !== 'builtin-member' && kind !== 'builtin-constructor') {
-      unbound.push(`${owner}.${member}`);
-      continue;
-    }
-    const symbol: GodotOfficialSymbolIdentity = {
-      sourceRevision: source.revision,
-      kind,
-      owner,
-      member,
-      signature:
-        kind === 'builtin-member' ? `hash:${String(apiMethodHash(apiDumpFile, owner, member))}` : 'unhashed',
-    };
-    const claimId = `godot-4.7-binding-${owner}.${member}`;
     const symbolCases = indexes.map((index) => evidence.cases[index] as GodotEvidenceCase);
-    const comparators = [...new Set(symbolCases.map((entry) => entry.comparator))].sort();
-    const inputSha256 = sha256(
-      JSON.stringify(
-        symbolCases.map((entry) => ({
-          id: entry.id,
-          symbol: entry.symbol,
-          gdscript: entry.gdscript,
-          comparator: entry.comparator,
-        })),
-      ),
-    );
-    const nativeOutputSha256 = sha256(JSON.stringify(indexes.map((index) => nativeRows[index])));
-    const targetOutputSha256 = sha256(JSON.stringify(indexes.map((index) => targetRows[index])));
+    const first = symbolCases[0] as GodotEvidenceCase;
+    const symbol = bindingSymbol(pinned, first.symbol);
+    const compat = exportByMember.get(`${first.symbol.owner}.${first.symbol.member}`) as CompatExport;
+    const claimId = `godot-4.7-binding-${symbol.owner}.${symbol.member}${
+      first.symbol.kind === 'builtin-operator' ? `.${symbol.signature}` : ''
+    }${first.symbol.kind === 'builtin-member-set' ? '.set' : ''}`;
     bindings.push({
       source: symbol,
       target: {
@@ -385,64 +584,322 @@ export async function runEvidence(classArgument: string, officialBinary: string)
         capabilityId: 'godot-compat',
         module: evidence.compatModule,
         exportName: compat.exportName,
-        localName: `${owner}_${compat.exportName}`,
-        use:
-          kind === 'builtin-member'
-            ? { kind: 'call', sourceReceiver: 'first-argument' }
-            : { kind: 'call', sourceReceiver: 'absent' },
+        localName: `${symbol.owner}_${compat.exportName}`,
+        use: bindingUse(first.symbol.kind),
         evidenceClaimId: claimId,
       },
     });
-    claims.push({
-      registryVersion: 1,
+    const record = claimRecord(
+      pinned,
       claimId,
-      layer: 'binding',
-      canonicalIdentity: godotOfficialSymbolKey(symbol),
-      godot: {
-        sourceRevision: source.revision,
-        apiDumpSha256: source.apiDumpSha256,
-        sourceFile: compat.sourceFile,
-        sourceSymbol: `${owner}.${member}`,
-        sourceLine: compat.sourceLine,
-      },
-      native: {
-        executableSha256,
-        buildIdentity,
-        inputSha256,
+      'binding',
+      godotOfficialSymbolKey(symbol),
+      { file: compat.sourceFile, symbol: `${symbol.owner}.${symbol.member}`, line: compat.sourceLine },
+      {
+        inputSha256: sha256(JSON.stringify(symbolCases.map(caseInput))),
         callsite: `res://probe.gd _init() ${symbolCases.map((entry) => entry.id).join(' ')}`,
-        observedOutputSha256: nativeOutputSha256,
+        observed: sha256(JSON.stringify(indexes.map((index) => nativeRows[index]))),
       },
-      target: {
+      {
         implementationSha256,
         callsite: `${evidence.compatModule}.ts ${compat.exportName}`,
-        observedOutputSha256: targetOutputSha256,
+        observed: sha256(JSON.stringify(indexes.map((index) => targetRows[index]))),
       },
-      comparison: {
-        comparator: `typed float64-bit JSON: ${comparators.join(', ')}`,
-        tolerance: comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact',
-        resultSha256: sha256(
-          JSON.stringify({ native: nativeOutputSha256, target: targetOutputSha256, comparators, equal: true }),
-        ),
-      },
-      reproductionCommand,
-    });
-    liveness.push({
-      claimId,
-      sourceRevision: source.revision,
-      apiDumpSha256: source.apiDumpSha256,
-      executableSha256,
-      inputSha256,
-      implementationSha256,
-    });
+      [...new Set(symbolCases.map((entry) => entry.comparator))].sort(),
+    );
+    claims.push(record.claim);
+    liveness.push(record.liveness);
   }
-  const output: GodotEvidenceFile = { bindings, claims, liveness };
-  const outputFile = path.join(GODOT_4_7_EVIDENCE_DIR, `${className}.json`);
-  writeFileSync(outputFile, `${JSON.stringify(output, null, 2)}\n`);
+  const datatypes: GodotDatatypeRuleEntry[] = [];
+  if (evidence.typeExport !== undefined) {
+    if (evidence.typeSource === undefined) throw new Error('typeExport needs its typeSource');
+    // Every value the module's exports produced is its type; the rule names that type.
+    const claimId = `godot-4.7-datatype-${evidence.godotClass}`;
+    const entry: GodotDatatypeRuleEntry = {
+      sourceRevision: pinned.source.revision,
+      sourceDatatype: `BUILTIN:${evidence.godotClass}`,
+      targetType: { kind: 'type-reference', name: evidence.typeExport, arguments: [] },
+      typeImport: { module: evidence.compatModule, exportName: evidence.typeExport },
+      evidenceClaimId: claimId,
+    };
+    datatypes.push(entry);
+    const record = claimRecord(
+      pinned,
+      claimId,
+      'translate-code',
+      godotDatatypeRuleKey(entry),
+      evidence.typeSource ?? { file: 'unknown', symbol: evidence.godotClass, line: 0 },
+      {
+        inputSha256: sha256(JSON.stringify(evidence.cases.map(caseInput))),
+        callsite: 'res://probe.gd _init() every case',
+        observed: sha256(JSON.stringify(nativeRows)),
+      },
+      {
+        implementationSha256,
+        callsite: `${evidence.compatModule}.ts ${evidence.typeExport}`,
+        observed: sha256(JSON.stringify(targetRows)),
+      },
+      [...new Set(evidence.cases.map((entry) => entry.comparator))].sort(),
+    );
+    claims.push(record.claim);
+    liveness.push(record.liveness);
+  }
+  const written = writeEvidenceFile(name, {
+    implementation,
+    bindings,
+    rules: [],
+    datatypes,
+    claims,
+    liveness,
+  });
   process.stdout.write(
-    `all ${String(evidence.cases.length)} cases agree; wrote ${String(bindings.length)} bindings and claims to ${path.relative(MONOREPO_ROOT, outputFile)}\n` +
-      (unbound.length > 0
-        ? `agreed but not bound (no lowering binding path): ${unbound.join(', ')}\n`
-        : ''),
+    `all ${String(evidence.cases.length)} cases agree; wrote ${String(bindings.length)} bindings, ${String(datatypes.length)} datatype rules and their claims to ${written}\n`,
   );
   return 0;
+}
+
+const PROVISIONAL_SHA256 = '0'.repeat(64);
+
+/**
+ * The production authority with this language file's proposed rules in place of any it recorded
+ * before, each carrying a provisional in-memory claim so lowering can run the proposal. The
+ * provisional claims are never written; what is written is measured below.
+ */
+function proposalAuthority(
+  pins: Pins,
+  evidence: GodotLanguageEvidenceFile,
+  claimIdFor: (ruleId: string) => string,
+): { readonly authority: GodotCodeTranslationAuthority; readonly rules: readonly GodotCodeRuleEntry[] } {
+  const base = godotCodeTranslationAuthority(pins.source);
+  const proposed = new Set(evidence.rules.map((rule) => claimIdFor(rule.id)));
+  const rules: GodotCodeRuleEntry[] = evidence.rules.map((rule) => ({
+    source: {
+      sourceRevision: pins.source.revision,
+      nodeKind: rule.nodeKind,
+      semanticKey: rule.semanticKey,
+      inputDatatypes: rule.inputDatatypes,
+      resultDatatype: rule.resultDatatype,
+    },
+    target: rule.target,
+    evidenceClaimId: claimIdFor(rule.id),
+  }));
+  const provisional = rules.map((rule) =>
+    claimRecord(
+      pins,
+      rule.evidenceClaimId,
+      'translate-code',
+      godotCodeRuleKey(rule.source),
+      { file: 'provisional', symbol: 'provisional', line: 1 },
+      { inputSha256: PROVISIONAL_SHA256, callsite: 'provisional', observed: PROVISIONAL_SHA256 },
+      { implementationSha256: PROVISIONAL_SHA256, callsite: 'provisional', observed: PROVISIONAL_SHA256 },
+      ['exact'],
+    ),
+  );
+  return {
+    rules,
+    authority: {
+      ...base,
+      rules: {
+        ...base.rules,
+        entries: [
+          ...base.rules.entries.filter((entry) => !proposed.has(entry.evidenceClaimId)),
+          ...rules,
+        ],
+      },
+      claims: [
+        ...base.claims.filter((entry) => !proposed.has(entry.claimId)),
+        ...provisional.map((entry) => entry.claim),
+      ],
+      liveness: [
+        ...base.liveness.filter((entry) => !proposed.has(entry.claimId)),
+        ...provisional.map((entry) => entry.liveness),
+      ],
+    },
+  };
+}
+
+async function runLanguageEvidence(
+  name: string,
+  evidence: GodotLanguageEvidenceFile,
+  officialBinary: string,
+  exporterBinary: string,
+): Promise<number> {
+  // This run measures code lowering, whose other claims the same edit may have made stale;
+  // like the refresh, it measures with recorded digests (see enterEvidenceMeasurement).
+  enterEvidenceMeasurement();
+  const pinned = pins(name, officialBinary, exporterBinary);
+  const claimIdFor = (ruleId: string) => `godot-4.7-${name}-${ruleId}`;
+  if (new Set(evidence.rules.map((rule) => rule.id)).size !== evidence.rules.length) {
+    throw new Error('language rule ids are not unique');
+  }
+  const scriptName = `${kebab(evidence.className).replace(/-/g, '_')}.gd`;
+  const resPath = `res://${scriptName}`;
+  const temp = mkdtempSync(path.join(tmpdir(), 'gd-analyze-language-evidence-'));
+  try {
+    const project = path.join(temp, 'project');
+    mkdirSync(project);
+    writeFileSync(path.join(project, 'project.godot'), PROJECT_SOURCE);
+    writeFileSync(path.join(project, 'main.tscn'), MAIN_SCENE);
+    writeFileSync(path.join(project, scriptName), evidence.source);
+
+    // Target: production code lowering over the official frontend's bound program.
+    const snapshot = captureGodotProjectSnapshot(project);
+    const readAuthority = godotReadAuthority(pinned.source);
+    const apiDump = captureGodotApiDumpSnapshot(pinned.source);
+    const bound = bindGodotProject(
+      snapshot,
+      captureGodotBoundProgram({ godotBinary: exporterBinary, projectDir: project }),
+      bindGodotResources(readGodotProjectSnapshot(snapshot, readAuthority), readAuthority),
+      godotAnalysisAuthority(pinned.source),
+      pinned.source,
+      apiDump,
+      readGodotProjectSnapshot(snapshot, readAuthority),
+    );
+    const proposal = proposalAuthority(pinned, evidence, claimIdFor);
+    const lowered = lowerOfficialBoundProgram(bound, proposal.authority, apiDump.parsed);
+    if (lowered.kind === 'refused-code') {
+      process.stdout.write(
+        `production lowering refused the language cases; nothing written.\n  ${lowered.diagnostics
+          .map((entry) => `${entry.sourcePath}:${String(entry.startLine)}:${String(entry.startColumn)} ${entry.message}`)
+          .join('\n  ')}\n`,
+      );
+      return 1;
+    }
+    const used = new Set(lowered.plan.languageEvidenceClaimIds);
+    const unexercised = proposal.rules.filter((rule) => !used.has(rule.evidenceClaimId));
+    if (unexercised.length > 0) {
+      process.stdout.write(
+        `proposed rules no case exercises; nothing written: ${unexercised.map((rule) => rule.evidenceClaimId).join(', ')}\n`,
+      );
+      return 1;
+    }
+    const sourceFile = lowered.plan.sourceFiles.find(
+      (entry) => entry.sourcePath === scriptName.replace(/\.gd$/, '.ts'),
+    );
+    if (sourceFile === undefined) throw new Error(`lowering emitted no ${scriptName}`);
+    const printed = printTargetTsSourceFile(sourceFile);
+    const emitted = path.join(temp, 'target');
+    mkdirSync(path.join(emitted, 'src', 'scripts'), { recursive: true });
+    writeFileSync(path.join(emitted, 'package.json'), '{ "type": "module" }\n');
+    symlinkSync(path.join(COMPAT_SOURCE_ROOT, 'lib'), path.join(emitted, 'src', 'lib'));
+    const emittedFile = path.join(emitted, 'src', 'scripts', sourceFile.sourcePath);
+    writeFileSync(emittedFile, printed);
+    const module = (await import(pathToFileURL(emittedFile).href)) as Record<string, unknown>;
+    const cases = module[evidence.className] as Record<string, unknown> | undefined;
+    if (cases === undefined) throw new Error(`lowered module exports no ${evidence.className}`);
+    const targetRows: Row[] = evidence.cases.map((entry) => {
+      const fn = cases[entry.call];
+      if (typeof fn !== 'function') throw new Error(`lowered ${evidence.className} has no ${entry.call}`);
+      const args = entry.arguments?.target() ?? [];
+      return [entry.id, encodeTarget((fn as (...values: unknown[]) => unknown).apply(cases, [...args]))];
+    });
+
+    // Native: the same GDScript in the official binary.
+    const nativeRows = runNativeProbe(
+      officialBinary,
+      project,
+      languageProbeSource(evidence, resPath),
+      evidence.cases.length,
+    );
+    const disagreements = mismatches(
+      evidence.cases.map((entry) => ({
+        id: entry.id,
+        comparator: entry.comparator,
+        shown: `${evidence.className}.${entry.call}()`,
+      })),
+      nativeRows,
+      targetRows,
+    );
+    process.stdout.write(
+      `gd-analyze evidence ${name}: ${String(evidence.cases.length)} cases over ${String(evidence.rules.length)} proposed rules, ${pinned.buildIdentity}\n`,
+    );
+    if (disagreements.length > 0) {
+      process.stdout.write(
+        `${String(disagreements.length)} of ${String(evidence.cases.length)} cases disagree; nothing written.\n  ${disagreements.join('\n  ')}\n\nlowered:\n${printed}\n`,
+      );
+      return 1;
+    }
+
+    const implementation: GodotEvidenceImplementation = {
+      kind: 'code-lowering',
+      compatModules: evidence.compatModules,
+    };
+    const implementationSha256 = godotEvidenceImplementationDigest(implementation, loweringDigest());
+    const inputSha256 = sha256(
+      JSON.stringify({
+        source: evidence.source,
+        cases: evidence.cases.map((entry) => ({
+          id: entry.id,
+          call: entry.call,
+          arguments: entry.arguments?.gdscript ?? '',
+          comparator: entry.comparator,
+        })),
+        rules: evidence.rules,
+      }),
+    );
+    const observedNative = sha256(JSON.stringify(nativeRows));
+    const observedTarget = sha256(JSON.stringify(targetRows));
+    const comparators = [...new Set(evidence.cases.map((entry) => entry.comparator))].sort();
+    const claims: SemanticClaimRecord[] = [];
+    const liveness: GodotCodeClaimLiveness[] = [];
+    for (const [index, rule] of proposal.rules.entries()) {
+      const definition = evidence.rules[index] as GodotLanguageEvidenceFile['rules'][number];
+      const record = claimRecord(
+        pinned,
+        rule.evidenceClaimId,
+        'translate-code',
+        godotCodeRuleKey(rule.source),
+        definition.source,
+        { inputSha256, callsite: `${resPath} every case`, observed: observedNative },
+        {
+          implementationSha256,
+          callsite: `lowered src/scripts/${sourceFile.sourcePath}`,
+          observed: observedTarget,
+        },
+        comparators,
+      );
+      claims.push(record.claim);
+      liveness.push(record.liveness);
+    }
+    const written = writeEvidenceFile(name, {
+      implementation,
+      bindings: [],
+      rules: proposal.rules,
+      datatypes: [],
+      claims,
+      liveness,
+    });
+    process.stdout.write(
+      `all ${String(evidence.cases.length)} cases agree; wrote ${String(proposal.rules.length)} rules and their claims to ${written}\n\nlowered:\n${printed}\n`,
+    );
+    return 0;
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+/** The case files `evidence --refresh` re-runs, in dependency order: compat modules first. */
+export function godotEvidenceCaseNames(): readonly string[] {
+  return ['vector3', 'language'];
+}
+
+export async function runEvidence(
+  nameArgument: string,
+  officialBinary: string,
+  exporterBinary: string | undefined,
+): Promise<number> {
+  const name = kebab(nameArgument);
+  const caseFile = path.join(CASES_DIR, `${name}.cases.ts`);
+  const loaded = (await import(pathToFileURL(caseFile).href)) as {
+    default?: GodotEvidenceCaseFile | GodotLanguageEvidenceFile;
+  };
+  const evidence = loaded.default;
+  if (evidence === undefined) throw new Error(`${caseFile} has no default case file`);
+  if (evidence.kind === 'language') {
+    if (exporterBinary === undefined) {
+      throw new Error('language evidence lowers through the official frontend: pass --bound-exporter-binary');
+    }
+    return runLanguageEvidence(name, evidence, officialBinary, exporterBinary);
+  }
+  return runCompatEvidence(name, evidence, officialBinary);
 }

@@ -75,8 +75,14 @@ const member = (name: string): GodotEvidenceSymbol => ({
   owner: 'Vector3',
   member: name,
 });
-const operator = (name: string): GodotEvidenceSymbol => ({
-  kind: 'operator',
+const operator = (name: string, right?: string): GodotEvidenceSymbol => ({
+  kind: 'builtin-operator',
+  owner: 'Vector3',
+  member: name,
+  ...(right === undefined ? {} : { right }),
+});
+const memberSet = (name: string): GodotEvidenceSymbol => ({
+  kind: 'builtin-member-set',
   owner: 'Vector3',
   member: name,
 });
@@ -105,8 +111,8 @@ add('construct-floats-double-overflow', CONSTRUCTOR, gv(t(1e39, -1e39, 3.4e38)),
 );
 
 // Constants.
-add('constant-zero', { kind: 'constant', owner: 'Vector3', member: 'ZERO' }, 'Vector3.ZERO', () => V.ZERO);
-add('constant-up', { kind: 'constant', owner: 'Vector3', member: 'UP' }, 'Vector3.UP', () => V.UP);
+add('constant-zero', { kind: 'builtin-constant', owner: 'Vector3', member: 'ZERO' }, 'Vector3.ZERO', () => V.ZERO);
+add('constant-up', { kind: 'builtin-constant', owner: 'Vector3', member: 'UP' }, 'Vector3.UP', () => V.UP);
 
 // Unary members over every vector.
 for (const [name, value] of VECTORS) {
@@ -221,19 +227,19 @@ for (const [axisName, axis] of AXES) {
 
 // Operators.
 for (const [name, left, right] of PAIRS) {
-  add(`op_add-${name}`, operator('OP_ADD'), `${gv(left)} + ${gv(right)}`, () =>
+  add(`op_add-${name}`, operator('OP_ADD', 'Vector3'), `${gv(left)} + ${gv(right)}`, () =>
     V.op_add(tv(left), tv(right)),
   );
-  add(`op_subtract-${name}`, operator('OP_SUBTRACT'), `${gv(left)} - ${gv(right)}`, () =>
+  add(`op_subtract-${name}`, operator('OP_SUBTRACT', 'Vector3'), `${gv(left)} - ${gv(right)}`, () =>
     V.op_subtract(tv(left), tv(right)),
   );
-  add(`op_multiply-vector-${name}`, operator('OP_MULTIPLY'), `${gv(left)} * ${gv(right)}`, () =>
+  add(`op_multiply-vector-${name}`, operator('OP_MULTIPLY', 'Vector3'), `${gv(left)} * ${gv(right)}`, () =>
     V.op_multiply(tv(left), tv(right)),
   );
-  add(`op_divide-vector-${name}`, operator('OP_DIVIDE'), `${gv(left)} / ${gv(right)}`, () =>
+  add(`op_divide-vector-${name}`, operator('OP_DIVIDE', 'Vector3'), `${gv(left)} / ${gv(right)}`, () =>
     V.op_divide(tv(left), tv(right)),
   );
-  add(`op_equal-${name}`, operator('OP_EQUAL'), `${gv(left)} == ${gv(right)}`, () =>
+  add(`op_equal-${name}`, operator('OP_EQUAL', 'Vector3'), `${gv(left)} == ${gv(right)}`, () =>
     V.op_equal(tv(left), tv(right)),
   );
 }
@@ -242,31 +248,68 @@ for (const [name, value] of VECTORS) {
   for (const scalar of [0.1, -3, 0, 1e30]) {
     add(
       `op_multiply-float-${name}-${String(scalar)}`,
-      operator('OP_MULTIPLY'),
+      operator('OP_MULTIPLY', 'float'),
       `${gv(value)} * ${gd(scalar)}`,
       () => V.op_multiply(tv(value), scalar),
     );
     add(
       `op_divide-float-${name}-${String(scalar)}`,
-      operator('OP_DIVIDE'),
+      operator('OP_DIVIDE', 'float'),
       `${gv(value)} / ${gd(scalar)}`,
       () => V.op_divide(tv(value), scalar),
     );
   }
 }
-add('op_equal-signed-zero', operator('OP_EQUAL'), `${gv(t(0, -0, 0))} == ${gv(ZERO)}`, () =>
+for (const [name, value] of VECTORS) {
+  for (const scalar of [2, -3, 0, 16777217]) {
+    add(
+      `op_multiply-int-${name}-${String(scalar)}`,
+      operator('OP_MULTIPLY', 'int'),
+      `${gv(value)} * ${String(scalar)}`,
+      () => V.op_multiply(tv(value), scalar),
+    );
+    add(
+      `op_divide-int-${name}-${String(scalar)}`,
+      operator('OP_DIVIDE', 'int'),
+      `${gv(value)} / ${String(scalar)}`,
+      () => V.op_divide(tv(value), scalar),
+    );
+  }
+}
+
+// Member writes: Godot copies the value, writes the member, and the variable holds the copy.
+for (const [name, value] of VECTORS) {
+  for (const [axis, write] of [
+    ['x', V.with_x],
+    ['y', V.with_y],
+    ['z', V.with_z],
+  ] as const) {
+    for (const assigned of [0.1, -2.5, 1e30, 1e39]) {
+      add(
+        `with_${axis}-${name}-${String(assigned)}`,
+        memberSet(axis),
+        `var v := ${gv(value)}\nv.${axis} = ${gd(assigned)}\nreturn v`,
+        () => write(tv(value), assigned),
+      );
+    }
+  }
+}
+
+add('op_equal-signed-zero', operator('OP_EQUAL', 'Vector3'), `${gv(t(0, -0, 0))} == ${gv(ZERO)}`, () =>
   V.op_equal(tv(t(0, -0, 0)), tv(ZERO)),
 );
-add('op_equal-nan', operator('OP_EQUAL'), `${gv(NOT_A_NUMBER)} == ${gv(NOT_A_NUMBER)}`, () =>
+add('op_equal-nan', operator('OP_EQUAL', 'Vector3'), `${gv(NOT_A_NUMBER)} == ${gv(NOT_A_NUMBER)}`, () =>
   V.op_equal(tv(NOT_A_NUMBER), tv(NOT_A_NUMBER)),
 );
-add('op_equal-rounded', operator('OP_EQUAL'), `${gv(t(0.1, 0, 0))} == ${gv(t(0.10000000000000002, 0, 0))}`, () =>
+add('op_equal-rounded', operator('OP_EQUAL', 'Vector3'), `${gv(t(0.1, 0, 0))} == ${gv(t(0.10000000000000002, 0, 0))}`, () =>
   V.op_equal(tv(t(0.1, 0, 0)), tv(t(0.10000000000000002, 0, 0))),
 );
 
 const VECTOR3_EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'Vector3',
   compatModule: 'lib/godot-compat/vector3',
+  typeExport: 'Vector3',
+  typeSource: { file: 'core/variant/variant.h', symbol: 'Variant::VECTOR3', line: 110 },
   cases,
 };
 

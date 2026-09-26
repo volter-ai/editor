@@ -7,6 +7,7 @@ import type {
   BoundGodotScriptField,
   BoundGodotSourceScript,
 } from '../../analyze/bound-project';
+import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode } from '../../godot-frontend/bound-program';
 import { safeIdent } from '../target-names';
 import type { GodotCodeEvidenceResolver } from './authority';
@@ -23,6 +24,8 @@ import {
   type OfficialBoundAutoloadCandidate,
   type OfficialBoundAutoloadReference,
   type OfficialBoundLoweringDiagnostic,
+  type NativePropertyAccessor,
+  type NativePropertyLookup,
   type OfficialBoundLoweringRequirement,
   officialBoundDiagnostic,
   officialBoundSpan,
@@ -99,6 +102,7 @@ function mergeOfficialBoundRequirements(
   owner: GodotBoundNode,
   requirements: readonly OfficialBoundLoweringRequirement[],
   moduleDeclarations: readonly string[],
+  sourcePath: string,
 ): ClosedOfficialBoundRequirements {
   const bindings = new Map<
     string,
@@ -112,6 +116,10 @@ function mergeOfficialBoundRequirements(
   const projectImports = new Map<
     string,
     Extract<OfficialBoundLoweringRequirement, { kind: 'project-import-requirement' }>
+  >();
+  const compatImports = new Map<
+    string,
+    Extract<OfficialBoundLoweringRequirement, { kind: 'compat-import-requirement' }>
   >();
   const importsByLocal = new Map<string, ImportDemand>();
   const bindingEvidence = new Set<string>();
@@ -151,7 +159,10 @@ function mergeOfficialBoundRequirements(
         }
         bindings.set(key, requirement);
         addImport({
-          module: requirement.target.module,
+          module:
+            requirement.target.kind === 'compat-binding'
+              ? compatModuleSpecifier(sourcePath, requirement.target.module)
+              : requirement.target.module,
           imported: requirement.target.exportName,
           local: requirement.target.localName,
           typeOnly: false,
@@ -184,6 +195,16 @@ function mergeOfficialBoundRequirements(
         }
         break;
       }
+      case 'compat-import-requirement': {
+        const key = `${requirement.module}\0${requirement.imported}\0${requirement.local}`;
+        const prior = compatImports.get(key);
+        compatImports.set(key, {
+          ...requirement,
+          typeOnly: (prior?.typeOnly ?? true) && requirement.typeOnly,
+        });
+        addImport({ ...requirement, module: compatModuleSpecifier(sourcePath, requirement.module) });
+        break;
+      }
       case 'project-import-requirement': {
         const key = `${requirement.module}\0${requirement.imported}\0${requirement.local}`;
         const prior = projectImports.get(key);
@@ -211,6 +232,7 @@ function mergeOfficialBoundRequirements(
           reference,
         }),
       ),
+      ...sorted(compatImports.values(), (entry) => `${entry.module}\0${entry.local}`),
       ...sorted(projectImports.values(), (entry) => `${entry.module}\0${entry.local}`),
     ],
     imports: sorted(importsByLocal.values(), (entry) => `${entry.module}\0${entry.local}`),
@@ -257,6 +279,15 @@ function imports(demands: readonly ImportDemand[]): readonly TargetTsStatement[]
     namedBindings,
     ...(typeOnly ? { typeOnly: true as const } : {}),
   }));
+}
+
+/**
+ * A compat module (`lib/godot-compat/vector3`, relative to the project's `src/`) as the module
+ * specifier the generated script at `src/scripts/<sourcePath>` imports it by.
+ */
+function compatModuleSpecifier(sourcePath: string, module: string): string {
+  const relative = path.posix.relative(path.posix.dirname(`scripts/${sourcePath}`), module);
+  return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
 function fileName(resPath: string): string {
@@ -385,6 +416,7 @@ function lowerScript(
   bindings: GodotBindingResolver,
   rules: GodotCodeRuleResolver,
   evidence: GodotCodeEvidenceResolver,
+  nativeProperties: NativePropertyLookup | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -405,6 +437,7 @@ function lowerScript(
     autoloadCandidates(project, source),
     new Map(source.callReceivers.map((entry) => [entry.nodeId, entry] as const)),
     new Map(source.untypedCalls.map((entry) => [entry.nodeId, entry.reason] as const)),
+    nativeProperties,
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -431,6 +464,7 @@ function lowerScript(
     root,
     [...classRequirements, ...baseRequirements, ...sourceMembers.requirements],
     [className(source)],
+    fileName(script.resPath),
   );
   const statement: TargetTsStatement = {
     kind: 'class-statement',
@@ -492,11 +526,46 @@ function collectRequirements(
 }
 
 /** Direct official-bound lowering. No handwritten GDScript syntax model is imported here. */
+/**
+ * A native class's property and its accessor methods, found up the class ancestry the API dump
+ * states (`ClassDB::get_property`, which walks `inherits`); each accessor carries the method-bind
+ * hash of the class that declares it, the identity a direct call to it binds by.
+ */
+export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLookup {
+  const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  const method = (className: string, name: string): NativePropertyAccessor | undefined => {
+    for (let current = classes.get(className); current !== undefined; ) {
+      const found = current.methods.find((entry) => entry.name === name);
+      if (found !== undefined) return { owner: current.name, name, hash: found.hash ?? 0 };
+      current = current.base_class === '' ? undefined : classes.get(current.base_class);
+    }
+    return undefined;
+  };
+  return (className, property) => {
+    for (let current = classes.get(className); current !== undefined; ) {
+      const found = current.properties.find((entry) => entry.name === property);
+      if (found !== undefined) {
+        const getter = found.getter ? method(current.name, found.getter) : undefined;
+        const setter = found.setter ? method(current.name, found.setter) : undefined;
+        return {
+          owner: current.name,
+          ...(getter === undefined ? {} : { getter }),
+          ...(setter === undefined ? {} : { setter }),
+        };
+      }
+      current = current.base_class === '' ? undefined : classes.get(current.base_class);
+    }
+    return undefined;
+  };
+}
+
 export function lowerOfficialBoundProgram(
   project: BoundGodotProject,
   authority: GodotCodeTranslationAuthority,
+  apiDump?: GodotApiDump,
 ): OfficialBoundCodeResult {
   const resolved = new GodotCodeTranslationAuthorityResolver(authority);
+  const nativeProperties = apiDump === undefined ? undefined : nativePropertyLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -516,6 +585,7 @@ export function lowerOfficialBoundProgram(
         resolved.bindings,
         resolved.rules,
         resolved.evidence,
+        nativeProperties,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

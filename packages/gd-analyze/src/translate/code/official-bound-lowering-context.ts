@@ -67,6 +67,14 @@ export type OfficialBoundLoweringRequirement =
       readonly reference: OfficialBoundAutoloadReference;
     }
   | {
+      /** An import from a compat module; its specifier is made relative to the emitting module. */
+      readonly kind: 'compat-import-requirement';
+      readonly module: string;
+      readonly imported: string;
+      readonly local: string;
+      readonly typeOnly: boolean;
+    }
+  | {
       readonly kind: 'project-import-requirement';
       readonly module: string;
       readonly imported: string;
@@ -122,6 +130,23 @@ const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new S
   'ternary',
 ]);
 
+export interface NativePropertyAccessor {
+  /** The class in the ancestry that declares the accessor method. */
+  readonly owner: string;
+  readonly name: string;
+  readonly hash: number;
+}
+
+export interface NativeProperty {
+  /** The class in the ancestry that declares the property. */
+  readonly owner: string;
+  readonly getter?: NativePropertyAccessor;
+  readonly setter?: NativePropertyAccessor;
+}
+
+/** A native class's property, found up the ancestry the API dump states, or undefined. */
+export type NativePropertyLookup = (className: string, property: string) => NativeProperty | undefined;
+
 export class LoweringContext {
   #temporaryIndex = 0;
   #instanceAutoloadAccess = 0;
@@ -139,6 +164,7 @@ export class LoweringContext {
     /** Dynamic calls analysis typed from project facts, and why the rest stayed untyped. */
     readonly callReceivers: ReadonlyMap<number, BoundGodotCallReceiver> = new Map(),
     readonly untypedCalls: ReadonlyMap<number, string> = new Map(),
+    readonly nativeProperties?: NativePropertyLookup,
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();
@@ -158,6 +184,10 @@ export class LoweringContext {
     }
     this.#lexicalNames = lexicalNames;
     this.#reservedTargetNames = allocated;
+  }
+
+  nativeProperty(className: string, property: string): NativeProperty | undefined {
+    return this.nativeProperties?.(className, property);
   }
 
   autoload(
@@ -299,6 +329,21 @@ export class LoweringContext {
     expected: GodotCodeRuleRecipe['kind'],
     includeResultDatatype = true,
   ): OfficialBoundRuleUse {
+    return this.selectRule(node, [semanticKey], inputNodes, [expected], includeResultDatatype);
+  }
+
+  /**
+   * The first semantic key, in order, that has an evidenced rule (exact datatypes first, then the
+   * datatype classes the resolver generalizes to), whose recipe is one of `expected`.
+   */
+  selectRule(
+    node: GodotBoundNode,
+    semanticKeys: readonly string[],
+    inputNodes: readonly GodotBoundNode[],
+    expected: readonly GodotCodeRuleRecipe['kind'][],
+    includeResultDatatype = true,
+  ): OfficialBoundRuleUse {
+    const semanticKey = semanticKeys[0] as string;
     const annotations = node.annotations.map((id) => {
       const annotation = this.node(id, node);
       if (annotation.kind !== 'ANNOTATION') {
@@ -311,14 +356,19 @@ export class LoweringContext {
         JSON.stringify(annotation.resolvedArguments),
       ].join(':');
     });
-    const identity: GodotCodeRuleIdentity = {
+    const identityFor = (key: string): GodotCodeRuleIdentity => ({
       sourceRevision: this.sourceRevision,
       nodeKind: node.kind,
-      semanticKey: `${semanticKey}|annotations:[${annotations.join(',')}]`,
+      semanticKey: `${key}|annotations:[${annotations.join(',')}]`,
       inputDatatypes: inputNodes.map((input) => godotBoundDatatypeIdentity(input.datatype)),
       resultDatatype: includeResultDatatype ? godotBoundDatatypeIdentity(node.datatype) : '',
-    };
-    const entry = this.rules.rule(identity);
+    });
+    const identity = identityFor(semanticKey);
+    let entry = this.rules.rule(identity);
+    for (const key of semanticKeys.slice(1)) {
+      if (entry !== undefined) break;
+      entry = this.rules.rule(identityFor(key));
+    }
     if (entry === undefined) {
       this.refuse(
         node,
@@ -326,10 +376,10 @@ export class LoweringContext {
       );
     }
     if (entry.target.kind === 'refusal') this.refuse(node, entry.target.reason);
-    if (entry.target.kind !== expected) {
+    if (!expected.includes(entry.target.kind)) {
       this.refuse(
         node,
-        `code rule ${node.kind}:${semanticKey} produced ${entry.target.kind}, expected ${expected}`,
+        `code rule ${node.kind}:${semanticKey} produced ${entry.target.kind}, expected ${expected.join(' or ')}`,
       );
     }
     this.prove(node, entry.evidenceClaimId, 'translate-code', godotCodeRuleKey(entry.source));
@@ -375,6 +425,9 @@ export class LoweringContext {
       );
     }
     this.prove(node, entry.evidenceClaimId, 'translate-code', godotDatatypeRuleKey(entry));
+    if (entry.typeImport !== undefined && entry.targetType.kind !== 'type-reference') {
+      this.refuse(node, `datatype rule ${entry.sourceDatatype} imports a type it does not name`);
+    }
     return {
       type: entry.targetType,
       requirements: [
@@ -384,6 +437,17 @@ export class LoweringContext {
           claimId: entry.evidenceClaimId,
           canonicalIdentity: godotDatatypeRuleKey(entry),
         },
+        ...(entry.typeImport === undefined || entry.targetType.kind !== 'type-reference'
+          ? []
+          : [
+              {
+                kind: 'compat-import-requirement' as const,
+                module: entry.typeImport.module,
+                imported: entry.typeImport.exportName,
+                local: entry.targetType.name,
+                typeOnly: true,
+              },
+            ]),
       ],
     };
   }

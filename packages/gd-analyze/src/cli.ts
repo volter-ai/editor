@@ -17,10 +17,11 @@ const USAGE = `usage: gd-analyze <command> [options]
            Report (read-only) the Godot capabilities the pinned fixtures use: call targets,
            unresolved calls, attributes, operators, node classes, resources, signals, assets.
 
-  evidence <class> --official-binary <path>
-           Run evidence/godot-4.7/<class>.cases.ts in the official Godot 4.7 binary (headless)
-           and through its compat module in Node; on full agreement write the binding rows and
-           semantic claims to src/translate/code/authority/godot-4.7/<class>.json.
+  evidence <name> --official-binary <path> [--bound-exporter-binary <path>]
+           Run evidence/godot-4.7/<name>.cases.ts in the official Godot 4.7 binary (headless)
+           and in Node: a compat case file through its compat module, a language case file
+           through production code lowering (which needs the bound exporter). On full agreement
+           write what it proves to src/translate/code/authority/godot-4.7/<name>.json.
 
   evidence --refresh --official-binary <path> --bound-exporter-binary <path>
            Run every authority's native/target proof; where they agree, rewrite that
@@ -99,7 +100,11 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     }
     if (positional.length !== 1) fail('evidence needs exactly one Godot class');
     const { runEvidence } = await import('./evidence/run-evidence');
-    return runEvidence(positional[0] as string, binary);
+    return runEvidence(
+      positional[0] as string,
+      binary,
+      optionValue(rest, '--bound-exporter-binary'),
+    );
   }
   fail(`unknown command "${command}"`);
 }

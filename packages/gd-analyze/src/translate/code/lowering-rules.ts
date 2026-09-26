@@ -29,6 +29,8 @@ export type GodotCodeRuleRecipe =
   | { readonly kind: 'unary'; readonly operator: TargetTsUnaryOperator }
   | { readonly kind: 'binary'; readonly operator: TargetTsBinaryOperator }
   | { readonly kind: 'assignment'; readonly operator: TargetTsAssignmentOperator }
+  /** The operation lowers through the binding table (`builtin-operator`, `builtin-constant`). */
+  | { readonly kind: 'binding' }
   | { readonly kind: 'refusal'; readonly reason: string };
 
 export type GodotStructuralConstruct =
@@ -70,8 +72,11 @@ export interface GodotCodeRuleEntry {
 
 export interface GodotDatatypeRuleEntry {
   readonly sourceRevision: string;
+  /** An exact datatype identity, or a type key `BUILTIN:Vector3` (see godotDatatypeTypeKey). */
   readonly sourceDatatype: string;
   readonly targetType: TargetTsType;
+  /** The compat module (relative to the project's `src/`) that exports the named target type. */
+  readonly typeImport?: { readonly module: string; readonly exportName: string };
   readonly evidenceClaimId: string;
 }
 
@@ -100,6 +105,28 @@ export function godotBoundDatatypeIdentity(datatype: GodotBoundDatatype): string
     datatype.coroutine ? 'coroutine' : 'sync',
     `[${containers}]`,
   ].join('|');
+}
+
+const DATATYPE_CLASSES = new Set(['BUILTIN', 'NATIVE', 'SCRIPT', 'CLASS']);
+
+/**
+ * The class of a datatype identity (`BUILTIN:*`), or the identity itself when it has none. A rule
+ * keyed by classes holds for every datatype of the class: it is registered only for constructs
+ * whose meaning does not depend on the type under the compat representation (a built-in is an
+ * immutable record, an object, Array or Dictionary a shared reference).
+ */
+export function godotDatatypeClass(identity: string): string {
+  if (identity === '') return identity;
+  const kind = identity.slice(0, identity.indexOf('|'));
+  return DATATYPE_CLASSES.has(kind) ? `${kind}:*` : identity;
+}
+
+/** The type key a datatype rule may be registered under: `BUILTIN:Vector3`, `NATIVE:Node3D`. */
+export function godotDatatypeTypeKey(datatype: GodotBoundDatatype): string | undefined {
+  if (datatype.containerTypes.length > 0 || datatype.metaType) return undefined;
+  if (datatype.kind === 'BUILTIN') return `BUILTIN:${datatype.builtinType}`;
+  if (datatype.kind === 'NATIVE') return `NATIVE:${datatype.nativeType}`;
+  return undefined;
 }
 
 export function godotCodeRuleKey(identity: GodotCodeRuleIdentity): string {
@@ -155,10 +182,22 @@ export class GodotCodeRuleResolver {
         `Godot code rule source revision mismatch: ${this.sourceRevision} != ${identity.sourceRevision}`,
       );
     }
-    return this.#rules.get(godotCodeRuleKey(identity));
+    return (
+      this.#rules.get(godotCodeRuleKey(identity)) ??
+      this.#rules.get(
+        godotCodeRuleKey({
+          ...identity,
+          inputDatatypes: identity.inputDatatypes.map(godotDatatypeClass),
+          resultDatatype: godotDatatypeClass(identity.resultDatatype),
+        }),
+      )
+    );
   }
 
   datatype(datatype: GodotBoundDatatype): GodotDatatypeRuleEntry | undefined {
-    return this.#datatypes.get(godotBoundDatatypeIdentity(datatype));
+    const exact = this.#datatypes.get(godotBoundDatatypeIdentity(datatype));
+    if (exact !== undefined) return exact;
+    const typeKey = godotDatatypeTypeKey(datatype);
+    return typeKey === undefined ? undefined : this.#datatypes.get(typeKey);
   }
 }

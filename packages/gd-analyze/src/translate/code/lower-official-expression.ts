@@ -4,7 +4,11 @@ import type {
   GodotBoundNode,
   GodotBoundVariant,
 } from '../../godot-frontend/bound-program';
-import type { GodotOfficialSymbolIdentity, GodotTargetBinding } from './bindings';
+import {
+  GODOT_VARIANT_OPERATOR_NAMES,
+  type GodotOfficialSymbolIdentity,
+  type GodotTargetBinding,
+} from './bindings';
 import {
   type LoweringContext,
   type OfficialBoundBindingUse,
@@ -272,6 +276,219 @@ function prepareAssignmentTarget(
   return context.refuse(node, `${node.kind} is not an assignable target`);
 }
 
+/**
+ * GDScript's `and`/`or` compile to jumps, not to a Variant operator evaluation
+ * (`GDScriptCompiler::_parse_expression`, BINARY_OPERATOR OP_LOGIC_AND/OR), so they never take the
+ * binding route that evaluates both operands.
+ */
+const SHORT_CIRCUIT_OPERATIONS: ReadonlySet<string> = new Set(['OP_LOGIC_AND', 'OP_LOGIC_OR']);
+
+/** The exact operator rule key, then the Variant-evaluation key a binding rule may be keyed by. */
+function operatorRuleKeys(node: { readonly operation: string; readonly variantOperatorId: number }) {
+  const exact = `operator:${node.operation}:${String(node.variantOperatorId)}`;
+  return SHORT_CIRCUIT_OPERATIONS.has(node.operation)
+    ? [exact]
+    : [exact, 'operator:variant-evaluate'];
+}
+
+function builtinTypeName(node: GodotBoundNode): string {
+  return node.datatype.kind === 'BUILTIN' ? node.datatype.builtinType : node.datatype.display;
+}
+
+/** `Variant::evaluate(op, left, right)` on a built-in left operand, as its binding. */
+function operatorBinding(
+  context: LoweringContext,
+  node: GodotBoundNode & { readonly variantOperatorId: number },
+  leftNode: GodotBoundNode,
+  rightNode: GodotBoundNode | undefined,
+): OfficialBoundBindingUse {
+  const member = GODOT_VARIANT_OPERATOR_NAMES[node.variantOperatorId];
+  if (member === undefined) {
+    return context.refuse(node, `Variant operator ${String(node.variantOperatorId)} is unknown`);
+  }
+  if (leftNode.datatype.kind !== 'BUILTIN' || leftNode.datatype.metaType) {
+    return context.refuse(
+      node,
+      `${member} on a ${leftNode.datatype.display} left operand has no built-in operator binding`,
+    );
+  }
+  const use = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'builtin-operator',
+      owner: leftNode.datatype.builtinType,
+      member,
+      signature: rightNode === undefined ? 'unary' : `right:${builtinTypeName(rightNode)}`,
+    },
+    node,
+  );
+  if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
+    return context.refuse(node, `operator binding ${use.target.localName} is not a plain call`);
+  }
+  return use;
+}
+
+/** Built-in types whose values Godot copies; Array and Dictionary are shared references. */
+function builtinValueType(node: GodotBoundNode): boolean {
+  return (
+    node.datatype.kind === 'BUILTIN' &&
+    !node.datatype.metaType &&
+    node.datatype.builtinType !== 'Array' &&
+    node.datatype.builtinType !== 'Dictionary'
+  );
+}
+
+function nativeObjectType(node: GodotBoundNode): boolean {
+  return node.datatype.kind === 'NATIVE' && !node.datatype.metaType;
+}
+
+/** A property's accessor on a native class, as the ordinary method binding it is. */
+function nativeAccessorUse(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  property: string,
+  accessor: 'getter' | 'setter',
+): OfficialBoundBindingUse | undefined {
+  const found = context.nativeProperty(baseNode.datatype.nativeType, property);
+  if (found === undefined) return undefined;
+  const method = found[accessor];
+  if (method === undefined) {
+    return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
+  }
+  const use = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'native-member',
+      owner: method.owner,
+      member: method.name,
+      signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
+    },
+    node,
+  );
+  if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+    return context.refuse(node, `accessor binding ${use.target.localName} does not take its receiver first`);
+  }
+  return use;
+}
+
+function bindingCall(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  use: OfficialBoundBindingUse,
+  args: readonly TargetTsExpression[],
+): TargetTsExpression {
+  return {
+    kind: 'call-expression',
+    callee: boundTargetExpression(use.target),
+    arguments: args,
+    span: span(context.script, node),
+  };
+}
+
+/**
+ * An assignable place. Godot writes a member of a built-in value by writing the whole value back
+ * (`v.x = e` is `v = v with x`), through a native property by its setter, and evaluates the base
+ * chain once, before the assigned value.
+ */
+interface AssignablePlace {
+  readonly before: readonly TargetTsStatement[];
+  readonly read: TargetTsExpression;
+  readonly write: (value: TargetTsExpression) => TargetTsExpression;
+  readonly requirements: readonly OfficialBoundLoweringRequirement[];
+}
+
+function valueAttributeTarget(
+  context: LoweringContext,
+  node: GodotBoundNode,
+): { readonly baseNode: GodotBoundNode; readonly attribute: string } | undefined {
+  if (node.kind !== 'SUBSCRIPT' || !node.isAttribute) return undefined;
+  const baseNode = context.node(node.base, node);
+  if (!builtinValueType(baseNode) && !nativeObjectType(baseNode)) return undefined;
+  return { baseNode, attribute: officialBoundPropertyName(context, node.attribute, node) };
+}
+
+function assignablePlace(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): AssignablePlace {
+  const attributeTarget = valueAttributeTarget(context, node);
+  if (attributeTarget === undefined) {
+    const target = prepareAssignmentTarget(context, node, lower);
+    if (target.afterAssigned.length > 0) {
+      return context.refuse(node, 'an indexed base of a value write-back needs its index settled');
+    }
+    return {
+      before: target.beforeAssigned,
+      read: target.target,
+      write: (value) => ({
+        kind: 'assignment-expression',
+        operator: '=',
+        target: target.target,
+        value,
+        span: span(context.script, node),
+      }),
+      requirements: target.requirements,
+    };
+  }
+  const { baseNode, attribute } = attributeTarget;
+  if (nativeObjectType(baseNode)) {
+    const getter = nativeAccessorUse(context, node, baseNode, attribute, 'getter');
+    const setter = nativeAccessorUse(context, node, baseNode, attribute, 'setter');
+    if (getter === undefined || setter === undefined) {
+      return context.refuse(
+        node,
+        `${baseNode.datatype.nativeType}.${attribute} is not a property the API dump declares`,
+      );
+    }
+    const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
+    const object = materialize(context, lower(context, baseNode));
+    const read = materialize(context, expression(bindingCall(context, node, getter, [object.value])));
+    return {
+      before: [...object.before, ...read.before],
+      read: read.value,
+      write: (value) => bindingCall(context, node, setter, [object.value, value]),
+      requirements: [
+        ...rule.requirements,
+        ...object.requirements,
+        ...getter.requirements,
+        ...setter.requirements,
+      ],
+    };
+  }
+  const base = assignablePlace(context, baseNode, lower);
+  const rule = context.structural(node, 'subscript-attribute', [baseNode]);
+  const setUse = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'builtin-member-set',
+      owner: baseNode.datatype.builtinType,
+      member: attribute,
+      signature: 'set',
+    },
+    node,
+  );
+  if (setUse.target.use.kind !== 'call' || setUse.target.use.sourceReceiver !== 'first-argument') {
+    return context.refuse(node, `member write ${setUse.target.localName} does not take the value first`);
+  }
+  const current =
+    base.read.kind === 'identifier-expression'
+      ? { before: [] as readonly TargetTsStatement[], value: base.read }
+      : materialize(context, expression(base.read));
+  return {
+    before: [...base.before, ...current.before],
+    read: {
+      kind: 'property-expression',
+      object: current.value,
+      property: attribute,
+      span: span(context.script, node),
+    },
+    write: (value) => base.write(bindingCall(context, node, setUse, [current.value, value])),
+    requirements: [...base.requirements, ...rule, ...setUse.requirements],
+  };
+}
+
 function prepareCallReference(
   context: LoweringContext,
   value: TargetTsExpression,
@@ -305,9 +522,28 @@ function assignment(
   lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
   ownRequirements: readonly OfficialBoundLoweringRequirement[],
 ): LoweredExpression {
+  const binaryOperator = assignmentBinaryOperator(operator);
+  if (valueAttributeTarget(context, targetNode) !== undefined) {
+    const place = assignablePlace(context, targetNode, lower);
+    const value = materialize(context, assigned);
+    return {
+      before: [...place.before, ...value.before],
+      value: place.write(
+        binaryOperator === undefined
+          ? value.value
+          : {
+              kind: 'binary-expression',
+              operator: binaryOperator,
+              left: place.read,
+              right: value.value,
+            },
+      ),
+      after: [],
+      requirements: [...ownRequirements, ...place.requirements, ...value.requirements],
+    };
+  }
   const target = prepareAssignmentTarget(context, targetNode, lower);
   const value = materialize(context, assigned);
-  const binaryOperator = assignmentBinaryOperator(operator);
   return {
     // Godot evaluates the base/intermediate chain, then the RHS, then the final index and old
     // lvalue. JavaScript's native assignment order differs, so all four phases are explicit.
@@ -726,13 +962,20 @@ export function lowerOfficialExpression(
       }
       case 'UNARY_OPERATOR': {
         const operandNode = context.node(node.operand, node);
-        const rule = context.rule(
-          node,
-          `operator:${node.operation}:${String(node.variantOperatorId)}`,
-          [operandNode],
+        const rule = context.selectRule(node, operatorRuleKeys(node), [operandNode], [
           'unary',
-        );
+          'binding',
+        ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'binding') {
+          const use = operatorBinding(context, node, operandNode, undefined);
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            (values) => bindingCall(context, node, use, values),
+            [...rule.requirements, ...use.requirements],
+          );
+        }
         if (recipe.kind !== 'unary') return context.refuse(node, 'unreachable unary recipe');
         return compose(
           context,
@@ -749,13 +992,20 @@ export function lowerOfficialExpression(
       case 'BINARY_OPERATOR': {
         const leftNode = context.node(node.leftOperand, node);
         const rightNode = context.node(node.rightOperand, node);
-        const rule = context.rule(
-          node,
-          `operator:${node.operation}:${String(node.variantOperatorId)}`,
-          [leftNode, rightNode],
+        const rule = context.selectRule(node, operatorRuleKeys(node), [leftNode, rightNode], [
           'binary',
-        );
+          'binding',
+        ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'binding') {
+          const use = operatorBinding(context, node, leftNode, rightNode);
+          return compose(
+            context,
+            [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
+            (values) => bindingCall(context, node, use, values),
+            [...rule.requirements, ...use.requirements],
+          );
+        }
         if (recipe.kind !== 'binary') return context.refuse(node, 'unreachable binary recipe');
         const left = lowerExpression(context, leftNode);
         const right = lowerExpression(context, rightNode);
@@ -818,6 +1068,49 @@ export function lowerOfficialExpression(
       }
       case 'SUBSCRIPT': {
         const baseNode = context.node(node.base, node);
+        if (
+          node.isAttribute &&
+          baseNode.kind === 'IDENTIFIER' &&
+          baseNode.datatype.kind === 'BUILTIN' &&
+          baseNode.datatype.metaType
+        ) {
+          // `Vector3.UP`: a built-in type's constant, bound as a value.
+          const rule = context.selectRule(node, ['subscript-attribute:builtin-constant'], [], [
+            'binding',
+          ]);
+          const use = context.bindingUse(
+            {
+              sourceRevision: context.sourceRevision,
+              kind: 'builtin-constant',
+              owner: baseNode.datatype.builtinType,
+              member: officialBoundPropertyName(context, node.attribute, node),
+              signature: 'constant',
+            },
+            node,
+          );
+          if (use.target.use.kind !== 'value') {
+            return context.refuse(node, `constant binding ${use.target.localName} is not a value`);
+          }
+          return expression(
+            { ...boundTargetExpression(use.target), span: span(context.script, node) },
+            [...rule.requirements, ...use.requirements],
+          );
+        }
+        if (node.isAttribute && nativeObjectType(baseNode)) {
+          const property = officialBoundPropertyName(context, node.attribute, node);
+          const getter = nativeAccessorUse(context, node, baseNode, property, 'getter');
+          if (getter !== undefined) {
+            const rule = context.selectRule(node, ['subscript-attribute:native-property'], [
+              baseNode,
+            ], ['binding']);
+            return compose(
+              context,
+              [lowerExpression(context, baseNode)],
+              (values) => bindingCall(context, node, getter, values),
+              [...rule.requirements, ...getter.requirements],
+            );
+          }
+        }
         const base = lowerExpression(context, baseNode);
         if (node.isAttribute) {
           const requirements = context.structural(node, 'subscript-attribute', [baseNode]);

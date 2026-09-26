@@ -57,7 +57,11 @@ export function planGodotTranslation(
 ): GodotTranslationResult {
   const diagnostics = [...validateInputs(project, toolchain)];
   if (diagnostics.length > 0) return { kind: 'refused-translation', diagnostics };
-  const code = lowerOfficialBoundProgram(project, toolchain.frontend.codeAuthority);
+  const code = lowerOfficialBoundProgram(
+    project,
+    toolchain.frontend.codeAuthority,
+    toolchain.frontend.apiDump.parsed,
+  );
   const fields = planScriptFieldInitializations(project, toolchain.frontend.fieldValueAuthority);
   const scenes = planGodotSceneDocuments(project, toolchain.frontend.sceneNodeAuthority);
   if (code.kind === 'refused-code') {

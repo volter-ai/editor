@@ -270,3 +270,30 @@ export function op_negate(self: Vector3): Vector3 {
 export function op_equal(left: Vector3, right: Vector3): boolean {
   return left.x === right.x && left.y === right.y && left.z === right.z;
 }
+
+/**
+ * `v.x = value` writes `real_t x` (`core/math/vector3.h:66`); Godot copies the value, so the
+ * write is a new record assigned back.
+ *
+ * @godot Vector3.x
+ * @source core/math/vector3.h:66
+ */
+export function with_x(self: Vector3, value: number): Vector3 {
+  return make(value, self.y, self.z);
+}
+
+/**
+ * @godot Vector3.y
+ * @source core/math/vector3.h:67
+ */
+export function with_y(self: Vector3, value: number): Vector3 {
+  return make(self.x, value, self.z);
+}
+
+/**
+ * @godot Vector3.z
+ * @source core/math/vector3.h:68
+ */
+export function with_z(self: Vector3, value: number): Vector3 {
+  return make(self.x, self.y, value);
+}
