@@ -20,24 +20,32 @@
 
 /** The fields of a render's `report.json` this player reads. */
 export interface MusicRender {
-  /** The looped mix, relative to the render folder. */
+  /** The looped mix, relative to the render folder; `fileM4a` is the same loop as AAC. */
   readonly file: string;
+  readonly fileM4a?: string;
   /** The second of every bar line of the piece, 0 to its end inclusive. */
   readonly barSeconds: readonly number[];
   /** A section per marker: `start` is its second in the whole piece, where its loop begins. */
-  readonly sections?: readonly { readonly name: string; readonly start: number; readonly seconds: number; readonly file: string }[];
-  readonly stems?: { readonly files?: readonly { readonly track: string; readonly file: string }[] };
+  readonly sections?: readonly { readonly name: string; readonly start: number; readonly seconds: number; readonly file: string; readonly fileM4a?: string }[];
+  readonly stems?: { readonly files?: readonly { readonly track: string; readonly file: string; readonly fileM4a?: string }[] };
 }
 
-/** Fetch and decode every file a render lists, keyed by its path in the report. */
+/**
+ * Fetch and decode every file a render lists, keyed by its (Ogg) path in the report. A browser
+ * that cannot decode Vorbis (Safari on iOS before 17.4) gets the same loop from its `.m4a`.
+ */
 export async function loadMusic(context: BaseAudioContext, baseUrl: string, render: MusicRender): Promise<Map<string, AudioBuffer>> {
-  const files = [render.file, ...(render.sections ?? []).map((section) => section.file), ...(render.stems?.files ?? []).map((stem) => stem.file)];
+  const entries = [render, ...(render.sections ?? []), ...(render.stems?.files ?? [])];
+  const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  const decode = async (file: string): Promise<AudioBuffer> => {
+    const response = await fetch(new URL(file, base));
+    if (!response.ok) throw new Error(`${file}: ${response.status} ${response.statusText}`);
+    return context.decodeAudioData(await response.arrayBuffer());
+  };
   const buffers = new Map<string, AudioBuffer>();
   await Promise.all(
-    files.map(async (file) => {
-      const response = await fetch(new URL(file, baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`));
-      if (!response.ok) throw new Error(`${file}: ${response.status} ${response.statusText}`);
-      buffers.set(file, await context.decodeAudioData(await response.arrayBuffer()));
+    entries.map(async ({ file, fileM4a }) => {
+      buffers.set(file, await decode(file).catch((error: unknown) => (fileM4a ? decode(fileM4a) : Promise.reject(error))));
     }),
   );
   return buffers;
