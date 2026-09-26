@@ -128,28 +128,43 @@ export async function renderPiece({
     const gainDb = Math.min(TARGET_LUFS - first.integrated, CEILING_DBTP - first.truePeak);
     scale(loop, 10 ** (gainDb / 20));
     writeFileSync(wavPath, writeWav(loop.left, loop.right, loop.sampleRate));
-    function encodeOgg(wav: string, ogg: string): void {
-      // Bitexact: the Ogg muxer otherwise draws a random stream serial per run, so the same render
-      // gave a different file (and a new provenance digest) every time.
-      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, '-fflags', '+bitexact', '-flags:a', '+bitexact', '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', ogg]);
+    /**
+     * A WAV as the two delivery formats: Ogg Vorbis, and AAC in an `.m4a` for the players that
+     * cannot decode Vorbis (Safari on iOS before 17.4). Bitexact: the Ogg muxer otherwise draws a
+     * random stream serial per run, and both muxers stamp the encoder's version, so the same
+     * render gave a different file (and a new provenance digest) every time.
+     */
+    function encode(wav: string, base: string): void {
+      const exact = ['-fflags', '+bitexact', '-flags:a', '+bitexact'];
+      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, ...exact, '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', `${base}.ogg`]);
+      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, ...exact, '-c:a', 'aac', '-b:a', '192k', `${base}.m4a`]);
     }
     const safeName = (value: string): string => value.replace(/[/\\:*?"<>|]/g, '-') || 'unnamed';
-    const stemFiles: { track: string; file: string }[] = [];
+    /** A file name not yet used in its folder: `name`, else `name-2`, `name-3`, … */
+    const uniqueName = (used: Set<string>, value: string): string => {
+      const base = safeName(value);
+      let file = base;
+      for (let suffix = 2; used.has(file.toLowerCase()); suffix++) file = `${base}-${suffix}`;
+      used.add(file.toLowerCase());
+      return file;
+    };
+    const stemFiles: { track: string; file: string; fileM4a: string }[] = [];
+    const stemNames = new Set<string>();
     for (const stem of stems) {
       scale(stem.loop, preGain * 10 ** (gainDb / 20));
-      const file = safeName(stem.track);
+      const file = uniqueName(stemNames, stem.track);
       writeFileSync(join(stemsDir, `${file}.wav`), writeWav(stem.loop.left, stem.loop.right, stem.loop.sampleRate));
-      encodeOgg(join(stemsDir, `${file}.wav`), join(stemsDir, `${file}.ogg`));
-      stemFiles.push({ track: stem.track, file: `stems/${file}.ogg` });
+      encode(join(stemsDir, `${file}.wav`), join(stemsDir, file));
+      stemFiles.push({ track: stem.track, file: `stems/${file}.ogg`, fileM4a: `stems/${file}.m4a` });
     }
     const residual = nullResidualDb(
       [loop.left, loop.right],
       stems.map((stem) => [stem.loop.left, stem.loop.right]),
     );
     writeFileSync(join(out, `${name}.mid`), new Uint8Array(pieceToMidi(piece, 1).writeMIDI()));
-    encodeOgg(wavPath, join(out, `${name}.ogg`));
+    encode(wavPath, join(out, name));
 
-    const sectionReports: { name: string; bar: number; bars: number; seconds: number; file: string }[] = [];
+    const sectionReports: { name: string; bar: number; bars: number; seconds: number; file: string; fileM4a: string }[] = [];
     if (sections) {
       const directory = join(out, 'sections');
       rmSync(directory, { recursive: true, force: true });
@@ -158,18 +173,30 @@ export async function renderPiece({
       const used = new Set<string>();
       for (let i = 0; i < markers.length; i++) {
         const marker = markers[i]!;
-        const end = markers[i + 1]?.time ?? piece.length;
+        // A marker that starts no stretch of music makes no section: one at or past the end, or
+        // one on the same beat as the marker before it (that one's section starts there).
+        if (marker.time >= piece.length) {
+          problems.push(`Marker "${marker.name}" is at or past the piece's end (bar ${marker.time / beatsPerBar + 1}); it makes no section.`);
+          continue;
+        }
+        const before = markers[i - 1];
+        if (before && before.time === marker.time) {
+          problems.push(`Marker "${marker.name}" is on the same beat as "${before.name}" (bar ${marker.time / beatsPerBar + 1}); it makes no section.`);
+          continue;
+        }
+        // A section ends at the next marker with a later beat.
+        const end = Math.min(piece.length, markers.slice(i + 1).find((next) => next.time > marker.time)?.time ?? piece.length);
         // The section is that stretch of the whole piece's performance, looped on itself.
         const audio = mixLoop(await renderChannels(piece, bank, undefined, undefined, irs, 2, { fromBeat: marker.time, toBeat: end }));
         scale(audio, preGain * 10 ** (gainDb / 20));
-        const base = safeName(marker.name);
-        let file = base;
-        for (let suffix = 2; used.has(file); suffix++) file = `${base}-${suffix}`;
-        used.add(file);
+        const file = uniqueName(used, marker.name);
         const wav = join(directory, `${file}.wav`);
         writeFileSync(wav, loopWav24(audio.left, audio.right, audio.sampleRate));
-        encodeOgg(wav, join(directory, `${file}.ogg`));
-        sectionReports.push({ name: marker.name, bar: marker.time / beatsPerBar + 1, bars: (end - marker.time) / beatsPerBar, seconds: audio.loopSeconds, file: `sections/${file}.ogg` });
+        encode(wav, join(directory, file));
+        sectionReports.push({
+          name: marker.name, bar: marker.time / beatsPerBar + 1, bars: (end - marker.time) / beatsPerBar, seconds: audio.loopSeconds,
+          file: `sections/${file}.ogg`, fileM4a: `sections/${file}.m4a`,
+        });
       }
     }
     const performance = perform(piece);
@@ -200,6 +227,7 @@ export async function renderPiece({
     const report = {
       piece: pieceArg,
       file: `${name}.ogg`,
+      fileM4a: `${name}.m4a`,
       barSeconds,
       ...(sections ? { sections: sectionReports } : {}),
       tempo: piece.transport.tempo,
@@ -232,7 +260,7 @@ export async function renderPiece({
     };
     writeFileSync(join(out, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
 
-    const mediaTypes: Record<string, string> = { wav: 'audio/wav', ogg: 'audio/ogg', mid: 'audio/midi', json: 'application/json' };
+    const mediaTypes: Record<string, string> = { wav: 'audio/wav', ogg: 'audio/ogg', m4a: 'audio/mp4', mid: 'audio/midi', json: 'application/json' };
     const files: { path: string; bytes: Uint8Array; mediaType: string }[] = [];
     function collect(directory: string, prefix = ''): void {
       for (const entry of readdirSync(directory, { withFileTypes: true })) {

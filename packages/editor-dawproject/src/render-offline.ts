@@ -12,7 +12,7 @@ import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
 import { notePatches } from './articulations';
 import { roundRobins } from './sfz-bank';
-import { type DynamicsReport, type ImpulseResponse, mix } from './mix/offline-mix';
+import { type DynamicsReport, type ImpulseResponse, mix, soloActive } from './mix/offline-mix';
 import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
 const PPQ = 480;
@@ -49,10 +49,14 @@ export function assignChannels(piece: Piece): Map<string, TrackAssignment> {
   return out;
 }
 
-/** The tracks that sound in a full render: a soundfont device, not muted, and soloed when any track is. */
+/**
+ * The tracks that sound in a full render: a soundfont device, not muted, and soloed when any
+ * instrument strip is (`soloActive`: a solo written on a bus or the master counts for nothing, in
+ * both mixes).
+ */
 export function audibleTracks(piece: Piece): Piece['tracks'] {
   const assignments = assignChannels(piece);
-  const soloed = piece.tracks.some((track) => track.channel?.solo);
+  const soloed = soloActive(piece);
   return piece.tracks.filter((track) => assignments.has(track.id) && !track.channel?.mute && (!soloed || track.channel?.solo));
 }
 
