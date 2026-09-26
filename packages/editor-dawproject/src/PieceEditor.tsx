@@ -48,6 +48,8 @@ export interface PieceDocumentContext {
   readonly playhead: number | null;
   /** Where Play starts, in beats: the ruler's last click. */
   readonly start: number;
+  /** The region the engine repeats, in beats, or `null` for the whole piece (Loop off). */
+  readonly loop: { readonly from: number; readonly to: number } | null;
   play(fromBeat?: number): Promise<void>;
   stop(): void;
 }
@@ -89,6 +91,10 @@ export function PieceEditor({
   const [start, setStart] = useState(0);
   const startRef = useRef(start);
   startRef.current = start;
+  // The loop region (drawn on the loop strip, whole bars) and whether Loop is on: view state the
+  // engine is handed, never written into the piece.
+  const [loopRegion, setLoopRegion] = useState<{ readonly from: number; readonly to: number } | null>(null);
+  const [looping, setLooping] = useState(false);
 
   useEffect(() => {
     if (!publishContext) return;
@@ -109,6 +115,9 @@ export function PieceEditor({
       get start() {
         return startRef.current;
       },
+      get loop() {
+        return engine.loop;
+      },
       play: (fromBeat = startRef.current) => engine.play(fromBeat),
       stop: () => engine.stop(),
     };
@@ -124,6 +133,11 @@ export function PieceEditor({
   useEffect(() => {
     if (!active) engine.stop();
   }, [active, engine]);
+
+  const loopRange = loopRegion ?? (piece ? { from: 0, to: 4 * piece.transport.beatsPerBar } : null);
+  useEffect(() => {
+    engine.setLoop(looping ? loopRange : null);
+  }, [engine, looping, loopRange?.from, loopRange?.to]);
 
   // The source index follows the piece: every re-mount is a source change it must reflect.
   useEffect(() => {
@@ -215,6 +229,8 @@ export function PieceEditor({
         onToggle={togglePlay}
         pxPerBeat={pxPerBeat}
         onZoom={setPxPerBeat}
+        looping={looping}
+        onLoop={() => setLooping((on) => !on)}
       />
       {live.error ? (
         <div style={{ padding: '4px 10px', color: themeVars.semantic.danger, borderBottom: `1px solid ${themeVars.boundary.default}` }}>
@@ -229,6 +245,9 @@ export function PieceEditor({
           playhead={playhead}
           start={start}
           onSeek={seek}
+          loop={loopRange ?? { from: 0, to: 4 * beatsPerBar }}
+          looping={looping}
+          onLoopRegion={setLoopRegion}
           selectedClip={clip?.clip.id ?? null}
           onSelectClip={(id) => {
             setSelectedClip(id);

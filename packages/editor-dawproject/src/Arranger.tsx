@@ -24,6 +24,7 @@ import { applyEdits, elementAt, indentOf, literalProp, parseSource, shiftClipEdi
 
 const HEADER_W = 190;
 const LANE_H = 44;
+const LOOP_H = 12;
 const RULER_H = 22;
 const MARKER_H = 18;
 const TRACK_COLORS = ['#e8a33d', '#5aa9e6', '#8bc34a', '#e5637a', '#b388eb', '#4dd0c7', '#f2cc5c', '#9e9e9e'];
@@ -60,6 +61,9 @@ export function TransportBar(props: {
   readonly onToggle: () => void;
   readonly pxPerBeat: number;
   readonly onZoom: (value: number) => void;
+  /** Whether the transport repeats the loop region instead of the whole piece. */
+  readonly looping: boolean;
+  readonly onLoop: () => void;
 }) {
   const { piece, playing, engineState, playhead } = props;
   return (
@@ -71,6 +75,16 @@ export function TransportBar(props: {
       <span style={small}>
         {piece.transport.tempo} BPM · {piece.transport.numerator}/{piece.transport.denominator}
       </span>
+      <button
+        type="button"
+        data-control="loop"
+        aria-pressed={props.looping}
+        onClick={props.onLoop}
+        title="Loop the region drawn above the ruler"
+        style={{ ...button, background: props.looping ? themeVars.semantic.warning : themeVars.surface.raised, color: props.looping ? themeVars.surface.panel : themeVars.content.primary }}
+      >
+        Loop
+      </button>
       <span style={{ flex: 1 }} />
       {engineState.kind === 'loading' ? <span style={small}>{engineState.detail}…</span> : null}
       {engineState.kind === 'error' ? <span style={{ color: themeVars.semantic.danger }}>{engineState.message}</span> : null}
@@ -144,6 +158,10 @@ export function Arranger(props: {
   /** Where Play starts; a click on the ruler moves it (`onSeek`). */
   readonly start: number;
   readonly onSeek: (beat: number) => void;
+  /** The loop region in beats, whether it is on, and a new region drawn on the loop strip. */
+  readonly loop: { readonly from: number; readonly to: number };
+  readonly looping: boolean;
+  readonly onLoopRegion: (range: { readonly from: number; readonly to: number }) => void;
   readonly selectedClip: string | null;
   readonly onSelectClip: (id: string) => void;
   readonly selectedTrack: string | null;
@@ -158,6 +176,14 @@ export function Arranger(props: {
   const beatsPerBar = piece.transport.beatsPerBar;
   const barPx = beatsPerBar * pxPerBeat;
   const bars = Math.ceil(totalBeats / beatsPerBar);
+  // The loop strip's drag: the bar pressed and the bar under the pointer, whole bars between.
+  const loopDrag = useRef<{ anchor: number; bar: number } | null>(null);
+  const [drawnLoop, setDrawnLoop] = useState<{ anchor: number; bar: number } | null>(null);
+  const loopBar = (event: ReactPointerEvent<HTMLDivElement>): number =>
+    Math.max(0, Math.min(bars - 1, Math.floor((event.clientX - event.currentTarget.getBoundingClientRect().left) / barPx)));
+  const shownLoop = drawnLoop
+    ? { from: Math.min(drawnLoop.anchor, drawnLoop.bar) * beatsPerBar, to: (Math.max(drawnLoop.anchor, drawnLoop.bar) + 1) * beatsPerBar }
+    : props.loop;
   // The gesture lives in a ref, read and written synchronously by every pointer event (the piano
   // roll's reason); the state copy only draws it. A written gesture is drawn where it landed until
   // the piece re-mounts with it.
@@ -310,7 +336,7 @@ export function Arranger(props: {
       style={{ display: 'flex', minWidth: HEADER_W + width, outline: 'none' }}
     >
       <div style={{ width: HEADER_W, flex: 'none', position: 'sticky', left: 0, zIndex: 2, background: themeVars.surface.panel, borderRight: `1px solid ${themeVars.boundary.default}` }}>
-        <div style={{ height: RULER_H + MARKER_H, borderBottom: `1px solid ${themeVars.boundary.default}` }} />
+        <div style={{ height: LOOP_H + RULER_H + MARKER_H, borderBottom: `1px solid ${themeVars.boundary.default}` }} />
         {piece.tracks.map((track, index) => (
           <div
             key={track.id}
@@ -342,6 +368,47 @@ export function Arranger(props: {
         ))}
       </div>
       <div style={{ position: 'relative', width }} onPointerMove={moveClip} onPointerUp={endClip}>
+        <div
+          data-loop-strip=""
+          title="Drag to set the loop region (whole bars)"
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            const bar = loopBar(event);
+            loopDrag.current = { anchor: bar, bar };
+            setDrawnLoop(loopDrag.current);
+          }}
+          onPointerMove={(event) => {
+            const current = loopDrag.current;
+            if (!current) return;
+            const bar = loopBar(event);
+            if (bar === current.bar) return;
+            loopDrag.current = { ...current, bar };
+            setDrawnLoop(loopDrag.current);
+          }}
+          onPointerUp={() => {
+            const current = loopDrag.current;
+            loopDrag.current = null;
+            setDrawnLoop(null);
+            if (current) props.onLoopRegion({ from: Math.min(current.anchor, current.bar) * beatsPerBar, to: (Math.max(current.anchor, current.bar) + 1) * beatsPerBar });
+          }}
+          style={{ height: LOOP_H, position: 'relative', cursor: 'col-resize', background: themeVars.surface.inset, borderBottom: `1px solid ${themeVars.boundary.default}` }}
+        >
+          <span
+            data-loop-region={`${shownLoop.from}-${shownLoop.to}`}
+            data-looping={props.looping ? 'on' : 'off'}
+            style={{
+              position: 'absolute',
+              left: shownLoop.from * pxPerBeat,
+              width: (shownLoop.to - shownLoop.from) * pxPerBeat,
+              top: 2,
+              bottom: 2,
+              borderRadius: 2,
+              pointerEvents: 'none',
+              background: props.looping ? themeVars.semantic.warning : themeVars.content.muted,
+              opacity: props.looping ? 0.8 : 0.35,
+            }}
+          />
+        </div>
         <div
           data-ruler=""
           title="Click to set where Play starts"

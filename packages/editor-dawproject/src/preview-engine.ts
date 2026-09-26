@@ -50,10 +50,56 @@ export function setUpVoices(synth: WorkletSynthesizer, piece: Piece, bankOffset:
   }
 }
 
+/** The stretch of the piece that repeats, in piece-seconds: the whole piece, or the loop region. */
+export interface Region {
+  readonly start: number;
+  readonly end: number;
+}
+
+/** A stretch of playing time as the piece plays it: piece-seconds [from, to), heard at `offset` + piece-second. */
+export interface Pass {
+  readonly offset: number;
+  readonly from: number;
+  readonly to: number;
+}
+
 /**
- * Hand the synth every note and controller of the performance whose piece-second falls in
- * [from, to), counting up across loop passes, each timestamped `at(second)` on the audio clock.
- * The engine's timer calls it for the stretch ahead of the playhead.
+ * Playing time [from, to) (seconds counting up from the piece's start, never wrapping) folded into
+ * the piece: before the region it is the piece itself; from the region's start on, each pass
+ * through the region is shifted back by the passes before it. So a play that starts ahead of a
+ * loop region plays into it and then repeats it; the whole piece is the region that starts at 0.
+ */
+export function passes(from: number, to: number, region: Region): Pass[] {
+  const length = region.end - region.start;
+  if (length <= 0 || to <= from) return [];
+  const found: Pass[] = [];
+  let at = from;
+  while (at < to) {
+    if (at < region.start) {
+      const end = Math.min(to, region.start);
+      found.push({ offset: 0, from: at, to: end });
+      at = end;
+      continue;
+    }
+    const offset = Math.floor((at - region.start) / length) * length;
+    const end = Math.min(to, region.end + offset);
+    found.push({ offset, from: at - offset, to: end - offset });
+    at = end;
+  }
+  return found;
+}
+
+/** Playing time as the piece-second it sounds (`passes`' fold, for one instant). */
+export function foldSecond(second: number, region: Region): number {
+  const length = region.end - region.start;
+  if (second < region.start || length <= 0) return second;
+  return region.start + ((((second - region.start) % length) + length) % length);
+}
+
+/**
+ * Hand the synth every note and controller of the performance whose playing time falls in
+ * [from, to), folded into the repeating `region` (`passes`), each timestamped `at(second)` on the
+ * audio clock. The engine's timer calls it for the stretch ahead of the playhead.
  */
 export function scheduleSpan(
   synth: WorkletSynthesizer,
@@ -64,18 +110,15 @@ export function scheduleSpan(
   at: (second: number) => number,
   /** Each note's bank and program where they change note by note (`patchesFor`). */
   patches: ReadonlyMap<object, NotePatch> = new Map(),
+  region: Region = { start: 0, end: performance.seconds },
 ): void {
-  const span = performance.seconds;
-  if (span <= 0) return;
+  if (performance.seconds <= 0) return;
   const voices = trackVoices(piece);
   const audibleTracks = new Map(piece.tracks.map((track) => [track.id, audible(piece, track)]));
-  let from = fromSecond;
-  while (from < toSecond) {
-    // Piece-seconds count up across passes; each pass is folded into the loop to find its events.
-    const passStart = Math.floor(from / span) * span;
-    const end = Math.min(toSecond, passStart + span);
-    const localFrom = from - passStart;
-    const localTo = end - passStart;
+  for (const pass of passes(fromSecond, toSecond, region)) {
+    const passStart = pass.offset;
+    const localFrom = pass.from;
+    const localTo = pass.to;
     for (const control of performance.controls) {
       if (control.time < localFrom || control.time >= localTo) continue;
       const voice = voices.get(control.track);
@@ -100,7 +143,6 @@ export function scheduleSpan(
       synth.noteOn(voice.channel, note.pitch, velocity, { time: at(passStart + note.start) });
       synth.noteOff(voice.channel, note.pitch, { time: at(passStart + note.end) });
     }
-    from = end;
   }
 }
 
@@ -223,6 +265,39 @@ export class PreviewEngine {
   private epoch = 0;
   private listeners = new Set<(state: EngineState) => void>();
   private state: EngineState = { kind: 'idle' };
+  /** The loop region in beats (`setLoop`), or `null` to repeat the whole piece. */
+  private loopBeats: { readonly from: number; readonly to: number } | null = null;
+
+  /** The loop region the transport repeats, in beats, or `null` when it repeats the whole piece. */
+  get loop(): { readonly from: number; readonly to: number } | null {
+    return this.loopBeats;
+  }
+
+  /**
+   * Repeat `range` (beats, from < to) instead of the whole piece, or the whole piece again for
+   * `null`. A playing transport carries on from where it is, folded into the new region.
+   */
+  setLoop(range: { readonly from: number; readonly to: number } | null): void {
+    const next = range && range.to > range.from ? { from: range.from, to: range.to } : null;
+    if (next?.from === this.loopBeats?.from && next?.to === this.loopBeats?.to) return;
+    const beat = this.playhead();
+    this.loopBeats = next;
+    if (beat !== null) void this.play(beat);
+  }
+
+  /**
+   * What repeats, in piece-seconds, for a play that started at piece-second `origin`: the loop
+   * region when the play starts before its end (a play started past it runs on to the piece's
+   * end, as a DAW's does), else the whole piece.
+   */
+  private region(performance: Performance, origin: number): Region {
+    const whole = { start: 0, end: performance.seconds };
+    const loop = this.loopBeats;
+    if (!loop) return whole;
+    const start = performance.secondsAt(loop.from);
+    const end = Math.min(performance.secondsAt(loop.to), performance.seconds);
+    return end > start && origin < end ? { start, end } : whole;
+  }
 
   /** The engine's state now (a subscriber hears each change; this answers a read). */
   get current(): EngineState {
@@ -334,7 +409,7 @@ export class PreviewEngine {
     const performance = this.performance;
     if (!this.context || this.state.kind !== 'playing' || !performance || performance.seconds <= 0) return null;
     const elapsed = this.originSecond + (this.context.currentTime - this.originTime);
-    return performance.beatAt(((elapsed % performance.seconds) + performance.seconds) % performance.seconds);
+    return performance.beatAt(foldSecond(Math.max(0, elapsed), this.region(performance, this.originSecond)));
   }
 
   async play(fromBeat = 0): Promise<void> {
@@ -466,7 +541,7 @@ export class PreviewEngine {
     const horizon = this.originSecond + (context.currentTime + LOOKAHEAD_S - this.originTime);
     if (horizon <= this.scheduledTo) return;
     const at = (second: number): number => this.originTime + (second - this.originSecond);
-    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at, this.patches);
+    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at, this.patches, this.region(performance, this.originSecond));
     this.scheduledTo = horizon;
   }
 }
