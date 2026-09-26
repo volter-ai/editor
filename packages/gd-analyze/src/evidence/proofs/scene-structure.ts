@@ -182,6 +182,7 @@ const MOUNT = `import { createElement, act } from 'react';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
+import { GodotProjectStartup } from './src/lib/godot-compat/react-lifecycle';
 import { get_children, get_name, is_in_group, godot_is_native, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
@@ -206,7 +207,8 @@ const root = createRoot(canvas);
 await root.configure({ gl, size: { width: 640, height: 480, top: 0, left: 0 }, frameloop: 'never' });
 const holder = { current: null };
 // The scene component takes no ref (its props omit it); a holder group around it finds its root.
-await act(async () => { root.render(createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' }))); });
+// Mounted as the world mounts a scene: inside the startup transaction, which enters it whole.
+await act(async () => { root.render(createElement(GodotProjectStartup, null, createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' })))); });
 const rows = [];
 const walk = (path, object) => {
   const spatial = godot_node_is_spatial(object);
@@ -231,6 +233,32 @@ const events = [...godot_node_object(main).events];
 await act(async () => { root.unmount(); });
 console.log('TREE ' + JSON.stringify({ tree: rows, events }));
 `;
+
+/** The named deviation's bound: a float32 rounding of a decomposed basis, well above its measure. */
+const TRANSFORM_TOLERANCE = 1e-6;
+
+const bitsValue = (hex: string): number => Buffer.from(hex, 'hex').readDoubleLE(0);
+
+type TreeRows = { readonly tree: readonly Record<string, unknown>[] };
+
+/** The largest difference between the two trees' global transforms, row by row. */
+function maxGlobalDifference(native: unknown, target: unknown): number {
+  const rows = (tree: unknown) => (tree as TreeRows).tree.map((row) => ((row['global'] ?? []) as string[][]).flat().map(bitsValue));
+  const a = rows(native);
+  const b = rows(target);
+  if (a.length !== b.length) return Number.POSITIVE_INFINITY;
+  return a.reduce((worst, row, index) => {
+    const other = b[index] as number[];
+    if (row.length !== other.length) return Number.POSITIVE_INFINITY;
+    return row.reduce((most, value, at) => Math.max(most, Math.abs(value - (other[at] as number))), worst);
+  }, 0);
+}
+
+/** The tree without its rows' global transforms. */
+function withoutGlobals(tree: unknown): unknown {
+  const { tree: rows, ...rest } = tree as TreeRows & Record<string, unknown>;
+  return { ...rest, tree: rows.map(({ global: _global, ...row }) => row) };
+}
 
 function mountedTree(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
@@ -299,9 +327,13 @@ export async function measureSceneStructureProof(
       throw new Error(`native scene probe failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
     }
     const native = JSON.parse(line.slice('TREE '.length)) as unknown;
-    const nativeJson = JSON.stringify(canonical(native));
-    const targetJson = JSON.stringify(canonical(target));
-    const comparison = JSON.stringify({ native: nativeJson, target: targetJson, equal: nativeJson === targetJson });
+    // Global transforms are compared as the named `transform-decomposition` deviation (the scene
+    // writes position/rotation/scale, which compat reads back through three's quaternion).
+    const decomposition = maxGlobalDifference(native, target);
+    const nativeJson = JSON.stringify(canonical(withoutGlobals(native)));
+    const targetJson = JSON.stringify(canonical(withoutGlobals(target)));
+    const agree = nativeJson === targetJson && decomposition <= TRANSFORM_TOLERANCE;
+    const comparison = JSON.stringify({ native: nativeJson, target: targetJson, tolerances: { 'transform-decomposition': TRANSFORM_TOLERANCE }, agree });
     return [
       {
         name: 'scene-structure',
@@ -311,8 +343,8 @@ export async function measureSceneStructureProof(
           observed: sha256(nativeJson),
           comparison: sha256(comparison),
         },
-        agree: nativeJson === targetJson,
-        detail: `native ${nativeJson}\ntarget ${targetJson}`,
+        agree,
+        detail: `deviations ${JSON.stringify({ 'transform-decomposition': decomposition })}\nnative ${nativeJson}\ntarget ${targetJson}`,
       },
     ];
   } finally {

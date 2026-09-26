@@ -24,11 +24,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { Object3D } from 'three';
+import { Group, type Object3D } from 'three';
 import {
   type GodotScriptLifecycleBinding,
   godot_node_adopt,
   godot_node_pending_children,
+  godot_node_scene_root,
   mountGodotScriptForest,
   mountGodotScriptTree,
 } from './node';
@@ -163,6 +164,21 @@ export function useGodotScriptTreeAttachment<Native extends object>(
 function nodeOf(held: object | null): object | null {
   if (held === null || (held as { readonly isObject3D?: boolean }).isObject3D === true) return held;
   return godot_world_3d_declared_object(held) ?? null;
+}
+
+/**
+ * Marks the root of the scene a component writes as a scene root: the nodes the component mounts
+ * below it are its own (their owner), which `%Name` and `get_owner` read.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:318
+ */
+export function useGodotScene(root: RefObject<object | null>): void {
+  useEffect(() => {
+    const entity = nodeOf(root.current);
+    if (entity === null) throw new Error('godot-compat: the root of a scene was not mounted.');
+    godot_node_scene_root(entity);
+  }, []);
 }
 
 /** Each node's script instance, as `useGodotScript` makes it. */
@@ -301,7 +317,8 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', classes: element.classes });
     element.mount(made);
     for (const [property, value] of Object.entries(properties)) {
-      if (element.spatial && THREE_TRANSFORM.has(property)) continue;
+      // `userData` is the node's Godot-only state (its groups, `%Name`), which the Node protocol reads.
+      if ((element.spatial && THREE_TRANSFORM.has(property)) || property === 'userData') continue;
       // The node's metadata, by name (`Object::_set`, `metadata/NAME`, `object.cpp:279`).
       if (property === 'meta') {
         for (const [name, entry] of Object.entries(value as Readonly<Record<string, unknown>>)) set_meta(made, name, entry);
@@ -313,6 +330,27 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     }
     return made;
   });
-  const transform = element.spatial ? Object.fromEntries(Object.entries(properties).filter(([property]) => THREE_TRANSFORM.has(property))) : {};
+  const transform = Object.fromEntries(
+    Object.entries(properties).filter(([property]) => property === 'userData' || (element.spatial && THREE_TRANSFORM.has(property))),
+  );
   return createElement('primitive', { object: entity, ref, ...transform }, children);
+}
+
+const NODE_ELEMENT: GodotElementClass<Object3D> = {
+  create: () => new Group(),
+  classes: ['Node', 'Object'],
+  spatial: false,
+  mount: () => undefined,
+  props: new Map(),
+};
+
+/**
+ * A plain Node as a scene writes it: `<GodotNode />`, a group the Node protocol marks non-spatial
+ * (its matrix stays identity; a Node3D under it takes global = local).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:4092
+ */
+export function GodotNode(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(NODE_ELEMENT, props);
 }

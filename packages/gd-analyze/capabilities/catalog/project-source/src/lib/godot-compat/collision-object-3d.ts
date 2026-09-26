@@ -243,7 +243,8 @@ export function godot_collision_objects_declare(
     const kind = declaredKind(body, colliders);
     const declarer = DECLARERS.get(kind);
     if (declarer === undefined) throw new Error(`godot-compat: no module declares ${DECLARED_CLASSES[kind][0] ?? kind} bodies.`);
-    const read = new Set(['shapes', ...declarer(object, body, data), ...declareCollisionObject(object, data)]);
+    // `groups` and `unique_name_in_owner` are the Node protocol's (`node.ts`).
+    const read = new Set(['shapes', 'groups', 'unique_name_in_owner', ...declarer(object, body, data), ...declareCollisionObject(object, data)]);
     const state = OBJECT.get(object);
     if (state !== undefined) state.materialApplied = false;
     const unknown = Object.keys(data).find((key) => !read.has(key));

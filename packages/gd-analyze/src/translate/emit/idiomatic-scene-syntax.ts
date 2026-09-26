@@ -156,7 +156,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
     initializer: {
       kind: 'call-expression',
       callee: { kind: 'identifier-expression', name: 'useRef' },
-      typeArguments: [{ kind: 'type-reference', name: type, arguments: [] }],
+      typeArguments: [{ kind: 'type-reference', name: from === 'three' ? threeLocal(type) : type, arguments: [] }],
       arguments: [{ kind: 'literal-expression', value: null }],
     },
   });
@@ -214,6 +214,11 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
     });
   }
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
+}
+
+/** A three type's local name: drei's components share some names (`PerspectiveCamera`). */
+function threeLocal(type: string): string {
+  return type === 'PerspectiveCamera' ? 'ThreePerspectiveCamera' : type;
 }
 
 /** A JSON-like value as a literal expression (a `userData` object). */
@@ -279,9 +284,10 @@ function bodyProps(
   setters: readonly TargetGodotSceneSetterPlan[],
   resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
   shapes: Readonly<Record<string, Record<string, unknown>>>,
+  node: Readonly<Record<string, unknown>> = {},
 ): Map<string, TargetTsExpression> {
   const props = new Map<string, TargetTsExpression>();
-  const data: Record<string, unknown> = {};
+  const data: Record<string, unknown> = { ...node };
   const locks = { linear: [true, true, true], angular: [true, true, true] };
   let material: TargetGodotSceneResourcePlan | undefined;
   for (const entry of setters) {
@@ -351,6 +357,7 @@ const BODY_TYPES: Readonly<Record<string, string>> = {
 /** A collision shape's collider element: three's shape of the Godot shape's data. */
 function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[], at: string): TargetTsJsxChild {
   if (node.scriptInstance !== undefined) throw new Error(`${at}: a script on a collision shape has no idiomatic form`);
+  if (Object.keys(nodeData(node)).length > 0) throw new Error(`${at}: groups or a unique name on a collision shape have no idiomatic form`);
   if (node.children.length > 0) throw new Error(`${at}: children of a collision shape have no idiomatic form`);
   const shape = resourceOf(emission, setterValue(node.setters, 'set_shape'));
   if (shape === undefined) throw new Error(`${at}: a collision shape without a shape has no idiomatic form`);
@@ -382,6 +389,20 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
   }
 }
 
+/** A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`. */
+function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
+  return {
+    ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
+    ...(node.unique === true ? { unique_name_in_owner: true } : {}),
+  };
+}
+
+/** `userData` stating a node's Godot-only state, when it has any. */
+function nodeDataAttribute(node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
+  const data = nodeData(node);
+  return Object.keys(data).length === 0 ? [] : [attribute('userData', dataExpression(data))];
+}
+
 /** A setter's Godot-named value as a compat component's camelCase prop. */
 function componentProp(entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute {
   const camel = entry.propertyName.replace(/_([a-z])/gu, (_, letter: string) => letter.toUpperCase());
@@ -397,21 +418,35 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
   const rootClass = instanced.root.classes[0] as string;
   const overrides: TargetTsJsxAttribute[] = [];
+  // The instance's groups join its scene root's (`SceneState::instantiate`, packed_scene.cpp:511).
+  const rootData = nodeData(instanced.root);
+  const ownData = nodeData(node);
+  const data: Record<string, unknown> = {
+    ...rootData,
+    ...ownData,
+    ...(ownData['groups'] === undefined ? {} : { groups: [...new Set([...((rootData['groups'] ?? []) as string[]), ...(ownData['groups'] as string[])])] }),
+  };
   const familyProps = node.setters.length > 0 ? familyInstanceProps(emission.family, rootClass, node, instanced.root.setters) : undefined;
-  if (familyProps !== undefined) overrides.push(...familyProps);
-  else if (node.setters.length > 0) {
-    if (BODY_TYPES[rootClass] === undefined) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
-    // The overridden values merged over the prefab's own: the props that differ from its root's.
+  if (familyProps !== undefined) {
+    overrides.push(...familyProps);
+    if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
+  } else if (BODY_TYPES[rootClass] !== undefined) {
+    // The overridden values merged over the prefab's own: the props that differ from its root's
+    // (a `userData` always whole, since the element's replaces the prefab's).
     const merged = [...instanced.root.setters.filter((own) => !node.setters.some((entry) => sameSetter(entry, own))), ...node.setters];
     const resources = new Map([...instanced.resources, ...emission.scene.resources].map((resource) => [resource.key, resource] as const));
     const shapes = shapeData({ ...emission, resources: new Map(instanced.resources.map((resource) => [resource.key, resource] as const)) }, instanced.root);
-    const own = bodyProps(emission, rootClass, instanced.root.setters, new Map(instanced.resources.map((resource) => [resource.key, resource] as const)), shapes);
-    for (const [prop, value] of bodyProps(emission, rootClass, merged, resources, shapes)) {
+    const own = bodyProps(emission, rootClass, instanced.root.setters, new Map(instanced.resources.map((resource) => [resource.key, resource] as const)), shapes, rootData);
+    for (const [prop, value] of bodyProps(emission, rootClass, merged, resources, shapes, data)) {
       if (JSON.stringify(own.get(prop)) !== JSON.stringify(value)) overrides.push(attribute(prop, value));
     }
+  } else {
+    if (node.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
+    if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
   }
   const children = node.children.map((child) => nodeElement(emission, child));
-  return element(local, [name, ...nodeRef(emission, node, 'Group'), ...transform, ...overrides], children);
+  const ref = BODY_TYPES[rootClass] !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, familyThreeType(rootClass) ?? 'Group');
+  return element(local, [name, ...ref, ...transform, ...overrides], children);
 }
 
 function sameSetter(left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSetterPlan): boolean {
@@ -438,7 +473,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const bodyType = BODY_TYPES[className];
   if (bodyType !== undefined) {
     emission.rapier.add('RigidBody');
-    const props = bodyProps(emission, className, node.setters, emission.resources, shapeData(emission, node));
+    const props = bodyProps(emission, className, node.setters, emission.resources, shapeData(emission, node), nodeData(node));
     return element('RigidBody', [
       name,
       ...nodeRef(emission, node, 'RapierRigidBody', 'rapier'),
@@ -452,22 +487,25 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   // A carried family's element (`scene-family-elements.ts`).
   const family = familyElement(emission.family, node);
   if (family !== undefined) {
-    return element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...family.attributes], [
+    return element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...family.attributes, ...nodeDataAttribute(node)], [
       ...family.children,
       ...children(),
     ]);
   }
   switch (className) {
+    case 'Node':
+      useCompat(emission, 'react-lifecycle', 'GodotNode');
+      return element('GodotNode', [name, ...nodeRef(emission, node, 'Group'), ...nodeDataAttribute(node)], children());
     case 'Node3D':
-      return element('group', [name, ...nodeRef(emission, node, 'Group'), ...transform], children());
+      return element('group', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...nodeDataAttribute(node)], children());
     case 'CollisionShape3D':
       return collider(emission, node, name, transform, at);
     case 'RayCast3D':
       useCompat(emission, 'ray-cast-3d', 'GodotRayCast3D');
-      return element('GodotRayCast3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...node.setters.map(componentProp)], children());
+      return element('GodotRayCast3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...node.setters.map(componentProp), ...nodeDataAttribute(node)], children());
     case 'Marker3D':
       useCompat(emission, 'marker-3d', 'GodotMarker3D');
-      return element('GodotMarker3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...node.setters.map(componentProp)], children());
+      return element('GodotMarker3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...node.setters.map(componentProp), ...nodeDataAttribute(node)], children());
     default:
       throw new Error(`${at}: ${className} has no idiomatic element`);
   }
@@ -492,11 +530,15 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
 /** The nodes a statement refers to: each with a script, and each end of a connection. */
 function refTargets(scene: DirectGodotSceneDocumentPlan): ReadonlySet<string> {
   const targets = new Set<string>();
+  let unique = false;
   const walk = (node: DirectGodotSceneNodePlan): void => {
     if (node.scriptInstance !== undefined) targets.add(node.nodePath);
+    if (node.unique === true) unique = true;
     for (const child of node.children) walk(child);
   };
   walk(scene.root);
+  // A scene whose nodes its owner finds as `%Name` marks its root (`useGodotScene`).
+  if (unique) targets.add(scene.root.nodePath);
   for (const connection of scene.connections) targets.add(connection.fromNodePath).add(connection.toNodePath);
   return targets;
 }
@@ -562,6 +604,21 @@ export function idiomaticSceneSourceFile(
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
+  if ((function hasUnique(entry: DirectGodotSceneNodePlan): boolean {
+    return entry.unique === true || entry.children.some(hasUnique);
+  })(scene.root)) {
+    // Marked before any script attaches (a script mounted outside a startup enters at once).
+    const rootRef = emission.nodeRefs.get(scene.root.nodePath) as string;
+    const at = emission.hooks.findIndex((hook) => hook.kind === 'variable-statement' && hook.name === rootRef);
+    emission.hooks.splice(at + 1, 0, {
+      kind: 'expression-statement',
+      expression: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScene') },
+        arguments: [{ kind: 'identifier-expression', name: rootRef }],
+      },
+    });
+  }
   // The scene's connections, made once its scripts are attached (`packed_scene.cpp:682`).
   for (const connection of scene.connections) {
     const accessor = useCompat(emission, connection.accessor.module.replace(/^lib\/godot-compat\//u, ''), connection.accessor.exportName);
@@ -646,7 +703,7 @@ export function idiomaticSceneSourceFile(
           {
             kind: 'import-statement' as const,
             module: 'three',
-            namedBindings: [...emission.three].sort().map((name) => ({ imported: name, local: name })),
+            namedBindings: [...emission.three].sort().map((name) => ({ imported: name, local: threeLocal(name) })),
             typeOnly: true as const,
           },
         ]),

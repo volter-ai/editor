@@ -268,6 +268,46 @@ export function godot_as_script(value: unknown, script: abstract new (...args: n
 }
 
 const CLASS_READERS: ((entity: object) => readonly string[] | undefined)[] = [];
+/** The roots of the scenes the JSX mounts (`useGodotScene`): each owns the nodes its component writes. */
+const SCENE_ROOTS = new WeakSet<object>();
+const SEEDED = new WeakSet<object>();
+
+/**
+ * Registers the root of a scene the JSX mounts: it owns the nodes below it up to the next scene
+ * root, which its instancing scene's root owns in turn (`Node::data.owner`, set as
+ * `SceneState::instantiate` makes each node, `packed_scene.cpp:318`).
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:318
+ */
+export function godot_node_scene_root(entity: object): void {
+  SCENE_ROOTS.add(entity);
+}
+
+/**
+ * The Godot-only state a node the JSX declares seeds from its `userData`, as it first enters the
+ * tree: its groups, in authored order (added as the scene instantiates, `packed_scene.cpp:511`),
+ * and, owned by the nearest scene root above it, whether its owner finds it as `%Name`
+ * (`unique_name_in_owner`). A node the composition recorded keeps what it recorded.
+ */
+function seedDeclared(entity: object): void {
+  const state = stateOf(entity);
+  if (SEEDED.has(entity)) return;
+  SEEDED.add(entity);
+  if (state.owner === undefined) {
+    for (let parent = parentEntity(entity); parent !== null; parent = parentEntity(parent)) {
+      if (!SCENE_ROOTS.has(parent)) continue;
+      state.owner = parent;
+      break;
+    }
+  }
+  const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+  for (const group of (data['groups'] ?? []) as readonly string[]) if (!state.groups.includes(group)) state.groups.push(group);
+  if (data['unique_name_in_owner'] === true) {
+    if (state.owner === undefined) throw new Error(`godot-compat: %${nameOf(entity)} has no scene root to own it.`);
+    stateOf(state.owner).uniqueNodes.set(nameOf(entity), entity);
+  }
+}
 const CLASS_MOUNTS = new Map<string, (entity: object) => void>();
 
 /**
@@ -444,7 +484,10 @@ export function godot_node_object(entity: object): object {
  * @godot Node (protocol)
  * @source core/object/object.h:813
  */
-export function godot_node_entity(object: object): object {
+export function godot_node_entity(object: unknown): object {
+  // A node a script reached through an untyped path (`get_node` returns Variant): a null one is
+  // Godot's call on a null instance.
+  if (object === null || typeof object !== 'object') throw new TypeError('godot-compat: a node method was called on a null instance.');
   return NATIVE_OF_OWNER.get(object) ?? object;
 }
 
@@ -1064,7 +1107,7 @@ export function mountGodotScriptForest(
       const mount = CLASS_MOUNTS.get(nodeClasses(node)?.[0] ?? '');
       if (mount !== undefined) mount(node);
     }
-    stateOf(node);
+    seedDeclared(node);
     for (const child of childEntities(node)) collect(child);
   };
   for (const root of roots) collect(root);

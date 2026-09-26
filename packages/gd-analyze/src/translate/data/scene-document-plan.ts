@@ -1297,6 +1297,7 @@ const AXIS_LOCKS = [1, 2, 4, 8, 16, 32].map((axis) => `set_axis_lock:${String(ax
  * resource class's.
  */
 export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
+  Node: [],
   Node3D: [],
   StaticBody3D: [...COLLISION_OBJECT_SETTERS, 'set_physics_material_override'],
   RigidBody3D: [
@@ -1383,8 +1384,6 @@ export function idiomaticRefusal(
     const allowed =
       carried || className === PENDING_INSTANCE ? node.setters.map((entry) => setterName(entry)[0] as string) : IDIOMATIC_NODE_SETTERS[className];
     if (allowed === undefined) return `class ${className}`;
-    if (node.groups.length > 0) return `groups on ${node.nodePath}`;
-    if (node.unique === true) return `unique name ${node.nodePath}`;
     if ((node.placements ?? []).length > 0) return `placements under ${node.nodePath}`;
     if (className === 'CollisionShape3D' && (parentClass === undefined || !(BODY_CLASSES.has(parentClass) || parentClass === PENDING_INSTANCE))) {
       return 'a collision shape outside a body';
