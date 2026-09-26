@@ -81,6 +81,7 @@ const REFINED = [
   '$Level/Door',
   '$Scripted',
   '%Marker',
+  '%Tip',
   '$Level/Inner/Lamp.omni_range',
   '$Level/Door.collision_layer',
   '$Scripted.level',
@@ -176,7 +177,8 @@ func shout() -> int:
 [node name="Inner" parent="." instance=ExtResource("1_inner")]
 `,
   // main.tscn instanced again: main.gd is also attached to this copy, where the RayFloor line
-  // main.tscn places into the model is reached through the copied node's provenance.
+  // main.tscn places into the model is reached through the copied node's provenance, and `%Tip`
+  // (a line main.tscn places into the model) is a unique node the instance root itself owns.
   'outer.tscn': `[gd_scene load_steps=2 format=3]
 
 [ext_resource type="PackedScene" path="res://main.tscn" id="1_main"]
@@ -184,6 +186,7 @@ func shout() -> int:
 [node name="Outer" type="Node3D"]
 
 [node name="Main" parent="." instance=ExtResource("1_main")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
 `,
   'main.tscn': `[gd_scene load_steps=5 format=3]
 
@@ -198,6 +201,9 @@ script = ExtResource("1_main")
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="RayFloor" type="RayCast3D" parent="Model/Skeleton"]
+
+[node name="Tip" type="Marker3D" parent="Model/Skeleton"]
+unique_name_in_owner = true
 
 [node name="Level" parent="." instance=ExtResource("3_level")]
 

@@ -144,24 +144,35 @@ export function resolveScenePath(
   ];
   if (path.startsWith('/')) return `absolute node path ${path} depends on the running tree`;
   if (path.startsWith('%')) {
-    // `%Name`: the node the attachment's owner (the document root) owns with
-    // `unique_name_in_owner` (`Node::get_node_or_null`, scene/main/node.cpp:1943), whether it sits in
-    // this document's tree or is a line this document places under a node of a scene it instances.
+    // `%Name`: a node owned with `unique_name_in_owner` by the node itself, else by its owner
+    // (`Node::get_node_or_null`, scene/main/node.cpp:1943). A scene root owns its document's nodes;
+    // an instancing node owns the nodes of the scene it instances (they are instantiated with it as
+    // owner), and its own owner is the attachment document's root. A unique node sits in the owning
+    // document's tree or is a line that document places under a node of a scene it instances.
     const [unique, ...rest] = path.split('/');
     const name = (unique as string).slice(1);
     const isUnique = (properties: Readonly<Record<string, { readonly kind: string; readonly value?: unknown }>>) =>
       properties['unique_name_in_owner']?.kind === 'bool' && properties['unique_name_in_owner'].value === true;
-    const found: string[] = [];
-    const visit = (node: SceneNode, nodePath: string): void => {
-      if (node.name === name && nodePath !== '.' && isUnique(node.properties)) found.push(nodePath);
-      for (const child of node.children) visit(child, childPath(nodePath, child.name));
-    };
-    visit(document.root, '.');
-    for (const line of document.unplacedNodes) {
-      if (line.name === name && isUnique(line.properties)) found.push(childPath(line.parentPath, line.name));
+    const owners = [
+      ...startEnclosing.filter((entry) => entry.path === '.').map((entry) => entry.documentPath),
+      ...(attachment.nodePath === '.' ? [] : [attachment.documentPath]),
+    ];
+    for (const ownerPath of owners) {
+      const owner = scenes.get(ownerPath);
+      if (owner?.root === undefined) continue;
+      const found: string[] = [];
+      const visit = (node: SceneNode, nodePath: string): void => {
+        if (node.name === name && nodePath !== '.' && isUnique(node.properties)) found.push(nodePath);
+        for (const child of node.children) visit(child, childPath(nodePath, child.name));
+      };
+      visit(owner.root, '.');
+      for (const line of owner.unplacedNodes) {
+        if (line.name === name && isUnique(line.properties)) found.push(childPath(line.parentPath, line.name));
+      }
+      if (found.length > 1) return `unique node ${unique} is ambiguous in ${ownerPath}`;
+      if (found.length === 1) return resolveScenePath(scenes, { documentPath: ownerPath, nodePath: '.' }, [found[0], ...rest].join('/'));
     }
-    if (found.length !== 1) return `unique node ${unique} is ${found.length === 0 ? 'absent from' : 'ambiguous in'} ${attachment.documentPath}`;
-    return resolveScenePath(scenes, { documentPath: attachment.documentPath, nodePath: '.' }, [found[0], ...rest].join('/'));
+    return `unique node ${unique} is absent from the scenes owning ${attachment.documentPath}#${attachment.nodePath}`;
   }
   for (const segment of path.split('/')) {
     if (segment === '' || segment === '.') continue;
