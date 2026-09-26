@@ -81,7 +81,18 @@ export function GodotMain({ children }: PropsWithChildren) {
   const [world, setWorld] = useState<World | null>(null);
   useEffect(() => {
     let live = true;
-    const font = fetch(godot_font_default_url()).then((response) => response.arrayBuffer());
+    // The font file is measured by compat's text server and registered with the page as the
+    // `godot-default-font` face the canvas items and Label3D draw their glyphs in.
+    const font = fetch(godot_font_default_url())
+      .then((response) => response.arrayBuffer())
+      .then(async (bytes) => {
+        const page = (globalThis as { readonly document?: Document }).document;
+        if (page?.fonts !== undefined && typeof FontFace === 'function') {
+          const face = new FontFace('godot-default-font', bytes.slice(0));
+          page.fonts.add(await face.load());
+        }
+        return bytes;
+      });
     // The scenes' imported resources (textures, …) load before any scene is instantiated.
     void Promise.all([RAPIER.init(), font, godot_resource_loader_settled()]).then(([, bytes]) => {
       if (!live) return;

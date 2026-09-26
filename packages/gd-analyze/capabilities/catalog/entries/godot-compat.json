@@ -42,6 +42,7 @@
     "src/lib/godot-compat/input-event-screen-touch.ts",
     "src/lib/godot-compat/input-event.ts",
     "src/lib/godot-compat/input.ts",
+    "src/lib/godot-compat/label-3d.ts",
     "src/lib/godot-compat/label-settings.ts",
     "src/lib/godot-compat/label.ts",
     "src/lib/godot-compat/light-3d.ts",
@@ -125,5 +126,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.857.0"
+  "version": "0.858.0"
 }

@@ -16,6 +16,8 @@ import {
 } from '../../code/authority/godot-4.7-seed';
 import {
   type GodotSceneNodeClaimLiveness,
+  type GodotSceneNodeRule,
+  godotSceneNodeRuleKey,
   type GodotSceneResourceRule,
   godotSceneResourceRuleKey,
 } from '../scene-node-authority';
@@ -24,6 +26,20 @@ const MESH_IDENTITIES = godotProofIdentities('scene-meshes');
 const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
 
 type Source = Readonly<{ file: string; symbol: string; line: number }>;
+
+const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
+
+/** Label3D: a three mesh the compat binding draws its text on. */
+export const GODOT_4_7_MESH_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = [
+  {
+    sourceRevision: REVISION,
+    nativeCanonicalIdentity: identityOf('Label3D'),
+    targetKind: 'three-mesh',
+    mount: { module: 'lib/godot-compat/label-3d', exportName: 'godot_label_3d_mount' },
+    evidenceClaimId: 'godot-4.7-scene-node-label-3d',
+    source: { file: 'scene/3d/label_3d.cpp', symbol: 'Label3D::Label3D', line: 1082 },
+  },
+];
 
 export const GODOT_4_7_MESH_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = [
   {
@@ -61,7 +77,7 @@ function meshClaim(canonicalIdentity: string, claimId: string, source: Source): 
       observedOutputSha256: MESH_IDENTITIES.observed,
     },
     comparison: {
-      comparator: 'surface count, primitive, sha256 of each surface_get_arrays array and surface material exact equality',
+      comparator: 'surface count, primitive, sha256 of each surface_get_arrays array, surface material and Label3D text, flags and AABB exact equality',
       tolerance: 'exact',
       resultSha256: MESH_IDENTITIES.comparison,
     },
@@ -69,9 +85,14 @@ function meshClaim(canonicalIdentity: string, claimId: string, source: Source): 
   };
 }
 
-export const GODOT_4_7_MESH_CLAIMS: readonly SemanticClaimRecord[] = GODOT_4_7_MESH_RESOURCE_RULES.map((rule) =>
-  meshClaim(godotSceneResourceRuleKey(rule.sourceRevision, rule.className), rule.evidenceClaimId, rule.source),
-);
+export const GODOT_4_7_MESH_CLAIMS: readonly SemanticClaimRecord[] = [
+  ...GODOT_4_7_MESH_RESOURCE_RULES.map((rule) =>
+    meshClaim(godotSceneResourceRuleKey(rule.sourceRevision, rule.className), rule.evidenceClaimId, rule.source),
+  ),
+  ...GODOT_4_7_MESH_NODE_RULES.map((rule) =>
+    meshClaim(godotSceneNodeRuleKey(rule.sourceRevision, rule.nativeCanonicalIdentity), rule.evidenceClaimId, rule.source),
+  ),
+];
 
 export const GODOT_4_7_MESH_LIVENESS: readonly GodotSceneNodeClaimLiveness[] = GODOT_4_7_MESH_CLAIMS.map((entry) => ({
   claimId: entry.claimId,

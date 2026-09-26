@@ -307,6 +307,9 @@ export function godot_font_shape(font: GodotFont, text: string, size: number): S
     marked.push({ ...glyph, flags });
     if (virtual !== undefined) marked.push(virtual);
   }
+  // Empty text adds no span (`shaped_text_add_string`, `text_server_adv.cpp:5309`): no font sets
+  // its ascent or descent.
+  if (codePoints.length === 0) return { text: codePoints, glyphs: marked, ascent: 0, descent: 0 };
   return { text: codePoints, glyphs: marked, ascent: metrics.ascent, descent: metrics.descent };
 }
 

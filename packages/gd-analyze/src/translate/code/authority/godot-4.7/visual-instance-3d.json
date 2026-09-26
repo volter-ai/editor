@@ -45,6 +45,27 @@
         },
         "evidenceClaimId": "godot-4.7-binding-VisualInstance3D.set_layer_mask"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "VisualInstance3D",
+        "member": "get_aabb",
+        "kind": "native-member",
+        "signature": "hash:1068685055"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/visual-instance-3d",
+        "exportName": "get_aabb",
+        "localName": "VisualInstance3D_get_aabb",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-VisualInstance3D.get_aabb"
+      }
     }
   ],
   "rules": [],
@@ -65,12 +86,12 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "064e4c9316e3d3022dd5759fce17d78a5883cf1e858ce465f6f76c2777e3ad2b",
+        "inputSha256": "b9e1013ddf2010340a860318bbd3a7af45be4737b1ec5bd05728b01da919211f",
         "callsite": "res://probe.gd _init() get_layer_mask-default",
         "observedOutputSha256": "ad2fa948dfd5d9941408213a6d7f08f30929d806618b6c8f445424ee20156f9b"
       },
       "target": {
-        "implementationSha256": "5ebceef03ffe09b374839e7b0297c465f072ac8f65c0ba2f806406c14bbf06bc",
+        "implementationSha256": "264bdb1bf02ec691539f06f3d204951026fc9d1384fd29f847e6e323dad2c9a8",
         "callsite": "lib/godot-compat/visual-instance-3d.ts get_layer_mask",
         "observedOutputSha256": "ad2fa948dfd5d9941408213a6d7f08f30929d806618b6c8f445424ee20156f9b"
       },
@@ -109,7 +130,7 @@
         "observedOutputSha256": "0d28f4bedf7a72f5c230953ab8e92090c859d0efad56c6228bf1838c35580945"
       },
       "target": {
-        "implementationSha256": "5ebceef03ffe09b374839e7b0297c465f072ac8f65c0ba2f806406c14bbf06bc",
+        "implementationSha256": "264bdb1bf02ec691539f06f3d204951026fc9d1384fd29f847e6e323dad2c9a8",
         "callsite": "lib/godot-compat/visual-instance-3d.ts set_layer_mask",
         "observedOutputSha256": "0d28f4bedf7a72f5c230953ab8e92090c859d0efad56c6228bf1838c35580945"
       },
@@ -117,6 +138,45 @@
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
         "resultSha256": "f714d616476ce1b2e4fca65af26f2891efd5f0a8f340670cd07f47f94d687b3c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "visual-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-VisualInstance3D.get_aabb",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000VisualInstance3D\u0000get_aabb\u0000hash:1068685055",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "VisualInstance3D.get_aabb",
+        "sourceLine": 42
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b73bc34ed2a9ce068296c7617c5e4a868e7a7b64ef02f0ca40ed86ff3e3cc757",
+        "callsite": "res://probe.gd _init() aabb-text-0 aabb-text-1 aabb-text-2 aabb-text-3 aabb-text-4 aabb-text-5 aabb-text-6 aabb-size-48 aabb-size-16 aabb-size-7 aabb-align-0-0 aabb-align-0-1 aabb-align-0-2 aabb-align-1-0 aabb-align-1-1 aabb-align-1-2 aabb-align-2-0 aabb-align-2-1 aabb-align-2-2 aabb-align-3-0 aabb-align-3-1 aabb-align-3-2 aabb-offset aabb-spacing aabb-wrap-3-120 aabb-wrap-2-90 aabb-wrap-1-60 aabb-wrap-0-60",
+        "observedOutputSha256": "c4c582edfa73c664a6b504ab1bcd3cd1bd24f07ad7a4ae138567f6e64bd5f09a"
+      },
+      "target": {
+        "implementationSha256": "264bdb1bf02ec691539f06f3d204951026fc9d1384fd29f847e6e323dad2c9a8",
+        "callsite": "lib/godot-compat/visual-instance-3d.ts get_aabb",
+        "observedOutputSha256": "c4c582edfa73c664a6b504ab1bcd3cd1bd24f07ad7a4ae138567f6e64bd5f09a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7908b143fe4a1603f9abd0ec121c72eeccd5e911915ace1c4a656a5d2457c75f"
       },
       "reproductionCommand": [
         "npx",
@@ -135,8 +195,8 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "064e4c9316e3d3022dd5759fce17d78a5883cf1e858ce465f6f76c2777e3ad2b",
-      "implementationSha256": "5ebceef03ffe09b374839e7b0297c465f072ac8f65c0ba2f806406c14bbf06bc"
+      "inputSha256": "b9e1013ddf2010340a860318bbd3a7af45be4737b1ec5bd05728b01da919211f",
+      "implementationSha256": "264bdb1bf02ec691539f06f3d204951026fc9d1384fd29f847e6e323dad2c9a8"
     },
     {
       "claimId": "godot-4.7-binding-VisualInstance3D.set_layer_mask",
@@ -144,7 +204,15 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "fd7700814feb0e135e50ef36a8313f785787dc3ca9a2ff6d3c77785bbbe45dcd",
-      "implementationSha256": "5ebceef03ffe09b374839e7b0297c465f072ac8f65c0ba2f806406c14bbf06bc"
+      "implementationSha256": "264bdb1bf02ec691539f06f3d204951026fc9d1384fd29f847e6e323dad2c9a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-VisualInstance3D.get_aabb",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b73bc34ed2a9ce068296c7617c5e4a868e7a7b64ef02f0ca40ed86ff3e3cc757",
+      "implementationSha256": "264bdb1bf02ec691539f06f3d204951026fc9d1384fd29f847e6e323dad2c9a8"
     }
   ]
 }

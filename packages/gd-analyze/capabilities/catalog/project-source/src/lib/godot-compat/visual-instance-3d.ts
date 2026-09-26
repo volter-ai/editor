@@ -12,6 +12,7 @@
 import type { Object3D } from 'three';
 import { godot_node_duplicate_state } from './node';
 import './node-3d';
+import { construct as vector3, type Vector3 } from './vector3';
 
 const LAYERS = new WeakMap<Object3D, number>();
 
@@ -39,4 +40,32 @@ export function set_layer_mask(self: Object3D, mask: number): void {
  */
 export function get_layer_mask(self: Object3D): number {
   return LAYERS.get(self) ?? 1;
+}
+
+/** An axis-aligned box as `AABB` holds it. */
+export interface AABB {
+  readonly position: Vector3;
+  readonly size: Vector3;
+}
+
+const BOXES = new WeakMap<Object3D, () => AABB>();
+
+/**
+ * Gives an instance its class's bounding box (`get_aabb`, virtual in VisualInstance3D).
+ *
+ * @godot VisualInstance3D (protocol)
+ * @source scene/3d/visual_instance_3d.cpp:42
+ */
+export function godot_visual_instance_3d_aabb(self: Object3D, aabb: () => AABB): void {
+  BOXES.set(self, aabb);
+}
+
+/**
+ * The instance's local bounding box; the empty box for a class that registered none.
+ *
+ * @godot VisualInstance3D.get_aabb
+ * @source scene/3d/visual_instance_3d.cpp:42
+ */
+export function get_aabb(self: Object3D): AABB {
+  return BOXES.get(self)?.() ?? { position: vector3(), size: vector3() };
 }

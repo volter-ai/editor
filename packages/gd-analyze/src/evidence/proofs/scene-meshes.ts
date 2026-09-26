@@ -59,6 +59,16 @@ renderer/rendering_method="gl_compatibility"
 ${MESHES.map((mesh, index) => `[ext_resource type="ArrayMesh" path="res://${mesh}" id="${String(index + 1)}_mesh"]`).join('\n')}
 
 [node name="Main" type="Node3D"]
+
+[node name="Sign" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.2106, 6, -1.99773)
+pixel_size = 0.01
+double_sided = false
+no_depth_test = true
+modulate = Color(0.301961, 0.623529, 0.862745, 1)
+text = "You have found
+a secret area!"
+font_size = 48
 ${MESHES.map((mesh, index) => `
 [node name="Mesh${String(index)}" type="MeshInstance3D" parent="."]
 mesh = ExtResource("${String(index + 1)}_mesh")`).join('\n')}
@@ -79,11 +89,30 @@ func _image(texture: Texture2D) -> Variant:
 \t\treturn null
 \treturn _hash(texture.get_image().get_data())
 
-func _process(_delta: float) -> bool:
-\tvar main: Node = load("res://main.tscn").instantiate()
+func _bits(value: float) -> String:
+\treturn PackedFloat64Array([value]).to_byte_array().hex_encode()
+
+func _v(value: Vector3) -> Array:
+\treturn [_bits(value.x), _bits(value.y), _bits(value.z)]
+
+var main: Node
+var frames := 0
+
+func _initialize() -> void:
+\tmain = load("res://main.tscn").instantiate()
 \troot.add_child(main)
+
+# A Label3D lays its text out in a deferred call: read on the second frame.
+func _process(_delta: float) -> bool:
+\tframes += 1
+\tif frames < 2:
+\t\treturn false
 \tvar rows := {}
+\tvar sign: Label3D = main.get_node("Sign")
+\trows["Sign"] = [sign.text, sign.font_size, _bits(sign.pixel_size), sign.get_draw_flag(1), sign.get_draw_flag(2), [_bits(sign.modulate.r), _bits(sign.modulate.g), _bits(sign.modulate.b), _bits(sign.modulate.a)], [_v(sign.get_aabb().position), _v(sign.get_aabb().size)]]
 \tfor node in main.get_children():
+\t\tif not node is MeshInstance3D:
+\t\t\tcontinue
 \t\tvar mesh: Mesh = node.mesh
 \t\tvar surfaces := []
 \t\tfor s in mesh.get_surface_count():
@@ -122,6 +151,10 @@ import * as B from './src/lib/godot-compat/base-material-3d';
 import * as T2D from './src/lib/godot-compat/texture-2d';
 import * as AM from './src/lib/godot-compat/mesh';
 import { get_mesh } from './src/lib/godot-compat/mesh-instance-3d';
+import * as L3 from './src/lib/godot-compat/label-3d';
+import * as VI from './src/lib/godot-compat/visual-instance-3d';
+import * as F from './src/lib/godot-compat/font';
+import { godot_message_queue_flush } from './src/lib/godot-compat/object';
 import { godot_resource_loader_settled } from './src/lib/godot-compat/resource-loader';
 
 const require = createRequire(import.meta.url);
@@ -130,6 +163,7 @@ globalThis.fetch = async (url) => {
   const bytes = readFileSync('./public' + String(url));
   return { arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
 };
+F.godot_font_default(F.godot_font_load(new Uint8Array(readFileSync('./src/lib/godot-compat/OpenSans_SemiBold.woff2'))));
 const { MainScene } = await import('./src/scenes/main');
 await godot_resource_loader_settled();
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -160,8 +194,16 @@ await root.configure({ gl, size: { width: 64, height: 64, top: 0, left: 0 }, fra
 const holder = { current: null };
 await act(async () => { root.render(createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' }))); });
 const main = holder.current.children[0];
+godot_message_queue_flush();
 const rows = {};
+const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
+const v = (value) => [bits(value.x), bits(value.y), bits(value.z)];
+const sign = main.getObjectByName('Sign');
+const box = VI.get_aabb(sign);
+const m = L3.get_modulate(sign);
+rows.Sign = [L3.get_text(sign), L3.get_font_size(sign), bits(L3.get_pixel_size(sign)), L3.get_draw_flag(sign, 1), L3.get_draw_flag(sign, 2), [m.r, m.g, m.b, m.a].map(bits), [v(box.position), v(box.size)]];
 for (const node of main.children) {
+  if (node.name === 'Sign') continue;
   const mesh = get_mesh(node);
   const surfaces = [];
   for (let s = 0; s < AM.get_surface_count(mesh); s += 1) {

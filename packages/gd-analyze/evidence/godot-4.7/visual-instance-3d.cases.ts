@@ -1,3 +1,4 @@
+import { LABEL3D_AABB_CASES } from './label-3d.cases';
 import { Mesh } from 'three';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/visual-instance-3d';
 import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
@@ -12,5 +13,6 @@ for (const mask of [2, 1048575, 0]) {
     return V.get_layer_mask(n);
   });
 }
-const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'VisualInstance3D', compatModule: 'lib/godot-compat/visual-instance-3d', cases: c.cases };
+// A Label3D's layout box, in the tree (its update is deferred to the next frame).
+const EVIDENCE: GodotEvidenceCaseFile = { kind: 'node', godotClass: 'VisualInstance3D', compatModule: 'lib/godot-compat/visual-instance-3d', cases: [...c.cases.map((entry) => ({ ...entry, gdscript: entry.gdscript.includes('return') ? entry.gdscript : `return ${entry.gdscript}` })), ...LABEL3D_AABB_CASES] };
 export default EVIDENCE;
