@@ -18,7 +18,7 @@ import { type Performance, perform } from '@volter/dawproject/perform';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
-import { LiveMix, mixSignature } from './mix/live-mix';
+import { LiveMix, mixSignature, servedIrLoader } from './mix/live-mix';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
 
 const LOOKAHEAD_S = 0.2;
@@ -165,13 +165,7 @@ export class PreviewEngine {
         // channel comes out separately into its track's strip.
         this.synth.setSystemParameter('effectsEnabled', false);
         const context = this.context;
-        this.mix = new LiveMix(context, async (path) => {
-          const url = projectModuleUrl(path);
-          if (!url) throw new Error(`No served address for ${path}.`);
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`${path}: ${response.status} ${response.statusText}`);
-          return context.decodeAudioData(await response.arrayBuffer());
-        });
+        this.mix = new LiveMix(context, servedIrLoader(context));
       }
       await this.rebuildMix(piece);
       await this.loadBanks(piece);

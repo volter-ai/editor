@@ -9,6 +9,8 @@
  * compressor and limiter are `dynamics.worklet.ts`, the same code the export runs; a convolution
  * device is a ConvolverNode with `normalize = false` holding the IR `prepareIr` made.
  */
+import { projectModuleUrl } from '@volter/editor-sdk/contributions';
+import { readWav } from '../wav';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { prepareIr } from './convolve';
 import { type Band, biquadNode, dbToGain } from './dsp';
@@ -17,6 +19,26 @@ import workletUrl from './dynamics.worklet.ts?worker&url';
 export type IrLoader = (path: string) => Promise<AudioBuffer>;
 
 /** The part of a piece the mix graph depends on; the graph is rebuilt only when it changes. */
+/**
+ * The preview's IR loader: the project file fetched from its served address and read as the
+ * export reads it (`readWav`), at the file's own rate, so `prepareIr` resamples it on both sides.
+ * Decoded by the browser instead, the IR arrived resampled by a different filter and the reverb
+ * bus nulled against the export at only −37 dB; read this way it nulls at −141 dB, like every
+ * other stage of the mix.
+ */
+export function servedIrLoader(context: BaseAudioContext): IrLoader {
+  return async (path) => {
+    const url = projectModuleUrl(path);
+    if (!url) throw new Error(`No served address for ${path}.`);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${path}: ${response.status} ${response.statusText}`);
+    const wav = readWav(new Uint8Array(await response.arrayBuffer()));
+    const buffer = context.createBuffer(wav.channels.length, wav.channels[0]?.length ?? 1, wav.sampleRate);
+    wav.channels.forEach((channel, index) => buffer.copyToChannel(new Float32Array(channel), index));
+    return buffer;
+  };
+}
+
 export function mixSignature(piece: Piece): string {
   return JSON.stringify(piece.tracks.map((track) => [track.id, track.name, track.channel]));
 }
