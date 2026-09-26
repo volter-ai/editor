@@ -161,8 +161,8 @@ Remaining:
    design store). Open: the `.inputmap.json` format's schema (`game-runtime/src/input/schema.ts`), which
    nothing in the repository reads any more (the editor's `Game` has no input manager; a game's
    session input door is its entry's `debug.input`, and a world without one refuses by name) and
-   only the template's `validate-asset-content.ts` checks; a canvas root has no design-time mount (Edit waits on
-   "Loading Scene root").
+   only the template's `validate-asset-content.ts` checks; a canvas root has no design-time mount (the canvas package
+   stayed at vgai-engine's launch-scope tag); its Scene says so ("No Scene editor for …").
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:

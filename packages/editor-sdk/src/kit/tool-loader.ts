@@ -1827,9 +1827,18 @@ function applyGlobalContributions(next: GlobalToolContribution[]): void {
  * snapshot subscribers then render and reconcile from. Notifying per half also
  * ran every subscriber's work twice per refresh (dock reconcile, menu rebuild).
  */
+let contributionsPublished = false;
+
 function publishToolContributions(): void {
   surfaceContributions = [...globalContributions, ...utilityContributions];
+  contributionsPublished = true;
   for (const fn of listeners) fn();
+}
+
+/** Whether a load pass has published at least once this session: after that, a
+ *  subscriber that arrives late has already missed the edge it would wait for. */
+export function toolContributionsPublished(): boolean {
+  return contributionsPublished;
 }
 
 export function __publishGlobalToolContributionsForTest(next: GlobalToolContribution[]): void {

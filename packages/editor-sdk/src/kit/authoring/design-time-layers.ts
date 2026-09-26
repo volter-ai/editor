@@ -38,7 +38,7 @@ import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { subscribeToolContributions } from '../tool-loader';
+import { subscribeToolContributions, toolContributionsPublished } from '../tool-loader';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
@@ -749,7 +749,7 @@ export function mountDesignTimeLayers(
   // NOT an `editorConsole.error` and not a mount-failure report: a build
   // shipping no such package is a configuration fact, not a failure, and a
   // later registration above still upgrades it.
-  const unsubContributions = subscribeToolContributions(() => {
+  const refuseUnownedMedia = (): void => {
     if (torndown || playTeardownDone) return;
     let refused = false;
     for (const candidate of orderedCandidates) {
@@ -771,14 +771,16 @@ export function mountDesignTimeLayers(
           store,
           info,
           `No package in this editor registered a design-time mount for a "${candidate.kind}" ` +
-            'world, so there is nothing here to author it with. A build ships the packages its ' +
-            'own entry in `builds/` lists.',
+            'world, so there is nothing here to author it with.',
         ),
       );
       refused = true;
     }
     if (refused) store.notifyIngestEdit();
-  });
+  };
+  const unsubContributions = subscribeToolContributions(refuseUnownedMedia);
+  // A stack installed after the pass has already published missed that edge.
+  if (toolContributionsPublished()) refuseUnownedMedia();
 
   // D4 (spec27 §8 "space-pan" row) — the lockstep half of the pan feature:
   // re-apply the current shared transform to every currently-mounted layer

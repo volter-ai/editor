@@ -95,6 +95,11 @@ export class BoundaryAuthoringAdapter implements AuthoringAdapter {
     if (pick) this.pickable = { pick };
   }
 
+  /** Why this world has no live editing surface, when the caller said so. */
+  get disclosure(): string | null {
+    return this.reason;
+  }
+
   private get label(): string {
     return this.world.entryOrScenePath?.split('/').pop() ?? this.world.id;
   }

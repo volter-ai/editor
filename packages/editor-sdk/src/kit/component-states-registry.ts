@@ -188,8 +188,7 @@ export function componentStatesProvider(
       _sources.length > 0
         ? null
         : 'No package in this editor registered a source of component states, so this ' +
-          "component's named states could not be read. A build ships the packages its own " +
-          'entry in `builds/` lists.',
+          "component's named states could not be read.",
   };
 }
 

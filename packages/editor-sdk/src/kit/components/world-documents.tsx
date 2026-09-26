@@ -52,6 +52,7 @@ import {
   componentBoards,
   subscribeComponentBoards,
 } from '@volter/editor-sdk/kit/component-board-registry';
+import { BoundaryAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
@@ -145,6 +146,8 @@ export function RootDocumentContent({
           : 'empty',
     readiness: rootReadiness,
     failures: mountFailures,
+    disclosure:
+      documentAdapter instanceof BoundaryAuthoringAdapter ? documentAdapter.disclosure : null,
   });
 
   // A world document owns the shared Hierarchy/Inspector context while it is
