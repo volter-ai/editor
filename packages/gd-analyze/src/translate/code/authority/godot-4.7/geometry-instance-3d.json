@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/geometry-instance-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "get_cast_shadows_setting",
+        "kind": "native-member",
+        "signature": "hash:3383019359"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "get_cast_shadows_setting",
+        "localName": "GeometryInstance3D_get_cast_shadows_setting",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.get_cast_shadows_setting"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GeometryInstance3D",
+        "member": "set_cast_shadows_setting",
+        "kind": "native-member",
+        "signature": "hash:856677339"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-instance-3d",
+        "exportName": "set_cast_shadows_setting",
+        "localName": "GeometryInstance3D_set_cast_shadows_setting",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GeometryInstance3D.set_cast_shadows_setting"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_cast_shadows_setting",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000get_cast_shadows_setting\u0000hash:3383019359",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.get_cast_shadows_setting",
+        "sourceLine": 379
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "24ebd91bf01f62529490e50f86eafcc85100808d7ef0316341b9dd79cf239a09",
+        "callsite": "res://probe.gd _init() get_cast_shadows_setting-default",
+        "observedOutputSha256": "39b8a1c16a0efd27c5f1d0186d15fd14fab724cfa2ea50183ce6e7fd151cab8d"
+      },
+      "target": {
+        "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts get_cast_shadows_setting",
+        "observedOutputSha256": "39b8a1c16a0efd27c5f1d0186d15fd14fab724cfa2ea50183ce6e7fd151cab8d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d13b58dbe635b0984548f2d76e8f296670071f48fdbcf60ca483b5ea08c21c26"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_cast_shadows_setting",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GeometryInstance3D\u0000set_cast_shadows_setting\u0000hash:856677339",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/visual_instance_3d.cpp",
+        "sourceSymbol": "GeometryInstance3D.set_cast_shadows_setting",
+        "sourceLine": 373
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "298c5e426860cbb85e1cf36789f7f6a1bdd42f3bc60a0198f27ef26d2ea081aa",
+        "callsite": "res://probe.gd _init() set_cast_shadows_setting-0 set_cast_shadows_setting-2 set_cast_shadows_setting-3",
+        "observedOutputSha256": "bdef47903b755fc6aa1f0a319d7f602503c6fd31ce9e3e2d326ae462d5909964"
+      },
+      "target": {
+        "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d",
+        "callsite": "lib/godot-compat/geometry-instance-3d.ts set_cast_shadows_setting",
+        "observedOutputSha256": "bdef47903b755fc6aa1f0a319d7f602503c6fd31ce9e3e2d326ae462d5909964"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f0fb42ae6b8be8dcae1cc92b6802ab790a2b7c5eaf4b304ba3b3da0a5cab0706"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.get_cast_shadows_setting",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "24ebd91bf01f62529490e50f86eafcc85100808d7ef0316341b9dd79cf239a09",
+      "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d"
+    },
+    {
+      "claimId": "godot-4.7-binding-GeometryInstance3D.set_cast_shadows_setting",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "298c5e426860cbb85e1cf36789f7f6a1bdd42f3bc60a0198f27ef26d2ea081aa",
+      "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d"
+    }
+  ]
+}

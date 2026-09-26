@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/mesh-instance-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "MeshInstance3D",
+        "member": "get_mesh",
+        "kind": "native-member",
+        "signature": "hash:1808005922"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh-instance-3d",
+        "exportName": "get_mesh",
+        "localName": "MeshInstance3D_get_mesh",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.get_mesh"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "MeshInstance3D",
+        "member": "set_mesh",
+        "kind": "native-member",
+        "signature": "hash:194775623"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh-instance-3d",
+        "exportName": "set_mesh",
+        "localName": "MeshInstance3D_set_mesh",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.set_mesh"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "MeshInstance3D",
+        "member": "set_surface_override_material",
+        "kind": "native-member",
+        "signature": "hash:3671737478"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh-instance-3d",
+        "exportName": "set_surface_override_material",
+        "localName": "MeshInstance3D_set_surface_override_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.set_surface_override_material"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "MeshInstance3D",
+        "member": "get_surface_override_material",
+        "kind": "native-member",
+        "signature": "hash:2897466400"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh-instance-3d",
+        "exportName": "get_surface_override_material",
+        "localName": "MeshInstance3D_get_surface_override_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.get_surface_override_material"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-MeshInstance3D.get_mesh",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000MeshInstance3D\u0000get_mesh\u0000hash:1808005922",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/mesh_instance_3d.cpp",
+        "sourceSymbol": "MeshInstance3D.get_mesh",
+        "sourceLine": 148
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3ed57b2284def688f9883c0d7478bdc9daded0933f5ae4fea51f6ee664f18ac3",
+        "callsite": "res://probe.gd _init() get_mesh-default",
+        "observedOutputSha256": "4082b1e3132e6d6443ae4014c831082cfbb375bfa019fb1ce88ab847061bdedc"
+      },
+      "target": {
+        "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5",
+        "callsite": "lib/godot-compat/mesh-instance-3d.ts get_mesh",
+        "observedOutputSha256": "4082b1e3132e6d6443ae4014c831082cfbb375bfa019fb1ce88ab847061bdedc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cb103c5b71586db2bd885303f23a10a1dcff91f36e502a8b15ec1b8b4f9bdafb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-MeshInstance3D.set_mesh",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000MeshInstance3D\u0000set_mesh\u0000hash:194775623",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/mesh_instance_3d.cpp",
+        "sourceSymbol": "MeshInstance3D.set_mesh",
+        "sourceLine": 120
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e7a94b3b3e7ba521d23f6a54da7ecfe484dc6dc201c337b4034d48e1418234b1",
+        "callsite": "res://probe.gd _init() set_mesh set_mesh-null",
+        "observedOutputSha256": "4eafc29c4e203c51bc448cabe7d004e4d2ff7c42d47af2ac227bfffaf1edb3e1"
+      },
+      "target": {
+        "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5",
+        "callsite": "lib/godot-compat/mesh-instance-3d.ts set_mesh",
+        "observedOutputSha256": "4eafc29c4e203c51bc448cabe7d004e4d2ff7c42d47af2ac227bfffaf1edb3e1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "51e6a1eb25d0bd0bb7d0acb7c1a231743de4461a4be47ed46223ec4905b90e07"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-MeshInstance3D.set_surface_override_material",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000MeshInstance3D\u0000set_surface_override_material\u0000hash:3671737478",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/mesh_instance_3d.cpp",
+        "sourceSymbol": "MeshInstance3D.set_surface_override_material",
+        "sourceLine": 375
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "84fde2a3a662c4c21366bfee8bc060b5249fbf032ead9669a11e350ddbcd6f91",
+        "callsite": "res://probe.gd _init() set_surface_override_material set_surface_override_material-before-mesh",
+        "observedOutputSha256": "489e5c960a4c75e235299d698ccb51020a4e23317c720bfda3c7e62d36ec39e1"
+      },
+      "target": {
+        "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5",
+        "callsite": "lib/godot-compat/mesh-instance-3d.ts set_surface_override_material",
+        "observedOutputSha256": "489e5c960a4c75e235299d698ccb51020a4e23317c720bfda3c7e62d36ec39e1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "017cb328ebdc9899a1ac2916bd1a2366bd7d5aa1d063a7a8ab58de6dab0faecf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-MeshInstance3D.get_surface_override_material",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000MeshInstance3D\u0000get_surface_override_material\u0000hash:2897466400",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/mesh_instance_3d.cpp",
+        "sourceSymbol": "MeshInstance3D.get_surface_override_material",
+        "sourceLine": 387
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dfcdfbb35b974ed09a45cabde6ff8426c2437aa9cf35998f519d84b1813bbae3",
+        "callsite": "res://probe.gd _init() get_surface_override_material-out-of-range",
+        "observedOutputSha256": "481a1d046de1dc47dd243763c26d101811ff05422f24051ae5f53b464e6d94e5"
+      },
+      "target": {
+        "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5",
+        "callsite": "lib/godot-compat/mesh-instance-3d.ts get_surface_override_material",
+        "observedOutputSha256": "481a1d046de1dc47dd243763c26d101811ff05422f24051ae5f53b464e6d94e5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "89e33ba25ee6db30500bfc8239e4bb3f21a68fdb3471d029bfcb96055938539f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-MeshInstance3D.get_mesh",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3ed57b2284def688f9883c0d7478bdc9daded0933f5ae4fea51f6ee664f18ac3",
+      "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5"
+    },
+    {
+      "claimId": "godot-4.7-binding-MeshInstance3D.set_mesh",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e7a94b3b3e7ba521d23f6a54da7ecfe484dc6dc201c337b4034d48e1418234b1",
+      "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5"
+    },
+    {
+      "claimId": "godot-4.7-binding-MeshInstance3D.set_surface_override_material",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "84fde2a3a662c4c21366bfee8bc060b5249fbf032ead9669a11e350ddbcd6f91",
+      "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5"
+    },
+    {
+      "claimId": "godot-4.7-binding-MeshInstance3D.get_surface_override_material",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dfcdfbb35b974ed09a45cabde6ff8426c2437aa9cf35998f519d84b1813bbae3",
+      "implementationSha256": "323ff8b1f39b6f3f6ed96129fc96c25ab86131ca13d67bb6057a1076439518a5"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import * as Cy from '../../capabilities/catalog/project-source/src/lib/godot-com
 import * as Pl from '../../capabilities/catalog/project-source/src/lib/godot-compat/plane-mesh';
 import * as M from '../../capabilities/catalog/project-source/src/lib/godot-compat/primitive-mesh';
 import * as Q from '../../capabilities/catalog/project-source/src/lib/godot-compat/quad-mesh';
+import * as SM from '../../capabilities/catalog/project-source/src/lib/godot-compat/standard-material-3d';
 import * as Sp from '../../capabilities/catalog/project-source/src/lib/godot-compat/sphere-mesh';
 import * as V2 from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector2';
 import * as V3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
@@ -151,6 +152,14 @@ c.add('set_flip_faces', 'set_flip_faces', ['var m := PlaneMesh.new()', 'm.set_fl
 c.add('get_flip_faces-default', 'get_flip_faces', ['return SphereMesh.new().get_flip_faces()'], () =>
   M.get_flip_faces(Sp.construct()),
 );
+
+c.add('get_material-default', 'get_material', ['return PlaneMesh.new().get_material() == null'], () => M.get_material(Pl.construct()) === null);
+c.add('set_material', 'set_material', ['var m := PlaneMesh.new()', 'var mat := StandardMaterial3D.new()', 'm.set_material(mat)', 'return m.get_material() == mat'], () => {
+  const m = Pl.construct();
+  const mat = SM.construct();
+  M.set_material(m, mat);
+  return M.get_material(m) === mat;
+});
 
 const EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'PrimitiveMesh',

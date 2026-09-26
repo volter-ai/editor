@@ -1,0 +1,1238 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/base-material-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_albedo",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_albedo",
+        "localName": "BaseMaterial3D_set_albedo",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_albedo"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_albedo",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_albedo",
+        "localName": "BaseMaterial3D_get_albedo",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_albedo"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_metallic",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_metallic",
+        "localName": "BaseMaterial3D_set_metallic",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_metallic"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_metallic",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_metallic",
+        "localName": "BaseMaterial3D_get_metallic",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_metallic"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_roughness",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_roughness",
+        "localName": "BaseMaterial3D_set_roughness",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_roughness"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_roughness",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_roughness",
+        "localName": "BaseMaterial3D_get_roughness",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_roughness"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_emission_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_emission_energy_multiplier",
+        "localName": "BaseMaterial3D_set_emission_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_emission_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_emission_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_emission_energy_multiplier",
+        "localName": "BaseMaterial3D_get_emission_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_emission_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_emission",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_emission",
+        "localName": "BaseMaterial3D_set_emission",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_emission"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_emission",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_emission",
+        "localName": "BaseMaterial3D_get_emission",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_emission"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_feature",
+        "kind": "native-member",
+        "signature": "hash:2819288693"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_feature",
+        "localName": "BaseMaterial3D_set_feature",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_feature"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_feature",
+        "kind": "native-member",
+        "signature": "hash:1965241794"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_feature",
+        "localName": "BaseMaterial3D_get_feature",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_feature"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_transparency",
+        "kind": "native-member",
+        "signature": "hash:3435651667"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_transparency",
+        "localName": "BaseMaterial3D_set_transparency",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_transparency"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_transparency",
+        "kind": "native-member",
+        "signature": "hash:990903061"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_transparency",
+        "localName": "BaseMaterial3D_get_transparency",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_transparency"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_blend_mode",
+        "kind": "native-member",
+        "signature": "hash:2830186259"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_blend_mode",
+        "localName": "BaseMaterial3D_set_blend_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_blend_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_blend_mode",
+        "kind": "native-member",
+        "signature": "hash:4022690962"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_blend_mode",
+        "localName": "BaseMaterial3D_get_blend_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_blend_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "set_shading_mode",
+        "kind": "native-member",
+        "signature": "hash:3368750322"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "set_shading_mode",
+        "localName": "BaseMaterial3D_set_shading_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.set_shading_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "BaseMaterial3D",
+        "member": "get_shading_mode",
+        "kind": "native-member",
+        "signature": "hash:2132070559"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/base-material-3d",
+        "exportName": "get_shading_mode",
+        "localName": "BaseMaterial3D_get_shading_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-BaseMaterial3D.get_shading_mode"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_albedo",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_albedo\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_albedo",
+        "sourceLine": 2122
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6f56fb18aa11ad39318d3b9b9b3775fce5167631e33121476569a11221440876",
+        "callsite": "res://probe.gd _init() set_albedo-default-ish set_albedo-gold set_albedo-translucent three-albedo-linear",
+        "observedOutputSha256": "4d49973914e3fb9a06971f25220d68e1534aa1648bfb5c095106e6d791aa7bb8"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_albedo",
+        "observedOutputSha256": "33a2b0dcb1354fe06750bb7e927228adb7237a4228a1915c7e4e4265bd972a3b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "d87d33d7f3b8ac8286aafa3c2e776449266a7ef9790491b5b83adaa16cdde61c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_albedo",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_albedo\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_albedo",
+        "sourceLine": 2127
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "610209ebbd44c79bd7555901c052ad678084952a51a7070de119ef24d223f075",
+        "callsite": "res://probe.gd _init() get_albedo-default",
+        "observedOutputSha256": "eba130e047a4fa879c2fac54ed62ad62a043a23952ecdcb7b431e91b7a636d74"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_albedo",
+        "observedOutputSha256": "654ed29d2b7b412d9d38b79140f8cc146fd85ad06fc172276ae676f07aa85931"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ed26a119471d57111f6785ea48194a49a2fd2c9705a143f1b4468ea98a5265aa"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_metallic",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_metallic\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_metallic",
+        "sourceLine": 2149
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2f6cf267401895622afb26631c426850c8ebad07dc882307ed156921303ec0c1",
+        "callsite": "res://probe.gd _init() set_metallic-0.1 set_metallic-1.0 three-metallic-roughness",
+        "observedOutputSha256": "2592e3f7db45ba3390ba0310aec3a92f3ba34613c0b107f04d10f4ade7a71c6a"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_metallic",
+        "observedOutputSha256": "2592e3f7db45ba3390ba0310aec3a92f3ba34613c0b107f04d10f4ade7a71c6a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "db78b3be77630c774e0b04837665db3ac21283fedd36a8a54d561c71bc90f135"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_metallic",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_metallic\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_metallic",
+        "sourceLine": 2154
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "11fbd66172db4a35f314d510f507cebbd5f23a40a964bd4c38a9923b43ab1c6b",
+        "callsite": "res://probe.gd _init() get_metallic-default",
+        "observedOutputSha256": "a4922926204e8f1ba7e9b46c0965af58d965d6213aa8d43468741c495c1c4ba9"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_metallic",
+        "observedOutputSha256": "a4922926204e8f1ba7e9b46c0965af58d965d6213aa8d43468741c495c1c4ba9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "44082f2dd78926af6c5e01de18f07843e57aec9d78e86253149bb7966323b457"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_roughness",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_roughness\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_roughness",
+        "sourceLine": 2140
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4bdd3eca574402be79aee37cb7cac10e8440552d6b80bfa0a911adf7d9014302",
+        "callsite": "res://probe.gd _init() set_roughness-0.0 set_roughness-0.2",
+        "observedOutputSha256": "32cfcc0cbbd2ea36d1020fd2f4e7c007d0653b6f90a69ed1df42c3558f39b2bd"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_roughness",
+        "observedOutputSha256": "32cfcc0cbbd2ea36d1020fd2f4e7c007d0653b6f90a69ed1df42c3558f39b2bd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "89f19518c2c62e37e01835818e0544e7c143817c8824beb6274d1a8894649c3c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_roughness",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_roughness\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_roughness",
+        "sourceLine": 2145
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "81ccb68ec4b13d6a91dc542b7d6a6aac749ad9c6f6d0c9a38b3c1b0866fdf7d3",
+        "callsite": "res://probe.gd _init() get_roughness-default",
+        "observedOutputSha256": "a8ef6fc92a2f72f5e8e163f6b908d1b2d3a118703e957576c1ad1808ec7a2cf2"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_roughness",
+        "observedOutputSha256": "a8ef6fc92a2f72f5e8e163f6b908d1b2d3a118703e957576c1ad1808ec7a2cf2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4fca53251bd4211432604fb634f8a0d1a6177e22b2bc0f2d95126b9d2132d5ff"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_emission_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_emission_energy_multiplier\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_emission_energy_multiplier",
+        "sourceLine": 2167
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3e991ced49893e2dad0b994fcf064cc9667c0673c3fd20f40016a8321770bb5f",
+        "callsite": "res://probe.gd _init() set_emission_energy_multiplier-3.71 set_emission_energy_multiplier-0.5 three-emission-energy",
+        "observedOutputSha256": "9c8300a6abdc226327041519649a5c2e1690619e454e5785bc68b74c94a1ccf7"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_emission_energy_multiplier",
+        "observedOutputSha256": "9c8300a6abdc226327041519649a5c2e1690619e454e5785bc68b74c94a1ccf7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "146ca9da7a0352315c024ba7010a5402f34cd6f3717112a0b416f59fe6ec2361"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_emission_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_emission_energy_multiplier\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_emission_energy_multiplier",
+        "sourceLine": 2177
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1207d1792029834786a8b848a00f6c3b18d1439bf3d9cb94572f8d73098699c0",
+        "callsite": "res://probe.gd _init() get_emission_energy_multiplier-default",
+        "observedOutputSha256": "f1cf1bca27e8502efabbb8c0954a361017ec055df3d5e76f1ec8ca9b27ffb127"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_emission_energy_multiplier",
+        "observedOutputSha256": "f1cf1bca27e8502efabbb8c0954a361017ec055df3d5e76f1ec8ca9b27ffb127"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "55c244708eb9f574632cc1a9bdd3d77499d77d92527cc3b1723b8be67600ab01"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_emission",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_emission\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_emission",
+        "sourceLine": 2158
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b1db5dc5949f5a2d35bb20cbd7f6da0ba4acf9c2b0285ea923bff78c6ddad9e0",
+        "callsite": "res://probe.gd _init() set_emission",
+        "observedOutputSha256": "d282f35861f23529ffe26ab11cf2f2fbb43e5f51e82cb2b4836d3c29bbb78ece"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_emission",
+        "observedOutputSha256": "7f8dc28bfbe96f2b1ffe76757b0fa0155c753f5a4e1281c240a8fb942fcb6490"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f8ad00ce7e6714c3fd00c995eec14b722ed3a7bea19bbb2e976bff739209f787"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_emission",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_emission\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_emission",
+        "sourceLine": 2163
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a9792a74872447baa087297399e3b7ff129b977a79933b5b0ecf3d350d3b4297",
+        "callsite": "res://probe.gd _init() get_emission-default",
+        "observedOutputSha256": "bdd55a2a392191abdc6e08b94c342f7ccd699c30549043a11a3a01ab53ccd646"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_emission",
+        "observedOutputSha256": "4e05800369f0b0a458e7932a506f1d7c1c7464b03a0ea75d9f53fbd7ef26d3c7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "64a2091710ee56282552585e1ab7aa2cea126d8494fc6eeba094fa715b14f678"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_feature",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_feature\u0000hash:2819288693",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_feature",
+        "sourceLine": 2493
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f73d02094f54a7fd51162a8dde65f15a120de38d48cdda5bf5c3eb322fa908f6",
+        "callsite": "res://probe.gd _init() set_feature-0 set_feature-4 set_feature-99 three-emission-disabled",
+        "observedOutputSha256": "6bbdcf2766e4fea34c427421ae6595daa013b0e0cb6963d837292863597612a5"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_feature",
+        "observedOutputSha256": "6bbdcf2766e4fea34c427421ae6595daa013b0e0cb6963d837292863597612a5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "139bd4fb39530ba4aa1dc4194a72ddb991b4d9e83b92db10a33e336d2729be9f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_feature",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_feature\u0000hash:1965241794",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_feature",
+        "sourceLine": 2503
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c3c68af1ffe84badd37fd3078466472fb3474a524c6323f8ae0d551e487f6401",
+        "callsite": "res://probe.gd _init() get_feature-default",
+        "observedOutputSha256": "cc857985ae45cf34abb63f8ed2fed6e4b7eca29b13cf124addcc95dd10efc979"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_feature",
+        "observedOutputSha256": "cc857985ae45cf34abb63f8ed2fed6e4b7eca29b13cf124addcc95dd10efc979"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c1e5308d665bb6dc4b2013e129b3ea76dcf5a129be0300109bd56b2f56aa556e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_transparency",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_transparency\u0000hash:3435651667",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_transparency",
+        "sourceLine": 2352
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "83a8c1b68b161d993332ac47db7cc976ec4b838a6ae6512d103d762d3f17b4d6",
+        "callsite": "res://probe.gd _init() set_transparency three-albedo-alpha-transparent",
+        "observedOutputSha256": "d93ad6b8e0b219ebb7999be9a1c532e99b57021d67eaebeb58a9593d5868d808"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_transparency",
+        "observedOutputSha256": "d93ad6b8e0b219ebb7999be9a1c532e99b57021d67eaebeb58a9593d5868d808"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "ffa332ad4eaab8f150c0f17bb379c003ad854316720b8710b7a71dd8a2c6bc5c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_transparency",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_transparency\u0000hash:990903061",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_transparency",
+        "sourceLine": 2362
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6d6ad25265e51752d44228d30585fc805515347dca082ddfca81047954436f6b",
+        "callsite": "res://probe.gd _init() get_transparency-default",
+        "observedOutputSha256": "5382b79b9875a0cda4876af5ec27c42a7e003d4d7f53ed7a700375a8399789d1"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_transparency",
+        "observedOutputSha256": "5382b79b9875a0cda4876af5ec27c42a7e003d4d7f53ed7a700375a8399789d1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bbe6fa959366df24cbce3f129e460ca00229634ab8b4bc77f559dbc6ae8c0196"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_blend_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_blend_mode\u0000hash:2830186259",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_blend_mode",
+        "sourceLine": 2330
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3f7502ff02960e8b0d7aa52f10385778b18d81969913d83c9e3f6bd2015bedc5",
+        "callsite": "res://probe.gd _init() set_blend_mode three-blend-add",
+        "observedOutputSha256": "aea98bb3ac8a9b660c41d50b635cb5ac3cfdf4924f3e2d7d5dbe9532a0bbf4ac"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_blend_mode",
+        "observedOutputSha256": "aea98bb3ac8a9b660c41d50b635cb5ac3cfdf4924f3e2d7d5dbe9532a0bbf4ac"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "1623a75f89a4584f5f3764669f29ee463891e36822e31066999fe9cddf78cb94"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_blend_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_blend_mode\u0000hash:4022690962",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_blend_mode",
+        "sourceLine": 2339
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8fca67c00e362e257dbee9af9d9dfdd40e69f0630f2b65cf56548429e28f2432",
+        "callsite": "res://probe.gd _init() get_blend_mode-default",
+        "observedOutputSha256": "99f05119ddabe35bf77b65331c2a0d65ac25aaa69d0861664f18fb58908bfccd"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_blend_mode",
+        "observedOutputSha256": "99f05119ddabe35bf77b65331c2a0d65ac25aaa69d0861664f18fb58908bfccd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0e3a58e8414ddcc5de9f1eb711eb42e16bacb4c776473000d2aad91ea7f9ba1c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_shading_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000set_shading_mode\u0000hash:3368750322",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.set_shading_mode",
+        "sourceLine": 2380
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3e0138cfe0c850406fefb98c98c2fde08d96f7ae44e0fc45c0c83e0465321c16",
+        "callsite": "res://probe.gd _init() set_shading_mode three-unshaded-basic",
+        "observedOutputSha256": "c18e6c79d6e2ad95fa813f29d252a1e6c0d67ad886edff65bae26737147ca329"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts set_shading_mode",
+        "observedOutputSha256": "c18e6c79d6e2ad95fa813f29d252a1e6c0d67ad886edff65bae26737147ca329"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "86bf8e1feb3d15ce6cf03a6be573bdad22ebc6836f98b40d20dd9626134217bc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_shading_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000BaseMaterial3D\u0000get_shading_mode\u0000hash:2132070559",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "BaseMaterial3D.get_shading_mode",
+        "sourceLine": 2390
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7194b56a32cc57218fd207a5b821efba40a1e2ae53d851e2f6cd964d58eecb39",
+        "callsite": "res://probe.gd _init() get_shading_mode-default",
+        "observedOutputSha256": "dbc842e71b3f0b67a46efafa7f14f99f94940e6ffc886fcfed650429ee1fe23e"
+      },
+      "target": {
+        "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8",
+        "callsite": "lib/godot-compat/base-material-3d.ts get_shading_mode",
+        "observedOutputSha256": "dbc842e71b3f0b67a46efafa7f14f99f94940e6ffc886fcfed650429ee1fe23e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "14313294e626b0e42727e6b70de4517673708f0dde27d0dc087c3560a6004848"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "base-material-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_albedo",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6f56fb18aa11ad39318d3b9b9b3775fce5167631e33121476569a11221440876",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_albedo",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "610209ebbd44c79bd7555901c052ad678084952a51a7070de119ef24d223f075",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_metallic",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2f6cf267401895622afb26631c426850c8ebad07dc882307ed156921303ec0c1",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_metallic",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "11fbd66172db4a35f314d510f507cebbd5f23a40a964bd4c38a9923b43ab1c6b",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_roughness",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4bdd3eca574402be79aee37cb7cac10e8440552d6b80bfa0a911adf7d9014302",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_roughness",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "81ccb68ec4b13d6a91dc542b7d6a6aac749ad9c6f6d0c9a38b3c1b0866fdf7d3",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_emission_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3e991ced49893e2dad0b994fcf064cc9667c0673c3fd20f40016a8321770bb5f",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_emission_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1207d1792029834786a8b848a00f6c3b18d1439bf3d9cb94572f8d73098699c0",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_emission",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b1db5dc5949f5a2d35bb20cbd7f6da0ba4acf9c2b0285ea923bff78c6ddad9e0",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_emission",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a9792a74872447baa087297399e3b7ff129b977a79933b5b0ecf3d350d3b4297",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_feature",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f73d02094f54a7fd51162a8dde65f15a120de38d48cdda5bf5c3eb322fa908f6",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_feature",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c3c68af1ffe84badd37fd3078466472fb3474a524c6323f8ae0d551e487f6401",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_transparency",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "83a8c1b68b161d993332ac47db7cc976ec4b838a6ae6512d103d762d3f17b4d6",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_transparency",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6d6ad25265e51752d44228d30585fc805515347dca082ddfca81047954436f6b",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_blend_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3f7502ff02960e8b0d7aa52f10385778b18d81969913d83c9e3f6bd2015bedc5",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_blend_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8fca67c00e362e257dbee9af9d9dfdd40e69f0630f2b65cf56548429e28f2432",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.set_shading_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3e0138cfe0c850406fefb98c98c2fde08d96f7ae44e0fc45c0c83e0465321c16",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    },
+    {
+      "claimId": "godot-4.7-binding-BaseMaterial3D.get_shading_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7194b56a32cc57218fd207a5b821efba40a1e2ae53d851e2f6cd964d58eecb39",
+      "implementationSha256": "ab8e984f88206ee1d3dbcea64d71e7cab614d467067f640f8abec09c3bd7e4c8"
+    }
+  ]
+}

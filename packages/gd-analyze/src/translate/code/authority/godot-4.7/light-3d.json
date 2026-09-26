@@ -1,0 +1,422 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/light-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Light3D",
+        "member": "get_param",
+        "kind": "native-member",
+        "signature": "hash:1844084987"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/light-3d",
+        "exportName": "get_param",
+        "localName": "Light3D_get_param",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Light3D.get_param"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Light3D",
+        "member": "set_param",
+        "kind": "native-member",
+        "signature": "hash:1722734213"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/light-3d",
+        "exportName": "set_param",
+        "localName": "Light3D_set_param",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Light3D.set_param"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Light3D",
+        "member": "get_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/light-3d",
+        "exportName": "get_color",
+        "localName": "Light3D_get_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Light3D.get_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Light3D",
+        "member": "set_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/light-3d",
+        "exportName": "set_color",
+        "localName": "Light3D_set_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Light3D.set_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Light3D",
+        "member": "has_shadow",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/light-3d",
+        "exportName": "has_shadow",
+        "localName": "Light3D_has_shadow",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Light3D.has_shadow"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Light3D",
+        "member": "set_shadow",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/light-3d",
+        "exportName": "set_shadow",
+        "localName": "Light3D_set_shadow",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Light3D.set_shadow"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Light3D.get_param",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Light3D\u0000get_param\u0000hash:1844084987",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "Light3D.get_param",
+        "sourceLine": 55
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "54293d2501a0941e2e962fab6e329236463ae35e3aa613f7e393846c9f6b11f7",
+        "callsite": "res://probe.gd _init() get_param-omni-default-0 get_param-directional-default-0 get_param-omni-default-1 get_param-directional-default-1 get_param-omni-default-2 get_param-directional-default-2 get_param-omni-default-3 get_param-directional-default-3 get_param-omni-default-4 get_param-directional-default-4 get_param-omni-default-5 get_param-directional-default-5 get_param-omni-default-6 get_param-directional-default-6 get_param-omni-default-7 get_param-directional-default-7 get_param-omni-default-8 get_param-directional-default-8 get_param-omni-default-9 get_param-directional-default-9 get_param-omni-default-10 get_param-directional-default-10 get_param-omni-default-11 get_param-directional-default-11 get_param-omni-default-12 get_param-directional-default-12 get_param-omni-default-13 get_param-directional-default-13 get_param-omni-default-14 get_param-directional-default-14 get_param-omni-default-15 get_param-directional-default-15 get_param-omni-default-16 get_param-directional-default-16 get_param-omni-default-17 get_param-directional-default-17 get_param-omni-default-18 get_param-directional-default-18 get_param-omni-default-19 get_param-directional-default-19 get_param-omni-default-20 get_param-directional-default-20",
+        "observedOutputSha256": "2b7b15a64b88445e408a6949de6326ac4ee5fdf34cb936fc90161bd7e7a48edb"
+      },
+      "target": {
+        "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8",
+        "callsite": "lib/godot-compat/light-3d.ts get_param",
+        "observedOutputSha256": "2b7b15a64b88445e408a6949de6326ac4ee5fdf34cb936fc90161bd7e7a48edb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1b0f37459f76558ab3a40680affcf01057edb4715238a08d2bbe7c0a010cfd3b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Light3D.set_param",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Light3D\u0000set_param\u0000hash:1722734213",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "Light3D.set_param",
+        "sourceLine": 40
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "440bcba064bb3ab2e1094ca52c058ce58f23bc70fb0efa8faaae6adf61590a5f",
+        "callsite": "res://probe.gd _init() set_param-0-0.25 set_param-4-12.5 set_param-6-2.0 set_param-21-3.0 three-energy-pi three-omni-range-attenuation",
+        "observedOutputSha256": "471dd360d3f4f4b32a75f7904f74af45ae387c0ce8909d381c0d2e0173948ad4"
+      },
+      "target": {
+        "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8",
+        "callsite": "lib/godot-compat/light-3d.ts set_param",
+        "observedOutputSha256": "471dd360d3f4f4b32a75f7904f74af45ae387c0ce8909d381c0d2e0173948ad4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "0ad770e8bcb06b055838821d9aeaca916ae2d6d39b809a11e14a47c0795f3676"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Light3D.get_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Light3D\u0000get_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "Light3D.get_color",
+        "sourceLine": 140
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b8b166044d2c5f6d1b4c1bbadc4ff9d3c9154df2c3746156490b457132b5d145",
+        "callsite": "res://probe.gd _init() get_color-default",
+        "observedOutputSha256": "acf92b07ddb276eb8a1acdf684bd2a9f7d3cb8c4cd2cdf5f5a7451d7ffc3e1b0"
+      },
+      "target": {
+        "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8",
+        "callsite": "lib/godot-compat/light-3d.ts get_color",
+        "observedOutputSha256": "f424eaa86e64fde70c5c16de9a5d3809dd8d402fb0b942b953048f3e7023b0f8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bf6be1cc9726e53cb967500739705849f8bf43187cd4509bcf45341e376cb4de"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Light3D.set_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Light3D\u0000set_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "Light3D.set_color",
+        "sourceLine": 126
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "767093bf5bcf6a39144b01be0bdcce36464194d1b3e3dcf8d82eec9dbfe91b04",
+        "callsite": "res://probe.gd _init() set_color three-color-linear",
+        "observedOutputSha256": "6128073b7206d5b6997150d9ff9ba59e32b7c50f60fe742fd6d1805b4e2a186b"
+      },
+      "target": {
+        "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8",
+        "callsite": "lib/godot-compat/light-3d.ts set_color",
+        "observedOutputSha256": "5521c4db7d37c50b9e43885653a0be375fc2ce499b1e83413205f34725a44f94"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "aedde9cafff35d4aa72d9df3fda2e5ce69765c0136be6dc66f0aa80d455fdb6d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Light3D.has_shadow",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Light3D\u0000has_shadow\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "Light3D.has_shadow",
+        "sourceLine": 67
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aba377571bfb612bcfe6afb1f54181485d120f2a6ac2c20a682e189fa91cb404",
+        "callsite": "res://probe.gd _init() has_shadow-default",
+        "observedOutputSha256": "52acf65051717db42d7847f99777e736030d24c401426ec10d623a3e66b963e1"
+      },
+      "target": {
+        "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8",
+        "callsite": "lib/godot-compat/light-3d.ts has_shadow",
+        "observedOutputSha256": "52acf65051717db42d7847f99777e736030d24c401426ec10d623a3e66b963e1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "58858e4ebbdbeee1ee270802a43eb2db3dee241e30559ae05e77b0e79bd868e3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Light3D.set_shadow",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Light3D\u0000set_shadow\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "Light3D.set_shadow",
+        "sourceLine": 60
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aa67687cd5b8827e599ed87217ef515e0473bfee34cc1ddec0b2061228a02003",
+        "callsite": "res://probe.gd _init() set_shadow three-shadow-cast",
+        "observedOutputSha256": "1f4eb1dc03bd6f5920631c7c274fe4a3cd525e223ddfa393121ce53323859cee"
+      },
+      "target": {
+        "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8",
+        "callsite": "lib/godot-compat/light-3d.ts set_shadow",
+        "observedOutputSha256": "1f4eb1dc03bd6f5920631c7c274fe4a3cd525e223ddfa393121ce53323859cee"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "4bbcddbc02fef6f397835d1fff0c04cdac80d58c8eec628389ccda766cde01ae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Light3D.get_param",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "54293d2501a0941e2e962fab6e329236463ae35e3aa613f7e393846c9f6b11f7",
+      "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Light3D.set_param",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "440bcba064bb3ab2e1094ca52c058ce58f23bc70fb0efa8faaae6adf61590a5f",
+      "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Light3D.get_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b8b166044d2c5f6d1b4c1bbadc4ff9d3c9154df2c3746156490b457132b5d145",
+      "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Light3D.set_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "767093bf5bcf6a39144b01be0bdcce36464194d1b3e3dcf8d82eec9dbfe91b04",
+      "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Light3D.has_shadow",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aba377571bfb612bcfe6afb1f54181485d120f2a6ac2c20a682e189fa91cb404",
+      "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Light3D.set_shadow",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aa67687cd5b8827e599ed87217ef515e0473bfee34cc1ddec0b2061228a02003",
+      "implementationSha256": "f659c5324bd42580813aabe57e425452df736cc9a627a4b852ffeab9305714e8"
+    }
+  ]
+}

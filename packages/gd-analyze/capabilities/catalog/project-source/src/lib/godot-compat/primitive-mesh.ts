@@ -31,6 +31,8 @@ export interface PrimitiveMeshArrays {
 /** The fields every primitive mesh carries (`scene/resources/3d/primitive_meshes.h:48`). */
 export interface PrimitiveMesh {
   flip_faces: boolean;
+  /** The surface's material (`PrimitiveMesh::material`), a `BaseMaterial3D` or none. */
+  material?: object | null;
 }
 
 /** Godot's `Mesh.ArrayType` layout of `surface_get_arrays`: ARRAY_MAX entries, absent ones null. */
@@ -203,6 +205,22 @@ export function get_mesh_arrays(self: PrimitiveMesh): MeshArrays {
  */
 export function set_flip_faces(self: PrimitiveMesh, flip: boolean): void {
   self.flip_faces = flip;
+}
+
+/**
+ * @godot PrimitiveMesh.set_material
+ * @source scene/resources/3d/primitive_meshes.cpp:270
+ */
+export function set_material(self: PrimitiveMesh, material: object | null): void {
+  self.material = material;
+}
+
+/**
+ * @godot PrimitiveMesh.get_material
+ * @source scene/resources/3d/primitive_meshes.cpp:283
+ */
+export function get_material(self: PrimitiveMesh): object | null {
+  return self.material ?? null;
 }
 
 /**
