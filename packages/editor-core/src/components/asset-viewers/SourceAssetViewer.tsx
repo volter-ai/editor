@@ -2,7 +2,7 @@ import { AssetViewerSlot } from '@volter/editor-sdk/kit/asset-viewers';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
 import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
-import { getCurrentProject } from '../../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import {
   projectModuleChangeMatches,
   subscribeProjectModuleChange,

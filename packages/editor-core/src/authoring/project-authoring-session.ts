@@ -11,7 +11,7 @@ import {
   bindEditModeRebuildOwner,
   exitEditModeAuthoring,
   installEditModeAuthoringForProject,
-} from './edit-mode-authoring';
+} from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 type Stage = (composite: CompositeAuthoringAdapter) => Promise<void>;

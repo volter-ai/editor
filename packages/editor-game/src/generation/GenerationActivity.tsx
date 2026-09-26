@@ -14,7 +14,7 @@ import { useState, useSyncExternalStore } from 'react';
 import './GenerationGallery.css';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { openAssetDocument } from '@volter/editor-core/components/asset-documents';
-import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-core/components/asset-thumbnails';
+import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-sdk/kit/components/asset-thumbnails';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { modelThumbnailFormat } from '@volter/editor-threejs/kit/model-thumbnail';
 import {

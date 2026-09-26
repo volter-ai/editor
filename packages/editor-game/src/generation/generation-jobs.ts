@@ -1,5 +1,5 @@
 import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
-import { runProjectTool } from '@volter/editor-core/project-tools';
+import { runProjectTool } from '@volter/editor-sdk/kit/project-tools';
 import type { GenerationJob, GenerationJobsDocument } from '@volter/editor-sdk/generations';
 
 const EMPTY: GenerationJobsDocument = { version: 1, jobs: [] };

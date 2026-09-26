@@ -8,7 +8,7 @@ import { contributedCommand } from '@volter/editor-sdk/kit/command-registry';
 export async function resolveContributedCommand(type: unknown): Promise<CommandSpec | null> {
   const found = contributedCommand(type);
   if (found || typeof type !== 'string' || isRelayCommandType(type)) return found;
-  await (await import('./initial-project')).projectBootstrapSettled();
+  await (await import('@volter/editor-sdk/kit/initial-project')).projectBootstrapSettled();
   await (await import('./tool-loader')).refreshProjectToolContributions();
   return contributedCommand(type);
 }

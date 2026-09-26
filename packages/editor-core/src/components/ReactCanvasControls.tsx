@@ -13,7 +13,7 @@ import {
   setActiveReactStoryBoardViewport,
   subscribeReactStoryBoardViewport,
   toggleActiveReactStoryBoardViewportRotation,
-} from '../authoring/react-story-board';
+} from '@volter/editor-sdk/kit/authoring/react-story-board';
 import type { ViewportToolContext } from '@volter/editor-sdk/kit/authoring/viewport-tool-context';
 import {
   getRootCanvasViewport,

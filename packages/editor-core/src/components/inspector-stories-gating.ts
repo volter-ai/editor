@@ -15,10 +15,10 @@
 
 import type { AuthoringAdapter, EditorNode, StoriesProvider } from '@volter/editor-project/adapter';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
-import { governingAdapterForNode } from '../authoring/provenance';
+import { governingAdapterForNode } from '@volter/editor-sdk/kit/authoring/provenance';
 import { WORLD_SCOPE_NODE_ID } from '@volter/editor-sdk/kit/stories-scope';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
-import type { ComposeStoriesInput } from '../inspection/compose-subject';
+import type { ComposeStoriesInput } from '@volter/editor-sdk/kit/inspection/compose-subject';
 
 /**
  * D4 (B2) — the CHILD adapter owning `nodeId`'s synthetic world-group row

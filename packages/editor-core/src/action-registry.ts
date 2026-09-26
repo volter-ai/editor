@@ -14,7 +14,7 @@ import {
   duplicateSelection,
   pasteSelection,
 } from './editor-hotkeys';
-import { invokeKeyAction } from './key-actions';
+import { invokeKeyAction } from '@volter/editor-sdk/kit/key-actions';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import { editorKeymaps, setEditorKeymapPreference, shortcutFor } from '@volter/editor-sdk/kit/keymap-presets';

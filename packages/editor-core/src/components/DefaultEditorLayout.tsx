@@ -1,5 +1,5 @@
 import { lazy, Suspense, use, useEffect, useSyncExternalStore } from 'react';
-import { connectAssetEvents } from '../asset-events';
+import { connectAssetEvents } from '@volter/editor-sdk/kit/asset-events';
 import { installAssetSelectionAutoClear } from '../asset-selection';
 import { registerEditorShellHotkeys } from '../editor-hotkeys';
 import {
@@ -12,7 +12,7 @@ import { installAuxiliaryEvents } from '../workspace-aux-commands';
 import { installUtilityAutoOpen } from '../workspace-utility-commands';
 import { AgentPresentationNotice } from './AgentPresentationNotice';
 import { useCenterDocuments } from './CenterDocuments';
-import { ensureCoreUtilitiesRegistered } from './core-utilities';
+import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
 import { installKindDocumentRefresh } from './kind-documents';
 import { ProjectLayout } from './ProjectLayout';
 import { PaletteActionPublisher } from './palette-action-publisher';

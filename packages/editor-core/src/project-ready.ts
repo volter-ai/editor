@@ -16,7 +16,7 @@
  * project that reached ready, so opening a second project does not fire its
  * services against the first project's boot.
  */
-import { getCurrentProject } from './project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 
 const listeners = new Set<() => void | Promise<void>>();
 

@@ -55,7 +55,7 @@ import {
   composeInspectionSubject,
   composeNullInspectionSubject,
   type OwnedInspectorRail,
-} from './compose-subject';
+} from '@volter/editor-sdk/kit/inspection/compose-subject';
 import {
   type InspectionDisplay,
   inspectorBelongsToAnotherDocument,

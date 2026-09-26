@@ -52,11 +52,11 @@
  * documented warning case.
  */
 
-import { reactStoryBoardLayout } from '../authoring/react-story-board';
+import { reactStoryBoardLayout } from '@volter/editor-sdk/kit/authoring/react-story-board';
 import { drawBitmapLabel } from '@volter/editor-sdk/kit/bitmap-label';
 import { observeCanvasMount } from '@volter/editor-sdk/kit/canvas-frames';
 import { type CaptureOptions, capturePlayComposite } from '../composite-screenshot';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import {
   type ComposedProjectStory,
   composeProjectStories,
@@ -70,7 +70,7 @@ import {
   loadProjectPreviewAnnotations,
   type StoryDiscoveryProject,
 } from '@volter/editor-sdk/kit/stories/story-discovery';
-import { storyBoardPresentation } from './story-presentation';
+import { storyBoardPresentation } from '@volter/editor-sdk/kit/stories/story-presentation';
 import { getProjectPreviewStories, whenProjectStoriesReady } from '@volter/editor-sdk/kit/stories/story-registry';
 import { isStoryMediumMismatch, storyThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
 import type { ProjectPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';

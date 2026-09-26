@@ -100,7 +100,7 @@ import type { ResolvedGameManifest } from '@volter/editor-project/manifest/load'
 import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import { setAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
 import { setAdapterInputBinding, setAdapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
-import { connectSourceFileEvents } from './asset-events';
+import { connectSourceFileEvents } from '@volter/editor-sdk/kit/asset-events';
 import {
   listProjectComponents,
   listProjectSourceFiles,
@@ -110,7 +110,7 @@ import {
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { setPresentationRegions } from '@volter/editor-sdk/kit/presentation-surface';
-import { type ActiveProject, getCurrentProject, onProjectChange } from './project-manager';
+import { type ActiveProject, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/project-manager';
 import { projectModuleChangeMatches, subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';
 import { notifyProjectShapeChanged, registerDocumentKindsSupplier } from './project-shape';
 import { resolveRelativeSpecifier } from '@volter/editor-sdk/kit/resolve-relative-specifier';
@@ -257,7 +257,7 @@ export function waitForProjectAdapter(): Promise<void> {
 /** A package opening a document during boot needs the final finder-backed
  * table, not the initial declaration with contributed finders still pending. */
 export async function resolvedProjectDocumentTable(): Promise<ResolvedDocumentTable> {
-  await (await import('./initial-project')).projectBootstrapSettled();
+  await (await import('@volter/editor-sdk/kit/initial-project')).projectBootstrapSettled();
   await refreshProjectToolContributions();
   await refreshProjectAdapter();
   while (_inFlight) await _inFlight;

@@ -28,7 +28,7 @@ import { EditorSelectionProvider } from '@volter/editor-sdk/selection';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { type ComponentType, useSyncExternalStore } from 'react';
 import { accountVersion, contributionAccount, subscribeAccount } from '@volter/editor-sdk/kit/account-client';
-import type { ProjectToolCatalogEntry } from '../project-tools';
+import type { ProjectToolCatalogEntry } from '@volter/editor-sdk/kit/project-tools';
 import {
   subscribeToolContributionPlay,
   toolContributionPlay,

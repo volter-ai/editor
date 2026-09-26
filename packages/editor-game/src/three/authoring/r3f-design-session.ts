@@ -79,7 +79,7 @@ import {
 } from '@volter/editor-sdk/kit/module-fetch-diagnosis';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
-import { onPlayTransitionSettled } from '@volter/editor-core/live-transition';
+import { onPlayTransitionSettled } from '@volter/editor-sdk/kit/live-transition';
 import { fetchRawGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { activeRealmServices } from '../../host/realm-services';
@@ -137,7 +137,7 @@ import {
   type EditModeRootSpec,
   parseEditModeManifest,
   queueEditModeRebuild,
-} from '@volter/editor-core/authoring/edit-mode-authoring';
+} from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
 import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
 import {
   addMountFailureReport,

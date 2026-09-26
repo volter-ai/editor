@@ -38,7 +38,7 @@ import {
   isEditableTarget,
   registerHotkeys,
 } from '@volter/editor-sdk/kit/hotkeys';
-import { type KeyActionScope, registerKeyAction } from './key-actions';
+import { type KeyActionScope, registerKeyAction } from '@volter/editor-sdk/kit/key-actions';
 import {
   type EditorKeyActionId,
   keyChordsFor,

@@ -29,7 +29,7 @@ import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from '@volter/editor-core/components/CanvasSceneViewport';
+} from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 

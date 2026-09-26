@@ -33,7 +33,7 @@ import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adap
 import { resetActiveSystemsForNewProject } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { resetSessionVitalsForNewProject } from './coverage/session-vitals';
 import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
-import { onProjectSessionEnd } from './project-manager';
+import { onProjectSessionEnd } from '@volter/editor-sdk/kit/project-manager';
 import { resetViewportActivationTimingsForNewProject } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 

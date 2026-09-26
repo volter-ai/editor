@@ -45,7 +45,7 @@ import { themeVars } from '@volter/editor-sdk/widgets';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import type { ComposedStoryFn } from 'storybook/internal/types';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ensureScopedGameStyles } from '../scoped-game-css';
 import { resolveStoryDomRuntime } from '@volter/editor-sdk/kit/stories/story-dom-runtime';
 

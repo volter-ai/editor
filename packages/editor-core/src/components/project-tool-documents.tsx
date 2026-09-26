@@ -8,7 +8,7 @@ import {
   refreshProjectTools,
   runProjectTool,
   subscribeProjectTools,
-} from '../project-tools';
+} from '@volter/editor-sdk/kit/project-tools';
 import {
   getDocumentToolContributions,
   getGlobalToolContributions,

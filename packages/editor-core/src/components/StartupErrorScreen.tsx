@@ -23,7 +23,7 @@ import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
  * that it now selects a page with no launcher in it.
  */
 
-import type { ServerProjectFailureReport } from '../boot-routing';
+import type { ServerProjectFailureReport } from '@volter/editor-sdk/kit/boot-routing';
 import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '../build-identity';
 import { ErrorBanner, type ScreenError } from './ErrorBanner';
 import { VgaiLogo } from './VgaiLogo';

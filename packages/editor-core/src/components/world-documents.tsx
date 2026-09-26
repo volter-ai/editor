@@ -25,7 +25,7 @@ import {
   designTimeRootDescriptors,
   mountDesignTimeLayers,
 } from '../authoring/design-time-layers';
-import { INVALID_MANIFEST_SURFACE } from '../authoring/edit-mode-authoring';
+import { INVALID_MANIFEST_SURFACE } from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
 import {
   getMountFailureReports,
   subscribeToMountFailures,
@@ -37,7 +37,7 @@ import {
 import {
   REACT_DESIGN_CANVAS_COLOR,
   REACT_DESIGN_CANVAS_DOT,
-} from '../authoring/react-design-canvas-style';
+} from '@volter/editor-sdk/kit/authoring/react-design-canvas-style';
 import { resolveViewportToolContext } from '@volter/editor-sdk/kit/authoring/viewport-tool-context';
 import {
   createRootViewController,
@@ -79,7 +79,7 @@ import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from './CanvasSceneViewport';
+} from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
 import { ReactCanvasControls } from './ReactCanvasControls';
 import { RootSelectionOverlay } from './RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';

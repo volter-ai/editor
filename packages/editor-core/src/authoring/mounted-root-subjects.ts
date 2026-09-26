@@ -23,7 +23,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getAuthoringOverride } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
-import { emptyProjectAuthoring } from './empty-project-authoring';
+import { emptyProjectAuthoring } from '@volter/editor-sdk/kit/authoring/empty-project-authoring';
 
 /** One mounted root, as this module needs to see it. Structural on purpose: the
  *  composite hands these over, and a test can build one by hand. */

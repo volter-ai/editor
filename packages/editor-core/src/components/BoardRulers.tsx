@@ -23,7 +23,7 @@ import {
   registerBoardGuideTransform,
   removeBoardGuide,
   subscribeBoardGuides,
-} from './board-guides';
+} from '@volter/editor-sdk/kit/components/board-guides';
 
 const RULER = 16;
 const GUIDE_COLOR = 'rgba(255, 82, 82, 0.9)';

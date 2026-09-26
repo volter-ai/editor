@@ -24,7 +24,7 @@ import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from '@volter/editor-core/components/CanvasSceneViewport';
+} from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';

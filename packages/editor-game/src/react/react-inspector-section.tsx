@@ -59,7 +59,7 @@ import { beginEyedropperSession } from '@volter/editor-sdk/kit/eyedropper-sessio
 import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
-import { groupIcon } from '@volter/editor-core/inspection/compose';
+import { groupIcon } from '@volter/editor-sdk/kit/inspection/compose';
 import {
   GROUP_SECTION_ORDER,
   groupSectionId,

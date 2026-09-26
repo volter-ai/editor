@@ -84,7 +84,7 @@ import {
   projectLocalStateReady,
   writeProjectLocalSection,
 } from '@volter/editor-sdk/kit/project-local-state';
-import { getCurrentProject } from './project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { refreshProjectToolContributions } from './tool-loader';
 import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
@@ -100,7 +100,7 @@ import {
   workspaceDocumentRestorerEntries,
   workspaceDocumentRestorers,
 } from '@volter/editor-sdk/kit/workspace-document-restore';
-import { isWorkspacePersistenceSuppressed } from './workspace-persistence-gate';
+import { isWorkspacePersistenceSuppressed } from '@volter/editor-sdk/kit/workspace-persistence-gate';
 import {
   activeEditorWorkspace,
   defaultEditorWorkspace,

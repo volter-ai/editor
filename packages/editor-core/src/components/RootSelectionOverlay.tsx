@@ -81,7 +81,7 @@ import {
   canvasSceneGuideRevision,
   canvasSceneGuides,
   subscribeCanvasSceneGuides,
-} from '../authoring/canvas-scene-guides';
+} from '@volter/editor-sdk/kit/authoring/canvas-scene-guides';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   dropAuthoringAsset,
@@ -97,7 +97,7 @@ import { pickCandidates, pickTopmost } from '@volter/editor-sdk/kit/authoring/la
 import {
   selectReactStoryFrameAtPoint,
   zoomReactStoryFrameAtPoint,
-} from '../authoring/react-story-board';
+} from '@volter/editor-sdk/kit/authoring/react-story-board';
 import { viewportEditorControls } from '@volter/editor-sdk/kit/viewport-editor-controls';
 import {
   panTransformValue,
@@ -109,7 +109,7 @@ import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { anyLiveSessionMounted } from '@volter/editor-sdk/kit/live-session-registry';
 import { effectiveColorFromChain } from '@volter/editor-sdk/kit/ui-source/inspect';
 import { AlignToolbar } from './AlignToolbar';
-import { transformDimensionsFor } from './inspector-transform-subject';
+import { transformDimensionsFor } from '@volter/editor-sdk/kit/components/inspector-transform-subject';
 import { RootTextEditor } from './RootTextEditor';
 import {
   type AlignEntry,

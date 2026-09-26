@@ -43,7 +43,7 @@ import {
   assetDocumentKind,
 } from '@volter/editor-sdk/kit/asset-capabilities';
 import { confirmAssetAction } from '../asset-workflow/asset-workflow-quality';
-import { previewAssetAudio, stopAssetAudioPreview } from '../asset-workflow/audio-preview-player';
+import { previewAssetAudio, stopAssetAudioPreview } from '@volter/editor-sdk/kit/asset-workflow/audio-preview-player';
 import { invalidateFolderPreviews } from '../asset-workflow/folder-preview';
 import { PROJECT_ASSET_COMMANDS } from '../asset-workflow/project-asset-commands';
 import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
@@ -113,7 +113,7 @@ import {
   AudioAssetThumb,
   ModelThumbnail,
   TypedAssetThumbnail,
-} from './asset-thumbnails';
+} from '@volter/editor-sdk/kit/components/asset-thumbnails';
 import { SpritesheetSpriteView } from './asset-viewers/SpritesheetSpriteView';
 import { DocumentThumbnail } from './DocumentThumbnail';
 import { FolderPreviewTile } from './FolderPreviewTile';

@@ -53,7 +53,7 @@ import {
   keyActionsVersion,
   registeredKeyActions,
   subscribeKeyActions,
-} from './key-actions';
+} from '@volter/editor-sdk/kit/key-actions';
 import { bindKeyActions } from './editor-hotkeys';
 import {
   activeEditorKeymap,
@@ -96,13 +96,13 @@ import {
   notifyPlayTransitionGameReady,
   onPlayTransitionSettled,
   playTransitionPhase,
-} from './live-transition';
+} from '@volter/editor-sdk/kit/live-transition';
 import {
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
 } from '@volter/editor-sdk/kit/project-local-state';
-import { getCurrentProject } from './project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { onProjectReady } from './project-ready';
 import { projectMounts } from './project-shape';
 import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';

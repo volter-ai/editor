@@ -37,7 +37,7 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { subscribeToolContributions } from '../tool-loader';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
@@ -52,7 +52,7 @@ import {
 } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
 
 export type { DesignTimeRootDescriptor, LayerMountResult };
-import { queueEditModeRebuild } from './edit-mode-authoring';
+import { queueEditModeRebuild } from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
 import {
   addMountFailureReport,
   clearMountFailureReport,

@@ -34,7 +34,7 @@
  */
 
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { createHmrRegistrationGroup, type HmrRegistrationContext } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   registerWorkspaceUtility,
@@ -43,7 +43,11 @@ import {
 import { ConsolePanel } from './ConsolePanel';
 import { LightExplorerPanel } from './LightExplorerPanel';
 
-const registrationGroup = createHmrRegistrationGroup(import.meta.hot, 'core-utilities');
+const registrationGroup = createHmrRegistrationGroup(
+  // Vite's HMR context when a dev server serves this module; the SDK carries no bundler types.
+  (import.meta as ImportMeta & { hot?: HmrRegistrationContext }).hot,
+  'core-utilities',
+);
 
 /** The Console tab's attention badge: error count (error severity) else
  *  warn count (warn severity) else none. Exported for tests. */

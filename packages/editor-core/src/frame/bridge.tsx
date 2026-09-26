@@ -83,13 +83,13 @@ import { type EditorNotification, setNotificationDelegate } from '../editor-noti
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
 import { useActiveInspection } from '../inspection/use-active-inspection';
-import { installLayoutPolicy } from '../layout-policy';
+import { installLayoutPolicy } from '@volter/editor-sdk/kit/layout-policy';
 import {
   installPlayTransitionDock,
   reconcilePlayPresentationPolicy,
   usesImmersivePlayPresentation,
-} from '../live-transition';
-import { getCurrentProject } from '../project-manager';
+} from '@volter/editor-sdk/kit/live-transition';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import {
   describeSessionOrphan,
   sessionOrphanIsWorthReporting,

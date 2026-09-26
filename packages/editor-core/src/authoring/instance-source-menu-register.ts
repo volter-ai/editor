@@ -8,6 +8,6 @@
  * mutating the shared hierarchy-menu registry as a side effect of the import.
  */
 
-import { ensureInstanceSourceMenuRegistered } from './instance-source-menu';
+import { ensureInstanceSourceMenuRegistered } from '@volter/editor-sdk/kit/authoring/instance-source-menu';
 
 ensureInstanceSourceMenuRegistered();

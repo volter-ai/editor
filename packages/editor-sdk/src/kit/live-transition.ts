@@ -384,7 +384,7 @@ export function endPlayTransition(): void {
 }
 
 // Dev/e2e handle: lets specs observe the transition phase deterministically.
-if (typeof window !== 'undefined' && import.meta.env?.DEV) {
+if (typeof window !== 'undefined' && (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV) {
   (window as unknown as Record<string, unknown>)['__vgaiPlayTransition'] = {
     phase: playTransitionPhase,
   };

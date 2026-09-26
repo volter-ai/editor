@@ -23,7 +23,7 @@ import {
   resetProjectThumbnailManifestCache,
   THUMBNAIL_MANIFEST_PATH,
   THUMBNAIL_PROFILE,
-} from '../asset-workflow/thumbnail-system';
+} from '@volter/editor-sdk/kit/asset-workflow/thumbnail-system';
 import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
 import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
 import { getProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';

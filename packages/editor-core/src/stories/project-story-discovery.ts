@@ -8,8 +8,8 @@
  * whether a project's stories are scanned.
  */
 
-import { connectStoryFileEvents } from '../asset-events';
-import { getCurrentProject, onProjectChange } from '../project-manager';
+import { connectStoryFileEvents } from '@volter/editor-sdk/kit/asset-events';
+import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/project-manager';
 import { subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { resetUndeclaredStoryMediumReports } from '@volter/editor-sdk/kit/stories/story-declared-medium';

@@ -64,7 +64,7 @@ import {
 import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { type JournalSubject, playJournal } from '../host/history/json-history-resource';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { projectBootstrapSettled } from '@volter/editor-core/initial-project';
+import { projectBootstrapSettled } from '@volter/editor-sdk/kit/initial-project';
 import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
 import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
@@ -91,7 +91,7 @@ import { liveWorldId, presentThreeRoots } from '../host/viewport-root-presentati
 import {
   cancelPendingWorkspacePlayUtilities,
   revealWorkspacePlayUtilities,
-} from '@volter/editor-core/workspace-play-utilities';
+} from '@volter/editor-sdk/kit/workspace-play-utilities';
 import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
 import type { EntrypointSelectionOverride } from '@volter/editor-sdk/session/project-module-url';
 import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';

@@ -124,13 +124,13 @@ import {
   unwrapAuthoringNode,
   wrapAuthoringNode,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { enterInstanceRow } from '../authoring/instance-source-menu';
+import { enterInstanceRow } from '@volter/editor-sdk/kit/authoring/instance-source-menu';
 import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import {
   authoringDestination,
   provenanceForNode,
   unavailableReason,
-} from '../authoring/provenance';
+} from '@volter/editor-sdk/kit/authoring/provenance';
 import {
   selectionScopeStack,
   selectionScopeVersion,
@@ -205,7 +205,7 @@ import {
 } from '@volter/editor-sdk/kit/hierarchy-row-model';
 import { CHILD_CAP } from '@volter/editor-sdk/kit/hierarchy-rows';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
 import { editorPaintedRegions, subscribeEditorTheme } from '../theme-preference';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';

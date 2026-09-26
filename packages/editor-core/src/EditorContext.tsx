@@ -7,14 +7,14 @@ import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
-import { bootstrapProject } from './initial-project';
+import { bootstrapProject } from '@volter/editor-sdk/kit/initial-project';
 import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { startProjectAdapterLoad } from './project-adapter';
 import { startProjectDeclarationRefresh } from './project-declaration-refresh';
-import { getCurrentProject } from './project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { startProjectSessionReset } from './project-session-reset';
 import { startProjectToolContributionDiscovery } from './project-tool-discovery';
-import { startProjectToolCatalog } from './project-tools';
+import { startProjectToolCatalog } from '@volter/editor-sdk/kit/project-tools';
 import { registerShellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { startTabCensus } from '@volter/editor-sdk/kit/tab-census';
 

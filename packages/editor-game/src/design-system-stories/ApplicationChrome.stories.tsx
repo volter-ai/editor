@@ -1,4 +1,4 @@
-import { ensureCoreUtilitiesRegistered } from '@volter/editor-core/components/core-utilities';
+import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
 import { ProjectHeader } from '@volter/editor-core/components/ProjectHeader';
 import { ensureCoreStatusContributionsRegistered } from '@volter/editor-core/components/status-contributions';
 import {

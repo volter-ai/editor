@@ -55,7 +55,7 @@ import {
 } from '../tool-loader';
 import { activeWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { AssetInspectorToolSection } from './AssetInspectorToolSection';
-import { ModelThumbnail, TypedAssetThumbnail } from './asset-thumbnails';
+import { ModelThumbnail, TypedAssetThumbnail } from '@volter/editor-sdk/kit/components/asset-thumbnails';
 import { SpritesheetSpriteView } from './asset-viewers/SpritesheetSpriteView';
 import { MediaProperties } from './MediaProperties';
 

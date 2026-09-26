@@ -134,7 +134,7 @@
     },
     {
       "source": "packages/editor/src/asset-events.ts",
-      "path": "packages/editor-core/src/asset-events.ts",
+      "path": "packages/editor-sdk/src/kit/asset-events.ts",
       "sha256": "441f9cd398de012b80fa29e64ac27255b05c78f741d289b6c488c69299dbe1ca"
     },
     {
@@ -194,7 +194,7 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/asset-types.ts",
-      "path": "packages/editor-core/src/asset-workflow/asset-types.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/asset-types.ts",
       "sha256": "90ede4568d1cf771d60459c2e3634f5dfcf1ca8e8a61a66860954d006f63ce8d"
     },
     {
@@ -204,12 +204,12 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/audio-preview-player.ts",
-      "path": "packages/editor-core/src/asset-workflow/audio-preview-player.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/audio-preview-player.ts",
       "sha256": "6ad29e12ba481985d819d7ead14f9d2a18a1ba085710dc139af1c733948ef3b6"
     },
     {
       "source": "packages/editor/src/asset-workflow/audio-waveform.ts",
-      "path": "packages/editor-core/src/asset-workflow/audio-waveform.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/audio-waveform.ts",
       "sha256": "0993700513e190c52be6de50328ec904710ec8fdadb3ea31f6c33eff9d566452"
     },
     {
@@ -289,7 +289,7 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/thumbnail-system.ts",
-      "path": "packages/editor-core/src/asset-workflow/thumbnail-system.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/thumbnail-system.ts",
       "sha256": "21e7e487e41f2c57cd10e687480fe7aa60cf473a4fa9bbd36c32ce7bc09c3277"
     },
     {
@@ -314,7 +314,7 @@
     },
     {
       "source": "packages/editor/src/authoring/bootstrap-state.ts",
-      "path": "packages/editor-core/src/authoring/bootstrap-state.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/bootstrap-state.ts",
       "sha256": "dd2f498345a4fa32a1a9e770d4f4963543761542f3cb8f8988639b3158c43400"
     },
     {
@@ -329,7 +329,7 @@
     },
     {
       "source": "packages/editor/src/authoring/canvas-scene-guides.ts",
-      "path": "packages/editor-core/src/authoring/canvas-scene-guides.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/canvas-scene-guides.ts",
       "sha256": "4ab7f16aebcd4394c5917202c8dfac1d31412e95241058e06e795ddc55fed09b"
     },
     {
@@ -369,7 +369,7 @@
     },
     {
       "source": "packages/editor/src/authoring/edit-mode-authoring.ts",
-      "path": "packages/editor-core/src/authoring/edit-mode-authoring.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/edit-mode-authoring.ts",
       "sha256": "f2382d19d20cb3d4e13df719a3ea998d4566e772188436384da8b242e8e6af24"
     },
     {
@@ -384,7 +384,7 @@
     },
     {
       "source": "packages/editor/src/authoring/instance-source-menu.ts",
-      "path": "packages/editor-core/src/authoring/instance-source-menu.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/instance-source-menu.ts",
       "sha256": "0a241c43ff1e28900bfcbc14c7e39a298623f07ddfd2cabbe369fd8b412757e4"
     },
     {
@@ -464,7 +464,7 @@
     },
     {
       "source": "packages/editor/src/authoring/provenance.ts",
-      "path": "packages/editor-core/src/authoring/provenance.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/provenance.ts",
       "sha256": "74ac7da7a7b73eda0ded1e8d215262e08fc78a77cc7e79ea5c840e0008c0b29a"
     },
     {
@@ -479,12 +479,12 @@
     },
     {
       "source": "packages/editor/src/authoring/react-design-canvas-style.ts",
-      "path": "packages/editor-core/src/authoring/react-design-canvas-style.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/react-design-canvas-style.ts",
       "sha256": "82c99ae9ae5cd35538fea063856cc4145570c25c696ae9dc68c795d20511a935"
     },
     {
       "source": "packages/editor/src/authoring/react-story-board.ts",
-      "path": "packages/editor-core/src/authoring/react-story-board.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/react-story-board.ts",
       "sha256": "55455c4cb4e8312caddf6feb6d4d8e7637939d9fea5970db968c46c03e65e97e"
     },
     {
@@ -519,12 +519,12 @@
     },
     {
       "source": "packages/editor/src/authoring/story-board-chrome-fit.ts",
-      "path": "packages/editor-core/src/authoring/story-board-chrome-fit.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/story-board-chrome-fit.ts",
       "sha256": "8c68ab31911ca541e9af693a5c012040f5544865ec2f2419b5b77c068eb75a59"
     },
     {
       "source": "packages/editor/src/authoring/story-board-presentation.ts",
-      "path": "packages/editor-core/src/authoring/story-board-presentation.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/story-board-presentation.ts",
       "sha256": "e2ff4ad5b2edad495ead1c3f5a75c7936c7bdde49f241946a7d6392f5249d397"
     },
     {
@@ -594,7 +594,7 @@
     },
     {
       "source": "packages/editor/src/boot-routing.ts",
-      "path": "packages/editor-core/src/boot-routing.ts",
+      "path": "packages/editor-sdk/src/kit/boot-routing.ts",
       "sha256": "f8effd7c8637a65268fa5f052740259d34ca534f9839afc8c6bde3217c2180b3"
     },
     {
@@ -719,7 +719,7 @@
     },
     {
       "source": "packages/editor/src/components/CanvasSceneViewport.tsx",
-      "path": "packages/editor-core/src/components/CanvasSceneViewport.tsx",
+      "path": "packages/editor-sdk/src/kit/components/CanvasSceneViewport.tsx",
       "sha256": "3b798c296100263a361c9e7d8fc27e6da0b94d9eeeb6b1c20b5b21a05737afcc"
     },
     {
@@ -764,7 +764,7 @@
     },
     {
       "source": "packages/editor/src/components/ConsolePanel.tsx",
-      "path": "packages/editor-core/src/components/ConsolePanel.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ConsolePanel.tsx",
       "sha256": "1c3d1baa829ffc3a7873ef5bf2e4d1298610d3f69e30845b77f0d9b048991848"
     },
     {
@@ -839,7 +839,7 @@
     },
     {
       "source": "packages/editor/src/components/InspectorStoriesSection.tsx",
-      "path": "packages/editor-core/src/components/InspectorStoriesSection.tsx",
+      "path": "packages/editor-sdk/src/kit/components/InspectorStoriesSection.tsx",
       "sha256": "ab4c8b2bfa6508a9c50a0bc99eee9f74aecb77120fd7cf2cbb427e64f29b8fba"
     },
     {
@@ -849,12 +849,12 @@
     },
     {
       "source": "packages/editor/src/components/InspectorTransformSection.tsx",
-      "path": "packages/editor-core/src/components/InspectorTransformSection.tsx",
+      "path": "packages/editor-sdk/src/kit/components/InspectorTransformSection.tsx",
       "sha256": "ce98229ad607371469035af1525deee9d524ab3ee4ee89bbee0df14cb04e3542"
     },
     {
       "source": "packages/editor/src/components/LightExplorerPanel.tsx",
-      "path": "packages/editor-core/src/components/LightExplorerPanel.tsx",
+      "path": "packages/editor-sdk/src/kit/components/LightExplorerPanel.tsx",
       "sha256": "ae77cb1dda0e79bc5025d2324ee164386863c2acee0ba78ec6d4d735e39f7fc4"
     },
     {
@@ -1064,7 +1064,7 @@
     },
     {
       "source": "packages/editor/src/components/asset-thumbnails.tsx",
-      "path": "packages/editor-core/src/components/asset-thumbnails.tsx",
+      "path": "packages/editor-sdk/src/kit/components/asset-thumbnails.tsx",
       "sha256": "56f017511df34ec97fc4b0c103dfaeb57675609190e1e122f8e2217d0a1edb71"
     },
     {
@@ -1164,7 +1164,7 @@
     },
     {
       "source": "packages/editor/src/components/board-guides.ts",
-      "path": "packages/editor-core/src/components/board-guides.ts",
+      "path": "packages/editor-sdk/src/kit/components/board-guides.ts",
       "sha256": "b0d8868bb549380ce4a2ba21e29671974b6050e311d9209d98d61edf06d3305f"
     },
     {
@@ -1174,7 +1174,7 @@
     },
     {
       "source": "packages/editor/src/components/core-utilities.tsx",
-      "path": "packages/editor-core/src/components/core-utilities.tsx",
+      "path": "packages/editor-sdk/src/kit/components/core-utilities.tsx",
       "sha256": "fd6209197f5727d205882cda2a49a4c06dd53daea939e49288606c5eaef533c7"
     },
     {
@@ -1214,12 +1214,12 @@
     },
     {
       "source": "packages/editor/src/components/inspector-transform-subject.ts",
-      "path": "packages/editor-core/src/components/inspector-transform-subject.ts",
+      "path": "packages/editor-sdk/src/kit/components/inspector-transform-subject.ts",
       "sha256": "a0173f68928814eb7087efbf9ede76f4f209a3dfd810f29e7d2ea53ee3b49a6a"
     },
     {
       "source": "packages/editor/src/components/inspector-transform.ts",
-      "path": "packages/editor-core/src/components/inspector-transform.ts",
+      "path": "packages/editor-sdk/src/kit/components/inspector-transform.ts",
       "sha256": "2159b3c76302d7eed7b950ebb6572365165f01633b5fbbc8b349e66b28a0a9d4"
     },
     {
@@ -1769,7 +1769,7 @@
     },
     {
       "source": "packages/editor/src/initial-project.ts",
-      "path": "packages/editor-core/src/initial-project.ts",
+      "path": "packages/editor-sdk/src/kit/initial-project.ts",
       "sha256": "adc40b3b9b7093f32ab63e602805ac3a0df50f24031abb6af7f7c3e0f5890501"
     },
     {
@@ -1784,7 +1784,7 @@
     },
     {
       "source": "packages/editor/src/inspection/compose.ts",
-      "path": "packages/editor-core/src/inspection/compose.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/compose.ts",
       "sha256": "7e2828e0faab786d0e3ec1399018e92213889119c8e113dd344b2e4db1bcd626"
     },
     {
@@ -1849,7 +1849,7 @@
     },
     {
       "source": "packages/editor/src/key-actions.ts",
-      "path": "packages/editor-core/src/key-actions.ts",
+      "path": "packages/editor-sdk/src/kit/key-actions.ts",
       "sha256": "ff78ea6eef1c9a2073c61c5c4a05dc70f04ef6843f53250479140f84e5eb782f"
     },
     {
@@ -1859,7 +1859,7 @@
     },
     {
       "source": "packages/editor/src/layout-policy.ts",
-      "path": "packages/editor-core/src/layout-policy.ts",
+      "path": "packages/editor-sdk/src/kit/layout-policy.ts",
       "sha256": "f939f1b5b2c4aae2b469ab3da4e696191b5abc5ca37a16ab20b98a1463cd3ba7"
     },
     {
@@ -1894,7 +1894,7 @@
     },
     {
       "source": "packages/editor/src/live-transition.ts",
-      "path": "packages/editor-core/src/live-transition.ts",
+      "path": "packages/editor-sdk/src/kit/live-transition.ts",
       "sha256": "44ee50b9816e0632aaf67f7c5ea40d2ea8354d94a914bc6e781b6a5fd666299e"
     },
     {
@@ -1974,7 +1974,7 @@
     },
     {
       "source": "packages/editor/src/project-manager.ts",
-      "path": "packages/editor-core/src/project-manager.ts",
+      "path": "packages/editor-sdk/src/kit/project-manager.ts",
       "sha256": "c71403ed3f196c4ba7602329efbdb159f815ca7b40b62fd1bb32eeeba3f1250e"
     },
     {
@@ -2014,7 +2014,7 @@
     },
     {
       "source": "packages/editor/src/project-tools.ts",
-      "path": "packages/editor-core/src/project-tools.ts",
+      "path": "packages/editor-sdk/src/kit/project-tools.ts",
       "sha256": "7a9c53d4f4c104224028bb6c36c96078e78fcd7eee79822735ee6110adca6999"
     },
     {
@@ -2279,7 +2279,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-presentation.ts",
-      "path": "packages/editor-core/src/stories/story-presentation.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-presentation.ts",
       "sha256": "31bafd2931e8ccff033d5a561843c0a3ac7e4ebe591af62aad79d522246b019a"
     },
     {
@@ -2564,12 +2564,12 @@
     },
     {
       "source": "packages/editor/src/workspace-persistence-gate.ts",
-      "path": "packages/editor-core/src/workspace-persistence-gate.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-persistence-gate.ts",
       "sha256": "0c59340bf11da6b814eeb7e0fb480295798aee820abbfc8269ca027f1d95b4bf"
     },
     {
       "source": "packages/editor/src/workspace-play-utilities.ts",
-      "path": "packages/editor-core/src/workspace-play-utilities.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-play-utilities.ts",
       "sha256": "184885ebeadafcb5896d884383d49a0e578a8e23171a1e8ddde10210f7abfbeb"
     },
     {

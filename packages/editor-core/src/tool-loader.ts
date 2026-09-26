@@ -56,8 +56,8 @@ import {
 } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { registerContributedKeymap, reportUnavailableKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { projectMounts } from './project-shape';
-import type { ProjectToolCatalog, ProjectToolCatalogEntry } from './project-tools';
-import { publishPlayUtilitiesReady } from './workspace-play-utilities';
+import type { ProjectToolCatalog, ProjectToolCatalogEntry } from '@volter/editor-sdk/kit/project-tools';
+import { publishPlayUtilitiesReady } from '@volter/editor-sdk/kit/workspace-play-utilities';
 import { registerContributedWorkspace } from './workspace-presets';
 import { registerWorkspaceStatus } from '@volter/editor-sdk/kit/workspace-status-registry';
 import { registerContributedStyle } from './workspace-style';

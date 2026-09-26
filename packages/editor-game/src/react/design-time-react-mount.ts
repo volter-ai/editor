@@ -65,8 +65,8 @@ import {
 } from '@volter/editor-core/authoring/design-time-layers';
 import type { DesignTimeMountContext } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
 import { formatMountFailureMessage } from '@volter/editor-sdk/kit/mount-failure-report';
-import type { ReactStoryBoardSelectionIntent } from '@volter/editor-core/authoring/react-story-board';
-import { createReactStoryBoard } from '@volter/editor-core/authoring/react-story-board';
+import type { ReactStoryBoardSelectionIntent } from '@volter/editor-sdk/kit/authoring/react-story-board';
+import { createReactStoryBoard } from '@volter/editor-sdk/kit/authoring/react-story-board';
 import {
   getRootCanvasViewport,
   setRootCanvasViewport,
@@ -87,7 +87,7 @@ import { mountIsolatedStory } from '@volter/editor-core/stories/StoryPreviewMoun
 import {
   createStoryPresentationIndex,
   storyBoardPresentation,
-} from '@volter/editor-core/stories/story-presentation';
+} from '@volter/editor-sdk/kit/stories/story-presentation';
 import {
   getComponentPreviewStory,
   getProjectPreviewStories,

@@ -14,7 +14,7 @@ import {
 } from '../asset-selection';
 import { notify } from '../editor-notifications';
 import { beginPageWork } from '../play-boot-phase';
-import type { ProjectToolCatalogEntry } from '../project-tools';
+import type { ProjectToolCatalogEntry } from '@volter/editor-sdk/kit/project-tools';
 import {
   subscribeToolContributionPlay,
   toolContributionPlay,
