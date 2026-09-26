@@ -17,8 +17,9 @@
  * instance first. A track whose target has no binding is an error.
  *
  * Transcribed: value tracks (continuous and discrete, bool/float/Vector3/Quaternion keys), method
- * tracks (deferred and immediate) and a Node3D's position/rotation/scale tracks. Not transcribed
- * (they throw): angle interpolation, root motion, capture, bone, blend-shape, audio, animation and
+ * tracks (deferred and immediate), a Node3D's position/rotation/scale tracks and a Skeleton3D bone's
+ * (from the bone's rest; a skeleton's `motion_scale` is 1, which scales a position by exactly 1).
+ * Not transcribed (they throw): angle interpolation, root motion, capture, blend-shape, audio, animation and
  * bezier tracks. The editor build's `can_call` (method tracks only inside the tree,
  * `animation_mixer.cpp:1226`) is the editor's; an exported game calls them, as here.
  */
@@ -55,6 +56,7 @@ import {
 } from './node';
 import { godot_node_3d_basis_euler, set_position, set_rotation, set_scale, set_transform } from './node-3d';
 import { godot_message_queue_push } from './object';
+import { find_bone, godot_skeleton_3d_bone_rest, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
 import { construct as quaternion, is_normalized, type Quaternion } from './quaternion';
 import { createSignal, type SignalHandle } from './signal';
 import { construct as transform3d } from './transform-3d';
@@ -178,6 +180,9 @@ interface TrackCacheValue extends TrackCacheBase {
 
 interface TrackCacheTransform extends TrackCacheBase {
   readonly type: typeof TYPE_POSITION_3D;
+  /** The Skeleton3D whose bone the track moves (`skeleton_id`), and the bone (-1 when not found). */
+  skeleton: object | undefined;
+  boneIdx: number;
   locUsed: boolean;
   rotUsed: boolean;
   scaleUsed: boolean;
@@ -794,6 +799,8 @@ function transformCache(path: string, object: object): TrackCacheTransform {
     type: TYPE_POSITION_3D,
     path,
     object,
+    skeleton: undefined,
+    boneIdx: -1,
     setupPass: 0,
     blendIdx: -1,
     totalWeight: 0,
@@ -875,10 +882,26 @@ function updateCaches(state: MixerState): boolean {
           case TYPE_ROTATION_3D:
           case TYPE_SCALE_3D: {
             if (!godot_is_native(found.object, 'Node3D')) return;
-            if (found.subnames.length > 0) throw new Error(`godot-compat: the bone track '${path}' is not transcribed.`);
             const xform = transformCache(path, found.object);
+            let hasRest = false;
+            // A Skeleton3D's bone (`Skeleton3D:<bone>`) starts from the bone's rest (`:772`).
+            if (found.subnames.length === 1 && godot_is_native(found.object, 'Skeleton3D')) {
+              const skeleton = godot_node_entity(found.object) as Parameters<typeof find_bone>[0];
+              xform.skeleton = skeleton;
+              const bone = find_bone(skeleton, found.subnames[0] as string);
+              const rest = bone === -1 ? undefined : godot_skeleton_3d_bone_rest(skeleton, bone);
+              if (rest !== undefined) {
+                hasRest = true;
+                xform.boneIdx = bone;
+                xform.initLoc = rest.position;
+                xform.initRot = rest.rotation;
+                xform.initScale = rest.scale;
+              }
+            } else if (found.subnames.length > 0) {
+              throw new Error(`godot-compat: the transform track '${path}' names a resource, which is not transcribed.`);
+            }
             markUsed(xform, source.type);
-            if (reset !== undefined) {
+            if (reset !== undefined && !hasRest) {
               const rt = find_track(reset, path, source.type);
               if (rt >= 0 && reset.tracks[rt]?.enabled === true && track_get_key_count(reset, rt) > 0) {
                 const value = track_get_key_value(reset, rt, 0);
@@ -1096,7 +1119,14 @@ function blendApply(state: MixerState): void {
   for (const [, track] of state.trackCache.entries()) {
     const zero = isZeroApprox(track.totalWeight);
     if (!state.deterministic && zero) continue;
-    if (track.type === TYPE_POSITION_3D) {
+    if (track.type === TYPE_POSITION_3D && track.skeleton !== undefined) {
+      if (track.boneIdx < 0) continue;
+      if (godot_node_is_freed(track.skeleton)) return;
+      const skeleton = track.skeleton as Parameters<typeof set_bone_pose_position>[0];
+      if (track.locUsed) set_bone_pose_position(skeleton, track.boneIdx, track.loc);
+      if (track.rotUsed) set_bone_pose_rotation(skeleton, track.boneIdx, track.rot);
+      if (track.scaleUsed) set_bone_pose_scale(skeleton, track.boneIdx, track.scale);
+    } else if (track.type === TYPE_POSITION_3D) {
       if (godot_node_is_freed(track.object)) return;
       const node = godot_node_entity(track.object) as Parameters<typeof set_position>[0];
       if (track.locUsed && track.rotUsed && track.scaleUsed) {

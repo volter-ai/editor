@@ -17,6 +17,7 @@ import type {
   TargetTsJsxAttribute,
   TargetTsJsxChild,
   TargetTsJsxElementShape,
+  TargetTsObjectProperty,
   TargetTsSourceFile,
   TargetTsStatement,
   TargetTsType,
@@ -36,6 +37,7 @@ import {
   componentsValue,
   element,
   type FamilyEmission,
+  familyAnimationOverride,
   familyElement,
   familyCountUses,
   familyEmission,
@@ -479,12 +481,22 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
     emission.family.taken.add(local);
     emission.models.set(local, file);
   }
-  const overrides: Record<string, Record<string, unknown>> = {};
+  const overrides: TargetTsObjectProperty[] = [];
   const POSE: Readonly<Record<string, string>> = { set_bone_pose_position: 'position', set_bone_pose_rotation: 'rotation', set_bone_pose_scale: 'scale' };
   for (const override of model.overrides) {
-    const properties: Record<string, unknown> = {};
-    for (const setter of override.setters) properties[`bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`] = plainValue(setter.value);
-    overrides[override.at] = properties;
+    const bones = override.setters.filter((setter) => POSE[setter.setter.exportName] !== undefined);
+    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined);
+    overrides.push({
+      key: override.at,
+      value: {
+        kind: 'object-expression',
+        properties: [
+          ...bones.map((setter) => ({ key: `bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`, value: dataExpression(plainValue(setter.value)) })),
+          // An AnimationPlayer of the model: compat's player props (`familyAnimationOverride`).
+          ...(others.length === 0 && override.animation === undefined ? [] : familyAnimationOverride(emission.family, override.at, others, override.animation)),
+        ],
+      },
+    });
   }
   useCompat(emission, 'packed-scene', 'GodotImportedScene');
   const placed = new Map<string, TargetTsJsxChild[]>();
@@ -503,7 +515,7 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
       { kind: 'jsx-string-attribute', name: 'src', value: importedModelUrl(model.sourceResPath) },
       attribute('tree', { kind: 'identifier-expression', name: local }),
       ...transform,
-      ...(Object.keys(overrides).length === 0 ? [] : [attribute('overrides', dataExpression(overrides))]),
+      ...(overrides.length === 0 ? [] : [attribute('overrides', { kind: 'object-expression', properties: overrides })]),
     ],
     [...node.children.map((child) => nodeElement(emission, child)), ...placements],
   );

@@ -8,7 +8,9 @@
  * draws the pose. An imported model's skeleton binds the loader's joint objects in Godot's bone
  * order (`packed-scene.tsx`, the importer's order from `read/gltf-godot-scene.ts`); a bone added at
  * run time is a new three `Bone` under the skeleton. The poses themselves (`real_t` values) live in
- * `SKELETON`, keyed by the skeleton's entity. Bone rests, parents set at run time, global poses and
+ * `SKELETON`, keyed by the skeleton's entity, beside each bone's rest (the pose the importer gave it,
+ * `skin_tool.cpp:634`, whose rotation and scale it computed from the same transform; an added
+ * bone's identity), which an animation mixer starts from. Setting rests, parents set at run time, global poses and
  * modifiers are not transcribed.
  */
 
@@ -17,7 +19,14 @@ import { construct as quaternion, type Quaternion } from './quaternion';
 import { construct as vector3, type Vector3 } from './vector3';
 import './node-3d';
 
+interface BoneRest {
+  readonly position: Vector3;
+  readonly rotation: Quaternion;
+  readonly scale: Vector3;
+}
+
 interface BoneState {
+  readonly rest: BoneRest;
   readonly object: Object3D;
   readonly name: string;
   position: Vector3;
@@ -70,6 +79,7 @@ export function godot_skeleton_3d_bind(
   const states = bones.map(({ object, name, pose }) => ({
     object,
     name,
+    rest: { position: vector3(...pose.position), rotation: quaternion(...pose.rotation), scale: vector3(...pose.scale) },
     position: vector3(...pose.position),
     rotation: quaternion(...pose.rotation),
     scale: vector3(...pose.scale),
@@ -101,10 +111,28 @@ export function add_bone(self: Object3D, name: string): number {
   const object = new Bone();
   object.name = name;
   self.add(object);
-  const state: BoneState = { object, name, position: vector3(), rotation: quaternion(), scale: vector3(1, 1, 1) };
+  const state: BoneState = {
+    object,
+    name,
+    rest: { position: vector3(), rotation: quaternion(), scale: vector3(1, 1, 1) },
+    position: vector3(),
+    rotation: quaternion(),
+    scale: vector3(1, 1, 1),
+  };
   bones.push(state);
   draw(state);
   return bones.length - 1;
+}
+
+/**
+ * A bone's rest as an animation mixer reads it (`rest.origin`, `rest.basis.get_rotation_quaternion()`,
+ * `rest.basis.get_scale()`, `animation_mixer.cpp:790`), or undefined out of range.
+ *
+ * @godot Skeleton3D (protocol)
+ * @source scene/animation/animation_mixer.cpp:790
+ */
+export function godot_skeleton_3d_bone_rest(self: Object3D, bone: number): BoneRest | undefined {
+  return boneAt(self, bone)?.rest;
 }
 
 /**

@@ -286,6 +286,8 @@ export const GODOT_SCENE_ANIMATION_IMPLEMENTATION_FILES = [
     'animation-library.ts',
     'animation-mixer.ts',
     'animation-player.ts',
+    'skeleton-3d.ts',
+    'packed-scene.tsx',
     'node-3d.ts',
     'light-3d.ts',
     'basis.ts',

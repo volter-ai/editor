@@ -865,6 +865,19 @@ const PROPS = new Map<string, GodotElementProp<Object3D>>([
   ['playbackAutoCapture', (entity, value: boolean) => set_auto_capture(entity, value)],
 ]);
 
+/**
+ * Sets one of the element's props on an AnimationPlayer an imported model made (the instancing
+ * scene's overrides, `<GodotImportedScene overrides>`).
+ *
+ * @godot AnimationPlayer (protocol)
+ * @source scene/resources/packed_scene.cpp:400
+ */
+export function godot_animation_player_set_prop(entity: Object3D, prop: string, value: unknown): void {
+  const set = PROPS.get(prop);
+  if (set === undefined) throw new Error(`godot-compat: AnimationPlayer has no ${prop} prop`);
+  (set as (entity: Object3D, value: unknown) => void)(entity, value);
+}
+
 const ANIMATION_PLAYER = {
   create: () => new Group(),
   classes: ['AnimationPlayer', 'AnimationMixer', 'Node', 'Object'],

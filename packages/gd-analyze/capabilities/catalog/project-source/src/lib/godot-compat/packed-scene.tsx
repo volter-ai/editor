@@ -28,6 +28,7 @@ import { createPortal, type ThreeElements } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, useContext, useLayoutEffect, useMemo, useRef } from 'react';
 import { Group, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
 import { godot_node_adopt, godot_node_foreign } from './node';
 import { construct as quaternion } from './quaternion';
 import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
@@ -71,6 +72,11 @@ const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/u;
  * node's setter: a Skeleton3D's bone poses (`Skeleton3D::_set`, `skeleton_3d.cpp:118`).
  */
 function applyOverride(entity: Object3D, property: string, value: unknown): void {
+  // An AnimationPlayer's properties: its track bindings, libraries, autoplay (`animation-player.ts`).
+  if (ANIMATION_PLAYERS.has(entity)) {
+    godot_animation_player_set_prop(entity, property, value);
+    return;
+  }
   const bone = BONE_POSE.exec(property);
   if (bone === null) throw new Error(`godot-compat: an imported model's node has no overridable property ${property}.`);
   const index = Number(bone[1]);
@@ -79,6 +85,9 @@ function applyOverride(entity: Object3D, property: string, value: unknown): void
   else if (bone[2] === 'position') set_bone_pose_position(entity, index, vector3(...(components as [number, number, number])));
   else set_bone_pose_scale(entity, index, vector3(...(components as [number, number, number])));
 }
+
+/** The model's AnimationPlayers: made the class's node (`godot_animation_player_mount`). */
+const ANIMATION_PLAYERS = new WeakSet<Object3D>();
 
 /** The loaded tree's nodes by path, for the nodes a scene places under them. */
 const TreeContext = createContext<ReadonlyMap<string, Object3D> | null>(null);
@@ -191,6 +200,11 @@ export function GodotImportedScene({
         owner: entity,
         ...(node.nonSpatial === true ? { kind: 'node' as const } : {}),
       });
+      // The importer's AnimationPlayer is the class's node, which the instancing scene may set up.
+      if (node.classes[0] === 'AnimationPlayer' && !ANIMATION_PLAYERS.has(member)) {
+        godot_animation_player_mount(member);
+        ANIMATION_PLAYERS.add(member);
+      }
     }
     // A skeleton's bones are the loader's joint objects, in Godot's bone order.
     for (const node of nodes) {

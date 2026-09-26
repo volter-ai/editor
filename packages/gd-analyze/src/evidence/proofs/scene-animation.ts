@@ -14,7 +14,7 @@
  * arrived on.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { bindGodotProject } from '../../analyze/bound-project';
@@ -54,9 +54,30 @@ const keys = (times: string, transitions: string, update: number | undefined, va
   `{\n"times": PackedFloat32Array(${times}),\n"transitions": PackedFloat32Array(${transitions}),\n${update === undefined ? '' : `"update": ${String(update)},\n`}"values": [${values}]\n}`;
 const call = (method: string, args: string): string => `{\n"args": [${args}],\n"method": &"${method}"\n}`;
 
+const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
+const FIXTURE = path.join(PACKAGE_ROOT, 'test/fixtures/platformer-3d-godot4');
+/** The platformer's enemy model, whose AnimationPlayer the scene gives the enemy scene's walk. */
+const COPIED = ['enemy/enemy.glb', 'enemy/enemy.glb.import'] as const;
+/** The enemy scene's own `walk` (its bone tracks, keyed as Godot's importer saved them). */
+const WALK = ((): string => {
+  const source = readFileSync(path.join(FIXTURE, 'enemy/enemy.tscn'), 'utf8');
+  const start = source.indexOf('[sub_resource type="Animation" id="Animation_ce6v8"]');
+  return source.slice(start, source.indexOf('\n[', start + 1)).trim();
+})();
+/** The robot's bones the walk moves: body, eyes and the four legs. */
+const WALKED_BONES = [1, 2, 3, 5, 7, 9] as const;
+
 const MAIN = `[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://probe.gd" id="1_probe"]
+[ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="2_enemy"]
+
+${WALK}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_robot"]
+_data = {
+&"walk": SubResource("Animation_ce6v8")
+}
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -112,6 +133,14 @@ script = ExtResource("1_probe")
 libraries/ = SubResource("AnimationLibrary_main")
 libraries/extra = SubResource("AnimationLibrary_extra")
 autoplay = &"spin"
+
+[node name="Robot" parent="." instance=ExtResource("2_enemy")]
+
+[node name="AnimationPlayer" parent="Robot" index="1"]
+libraries/ = SubResource("AnimationLibrary_robot")
+autoplay = &"walk"
+
+[editable path="Robot"]
 `;
 
 const files: Readonly<Record<string, string>> = {
@@ -155,6 +184,9 @@ func _bits(value: float) -> String:
 func _v(v: Vector3) -> Array:
 \treturn [_bits(v.x), _bits(v.y), _bits(v.z)]
 
+func _q(q: Quaternion) -> Array:
+\treturn [_bits(q.x), _bits(q.y), _bits(q.z), _bits(q.w)]
+
 func _initialize() -> void:
 \tmain = load("res://main.tscn").instantiate()
 \troot.add_child(main)
@@ -174,7 +206,11 @@ ${Object.entries(ACTS)
 \tvar circle: Node3D = main.get_node("Circle")
 \tvar glow: OmniLight3D = main.get_node("Glow")
 \tvar mover: Node3D = main.get_node("Mover")
-\trows.append([_v(circle.rotation), _v(circle.scale), _bits(glow.omni_range), _bits(glow.light_energy), glow.shadow_enabled, _v(mover.position), _v(mover.scale), String(anim.current_animation), _bits(anim.get_current_animation_position() if anim.is_animation_active() else -1.0), anim.is_playing(), main.notes.duplicate()])
+\tvar skeleton: Skeleton3D = main.get_node("Robot/Skeleton/Skeleton3D")
+\tvar bones := []
+\tfor bone in [${WALKED_BONES.join(', ')}]:
+\t\tbones.append([_v(skeleton.get_bone_pose_position(bone)), _q(skeleton.get_bone_pose_rotation(bone))])
+\trows.append([_v(circle.rotation), _v(circle.scale), _bits(glow.omni_range), _bits(glow.light_energy), glow.shadow_enabled, _v(mover.position), _v(mover.scale), String(anim.current_animation), _bits(anim.get_current_animation_position() if anim.is_animation_active() else -1.0), anim.is_playing(), main.notes.duplicate(), bones])
 \tif frames < ${String(FRAMES)}:
 \t\treturn false
 \tvar file := FileAccess.open("res://animation.json", FileAccess.WRITE)
@@ -185,7 +221,7 @@ ${Object.entries(ACTS)
 
 function inputDigest(): string {
   return sha256(
-    Object.entries({ ...files, 'observe.gd': OBSERVE })
+    Object.entries({ ...files, 'observe.gd': OBSERVE, ...Object.fromEntries(COPIED.map((relative) => [relative, readFileSync(path.join(FIXTURE, relative))])) })
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([relative, source]) => `${relative}\0${sha256(source)}`)
       .join('\n'),
@@ -203,14 +239,28 @@ import * as N3 from './src/lib/godot-compat/node-3d';
 import * as L3 from './src/lib/godot-compat/light-3d';
 import * as AM from './src/lib/godot-compat/animation-mixer';
 import * as AP from './src/lib/godot-compat/animation-player';
+import * as SK from './src/lib/godot-compat/skeleton-3d';
 import { godot_main_timer_sync_set_fixed_fps } from './src/lib/godot-compat/main-timer-sync';
 
 const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
-globalThis.fetch = async (url) => {
-  const text = String(url);
+const nodeFetch = globalThis.fetch;
+globalThis.fetch = async (url, init) => {
+  const text = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+  if (text.startsWith('data:')) return nodeFetch(url, init);
   const bytes = readFileSync(text.startsWith('file:') ? new URL(text) : './public' + text);
   return { arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
 };
+// The robot model's embedded images decode through createImageBitmap, which Node lacks; three's
+// FileLoader reports progress with ProgressEvent. The copied model is served as a data URL, to three
+// and to drei's CommonJS three alike (as the scene-imported proof does).
+globalThis.createImageBitmap = async () => ({ width: 1, height: 1, close() {} });
+globalThis.ProgressEvent ??= class extends Event {
+  constructor(type, init = {}) { super(type); Object.assign(this, init); }
+};
+const modelUrl = (url) => (url.startsWith('/godot/') ? 'data:model/gltf-binary;base64,' + readFileSync('public' + url).toString('base64') : url);
+THREE.DefaultLoadingManager.setURLModifier(modelUrl);
+const { createRequire } = await import('node:module');
+createRequire(import.meta.url)('three').DefaultLoadingManager.setURLModifier(modelUrl);
 const v = (value) => [bits(value.x), bits(value.y), bits(value.z)];
 const dom = new JSDOM('<!doctype html><html><body><div id="host" style="position:relative"></div></body></html>');
 const document = dom.window.document;
@@ -242,6 +292,8 @@ const anim = find('Animation');
 const circle = find('Circle');
 const glow = find('Glow');
 const mover = find('Mover');
+const skeleton = N.get_node(main, 'Robot/Skeleton/Skeleton3D');
+const q = (value) => [bits(value.x), bits(value.y), bits(value.z), bits(value.w)];
 const script = N.godot_node_object(main);
 const acts = ${JSON.stringify(ACTS)};
 const calls = { play: AP.play, queue: AP.queue, seek: AP.seek, stop: AP.stop };
@@ -260,7 +312,7 @@ for (frames = 1; frames <= ${String(FRAMES)}; frames += 1) {
     frames += 1;
   }
   for (const [method, ...args] of acts[frames] ?? []) calls[method](anim, ...args);
-  rows.push([v(N3.get_rotation(circle)), v(N3.get_scale(circle)), bits(L3.get_param(glow, 4)), bits(L3.get_param(glow, 0)), L3.has_shadow(glow), v(N3.get_position(mover)), v(N3.get_scale(mover)), AP.get_current_animation(anim), bits(AP.is_animation_active(anim) ? AP.get_current_animation_position(anim) : -1), AP.is_playing(anim), [...script.notes]]);
+  rows.push([v(N3.get_rotation(circle)), v(N3.get_scale(circle)), bits(L3.get_param(glow, 4)), bits(L3.get_param(glow, 0)), L3.has_shadow(glow), v(N3.get_position(mover)), v(N3.get_scale(mover)), AP.get_current_animation(anim), bits(AP.is_animation_active(anim) ? AP.get_current_animation_position(anim) : -1), AP.is_playing(anim), [...script.notes], ${JSON.stringify(WALKED_BONES)}.map((bone) => [v(SK.get_bone_pose_position(skeleton, bone)), q(SK.get_bone_pose_rotation(skeleton, bone))])]);
 }
 await act(async () => { root.unmount(); });
 const { writeFileSync } = await import('node:fs');
@@ -308,6 +360,10 @@ export async function measureSceneAnimationProof(tools: GodotProofTools): Promis
     const project = path.join(temp, 'project');
     mkdirSync(project);
     for (const [relative, source] of Object.entries(files)) writeFileSync(path.join(project, relative), source);
+    for (const relative of COPIED) {
+      mkdirSync(path.dirname(path.join(project, relative)), { recursive: true });
+      cpSync(path.join(FIXTURE, relative), path.join(project, relative));
+    }
     const snapshot = captureGodotProjectSnapshot(project);
     const toolchain = captureGodotImportToolchainSnapshot({
       projectEngine: snapshot.engine,
@@ -334,6 +390,9 @@ export async function measureSceneAnimationProof(tools: GodotProofTools): Promis
     linkEmittedNodeModules(out);
     const target = mountedWorld(out);
 
+    // Native: Godot's editor imports the model by its sidecar, then the scene runs.
+    const imported = spawnSync(officialBinary, ['--editor', '--headless', '--path', project, '--import', '--quit'], { encoding: 'utf8', timeout: 300_000 });
+    if (imported.error !== undefined || imported.status !== 0) throw new Error(`native import failed: ${imported.error?.message ?? imported.stderr}`);
     writeFileSync(path.join(project, 'observe.gd'), OBSERVE);
     const run = spawnSync(officialBinary, ['--headless', '--fixed-fps', '60', '--path', project, '--script', 'res://observe.gd'], {
       encoding: 'utf8',

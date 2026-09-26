@@ -18,6 +18,7 @@ import * as N3 from '../../capabilities/catalog/project-source/src/lib/godot-com
 import { godot_omni_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/omni-light-3d';
 import * as Q from '../../capabilities/catalog/project-source/src/lib/godot-compat/quaternion';
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
+import * as SK from '../../capabilities/catalog/project-source/src/lib/godot-compat/skeleton-3d';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
 import type { GodotEvidenceCase, GodotEvidenceComparator, GodotEvidenceSymbol } from '../../src/evidence/case';
 import { gd, gs } from './literals';
@@ -62,6 +63,7 @@ export interface World {
   readonly a: Object3D;
   readonly l: PointLight;
   readonly p: Group;
+  readonly s: Object3D;
   readonly libraries: Map<string, AL.AnimationLibrary>;
   readonly animations: Map<string, A.Animation>;
 }
@@ -134,6 +136,11 @@ export interface Timeline {
 export const read = {
   a: (): Op => ({ gd: ['log.append([a.position, a.rotation, a.scale])'], ts: (w) => w.log.push([N3.get_position(w.a), N3.get_rotation(w.a), N3.get_scale(w.a)]) }),
   l: (): Op => ({ gd: ['log.append([l.omni_range, l.light_energy, l.shadow_enabled])'], ts: (w) => w.log.push([L3.get_param(w.l, 4), L3.get_param(w.l, 0), L3.has_shadow(w.l)]) }),
+  /** The skeleton `S`'s bones `b0` and `b1`: each pose's position, rotation and scale. */
+  s: (): Op => ({
+    gd: ['log.append([s.get_bone_pose_position(0), s.get_bone_pose_rotation(0), s.get_bone_pose_scale(0), s.get_bone_pose_position(1), s.get_bone_pose_rotation(1)])'],
+    ts: (w) => w.log.push([SK.get_bone_pose_position(w.s, 0), SK.get_bone_pose_rotation(w.s, 0), SK.get_bone_pose_scale(w.s, 0), SK.get_bone_pose_position(w.s, 1), SK.get_bone_pose_rotation(w.s, 1)]),
+  }),
   p: (): Op => ({
     gd: ['log.append([String(p.current_animation), String(p.assigned_animation), p.is_playing(), p.get_current_animation_position() if p.is_animation_active() else -1.0])'],
     ts: (w) => w.log.push([AP.get_current_animation(w.p), AP.get_assigned_animation(w.p), AP.is_playing(w.p), AP.is_animation_active(w.p) ? AP.get_current_animation_position(w.p) : -1]),
@@ -176,6 +183,11 @@ function gdscript(timeline: Timeline): string {
     'var l := OmniLight3D.new()',
     'l.name = "L"',
     'r.add_child(l)',
+    'var s := Skeleton3D.new()',
+    's.name = "S"',
+    'r.add_child(s)',
+    's.add_bone("b0")',
+    's.add_bone("b1")',
     'var p := AnimationPlayer.new()',
     'p.name = "P"',
     'p.animation_started.connect(func(n): log.append("started:" + n))',
@@ -219,6 +231,12 @@ function target(timeline: Timeline): () => unknown {
     N.godot_node_adopt(l, { kind: 'spatial', classes: ['OmniLight3D', 'Light3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object'] });
     godot_omni_light_3d_mount(l);
     N.add_child(r, l);
+    const s = new Object3D();
+    s.name = 'S';
+    N.godot_node_adopt(s, { kind: 'spatial', classes: ['Skeleton3D', 'Node3D', 'Node', 'Object'] });
+    N.add_child(r, s);
+    SK.add_bone(s, 'b0');
+    SK.add_bone(s, 'b1');
     const p = new Group();
     p.name = 'P';
     N.godot_node_adopt(p, { kind: 'node', classes: ['AnimationPlayer', 'AnimationMixer', 'Node', 'Object'] });
@@ -238,7 +256,7 @@ function target(timeline: Timeline): () => unknown {
       AL.add_animation(libraries.get(name) as AL.AnimationLibrary, spec.name, animation);
     }
     for (const [name, library] of libraries) AM.add_animation_library(p, name, library);
-    const world: World = { log, a, l, p, libraries, animations };
+    const world: World = { log, a, l, p, s, libraries, animations };
     for (const op of timeline.setup ?? []) op.ts(world);
     let result: unknown[] | undefined;
     const pending: Step[] = [...timeline.steps, { await: 'process', ops: [] }];

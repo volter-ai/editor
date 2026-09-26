@@ -96,7 +96,12 @@ export interface TargetGodotImportedModelPlan {
   readonly rootClasses: readonly string[];
   readonly nodes: readonly TargetGodotImportedModelNode[];
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
-  readonly overrides: readonly { readonly at: string; readonly setters: readonly TargetGodotSceneSetterPlan[] }[];
+  readonly overrides: readonly {
+    readonly at: string;
+    readonly setters: readonly TargetGodotSceneSetterPlan[];
+    /** An AnimationPlayer of the model: its tracks resolved against the model and the scene. */
+    readonly animation?: TargetGodotAnimationBindingsPlan;
+  }[];
 }
 
 /** A value a setter receives: a target value, or a resource this document's plan constructs. */
@@ -628,19 +633,37 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
  * the native methods its keys call (a script's own function is called by name); a 3D track names a
  * Node3D. Null when a track does not resolve.
  */
+/** A node a track may name: its class and ancestry, and its script. */
+interface AnimationTarget {
+  readonly className: string;
+  readonly ancestry: readonly string[];
+  readonly scriptResPath?: string;
+}
+
+/** The document's own nodes as animation targets, by their path in the document. */
+function documentTargets(context: PlanContext): (path: string) => AnimationTarget | undefined {
+  const scene = context.document?.scene;
+  return (path) => {
+    const node = scene?.nodes.find((candidate) => candidate.nodePath === path);
+    return node === undefined
+      ? undefined
+      : { className: node.class.nativeName, ancestry: node.class.nativeAncestry, ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }) };
+  };
+}
+
 function animationBindings(
   context: PlanContext,
-  node: BoundGodotSceneNode,
+  at: string,
+  mixerPath: string,
   setters: readonly TargetGodotSceneSetterPlan[],
+  targets: (path: string) => AnimationTarget | undefined = documentTargets(context),
 ): TargetGodotAnimationBindingsPlan | undefined | null {
-  const at = `${node.documentPath}#${node.nodePath}`;
-  const scene = context.document?.scene;
   const lookup = context.setters;
-  if (scene === undefined || lookup?.method === undefined) {
+  if (lookup?.method === undefined) {
     refuse(context, at, 'no binding lookup for animation tracks', 'property', 'AnimationMixer tracks');
     return null;
   }
-  const base = godotResolveNodePath(node.nodePath, '..');
+  const base = godotResolveNodePath(mixerPath, '..');
   const values = new Map<string, TargetGodotAnimationBindingsPlan['values'][number]['binding']>();
   const methods = new Map<string, TargetGodotAnimationBindingsPlan['methods'][number]>();
   let ok = true;
@@ -657,12 +680,12 @@ function animationBindings(
         const where = `${at}(${name}:${track.path})`;
         const { node: nodePath, subnames } = godotTrackPath(track.path);
         const targetPath = base === undefined ? undefined : godotResolveNodePath(base, nodePath === '' ? '.' : nodePath);
-        const target = scene.nodes.find((candidate) => candidate.nodePath === targetPath);
+        const target = targetPath === undefined ? undefined : targets(targetPath);
         if (target === undefined) {
           fail(where, 'a track path that names no node of this scene', 'AnimationMixer track path');
           continue;
         }
-        const className = target.class.nativeName;
+        const className = target.className;
         if (track.type === 'value') {
           if (subnames.length !== 1) {
             fail(where, 'a value track without one property subname', 'AnimationMixer track path');
@@ -703,8 +726,10 @@ function animationBindings(
             context.bindingEvidence.add(found.evidenceClaimId);
             methods.set(id, { path: track.path, method, binding: { module: found.module, exportName: found.exportName, localName: found.localName } });
           }
-        } else if (subnames.length > 0 || !target.class.nativeAncestry.includes('Node3D')) {
-          fail(where, subnames.length > 0 ? 'a bone track is not translated' : 'a transform track on a node that is not a Node3D', 'AnimationMixer track path');
+        } else if (!target.ancestry.includes('Node3D')) {
+          fail(where, 'a transform track on a node that is not a Node3D', 'AnimationMixer track path');
+        } else if (subnames.length > 1 || (subnames.length === 1 && !target.ancestry.includes('Skeleton3D'))) {
+          fail(where, 'a transform track through a resource is not translated', 'AnimationMixer track path');
         }
       }
     }
@@ -1094,7 +1119,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     refuse(context, at, unstated, 'property', `${node.class.nativeName}.${unstated.split(' ')[0] ?? ''}`);
     return undefined;
   }
-  const animation = node.class.nativeAncestry.includes('AnimationMixer') ? animationBindings(context, node, setters) : undefined;
+  const animation = node.class.nativeAncestry.includes('AnimationMixer') ? animationBindings(context, at, node.nodePath, setters) : undefined;
   if (animation === null) return undefined;
   return {
     nodePath: node.nodePath,
@@ -1255,8 +1280,9 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   const importedPlans = new Map<
     string,
     {
+      readonly rootClasses: readonly string[];
       readonly nodes: readonly TargetGodotImportedModelNode[];
-      readonly overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[] }[];
+      readonly overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[]; animation?: TargetGodotAnimationBindingsPlan }[];
       readonly placedAt: Map<string, number>;
     }
   >();
@@ -1289,14 +1315,35 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
       if (origin !== undefined) {
         const setters: TargetGodotSceneSetterPlan[] = [];
         let ok = structure(context, at, 'imported-scene-edits');
+        const mixer = node.class.nativeAncestry.includes('AnimationMixer');
         for (const [propertyName, value] of Object.entries(node.authoredProperties)) {
           if (sameValue(value, origin.authoredProperties[propertyName])) continue;
-          const setter = setterPlan(context, `${at}.${propertyName}`, node.class.nativeName, propertyName, value, '');
+          // A mixer's `libraries/NAME` (`AnimationMixer::_set`): a library, no setter's.
+          const library = mixer ? /^libraries\/(.*)$/u.exec(propertyName) : null;
+          const setter =
+            library !== null
+              ? mixerLibrary(context, `${at}.${propertyName}`, library[1] as string, value)
+              : setterPlan(context, `${at}.${propertyName}`, node.class.nativeName, propertyName, value, '');
           if (setter === undefined) ok = false;
           else setters.push(setter);
         }
+        // Its tracks name the model's nodes (by their path under the instance) and the scene's own.
+        const model = importedEnclosing;
+        const inModel = (path: string): AnimationTarget | undefined => {
+          if (path === enclosing) {
+            const own = scene.nodes.find((candidate) => candidate.nodePath === path);
+            return { className: model.rootClasses[0] ?? 'Node3D', ancestry: model.rootClasses, ...(own?.scriptResPath === undefined ? {} : { scriptResPath: own.scriptResPath }) };
+          }
+          if (isInside(path, enclosing)) {
+            const member = model.nodes.find((candidate) => candidate.path === path.slice(enclosing.length + 1));
+            return member === undefined ? undefined : { className: member.classes[0] ?? 'Node', ancestry: member.classes };
+          }
+          return documentTargets(context)(path);
+        };
+        const animation = mixer ? animationBindings(context, at, node.nodePath, setters, inModel) : undefined;
+        if (animation === null) ok = false;
         if (!ok) refused = true;
-        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters });
+        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters, ...(animation === undefined || animation === null ? {} : { animation }) });
         continue;
       }
       const authoredParent =
@@ -1396,8 +1443,8 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         if (plannedRoot === undefined || plannedRoot.model === undefined) {
           refused = true;
         } else {
-          const overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[] }[] = [];
-          importedPlans.set(node.nodePath, { nodes: plannedRoot.model.nodes, overrides, placedAt: new Map() });
+          const overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[]; animation?: TargetGodotAnimationBindingsPlan }[] = [];
+          importedPlans.set(node.nodePath, { rootClasses: plannedRoot.model.rootClasses, nodes: plannedRoot.model.nodes, overrides, placedAt: new Map() });
           planned.push({ ...plannedRoot, model: { ...plannedRoot.model, overrides } });
         }
         continue;
@@ -1525,7 +1572,22 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
 const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 'Area3D']);
 
 /** The properties an imported model's element sets on the model's own nodes (bone poses). */
-const MODEL_OVERRIDE_SETTERS = ['set_bone_pose_position', 'set_bone_pose_rotation', 'set_bone_pose_scale'];
+const MODEL_OVERRIDE_SETTERS = [
+  'set_bone_pose_position',
+  'set_bone_pose_rotation',
+  'set_bone_pose_scale',
+  // An imported AnimationPlayer's (`<GodotImportedScene overrides>`, compat's player props).
+  'godot_animation_mixer_set_library',
+  'set_autoplay',
+  'set_active',
+  'set_deterministic',
+  'set_callback_mode_process',
+  'set_callback_mode_method',
+  'set_callback_mode_discrete',
+  'set_speed_scale',
+  'set_default_blend_time',
+  'set_auto_capture',
+];
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
 const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scale']);

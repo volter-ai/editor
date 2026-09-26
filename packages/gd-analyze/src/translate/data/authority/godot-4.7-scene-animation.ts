@@ -4,8 +4,8 @@
  * its `AnimationLibrary` (a data file of animations). Their own proof
  * (`src/evidence/proofs/scene-animation.ts`) runs a scene with value (continuous, eased, discrete),
  * method (a script's function and a native method) and 3D tracks, a RESET, two libraries, autoplay
- * and a queue in official Godot, and compares every frame's sampled values and signals against the
- * emitted scene.
+ * and a queue, and an imported model's AnimationPlayer given a library of bone tracks, in official
+ * Godot, and compares every frame's sampled values, bone poses and signals against the emitted scene.
  */
 import {
   GODOT_4_7_PROOF_REPRODUCTION_COMMAND,

@@ -1,5 +1,9 @@
 import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
-import { type AnimSpec, call, frames, log, type Op, read, type Step, timelineCase } from './animation-timeline';
+import * as SK from '../../capabilities/catalog/project-source/src/lib/godot-compat/skeleton-3d';
+import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
+import { type AnimSpec, call, frames, log, type Op, read, type Step, timelineCase, type World } from './animation-timeline';
+
+const SK_set_pose = (w: World): void => SK.set_bone_pose_position(w.s, 0, V.construct(9, 9, 9));
 
 /** A RESET giving the tracks MOVE animates their initial values. */
 export const RESET: AnimSpec = {
@@ -50,6 +54,18 @@ export const TURN: AnimSpec = {
   name: 'turn',
   length: 0.5,
   tracks: [{ type: 'rotation_3d', path: 'A', keys: [[0, [0, 0, 0, 1]], [0.5, [0, 0.3826834, 0, 0.9238795]]] }],
+};
+/** Bone tracks on the skeleton `S`: position and rotation of `b0`, scale of `b0`, rotation of `b1`, a missing bone. */
+export const BONES: AnimSpec = {
+  name: 'bones',
+  length: 0.5,
+  tracks: [
+    { type: 'position_3d', path: 'S:b0', keys: [[0, [0, 1, 0]], [0.5, [1, 1, -2]]] },
+    { type: 'rotation_3d', path: 'S:b0', keys: [[0, [0, 0, 0, 1]], [0.5, [0, 0, 0.3826834, 0.9238795]]] },
+    { type: 'scale_3d', path: 'S:b0', keys: [[0, [1, 1, 1]], [0.5, [0.5, 2, 1]]] },
+    { type: 'rotation_3d', path: 'S:b1', keys: [[0.25, [0.3826834, 0, 0, 0.9238795]]] },
+    { type: 'position_3d', path: 'S:nope', keys: [[0, [5, 5, 5]]] },
+  ],
 };
 export const HOP: AnimSpec = {
   name: 'hop',
@@ -179,6 +195,11 @@ export const PLAYER_CASES = [
   timelineCase('play-rotation-only', { kind: 'native-member', owner: 'AnimationPlayer', member: 'play' }, {
     animations: [TURN],
     steps: [now(call('play', 'turn'), read.a()), ...frames(32, read.a())],
+  }, 'float32-ulp'),
+  timelineCase('play-bone-tracks', { kind: 'native-member', owner: 'AnimationPlayer', member: 'play' }, {
+    animations: [BONES],
+    setup: [{ gd: ['s.set_bone_pose_position(0, Vector3(9, 9, 9))'], ts: (w) => SK_set_pose(w) }],
+    steps: [now(read.s(), call('play', 'bones'), read.s()), ...frames(34, read.s())],
   }, 'float32-ulp'),
   timelineCase('play-library', { kind: 'native-member', owner: 'AnimationPlayer', member: 'play' }, {
     animations: [MOVE, HOP],

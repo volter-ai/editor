@@ -787,7 +787,7 @@ function animationLibraryLocal(emission: FamilyEmission, resource: TargetGodotSc
  * An AnimationPlayer's track bindings, declared once at module level: each value track's setter
  * (with its index) or script field and each method track's native methods, by track path.
  */
-function animationBindingsLocal(emission: FamilyEmission, node: DirectGodotSceneNodePlan): string | undefined {
+function animationBindingsLocal(emission: FamilyEmission, node: Pick<DirectGodotSceneNodePlan, 'animation' | 'name'>): string | undefined {
   const plan = node.animation;
   if (plan === undefined || (plan.values.length === 0 && plan.methods.length === 0)) return undefined;
   const compat = (binding: { readonly module: string; readonly exportName: string; readonly localName: string }) =>
@@ -824,6 +824,23 @@ function animationBindingsLocal(emission: FamilyEmission, node: DirectGodotScene
     },
   });
   return local;
+}
+
+/**
+ * An imported model's AnimationPlayer as the instancing scene overrides it (`<GodotImportedScene
+ * overrides>`): its track bindings, then its libraries and other properties by prop name.
+ */
+export function familyAnimationOverride(
+  emission: FamilyEmission,
+  name: string,
+  setters: readonly TargetGodotSceneSetterPlan[],
+  animation: DirectGodotSceneNodePlan['animation'],
+): TargetTsObjectProperty[] {
+  const bindings = animationBindingsLocal(emission, { name, ...(animation === undefined ? {} : { animation }) });
+  return [
+    ...(bindings === undefined ? [] : [{ key: 'bindings', value: identifier(bindings) }]),
+    ...elementProps(emission, name, setters).flatMap((entry) => (entry.kind === 'jsx-expression-attribute' ? [{ key: entry.name, value: entry.value }] : [])),
+  ];
 }
 
 /** A compat element's props for a node's authored properties (a GridMap's `data` its cells file). */
