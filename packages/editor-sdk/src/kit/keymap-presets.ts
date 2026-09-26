@@ -400,7 +400,7 @@ export function formatChord(chord: KeyChord): string {
   const label = keyLabel(chord);
   if (chord.mod) {
     const mod = isMacPlatform() ? '⌘' : 'Ctrl+';
-    return `${mod}${chord.alt ? '⌥' : ''}${chord.shift ? '⇧' : ''}${label}`;
+    return `${chord.ctrl && isMacPlatform() ? '⌃' : ''}${mod}${chord.alt ? '⌥' : ''}${chord.shift ? '⇧' : ''}${label}`;
   }
   const parts: string[] = [];
   if (chord.ctrl) parts.push('Ctrl');
