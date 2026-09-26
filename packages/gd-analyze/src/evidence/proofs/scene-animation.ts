@@ -1,5 +1,6 @@
 /**
- * The scene-animation proof: a scene whose AnimationPlayer holds two libraries (the default one with
+ * The scene-animation proof (with the platformer's robot walking the enemy scene's walk, and its
+ * hero running its own imported `run` from the pose its importer's RESET gave it): a scene whose AnimationPlayer holds two libraries (the default one with
  * a RESET, a looping `spin` and a `take`; `extra` with `pop`), autoplays `spin`, and animates a
  * Node3D's rotation and scale, an OmniLight3D's range, energy (with an eased key) and shadow flag (a
  * discrete track), another Node3D's position and scale (3D tracks), and calls the root script's

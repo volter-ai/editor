@@ -86,7 +86,8 @@ export function basisFromQuaternion(
   scale: readonly [number, number, number],
 ): Transform3D {
   const [x, y, z, w] = rotation;
-  const d = f(f(f(x * x) + f(y * y)) + f(f(z * z) + f(w * w)));
+  // `Quaternion::length_squared`: the dot product, summed left to right (`quaternion.h:173`).
+  const d = f(f(f(f(x * x) + f(y * y)) + f(z * z)) + f(w * w));
   const s = f(2 / d);
   const xs = f(x * s);
   const ys = f(y * s);

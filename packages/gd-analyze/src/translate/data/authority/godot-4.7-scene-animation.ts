@@ -5,7 +5,8 @@
  * (`<GodotAnimationTree>`, its `AnimationNodeBlendTree` a data file, its parameters a prop). Their own proof
  * (`src/evidence/proofs/scene-animation.ts`) runs a scene with value (continuous, eased, discrete),
  * method (a script's function and a native method) and 3D tracks, a RESET, two libraries, autoplay
- * and a queue, an imported model's AnimationPlayer given a library of bone tracks, and an
+ * and a queue, an imported model's AnimationPlayer given a library of bone tracks, another playing
+ * its own clips as the importer keyed them (after the importer's RESET), and an
  * AnimationTree blending a player's animations through a filtered Blend2 and a TimeScale, in official
  * Godot, and compares every frame's sampled values, bone poses and signals against the emitted scene.
  */
