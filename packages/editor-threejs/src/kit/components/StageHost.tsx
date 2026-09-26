@@ -459,6 +459,9 @@ class Object3DDocumentHost {
   defaultEnvironment: THREE.Texture | null = null;
   defaultBackground: THREE.Color | THREE.Texture | null = null;
   adapter: AuthoringAdapter | null = null;
+  /** The adapter a project authoring is built over, whose ids the object index and selection
+   *  use (`presentationAdapter` at bind); null where the project's adapter is the only space. */
+  presentationAdapter: AuthoringAdapter | null = null;
   content: DocumentContentBinding | null = null;
   frame: ((time: number, resumed: boolean) => void) | null = null;
   /** Mirrors the document scene's world dressing onto the rendered scene. The
@@ -1296,9 +1299,12 @@ export function Object3DDocumentViewport({
           // A drawn line is hit within a few pixels of it (`LineSegments2`'s own test).
           (raycaster.params as { Line2?: { threshold: number } }).Line2 = { threshold: 4 };
           raycaster.setFromCamera(pointer, host.session?.camera() ?? viewport.camera);
+          // In the index's space: the presentation adapter's ids first, as the bind writes them.
+          const presentation = host.presentationAdapter;
           const idOf = (start: THREE.Object3D | null): string | null => {
             for (let object = start; object; object = object.parent) {
-              const id = current.hierarchy.idForObject3D?.(object);
+              const id =
+                presentation?.hierarchy.idForObject3D?.(object) ?? current.hierarchy.idForObject3D?.(object);
               if (id) return id;
             }
             return null;
@@ -1519,6 +1525,7 @@ export function Object3DDocumentViewport({
         const previous = host.content;
         const selected = [...store.shell.selectedEntityIds];
         const previousAdapter = host.adapter;
+        const previousPresentationAdapter = host.presentationAdapter;
         const previousObjects = new Map(store.objectMap);
         const previousRoot = host.session?.root;
         const previousFrame = host.frame;
@@ -1535,6 +1542,7 @@ export function Object3DDocumentViewport({
           if (sourceParent) sourceParent.add(source.root);
           if (previous) host.scene.add(previous.scene);
           host.adapter = previousAdapter;
+          host.presentationAdapter = previousPresentationAdapter;
           host.content = previous;
           host.frame = previousFrame;
           host.syncHostScene = previousSyncHostScene;
@@ -1570,18 +1578,19 @@ export function Object3DDocumentViewport({
         previous?.scene.removeFromParent();
         host.scene.add(scene);
         host.adapter = adapter;
+        host.presentationAdapter = presentationAdapter;
         host.content = binding;
         store.bindScene(scene, renderer, viewport.batchedRenderer, viewport.camera);
         store.setOrbitTarget(viewport.orbitControls.target);
         store.objectMap.clear();
         scene.traverse((object) => {
-          // An object the project's adapter cannot name yet (a Blender document names its objects
-          // once the engine's outliner rows arrive, often after this bind) is indexed by the
-          // default adapter's id, the presentation space the project adapter publishes selection
-          // in, so picking and box select reach it from the first frame. The default adapter
-          // keeps this index in that space from then on (`SourceObject3DAuthoringAdapter`).
+          // ONE SPACE FOR THE INDEX: a project authoring built over the default adapter publishes
+          // selection in that adapter's ids, and the default adapter re-indexes the map in them on
+          // every structural change (`SourceObject3DAuthoringAdapter`), so the bind writes them
+          // too. A Blender document names its objects only once the engine's outliner rows
+          // arrive, often after this bind; the presentation ids exist from the first frame.
           const id =
-            adapter.hierarchy.idForObject3D?.(object) ?? presentationAdapter?.hierarchy.idForObject3D?.(object);
+            presentationAdapter?.hierarchy.idForObject3D?.(object) ?? adapter.hierarchy.idForObject3D?.(object);
           if (id) store.objectMap.set(id, object);
         });
         if (!host.session) {
