@@ -125,7 +125,7 @@ function renderClaim(canonicalIdentity: string, claimId: string, source: Source)
     },
     comparison: {
       comparator: 'classes, layers, shadows, shape, material and light parameters exact; colours, surface arrays and light aim as named render mappings',
-      tolerance: 'colour-quantization 0.005, primitive-geometry and primitive-uv 1.5e-4, sphere-pole-u half a segment, light-direction 1e-6; cylinder-uv-layout recorded',
+      tolerance: 'colour-quantization 0.005, primitive-geometry and primitive-uv 1.5e-4, sphere-pole-u half a segment, light-direction 1e-6; shadow-mapping by its cited conversion; cylinder-uv-layout recorded',
       resultSha256: RENDER_IDENTITIES.comparison,
     },
     reproductionCommand: GODOT_4_7_PROOF_REPRODUCTION_COMMAND,

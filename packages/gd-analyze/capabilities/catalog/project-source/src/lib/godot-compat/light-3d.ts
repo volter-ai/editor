@@ -25,6 +25,9 @@ const f32 = Math.fround;
 const PARAM_ENERGY = 0;
 const PARAM_RANGE = 4;
 const PARAM_ATTENUATION = 6;
+const PARAM_SHADOW_MAX_DISTANCE = 9;
+const PARAM_SHADOW_NORMAL_BIAS = 14;
+const PARAM_SHADOW_BIAS = 15;
 const PARAM_MAX = 21;
 
 interface LightState {
@@ -98,6 +101,18 @@ function stateOf(self: Light): LightState {
       params[PARAM_RANGE] = f32(self.distance);
       params[PARAM_ATTENUATION] = f32(self.decay);
     }
+    // A shadow the scene states, read back through the same conversion.
+    const shadow = (self as unknown as { readonly shadow?: ThreeLightShadow }).shadow;
+    if (shadow !== undefined && self.castShadow) {
+      if ((self as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
+        const distance = shadow.camera.right ?? 100;
+        params[PARAM_SHADOW_MAX_DISTANCE] = f32(distance);
+        params[PARAM_SHADOW_BIAS] = f32(-shadow.bias * 100);
+        params[PARAM_SHADOW_NORMAL_BIAS] = f32((shadow.normalBias * shadow.mapSize.x) / (2 * distance));
+      } else {
+        params[PARAM_SHADOW_BIAS] = f32(-shadow.bias * (Math.max(0.001, params[PARAM_RANGE] as number) - 0.5));
+      }
+    }
     state = {
       color: color(linearToSrgb(self.color.r), linearToSrgb(self.color.g), linearToSrgb(self.color.b), 1),
       params,
@@ -135,6 +150,34 @@ function apply(self: Light, state: LightState): void {
     self.distance = Math.max(0.001, state.params[PARAM_RANGE] as number);
     self.decay = state.params[PARAM_ATTENUATION] as number;
   }
+  const shadow = (self as unknown as { readonly shadow?: ThreeLightShadow }).shadow;
+  if (shadow !== undefined) Object.assign(shadow, shadowOf(self, state.params, shadow.mapSize.x));
+}
+
+/** The part of a three light shadow the shadow parameters set. */
+interface ThreeLightShadow {
+  bias: number;
+  normalBias: number;
+  readonly mapSize: { readonly x: number };
+  readonly camera: { left?: number; right?: number; top?: number; bottom?: number; near: number; far: number };
+}
+
+/**
+ * Three's shadow for Godot's shadow parameters, as the Compatibility renderer uses them
+ * (`shadow-mapping`, the emitted scene's own conversion in `scene-family-elements.ts`): a
+ * directional light's bias `SHADOW_BIAS / 100` of its depth range (`rasterizer_scene_gles3.cpp:2256`)
+ * and normal bias in texels of a camera box `SHADOW_MAX_DISTANCE` around the light
+ * (`rasterizer_scene_gles3.cpp:1809`); an omni light's bias in world distance over its range
+ * (`scene.glsl:2751`).
+ */
+function shadowOf(self: Light, params: readonly number[], size: number): { bias: number; normalBias?: number } {
+  if ((self as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
+    const distance = params[PARAM_SHADOW_MAX_DISTANCE] as number;
+    const camera = (self as unknown as { readonly shadow: ThreeLightShadow }).shadow.camera;
+    Object.assign(camera, { left: -distance, right: distance, bottom: -distance, top: distance, near: -distance, far: distance });
+    return { bias: -(params[PARAM_SHADOW_BIAS] as number) / 100, normalBias: ((params[PARAM_SHADOW_NORMAL_BIAS] as number) * 2 * distance) / size };
+  }
+  return { bias: -(params[PARAM_SHADOW_BIAS] as number) / (Math.max(0.001, params[PARAM_RANGE] as number) - 0.5) };
 }
 
 /**

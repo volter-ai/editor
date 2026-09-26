@@ -486,6 +486,42 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   return local;
 }
 
+/**
+ * A shadow-casting light's shadow as three's `shadow` props, converted from Godot's parameters by the
+ * Compatibility renderer's own use of them (`shadow-mapping`: three draws one fixed shadow camera
+ * where Godot fits its splits to the view camera):
+ * - a directional light's bias is `SHADOW_BIAS / 100` of its shadow camera's depth range
+ *   (`rasterizer_scene_gles3.cpp:2256`, the bias scale `z_max - z_min`, `renderer_scene_cull.cpp:2360`),
+ *   which is three's bias in its normalized depth, towards the light; its normal bias
+ *   `SHADOW_NORMAL_BIAS` shadow-map texels (`rasterizer_scene_gles3.cpp:1809`, a texel
+ *   `2 * radius / size`, `renderer_scene_cull.cpp:2359`); its map the directional atlas (4096) or a
+ *   quarter of it per split; its camera the box `SHADOW_MAX_DISTANCE` around the light;
+ * - an omni light's bias is world distance added to the caster's (`scene.glsl:2751`), three's in its
+ *   normalized distance between the shadow camera's near (0.5) and far (the light's range); its
+ *   map a cube face of the positional atlas's first quadrant (2048, halved for a cube,
+ *   `rasterizer_scene_gles3.cpp:2298`).
+ * `SHADOW_BLUR` is not read by the Compatibility renderer; the fade start has no three form.
+ */
+function shadowMapping(directional: boolean, param: (index: number, initial: number) => number, mode: number): TargetTsJsxAttribute[] {
+  if (directional) {
+    const distance = param(9, 100);
+    const size = mode === 0 ? 4096 : 2048;
+    return [
+      attribute('shadow-bias', literal(-param(15, 0.1) / 100)),
+      attribute('shadow-normalBias', literal((param(14, 2) * 2 * distance) / size)),
+      attribute('shadow-mapSize', numbers([size, size])),
+      attribute('shadow-camera-left', literal(-distance)),
+      attribute('shadow-camera-right', literal(distance)),
+      attribute('shadow-camera-bottom', literal(-distance)),
+      attribute('shadow-camera-top', literal(distance)),
+      attribute('shadow-camera-near', literal(-distance)),
+      attribute('shadow-camera-far', literal(distance)),
+    ];
+  }
+  const range = Math.max(0.001, param(4, 5));
+  return [attribute('shadow-bias', literal(-param(15, 0.1) / (range - 0.5))), attribute('shadow-mapSize', numbers([1024, 1024]))];
+}
+
 /** A carried node's element (tag, family props and resource children), or undefined for another class. */
 export function familyElement(
   emission: FamilyEmission,
@@ -553,7 +589,7 @@ export function familyElement(
           // An omni light's range is the distance its attenuation reaches zero at, its attenuation
           // three's decay exponent (`get_omni_spot_attenuation`, `scene.glsl:429`).
           ...(directional ? [] : [attribute('distance', literal(Math.max(0.001, param(4, 5)))), attribute('decay', literal(param(6, 1)))]),
-          ...(shadow ? [flag('castShadow')] : []),
+          ...(shadow ? [flag('castShadow'), ...shadowMapping(directional, param, numberValue(setterValue(set, 'set_shadow_mode')) ?? 2)] : []),
         ],
         children: [],
       };

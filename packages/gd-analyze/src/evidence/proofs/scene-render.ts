@@ -119,13 +119,20 @@ transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 4, 0)
 light_color = Color(1, 0.95, 0.9, 1)
 light_energy = 0.75
 shadow_enabled = true
+shadow_bias = 0.02
+shadow_blur = 1.5
 sky_mode = 1
+directional_shadow_mode = 0
+directional_shadow_fade_start = 1.0
+directional_shadow_max_distance = 55.0
 
 [node name="Lamp" type="OmniLight3D" parent="."]
 light_color = Color(1, 0.72, 0.3, 1)
 light_energy = 2.5
 omni_range = 3.0
 omni_attenuation = 2.0
+shadow_enabled = true
+shadow_bias = 0.03
 `,
 };
 
@@ -197,6 +204,7 @@ func _process(_delta: float) -> bool:
 \t\t\tvar sky_only: bool = node is DirectionalLight3D and node.sky_mode == DirectionalLight3D.SKY_MODE_SKY_ONLY
 \t\t\trow["energy"] = _f32(0.0 if sky_only else node.light_energy)
 \t\t\trow["shadow"] = node.shadow_enabled
+\t\t\tseen["shadow"] = [node.shadow_bias, node.shadow_normal_bias, node.directional_shadow_max_distance if node is DirectionalLight3D else 0.0, node.directional_shadow_mode if node is DirectionalLight3D else -1, node.omni_range if node is OmniLight3D else 0.0]
 \t\t\tvar c: Color = node.light_color.srgb_to_linear()
 \t\t\tseen["color"] = [c.r, c.g, c.b]
 \t\tif node is OmniLight3D:
@@ -294,6 +302,8 @@ for (const node of holder.current.children[0].children) {
   if (node.type === 'DirectionalLight' || node.type === 'PointLight') {
     row.energy = f32(node.intensity / Math.PI);
     row.shadow = node.castShadow;
+    const shadow = node.shadow;
+    seen.shadow = [shadow.bias, shadow.normalBias, shadow.mapSize.x, shadow.mapSize.y, shadow.camera.left ?? 0, shadow.camera.right ?? 0, shadow.camera.bottom ?? 0, shadow.camera.top ?? 0, shadow.camera.near, shadow.camera.far];
     seen.color = linear(node.color);
   }
   if (node.type === 'PointLight') {
@@ -340,6 +350,7 @@ interface RenderState {
         readonly color?: readonly number[];
         readonly surface?: readonly (readonly number[])[];
         readonly direction?: readonly number[];
+        readonly shadow?: readonly number[];
       }
     >
   >;
@@ -363,6 +374,25 @@ const TOLERANCES = {
   'cylinder-uv-layout': Number.POSITIVE_INFINITY,
   'light-direction': 1e-6,
 } as const;
+
+/**
+ * `shadow-mapping`: the three shadow for Godot's `[bias, normal bias, max distance, directional mode,
+ * omni range]`. A directional light's bias is `SHADOW_BIAS / 100` of its shadow camera's depth range
+ * (`rasterizer_scene_gles3.cpp:2256`, bias scale `renderer_scene_cull.cpp:2360`), three's bias in its
+ * normalized depth towards the light; its normal bias `SHADOW_NORMAL_BIAS` texels
+ * (`rasterizer_scene_gles3.cpp:1809`, `renderer_scene_cull.cpp:2359`) of its map (the 4096 atlas, or a
+ * 2048 quarter per split) over a camera box `SHADOW_MAX_DISTANCE` around the light. An omni light's
+ * bias is world distance (`scene.glsl:2751`) over three's cube camera from 0.5 to its range; its map a
+ * 1024 cube face (`rasterizer_scene_gles3.cpp:2298`).
+ */
+function shadowMapping(godot: readonly number[]): readonly number[] {
+  const [bias, normalBias, distance, mode, range] = godot as [number, number, number, number, number];
+  if (mode >= 0) {
+    const size = mode === 0 ? 4096 : 2048;
+    return [-bias / 100, (normalBias * 2 * distance) / size, size, size, -distance, distance, -distance, distance, -distance, distance];
+  }
+  return [-bias / (range - 0.5), 0, 1024, 1024];
+}
 
 function maxDifference(a: readonly number[], b: readonly number[]): number {
   if (a.length !== b.length) return Number.POSITIVE_INFINITY;
@@ -442,6 +472,7 @@ export async function measureSceneRenderProof(tools: GodotProofTools): Promise<r
       deviations[key] = Math.max(deviations[key], value);
       perNode[current] = { ...perNode[current], [key]: Math.max(perNode[current]?.[key] ?? 0, value) };
     };
+    let shadowAgree = true;
     const shapes = native.exact as Readonly<Record<string, { readonly shape?: readonly unknown[] }>>;
     for (const [name, seen] of Object.entries(native.measured)) {
       current = name;
@@ -469,10 +500,18 @@ export async function measureSceneRenderProof(tools: GodotProofTools): Promise<r
         }
       }
       if (seen.direction !== undefined) worst('light-direction', maxDifference(seen.direction, drawn.direction ?? []));
+      // `shadow-mapping` (render-mapping): the three shadow the cited conversion gives for Godot's
+      // parameters, against the one the scene states (each float32).
+      if (seen.shadow !== undefined) {
+        const expected = shadowMapping(seen.shadow);
+        const stated = (drawn.shadow ?? []).slice(0, expected.length);
+        shadowAgree &&= JSON.stringify(expected.map(Math.fround)) === JSON.stringify(stated.map(Math.fround));
+      }
     }
     const exactAgree = JSON.stringify(canonical(native.exact)) === JSON.stringify(canonical(rendered.exact));
     const agree =
       exactAgree &&
+      shadowAgree &&
       (Object.keys(deviations) as (keyof typeof deviations)[]).every((key) => deviations[key] <= TOLERANCES[key]);
     const comparison = JSON.stringify({ exact: canonical(native.exact), tolerances: Object.fromEntries(Object.entries(TOLERANCES).map(([key, value]) => [key, String(value)])), agree });
     return [
@@ -485,7 +524,7 @@ export async function measureSceneRenderProof(tools: GodotProofTools): Promise<r
           comparison: sha256(comparison),
         },
         agree,
-        detail: `deviations ${JSON.stringify(deviations)}\nby node ${JSON.stringify(perNode)}\nnative ${JSON.stringify(canonical(native.exact))}\ntarget ${JSON.stringify(canonical(rendered.exact))}`,
+        detail: `shadow-mapping ${String(shadowAgree)}\ndeviations ${JSON.stringify(deviations)}\nby node ${JSON.stringify(perNode)}\nnative ${JSON.stringify(canonical(native.exact))}\ntarget ${JSON.stringify(canonical(rendered.exact))}`,
       },
     ];
   } finally {
