@@ -828,6 +828,8 @@ class Compiler {
         // ignored, packed or data alpha; otherwise straight when Alpha is used, so a factor does
         // not multiply it in twice, and premultiplied when it is not. Measured in Blender 5.2's
         // EEVEE: a straight red texel at alpha 0.5 emits 0.502 with Alpha unused, 1.0 with it used.
+        // A PREMUL sRGB image differs: the sampler decodes the premultiplied bytes, `decode(r·a)`,
+        // where Blender's texture holds `linear(r)·a`, so its partly transparent texels read darker.
         const mode = prop<string>(node, 'image_alpha_mode');
         const alphaUsed = this.uses(key, 1);
         const c = outs([0]);
