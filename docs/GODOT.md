@@ -272,28 +272,56 @@ the output is plain library code (ARCHITECTURE.md rule 4):
 | `CanvasLayer` with `Control`s (`Label`, `TextureRect`, `HBoxContainer`, `TouchScreenButton`) | a DOM root beside the world, each Control an absolutely placed element from its anchors and offsets, as the Unity lane's uGUI does |
 | `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `Decal`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
 
+## Where it stands (2026-09-26, 03:30)
+
+Measured through the lane's own commands.
+
+- **Frontend.** The pinned 4.7 exporter binds every script of the 4.7 game. Before capture, the
+  official editor performs Godot's own `--headless --import`, so preloads of imported assets
+  resolve. `gd-analyze closure` reads all six Godot 4 games. Godot 4.6 has its own authority:
+  the official binary, API dump, source tree and a ported patch. Its exporter is being built.
+- **Evidence.** `gd-analyze evidence <class>` and `gd-analyze evidence --refresh` produce every
+  claim by running official Godot and the translated code on the same input. Before the refresh
+  existed, digests were copied into TypeScript by hand. 17 built-in types and utilities are
+  proven: 3,165 cases, all bit-exact apart from the platform-maths comparator below, and 126 bindings.
+  The instrument's own findings are recorded in each module's header: signed zeros merged by GDScript's constant pool,
+  `atan2f`'s range at ±π, float literals Godot does not parse to the nearest double, and
+  float-to-int saturation on arm64.
+- **Lowering.** Operators, constants and built-in member writes (`v.x = e` becomes
+  `v = with_x(v, e)`) go through evidenced bindings. Structural rules key a datatype class where
+  semantics do not depend on the type. Dynamic calls are typed from project facts
+  (`analyze/call-receivers.ts`); the two rules' evidence is in progress.
+- **Import of `platformer-3d-godot4`.** It stops in planning. On the script side the gaps are
+  language rules and native-class bindings; on the scene side, the structure and node families
+  above.
+
+**Rulings made while building (the author's; the owner has not reviewed them):**
+
+- **Transcendental functions.** A member Godot delegates to the C library (`Math::sin` is
+  `::sin`) differs across Godot's own platforms. Its claim is "within the platform library's
+  error": at most 1 ulp, with the measured maximum recorded in the claim. Everything Godot
+  computes itself is compared bit for bit.
+- **Godot 3.** Godot's official 3-to-4 converter was measured on the five Godot 3 games. Only
+  `dodge-the-creeps` comes out with every script analyzing (kaykit 1/2, platformer-3d 2/5, rota
+  65/92, squash 2/4). Fixing converted scripts by hand would modify the source, so the converter
+  is not an import path. The Godot 3 games need a Godot 3.6.2 exporter and a lowering for
+  GDScript 3's tree. That is its own lane-sized unit.
+
 ## What comes next
 
-Measured facts end above. From here on, this is proposal: the order in which to close the gap.
+In order. The first three run now.
 
-1. **Close the first reading's read gaps, by family.** Open audio, texture, shader and cubemap
-   assets as asset copies or conversions, and expand a `.glb` instanced as a scene through
-   `read/gltf-godot-scene.ts`. Each family lands whole, with its evidence, then the import runs
-   again until it produces a project.
-2. **Make evidence cheap.** Every accepted rule needs a native differential record, and today each
-   one is written by hand. Throughput is the constraint, so build the instrument before breadth:
-   one command that runs official Godot 4.7 and the translated TypeScript on the same input for a
-   member family and writes the `SemanticClaimRecord`.
-3. **Rebuild compat as bindings.** Bind each canonical symbol the corpus closure needs to a typed
-   export. Classify each as BINDING or PROTOCOL, and read the old module as source material. The
-   dispatch tables, the server reimplementations and the sibling imports go. Push general supply
-   down to `@volter/threejs-runtime` or `@volter/game-runtime`, as `ground-projection` already is.
-4. **Reconcile the runtime with rule 4.** Take the neutral host events from the native libraries
-   (R3F frame, Rapier step) at the generated composition site, not a Godot runtime package.
-   Retire the manifest mount along with plan unit 5.
-5. **Widen the corpus.** Pin a 4.6 exporter (same module, 4.6-stable source) for the five 4.6
-   games, and add a canvas integration before any 2D game.
+1. **Native classes, one family at a time.** Node3D and Camera3D first; they set the native
+   receiver pattern. Then Node and SceneTree (tree operations, groups, timers, signals),
+   Input, the physics bodies over Rapier, AnimationPlayer, audio and Tween. Each is proven by
+   node cases in the instrument: the same tree built in Godot and in three.
+2. **Language rules** until the platformer's scripts lower completely, including static
+   built-in calls, Dictionary literals and Godot's own literal values.
+3. **Pin the 4.6 exporter**, then refresh every claim for the 4.6 revision. The instrument
+   re-runs the same cases against the official 4.6 binary.
+4. **Scene structure and node families** (the sections above), until the platformer produces a
+   project. Then build it, boot it in the game editor, and compare it side by side with Godot.
+5. **The Godot 3 frontend.**
 6. **Open question: the frontend in the tab.** Blender runs in the browser as WebAssembly. The
    Godot exporter is the same substrate, a C++ program built from pinned source. Built with
-   emsdk, import would need no native binary on the importer's machine, and the pin would be one
-   checked-in artifact digest.
+   emsdk, import would need no native binary on the importer's machine.
