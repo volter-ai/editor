@@ -4763,6 +4763,10 @@ export class EditorViewport {
     // Whoever owns the view's projection answers for an axis view first (Blender's
     // `view3d.view_axis`, which the gizmo's balls run: orthographic under Auto Perspective).
     for (const listener of [...this._axisViewListeners].reverse()) if (listener()) break;
+    // A drag's leftover inertia would carry the view off the axis once the turn ends.
+    const pending = this.orbitControls as unknown as { _sphericalDelta: THREE.Spherical; _panOffset: THREE.Vector3 };
+    pending._sphericalDelta.set(0, 0, 0);
+    pending._panOffset.set(0, 0, 0);
 
     // The view turns to the axis's own orientation, with no roll: Top's screen up is the world's
     // -Z, Bottom's +Z, the rest the world's up (`ED_view3d_quat_from_axis_view`, roll 0).
