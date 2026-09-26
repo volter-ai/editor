@@ -161,6 +161,10 @@ export async function startEmscriptenBlenderEngine(
   const digests = status.digests ?? {};
   // The `.data` package is handed to the glue whole (`getPreloadedPackage`),
   // so it is read before the module starts; the wasm streams in beside it.
+  // The Essentials are fetched beside the engine, not after it is ready:
+  // on a first open they came last, 0.2 s after a ready Blender, serially.
+  const essentials = fetchEssentials(digests['essentials.bin']);
+  essentials.catch(() => undefined);
   const [factory, preloaded] = await Promise.all([
     loadFactory(glueUrl),
     cachedArtifact('blender_browser.data', digests['blender_browser.data']).then(async (response) => {
@@ -312,7 +316,7 @@ export async function startEmscriptenBlenderEngine(
 
   const files = moduleFiles(module);
   FS.chmod('/bw/datafiles', 0o755);
-  await mountEssentials(files, digests['essentials.bin']);
+  await mountEssentials(files, await essentials);
   const { request } = openSessionChannel(files, options);
 
   return {
@@ -337,10 +341,11 @@ export async function startEmscriptenBlenderEngine(
 /** Assets are data, not a second engine. Ship them separately so a data update
  * does not relink the 86 MB Wasm binary. Both payload and per-file bounds are
  * checked before anything enters Blender's filesystem. */
-async function mountEssentials(files: BlenderFiles, digest: string | undefined): Promise<void> {
-  const [indexResponse, payloadResponse] = await Promise.all([
-    fetch(artifactUrl('essentials.json')), cachedArtifact('essentials.bin', digest),
-  ]);
+async function fetchEssentials(digest: string | undefined): Promise<[Response, Response]> {
+  return Promise.all([fetch(artifactUrl('essentials.json')), cachedArtifact('essentials.bin', digest)]);
+}
+
+async function mountEssentials(files: BlenderFiles, [indexResponse, payloadResponse]: [Response, Response]): Promise<void> {
   if (!indexResponse.ok || !payloadResponse.ok)
     throw new Error(`Blender Essentials assets are missing (${indexResponse.status}/${payloadResponse.status})`);
   const index = await indexResponse.json() as {
