@@ -153,6 +153,9 @@ export interface BoundGodotSceneDocument {
   readonly sourceKind: 'packed-scene' | 'imported-gltf';
   /** One normalized row per effective or unresolved authored node; no downstream tree walk. */
   readonly nodes: readonly BoundGodotSceneNode[];
+  /** The document's `[sub_resource]`s and `[ext_resource]`s (an instance's copied under its ids). */
+  readonly subResources: readonly BoundGodotResourceData[];
+  readonly extResources: readonly BoundGodotExtResource[];
   readonly connectionCount: number;
   /** The document's `[connection]` lines, as authored. */
   readonly connections: readonly BoundGodotSceneConnection[];
@@ -223,8 +226,32 @@ export interface BoundGodotSceneNode {
 }
 
 /** Decoded project documents with snapshot provenance; translation never reopens their paths. */
+/** A resource a document declares (`[sub_resource]`, or a `.tres`'s `[resource]`), as authored. */
+export interface BoundGodotResourceData {
+  readonly id: string;
+  readonly type: string;
+  readonly properties: Readonly<Record<string, GodotValue>>;
+}
+
+/** A document's `[ext_resource]`: the resource another file holds. */
+export interface BoundGodotExtResource {
+  readonly id: string;
+  readonly type: string;
+  readonly resPath: string;
+}
+
+/** One `.tres` resource document: its own resource and the resources it declares. */
+export interface BoundGodotResourceDocument {
+  readonly resPath: string;
+  readonly sourceDigest: string;
+  readonly resource: BoundGodotResourceData;
+  readonly subResources: readonly BoundGodotResourceData[];
+  readonly extResources: readonly BoundGodotExtResource[];
+}
+
 export interface BoundGodotProjectDocuments {
   readonly scenes: readonly BoundGodotSceneDocument[];
+  readonly resources: readonly BoundGodotResourceDocument[];
 }
 
 export interface BoundGodotScriptMethod {
@@ -498,7 +525,7 @@ function boundDocuments(
   evidence: AnalysisEvidence,
 ): BoundGodotProjectDocuments {
   const resolveSceneClass = sceneClassResolver(authority, apiDump, projectClasses, evidence);
-  const provenance = <T extends SceneDocument>(document: T) => {
+  const provenance = (document: { readonly resPath: string }) => {
     const entry = snapshot.entryByResPath(document.resPath);
     if (entry?.entryType !== 'file' || entry.digest === undefined) {
       throw new Error(`${document.resPath}: decoded document has no captured source bytes`);
@@ -534,6 +561,16 @@ function boundDocuments(
             projectNodes.byKey,
             scriptFields,
           ),
+          subResources: document.subResources.map((resource) => ({
+            id: String(resource.id),
+            type: resource.type,
+            properties: resource.properties,
+          })),
+          extResources: document.extResources.map((resource) => ({
+            id: String(resource.id),
+            type: resource.type,
+            resPath: resource.resPath,
+          })),
           connectionCount: document.connections.length,
           connections: document.connections.map((connection) => ({
             signal: connection.signal,
@@ -548,6 +585,23 @@ function boundDocuments(
           editablePaths: document.editablePaths,
         };
       }),
+    ),
+    resources: unique(
+      'resource',
+      decoded.resources.map((document) => ({
+        ...provenance(document),
+        resource: { id: '', type: document.type, properties: document.properties },
+        subResources: document.subResources.map((resource) => ({
+          id: String(resource.id),
+          type: resource.type,
+          properties: resource.properties,
+        })),
+        extResources: document.extResources.map((resource) => ({
+          id: String(resource.id),
+          type: resource.type,
+          resPath: resource.resPath,
+        })),
+      })),
     ),
   };
 }

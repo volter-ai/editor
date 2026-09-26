@@ -49,6 +49,12 @@ function validateInputClosure(
     'project.godot',
     ...composition.sourceModules.map((module) => module.sourceResPath.slice('res://'.length)),
     ...sceneModules.modules.map((module) => module.sourceResPath.slice('res://'.length)),
+    // A `.tres` a scene's resources are constructed from is translated into that scene's module.
+    ...composition.scenes.flatMap((scene) =>
+      scene.resources.flatMap((resource) =>
+        resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [],
+      ),
+    ),
   ]);
   return project.inputs.flatMap((entry) => {
     if (

@@ -22,6 +22,13 @@ import {
   GODOT_4_7_STRUCTURE_RULES,
 } from './authority/godot-4.7-scene-nodes';
 import {
+  GODOT_4_7_RENDER_CLAIMS,
+  GODOT_4_7_RENDER_LIVENESS,
+  GODOT_4_7_RENDER_NODE_RULES,
+  GODOT_4_7_RENDER_RESOURCE_RULES,
+  GODOT_4_7_RENDER_STRUCTURE_RULES,
+} from './authority/godot-4.7-scene-render';
+import {
   GODOT_SCENE_NODE_AUTHORITY_VERSION,
   type GodotSceneNodeAuthority,
 } from './scene-node-authority';
@@ -48,6 +55,35 @@ export const GODOT_SCENE_STRUCTURE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/read/scene.ts',
 ] as const;
 
+const COMPAT = 'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat';
+
+/** What the scene-render proof runs: planning, emission and the render compat it mounts. */
+export const GODOT_SCENE_RENDER_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-node-authority.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  ...[
+    'node.ts',
+    'node-3d.ts',
+    'visual-instance-3d.ts',
+    'geometry-instance-3d.ts',
+    'mesh-instance-3d.ts',
+    'primitive-mesh.ts',
+    'plane-mesh.ts',
+    'quad-mesh.ts',
+    'sphere-mesh.ts',
+    'cylinder-mesh.ts',
+    'base-material-3d.ts',
+    'standard-material-3d.ts',
+    'light-3d.ts',
+    'directional-light-3d.ts',
+    'omni-light-3d.ts',
+  ].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** Checked-in, exact-pin scene-node mapping authority for the selected official frontend. */
 export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotSceneNodeAuthority {
   const supported =
@@ -57,14 +93,19 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
     version: GODOT_SCENE_NODE_AUTHORITY_VERSION,
     sourceRevision: source.revision,
     apiDumpSha256: source.apiDumpSha256,
-    rules: supported ? [...GODOT_4_7_SCENE_NODE_RULES, ...GODOT_4_7_STRUCTURE_NODE_RULES] : [],
+    rules: supported
+      ? [...GODOT_4_7_SCENE_NODE_RULES, ...GODOT_4_7_STRUCTURE_NODE_RULES, ...GODOT_4_7_RENDER_NODE_RULES]
+      : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
     propertyRules: supported
       ? [...GODOT_4_7_SCENE_PROPERTY_RULES, ...GODOT_4_7_STRUCTURE_PROPERTY_RULES]
       : [],
-    structureRules: supported ? GODOT_4_7_STRUCTURE_RULES : [],
+    structureRules: supported ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES] : [],
     signalRules: supported ? GODOT_4_7_SIGNAL_RULES : [],
-    claims: supported ? [...GODOT_4_7_SCENE_NODE_CLAIMS, ...GODOT_4_7_STRUCTURE_CLAIMS] : [],
+    resourceRules: supported ? GODOT_4_7_RENDER_RESOURCE_RULES : [],
+    claims: supported
+      ? [...GODOT_4_7_SCENE_NODE_CLAIMS, ...GODOT_4_7_STRUCTURE_CLAIMS, ...GODOT_4_7_RENDER_CLAIMS]
+      : [],
     liveness: supported
       ? [
           ...withLiveImplementation(
@@ -74,6 +115,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_STRUCTURE_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_STRUCTURE_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_RENDER_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_RENDER_IMPLEMENTATION_FILES),
           ),
         ]
       : [],

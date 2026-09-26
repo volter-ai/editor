@@ -1,11 +1,14 @@
 import type {
   BoundGodotProject,
+  BoundGodotResourceData,
   BoundGodotSceneDocument,
   BoundGodotSceneNode,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
 import { isImportedResourceId } from '../../read/instance-expansion';
+import { type SceneSetterLookup, type TargetSceneValue, targetSceneValue } from './scene-setters';
 import {
+  type GodotCompatExport,
   type GodotSceneNodeAuthority,
   GodotSceneNodeAuthorityResolver,
   type GodotSceneStructureRuleId,
@@ -35,9 +38,37 @@ export interface TargetGodotSceneNodePlan {
    * mount (type tests read it); empty for an instance, whose component records its own root.
    */
   readonly classes: readonly string[];
+  /** The protocol that makes the mounted entity the node its class creates. */
+  readonly mount?: GodotCompatExport;
+  /** Authored properties without a JSX rule: their setters' calls on the entity at mount, in order. */
+  readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly children: readonly TargetGodotSceneNodePlan[];
   readonly evidenceClaimId: string;
   readonly placementEvidenceClaimId?: string;
+}
+
+/** A value a setter receives: a target value, or a resource this document's plan constructs. */
+export type TargetGodotSceneValue =
+  | Exclude<TargetSceneValue, { readonly kind: 'resource' }>
+  | { readonly kind: 'resource'; readonly key: string };
+
+/** One authored property as its setter's bound call. */
+export interface TargetGodotSceneSetterPlan {
+  readonly propertyName: string;
+  readonly setter: { readonly module: string; readonly exportName: string; readonly localName: string };
+  readonly index?: number;
+  readonly value: TargetGodotSceneValue;
+  readonly evidenceClaimId: string;
+}
+
+/** A resource the scene constructs once, then sets its authored properties on. */
+export interface TargetGodotSceneResourcePlan {
+  /** Document-unique: `sub:<id>`, or `ext:<res path>` and its own `ext:<res path>#sub:<id>`. */
+  readonly key: string;
+  readonly className: string;
+  readonly construct: GodotCompatExport;
+  readonly setters: readonly TargetGodotSceneSetterPlan[];
+  readonly evidenceClaimId: string;
 }
 
 export interface TargetGodotScenePropertyPlan {
@@ -68,6 +99,8 @@ export interface TargetGodotSceneDocumentPlan {
   readonly targetPath: string;
   readonly exportName: string;
   readonly root: TargetGodotSceneNodePlan;
+  /** Resources the scene's setters pass, dependencies before the resources that use them. */
+  readonly resources: readonly TargetGodotSceneResourcePlan[];
   /** Authored connections, in document order (the order `SceneState::instantiate` connects). */
   readonly connections: readonly TargetGodotSceneConnectionPlan[];
 }
@@ -78,6 +111,8 @@ export interface GodotSceneDocumentPlan {
   readonly sourceRevision: string;
   readonly scenes: readonly TargetGodotSceneDocumentPlan[];
   readonly evidenceClaimIds: readonly string[];
+  /** Setter binding claims the scenes use: code-layer claims, joined with the code plan's. */
+  readonly bindingEvidenceClaimIds: readonly string[];
   readonly semanticClaimRegistryDigest: string;
 }
 
@@ -201,7 +236,20 @@ function isResourceValue(value: GodotValue): boolean {
   return false;
 }
 
+/** The resources of the document being planned, and those its setters have planned so far. */
+interface DocumentResources {
+  readonly scene: BoundGodotSceneDocument;
+  readonly planned: Map<string, TargetGodotSceneResourcePlan | null>;
+  readonly order: TargetGodotSceneResourcePlan[];
+}
+
 interface PlanContext {
+  /** The setter an authored property calls, when the code authority binds it. */
+  readonly setters?: SceneSetterLookup;
+  readonly project?: BoundGodotProject;
+  document?: DocumentResources;
+  /** Setter binding claims the scenes use (code-layer claims, joined with the code plan's). */
+  readonly bindingEvidence: Set<string>;
   /** Exported fields a script (and its script ancestors) declares: set by the field plan. */
   readonly scriptFields: (resPath: string) => ReadonlySet<string>;
   /** Functions a script (and its script ancestors) declares. */
@@ -236,21 +284,137 @@ function structure(
   return true;
 }
 
+/**
+ * An authored value as the value its setter receives; a resource reference plans that resource
+ * (constructed once per document, its own properties set by their setters).
+ */
+function setterValue(
+  context: PlanContext,
+  at: string,
+  subject: string,
+  value: GodotValue,
+  scope: string,
+): TargetGodotSceneValue | undefined {
+  const target = targetSceneValue(value);
+  if (target === undefined) {
+    refuse(context, at, `a ${value.kind} value is not passed to a setter`, 'property', subject);
+    return undefined;
+  }
+  if (target.kind !== 'resource') return target;
+  const key = planResource(context, at, target.reference, target.id, scope);
+  return key === undefined ? undefined : { kind: 'resource', key };
+}
+
+/**
+ * Plans the resource a `SubResource`/`ExtResource` names: a sub-resource of the scene (or of the
+ * `.tres` whose scope it is in), or a `.tres` resource document. Its class needs a resource rule
+ * and each authored property a bound setter; its key, or undefined when it does not plan.
+ */
+function planResource(
+  context: PlanContext,
+  at: string,
+  reference: 'sub' | 'ext',
+  id: string,
+  scope: string,
+): string | undefined {
+  const document = context.document;
+  if (document === undefined) return undefined;
+  let key: string;
+  let data: BoundGodotResourceData | undefined;
+  let nestedScope = scope;
+  if (scope === '') {
+    if (reference === 'sub') {
+      key = `sub:${id}`;
+      data = document.scene.subResources.find((entry) => entry.id === id);
+    } else {
+      const ext = document.scene.extResources.find((entry) => entry.id === id);
+      key = `ext:${ext?.resPath ?? id}`;
+      const resource = context.project?.documents.resources.find((entry) => entry.resPath === ext?.resPath);
+      data = resource?.resource;
+      nestedScope = ext?.resPath ?? '';
+    }
+  } else {
+    const resource = context.project?.documents.resources.find((entry) => entry.resPath === scope);
+    if (reference === 'sub') {
+      key = `ext:${scope}#sub:${id}`;
+      data = resource?.subResources.find((entry) => entry.id === id);
+    } else {
+      const ext = resource?.extResources.find((entry) => entry.id === id);
+      key = `ext:${ext?.resPath ?? id}`;
+      data = context.project?.documents.resources.find((entry) => entry.resPath === ext?.resPath)?.resource;
+      nestedScope = ext?.resPath ?? '';
+    }
+  }
+  if (document.planned.has(key)) return document.planned.get(key) === null ? undefined : key;
+  document.planned.set(key, null);
+  if (data === undefined) {
+    refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
+    return undefined;
+  }
+  const rule = context.authority.resourceRule(data.type);
+  if (rule === undefined) {
+    refuse(context, at, `no live resource rule constructs ${data.type}`, 'resource', data.type);
+    return undefined;
+  }
+  const setters: TargetGodotSceneSetterPlan[] = [];
+  let ok = true;
+  for (const [propertyName, value] of Object.entries(data.properties)) {
+    const setter = setterPlan(context, `${at}(${key}).${propertyName}`, data.type, propertyName, value, nestedScope);
+    if (setter === undefined) ok = false;
+    else setters.push(setter);
+  }
+  if (!ok) return undefined;
+  context.evidence.add(rule.evidenceClaimId);
+  const planned = { key, className: data.type, construct: rule.construct, setters, evidenceClaimId: rule.evidenceClaimId };
+  document.planned.set(key, planned);
+  document.order.push(planned);
+  return key;
+}
+
+/** One authored property of `className` (a node's or a resource's) as its setter's call. */
+function setterPlan(
+  context: PlanContext,
+  at: string,
+  className: string,
+  propertyName: string,
+  value: GodotValue,
+  scope: string,
+): TargetGodotSceneSetterPlan | undefined {
+  const subject = `${className}.${propertyName}`;
+  const found = context.setters?.(className, propertyName);
+  if (found === undefined || typeof found === 'string') {
+    refuse(context, at, found ?? `no setter lookup for ${propertyName}`, 'property', subject);
+    return undefined;
+  }
+  if (!structure(context, at, 'property-setter')) return undefined;
+  const target = setterValue(context, at, subject, value, scope);
+  if (target === undefined) return undefined;
+  context.bindingEvidence.add(found.evidenceClaimId);
+  return {
+    propertyName,
+    setter: { module: found.module, exportName: found.exportName, localName: found.localName },
+    ...(found.index === undefined ? {} : { index: found.index }),
+    value: target,
+    evidenceClaimId: found.evidenceClaimId,
+  };
+}
+
 function planProperties(
   context: PlanContext,
   node: BoundGodotSceneNode,
   properties: Readonly<Record<string, GodotValue>>,
+  setters?: TargetGodotSceneSetterPlan[],
 ): readonly TargetGodotScenePropertyPlan[] | undefined {
   const result: TargetGodotScenePropertyPlan[] = [];
   let refused = false;
   for (const [propertyName, value] of Object.entries(properties)) {
     const at = `${node.documentPath}#${node.nodePath}.${propertyName}`;
-    if (isResourceValue(value)) {
+    if (isResourceValue(value) && setters === undefined) {
       refuse(context, at, `${propertyName} is a resource value`, 'resource', `${node.class.nativeName}.${propertyName}`);
       refused = true;
       continue;
     }
-    const serialized = serializedValue(value);
+    const serialized = isResourceValue(value) ? undefined : serializedValue(value);
     // A property belongs to the class in the ancestry that declares it (ClassDB::set).
     const rule =
       serialized === undefined
@@ -264,6 +428,13 @@ function planProperties(
               ),
             )
             .find((candidate) => candidate !== undefined);
+    if ((rule === undefined || serialized === undefined) && setters !== undefined) {
+      // No JSX rule: the property's setter, called on the entity at mount.
+      const setter = setterPlan(context, at, node.class.nativeName, propertyName, value, '');
+      if (setter === undefined) refused = true;
+      else setters.push(setter);
+      continue;
+    }
     if (rule === undefined || serialized === undefined) {
       refuse(
         context,
@@ -327,10 +498,12 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     context.evidence.add(rule.evidenceClaimId);
   }
   const fields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
+  const setters: TargetGodotSceneSetterPlan[] = [];
   const properties = planProperties(
     context,
     node,
     Object.fromEntries(Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name))),
+    setters,
   );
   const groups = groupsOf(context, node);
   const placed = placement(context, node);
@@ -346,6 +519,8 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     properties,
     groups,
     classes: node.class.nativeAncestry,
+    ...(rule.mount === undefined ? {} : { mount: rule.mount }),
+    setters,
     children: [],
     evidenceClaimId: rule.evidenceClaimId,
     ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
@@ -406,6 +581,7 @@ function planInstanceRoot(
     properties,
     groups: [],
     classes: [],
+    setters: [],
     children: [],
     evidenceClaimId: context.authority.structureRule('scene-instance')?.evidenceClaimId ?? '',
     ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
@@ -417,6 +593,7 @@ function isInside(path: string, root: string): boolean {
 }
 
 function planScene(context: PlanContext, scene: BoundGodotSceneDocument): TargetGodotSceneDocumentPlan | undefined {
+  context.document = { scene, planned: new Map(), order: [] };
   if (scene.sourceKind !== 'packed-scene') return undefined;
   if (!structure(context, scene.resPath, 'authored-order')) return undefined;
   // Instance roots: a node this document copied from another scene's root.
@@ -513,6 +690,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     targetPath: targetPath(scene.resPath),
     exportName: godotSceneExportName(scene.resPath),
     root,
+    resources: context.document.order,
     connections,
   };
 }
@@ -616,6 +794,7 @@ function assembleSceneTree(
 export function planGodotSceneDocuments(
   project: BoundGodotProject,
   sourceAuthority: GodotSceneNodeAuthority,
+  setters?: SceneSetterLookup,
 ): GodotSceneDocumentResult {
   const authority = new GodotSceneNodeAuthorityResolver(sourceAuthority);
   if (authority.sourceRevision !== project.authority.revision) {
@@ -623,6 +802,9 @@ export function planGodotSceneDocuments(
   }
   const byScript = new Map(project.scripts.map((script) => [script.resPath, script] as const));
   const context: PlanContext = {
+    ...(setters === undefined ? {} : { setters }),
+    project,
+    bindingEvidence: new Set<string>(),
     scriptFields: (resPath) => {
       const script = byScript.get(resPath);
       const names = new Set<string>();
@@ -679,6 +861,7 @@ export function planGodotSceneDocuments(
       sourceRevision: project.authority.revision,
       scenes,
       evidenceClaimIds: [...context.evidence].sort(),
+      bindingEvidenceClaimIds: [...context.bindingEvidence].sort(),
       semanticClaimRegistryDigest: authority.registryDigest,
     },
   };

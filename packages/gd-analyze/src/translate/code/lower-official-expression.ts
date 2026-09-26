@@ -373,6 +373,9 @@ function nativeAccessorUse(
 ): OfficialBoundBindingUse | undefined {
   const found = context.nativeProperty(baseNode.datatype.nativeType, property);
   if (found === undefined) return undefined;
+  if (found.index !== undefined) {
+    return context.refuse(node, `${found.owner}.${property} is an indexed property; its accessors take the index`);
+  }
   const method = found[accessor];
   if (method === undefined) {
     return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
@@ -418,6 +421,9 @@ function selfNativeAccessor(
   if (base === undefined) return undefined;
   const found = context.nativeProperty(base, property);
   if (found === undefined) return undefined;
+  if (found.index !== undefined) {
+    return context.refuse(node, `${found.owner}.${property} is an indexed property; its accessors take the index`);
+  }
   const method = found[accessor];
   if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
   const use = context.bindingUse(

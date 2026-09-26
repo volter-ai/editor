@@ -11,13 +11,39 @@ export const GODOT_SCENE_NODE_AUTHORITY_VERSION = 1 as const;
  * `<group>` compat marks non-spatial (identity matrix, skipped by Node3D's parent rule); a
  * Camera3D a `<perspectiveCamera>` mounted with Godot's defaults.
  */
-export type TargetSceneNodeKind = 'three-group' | 'three-node' | 'three-perspective-camera';
+export type TargetSceneNodeKind =
+  | 'three-group'
+  | 'three-node'
+  | 'three-perspective-camera'
+  | 'three-mesh'
+  | 'three-directional-light'
+  | 'three-point-light';
+
+/** A compat export the composition calls: `module` relative to the project's `src/`. */
+export interface GodotCompatExport {
+  readonly module: string;
+  readonly exportName: string;
+}
 
 export interface GodotSceneNodeRule {
   readonly sourceRevision: string;
   readonly nativeCanonicalIdentity: string;
   readonly targetKind: TargetSceneNodeKind;
+  /** The protocol that makes the mounted entity the node its class creates, before properties. */
+  readonly mount?: GodotCompatExport;
   readonly evidenceClaimId: string;
+}
+
+/** A resource class the composition constructs (`construct`), then sets authored properties on. */
+export interface GodotSceneResourceRule {
+  readonly sourceRevision: string;
+  readonly className: string;
+  readonly construct: GodotCompatExport;
+  readonly evidenceClaimId: string;
+}
+
+export function godotSceneResourceRuleKey(sourceRevision: string, className: string): string {
+  return [sourceRevision, 'scene-resource', className].join('\0');
 }
 
 export type GodotScenePlacementKind = 'child';
@@ -54,7 +80,9 @@ export type GodotSceneStructureRuleId =
   | 'instance-root-override'
   | 'instance-children'
   | 'node-groups'
-  | 'authored-order';
+  | 'authored-order'
+  /** An authored property without a JSX rule is its setter's bound call on the entity at mount. */
+  | 'property-setter';
 
 export interface GodotSceneStructureRule {
   readonly sourceRevision: string;
@@ -111,6 +139,7 @@ export interface GodotSceneNodeAuthority {
   readonly propertyRules: readonly GodotScenePropertyRule[];
   readonly structureRules: readonly GodotSceneStructureRule[];
   readonly signalRules: readonly GodotSceneSignalRule[];
+  readonly resourceRules: readonly GodotSceneResourceRule[];
   readonly claims: readonly SemanticClaimRecord[];
   readonly liveness: readonly GodotSceneNodeClaimLiveness[];
 }
@@ -222,6 +251,7 @@ export class GodotSceneNodeAuthorityResolver {
   readonly #propertyRules: ReadonlyMap<string, GodotScenePropertyRule>;
   readonly #structureRules: ReadonlyMap<string, GodotSceneStructureRule>;
   readonly #signalRules: ReadonlyMap<string, GodotSceneSignalRule>;
+  readonly #resourceRules: ReadonlyMap<string, GodotSceneResourceRule>;
   readonly #registry: SemanticClaimRegistry;
   readonly #liveness: ReadonlyMap<string, GodotSceneNodeClaimLiveness>;
 
@@ -250,6 +280,29 @@ export class GodotSceneNodeAuthorityResolver {
       signals.set(key, rule);
     }
     this.#signalRules = signals;
+    const resources = new Map<string, GodotSceneResourceRule>();
+    for (const rule of authority.resourceRules) {
+      const key = godotSceneResourceRuleKey(rule.sourceRevision, rule.className);
+      if (resources.has(key)) throw new Error(`duplicate Godot scene resource rule: ${key}`);
+      resources.set(key, rule);
+    }
+    this.#resourceRules = resources;
+  }
+
+  /** The live rule that constructs a resource class, or undefined. */
+  resourceRule(className: string): GodotSceneResourceRule | undefined {
+    const key = godotSceneResourceRuleKey(this.sourceRevision, className);
+    const rule = this.#resourceRules.get(key);
+    if (rule === undefined) return undefined;
+    const liveness = this.#liveness.get(rule.evidenceClaimId);
+    if (liveness === undefined) {
+      throw new Error(`Godot scene resource claim has no liveness: ${rule.evidenceClaimId}`);
+    }
+    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
+    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
+      throw new Error(`Godot scene resource claim does not prove its rule: ${rule.evidenceClaimId}`);
+    }
+    return rule;
   }
 
   /**

@@ -24,6 +24,7 @@ import { measureProjectSettingProof } from './proofs/project-settings';
 import { measureReadProof } from './proofs/read';
 import { measureReceiverProof } from './proofs/receivers';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
+import { measureSceneRenderProof } from './proofs/scene-render';
 import { measureSceneStructureProof } from './proofs/scene-structure';
 import {
   GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256,
@@ -45,6 +46,7 @@ const PROOFS: readonly (readonly [
   ['field-values', measureFieldValueProof],
   ['scene-nodes', measureSceneNodeProof],
   ['scene-structure', measureSceneStructureProof],
+  ['scene-render', measureSceneRenderProof],
   ['code-seed', measureCodeSeedProof],
   ['language', measureLanguageProof],
   ['autoload-reference', measureAutoloadReferenceProof],

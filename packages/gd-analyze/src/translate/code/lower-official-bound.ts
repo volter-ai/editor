@@ -662,6 +662,7 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
           owner: current.name,
           ...(getter === undefined ? {} : { getter }),
           ...(setter === undefined ? {} : { setter }),
+          ...(found.index === undefined ? {} : { index: found.index }),
         };
       }
       current = current.base_class === '' ? undefined : classes.get(current.base_class);

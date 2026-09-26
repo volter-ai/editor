@@ -9,6 +9,7 @@ import {
 import { planDirectGodotProjectData } from './data/direct-project-data-plan';
 import { planDirectGodotSceneModules } from './data/direct-scene-module-plan';
 import { planGodotSceneDocuments } from './data/scene-document-plan';
+import { sceneSetterLookup } from './data/scene-setters';
 import { planScriptFieldInitializations } from './data/script-field-initialization-plan';
 import { assembleGodotTranslationPlan, type GodotTranslationResult } from './translation-plan';
 
@@ -63,7 +64,11 @@ export function planGodotTranslation(
     toolchain.frontend.apiDump.parsed,
   );
   const fields = planScriptFieldInitializations(project, toolchain.frontend.fieldValueAuthority);
-  const scenes = planGodotSceneDocuments(project, toolchain.frontend.sceneNodeAuthority);
+  const scenes = planGodotSceneDocuments(
+    project,
+    toolchain.frontend.sceneNodeAuthority,
+    sceneSetterLookup(toolchain.frontend.codeAuthority, toolchain.frontend.apiDump.parsed),
+  );
   if (code.kind === 'refused-code') {
     diagnostics.push(
       ...code.diagnostics.map((entry) => ({

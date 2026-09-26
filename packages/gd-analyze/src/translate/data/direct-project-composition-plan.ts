@@ -624,7 +624,7 @@ export function planDirectGodotProjectComposition(
         analysisClaimIds: project.analysisEvidence.claimIds,
         codeAnalysisClaimIds: code.analysisEvidenceClaimIds,
         languageClaimIds: code.languageEvidenceClaimIds,
-        bindingClaimIds: code.bindingEvidenceClaimIds,
+        bindingClaimIds: [...new Set([...code.bindingEvidenceClaimIds, ...scenes.bindingEvidenceClaimIds])].sort(),
         fieldValueClaimIds: fields.evidenceClaimIds,
         sceneClaimIds: scenes.evidenceClaimIds,
         readRegistryDigest: project.resourceProgram.evidence.registryDigest,

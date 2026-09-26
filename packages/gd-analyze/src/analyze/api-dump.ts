@@ -87,6 +87,8 @@ export interface GodotApiProperty {
   /** Godot 3's api.json keeps the ClassDB accessor names on every property. */
   readonly getter?: string;
   readonly setter?: string;
+  /** An indexed property's index (`ADD_PROPERTYI`): its accessors take it before the value. */
+  readonly index?: number;
 }
 
 export interface GodotApiSignal {
@@ -617,11 +619,13 @@ function normalizeGodot4Class(
       // through them.
       const getter = entry['getter'];
       const setter = entry['setter'];
+      const index = entry['index'];
       return {
         name: entry['name'],
         type: entry['type'],
         ...(typeof getter === 'string' && getter !== '' ? { getter } : {}),
         ...(typeof setter === 'string' && setter !== '' ? { setter } : {}),
+        ...(typeof index === 'number' ? { index } : {}),
       };
     }),
     signals: optionalList(raw, 'signals', at).map((entry, i) => {

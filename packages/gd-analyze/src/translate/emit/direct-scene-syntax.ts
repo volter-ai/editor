@@ -7,6 +7,7 @@ import type {
   TargetTsType,
 } from '../code/target-ts-syntax';
 import { TARGET_TS_SYNTAX_VERSION, type TargetTsSourceFile } from '../code/target-ts-syntax';
+import type { TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import type {
   DirectGodotProjectCompositionPlan,
   DirectGodotSceneNodePlan,
@@ -110,6 +111,15 @@ function nodeElement(
           defaults.push({ kind: 'jsx-expression-attribute', name, value: literal(value) });
         }
       }
+      break;
+    case 'three-mesh':
+      tag = 'mesh';
+      break;
+    case 'three-directional-light':
+      tag = 'directionalLight';
+      break;
+    case 'three-point-light':
+      tag = 'pointLight';
       break;
     case 'scene-instance': {
       const component = emission.instanceComponents.get(node.instance?.sourceResPath ?? '');
@@ -333,6 +343,76 @@ function connectionStatements(
   return { make, release };
 }
 
+/** The three class an entity of a native node kind is, for the compat calls on it. */
+const THREE_CLASS: Partial<Record<DirectGodotSceneNodePlan['targetKind'], string>> = {
+  'three-mesh': 'Mesh',
+  'three-directional-light': 'DirectionalLight',
+  'three-point-light': 'PointLight',
+};
+
+function nativeEntity(entity: TargetTsExpression, kind: DirectGodotSceneNodePlan['targetKind']): TargetTsExpression {
+  const three = THREE_CLASS[kind];
+  return three === undefined ? entity : { kind: 'as-expression', expression: entity, type: referenceType(three) };
+}
+
+/** A compat protocol export's local name: its own export name. */
+function compatLocal(entry: { readonly exportName: string }): string {
+  return entry.exportName;
+}
+
+/** Compat modules of the built-in values a setter receives. */
+const VALUE_MODULES = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color' } as const;
+
+function sceneValue(value: TargetGodotSceneValue, resources: ReadonlyMap<string, string>): TargetTsExpression {
+  switch (value.kind) {
+    case 'number':
+    case 'bool':
+    case 'string':
+      return { kind: 'literal-expression', value: value.value };
+    case 'null':
+      return { kind: 'literal-expression', value: null };
+    case 'resource':
+      return { kind: 'identifier-expression', name: resources.get(value.key) as string };
+    default:
+      return {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: `${value.kind}_construct` },
+        arguments: value.components.map((component) => ({ kind: 'literal-expression', value: component })),
+      };
+  }
+}
+
+/** `setter(receiver, [index,] value)`: one authored property through its bound setter. */
+function setterCall(
+  setter: TargetGodotSceneSetterPlan,
+  receiver: TargetTsExpression,
+  resources: ReadonlyMap<string, string>,
+): TargetTsStatement {
+  return {
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: setter.setter.localName },
+      arguments: [
+        receiver,
+        ...(setter.index === undefined ? [] : [{ kind: 'literal-expression' as const, value: setter.index }]),
+        sceneValue(setter.value, resources),
+      ],
+    },
+  };
+}
+
+/** Every setter the scene calls, on its nodes and on its resources. */
+function sceneSetters(scene: DirectGodotProjectCompositionPlan['scenes'][number]): TargetGodotSceneSetterPlan[] {
+  const result: TargetGodotSceneSetterPlan[] = scene.resources.flatMap((resource) => [...resource.setters]);
+  const walk = (node: DirectGodotSceneNodePlan): void => {
+    result.push(...node.setters);
+    for (const child of node.children) walk(child);
+  };
+  walk(scene.root);
+  return result;
+}
+
 function sceneSourceFile(
   project: DirectGodotProjectCompositionPlan,
   scene: DirectGodotProjectCompositionPlan['scenes'][number],
@@ -371,6 +451,89 @@ function sceneSourceFile(
     /** Godot adds a node's groups when the scene is instantiated, before it enters the tree
    * (`SceneState::instantiate`, packed_scene.cpp:511); a node's class, and a plain Node's being
    * non-spatial, hold from its creation. */
+  // Resources: constructed once when the module is evaluated (a scene's resources are loaded with
+  // it and shared by its instances), each authored property set by its setter.
+  const resourceNames = new Map(scene.resources.map((resource, index) => [resource.key, `$resource_${String(index)}`] as const));
+  const resourceStatements: TargetTsStatement[] = scene.resources.flatMap((resource) => {
+    const name = resourceNames.get(resource.key) as string;
+    return [
+      {
+        kind: 'variable-statement' as const,
+        declaration: 'const' as const,
+        name,
+        initializer: {
+          kind: 'call-expression' as const,
+          callee: { kind: 'identifier-expression' as const, name: `${resource.className}_construct` },
+          arguments: [],
+        },
+      },
+      ...resource.setters.map((setter) => setterCall(setter, { kind: 'identifier-expression', name }, resourceNames)),
+    ];
+  });
+  const setters = sceneSetters(scene);
+  const valueKinds = new Set<keyof typeof VALUE_MODULES>();
+  const collectValue = (value: TargetGodotSceneValue): void => {
+    if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color') valueKinds.add(value.kind);
+  };
+  for (const setter of setters) collectValue(setter.value);
+  const mounts = new Map<string, { readonly module: string; readonly exportName: string }>();
+  const collectMounts = (node: DirectGodotSceneNodePlan): void => {
+    if (node.mount !== undefined) mounts.set(node.mount.exportName, node.mount);
+    for (const child of node.children) collectMounts(child);
+  };
+  collectMounts(scene.root);
+  const threeTypes = new Set<string>();
+  const collectTypes = (node: DirectGodotSceneNodePlan): void => {
+    const three = THREE_CLASS[node.targetKind];
+    if (three !== undefined && (node.mount !== undefined || node.setters.length > 0)) threeTypes.add(three);
+    for (const child of node.children) collectTypes(child);
+  };
+  collectTypes(scene.root);
+  const renderImports: TargetTsStatement[] = [
+    ...scene.resources.map((resource) => resource.construct.module + '\0' + resource.className),
+  ]
+    .filter((entry, index, all) => all.indexOf(entry) === index)
+    .map((entry) => {
+      const [module, className] = entry.split('\0') as [string, string];
+      return {
+        kind: 'import-statement' as const,
+        module: moduleSpecifier(scene.targetPath, `src/${module}.ts`),
+        namedBindings: [{ imported: 'construct', local: `${className}_construct` }],
+      };
+    });
+  const setterModules = new Map<string, Map<string, string>>();
+  for (const setter of setters) {
+    const locals = setterModules.get(setter.setter.module) ?? new Map<string, string>();
+    locals.set(setter.setter.localName, setter.setter.exportName);
+    setterModules.set(setter.setter.module, locals);
+  }
+  for (const mount of mounts.values()) {
+    const locals = setterModules.get(mount.module) ?? new Map<string, string>();
+    locals.set(mount.exportName, mount.exportName);
+    setterModules.set(mount.module, locals);
+  }
+  renderImports.push(
+    ...[...setterModules].map(([module, locals]) => ({
+      kind: 'import-statement' as const,
+      module: moduleSpecifier(scene.targetPath, `src/${module}.ts`),
+      namedBindings: [...locals].map(([local, imported]) => ({ imported, local })),
+    })),
+    ...[...valueKinds].map((kind) => ({
+      kind: 'import-statement' as const,
+      module: moduleSpecifier(scene.targetPath, `src/lib/godot-compat/${VALUE_MODULES[kind]}.ts`),
+      namedBindings: [{ imported: 'construct', local: `${kind}_construct` }],
+    })),
+    ...(threeTypes.size === 0
+      ? []
+      : [
+          {
+            kind: 'import-statement' as const,
+            module: 'three',
+            namedBindings: [...threeTypes].map((name) => ({ imported: name, local: name })),
+            typeOnly: true as const,
+          },
+        ]),
+  );
   const adoption: readonly TargetTsStatement[] =
     adopted.length === 0
       ? []
@@ -423,6 +586,21 @@ function sceneSourceFile(
                           arguments: [entity, literal(group)],
                         },
                       })),
+                      // The entity as its class creates it, then its authored properties by their
+                      // setters, in authored order (`SceneState::instantiate`, packed_scene.cpp:400).
+                      ...(node.mount === undefined
+                        ? []
+                        : [
+                            {
+                              kind: 'expression-statement' as const,
+                              expression: {
+                                kind: 'call-expression' as const,
+                                callee: { kind: 'identifier-expression' as const, name: compatLocal(node.mount) },
+                                arguments: [nativeEntity(entity, node.targetKind)],
+                              },
+                            },
+                          ]),
+                      ...node.setters.map((setter) => setterCall(setter, nativeEntity(entity, node.targetKind), resourceNames)),
                     ];
                   }),
                 },
@@ -608,6 +786,8 @@ function sceneSourceFile(
     sourcePath: scene.targetPath,
     statements: [
       ...imports,
+      ...renderImports,
+      ...resourceStatements,
       ...autoloadContextStatements,
       {
         kind: 'function-statement',

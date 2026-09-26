@@ -147,6 +147,8 @@ export interface NativeProperty {
   readonly owner: string;
   readonly getter?: NativePropertyAccessor;
   readonly setter?: NativePropertyAccessor;
+  /** An indexed property's index (`ADD_PROPERTYI`), which its accessors take before the value. */
+  readonly index?: number;
 }
 
 /** A native class's property, found up the ancestry the API dump states, or undefined. */
