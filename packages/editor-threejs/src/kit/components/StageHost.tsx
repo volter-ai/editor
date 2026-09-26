@@ -1648,14 +1648,14 @@ export function Object3DDocumentViewport({
         } else host.session.replaceContent(source.root, adapter);
         const retainedCamera = retainedState.camera;
         if (retainedCamera) {
-          // Top views and rolled cameras have their own up direction. Restore
-          // it before setPose derives the orientation with lookAt.
-          viewport.camera.up.copy(retainedCamera.up);
+          // Top views and rolled views have their own up direction, which setPose's lookAt
+          // derives the orientation with.
           viewport.setProjection(projection);
           viewport.setPose(
             retainedCamera.position,
             retainedCamera.target,
             retainedCamera.fov || undefined,
+            retainedCamera.up,
           );
           retainedState.camera = null;
         }

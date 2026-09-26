@@ -31,7 +31,7 @@ import {
   shouldDiscoverGaussianSplat,
 } from '@volter/editor-threejs/render/spark-renderer-lifecycle';
 import * as THREE from 'three';
-import { isQuarterTurnUp } from './asset-workflow/model-inspection';
+import { axisViewName, isQuarterTurnUp } from './asset-workflow/model-inspection';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -1895,7 +1895,10 @@ export class EditorViewport {
    * the right button then does nothing here, as in Blender, where it is the context menu's.
    */
   private applyKeymapNavigation(): void {
-    const { orbit } = activeKeymapNavigation();
+    const { orbit, turntable } = activeKeymapNavigation();
+    // Only a turntable keeps a roll: under any other orbit the view comes back level (a Top
+    // view's screen up, which is no roll, stands).
+    if (!turntable && this.camera.up.y < 0.9999 && Math.abs(this.camera.up.z) < 0.9999) this.camera.up.set(0, 1, 0);
     this.orbitControls.mouseButtons = {
       // The left button selects; only an Alt-drag in progress orbits with it (`_onAltOrbitStart`).
       LEFT: this._altDragOrbit ? THREE.MOUSE.ROTATE : (-1 as THREE.MOUSE),
@@ -1919,6 +1922,13 @@ export class EditorViewport {
     const controls = this.orbitControls as unknown as {
       _handleMouseDownRotate(event: PointerEvent): void;
       _handleMouseMoveRotate(event: PointerEvent): void;
+      _handleTouchStartRotate(event: PointerEvent): void;
+    };
+    // A touch rotate is a rotate too, for whoever ensures the projection when one starts.
+    const touchDown = controls._handleTouchStartRotate.bind(this.orbitControls);
+    controls._handleTouchStartRotate = (event) => {
+      for (const listener of [...this._rotateStartListeners]) listener();
+      touchDown(event);
     };
     const down = controls._handleMouseDownRotate.bind(this.orbitControls);
     const move = controls._handleMouseMoveRotate.bind(this.orbitControls);
@@ -1946,7 +1956,16 @@ export class EditorViewport {
     };
   }
 
-  private readonly _rotateStartListeners = new Set<() => void>();
+  private readonly _rotateStartListeners = new Set<() => void>([
+    // Auto Perspective on a stage that draws with the viewport's own projection (a document's
+    // session keeps its own and answers for it).
+    () => {
+      if (!activeKeymapNavigation().autoPerspective || this._projection !== 'orthographic') return;
+      const offset = this.camera.position.clone().sub(this.orbitControls.target);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+      if (axisViewName(offset, up) !== null) this.setProjection('perspective');
+    },
+  ]);
 
   /** Called as a person's rotate drag begins, before its first step (a pan or a zoom is not
    *  one): where Blender's rotate operator ensures its projection. */
@@ -3584,6 +3603,9 @@ export class EditorViewport {
     }
 
     this.camera.position.copy(target).add(dir.multiplyScalar(distance));
+    // A preset has no roll; Top's screen up is the world's -Z, as the session's is.
+    if (preset === 'top') this.camera.up.set(0, 0, -1);
+    else this.camera.up.set(0, 1, 0);
     this.camera.lookAt(target);
     if (preset !== 'perspective') this.setProjection('orthographic');
     this.orbitControls.update();
@@ -3607,14 +3629,18 @@ export class EditorViewport {
    * Move the camera to an arbitrary position/target/fov pose — the general
    * case `setViewPreset`/`focusOn` don't cover (an exact xyz position, not a
    * preset direction or a computed frame-to-fit). Backs the `set-camera`
-   * relay command (`editor.viewport.camera.set`'s free-pose mode).
+   * relay command (`editor.viewport.camera.set`'s free-pose mode). `up` is the screen's up; a
+   * pose that states none is level, whatever roll the view had.
    */
   setPose(
     position: { x: number; y: number; z: number },
     target: { x: number; y: number; z: number },
     fov?: number,
+    up?: { x: number; y: number; z: number },
   ): void {
     this.setProjection('perspective');
+    if (up) this.camera.up.set(up.x, up.y, up.z);
+    else this.camera.up.set(0, 1, 0);
     this.camera.position.set(position.x, position.y, position.z);
     this.orbitControls.target.set(target.x, target.y, target.z);
     this.camera.lookAt(this.orbitControls.target);

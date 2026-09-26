@@ -593,8 +593,10 @@ export class Object3DDocumentSession {
       distance = perspectiveDistanceToFitBox(bounds, this.viewport.camera, direction);
     }
     const position = center.clone().addScaledVector(direction, distance);
-    this.viewport.camera.up.set(0, preset === 'top' ? 0 : 1, preset === 'top' ? -1 : 0);
-    this.viewport.setPose(position, center);
+    // A preset has no roll. Top's screen up is the world's -Z and Bottom's +Z (Blender's +Y and
+    // -Y); the others' is the world's up.
+    const up = preset === 'top' ? { x: 0, y: 0, z: -1 } : preset === 'bottom' ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 };
+    this.viewport.setPose(position, center, undefined, up);
     this.setProjection(preset === 'isometric' ? 'perspective' : 'orthographic');
   }
 
@@ -891,11 +893,19 @@ export class Object3DDocumentSession {
     } else if (view) {
       const distance = through.left.position.distanceTo(through.left.target);
       const eye = new THREE.Vector3(...view.position);
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(new THREE.Quaternion(...view.quaternion));
-      viewport.camera.up.set(0, 1, 0);
+      const rotation = new THREE.Quaternion(...view.quaternion);
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(rotation);
+      // The camera's rotation, roll included (`ED_view3d_persp_switch_from_camera`), in the
+      // projection the view had before it went through (`lpersp`), or perspective where Auto
+      // Perspective holds and that view was down an axis (`ED_view3d_persp_ensure`).
+      viewport.camera.up.set(0, 1, 0).applyQuaternion(rotation);
       viewport.camera.position.copy(eye);
       viewport.orbitControls.target.copy(eye).addScaledVector(forward, distance);
-      this.state = { ...this.state, projection: view.projection };
+      const leftAxis =
+        axisViewName(through.left.position.clone().sub(through.left.target), through.left.up) !== null;
+      const projection =
+        activeKeymapNavigation().autoPerspective && leftAxis ? 'perspective' : through.left.projection;
+      this.state = { ...this.state, projection };
     }
     viewport.camera.lookAt(viewport.orbitControls.target);
     viewport.orbitControls.update();
