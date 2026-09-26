@@ -453,6 +453,15 @@ function sceneValue(value: TargetGodotSceneValue, resources: ReadonlyMap<string,
       return { kind: 'literal-expression', value: null };
     case 'resource':
       return { kind: 'identifier-expression', name: resources.get(value.key) as string };
+    case 'PackedVector3Array':
+      return {
+        kind: 'array-expression',
+        elements: Array.from({ length: value.components.length / 3 }, (_, index) => ({
+          kind: 'call-expression' as const,
+          callee: { kind: 'identifier-expression' as const, name: 'Vector3_construct' },
+          arguments: value.components.slice(3 * index, 3 * index + 3).map((component) => ({ kind: 'literal-expression' as const, value: component })),
+        })),
+      };
     default:
       return {
         kind: 'call-expression',
@@ -555,6 +564,7 @@ function sceneSourceFile(
   const valueKinds = new Set<keyof typeof VALUE_MODULES>();
   const collectValue = (value: TargetGodotSceneValue): void => {
     if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color') valueKinds.add(value.kind);
+    if (value.kind === 'PackedVector3Array') valueKinds.add('Vector3');
   };
   for (const setter of setters) collectValue(setter.value);
   const mounts = new Map<string, { readonly module: string; readonly exportName: string }>();
@@ -634,6 +644,12 @@ function sceneSourceFile(
     },
     type: referenceType('Object3D'),
   };
+  const overriddenInstances: DirectGodotSceneNodePlan[] = [];
+  const findOverridden = (node: DirectGodotSceneNodePlan): void => {
+    if (node.targetKind === 'scene-instance' && node.setters.length > 0) overriddenInstances.push(node);
+    for (const child of childNodes(node)) findOverridden(child);
+  };
+  findOverridden(scene.root);
   const adoption: readonly TargetTsStatement[] =
     adopted.length === 0
       ? []
@@ -708,7 +724,29 @@ function sceneSourceFile(
                           ]),
                       ...node.setters.map((setter) => setterCall(setter, nativeEntity(entity, node.targetKind), resourceNames)),
                     ];
-                  }),
+                  }).concat(
+                    // An instance root's overrides without a JSX rule: its setters, once the instanced
+                    // scene's component has made and set up its root (a child's layout effect runs
+                    // first), on the node the parent finds by name (`SceneState::instantiate` sets the
+                    // instancing scene's values after instantiating, packed_scene.cpp:400).
+                    overriddenInstances.flatMap((node) => {
+                      const parentRef = nodeRefs.get(node.parentNodePath ?? scene.root.nodePath);
+                      if (parentRef === undefined) throw new Error(`${node.nodePath}: an overridden instance's parent has no ref`);
+                      const receiver: TargetTsExpression = {
+                        kind: 'as-expression',
+                        expression: {
+                          kind: 'call-expression',
+                          callee: { kind: 'identifier-expression', name: 'get_node_or_null' },
+                          arguments: [
+                            { kind: 'property-expression', object: { kind: 'identifier-expression', name: parentRef }, property: 'current' },
+                            literal(node.name),
+                          ],
+                        },
+                        type: { kind: 'keyword-type', keyword: 'any' },
+                      };
+                      return node.setters.map((setter) => setterCall(setter, receiver, resourceNames));
+                    }),
+                  ),
                 },
                 { kind: 'array-expression', elements: [] },
               ],
@@ -759,6 +797,7 @@ function sceneSourceFile(
                 ? [{ imported: 'add_to_group', local: 'add_to_group' }]
                 : []),
               { imported: 'godot_node_adopt', local: 'godot_node_adopt' },
+              ...(overriddenInstances.length === 0 ? [] : [{ imported: 'get_node_or_null', local: 'get_node_or_null' }]),
             ],
           },
           {

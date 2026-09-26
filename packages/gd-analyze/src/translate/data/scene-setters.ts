@@ -112,6 +112,8 @@ export type TargetSceneValue =
   | { readonly kind: 'string'; readonly value: string }
   | { readonly kind: 'null' }
   | { readonly kind: 'Vector2' | 'Vector3' | 'Color'; readonly components: readonly number[] }
+  /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
+  | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
   | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string };
 
@@ -130,6 +132,11 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
       if (value.name === 'SubResource' || value.name === 'ExtResource') {
         const [id] = value.args;
         return id?.kind === 'string' ? { kind: 'resource', reference: value.name === 'SubResource' ? 'sub' : 'ext', id: id.value } : undefined;
+      }
+      if (value.name === 'PackedVector3Array') {
+        const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+        if (components.length % 3 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
+        return { kind: 'PackedVector3Array', components };
       }
       const arity = { Vector2: [2], Vector3: [3], Color: [3, 4] }[value.name as 'Vector2' | 'Vector3' | 'Color'];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;

@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/marker-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Marker3D",
+        "member": "get_gizmo_extents",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/marker-3d",
+        "exportName": "get_gizmo_extents",
+        "localName": "Marker3D_get_gizmo_extents",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Marker3D.get_gizmo_extents"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Marker3D",
+        "member": "set_gizmo_extents",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/marker-3d",
+        "exportName": "set_gizmo_extents",
+        "localName": "Marker3D_set_gizmo_extents",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Marker3D.set_gizmo_extents"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Marker3D.get_gizmo_extents",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Marker3D\u0000get_gizmo_extents\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/marker_3d.cpp",
+        "sourceSymbol": "Marker3D.get_gizmo_extents",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f55d73a42c1c0893e84ef042fb86dcff266f3d16b0dcbe11b31614ddb42932d2",
+        "callsite": "res://probe.gd _init() get_gizmo_extents-default",
+        "observedOutputSha256": "c90330b51a3358bc1e2290d28fb0725c4dc8f0550064e861b1047904400139a5"
+      },
+      "target": {
+        "implementationSha256": "1b7123e98d85f8ab1d96f570c1bc09d209cb91ade34d12563e1167caf936a298",
+        "callsite": "lib/godot-compat/marker-3d.ts get_gizmo_extents",
+        "observedOutputSha256": "c90330b51a3358bc1e2290d28fb0725c4dc8f0550064e861b1047904400139a5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c4fda70dc8c01ad1f60fea29192a871e710004a4d8787190d7e6016d64bac796"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "marker-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Marker3D.set_gizmo_extents",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Marker3D\u0000set_gizmo_extents\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/marker_3d.cpp",
+        "sourceSymbol": "Marker3D.set_gizmo_extents",
+        "sourceLine": 35
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6dc99a81fb0ecbeca9de5c60fdf4f26b9d566c6bb1051f2c962ace34e873f24b",
+        "callsite": "res://probe.gd _init() set_gizmo_extents-0.0 set_gizmo_extents-0.1 set_gizmo_extents-1.5 set_gizmo_extents-12.25",
+        "observedOutputSha256": "08d0af49118c77f800c8d3ee1cc86aa8f64b57d4ae6bb9983dd238ea911f7bd7"
+      },
+      "target": {
+        "implementationSha256": "1b7123e98d85f8ab1d96f570c1bc09d209cb91ade34d12563e1167caf936a298",
+        "callsite": "lib/godot-compat/marker-3d.ts set_gizmo_extents",
+        "observedOutputSha256": "08d0af49118c77f800c8d3ee1cc86aa8f64b57d4ae6bb9983dd238ea911f7bd7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2eee6b85f69c031c1276cff3995232fc66a86dc65bb310425ff233815b621bc3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "marker-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Marker3D.get_gizmo_extents",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f55d73a42c1c0893e84ef042fb86dcff266f3d16b0dcbe11b31614ddb42932d2",
+      "implementationSha256": "1b7123e98d85f8ab1d96f570c1bc09d209cb91ade34d12563e1167caf936a298"
+    },
+    {
+      "claimId": "godot-4.7-binding-Marker3D.set_gizmo_extents",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6dc99a81fb0ecbeca9de5c60fdf4f26b9d566c6bb1051f2c962ace34e873f24b",
+      "implementationSha256": "1b7123e98d85f8ab1d96f570c1bc09d209cb91ade34d12563e1167caf936a298"
+    }
+  ]
+}

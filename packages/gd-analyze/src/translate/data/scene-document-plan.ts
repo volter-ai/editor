@@ -669,7 +669,9 @@ function planInstanceRoot(
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
   }
-  const properties = planProperties(context, node, overrides);
+  // Overrides without a JSX rule (a resource, say) are the instance root's setters.
+  const setters: TargetGodotSceneSetterPlan[] = [];
+  const properties = planProperties(context, node, overrides, setters);
   const placed = placement(context, node);
   if (!ok || properties === undefined || placed === undefined) return undefined;
   return {
@@ -681,7 +683,7 @@ function planInstanceRoot(
     properties,
     groups: [],
     classes: [],
-    setters: [],
+    setters,
     children: [],
     evidenceClaimId: context.authority.structureRule('scene-instance')?.evidenceClaimId ?? '',
     ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),

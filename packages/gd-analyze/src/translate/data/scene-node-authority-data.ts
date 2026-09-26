@@ -38,6 +38,12 @@ import {
   GODOT_4_7_UI_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-ui';
 import {
+  GODOT_4_7_PHYSICS_CLAIMS,
+  GODOT_4_7_PHYSICS_LIVENESS,
+  GODOT_4_7_PHYSICS_NODE_RULES,
+  GODOT_4_7_PHYSICS_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-physics';
+import {
   GODOT_SCENE_NODE_AUTHORITY_VERSION,
   type GodotSceneNodeAuthority,
 } from './scene-node-authority';
@@ -140,6 +146,41 @@ export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   `${COMPAT}/node-3d.ts`,
 ] as const;
 
+/** What the scene-physics proof runs: planning, emission, the world hand-over and physics compat. */
+export const GODOT_SCENE_PHYSICS_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-node-authority.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
+  ...[
+    'node.ts',
+    'node-3d.ts',
+    'scene-tree.ts',
+    'world-3d.ts',
+    'collision-object-3d.ts',
+    'collision-shape-3d.ts',
+    'shape-3d.ts',
+    'box-shape-3d.ts',
+    'sphere-shape-3d.ts',
+    'capsule-shape-3d.ts',
+    'convex-polygon-shape-3d.ts',
+    'concave-polygon-shape-3d.ts',
+    'physics-material.ts',
+    'physics-body-3d.ts',
+    'static-body-3d.ts',
+    'rigid-body-3d.ts',
+    'character-body-3d.ts',
+    'area-3d.ts',
+    'ray-cast-3d.ts',
+    'marker-3d.ts',
+    'physics-server-3d.ts',
+    'physics-direct-space-state-3d.ts',
+  ].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** Checked-in, exact-pin scene-node mapping authority for the selected official frontend. */
 export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotSceneNodeAuthority {
   const supported =
@@ -150,7 +191,13 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
     sourceRevision: source.revision,
     apiDumpSha256: source.apiDumpSha256,
     rules: supported
-      ? [...GODOT_4_7_SCENE_NODE_RULES, ...GODOT_4_7_STRUCTURE_NODE_RULES, ...GODOT_4_7_RENDER_NODE_RULES, ...GODOT_4_7_UI_NODE_RULES]
+      ? [
+          ...GODOT_4_7_SCENE_NODE_RULES,
+          ...GODOT_4_7_STRUCTURE_NODE_RULES,
+          ...GODOT_4_7_RENDER_NODE_RULES,
+          ...GODOT_4_7_UI_NODE_RULES,
+          ...GODOT_4_7_PHYSICS_NODE_RULES,
+        ]
       : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
     propertyRules: supported
@@ -160,7 +207,9 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES, ...GODOT_4_7_IMPORTED_STRUCTURE_RULES]
       : [],
     signalRules: supported ? GODOT_4_7_SIGNAL_RULES : [],
-    resourceRules: supported ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES] : [],
+    resourceRules: supported
+      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES]
+      : [],
     claims: supported
       ? [
           ...GODOT_4_7_SCENE_NODE_CLAIMS,
@@ -168,6 +217,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_RENDER_CLAIMS,
           ...GODOT_4_7_UI_CLAIMS,
           ...GODOT_4_7_IMPORTED_CLAIMS,
+          ...GODOT_4_7_PHYSICS_CLAIMS,
         ]
       : [],
     liveness: supported
@@ -191,6 +241,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_IMPORTED_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_PHYSICS_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_PHYSICS_IMPLEMENTATION_FILES),
           ),
         ]
       : [],

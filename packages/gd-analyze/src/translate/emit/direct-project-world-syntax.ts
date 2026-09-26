@@ -10,6 +10,7 @@ import {
 } from '../code/target-ts-syntax';
 import type {
   DirectGodotProjectCompositionPlan,
+  DirectGodotSceneNodePlan,
   DirectGodotScriptAutoloadPlan,
   DirectGodotSettingValue,
 } from '../data/direct-project-composition-plan';
@@ -298,6 +299,68 @@ function moduleSpecifier(target: string): string {
   return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
+/** Whether any scene mounts a node of a class the physics server serves. */
+function usesPhysics(composition: DirectGodotProjectCompositionPlan): boolean {
+  const physical = (node: DirectGodotSceneNodePlan): boolean =>
+    node.classes.includes('CollisionObject3D') ||
+    node.classes.includes('RayCast3D') ||
+    node.children.some(physical) ||
+    (node.placements ?? []).some((placement) => physical(placement.node));
+  return composition.scenes.some((scene) => physical(scene.root));
+}
+
+/**
+ * The composition site's physics world: a Rapier world, created once Rapier's module is ready
+ * and handed to compat's World3D as the main viewport's world (`World3D::World3D`,
+ * `world_3d.cpp:152`). Godot's gravity and damping are compat's; Rapier's world gravity is zero.
+ */
+function physicsWorldAttach(composition: DirectGodotProjectCompositionPlan): {
+  readonly imports: readonly TargetTsStatement[];
+  readonly statements: readonly TargetTsStatement[];
+} {
+  if (!usesPhysics(composition)) return { imports: [], statements: [] };
+  const rapier = (property: string): TargetTsExpression => ({
+    kind: 'property-expression',
+    object: { kind: 'identifier-expression', name: 'RAPIER' },
+    property,
+  });
+  return {
+    imports: [
+      { kind: 'import-statement', module: '@dimforge/rapier3d-compat', defaultBinding: 'RAPIER', namedBindings: [] },
+      {
+        kind: 'import-statement',
+        module: './lib/godot-compat/world-3d',
+        namedBindings: [{ imported: 'godot_world_3d_attach', local: 'godot_world_3d_attach' }],
+      },
+    ],
+    statements: [
+      {
+        kind: 'expression-statement',
+        expression: { kind: 'await-expression', expression: { kind: 'call-expression', callee: rapier('init'), arguments: [] } },
+      },
+      {
+        kind: 'expression-statement',
+        expression: {
+          kind: 'call-expression',
+          callee: { kind: 'identifier-expression', name: 'godot_world_3d_attach' },
+          arguments: [
+            {
+              kind: 'new-expression',
+              callee: rapier('World'),
+              arguments: [
+                {
+                  kind: 'object-expression',
+                  properties: ['x', 'y', 'z'].map((key) => ({ key, value: { kind: 'literal-expression', value: 0 } })),
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  };
+}
+
 /** Project-specific native startup composition; all reusable lifecycle policy stays in compat. */
 export function emitDirectGodotWorldSyntax(
   composition: DirectGodotProjectCompositionPlan,
@@ -443,13 +506,16 @@ export function emitDirectGodotWorldSyntax(
           ],
         };
   const settings = projectSettingsLoad(composition);
+  const physics = physicsWorldAttach(composition);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
     sourcePath: 'project.godot',
     statements: [
       ...imports,
       ...settings.imports,
+      ...physics.imports,
       ...settings.statements,
+      ...physics.statements,
       ...composition.scriptAutoloads.map(autoloadComponent),
       {
         kind: 'function-statement',

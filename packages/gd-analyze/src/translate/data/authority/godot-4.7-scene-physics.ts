@@ -1,0 +1,120 @@
+/**
+ * Physics node families: collision shapes over shape resources, static, rigid and character
+ * bodies, areas, ray casts and markers. Each node mounts as a three group made the collision
+ * object its class creates by compat's physics protocol, which binds it to the Rapier world the
+ * composition site attaches. Their own proof (`src/evidence/proofs/scene-physics.ts`) builds a
+ * scene of them natively and reads each node back (global transforms, layers and masks, shapes
+ * and their parameters, body settings, ray cast settings and a first physics frame's ray
+ * results), against the emitted component mounted in Node and read through compat's getters.
+ */
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
+import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
+import {
+  GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
+  GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
+  GODOT_4_7_CODE_SEED_SOURCE_REVISION,
+} from '../../code/authority/godot-4.7-seed';
+import {
+  type GodotSceneNodeClaimLiveness,
+  type GodotSceneNodeRule,
+  type GodotSceneResourceRule,
+  godotSceneNodeRuleKey,
+  godotSceneResourceRuleKey,
+} from '../scene-node-authority';
+
+const IDENTITIES = godotProofIdentities('scene-physics');
+const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
+const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
+
+type Source = Readonly<{ file: string; symbol: string; line: number }>;
+
+export const GODOT_4_7_PHYSICS_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = (
+  [
+    ['CollisionShape3D', 'collision-shape-3d', 'godot_collision_shape_3d_adopt', 'scene/3d/physics/collision_shape_3d.cpp', 325],
+    ['StaticBody3D', 'static-body-3d', 'godot_static_body_3d_adopt', 'scene/3d/physics/static_body_3d.cpp', 251],
+    ['RigidBody3D', 'rigid-body-3d', 'godot_rigid_body_3d_adopt', 'scene/3d/physics/rigid_body_3d.cpp', 829],
+    ['CharacterBody3D', 'character-body-3d', 'godot_character_body_3d_adopt', 'scene/3d/physics/character_body_3d.cpp', 966],
+    ['Area3D', 'area-3d', 'godot_area_3d_adopt', 'scene/3d/physics/area_3d.cpp', 818],
+    ['RayCast3D', 'ray-cast-3d', 'godot_ray_cast_3d_adopt', 'scene/3d/physics/ray_cast_3d.cpp', 564],
+    ['Marker3D', 'marker-3d', undefined, 'scene/3d/marker_3d.cpp', 54],
+  ] as const
+).map(([className, module, mount, file, line]) => ({
+  sourceRevision: REVISION,
+  nativeCanonicalIdentity: identityOf(className),
+  targetKind: 'three-group' as const,
+  ...(mount === undefined ? {} : { mount: { module: `lib/godot-compat/${module}`, exportName: mount } }),
+  evidenceClaimId: `godot-4.7-scene-node-${module}`,
+  source: { file, symbol: `${className}::${className}`, line },
+}));
+
+export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = (
+  [
+    ['BoxShape3D', 'box-shape-3d', 'scene/resources/3d/box_shape_3d.cpp', 118],
+    ['SphereShape3D', 'sphere-shape-3d', 'scene/resources/3d/sphere_shape_3d.cpp', 104],
+    ['CapsuleShape3D', 'capsule-shape-3d', 'scene/resources/3d/capsule_shape_3d.cpp', 156],
+    ['ConvexPolygonShape3D', 'convex-polygon-shape-3d', 'scene/resources/3d/convex_polygon_shape_3d.cpp', 129],
+    ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
+    ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36],
+  ] as const
+).map(([className, module, file, line]) => ({
+  sourceRevision: REVISION,
+  className,
+  construct: { module: `lib/godot-compat/${module}`, exportName: 'construct' },
+  evidenceClaimId: `godot-4.7-scene-resource-${module}`,
+  source: { file, symbol: `${className}::${className}`, line },
+}));
+
+function physicsClaim(canonicalIdentity: string, claimId: string, source: Source): SemanticClaimRecord {
+  return {
+    registryVersion: 1,
+    claimId,
+    layer: 'translate-data',
+    canonicalIdentity,
+    godot: {
+      sourceRevision: REVISION,
+      apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
+      sourceFile: source.file,
+      sourceSymbol: source.symbol,
+      sourceLine: source.line,
+    },
+    native: {
+      executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
+      buildIdentity: 'Godot 4.7-stable official 5b4e0cb0f',
+      inputSha256: IDENTITIES.input,
+      callsite: 'res://observe.gd _physics_process()',
+      observedOutputSha256: IDENTITIES.observed,
+    },
+    target: {
+      implementationSha256: IDENTITIES.implementation,
+      callsite: 'emitted scene components mounted by @react-three/fiber over a Rapier world, read through compat getters',
+      observedOutputSha256: IDENTITIES.observed,
+    },
+    comparison: {
+      comparator: 'canonical physics scene state (transforms, layers, shapes, settings, first-frame ray hits) equality',
+      tolerance: 'exact; ray hit points and normals (Rapier geometry) to 1e-4',
+      resultSha256: IDENTITIES.comparison,
+    },
+    reproductionCommand: GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  };
+}
+
+export const GODOT_4_7_PHYSICS_CLAIMS: readonly SemanticClaimRecord[] = [
+  ...GODOT_4_7_PHYSICS_NODE_RULES.map((rule) =>
+    physicsClaim(godotSceneNodeRuleKey(rule.sourceRevision, rule.nativeCanonicalIdentity), rule.evidenceClaimId, rule.source),
+  ),
+  ...GODOT_4_7_PHYSICS_RESOURCE_RULES.map((rule) =>
+    physicsClaim(godotSceneResourceRuleKey(rule.sourceRevision, rule.className), rule.evidenceClaimId, rule.source),
+  ),
+];
+
+export const GODOT_4_7_PHYSICS_LIVENESS: readonly GodotSceneNodeClaimLiveness[] = GODOT_4_7_PHYSICS_CLAIMS.map((entry) => ({
+  claimId: entry.claimId,
+  sourceRevision: REVISION,
+  apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
+  executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
+  inputSha256: IDENTITIES.input,
+  implementationSha256: IDENTITIES.implementation,
+}));

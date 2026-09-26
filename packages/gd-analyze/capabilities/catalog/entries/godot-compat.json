@@ -42,6 +42,7 @@
     "src/lib/godot-compat/label-settings.ts",
     "src/lib/godot-compat/label.ts",
     "src/lib/godot-compat/light-3d.ts",
+    "src/lib/godot-compat/marker-3d.ts",
     "src/lib/godot-compat/mesh-instance-3d.ts",
     "src/lib/godot-compat/node-2d.ts",
     "src/lib/godot-compat/node-3d.ts",
