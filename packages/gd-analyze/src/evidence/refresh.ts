@@ -5,14 +5,17 @@
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { enterEvidenceMeasurement } from '../godot-frontend/implementation-liveness';
 import {
+  type GodotEvidenceVersion,
   type GodotProofIdentities,
   godotProofIdentities,
+  godotProofIdentityFile,
   writeGodotProofIdentities,
 } from '../godot-frontend/proof-identities';
+import { GODOT_4_SOURCE_AUTHORITIES } from '../godot-frontend/source-authority';
 import { measureAnalysisProof } from './proofs/analysis';
 import { measureAutoloadReferenceProof } from './proofs/autoload-reference';
 import { measureCodeSeedProof } from './proofs/code-seed';
@@ -88,10 +91,17 @@ function same(left: GodotProofIdentities, right: GodotProofIdentities): boolean 
   );
 }
 
-export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
+/**
+ * `version` names the official release the native side runs: 4.7 (the default) records what the
+ * authority loads; 4.6 runs the same proofs and case files on the official 4.6 binary against the
+ * same target (the 4.7 pipeline and compat, `exporterBinary` the 4.7 exporter) and records them in
+ * `authority/godot-4.6/`.
+ */
+export async function refreshEvidence(tools: GodotProofTools, version: GodotEvidenceVersion = '4.7'): Promise<number> {
   const executable = createHash('sha256').update(readFileSync(tools.officialBinary)).digest('hex');
-  if (executable !== GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256) {
-    throw new Error(`refusing ${tools.officialBinary}: it is not the official Godot 4.7-stable executable`);
+  const pinned = version === '4.7' ? GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256 : GODOT_4_SOURCE_AUTHORITIES[version].officialEditor?.executableSha256;
+  if (executable !== pinned) {
+    throw new Error(`refusing ${tools.officialBinary}: it is not the official Godot ${version}-stable executable`);
   }
   // The proofs run the pipeline whose claims they re-measure; see enterEvidenceMeasurement.
   enterEvidenceMeasurement();
@@ -117,12 +127,14 @@ export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
         );
         continue;
       }
-      const recorded = godotProofIdentities(measurement.name);
+      const recorded = existsSync(godotProofIdentityFile(measurement.name, version))
+        ? godotProofIdentities(measurement.name, version)
+        : { input: '', implementation: '', observed: '', comparison: '' };
       if (same(recorded, measurement.identities)) {
         process.stdout.write(`${measurement.name}: agrees, identities unchanged\n`);
         continue;
       }
-      writeGodotProofIdentities(measurement.name, measurement.identities);
+      writeGodotProofIdentities(measurement.name, measurement.identities, version);
       const changed = (['input', 'implementation', 'observed', 'comparison'] as const).filter(
         (key) => recorded[key] !== measurement.identities[key],
       );
@@ -144,6 +156,8 @@ export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
         tools.officialBinary,
         '--bound-exporter-binary',
         tools.exporterBinary,
+        '--godot',
+        version,
       ],
       { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
     );

@@ -27,6 +27,11 @@ const USAGE = `usage: gd-analyze <command> [options]
            Run every authority's native/target proof; where they agree, rewrite that
            proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
            is named and nothing is written for it.
+
+  evidence ... --godot 4.6
+           The same cases and proofs with the official 4.6 binary as the native side, against
+           the same target (compat, and the 4.7 pipeline through the 4.7 exporter); written to
+           src/translate/code/authority/godot-4.6/.
 `;
 
 function fail(message: string): never {
@@ -104,13 +109,15 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     );
   }
   if (command === 'evidence') {
-    const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary']);
+    const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary', '--godot']);
+    const version = optionValue(rest, '--godot') ?? '4.7';
+    if (version !== '4.6' && version !== '4.7') fail('evidence --godot takes 4.6 or 4.7');
     const binary = optionValue(rest, '--official-binary');
     if (binary === undefined) fail('evidence needs --official-binary <path>');
     if (rest.includes('--refresh')) {
       if (positional.length !== 0) fail('evidence --refresh takes no class');
       const { refreshEvidence } = await import('./evidence/refresh');
-      return await refreshEvidence({ officialBinary: binary, exporterBinary: requiredExporter(rest) });
+      return await refreshEvidence({ officialBinary: binary, exporterBinary: requiredExporter(rest) }, version);
     }
     if (positional.length !== 1) fail('evidence needs exactly one Godot class');
     const { runEvidence } = await import('./evidence/run-evidence');
@@ -118,6 +125,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
       positional[0] as string,
       binary,
       optionValue(rest, '--bound-exporter-binary'),
+      version,
     );
   }
   fail(`unknown command "${command}"`);

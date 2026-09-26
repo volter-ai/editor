@@ -31,7 +31,8 @@ import {
 } from '../godot-frontend/implementation-liveness';
 import { captureGodotBoundProgram } from '../godot-frontend/run-bound-program';
 import type { SemanticClaimRecord } from '../godot-frontend/semantic-claims';
-import { type GodotSourceAuthority, godotSourceAuthority } from '../godot-frontend/source-authority';
+import { type GodotEvidenceVersion, godotEvidenceDir } from '../godot-frontend/proof-identities';
+import { GODOT_4_SOURCE_AUTHORITIES, type GodotSourceAuthority, godotSourceAuthority } from '../godot-frontend/source-authority';
 import { godotReadAuthority } from '../read/authority-data';
 import { readGodotProjectSnapshot } from '../read/godot-project';
 import { bindGodotResources } from '../read/resource-program';
@@ -820,6 +821,8 @@ function kebab(name: string): string {
 }
 
 interface Pins {
+  /** The release whose official binary the native side ran. */
+  readonly version: GodotEvidenceVersion;
   readonly source: GodotSourceAuthority;
   readonly apiDumpFile: string;
   readonly executableSha256: string;
@@ -827,19 +830,34 @@ interface Pins {
   readonly reproductionCommand: readonly string[];
 }
 
-function pins(name: string, officialBinary: string, exporterBinary?: string): Pins {
-  const source = godotSourceAuthority(4);
+/**
+ * The pins one run measures under. `source` keys what it writes: a compat case file's bindings
+ * are keyed by the release it ran (its revision and API dump hashes); a language case file's rules
+ * by the revision of the frontend that lowered its GDScript (`lowering`, 4.7's: the target is the
+ * same whichever release the native side runs).
+ */
+function pins(
+  name: string,
+  version: GodotEvidenceVersion,
+  officialBinary: string,
+  exporterBinary?: string,
+  lowering?: GodotSourceAuthority,
+): Pins {
+  const release = GODOT_4_SOURCE_AUTHORITIES[version];
+  const source = lowering ?? release;
   const apiDumpFile = path.join(PACKAGE_ROOT, 'vendor/extension-api', source.apiDumpFile);
   if (sha256(readFileSync(apiDumpFile)) !== source.apiDumpSha256) {
     throw new Error(`${source.apiDumpFile} does not match the pinned API dump`);
   }
   const executableSha256 = sha256(readFileSync(officialBinary));
-  if (executableSha256 !== GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256) {
+  const pinnedExecutable = version === '4.7' ? GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256 : release.officialEditor?.executableSha256;
+  if (executableSha256 !== pinnedExecutable) {
     throw new Error(
-      `refusing ${officialBinary}: sha256 ${executableSha256} is not the official Godot 4.7-stable executable`,
+      `refusing ${officialBinary}: sha256 ${executableSha256} is not the official Godot ${version}-stable executable`,
     );
   }
   return {
+    version,
     source,
     apiDumpFile,
     executableSha256,
@@ -853,6 +871,7 @@ function pins(name: string, officialBinary: string, exporterBinary?: string): Pi
       '--official-binary',
       officialBinary,
       ...(exporterBinary === undefined ? [] : ['--bound-exporter-binary', exporterBinary]),
+      ...(version === '4.7' ? [] : ['--godot', version]),
     ],
   };
 }
@@ -913,8 +932,9 @@ function claimRecord(
   };
 }
 
-function writeEvidenceFile(name: string, file: GodotEvidenceFile): string {
-  const outputFile = path.join(GODOT_4_7_EVIDENCE_DIR, `${name}.json`);
+function writeEvidenceFile(version: GodotEvidenceVersion, name: string, file: GodotEvidenceFile): string {
+  mkdirSync(godotEvidenceDir(version), { recursive: true });
+  const outputFile = path.join(godotEvidenceDir(version), `${name}.json`);
   writeFileSync(outputFile, `${JSON.stringify(file, null, 2)}\n`);
   return path.relative(MONOREPO_ROOT, outputFile);
 }
@@ -997,8 +1017,9 @@ async function runCompatEvidence(
   name: string,
   evidence: GodotEvidenceCaseFile,
   officialBinary: string,
+  version: GodotEvidenceVersion,
 ): Promise<number> {
-  const pinned = pins(name, officialBinary);
+  const pinned = pins(name, version, officialBinary);
   const moduleBytes = readFileSync(compatModuleFile(evidence.compatModule));
   const moduleSource = moduleBytes.toString('utf8');
   if (!new RegExp(`@godot-class\\s+${evidence.godotClass}\\b`).test(moduleSource)) {
@@ -1117,7 +1138,7 @@ async function runCompatEvidence(
     const first = symbolCases[0] as GodotEvidenceCase;
     const symbol = bindingSymbol(pinned, first.symbol);
     const compat = exportByMember.get(`${first.symbol.owner}.${first.symbol.member}`) as CompatExport;
-    const claimId = `godot-4.7-binding-${symbol.owner}.${symbol.member}${
+    const claimId = `godot-${version}-binding-${symbol.owner}.${symbol.member}${
       first.symbol.kind === 'builtin-operator' ? `.${symbol.signature}` : ''
     }${first.symbol.kind === 'builtin-member-set' ? '.set' : ''}`;
     bindings.push({
@@ -1166,7 +1187,7 @@ async function runCompatEvidence(
   if (evidence.typeExport !== undefined) {
     if (evidence.typeSource === undefined) throw new Error('typeExport needs its typeSource');
     // Every value the module's exports produced is its type; the rule names that type.
-    const claimId = `godot-4.7-datatype-${evidence.godotClass}`;
+    const claimId = `godot-${version}-datatype-${evidence.godotClass}`;
     const entry: GodotDatatypeRuleEntry = {
       sourceRevision: pinned.source.revision,
       sourceDatatype: `BUILTIN:${evidence.godotClass}`,
@@ -1196,7 +1217,7 @@ async function runCompatEvidence(
     claims.push(record.claim);
     liveness.push(record.liveness);
   }
-  const written = writeEvidenceFile(name, {
+  const written = writeEvidenceFile(version, name, {
     implementation,
     bindings,
     rules: [],
@@ -1248,10 +1269,12 @@ function proposalAuthority(
     ...rules.map((rule) => rule.evidenceClaimId),
     ...datatypes.map((entry) => entry.evidenceClaimId),
   ]);
-  // This file's earlier rows are replaced, wherever they were loaded from.
+  // This file's earlier rows are replaced, wherever they were loaded from (the loaded ones are
+  // 4.7's whichever release the native side runs).
+  const prefixes = [claimIdFor(''), claimIdFor('').replace(/^godot-[\d.]+-/u, 'godot-4.7-')];
   const earlier = new Set(
     base.claims
-      .filter((claim) => claim.claimId.startsWith(claimIdFor('')))
+      .filter((claim) => prefixes.some((prefix) => claim.claimId.startsWith(prefix)))
       .map((claim) => claim.claimId),
   );
   const replaced = new Set([...proposedIds, ...earlier]);
@@ -1303,12 +1326,13 @@ async function runLanguageEvidence(
   evidence: GodotLanguageEvidenceFile,
   officialBinary: string,
   exporterBinary: string,
+  version: GodotEvidenceVersion,
 ): Promise<number> {
   // This run measures code lowering, whose other claims the same edit may have made stale;
   // like the refresh, it measures with recorded digests (see enterEvidenceMeasurement).
   enterEvidenceMeasurement();
-  const pinned = pins(name, officialBinary, exporterBinary);
-  const claimIdFor = (ruleId: string) => `godot-4.7-${name}-${ruleId}`;
+  const pinned = pins(name, version, officialBinary, exporterBinary, godotSourceAuthority(4));
+  const claimIdFor = (ruleId: string) => `godot-${version}-${name}-${ruleId}`;
   const ids = [...evidence.rules.map((rule) => rule.id), ...(evidence.datatypes ?? []).map((entry) => entry.id)];
   if (new Set(ids).size !== ids.length) throw new Error('language rule ids are not unique');
   if (new Set(evidence.cases.map((entry) => entry.id)).size !== evidence.cases.length) {
@@ -1504,7 +1528,7 @@ async function runLanguageEvidence(
     proposal.datatypes.forEach((entry, index) => {
       recordClaim(entry.evidenceClaimId, godotDatatypeRuleKey(entry), ((evidence.datatypes ?? [])[index] as NonNullable<GodotLanguageEvidenceFile['datatypes']>[number]).source);
     });
-    const written = writeEvidenceFile(name, {
+    const written = writeEvidenceFile(pinned.version, name, {
       implementation,
       bindings: [],
       rules: proposal.rules,
@@ -1545,6 +1569,7 @@ export async function runEvidence(
   nameArgument: string,
   officialBinary: string,
   exporterBinary: string | undefined,
+  version: GodotEvidenceVersion = '4.7',
 ): Promise<number> {
   const name = kebab(nameArgument);
   const caseFile = path.join(CASES_DIR, `${name}.cases.ts`);
@@ -1557,7 +1582,7 @@ export async function runEvidence(
     if (exporterBinary === undefined) {
       throw new Error('language evidence lowers through the official frontend: pass --bound-exporter-binary');
     }
-    return runLanguageEvidence(name, evidence, officialBinary, exporterBinary);
+    return runLanguageEvidence(name, evidence, officialBinary, exporterBinary, version);
   }
-  return runCompatEvidence(name, evidence, officialBinary);
+  return runCompatEvidence(name, evidence, officialBinary, version);
 }
