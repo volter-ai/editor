@@ -432,11 +432,11 @@ async function monitorJson<T>(url: string): Promise<T | null> {
   return (await response.json().catch(() => null)) as T | null;
 }
 
-/** One of Monitor's room actions (`/room/call`), on the current room. */
-async function roomCall(method: string, args: unknown[], what: string): Promise<void> {
+/** One of Monitor's room actions (`/room/call`), on `roomId` (the current room's by default). */
+async function roomCall(method: string, args: unknown[], what: string, roomId?: string): Promise<void> {
   const mirror = current();
   if (!mirror) throw new Error('No room is observed.');
-  const query = new URLSearchParams({ roomId: mirror.roomId, method, args: JSON.stringify(args) });
+  const query = new URLSearchParams({ roomId: roomId ?? mirror.roomId, method, args: JSON.stringify(args) });
   const response = await fetch(`${monitorApi(mirror)}/room/call?${query}`);
   if (response.status === 404) {
     throw new Error(`The room server serves no Monitor view, so ${what} has nowhere to go (its \`server\` configuration sets VGAI_ROOM_MONITOR=1).`);
@@ -546,13 +546,14 @@ export const observedGameNetwork: NetworkingAdapter = {
       mirror.socket.send(new Uint8Array([PING]));
     });
   },
-  async inspectServer(): Promise<NetServerInspection | null> {
+  async inspectServer(roomId?: string): Promise<NetServerInspection | null> {
     const mirror = current();
     if (!mirror) return null;
     const api = monitorApi(mirror);
     const list = await monitorJson<MonitorRooms>(`${api}/`);
     if (!list) return null;
-    const detail = await monitorJson<MonitorRoom>(`${api}/room?roomId=${encodeURIComponent(mirror.roomId)}`);
+    const inspected = roomId ?? mirror.roomId;
+    const detail = await monitorJson<MonitorRoom>(`${api}/room?roomId=${encodeURIComponent(inspected)}`);
     const maxClients = (value: string | number | null | undefined): number | null => {
       const count = Number(value);
       return Number.isFinite(count) ? count : null;
@@ -574,16 +575,24 @@ export const observedGameNetwork: NetworkingAdapter = {
           : null,
       room: detail
         ? {
-            roomId: mirror.roomId,
+            roomId: inspected,
             clients: (detail.clients ?? []).map((client) => ({ sessionId: client.sessionId, elapsedMs: client.elapsedTime })),
             stateBytes: detail.stateSize ?? 0,
           }
         : null,
     };
   },
-  disconnectClient: (sessionId: string) => roomCall('_forceClientDisconnect', [sessionId], 'the disconnect'),
+  disconnectClient: (sessionId: string, roomId?: string) =>
+    roomCall('_forceClientDisconnect', [sessionId], 'the disconnect', roomId),
   editServerState: (path: readonly (string | number)[], value: unknown) =>
     roomCall('_editStateProperty', [path, value], 'the state edit'),
+  deleteServerState: (path: readonly (string | number)[]) =>
+    roomCall('_deleteStateProperty', [path], 'the state delete'),
+  sendToClient: (sessionId: string, type: string, payload: unknown, roomId?: string) =>
+    roomCall('_sendMessageToClient', [sessionId, type, payload], 'the send', roomId),
+  broadcast: (type: string, payload: unknown, roomId?: string) =>
+    roomCall('broadcast', [type, payload], 'the broadcast', roomId),
+  disposeRoom: (roomId?: string) => roomCall('disconnect', [], 'the dispose', roomId),
   getTrafficByType() {
     const mirror = current();
     return mirror ? [...mirror.types.values()].map(({ type, countIn, countOut, bytesIn, bytesOut }) => ({ type, countIn, countOut, bytesIn, bytesOut })) : [];

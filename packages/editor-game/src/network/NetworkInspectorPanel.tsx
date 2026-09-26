@@ -104,6 +104,7 @@ function formatLeaf(value: unknown): string {
  * rows, never a collapsed subtree.
  */
 type StateEdit = (path: readonly (string | number)[], value: unknown) => Promise<void>;
+type StateDelete = (path: readonly (string | number)[]) => Promise<void>;
 
 function StateTreeNode({
   name,
@@ -111,6 +112,7 @@ function StateTreeNode({
   depth,
   path = [],
   edit,
+  remove,
 }: {
   name: string;
   value: unknown;
@@ -118,6 +120,8 @@ function StateTreeNode({
   path?: readonly string[];
   /** The server's state edit (Monitor's), when the adapter offers one: leaves become editable. */
   edit?: StateEdit | undefined;
+  /** The server's state delete (Monitor's), when offered: each key gets a remove control. */
+  remove?: StateDelete | undefined;
 }) {
   const [expanded, setExpanded] = useState(depth === 0);
   const [draft, setDraft] = useState<string | null>(null);
@@ -176,6 +180,23 @@ function StateTreeNode({
             {formatLeaf(value)}
           </span>
         )}
+        {remove && path.length > 0 ? (
+          <button
+            type="button"
+            data-testid="net-tree-delete"
+            title="Delete this key on the server"
+            aria-label={`Delete ${path.join('.')} on the server`}
+            onClick={() =>
+              remove(path).then(
+                () => setFailed(null),
+                (caught: unknown) => setFailed(caught instanceof Error ? caught.message : String(caught)),
+              )
+            }
+            style={{ marginLeft: 8, border: 0, background: 'transparent', color: themeVars.content.muted, cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        ) : null}
         {failed ? <span style={{ color: themeVars.semantic.danger }}> {failed}</span> : null}
       </div>
     );
@@ -198,6 +219,21 @@ function StateTreeNode({
           {' '}
           {Array.isArray(value) ? `[${entries.length}]` : `{${entries.length}}`}
         </span>
+        {remove && path.length > 0 ? (
+          <button
+            type="button"
+            data-testid="net-tree-delete"
+            title="Delete this key on the server"
+            aria-label={`Delete ${path.join('.')} on the server`}
+            onClick={(event) => {
+              event.stopPropagation();
+              remove(path).catch(() => undefined);
+            }}
+            style={{ marginLeft: 8, border: 0, background: 'transparent', color: themeVars.content.muted, cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        ) : null}
       </div>
       {expanded &&
         entries.map(([key, child]) => (
@@ -208,6 +244,7 @@ function StateTreeNode({
             depth={depth + 1}
             path={depth === 0 ? [key] : [...path, key]}
             edit={edit}
+            remove={remove}
           />
         ))}
     </div>
@@ -525,6 +562,8 @@ export function NetworkInspectorPanel() {
   const adapterRef = useRef<NetworkingAdapter | null>(null);
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState('');
+  // The one message draft: sent as this client, or from the server to one client or all.
+  const [draft, setDraft] = useState<MessageDraft>({ type: '', payload: '' });
 
   useEffect(() => {
     const syncAdapter = () => {
@@ -630,9 +669,11 @@ export function NetworkInspectorPanel() {
         </AbsentNote>
       )}
 
-      {caps.server ? <ServerView adapter={adapter} ownSession={view.roomInfo?.sessionId ?? null} /> : null}
+      {caps.server ? (
+        <ServerView adapter={adapter} ownSession={view.roomInfo?.sessionId ?? null} draft={draft} />
+      ) : null}
       {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
-      {caps.send ? <SendControls adapter={adapter} ping={caps.ping} /> : null}
+      {caps.send ? <SendControls adapter={adapter} ping={caps.ping} draft={draft} setDraft={setDraft} /> : null}
 
       {/* Body: state tree | message log */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
@@ -653,6 +694,7 @@ export function NetworkInspectorPanel() {
                 value={snapshot}
                 depth={0}
                 edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next) : undefined}
+                remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path) : undefined}
               />
             ) : (
               <AbsentNote>Not connected — no replicated state to show.</AbsentNote>
@@ -775,11 +817,33 @@ function TrafficTable({ rows }: { rows: readonly NetTypeTraffic[] }) {
   );
 }
 
+interface MessageDraft {
+  readonly type: string;
+  readonly payload: string;
+}
+
+/** The draft as a message: its type and its parsed JSON payload (none when empty). */
+function draftMessage(draft: MessageDraft): { type: string; payload: unknown } {
+  if (draft.type.trim() === '') throw new Error('Name the message type first.');
+  return { type: draft.type, payload: draft.payload.trim() === '' ? undefined : (JSON.parse(draft.payload) as unknown) };
+}
+
 /**
- * Send a message into the room as this client — Colyseus Monitor's Send (a message type and a
- * JSON payload), so a server handler can be exercised without writing game code for it.
+ * A message type and a JSON payload (Colyseus Monitor's Send dialog), sent into the room as this
+ * client so a server handler can be exercised without writing game code for it; the Server section
+ * sends the same draft from the server.
  */
-function SendControls({ adapter, ping }: { adapter: NetworkingAdapter; ping: boolean }) {
+function SendControls({
+  adapter,
+  ping,
+  draft,
+  setDraft,
+}: {
+  adapter: NetworkingAdapter;
+  ping: boolean;
+  draft: MessageDraft;
+  setDraft: (next: MessageDraft) => void;
+}) {
   const [rtt, setRtt] = useState<string | null>(null);
   const measure = () => {
     setRtt('…');
@@ -788,13 +852,11 @@ function SendControls({ adapter, ping }: { adapter: NetworkingAdapter; ping: boo
       (caught: unknown) => setRtt(caught instanceof Error ? caught.message : String(caught)),
     );
   };
-  const [type, setType] = useState('');
-  const [payload, setPayload] = useState('');
   const [error, setError] = useState<string | null>(null);
   const send = () => {
     try {
-      const value = payload.trim() === '' ? undefined : (JSON.parse(payload) as unknown);
-      adapter.sendMessage?.(type, value);
+      const message = draftMessage(draft);
+      adapter.sendMessage?.(message.type, message.payload);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
@@ -808,19 +870,19 @@ function SendControls({ adapter, ping }: { adapter: NetworkingAdapter; ping: boo
       <TextInput
         data-testid="net-send-type"
         placeholder="Message type"
-        value={type}
-        onChange={(event) => setType(event.target.value)}
+        value={draft.type}
+        onChange={(event) => setDraft({ ...draft, type: event.target.value })}
         style={{ width: 140 }}
       />
       <TextInput
         data-testid="net-send-payload"
         placeholder='Payload (JSON), e.g. {"x": 1}'
-        value={payload}
-        onChange={(event) => setPayload(event.target.value)}
+        value={draft.payload}
+        onChange={(event) => setDraft({ ...draft, payload: event.target.value })}
         style={{ flex: 1, minWidth: 80 }}
       />
-      <Button type="button" variant="ghost" data-testid="net-send-button" disabled={type.trim() === ''} onClick={send}>
-        Send
+      <Button type="button" variant="ghost" data-testid="net-send-button" disabled={draft.type.trim() === ''} onClick={send}>
+        Send as this client
       </Button>
       {ping ? (
         <>
@@ -844,17 +906,27 @@ function SendControls({ adapter, ping }: { adapter: NetworkingAdapter; ping: boo
 }
 
 /**
- * The room server's side — Colyseus Monitor's room list and a room's Clients tab, read from
- * Monitor's own API on the server: every room with its clients, lock and age, the machine's CPU
- * and memory, and the current room's clients with Disconnect.
+ * The room server's side — Colyseus Monitor's room list and room view, read from Monitor's own API
+ * on the server: every room (Inspect one), the machine's CPU and memory, and the inspected room's
+ * clients. Its acts are Monitor's: Broadcast and Dispose for the room, Send and Disconnect for a
+ * client, the message being the Send row's draft.
  */
-function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSession: string | null }) {
+function ServerView({
+  adapter,
+  ownSession,
+  draft,
+}: {
+  adapter: NetworkingAdapter;
+  ownSession: string | null;
+  draft: MessageDraft;
+}) {
   const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
+  const [inspected, setInspected] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
     const read = () => {
-      void adapter.inspectServer?.().then(
+      void adapter.inspectServer?.(inspected).then(
         (next) => {
           if (live) setInspection(next);
         },
@@ -870,7 +942,17 @@ function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSe
       live = false;
       clearInterval(id);
     };
-  }, [adapter]);
+  }, [adapter, inspected]);
+  const act = (run: () => Promise<void> | undefined) => {
+    try {
+      run()?.then(
+        () => setError(null),
+        (caught: unknown) => setError(caught instanceof Error ? caught.message : String(caught)),
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    }
+  };
   const seconds = (ms: number) => `${Math.round(ms / 1000)} s`;
   const cell = { padding: `0 ${spaceVar[3]}`, whiteSpace: 'nowrap' as const };
   if (inspection === undefined) return null;
@@ -881,6 +963,12 @@ function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSe
       </AbsentNote>
     );
   }
+  const roomId = inspection.room?.roomId;
+  const actButton = (testId: string, label: string, run: () => Promise<void> | undefined) => (
+    <Button type="button" variant="ghost" data-testid={testId} onClick={() => act(run)}>
+      {label}
+    </Button>
+  );
   return (
     <div
       data-testid="net-server"
@@ -896,7 +984,7 @@ function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSe
       <table style={{ borderCollapse: 'collapse', ...MONO }}>
         <tbody>
           {inspection.rooms.map((room) => (
-            <tr key={room.roomId} data-testid="net-server-room">
+            <tr key={room.roomId} data-testid="net-server-room" data-inspected={room.roomId === roomId || undefined}>
               <td style={cell}>{room.name}</td>
               <td style={cell}>{room.roomId}</td>
               <td style={cell}>
@@ -905,6 +993,21 @@ function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSe
               </td>
               <td style={cell}>{room.locked ? 'locked' : 'open'}</td>
               <td style={cell}>{seconds(room.elapsedMs)}</td>
+              <td style={cell}>
+                {room.roomId === roomId ? (
+                  <>
+                    {actButton('net-server-broadcast', 'Broadcast', () => {
+                      const message = draftMessage(draft);
+                      return adapter.broadcast?.(message.type, message.payload, room.roomId);
+                    })}
+                    {actButton('net-server-dispose', 'Dispose', () => adapter.disposeRoom?.(room.roomId))}
+                  </>
+                ) : (
+                  <Button type="button" variant="ghost" data-testid="net-server-inspect" onClick={() => setInspected(room.roomId)}>
+                    Inspect
+                  </Button>
+                )}
+              </td>
             </tr>
           ))}
           {inspection.room?.clients.map((client) => (
@@ -915,19 +1018,12 @@ function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSe
                 {client.sessionId === ownSession ? ' (this client)' : ''}
               </td>
               <td style={cell}>{seconds(client.elapsedMs)}</td>
-              <td style={cell} colSpan={2}>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-testid="net-server-disconnect"
-                  onClick={() => {
-                    adapter.disconnectClient?.(client.sessionId).catch((caught: unknown) =>
-                      setError(caught instanceof Error ? caught.message : String(caught)),
-                    );
-                  }}
-                >
-                  Disconnect
-                </Button>
+              <td style={cell} colSpan={3}>
+                {actButton('net-server-send', 'Send', () => {
+                  const message = draftMessage(draft);
+                  return adapter.sendToClient?.(client.sessionId, message.type, message.payload, roomId);
+                })}
+                {actButton('net-server-disconnect', 'Disconnect', () => adapter.disconnectClient?.(client.sessionId, roomId))}
               </td>
             </tr>
           ))}

@@ -366,12 +366,21 @@ export interface NetworkingAdapter {
   ping?(): Promise<number>;
   /** The room server's own view — every room it hosts, and the current room's clients (Colyseus
    *  Monitor's). `null` when the server serves no such view. */
-  inspectServer?(): Promise<NetServerInspection | null>;
+  inspectServer?(roomId?: string): Promise<NetServerInspection | null>;
   /** Disconnect one client of the current room from the server's side (Monitor's Disconnect). */
-  disconnectClient?(sessionId: string): Promise<void>;
+  disconnectClient?(sessionId: string, roomId?: string): Promise<void>;
   /** Set one value of the room's authoritative state on the server (Monitor's State edit);
    *  `path` is the keys from the state's root. */
   editServerState?(path: readonly (string | number)[], value: unknown): Promise<void>;
+  /** Remove one key of the room's authoritative state on the server (Monitor's State delete). */
+  deleteServerState?(path: readonly (string | number)[]): Promise<void>;
+  /** From the server, send `payload` under `type` to one client of the room (Monitor's Send). */
+  sendToClient?(sessionId: string, type: string, payload: unknown, roomId?: string): Promise<void>;
+  /** From the server, send `payload` under `type` to every client of the room (Monitor's
+   *  Broadcast). */
+  broadcast?(type: string, payload: unknown, roomId?: string): Promise<void>;
+  /** Dispose a room on the server (Monitor's Dispose); its clients are disconnected. */
+  disposeRoom?(roomId?: string): Promise<void>;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this

@@ -72,6 +72,10 @@ export const NETWORKING_ADAPTER_SHAPE = defineSeamShape<NetworkingAdapter>()({
   inspectServer: { optional: true, kind: 'function', required: 'operation' },
   disconnectClient: { optional: true, kind: 'function', required: 'effect' },
   editServerState: { optional: true, kind: 'function', required: 'effect' },
+  deleteServerState: { optional: true, kind: 'function', required: 'effect' },
+  sendToClient: { optional: true, kind: 'function', required: 'effect' },
+  broadcast: { optional: true, kind: 'function', required: 'effect' },
+  disposeRoom: { optional: true, kind: 'function', required: 'effect' },
 });
 
 export const NAVIGATION_ADAPTER_SHAPE = defineSeamShape<NavigationAdapter>()({
