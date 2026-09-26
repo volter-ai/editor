@@ -6,6 +6,7 @@
     "src/lib/godot-compat/color.ts",
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/node-process.ts",
+    "src/lib/godot-compat/packed-string-array.ts",
     "src/lib/godot-compat/plane.ts",
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/rect2.ts",

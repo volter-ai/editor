@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/packed-string-array"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PackedStringArray",
+        "member": "PackedStringArray",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/packed-string-array",
+        "exportName": "construct",
+        "localName": "PackedStringArray_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PackedStringArray.PackedStringArray"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PackedStringArray",
+        "member": "size",
+        "kind": "builtin-member",
+        "signature": "hash:3173160232"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/packed-string-array",
+        "exportName": "size",
+        "localName": "PackedStringArray_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PackedStringArray.size"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PackedStringArray.PackedStringArray",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000PackedStringArray\u0000PackedStringArray\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_construct.cpp",
+        "sourceSymbol": "PackedStringArray.PackedStringArray",
+        "sourceLine": 238
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1f0a2791524416ecfb928a89bfd6c95d9850c9f84bd4579331f1ef87e70e8705",
+        "callsite": "res://probe.gd _init() construct-empty construct-copy-\"\" construct-copy-\"a\" construct-copy-\"a,b\" construct-copy-\",,\" construct-copy-\"x,😀,z,\"",
+        "observedOutputSha256": "cd155369b63190d1b7c3cc6aa814958f35faed4a84e3f5e232a71466a8c2e91d"
+      },
+      "target": {
+        "implementationSha256": "eda0ec86cc391d375227bb644e22c40c2cdeba475e182b70c4f6ac695ee97829",
+        "callsite": "lib/godot-compat/packed-string-array.ts construct",
+        "observedOutputSha256": "cd155369b63190d1b7c3cc6aa814958f35faed4a84e3f5e232a71466a8c2e91d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eb72741284d4aa4da675c8e0b7fbf74ab0bcb01b93241d5d348a4e29fcbb4789"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "packed-string-array",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PackedStringArray.size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000PackedStringArray\u0000size\u0000hash:3173160232",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_call.cpp",
+        "sourceSymbol": "PackedStringArray.size",
+        "sourceLine": 2944
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "15d491b3f62c8b48d90e64356d143f4d7096f86d363a69a322ef140f921653ea",
+        "callsite": "res://probe.gd _init() size-empty size-\"\" size-no-empty-\"\" size-\"a\" size-no-empty-\"a\" size-\"a,b\" size-no-empty-\"a,b\" size-\",,\" size-no-empty-\",,\" size-\"x,😀,z,\" size-no-empty-\"x,😀,z,\"",
+        "observedOutputSha256": "c6e5dace08d1d347e3b6e56e21afc2418c4c7cdf7937f48708bd69c1a1835922"
+      },
+      "target": {
+        "implementationSha256": "eda0ec86cc391d375227bb644e22c40c2cdeba475e182b70c4f6ac695ee97829",
+        "callsite": "lib/godot-compat/packed-string-array.ts size",
+        "observedOutputSha256": "c6e5dace08d1d347e3b6e56e21afc2418c4c7cdf7937f48708bd69c1a1835922"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5b367fbbdfe5f70c0ad184ca5f6804180d984b88b366cdcd89bedd0be41d95ad"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "packed-string-array",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PackedStringArray.PackedStringArray",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1f0a2791524416ecfb928a89bfd6c95d9850c9f84bd4579331f1ef87e70e8705",
+      "implementationSha256": "eda0ec86cc391d375227bb644e22c40c2cdeba475e182b70c4f6ac695ee97829"
+    },
+    {
+      "claimId": "godot-4.7-binding-PackedStringArray.size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "15d491b3f62c8b48d90e64356d143f4d7096f86d363a69a322ef140f921653ea",
+      "implementationSha256": "eda0ec86cc391d375227bb644e22c40c2cdeba475e182b70c4f6ac695ee97829"
+    }
+  ]
+}
