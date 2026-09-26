@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p capabilities/catalog/project-source",
     "godot-evidence-refresh": "npx tsx src/cli.ts evidence --refresh --official-binary /Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot --bound-exporter-binary /Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-editor/godot-4.7-bound-exporter-arm64",
     "godot-direct-scene-artifact-proof": "npx tsx scripts/prove-direct-scene-artifacts.ts",
     "verify-unaltered": "node verify-unaltered.mjs"
