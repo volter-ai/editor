@@ -30,7 +30,7 @@ import {
   CanvasSceneBackdrop,
   CanvasSceneControls,
 } from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
-import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 
 export interface PixiIsolationSceneContentProps {

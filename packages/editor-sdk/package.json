@@ -327,7 +327,11 @@
     "./kit/project-tools": "./src/kit/project-tools.ts",
     "./kit/stories/story-presentation": "./src/kit/stories/story-presentation.ts",
     "./kit/workspace-persistence-gate": "./src/kit/workspace-persistence-gate.ts",
-    "./kit/workspace-play-utilities": "./src/kit/workspace-play-utilities.ts"
+    "./kit/workspace-play-utilities": "./src/kit/workspace-play-utilities.ts",
+    "./kit/components/RootSelectionOverlay": "./src/kit/components/RootSelectionOverlay.tsx",
+    "./kit/components/AlignToolbar": "./src/kit/components/AlignToolbar.tsx",
+    "./kit/components/RootTextEditor": "./src/kit/components/RootTextEditor.tsx",
+    "./kit/components/world-overlay-gestures": "./src/kit/components/world-overlay-gestures.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

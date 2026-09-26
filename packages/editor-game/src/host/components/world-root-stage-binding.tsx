@@ -19,7 +19,7 @@ import {
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
-import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type {
   WorldRootOverlayProps,

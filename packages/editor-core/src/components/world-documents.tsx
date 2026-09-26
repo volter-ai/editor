@@ -81,7 +81,7 @@ import {
   CanvasSceneControls,
 } from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
 import { ReactCanvasControls } from './ReactCanvasControls';
-import { RootSelectionOverlay } from './RootSelectionOverlay';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 

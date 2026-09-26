@@ -25,7 +25,7 @@ import {
   CanvasSceneBackdrop,
   CanvasSceneControls,
 } from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
-import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';

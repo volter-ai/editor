@@ -25,7 +25,7 @@ import {
   computeArrowNudgePatch,
   readSpacingValues,
   rectForId,
-} from './components/world-overlay-gestures';
+} from '@volter/editor-sdk/kit/components/world-overlay-gestures';
 import { openCommandPalette } from './editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorHostKeyAction } from '@volter/editor-sdk/host';

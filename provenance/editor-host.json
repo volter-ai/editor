@@ -679,7 +679,7 @@
     },
     {
       "source": "packages/editor/src/components/AlignToolbar.tsx",
-      "path": "packages/editor-core/src/components/AlignToolbar.tsx",
+      "path": "packages/editor-sdk/src/kit/components/AlignToolbar.tsx",
       "sha256": "a9e7086ace57d3466d0a6abd672783ea15b39d6b490fb1ebcf6286bec9358b1e"
     },
     {
@@ -904,12 +904,12 @@
     },
     {
       "source": "packages/editor/src/components/RootSelectionOverlay.tsx",
-      "path": "packages/editor-core/src/components/RootSelectionOverlay.tsx",
+      "path": "packages/editor-sdk/src/kit/components/RootSelectionOverlay.tsx",
       "sha256": "35496ec62b46451304932187e88c92b22b7a452efe2e8774d11475bfc0f4e463"
     },
     {
       "source": "packages/editor/src/components/RootTextEditor.tsx",
-      "path": "packages/editor-core/src/components/RootTextEditor.tsx",
+      "path": "packages/editor-sdk/src/kit/components/RootTextEditor.tsx",
       "sha256": "e7acc316f43db049b228110d24aa6b695092e0b54a992eee4e740328752ff291"
     },
     {
@@ -1329,7 +1329,7 @@
     },
     {
       "source": "packages/editor/src/components/world-overlay-gestures.ts",
-      "path": "packages/editor-core/src/components/world-overlay-gestures.ts",
+      "path": "packages/editor-sdk/src/kit/components/world-overlay-gestures.ts",
       "sha256": "5c4ce627b8ce2ae0523977474753e95bfdbd74931be0d9c9c48b3ace8d543a8d"
     },
     {
