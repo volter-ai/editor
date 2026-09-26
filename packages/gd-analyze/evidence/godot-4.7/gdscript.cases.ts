@@ -1,5 +1,6 @@
-import { Group, Object3D, PointLight } from 'three';
+import { DirectionalLight, Group, Object3D, PointLight } from 'three';
 import { add_child, godot_node_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import { godot_directional_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/directional-light-3d';
 import { godot_omni_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/omni-light-3d';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
 import type {
@@ -247,6 +248,11 @@ rule('cast-native-on-native', 'CAST', 'cast:native', [NATIVE], NATIVE, structura
   symbol: 'OPCODE_CAST_TO_NATIVE',
   line: 1656,
 });
+rule('cast-native-on-script', 'CAST', 'cast:native', [CLASS], NATIVE, structural('cast'), {
+  file: 'modules/gdscript/gdscript_vm.cpp',
+  symbol: 'OPCODE_CAST_TO_NATIVE',
+  line: 1656,
+});
 rule('cast-script-on-native', 'CAST', 'cast:script', [NATIVE], CLASS, structural('cast'), {
   file: 'modules/gdscript/gdscript_vm.cpp',
   symbol: 'OPCODE_CAST_TO_SCRIPT',
@@ -456,7 +462,7 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
 
 // An Array literal is a new JS array of its elements in source order, typed or not (a typed
 // array's element checks never fail on a well-typed program the analyzer accepted).
-for (const elements of [0, 1, 2, 3, 5, 7, 8]) {
+for (const elements of [0, 1, 2, 3, 5, 6, 8]) {
   rule(
     `array-literal-${String(elements)}`,
     'ARRAY',
@@ -507,11 +513,12 @@ rule('literal-node-path', 'LITERAL', 'literal:opaque:reduced', [], 'BUILTIN:Node
 });
 // A native object's property (`$A.name`) reads through its API-dump getter on the object; so
 // does a script instance's, when its script declares no member of that name.
-for (const [id, receiver] of [
-  ['native-property-read-builtin', NATIVE],
-  ['native-property-read-builtin-on-script', CLASS],
+for (const [id, receiver, result] of [
+  ['native-property-read-builtin', NATIVE, B],
+  ['native-property-read-builtin-on-script', CLASS, B],
+  ['native-property-read-enum', NATIVE, ENUM],
 ] as const) {
-  rule(id, 'SUBSCRIPT', 'subscript-attribute:native-property', [receiver], B, { kind: 'binding' }, {
+  rule(id, 'SUBSCRIPT', 'subscript-attribute:native-property', [receiver], result, { kind: 'binding' }, {
     file: 'core/object/object.cpp',
     symbol: 'Object::get through ClassDB property accessors',
     line: 243,
@@ -1169,16 +1176,17 @@ func narrowed_members() -> Array:
 func scene_members() -> Array:
 \t$Tagged.position = Vector3(1.0, 2.0, 3.0)
 \t$Tagged.level = 7
+\t$Sun.sky_mode = DirectionalLight3D.SKY_MODE_SKY_ONLY
 \t$Lamp.light_energy = 2.5
 \t$Lamp.omni_range = 7.0
-\treturn [$Tagged.position, $Tagged.transform.origin, $Tagged.level, $Body.name, $Lamp.light_energy, $Lamp.get_param(4), $Lamp.omni_range]
+\treturn [$Tagged.position, $Tagged.transform.origin, $Tagged.level, $Body.name, $Lamp.light_energy, $Lamp.get_param(4), $Lamp.omni_range, $Sun.sky_mode]
 
 func casts() -> Array:
 \tvar body: Node = $Body
 \tvar tagged: Node = $Tagged
 \tvar derived: Node = $Derived
 \tvar nothing: Node = null
-\treturn [body as RigidBody3D == body, body as CharacterBody3D == null, derived as Tagged == derived, tagged as DerivedTagged == null, nothing as Node3D == null]
+\treturn [body as RigidBody3D == body, body as CharacterBody3D == null, derived as Tagged == derived, tagged as DerivedTagged == null, nothing as Node3D == null, ($Derived as Node3D) == derived]
 `;
 
 const TYPE_SCENE = `[gd_scene load_steps=4 format=3]
@@ -1203,6 +1211,8 @@ script = ExtResource("2_tagged")
 script = ExtResource("3_derived")
 
 [node name="Lamp" type="OmniLight3D" parent="."]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
 `;
 
 /** A native node as the composition site adopts it: its kind and its Godot class chain. */
@@ -1459,6 +1469,9 @@ cases.push({
       const lamp = new PointLight();
       nativeNode('Lamp', ['OmniLight3D', 'Light3D', 'VisualInstance3D', ...NODE3D], root, lamp);
       godot_omni_light_3d_mount(lamp);
+      const sun = new DirectionalLight();
+      nativeNode('Sun', ['DirectionalLight3D', 'Light3D', 'VisualInstance3D', ...NODE3D], root, sun);
+      godot_directional_light_3d_mount(sun);
       return root;
     },
     adopt: (instance, native, classes) => {
@@ -1499,6 +1512,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
   compatModules: [
     'lib/godot-compat/array',
     'lib/godot-compat/engine',
+    'lib/godot-compat/directional-light-3d',
     'lib/godot-compat/float',
     'lib/godot-compat/global-scope',
     'lib/godot-compat/light-3d',
