@@ -40,6 +40,7 @@
     "src/lib/godot-compat/node.ts",
     "src/lib/godot-compat/object.ts",
     "src/lib/godot-compat/omni-light-3d.ts",
+    "src/lib/godot-compat/packed-scene.tsx",
     "src/lib/godot-compat/packed-string-array.ts",
     "src/lib/godot-compat/physics-body-3d.ts",
     "src/lib/godot-compat/physics-direct-body-state-3d.ts",
@@ -86,6 +87,7 @@
   "packageJson": {
     "dependencies": {
       "@dimforge/rapier3d-compat": "^0.14.0",
+      "@react-three/fiber": "^9.6.1",
       "react": "^19.2.4",
       "three": "^0.180.0"
     }

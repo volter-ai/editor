@@ -78,6 +78,7 @@ import {
   readGltfDocument,
 } from './gltf-document';
 import type { GltfAnimationPlayerOrigin, SceneDocument, SceneNode } from './godot-types';
+import type { GodotValue } from './godot-value';
 import { type GodotSceneImportParams, isUnchangedGlbRootType } from './import-sidecar';
 
 export interface GlbMeshSurface {
@@ -281,6 +282,22 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
   };
 }
 
+/**
+ * The properties the imported node holds as Godot instantiates it: its `transform` (the
+ * `Transform3D` text order, basis rows then origin, as a `.tscn` spells it) for every node below
+ * the root, and `visible` when the importer hid it.
+ */
+function importedProperties(node: GlbSceneNode): Readonly<Record<string, GodotValue>> {
+  if (node.path === '.') return {};
+  const { basisX, basisY, basisZ, origin } = node.transform;
+  const number = (value: number): GodotValue => ({ kind: 'number', value, variantType: 'float' });
+  const rows = [0, 1, 2].flatMap((row) => [basisX[row], basisY[row], basisZ[row]] as number[]);
+  return {
+    transform: { kind: 'ctor', name: 'Transform3D', args: [...rows, ...origin].map(number), fields: [] },
+    ...(node.visible ? {} : { visible: { kind: 'bool', value: false } }),
+  };
+}
+
 function asSceneNode(
   node: GlbSceneNode,
   byPath: ReadonlyMap<string, { node: GlbSceneNode; children: SceneNode[] }>,
@@ -291,7 +308,7 @@ function asSceneNode(
     type: node.nodeClass,
     groups: [],
     nodePathProperties: [],
-    properties: {},
+    properties: importedProperties(node),
     children: byPath.get(node.path)?.children ?? [],
   };
 }

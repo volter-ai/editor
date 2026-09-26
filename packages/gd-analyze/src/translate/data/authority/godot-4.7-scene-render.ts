@@ -73,6 +73,24 @@ export const GODOT_4_7_RENDER_RESOURCE_RULES: readonly (GodotSceneResourceRule &
   source: { file, symbol: `${className}::${className}`, line },
 }));
 
+const IMPORTED_IDENTITIES = godotProofIdentities('scene-imported');
+
+/** Imported models: their own proof (`src/evidence/proofs/scene-imported.ts`). */
+export const GODOT_4_7_IMPORTED_STRUCTURE_RULES: readonly (GodotSceneStructureRule & { readonly source: Source })[] = [
+  {
+    sourceRevision: REVISION,
+    id: 'imported-scene',
+    evidenceClaimId: 'godot-4.7-scene-structure-imported-scene',
+    source: { file: 'editor/import/3d/resource_importer_scene.cpp', symbol: 'ResourceImporterScene::import', line: 3174 },
+  },
+  {
+    sourceRevision: REVISION,
+    id: 'imported-scene-edits',
+    evidenceClaimId: 'godot-4.7-scene-structure-imported-scene-edits',
+    source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (editable children)', line: 540 },
+  },
+];
+
 export const GODOT_4_7_RENDER_STRUCTURE_RULES: readonly (GodotSceneStructureRule & { readonly source: Source })[] = [
   {
     sourceRevision: REVISION,
@@ -127,6 +145,34 @@ export const GODOT_4_7_RENDER_CLAIMS: readonly SemanticClaimRecord[] = [
     renderClaim(godotSceneStructureRuleKey(rule.sourceRevision, rule.id), rule.evidenceClaimId, rule.source),
   ),
 ];
+
+export const GODOT_4_7_IMPORTED_CLAIMS: readonly SemanticClaimRecord[] = GODOT_4_7_IMPORTED_STRUCTURE_RULES.map((rule) => {
+  const claim = renderClaim(godotSceneStructureRuleKey(rule.sourceRevision, rule.id), rule.evidenceClaimId, rule.source);
+  return {
+    ...claim,
+    native: { ...claim.native, inputSha256: IMPORTED_IDENTITIES.input, observedOutputSha256: IMPORTED_IDENTITIES.observed },
+    target: {
+      ...claim.target,
+      implementationSha256: IMPORTED_IDENTITIES.implementation,
+      callsite: 'emitted scene with instanced .glb models mounted by @react-three/fiber',
+      observedOutputSha256: IMPORTED_IDENTITIES.observed,
+    },
+    comparison: {
+      comparator: 'imported tree (names, classes, global transform bits) exact equality',
+      tolerance: 'exact',
+      resultSha256: IMPORTED_IDENTITIES.comparison,
+    },
+  };
+});
+
+export const GODOT_4_7_IMPORTED_LIVENESS: readonly GodotSceneNodeClaimLiveness[] = GODOT_4_7_IMPORTED_CLAIMS.map((entry) => ({
+  claimId: entry.claimId,
+  sourceRevision: REVISION,
+  apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
+  executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
+  inputSha256: IMPORTED_IDENTITIES.input,
+  implementationSha256: IMPORTED_IDENTITIES.implementation,
+}));
 
 export const GODOT_4_7_RENDER_LIVENESS: readonly GodotSceneNodeClaimLiveness[] = GODOT_4_7_RENDER_CLAIMS.map(
   (entry) => ({

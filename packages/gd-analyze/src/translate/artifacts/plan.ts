@@ -4,6 +4,7 @@ import type { OfficialBoundCodePlan } from '../code/lower-official-bound';
 import type { DirectGodotProjectCompositionPlan } from '../data/direct-project-composition-plan';
 import type { DirectGodotProjectDataPlan } from '../data/direct-project-data-plan';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
+import { assetCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
 import {
@@ -178,11 +179,13 @@ export function planDirectGodotArtifacts(
   scenes: DirectGodotSceneModulePlan,
   project: DirectGodotProjectDataPlan,
   capabilities: readonly CapabilityCopyArtifact[],
+  models: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
 ): readonly GodotPlannedArtifact[] {
   const artifacts = [
     ...sourceArtifacts(composition, code, scenes),
     ...projectArtifacts(project, composition),
     ...capabilities.map(capabilityCopyArtifact),
+    ...models.map((model) => assetCopyArtifact(model.resPath, model.sourceDigest, model.bytes)),
   ];
   const paths = new Set<string>();
   for (const artifact of artifacts) {

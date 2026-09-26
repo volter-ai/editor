@@ -156,6 +156,15 @@ export interface BoundGodotSceneDocument {
   readonly sourceKind: 'packed-scene' | 'imported-gltf';
   /** One normalized row per effective or unresolved authored node; no downstream tree walk. */
   readonly nodes: readonly BoundGodotSceneNode[];
+  /**
+   * An imported model's source (`.glb`): its bytes, and each Godot node path the importer made
+   * from a glTF node, by that node's `nodes[]` index (`GltfSceneOrigin`).
+   */
+  readonly model?: {
+    readonly bytes: Uint8Array;
+    readonly nodeIndexByPath: Readonly<Record<string, number>>;
+    readonly externalImageUris: readonly string[];
+  };
   /** The document's `[sub_resource]`s and `[ext_resource]`s (an instance's copied under its ids). */
   readonly subResources: readonly BoundGodotResourceData[];
   readonly extResources: readonly BoundGodotExtResource[];
@@ -557,6 +566,15 @@ function boundDocuments(
         return {
           ...provenance(document),
           sourceKind: document.gltfOrigin === undefined ? 'packed-scene' : 'imported-gltf',
+          ...(document.gltfOrigin === undefined
+            ? {}
+            : {
+                model: {
+                  bytes: snapshot.bytesByResPath(document.resPath),
+                  nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
+                  externalImageUris: document.gltfOrigin.externalImageUris,
+                },
+              }),
           nodes: boundSceneNodes(
             document,
             projectNodes.byDocument.get(document.resPath) ?? [],

@@ -24,8 +24,17 @@ export interface TargetGodotSceneNodePlan {
   readonly nodePath: string;
   readonly parentNodePath?: string;
   readonly name: string;
-  /** A native entity's kind; `scene-instance` mounts `instance`'s generated component. */
-  readonly targetKind: TargetSceneNodeKind | 'scene-instance';
+  /**
+   * A native entity's kind; `scene-instance` mounts `instance`'s generated component,
+   * `imported-scene` an imported model's tree (`model`).
+   */
+  readonly targetKind: TargetSceneNodeKind | 'scene-instance' | 'imported-scene';
+  /** For `imported-scene`: the importer's tree over the model file, and this scene's edits in it. */
+  readonly model?: TargetGodotImportedModelPlan;
+  /** A node this scene places under a node of an imported model: that instance and the path. */
+  readonly portal?: { readonly instanceNodePath: string; readonly at: string };
+  /** For `imported-scene`: the nodes this scene places under its model's nodes. */
+  readonly placements?: readonly { readonly at: string; readonly node: TargetGodotSceneNodePlan }[];
   /** The instanced scene, for a `scene-instance` node. */
   readonly instance?: { readonly sourceResPath: string };
   readonly scriptResPath?: string;
@@ -47,6 +56,25 @@ export interface TargetGodotSceneNodePlan {
   readonly children: readonly TargetGodotSceneNodePlan[];
   readonly evidenceClaimId: string;
   readonly placementEvidenceClaimId?: string;
+}
+
+/** One node of an imported model's tree (`GodotImportedSceneNode` in compat's packed-scene). */
+export interface TargetGodotImportedModelNode {
+  readonly path: string;
+  readonly name: string;
+  readonly classes: readonly string[];
+  readonly nonSpatial?: true;
+  readonly gltfNode?: number;
+  readonly matrix: readonly number[];
+}
+
+/** An instanced imported model: the file, Godot's tree over it, and this scene's overrides in it. */
+export interface TargetGodotImportedModelPlan {
+  readonly sourceResPath: string;
+  readonly rootClasses: readonly string[];
+  readonly nodes: readonly TargetGodotImportedModelNode[];
+  /** Authored properties of the model's own nodes, by their setters on the node's entity. */
+  readonly overrides: readonly { readonly at: string; readonly setters: readonly TargetGodotSceneSetterPlan[] }[];
 }
 
 /** A value a setter receives: a target value, or a resource this document's plan constructs. */
@@ -536,6 +564,69 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   };
 }
 
+const IDENTITY_MATRIX = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] as const;
+
+/**
+ * An instanced imported model (`.glb`): Godot's importer tree over the file (`imported-scene`), the
+ * instance root's authored values as props, and room for this scene's edits inside it.
+ */
+function planImportedInstance(
+  context: PlanContext,
+  node: BoundGodotSceneNode,
+  imported: BoundGodotSceneDocument,
+): TargetGodotSceneNodePlan | undefined {
+  const at = `${node.documentPath}#${node.nodePath}`;
+  if (!structure(context, at, 'imported-scene')) return undefined;
+  const model = imported.model;
+  const root = imported.nodes.find((candidate) => candidate.nodePath === '.');
+  if (model === undefined || root === undefined) {
+    refuse(context, at, `${imported.resPath} has no imported model source`, 'node-family', 'imported .glb');
+    return undefined;
+  }
+  if (model.externalImageUris.length > 0) {
+    // The copied model is the `.glb` alone; its images outside the file are not copied beside it.
+    refuse(context, at, `${imported.resPath} references images outside the file`, 'resource', 'imported .glb');
+    return undefined;
+  }
+  const nodes: TargetGodotImportedModelNode[] = [];
+  for (const member of imported.nodes) {
+    if (member.nodePath === '.') continue;
+    if (member.authoredProperties['visible'] !== undefined) {
+      // A node the importer hid needs Node3D visibility, which compat does not bind yet.
+      refuse(context, at, `${imported.resPath}: ${member.nodePath} is hidden by the importer`, 'property', 'Node3D.visible');
+      return undefined;
+    }
+    const transform = member.authoredProperties['transform'];
+    const matrix = transform === undefined ? undefined : serializedValue(transform)?.value;
+    const gltfNode = model.nodeIndexByPath[member.nodePath];
+    nodes.push({
+      path: member.nodePath,
+      name: member.name,
+      classes: member.class.nativeAncestry,
+      ...(member.class.nativeAncestry.includes('Node3D') ? {} : { nonSpatial: true as const }),
+      ...(gltfNode === undefined ? {} : { gltfNode }),
+      matrix: matrix ?? IDENTITY_MATRIX,
+    });
+  }
+  const properties = planProperties(context, node, node.authoredProperties);
+  const placed = placement(context, node);
+  if (properties === undefined || placed === undefined) return undefined;
+  return {
+    nodePath: node.nodePath,
+    ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
+    name: node.name,
+    targetKind: 'imported-scene',
+    model: { sourceResPath: imported.resPath, rootClasses: root.class.nativeAncestry, nodes, overrides: [] },
+    properties,
+    groups: [],
+    classes: [],
+    setters: [],
+    children: [],
+    evidenceClaimId: context.authority.structureRule('imported-scene')?.evidenceClaimId ?? '',
+    ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
+  };
+}
+
 /**
  * The root of an instanced scene: that scene's generated component, the values this document
  * authors on it beyond the instanced root's own as its props (Godot applies them over the
@@ -607,12 +698,95 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   if (!structure(context, scene.resPath, 'authored-order')) return undefined;
   // Instance roots: a node this document copied from another scene's root.
   const instanceRoots = new Map<string, BoundGodotSceneDocument>();
+  const importedPlans = new Map<
+    string,
+    {
+      readonly nodes: readonly TargetGodotImportedModelNode[];
+      readonly overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[] }[];
+      readonly placedAt: Map<string, number>;
+    }
+  >();
+  // Nodes this document placed under an imported model's nodes: their own children are ordinary.
+  const placedUnderModels = new Set<string>();
   const planned: TargetGodotSceneNodePlan[] = [];
   let refused = false;
-  for (const node of scene.nodes) {
+  for (const authoredNode of scene.nodes) {
+    // A node under a node this document placed in a model: the binder, which does not model the
+    // imported tree, leaves its parent unresolved; the parent is that placed node.
+    const node: BoundGodotSceneNode =
+      authoredNode.placement.kind === 'unresolved-parent' &&
+      placedUnderModels.has(authoredNode.placement.authoredParentPath)
+        ? { ...authoredNode, placement: { kind: 'child', parentNodePath: authoredNode.placement.authoredParentPath } }
+        : authoredNode;
     const at = `${scene.resPath}#${node.nodePath}`;
     const enclosing = [...instanceRoots.keys()].find((root) => isInside(node.nodePath, root));
-    if (enclosing !== undefined) {
+    const importedEnclosing = enclosing === undefined ? undefined : importedPlans.get(enclosing);
+    const underPlaced = [...placedUnderModels].some((placedPath) => isInside(node.nodePath, placedPath));
+    if (enclosing !== undefined && importedEnclosing !== undefined && !underPlaced) {
+      // Inside an imported model: an override of one of its nodes is that node's setters, a node
+      // placed under one of its nodes a portal into it.
+      const relative = node.nodePath.slice(enclosing.length + 1);
+      const origin =
+        node.inheritedNode === undefined
+          ? undefined
+          : context.scenes
+              .get(node.inheritedNode.documentPath)
+              ?.nodes.find((candidate) => candidate.nodePath === node.inheritedNode?.nodePath);
+      if (origin !== undefined) {
+        const setters: TargetGodotSceneSetterPlan[] = [];
+        let ok = structure(context, at, 'imported-scene-edits');
+        for (const [propertyName, value] of Object.entries(node.authoredProperties)) {
+          if (sameValue(value, origin.authoredProperties[propertyName])) continue;
+          const setter = setterPlan(context, `${at}.${propertyName}`, node.class.nativeName, propertyName, value, '');
+          if (setter === undefined) ok = false;
+          else setters.push(setter);
+        }
+        if (!ok) refused = true;
+        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters });
+        continue;
+      }
+      const authoredParent =
+        node.placement.kind === 'child'
+          ? node.placement.parentNodePath
+          : node.placement.kind === 'unresolved-parent'
+            ? node.placement.authoredParentPath
+            : undefined;
+      if (authoredParent !== undefined && authoredParent !== enclosing && isInside(authoredParent, enclosing)) {
+        const target = authoredParent.slice(enclosing.length + 1);
+        const modelChildren = importedEnclosing.nodes.filter(
+          (member) => member.path.lastIndexOf('/') >= 0 && member.path.slice(0, member.path.lastIndexOf('/')) === target,
+        ).length;
+        const placedBefore = importedEnclosing.placedAt.get(target) ?? 0;
+        // Placed after the model's own children, in authored order.
+        if (node.siblingIndex !== undefined && node.siblingIndex !== modelChildren + placedBefore) {
+          refuse(context, at, 'a placement at a sibling index before the model node\'s own children is not planned', 'structure');
+          refused = true;
+          continue;
+        }
+        if (!importedEnclosing.nodes.some((member) => member.path === target)) {
+          refuse(context, at, `${target} is not a node of the imported model`, 'editable-children');
+          refused = true;
+          continue;
+        }
+        // It takes its sibling index, and its children are this document's nodes under it,
+        // whether or not it plans.
+        importedEnclosing.placedAt.set(target, placedBefore + 1);
+        placedUnderModels.add(node.nodePath);
+        if (!structure(context, at, 'imported-scene-edits')) {
+          refused = true;
+          continue;
+        }
+        const { siblingIndex: _siblingIndex, ...unindexed } = node;
+        const plannedNode = planNativeNode(context, { ...unindexed, placement: { kind: 'root' } });
+        if (plannedNode === undefined) {
+          refused = true;
+          continue;
+        }
+        planned.push({ ...plannedNode, portal: { instanceNodePath: enclosing, at: target } });
+        continue;
+      }
+    }
+    if (enclosing !== undefined && importedEnclosing === undefined && !underPlaced) {
       // Inside an instanced scene: its component renders the copied nodes; what this document
       // changes or adds there, below the instance root, is an editable-children edit.
       const instanced = instanceRoots.get(enclosing) as BoundGodotSceneDocument;
@@ -662,6 +836,18 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         refused = true;
         continue;
       }
+      if (instanced?.sourceKind === 'imported-gltf') {
+        instanceRoots.set(node.nodePath, instanced);
+        const plannedRoot = planImportedInstance(context, node, instanced);
+        if (plannedRoot === undefined || plannedRoot.model === undefined) {
+          refused = true;
+        } else {
+          const overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[] }[] = [];
+          importedPlans.set(node.nodePath, { nodes: plannedRoot.model.nodes, overrides, placedAt: new Map() });
+          planned.push({ ...plannedRoot, model: { ...plannedRoot.model, overrides } });
+        }
+        continue;
+      }
       if (instanced === undefined || instanced.sourceKind !== 'packed-scene') {
         instanceRoots.set(node.nodePath, instanced ?? scene);
         refuse(
@@ -669,7 +855,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
           at,
           `an instanced ${instanced?.sourceKind ?? 'unread'} scene (${origin.documentPath}) has no scene-node rule`,
           'node-family',
-          instanced?.sourceKind === 'imported-gltf' ? 'imported .glb' : 'instanced scene',
+          'instanced scene',
         );
         refused = true;
         continue;
@@ -799,7 +985,14 @@ function assembleSceneTree(
   scene: BoundGodotSceneDocument,
   plannedNodes: readonly TargetGodotSceneNodePlan[],
 ): TargetGodotSceneNodePlan | undefined {
-  const roots = plannedNodes.filter((node) => node.parentNodePath === undefined);
+  const roots = plannedNodes.filter((node) => node.parentNodePath === undefined && node.portal === undefined);
+  const portals = new Map<string, TargetGodotSceneNodePlan[]>();
+  for (const node of plannedNodes) {
+    if (node.portal === undefined) continue;
+    const list = portals.get(node.portal.instanceNodePath) ?? [];
+    list.push(node);
+    portals.set(node.portal.instanceNodePath, list);
+  }
   const root = roots[0];
   if (roots.length !== 1 || root === undefined) {
     refuse(context, scene.resPath, roots.length === 0 ? 'scene has no planned root' : 'scene has two roots', 'structure');
@@ -816,7 +1009,15 @@ function assembleSceneTree(
   const reachable = new Set<string>();
   const attach = (node: TargetGodotSceneNodePlan): TargetGodotSceneNodePlan => {
     reachable.add(node.nodePath);
-    return { ...node, children: (children.get(node.nodePath) ?? []).map(attach) };
+    const placements = (portals.get(node.nodePath) ?? []).map((placed) => ({
+      at: (placed.portal as { readonly at: string }).at,
+      node: attach(placed),
+    }));
+    return {
+      ...node,
+      children: (children.get(node.nodePath) ?? []).map(attach),
+      ...(placements.length === 0 ? {} : { placements }),
+    };
   };
   const result = attach(root);
   for (const node of plannedNodes) {

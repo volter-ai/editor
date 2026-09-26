@@ -40,6 +40,23 @@ export type GodotTranslationResult =
       readonly diagnostics: readonly DirectGodotCompositionDiagnostic[];
     };
 
+/** The imported models the planned scenes instance: each copied beside the app. */
+function importedModels(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
+  const paths = new Set<string>();
+  const walk = (node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
+    if (node.model !== undefined) paths.add(node.model.sourceResPath);
+    for (const child of node.children) walk(child);
+    for (const placed of node.placements ?? []) walk(placed.node);
+  };
+  for (const scene of composition.scenes) walk(scene.root);
+  return [...paths].sort().flatMap((resPath) => {
+    const document = project.documents.scenes.find((scene) => scene.resPath === resPath);
+    return document?.model === undefined
+      ? []
+      : [{ resPath, sourceDigest: document.sourceDigest, bytes: document.model.bytes }];
+  });
+}
+
 function validateInputClosure(
   project: BoundGodotProject,
   composition: DirectGodotProjectCompositionPlan,
@@ -49,6 +66,11 @@ function validateInputClosure(
     'project.godot',
     ...composition.sourceModules.map((module) => module.sourceResPath.slice('res://'.length)),
     ...sceneModules.modules.map((module) => module.sourceResPath.slice('res://'.length)),
+    // An imported model is copied beside the app; its `.import` sidecar is what imported it.
+    ...importedModels(project, composition).flatMap((model) => {
+      const relative = model.resPath.slice('res://'.length);
+      return [relative, `${relative}.import`];
+    }),
     // A `.tres` a scene's resources are constructed from is translated into that scene's module.
     ...composition.scenes.flatMap((scene) =>
       scene.resources.flatMap((resource) =>
@@ -120,6 +142,7 @@ export function assembleGodotTranslationPlan(
       sceneModules,
       projectData,
       toolchain.capabilityCopies,
+      importedModels(project, composition),
     );
   } catch (error) {
     return {

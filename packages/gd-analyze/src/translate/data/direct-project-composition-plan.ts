@@ -58,10 +58,11 @@ export interface DirectGodotScriptAutoloadPlan {
 /** Final scene ownership: the native node and its one retained script instance travel together. */
 export type DirectGodotSceneNodePlan = Omit<
   TargetGodotSceneNodePlan,
-  'children' | 'scriptResPath'
+  'children' | 'scriptResPath' | 'placements'
 > & {
   readonly scriptInstance?: DirectGodotScriptInstancePlan;
   readonly children: readonly DirectGodotSceneNodePlan[];
+  readonly placements?: readonly { readonly at: string; readonly node: DirectGodotSceneNodePlan }[];
 };
 
 export type DirectGodotSceneDocumentPlan = Omit<TargetGodotSceneDocumentPlan, 'root'> & {
@@ -384,11 +385,14 @@ function attachScriptInstances(
     const instance = byLocation.get(key);
     const boundNode = boundNodes.get(key);
     if (validateAttachedScript(scene, node, instance, boundNode, diagnostics)) consumed.add(key);
-    const { scriptResPath: _scriptResPath, children, ...nativeNode } = node;
+    const { scriptResPath: _scriptResPath, children, placements, ...nativeNode } = node;
     return {
       ...nativeNode,
       ...(instance === undefined ? {} : { scriptInstance: instance }),
       children: children.map((child) => attach(scene, child)),
+      ...(placements === undefined
+        ? {}
+        : { placements: placements.map((placed) => ({ at: placed.at, node: attach(scene, placed.node) })) }),
     };
   };
   const result = scenes.map((scene) => ({ ...scene, root: attach(scene, scene.root) }));

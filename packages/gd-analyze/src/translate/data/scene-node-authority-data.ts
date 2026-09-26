@@ -22,6 +22,9 @@ import {
   GODOT_4_7_STRUCTURE_RULES,
 } from './authority/godot-4.7-scene-nodes';
 import {
+  GODOT_4_7_IMPORTED_CLAIMS,
+  GODOT_4_7_IMPORTED_LIVENESS,
+  GODOT_4_7_IMPORTED_STRUCTURE_RULES,
   GODOT_4_7_RENDER_CLAIMS,
   GODOT_4_7_RENDER_LIVENESS,
   GODOT_4_7_RENDER_NODE_RULES,
@@ -84,6 +87,18 @@ export const GODOT_SCENE_RENDER_IMPLEMENTATION_FILES = [
   ].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-imported proof runs: the importer model, planning, emission, packed-scene. */
+export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/read/gltf-godot-scene.ts',
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/artifacts/asset-copy.ts',
+  `${COMPAT}/packed-scene.tsx`,
+  `${COMPAT}/node.ts`,
+  `${COMPAT}/node-3d.ts`,
+] as const;
+
 /** Checked-in, exact-pin scene-node mapping authority for the selected official frontend. */
 export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotSceneNodeAuthority {
   const supported =
@@ -100,11 +115,18 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
     propertyRules: supported
       ? [...GODOT_4_7_SCENE_PROPERTY_RULES, ...GODOT_4_7_STRUCTURE_PROPERTY_RULES]
       : [],
-    structureRules: supported ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES] : [],
+    structureRules: supported
+      ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES, ...GODOT_4_7_IMPORTED_STRUCTURE_RULES]
+      : [],
     signalRules: supported ? GODOT_4_7_SIGNAL_RULES : [],
     resourceRules: supported ? GODOT_4_7_RENDER_RESOURCE_RULES : [],
     claims: supported
-      ? [...GODOT_4_7_SCENE_NODE_CLAIMS, ...GODOT_4_7_STRUCTURE_CLAIMS, ...GODOT_4_7_RENDER_CLAIMS]
+      ? [
+          ...GODOT_4_7_SCENE_NODE_CLAIMS,
+          ...GODOT_4_7_STRUCTURE_CLAIMS,
+          ...GODOT_4_7_RENDER_CLAIMS,
+          ...GODOT_4_7_IMPORTED_CLAIMS,
+        ]
       : [],
     liveness: supported
       ? [
@@ -119,6 +141,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_RENDER_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_RENDER_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_IMPORTED_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES),
           ),
         ]
       : [],

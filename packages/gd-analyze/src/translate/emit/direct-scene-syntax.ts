@@ -90,6 +90,30 @@ interface SceneEmission {
   readonly nodeRefs: ReadonlyMap<string, string>;
   /** The generated component of each instanced scene, by source path. */
   readonly instanceComponents: ReadonlyMap<string, string>;
+  /** The module-level name of each resource the scene constructs, by plan key. */
+  readonly resourceNames: ReadonlyMap<string, string>;
+}
+
+/** A node's children and the nodes it places into an imported model it instances. */
+function childNodes(node: DirectGodotSceneNodePlan): readonly DirectGodotSceneNodePlan[] {
+  return [...node.children, ...(node.placements ?? []).map((placed) => placed.node)];
+}
+
+/** A JSON value as a literal expression. */
+function jsonExpression(value: unknown): TargetTsExpression {
+  if (Array.isArray(value)) return { kind: 'array-expression', elements: value.map(jsonExpression) };
+  if (value !== null && typeof value === 'object') {
+    return {
+      kind: 'object-expression',
+      properties: Object.entries(value).map(([key, entry]) => ({ key, value: jsonExpression(entry) })),
+    };
+  }
+  return { kind: 'literal-expression', value: value as string | number | boolean | null };
+}
+
+/** An imported model's asset URL: the `.glb` copied beside the app (`public/godot/…`). */
+export function godotImportedModelUrl(resPath: string): string {
+  return `/godot/${resPath.slice('res://'.length)}`;
 }
 
 function nodeElement(
@@ -121,6 +145,62 @@ function nodeElement(
     case 'three-point-light':
       tag = 'pointLight';
       break;
+    case 'imported-scene': {
+      const model = node.model;
+      if (model === undefined) throw new Error(`${node.nodePath}: imported scene has no model`);
+      tag = 'GodotImportedScene';
+      defaults.push(
+        { kind: 'jsx-string-attribute', name: 'url', value: godotImportedModelUrl(model.sourceResPath) },
+        { kind: 'jsx-expression-attribute', name: 'rootClasses', value: jsonExpression(model.rootClasses) },
+        { kind: 'jsx-expression-attribute', name: 'nodes', value: jsonExpression(model.nodes) },
+        ...(node.placements === undefined || node.placements.length === 0
+          ? []
+          : [
+              {
+                kind: 'jsx-expression-attribute' as const,
+                name: 'placements',
+                value: {
+                  kind: 'array-expression' as const,
+                  elements: node.placements.map((placed) => ({
+                    kind: 'object-expression' as const,
+                    properties: [
+                      { key: 'at', value: literal(placed.at) },
+                      { key: 'element', value: nodeExpression(placed.node, emission) },
+                    ],
+                  })),
+                },
+              },
+            ]),
+        ...(model.overrides.length === 0
+          ? []
+          : [
+              {
+                kind: 'jsx-expression-attribute' as const,
+                name: 'overrides',
+                value: {
+                  kind: 'array-expression' as const,
+                  elements: model.overrides.map((override) => ({
+                    kind: 'object-expression' as const,
+                    properties: [
+                      { key: 'at', value: literal(override.at) },
+                      {
+                        key: 'apply',
+                        value: {
+                          kind: 'arrow-expression' as const,
+                          parameters: [{ name: '$entity', type: { kind: 'keyword-type' as const, keyword: 'any' as const } }],
+                          body: override.setters.map((setter) =>
+                            setterCall(setter, { kind: 'identifier-expression', name: '$entity' }, emission.resourceNames),
+                          ),
+                        },
+                      },
+                    ],
+                  })),
+                },
+              },
+            ]),
+      );
+      break;
+    }
     case 'scene-instance': {
       const component = emission.instanceComponents.get(node.instance?.sourceResPath ?? '');
       if (component === undefined) throw new Error(`${node.nodePath}: instanced scene has no component`);
@@ -190,13 +270,13 @@ function nodeExpression(
  * Node non-spatial) and its groups. An instance's component adopts its own nodes.
  */
 function adoptedNodes(node: DirectGodotSceneNodePlan, result: DirectGodotSceneNodePlan[]): void {
-  if (node.targetKind !== 'scene-instance') result.push(node);
-  for (const child of node.children) adoptedNodes(child, result);
+  if (node.targetKind !== 'scene-instance' && node.targetKind !== 'imported-scene') result.push(node);
+  for (const child of childNodes(node)) adoptedNodes(child, result);
 }
 
 function instancedScenes(node: DirectGodotSceneNodePlan, result: Set<string>): void {
   if (node.instance !== undefined) result.add(node.instance.sourceResPath);
-  for (const child of node.children) instancedScenes(child, result);
+  for (const child of childNodes(node)) instancedScenes(child, result);
 }
 
 function scriptBindings(
@@ -206,7 +286,7 @@ function scriptBindings(
   if (node.scriptInstance !== undefined) {
     result.push({ index: result.length, nodePath: node.nodePath, instance: node.scriptInstance });
   }
-  for (const child of node.children) scriptBindings(child, result);
+  for (const child of childNodes(node)) scriptBindings(child, result);
 }
 
 function referenceType(name: string): TargetTsType {
@@ -406,8 +486,8 @@ function setterCall(
 function sceneSetters(scene: DirectGodotProjectCompositionPlan['scenes'][number]): TargetGodotSceneSetterPlan[] {
   const result: TargetGodotSceneSetterPlan[] = scene.resources.flatMap((resource) => [...resource.setters]);
   const walk = (node: DirectGodotSceneNodePlan): void => {
-    result.push(...node.setters);
-    for (const child of node.children) walk(child);
+    result.push(...node.setters, ...(node.model?.overrides ?? []).flatMap((override) => [...override.setters]));
+    for (const child of childNodes(node)) walk(child);
   };
   walk(scene.root);
   return result;
@@ -444,7 +524,9 @@ function sceneSourceFile(
       module: moduleSpecifier(scene.targetPath, target.targetPath),
     });
   }
+  const resourceNames = new Map(scene.resources.map((resource, index) => [resource.key, `$resource_${String(index)}`] as const));
   const emission: SceneEmission = {
+    resourceNames,
     nodeRefs,
     instanceComponents: new Map([...instanceComponents].map(([resPath, entry]) => [resPath, entry.exportName])),
   };
@@ -453,7 +535,6 @@ function sceneSourceFile(
    * non-spatial, hold from its creation. */
   // Resources: constructed once when the module is evaluated (a scene's resources are loaded with
   // it and shared by its instances), each authored property set by its setter.
-  const resourceNames = new Map(scene.resources.map((resource, index) => [resource.key, `$resource_${String(index)}`] as const));
   const resourceStatements: TargetTsStatement[] = scene.resources.flatMap((resource) => {
     const name = resourceNames.get(resource.key) as string;
     return [
@@ -479,14 +560,14 @@ function sceneSourceFile(
   const mounts = new Map<string, { readonly module: string; readonly exportName: string }>();
   const collectMounts = (node: DirectGodotSceneNodePlan): void => {
     if (node.mount !== undefined) mounts.set(node.mount.exportName, node.mount);
-    for (const child of node.children) collectMounts(child);
+    for (const child of childNodes(node)) collectMounts(child);
   };
   collectMounts(scene.root);
   const threeTypes = new Set<string>();
   const collectTypes = (node: DirectGodotSceneNodePlan): void => {
     const three = THREE_CLASS[node.targetKind];
     if (three !== undefined && (node.mount !== undefined || node.setters.length > 0)) threeTypes.add(three);
-    for (const child of node.children) collectTypes(child);
+    for (const child of childNodes(node)) collectTypes(child);
   };
   collectTypes(scene.root);
   const renderImports: TargetTsStatement[] = [
@@ -511,6 +592,15 @@ function sceneSourceFile(
     const locals = setterModules.get(mount.module) ?? new Map<string, string>();
     locals.set(mount.exportName, mount.exportName);
     setterModules.set(mount.module, locals);
+  }
+  const importsModel = (node: DirectGodotSceneNodePlan): boolean =>
+    node.targetKind === 'imported-scene' || childNodes(node).some(importsModel);
+  if (importsModel(scene.root)) {
+    renderImports.push({
+      kind: 'import-statement',
+      module: moduleSpecifier(scene.targetPath, 'src/lib/godot-compat/packed-scene.tsx'),
+      namedBindings: [{ imported: 'GodotImportedScene', local: 'GodotImportedScene' }],
+    });
   }
   renderImports.push(
     ...[...setterModules].map(([module, locals]) => ({
