@@ -282,7 +282,7 @@ Measured through the lane's own commands.
   the official binary, API dump, source tree and a ported patch. Its exporter is being built.
 - **Evidence.** `gd-analyze evidence <class>` and `gd-analyze evidence --refresh` produce every
   claim by running official Godot and the translated code on the same input. Before the refresh
-  existed, digests were copied into TypeScript by hand. 17 built-in types and utilities are
+  existed, digests were copied into TypeScript by hand. 16 built-in types and utilities are
   proven: 3,165 cases, all bit-exact apart from the platform-maths comparator below, and 126 bindings.
   The instrument's own findings are recorded in each module's header: signed zeros merged by GDScript's constant pool,
   `atan2f`'s range at ±π, float literals Godot does not parse to the nearest double, and
