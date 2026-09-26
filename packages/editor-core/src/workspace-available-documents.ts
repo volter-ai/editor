@@ -3,6 +3,8 @@
 
 import {
   closeWorkspaceDocument,
+  activeWorkspaceDocumentId,
+  openWorkspaceDocuments,
   openWorkspaceDocument,
   WORKSPACE_DOCUMENT_KINDS,
   type WorkspaceDocumentDescriptor,
@@ -95,6 +97,14 @@ export function registerAvailableWorkspaceDocument(
 export function unregisterAvailableWorkspaceDocument(id: string): void {
   if (!documents.some((item) => item.descriptor.id === id)) return;
   documents = documents.filter((item) => item.descriptor.id !== id);
+  // A WITHDRAWAL IS NOT A CLOSE. A document the program withdraws while its
+  // tab is open (the Scene, while the project's scene table settles at boot)
+  // comes back open if its descriptor returns in this session. Without this, a
+  // warm reopen that restored the Scene lost it to that settling, wrote an
+  // empty open set, and the next reopen opened the default again: every other
+  // reopen showed no Scene (read in browser-substrate's tab, 2026-09-26).
+  const open = openWorkspaceDocuments().some((doc) => doc.descriptor.id === id);
+  if (open) pending.set(id, activeWorkspaceDocumentId() === id);
   closeWorkspaceDocument(id, { discardDirty: true });
   notify();
 }

@@ -560,13 +560,6 @@ proofs, not a reproduction or fix of the older intermittent hang.
 
 ### Unresolved observations and release limits
 
-- **A warm reopen of the Game Editor loses its Scene every other time.** Read
-  2026-09-25 in browser-substrate's `examples/volter-editor` (four reopens in
-  new tabs of one browser, the image unchanged): opens 2 and 4 logged
-  `[r3f-design] world "world" design session torn down` 11-13 s in and showed
-  the empty editor with no Scene document; opens 1 and 3 rendered MainScene.
-  The teardown is the design session's own dispose, so the Scene document was
-  mounted and then closed during startup; what closed it is not yet read.
 - **Blender starts only when the Model document mounts.** Read 2026-09-26 on a
   warm open in the same page: to about 10 s the tab runs at 1-3 cores through
   the session, the workbench and its extension host; Blender's worker starts
