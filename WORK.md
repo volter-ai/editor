@@ -143,9 +143,15 @@ Remaining:
    module-level `debug` export instead of `useDebugProvider`, and the project-owned React
    adapter (`react-root`) is gone. Walked on fresh `full` and `website` projects: Play reads the
    UI root's `debug.state` and follows an arrow key; `npm run build` builds both, and the built
-   `full` page draws the world under its UI with no console errors. Still on the framework: the
-   editor's own mounting (`mountManifestRoots`, the design session's inert `Game`), the
-   template's `static-batch` and render helpers, and `arena`.
+   `full` page draws the world under its UI with no console errors. Static batching reads
+   Vite's own dev flag, and a game's Web Audio is observed rather than declared, so the
+   template's game code imports nothing of the runtime framework. Still on it: the editor's own
+   mounting (`mountManifestRoots`, the design session's inert `Game`, 44 `@volter/editor-game`
+   files), the template's `validate-asset-content.ts` (the input-map schema) and dev aliases,
+   and `arena` (vgai-engine's `examples/arena`), whose mount, `react-root`, input manager and
+   `<RapierPhysicsBridge>` are the framework's. The framework retires only after `arena` no
+   longer mounts through it, and `arena`'s physics needs what audio now has: the editor
+   observing a game's own `@react-three/rapier` world for the freeze/commit a drag needs.
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
