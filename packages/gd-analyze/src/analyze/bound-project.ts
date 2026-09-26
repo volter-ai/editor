@@ -657,14 +657,42 @@ function indexedSceneNodes(decoded: DecodedProjectRelationships): IndexedSceneNo
   return { byKey, byDocument };
 }
 
+/** The first @onready member of a script, if it has one. */
+function firstOnreadyField(script: GodotBoundScript): number | undefined {
+  return classRoot(script).members.find((nodeId) => {
+    const node = script.nodes[nodeId];
+    return node?.kind === 'VARIABLE' && node.onready;
+  });
+}
+
 function lifecycleEntries(
   resPath: string,
   ancestry: BoundGodotScriptInheritance,
   classes: ReadonlyMap<string, BoundGodotScriptClass>,
   evidence: AnalysisEvidence,
+  onreadyField: (resPath: string) => number | undefined,
 ): readonly BoundGodotLifecycleEntry[] {
   const owners = [resPath, ...ancestry.scriptAncestors];
   return LIFECYCLE_METHODS.flatMap(({ phase, methodName }): BoundGodotLifecycleEntry[] => {
+    if (phase === 'ready') {
+      // NOTIFICATION_READY calls `_ready` on the script instance whether or not a script defines
+      // it, and that call runs every @onready initializer first (`GDScriptInstance::callp`,
+      // gdscript.cpp:1946): a chain with @onready fields takes part in the ready phase.
+      for (const ownerResPath of owners) {
+        const nodeId = onreadyField(ownerResPath);
+        if (nodeId !== undefined) {
+          return [
+            {
+              phase,
+              methodName,
+              ownerResPath: resPath,
+              nodeId,
+              evidenceClaimId: evidence.require('lifecycle-selection'),
+            },
+          ];
+        }
+      }
+    }
     for (const ownerResPath of owners) {
       const method = classes
         .get(ownerResPath)
@@ -975,6 +1003,11 @@ export function bindGodotProject(
       scriptMethodsByNode.set(`${row.documentPath}\0${row.nodePath ?? '.'}`, names);
     }
   }
+  const programsByPath = new Map(code.scripts.map((program) => [program.resPath, program] as const));
+  const onreadyField = (resPath: string): number | undefined => {
+    const program = programsByPath.get(resPath);
+    return program === undefined ? undefined : firstOnreadyField(program);
+  };
   const scripts = code.scripts.map((program): BoundGodotSourceScript => {
     const entry = snapshot.entryByResPath(program.resPath);
     if (
@@ -1026,7 +1059,13 @@ export function bindGodotProject(
         program,
         singletonTargets,
       ),
-      lifecycle: lifecycleEntries(program.resPath, scriptInheritance, classes, analysisEvidence),
+      lifecycle: lifecycleEntries(
+        program.resPath,
+        scriptInheritance,
+        classes,
+        analysisEvidence,
+        onreadyField,
+      ),
       fields: scriptFields(program, attachments, analysisEvidence),
       ...callReceiverFacts(program, attachments),
     };

@@ -8,7 +8,10 @@ import {
   type LoweredExpression,
   type LoweredParameters,
   type LoweredStatements,
+  builtinConversion,
+  convertedValue,
   lowerOfficialExpression,
+  lowerTypeDefault,
 } from './lower-official-expression';
 import {
   type LoweringContext,
@@ -17,7 +20,7 @@ import {
   officialBoundPropertyName,
   officialBoundSpan,
 } from './official-bound-lowering-context';
-import type { TargetTsClassMember, TargetTsParameter } from './target-ts-syntax';
+import type { TargetTsClassMember, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
 
 export interface LoweredClassMembers {
   readonly members: readonly TargetTsClassMember[];
@@ -145,6 +148,74 @@ function inlineValue(context: LoweringContext, owner: GodotBoundNode, plan: Lowe
   return plan.value;
 }
 
+/**
+ * `for i in n` over an int: `n` is evaluated once and `i` takes 0 … n-1
+ * (`GDScriptCompiler::_parse_block` FOR over an int, the VM's `ITERATE_BEGIN_INT`).
+ */
+function lowerIntegerRange(
+  context: LoweringContext,
+  node: Extract<GodotBoundNode, { kind: 'FOR' }>,
+  iterableNode: GodotBoundNode,
+): LoweredStatements {
+  const structuralRequirements = context.structural(node, 'for-range', [iterableNode], 'for-range:int');
+  const iterable = settleForStatement(context, lowerExpression(context, iterableNode));
+  const body = lowerOfficialSuite(context, context.node(node.loop, node));
+  const limit = context.temporary();
+  const counter = context.temporary();
+  const span = officialBoundSpan(context.script, node);
+  return {
+    statements: [
+      ...iterable.before,
+      { kind: 'variable-statement', declaration: 'const', name: limit, initializer: iterable.value },
+      ...iterable.after,
+      {
+        kind: 'variable-statement',
+        declaration: 'let',
+        name: counter,
+        initializer: { kind: 'literal-expression', value: 0 },
+      },
+      {
+        kind: 'while-statement',
+        condition: {
+          kind: 'binary-expression',
+          operator: '<',
+          left: { kind: 'identifier-expression', name: counter },
+          right: { kind: 'identifier-expression', name: limit },
+        },
+        body: [
+          {
+            kind: 'variable-statement',
+            declaration: 'let',
+            name: officialBoundIdentifier(context, node.variable, node),
+            initializer: { kind: 'identifier-expression', name: counter },
+          },
+          {
+            kind: 'expression-statement',
+            expression: {
+              kind: 'assignment-expression',
+              operator: '+=',
+              target: { kind: 'identifier-expression', name: counter },
+              value: { kind: 'literal-expression', value: 1 },
+            },
+          },
+          ...body.statements,
+        ],
+        span,
+      },
+    ],
+    requirements: [...structuralRequirements, ...iterable.requirements, ...body.requirements],
+  };
+}
+
+/** A declared variable whose initializer has another type converts it on assignment. */
+function declaredConversion(
+  node: Extract<GodotBoundNode, { kind: 'VARIABLE' | 'CONSTANT' }>,
+  initializerNode: GodotBoundNode | undefined,
+): boolean {
+  if (initializerNode === undefined || node.inferDatatype) return false;
+  return builtinConversion(node, initializerNode);
+}
+
 export function lowerOfficialSuite(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -166,18 +237,24 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
       const construct = node.kind === 'VARIABLE' ? 'variable' : 'constant';
       const initializerNode =
         node.initializer < 0 ? undefined : context.node(node.initializer, node);
+      const conversion = declaredConversion(node, initializerNode);
       const structuralRequirements = context.structural(
         node,
         construct,
-        initializerNode === undefined ? [] : [initializerNode],
+        initializerNode === undefined ? [] : conversion ? [initializerNode, node] : [initializerNode],
         `${construct}:${node.inferDatatype ? 'inferred' : 'declared'}:${
           node.kind === 'CONSTANT' ? 'local' : node.static ? 'static' : 'instance'
-        }`,
+        }${conversion ? ':conversion' : ''}`,
       );
       const initializer =
         initializerNode === undefined
-          ? undefined
-          : settleForStatement(context, lowerExpression(context, initializerNode));
+          ? node.kind === 'VARIABLE'
+            ? lowerTypeDefault(context, node)
+            : undefined
+          : settleForStatement(
+              context,
+              convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode)),
+            );
       const targetType = context.targetType(node);
       return {
         statements: [
@@ -203,15 +280,27 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
     case 'CALL':
       return expressionStatement(context, node, lowerExpression(context, node));
     case 'RETURN': {
-      if (node.useConversion) {
-        return context.refuse(node, 'return conversion needs an evidenced conversion recipe');
-      }
       const valueNode = node.returnValue < 0 ? undefined : context.node(node.returnValue, node);
+      // A converting return (`useConversion`) has its own rule per (return type, value type).
+      const returnType = context.returnType;
+      if (node.useConversion && returnType === undefined) {
+        return context.refuse(node, 'a converting return outside a typed function');
+      }
+      const converts =
+        valueNode !== undefined &&
+        returnType !== undefined &&
+        (builtinConversion(returnType, valueNode) ||
+          // A flagged conversion into a built-in of the value's own type is the identity.
+          (node.useConversion && returnType.datatype.kind !== 'BUILTIN'));
       const structuralRequirements = context.structural(
         node,
         'return',
-        valueNode === undefined ? [] : [valueNode],
-        `return:${node.voidReturn ? 'void' : 'value'}`,
+        valueNode === undefined
+          ? []
+          : converts
+            ? [valueNode, returnType as GodotBoundNode]
+            : [valueNode],
+        `return:${node.voidReturn ? 'void' : 'value'}${converts ? ':conversion' : ''}`,
       );
       if (node.voidReturn || valueNode === undefined) {
         return {
@@ -219,7 +308,12 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
           requirements: structuralRequirements,
         };
       }
-      const value = settleForStatement(context, lowerExpression(context, valueNode));
+      const value = settleForStatement(
+        context,
+        returnType === undefined
+          ? lowerExpression(context, valueNode)
+          : convertedValue(context, returnType, valueNode, lowerExpression(context, valueNode)),
+      );
       return {
         statements: [
           ...value.before,
@@ -291,6 +385,9 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         return context.refuse(node, 'for binding conversion needs an evidenced conversion recipe');
       }
       const iterableNode = context.node(node.list, node);
+      if (iterableNode.datatype.kind === 'BUILTIN' && iterableNode.datatype.builtinType === 'int') {
+        return lowerIntegerRange(context, node, iterableNode);
+      }
       const structuralRequirements = context.structural(
         node,
         'for-of',
@@ -394,34 +491,46 @@ function classFieldScope(
 function lowerField(
   context: LoweringContext,
   node: Extract<GodotBoundNode, { kind: 'VARIABLE' | 'CONSTANT' }>,
-): LoweredClassMember {
+): LoweredClassMember & { readonly onready?: LoweredStatements } {
   if (
     node.kind === 'VARIABLE' &&
-    (node.onready ||
-      node.setter >= 0 ||
+    (node.setter >= 0 ||
       node.getter >= 0 ||
       (node.propertyStyle !== '' && node.propertyStyle !== 'PROP_NONE'))
   ) {
-    return context.refuse(
-      node,
-      'onready and property accessor fields need structured initialization lowering',
-    );
+    return context.refuse(node, 'property accessor fields need structured accessor lowering');
   }
+  const onready = node.kind === 'VARIABLE' && node.onready;
   const initializerNode = node.initializer < 0 ? undefined : context.node(node.initializer, node);
+  const conversion = declaredConversion(node, initializerNode);
   const structuralRequirements = context.structural(
     node,
     node.kind === 'VARIABLE' ? 'variable' : 'constant',
-    initializerNode === undefined ? [] : [initializerNode],
+    initializerNode === undefined ? [] : conversion ? [initializerNode, node] : [initializerNode],
     `${node.kind === 'VARIABLE' ? 'variable' : 'constant'}:${
       node.inferDatatype ? 'inferred' : 'declared'
-    }:${classFieldScope(node)}`,
+    }:${classFieldScope(node)}${conversion ? ':conversion' : ''}`,
   );
   const targetType = context.targetType(node);
-  const initializer =
-    initializerNode === undefined ? undefined : lowerExpression(context, initializerNode);
   const name = officialBoundPropertyName(context, node.identifier, node);
   const isStatic = node.kind === 'CONSTANT' || node.static;
   assertDirectClassElementName(context, context.node(node.identifier, node), name, isStatic);
+  // An instance field is first cleared to its type's default, then (unless @onready) given its
+  // initializer at construction; an @onready initializer runs in `@implicit_ready`, right before
+  // `_ready` (`GDScriptCompiler::_parse_function`, `gdscript_compiler.cpp:2365` and `:2398`).
+  const fieldInitializer =
+    initializerNode === undefined || onready
+      ? node.kind === 'VARIABLE' && !node.static
+        ? lowerTypeDefault(context, node)
+        : undefined
+      : convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode));
+  const readyValue =
+    onready && initializerNode !== undefined
+      ? settleForStatement(
+          context,
+          convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode)),
+        )
+      : undefined;
   return {
     member: {
       kind: 'field-member',
@@ -431,16 +540,41 @@ function lowerField(
         ...(node.kind === 'CONSTANT' ? ['static' as const, 'readonly' as const] : []),
         ...(node.kind === 'VARIABLE' && node.static ? ['static' as const] : []),
       ],
-      ...(initializer === undefined
+      ...(fieldInitializer === undefined
         ? {}
-        : { initializer: inlineValue(context, initializerNode ?? node, initializer) }),
+        : { initializer: inlineValue(context, initializerNode ?? node, fieldInitializer) }),
       span: officialBoundSpan(context.script, node),
     },
     requirements: [
       ...structuralRequirements,
       ...targetType.requirements,
-      ...(initializer?.requirements ?? []),
+      ...(fieldInitializer?.requirements ?? []),
     ],
+    ...(readyValue === undefined
+      ? {}
+      : {
+          onready: {
+            statements: [
+              ...readyValue.before,
+              {
+                kind: 'expression-statement',
+                expression: {
+                  kind: 'assignment-expression',
+                  operator: '=',
+                  target: {
+                    kind: 'property-expression',
+                    object: { kind: 'this-expression' },
+                    property: name,
+                  },
+                  value: readyValue.value,
+                },
+                span: officialBoundSpan(context.script, node),
+              },
+              ...readyValue.after,
+            ],
+            requirements: readyValue.requirements,
+          },
+        }),
   };
 }
 
@@ -460,12 +594,20 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
     }`,
   );
   const returnTypeNode = node.returnType < 0 ? undefined : context.node(node.returnType, node);
-  const name = officialBoundPropertyName(context, node.identifier, node);
-  assertDirectClassElementName(context, context.node(node.identifier, node), name, node.static);
-  const body =
+  const sourceName = officialBoundPropertyName(context, node.identifier, node);
+  // With @onready fields in the script chain, the class's `_ready` is the implicit-ready wrapper
+  // and the source `_ready` body becomes `$source_ready` (see implicitReadyMembers).
+  const name =
+    sourceName === '_ready' && !node.static && context.implicitReady?.self === true
+      ? '$source_ready'
+      : sourceName;
+  assertDirectClassElementName(context, context.node(node.identifier, node), sourceName, node.static);
+  const returnTypeForBody = node.returnType < 0 ? undefined : context.node(node.returnType, node);
+  const body = context.withReturnType(returnTypeForBody, () =>
     !node.static && name !== '_init'
       ? context.withInstanceAutoloadAccess(() => lowerOfficialSuite(context, bodyNode))
-      : lowerOfficialSuite(context, bodyNode);
+      : lowerOfficialSuite(context, bodyNode),
+  );
   const parameters = lowerOfficialParameters(context, node);
   const result = returnTypeNode === undefined ? undefined : context.targetType(returnTypeNode);
   return {
@@ -490,10 +632,82 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
   };
 }
 
+function thisCall(method: string, object: 'this' | 'super' = 'this'): TargetTsStatement {
+  return {
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: {
+        kind: 'property-expression',
+        object: object === 'this' ? { kind: 'this-expression' } : { kind: 'identifier-expression', name: 'super' },
+        property: method,
+      },
+      arguments: [],
+    },
+  };
+}
+
+function voidMethod(name: string, body: readonly TargetTsStatement[]): TargetTsClassMember {
+  return {
+    kind: 'method-member',
+    name,
+    parameters: [],
+    result: { kind: 'keyword-type', keyword: 'void' },
+    body,
+  };
+}
+
+/**
+ * Godot runs every script's `@implicit_ready` (its @onready initializers), base script first,
+ * whenever `_ready` is called on the instance, and then `_ready` itself
+ * (`GDScriptInstance::callp` → `_call_implicit_ready_recursively`, `gdscript.cpp:1937` and
+ * `:1946`); `NOTIFICATION_READY` calls `_ready` even where no script defines it. So a class whose
+ * chain has @onready fields gets `$implicit_ready()` (base first, then its own initializers) and
+ * `_ready()` = `$implicit_ready(); $source_ready()`, where `$source_ready` is the nearest source
+ * `_ready` or nothing.
+ */
+function implicitReadyMembers(
+  context: LoweringContext,
+  root: GodotBoundClassNode,
+  onready: readonly LoweredStatements[],
+): LoweredClassMembers {
+  const chain = context.implicitReady;
+  if (chain === undefined || !chain.self) {
+    if (onready.length > 0) return context.refuse(root, 'onready fields without their implicit-ready chain');
+    return { members: [], requirements: [] };
+  }
+  const requirements = context.structural(root, 'implicit-ready', [], 'implicit-ready');
+  const definesReady = root.members.some((id) => {
+    const member = context.node(id, root);
+    return (
+      member.kind === 'FUNCTION' &&
+      !member.static &&
+      officialBoundPropertyName(context, member.identifier, member) === '_ready'
+    );
+  });
+  const members: TargetTsClassMember[] = [
+    voidMethod('$implicit_ready', [
+      ...(chain.base ? [thisCall('$implicit_ready', 'super')] : []),
+      ...onready.flatMap((entry) => entry.statements),
+    ]),
+    voidMethod('_ready', [thisCall('$implicit_ready'), thisCall('$source_ready')]),
+  ];
+  if (!definesReady && !chain.base) {
+    members.push(
+      voidMethod('$source_ready', chain.ancestorDefinesReady ? [thisCall('_ready', 'super')] : []),
+    );
+  }
+  return {
+    members,
+    requirements: [...requirements, ...onready.flatMap((entry) => entry.requirements)],
+  };
+}
+
 export function lowerOfficialClassMembers(
   context: LoweringContext,
   root: GodotBoundClassNode,
 ): LoweredClassMembers {
+  const onready: LoweredStatements[] = [];
   const lowered = root.members.map((id): LoweredClassMembers => {
     const node = context.node(id, root);
     if (node.kind === 'ANNOTATION') {
@@ -507,6 +721,7 @@ export function lowerOfficialClassMembers(
     }
     if (node.kind === 'VARIABLE' || node.kind === 'CONSTANT') {
       const field = lowerField(context, node);
+      if (field.onready !== undefined) onready.push(field.onready);
       return { members: [field.member], requirements: field.requirements };
     }
     if (node.kind === 'FUNCTION') {
@@ -516,8 +731,9 @@ export function lowerOfficialClassMembers(
     if (node.kind === 'ENUM') return lowerEnum(context, node);
     return context.refuse(node, `${node.kind} class member needs an evidenced direct lowering`);
   });
+  const ready = implicitReadyMembers(context, root, onready);
   return {
-    members: lowered.flatMap((entry) => entry.members),
-    requirements: lowered.flatMap((entry) => entry.requirements),
+    members: [...lowered.flatMap((entry) => entry.members), ...ready.members],
+    requirements: [...lowered.flatMap((entry) => entry.requirements), ...ready.requirements],
   };
 }

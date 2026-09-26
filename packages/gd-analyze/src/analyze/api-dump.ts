@@ -605,7 +605,16 @@ function normalizeGodot4Class(
       ) {
         throw new GodotApiDumpError(`${at} property #${i} has no name/type`);
       }
-      return { name: entry['name'], type: entry['type'] };
+      // The accessors ClassDB declares for the property; a script's `node.position` binds
+      // through them.
+      const getter = entry['getter'];
+      const setter = entry['setter'];
+      return {
+        name: entry['name'],
+        type: entry['type'],
+        ...(typeof getter === 'string' && getter !== '' ? { getter } : {}),
+        ...(typeof setter === 'string' && setter !== '' ? { setter } : {}),
+      };
     }),
     signals: optionalList(raw, 'signals', at).map((entry, i) => {
       if (!isRecord(entry) || typeof entry['name'] !== 'string') {

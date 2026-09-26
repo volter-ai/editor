@@ -10,6 +10,7 @@ import type {
 } from './bindings';
 import { godotOfficialSymbolKey } from './bindings';
 import type {
+  GodotCodeRuleEntry,
   GodotCodeRuleIdentity,
   GodotCodeRuleRecipe,
   GodotCodeRuleResolver,
@@ -128,6 +129,7 @@ const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new S
   'subscript-attribute',
   'subscript-element',
   'ternary',
+  'type-default',
 ]);
 
 export interface NativePropertyAccessor {
@@ -145,7 +147,23 @@ export interface NativeProperty {
 }
 
 /** A native class's property, found up the ancestry the API dump states, or undefined. */
+/** Whether this script's chain has @onready fields, as `@implicit_ready` needs it. */
+export interface ImplicitReadyChain {
+  /** This script or a script ancestor declares an @onready field. */
+  readonly self: boolean;
+  /** The immediate script base does, so its `$implicit_ready` runs first. */
+  readonly base: boolean;
+  /** A script ancestor defines `_ready`. */
+  readonly ancestorDefinesReady: boolean;
+}
+
 export type NativePropertyLookup = (className: string, property: string) => NativeProperty | undefined;
+
+/** A native class's integer constant or enum value, up the ancestry, or undefined. */
+export type NativeConstantLookup = (className: string, name: string) => number | undefined;
+
+/** A datatype rule's target naming "the class generated for this script datatype". */
+export const SCRIPT_CLASS_TYPE = '$ScriptClass';
 
 export class LoweringContext {
   #temporaryIndex = 0;
@@ -165,6 +183,14 @@ export class LoweringContext {
     readonly callReceivers: ReadonlyMap<number, BoundGodotCallReceiver> = new Map(),
     readonly untypedCalls: ReadonlyMap<number, string> = new Map(),
     readonly nativeProperties?: NativePropertyLookup,
+    readonly implicitReady?: ImplicitReadyChain,
+    /** The generated class a project script's datatype names, and where to import it from. */
+    readonly scriptClass?: (
+      resPath: string,
+    ) => { readonly name: string; readonly module?: string } | undefined,
+    readonly nativeConstants?: NativeConstantLookup,
+    /** The native class the script's chain extends, when it does. */
+    readonly nativeBase?: string,
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();
@@ -184,6 +210,27 @@ export class LoweringContext {
     }
     this.#lexicalNames = lexicalNames;
     this.#reservedTargetNames = allocated;
+  }
+
+  #returnType: GodotBoundNode | undefined;
+
+  /** The declared return type of the function being lowered, if it declares one. */
+  get returnType(): GodotBoundNode | undefined {
+    return this.#returnType;
+  }
+
+  withReturnType<Result>(returnType: GodotBoundNode | undefined, operation: () => Result): Result {
+    const outer = this.#returnType;
+    this.#returnType = returnType;
+    try {
+      return operation();
+    } finally {
+      this.#returnType = outer;
+    }
+  }
+
+  nativeConstant(className: string, name: string): number | undefined {
+    return this.nativeConstants?.(className, name);
   }
 
   nativeProperty(className: string, property: string): NativeProperty | undefined {
@@ -342,9 +389,10 @@ export class LoweringContext {
     inputNodes: readonly GodotBoundNode[],
     expected: readonly GodotCodeRuleRecipe['kind'][],
     includeResultDatatype = true,
+    ownAnnotations = true,
   ): OfficialBoundRuleUse {
     const semanticKey = semanticKeys[0] as string;
-    const annotations = node.annotations.map((id) => {
+    const annotations = (ownAnnotations ? node.annotations : []).map((id) => {
       const annotation = this.node(id, node);
       if (annotation.kind !== 'ANNOTATION') {
         this.refuse(annotation, `annotation id ${String(id)} resolves to ${annotation.kind}`);
@@ -356,18 +404,24 @@ export class LoweringContext {
         JSON.stringify(annotation.resolvedArguments),
       ].join(':');
     });
-    const identityFor = (key: string): GodotCodeRuleIdentity => ({
+    // A rule may hold for an annotation whatever its arguments (`@export_range:…:*`): the
+    // arguments of an editor-facing annotation carry no runtime meaning.
+    const anyArguments = annotations.map((entry) => entry.replace(/^([^:]*:[^:]*:[^:]*):.*$/, '$1:*'));
+    const identityFor = (key: string, list: readonly string[]): GodotCodeRuleIdentity => ({
       sourceRevision: this.sourceRevision,
       nodeKind: node.kind,
-      semanticKey: `${key}|annotations:[${annotations.join(',')}]`,
+      semanticKey: `${key}|annotations:[${list.join(',')}]`,
       inputDatatypes: inputNodes.map((input) => godotBoundDatatypeIdentity(input.datatype)),
       resultDatatype: includeResultDatatype ? godotBoundDatatypeIdentity(node.datatype) : '',
     });
-    const identity = identityFor(semanticKey);
-    let entry = this.rules.rule(identity);
-    for (const key of semanticKeys.slice(1)) {
+    const identity = identityFor(semanticKey, annotations);
+    let entry: GodotCodeRuleEntry | undefined;
+    for (const key of semanticKeys) {
+      entry = this.rules.rule(identityFor(key, annotations));
+      if (entry === undefined && annotations.length > 0) {
+        entry = this.rules.rule(identityFor(key, anyArguments));
+      }
       if (entry !== undefined) break;
-      entry = this.rules.rule(identityFor(key));
     }
     if (entry === undefined) {
       this.refuse(
@@ -425,6 +479,36 @@ export class LoweringContext {
       );
     }
     this.prove(node, entry.evidenceClaimId, 'translate-code', godotDatatypeRuleKey(entry));
+    if (entry.targetType.kind === 'type-reference' && entry.targetType.name === SCRIPT_CLASS_TYPE) {
+      // A script-class datatype names the class generated for that script.
+      const found =
+        node.datatype.kind === 'CLASS' ? this.scriptClass?.(node.datatype.scriptPath) : undefined;
+      if (found === undefined) {
+        this.refuse(node, `datatype ${node.datatype.display} names no generated script class`);
+      }
+      return {
+        type: { kind: 'type-reference', name: found.name, arguments: [] },
+        requirements: [
+          {
+            kind: 'evidence-requirement',
+            layer: 'language',
+            claimId: entry.evidenceClaimId,
+            canonicalIdentity: godotDatatypeRuleKey(entry),
+          },
+          ...(found.module === undefined
+            ? []
+            : [
+                {
+                  kind: 'project-import-requirement' as const,
+                  module: found.module,
+                  imported: found.name,
+                  local: found.name,
+                  typeOnly: true,
+                },
+              ]),
+        ],
+      };
+    }
     if (entry.typeImport !== undefined && entry.targetType.kind !== 'type-reference') {
       this.refuse(node, `datatype rule ${entry.sourceDatatype} imports a type it does not name`);
     }

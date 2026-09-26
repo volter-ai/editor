@@ -110,7 +110,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     if (rest.includes('--refresh')) {
       if (positional.length !== 0) fail('evidence --refresh takes no class');
       const { refreshEvidence } = await import('./evidence/refresh');
-      return refreshEvidence({ officialBinary: binary, exporterBinary: requiredExporter(rest) });
+      return await refreshEvidence({ officialBinary: binary, exporterBinary: requiredExporter(rest) });
     }
     if (positional.length !== 1) fail('evidence needs exactly one Godot class');
     const { runEvidence } = await import('./evidence/run-evidence');

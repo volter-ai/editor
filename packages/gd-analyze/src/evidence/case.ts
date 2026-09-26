@@ -96,24 +96,42 @@ export interface GodotLanguageRuleDefinition {
 
 export interface GodotLanguageCase {
   readonly id: string;
-  /** A static function of `source`, called on both sides. */
+  /** The class the case runs; the file's `className` when absent. */
+  readonly className?: string;
+  /** A static function called on both sides; ignored for an instance case. */
   readonly call: string;
   /** Its arguments, as GDScript and as the same values in Node; none when absent. */
   readonly arguments?: {
     readonly gdscript: string;
     readonly target: () => readonly unknown[];
   };
+  /**
+   * An instance case: construct the class (`.new()` / `new`), run each step, and compare the list
+   * of step results. A step names a method called with no arguments, or `$ready`: the native
+   * `NOTIFICATION_READY`, which the target receives as its `_ready()`.
+   */
+  readonly instance?: { readonly steps: readonly string[] };
   readonly comparator: GodotEvidenceComparator;
+}
+
+/** A datatype rule a language case file proposes. */
+export interface GodotLanguageDatatypeDefinition {
+  readonly id: string;
+  /** A type key (`BUILTIN:float`) or class key (`NATIVE:*`). */
+  readonly sourceDatatype: string;
+  readonly targetType: import('../translate/code/target-ts-syntax').TargetTsType;
+  readonly source: { readonly file: string; readonly symbol: string; readonly line: number };
 }
 
 export interface GodotLanguageEvidenceFile {
   readonly kind: 'language';
-  /** `class_name` of `source`. */
+  /** The class static cases run on by default. */
   readonly className: string;
-  /** One GDScript file of static case functions. */
-  readonly source: string;
+  /** GDScript files, by file name in the project root. */
+  readonly scripts: readonly { readonly file: string; readonly className: string; readonly source: string }[];
   /** Compat modules the lowered cases import; their bytes join the implementation identity. */
   readonly compatModules: readonly string[];
   readonly rules: readonly GodotLanguageRuleDefinition[];
+  readonly datatypes?: readonly GodotLanguageDatatypeDefinition[];
   readonly cases: readonly GodotLanguageCase[];
 }

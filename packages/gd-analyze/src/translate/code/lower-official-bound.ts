@@ -24,6 +24,8 @@ import {
   type OfficialBoundAutoloadCandidate,
   type OfficialBoundAutoloadReference,
   type OfficialBoundLoweringDiagnostic,
+  type ImplicitReadyChain,
+  type NativeConstantLookup,
   type NativePropertyAccessor,
   type NativePropertyLookup,
   type OfficialBoundLoweringRequirement,
@@ -410,6 +412,44 @@ function autoloadReferenceMembers(
   }));
 }
 
+function classMembersOf(source: BoundGodotSourceScript): readonly GodotBoundNode[] {
+  const root = source.program.nodes[source.program.rootNodeId];
+  if (root?.kind !== 'CLASS') return [];
+  return root.members.flatMap((id) => {
+    const node = source.program.nodes[id];
+    return node === undefined ? [] : [node];
+  });
+}
+
+function declaresOnready(source: BoundGodotSourceScript): boolean {
+  return classMembersOf(source).some((node) => node.kind === 'VARIABLE' && node.onready);
+}
+
+function definesReady(source: BoundGodotSourceScript): boolean {
+  return classMembersOf(source).some((node) => {
+    if (node.kind !== 'FUNCTION' || node.static) return false;
+    const identifier = source.program.nodes[node.identifier];
+    return identifier?.kind === 'IDENTIFIER' && identifier.name === '_ready';
+  });
+}
+
+/** The @onready facts of a script's chain, from its own class to its root script. */
+export function implicitReadyChain(
+  project: BoundGodotProject,
+  source: BoundGodotSourceScript,
+): ImplicitReadyChain {
+  const byPath = new Map(project.scripts.map((entry) => [entry.resPath, entry] as const));
+  const ancestors = source.inheritance.scriptAncestors.flatMap((resPath) => {
+    const found = byPath.get(resPath);
+    return found === undefined ? [] : [found];
+  });
+  return {
+    self: declaresOnready(source) || ancestors.some(declaresOnready),
+    base: ancestors.some(declaresOnready),
+    ancestorDefinesReady: ancestors.some(definesReady),
+  };
+}
+
 function lowerScript(
   project: BoundGodotProject,
   source: BoundGodotSourceScript,
@@ -417,6 +457,7 @@ function lowerScript(
   rules: GodotCodeRuleResolver,
   evidence: GodotCodeEvidenceResolver,
   nativeProperties: NativePropertyLookup | undefined,
+  nativeConstants: NativeConstantLookup | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -438,6 +479,16 @@ function lowerScript(
     new Map(source.callReceivers.map((entry) => [entry.nodeId, entry] as const)),
     new Map(source.untypedCalls.map((entry) => [entry.nodeId, entry.reason] as const)),
     nativeProperties,
+    implicitReadyChain(project, source),
+    (resPath) => {
+      const target = project.scripts.find((entry) => entry.resPath === resPath);
+      if (target === undefined) return undefined;
+      return resPath === source.resPath
+        ? { name: className(source) }
+        : { name: className(target), module: scriptModule(source.resPath, resPath) };
+    },
+    nativeConstants,
+    nativeBaseOf(project, source),
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -559,6 +610,25 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
   };
 }
 
+/** ClassDB integer constants and enum values (the dump folds enum values into constants). */
+export function nativeConstantLookup(apiDump: GodotApiDump): NativeConstantLookup {
+  const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  return (className, name) => {
+    for (let current = classes.get(className); current !== undefined; ) {
+      const value = current.constants[name];
+      if (value !== undefined) return value;
+      current = current.base_class === '' ? undefined : classes.get(current.base_class);
+    }
+    return undefined;
+  };
+}
+
+/** The native class at the root of a script's chain. */
+function nativeBaseOf(project: BoundGodotProject, source: BoundGodotSourceScript): string | undefined {
+  const root = project.scripts.find((entry) => entry.resPath === rootScriptPath(source));
+  return root?.inheritance.immediate.kind === 'native' ? root.inheritance.immediate.className : undefined;
+}
+
 export function lowerOfficialBoundProgram(
   project: BoundGodotProject,
   authority: GodotCodeTranslationAuthority,
@@ -566,6 +636,7 @@ export function lowerOfficialBoundProgram(
 ): OfficialBoundCodeResult {
   const resolved = new GodotCodeTranslationAuthorityResolver(authority);
   const nativeProperties = apiDump === undefined ? undefined : nativePropertyLookup(apiDump);
+  const nativeConstants = apiDump === undefined ? undefined : nativeConstantLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -586,6 +657,7 @@ export function lowerOfficialBoundProgram(
         resolved.rules,
         resolved.evidence,
         nativeProperties,
+        nativeConstants,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

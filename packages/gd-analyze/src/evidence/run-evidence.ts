@@ -5,12 +5,20 @@
  *
  * - a compat case file (`vector3.cases.ts`) proves its compat module's exports, and yields their
  *   binding rows and the TS datatype rule for the class's own value type;
- * - a language case file (`language.cases.ts`) proves the code rules it proposes, by running its
+ * - a language case file (`gdscript.cases.ts`) proves the code rules it proposes, by running its
  *   GDScript natively and the same GDScript lowered by production code lowering in Node.
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -328,12 +336,28 @@ function compatProbeSource(cases: readonly GodotEvidenceCase[]): string {
   return `extends SceneTree\n\n${PROBE_ENCODER}${functions.join('')}\nfunc _init() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
 
-function languageProbeSource(evidence: GodotLanguageEvidenceFile, resPath: string): string {
-  const rows = evidence.cases.map(
-    (entry) =>
-      `\trows.append([${JSON.stringify(entry.id)}, _enc(cases.${entry.call}(${entry.arguments?.gdscript ?? ''}))])\n`,
-  );
-  return `extends SceneTree\n\n${PROBE_ENCODER}\nfunc _init() -> void:\n\tvar cases = load(${JSON.stringify(resPath)})\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+function scriptResPath(evidence: GodotLanguageEvidenceFile, className: string): string {
+  const script = evidence.scripts.find((entry) => entry.className === className);
+  if (script === undefined) throw new Error(`no language script declares ${className}`);
+  return `res://${script.file}`;
+}
+
+function languageProbeSource(evidence: GodotLanguageEvidenceFile): string {
+  const rows = evidence.cases.map((entry, index) => {
+    const resPath = scriptResPath(evidence, entry.className ?? evidence.className);
+    if (entry.instance === undefined) {
+      return `\trows.append([${JSON.stringify(entry.id)}, _enc(load(${JSON.stringify(resPath)}).${entry.call}(${entry.arguments?.gdscript ?? ''}))])\n`;
+    }
+    const steps = entry.instance.steps
+      .map((step) =>
+        step === '$ready'
+          ? `\to${String(index)}.notification(Node.NOTIFICATION_READY)\n\tr${String(index)}.append(null)\n`
+          : `\tr${String(index)}.append(o${String(index)}.${step}())\n`,
+      )
+      .join('');
+    return `\tvar o${String(index)} = load(${JSON.stringify(resPath)}).new()\n\tvar r${String(index)}: Array = []\n${steps}\to${String(index)}.free()\n\trows.append([${JSON.stringify(entry.id)}, _enc(r${String(index)})])\n`;
+  });
+  return `extends SceneTree\n\n${PROBE_ENCODER}\nfunc _init() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
 
 const PROJECT_SOURCE = `config_version=5
@@ -364,7 +388,8 @@ function runNativeProbe(
   const result = spawnSync(
     officialBinary,
     ['--headless', ...extraArguments, '--path', project, '--script', 'res://probe.gd'],
-    { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
+    // A script error stops `_init` before `quit()`, and the binary would then wait forever.
+    { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: 180_000 },
   );
   rmSync(path.join(project, 'probe.gd'));
   if (result.error !== undefined) {
@@ -372,8 +397,12 @@ function runNativeProbe(
   }
   const line = result.stdout.split('\n').find((entry) => entry.startsWith(OUTPUT_MARKER));
   if (result.status !== 0 || line === undefined) {
+    const lines = probe.split('\n');
+    const cited = [...`${result.stdout}\n${result.stderr}`.matchAll(/res:\/\/probe\.gd:(\d+)/g)].map(
+      (match) => `probe.gd:${match[1] as string}: ${lines[Number(match[1]) - 1] ?? ''}`,
+    );
     throw new Error(
-      `official Godot probe exited ${String(result.status)} without its result.\n${result.stdout}\n${result.stderr}`.trim(),
+      `official Godot probe exited ${String(result.status)} without its result.\n${result.stdout}\n${result.stderr}\n${cited.join('\n')}`.trim(),
     );
   }
   const rows = JSON.parse(line.slice(OUTPUT_MARKER.length)) as Row[];
@@ -987,17 +1016,20 @@ async function runCompatEvidence(
 const PROVISIONAL_SHA256 = '0'.repeat(64);
 
 /**
- * The production authority with this language file's proposed rules in place of any it recorded
- * before, each carrying a provisional in-memory claim so lowering can run the proposal. The
- * provisional claims are never written; what is written is measured below.
+ * The production authority with this language file's proposed rules and datatype rules in place of
+ * any it recorded before, each carrying a provisional in-memory claim so lowering can run the
+ * proposal. The provisional claims are never written; what is written is measured below.
  */
 function proposalAuthority(
   pins: Pins,
   evidence: GodotLanguageEvidenceFile,
   claimIdFor: (ruleId: string) => string,
-): { readonly authority: GodotCodeTranslationAuthority; readonly rules: readonly GodotCodeRuleEntry[] } {
+): {
+  readonly authority: GodotCodeTranslationAuthority;
+  readonly rules: readonly GodotCodeRuleEntry[];
+  readonly datatypes: readonly GodotDatatypeRuleEntry[];
+} {
   const base = godotCodeTranslationAuthority(pins.source);
-  const proposed = new Set(evidence.rules.map((rule) => claimIdFor(rule.id)));
   const rules: GodotCodeRuleEntry[] = evidence.rules.map((rule) => ({
     source: {
       sourceRevision: pins.source.revision,
@@ -1009,12 +1041,32 @@ function proposalAuthority(
     target: rule.target,
     evidenceClaimId: claimIdFor(rule.id),
   }));
-  const provisional = rules.map((rule) =>
+  const datatypes: GodotDatatypeRuleEntry[] = (evidence.datatypes ?? []).map((entry) => ({
+    sourceRevision: pins.source.revision,
+    sourceDatatype: entry.sourceDatatype,
+    targetType: entry.targetType,
+    evidenceClaimId: claimIdFor(entry.id),
+  }));
+  const proposedIds = new Set([
+    ...rules.map((rule) => rule.evidenceClaimId),
+    ...datatypes.map((entry) => entry.evidenceClaimId),
+  ]);
+  // This file's earlier rows are replaced, wherever they were loaded from.
+  const earlier = new Set(
+    base.claims
+      .filter((claim) => claim.claimId.startsWith(claimIdFor('')))
+      .map((claim) => claim.claimId),
+  );
+  const replaced = new Set([...proposedIds, ...earlier]);
+  const provisional = [
+    ...rules.map((rule) => [rule.evidenceClaimId, godotCodeRuleKey(rule.source)] as const),
+    ...datatypes.map((entry) => [entry.evidenceClaimId, godotDatatypeRuleKey(entry)] as const),
+  ].map(([claimId, identity]) =>
     claimRecord(
       pins,
-      rule.evidenceClaimId,
+      claimId,
       'translate-code',
-      godotCodeRuleKey(rule.source),
+      identity,
       { file: 'provisional', symbol: 'provisional', line: 1 },
       { inputSha256: PROVISIONAL_SHA256, callsite: 'provisional', observed: PROVISIONAL_SHA256 },
       { implementationSha256: PROVISIONAL_SHA256, callsite: 'provisional', observed: PROVISIONAL_SHA256 },
@@ -1023,21 +1075,26 @@ function proposalAuthority(
   );
   return {
     rules,
+    datatypes,
     authority: {
       ...base,
       rules: {
         ...base.rules,
         entries: [
-          ...base.rules.entries.filter((entry) => !proposed.has(entry.evidenceClaimId)),
+          ...base.rules.entries.filter((entry) => !replaced.has(entry.evidenceClaimId)),
           ...rules,
+        ],
+        datatypes: [
+          ...base.rules.datatypes.filter((entry) => !replaced.has(entry.evidenceClaimId)),
+          ...datatypes,
         ],
       },
       claims: [
-        ...base.claims.filter((entry) => !proposed.has(entry.claimId)),
+        ...base.claims.filter((entry) => !replaced.has(entry.claimId)),
         ...provisional.map((entry) => entry.claim),
       ],
       liveness: [
-        ...base.liveness.filter((entry) => !proposed.has(entry.claimId)),
+        ...base.liveness.filter((entry) => !replaced.has(entry.claimId)),
         ...provisional.map((entry) => entry.liveness),
       ],
     },
@@ -1055,18 +1112,18 @@ async function runLanguageEvidence(
   enterEvidenceMeasurement();
   const pinned = pins(name, officialBinary, exporterBinary);
   const claimIdFor = (ruleId: string) => `godot-4.7-${name}-${ruleId}`;
-  if (new Set(evidence.rules.map((rule) => rule.id)).size !== evidence.rules.length) {
-    throw new Error('language rule ids are not unique');
+  const ids = [...evidence.rules.map((rule) => rule.id), ...(evidence.datatypes ?? []).map((entry) => entry.id)];
+  if (new Set(ids).size !== ids.length) throw new Error('language rule ids are not unique');
+  if (new Set(evidence.cases.map((entry) => entry.id)).size !== evidence.cases.length) {
+    throw new Error('language case ids are not unique');
   }
-  const scriptName = `${kebab(evidence.className).replace(/-/g, '_')}.gd`;
-  const resPath = `res://${scriptName}`;
   const temp = mkdtempSync(path.join(tmpdir(), 'gd-analyze-language-evidence-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);
     writeFileSync(path.join(project, 'project.godot'), PROJECT_SOURCE);
     writeFileSync(path.join(project, 'main.tscn'), MAIN_SCENE);
-    writeFileSync(path.join(project, scriptName), evidence.source);
+    for (const script of evidence.scripts) writeFileSync(path.join(project, script.file), script.source);
 
     // Target: production code lowering over the official frontend's bound program.
     const snapshot = captureGodotProjectSnapshot(project);
@@ -1092,39 +1149,62 @@ async function runLanguageEvidence(
       return 1;
     }
     const used = new Set(lowered.plan.languageEvidenceClaimIds);
-    const unexercised = proposal.rules.filter((rule) => !used.has(rule.evidenceClaimId));
+    const proposedIds = [
+      ...proposal.rules.map((rule) => rule.evidenceClaimId),
+      ...proposal.datatypes.map((entry) => entry.evidenceClaimId),
+    ];
+    const unexercised = proposedIds.filter((id) => !used.has(id));
     if (unexercised.length > 0) {
-      process.stdout.write(
-        `proposed rules no case exercises; nothing written: ${unexercised.map((rule) => rule.evidenceClaimId).join(', ')}\n`,
-      );
+      process.stdout.write(`proposed rules no case exercises; nothing written: ${unexercised.join(', ')}\n`);
       return 1;
     }
-    const sourceFile = lowered.plan.sourceFiles.find(
-      (entry) => entry.sourcePath === scriptName.replace(/\.gd$/, '.ts'),
-    );
-    if (sourceFile === undefined) throw new Error(`lowering emitted no ${scriptName}`);
-    const printed = printTargetTsSourceFile(sourceFile);
     const emitted = path.join(temp, 'target');
     mkdirSync(path.join(emitted, 'src', 'scripts'), { recursive: true });
     writeFileSync(path.join(emitted, 'package.json'), '{ "type": "module" }\n');
     symlinkSync(path.join(COMPAT_SOURCE_ROOT, 'lib'), path.join(emitted, 'src', 'lib'));
-    const emittedFile = path.join(emitted, 'src', 'scripts', sourceFile.sourcePath);
-    writeFileSync(emittedFile, printed);
-    const module = (await import(pathToFileURL(emittedFile).href)) as Record<string, unknown>;
-    const cases = module[evidence.className] as Record<string, unknown> | undefined;
-    if (cases === undefined) throw new Error(`lowered module exports no ${evidence.className}`);
-    const targetValues = evidence.cases.map((entry) => {
-      const fn = cases[entry.call];
-      if (typeof fn !== 'function') throw new Error(`lowered ${evidence.className} has no ${entry.call}`);
+    const printed: string[] = [];
+    const classes = new Map<string, Record<string, unknown>>();
+    for (const script of evidence.scripts) {
+      const sourceFile = lowered.plan.sourceFiles.find(
+        (entry) => entry.sourcePath === script.file.replace(/\.gd$/, '.ts'),
+      );
+      if (sourceFile === undefined) throw new Error(`lowering emitted no ${script.file}`);
+      const text = printTargetTsSourceFile(sourceFile);
+      printed.push(`// ${sourceFile.sourcePath}\n${text}`);
+      writeFileSync(path.join(emitted, 'src', 'scripts', sourceFile.sourcePath), text);
+    }
+    for (const script of evidence.scripts) {
+      const file = path.join(emitted, 'src', 'scripts', script.file.replace(/\.gd$/, '.ts'));
+      const module = (await import(pathToFileURL(file).href)) as Record<string, unknown>;
+      const cls = module[script.className] as Record<string, unknown> | undefined;
+      if (cls === undefined) throw new Error(`lowered ${script.file} exports no ${script.className}`);
+      classes.set(script.className, cls);
+    }
+    const targetValues: unknown[] = evidence.cases.map((entry) => {
+      const cls = classes.get(entry.className ?? evidence.className) as Record<string, unknown>;
+      if (entry.instance !== undefined) {
+        const instance = new (cls as unknown as new () => Record<string, unknown>)();
+        return entry.instance.steps.map((step) => {
+          const method = instance[step === '$ready' ? '_ready' : step];
+          if (typeof method !== 'function') {
+            if (step === '$ready') return null;
+            throw new Error(`lowered instance has no ${step}\n${printed.join('\n')}`);
+          }
+          const result = (method as () => unknown).call(instance);
+          return step === '$ready' ? null : result;
+        });
+      }
+      const fn = cls[entry.call];
+      if (typeof fn !== 'function') throw new Error(`lowered class has no ${entry.call}`);
       const args = entry.arguments?.target() ?? [];
-      return (fn as (...values: unknown[]) => unknown).apply(cases, [...args]);
+      return (fn as (...values: unknown[]) => unknown).apply(cls, [...args]);
     });
 
     // Native: the same GDScript in the official binary.
     const nativeRows = runNativeProbe(
       officialBinary,
       project,
-      languageProbeSource(evidence, resPath),
+      languageProbeSource(evidence),
       evidence.cases.length,
     );
     const targetRows: Row[] = evidence.cases.map((entry, index) => {
@@ -1136,17 +1216,20 @@ async function runLanguageEvidence(
       evidence.cases.map((entry) => ({
         id: entry.id,
         comparator: entry.comparator,
-        shown: `${evidence.className}.${entry.call}()`,
+        shown:
+          entry.instance === undefined
+            ? `${entry.className ?? evidence.className}.${entry.call}(${entry.arguments?.gdscript ?? ''})`
+            : `${entry.className ?? evidence.className}.new() ${entry.instance.steps.join(' ')}`,
       })),
       nativeRows,
       targetRows,
     );
     process.stdout.write(
-      `gd-analyze evidence ${name}: ${String(evidence.cases.length)} cases over ${String(evidence.rules.length)} proposed rules, ${pinned.buildIdentity}\n`,
+      `gd-analyze evidence ${name}: ${String(evidence.cases.length)} cases over ${String(proposedIds.length)} proposed rules, ${pinned.buildIdentity}\n`,
     );
     if (disagreements.length > 0) {
       process.stdout.write(
-        `${String(disagreements.length)} of ${String(evidence.cases.length)} cases disagree; nothing written.\n  ${disagreements.join('\n  ')}\n\nlowered:\n${printed}\n`,
+        `${String(disagreements.length)} of ${String(evidence.cases.length)} cases disagree; nothing written.\n  ${disagreements.join('\n  ')}\n\nlowered:\n${printed.join('\n')}\n`,
       );
       return 1;
     }
@@ -1158,14 +1241,17 @@ async function runLanguageEvidence(
     const implementationSha256 = godotEvidenceImplementationDigest(implementation, loweringDigest());
     const inputSha256 = sha256(
       JSON.stringify({
-        source: evidence.source,
+        scripts: evidence.scripts,
         cases: evidence.cases.map((entry) => ({
           id: entry.id,
+          className: entry.className ?? evidence.className,
           call: entry.call,
           arguments: entry.arguments?.gdscript ?? '',
+          instance: entry.instance ?? null,
           comparator: entry.comparator,
         })),
         rules: evidence.rules,
+        datatypes: evidence.datatypes ?? [],
       }),
     );
     const observedNative = sha256(JSON.stringify(nativeRows));
@@ -1173,35 +1259,40 @@ async function runLanguageEvidence(
     const comparators = [...new Set(evidence.cases.map((entry) => entry.comparator))].sort();
     const claims: SemanticClaimRecord[] = [];
     const liveness: GodotCodeClaimLiveness[] = [];
-    for (const [index, rule] of proposal.rules.entries()) {
-      const definition = evidence.rules[index] as GodotLanguageEvidenceFile['rules'][number];
+    const recordClaim = (
+      claimId: string,
+      identity: string,
+      source: { readonly file: string; readonly symbol: string; readonly line: number },
+    ) => {
       const record = claimRecord(
         pinned,
-        rule.evidenceClaimId,
+        claimId,
         'translate-code',
-        godotCodeRuleKey(rule.source),
-        definition.source,
-        { inputSha256, callsite: `${resPath} every case`, observed: observedNative },
-        {
-          implementationSha256,
-          callsite: `lowered src/scripts/${sourceFile.sourcePath}`,
-          observed: observedTarget,
-        },
+        identity,
+        source,
+        { inputSha256, callsite: `${evidence.scripts.map((entry) => entry.file).join(' ')} every case`, observed: observedNative },
+        { implementationSha256, callsite: 'lowered src/scripts/*', observed: observedTarget },
         comparators,
       );
       claims.push(record.claim);
       liveness.push(record.liveness);
-    }
+    };
+    proposal.rules.forEach((rule, index) => {
+      recordClaim(rule.evidenceClaimId, godotCodeRuleKey(rule.source), (evidence.rules[index] as GodotLanguageEvidenceFile['rules'][number]).source);
+    });
+    proposal.datatypes.forEach((entry, index) => {
+      recordClaim(entry.evidenceClaimId, godotDatatypeRuleKey(entry), ((evidence.datatypes ?? [])[index] as NonNullable<GodotLanguageEvidenceFile['datatypes']>[number]).source);
+    });
     const written = writeEvidenceFile(name, {
       implementation,
       bindings: [],
       rules: proposal.rules,
-      datatypes: [],
+      datatypes: proposal.datatypes,
       claims,
       liveness,
     });
     process.stdout.write(
-      `all ${String(evidence.cases.length)} cases agree; wrote ${String(proposal.rules.length)} rules and their claims to ${written}\n\nlowered:\n${printed}\n`,
+      `all ${String(evidence.cases.length)} cases agree; wrote ${String(proposal.rules.length)} rules, ${String(proposal.datatypes.length)} datatype rules and their claims to ${written}\n\nlowered:\n${printed.join('\n')}\n`,
     );
     return 0;
   } finally {
@@ -1210,8 +1301,23 @@ async function runLanguageEvidence(
 }
 
 /** The case files `evidence --refresh` re-runs, in dependency order: compat modules first. */
-export function godotEvidenceCaseNames(): readonly string[] {
-  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'callable', 'global-scope', 'node-3d', 'sub-viewport', 'camera-3d', 'input-event', 'input-event-mouse', 'input-event-screen-touch', 'input-event-screen-drag', 'input', 'language'];
+export async function godotEvidenceCaseNames(): Promise<readonly string[]> {
+  const names = readdirSync(CASES_DIR)
+    .filter((file) => file.endsWith('.cases.ts'))
+    .map((file) => file.slice(0, -'.cases.ts'.length))
+    .sort();
+  const kinds = await Promise.all(
+    names.map(async (name) => {
+      const loaded = (await import(pathToFileURL(path.join(CASES_DIR, `${name}.cases.ts`)).href)) as {
+        default?: { readonly kind?: string };
+      };
+      return [name, loaded.default?.kind === 'language'] as const;
+    }),
+  );
+  return [
+    ...kinds.filter(([, language]) => !language).map(([name]) => name),
+    ...kinds.filter(([, language]) => language).map(([name]) => name),
+  ];
 }
 
 export async function runEvidence(

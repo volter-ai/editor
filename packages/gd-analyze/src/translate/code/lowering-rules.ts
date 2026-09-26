@@ -31,6 +31,10 @@ export type GodotCodeRuleRecipe =
   | { readonly kind: 'assignment'; readonly operator: TargetTsAssignmentOperator }
   /** The operation lowers through the binding table (`builtin-operator`, `builtin-constant`). */
   | { readonly kind: 'binding' }
+  /** GDScript int `*`, `%` and truncating `/` on JS numbers, with -0 normalized to 0. */
+  | { readonly kind: 'integer-binary'; readonly operator: '*' | '%' | '/' }
+  /** GDScript int negation: `0 - x`, which never yields -0. */
+  | { readonly kind: 'integer-negate' }
   | { readonly kind: 'refusal'; readonly reason: string };
 
 export type GodotStructuralConstruct =
@@ -47,8 +51,10 @@ export type GodotStructuralConstruct =
   | 'dictionary-object-literal'
   | 'enum'
   | 'for-of'
+  | 'for-range'
   | 'function'
   | 'if'
+  | 'implicit-ready'
   | 'lambda'
   | 'literal'
   | 'local-identifier'
@@ -61,6 +67,7 @@ export type GodotStructuralConstruct =
   | 'subscript-element'
   | 'suite'
   | 'ternary'
+  | 'type-default'
   | 'variable'
   | 'while';
 
@@ -107,26 +114,65 @@ export function godotBoundDatatypeIdentity(datatype: GodotBoundDatatype): string
   ].join('|');
 }
 
-const DATATYPE_CLASSES = new Set(['BUILTIN', 'NATIVE', 'SCRIPT', 'CLASS']);
+const GENERALIZED_KINDS = new Set(['BUILTIN', 'NATIVE', 'SCRIPT', 'CLASS', 'ENUM', 'VARIANT']);
+
+function datatypeFields(identity: string): readonly string[] {
+  return identity.split('|');
+}
 
 /**
- * The class of a datatype identity (`BUILTIN:*`), or the identity itself when it has none. A rule
- * keyed by classes holds for every datatype of the class: it is registered only for constructs
- * whose meaning does not depend on the type under the compat representation (a built-in is an
- * immutable record, an object, Array or Dictionary a shared reference).
+ * The TYPE of a datatype identity, dropping how the frontend learned it and whether the value is a
+ * constant: `BUILTIN:float`, `BUILTIN:Array[RID]`, `NATIVE:Node`, `ENUM:Player._Anim`,
+ * `CLASS:res://player/player.gd`; a meta-type (the type used as a value) gains `:meta`. A rule
+ * keyed by types holds for every datatype of those types, so it is registered for constructs whose
+ * meaning depends on the type but not on its provenance or constness (int arithmetic).
+ */
+export function godotDatatypeType(identity: string): string {
+  if (identity === '') return identity;
+  const fields = datatypeFields(identity);
+  const kind = fields[0] as string;
+  if (!GENERALIZED_KINDS.has(kind)) return identity;
+  const meta = fields[10] === 'meta' ? ':meta' : '';
+  switch (kind) {
+    case 'NATIVE':
+      return `NATIVE:${fields[4] as string}${meta}`;
+    case 'CLASS':
+    case 'SCRIPT':
+      return `${kind}:${fields[6] as string}${meta}`;
+    default:
+      return `${kind}:${fields[2] as string}${meta}`;
+  }
+}
+
+/**
+ * The CLASS of a datatype identity (`BUILTIN:*`, `NATIVE:*`, `ENUM:*`, and `BUILTIN:meta:*` for a
+ * meta-type), or the identity itself when it has none. A rule keyed by classes holds for every
+ * datatype of the class: it is registered only for constructs whose meaning does not depend on the
+ * type under the compat representation (a built-in is an immutable record, an object, Array or
+ * Dictionary a shared reference).
  */
 export function godotDatatypeClass(identity: string): string {
   if (identity === '') return identity;
-  const kind = identity.slice(0, identity.indexOf('|'));
-  return DATATYPE_CLASSES.has(kind) ? `${kind}:*` : identity;
+  const fields = datatypeFields(identity);
+  const kind = fields[0] as string;
+  if (!GENERALIZED_KINDS.has(kind)) return identity;
+  return fields[10] === 'meta' ? `${kind}:meta:*` : `${kind}:*`;
+}
+
+/**
+ * ANY value (`*`): a rule keyed by `*` holds for a value of every datatype, so it is registered only
+ * for constructs that pass a value through unchanged whatever it is (a call's arguments and
+ * result). A meta-type keeps its class key.
+ */
+export function godotDatatypeAny(identity: string): string {
+  const cls = godotDatatypeClass(identity);
+  return cls.endsWith(':*') && !cls.includes(':meta:') ? '*' : cls;
 }
 
 /** The type key a datatype rule may be registered under: `BUILTIN:Vector3`, `NATIVE:Node3D`. */
 export function godotDatatypeTypeKey(datatype: GodotBoundDatatype): string | undefined {
-  if (datatype.containerTypes.length > 0 || datatype.metaType) return undefined;
-  if (datatype.kind === 'BUILTIN') return `BUILTIN:${datatype.builtinType}`;
-  if (datatype.kind === 'NATIVE') return `NATIVE:${datatype.nativeType}`;
-  return undefined;
+  const type = godotDatatypeType(godotBoundDatatypeIdentity(datatype));
+  return type.includes('|') ? undefined : type;
 }
 
 export function godotCodeRuleKey(identity: GodotCodeRuleIdentity): string {
@@ -187,8 +233,22 @@ export class GodotCodeRuleResolver {
       this.#rules.get(
         godotCodeRuleKey({
           ...identity,
+          inputDatatypes: identity.inputDatatypes.map(godotDatatypeType),
+          resultDatatype: godotDatatypeType(identity.resultDatatype),
+        }),
+      ) ??
+      this.#rules.get(
+        godotCodeRuleKey({
+          ...identity,
           inputDatatypes: identity.inputDatatypes.map(godotDatatypeClass),
           resultDatatype: godotDatatypeClass(identity.resultDatatype),
+        }),
+      ) ??
+      this.#rules.get(
+        godotCodeRuleKey({
+          ...identity,
+          inputDatatypes: identity.inputDatatypes.map(godotDatatypeAny),
+          resultDatatype: godotDatatypeAny(identity.resultDatatype),
         }),
       )
     );
@@ -197,7 +257,10 @@ export class GodotCodeRuleResolver {
   datatype(datatype: GodotBoundDatatype): GodotDatatypeRuleEntry | undefined {
     const exact = this.#datatypes.get(godotBoundDatatypeIdentity(datatype));
     if (exact !== undefined) return exact;
-    const typeKey = godotDatatypeTypeKey(datatype);
-    return typeKey === undefined ? undefined : this.#datatypes.get(typeKey);
+    const identity = godotBoundDatatypeIdentity(datatype);
+    return (
+      this.#datatypes.get(godotDatatypeType(identity)) ??
+      this.#datatypes.get(godotDatatypeClass(identity))
+    );
   }
 }

@@ -135,10 +135,9 @@ const definitions: readonly RuleDefinition[] = [
   }),
   structural(27, 'IDENTIFIER', 'local-identifier:LOCAL_ITERATOR', [], MI, 'local-identifier'),
   structural(28, 'CONTINUE', 'continue', [], '', 'continue'),
-  operation(29, 'UNARY_OPERATOR', 'operator:OP_NEGATIVE:10', [MI], II, {
-    kind: 'unary',
-    operator: '-',
-  }),
+  // An int negation never yields -0 (gdscript evidence case negated-zero-sign measured `-a` of 0
+  // as 0 in Godot and as -0 under the plain unary minus this rule used to select).
+  operation(29, 'UNARY_OPERATOR', 'operator:OP_NEGATIVE:10', [MI], II, { kind: 'integer-negate' }),
   structural(30, 'VARIABLE', 'variable:declared:instance', [IB], '', 'variable'),
   structural(31, 'TERNARY_OPERATOR', 'ternary', [MB, MI, CI], II, 'ternary'),
   structural(32, 'IDENTIFIER', 'local-identifier:LOCAL_VARIABLE', [], MB, 'local-identifier'),

@@ -306,7 +306,8 @@ function operatorBinding(
   if (member === undefined) {
     return context.refuse(node, `Variant operator ${String(node.variantOperatorId)} is unknown`);
   }
-  if (leftNode.datatype.kind !== 'BUILTIN' || leftNode.datatype.metaType) {
+  const variant = leftNode.datatype.kind === 'VARIANT';
+  if ((leftNode.datatype.kind !== 'BUILTIN' && !variant) || leftNode.datatype.metaType) {
     return context.refuse(
       node,
       `${member} on a ${leftNode.datatype.display} left operand has no built-in operator binding`,
@@ -316,7 +317,8 @@ function operatorBinding(
     {
       sourceRevision: context.sourceRevision,
       kind: 'builtin-operator',
-      owner: leftNode.datatype.builtinType,
+      // An untyped left operand selects its evaluator at run time: the Variant operator.
+      owner: variant ? 'Variant' : leftNode.datatype.builtinType,
       member,
       signature: rightNode === undefined ? 'unary' : `right:${builtinTypeName(rightNode)}`,
     },
@@ -356,6 +358,35 @@ function nativeAccessorUse(
   if (method === undefined) {
     return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
   }
+  const use = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'native-member',
+      owner: method.owner,
+      member: method.name,
+      signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
+    },
+    node,
+  );
+  if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+    return context.refuse(node, `accessor binding ${use.target.localName} does not take its receiver first`);
+  }
+  return use;
+}
+
+/** A native property accessor of the script's own native base class. */
+function selfNativeAccessor(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  property: string,
+  accessor: 'getter' | 'setter',
+): OfficialBoundBindingUse | undefined {
+  const base = context.nativeBase;
+  if (base === undefined) return undefined;
+  const found = context.nativeProperty(base, property);
+  if (found === undefined) return undefined;
+  const method = found[accessor];
+  if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
   const use = context.bindingUse(
     {
       sourceRevision: context.sourceRevision,
@@ -489,6 +520,91 @@ function assignablePlace(
   };
 }
 
+/**
+ * Whether storing `value` into a place typed like `target` converts it: a typed built-in target
+ * receiving another built-in type (or an untyped value) converts on assignment
+ * (`write_assign_with_conversion` / the VM's typed assign). An enum value is its int.
+ */
+export function builtinConversion(target: GodotBoundNode, value: GodotBoundNode): boolean {
+  const to = target.datatype;
+  if (to.kind !== 'BUILTIN' || to.metaType) return false;
+  const from = value.datatype;
+  const fromBuiltin = from.kind === 'BUILTIN' || from.kind === 'ENUM' ? from.builtinType : undefined;
+  return fromBuiltin !== to.builtinType;
+}
+
+/**
+ * A Variant stored into a typed built-in converts through that type's constructor
+ * (`write_assign_with_conversion` → `Variant::construct`), as the constructor binding of the
+ * target type; a value already of the type stores as it is.
+ */
+export function convertedValue(
+  context: LoweringContext,
+  target: GodotBoundNode,
+  valueNode: GodotBoundNode,
+  value: LoweredExpression,
+): LoweredExpression {
+  if (valueNode.datatype.kind !== 'VARIANT' || target.datatype.kind !== 'BUILTIN') return value;
+  const owner = target.datatype.builtinType;
+  const use = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'builtin-constructor',
+      owner,
+      member: owner,
+      signature: 'unhashed',
+    },
+    valueNode,
+  );
+  if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
+    return context.refuse(valueNode, `constructor binding ${use.target.localName} is not a plain call`);
+  }
+  return compose(context, [value], (values) => bindingCall(context, valueNode, use, values), use.requirements);
+}
+
+/**
+ * The value a typed variable holds before anything is assigned: GDScript clears a built-in to its
+ * zero-argument construction and leaves an object or untyped variable `null`
+ * (`GDScriptCompiler::_parse_function` implicit initializer, `gdscript_compiler.cpp:2365`, and a
+ * local's `clear_address`, `gdscript_compiler.cpp:2235`). `node` is the VARIABLE whose datatype
+ * is cleared; the `type-default` rule for that datatype is the claim.
+ */
+export function lowerTypeDefault(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
+  // The default depends on the datatype alone, not on the declaration's annotations.
+  const requirements = context.selectRule(node, ['type-default'], [], ['structural'], true, false)
+    .requirements;
+  const datatype = node.datatype;
+  const literalValue = (value: null | boolean | number): LoweredExpression =>
+    expression({ kind: 'literal-expression', value, span: span(context.script, node) }, requirements);
+  if (datatype.kind === 'ENUM') return literalValue(0);
+  if (datatype.kind !== 'BUILTIN' || datatype.metaType) return literalValue(null);
+  switch (datatype.builtinType) {
+    case 'Nil':
+      return literalValue(null);
+    case 'bool':
+      return literalValue(false);
+    case 'int':
+    case 'float':
+      return literalValue(0);
+    default: {
+      const use = context.bindingUse(
+        {
+          sourceRevision: context.sourceRevision,
+          kind: 'builtin-constructor',
+          owner: datatype.builtinType,
+          member: datatype.builtinType,
+          signature: 'unhashed',
+        },
+        node,
+      );
+      if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
+        return context.refuse(node, `constructor binding ${use.target.localName} is not a plain call`);
+      }
+      return expression(bindingCall(context, node, use, []), [...requirements, ...use.requirements]);
+    }
+  }
+}
+
 function prepareCallReference(
   context: LoweringContext,
   value: TargetTsExpression,
@@ -513,31 +629,52 @@ function prepareCallReference(
   return { before: prepared.before, callee: prepared.value };
 }
 
+type AssignmentCombine = (read: TargetTsExpression, value: TargetTsExpression) => TargetTsExpression;
+
+/** A write to the native base's property (`velocity = v`): its setter on the instance. */
+function inheritedNativePlace(
+  context: LoweringContext,
+  targetNode: GodotBoundNode,
+  needsRead: boolean,
+): AssignablePlace | undefined {
+  if (targetNode.kind !== 'IDENTIFIER' || targetNode.source !== 'INHERITED_VARIABLE') return undefined;
+  const setter = selfNativeAccessor(context, targetNode, targetNode.name, 'setter');
+  if (setter === undefined) return undefined;
+  const getter = needsRead
+    ? selfNativeAccessor(context, targetNode, targetNode.name, 'getter')
+    : undefined;
+  const rule = context.selectRule(targetNode, ['member-identifier:native-property'], [], ['binding']);
+  const self: TargetTsExpression = { kind: 'this-expression' };
+  return {
+    before: [],
+    read:
+      getter === undefined
+        ? context.refuse(targetNode, 'a compound write needs the property getter')
+        : bindingCall(context, targetNode, getter, [self]),
+    write: (value) => bindingCall(context, targetNode, setter, [self, value]),
+    requirements: [...rule.requirements, ...setter.requirements, ...(getter?.requirements ?? [])],
+  };
+}
+
 function assignment(
   context: LoweringContext,
   node: GodotBoundNode,
-  operator: TargetTsAssignmentOperator,
+  combine: AssignmentCombine | undefined,
   targetNode: GodotBoundNode,
   assigned: LoweredExpression,
   lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
   ownRequirements: readonly OfficialBoundLoweringRequirement[],
 ): LoweredExpression {
-  const binaryOperator = assignmentBinaryOperator(operator);
-  if (valueAttributeTarget(context, targetNode) !== undefined) {
-    const place = assignablePlace(context, targetNode, lower);
+  const place =
+    inheritedNativePlace(context, targetNode, combine !== undefined) ??
+    (valueAttributeTarget(context, targetNode) !== undefined
+      ? assignablePlace(context, targetNode, lower)
+      : undefined);
+  if (place !== undefined) {
     const value = materialize(context, assigned);
     return {
       before: [...place.before, ...value.before],
-      value: place.write(
-        binaryOperator === undefined
-          ? value.value
-          : {
-              kind: 'binary-expression',
-              operator: binaryOperator,
-              left: place.read,
-              right: value.value,
-            },
-      ),
+      value: place.write(combine === undefined ? value.value : combine(place.read, value.value)),
       after: [],
       requirements: [...ownRequirements, ...place.requirements, ...value.requirements],
     };
@@ -552,15 +689,7 @@ function assignment(
       kind: 'assignment-expression',
       operator: '=',
       target: target.target,
-      value:
-        binaryOperator === undefined
-          ? value.value
-          : {
-              kind: 'binary-expression',
-              operator: binaryOperator,
-              left: target.target,
-              right: value.value,
-            },
+      value: combine === undefined ? value.value : combine(target.target, value.value),
       span: span(context.script, node),
     },
     after: [],
@@ -866,6 +995,18 @@ export function lowerOfficialExpression(
             context.structural(node, 'local-identifier', [], `local-identifier:${node.source}`),
           );
         }
+        if (node.source === 'INHERITED_VARIABLE' && context.nativeBase !== undefined) {
+          // A native property of the script's own native base (`position`) reads through its
+          // API-dump getter on the instance, as a native method called on self does.
+          const getter = selfNativeAccessor(context, node, node.name, 'getter');
+          if (getter !== undefined) {
+            const rule = context.selectRule(node, ['member-identifier:native-property'], [], ['binding']);
+            return expression(
+              bindingCall(context, node, getter, [{ kind: 'this-expression' }]),
+              [...rule.requirements, ...getter.requirements],
+            );
+          }
+        }
         if (
           node.source === 'MEMBER_VARIABLE' ||
           node.source === 'MEMBER_FUNCTION' ||
@@ -905,13 +1046,15 @@ export function lowerOfficialExpression(
             autoload.requirements,
           );
         }
+        // The binding is what the identifier means; resolve it before its structural rule so an
+        // absent binding is what refuses.
+        const use = nativeClassBinding(context, node);
         const structuralRequirements = context.structural(
           node,
           'bound-identifier',
           [],
           `bound-identifier:${node.source}`,
         );
-        const use = nativeClassBinding(context, node);
         return expression(
           { ...boundTargetExpression(use.target), span: span(context.script, node) },
           [...structuralRequirements, ...use.requirements],
@@ -965,8 +1108,24 @@ export function lowerOfficialExpression(
         const rule = context.selectRule(node, operatorRuleKeys(node), [operandNode], [
           'unary',
           'binding',
+          'integer-negate',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'integer-negate') {
+          // An int negation never yields -0: `0 - x`.
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            ([operand]) => ({
+              kind: 'binary-expression',
+              operator: '-',
+              left: { kind: 'literal-expression', value: 0 },
+              right: operand as TargetTsExpression,
+              span: span(context.script, node),
+            }),
+            rule.requirements,
+          );
+        }
         if (recipe.kind === 'binding') {
           const use = operatorBinding(context, node, operandNode, undefined);
           return compose(
@@ -995,6 +1154,7 @@ export function lowerOfficialExpression(
         const rule = context.selectRule(node, operatorRuleKeys(node), [leftNode, rightNode], [
           'binary',
           'binding',
+          'integer-binary',
         ]);
         const recipe = rule.recipe;
         if (recipe.kind === 'binding') {
@@ -1004,6 +1164,41 @@ export function lowerOfficialExpression(
             [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
             (values) => bindingCall(context, node, use, values),
             [...rule.requirements, ...use.requirements],
+          );
+        }
+        if (recipe.kind === 'integer-binary') {
+          // GDScript int arithmetic on JS numbers: `/` truncates toward zero, and a result is
+          // never -0 (an int has no sign on zero; `+ 0` turns -0 into 0).
+          return compose(
+            context,
+            [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
+            ([leftValue, rightValue]) => {
+              const raw: TargetTsExpression = {
+                kind: 'binary-expression',
+                operator: recipe.operator,
+                left: leftValue as TargetTsExpression,
+                right: rightValue as TargetTsExpression,
+              };
+              return {
+                kind: 'binary-expression',
+                operator: '+',
+                left:
+                  recipe.operator === '/'
+                    ? {
+                        kind: 'call-expression',
+                        callee: {
+                          kind: 'property-expression',
+                          object: { kind: 'identifier-expression', name: 'Math' },
+                          property: 'trunc',
+                        },
+                        arguments: [raw],
+                      }
+                    : { kind: 'parenthesized-expression', expression: raw },
+                right: { kind: 'literal-expression', value: 0 },
+                span: span(context.script, node),
+              };
+            },
+            rule.requirements,
           );
         }
         if (recipe.kind !== 'binary') return context.refuse(node, 'unreachable binary recipe');
@@ -1042,32 +1237,75 @@ export function lowerOfficialExpression(
         );
       }
       case 'ASSIGNMENT': {
-        if (node.useConversionAssign) {
-          return context.refuse(node, 'conversion assignment needs an evidenced conversion recipe');
-        }
         const assigneeNode = context.node(node.assignee, node);
         const valueNode = context.node(node.assignedValue, node);
-        const rule = context.rule(
+        // A converting assignment (`write_assign_with_conversion`) has its own rule per
+        // (target type, value type): int into float is the identity on JS numbers, float into
+        // int is not and has no rule.
+        const exactKey = `operator:${node.operation}:${String(node.variantOperatorId)}${
+          (node.useConversionAssign && assigneeNode.datatype.kind !== 'BUILTIN') ||
+          (node.operation === 'OP_NONE' && builtinConversion(assigneeNode, valueNode))
+            ? ':conversion'
+            : ''
+        }`;
+        // A compound assignment evaluates its Variant operator like the binary one does.
+        const rule = context.selectRule(
           node,
-          `operator:${node.operation}:${String(node.variantOperatorId)}`,
+          node.operation === 'OP_NONE' ? [exactKey] : [exactKey, 'operator:variant-evaluate'],
           [assigneeNode, valueNode],
-          'assignment',
+          ['assignment', 'binding'],
         );
         const recipe = rule.recipe;
+        if (recipe.kind === 'binding') {
+          const use = operatorBinding(context, node, assigneeNode, valueNode);
+          return assignment(
+            context,
+            node,
+            (read, value) => bindingCall(context, node, use, [read, value]),
+            assigneeNode,
+            lowerExpression(context, valueNode),
+            lowerExpression,
+            [...rule.requirements, ...use.requirements],
+          );
+        }
         if (recipe.kind !== 'assignment')
           return context.refuse(node, 'unreachable assignment recipe');
+        const binaryOperator = assignmentBinaryOperator(recipe.operator);
         return assignment(
           context,
           node,
-          recipe.operator,
+          binaryOperator === undefined
+            ? undefined
+            : (read, value) => ({
+                kind: 'binary-expression',
+                operator: binaryOperator,
+                left: read,
+                right: value,
+              }),
           assigneeNode,
-          lowerExpression(context, valueNode),
+          node.operation === 'OP_NONE'
+            ? convertedValue(context, assigneeNode, valueNode, lowerExpression(context, valueNode))
+            : lowerExpression(context, valueNode),
           lowerExpression,
           rule.requirements,
         );
       }
       case 'SUBSCRIPT': {
         const baseNode = context.node(node.base, node);
+        if (node.isAttribute && baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS') {
+          // `RenderingServer.SHADOW_QUALITY_SOFT_HIGH`: a ClassDB integer constant is its value.
+          const value = context.nativeConstant(
+            baseNode.name,
+            officialBoundPropertyName(context, node.attribute, node),
+          );
+          if (value !== undefined) {
+            const rule = context.structural(node, 'literal', [], 'literal:native-constant');
+            return expression(
+              { kind: 'literal-expression', value, span: span(context.script, node) },
+              rule,
+            );
+          }
+        }
         if (
           node.isAttribute &&
           baseNode.kind === 'IDENTIFIER' &&
@@ -1195,6 +1433,34 @@ export function lowerOfficialExpression(
           }
           const result = boundCallWithoutReceiver(context, node, target, args);
           return { ...result, requirements: [...requirements, ...result.requirements] };
+        }
+        if (
+          calleeNode.kind === 'IDENTIFIER' &&
+          (node.compilerTarget.kind === 'script-self' || node.compilerTarget.kind === 'script-class')
+        ) {
+          // A call to the script's own function: `call_self` dispatches on the instance (the most
+          // derived script's function), a static or class call on the script class
+          // (`GDScriptCompiler::_parse_expression` CALL, gdscript_compiler.cpp:640 and :651).
+          const callee: TargetTsExpression = {
+            kind: 'property-expression',
+            object:
+              node.compilerTarget.kind === 'script-self'
+                ? { kind: 'this-expression' }
+                : { kind: 'identifier-expression', name: context.classIdentifier },
+            property: officialBoundPropertyName(context, calleeNode.id, node),
+            span: span(context.script, calleeNode),
+          };
+          return compose(
+            context,
+            args,
+            (argumentValues) => ({
+              kind: 'call-expression',
+              callee,
+              arguments: argumentValues,
+              span: span(context.script, node),
+            }),
+            requirements,
+          );
         }
         const callee = lowerExpression(context, calleeNode);
         return dynamicCall(context, node, callee, args, requirements);

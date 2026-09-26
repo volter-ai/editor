@@ -89,7 +89,7 @@ export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
     }
   }
   // Then every case file: compat modules, then the language rules lowered through them.
-  for (const name of godotEvidenceCaseNames()) {
+  for (const name of await godotEvidenceCaseNames()) {
     try {
       if ((await runEvidence(name, tools.officialBinary, tools.exporterBinary)) !== 0) failed.push(name);
     } catch (error) {
