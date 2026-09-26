@@ -78,9 +78,12 @@ The General MIDI SoundFont is a sketch palette. For the finished sound, VS Chamb
 Community Edition (CC0) builds into one bank per instrument, once per machine:
 
 ```bash
-npx tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB, builds ~/.volter/banks/vsco2-ce
+npx tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB of samples, builds 194 MB of banks
 ln -sfn ~/.volter/banks/vsco2-ce/vsco2 sounds/vsco2                   # never commit the banks
 ```
+
+The build compresses every sample with `oggenc` (vorbis-tools; `brew install vorbis-tools`), as
+renders use `ffmpeg`.
 
 A track names its bank and program; `articulations` sends a note's `artic` to the patch that
 recorded it, and the rest of its notes to `program`:

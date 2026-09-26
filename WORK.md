@@ -226,8 +226,11 @@ Open, with what closes each:
   (staccato, pizzicato, tremolo) to the patch that recorded it, and the drum channel's program
   chooses the kit. Harbor with every instrument moved to it, each track's level matched to the
   General MIDI render to 0.0 dB, waits for a listen: `music-probe/out/ab/gm/harbor.ogg` against
-  `out/ab/orchestra/harbor-orchestra.ogg`. Not carried over: SFZ round robins (a SoundFont has
-  none; each set plays its first sample).
+  `out/ab/orchestra/harbor-orchestra.ogg`, and so does a cue written for it end to end
+  (`src/music/tidewatch.tsx`: Explore and Battle loops, `out/tidewatch/sections/`, with the
+  `victory.tsx` stinger in `out/victory`). The banks are SF3 (194 MB for the library; an editor tab
+  holding nine grows by about 425 MB, against 1.2 GB uncompressed). Not carried over: SFZ round
+  robins (a SoundFont has none; each set plays its first sample).
 - A section loop's audio equals its bars in the whole piece only where the synthesizer's
   state does not depend on what it played before: events match to the sample, and a pass
   preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
