@@ -485,13 +485,16 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
   const POSE: Readonly<Record<string, string>> = { set_bone_pose_position: 'position', set_bone_pose_rotation: 'rotation', set_bone_pose_scale: 'scale' };
   for (const override of model.overrides) {
     const bones = override.setters.filter((setter) => POSE[setter.setter.exportName] !== undefined);
-    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined);
+    const layers = override.setters.find((setter) => setter.setter.exportName === 'set_layer_mask');
+    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined && setter !== layers);
     overrides.push({
       key: override.at,
       value: {
         kind: 'object-expression',
         properties: [
           ...bones.map((setter) => ({ key: `bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`, value: dataExpression(plainValue(setter.value)) })),
+          // A mesh of the model's render layers (compat's `set_layer_mask`).
+          ...(layers === undefined ? [] : [{ key: 'layers', value: dataExpression(plainValue(layers.value)) }]),
           // An AnimationPlayer of the model: compat's player props (`familyAnimationOverride`).
           ...(others.length === 0 && override.animation === undefined ? [] : familyAnimationOverride(emission.family, override.at, others, override.animation)),
         ],

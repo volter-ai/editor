@@ -35,6 +35,7 @@ import { godot_node_adopt, godot_node_foreign } from './node';
 import { construct as quaternion } from './quaternion';
 import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
 import { construct as vector3 } from './vector3';
+import { set_layer_mask } from './visual-instance-3d';
 
 /** One node of the imported tree, below its root, in `Node::get_children` depth-first order. */
 export interface GodotImportedSceneNode {
@@ -86,12 +87,27 @@ const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/u;
 
 /**
  * One property the instancing scene sets on a node of the model, by its Godot name, through the
- * node's setter: a Skeleton3D's bone poses (`Skeleton3D::_set`, `skeleton_3d.cpp:118`).
+ * node's setter: a Skeleton3D's bone poses (`Skeleton3D::_set`, `skeleton_3d.cpp:118`), a
+ * VisualInstance3D's render layers (`layers`, `visual_instance_3d.cpp:130`). `adopted` is the
+ * model's Godot nodes: a mesh node's per-surface meshes, which the loader made below it and Godot
+ * has no node for, draw as that node's instance does, so they take its layers too.
  */
-function applyOverride(entity: Object3D, property: string, value: unknown): void {
+function applyOverride(entity: Object3D, property: string, value: unknown, adopted: ReadonlySet<Object3D>): void {
   // An AnimationPlayer's properties: its track bindings, libraries, autoplay (`animation-player.ts`).
   if (ANIMATION_PLAYERS.has(entity)) {
     godot_animation_player_set_prop(entity, property, value);
+    return;
+  }
+  if (property === 'layers') {
+    set_layer_mask(entity, value as number);
+    const surfaces = (object: Object3D): void => {
+      for (const child of object.children) {
+        if (adopted.has(child)) continue;
+        child.layers.mask = entity.layers.mask;
+        surfaces(child);
+      }
+    };
+    surfaces(entity);
     return;
   }
   const bone = BONE_POSE.exec(property);
@@ -246,7 +262,7 @@ export function GodotImportedScene({
     for (const [at, properties] of Object.entries(overrides)) {
       const target = tree.byPath.get(at);
       if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${at}`);
-      for (const [property, value] of Object.entries(properties)) applyOverride(target, property, value);
+      for (const [property, value] of Object.entries(properties)) applyOverride(target, property, value, members);
     }
     return () => {
       for (const child of tree.depthOne) entity.remove(child);

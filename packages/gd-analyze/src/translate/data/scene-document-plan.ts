@@ -1781,8 +1781,9 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
 };
 const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 'Area3D']);
 
-/** The properties an imported model's element sets on the model's own nodes (bone poses). */
+/** The properties an imported model's element sets on the model's own nodes (bone poses, layers). */
 const MODEL_OVERRIDE_SETTERS = [
+  'set_layer_mask',
   'set_bone_pose_position',
   'set_bone_pose_rotation',
   'set_bone_pose_scale',

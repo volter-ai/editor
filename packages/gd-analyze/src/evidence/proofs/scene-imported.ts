@@ -70,6 +70,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.125, 0, 0)
 [node name="Player" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.2, 1)
 
+[node name="Robot" parent="Player/Skeleton/Skeleton3D" index="0"]
+layers = 2
+
 [node name="Hand" type="Node3D" parent="Player/Skeleton" index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.1, 0)
 
@@ -97,6 +100,8 @@ func _walk(main: Node, node: Node, rows: Array) -> void:
 \tif node is Node3D:
 \t\tvar t: Transform3D = node.global_transform
 \t\trow["global"] = [_v(t.basis.x), _v(t.basis.y), _v(t.basis.z), _v(t.origin)]
+\tif node is VisualInstance3D:
+\t\trow["layers"] = node.layers
 \tif node is Skeleton3D:
 \t\tvar bones := []
 \t\tfor i in node.get_bone_count():
@@ -157,6 +162,7 @@ import { godot_tree_set_root } from './src/lib/godot-compat/scene-tree';
 import { get_children, get_name, godot_is_native, godot_node_is_spatial } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import * as SK from './src/lib/godot-compat/skeleton-3d';
+import { get_layer_mask } from './src/lib/godot-compat/visual-instance-3d';
 
 // Embedded images decode through createImageBitmap, which Node lacks: the tree does not read pixels.
 globalThis.createImageBitmap = async () => ({ width: 1, height: 1, close() {} });
@@ -210,6 +216,19 @@ const walk = (path, object) => {
     const t = get_global_transform(object);
     const v = (value) => [bits(value.x), bits(value.y), bits(value.z)];
     row.global = [v(t.basis.x), v(t.basis.y), v(t.basis.z), v(t.origin)];
+  }
+  if (className === 'MeshInstance3D') {
+    // The node's mask, when every three mesh drawing it (itself and the per-surface meshes the
+    // loader made below it, which are not Godot nodes) is drawn on that mask.
+    const mask = get_layer_mask(object);
+    const drawn = [];
+    const surfaces = (o) => {
+      if (o.isMesh) drawn.push(o.layers.mask);
+      const nodes = new Set(get_children(o));
+      for (const child of o.children) if (!nodes.has(child)) surfaces(child);
+    };
+    surfaces(object);
+    row.layers = drawn.length > 0 && drawn.every((entry) => entry === mask) ? mask : ['drawn', drawn];
   }
   if (className === 'Skeleton3D') {
     const bones = [];

@@ -368,6 +368,7 @@ export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   `${COMPAT}/node-3d.ts`,
   `${COMPAT}/skeleton-3d.ts`,
   `${COMPAT}/quaternion.ts`,
+  `${COMPAT}/visual-instance-3d.ts`,
   'packages/gd-analyze/src/translate/data/scene-setters.ts',
 ] as const;
 
