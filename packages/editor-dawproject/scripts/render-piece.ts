@@ -6,9 +6,12 @@
  *   <out>/<name>.wav          24-bit loop (second pass of two, tail wrapped), with a `smpl`
  *                             chunk declaring the whole file one forward loop
  *   <out>/<name>.ogg          the same loop, Vorbis
+ *   <out>/<name>.m4a          the same loop, AAC (for players without Vorbis: iOS before 17.4)
  *   <out>/<name>.mid          the piece as a Standard MIDI File (one pass)
- *   <out>/sections/<section>.wav / .ogg  with --sections: marker sections, at the full mix gain
- *   <out>/stems/<track>.ogg   Vorbis stems, at the same gain as their WAVs
+ *   <out>/sections/<section>.wav / .ogg / .m4a  with --sections: marker sections, at the full mix
+ *                             gain (a marker at or past the end, or on another's beat, makes none)
+ *   <out>/stems/<track>.ogg / .m4a  stems, at the same gain as their WAVs (two tracks whose names
+ *                             make one file name get -2, -3)
  *   <out>/stems/<track>.wav   each audible track rendered alone, at the mix's own gain, so the
  *                             stems sum back to the mix (`stems.nullResidualDb` says how nearly)
  *   <out>/report.json         loudness against the target (EBU R128 via ffmpeg), true peak, the
@@ -17,7 +20,8 @@
  *
  * --one-shot keeps one pass plus a 4 s tail, fades the last 10 ms, and writes plain WAV/OGG
  * (no smpl loop chunk); it cannot be combined with --sections. --out overrides positional out.
- * report.json includes the mix and stem OGG paths, barSeconds, and optional section metadata.
+ * report.json includes the mix, section and stem paths (`file` OGG, `fileM4a` AAC), barSeconds,
+ * and optional section metadata.
  *
  * LOUDNESS TARGET: `console` is −24 LUFS, `portable` −18 LUFS (Sony ASWG-R001's two figures);
  * a number is LUFS. The default is `portable`. The true peak never exceeds −1 dBTP; when the
