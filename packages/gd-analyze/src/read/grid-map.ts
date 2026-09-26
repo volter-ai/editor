@@ -101,14 +101,10 @@ export interface Vec3 {
  * All 24 are recovered from the engine in `test/ground-truth/godot36-gridmap.json` and compared
  * entry by entry in the generated fixture; this table is never the only witness to itself.
  *
- * ONE other copy exists in the repo and it is deliberate: `GODOT_ORTHO_BASES` in
- * `packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/basis.ts`, the RUNTIME's. The two
- * cannot be one table — this is the compiler, and the translator must not import capability
- * source, because a user's port owns and edits its copied `src/lib/godot-compat/`. Same numbers,
- * same column convention, each citing the other. Do not add a third: the runtime's four consumers
- * (`Basis.get_orthogonal_index`, `set_orthogonal_index`, the GridMap runtime paint and the
- * authored-`data.cells` bake) were three separate tables until 2026-08-20, and the copies had
- * silently come to mean different index spaces.
+ * The runtime's `Basis` module (`godot-compat/basis.ts`, rebuilt from Godot's source) will hold
+ * its own copy for `Basis.get_orthogonal_index` / `set_orthogonal_index`: the translator must not
+ * import capability source, because a user's port owns and edits its copied `src/lib/godot-compat/`.
+ * That copy uses these numbers and this column convention, and each cites the other.
  */
 export const GODOT_ORTHOGONAL_BASES: readonly (readonly [Vec3, Vec3, Vec3])[] = [
   // Godot: Basis(1, 0, 0, 0, 1, 0, 0, 0, 1)

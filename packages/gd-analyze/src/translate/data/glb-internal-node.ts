@@ -57,8 +57,7 @@
  * `node.userData.name = nodeDef.name`), and `SkeletonUtils.clone` carries `userData` onto the clone
  * (measured on `character.glb`: every one of its eight glTF nodes keeps it). Godot's reader records the
  * same string per node (`GlbSceneNode.gltfName` → `SceneDocument.gltfOrigin.nameByPath`). So the
- * address is a chain of RAW glTF names, and the runtime descends by `userData.name`
- * (`godot-compat/gltf-model.ts`'s `godotModelNode`).
+ * address is a chain of RAW glTF names, and the runtime descends by `userData.name`.
  *
  * That choice also disposes of the multi-primitive mesh for free: three splits a glTF mesh with N
  * primitives into a `Group` of N `Mesh` children (`GLTFLoader.js:4390-4400`) which Godot keeps as

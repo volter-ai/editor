@@ -215,10 +215,7 @@ function assertArtifactPath(file: PartitionedEmittedFile, paths: Set<string>): v
   }
   if (paths.has(file.path)) throw new TranslateError(file.path, 'emitted more than once');
   paths.add(file.path);
-  if (
-    file.path.startsWith('src/lib/godot-compat/') ||
-    file.path.startsWith('src/lib/godot-runtime/')
-  ) {
+  if (file.path.startsWith('src/lib/godot-compat/')) {
     throw new TranslateError(
       file.path,
       'translator output cannot enter an importer-owned Godot capability',

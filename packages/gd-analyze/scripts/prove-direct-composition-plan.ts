@@ -509,7 +509,7 @@ try {
     /react-root|net-config|server\/rooms|virtual:vgai-manifest-entries/u.test(mainSource) ||
     worldSource.includes('import { MainScene } from "./scenes/main";') === false ||
     worldSource.includes(
-      'import { GodotProjectStartup, useGodotScriptTreeAttachment } from "./lib/godot-compat";',
+      'import { GodotProjectStartup, useGodotScriptTreeAttachment } from "./lib/godot-compat/react-lifecycle";',
     ) === false ||
     worldSource.includes('function $Autoload_0(props:') === false ||
     worldSource.includes('new $AutoloadScript_0($native_autoload_0)') === false ||

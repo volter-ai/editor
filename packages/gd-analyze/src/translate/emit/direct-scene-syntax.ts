@@ -187,7 +187,7 @@ function sceneSourceFile(
       : [
           {
             kind: 'import-statement' as const,
-            module: moduleSpecifier(scene.targetPath, 'src/lib/godot-compat/index.ts'),
+            module: moduleSpecifier(scene.targetPath, 'src/lib/godot-compat/react-lifecycle.tsx'),
             namedBindings: [
               {
                 imported: 'useGodotScriptTreeAttachment',

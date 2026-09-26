@@ -1,6 +1,6 @@
 /**
  * translate/data/audio.ts — an `AudioStreamPlayer` / `AudioStreamPlayer3D` / Area reverb send as a
- * spec. `emit/` prints the spec; `godot-compat/audio.ts` and `audio-3d.ts` play it.
+ * spec. `emit/` prints the spec; the runtime's `AudioStreamPlayer` modules play it.
  *
  * Known-keys for the two player classes live here so the node-class table and `emitAudio`'s closed
  * classifier share one set. {@link AUDIO_DEVIATION_MECHANISMS} is the rest of that closed surface.

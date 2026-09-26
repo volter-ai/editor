@@ -264,7 +264,7 @@ try {
     if (specifier === './scenes/main') {
       return { MainScene: () => null, MainSceneAutoloads: () => null };
     }
-    if (specifier === './lib/godot-compat') {
+    if (specifier === './lib/godot-compat/react-lifecycle') {
       return { GodotProjectStartup: () => null, useGodotScriptTreeAttachment: () => undefined };
     }
     throw new Error(`unexpected World import ${specifier}`);

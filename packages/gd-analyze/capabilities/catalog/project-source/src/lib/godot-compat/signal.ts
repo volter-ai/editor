@@ -1,6 +1,20 @@
 /**
  * Godot's `Signal` — `connect` / `disconnect` / `emit_signal`, over `EventTarget`.
  *
+ * @godot-class Signal
+ * @role PROTOCOL
+ * @source core/variant/callable.cpp:534-580 (Signal::emit/connect/disconnect/is_connected/has_connections/get_connections)
+ * @source core/object/object.cpp:1178-1260 (Object::emit_signalp: slots snapshotted, one-shot slots disconnected before any slot runs)
+ * @source core/object/object.cpp:1517-1583 (Object::connect: duplicate rejected unless CONNECT_REFERENCE_COUNTED)
+ * @source core/object/object.cpp:1626-1665 (Object::_disconnect: reference-counted slots survive until the last release)
+ * Pinned revision 5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88 (Godot 4.7).
+ *
+ * **Callable identity.** Godot keys a slot by `Callable::get_base_comparator()`
+ * (`core/variant/callable.cpp:243`). No conformant `callable.ts` exists yet, so a slot is keyed by
+ * the reference identity of the callable object passed to `connect`, or of the handler function
+ * when none is passed. Godot's Callable identity (object + method equality) returns with a
+ * conformant `callable.ts`.
+ *
  * Nine of the pilot's wirings are authored `[connection]` lines in a `.tscn`
  * and two more are signals the scripts DECLARE themselves (`Player.hit`,
  * `HUD.start_game`), so every one of them lands on this shape. Writing it
@@ -51,8 +65,8 @@
  * emitter private is what makes that true here instead of merely documented.
  */
 
-import { godotCallableSignalIdentity, type GodotCallable } from './callable';
-import { registerGodotObjectIdentity } from './object';
+/** A connected Callable, identified by reference until `callable.ts` supplies Callable equality. */
+export type GodotCallable = object;
 
 /** What `connect` hands back. Godot has no connection object at all (it
  *  disconnects by `(signal, target, method)` triple); this is the handle that
@@ -117,6 +131,10 @@ export interface SignalHandle<Args extends readonly unknown[]> {
  * Native promises still own scheduling. This object only retains the source-visible
  * validity transition: a state is valid while its invocation is suspended and invalid
  * after it resolves or rejects. Being PromiseLike keeps emitted `await` mechanical.
+ *
+ * @godot GDScriptFunctionState (protocol)
+ * @source modules/gdscript/gdscript_function.h:502
+ * @source modules/gdscript/gdscript_function.cpp:369 (the `completed(result)` signal)
  */
 export class GodotGDScriptFunctionState<T> implements PromiseLike<T> {
   private valid = true;
@@ -125,7 +143,6 @@ export class GodotGDScriptFunctionState<T> implements PromiseLike<T> {
   private readonly result: Promise<T>;
 
   constructor(source: PromiseLike<T>) {
-    registerGodotObjectIdentity(this, 'GDScriptFunctionState');
     this.result = Promise.resolve(source).then(
       (value) => {
         this.valid = false;
@@ -151,10 +168,20 @@ export class GodotGDScriptFunctionState<T> implements PromiseLike<T> {
   }
 }
 
+/**
+ * Wrap a suspended invocation in its `GDScriptFunctionState`.
+ *
+ * @godot GDScriptFunctionState (protocol)
+ * @source modules/gdscript/gdscript_function.h:502
+ */
 export function godotFunctionState<T>(source: PromiseLike<T>): GodotGDScriptFunctionState<T> {
   return new GodotGDScriptFunctionState(source);
 }
 
+/**
+ * @godot GDScriptFunctionState.is_valid
+ * @source modules/gdscript/gdscript_function.cpp:288
+ */
 export function godotFunctionStateIsValid(
   state: GodotGDScriptFunctionState<unknown>,
   extendedCheck = false,
@@ -168,12 +195,23 @@ export function godotFunctionStateIsValid(
 const EVENT_TYPE = 'emit';
 const SIGNAL_EMITTERS = new WeakMap<object, (...args: readonly unknown[]) => void>();
 
+/**
+ * Whether a value is a Signal minted by {@link createSignal} (one with a retained emitter).
+ *
+ * @godot Signal (protocol)
+ * @source core/variant/callable.cpp:534 (Signal::emit reaches its owner's emit_signalp)
+ */
 export function isRetainedGodotSignal(value: unknown): value is GodotSignal<readonly unknown[]> {
   return (typeof value === 'object' || typeof value === 'function') &&
     value !== null && SIGNAL_EMITTERS.has(value as object);
 }
 
-/** A script-declared signal field retains both its public signal and its private emitter. */
+/**
+ * A script-declared signal field retains both its public signal and its private emitter.
+ *
+ * @godot Signal (protocol)
+ * @source core/variant/callable.cpp:534 (Signal::emit reaches its owner's emit_signalp)
+ */
 export function isSignalHandle(value: unknown): value is SignalHandle<readonly any[]> {
   if (typeof value !== 'object' || value === null) return false;
   const signal = Reflect.get(value, 'signal');
@@ -182,7 +220,12 @@ export function isSignalHandle(value: unknown): value is SignalHandle<readonly a
     typeof Reflect.get(value, 'clear') === 'function';
 }
 
-/** Object.emit_signal reaches the private emitter only for a Signal minted by this compat owner. */
+/**
+ * Object.emit_signal reaches the private emitter only for a Signal minted by this compat owner.
+ *
+ * @godot Object.emit_signal
+ * @source core/object/object.cpp:1178
+ */
 export function emitRetainedGodotSignal(
   signal: GodotSignal<readonly unknown[]>,
   args: readonly unknown[],
@@ -194,7 +237,14 @@ export function emitRetainedGodotSignal(
   emit(...args);
 }
 
-/** One signal. See this module's header for why `emit` is not on the signal. */
+/**
+ * One signal. See this module's header for why `emit` is not on the signal.
+ *
+ * @godot Signal (protocol)
+ * @source core/object/object.cpp:1517 (Object::connect: flags, duplicate and reference-counted slots)
+ * @source core/object/object.cpp:1223 (emit_signalp disconnects one-shot slots before invoking)
+ * @source core/object/object.cpp:1630 (Object::_disconnect decrements a reference-counted slot)
+ */
 export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Args> {
   const target = new EventTarget();
   const connections = new Map<
@@ -226,7 +276,7 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
               'only CONNECT_DEFERRED/PERSIST/ONE_SHOT/REFERENCE_COUNTED (1/2/4/8) exist.',
           );
         }
-        const identity = callable === undefined ? listener : godotCallableSignalIdentity(callable);
+        const identity: object = callable === undefined ? listener : callable;
         const existing = connections.get(identity);
         // Pinned Object::connect tests the NEW request's REFERENCE_COUNTED bit and increments the
         // existing slot even when that bit was absent on the original request.
@@ -272,17 +322,17 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
         return connection;
       },
       disconnect(callable): void {
-        const entry = connections.get(godotCallableSignalIdentity(callable));
+        const entry = connections.get(callable);
         if (entry === undefined) {
           throw new Error(
             'godot-compat: signal.disconnect received a callable which is not connected.',
           );
         }
-        release(godotCallableSignalIdentity(callable));
+        release(callable);
       },
       isConnected(callable): boolean {
         return (
-          connections.get(godotCallableSignalIdentity(callable))?.connection.isConnected() === true
+          connections.get(callable)?.connection.isConnected() === true
         );
       },
       getConnections() {
@@ -307,6 +357,10 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
   return { signal, emit, clear };
 }
 
+type SignalAwaitResult<Args extends readonly unknown[]> =
+  Args extends readonly [] ? null :
+    Args extends readonly [infer Value] ? Value : Args;
+
 /**
  * `yield(obj, "signal")` — a promise that resumes with Godot's signal result on its NEXT
  * emission: null for no arguments, the value for one argument, or an Array for several.
@@ -325,11 +379,10 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
  * hanging forever, because a translated `yield` that silently never resumes is
  * indistinguishable from a deadlock. Godot's own `yield` has no cancellation,
  * so this is compat's addition for a host that can tear a game down mid-frame.
+ *
+ * @godot GDScript await (protocol)
+ * @source modules/gdscript/gdscript_function.cpp:256-286 (resume with null, the sole argument, or an Array)
  */
-type SignalAwaitResult<Args extends readonly unknown[]> =
-  Args extends readonly [] ? null :
-    Args extends readonly [infer Value] ? Value : Args;
-
 export function signalToPromise<Args extends readonly unknown[]>(
   source: GodotSignal<Args> | SignalHandle<Args>,
   options?: { readonly signal?: AbortSignal },

@@ -176,8 +176,7 @@ export const GODOT_4_TO_3_MEMBER: Readonly<Record<string, string>> = {
   // `@GDScript`/`@GlobalScope` entry, so no `rand_range` row to cite) — the Godot 3 half rests on
   // godot-docs' `@GDScript.rand_range(float from, float to) -> float` and on the shipped
   // `platformer-3d`/`squash-the-creeps` fixtures that emit it. Both engines compute the same draw:
-  // `Math::random(from, to)` over the default PRNG, which `godot-compat/random.ts`'s ONE `randRange`
-  // is (`from + (to - from) * randf()`).
+  // `Math::random(from, to)` over the default PRNG (`from + (to - from) * randf()`).
   '@GDScript.randf_range': '@GDScript.rand_range',
 };
 const GODOT_3_TO_4_CLASS: ReadonlyMap<string, string> = new Map(

@@ -1,7 +1,12 @@
-import { createSignal, type GodotSignal, type SignalHandle } from './signal';
-
 /**
  * Godot Node processing flags, kept on the translated node that owns them.
+ *
+ * @godot-class Node
+ * @role PROTOCOL
+ * @source scene/main/node.cpp:255-279 (NOTIFICATION_READY enables overridden callbacks, then `_ready`)
+ * @source scene/main/node.cpp:323-455 (enter parent-first, ready child-first, exit reverse child-first)
+ * @source scene/main/node.cpp:907-935 (can_process / _can_process: effective ProcessMode)
+ * Pinned revision 5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88 (Godot 4.7).
  *
  * Godot constructs every flag disabled, auto-enables the callbacks a script overrides immediately
  * before `_ready`, then lets `set_process*` change the corresponding SceneTree membership at
@@ -9,6 +14,8 @@ import { createSignal, type GodotSignal, type SignalHandle } from './signal';
  * script does not override, an earlier setter is preserved. The renderer/scheduler remains native:
  * generated lifecycle walks consult these flags at the callback sites they already own.
  */
+
+import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 
 export interface GodotNodeProcessMethods {
   readonly process?: boolean;
@@ -51,7 +58,12 @@ interface NodeProcessState {
 
 const PROCESS_BY_NODE = new WeakMap<object, NodeProcessState>();
 
-/** Godot 4's Node.ProcessMode namespace as an immutable script-visible enum value. */
+/**
+ * Godot 4's Node.ProcessMode namespace as an immutable script-visible enum value.
+ *
+ * @godot Node.ProcessMode
+ * @source scene/main/node.h:79
+ */
 export const GODOT_NODE_PROCESS_MODE = Object.freeze({
   PROCESS_MODE_INHERIT: 0,
   PROCESS_MODE_PAUSABLE: 1,
@@ -92,7 +104,12 @@ function stateOf(node: unknown, member: string): NodeProcessState {
   return state;
 }
 
-/** Bind a script owner and its retained renderer node to one Godot Node processing record. */
+/**
+ * Bind a script owner and its retained renderer node to one Godot Node processing record.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:255-279 (the per-node flags NOTIFICATION_READY enables)
+ */
 export function bindNodeProcessing(
   owner: object,
   node: object,
@@ -124,6 +141,9 @@ export function bindNodeProcessing(
  * in reverse and calls `_exit_tree` child-first (`scene/main/node.cpp:323-455`, revision
  * 5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88). The transient map below only associates generated
  * callbacks with native identities for this mount. It neither owns nor mirrors hierarchy.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:323-455
  */
 export function mountGodotScriptTree(
   root: object,
@@ -139,6 +159,10 @@ export function mountGodotScriptTree(
  * only then propagates ready from that root (`main/main.cpp:4493-4560`). The roots here are the
  * actual renderer objects in that same order. This function owns only Godot notification policy;
  * it neither creates nor retains a second hierarchy.
+ *
+ * @godot Node (protocol)
+ * @source main/main.cpp:4495-4560 (autoloads added to root)
+ * @source main/main.cpp:4764 (then the main scene)
  */
 export function mountGodotScriptForest(
   roots: readonly object[],
@@ -204,7 +228,12 @@ export function mountGodotScriptForest(
   };
 }
 
-/** Apply constructor-time flags set by a native Godot node class before script ready dispatch. */
+/**
+ * Apply constructor-time flags set by a native Godot node class before script ready dispatch.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:1025 (a native class's constructor-time set_process*)
+ */
 export function seedNodeProcessing(node: object, enabled: GodotNodeProcessMethods): void {
   const state = stateOf(node, 'seed native processing');
   if (enabled.process === true) state.process = true;
@@ -216,9 +245,12 @@ export function seedNodeProcessing(node: object, enabled: GodotNodeProcessMethod
 
 /**
  * Godot's `Node::_notification(NOTIFICATION_READY)` auto-enables every overridden callback before
- * invoking `_ready` (`scene/main/node.cpp`, pinned 3.6-stable). For an overridden callback this
+ * invoking `_ready` (`scene/main/node.cpp:255-279`). For an overridden callback this
  * supersedes an earlier false from `_init`; a non-overridden flag is untouched, and a setter inside
  * `_ready` runs afterward and therefore wins.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:255-279
  */
 export function initializeNodeProcessingForReady(node: object): void {
   const state = stateOf(node, 'initialize processing');
@@ -231,17 +263,32 @@ export function initializeNodeProcessingForReady(node: object): void {
   if (state.methods.unhandledKeyInput === true) state.unhandledKeyInput = true;
 }
 
-/** Whether the node has completed its most recent SceneTree ready notification. */
+/**
+ * Whether the node has completed its most recent SceneTree ready notification.
+ *
+ * @godot Node.is_node_ready
+ * @source scene/main/node.cpp:3555
+ */
 export function isNodeReady(node: object): boolean {
   return stateOf(node, 'is_node_ready').readyInitialized;
 }
 
-/** The built-in Node.ready signal belonging to the retained node identity. */
+/**
+ * The built-in Node.ready signal belonging to the retained node identity.
+ *
+ * @godot Node.ready
+ * @source scene/main/node.cpp:337
+ */
 export function getNodeReadySignal(node: object): GodotSignal<[]> {
   return stateOf(node, 'ready').ready.signal;
 }
 
-/** Complete ready after the node's own `_ready` callback, then emit the built-in signal. */
+/**
+ * Complete ready after the node's own `_ready` callback, then emit the built-in signal.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:333-338 (emit `ready` after NOTIFICATION_READY)
+ */
 export function markNodeReady(node: object): void {
   const state = stateOf(node, 'ready');
   if (!state.readyInitialized) {
@@ -250,11 +297,20 @@ export function markNodeReady(node: object): void {
   state.ready.emit();
 }
 
-/** Schedule the node to receive ready again the next time it enters a SceneTree. */
+/**
+ * Schedule the node to receive ready again the next time it enters a SceneTree.
+ *
+ * @godot Node.request_ready
+ * @source scene/main/node.cpp:3559
+ */
 export function requestNodeReady(node: object): void {
   stateOf(node, 'request_ready').readyInitialized = false;
 }
 
+/**
+ * @godot Node.set_process
+ * @source scene/main/node.cpp:1025
+ */
 export function setNodeProcess(node: object, enabled: boolean): void {
   stateOf(node, 'set_process').process = Boolean(enabled);
 }
@@ -278,28 +334,50 @@ function processModeAllows(node: object, state: NodeProcessState, paused: boolea
   return !paused;
 }
 
-/** `Node.can_process()` is the effective pause/process-mode decision independent of callback flags. */
+/**
+ * `Node.can_process()` is the effective pause/process-mode decision independent of callback flags.
+ *
+ * @godot Node.can_process
+ * @source scene/main/node.cpp:907
+ */
 export function canNodeProcess(node: object, paused = false): boolean {
   const state = stateOf(node, 'can_process');
   return processModeAllows(node, state, paused);
 }
 
+/**
+ * @godot Node.is_processing
+ * @source scene/main/node.cpp:1047
+ */
 export function isNodeProcessing(node: object, paused = false): boolean {
   const state = stateOf(node, 'is_processing');
   return state.process && processModeAllows(node, state, paused);
 }
 
+/**
+ * @godot Node.set_physics_process
+ * @source scene/main/node.cpp:617
+ */
 export function setNodePhysicsProcess(node: object, enabled: boolean): void {
   stateOf(node, 'set_physics_process').physicsProcess = Boolean(enabled);
 }
 
+/**
+ * @godot Node.is_physics_processing
+ * @source scene/main/node.cpp:639
+ */
 export function isNodePhysicsProcessing(node: object, paused = false): boolean {
   const state = stateOf(node, 'is_physics_processing');
   return state.physicsProcess && processModeAllows(node, state, paused);
 }
 
-/** Godot 4 Node.process_mode. The current exported host has no paused SceneTree state, so
- * PROCESS_MODE_WHEN_PAUSED is inactive and PROCESS_MODE_DISABLED is always inactive. */
+/**
+ * Godot 4 Node.process_mode. The current exported host has no paused SceneTree state, so
+ * PROCESS_MODE_WHEN_PAUSED is inactive and PROCESS_MODE_DISABLED is always inactive.
+ *
+ * @godot Node.set_process_mode
+ * @source scene/main/node.cpp:669
+ */
 export function setNodeProcessMode(node: object, mode: number): void {
   if (!Number.isSafeInteger(mode) || mode < 0 || mode > 4) {
     throw new RangeError('godot-compat: Node.process_mode requires integer 0..4.');
@@ -307,11 +385,20 @@ export function setNodeProcessMode(node: object, mode: number): void {
   stateOf(node, 'set_process_mode').processMode = mode;
 }
 
+/**
+ * @godot Node.get_process_mode
+ * @source scene/main/node.cpp:754
+ */
 export function getNodeProcessMode(node: object): number {
   return stateOf(node, 'get_process_mode').processMode;
 }
 
-/** Godot 3 Node.pause_mode mapped onto the same effective processing policy. */
+/**
+ * Godot 3 Node.pause_mode mapped onto the same effective processing policy.
+ *
+ * @godot Node.pause_mode (Godot 3 dialect, mapped onto Node.process_mode)
+ * @source scene/main/node.h:79 (the ProcessMode it maps onto)
+ */
 export function setNodePauseMode(node: object, mode: unknown): void {
   if (!Number.isSafeInteger(mode) || Number(mode) < 0 || Number(mode) > 2) {
     throw new RangeError('godot-compat: Node.pause_mode requires integer 0..2.');
@@ -320,6 +407,10 @@ export function setNodePauseMode(node: object, mode: unknown): void {
   stateOf(node, 'set pause_mode').processMode = mode === 2 ? 3 : Number(mode);
 }
 
+/**
+ * @godot Node.pause_mode (Godot 3 dialect, mapped onto Node.process_mode)
+ * @source scene/main/node.h:79 (the ProcessMode it maps onto)
+ */
 export function getNodePauseMode(node: object): number {
   const mode = stateOf(node, 'get pause_mode').processMode;
   // Godot 3 has only INHERIT, STOP, PROCESS. States set through this dialect therefore map
@@ -329,6 +420,10 @@ export function getNodePauseMode(node: object): number {
   return 1;
 }
 
+/**
+ * @godot Node.set_process_priority
+ * @source scene/main/node.cpp:1151
+ */
 export function setNodeProcessPriority(node: object, priority: unknown): void {
   if (!Number.isSafeInteger(priority) || Number(priority) < -4096 || Number(priority) > 4096) {
     throw new RangeError('godot-compat: Node.process_priority requires integer -4096..4096.');
@@ -336,32 +431,60 @@ export function setNodeProcessPriority(node: object, priority: unknown): void {
   stateOf(node, 'set process_priority').processPriority = Number(priority);
 }
 
+/**
+ * @godot Node.get_process_priority
+ * @source scene/main/node.cpp:1173
+ */
 export function getNodeProcessPriority(node: object): number {
   return stateOf(node, 'get process_priority').processPriority;
 }
 
+/**
+ * @godot Node.set_process_input
+ * @source scene/main/node.cpp:1255
+ */
 export function setNodeProcessInput(node: object, enabled: boolean): void {
   stateOf(node, 'set_process_input').input = Boolean(enabled);
 }
 
+/**
+ * @godot Node.is_processing_input
+ * @source scene/main/node.cpp:1273
+ */
 export function isNodeProcessingInput(node: object, paused = false): boolean {
   const state = stateOf(node, 'is_processing_input');
   return state.input && processModeAllows(node, state, paused);
 }
 
+/**
+ * @godot Node.set_process_unhandled_input
+ * @source scene/main/node.cpp:1298
+ */
 export function setNodeProcessUnhandledInput(node: object, enabled: boolean): void {
   stateOf(node, 'set_process_unhandled_input').unhandledInput = Boolean(enabled);
 }
 
+/**
+ * @godot Node.is_processing_unhandled_input
+ * @source scene/main/node.cpp:1315
+ */
 export function isNodeProcessingUnhandledInput(node: object, paused = false): boolean {
   const state = stateOf(node, 'is_processing_unhandled_input');
   return state.unhandledInput && processModeAllows(node, state, paused);
 }
 
+/**
+ * @godot Node.set_process_unhandled_key_input
+ * @source scene/main/node.cpp:1319
+ */
 export function setNodeProcessUnhandledKeyInput(node: object, enabled: boolean): void {
   stateOf(node, 'set_process_unhandled_key_input').unhandledKeyInput = Boolean(enabled);
 }
 
+/**
+ * @godot Node.is_processing_unhandled_key_input
+ * @source scene/main/node.cpp:1336
+ */
 export function isNodeProcessingUnhandledKeyInput(node: object, paused = false): boolean {
   const state = stateOf(node, 'is_processing_unhandled_key_input');
   return state.unhandledKeyInput && processModeAllows(node, state, paused);

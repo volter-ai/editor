@@ -1,3 +1,15 @@
+/**
+ * React composition boundary for Godot's Node lifecycle: generated scene components seat their
+ * script attachments on the native hierarchy they mounted, and `node-process` applies Godot's
+ * enter/ready/exit ordering in the host's own layout-effect phase.
+ *
+ * @godot-class Node
+ * @role PROTOCOL
+ * @source main/main.cpp:4495-4560 (autoloads added to root before the main scene)
+ * @source scene/main/node.cpp:323-455 (enter/ready/exit propagation order)
+ * Pinned revision 5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88 (Godot 4.7).
+ */
+
 import {
   createContext,
   createElement,
@@ -54,6 +66,10 @@ function outermostRoots(registrations: readonly GodotStartupRegistration[]): rea
  * exists, generated project composition may wire its exact typed cross-root fields through
  * `prepare`; compat then applies Godot's cross-root enter/ready/exit ordering. No hierarchy or
  * registration survives unmount.
+ *
+ * @godot Node (protocol)
+ * @source main/main.cpp:4495-4560 (autoloads added to root)
+ * @source main/main.cpp:4764 (then the main scene)
  */
 export function GodotProjectStartup({
   children,
@@ -97,6 +113,9 @@ export function GodotProjectStartup({
  *
  * At project startup the enclosing batch owns notification ordering. A scene mounted later has no
  * enclosing startup context, so the same hook mounts its real native subtree immediately.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:341-362 (a node added to the tree enters, then readies, at once)
  */
 export function useGodotScriptTreeAttachment<Native extends object>(
   root: RefObject<Native | null>,

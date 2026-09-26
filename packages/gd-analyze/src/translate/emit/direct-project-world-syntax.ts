@@ -266,7 +266,7 @@ export function emitDirectGodotWorldSyntax(
       : [
           {
             kind: 'import-statement' as const,
-            module: './lib/godot-compat',
+            module: './lib/godot-compat/react-lifecycle',
             namedBindings: [
               { imported: 'GodotProjectStartup', local: 'GodotProjectStartup' },
               {
