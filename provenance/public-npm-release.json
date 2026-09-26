@@ -7,7 +7,7 @@
   "tag": "release-0.5.67-source",
   "note": "The archives were packed from this tree: d265f35d with three release fixes on top (editor-threejs declares react-dom; installed contribution packages CommonJS imports prebundled). main carries each fix as its own commit."
  },
- "publication": "Sixteen of seventeen versions are live: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/model-editor 0.5.67 was accepted by npm publish and is held by the registry as a staged version (a republish answers 409 \"previously staged version\"; npm stage list shows nothing to approve), so the model editor latest stays 0.5.66. First publication of @volter/dawproject and @volter/editor-dawproject.",
+ "publication": "All seventeen versions are live: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/model-editor 0.5.67 was held by the registry as a staged version for about forty minutes (a republish answered 409 \"previously staged version\"; npm stage list showed nothing to approve), then went live without approval, as @volter/game-editor 0.5.66 did. First publication of @volter/dawproject and @volter/editor-dawproject.",
  "lists": [
   "release/modeling.json",
   "release/game.json"
@@ -114,7 +114,7 @@
   "@volter/model-editor": {
    "version": "0.5.67",
    "shasum": "971a5bc2acf4db480e664a88f8cae42d91f95a54",
-   "live": false
+   "live": true
   },
   "@volter/threejs-runtime": {
    "version": "0.5.67",
