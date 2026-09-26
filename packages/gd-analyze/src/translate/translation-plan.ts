@@ -1,0 +1,152 @@
+import type { BoundGodotProject } from '../analyze/bound-project';
+import type { GodotImportToolchainSnapshot } from '../snapshot/toolchain-snapshot';
+import { planDirectGodotArtifacts } from './artifacts/plan';
+import type { GodotPlannedArtifact } from './artifacts/types';
+import type { OfficialBoundCodePlan } from './code/lower-official-bound';
+import type {
+  DirectGodotCompositionDiagnostic,
+  DirectGodotProjectCompositionPlan,
+} from './data/direct-project-composition-plan';
+import type { DirectGodotProjectDataPlan } from './data/direct-project-data-plan';
+import type { DirectGodotSceneModulePlan } from './data/direct-scene-module-plan';
+
+export const GODOT_TRANSLATION_PLAN_VERSION = 5 as const;
+
+const acceptedTranslationBrand: unique symbol = Symbol('GodotAcceptedTranslation');
+
+export interface GodotTranslationPlan {
+  readonly version: typeof GODOT_TRANSLATION_PLAN_VERSION;
+  readonly snapshotDigest: string;
+  readonly toolchainDigest: string;
+  readonly code: OfficialBoundCodePlan;
+  readonly composition: DirectGodotProjectCompositionPlan;
+  readonly sceneModules: DirectGodotSceneModulePlan;
+  readonly projectData: DirectGodotProjectDataPlan;
+  /** Complete immutable artifact census; only emit may realize planned generated text. */
+  readonly artifacts: readonly GodotPlannedArtifact[];
+  readonly deviations: readonly never[];
+}
+
+export interface GodotAcceptedTranslation {
+  readonly kind: 'accepted-translation';
+  readonly plan: GodotTranslationPlan;
+  readonly [acceptedTranslationBrand]: true;
+}
+
+export type GodotTranslationResult =
+  | GodotAcceptedTranslation
+  | {
+      readonly kind: 'refused-translation';
+      readonly diagnostics: readonly DirectGodotCompositionDiagnostic[];
+    };
+
+function validateInputClosure(
+  project: BoundGodotProject,
+  composition: DirectGodotProjectCompositionPlan,
+  sceneModules: DirectGodotSceneModulePlan,
+): readonly DirectGodotCompositionDiagnostic[] {
+  const consumed = new Set([
+    'project.godot',
+    ...composition.sourceModules.map((module) => module.sourceResPath.slice('res://'.length)),
+    ...sceneModules.modules.map((module) => module.sourceResPath.slice('res://'.length)),
+  ]);
+  return project.inputs.flatMap((entry) => {
+    if (
+      entry.entryType === 'directory' ||
+      entry.kind === 'explicit-non-input' ||
+      consumed.has(entry.relativePath)
+    ) {
+      return [];
+    }
+    return [
+      {
+        at: entry.resPath ?? entry.relativePath,
+        message: `${entry.kind} input has no source translation, asset copy, or conversion plan`,
+      },
+    ];
+  });
+}
+
+function validateCapabilityClosure(
+  projectData: DirectGodotProjectDataPlan,
+  artifacts: readonly GodotPlannedArtifact[],
+): readonly DirectGodotCompositionDiagnostic[] {
+  const expected = new Map(
+    projectData.requirements.capabilities.flatMap((capability) =>
+      capability.artifacts.map(
+        (artifact) =>
+          [artifact.path, `${capability.id}\0${capability.version}\0${artifact.digest}`] as const,
+      ),
+    ),
+  );
+  const diagnostics: DirectGodotCompositionDiagnostic[] = [];
+  for (const artifact of artifacts) {
+    if (artifact.kind !== 'capability-copy') continue;
+    const identity = `${artifact.origin.capabilityId}\0${artifact.origin.capabilityVersion}\0${artifact.digest}`;
+    if (expected.get(artifact.path) !== identity) {
+      diagnostics.push({
+        at: artifact.path,
+        message: 'capability bytes have no matching requirement',
+      });
+    }
+    expected.delete(artifact.path);
+  }
+  for (const path of expected.keys()) {
+    diagnostics.push({ at: path, message: 'capability requirement has no frozen copy bytes' });
+  }
+  return diagnostics;
+}
+
+/** Pure assembly of already-selected code, data, project and toolchain plans. */
+export function assembleGodotTranslationPlan(
+  project: BoundGodotProject,
+  toolchain: GodotImportToolchainSnapshot,
+  code: OfficialBoundCodePlan,
+  composition: DirectGodotProjectCompositionPlan,
+  sceneModules: DirectGodotSceneModulePlan,
+  projectData: DirectGodotProjectDataPlan,
+): GodotTranslationResult {
+  let artifacts: readonly GodotPlannedArtifact[];
+  try {
+    artifacts = planDirectGodotArtifacts(
+      composition,
+      code,
+      sceneModules,
+      projectData,
+      toolchain.capabilityCopies,
+    );
+  } catch (error) {
+    return {
+      kind: 'refused-translation',
+      diagnostics: [
+        {
+          at: 'translation-artifacts',
+          message: error instanceof Error ? error.message : String(error),
+        },
+      ],
+    };
+  }
+  const diagnostics = [
+    ...validateInputClosure(project, composition, sceneModules),
+    ...validateCapabilityClosure(projectData, artifacts),
+  ];
+  if (projectData.toolchainDigest !== toolchain.digest) {
+    diagnostics.push({ at: 'toolchain-snapshot', message: 'project data uses another toolchain' });
+  }
+  if (diagnostics.length > 0) return { kind: 'refused-translation', diagnostics };
+  return {
+    kind: 'accepted-translation',
+    [acceptedTranslationBrand]: true,
+    plan: {
+      version: GODOT_TRANSLATION_PLAN_VERSION,
+      snapshotDigest: project.snapshotDigest,
+      toolchainDigest: toolchain.digest,
+      code,
+      composition,
+      sceneModules,
+      projectData,
+      artifacts,
+      deviations: [],
+    },
+  };
+}

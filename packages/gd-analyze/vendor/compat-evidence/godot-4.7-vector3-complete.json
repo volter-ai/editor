@@ -1,0 +1,537 @@
+{
+  "protocol": "vgai.godot-vector3-complete-evidence",
+  "protocolVersion": 1,
+  "authority": {
+    "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+    "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+    "nativeProbeSourceSha256": "4204bc700355c2ece1a85e4c0f7db44367e49e44b8c4c2386fd61f89790f7d21",
+    "implementationSha256": {
+      "packages/editor/catalog/project-source/src/lib/godot-compat/variant-3d.ts": "14e38331ea673bbba06713b9f0c865bdd09979a7d5534d4008a7efe8d67d660c",
+      "packages/editor/catalog/project-source/src/lib/godot-compat/vector3.ts": "09afdd6bd4c926734844014b6254f3eb7e58c004577718737f74c861508a3cc1"
+    }
+  },
+  "verdict": "match-within-float32-tolerance",
+  "tolerance": 0.00001,
+  "maxAbsDelta": 7.438659705982786e-7,
+  "memberCount": 82,
+  "members": {
+    "Vector3.Axis": [
+      0,
+      1,
+      2
+    ],
+    "Vector3.BACK": [
+      0,
+      0,
+      1
+    ],
+    "Vector3.DOWN": [
+      0,
+      -1,
+      0
+    ],
+    "Vector3.FORWARD": [
+      0,
+      0,
+      -1
+    ],
+    "Vector3.INF": [
+      "Infinity",
+      "Infinity",
+      "Infinity"
+    ],
+    "Vector3.LEFT": [
+      -1,
+      0,
+      0
+    ],
+    "Vector3.MODEL_BOTTOM": [
+      0,
+      -1,
+      0
+    ],
+    "Vector3.MODEL_FRONT": [
+      0,
+      0,
+      1
+    ],
+    "Vector3.MODEL_LEFT": [
+      1,
+      0,
+      0
+    ],
+    "Vector3.MODEL_REAR": [
+      0,
+      0,
+      -1
+    ],
+    "Vector3.MODEL_RIGHT": [
+      -1,
+      0,
+      0
+    ],
+    "Vector3.MODEL_TOP": [
+      0,
+      1,
+      0
+    ],
+    "Vector3.ONE": [
+      1,
+      1,
+      1
+    ],
+    "Vector3.RIGHT": [
+      1,
+      0,
+      0
+    ],
+    "Vector3.UP": [
+      0,
+      1,
+      0
+    ],
+    "Vector3.ZERO": [
+      0,
+      0,
+      0
+    ],
+    "Vector3.abs": [
+      1.5,
+      2.25,
+      3.5
+    ],
+    "Vector3.angle_to": 2.82322978973389,
+    "Vector3.bezier_derivative": [
+      7.81874942779541,
+      0.721874833106995,
+      4.81124925613403
+    ],
+    "Vector3.bezier_interpolate": [
+      -0.0190623849630356,
+      1.75234365463257,
+      -0.584937453269958
+    ],
+    "Vector3.bounce": [
+      -1.5,
+      -2.25,
+      -3.5
+    ],
+    "Vector3.ceil": [
+      -1,
+      3,
+      -3
+    ],
+    "Vector3.clamp": [
+      [
+        -1,
+        2.25,
+        -3.5
+      ],
+      [
+        "NaN",
+        4,
+        2
+      ]
+    ],
+    "Vector3.clampf": [
+      [
+        -1,
+        2.25,
+        -1
+      ],
+      [
+        "NaN",
+        4,
+        2
+      ],
+      [
+        "NaN",
+        5,
+        2
+      ]
+    ],
+    "Vector3.cross": [
+      5.5,
+      -1,
+      -3
+    ],
+    "Vector3.cubic_interpolate": [
+      -0.476906269788742,
+      1.1537344455719,
+      -1.26459383964539
+    ],
+    "Vector3.cubic_interpolate_in_time": [
+      -0.47690623998642,
+      1.1537344455719,
+      -1.26459383964539
+    ],
+    "Vector3.direction_to": [
+      0.393625110387802,
+      -0.365509033203125,
+      0.843482375144958
+    ],
+    "Vector3.distance_squared_to": 79.0625,
+    "Vector3.distance_to": 8.89170932769775,
+    "Vector3.dot": -19.25,
+    "Vector3.floor": [
+      -2,
+      2,
+      -4
+    ],
+    "Vector3.inverse": [
+      -0.666666686534882,
+      0.444444447755814,
+      -0.28571429848671
+    ],
+    "Vector3.is_equal_approx": true,
+    "Vector3.is_finite": true,
+    "Vector3.is_normalized": false,
+    "Vector3.is_zero_approx": false,
+    "Vector3.length": 4.42295169830322,
+    "Vector3.length_squared": 19.5625,
+    "Vector3.lerp": [
+      -0.625,
+      1.4375,
+      -1.625
+    ],
+    "Vector3.limit_length": [
+      -0.84785008430481,
+      1.27177500724792,
+      -1.97831690311432
+    ],
+    "Vector3.max": [
+      [
+        2,
+        2.25,
+        4
+      ],
+      [
+        -5,
+        -5,
+        -5
+      ]
+    ],
+    "Vector3.max_axis_index": [
+      0,
+      0,
+      1
+    ],
+    "Vector3.maxf": [
+      [
+        0.5,
+        2.25,
+        0.5
+      ],
+      [
+        3,
+        3,
+        3
+      ]
+    ],
+    "Vector3.min": [
+      [
+        -1.5,
+        -1,
+        -3.5
+      ],
+      [
+        5,
+        5,
+        5
+      ]
+    ],
+    "Vector3.min_axis_index": [
+      1,
+      2,
+      2
+    ],
+    "Vector3.minf": [
+      [
+        -1.5,
+        0.5,
+        -3.5
+      ],
+      [
+        3,
+        1,
+        2
+      ]
+    ],
+    "Vector3.move_toward": [
+      -1.00796866416931,
+      1.79311370849609,
+      -2.44564700126648
+    ],
+    "Vector3.new": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        2,
+        3
+      ],
+      [
+        1,
+        2,
+        3
+      ],
+      [
+        1,
+        2,
+        3
+      ]
+    ],
+    "Vector3.normalized": [
+      [
+        -0.339140027761459,
+        0.508710026741028,
+        -0.791326761245728
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "Vector3.octahedron_decode": [
+      -0.832050383090973,
+      0.554700195789337,
+      0
+    ],
+    "Vector3.octahedron_encode": [
+      0.155172407627106,
+      0.896551728248596
+    ],
+    "Vector3.operator !=": true,
+    "Vector3.operator *": [
+      [
+        -3,
+        -2.25,
+        -14
+      ],
+      [
+        -3,
+        4.5,
+        -7
+      ],
+      [
+        -3,
+        4.5,
+        -7
+      ],
+      [
+        -7.5,
+        -15.75,
+        -27.5
+      ],
+      [
+        -17,
+        -19.75,
+        -26
+      ],
+      [
+        -15.5,
+        -32.75,
+        -57.5
+      ],
+      [
+        -15,
+        -22.75,
+        -22
+      ],
+      [
+        1.10749840736389,
+        2.25,
+        -3.64327430725098
+      ],
+      [
+        -3.40202498435974,
+        2.25,
+        -1.71062111854553
+      ]
+    ],
+    "Vector3.operator +": [
+      0.5,
+      1.25,
+      0.5
+    ],
+    "Vector3.operator -": [
+      -3.5,
+      3.25,
+      -7.5
+    ],
+    "Vector3.operator /": [
+      [
+        -0.75,
+        -2.25,
+        -0.875
+      ],
+      [
+        -0.75,
+        1.125,
+        -1.75
+      ]
+    ],
+    "Vector3.operator <": [
+      true,
+      false,
+      false
+    ],
+    "Vector3.operator <=": [
+      true,
+      false,
+      false
+    ],
+    "Vector3.operator ==": false,
+    "Vector3.operator >": [
+      false,
+      false,
+      false
+    ],
+    "Vector3.operator >=": [
+      false,
+      false,
+      false
+    ],
+    "Vector3.operator in": [
+      true,
+      true,
+      true
+    ],
+    "Vector3.operator not": true,
+    "Vector3.operator unary+": [
+      -1.5,
+      2.25,
+      -3.5
+    ],
+    "Vector3.operator unary-": [
+      1.5,
+      -2.25,
+      3.5
+    ],
+    "Vector3.outer": [
+      [
+        -3,
+        4.5,
+        -7
+      ],
+      [
+        1.5,
+        -2.25,
+        3.5
+      ],
+      [
+        -6,
+        9,
+        -14
+      ]
+    ],
+    "Vector3.posmod": [
+      0.5,
+      0.25,
+      0.5
+    ],
+    "Vector3.posmodv": [
+      0.5,
+      -1.75,
+      2.5
+    ],
+    "Vector3.project": [
+      -1.83333337306976,
+      0.916666686534882,
+      -3.66666674613953
+    ],
+    "Vector3.reflect": [
+      1.5,
+      2.25,
+      3.5
+    ],
+    "Vector3.rotated": [
+      [
+        -3.40202522277832,
+        2.25,
+        -1.71062135696411
+      ],
+      [
+        -1.50028216838837,
+        3.97655868530273,
+        -1.22687828540802
+      ]
+    ],
+    "Vector3.round": [
+      -2,
+      2,
+      -4
+    ],
+    "Vector3.sign": [
+      [
+        -1,
+        1,
+        -1
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "Vector3.signed_angle_to": -2.82322978973389,
+    "Vector3.slerp": [
+      -0.0945034772157669,
+      4.17803907394409,
+      -1.56593608856201
+    ],
+    "Vector3.slide": [
+      -1.5,
+      0,
+      -3.5
+    ],
+    "Vector3.snapped": [
+      -1.5,
+      2,
+      -4
+    ],
+    "Vector3.snappedf": [
+      -1.5,
+      2.5,
+      -3.5
+    ],
+    "Vector3.x": [
+      1,
+      [
+        7,
+        2,
+        3
+      ]
+    ],
+    "Vector3.y": [
+      2,
+      [
+        1,
+        8,
+        3
+      ]
+    ],
+    "Vector3.z": [
+      3,
+      [
+        1,
+        2,
+        9
+      ]
+    ]
+  }
+}

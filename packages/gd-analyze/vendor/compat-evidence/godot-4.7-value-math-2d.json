@@ -1,0 +1,1057 @@
+{
+  "protocol": "vgai.godot-value-math-2d-evidence",
+  "protocolVersion": 1,
+  "authority": {
+    "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+    "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+    "nativeProbeSourceSha256": "5f5282d52a8e571e868f268b387a81ed1ef054ee6c84218ca66c897e3459e711",
+    "sourceSha256": {
+      "core/math/rect2.h": "77cda59d44fa475c53fb494bdcf043e7d31ec0428b418a4a7a380fb41d985650",
+      "core/math/rect2i.h": "f1aa4e53ff9d31970c850e6463fc388df5dd6c0390cdfb5f3eb3d4ed5ed750de",
+      "core/math/transform_2d.h": "64a5befa820c718c170100680a3d89599ef340ff78f3ea531ea87c1c3fcf873a",
+      "core/math/transform_2d.cpp": "12a4d21f0deb1c283dfbfa6e0ee247df7c61b8146bcd745cb2063bd5b976cfca"
+    },
+    "implementationSha256": {
+      "packages/editor/catalog/project-source/src/lib/godot-compat/rect2.ts": "a791a2d934b1f8ffd8149683a0720736f9d38192fa06285412a154f9678ce77e",
+      "packages/editor/catalog/project-source/src/lib/godot-compat/transform-2d.ts": "511693954f84d78c82ab301dcf54bd0b79734d9658fdc6766cf8281a52927af5"
+    }
+  },
+  "verdict": "exact-match",
+  "memberCount": 80,
+  "maxAbsDelta": 6.734228108484785e-7,
+  "members": {
+    "Rect2.abs": {
+      "position": [
+        3,
+        1
+      ],
+      "size": [
+        2,
+        4
+      ]
+    },
+    "Rect2.encloses": [
+      true,
+      true
+    ],
+    "Rect2.end": [
+      [
+        6,
+        4
+      ],
+      {
+        "position": [
+          1.5,
+          -2.25
+        ],
+        "size": [
+          8.5,
+          13.25
+        ]
+      }
+    ],
+    "Rect2.expand": {
+      "position": [
+        -1,
+        -2.25
+      ],
+      "size": [
+        7,
+        10.25
+      ]
+    },
+    "Rect2.get_area": 28.125,
+    "Rect2.get_center": [
+      3.75,
+      0.875
+    ],
+    "Rect2.get_support": [
+      6,
+      -2.25
+    ],
+    "Rect2.grow": {
+      "position": [
+        0.25,
+        -3.5
+      ],
+      "size": [
+        7,
+        8.75
+      ]
+    },
+    "Rect2.grow_individual": {
+      "position": [
+        0.5,
+        -4.25
+      ],
+      "size": [
+        8.5,
+        12.25
+      ]
+    },
+    "Rect2.grow_side": [
+      {
+        "position": [
+          0,
+          -2.25
+        ],
+        "size": [
+          6,
+          6.25
+        ]
+      },
+      {
+        "position": [
+          1.5,
+          -3.75
+        ],
+        "size": [
+          4.5,
+          7.75
+        ]
+      },
+      {
+        "position": [
+          1.5,
+          -2.25
+        ],
+        "size": [
+          6,
+          6.25
+        ]
+      },
+      {
+        "position": [
+          1.5,
+          -2.25
+        ],
+        "size": [
+          4.5,
+          7.75
+        ]
+      }
+    ],
+    "Rect2.has_area": [
+      true,
+      false
+    ],
+    "Rect2.has_point": [
+      true,
+      false
+    ],
+    "Rect2.intersection": [
+      {
+        "position": [
+          2,
+          -1
+        ],
+        "size": [
+          3,
+          2
+        ]
+      },
+      {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ]
+      }
+    ],
+    "Rect2.intersects": [
+      true,
+      false,
+      true
+    ],
+    "Rect2.is_equal_approx": [
+      true,
+      false
+    ],
+    "Rect2.is_finite": [
+      true,
+      false
+    ],
+    "Rect2.merge": {
+      "position": [
+        1.5,
+        -2.25
+      ],
+      "size": [
+        4.5,
+        6.25
+      ]
+    },
+    "Rect2.new": [
+      {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          1.5,
+          -2.25
+        ],
+        "size": [
+          4.5,
+          6.25
+        ]
+      },
+      {
+        "position": [
+          1,
+          2
+        ],
+        "size": [
+          3,
+          4
+        ]
+      },
+      {
+        "position": [
+          1,
+          2
+        ],
+        "size": [
+          3,
+          4
+        ]
+      },
+      {
+        "position": [
+          1,
+          2
+        ],
+        "size": [
+          3,
+          4
+        ]
+      }
+    ],
+    "Rect2.operator !=": [
+      false,
+      true
+    ],
+    "Rect2.operator *": {
+      "position": [
+        -0.847068548202515,
+        -2.3762514591217
+      ],
+      "size": [
+        6.14601612091064,
+        7.30069351196289
+      ]
+    },
+    "Rect2.operator ==": [
+      true,
+      false
+    ],
+    "Rect2.operator in": [
+      true,
+      false
+    ],
+    "Rect2.operator not": [
+      true,
+      false
+    ],
+    "Rect2.position": [
+      [
+        1.5,
+        -2.25
+      ],
+      {
+        "position": [
+          8,
+          9
+        ],
+        "size": [
+          4.5,
+          6.25
+        ]
+      }
+    ],
+    "Rect2.size": [
+      [
+        4.5,
+        6.25
+      ],
+      {
+        "position": [
+          1.5,
+          -2.25
+        ],
+        "size": [
+          7,
+          8
+        ]
+      }
+    ],
+    "Rect2i.abs": {
+      "position": [
+        3,
+        1
+      ],
+      "size": [
+        2,
+        4
+      ]
+    },
+    "Rect2i.encloses": [
+      true,
+      true
+    ],
+    "Rect2i.end": [
+      [
+        8,
+        3
+      ],
+      {
+        "position": [
+          1,
+          -2
+        ],
+        "size": [
+          9,
+          13
+        ]
+      }
+    ],
+    "Rect2i.expand": {
+      "position": [
+        -1,
+        -2
+      ],
+      "size": [
+        9,
+        10
+      ]
+    },
+    "Rect2i.get_area": 35,
+    "Rect2i.get_center": [
+      4,
+      0
+    ],
+    "Rect2i.grow": {
+      "position": [
+        -1,
+        -4
+      ],
+      "size": [
+        11,
+        9
+      ]
+    },
+    "Rect2i.grow_individual": {
+      "position": [
+        0,
+        -4
+      ],
+      "size": [
+        11,
+        11
+      ]
+    },
+    "Rect2i.grow_side": [
+      {
+        "position": [
+          -1,
+          -2
+        ],
+        "size": [
+          9,
+          5
+        ]
+      },
+      {
+        "position": [
+          1,
+          -4
+        ],
+        "size": [
+          7,
+          7
+        ]
+      },
+      {
+        "position": [
+          1,
+          -2
+        ],
+        "size": [
+          9,
+          5
+        ]
+      },
+      {
+        "position": [
+          1,
+          -2
+        ],
+        "size": [
+          7,
+          7
+        ]
+      }
+    ],
+    "Rect2i.has_area": [
+      true,
+      false
+    ],
+    "Rect2i.has_point": [
+      true,
+      false
+    ],
+    "Rect2i.intersection": [
+      {
+        "position": [
+          3,
+          -1
+        ],
+        "size": [
+          4,
+          3
+        ]
+      },
+      {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ]
+      }
+    ],
+    "Rect2i.intersects": [
+      true,
+      false
+    ],
+    "Rect2i.merge": {
+      "position": [
+        1,
+        -2
+      ],
+      "size": [
+        7,
+        5
+      ]
+    },
+    "Rect2i.new": [
+      {
+        "position": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          1,
+          -2
+        ],
+        "size": [
+          7,
+          5
+        ]
+      },
+      {
+        "position": [
+          1,
+          -2
+        ],
+        "size": [
+          3,
+          -4
+        ]
+      },
+      {
+        "position": [
+          1,
+          2
+        ],
+        "size": [
+          3,
+          4
+        ]
+      },
+      {
+        "position": [
+          1,
+          2
+        ],
+        "size": [
+          3,
+          4
+        ]
+      }
+    ],
+    "Rect2i.operator !=": [
+      false,
+      true
+    ],
+    "Rect2i.operator ==": [
+      true,
+      false
+    ],
+    "Rect2i.operator in": [
+      true,
+      false
+    ],
+    "Rect2i.operator not": [
+      true,
+      false
+    ],
+    "Rect2i.position": [
+      [
+        1,
+        -2
+      ],
+      {
+        "position": [
+          8,
+          9
+        ],
+        "size": [
+          7,
+          5
+        ]
+      }
+    ],
+    "Rect2i.size": [
+      [
+        7,
+        5
+      ],
+      {
+        "position": [
+          1,
+          -2
+        ],
+        "size": [
+          7,
+          8
+        ]
+      }
+    ],
+    "Transform2D.FLIP_X": {
+      "origin": [
+        0,
+        0
+      ],
+      "x": [
+        -1,
+        0
+      ],
+      "y": [
+        0,
+        1
+      ]
+    },
+    "Transform2D.FLIP_Y": {
+      "origin": [
+        0,
+        0
+      ],
+      "x": [
+        1,
+        0
+      ],
+      "y": [
+        0,
+        -1
+      ]
+    },
+    "Transform2D.IDENTITY": {
+      "origin": [
+        0,
+        0
+      ],
+      "x": [
+        1,
+        0
+      ],
+      "y": [
+        0,
+        1
+      ]
+    },
+    "Transform2D.affine_inverse": {
+      "origin": [
+        -0.110929608345032,
+        -3.30079531669617
+      ],
+      "x": [
+        0.421060979366302,
+        0.264892429113388
+      ],
+      "y": [
+        0.288063317537308,
+        -0.626529514789581
+      ]
+    },
+    "Transform2D.basis_xform": [
+      1.1433527469635,
+      5.27168369293213
+    ],
+    "Transform2D.basis_xform_inv": [
+      1.34773397445679,
+      5.40793800354004
+    ],
+    "Transform2D.determinant": -2.94019985198975,
+    "Transform2D.get_origin": [
+      3,
+      -4
+    ],
+    "Transform2D.get_rotation": 0.400000005960464,
+    "Transform2D.get_scale": [
+      2,
+      -1.50000011920929
+    ],
+    "Transform2D.get_skew": 0.199999928474426,
+    "Transform2D.interpolate_with": {
+      "origin": [
+        1.25,
+        -0.850000143051147
+      ],
+      "x": [
+        1.53931057453156,
+        0.268196552991867
+      ],
+      "y": [
+        0.142072647809982,
+        -0.518383800983429
+      ]
+    },
+    "Transform2D.inverse": {
+      "origin": [
+        -2.41101908683777,
+        -7.4929051399231
+      ],
+      "x": [
+        1.8421219587326,
+        0.846963763237
+      ],
+      "y": [
+        0.778836667537689,
+        -1.23800349235535
+      ]
+    },
+    "Transform2D.is_conformal": [
+      false,
+      true
+    ],
+    "Transform2D.is_equal_approx": [
+      true,
+      false
+    ],
+    "Transform2D.is_finite": [
+      true,
+      false
+    ],
+    "Transform2D.looking_at": {
+      "origin": [
+        3,
+        -4
+      ],
+      "x": [
+        0.664090573787689,
+        0.747652232646942
+      ],
+      "y": [
+        -0.747652232646942,
+        0.664090573787689
+      ]
+    },
+    "Transform2D.new": [
+      {
+        "origin": [
+          0,
+          0
+        ],
+        "x": [
+          1,
+          0
+        ],
+        "y": [
+          0,
+          1
+        ]
+      },
+      {
+        "origin": [
+          3,
+          -4
+        ],
+        "x": [
+          1.8421219587326,
+          0.778836667537689
+        ],
+        "y": [
+          0.846963763237,
+          -1.23800349235535
+        ]
+      },
+      {
+        "origin": [
+          2,
+          3
+        ],
+        "x": [
+          0.955336511135101,
+          0.295520216226578
+        ],
+        "y": [
+          -0.295520216226578,
+          0.955336511135101
+        ]
+      },
+      {
+        "origin": [
+          4,
+          5
+        ],
+        "x": [
+          1.9106730222702,
+          0.591040432453156
+        ],
+        "y": [
+          1.43827664852142,
+          -2.63274765014648
+        ]
+      },
+      {
+        "origin": [
+          5,
+          6
+        ],
+        "x": [
+          1,
+          2
+        ],
+        "y": [
+          3,
+          4
+        ]
+      }
+    ],
+    "Transform2D.operator !=": [
+      false,
+      true
+    ],
+    "Transform2D.operator *": [
+      {
+        "origin": [
+          6,
+          -8
+        ],
+        "x": [
+          3.68424391746521,
+          1.55767333507538
+        ],
+        "y": [
+          1.693927526474,
+          -2.47600698471069
+        ]
+      },
+      [
+        4.14335250854492,
+        1.27168369293213
+      ],
+      {
+        "position": [
+          3.85751438140869,
+          -7.78375864028931
+        ],
+        "size": [
+          13.5830717086792,
+          11.2422866821289
+        ]
+      },
+      {
+        "origin": [
+          3.55057501792908,
+          -11.74769115448
+        ],
+        "x": [
+          1.18148446083069,
+          0.795683622360229
+        ],
+        "y": [
+          1.78409278392792,
+          -1.11985659599304
+        ]
+      },
+      [
+        [
+          6.53604936599731,
+          -5.69717025756836
+        ],
+        [
+          0.861489295959473,
+          -11.2885236740112
+        ]
+      ]
+    ],
+    "Transform2D.operator /": [
+      {
+        "origin": [
+          1.5,
+          -2
+        ],
+        "x": [
+          0.921060979366302,
+          0.389418333768845
+        ],
+        "y": [
+          0.4234818816185,
+          -0.619001746177673
+        ]
+      },
+      {
+        "origin": [
+          1.20000004768372,
+          -1.60000002384186
+        ],
+        "x": [
+          0.736848771572113,
+          0.31153467297554
+        ],
+        "y": [
+          0.338785499334335,
+          -0.495201408863068
+        ]
+      }
+    ],
+    "Transform2D.operator ==": [
+      true,
+      false
+    ],
+    "Transform2D.operator in": [
+      true,
+      false
+    ],
+    "Transform2D.operator not": [
+      true,
+      false
+    ],
+    "Transform2D.origin": [
+      [
+        3,
+        -4
+      ],
+      {
+        "origin": [
+          6,
+          5
+        ],
+        "x": [
+          1.8421219587326,
+          0.778836667537689
+        ],
+        "y": [
+          0.846963763237,
+          -1.23800349235535
+        ]
+      }
+    ],
+    "Transform2D.orthonormalized": {
+      "origin": [
+        3,
+        -4
+      ],
+      "x": [
+        0.921060979366302,
+        0.389418333768845
+      ],
+      "y": [
+        0.389418363571167,
+        -0.921060979366302
+      ]
+    },
+    "Transform2D.rotated": {
+      "origin": [
+        4.04809045791626,
+        -2.93478536605835
+      ],
+      "x": [
+        1.52968430519104,
+        1.28843545913696
+      ],
+      "y": [
+        1.17499041557312,
+        -0.932415008544922
+      ]
+    },
+    "Transform2D.rotated_local": {
+      "origin": [
+        3,
+        -4
+      ],
+      "x": [
+        2.01014137268066,
+        0.378196030855179
+      ],
+      "y": [
+        0.264751076698303,
+        -1.41287195682526
+      ]
+    },
+    "Transform2D.scaled": {
+      "origin": [
+        1.5,
+        8
+      ],
+      "x": [
+        0.921060979366302,
+        -1.55767333507538
+      ],
+      "y": [
+        0.4234818816185,
+        2.47600698471069
+      ]
+    },
+    "Transform2D.scaled_local": {
+      "origin": [
+        3,
+        -4
+      ],
+      "x": [
+        0.921060979366302,
+        0.389418333768845
+      ],
+      "y": [
+        -1.693927526474,
+        2.47600698471069
+      ]
+    },
+    "Transform2D.translated": {
+      "origin": [
+        5,
+        -7
+      ],
+      "x": [
+        1.8421219587326,
+        0.778836667537689
+      ],
+      "y": [
+        0.846963763237,
+        -1.23800349235535
+      ]
+    },
+    "Transform2D.translated_local": {
+      "origin": [
+        4.14335250854492,
+        1.27168369293213
+      ],
+      "x": [
+        1.8421219587326,
+        0.778836667537689
+      ],
+      "y": [
+        0.846963763237,
+        -1.23800349235535
+      ]
+    },
+    "Transform2D.x": [
+      [
+        1.8421219587326,
+        0.778836667537689
+      ],
+      {
+        "origin": [
+          3,
+          -4
+        ],
+        "x": [
+          8,
+          9
+        ],
+        "y": [
+          0.846963763237,
+          -1.23800349235535
+        ]
+      }
+    ],
+    "Transform2D.y": [
+      [
+        0.846963763237,
+        -1.23800349235535
+      ],
+      {
+        "origin": [
+          3,
+          -4
+        ],
+        "x": [
+          1.8421219587326,
+          0.778836667537689
+        ],
+        "y": [
+          7,
+          8
+        ]
+      }
+    ]
+  },
+  "edgeAudits": {
+    "Rect2.half-open-border": [
+      false,
+      false,
+      true
+    ],
+    "Transform2D.singular-affine-inverse": {
+      "origin": [
+        2,
+        3
+      ],
+      "x": [
+        0,
+        0
+      ],
+      "y": [
+        0,
+        0
+      ]
+    },
+    "Transform2D.zero-orthonormalized": {
+      "origin": [
+        2,
+        3
+      ],
+      "x": [
+        0,
+        0
+      ],
+      "y": [
+        0,
+        0
+      ]
+    }
+  },
+  "emissionProof": {
+    "rowCount": 80,
+    "sourceSha256": "45b9d8c204a69d5a1893dbd2bbfa0bc9795f1c3ea39c707b79a2c0fad1d3038c",
+    "emittedSha256": "3b9cbb4729dd9727748d650bb060f50e139c01a4b7886e997a8de9f517ec7d01",
+    "emittedFileCount": 8,
+    "capabilityCopyCount": 100,
+    "typecheckedFileCount": 108,
+    "partition": {
+      "source-translation": 1,
+      "project-data": 7,
+      "asset-copy": 0,
+      "capability-copy": 100
+    }
+  }
+}

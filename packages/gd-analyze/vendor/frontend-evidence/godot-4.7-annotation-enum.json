@@ -1,0 +1,152 @@
+{
+  "protocol": "vgai.godot-bound-program-seed-report",
+  "protocolVersion": 1,
+  "rows": [
+    "ast:ANNOTATION",
+    "ast:ENUM"
+  ],
+  "authority": {
+    "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+    "sourceTreeSha256": "b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec",
+    "sourceArchiveSha256": "b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6",
+    "exporterSourceSha256": "86d6b3555253af693a8e29dc8e45bc6034ad23caea284857cf81bd034aadf989",
+    "executableSha256": "c43f069f51f174e8d0b6eb5e9d97c768599d5ab5af4e3d0a1082ee168fc51e97",
+    "buildOptions": "platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=no module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes",
+    "officialArchiveSha256": "a6708c336f690e0dd8abd3d587d661707f4f33ed436946a3ec000d2fb497fd6c",
+    "officialExecutableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+    "officialEngine": {
+      "major": 4,
+      "minor": 7,
+      "patch": 0,
+      "status": "stable",
+      "build": "official",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "string": "4.7-stable (official)"
+    }
+  },
+  "baseline": {
+    "sourceSha256": "a46b22d291ecc282c7f5a99f99b2a1185a0e653d5702604e7bd38b684aacb513",
+    "phases": {
+      "parse": true,
+      "analysis": true,
+      "compile": true
+    },
+    "annotation": {
+      "type": "Annotation",
+      "typeId": 1,
+      "source": "@tool",
+      "literal": {
+        "kind": "string-name",
+        "value": "@tool"
+      },
+      "startLine": 1,
+      "startColumn": 1,
+      "endLine": 1,
+      "endColumn": 6
+    },
+    "enumeration": {
+      "id": 1,
+      "kind": "ENUM",
+      "startLine": 3,
+      "startColumn": 1,
+      "endLine": 3,
+      "endColumn": 32,
+      "datatype": {
+        "kind": "ENUM",
+        "typeSource": "ANNOTATED_EXPLICIT",
+        "constant": true,
+        "readOnly": false,
+        "metaType": true,
+        "pseudoType": false,
+        "coroutine": false,
+        "display": "probe.gd.Mode",
+        "builtinType": "Dictionary",
+        "nativeType": "res://probe.gd.Mode",
+        "enumType": "Mode",
+        "scriptPath": "res://probe.gd",
+        "className": "res://probe.gd",
+        "containerTypes": [],
+        "enumValues": [
+          {
+            "name": "IDLE",
+            "value": "4"
+          },
+          {
+            "name": "RUN",
+            "value": "9"
+          }
+        ]
+      },
+      "annotations": [],
+      "identifier": 2,
+      "dictionary": {
+        "kind": "dictionary",
+        "value": [
+          {
+            "key": {
+              "kind": "string",
+              "value": "IDLE"
+            },
+            "value": {
+              "kind": "int",
+              "value": "4"
+            }
+          },
+          {
+            "key": {
+              "kind": "string",
+              "value": "RUN"
+            },
+            "value": {
+              "kind": "int",
+              "value": "9"
+            }
+          }
+        ]
+      },
+      "values": [
+        {
+          "identifier": 3,
+          "customValue": 4,
+          "index": 0,
+          "resolved": true,
+          "value": "4",
+          "line": 3,
+          "startColumn": 13,
+          "endColumn": 17
+        },
+        {
+          "identifier": 5,
+          "customValue": 6,
+          "index": 1,
+          "resolved": true,
+          "value": "9",
+          "line": 3,
+          "startColumn": 23,
+          "endColumn": 26
+        }
+      ]
+    },
+    "official": {
+      "tool": true,
+      "mode": {
+        "IDLE": 4,
+        "RUN": 9
+      }
+    }
+  },
+  "mutants": [
+    {
+      "removed": "ast:ANNOTATION",
+      "sourceSha256": "fc630c5619f21f24b4fa85f1f64ed16b3f08430d452059cffebbc724e7c48f7d",
+      "boundConstructAbsent": true,
+      "officialTool": false
+    },
+    {
+      "removed": "ast:ENUM",
+      "sourceSha256": "52dc6db86b445db3846d751e2fde53e2acf7a58aa98fd056ab06a3a9d22c0c57",
+      "boundConstructAbsent": true,
+      "officialModeAbsent": true
+    }
+  ]
+}

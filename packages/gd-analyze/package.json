@@ -1,0 +1,33 @@
+{
+  "name": "@vgai/gd-analyze",
+  "author": "Volter AI, Inc.",
+  "license": "Apache-2.0",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "godot-code-authority-seed-proof": "npx tsx scripts/prove-code-authority-seed.ts",
+    "godot-code-authority-language-proof": "npx tsx scripts/prove-code-authority-language.ts",
+    "godot-autoload-reference-proof": "npx tsx scripts/prove-autoload-reference.ts",
+    "godot-bound-relationships-proof": "npx tsx scripts/prove-bound-project-relationships.ts",
+    "godot-field-value-proof": "npx tsx scripts/prove-field-value-plan.ts",
+    "godot-direct-composition-proof": "npx tsx scripts/prove-direct-composition-plan.ts",
+    "godot-direct-project-data-proof": "npx tsx scripts/prove-direct-composition-plan.ts",
+    "godot-direct-scene-artifact-proof": "npx tsx scripts/prove-direct-scene-artifacts.ts",
+    "godot-scene-node-proof": "npx tsx scripts/prove-scene-node-plan.ts",
+    "godot-read-proof": "npx tsx scripts/prove-read-authority.ts",
+    "verify-unaltered": "node verify-unaltered.mjs"
+  },
+  "dependencies": {
+    "create-vgai-project": "0.1.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "typescript": "^5.6.0"
+  }
+}

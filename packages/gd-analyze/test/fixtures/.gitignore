@@ -1,0 +1,11 @@
+# The `*.png` trap, fourth occurrence — see the repo-root `.gitignore`, which records the first
+# three (react-rpg's 219 sprites, the tanks team-colour textures, the template's ground texture).
+# The root rule ignores every `*.png` in the repo, so a vendored ANALYSIS FIXTURE that tracks
+# upstream art byte-for-byte silently loses those bytes at commit time and turns up MISSING in a
+# fresh checkout — which is exactly what `../../verify-unaltered.mjs` fails on.
+#
+# The exception lives HERE rather than in the root file because it is exactly as wide as the shelf
+# that needs it: every directory under `test/fixtures/` is an unaltered upstream tree whose whole
+# content is pinned by sha256 in its `<id>.UPSTREAM.lock`. Nothing else in this package tracks a
+# binary.
+!**/*.png

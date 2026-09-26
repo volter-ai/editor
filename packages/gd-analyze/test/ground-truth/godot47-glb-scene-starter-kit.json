@@ -1,0 +1,1944 @@
+{
+	"godot_version": {
+		"major": 4,
+		"minor": 7,
+		"patch": 0,
+		"hex": 263936,
+		"status": "stable",
+		"build": "official",
+		"hash": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+		"timestamp": 0,
+		"string": "4.7-stable (official)"
+	},
+	"probe": "probe-glb-scene.gd",
+	"float_decimal_places": 6,
+	"scene_count": 15,
+	"scenes": [
+		{
+			"res_path": "res://models/block-coin.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "block-coin2",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "block-coin",
+					"class": "MeshInstance3D",
+					"path": "block-coin",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "block-coin_block-coin",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/block-coin.glb::StandardMaterial3D_3dh2m"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/brick-particle.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "brick-particle2",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "brick-particle",
+					"class": "MeshInstance3D",
+					"path": "brick-particle",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "brick-particle_brick-particle",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://meshes/brick.res::StandardMaterial3D_5r4m6"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/brick.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "brick2",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "brick",
+					"class": "MeshInstance3D",
+					"path": "brick",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "brick_brick",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/brick.glb::StandardMaterial3D_4v3i0"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/character.glb",
+			"node_count": 10,
+			"nodes": [
+				{
+					"name": "character2",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "character",
+					"class": "Node3D",
+					"path": "character",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "root",
+					"class": "Node3D",
+					"path": "character/root",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.02375,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "leg-left",
+					"class": "MeshInstance3D",
+					"path": "character/root/leg-left",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.125,
+							0.17625,
+							-0.02375
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "character_leg-left",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/character.glb::StandardMaterial3D_op2ek"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				},
+				{
+					"name": "leg-right",
+					"class": "MeshInstance3D",
+					"path": "character/root/leg-right",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							-0.125,
+							0.17625,
+							-0.02375
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "character_leg-right",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/character.glb::StandardMaterial3D_op2ek"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				},
+				{
+					"name": "torso",
+					"class": "MeshInstance3D",
+					"path": "character/root/torso",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.17625,
+							-0.02375
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "character_torso",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/character.glb::StandardMaterial3D_op2ek"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				},
+				{
+					"name": "arm-left",
+					"class": "MeshInstance3D",
+					"path": "character/root/torso/arm-left",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.3,
+							0.175,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "character_arm-left",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/character.glb::StandardMaterial3D_op2ek"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				},
+				{
+					"name": "arm-right",
+					"class": "MeshInstance3D",
+					"path": "character/root/torso/arm-right",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							-0.3,
+							0.1195,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "character_arm-right",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/character.glb::StandardMaterial3D_op2ek"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				},
+				{
+					"name": "antenna",
+					"class": "MeshInstance3D",
+					"path": "character/root/torso/antenna",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.6,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "character_antenna",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/character.glb::StandardMaterial3D_op2ek"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				},
+				{
+					"name": "AnimationPlayer",
+					"class": "AnimationPlayer",
+					"path": "AnimationPlayer",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"root_node": "..",
+					"animations": [
+						{
+							"name": "idle",
+							"length": 0.666667,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 10,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "character/root/torso",
+									"interpolation": 1,
+									"key_count": 18
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "character/root/torso/antenna",
+									"interpolation": 1,
+									"key_count": 18
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "character/root/torso/arm-left",
+									"interpolation": 1,
+									"key_count": 17
+								},
+								{
+									"index": 7,
+									"type": 2,
+									"path": "character/root/torso/arm-right",
+									"interpolation": 1,
+									"key_count": 17
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "jump",
+							"length": 0.5,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 10,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "character/root/torso/arm-left",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "character/root/torso/arm-right",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "character/root/torso",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 7,
+									"type": 2,
+									"path": "character/root/torso/antenna",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "static",
+							"length": 0.1,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 10,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 1,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "character/root/torso",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 7,
+									"type": 2,
+									"path": "character/root/torso/arm-left",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 2,
+									"path": "character/root/torso/arm-right",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "character/root/torso/antenna",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "walk",
+							"length": 0.433333,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 10,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "character/root",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "character/root/leg-left",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 4,
+									"type": 1,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "character/root/leg-right",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "character/root/torso/arm-left",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 7,
+									"type": 2,
+									"path": "character/root/torso/arm-right",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 8,
+									"type": 2,
+									"path": "character/root/torso",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "character/root/torso/antenna",
+									"interpolation": 1,
+									"key_count": 14
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"res_path": "res://models/cloud.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "cloud",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "cloud2",
+					"class": "MeshInstance3D",
+					"path": "cloud2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "cloud_cloud",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/cloud.glb::StandardMaterial3D_a7857"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/coin.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "coin",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "coin2",
+					"class": "MeshInstance3D",
+					"path": "coin2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "coin_coin",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/coin.glb::StandardMaterial3D_kq2j6"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/dust.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "dust",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "dust2",
+					"class": "MeshInstance3D",
+					"path": "dust2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "dust_dust",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/dust.glb::StandardMaterial3D_mmh6j"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/flag.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "flag",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "flag2",
+					"class": "MeshInstance3D",
+					"path": "flag2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "flag_flag",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/flag.glb::StandardMaterial3D_d4lci"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/grass-small.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "grass-small",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "grass-small2",
+					"class": "MeshInstance3D",
+					"path": "grass-small2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "grass-small_grass-small",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/grass-small.glb::StandardMaterial3D_38wk5"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/grass.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "grass",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "grass2",
+					"class": "MeshInstance3D",
+					"path": "grass2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "grass_grass",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/grass.glb::StandardMaterial3D_2cpxa"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/platform-falling.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "platform-falling",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "platform-falling2",
+					"class": "MeshInstance3D",
+					"path": "platform-falling2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "platform-falling_platform-falling",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/platform-falling.glb::StandardMaterial3D_kdnyd"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/platform-grass-large-round.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "platform-grass-large-round",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "platform-grass-large-round2",
+					"class": "MeshInstance3D",
+					"path": "platform-grass-large-round2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "platform-grass-large-round_platform-grass-large-round",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/platform-grass-large-round.glb::StandardMaterial3D_u3rfv"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/platform-large.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "platform-large",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "platform-large2",
+					"class": "MeshInstance3D",
+					"path": "platform-large2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "platform-large_platform-large",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/platform-large.glb::StandardMaterial3D_2urvi"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/platform-medium.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "platform-medium",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "platform-medium2",
+					"class": "MeshInstance3D",
+					"path": "platform-medium2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "platform-medium_platform-medium",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/platform-medium.glb::StandardMaterial3D_sw7he"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		},
+		{
+			"res_path": "res://models/platform.glb",
+			"node_count": 2,
+			"nodes": [
+				{
+					"name": "platform",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "platform2",
+					"class": "MeshInstance3D",
+					"path": "platform2",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "platform_platform",
+						"surface_count": 1,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "colormap",
+									"resource_path": "res://models/platform.glb::StandardMaterial3D_q8jrk"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "",
+					"skin_bind_count": -1
+				}
+			]
+		}
+	]
+}

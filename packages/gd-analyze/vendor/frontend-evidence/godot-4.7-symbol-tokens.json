@@ -1,0 +1,1350 @@
+{
+  "protocol": "vgai.godot-bound-program-symbol-token-report",
+  "protocolVersion": 1,
+  "authority": {
+    "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+    "sourceTreeSha256": "b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec",
+    "sourceArchiveSha256": "b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6",
+    "exporterSourceSha256": "86d6b3555253af693a8e29dc8e45bc6034ad23caea284857cf81bd034aadf989",
+    "executableSha256": "95ea793b2a0eca2637854bba881d9bbc23aea78a93d9ba8bf0b74720d571b102",
+    "buildOptions": "platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=no module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes",
+    "officialArchiveSha256": "a6708c336f690e0dd8abd3d587d661707f4f33ed436946a3ec000d2fb497fd6c",
+    "officialExecutableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+    "officialEngine": {
+      "major": 4,
+      "minor": 7,
+      "patch": 0,
+      "status": "stable",
+      "build": "official",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "string": "4.7-stable (official)"
+    }
+  },
+  "rows": [
+    {
+      "row": "token:AMPERSAND",
+      "token": {
+        "type": "&",
+        "typeId": 16,
+        "source": "&",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "4c9b53d75a25ce32ca4a1d9d4f8f2768889e0f76888c1b2da3572f5e3ca156ae",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "7efa2156a03f7233d482c294dd26bc865f125ff025317f8833e7c101cb9e5e9e"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:AMPERSAND_AMPERSAND",
+      "token": {
+        "type": "&&",
+        "typeId": 13,
+        "source": "&&",
+        "startLine": 2,
+        "startColumn": 14,
+        "endLine": 2,
+        "endColumn": 16
+      },
+      "baselineSha256": "8029a648e9e58b22e6001c4933a7a9ce687cb55bb643dae9c532eb95e79c5af5",
+      "mutantSha256": "31bbf5ccc22d27a173662bb7b86e86c2d7fbafb66f2da19154d1f53069a7eaab",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 28,
+        "deletedByteCount": 8,
+        "deletedSourceSha256": "218f11314bd93a93482e1e4bacc68c7c730e4393f0d99f398599457a409b2839"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:AMPERSAND_EQUAL",
+      "token": {
+        "type": "&=",
+        "typeId": 37,
+        "source": "&=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "5fac48de1077059e202c0320b2562e2acd3c90b5da91952d5bdd74913ad4bc33",
+      "mutantSha256": "6f9b54d96cadcc2cd6a00dbec94af1738431350219b47ef0966b37232b695f19",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "fadf9e8f1258a4ba245e63076a2cea37d0b2fa739b9ead77eedc53804ac16883"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BANG",
+      "token": {
+        "type": "!",
+        "typeId": 15,
+        "source": "!",
+        "startLine": 2,
+        "startColumn": 9,
+        "endLine": 2,
+        "endColumn": 10
+      },
+      "baselineSha256": "4d08bc1948988177c252c1a01e1a4b24b3a8a2fea36a284d61e8af53ed265596",
+      "mutantSha256": "31bbf5ccc22d27a173662bb7b86e86c2d7fbafb66f2da19154d1f53069a7eaab",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 21,
+        "deletedByteCount": 1,
+        "deletedSourceSha256": "bb7208bc9b5d7c04f1236a82a0093a5e33f40423d5ba8d4266f7092c3ba43b62"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BANG_EQUAL",
+      "token": {
+        "type": "!=",
+        "typeId": 9,
+        "source": "!=",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "f1ea4dfbac67e62c9c2fe3c3691b937745dab020fdfc370a7239b3c2ef3a6166",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 25,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "62fac39b691e3288d6bead9158e90108bb6e237aaf7bbccda544229316aef095"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BRACE_CLOSE",
+      "token": {
+        "type": "}",
+        "typeId": 76,
+        "source": "}",
+        "startLine": 1,
+        "startColumn": 14,
+        "endLine": 1,
+        "endColumn": 15
+      },
+      "baselineSha256": "5fdfe9f84b7da4ba0964d25bd59e9ec718fefe2cf24d04cf00e94a7e197578f5",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 19,
+        "deletedByteCount": 15,
+        "deletedSourceSha256": "0185b6859cb0ab900aa0cd85fb1a8e5dd6939a45c288843432809a4b6ec2dd73"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BRACE_OPEN",
+      "token": {
+        "type": "{",
+        "typeId": 75,
+        "source": "{",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 14
+      },
+      "baselineSha256": "5fdfe9f84b7da4ba0964d25bd59e9ec718fefe2cf24d04cf00e94a7e197578f5",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 19,
+        "deletedByteCount": 15,
+        "deletedSourceSha256": "0185b6859cb0ab900aa0cd85fb1a8e5dd6939a45c288843432809a4b6ec2dd73"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BRACKET_CLOSE",
+      "token": {
+        "type": "]",
+        "typeId": 74,
+        "source": "]",
+        "startLine": 1,
+        "startColumn": 14,
+        "endLine": 1,
+        "endColumn": 15
+      },
+      "baselineSha256": "0e1aa6407acde3cc210a49b93f347a0b0e740ad5f5324bddc9f76dfb3796e244",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 19,
+        "deletedByteCount": 15,
+        "deletedSourceSha256": "a88408af7320422fd211193d12f9038617f8a0bb56648c1213e7dccf515c5c91"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BRACKET_OPEN",
+      "token": {
+        "type": "[",
+        "typeId": 73,
+        "source": "[",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 14
+      },
+      "baselineSha256": "0e1aa6407acde3cc210a49b93f347a0b0e740ad5f5324bddc9f76dfb3796e244",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 19,
+        "deletedByteCount": 15,
+        "deletedSourceSha256": "a88408af7320422fd211193d12f9038617f8a0bb56648c1213e7dccf515c5c91"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CARET",
+      "token": {
+        "type": "^",
+        "typeId": 19,
+        "source": "^",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "3400f69e7cbca24fab32d59ed42444dae05540da9fee58cca0f7233b92ff93fe",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "aa1e1adad500165bb6adb79ebe0b993a4b472266d6dac922e68c2eb72a38d00b"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CARET_EQUAL",
+      "token": {
+        "type": "^=",
+        "typeId": 39,
+        "source": "^=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "1538f0f2c1a701bbee78e6f05523934ac2c4ce0b4d4870257fec523311677d05",
+      "mutantSha256": "6f9b54d96cadcc2cd6a00dbec94af1738431350219b47ef0966b37232b695f19",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "cd7db899a5d42cacffd75ab744970d6b5b877dcb0692513245f843f976f3cca4"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:COLON",
+      "token": {
+        "type": ":",
+        "typeId": 84,
+        "source": ":",
+        "startLine": 1,
+        "startColumn": 10,
+        "endLine": 1,
+        "endColumn": 11
+      },
+      "baselineSha256": "0d14a9c259813946652df46fb65eb5c7f795869420f9bdab6b053e3a95fd2f45",
+      "mutantSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57",
+      "deletion": {
+        "startOffset": 9,
+        "endOffset": 14,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "66a60a9ab24c08541754b6231e9b67cb9b8dddee9926dfb557d30cbe68be5f11"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:COMMA",
+      "token": {
+        "type": ",",
+        "typeId": 79,
+        "source": ",",
+        "startLine": 1,
+        "startColumn": 15,
+        "endLine": 1,
+        "endColumn": 16
+      },
+      "baselineSha256": "c9d2e4971d450b7493965c9eb72deac350149bfdee9dc983cc11582820b6adfb",
+      "mutantSha256": "78efae3514872478f9dab4ea2fb12d642aaef43bfaad1dd8557ee1c7a28f23e7",
+      "deletion": {
+        "startOffset": 14,
+        "endOffset": 17,
+        "deletedByteCount": 3,
+        "deletedSourceSha256": "10f3b28d9ad03b59054a303a38b8d0f1ff804005428f55d90e8cc9c62ad4fb37"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:DEDENT",
+      "token": {
+        "type": "Dedent",
+        "typeId": 90,
+        "source": "",
+        "startLine": 3,
+        "startColumn": 1,
+        "endLine": 3,
+        "endColumn": 2
+      },
+      "baselineSha256": "7e0d194752949a1b0a83bf8cab0f1d65c424fa209a5ff9c197e1933af943d4d9",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 18,
+        "deletedByteCount": 18,
+        "deletedSourceSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:DOLLAR",
+      "token": {
+        "type": "$",
+        "typeId": 85,
+        "source": "$",
+        "startLine": 3,
+        "startColumn": 14,
+        "endLine": 3,
+        "endColumn": 15
+      },
+      "baselineSha256": "fe32252b228df2071a2ed7d63951617676cdec9623d50ff72047fad543194d27",
+      "mutantSha256": "74df1efce46d087f31c081916e6a69a58a848f5ed7486a380f1d5dbca7f35042",
+      "deletion": {
+        "startOffset": 26,
+        "endOffset": 46,
+        "deletedByteCount": 20,
+        "deletedSourceSha256": "95f5fdec0ba080b90c5a3f6f7a7e43008ffa1346e7ac7681ca9573a1671ffae4"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:EQUAL",
+      "token": {
+        "type": "=",
+        "typeId": 28,
+        "source": "=",
+        "startLine": 1,
+        "startColumn": 11,
+        "endLine": 1,
+        "endColumn": 12
+      },
+      "baselineSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57",
+      "mutantSha256": "91e0a5a899db6e4952273fcc0f2becc4c1f3b49a944d7831205abc4ce90aca25",
+      "deletion": {
+        "startOffset": 9,
+        "endOffset": 13,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "5d8ed4cd6366028eaf4bd1fa20d10dfd5221199ca5b148983bc28c7db68fbee4"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:EQUAL_EQUAL",
+      "token": {
+        "type": "==",
+        "typeId": 8,
+        "source": "==",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "20518bcdb107e0826ecb9f674362c6bbb042c7a14a4b7b9fc7fb1656fa4fa7f8",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 21,
+        "endOffset": 26,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "b1e88601cf0b26857f25467686060c386e2150844b5c5b543e25ca2c5ea5629d"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:FORWARD_ARROW",
+      "token": {
+        "type": "->",
+        "typeId": 86,
+        "source": "->",
+        "startLine": 1,
+        "startColumn": 12,
+        "endLine": 1,
+        "endColumn": 14
+      },
+      "baselineSha256": "618e784ec5ca1a60e6964a837ace1ccc6cc6d2b73790b368984ad6dc9105c069",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 10,
+        "endOffset": 18,
+        "deletedByteCount": 8,
+        "deletedSourceSha256": "998a2d2588cf2f6272edd8a307bd300a0315a24fd8d433e9af782e18968b8b8d"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:GREATER",
+      "token": {
+        "type": ">",
+        "typeId": 6,
+        "source": ">",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "bafe20b25375379fbd25ee8ab3ae259d45a63f0b7f8cdf1b970272a79809ca30",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "ef3dd865f76fee58aa2dee9b7280d262ec2b77a350293acba2beea010d63cb66"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:GREATER_EQUAL",
+      "token": {
+        "type": ">=",
+        "typeId": 7,
+        "source": ">=",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "9067f2f74d6ba60ba4e2a637e7e719ff517232510f3997afccca6ce078d9c465",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 25,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "e820ed0f116921e9c99f875abffe9970bf8e32ccec4a95f2f11f9d949eb778b5"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:GREATER_GREATER",
+      "token": {
+        "type": ">>",
+        "typeId": 21,
+        "source": ">>",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "d3439f0e78eca7c437fffeffe1f86f1491da355c358d0aec803090026da74dae",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 25,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "3be9ec7706483db912a11d14173d0a41688233bf48f8549024accc8a910156a2"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:GREATER_GREATER_EQUAL",
+      "token": {
+        "type": ">>=",
+        "typeId": 36,
+        "source": ">>=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 11
+      },
+      "baselineSha256": "6fa59cc173fc6b0b51f9bdbade64e703c99c4625824435936ea88b08824289ed",
+      "mutantSha256": "48efee9f6d27d1ac8923b8f7e4d76d7bd8a9bed6b56f91419482458c1ad8abb9",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 41,
+        "deletedByteCount": 13,
+        "deletedSourceSha256": "e51fef9357fb3ec9b0eac8aea60b0a334b7dcf8579a6cd538c7b66c6e1c11eb9"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:IDENTIFIER",
+      "token": {
+        "type": "Identifier",
+        "typeId": 2,
+        "source": "value",
+        "startLine": 1,
+        "startColumn": 5,
+        "endLine": 1,
+        "endColumn": 10
+      },
+      "baselineSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57",
+      "mutantSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 14,
+        "deletedByteCount": 14,
+        "deletedSourceSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:INDENT",
+      "token": {
+        "type": "Indent",
+        "typeId": 89,
+        "source": "\t",
+        "startLine": 2,
+        "startColumn": 1,
+        "endLine": 2,
+        "endColumn": 2
+      },
+      "baselineSha256": "7e0d194752949a1b0a83bf8cab0f1d65c424fa209a5ff9c197e1933af943d4d9",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 18,
+        "deletedByteCount": 18,
+        "deletedSourceSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:LESS",
+      "token": {
+        "type": "<",
+        "typeId": 4,
+        "source": "<",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "603d4b482355fbf982aa173c8d81d614016a7aded034c8c089e5f48759e98f37",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "7ab959dcdef64b1124367400f6f58537b7649c4da265c8cf536533b5ca366f0f"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:LESS_EQUAL",
+      "token": {
+        "type": "<=",
+        "typeId": 5,
+        "source": "<=",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "4d3da9b36314288e64b9491f0ce3bba13b870cd82a7fe861ef05e2f0a05d5867",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 25,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "0ecf2774220cdea7af94d0dee328583f6b2630c18a351e13dce8dfac6f15a287"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:LESS_LESS",
+      "token": {
+        "type": "<<",
+        "typeId": 20,
+        "source": "<<",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "957b9c542b122e07a60691e16433938d5b325bcc94cd9935c4176b143b82d86a",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 25,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "0d01a431852c637c4ce5318c761d6c0b81797a9fb5f9fd0aa78595defd715697"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:LESS_LESS_EQUAL",
+      "token": {
+        "type": "<<=",
+        "typeId": 35,
+        "source": "<<=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 11
+      },
+      "baselineSha256": "8eb2c751ecb97ba61cb783d28250e28ea2e98884d2c8b6eb3d1598a6bb883b01",
+      "mutantSha256": "01fd7476a8e1df705396fa1d22390a7f0d9f11605da93b868b7d6bee775ef55c",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 41,
+        "deletedByteCount": 13,
+        "deletedSourceSha256": "8b6b00c9c9664125f80a551bed0a60abe751cd1aafe604dd77de1da448b6e43e"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:LITERAL",
+      "token": {
+        "type": "Literal",
+        "typeId": 3,
+        "source": "1",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 14
+      },
+      "baselineSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57",
+      "mutantSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 14,
+        "deletedByteCount": 14,
+        "deletedSourceSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:MINUS",
+      "token": {
+        "type": "-",
+        "typeId": 23,
+        "source": "-",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "4ea7dff2623e65340afbf3707c3c03e340994f91bd40aa9b5f9373bcfe8662d2",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "2298704344b975525c3376f4b4f82f530b20b138a2c7ca001cbb39bbdc326848"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:MINUS_EQUAL",
+      "token": {
+        "type": "-=",
+        "typeId": 30,
+        "source": "-=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "9b58828e72008126719f0e9fdb9aa342b105317fe9332a57baf53d75ec5ed4e1",
+      "mutantSha256": "48efee9f6d27d1ac8923b8f7e4d76d7bd8a9bed6b56f91419482458c1ad8abb9",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "01ed6d26836ed99b5ec81b6c241dc874f651f503011fe91b798452f4882956ee"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:NEWLINE",
+      "token": {
+        "type": "Newline",
+        "typeId": 88,
+        "source": "",
+        "startLine": 1,
+        "startColumn": 14,
+        "endLine": 1,
+        "endColumn": 15
+      },
+      "baselineSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57",
+      "mutantSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 14,
+        "deletedByteCount": 14,
+        "deletedSourceSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PARENTHESIS_CLOSE",
+      "token": {
+        "type": ")",
+        "typeId": 78,
+        "source": ")",
+        "startLine": 1,
+        "startColumn": 21,
+        "endLine": 1,
+        "endColumn": 22
+      },
+      "baselineSha256": "1ebc754bc3e3fcbbd05c9c9d5e4304bbf7a5da5cc462c500071139fa66d87bcd",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 26,
+        "deletedByteCount": 22,
+        "deletedSourceSha256": "ac9b08b87a69e8024828e70feb3f5b98781a48e2ac0217cb49ded57c16c539cf"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PARENTHESIS_OPEN",
+      "token": {
+        "type": "(",
+        "typeId": 77,
+        "source": "(",
+        "startLine": 1,
+        "startColumn": 20,
+        "endLine": 1,
+        "endColumn": 21
+      },
+      "baselineSha256": "1ebc754bc3e3fcbbd05c9c9d5e4304bbf7a5da5cc462c500071139fa66d87bcd",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 26,
+        "deletedByteCount": 22,
+        "deletedSourceSha256": "ac9b08b87a69e8024828e70feb3f5b98781a48e2ac0217cb49ded57c16c539cf"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PERCENT",
+      "token": {
+        "type": "%",
+        "typeId": 27,
+        "source": "%",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "d5e93fdfb5f5b901cc06797fbefe901ec88303ecdc66854638096c91fed95a12",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "d49784bc4d43de8d7476800c553a49a17b6a9c62158445837b622219e78bc82f"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PERCENT_EQUAL",
+      "token": {
+        "type": "%=",
+        "typeId": 34,
+        "source": "%=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "da0b928358a5445cf4450a2431e35afdca0cd3b3922c2791f439f91dabddd27b",
+      "mutantSha256": "51dc78e691e7d6ae0a409c9d36baf4265053f6d9a19104d1e06ff5c89a69d6e3",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "fc0cef58f1d052be22293df11e9484c5b484332582e01abdaf035619171bda04"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PERIOD",
+      "token": {
+        "type": ".",
+        "typeId": 81,
+        "source": ".",
+        "startLine": 1,
+        "startColumn": 20,
+        "endLine": 1,
+        "endColumn": 21
+      },
+      "baselineSha256": "ce01a5287800c0bb3bb3789cadc4211ef95ed38be242380fa5e793b1f88b482f",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 29,
+        "deletedByteCount": 25,
+        "deletedSourceSha256": "82e49de6c1e093ff2990deb72972a69e29ee23a680247927e4bbbcc2c1d55b17"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PERIOD_PERIOD",
+      "token": {
+        "type": "..",
+        "typeId": 82,
+        "source": "..",
+        "startLine": 3,
+        "startColumn": 4,
+        "endLine": 3,
+        "endColumn": 6
+      },
+      "baselineSha256": "bc52b1c942a37202b5444c0c6a1854a6c6c958082897c7d46583e740979b9e7b",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 40,
+        "deletedByteCount": 27,
+        "deletedSourceSha256": "a1ff653b42efdf8d313140dc82b64fced02a325b435dfe7244d78317a20fa39d"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PERIOD_PERIOD_PERIOD",
+      "token": {
+        "type": "...",
+        "typeId": 83,
+        "source": "...",
+        "startLine": 1,
+        "startColumn": 10,
+        "endLine": 1,
+        "endColumn": 13
+      },
+      "baselineSha256": "26212b77b9e7b25434bb9f272a596d99e532c0178bb9145f3a7843e78972e5b1",
+      "mutantSha256": "28883ac73a6f3422ade37da4b853c9be0790336bae6fd3c1a876d34eece0361d",
+      "deletion": {
+        "startOffset": 9,
+        "endOffset": 12,
+        "deletedByteCount": 3,
+        "deletedSourceSha256": "ab5df625bc76dbd4e163bed2dd888df828f90159bb93556525c31821b6541d46"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PIPE",
+      "token": {
+        "type": "|",
+        "typeId": 17,
+        "source": "|",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "a4361d2fb9370f675d09d18c8c22e0dbc42a8ffa2fd887fd24625ffde9e1e602",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "b0f752fce3c5cd5c113fd8eb0999abee350c39c2bc31d1ca7f1a3d3dc1d8c94f"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PIPE_EQUAL",
+      "token": {
+        "type": "|=",
+        "typeId": 38,
+        "source": "|=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "b9467a809464574034eb2faf09f985dba41709b6c360b00f2d83437200c9677e",
+      "mutantSha256": "2648faf58ceb178de3c0d6fcf273abec06da19001e5e816e57c96aeb7bf93181",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "f622840cac176a0a0c0924de44556dd193b10c5632b351961ac93435cc6e71f5"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PIPE_PIPE",
+      "token": {
+        "type": "||",
+        "typeId": 14,
+        "source": "||",
+        "startLine": 2,
+        "startColumn": 15,
+        "endLine": 2,
+        "endColumn": 17
+      },
+      "baselineSha256": "adad9da164c02549395a9e3e43f40751cdf9e9e6a74e6c5556951ce04a8713da",
+      "mutantSha256": "01c4c3069a0e786fee7f05ede159ca2505e7748ba70d01326368ddf17a7911a8",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 29,
+        "deletedByteCount": 9,
+        "deletedSourceSha256": "1aafaa405d444a02fd0d86df02593ee0e2f5a1bdacae2832161f82a0f385d9c9"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PLUS",
+      "token": {
+        "type": "+",
+        "typeId": 22,
+        "source": "+",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "d7d6ccc615bf93d3b97a1a84fc5172342295a3a9dbd238f05129f235cf371f50",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "d2b3aea5e8377bd222c4ce8d1bc510c1a9f6fb0fb07e4a34883c182a846ff21a"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PLUS_EQUAL",
+      "token": {
+        "type": "+=",
+        "typeId": 29,
+        "source": "+=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "4e8bd89b12afb08832a082cef1bf1cff19a70bf6e86317e5b15999b11271dd31",
+      "mutantSha256": "01fd7476a8e1df705396fa1d22390a7f0d9f11605da93b868b7d6bee775ef55c",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "caa3a4885190ee37ba7283280a190e073cb95ed292280af82f17e86533851b14"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:SEMICOLON",
+      "token": {
+        "type": ";",
+        "typeId": 80,
+        "source": ";",
+        "startLine": 2,
+        "startColumn": 6,
+        "endLine": 2,
+        "endColumn": 7
+      },
+      "baselineSha256": "a1046645b2e5723adf134c8171d3f3bb412c220957e8c37cdb0d8d507a4349da",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 17,
+        "endOffset": 25,
+        "deletedByteCount": 8,
+        "deletedSourceSha256": "7d9e02dc5d1e7bdb6da7efbd738e155fcd4ec5c5109e565245e4df583cf2b887"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:SLASH",
+      "token": {
+        "type": "/",
+        "typeId": 26,
+        "source": "/",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "92d8e5aa1d0854a894b22e66652145277a3f7283bcb404c9c4a17c031b1bd8fb",
+      "mutantSha256": "ddfbfed3a8d3c2bd72f1c6f95a3bcf10729b9469ef1c1cc0df03d42a06b83ec7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "ca570ba2b5587a0339e3017e1f17b1c68d97f38010445b1769f521bed8c2ea91"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:SLASH_EQUAL",
+      "token": {
+        "type": "/=",
+        "typeId": 33,
+        "source": "/=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "5eaf07ed52d74c165fb46f5ac7f38c2b8e3bab50de246c82e2b5b6fbe593525d",
+      "mutantSha256": "48efee9f6d27d1ac8923b8f7e4d76d7bd8a9bed6b56f91419482458c1ad8abb9",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "e7fd38e83aff0f2dccad6291a7937f56ed833d893c986faee14462a638635a67"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:STAR",
+      "token": {
+        "type": "*",
+        "typeId": 24,
+        "source": "*",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "2a2a61132b09519ac25c48991938f2ecbacdcd1a7cfa9e9d76429d2d17914e85",
+      "mutantSha256": "6c8649355ed718ff653105bb801b46e29b3c08d55d4a7ff333e2a3baa75f90c7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "f6efc1acd210daf13c541d6935d25437f1c952638f3517a89046c6af390a82ec"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:STAR_EQUAL",
+      "token": {
+        "type": "*=",
+        "typeId": 31,
+        "source": "*=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 10
+      },
+      "baselineSha256": "7a924ba88f8fdc5b1e39ddc5332946516e32469fd72387843664d564970de894",
+      "mutantSha256": "2648faf58ceb178de3c0d6fcf273abec06da19001e5e816e57c96aeb7bf93181",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 40,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "4fa43dbc6b6bc03a2a837e89bf4c1947eaa8ef471f9d3e8a674239012fbbca3c"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:STAR_STAR",
+      "token": {
+        "type": "**",
+        "typeId": 25,
+        "source": "**",
+        "startLine": 2,
+        "startColumn": 11,
+        "endLine": 2,
+        "endColumn": 13
+      },
+      "baselineSha256": "f3f81f49a32c6727685d38ee956dbe7bd841ee69ba539227525b39487f833249",
+      "mutantSha256": "6c8649355ed718ff653105bb801b46e29b3c08d55d4a7ff333e2a3baa75f90c7",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 25,
+        "deletedByteCount": 5,
+        "deletedSourceSha256": "e020caf237781ea348ca5f04e1bb62e187f4d1e512aad6acd8778228e3c0fd09"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:STAR_STAR_EQUAL",
+      "token": {
+        "type": "**=",
+        "typeId": 32,
+        "source": "**=",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 11
+      },
+      "baselineSha256": "0f8d8c5e90cb73a8976e22ee68097736c5e6eb43ba5e2c3c17c2b85b6d905edd",
+      "mutantSha256": "2648faf58ceb178de3c0d6fcf273abec06da19001e5e816e57c96aeb7bf93181",
+      "deletion": {
+        "startOffset": 28,
+        "endOffset": 41,
+        "deletedByteCount": 13,
+        "deletedSourceSha256": "2446ba51936b864bece3e0451fb807c5178e6155b8d500fa7515160e23826582"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:TILDE",
+      "token": {
+        "type": "~",
+        "typeId": 18,
+        "source": "~",
+        "startLine": 2,
+        "startColumn": 9,
+        "endLine": 2,
+        "endColumn": 10
+      },
+      "baselineSha256": "10d868f9d23510797124bdbc3942db15b5409dfeb0b4c4a6fd1aad014e1c6302",
+      "mutantSha256": "037e86999051dfe4780e0abd3055b8029ad9ed8ceec12b9a67d3a20e69c19d93",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 21,
+        "deletedByteCount": 1,
+        "deletedSourceSha256": "7ace431cb61584cb9b8dc7ec08cf38ac0a2d649660be86d349fb43108b542fa4"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:UNDERSCORE",
+      "token": {
+        "type": "_",
+        "typeId": 87,
+        "source": "_",
+        "startLine": 3,
+        "startColumn": 3,
+        "endLine": 3,
+        "endColumn": 4
+      },
+      "baselineSha256": "1d9f7fdc1dc26c32d37d4b303ad00c1354884b787ecff52d1efb5cf434886c0b",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 36,
+        "deletedByteCount": 23,
+        "deletedSourceSha256": "191638e34a6cfc4aff06a3c4389b8ddb56231458803a075410458227de3cc03b"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    }
+  ]
+}

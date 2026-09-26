@@ -1,0 +1,187 @@
+--- a/modules/gdscript/gdscript_parser.h
++++ b/modules/gdscript/gdscript_parser.h
+@@ -506,11 +506,30 @@
+ 	};
+ 
+ 	struct CallNode : public ExpressionNode {
++		enum FrontendExportCallKind {
++			FRONTEND_EXPORT_CALL_UNRESOLVED,
++			FRONTEND_EXPORT_CALL_BUILTIN_CONSTRUCTOR,
++			FRONTEND_EXPORT_CALL_VARIANT_UTILITY,
++			FRONTEND_EXPORT_CALL_GDSCRIPT_UTILITY,
++			FRONTEND_EXPORT_CALL_SUPER,
++			FRONTEND_EXPORT_CALL_NATIVE_METHOD,
++			FRONTEND_EXPORT_CALL_SCRIPT_SELF,
++			FRONTEND_EXPORT_CALL_SCRIPT_CLASS,
++			FRONTEND_EXPORT_CALL_BUILTIN_STATIC,
++			FRONTEND_EXPORT_CALL_NATIVE_STATIC,
++			FRONTEND_EXPORT_CALL_DYNAMIC,
++			FRONTEND_EXPORT_CALL_BUILTIN_MEMBER,
++		};
++
+ 		ExpressionNode *callee = nullptr;
+ 		Vector<ExpressionNode *> arguments;
+ 		StringName function_name;
+ 		bool is_super = false;
+ 		bool is_static = false;
++		mutable FrontendExportCallKind frontend_export_call_kind = FRONTEND_EXPORT_CALL_UNRESOLVED;
++		mutable StringName frontend_export_call_owner;
++		mutable StringName frontend_export_call_member;
++		mutable uint32_t frontend_export_call_hash = 0;
+ 
+ 		CallNode() {
+ 			type = CALL;
+--- a/modules/gdscript/gdscript_compiler.cpp
++++ b/modules/gdscript/gdscript_compiler.cpp
+@@ -40,6 +40,14 @@
+ #include "core/config/project_settings.h"
+ #include "core/io/resource_loader.h"
+ #include "core/object/class_db.h"
++
++static void _record_frontend_export_call(const GDScriptParser::CallNode *p_call, GDScriptParser::CallNode::FrontendExportCallKind p_kind, const StringName &p_owner, const StringName &p_member, uint32_t p_hash = 0) {
++	p_call->frontend_export_call_kind = p_kind;
++	p_call->frontend_export_call_owner = p_owner;
++	p_call->frontend_export_call_member = p_member;
++	p_call->frontend_export_call_hash = p_hash;
++}
++#define RECORD_FRONTEND_EXPORT_CALL(m_call, m_kind, m_owner, m_member, m_hash) _record_frontend_export_call(m_call, GDScriptParser::CallNode::m_kind, m_owner, m_member, m_hash)
+ 
+ bool GDScriptCompiler::_is_class_member_property(CodeGen &codegen, const StringName &p_name) {
+ 	if (codegen.function_node && codegen.function_node->is_static) {
+@@ -621,12 +629,15 @@
+ 			}
+ 
+ 			if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
++				RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_BUILTIN_CONSTRUCTOR, Variant::get_type_name(GDScriptParser::get_builtin_type(call->function_name)), call->function_name, 0);
+ 				gen->write_construct(result, GDScriptParser::get_builtin_type(call->function_name), arguments);
+ 			} else if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && Variant::has_utility_function(call->function_name)) {
+ 				// Variant utility function.
++				RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_VARIANT_UTILITY, SNAME("@GlobalScope"), call->function_name, Variant::get_utility_function_hash(call->function_name));
+ 				gen->write_call_utility(result, call->function_name, arguments);
+ 			} else if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && GDScriptUtilityFunctions::function_exists(call->function_name)) {
+ 				// GDScript utility function.
++				RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_GDSCRIPT_UTILITY, SNAME("@GDScript"), call->function_name, GDScriptUtilityFunctions::get_function_info(call->function_name).get_compatibility_hash());
+ 				gen->write_call_gdscript_utility(result, call->function_name, arguments);
+ 			} else {
+ 				// Regular function.
+@@ -634,6 +645,7 @@
+ 
+ 				if (call->is_super) {
+ 					// Super call.
++					RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_SUPER, StringName(), call->function_name, 0);
+ 					gen->write_super_call(result, call->function_name, arguments);
+ 				} else {
+ 					if (callee->type == GDScriptParser::Node::IDENTIFIER) {
+@@ -643,6 +655,7 @@
+ 							GDScriptCodeGenerator::Address self;
+ 							self.mode = GDScriptCodeGenerator::Address::SELF;
+ 							MethodBind *method = ClassDB::get_method(codegen.script->native->get_name(), call->function_name);
++							RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_NATIVE_METHOD, method->get_instance_class(), method->get_name(), method->get_hash());
+ 
+ 							if (_can_use_validate_call(method, arguments)) {
+ 								// Exact arguments, use validated call.
+@@ -654,12 +667,14 @@
+ 						} else if (call->is_static || codegen.is_static || (codegen.function_node && codegen.function_node->is_static) || call->function_name == "new") {
+ 							GDScriptCodeGenerator::Address self;
+ 							self.mode = GDScriptCodeGenerator::Address::CLASS;
++							RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_SCRIPT_CLASS, StringName(codegen.script->get_path()), call->function_name, 0);
+ 							if (is_awaited) {
+ 								gen->write_call_async(result, self, call->function_name, arguments);
+ 							} else {
+ 								gen->write_call(result, self, call->function_name, arguments);
+ 							}
+ 						} else {
++							RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_SCRIPT_SELF, StringName(codegen.script->get_path()), call->function_name, 0);
+ 							if (is_awaited) {
+ 								gen->write_call_self_async(result, call->function_name, arguments);
+ 							} else {
+@@ -672,12 +687,15 @@
+ 						if (subscript->is_attribute) {
+ 							// May be static built-in method call.
+ 							if (!call->is_super && subscript->base->type == GDScriptParser::Node::IDENTIFIER && GDScriptParser::get_builtin_type(static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->name) < Variant::VARIANT_MAX) {
++								const Variant::Type builtin_type = GDScriptParser::get_builtin_type(static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->name);
++								RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_BUILTIN_STATIC, Variant::get_type_name(builtin_type), subscript->attribute->name, Variant::get_builtin_method_hash(builtin_type, subscript->attribute->name));
+ 								gen->write_call_builtin_type_static(result, GDScriptParser::get_builtin_type(static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->name), subscript->attribute->name, arguments);
+ 							} else if (!call->is_super && subscript->base->type == GDScriptParser::Node::IDENTIFIER && call->function_name != SNAME("new") &&
+ 									static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->source == GDScriptParser::IdentifierNode::NATIVE_CLASS && !Engine::get_singleton()->has_singleton(static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->name)) {
+ 								// It's a static native method call.
+ 								StringName class_name = static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->name;
+ 								MethodBind *method = ClassDB::get_method(class_name, subscript->attribute->name);
++								RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_NATIVE_STATIC, method->get_instance_class(), method->get_name(), method->get_hash());
+ 								if (_can_use_validate_call(method, arguments)) {
+ 									// Exact arguments, use validated call.
+ 									gen->write_call_native_static_validated(result, method, arguments);
+@@ -691,6 +709,7 @@
+ 									return GDScriptCodeGenerator::Address();
+ 								}
+ 								if (is_awaited) {
++									RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_DYNAMIC, StringName(), call->function_name, 0);
+ 									gen->write_call_async(result, base, call->function_name, arguments);
+ 								} else if (base.type.kind != GDScriptDataType::VARIANT && base.type.kind != GDScriptDataType::BUILTIN) {
+ 									// Native method, use faster path.
+@@ -702,6 +721,7 @@
+ 									}
+ 									if (GDScriptAnalyzer::class_exists(class_name) && ClassDB::has_method(class_name, call->function_name)) {
+ 										MethodBind *method = ClassDB::get_method(class_name, call->function_name);
++										RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_NATIVE_METHOD, method->get_instance_class(), method->get_name(), method->get_hash());
+ 										if (_can_use_validate_call(method, arguments)) {
+ 											// Exact arguments, use validated call.
+ 											gen->write_call_method_bind_validated(result, base, method, arguments);
+@@ -710,11 +730,14 @@
+ 											gen->write_call_method_bind(result, base, method, arguments);
+ 										}
+ 									} else {
++										RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_DYNAMIC, StringName(), call->function_name, 0);
+ 										gen->write_call(result, base, call->function_name, arguments);
+ 									}
+ 								} else if (base.type.kind == GDScriptDataType::BUILTIN) {
++									RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_BUILTIN_MEMBER, Variant::get_type_name(base.type.builtin_type), call->function_name, Variant::get_builtin_method_hash(base.type.builtin_type, call->function_name));
+ 									gen->write_call_builtin_type(result, base, base.type.builtin_type, call->function_name, arguments);
+ 								} else {
++									RECORD_FRONTEND_EXPORT_CALL(call, FRONTEND_EXPORT_CALL_DYNAMIC, StringName(), call->function_name, 0);
+ 									gen->write_call(result, base, call->function_name, arguments);
+ 								}
+								if (base.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
+--- a/modules/gdscript/gdscript_analyzer.cpp
++++ b/modules/gdscript/gdscript_analyzer.cpp
+@@ -3279,6 +3279,10 @@
+ 		Variant::Type builtin_type = GDScriptParser::get_builtin_type(function_name);
+ 		if (builtin_type < Variant::VARIANT_MAX) {
+ 			// Is a builtin constructor.
++			p_call->frontend_export_call_kind = GDScriptParser::CallNode::FRONTEND_EXPORT_CALL_BUILTIN_CONSTRUCTOR;
++			p_call->frontend_export_call_owner = Variant::get_type_name(builtin_type);
++			p_call->frontend_export_call_member = function_name;
++			p_call->frontend_export_call_hash = 0;
+ 			call_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
+ 			call_type.kind = GDScriptParser::DataType::BUILTIN;
+ 			call_type.builtin_type = builtin_type;
+@@ -3450,6 +3454,10 @@
+ 			return;
+ 		} else if (GDScriptUtilityFunctions::function_exists(function_name)) {
+ 			MethodInfo function_info = GDScriptUtilityFunctions::get_function_info(function_name);
++			p_call->frontend_export_call_kind = GDScriptParser::CallNode::FRONTEND_EXPORT_CALL_GDSCRIPT_UTILITY;
++			p_call->frontend_export_call_owner = SNAME("@GDScript");
++			p_call->frontend_export_call_member = function_name;
++			p_call->frontend_export_call_hash = function_info.get_compatibility_hash();
+ 
+ 			if (!p_is_root && !p_is_await && function_info.return_val.type == Variant::NIL && ((function_info.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT) == 0)) {
+ 				push_error(vformat(R"*(Cannot get return value of call to "%s()" because it returns "void".)*", function_name), p_call);
+@@ -3501,6 +3509,10 @@
+ 			return;
+ 		} else if (Variant::has_utility_function(function_name)) {
+ 			MethodInfo function_info = info_from_utility_func(function_name);
++			p_call->frontend_export_call_kind = GDScriptParser::CallNode::FRONTEND_EXPORT_CALL_VARIANT_UTILITY;
++			p_call->frontend_export_call_owner = SNAME("@GlobalScope");
++			p_call->frontend_export_call_member = function_name;
++			p_call->frontend_export_call_hash = Variant::get_utility_function_hash(function_name);
+ 
+ 			if (!p_is_root && !p_is_await && function_info.return_val.type == Variant::NIL && ((function_info.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT) == 0)) {
+ 				push_error(vformat(R"*(Cannot get return value of call to "%s()" because it returns "void".)*", function_name), p_call);
+
+--- a/modules/gdscript/gdscript_cache.h
++++ b/modules/gdscript/gdscript_cache.h
+@@ -83,0 +84,2 @@
++class GDScriptFrontendExporter;
++
+@@ -99,0 +102,1 @@
++	friend class GDScriptFrontendExporter;

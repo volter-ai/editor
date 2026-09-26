@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@vgai/engine/*": ["../engine/src/*"],
+      "@engine/*": ["../engine/src/*"]
+    },
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
+    // Translation and measurement code frequently carries source-authored bindings verbatim.
+    // An unused binding in someone else's GDScript is not a defect, and dropping one would stop
+    // the generated source corresponding to the project it adapts.
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "incremental": true,
+    "tsBuildInfoFile": "../../.tsbuildinfo/gd-analyze.tsbuildinfo"
+  },
+  // `test/fixtures/**` is deliberately EXCLUDED from the compile graph. It is a verbatim copy of a
+  // Godot project — GDScript, `.tscn`, `.tres` — INPUT DATA this package reads, never code it
+  // compiles. (Nothing in there is TypeScript today; the exclusion is the standing statement that
+  // vendored fixture bytes are data, matching the rbx-analyze precedent.)
+  //
+  // Generated projects validate with their own scaffolded configuration during `gd-analyze import`;
+  // this package config deliberately does not compile committed generated outputs.
+  "files": ["../engine/src/types-n8ao.d.ts"],
+  "include": ["src", "scripts", "test"],
+  "exclude": ["test/fixtures"]
+}

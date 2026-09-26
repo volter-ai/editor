@@ -1,0 +1,3326 @@
+{
+  "protocol": "vgai.godot-packed-array-evidence",
+  "protocolVersion": 1,
+  "authority": {
+    "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+    "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+    "nativeProbeSourceSha256": "d73635be0f00b0a3c5e59876264ba950909e6419616a1f51b928f372efd632e1",
+    "implementationSha256": {
+      "packages/editor/catalog/project-source/src/lib/codecs/fastlz.ts": "7e436065abcf8fe70f44fb1c944df1822a95b5e7d2b2362a2b2b2198ec14d085",
+      "packages/editor/catalog/project-source/src/lib/godot-compat/packed-array.ts": "79826159b2bb5d58c57e2dd8ec0c7b6af3f0f68b43697417525a7196c55392c1",
+      "packages/editor/catalog/project-source/src/lib/godot-compat/packed-array-binary.ts": "a1b2fdf2152122318a1013fddb87b68f3dcb7d78da58690341de102ee7c16e3e",
+      "packages/editor/catalog/project-source/src/lib/godot-compat/packed-array-call.ts": "902be56bad47d6f52fbaa6e22033f0ea7c687fcca66ae0e13e55176fb6147f43",
+      "packages/editor/catalog/project-source/src/lib/godot-compat/godot-variant-marshals.ts": "c5852d4157c7ef584015162448b3bd5d6a113b2b63b22368c78aba2a22f722b5",
+      "packages/editor/catalog/project-source/src/lib/godot-runtime/packed-array-codecs.ts": "630042f446e77886f62b37721a8a7f3e9e1c78f5ea730e735d7ab23e4b62523a"
+    }
+  },
+  "verdict": "exact-match",
+  "memberCount": 338,
+  "members": {
+    "PackedByteArray.append": [
+      false,
+      [
+        "2",
+        "1",
+        "3",
+        "4"
+      ]
+    ],
+    "PackedByteArray.append_array": [
+      "2",
+      "1",
+      "3",
+      "2",
+      "1",
+      "3"
+    ],
+    "PackedByteArray.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedByteArray.bswap16": [
+      "1",
+      "0",
+      "3",
+      "2",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15"
+    ],
+    "PackedByteArray.bswap32": [
+      "3",
+      "2",
+      "1",
+      "0",
+      "7",
+      "6",
+      "5",
+      "4",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15"
+    ],
+    "PackedByteArray.bswap64": [
+      "7",
+      "6",
+      "5",
+      "4",
+      "3",
+      "2",
+      "1",
+      "0",
+      "15",
+      "14",
+      "13",
+      "12",
+      "11",
+      "10",
+      "9",
+      "8"
+    ],
+    "PackedByteArray.clear": [],
+    "PackedByteArray.compress": [
+      [
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "224",
+        "21",
+        "6",
+        "2",
+        "2",
+        "3",
+        "4"
+      ],
+      [
+        "120",
+        "156",
+        "99",
+        "96",
+        "100",
+        "98",
+        "102",
+        "97",
+        "101",
+        "99",
+        "32",
+        "68",
+        "1",
+        "0",
+        "9",
+        "31",
+        "0",
+        "116"
+      ],
+      [
+        "40",
+        "181",
+        "47",
+        "253",
+        "32",
+        "40",
+        "109",
+        "0",
+        "0",
+        "56",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "1",
+        "0",
+        "26",
+        "139",
+        "17"
+      ],
+      [
+        "31",
+        "139",
+        "8",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "19",
+        "99",
+        "96",
+        "100",
+        "98",
+        "102",
+        "97",
+        "101",
+        "99",
+        "32",
+        "68",
+        "1",
+        "0",
+        "185",
+        "182",
+        "17",
+        "85",
+        "40",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "PackedByteArray.count": "2",
+    "PackedByteArray.decode_double": "3.14159265358979",
+    "PackedByteArray.decode_float": "1.25",
+    "PackedByteArray.decode_half": "1.5",
+    "PackedByteArray.decode_s16": "-123",
+    "PackedByteArray.decode_s32": "-123",
+    "PackedByteArray.decode_s64": "1311768467463790320",
+    "PackedByteArray.decode_s8": "-123",
+    "PackedByteArray.decode_u16": "2748",
+    "PackedByteArray.decode_u32": "2748",
+    "PackedByteArray.decode_u64": "1311768467463790320",
+    "PackedByteArray.decode_u8": "188",
+    "PackedByteArray.decode_var": {
+      "name": "packed",
+      "values": [
+        "1",
+        "2.5",
+        true
+      ]
+    },
+    "PackedByteArray.decode_var_size": "84",
+    "PackedByteArray.decompress": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "PackedByteArray.decompress_dynamic": [
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "PackedByteArray.duplicate": [
+      [
+        "2",
+        "1",
+        "3"
+      ],
+      [
+        "1",
+        "3"
+      ]
+    ],
+    "PackedByteArray.encode_double": [
+      "24",
+      "45",
+      "68",
+      "84",
+      "251",
+      "33",
+      "9",
+      "64"
+    ],
+    "PackedByteArray.encode_float": [
+      "0",
+      "0",
+      "160",
+      "63",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_half": [
+      "0",
+      "62",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_s16": [
+      "133",
+      "255",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_s32": [
+      "133",
+      "255",
+      "255",
+      "255",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_s64": [
+      "240",
+      "222",
+      "188",
+      "154",
+      "120",
+      "86",
+      "52",
+      "18"
+    ],
+    "PackedByteArray.encode_s8": [
+      "133",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_u16": [
+      "188",
+      "10",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_u32": [
+      "188",
+      "10",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_u64": [
+      "240",
+      "222",
+      "188",
+      "154",
+      "120",
+      "86",
+      "52",
+      "18"
+    ],
+    "PackedByteArray.encode_u8": [
+      "188",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "PackedByteArray.encode_var": [
+      "84",
+      [
+        "27",
+        "0",
+        "0",
+        "0",
+        "2",
+        "0",
+        "0",
+        "0",
+        "4",
+        "0",
+        "0",
+        "0",
+        "4",
+        "0",
+        "0",
+        "0",
+        "110",
+        "97",
+        "109",
+        "101",
+        "4",
+        "0",
+        "0",
+        "0",
+        "6",
+        "0",
+        "0",
+        "0",
+        "112",
+        "97",
+        "99",
+        "107",
+        "101",
+        "100",
+        "0",
+        "0",
+        "4",
+        "0",
+        "0",
+        "0",
+        "6",
+        "0",
+        "0",
+        "0",
+        "118",
+        "97",
+        "108",
+        "117",
+        "101",
+        "115",
+        "0",
+        "0",
+        "28",
+        "0",
+        "0",
+        "0",
+        "3",
+        "0",
+        "0",
+        "0",
+        "2",
+        "0",
+        "0",
+        "0",
+        "1",
+        "0",
+        "0",
+        "0",
+        "3",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "32",
+        "64",
+        "1",
+        "0",
+        "0",
+        "0",
+        "1",
+        "0",
+        "0",
+        "0"
+      ]
+    ],
+    "PackedByteArray.erase": [
+      true,
+      [
+        "2",
+        "3"
+      ]
+    ],
+    "PackedByteArray.fill": [
+      "4",
+      "4",
+      "4"
+    ],
+    "PackedByteArray.find": "0",
+    "PackedByteArray.get": "1",
+    "PackedByteArray.get_string_from_ascii": "ABC",
+    "PackedByteArray.get_string_from_multibyte_char": "Aé",
+    "PackedByteArray.get_string_from_utf16": "Aé",
+    "PackedByteArray.get_string_from_utf32": "Aé",
+    "PackedByteArray.get_string_from_utf8": "Aé",
+    "PackedByteArray.get_string_from_wchar": "Aé",
+    "PackedByteArray.has": [
+      true,
+      false
+    ],
+    "PackedByteArray.has_encoded_var": true,
+    "PackedByteArray.hex_encode": "000f10ff",
+    "PackedByteArray.insert": [
+      "0",
+      [
+        "2",
+        "4",
+        "1",
+        "3"
+      ]
+    ],
+    "PackedByteArray.is_empty": [
+      false,
+      true
+    ],
+    "PackedByteArray.new": [
+      [],
+      [
+        "2",
+        "1",
+        "3"
+      ]
+    ],
+    "PackedByteArray.operator !=": [
+      false,
+      true
+    ],
+    "PackedByteArray.operator +": [
+      [
+        "1",
+        "3",
+        "4"
+      ],
+      [
+        "2",
+        "1",
+        "3"
+      ],
+      [
+        "4"
+      ]
+    ],
+    "PackedByteArray.operator ==": [
+      true,
+      false
+    ],
+    "PackedByteArray.operator in": [
+      true,
+      false
+    ],
+    "PackedByteArray.operator not": [
+      true,
+      false
+    ],
+    "PackedByteArray.push_back": [
+      false,
+      [
+        "2",
+        "1",
+        "3",
+        "4"
+      ]
+    ],
+    "PackedByteArray.remove_at": [
+      "2",
+      "3"
+    ],
+    "PackedByteArray.resize": [
+      "0",
+      [
+        "2",
+        "1",
+        "3",
+        "0",
+        "0"
+      ],
+      "0",
+      [
+        "2",
+        "1"
+      ]
+    ],
+    "PackedByteArray.reverse": [
+      "3",
+      "1",
+      "2"
+    ],
+    "PackedByteArray.rfind": "4",
+    "PackedByteArray.set": [
+      "2",
+      "4",
+      "3"
+    ],
+    "PackedByteArray.size": "3",
+    "PackedByteArray.slice": [
+      "1"
+    ],
+    "PackedByteArray.sort": [
+      "1",
+      "2",
+      "3"
+    ],
+    "PackedByteArray.to_color_array": [
+      [
+        "1.0",
+        "0.5",
+        "0.25",
+        "1.0"
+      ]
+    ],
+    "PackedByteArray.to_float32_array": [
+      "1.25",
+      "-2.5"
+    ],
+    "PackedByteArray.to_float64_array": [
+      "1.25",
+      "-2.5"
+    ],
+    "PackedByteArray.to_int32_array": [
+      "-2",
+      "7"
+    ],
+    "PackedByteArray.to_int64_array": [
+      "-2",
+      "7"
+    ],
+    "PackedByteArray.to_vector2_array": [
+      [
+        "1.0",
+        "2.0"
+      ]
+    ],
+    "PackedByteArray.to_vector3_array": [
+      [
+        "1.0",
+        "2.0",
+        "3.0"
+      ]
+    ],
+    "PackedByteArray.to_vector4_array": [
+      [
+        "1.0",
+        "2.0",
+        "3.0",
+        "4.0"
+      ]
+    ],
+    "PackedColorArray.append": [
+      false,
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.append_array": [
+      [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "0.0",
+        "1.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "0.0",
+        "1.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedColorArray.clear": [],
+    "PackedColorArray.count": "2",
+    "PackedColorArray.duplicate": [
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ]
+      ],
+      [
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.erase": [
+      true,
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.fill": [
+      [
+        "1.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.find": "0",
+    "PackedColorArray.get": [
+      "0.0",
+      "1.0",
+      "0.0",
+      "1.0"
+    ],
+    "PackedColorArray.has": [
+      true,
+      false
+    ],
+    "PackedColorArray.insert": [
+      "0",
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.is_empty": [
+      false,
+      true
+    ],
+    "PackedColorArray.new": [
+      [],
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.operator !=": [
+      false,
+      true
+    ],
+    "PackedColorArray.operator +": [
+      [
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ]
+      ],
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ]
+      ],
+      [
+        [
+          "1.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.operator ==": [
+      true,
+      false
+    ],
+    "PackedColorArray.operator in": [
+      true,
+      false
+    ],
+    "PackedColorArray.operator not": [
+      true,
+      false
+    ],
+    "PackedColorArray.push_back": [
+      false,
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.remove_at": [
+      [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "0.0",
+        "1.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.resize": [
+      "0",
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "1.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ]
+      ],
+      "0",
+      [
+        [
+          "1.0",
+          "0.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "1.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedColorArray.reverse": [
+      [
+        "0.0",
+        "0.0",
+        "1.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.rfind": "4",
+    "PackedColorArray.set": [
+      [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "0.0",
+        "1.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.size": "3",
+    "PackedColorArray.slice": [
+      [
+        "0.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.sort": [
+      [
+        "0.0",
+        "0.0",
+        "1.0",
+        "1.0"
+      ],
+      [
+        "0.0",
+        "1.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedColorArray.to_byte_array": "0000803f00000000000000000000803f000000000000803f000000000000803f00000000000000000000803f0000803f",
+    "PackedFloat32Array.append": [
+      false,
+      [
+        "2.5",
+        "1.25",
+        "3.75",
+        "4.5"
+      ]
+    ],
+    "PackedFloat32Array.append_array": [
+      "2.5",
+      "1.25",
+      "3.75",
+      "2.5",
+      "1.25",
+      "3.75"
+    ],
+    "PackedFloat32Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedFloat32Array.clear": [],
+    "PackedFloat32Array.count": "2",
+    "PackedFloat32Array.duplicate": [
+      [
+        "2.5",
+        "1.25",
+        "3.75"
+      ],
+      [
+        "1.25",
+        "3.75"
+      ]
+    ],
+    "PackedFloat32Array.erase": [
+      true,
+      [
+        "2.5",
+        "3.75"
+      ]
+    ],
+    "PackedFloat32Array.fill": [
+      "4.5",
+      "4.5",
+      "4.5"
+    ],
+    "PackedFloat32Array.find": "0",
+    "PackedFloat32Array.get": "1.25",
+    "PackedFloat32Array.has": [
+      true,
+      false
+    ],
+    "PackedFloat32Array.insert": [
+      "0",
+      [
+        "2.5",
+        "4.5",
+        "1.25",
+        "3.75"
+      ]
+    ],
+    "PackedFloat32Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedFloat32Array.new": [
+      [],
+      [
+        "2.5",
+        "1.25",
+        "3.75"
+      ]
+    ],
+    "PackedFloat32Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedFloat32Array.operator +": [
+      [
+        "1.25",
+        "3.75",
+        "4.5"
+      ],
+      [
+        "2.5",
+        "1.25",
+        "3.75"
+      ],
+      [
+        "4.5"
+      ]
+    ],
+    "PackedFloat32Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedFloat32Array.operator in": [
+      true,
+      false
+    ],
+    "PackedFloat32Array.operator not": [
+      true,
+      false
+    ],
+    "PackedFloat32Array.push_back": [
+      false,
+      [
+        "2.5",
+        "1.25",
+        "3.75",
+        "4.5"
+      ]
+    ],
+    "PackedFloat32Array.remove_at": [
+      "2.5",
+      "3.75"
+    ],
+    "PackedFloat32Array.resize": [
+      "0",
+      [
+        "2.5",
+        "1.25",
+        "3.75",
+        "0.0",
+        "0.0"
+      ],
+      "0",
+      [
+        "2.5",
+        "1.25"
+      ]
+    ],
+    "PackedFloat32Array.reverse": [
+      "3.75",
+      "1.25",
+      "2.5"
+    ],
+    "PackedFloat32Array.rfind": "4",
+    "PackedFloat32Array.set": [
+      "2.5",
+      "4.5",
+      "3.75"
+    ],
+    "PackedFloat32Array.size": "3",
+    "PackedFloat32Array.slice": [
+      "1.25"
+    ],
+    "PackedFloat32Array.sort": [
+      "1.25",
+      "2.5",
+      "3.75"
+    ],
+    "PackedFloat32Array.to_byte_array": "000020400000a03f00007040",
+    "PackedFloat64Array.append": [
+      false,
+      [
+        "2.5",
+        "1.25",
+        "3.75",
+        "4.5"
+      ]
+    ],
+    "PackedFloat64Array.append_array": [
+      "2.5",
+      "1.25",
+      "3.75",
+      "2.5",
+      "1.25",
+      "3.75"
+    ],
+    "PackedFloat64Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedFloat64Array.clear": [],
+    "PackedFloat64Array.count": "2",
+    "PackedFloat64Array.duplicate": [
+      [
+        "2.5",
+        "1.25",
+        "3.75"
+      ],
+      [
+        "1.25",
+        "3.75"
+      ]
+    ],
+    "PackedFloat64Array.erase": [
+      true,
+      [
+        "2.5",
+        "3.75"
+      ]
+    ],
+    "PackedFloat64Array.fill": [
+      "4.5",
+      "4.5",
+      "4.5"
+    ],
+    "PackedFloat64Array.find": "0",
+    "PackedFloat64Array.get": "1.25",
+    "PackedFloat64Array.has": [
+      true,
+      false
+    ],
+    "PackedFloat64Array.insert": [
+      "0",
+      [
+        "2.5",
+        "4.5",
+        "1.25",
+        "3.75"
+      ]
+    ],
+    "PackedFloat64Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedFloat64Array.new": [
+      [],
+      [
+        "2.5",
+        "1.25",
+        "3.75"
+      ]
+    ],
+    "PackedFloat64Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedFloat64Array.operator +": [
+      [
+        "1.25",
+        "3.75",
+        "4.5"
+      ],
+      [
+        "2.5",
+        "1.25",
+        "3.75"
+      ],
+      [
+        "4.5"
+      ]
+    ],
+    "PackedFloat64Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedFloat64Array.operator in": [
+      true,
+      false
+    ],
+    "PackedFloat64Array.operator not": [
+      true,
+      false
+    ],
+    "PackedFloat64Array.push_back": [
+      false,
+      [
+        "2.5",
+        "1.25",
+        "3.75",
+        "4.5"
+      ]
+    ],
+    "PackedFloat64Array.remove_at": [
+      "2.5",
+      "3.75"
+    ],
+    "PackedFloat64Array.resize": [
+      "0",
+      [
+        "2.5",
+        "1.25",
+        "3.75",
+        "0.0",
+        "0.0"
+      ],
+      "0",
+      [
+        "2.5",
+        "1.25"
+      ]
+    ],
+    "PackedFloat64Array.reverse": [
+      "3.75",
+      "1.25",
+      "2.5"
+    ],
+    "PackedFloat64Array.rfind": "4",
+    "PackedFloat64Array.set": [
+      "2.5",
+      "4.5",
+      "3.75"
+    ],
+    "PackedFloat64Array.size": "3",
+    "PackedFloat64Array.slice": [
+      "1.25"
+    ],
+    "PackedFloat64Array.sort": [
+      "1.25",
+      "2.5",
+      "3.75"
+    ],
+    "PackedFloat64Array.to_byte_array": "0000000000000440000000000000f43f0000000000000e40",
+    "PackedInt32Array.append": [
+      false,
+      [
+        "-2",
+        "1",
+        "3",
+        "4"
+      ],
+      [
+        "-2147483648"
+      ],
+      [
+        "-2147483648"
+      ]
+    ],
+    "PackedInt32Array.append_array": [
+      "-2",
+      "1",
+      "3",
+      "-2",
+      "1",
+      "3"
+    ],
+    "PackedInt32Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedInt32Array.clear": [],
+    "PackedInt32Array.count": "2",
+    "PackedInt32Array.duplicate": [
+      [
+        "-2",
+        "1",
+        "3"
+      ],
+      [
+        "1",
+        "3"
+      ]
+    ],
+    "PackedInt32Array.erase": [
+      true,
+      [
+        "-2",
+        "3"
+      ]
+    ],
+    "PackedInt32Array.fill": [
+      "4",
+      "4",
+      "4"
+    ],
+    "PackedInt32Array.find": "0",
+    "PackedInt32Array.get": "1",
+    "PackedInt32Array.has": [
+      true,
+      false
+    ],
+    "PackedInt32Array.insert": [
+      "0",
+      [
+        "-2",
+        "4",
+        "1",
+        "3"
+      ]
+    ],
+    "PackedInt32Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedInt32Array.new": [
+      [],
+      [
+        "-2",
+        "1",
+        "3"
+      ],
+      [
+        "-2147483648"
+      ],
+      [
+        "2147483647"
+      ]
+    ],
+    "PackedInt32Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedInt32Array.operator +": [
+      [
+        "1",
+        "3",
+        "4"
+      ],
+      [
+        "-2",
+        "1",
+        "3"
+      ],
+      [
+        "4"
+      ]
+    ],
+    "PackedInt32Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedInt32Array.operator in": [
+      true,
+      false
+    ],
+    "PackedInt32Array.operator not": [
+      true,
+      false
+    ],
+    "PackedInt32Array.push_back": [
+      false,
+      [
+        "-2",
+        "1",
+        "3",
+        "4"
+      ]
+    ],
+    "PackedInt32Array.remove_at": [
+      "-2",
+      "3"
+    ],
+    "PackedInt32Array.resize": [
+      "0",
+      [
+        "-2",
+        "1",
+        "3",
+        "0",
+        "0"
+      ],
+      "0",
+      [
+        "-2",
+        "1"
+      ]
+    ],
+    "PackedInt32Array.reverse": [
+      "3",
+      "1",
+      "-2"
+    ],
+    "PackedInt32Array.rfind": "4",
+    "PackedInt32Array.set": [
+      [
+        "-2",
+        "4",
+        "3"
+      ],
+      [
+        "-2147483648"
+      ],
+      [
+        "-2147483648"
+      ]
+    ],
+    "PackedInt32Array.size": "3",
+    "PackedInt32Array.slice": [
+      "1"
+    ],
+    "PackedInt32Array.sort": [
+      "-2",
+      "1",
+      "3"
+    ],
+    "PackedInt32Array.to_byte_array": "feffffff0100000003000000",
+    "PackedInt64Array.append": [
+      false,
+      [
+        "-2",
+        "1",
+        "9223372036854775807",
+        "4"
+      ],
+      [
+        "-9223372036854775808"
+      ],
+      [
+        "9223372036854775807"
+      ]
+    ],
+    "PackedInt64Array.append_array": [
+      "-2",
+      "1",
+      "9223372036854775807",
+      "-2",
+      "1",
+      "9223372036854775807"
+    ],
+    "PackedInt64Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedInt64Array.clear": [],
+    "PackedInt64Array.count": "2",
+    "PackedInt64Array.duplicate": [
+      [
+        "-2",
+        "1",
+        "9223372036854775807"
+      ],
+      [
+        "1",
+        "9223372036854775807"
+      ]
+    ],
+    "PackedInt64Array.erase": [
+      true,
+      [
+        "-2",
+        "9223372036854775807"
+      ]
+    ],
+    "PackedInt64Array.fill": [
+      "4",
+      "4",
+      "4"
+    ],
+    "PackedInt64Array.find": "0",
+    "PackedInt64Array.get": "1",
+    "PackedInt64Array.has": [
+      true,
+      false
+    ],
+    "PackedInt64Array.insert": [
+      "0",
+      [
+        "-2",
+        "4",
+        "1",
+        "9223372036854775807"
+      ]
+    ],
+    "PackedInt64Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedInt64Array.new": [
+      [],
+      [
+        "-2",
+        "1",
+        "9223372036854775807"
+      ],
+      [
+        "-9223372036854775808"
+      ],
+      [
+        "9223372036854775807"
+      ]
+    ],
+    "PackedInt64Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedInt64Array.operator +": [
+      [
+        "1",
+        "9223372036854775807",
+        "4"
+      ],
+      [
+        "-2",
+        "1",
+        "9223372036854775807"
+      ],
+      [
+        "4"
+      ]
+    ],
+    "PackedInt64Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedInt64Array.operator in": [
+      true,
+      false
+    ],
+    "PackedInt64Array.operator not": [
+      true,
+      false
+    ],
+    "PackedInt64Array.push_back": [
+      false,
+      [
+        "-2",
+        "1",
+        "9223372036854775807",
+        "4"
+      ]
+    ],
+    "PackedInt64Array.remove_at": [
+      "-2",
+      "9223372036854775807"
+    ],
+    "PackedInt64Array.resize": [
+      "0",
+      [
+        "-2",
+        "1",
+        "9223372036854775807",
+        "0",
+        "0"
+      ],
+      "0",
+      [
+        "-2",
+        "1"
+      ]
+    ],
+    "PackedInt64Array.reverse": [
+      "9223372036854775807",
+      "1",
+      "-2"
+    ],
+    "PackedInt64Array.rfind": "4",
+    "PackedInt64Array.set": [
+      [
+        "-2",
+        "4",
+        "9223372036854775807"
+      ],
+      [
+        "-9223372036854775808"
+      ],
+      [
+        "9223372036854775807"
+      ]
+    ],
+    "PackedInt64Array.size": "3",
+    "PackedInt64Array.slice": [
+      "1"
+    ],
+    "PackedInt64Array.sort": [
+      "-2",
+      "1",
+      "9223372036854775807"
+    ],
+    "PackedInt64Array.to_byte_array": "feffffffffffffff0100000000000000ffffffffffffff7f",
+    "PackedStringArray.append": [
+      false,
+      [
+        "b",
+        "a",
+        "c",
+        "d"
+      ]
+    ],
+    "PackedStringArray.append_array": [
+      "b",
+      "a",
+      "c",
+      "b",
+      "a",
+      "c"
+    ],
+    "PackedStringArray.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedStringArray.clear": [],
+    "PackedStringArray.count": "2",
+    "PackedStringArray.duplicate": [
+      [
+        "b",
+        "a",
+        "c"
+      ],
+      [
+        "a",
+        "c"
+      ]
+    ],
+    "PackedStringArray.erase": [
+      true,
+      [
+        "b",
+        "c"
+      ]
+    ],
+    "PackedStringArray.fill": [
+      "d",
+      "d",
+      "d"
+    ],
+    "PackedStringArray.find": "0",
+    "PackedStringArray.get": "a",
+    "PackedStringArray.has": [
+      true,
+      false
+    ],
+    "PackedStringArray.insert": [
+      "0",
+      [
+        "b",
+        "d",
+        "a",
+        "c"
+      ]
+    ],
+    "PackedStringArray.is_empty": [
+      false,
+      true
+    ],
+    "PackedStringArray.new": [
+      [],
+      [
+        "b",
+        "a",
+        "c"
+      ]
+    ],
+    "PackedStringArray.operator !=": [
+      false,
+      true
+    ],
+    "PackedStringArray.operator +": [
+      [
+        "a",
+        "c",
+        "d"
+      ],
+      [
+        "b",
+        "a",
+        "c"
+      ],
+      [
+        "d"
+      ]
+    ],
+    "PackedStringArray.operator ==": [
+      true,
+      false
+    ],
+    "PackedStringArray.operator in": [
+      true,
+      false
+    ],
+    "PackedStringArray.operator not": [
+      true,
+      false
+    ],
+    "PackedStringArray.push_back": [
+      false,
+      [
+        "b",
+        "a",
+        "c",
+        "d"
+      ]
+    ],
+    "PackedStringArray.remove_at": [
+      "b",
+      "c"
+    ],
+    "PackedStringArray.resize": [
+      "0",
+      [
+        "b",
+        "a",
+        "c",
+        "",
+        ""
+      ],
+      "0",
+      [
+        "b",
+        "a"
+      ]
+    ],
+    "PackedStringArray.reverse": [
+      "c",
+      "a",
+      "b"
+    ],
+    "PackedStringArray.rfind": "4",
+    "PackedStringArray.set": [
+      "b",
+      "d",
+      "c"
+    ],
+    "PackedStringArray.size": "3",
+    "PackedStringArray.slice": [
+      "a"
+    ],
+    "PackedStringArray.sort": [
+      "a",
+      "b",
+      "c"
+    ],
+    "PackedStringArray.to_byte_array": "620061006300",
+    "PackedVector2Array.append": [
+      false,
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ],
+        [
+          "4.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.append_array": [
+      [
+        "2.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "4.0"
+      ],
+      [
+        "3.0",
+        "0.0"
+      ],
+      [
+        "2.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "4.0"
+      ],
+      [
+        "3.0",
+        "0.0"
+      ]
+    ],
+    "PackedVector2Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedVector2Array.clear": [],
+    "PackedVector2Array.count": "2",
+    "PackedVector2Array.duplicate": [
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ]
+      ],
+      [
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.erase": [
+      true,
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.fill": [
+      [
+        "4.0",
+        "2.0"
+      ],
+      [
+        "4.0",
+        "2.0"
+      ],
+      [
+        "4.0",
+        "2.0"
+      ]
+    ],
+    "PackedVector2Array.find": "0",
+    "PackedVector2Array.get": [
+      "1.0",
+      "4.0"
+    ],
+    "PackedVector2Array.has": [
+      true,
+      false
+    ],
+    "PackedVector2Array.insert": [
+      "0",
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "4.0",
+          "2.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedVector2Array.new": [
+      [],
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedVector2Array.operator *": [
+      [
+        "-2.0",
+        "0.0"
+      ],
+      [
+        "1.0",
+        "1.0"
+      ],
+      [
+        "-3.0",
+        "-1.0"
+      ]
+    ],
+    "PackedVector2Array.operator +": [
+      [
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ],
+        [
+          "4.0",
+          "2.0"
+        ]
+      ],
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ]
+      ],
+      [
+        [
+          "4.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedVector2Array.operator in": [
+      true,
+      false
+    ],
+    "PackedVector2Array.operator not": [
+      true,
+      false
+    ],
+    "PackedVector2Array.push_back": [
+      false,
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ],
+        [
+          "4.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.remove_at": [
+      [
+        "2.0",
+        "1.0"
+      ],
+      [
+        "3.0",
+        "0.0"
+      ]
+    ],
+    "PackedVector2Array.resize": [
+      "0",
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ],
+        [
+          "3.0",
+          "0.0"
+        ],
+        [
+          "0.0",
+          "0.0"
+        ],
+        [
+          "0.0",
+          "0.0"
+        ]
+      ],
+      "0",
+      [
+        [
+          "2.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0"
+        ]
+      ]
+    ],
+    "PackedVector2Array.reverse": [
+      [
+        "3.0",
+        "0.0"
+      ],
+      [
+        "1.0",
+        "4.0"
+      ],
+      [
+        "2.0",
+        "1.0"
+      ]
+    ],
+    "PackedVector2Array.rfind": "4",
+    "PackedVector2Array.set": [
+      [
+        "2.0",
+        "1.0"
+      ],
+      [
+        "4.0",
+        "2.0"
+      ],
+      [
+        "3.0",
+        "0.0"
+      ]
+    ],
+    "PackedVector2Array.size": "3",
+    "PackedVector2Array.slice": [
+      [
+        "1.0",
+        "4.0"
+      ]
+    ],
+    "PackedVector2Array.sort": [
+      [
+        "1.0",
+        "4.0"
+      ],
+      [
+        "2.0",
+        "1.0"
+      ],
+      [
+        "3.0",
+        "0.0"
+      ]
+    ],
+    "PackedVector2Array.to_byte_array": "000000400000803f0000803f000080400000404000000000",
+    "PackedVector3Array.append": [
+      false,
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.append_array": [
+      [
+        "2.0",
+        "1.0",
+        "0.0"
+      ],
+      [
+        "1.0",
+        "4.0",
+        "2.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "2.0",
+        "1.0",
+        "0.0"
+      ],
+      [
+        "1.0",
+        "4.0",
+        "2.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedVector3Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedVector3Array.clear": [],
+    "PackedVector3Array.count": "2",
+    "PackedVector3Array.duplicate": [
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ]
+      ],
+      [
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.erase": [
+      true,
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.fill": [
+      [
+        "4.0",
+        "2.0",
+        "3.0"
+      ],
+      [
+        "4.0",
+        "2.0",
+        "3.0"
+      ],
+      [
+        "4.0",
+        "2.0",
+        "3.0"
+      ]
+    ],
+    "PackedVector3Array.find": "0",
+    "PackedVector3Array.get": [
+      "1.0",
+      "4.0",
+      "2.0"
+    ],
+    "PackedVector3Array.has": [
+      true,
+      false
+    ],
+    "PackedVector3Array.insert": [
+      "0",
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedVector3Array.new": [
+      [],
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedVector3Array.operator *": [
+      [
+        "-2.0",
+        "0.0",
+        "-4.0"
+      ],
+      [
+        "1.0",
+        "1.0",
+        "-2.0"
+      ],
+      [
+        "-3.0",
+        "-1.0",
+        "-3.0"
+      ]
+    ],
+    "PackedVector3Array.operator +": [
+      [
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0"
+        ]
+      ],
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ]
+      ],
+      [
+        [
+          "4.0",
+          "2.0",
+          "3.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedVector3Array.operator in": [
+      true,
+      false
+    ],
+    "PackedVector3Array.operator not": [
+      true,
+      false
+    ],
+    "PackedVector3Array.push_back": [
+      false,
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.remove_at": [
+      [
+        "2.0",
+        "1.0",
+        "0.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedVector3Array.resize": [
+      "0",
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "0.0"
+        ]
+      ],
+      "0",
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector3Array.reverse": [
+      [
+        "3.0",
+        "0.0",
+        "1.0"
+      ],
+      [
+        "1.0",
+        "4.0",
+        "2.0"
+      ],
+      [
+        "2.0",
+        "1.0",
+        "0.0"
+      ]
+    ],
+    "PackedVector3Array.rfind": "4",
+    "PackedVector3Array.set": [
+      [
+        "2.0",
+        "1.0",
+        "0.0"
+      ],
+      [
+        "4.0",
+        "2.0",
+        "3.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedVector3Array.size": "3",
+    "PackedVector3Array.slice": [
+      [
+        "1.0",
+        "4.0",
+        "2.0"
+      ]
+    ],
+    "PackedVector3Array.sort": [
+      [
+        "1.0",
+        "4.0",
+        "2.0"
+      ],
+      [
+        "2.0",
+        "1.0",
+        "0.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0"
+      ]
+    ],
+    "PackedVector3Array.to_byte_array": "000000400000803f000000000000803f000080400000004000004040000000000000803f",
+    "PackedVector4Array.append": [
+      false,
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.append_array": [
+      [
+        "2.0",
+        "1.0",
+        "0.0",
+        "3.0"
+      ],
+      [
+        "1.0",
+        "4.0",
+        "2.0",
+        "0.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0",
+        "2.0"
+      ],
+      [
+        "2.0",
+        "1.0",
+        "0.0",
+        "3.0"
+      ],
+      [
+        "1.0",
+        "4.0",
+        "2.0",
+        "0.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0",
+        "2.0"
+      ]
+    ],
+    "PackedVector4Array.bsearch": [
+      "1",
+      "2"
+    ],
+    "PackedVector4Array.clear": [],
+    "PackedVector4Array.count": "2",
+    "PackedVector4Array.duplicate": [
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ]
+      ],
+      [
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.erase": [
+      true,
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.fill": [
+      [
+        "4.0",
+        "2.0",
+        "3.0",
+        "1.0"
+      ],
+      [
+        "4.0",
+        "2.0",
+        "3.0",
+        "1.0"
+      ],
+      [
+        "4.0",
+        "2.0",
+        "3.0",
+        "1.0"
+      ]
+    ],
+    "PackedVector4Array.find": "0",
+    "PackedVector4Array.get": [
+      "1.0",
+      "4.0",
+      "2.0",
+      "0.0"
+    ],
+    "PackedVector4Array.has": [
+      true,
+      false
+    ],
+    "PackedVector4Array.insert": [
+      "0",
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0",
+          "1.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.is_empty": [
+      false,
+      true
+    ],
+    "PackedVector4Array.new": [
+      [],
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.operator !=": [
+      false,
+      true
+    ],
+    "PackedVector4Array.operator +": [
+      [
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0",
+          "1.0"
+        ]
+      ],
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ]
+      ],
+      [
+        [
+          "4.0",
+          "2.0",
+          "3.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.operator ==": [
+      true,
+      false
+    ],
+    "PackedVector4Array.operator in": [
+      true,
+      false
+    ],
+    "PackedVector4Array.operator not": [
+      true,
+      false
+    ],
+    "PackedVector4Array.push_back": [
+      false,
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ],
+        [
+          "4.0",
+          "2.0",
+          "3.0",
+          "1.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.remove_at": [
+      [
+        "2.0",
+        "1.0",
+        "0.0",
+        "3.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0",
+        "2.0"
+      ]
+    ],
+    "PackedVector4Array.resize": [
+      "0",
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ],
+        [
+          "3.0",
+          "0.0",
+          "1.0",
+          "2.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        [
+          "0.0",
+          "0.0",
+          "0.0",
+          "0.0"
+        ]
+      ],
+      "0",
+      [
+        [
+          "2.0",
+          "1.0",
+          "0.0",
+          "3.0"
+        ],
+        [
+          "1.0",
+          "4.0",
+          "2.0",
+          "0.0"
+        ]
+      ]
+    ],
+    "PackedVector4Array.reverse": [
+      [
+        "3.0",
+        "0.0",
+        "1.0",
+        "2.0"
+      ],
+      [
+        "1.0",
+        "4.0",
+        "2.0",
+        "0.0"
+      ],
+      [
+        "2.0",
+        "1.0",
+        "0.0",
+        "3.0"
+      ]
+    ],
+    "PackedVector4Array.rfind": "4",
+    "PackedVector4Array.set": [
+      [
+        "2.0",
+        "1.0",
+        "0.0",
+        "3.0"
+      ],
+      [
+        "4.0",
+        "2.0",
+        "3.0",
+        "1.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0",
+        "2.0"
+      ]
+    ],
+    "PackedVector4Array.size": "3",
+    "PackedVector4Array.slice": [
+      [
+        "1.0",
+        "4.0",
+        "2.0",
+        "0.0"
+      ]
+    ],
+    "PackedVector4Array.sort": [
+      [
+        "1.0",
+        "4.0",
+        "2.0",
+        "0.0"
+      ],
+      [
+        "2.0",
+        "1.0",
+        "0.0",
+        "3.0"
+      ],
+      [
+        "3.0",
+        "0.0",
+        "1.0",
+        "2.0"
+      ]
+    ],
+    "PackedVector4Array.to_byte_array": "000000400000803f00000000000040400000803f00008040000000400000000000004040000000000000803f00000040"
+  }
+}

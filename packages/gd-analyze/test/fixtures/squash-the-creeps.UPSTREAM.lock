@@ -1,0 +1,65 @@
+{
+  "id": "squash-the-creeps",
+  "upstreams": [
+    {
+      "repo": "https://github.com/godotengine/godot-3d-dodge-the-creeps",
+      "commit": "c4a5001286ac457678cb1411a28c57361eaf8279",
+      "branch": "master",
+      "upstream_path": "dodge_the_creeps_3d",
+      "license": "MIT",
+      "license_file": "LICENSE",
+      "retrieved": "2026-08-03",
+      "vendored_into": ".",
+      "vendored_paths": [
+        "dodge_the_creeps_3d",
+        "LICENSE",
+        "README.md"
+      ],
+      "note": "Squash the Creeps (3D) — the finished game from Godot's own 'Your first 3D game' tutorial, and the Godot lane's FIRST 3D fixture: the 2D pilot (dodge-the-creeps) proved the pipe, this one exercises the 3D surface the lane's emission target actually differentiates on. Small enough to run the whole pipe on (4 scripts / 4 scenes) while exercising what the 2D pilot never touched — Spatial/KinematicBody/CollisionShape/MeshInstance/Camera/AnimationPlayer node trees, `Transform( basis…, origin… )` and `Vector3(...)` property values, .tres SpatialMaterial sub-resources, and .glb ext-resources. This is an ANALYSIS FIXTURE, not a runnable ingest — nothing serves it, the import ladder measures it — which is why it lives here rather than in vendor/games/.\n\nWHY THIS REPO AND NOT `godot-demo-projects@3.x`. The WO-G8 order named `3d/squash_the_creeps` in `godotengine/godot-demo-projects` at the same commit dodge-the-creeps is pinned to (fe1ccaea7725053f760d7a30b8a44619686224e8). MEASURED, not assumed: that path DOES NOT EXIST on the `3.x` branch. `git ls-tree fe1ccaea 3d/` lists global_illumination, ik, kinematic_character, material_testers, navmesh, physics_tests, platformer, rigidbody_character, truck_town, voxel, waypoints and README.md — no squash_the_creeps — and fe1ccaea IS the 3.x branch tip, so no other 3.x commit has it either; `3.5` and `4.0` do not have it either. `3d/squash_the_creeps` exists ONLY on `master`, where its `project.godot` reads `config_version=5` / `config/features=PackedStringArray(\"4.7\")` — a Godot 4 project, in a dialect this lane's pinned Godot 3.6 `api.json` and `config_version=4` readers cannot serve, and adopting it would have made the fixture a Godot-4 port order rather than a 3D order.\n\nThe SAME GAME in the Godot 3 dialect is `godotengine/godot-3d-dodge-the-creeps`, the official standalone repo the demo lived in before it was rewritten for Godot 4 (its README: 'This demo project was merged into the main godot-demo-projects repository'). It is archived, so its tip commit c4a5001 is a permanent pin. `dodge_the_creeps_3d/project.godot` reads `config_version=4` and `config/name=\"Squash the Creeps (3D)\"` — the identical dialect ROTA and the 2D pilot are read in, so the one pinned api.json serves all three. Every property the order actually wanted is preserved: same game, 3D, Godot 3, `godotengine` org, MIT, byte-identical vendoring. The fixture id stays `squash-the-creeps` (the project's own name) rather than the repo's directory name, because the directory name is the pre-rename artifact and would read as a second 2D fixture.\n\nLICENSE VERIFICATION, every file read at the pinned commit: the repository root carries LICENSE, verbatim MIT (Copyright (c) 2020 GDQuest), no additional terms — vendored to the fixture root, which is why `license_file` resolves. The repo-root README.md carries the third-party terms and is vendored beside it, which is what carries the attribution those terms require: art/'House In a Forest Loop.ogg' is CC-BY 3.0 (HorrorPen, opengameart.org) — byte-identical to the 2D pilot's copy, sha256 32680f2b…, the same asset in both demos — and fonts/Montserrat-Medium.ttf is SIL OFL 1.1 (The Montserrat Project Authors) with its own fonts/LICENSE.txt vendored beside it. The 3D art (art/mob.glb, art/player.glb, and the SpatialMaterial .tres files) is GDQuest's own, under the root MIT.",
+      "excluded_from_upstream": {
+        "rule": "The whole `dodge_the_creeps_3d/` project tree is vendored byte-for-byte at the fixture root — 26 of 26 files, the two sets identical rather than merely equal in size — plus the repository-root LICENSE and README.md, which the project tree does not carry and which the license verification above depends on. Excluded is exactly what lies OUTSIDE the Godot project and outside its licence story: the repository-root .gitignore, the two Blender sources under 3d_models/, and the README banner image.",
+        "why": "MEASURED FIRST, as the 2D pilot's and rota's were. The whole repository is 3.79 MB, of which the vendored project tree is 1.90 MB; the 1.89 MB excluded is 1.84 MB of Blender sources (3d_models/mob.blend, 3d_models/player.blend) plus a 49 KB README banner and a 184-byte ignore file. The .blend files are the AUTHORING sources for art/mob.glb and art/player.glb: they live outside `res://`, no `res://` reference in any scene, script or .import sidecar names them, and Godot itself never opens them on this pin (the 3.x importer reads the .glb). Vendoring them would carry 1.84 MB the reader can never reach, to prove nothing. The banner is README chrome; the root .gitignore is the REPOSITORY's, not the project's. Two file classes were decided rather than defaulted. (1) Godot's `.import` sidecars are editor artifacts the S0 reader never opens — kept anyway, because they are part of what upstream tracks under the project directory and excluding them would make the vendored set a judgement call instead of a fact ('the whole project tree' needs no rule). (2) The project's OWN `.gitignore` (`.import`, `logs/`) is a nested ignore file that takes effect inside THIS repo — checked, and it matches no vendored path (the sidecars are named `<file>.glb.import`, not `.import`), so it is carried unaltered like everything else. Note that excluding the .blend files changes no diagnostic: `ext-resource-opaque` is a statement about the FORMAT this reader opens, reported identically whether or not the bytes are present, and nothing references the .blend files in the first place.",
+        "file_count": 4,
+        "bytes": 1885313,
+        "paths": [
+          ".gitignore",
+          "3d_models/mob.blend",
+          "3d_models/player.blend",
+          "images/3d-game-banner.png"
+        ]
+      }
+    }
+  ],
+  "vendored_file_count": 28,
+  "vendored_bytes": 1903731,
+  "sha256_manifest": {
+    ".gitignore": "b3e95a48ca3f4e98ea98039246ad051a2c157aaecc1a99f6607766e493afe5d3",
+    "LICENSE": "7b7d2c7bd988121d2ffcfb98e48a662c1df1f4634d3d2003b2fac60883fea0e6",
+    "Main.gd": "a51ad7b34dfcc4c4e06d881c8d6fc974707c03af81b261b5b14323c39603b844",
+    "Main.tscn": "269b2eb066d5651340a145ddd02956a4a61d762d771eaaaeaa483f074752f51f",
+    "Mob.gd": "3ca95b7578abd6fbec4e25b4d4602118224fa582ff1cdb1ee882c1e2cdaafb44",
+    "Mob.tscn": "45509f3fedc54cb25d98c1c71d139a6cc48602145581af5c71220646762ccc53",
+    "MusicPlayer.tscn": "6c2947f786f15b80cc616fe9f293c6175d68bfe3be8c88c05c5e077c48f37994",
+    "Player.gd": "3f642b78eafff0e30d402759183dcaae40f26059938e4170c0bd12748177389d",
+    "Player.tscn": "c52a5807b96d254e65bd6b209da1e6035465541e497238ff599283eb7c760f88",
+    "README.md": "0a8c3fa762e50c2366e3fd62c93d659943bd9ee1a909e5eeb27744cb933a1c39",
+    "ScoreLabel.gd": "b12e74e27372d3a2971d8e9e7e486c4bfee3543180febfc8a31f4dcc73e68481",
+    "art/House In a Forest Loop.ogg": "32680f2b2631eb9f6e2902ebbbec1b43ab82b4dbf154fdc9bfbfa17b03270504",
+    "art/House In a Forest Loop.ogg.import": "06c1595a211964aa84df95bdcc746dd5398f2a7ed7d3b2266fa9d3d766f3d3e3",
+    "art/body.tres": "cc37b607d0942fac2aa287eb6d385eaf67aacbab545786d688bf1751b722fa71",
+    "art/eye.tres": "deb38cfa1e6fe74c938c4ae41354c5aa6445916574d9a978671f2193577f8261",
+    "art/mob.glb": "8a82adb5bfba8c22f9c1a0d692e4d25c2f9055cb7e6f6acd6f61ac169079818c",
+    "art/mob.glb.import": "8495068af059e74a2766087679228ce20a0cd5c930733fc000d77b0520574c7a",
+    "art/mob_body.tres": "e23f5933dbf7cdfdd8a300f155c15c0c596d4099ec139e02b4aa553b17de827a",
+    "art/mob_eye.tres": "2560c0f861f9e13d49aa3f3bdaa570b8cb6d120e79e5c7fd359a926a83cbdfa6",
+    "art/player.glb": "05d8588e8032a674e309ccb4d04578fb578b8da1629096b1036f628593801942",
+    "art/player.glb.import": "44b663f1abd6e172731ffd6f5ea3b6abc7739f4c372c43c9c374dabe7065dd65",
+    "art/pupil.tres": "33d8bd48a0f5165c4f3a48ded9cc69fdd54f08971c4ac52e68e0d58e53661564",
+    "fonts/LICENSE.txt": "7a05af5e0552b46fbca086d777a251897082e77b840ab59199916a83cbab24f7",
+    "fonts/Montserrat-Medium.ttf": "92b3d3c6e135eb1dc95f88e6ca75bd6113d9eb3261a95ca39f733e3897e53675",
+    "icon.png": "b4d207be225380144b03f0e5584d3acc58f0abe4c09a265dcab8649adcd770aa",
+    "icon.png.import": "242a6bdf772ab886116087f9fb9b59d7caa90f0bca2a2e7bc6ddacd3271d63a2",
+    "project.godot": "80c80a86df81ecdb96305ecf678b4933e308e974c43befc41c410036446c133d",
+    "ui_theme.tres": "adb90dc5a8ebcae0025c7855e6bf24776e40d06011236459bf563f5782d8b209"
+  }
+}
