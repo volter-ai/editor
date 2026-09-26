@@ -30,7 +30,7 @@ The 2D toolbar, left to right:
 | Pivot mode | "Click to change object's pivot. Shift: Set temporary pivot." |
 | Pan mode | "You can also use Pan View shortcut (Space by default) to pan in any mode." |
 | Ruler mode | "LMB+Drag: Measure the distance between two points in 2D space." |
-| Smart snap and grid snap | two toggles |
+| Smart snap and grid snap | two toggles, both off by default (the frame shows neither pressed; a pressed cube-icon toggle beside them has no tooltip in the dump and is unidentified) |
 | Snapping Options | Use Rotation Snap, Use Scale Snap, Snap Relative, Use Pixel Snap (on); Smart Snapping: Snap to Parent, Node Anchor, Node Sides, Node Center, Other Nodes, Guides (all on); Configure Snap… |
 | Lock | "Lock selected node, preventing selection and movement." |
 | Group | "Groups the selected node with its children. This causes the parent to be selected when any child node is clicked in 2D and 3D view." |
@@ -55,14 +55,17 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Inspector (Transform: x, y, rotation, scale) | Inspector | writes the source's JSX attribute; undo restores it |
 | Select, Move, Rotate, Scale | Select, Move, Rotate, Scale modes | present |
 | Transform (all handles) | Select mode's handles | present: the box's eight handles and the rotate handle; a corner drag anchors the opposite corner |
-| Toggle snap, Snap settings (translate, rotate, scale steps) | Smart snap, grid snap, Snapping Options | one toggle for both kinds; alignment to parent, sibling sides and guides happens under it; no per-target switches |
+| Toggle smart snap | Smart snap | present: a move aligns the box's sides or centre to the parent, other nodes' sides and centres, and guides (walked: on writes 580 against a neighbour's edge, off writes the free 581.5) |
+| Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options | the translate, rotate and scale steps, and Smart Snapping's targets (Parent, Node Sides, Node Center, Guides); Godot's Node Anchor, Snap Relative and Use Pixel Snap have no row |
 | Rulers; guides dragged from them, moved, removed by right-click | rulers and guides | present |
-| Origin lines | View › Show Origin | drawn, not switchable |
-| Toggle 2D grid | View › Grid | present |
+| View menu: Show Grid, Rulers, Guides, Origin, Viewport; Center Selection, Frame Selection, Clear Guides | View | present, each switch the view's own; walked through the menu's clicks |
+| The game's viewport rectangle | View › Show Viewport | the manifest's `resolution` from the origin |
+| Toggle 2D grid | View › Grid | a shortcut to the menu's switch |
 | Frame all, Frame selection | View › Frame Selection; Center View | present |
 | Zoom out, percentage (resets to 100%), zoom in | zoom widget | present |
 | Middle-drag, right-drag, Space-drag pan; wheel zooms at the cursor | Pan mode and Pan View | present, no Pan mode button |
 | Alt-hover measurement between the selection and another node | Ruler mode | a Figma-style distance, not a free measure |
+| Stationary right-click: the nodes under the pointer | Alt+RMB list; List Select mode | present on right-click, no mode button |
 | Hierarchy lock toggle | Lock | in the hierarchy only |
 | Reference point (the circle at the node's origin) | pivot | drawn; see gaps |
 
@@ -70,15 +73,10 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 
 Each is a control the reference has a home for and we lack, or have in a weaker form:
 
-1. The viewport rectangle: the manifest's `resolution` drawn from the origin (View › Show Viewport).
-2. A View menu owning grid, rulers, guides, origin and viewport visibility, Center Selection, Frame
-   Selection and Clear Guides.
-3. List Select: a list of the nodes under the pointer (Alt+RMB and the mode).
-4. Smart snapping as its own toggle, beside grid snap, with its targets (parent, node sides, node
-   centre, other nodes, guides) switchable in Snapping Options.
-5. Ruler mode: a drag that measures distance and angle between two points.
-6. A selection frame turned with a rotated node.
-7. Pivot mode, Lock and Group in the toolbar, where a `canvas` source can state them.
+1. List Select and Pan as modes in the toolbar (their gestures exist).
+2. Ruler mode: a drag that measures distance and angle between two points.
+3. A selection frame turned with a rotated node.
+4. Pivot mode, Lock and Group in the toolbar, where a `canvas` source can state them.
 
 Below this line is planning, not measurement: whether a Pixi `pivot` write is the right answer to
 Godot's pivot mode, and what Group means for a JSX tree, are decided when those rows are built.

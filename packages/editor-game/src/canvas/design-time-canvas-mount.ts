@@ -12,6 +12,7 @@ import type {
   LayerMountResult,
 } from '@volter/editor-sdk/kit/authoring/design-time-layers';
 import type { DesignTimeMountContext } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
+import { connectSourceFileEvents } from '@volter/editor-sdk/kit/asset-events';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { threeStoreForHost } from '@volter/editor-threejs/kit/three-state';
 
@@ -46,4 +47,33 @@ export async function mountCanvasDesignTimeLayer(
     activationDocumentId ? () => recordViewportFirstFrame(activationDocumentId) : undefined,
   );
   return { adapter: mounted.adapter, dispose: () => mounted.dispose() };
+}
+
+/**
+ * ABSORB-BY-REMOUNT (`DesignTimeMount.remountWhen`): a canvas world is re-executed from its source
+ * whenever a project source module changes, whoever wrote it. Nothing else re-runs it: the design
+ * layer's entry is imported once per mount, the packaged editor has no Vite client to deliver Fast
+ * Refresh, and an external edit to the world left the scene (and every value the Inspector and a
+ * gesture read from it) on the old source until the document was reopened. The server's source
+ * watcher reports every `src/` module change as `source-files-changed` (a hosted project with no
+ * path reports `''`, which still means something changed).
+ *
+ * REMOUNT, not re-project: a canvas layer's content is one native `<Application>` the disposer must
+ * tear down before a second one draws into the same box.
+ */
+export function remountWhenSourceIsWritten(invalidate: () => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const unwatch = connectSourceFileEvents((path) => {
+    if (path !== '' && !/^src\/.+\.(?:[cm]?tsx?|jsx?)$/.test(path)) return;
+    if (timer !== null) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      invalidate();
+    }, 150);
+  });
+  return () => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+    unwatch();
+  };
 }

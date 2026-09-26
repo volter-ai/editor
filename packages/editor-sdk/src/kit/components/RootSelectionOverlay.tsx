@@ -1868,12 +1868,14 @@ export function RootSelectionOverlay({
             gesture.origRect,
             gesture.context,
             gesture.moveAxis,
-            !store.snapEnabled || e.altKey,
+            // Alignment is smart snapping's, beside the grid's step (Godot's two toggles).
+            !store.smartSnap.enabled || e.altKey,
             EDGE_SNAP_THRESHOLD_PX / Math.max(pan.zoom, 0.01),
             {
               x: nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
               y: nativeGuides.filter((guide) => guide.axis === 'y').map((guide) => guide.value),
             },
+            store.smartSnap,
           );
           if (patch['originX'] !== undefined) patch['originX'] = snapped.position.x;
           if (patch['originY'] !== undefined) patch['originY'] = snapped.position.y;

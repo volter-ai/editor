@@ -35,6 +35,16 @@ export type PlayEditRegime = 'ephemeral' | null;
 /** The authoring tool a view's gizmo arms. */
 export type TransformMode = 'select' | 'combined' | 'translate' | 'rotate' | 'scale';
 export type TransformSpace = 'world' | 'local';
+/** Smart snapping's switch and its targets: the parent's box, other nodes' sides and centres, and
+ *  the view's guides. */
+export interface SmartSnap {
+  readonly enabled: boolean;
+  readonly parent: boolean;
+  readonly sides: boolean;
+  readonly center: boolean;
+  readonly guides: boolean;
+}
+
 export type PivotMode = 'active-element' | 'median-point' | 'individual-origins';
 
 /**
@@ -243,6 +253,13 @@ export class ShellStore implements ShellDocumentState {
   protected _snapEnabled = false;
   protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
   protected _snapToSurface = false;
+  protected _smartSnap: SmartSnap = {
+    enabled: false,
+    parent: true,
+    sides: true,
+    center: true,
+    guides: true,
+  };
   protected _preserveChildrenTransform = false;
   protected _pivotMode: PivotMode = 'active-element';
   protected _gizmoAnchor: GizmoAnchor = 'auto';
@@ -282,6 +299,11 @@ export class ShellStore implements ShellDocumentState {
   get snapToSurface(): boolean {
     return this._snapToSurface;
   }
+  /** A 2D move's alignment to other things, beside the grid's step (Godot's Smart Snap and its
+   *  Snapping Options targets; off by default there, every target on). */
+  get smartSnap(): Readonly<SmartSnap> {
+    return this._smartSnap;
+  }
   get preserveChildrenTransform(): boolean {
     return this._preserveChildrenTransform;
   }
@@ -316,6 +338,11 @@ export class ShellStore implements ShellDocumentState {
 
   setSnapValues(values: Partial<{ translate: number; rotate: number; scale: number }>): void {
     this._snapValues = { ...this._snapValues, ...values };
+    this._notify();
+  }
+
+  setSmartSnap(choice: Partial<SmartSnap>): void {
+    this._smartSnap = { ...this._smartSnap, ...choice };
     this._notify();
   }
 

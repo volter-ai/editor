@@ -1,5 +1,6 @@
 import {
   faArrowDown,
+  faArrowsToDot,
   type faArrowsUpDownLeftRight,
   faBullseye,
   faCaretDown,
@@ -100,7 +101,25 @@ function SnapButton({
   return (
     <div ref={ref} className="vgai-viewport-popover-anchor">
       <SplitButtonGroup>
-        <Tooltip text="Toggle Snap" hotkey={shortcutFor('viewport.toggleSnap')}>
+        {dimensions === '2d' && (
+          // Godot's 2D toolbar has two snap toggles: smart snapping (alignment to the parent,
+          // other nodes and guides) and grid snapping (the step). This is the first.
+          <Tooltip text="Smart Snap">
+            <IconButton
+              aria-label="Toggle smart snap"
+              aria-pressed={store.smartSnap.enabled}
+              variant={variant}
+              size={size}
+              onClick={() => store.setSmartSnap({ enabled: !store.smartSnap.enabled })}
+            >
+              <EditorIcon icon={faArrowsToDot} size="md" />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Tooltip
+          text={dimensions === '2d' ? 'Grid Snap' : 'Toggle Snap'}
+          hotkey={shortcutFor('viewport.toggleSnap')}
+        >
           <IconButton
             aria-label="Toggle snap"
             aria-pressed={store.snapEnabled}
@@ -171,6 +190,33 @@ function SnapButton({
                 store.setSnapValues({ scale: Number(event.target.value) || 0.25 })
               }
             />
+            {dimensions === '2d' && (
+              <>
+                <Text variant="caption" tone="muted">
+                  Smart Snapping
+                </Text>
+                {(
+                  [
+                    ['parent', 'Snap to Parent'],
+                    ['sides', 'Snap to Node Sides'],
+                    ['center', 'Snap to Node Center'],
+                    ['guides', 'Snap to Guides'],
+                  ] as const
+                ).map(([target, label]) => (
+                  <Inline
+                    key={target}
+                    gap={2}
+                    align="center"
+                    role="menuitemcheckbox"
+                    aria-checked={store.smartSnap[target]}
+                    onClick={() => store.setSmartSnap({ [target]: !store.smartSnap[target] })}
+                  >
+                    <Checkbox checked={store.smartSnap[target]} readOnly />
+                    <Text>{label}</Text>
+                  </Inline>
+                ))}
+              </>
+            )}
             {dimensions === '3d' && (
               <>
                 <Inline gap={2} align="center" onClick={() => store.toggleSnapToSurface()}>

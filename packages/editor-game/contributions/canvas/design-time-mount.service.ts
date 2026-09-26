@@ -26,5 +26,20 @@ export function start(): () => void {
       const { mountCanvasDesignTimeLayer } = await import('../../src/canvas/design-time-canvas-mount');
       return mountCanvasDesignTimeLayer(candidate, layer, context);
     },
+    remountWhen: (invalidate) => {
+      let stopped = false;
+      let stop: (() => void) | null = null;
+      // Loaded here for the same reason the mount is: the host calls this only when a canvas
+      // candidate exists.
+      void import('../../src/canvas/design-time-canvas-mount').then((module) => {
+        if (stopped) return;
+        stop = module.remountWhenSourceIsWritten(invalidate);
+      });
+      return () => {
+        stopped = true;
+        stop?.();
+        stop = null;
+      };
+    },
   });
 }

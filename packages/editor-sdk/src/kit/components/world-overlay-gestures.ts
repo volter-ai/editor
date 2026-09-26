@@ -634,39 +634,53 @@ export function computeNativeMoveSnap(
   free = false,
   threshold = EDGE_SNAP_THRESHOLD_PX,
   authoredGuides: { x?: readonly number[]; y?: readonly number[] } = {},
+  targets: SmartSnapTargets = ALL_SMART_SNAP_TARGETS,
 ): PointSnapResult {
-  if (free || (!context && !authoredGuides.x?.length && !authoredGuides.y?.length)) {
-    return { position: proposedOrigin, guides: [] };
-  }
+  if (free) return { position: proposedOrigin, guides: [] };
   const movedRect: RectLike = {
     x: originalRect.x + proposedOrigin.x - originalOrigin.x,
     y: originalRect.y + proposedOrigin.y - originalOrigin.y,
     width: originalRect.width,
     height: originalRect.height,
   };
-  const targets = context ? snapTargetsForContext(context) : null;
-  const xCandidates = targets ? xEdgeCandidates(targets) : [];
-  const yCandidates = targets ? yEdgeCandidates(targets) : [];
-  for (const edge of authoredGuides.x ?? []) {
-    xCandidates.push({
-      edge,
-      rect: { x: edge, y: movedRect.y, width: 0, height: movedRect.height },
-    });
+  const xCandidates: SnapEdgeCandidate[] = [];
+  const yCandidates: SnapEdgeCandidate[] = [];
+  const addRect = (rect: RectLike, sides: boolean, center: boolean): void => {
+    if (sides) {
+      xCandidates.push({ edge: rect.x, rect }, { edge: rect.x + rect.width, rect });
+      yCandidates.push({ edge: rect.y, rect }, { edge: rect.y + rect.height, rect });
+    }
+    if (center) {
+      xCandidates.push({ edge: rect.x + rect.width / 2, rect });
+      yCandidates.push({ edge: rect.y + rect.height / 2, rect });
+    }
+  };
+  if (context) {
+    const found = snapTargetsForContext(context);
+    if (targets.parent && found.paddingBox.width > 0 && found.paddingBox.height > 0) {
+      addRect(found.paddingBox, true, true);
+    }
+    for (const sibling of found.siblingRects) addRect(sibling, targets.sides, targets.center);
   }
-  for (const edge of authoredGuides.y ?? []) {
-    yCandidates.push({
-      edge,
-      rect: { x: movedRect.x, y: edge, width: movedRect.width, height: 0 },
-    });
+  if (targets.guides) {
+    for (const edge of [...(context?.guideEdges?.x ?? []), ...(authoredGuides.x ?? [])]) {
+      xCandidates.push({ edge, rect: { x: edge, y: movedRect.y, width: 0, height: movedRect.height } });
+    }
+    for (const edge of [...(context?.guideEdges?.y ?? []), ...(authoredGuides.y ?? [])]) {
+      yCandidates.push({ edge, rect: { x: movedRect.x, y: edge, width: movedRect.width, height: 0 } });
+    }
+  }
+  if (xCandidates.length === 0 && yCandidates.length === 0) {
+    return { position: proposedOrigin, guides: [] };
   }
   const xMatch =
     axis === 'y'
       ? { value: movedRect.x, match: null }
-      : edgeSnapBox(movedRect.x, movedRect.width, xCandidates, threshold);
+      : alignBox(movedRect.x, movedRect.width, xCandidates, threshold);
   const yMatch =
     axis === 'x'
       ? { value: movedRect.y, match: null }
-      : edgeSnapBox(movedRect.y, movedRect.height, yCandidates, threshold);
+      : alignBox(movedRect.y, movedRect.height, yCandidates, threshold);
   const snappedRect = { ...movedRect, x: xMatch.value, y: yMatch.value };
   return {
     position: {
@@ -675,6 +689,39 @@ export function computeNativeMoveSnap(
     },
     guides: guidesFromMatches(snappedRect, xMatch.match, yMatch.match),
   };
+}
+
+/** Which things a native 2D move aligns to (Godot's Smart Snapping targets). */
+export interface SmartSnapTargets {
+  readonly parent: boolean;
+  readonly sides: boolean;
+  readonly center: boolean;
+  readonly guides: boolean;
+}
+
+const ALL_SMART_SNAP_TARGETS: SmartSnapTargets = { parent: true, sides: true, center: true, guides: true };
+
+/** {@link edgeSnapBox} with the box's centre as a third point that may align, for a move whose
+ *  targets include centres. */
+function alignBox(
+  value: number,
+  size: number,
+  candidates: readonly SnapEdgeCandidate[],
+  threshold: number,
+): { value: number; match: SnapEdgeCandidate | null } {
+  const edges = edgeSnapBox(value, size, candidates, threshold);
+  let best = edges.value;
+  let match = edges.match;
+  let bestDelta = match ? Math.abs(best - value) : threshold;
+  for (const c of candidates) {
+    const d = Math.abs(value + size / 2 - c.edge);
+    if (d < bestDelta) {
+      bestDelta = d;
+      best = c.edge - size / 2;
+      match = c;
+    }
+  }
+  return { value: best, match };
 }
 
 /**
