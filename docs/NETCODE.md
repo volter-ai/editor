@@ -46,7 +46,7 @@ not a render.
 | Start/Stop, Autostart, Clear, and the message log's type filter | Godot's profiler Start/Stop, Autostart and Clear | present: stopped, nothing is tallied (traffic, entities, log) while frames still pass; Autostart (kept per checkout) decides whether a run starts recording; Clear resets the log and both tables (walked: a send while stopped left every row unchanged and `position` read 2 out after three sends; with Autostart off a rerun started stopped with no rows; Clear, earlier, 2 rows to 0) |
 | Send as this client (type, JSON payload) | (neither reference: Monitor's Send goes from the server to a client) | into the room as this client (walked on a workbench carrying the focus gate: `position` with `{"x":3,"y":0,"z":2}` moved the player to (3, 2) on the server, and typing "dddddddd" into the field left the running game's player where it was) |
 | Ping, and its round trip | (neither reference; Unity's multiplayer tools show RTT) | present: the SDK's own PING frame through the game's socket (walked: 2 ms on loopback) |
-| Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Not walked: its fields are scrub controls the document door's drag does not move |
+| Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses (walked: 200 typed into latency took Ping from 4 ms to 202 ms) |
 | Server: rooms (name, id, clients, lock, age; Inspect another), connections, CPU, memory, state size; the inspected room's Broadcast and Dispose; each client's Send and Disconnect, the message being the Send row's draft | Monitor's room list, room view and Clients tab | present, through Monitor's own API on the room server, which the editor's `server` configuration turns on (`VGAI_ROOM_MONITOR=1`; a production start leaves Monitor off). Walked: Broadcast and Send each delivered `hello` to this client; Dispose removed the room and disconnected it; Disconnect took this client to disconnected. Inspecting another room shows that room's own state from the server, and its edits and deletes act in that room (walked: with a second client in room B, deleting `orbs.orb_12` in B's tree took B from 6 orbs to 5 and left room A at 6) |
 | Each state field's replicated type beside it (`float32`, `uint16`, `map<schema>`), read from the join handshake's schema reflection | Godot's Replication panel (what a synchronizer syncs) | partial: the types are shown (walked); a Colyseus schema syncs every declared field on change, so Godot's per-property Spawn and Replicate modes have no counterpart, and a nested schema reads `schema` because the reflection carries no class name |
 | Player name (the adapter's identity, when it offers one) | (neither reference) | the Colyseus observer offers none, so it does not render |
@@ -58,6 +58,5 @@ Judged against the references by an independent reviewer on 2026-09-26, ranked; 
 server-side acts, the Replication types, a Clear that resets Traffic, the entity table, Start/Stop
 and Autostart are now present:
 
-1. The conditioner is not walked: its fields are scrub controls the document door's drag does not
-   move.
+None open; the conditioner is walked.
 
