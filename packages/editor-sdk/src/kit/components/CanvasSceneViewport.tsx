@@ -137,7 +137,7 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
   // drawn line (zoomed out far enough, every other line thins away by powers of two).
   const grid = store.snap2D;
   const minor = adaptiveGridWorldSpacing(pose.zoom, grid.step) * pose.zoom;
-  const major = minor * 4;
+  const major = minor * Math.max(1, Math.round(grid.primaryEvery));
   const gridX = pose.x + grid.offsetX * pose.zoom;
   const gridY = pose.y + grid.offsetY * pose.zoom;
   return (

@@ -805,6 +805,9 @@ interface GestureState {
   nativeOrigin?: { x: number; y: number };
   nativeScaleAxis?: 'x' | 'y' | 'both';
   nativeHandleSpan?: number;
+  /** A native rotate's starting angle on screen, degrees: Godot snaps the angle itself (step and
+   *  offset), not the turn, unless Snap Relative. */
+  startAngleDeg?: number;
   /** Other selected nodes moved by the same direct-manipulation gesture. */
   movePeers?: readonly MovePeer[];
 }
@@ -1692,9 +1695,11 @@ export function RootSelectionOverlay({
       const rect = rectForId(adapter, id);
       if (!owner || !rect) return;
       const nativeOrigin = transformModeAware ? owner.gizmoOrigin?.(id) : null;
+      const frame = nativeOrigin ? frameForId(adapter, id) : null;
       capturePointer(e);
       owner.begin(id);
       gestureRef.current = {
+        ...(frame ? { startAngleDeg: (frameAngle(frame) * 180) / Math.PI } : {}),
         kind: 'rotate',
         id,
         ownerBoxEdit: owner,
@@ -2007,14 +2012,24 @@ export function RootSelectionOverlay({
         patch = { referenceX: snapped.position.x, referenceY: snapped.position.y };
         setSnapGuides(snapped.guides);
       } else if (gesture.kind === 'rotate') {
+        const absolute =
+          gesture.nativeOrigin && gesture.startAngleDeg !== undefined && !store.snap2D.relative;
         patch = computeRotatePatch(
           gesture.center!,
           gesture.startLocal,
           local,
           // A 2D rotation steps under its own switch (Godot's Use Rotation Snap).
-          gesture.nativeOrigin ? !store.rotationSnap || e.altKey : e.altKey,
+          gesture.nativeOrigin ? absolute || !store.rotationSnap || e.altKey : e.altKey,
           gesture.nativeOrigin ? store.snapValues.rotate : 15,
         );
+        if (absolute && store.rotationSnap && !e.altKey && patch['rotate'] !== undefined) {
+          // Godot's Configure Snap: the angle lands on the step from the rotation offset.
+          const step = store.snapValues.rotate;
+          const offset = store.snap2D.rotationOffset;
+          const start = gesture.startAngleDeg!;
+          const angle = start + patch['rotate'];
+          patch = { rotate: Math.round((angle - offset) / step) * step + offset - start };
+        }
       } else {
         patch = computeSpacingPatch(gesture.side!, dx, dy, gesture.origValue ?? 0);
       }

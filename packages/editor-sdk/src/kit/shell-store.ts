@@ -41,6 +41,10 @@ export interface Snap2D {
   readonly step: number;
   readonly offsetX: number;
   readonly offsetY: number;
+  /** A primary (stronger) grid line every this many steps. */
+  readonly primaryEvery: number;
+  /** Degrees a snapped rotation is offset from multiples of the rotate step. */
+  readonly rotationOffset: number;
   readonly relative: boolean;
   readonly pixel: boolean;
 }
@@ -265,7 +269,15 @@ export class ShellStore implements ShellDocumentState {
   protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
   protected _snapToSurface = false;
   protected _rotationSnap = false;
-  protected _snap2D: Snap2D = { step: 8, offsetX: 0, offsetY: 0, relative: false, pixel: true };
+  protected _snap2D: Snap2D = {
+    step: 8,
+    offsetX: 0,
+    offsetY: 0,
+    primaryEvery: 8,
+    rotationOffset: 0,
+    relative: false,
+    pixel: true,
+  };
   protected _scaleSnap = false;
   protected _smartSnap: SmartSnap = {
     enabled: false,

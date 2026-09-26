@@ -216,6 +216,17 @@ function SnapButton({
                     onChange={(event) => store.setSnap2D({ offsetY: Number(event.target.value) || 0 })}
                   />
                 </Inline>
+                <Text variant="caption" tone="muted">
+                  Primary Line Every (steps)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Primary line every"
+                  value={store.snap2D.primaryEvery}
+                  step={1}
+                  min={1}
+                  onChange={(event) => store.setSnap2D({ primaryEvery: Number(event.target.value) || 8 })}
+                />
               </>
             ) : (
               <>
@@ -245,6 +256,20 @@ function SnapButton({
                 store.setSnapValues({ rotate: Number(event.target.value) || 15 })
               }
             />
+            {dimensions === '2d' && (
+              <>
+                <Text variant="caption" tone="muted">
+                  Rotation Offset (deg)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Rotation offset"
+                  value={store.snap2D.rotationOffset}
+                  step={1}
+                  onChange={(event) => store.setSnap2D({ rotationOffset: Number(event.target.value) || 0 })}
+                />
+              </>
+            )}
             <Text variant="caption" tone="muted">
               Scale
             </Text>
