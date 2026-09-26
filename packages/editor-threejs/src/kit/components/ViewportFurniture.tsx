@@ -416,11 +416,10 @@ export function ViewportFurniture({
           style={{
             position: 'absolute',
             top: 'var(--vgai-viewport-overlay-top, var(--vgai-space-4))',
-            // Past the tool shelf when the tools ride it, as the view text is.
+            // Past the shelf rail when it draws anything, as the view text is; at the edge when
+            // it is empty (`data-vgai-stage-rail`, `workspace-surfaces.css`).
             left:
-              chrome.tools === 'shelf'
-                ? 'calc(var(--vgai-space-4) + var(--vgai-control-comfortable-height) * 2 + var(--vgai-space-4))'
-                : 'var(--vgai-space-2)',
+              'var(--vgai-stage-name-left, calc(var(--vgai-space-4) + var(--vgai-control-comfortable-height) * 2 + var(--vgai-space-4)))',
             zIndex: 'calc(var(--vgai-z-dropdown, 1000) - 1)',
             pointerEvents: 'auto',
           }}

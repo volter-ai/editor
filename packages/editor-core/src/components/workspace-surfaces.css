@@ -452,6 +452,11 @@
   box-shadow: none;
 }
 
+/* An empty rail leaves the stage's left edge to the controls the look puts there. */
+.vgai-dock-document-content[data-vgai-stage-rail="empty"] {
+  --vgai-stage-name-left: var(--vgai-space-2);
+}
+
 /* THE VIEW'S NAME AS A PILL (`stage.chrome.viewName` `menu`, Godot's "⋮ Perspective"): the
    pill is the button, so the menu it opens does not widen it. */
 .vgai-viewport-view-pill .vgai-btn[data-testid="viewport-view-name"] {

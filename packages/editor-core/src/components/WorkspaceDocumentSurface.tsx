@@ -151,6 +151,9 @@ export function WorkspaceDocumentSurface({
         data-vgai-stage-bar={placesStage && stageChrome.bar !== 'none' ? stageChrome.bar : undefined}
         data-vgai-stage-display={placesStage ? stageChrome.display : undefined}
         data-vgai-stage-tools={placesStage && driver !== 'none' ? stageChrome.tools : undefined}
+        // Whether the shelf rail draws anything, so a control placed at the stage's left edge
+        // (Godot's view pill) stands past it only when it is there.
+        data-vgai-stage-rail={chrome && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
         {/* THE STAGE'S BAR, when the look draws one: only its band; the controls it carries
