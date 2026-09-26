@@ -34,10 +34,12 @@ export function setUpVoices(synth: WorkletSynthesizer, piece: Piece, bankOffset:
   for (const track of piece.tracks) {
     const voice = voices.get(track.id);
     if (!voice) continue;
+    // On the drum channel the program is the kit (GS numbering); bank offsets do not separate
+    // kits, so a bank's kit is chosen by its own program number.
     if (voice.channel !== DRUM_CHANNEL) {
       synth.controllerChange(voice.channel, 0, (voice.bank ? (bankOffset.get(voice.bank) ?? 0) : 0) + voice.bankNumber);
-      synth.programChange(voice.channel, voice.program);
     }
+    synth.programChange(voice.channel, voice.program);
     // Level and pan are the mix's faders and panners (`mix/live-mix.ts`), not the synth's
     // controllers, so they are applied once; the synth channel stays at unity and centre.
     synth.controllerChange(voice.channel, 7, 127);

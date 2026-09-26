@@ -432,7 +432,7 @@
       "patches": [
         {
           "name": "Percussion",
-          "program": 0,
+          "program": 49,
           "sfz": "GM-StylePerc.sfz",
           "bankNumber": 128
         }

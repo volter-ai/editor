@@ -194,10 +194,10 @@ function synthEvents(
       sample: 0,
       rank: 0,
       apply: (synth) => {
-        if (channel !== DRUM_CHANNEL) {
-          synth.controllerChange(channel, 0 as never, (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber);
-          synth.programChange(channel, assignment.program);
-        }
+        // On the drum channel the program is the kit (GS numbering); bank offsets do not separate
+        // kits, so a bank's kit is chosen by its own program number.
+        if (channel !== DRUM_CHANNEL) synth.controllerChange(channel, 0 as never, (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber);
+        synth.programChange(channel, assignment.program);
         synth.controllerChange(channel, 7 as never, 127);
         synth.controllerChange(channel, 10 as never, 64);
       },

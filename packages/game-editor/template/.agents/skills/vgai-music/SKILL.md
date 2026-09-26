@@ -72,9 +72,42 @@ export default function Theme() {
 - Code that generates notes spells them with `formatAt(beats, beatsPerBar)` and
   `formatPitch(midi)` from `@volter/dawproject`.
 
+## Sampled instruments
+
+The General MIDI SoundFont is a sketch palette. For the finished sound, VS Chamber Orchestra 2
+Community Edition (CC0) builds into one bank per instrument, once per machine:
+
+```bash
+npx tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB, builds ~/.volter/banks/vsco2-ce
+ln -sfn ~/.volter/banks/vsco2-ce/vsco2 sounds/vsco2                   # never commit the banks
+```
+
+A track names its bank and program; `articulations` sends a note's `artic` to the patch that
+recorded it, and the rest of its notes to `program`:
+
+```tsx
+<Device plugin="soundfont" name="Violins" params={{
+  bank: 'sounds/vsco2/violins.sf2', program: 48,
+  articulations: { staccato: 80, staccatissimo: 80, pizzicato: 45, tremolo: 44 },
+}} />
+```
+
+Programs (sustain at its General MIDI number; `node_modules/@volter/editor-dawproject/banks/vsco2-ce.json`
+is the full table): violins 48 (spiccato 80, pizzicato 45, tremolo 44, quiet 81); violas 41
+(82, 83, 84, 85); cellos 42 (86, 87, 88, 89); contrabass 43 (90, 91, 92; non-vibrato 93,
+quiet 94); solo violin 40 (95, 96, 97, 98); harp 46; flute 73 (staccato 99, non-vibrato 100,
+expressive 101); piccolo 72 (107); oboe 68 (102, non-vibrato 103); clarinet 71 (104);
+bassoon 70 (105, vibrato 106); horn 60 (staccato 108, muted 109); trumpet 56 (110, vibrato
+111, straight mute 59, harmon 112); trombone 57 (113, vibrato 114); tuba 58 (115); timpani 47
+(rolls 116); mallets: glockenspiel 9, marimba 12, xylophone 13, tubular bells 14; organ 19,
+quiet 20 (pedals 117, 118); upright piano 0 and 1; percussion: `percussion.sf2`, `program: 49,
+drums: true` (on the drum channel the program chooses the kit). Mind each instrument's real range: the violin section starts at G3.
+`pizzicato` or `tremolo` on an instrument with no patch for it is a `check-piece` problem.
+
 ## Expression
 
-- `artic` on a note: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato`, `legato`.
+- `artic` on a note: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato`, `legato`, and the
+  techniques `pizzicato` and `tremolo` (played by a patch the instrument maps, see above).
 - A lane in a clip: `<Points target="cc11"><Point at="9:1" value={0.8} /></Points>` (0–1;
   `cc11` expression, `cc1` modulation, `cc64` sustain, `pitchbend` −1…1); points ramp to the
   next unless one says `hold`. In `<Transport>`, `<Points target="tempo">` takes BPM.
