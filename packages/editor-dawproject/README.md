@@ -29,7 +29,7 @@ CLIs, under `tsx`:
 
 | Script | What it does |
 | --- | --- |
-| `scripts/render-piece.ts` | Loop-ready 24-bit WAV (`smpl` loop), OGG, stems, loudness to a target (EBU R128), `report.json` |
+| `scripts/render-piece.ts` | Loop-ready 24-bit WAV (`smpl` loop), OGG, stems, loudness to a target (EBU R128), `report.json` with the bar lines; `--sections` adds a seamless loop per marker section, `--one-shot` renders a stinger |
 | `scripts/check-piece.ts` | Clip bounds, whole bars, instrument ranges, parallel fifths and octaves, re-strikes |
 | `scripts/view-piece.ts` | Every part beat by beat over a bar range; a generated note is marked `~` |
 | `scripts/freeze-clip.ts` | Rewrites a clip's generated notes and lanes into literal elements, in place |

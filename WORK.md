@@ -177,7 +177,16 @@ stack byte-identically, and generated notes refuse and name their line. Renders 
 A render of the probe piece takes 86 s. `freeze-clip` wrote the piece's three generated
 clips out as literals with the vertical view and `check-piece` unchanged. The editor's mix
 graph, rendered offline in the page on the export's own dry signals, nulls against the
-export's mix at −140.1 dB over the whole piece (strips, reverb bus, master dynamics).
+export's mix at −140.1 dB over the whole piece (strips, reverb bus, master dynamics). The
+export plays every note and controller on its exact sample (two passes of one slice null at
+−104 dB wherever the loop falls against the synth's 128-sample block).
+
+For a game, `add music` brings the packages, the `vgai-music` skill and a player;
+`render-piece --sections` writes each marker section as its own seamless loop at the mix's
+level (lengths exact to the frame against the report's `barSeconds`) and `--one-shot` a
+stinger. Driven in the editor page on an OfflineAudioContext, the player switched from one
+section loop to the next on the bar line it computed (6.05 s, the report's bar 3 plus the
+lead), with the output equal to each loop's own samples on either side of the fade.
 
 Open, with what closes each:
 - Live against export, synth half: the preview's worklet synthesizer and its real-time
@@ -185,8 +194,14 @@ Open, with what closes each:
   measured above).
 - Game delivery: stingers and adaptive segments or layers, exported with loop points.
 - Sampled instruments beyond the General MIDI SoundFont (sfizz), measured against native.
-- A music product (`create` with a starter piece and the composing guide), in place of
-  opening pieces in the game editor.
+- Renders are written by the CLI, not through the project-output door, so
+  `.vgai/provenance.json` does not record the OGGs a game ships; a render tool on the bake
+  tools' precedent closes it.
+- A section loop's audio equals its bars in the whole piece only where the synthesizer's
+  state does not depend on what it played before: events match to the sample, and a pass
+  preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
+  its bars in the whole loop at −92 dB past its first 3 s (the wrapped tail), but section A at
+  −23 dB (flute and cello most). The state that carries is not identified.
 - A zero-root project graded a phantom root in the session coverage; fixed in
   `editor-core`, live once the product is rebuilt.
 
