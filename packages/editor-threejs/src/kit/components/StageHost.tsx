@@ -1650,13 +1650,14 @@ export function Object3DDocumentViewport({
         if (retainedCamera) {
           // Top views and rolled views have their own up direction, which setPose's lookAt
           // derives the orientation with.
-          viewport.setProjection(projection);
           viewport.setPose(
             retainedCamera.position,
             retainedCamera.target,
             retainedCamera.fov || undefined,
             retainedCamera.up,
           );
+          // After the pose, which draws in perspective: an orthographic view comes back as one.
+          viewport.setProjection(projection);
           retainedState.camera = null;
         }
         const documentSession = host.session;
