@@ -82,6 +82,11 @@ function timecents(seconds: number): number {
   return Math.round(1200 * Math.log2(Math.max(0.001, seconds)));
 }
 
+/** The samples an SFZ file's converted regions read (after round robins keep their first), relative to its library. */
+export function sfzSamples(sfz: string): string[] {
+  return [...new Set(convertedRegions([{ name: 'sfz', program: 0, sfz, sample: () => ({ channels: [], sampleRate: 0 }) }])[0]!.regions.map((region) => region.path))];
+}
+
 /** Every region to convert, with its sample path and its gain. */
 function convertedRegions(patches: readonly SfzPatch[]) {
   return patches.map((patch) => {
@@ -135,6 +140,8 @@ export function sfzBank(patches: readonly SfzPatch[], headroomDb?: number): Arra
 
   const bank = new BasicSoundBank();
   bank.soundBankInfo.name = 'VSCO 2 CE';
+  // A fixed date (VSCO 2 CE 1.1.0's release), so the same library builds the same bytes.
+  bank.soundBankInfo.creationDate = new Date('2021-04-06T00:00:00Z');
   const samples = new Map<string, EmptySample[]>();
   const sampleFor = (path: string, key: number): EmptySample[] => {
     const cached = samples.get(path);
