@@ -21,14 +21,14 @@ import type { ToolDocumentEntry } from '@volter/editor-sdk/contributions';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import type { DocumentEntry } from '@volter/editor-project/adapter/adapter-module';
 import { type ComponentType, useSyncExternalStore } from 'react';
-import { setSelectedAsset } from '../asset-selection';
+import { setSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   awaitAnnouncedObject3DDocumentSession,
   waitForContributedDocumentMount,
-} from '../document-context-registry';
+} from '@volter/editor-sdk/kit/document-context-registry';
 import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
-import type { AssetKind } from '../asset-selection';
+import type { AssetKind } from '@volter/editor-sdk/kit/asset-selection';
 import {
   projectAdapterFacet,
   type ResolvedDocumentTable,
@@ -39,7 +39,7 @@ import {
   getGlobalToolContributions,
   subscribeToolContributions,
 } from '../tool-loader';
-import { waitUntil } from '../wait-until';
+import { waitUntil } from '@volter/editor-sdk/kit/wait-until';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   type OpenWorkspaceDocumentOptions,
@@ -48,7 +48,7 @@ import {
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
-import { openAssetDocument } from './asset-documents';
+import { openAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
 import { ToolHost } from './ToolHost';
 
 const PREFIX = 'document:';

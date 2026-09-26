@@ -16,7 +16,7 @@ import {
   contributedMenuItems,
   subscribeContributedChrome,
 } from '@volter/editor-sdk/kit/chrome-registry';
-import { openCommandPalette } from '../editor-commands';
+import { openCommandPalette } from '@volter/editor-sdk/kit/editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorViewUrl } from '../editor-current-view';
 import {
@@ -56,7 +56,7 @@ import {
   workspaceApplies,
 } from '../workspace-presets';
 import { subscribeWorkspaceStyles, workspaceStylesVersion } from '../workspace-style';
-import { toggleConsoleUtility } from '../workspace-utility-commands';
+import { toggleConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
 import { openProjectToolsDocument } from './project-tool-documents';
 import { openToolDocument } from './tool-documents';
 

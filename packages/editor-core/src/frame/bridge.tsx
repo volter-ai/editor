@@ -30,7 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
-import { setFramePartShown } from './frame-parts';
+import { setFramePartShown } from '@volter/editor-sdk/kit/frame/frame-parts';
 import { setWorkspaceStorageProvider, type WorkspaceStorageProvider } from '@volter/editor-sdk/kit/workspace-storage';
 import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
@@ -75,7 +75,7 @@ import {
   setCommandExecutor,
   setPaletteOpener,
   subscribePaletteActions,
-} from '../editor-commands';
+} from '@volter/editor-sdk/kit/editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';

@@ -1,6 +1,6 @@
 import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
 import { ProjectHeader } from '@volter/editor-core/components/ProjectHeader';
-import { ensureCoreStatusContributionsRegistered } from '@volter/editor-core/components/status-contributions';
+import { ensureCoreStatusContributionsRegistered } from '@volter/editor-sdk/kit/components/status-contributions';
 import {
   installStoryWorkspaceUtilityController,
   StoryEditorRuntime,

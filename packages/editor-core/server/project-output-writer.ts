@@ -30,7 +30,7 @@ import type {
   ProjectOutputProvenanceContext,
   ProjectOutputWriter,
 } from '@volter/editor-sdk/tools/types';
-import { withExclusiveLock } from '../src/asset-workflow/ledger-write-lock';
+import { withExclusiveLock } from '@volter/editor-sdk/kit/asset-workflow/ledger-write-lock';
 import { ledgerLockIo } from './asset-ledger-store';
 import { readGenerationJobs } from './generation-jobs';
 import { consumeGenerativeExecutions } from './generative-execution-context';

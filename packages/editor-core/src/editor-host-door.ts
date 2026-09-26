@@ -29,7 +29,7 @@ import {
   documentContextFor,
   notifyDocumentContextChanged,
   waitForDocumentContext,
-} from './document-context-registry';
+} from '@volter/editor-sdk/kit/document-context-registry';
 import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { resolvedProjectDocumentTable } from './project-adapter';
@@ -104,7 +104,7 @@ import {
 } from '@volter/editor-sdk/kit/project-local-state';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { onProjectReady } from './project-ready';
-import { projectMounts } from './project-shape';
+import { projectMounts } from '@volter/editor-sdk/kit/project-shape';
 import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';
 import { onBeforeSessionClose } from './session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from '@volter/editor-sdk/kit/settings/settings-provider';

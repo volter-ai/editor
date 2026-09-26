@@ -19,8 +19,8 @@ import { activeDocumentContainer } from './editor-document-probe';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { activeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { liveFrameCanvas, liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
-import { projectDocumentKinds } from './project-shape';
-import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
+import { projectDocumentKinds } from '@volter/editor-sdk/kit/project-shape';
+import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '@volter/editor-sdk/kit/wait-until';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,

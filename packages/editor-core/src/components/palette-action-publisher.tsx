@@ -25,7 +25,7 @@ import {
   subscribeContributedChrome,
 } from '@volter/editor-sdk/kit/chrome-registry';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import { publishPaletteActions } from '../editor-commands';
+import { publishPaletteActions } from '@volter/editor-sdk/kit/editor-commands';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';

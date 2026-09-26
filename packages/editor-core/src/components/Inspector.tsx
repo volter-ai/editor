@@ -24,7 +24,7 @@ import { faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icon
 import { Button, EditorIcon, IconButton, Panel, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useReducer, useSyncExternalStore } from 'react';
-import { assetSelectionVersion, subscribeAssetSelection } from '../asset-selection';
+import { assetSelectionVersion, subscribeAssetSelection } from '@volter/editor-sdk/kit/asset-selection';
 import { getActiveCamera } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
@@ -34,15 +34,15 @@ import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { composeInspectionForBinding } from '../inspection/active-subject';
 import type { InspectionPresentation, InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
 import { useActiveInspection } from '../inspection/use-active-inspection';
-import { setInspectorPresentationOverride } from '../inspector-presentation';
+import { setInspectorPresentationOverride } from '@volter/editor-sdk/kit/inspector-presentation';
 import {
   inspectorSectionRegistryVersion,
   subscribeInspectorSectionRegistry,
 } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { liveAuthoringRefusal } from '@volter/editor-sdk/kit/live-session-registry';
-import { projectMounts } from '../project-shape';
+import { projectMounts } from '@volter/editor-sdk/kit/project-shape';
 import type { WorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { InspectionProjectionView } from './InspectionProjection';
+import { InspectionProjectionView } from '@volter/editor-sdk/kit/components/InspectionProjection';
 
 export interface AuthoringInspectorSurfaceProps {
   readonly store: ShellStore;

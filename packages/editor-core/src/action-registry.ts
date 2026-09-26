@@ -32,7 +32,7 @@ import {
   workspaceApplies,
 } from './workspace-presets';
 import { applyWorkspaceStyle, workspaceStyles } from './workspace-style';
-import { toggleConsoleUtility } from './workspace-utility-commands';
+import { toggleConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
 
 export interface EditorAction {
   id: string;

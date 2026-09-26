@@ -25,7 +25,7 @@ import type { EditorAction } from '../action-registry';
 import {
   awaitAnnouncedObject3DDocumentSession,
   waitForContributedDocumentMount,
-} from '../document-context-registry';
+} from '@volter/editor-sdk/kit/document-context-registry';
 import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import {
   contributionFailureHint,

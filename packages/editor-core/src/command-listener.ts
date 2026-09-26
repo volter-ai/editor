@@ -32,7 +32,7 @@ import type {
   InspectedWriteDestination,
   HelperVisibility as SdkHelperVisibility,
 } from '@volter/editor-sdk';
-import { type AssetKind, setSelectedAsset } from './asset-selection';
+import { type AssetKind, setSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { systemsForInstance } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { getMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
@@ -52,7 +52,7 @@ import {
   isAssetDocumentId,
   openAssetDocument,
   waitForAssetDocumentInspector,
-} from './components/asset-documents';
+} from '@volter/editor-sdk/kit/components/asset-documents';
 import { openSceneTableEntryWhenListed } from './components/scene-documents';
 import { systemAdapterEpoch } from '@volter/editor-sdk/kit/system-seam-evidence';
 import {
@@ -143,8 +143,8 @@ import {
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { ontologyInvariantFacet } from './coverage/session-vitals';
-import { documentContextFor, waitForDocumentContext } from './document-context-registry';
-import { executeCommand, openCommandPalette } from './editor-commands';
+import { documentContextFor, waitForDocumentContext } from '@volter/editor-sdk/kit/document-context-registry';
+import { executeCommand, openCommandPalette } from '@volter/editor-sdk/kit/editor-commands';
 import { runDocumentProbe } from './editor-document-probe';
 import {
   captureActiveEditorDocument,
@@ -186,7 +186,7 @@ import {
   workspaceStyles,
 } from './workspace-style';
 import { documentContributionForKind } from './tool-loader';
-import { toggleConsoleUtility } from './workspace-utility-commands';
+import { toggleConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
 import { worldAdoptionFacet } from './world-adoption';
 
 export interface EditorCommand {

@@ -36,7 +36,7 @@ import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
 import { activeProduct, subscribeActiveProduct } from './active-product';
 import { adapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
 import { layoutPolicy, subscribeLayoutPolicy } from '@volter/editor-sdk/kit/layout-policy';
-import { projectDeclaresDocumentKind, projectMounts, subscribeProjectShape } from './project-shape';
+import { projectDeclaresDocumentKind, projectMounts, subscribeProjectShape } from '@volter/editor-sdk/kit/project-shape';
 /** Imported arrangements may supply their own persistence identity. */
 import { setWorkspaceAreas } from './workspace-areas';
 import { setWorkspaceRegions } from '@volter/editor-sdk/kit/workspace-regions';

@@ -172,7 +172,7 @@ import {
   OUTLINER_EXCLUDE_ON,
   OUTLINER_RENDER_OFF,
   OUTLINER_RENDER_ON,
-} from '../hierarchy-kind-icon';
+} from '@volter/editor-sdk/kit/hierarchy-kind-icon';
 import { getHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
 import {
   flattenHierarchyRows,

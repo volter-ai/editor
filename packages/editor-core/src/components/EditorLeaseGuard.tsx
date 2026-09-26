@@ -71,7 +71,7 @@ import {
   type LeaseWatchState,
   reduceLeasePoll,
 } from '@volter/editor-sdk/kit/editor-lease';
-import { publishEditorLeaseView } from '../editor-lease-view';
+import { publishEditorLeaseView } from '@volter/editor-sdk/kit/editor-lease-view';
 import { dismissNotification, notify } from '../editor-notifications';
 import { connectEvents, readControlChannelState } from '@volter/editor-sdk/kit/editor-presence';
 import { clearSessionOrphanRecord, writeSessionOrphanRecord } from '../session-orphan-record';

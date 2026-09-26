@@ -15,7 +15,7 @@ import {
   getToolContributionLoadFailures,
   subscribeToolContributions,
 } from '../tool-loader';
-import { waitUntil } from '../wait-until';
+import { waitUntil } from '@volter/editor-sdk/kit/wait-until';
 import {
   activeWorkspaceDocumentId,
   openWorkspaceDocument,

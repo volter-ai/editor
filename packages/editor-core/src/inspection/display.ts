@@ -35,7 +35,7 @@
 import {
   type InspectorPresentationOverride,
   resolveInspectorPresentation,
-} from '../inspector-presentation';
+} from '@volter/editor-sdk/kit/inspector-presentation';
 import type {
   WorkspaceDocumentKind,
   WorkspaceDocumentSelection,

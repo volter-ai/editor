@@ -15,7 +15,7 @@ import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { assetDocumentSpec } from './asset-documents';
+import { assetDocumentSpec } from '@volter/editor-sdk/kit/components/asset-documents';
 import { DocumentHeaderStrip } from './DocumentHeaderStrip';
 import { DocumentShelfRail } from './DocumentShelfRail';
 

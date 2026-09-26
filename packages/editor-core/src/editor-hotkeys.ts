@@ -26,7 +26,7 @@ import {
   readSpacingValues,
   rectForId,
 } from '@volter/editor-sdk/kit/components/world-overlay-gestures';
-import { openCommandPalette } from './editor-commands';
+import { openCommandPalette } from '@volter/editor-sdk/kit/editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorHostKeyAction } from '@volter/editor-sdk/host';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
@@ -49,7 +49,7 @@ import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { saveActiveWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { toggleWorkspaceFocus } from '@volter/editor-sdk/kit/workspace-host-commands';
 import { cycleEditorWorkspace } from './workspace-presets';
-import { toggleConsoleUtility } from './workspace-utility-commands';
+import { toggleConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
 
 // 'inspector' belongs here: the inspector shows the SELECTED NODE, so a user
 // who just edited a field expects node-scoped clipboard/duplicate to still

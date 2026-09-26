@@ -31,7 +31,7 @@ import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { openAssetDocument } from './asset-documents';
+import { openAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
 import { WorkspaceDocumentSurface } from './WorkspaceDocumentSurface';
 
 const documentOwners = new Map<

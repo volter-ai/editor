@@ -36,7 +36,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { clearSelectedAsset, getSelectedAsset, setSelectedAsset } from '../asset-selection';
+import { clearSelectedAsset, getSelectedAsset, setSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import {
   type AssetCapabilityKind,
   assetCapabilities,
@@ -84,7 +84,7 @@ import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-reg
 import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore, useHistoryService } from '@volter/editor-sdk/kit/editor-runtime';
-import type { AssetKind as DocumentAssetKind } from '../asset-selection';
+import type { AssetKind as DocumentAssetKind } from '@volter/editor-sdk/kit/asset-selection';
 import { hierarchyNodesBreadthFirst } from '@volter/editor-sdk/kit/hierarchy-walk';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
@@ -106,7 +106,7 @@ import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { openAssetDocument, openAuthoringAssetDocument } from './asset-documents';
+import { openAssetDocument, openAuthoringAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
 import {
   type AssetGlyphKind,
   AssetIcon,
@@ -114,7 +114,7 @@ import {
   ModelThumbnail,
   TypedAssetThumbnail,
 } from '@volter/editor-sdk/kit/components/asset-thumbnails';
-import { SpritesheetSpriteView } from './asset-viewers/SpritesheetSpriteView';
+import { SpritesheetSpriteView } from '@volter/editor-sdk/kit/components/asset-viewers/SpritesheetSpriteView';
 import { DocumentThumbnail } from './DocumentThumbnail';
 import { FolderPreviewTile } from './FolderPreviewTile';
 import { openKindDocument, uneditedKindAssetKind } from './kind-documents';

@@ -30,7 +30,7 @@ import {
   assetSelectionVersion,
   clearSelectedAsset,
   subscribeAssetSelection,
-} from '../asset-selection';
+} from '@volter/editor-sdk/kit/asset-selection';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
@@ -47,8 +47,8 @@ import {
   workspaceViewportRect,
   workspaceViewportRectVersion,
 } from '../workspace-viewport-rect';
-import { CompactInspectorHostProvider } from './CompactInspectorShell';
-import { InspectorPill } from './InspectionProjection';
+import { CompactInspectorHostProvider } from '@volter/editor-sdk/kit/components/CompactInspectorShell';
+import { InspectorPill } from '@volter/editor-sdk/kit/components/InspectionProjection';
 import { Inspector } from './Inspector';
 
 /**

@@ -112,7 +112,7 @@ import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { setPresentationRegions } from '@volter/editor-sdk/kit/presentation-surface';
 import { type ActiveProject, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/project-manager';
 import { projectModuleChangeMatches, subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';
-import { notifyProjectShapeChanged, registerDocumentKindsSupplier } from './project-shape';
+import { notifyProjectShapeChanged, registerDocumentKindsSupplier } from '@volter/editor-sdk/kit/project-shape';
 import { resolveRelativeSpecifier } from '@volter/editor-sdk/kit/resolve-relative-specifier';
 import { storyPrefabsFinder } from './stories/prefabs-finder';
 import {

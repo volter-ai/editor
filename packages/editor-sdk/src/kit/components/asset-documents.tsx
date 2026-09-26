@@ -118,7 +118,8 @@ export interface AssetDocumentMutation {
   paths?: readonly string[];
 }
 
-const hotData = import.meta.hot?.data;
+// Vite's HMR context when a dev server serves this module; the SDK carries no bundler types.
+const hotData = (import.meta as ImportMeta & { hot?: { data: Record<string, unknown> } }).hot?.data;
 const _specs =
   (hotData?.['vgai:asset-document-specs'] as Map<string, AssetDocumentSpec> | undefined) ??
   new Map<string, AssetDocumentSpec>();

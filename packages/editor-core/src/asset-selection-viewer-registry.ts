@@ -40,7 +40,7 @@
  */
 
 import type { ComponentType } from 'react';
-import type { SelectedAsset } from './asset-selection';
+import type { SelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 
 export interface AssetSelectionViewerProps {
   readonly asset: SelectedAsset;

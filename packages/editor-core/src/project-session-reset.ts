@@ -28,7 +28,7 @@ import { resetAvailableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspa
  * round trip.
  */
 
-import { clearSelectedAsset } from './asset-selection';
+import { clearSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { resetActiveSystemsForNewProject } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { resetSessionVitalsForNewProject } from './coverage/session-vitals';

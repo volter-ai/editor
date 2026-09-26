@@ -16,7 +16,7 @@
 import type {
   CloudAssetManifestResponse,
   CloudAssetRecord,
-} from '../src/asset-workflow/cloud-asset-client';
+} from '@volter/editor-sdk/kit/asset-workflow/cloud-asset-client';
 
 export const DEFAULT_CLOUD_ASSET_BASE_URL = 'https://vgai-asset-library.aaron-0ed.workers.dev';
 
@@ -25,7 +25,7 @@ export type {
   CloudAssetManifestResponse,
   CloudAssetObject,
   CloudAssetRecord,
-} from '../src/asset-workflow/cloud-asset-client';
+} from '@volter/editor-sdk/kit/asset-workflow/cloud-asset-client';
 
 let cachedManifest:
   | { value: CloudAssetManifestResponse; url: string; loadedAt: number }

@@ -62,7 +62,7 @@ import {
   subscribeEditorLeaseView,
 } from '../editor-lease-view';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { createHmrRegistrationGroup, type HmrRegistrationContext } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { useProjectMounts } from '../project-shape';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
@@ -320,7 +320,11 @@ export function ProjectUtilitiesStatus() {
   );
 }
 
-const registrationGroup = createHmrRegistrationGroup(import.meta.hot, 'core-status-contributions');
+const registrationGroup = createHmrRegistrationGroup(
+  // Vite's HMR context when a dev server serves this module; the SDK carries no bundler types.
+  (import.meta as ImportMeta & { hot?: HmrRegistrationContext }).hot,
+  'core-status-contributions',
+);
 
 /** Idempotent one-time registration of the core status contributions
  *  (same ensure idiom as `ensureBuildContributionsRegistered`). */

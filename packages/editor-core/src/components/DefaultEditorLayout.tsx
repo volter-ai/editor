@@ -1,6 +1,6 @@
 import { lazy, Suspense, use, useEffect, useSyncExternalStore } from 'react';
 import { connectAssetEvents } from '@volter/editor-sdk/kit/asset-events';
-import { installAssetSelectionAutoClear } from '../asset-selection';
+import { installAssetSelectionAutoClear } from '@volter/editor-sdk/kit/asset-selection';
 import { registerEditorShellHotkeys } from '../editor-hotkeys';
 import {
   useEditorInit,
@@ -9,14 +9,14 @@ import {
   useHistoryService,
 } from '@volter/editor-sdk/kit/editor-runtime';
 import { installAuxiliaryEvents } from '../workspace-aux-commands';
-import { installUtilityAutoOpen } from '../workspace-utility-commands';
+import { installUtilityAutoOpen } from '@volter/editor-sdk/kit/workspace-utility-commands';
 import { AgentPresentationNotice } from './AgentPresentationNotice';
 import { useCenterDocuments } from './CenterDocuments';
 import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
 import { installKindDocumentRefresh } from './kind-documents';
 import { ProjectLayout } from './ProjectLayout';
 import { PaletteActionPublisher } from './palette-action-publisher';
-import { ensureCoreStatusContributionsRegistered } from './status-contributions';
+import { ensureCoreStatusContributionsRegistered } from '@volter/editor-sdk/kit/components/status-contributions';
 import { installStandingToolDocuments } from './tool-documents';
 import { setWorkspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
 

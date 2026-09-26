@@ -11,7 +11,7 @@ import {
   assetSelectionVersion,
   getSelectedAsset,
   subscribeAssetSelection,
-} from '../asset-selection';
+} from '@volter/editor-sdk/kit/asset-selection';
 import { notify } from '../editor-notifications';
 import { beginPageWork } from '../play-boot-phase';
 import type { ProjectToolCatalogEntry } from '@volter/editor-sdk/kit/project-tools';

@@ -33,7 +33,7 @@ import { accountVersion, contributionAccount, subscribeAccount } from '@volter/e
 import {
   markContributedDocumentMounted,
   publishDocumentContext,
-} from '../document-context-registry';
+} from '@volter/editor-sdk/kit/document-context-registry';
 import { notify } from '../editor-notifications';
 import { toolGameplaySessions } from '../gameplay-sessions';
 import { beginPageWork } from '../play-boot-phase';

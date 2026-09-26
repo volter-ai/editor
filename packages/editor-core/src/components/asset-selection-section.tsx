@@ -22,7 +22,7 @@ import { faCircleInfo, faImage } from '@fortawesome/free-solid-svg-icons';
 import { Button, bg, border, text } from '@volter/editor-sdk/widgets';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { assetInspectorActionsFor } from '../asset-inspector-actions';
-import { getSelectedAsset, type SelectedAsset } from '../asset-selection';
+import { getSelectedAsset, type SelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import {
   assetSelectionViewerFor,
   assetSelectionViewersVersion,
@@ -56,8 +56,8 @@ import {
 import { activeWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { AssetInspectorToolSection } from './AssetInspectorToolSection';
 import { ModelThumbnail, TypedAssetThumbnail } from '@volter/editor-sdk/kit/components/asset-thumbnails';
-import { SpritesheetSpriteView } from './asset-viewers/SpritesheetSpriteView';
-import { MediaProperties } from './MediaProperties';
+import { SpritesheetSpriteView } from '@volter/editor-sdk/kit/components/asset-viewers/SpritesheetSpriteView';
+import { MediaProperties } from '@volter/editor-sdk/kit/components/MediaProperties';
 
 const labelStyle: React.CSSProperties = { fontSize: 11, color: text[3], marginBottom: 2 };
 const valueStyle: React.CSSProperties = { fontSize: 11, color: text[1], wordBreak: 'break-all' };
