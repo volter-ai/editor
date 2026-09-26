@@ -109,7 +109,16 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): rea
       if (!written.has(file)) {
         written.set(
           file,
-          projectDataJsonArtifact(file, { rootClasses: node.model.rootClasses, nodes: node.model.nodes } as unknown as DirectJsonValue, [scene.sourceResPath]),
+          projectDataJsonArtifact(
+            file,
+            {
+              rootClasses: node.model.rootClasses,
+              nodes: node.model.nodes,
+              // The importer's AnimationPlayer library, which the model's player holds.
+              ...(node.model.animations === undefined ? {} : { animations: node.model.animations }),
+            } as unknown as DirectJsonValue,
+            [scene.sourceResPath],
+          ),
         );
       }
     }

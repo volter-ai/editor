@@ -38,8 +38,10 @@ import {
   set_callback_mode_process,
   set_deterministic,
   set_reset_on_save_enabled,
+  set_root_node,
 } from './animation-mixer';
-import { godot_node_entity, godot_node_ready_signal } from './node';
+import { add_child, godot_node_adopt, godot_node_entity, godot_node_ready_signal, remove_child } from './node';
+import { add_animation as library_add_animation, construct as library_construct } from './animation-library';
 import { godot_message_queue_push } from './object';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { createSignal, type SignalHandle } from './signal';
@@ -864,6 +866,29 @@ const PROPS = new Map<string, GodotElementProp<Object3D>>([
   ['playbackDefaultBlendTime', (entity, value: number) => set_default_blend_time(entity, value)],
   ['playbackAutoCapture', (entity, value: boolean) => set_auto_capture(entity, value)],
 ]);
+
+/**
+ * `AnimationMixer::reset` (`animation_mixer.cpp:2285`) as the scene importer runs it on a model
+ * before saving it (`apply_reset`, `resource_importer_scene.cpp:3394`): an auxiliary player under
+ * the model's root, holding only `RESET`, seeks to 0 with an update, then leaves.
+ *
+ * @godot AnimationPlayer (protocol)
+ * @source scene/animation/animation_mixer.cpp:2285
+ */
+export function godot_animation_player_apply_reset(root: object, reset: Animation): void {
+  const aux = new Group();
+  godot_node_adopt(aux, { kind: 'node', classes: ['AnimationPlayer', 'AnimationMixer', 'Node', 'Object'] });
+  godot_animation_player_mount(aux);
+  add_child(root, aux);
+  const library = library_construct();
+  library_add_animation(library, 'RESET', reset);
+  set_reset_on_save_enabled(aux, false);
+  set_root_node(aux, '..');
+  godot_animation_mixer_set_library(aux, '', library);
+  set_assigned_animation(aux, 'RESET');
+  seek(aux, 0, true);
+  remove_child(root, aux);
+}
 
 /**
  * Sets one of the element's props on an AnimationPlayer an imported model made (the instancing

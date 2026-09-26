@@ -77,6 +77,7 @@ import {
   IDENTITY_TRANSFORM,
   readGltfDocument,
 } from './gltf-document';
+import { type ImportedClip, importGltfAnimations } from './gltf-animation-import';
 import type { GltfAnimationPlayerOrigin, SceneDocument, SceneNode } from './godot-types';
 import type { GodotValue } from './godot-value';
 import { type GodotSceneImportParams, isUnchangedGlbRootType } from './import-sidecar';
@@ -198,6 +199,8 @@ export interface GlbScene {
   readonly sceneRootPaths: readonly string[];
   /** File-backed images the native glTF loader resolves beside this model. */
   readonly externalImageUris: readonly string[];
+  /** The AnimationPlayer's clips as the importer keys them, or why they are not modelled. */
+  readonly animationKeys?: readonly ImportedClip[] | string;
   /** Exact source material identities and alpha modes needed by renderer planning. */
   readonly sourceMaterials: readonly {
     readonly name?: string;
@@ -297,6 +300,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       externalImageUris: scene.externalImageUris,
       sourceMaterials: scene.sourceMaterials,
       ...(animationPlayer === undefined ? {} : { animationPlayer }),
+      ...(scene.animationKeys === undefined ? {} : { animationKeys: scene.animationKeys }),
     },
   };
 }
@@ -943,7 +947,7 @@ export function readGltfAsGodotScene(
   const sceneRootPaths = nodes
     .filter((node) => node.gltfNodeIndex !== undefined && inScene.has(node.gltfNodeIndex))
     .map((node) => node.path);
-  return {
+  const scene: GlbScene = {
     resPath,
     nodes,
     sceneRootPaths,
@@ -953,6 +957,15 @@ export function readGltfAsGodotScene(
       ...(material.alphaMode === undefined ? {} : { alphaMode: material.alphaMode }),
     })),
   };
+  if (engineMajor !== 4 || !nodes.some((node) => node.animations !== undefined)) return scene;
+  // The AnimationPlayer's keys (`read/gltf-animation-import.ts`); a model whose animations this
+  // does not model keeps its tree, and says why.
+  try {
+    return { ...scene, animationKeys: importGltfAnimations(doc, scene, importParams.animationFps, importParams.animationTrimming) };
+  } catch (error) {
+    if (!(error instanceof GltfParseError)) throw error;
+    return { ...scene, animationKeys: error.message };
+  }
 }
 
 /**

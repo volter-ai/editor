@@ -12,6 +12,7 @@ import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { GridMapReadError, readGridMapCells } from '../../read/grid-map';
 import { isImportedResourceId } from '../../read/instance-expansion';
+import type { ImportedClip } from '../../read/gltf-animation-import';
 import {
   godotMeshLibraryShapeClass,
   godotArrayMeshRefusal,
@@ -97,6 +98,8 @@ export interface TargetGodotImportedModelPlan {
   readonly sourceResPath: string;
   readonly rootClasses: readonly string[];
   readonly nodes: readonly TargetGodotImportedModelNode[];
+  /** The importer's AnimationPlayer library (its clips as the importer keys them), with its RESET. */
+  readonly animations?: TargetGodotAnimationLibraryPlan;
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
   readonly overrides: readonly {
     readonly at: string;
@@ -1218,6 +1221,31 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
 
 const IDENTITY_MATRIX = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] as const;
 
+/** The importer's clips as an AnimationLibrary's data, in the importer's (glTF) order. */
+function importedLibrary(clips: readonly ImportedClip[]): TargetGodotAnimationLibraryPlan {
+  const TYPES = { 1: 'position_3d', 2: 'rotation_3d', 3: 'scale_3d' } as const;
+  return {
+    animations: [...clips].sort((a, b) => a.gltfIndex - b.gltfIndex).map((clip) => ({
+      name: clip.name,
+      animation: {
+        length: clip.length,
+        loopMode: clip.loopMode,
+        step: clip.step,
+        tracks: clip.tracks.map((track) => ({
+          type: TYPES[track.type],
+          path: track.path,
+          interp: track.interp,
+          loopWrap: true,
+          enabled: true,
+          imported: true,
+          update: 0,
+          keys: track.keys.map(([time, transition, value]) => [time, transition, value.length === 3 ? { Vector3: value } : { Quaternion: value }] as const),
+        })),
+      },
+    })),
+  };
+}
+
 /**
  * An instanced imported model (`.glb`): Godot's importer tree over the file (`imported-scene`), the
  * instance root's authored values as props, and room for this scene's edits inside it.
@@ -1262,6 +1290,14 @@ function planImportedInstance(
       ...(bones === undefined ? {} : { bones }),
     });
   }
+  // The importer's AnimationPlayer clips (`read/gltf-animation-import.ts`): a model whose clips
+  // are not modelled refuses, its player (and any RESET the importer posed it with) unknown.
+  const keys = model.animationKeys;
+  if (typeof keys === 'string') {
+    refuse(context, at, `${imported.resPath}: ${keys}`, 'resource', 'imported animations');
+    return undefined;
+  }
+  const animations = Array.isArray(keys) ? importedLibrary(keys as readonly ImportedClip[]) : undefined;
   const properties = planProperties(context, node, node.authoredProperties);
   const placed = placement(context, node);
   if (properties === undefined || placed === undefined) return undefined;
@@ -1270,7 +1306,13 @@ function planImportedInstance(
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
     targetKind: 'imported-scene',
-    model: { sourceResPath: imported.resPath, rootClasses: root.class.nativeAncestry, nodes, overrides: [] },
+    model: {
+      sourceResPath: imported.resPath,
+      rootClasses: root.class.nativeAncestry,
+      nodes,
+      ...(animations === undefined ? {} : { animations }),
+      overrides: [],
+    },
     properties,
     groups: [],
     classes: [],
@@ -1359,6 +1401,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     {
       readonly rootClasses: readonly string[];
       readonly nodes: readonly TargetGodotImportedModelNode[];
+      readonly animated: boolean;
       readonly overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[]; animation?: TargetGodotAnimationBindingsPlan }[];
       readonly placedAt: Map<string, number>;
     }
@@ -1521,7 +1564,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
           refused = true;
         } else {
           const overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[]; animation?: TargetGodotAnimationBindingsPlan }[] = [];
-          importedPlans.set(node.nodePath, { rootClasses: plannedRoot.model.rootClasses, nodes: plannedRoot.model.nodes, overrides, placedAt: new Map() });
+          importedPlans.set(node.nodePath, { rootClasses: plannedRoot.model.rootClasses, nodes: plannedRoot.model.nodes, animated: plannedRoot.model.animations !== undefined, overrides, placedAt: new Map() });
           planned.push({ ...plannedRoot, model: { ...plannedRoot.model, overrides } });
         }
         continue;
@@ -1564,8 +1607,9 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     const own = planned.find((candidate) => candidate.nodePath === playerPath);
     const enclosing = [...importedPlans.keys()].find((root) => isInside(playerPath, root));
     const override = enclosing === undefined ? undefined : importedPlans.get(enclosing)?.overrides.find((entry) => entry.at === playerPath.slice(enclosing.length + 1));
-    if (enclosing !== undefined && override?.setters.some((entry) => entry.setter.exportName === 'godot_animation_mixer_set_library' && entry.index === '') !== true) {
-      // An imported model's own animations (the importer's resampled clips) are not translated.
+    // An imported model's own clips (the importer's, `read/gltf-animation-import.ts`) are transform
+    // tracks, which need no binding.
+    if (enclosing !== undefined && importedPlans.get(enclosing)?.animated !== true && override?.setters.some((entry) => entry.setter.exportName === 'godot_animation_mixer_set_library' && entry.index === '') !== true) {
       refuse(context, `${scene.resPath}#${node.nodePath}`, `the animations of ${playerPath}, imported with its model, are not translated`, 'resource', 'imported animations');
       refused = true;
       continue;

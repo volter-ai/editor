@@ -14,6 +14,8 @@
  * **Scripts are absent here.** The official bound frontend owns their declarations, diagnostics,
  * symbols and operations; the read product cannot carry an alternate script representation.
  */
+
+import type { ImportedClip } from './gltf-animation-import';
 import type { GodotValue, ResourceId } from './godot-value';
 import type { ImportSidecar } from './import-sidecar';
 import type { ResolvedSetting } from './known-settings';
@@ -235,6 +237,8 @@ export interface GltfSceneOrigin {
   readonly surfaceCountByPath: ReadonlyMap<string, number>;
   /** Importer-synthesized Skeleton3D path → ordered bone names. */
   readonly boneNamesByPath: ReadonlyMap<string, readonly string[]>;
+  /** The AnimationPlayer's clips as the importer keys them (`read/gltf-animation-import.ts`), or why not. */
+  readonly animationKeys?: readonly ImportedClip[] | string;
   /**
    * Each `Skeleton3D`'s bones in Godot's bone order: name, the glTF `nodes[]` joint it came from,
    * and the pose the importer gives it.

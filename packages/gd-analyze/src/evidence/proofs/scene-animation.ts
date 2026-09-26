@@ -63,20 +63,21 @@ const call = (method: string, args: string): string => `{\n"args": [${args}],\n"
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 const FIXTURE = path.join(PACKAGE_ROOT, 'test/fixtures/platformer-3d-godot4');
 /** The platformer's enemy model, whose AnimationPlayer the scene gives the enemy scene's walk. */
-const COPIED = ['enemy/enemy.glb', 'enemy/enemy.glb.import'] as const;
+const COPIED = ['enemy/enemy.glb', 'enemy/enemy.glb.import', 'player/player.glb', 'player/player.glb.import'] as const;
 /** The enemy scene's own `walk` (its bone tracks, keyed as Godot's importer saved them). */
 const WALK = ((): string => {
   const source = readFileSync(path.join(FIXTURE, 'enemy/enemy.tscn'), 'utf8');
   const start = source.indexOf('[sub_resource type="Animation" id="Animation_ce6v8"]');
   return source.slice(start, source.indexOf('\n[', start + 1)).trim();
 })();
-/** The robot's bones the walk moves: body, eyes and the four legs. */
-const WALKED_BONES = [1, 2, 3, 5, 7, 9] as const;
+/** The models' skeletons, every bone of which is read. */
+const SKELETONS = ['Robot/Skeleton/Skeleton3D', 'Hero/Skeleton/Skeleton3D'] as const;
 
 const MAIN = `[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://probe.gd" id="1_probe"]
 [ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="2_enemy"]
+[ext_resource type="PackedScene" path="res://player/player.glb" id="3_player"]
 
 ${WALK}
 
@@ -198,7 +199,13 @@ anim_player = NodePath("../Rig")
 parameters/blend/blend_amount = 0.3
 parameters/scale/scale = 1.5
 
+[node name="Hero" parent="." instance=ExtResource("3_player")]
+
+[node name="AnimationPlayer" parent="Hero" index="1"]
+autoplay = &"run"
+
 [editable path="Robot"]
+[editable path="Hero"]
 `;
 
 const files: Readonly<Record<string, string>> = {
@@ -270,10 +277,11 @@ ${Object.entries(ACTS)
 \tvar circle: Node3D = main.get_node("Circle")
 \tvar glow: OmniLight3D = main.get_node("Glow")
 \tvar mover: Node3D = main.get_node("Mover")
-\tvar skeleton: Skeleton3D = main.get_node("Robot/Skeleton/Skeleton3D")
 \tvar bones := []
-\tfor bone in [${WALKED_BONES.join(', ')}]:
-\t\tbones.append([_v(skeleton.get_bone_pose_position(bone)), _q(skeleton.get_bone_pose_rotation(bone))])
+\tfor path in [${SKELETONS.map((entry) => JSON.stringify(entry)).join(', ')}]:
+\t\tvar skeleton: Skeleton3D = main.get_node(path)
+\t\tfor bone in skeleton.get_bone_count():
+\t\t\tbones.append([_v(skeleton.get_bone_pose_position(bone)), _q(skeleton.get_bone_pose_rotation(bone)), _v(skeleton.get_bone_pose_scale(bone))])
 \trows.append([_v(circle.rotation), _v(circle.scale), _bits(glow.omni_range), _bits(glow.light_energy), glow.shadow_enabled, _v(mover.position), _v(mover.scale), String(anim.current_animation), _bits(anim.get_current_animation_position() if anim.is_animation_active() else -1.0), anim.is_playing(), main.notes.duplicate(), bones, _v(main.get_node("Mover2").position), _v(main.get_node("Circle2").rotation), _bits(main.get_node("Tree").get("parameters/a/current_position")), _bits(main.get_node("Tree").get("parameters/b/current_position"))])
 \tif frames < ${String(FRAMES)}:
 \t\treturn false
@@ -357,7 +365,7 @@ const anim = find('Animation');
 const circle = find('Circle');
 const glow = find('Glow');
 const mover = find('Mover');
-const skeleton = N.get_node(main, 'Robot/Skeleton/Skeleton3D');
+const skeletons = ${JSON.stringify(SKELETONS)}.map((entry) => N.get_node(main, entry));
 const q = (value) => [bits(value.x), bits(value.y), bits(value.z), bits(value.w)];
 const script = N.godot_node_object(main);
 const acts = ${JSON.stringify(ACTS)};
@@ -382,7 +390,7 @@ for (frames = 1; frames <= ${String(FRAMES)}; frames += 1) {
   }
   for (const [method, ...args] of acts[frames] ?? []) calls[method](anim, ...args);
   for (const [name, set] of treeActs[frames] ?? []) AT.godot_animation_tree_set(treeNode, name, set);
-  rows.push([v(N3.get_rotation(circle)), v(N3.get_scale(circle)), bits(L3.get_param(glow, 4)), bits(L3.get_param(glow, 0)), L3.has_shadow(glow), v(N3.get_position(mover)), v(N3.get_scale(mover)), AP.get_current_animation(anim), bits(AP.is_animation_active(anim) ? AP.get_current_animation_position(anim) : -1), AP.is_playing(anim), [...script.notes], ${JSON.stringify(WALKED_BONES)}.map((bone) => [v(SK.get_bone_pose_position(skeleton, bone)), q(SK.get_bone_pose_rotation(skeleton, bone))]), v(N3.get_position(find('Mover2'))), v(N3.get_rotation(find('Circle2'))), bits(AT.godot_animation_tree_get(treeNode, 'parameters/a/current_position')), bits(AT.godot_animation_tree_get(treeNode, 'parameters/b/current_position'))]);
+  rows.push([v(N3.get_rotation(circle)), v(N3.get_scale(circle)), bits(L3.get_param(glow, 4)), bits(L3.get_param(glow, 0)), L3.has_shadow(glow), v(N3.get_position(mover)), v(N3.get_scale(mover)), AP.get_current_animation(anim), bits(AP.is_animation_active(anim) ? AP.get_current_animation_position(anim) : -1), AP.is_playing(anim), [...script.notes], skeletons.flatMap((skeleton) => Array.from({ length: SK.get_bone_count(skeleton) }, (_, bone) => [v(SK.get_bone_pose_position(skeleton, bone)), q(SK.get_bone_pose_rotation(skeleton, bone)), v(SK.get_bone_pose_scale(skeleton, bone))])), v(N3.get_position(find('Mover2'))), v(N3.get_rotation(find('Circle2'))), bits(AT.godot_animation_tree_get(treeNode, 'parameters/a/current_position')), bits(AT.godot_animation_tree_get(treeNode, 'parameters/b/current_position'))]);
 }
 await act(async () => { root.unmount(); });
 const { writeFileSync } = await import('node:fs');

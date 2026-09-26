@@ -1,4 +1,5 @@
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
+import type { ImportedClip } from '../read/gltf-animation-import';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
 import type {
@@ -178,6 +179,8 @@ export interface BoundGodotSceneDocument {
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImageUris: readonly string[];
+    /** The importer's AnimationPlayer clips, keyed as it leaves them, or why they are not modelled. */
+    readonly animationKeys?: readonly ImportedClip[] | string;
   };
   /** The document's `[sub_resource]`s and `[ext_resource]`s (an instance's copied under its ids). */
   readonly subResources: readonly BoundGodotResourceData[];
@@ -608,6 +611,7 @@ function boundDocuments(
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImageUris: document.gltfOrigin.externalImageUris,
+                  ...(document.gltfOrigin.animationKeys === undefined ? {} : { animationKeys: document.gltfOrigin.animationKeys }),
                 },
               }),
           nodes: boundSceneNodes(

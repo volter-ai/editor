@@ -353,6 +353,9 @@ export interface GltfAnimationChannel {
   readonly times: readonly number[];
   /** Sampler `output` accessor decoded — vec3 for translation/scale, vec4 for rotation. */
   readonly values: readonly (readonly number[])[];
+  /** The sampler's interpolation (§3.6.2.3), and every output element (a cubic spline's tangents too). */
+  readonly interpolation: 'LINEAR' | 'STEP' | 'CUBICSPLINE';
+  readonly outputs: readonly (readonly number[])[];
 }
 
 export interface GltfAnimation {
@@ -927,7 +930,7 @@ export function readGltfDocument(
               `${at}: animations[${index}].samplers[${samplerIndex}] has ${input.values.length} input keys but ${values.length} output elements for ${interpolation}`,
             );
           }
-          return [{ node: target['node'], path, times: input.values, values: keyValues }];
+          return [{ node: target['node'], path, times: input.values, values: keyValues, interpolation, outputs: values }];
         },
       );
       return { name: str(animation['name'], ''), channels };

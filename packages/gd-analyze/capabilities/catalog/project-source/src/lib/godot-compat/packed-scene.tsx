@@ -28,7 +28,9 @@ import { createPortal, type ThreeElements } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, useContext, useLayoutEffect, useMemo, useRef } from 'react';
 import { Group, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
+import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
+import { godot_animation_mixer_set_library } from './animation-mixer';
+import { godot_animation_player_apply_reset, godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
 import { godot_node_adopt, godot_node_foreign } from './node';
 import { construct as quaternion } from './quaternion';
 import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
@@ -63,6 +65,21 @@ export interface GodotImportedSceneNode {
 export interface GodotImportedSceneTree {
   readonly rootClasses: readonly string[];
   readonly nodes: readonly GodotImportedSceneNode[];
+  /** The importer's AnimationPlayer library: its clips as the importer keyed them. */
+  readonly animations?: GodotAnimationLibraryData;
+}
+
+/** A model's library, loaded once for all its instances (the imported scene's shared resources). */
+const LIBRARIES = new WeakMap<GodotImportedSceneTree, AnimationLibrary>();
+
+function libraryOf(tree: GodotImportedSceneTree): AnimationLibrary | undefined {
+  if (tree.animations === undefined) return undefined;
+  let library = LIBRARIES.get(tree);
+  if (library === undefined) {
+    library = godot_animation_library_load(tree.animations);
+    LIBRARIES.set(tree, library);
+  }
+  return library;
 }
 
 const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/u;
@@ -204,6 +221,8 @@ export function GodotImportedScene({
       if (node.classes[0] === 'AnimationPlayer' && !ANIMATION_PLAYERS.has(member)) {
         godot_animation_player_mount(member);
         ANIMATION_PLAYERS.add(member);
+        const library = libraryOf(model);
+        if (library !== undefined) godot_animation_mixer_set_library(member, '', library);
       }
     }
     // A skeleton's bones are the loader's joint objects, in Godot's bone order.
@@ -218,6 +237,10 @@ export function GodotImportedScene({
         }),
       );
     }
+    // The importer applied the model's RESET before saving it (`resource_importer_scene.cpp:3394`).
+    const library = libraryOf(model);
+    const reset = library === undefined ? null : get_animation(library, 'RESET');
+    if (reset !== null) godot_animation_player_apply_reset(entity, reset);
     // Godot sets the instancing scene's values on the instantiated nodes (`SceneState::instantiate`,
     // packed_scene.cpp:400).
     for (const [at, properties] of Object.entries(overrides)) {
