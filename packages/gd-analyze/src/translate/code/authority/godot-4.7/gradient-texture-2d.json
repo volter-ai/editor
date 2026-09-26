@@ -280,7 +280,7 @@
         "observedOutputSha256": "1f740c4c1f3964f7caeb50420175ac23a21a7cdf07544275b2054e28cecaa2b0"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_fill",
         "observedOutputSha256": "3dc5d74b0b1c5b50ca052233a6ade86a82ba3f3f81b6129e82ed637db8fcf415"
       },
@@ -319,7 +319,7 @@
         "observedOutputSha256": "7b2309e99fb207104a2bf205cb9ddd84fe8732d7d0aacc006af535444d99ca5c"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_fill_from",
         "observedOutputSha256": "3bde25adc4abcc93f1366dad8366b7771997c8e0b268dcd95b5a43096df1422e"
       },
@@ -358,7 +358,7 @@
         "observedOutputSha256": "70c8dec67f89d95016789d6262eae59cc07d6283d213988a01da57d425434ee0"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_repeat",
         "observedOutputSha256": "9ab3a16dc1a05ecd63e7891407ab0c407d0627ec9dce40deed4f060cb0e3dd9a"
       },
@@ -397,7 +397,7 @@
         "observedOutputSha256": "8d74875e38ee7b17615592737f3879f2f1c284782439c432529694d152a36963"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_fill_to",
         "observedOutputSha256": "eac67fe1f7678f9514eface58add106a4d295b9dc384215519e354ca8e015968"
       },
@@ -436,7 +436,7 @@
         "observedOutputSha256": "7c28b3b9dc571aa5e7686755729e464a85454d8a8761c7b9bc2b581b0e88f2fe"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_gradient",
         "observedOutputSha256": "18e89fc78a90ada1518a4eec085f708b71b0d6e1af88e02c6e750b4d91572cb6"
       },
@@ -475,7 +475,7 @@
         "observedOutputSha256": "b5cde81e4c7fbcc5ae945eb31271d356a1a0ba0db1ef11d12cf3e6eef803262a"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts get_fill",
         "observedOutputSha256": "b5cde81e4c7fbcc5ae945eb31271d356a1a0ba0db1ef11d12cf3e6eef803262a"
       },
@@ -514,7 +514,7 @@
         "observedOutputSha256": "517685914ebed7670ba9bed41fad80055c17d215b51eba75e6ab6bc11099d6d8"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts get_repeat",
         "observedOutputSha256": "517685914ebed7670ba9bed41fad80055c17d215b51eba75e6ab6bc11099d6d8"
       },
@@ -553,7 +553,7 @@
         "observedOutputSha256": "5897570b104fb59403d1e6383cb6ed9985636ea13b5c944b05ec6ea53e1c3e4f"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts get_fill_from",
         "observedOutputSha256": "5897570b104fb59403d1e6383cb6ed9985636ea13b5c944b05ec6ea53e1c3e4f"
       },
@@ -592,7 +592,7 @@
         "observedOutputSha256": "2befa628eabb4485e655e2bfe96486b7850558f19cbfb26a11f00a0330427bce"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts get_fill_to",
         "observedOutputSha256": "2befa628eabb4485e655e2bfe96486b7850558f19cbfb26a11f00a0330427bce"
       },
@@ -631,7 +631,7 @@
         "observedOutputSha256": "7f92e0b7f418ba6f9c1e121415ea66ed47517669d3ddd30c2fb0555fdd6c8fca"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_width",
         "observedOutputSha256": "7f92e0b7f418ba6f9c1e121415ea66ed47517669d3ddd30c2fb0555fdd6c8fca"
       },
@@ -670,7 +670,7 @@
         "observedOutputSha256": "f885ea507fd90b6ec4afb4c2b6a6ac749b8614cde27a95109ca208e5483958a5"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts set_height",
         "observedOutputSha256": "f885ea507fd90b6ec4afb4c2b6a6ac749b8614cde27a95109ca208e5483958a5"
       },
@@ -709,7 +709,7 @@
         "observedOutputSha256": "7081902cdfcd62988eb10b28995d0e81a20665c3d61ed8e67b415fc5a5652cfa"
       },
       "target": {
-        "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997",
+        "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc",
         "callsite": "lib/godot-compat/gradient-texture-2d.ts get_gradient",
         "observedOutputSha256": "7081902cdfcd62988eb10b28995d0e81a20665c3d61ed8e67b415fc5a5652cfa"
       },
@@ -736,7 +736,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c6142ca824940a58a9eade4ebd4aecd0fba914f9d36df1cd51ffea72bcad90f1",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.set_fill_from",
@@ -744,7 +744,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b8260230dd17cecf94563def9e3a04bc6e0f8a9a55cb8abbfd95811b32ec17b6",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.set_repeat",
@@ -752,7 +752,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ddeaee80bf05d42e276b0780f76da1d68dd3ea2ee1060f2fff0b55766e677da4",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.set_fill_to",
@@ -760,7 +760,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "071c48d1c772000ee812440e8d31acf370e0eb39eeb16810f64e4dd4464d1d60",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.set_gradient",
@@ -768,7 +768,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "95e0d40fb07a54e7b53945bab4df23351f168c6e5cd3ba0ffe2e59778f4430d3",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.get_fill",
@@ -776,7 +776,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "33d4ed5a066ba7f2c9a7fd7ac1d2c31fedc322077152b507ad3e0b776be9cb70",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.get_repeat",
@@ -784,7 +784,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "8acbf26d6ff896a55c97c571086e0980d3464136aa307de677d854e20eded33a",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.get_fill_from",
@@ -792,7 +792,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "21835706f2d9225bc2b0d41668695b03804a04b6408f27b26ba7e62a511072a2",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.get_fill_to",
@@ -800,7 +800,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f7522239b4d1afd17a0ed573587c3994c161ee3d4e8f1706c17cd15dfdbb9306",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.set_width",
@@ -808,7 +808,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "cda6e7845b083265895ddd9249b1b964bcb4010cd22a8f5d09d30cb84b45c77f",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.set_height",
@@ -816,7 +816,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "cf82eceae85d4f4effc7d6873ed00b8f12c8c8ade531d3547abe53f099804ee2",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     },
     {
       "claimId": "godot-4.7-binding-GradientTexture2D.get_gradient",
@@ -824,7 +824,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6d72c67b90f21b93572fcff7000fe2d22bed7628ed0521c5211933fe92cb5725",
-      "implementationSha256": "d2ed9f8b01b84fcc39f644a4311f54b2deae0d9fa47c5d18cc67e7d031d1b997"
+      "implementationSha256": "deda3e949b1d2d2c02cb4d1c3abcc5d2f58aa69e3bd0f12003553d226be427dc"
     }
   ]
 }

@@ -826,7 +826,7 @@
         "observedOutputSha256": "4d49973914e3fb9a06971f25220d68e1534aa1648bfb5c095106e6d791aa7bb8"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_albedo",
         "observedOutputSha256": "33a2b0dcb1354fe06750bb7e927228adb7237a4228a1915c7e4e4265bd972a3b"
       },
@@ -865,7 +865,7 @@
         "observedOutputSha256": "eba130e047a4fa879c2fac54ed62ad62a043a23952ecdcb7b431e91b7a636d74"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_albedo",
         "observedOutputSha256": "654ed29d2b7b412d9d38b79140f8cc146fd85ad06fc172276ae676f07aa85931"
       },
@@ -904,7 +904,7 @@
         "observedOutputSha256": "2592e3f7db45ba3390ba0310aec3a92f3ba34613c0b107f04d10f4ade7a71c6a"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_metallic",
         "observedOutputSha256": "2592e3f7db45ba3390ba0310aec3a92f3ba34613c0b107f04d10f4ade7a71c6a"
       },
@@ -943,7 +943,7 @@
         "observedOutputSha256": "a4922926204e8f1ba7e9b46c0965af58d965d6213aa8d43468741c495c1c4ba9"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_metallic",
         "observedOutputSha256": "a4922926204e8f1ba7e9b46c0965af58d965d6213aa8d43468741c495c1c4ba9"
       },
@@ -982,7 +982,7 @@
         "observedOutputSha256": "32cfcc0cbbd2ea36d1020fd2f4e7c007d0653b6f90a69ed1df42c3558f39b2bd"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_roughness",
         "observedOutputSha256": "32cfcc0cbbd2ea36d1020fd2f4e7c007d0653b6f90a69ed1df42c3558f39b2bd"
       },
@@ -1021,7 +1021,7 @@
         "observedOutputSha256": "a8ef6fc92a2f72f5e8e163f6b908d1b2d3a118703e957576c1ad1808ec7a2cf2"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_roughness",
         "observedOutputSha256": "a8ef6fc92a2f72f5e8e163f6b908d1b2d3a118703e957576c1ad1808ec7a2cf2"
       },
@@ -1060,7 +1060,7 @@
         "observedOutputSha256": "9c8300a6abdc226327041519649a5c2e1690619e454e5785bc68b74c94a1ccf7"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_emission_energy_multiplier",
         "observedOutputSha256": "9c8300a6abdc226327041519649a5c2e1690619e454e5785bc68b74c94a1ccf7"
       },
@@ -1099,7 +1099,7 @@
         "observedOutputSha256": "f1cf1bca27e8502efabbb8c0954a361017ec055df3d5e76f1ec8ca9b27ffb127"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_emission_energy_multiplier",
         "observedOutputSha256": "f1cf1bca27e8502efabbb8c0954a361017ec055df3d5e76f1ec8ca9b27ffb127"
       },
@@ -1138,7 +1138,7 @@
         "observedOutputSha256": "d282f35861f23529ffe26ab11cf2f2fbb43e5f51e82cb2b4836d3c29bbb78ece"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_emission",
         "observedOutputSha256": "7f8dc28bfbe96f2b1ffe76757b0fa0155c753f5a4e1281c240a8fb942fcb6490"
       },
@@ -1177,7 +1177,7 @@
         "observedOutputSha256": "bdd55a2a392191abdc6e08b94c342f7ccd699c30549043a11a3a01ab53ccd646"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_emission",
         "observedOutputSha256": "4e05800369f0b0a458e7932a506f1d7c1c7464b03a0ea75d9f53fbd7ef26d3c7"
       },
@@ -1216,7 +1216,7 @@
         "observedOutputSha256": "6bbdcf2766e4fea34c427421ae6595daa013b0e0cb6963d837292863597612a5"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_feature",
         "observedOutputSha256": "6bbdcf2766e4fea34c427421ae6595daa013b0e0cb6963d837292863597612a5"
       },
@@ -1255,7 +1255,7 @@
         "observedOutputSha256": "cc857985ae45cf34abb63f8ed2fed6e4b7eca29b13cf124addcc95dd10efc979"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_feature",
         "observedOutputSha256": "cc857985ae45cf34abb63f8ed2fed6e4b7eca29b13cf124addcc95dd10efc979"
       },
@@ -1294,7 +1294,7 @@
         "observedOutputSha256": "d93ad6b8e0b219ebb7999be9a1c532e99b57021d67eaebeb58a9593d5868d808"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_transparency",
         "observedOutputSha256": "d93ad6b8e0b219ebb7999be9a1c532e99b57021d67eaebeb58a9593d5868d808"
       },
@@ -1333,7 +1333,7 @@
         "observedOutputSha256": "5382b79b9875a0cda4876af5ec27c42a7e003d4d7f53ed7a700375a8399789d1"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_transparency",
         "observedOutputSha256": "5382b79b9875a0cda4876af5ec27c42a7e003d4d7f53ed7a700375a8399789d1"
       },
@@ -1372,7 +1372,7 @@
         "observedOutputSha256": "aea98bb3ac8a9b660c41d50b635cb5ac3cfdf4924f3e2d7d5dbe9532a0bbf4ac"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_blend_mode",
         "observedOutputSha256": "aea98bb3ac8a9b660c41d50b635cb5ac3cfdf4924f3e2d7d5dbe9532a0bbf4ac"
       },
@@ -1411,7 +1411,7 @@
         "observedOutputSha256": "99f05119ddabe35bf77b65331c2a0d65ac25aaa69d0861664f18fb58908bfccd"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_blend_mode",
         "observedOutputSha256": "99f05119ddabe35bf77b65331c2a0d65ac25aaa69d0861664f18fb58908bfccd"
       },
@@ -1450,7 +1450,7 @@
         "observedOutputSha256": "c18e6c79d6e2ad95fa813f29d252a1e6c0d67ad886edff65bae26737147ca329"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_shading_mode",
         "observedOutputSha256": "c18e6c79d6e2ad95fa813f29d252a1e6c0d67ad886edff65bae26737147ca329"
       },
@@ -1489,7 +1489,7 @@
         "observedOutputSha256": "dbc842e71b3f0b67a46efafa7f14f99f94940e6ffc886fcfed650429ee1fe23e"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_shading_mode",
         "observedOutputSha256": "dbc842e71b3f0b67a46efafa7f14f99f94940e6ffc886fcfed650429ee1fe23e"
       },
@@ -1528,7 +1528,7 @@
         "observedOutputSha256": "382445f27748b2ad1f6569c82a58ffbc0efaee4ba45d3abd4085aba185aeda03"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_flag",
         "observedOutputSha256": "382445f27748b2ad1f6569c82a58ffbc0efaee4ba45d3abd4085aba185aeda03"
       },
@@ -1567,7 +1567,7 @@
         "observedOutputSha256": "29c62dd8672fd034f4cdf1e24b1f6d70a3ff6960a92d8bb3a893b2353b0debc3"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_flag",
         "observedOutputSha256": "29c62dd8672fd034f4cdf1e24b1f6d70a3ff6960a92d8bb3a893b2353b0debc3"
       },
@@ -1606,7 +1606,7 @@
         "observedOutputSha256": "82b1b9fc14822c47933bceb8fce85aa532c263d3dca186adf802c3fd394d4f34"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_texture_filter",
         "observedOutputSha256": "82b1b9fc14822c47933bceb8fce85aa532c263d3dca186adf802c3fd394d4f34"
       },
@@ -1645,7 +1645,7 @@
         "observedOutputSha256": "57e7685d3f5f192978fadef80c613e423e8c4b0a073a34db2b903af88aecc913"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_texture_filter",
         "observedOutputSha256": "57e7685d3f5f192978fadef80c613e423e8c4b0a073a34db2b903af88aecc913"
       },
@@ -1684,7 +1684,7 @@
         "observedOutputSha256": "706edf9971af47365a9f4727df7e9f1f022b01a597cfd0f0cff5bceb540986f0"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_texture",
         "observedOutputSha256": "706edf9971af47365a9f4727df7e9f1f022b01a597cfd0f0cff5bceb540986f0"
       },
@@ -1723,7 +1723,7 @@
         "observedOutputSha256": "dd86e6a775500235d2a689fc071dcd9d0622cbe71b442d64f957f94a47367ae6"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_texture",
         "observedOutputSha256": "dd86e6a775500235d2a689fc071dcd9d0622cbe71b442d64f957f94a47367ae6"
       },
@@ -1762,7 +1762,7 @@
         "observedOutputSha256": "f49f25d49e894679b8848d2742f85acedfbdd287aa53033f3272c56ab24092e7"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_cull_mode",
         "observedOutputSha256": "f49f25d49e894679b8848d2742f85acedfbdd287aa53033f3272c56ab24092e7"
       },
@@ -1801,7 +1801,7 @@
         "observedOutputSha256": "4ae98c5060acfb17bae83b9c4694656a724cc17dd3aa0632cfde8396e1df1e1d"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_cull_mode",
         "observedOutputSha256": "4ae98c5060acfb17bae83b9c4694656a724cc17dd3aa0632cfde8396e1df1e1d"
       },
@@ -1840,7 +1840,7 @@
         "observedOutputSha256": "c9840161e2f958ee01c0b7a7b1d1d8054492557cfcbb5850fb54e3bf8cebb62f"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_billboard_mode",
         "observedOutputSha256": "c9840161e2f958ee01c0b7a7b1d1d8054492557cfcbb5850fb54e3bf8cebb62f"
       },
@@ -1879,7 +1879,7 @@
         "observedOutputSha256": "28157412a08adb91bea43147bac1ff618659068d21da7321959949d67d463dca"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_billboard_mode",
         "observedOutputSha256": "28157412a08adb91bea43147bac1ff618659068d21da7321959949d67d463dca"
       },
@@ -1918,7 +1918,7 @@
         "observedOutputSha256": "5d4fa27351fc88dfff5964e8572ee22af857392d935e1d61cb0f03f1f0081f8f"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_particles_anim_h_frames",
         "observedOutputSha256": "5d4fa27351fc88dfff5964e8572ee22af857392d935e1d61cb0f03f1f0081f8f"
       },
@@ -1957,7 +1957,7 @@
         "observedOutputSha256": "611f378b6c4a4f9fa18c5f589fd66f7fb89dd601382638d002d038877a280d7c"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_particles_anim_h_frames",
         "observedOutputSha256": "611f378b6c4a4f9fa18c5f589fd66f7fb89dd601382638d002d038877a280d7c"
       },
@@ -1996,7 +1996,7 @@
         "observedOutputSha256": "a2a343011752d7e508decf34b8543ea7b203cf712420b25e3f1a43f37a61df63"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_particles_anim_v_frames",
         "observedOutputSha256": "a2a343011752d7e508decf34b8543ea7b203cf712420b25e3f1a43f37a61df63"
       },
@@ -2035,7 +2035,7 @@
         "observedOutputSha256": "a1d8870f1aedc1f054631d59b16f684be42648a2823074e1806419adf0c973ca"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_particles_anim_v_frames",
         "observedOutputSha256": "a1d8870f1aedc1f054631d59b16f684be42648a2823074e1806419adf0c973ca"
       },
@@ -2074,7 +2074,7 @@
         "observedOutputSha256": "e090841e537cbb6409cbd5d46e4db10544ae62737a57fc6e5afb60e98608c6e5"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_particles_anim_loop",
         "observedOutputSha256": "e090841e537cbb6409cbd5d46e4db10544ae62737a57fc6e5afb60e98608c6e5"
       },
@@ -2113,7 +2113,7 @@
         "observedOutputSha256": "b024a0a834f514f9e003ec7a66d6159014d92c96095380cc2f16017cff5a5d17"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_particles_anim_loop",
         "observedOutputSha256": "b024a0a834f514f9e003ec7a66d6159014d92c96095380cc2f16017cff5a5d17"
       },
@@ -2152,7 +2152,7 @@
         "observedOutputSha256": "c6cc1edcff40d9c2b9c1d877c963b91cab2aeea7a47c88046c87ef3173967842"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_proximity_fade_enabled",
         "observedOutputSha256": "c6cc1edcff40d9c2b9c1d877c963b91cab2aeea7a47c88046c87ef3173967842"
       },
@@ -2191,7 +2191,7 @@
         "observedOutputSha256": "5283e74b80ed7300f5b9e474c64fe473aa4df9bc0e20b082ded6212d3e5d403d"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts is_proximity_fade_enabled",
         "observedOutputSha256": "5283e74b80ed7300f5b9e474c64fe473aa4df9bc0e20b082ded6212d3e5d403d"
       },
@@ -2230,7 +2230,7 @@
         "observedOutputSha256": "a4e9c9588ab85eb7f7aa658a2142d9ce748b476996e20b22bada75cd029dc546"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts set_proximity_fade_distance",
         "observedOutputSha256": "a4e9c9588ab85eb7f7aa658a2142d9ce748b476996e20b22bada75cd029dc546"
       },
@@ -2269,7 +2269,7 @@
         "observedOutputSha256": "e60a4b37d7683639fb8f1462f897b5af7275529a1d7020dbe85e07743ff7e25d"
       },
       "target": {
-        "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2",
+        "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e",
         "callsite": "lib/godot-compat/base-material-3d.ts get_proximity_fade_distance",
         "observedOutputSha256": "e60a4b37d7683639fb8f1462f897b5af7275529a1d7020dbe85e07743ff7e25d"
       },
@@ -2296,7 +2296,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6f56fb18aa11ad39318d3b9b9b3775fce5167631e33121476569a11221440876",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_albedo",
@@ -2304,7 +2304,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "610209ebbd44c79bd7555901c052ad678084952a51a7070de119ef24d223f075",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_metallic",
@@ -2312,7 +2312,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2f6cf267401895622afb26631c426850c8ebad07dc882307ed156921303ec0c1",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_metallic",
@@ -2320,7 +2320,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "11fbd66172db4a35f314d510f507cebbd5f23a40a964bd4c38a9923b43ab1c6b",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_roughness",
@@ -2328,7 +2328,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4bdd3eca574402be79aee37cb7cac10e8440552d6b80bfa0a911adf7d9014302",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_roughness",
@@ -2336,7 +2336,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "81ccb68ec4b13d6a91dc542b7d6a6aac749ad9c6f6d0c9a38b3c1b0866fdf7d3",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_emission_energy_multiplier",
@@ -2344,7 +2344,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3e991ced49893e2dad0b994fcf064cc9667c0673c3fd20f40016a8321770bb5f",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_emission_energy_multiplier",
@@ -2352,7 +2352,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1207d1792029834786a8b848a00f6c3b18d1439bf3d9cb94572f8d73098699c0",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_emission",
@@ -2360,7 +2360,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b1db5dc5949f5a2d35bb20cbd7f6da0ba4acf9c2b0285ea923bff78c6ddad9e0",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_emission",
@@ -2368,7 +2368,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a9792a74872447baa087297399e3b7ff129b977a79933b5b0ecf3d350d3b4297",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_feature",
@@ -2376,7 +2376,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f73d02094f54a7fd51162a8dde65f15a120de38d48cdda5bf5c3eb322fa908f6",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_feature",
@@ -2384,7 +2384,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c3c68af1ffe84badd37fd3078466472fb3474a524c6323f8ae0d551e487f6401",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_transparency",
@@ -2392,7 +2392,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "83a8c1b68b161d993332ac47db7cc976ec4b838a6ae6512d103d762d3f17b4d6",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_transparency",
@@ -2400,7 +2400,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6d6ad25265e51752d44228d30585fc805515347dca082ddfca81047954436f6b",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_blend_mode",
@@ -2408,7 +2408,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3f7502ff02960e8b0d7aa52f10385778b18d81969913d83c9e3f6bd2015bedc5",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_blend_mode",
@@ -2416,7 +2416,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "8fca67c00e362e257dbee9af9d9dfdd40e69f0630f2b65cf56548429e28f2432",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_shading_mode",
@@ -2424,7 +2424,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3e0138cfe0c850406fefb98c98c2fde08d96f7ae44e0fc45c0c83e0465321c16",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_shading_mode",
@@ -2432,7 +2432,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7194b56a32cc57218fd207a5b821efba40a1e2ae53d851e2f6cd964d58eecb39",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_flag",
@@ -2440,7 +2440,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6d361d4c6356b17a4375671682bacf29f117a3d173916383a6311f74ca904f2e",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_flag",
@@ -2448,7 +2448,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "16ec5f366af4dc7bd07f0c60499a51751ff2d215e15353e0cdfec8b276e6982f",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_texture_filter",
@@ -2456,7 +2456,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "fe3c6d3a56e3fd47eea55fe48838d3b992a75ba2a16f5bd77c6f1cb9fe5e3bf8",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_texture_filter",
@@ -2464,7 +2464,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "db7589877b0242827d5b9ce8388897b7d4cb4440736c98ce71719c4679f66d9c",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_texture",
@@ -2472,7 +2472,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e3ec439a8d270a1adb8c81c6f041e40b2fbab5e62e65126d68a29a36139f7f03",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_texture",
@@ -2480,7 +2480,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0a96953be17e6bbdd67a07e2bfabb722655f7084bdcb95ca51543ef28f0f3cf2",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_cull_mode",
@@ -2488,7 +2488,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4de32e171754edf59ca8f696c7634d75f8cd4b3c18416ef940f7d30a2baef766",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_cull_mode",
@@ -2496,7 +2496,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2216cf82d756b44534a5abfa47b4fc602a192ec57173504ec49b8ed8c0612899",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_billboard_mode",
@@ -2504,7 +2504,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "16867393cea62666a18af89cefd36704bc92e29fa69ec6512918395e9c945ee5",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_billboard_mode",
@@ -2512,7 +2512,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "35245d746cd3e0e404aa09999078ae52ceb691f16c3e8571f703b08cb628c9a1",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_particles_anim_h_frames",
@@ -2520,7 +2520,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b3e8f6a273b591b381c782a984ec40c4cd54392cce2453ddbbc60eec5332c8b9",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_particles_anim_h_frames",
@@ -2528,7 +2528,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5ad3bcbf340edc3acffb0d97096b4014af7f9db4cee04df42de39727f88969e9",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_particles_anim_v_frames",
@@ -2536,7 +2536,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6f8d13a47c404c08004c71f3e794663903690c6552bdabb4e6f4fe0b966c8795",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_particles_anim_v_frames",
@@ -2544,7 +2544,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "93d1b306bfdcce3ec3b12ac7d417ffba15166e655e24214da30e4c8dcc0a7042",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_particles_anim_loop",
@@ -2552,7 +2552,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f73d9f8c7ad83de335f90c56867bb905fd014e3feecd333abb374803af8bfc89",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_particles_anim_loop",
@@ -2560,7 +2560,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "fbf30149ab0d2e14f203ae48573439184468a1487ddfa420545ca708d02ba31c",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_proximity_fade_enabled",
@@ -2568,7 +2568,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "d81b31aa868ac858cc016b7dcc1fae5a48dfa0439bad00336da7eea367c62241",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.is_proximity_fade_enabled",
@@ -2576,7 +2576,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "9162dc39b060309b27342f7f0f9e276bc88d3ac1d81fd95cfc57d33ad158f191",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.set_proximity_fade_distance",
@@ -2584,7 +2584,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "fedc70e7f386605737e108a917c3c0ff0c752b703c5895577d1123f718d81b0a",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     },
     {
       "claimId": "godot-4.7-binding-BaseMaterial3D.get_proximity_fade_distance",
@@ -2592,7 +2592,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "08b92de0dfb6ce5b17339069b490bef347afeb4b9788326a2363b5d265170a1c",
-      "implementationSha256": "402384558b2fcc5bb0d4da9bf34490b939ea9520608b3222b87cfac900876ae2"
+      "implementationSha256": "881e0af8470ebecfd77cc99bb6b0027bb48e89804dedc6c1c0282a7856b25b9e"
     }
   ]
 }
