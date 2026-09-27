@@ -353,6 +353,18 @@ export function godotSceneExportName(resPath: string): string {
   return /^[A-Za-z_]/u.test(joined) ? `${joined}Scene` : `Scene${joined}`;
 }
 
+/**
+ * A scene node's own nodes one level down: the nodes the scene places into an imported model
+ * (`placements`, Godot children of the model's nodes, which come before the nodes the scene adds
+ * at the model's root in tree order), then its children. Every walk over a scene plan's nodes
+ * goes through this, so a placed node's script, unique name, connections and cameras count.
+ */
+export function godotSceneSubnodes<Node extends { readonly children: readonly Node[]; readonly placements?: readonly { readonly node: Node }[] }>(
+  node: Node,
+): readonly Node[] {
+  return [...(node.placements ?? []).map((placed) => placed.node), ...node.children];
+}
+
 export function godotSceneTargetPath(resPath: string): string {
   return targetPath(resPath);
 }
@@ -1705,7 +1717,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   const cameras: TargetGodotSceneNodePlan[] = [];
   const findCameras = (node: TargetGodotSceneNodePlan): void => {
     if (node.classes[0] === 'Camera3D') cameras.push(node);
-    for (const child of node.children) findCameras(child);
+    for (const child of godotSceneSubnodes(node)) findCameras(child);
   };
   findCameras(root);
   const laterCurrent = cameras.slice(1).find((camera) =>
@@ -1879,7 +1891,7 @@ export function idiomaticRefusal(
   const own = new Map<string, TargetGodotSceneNodePlan>();
   const collect = (node: TargetGodotSceneNodePlan): void => {
     own.set(node.nodePath, node);
-    if (node.instance === undefined) for (const child of node.children) collect(child);
+    if (node.instance === undefined) for (const child of godotSceneSubnodes(node)) collect(child);
   };
   collect(plan.root);
   for (const connection of plan.connections) {
@@ -2086,7 +2098,7 @@ export function planGodotSceneDocuments(
     ...(node.instance !== undefined && !plannedPaths.has(node.instance.sourceResPath)
       ? [node.instance.sourceResPath]
       : []),
-    ...node.children.flatMap(missing),
+    ...godotSceneSubnodes(node).flatMap(missing),
   ];
   for (const scene of scenes) {
     for (const resPath of missing(scene.root)) {

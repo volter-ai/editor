@@ -1,3 +1,4 @@
+import { godotSceneSubnodes } from './scene-document-plan';
 import type {
   DirectGodotProjectCompositionPlan,
   DirectGodotSceneNodePlan,
@@ -58,14 +59,14 @@ function nodeDiagnostics(
             },
           ],
     ) ?? []),
-    ...node.children.flatMap((child) => nodeDiagnostics(project, sourceResPath, child)),
+    ...godotSceneSubnodes(node).flatMap((child) => nodeDiagnostics(project, sourceResPath, child)),
   ];
 }
 
 function hasMountedLifecycle(node: DirectGodotSceneNodePlan): boolean {
   return (
     (node.scriptInstance?.lifecycle.some((entry) => TREE_PHASES.has(entry.phase)) ?? false) ||
-    node.children.some(hasMountedLifecycle)
+    godotSceneSubnodes(node).some(hasMountedLifecycle)
   );
 }
 
@@ -73,7 +74,7 @@ function hasMountedLifecycle(node: DirectGodotSceneNodePlan): boolean {
 function hasLoopLifecycle(node: DirectGodotSceneNodePlan): boolean {
   return (
     (node.scriptInstance?.lifecycle.some((entry) => !TREE_PHASES.has(entry.phase)) ?? false) ||
-    node.children.some(hasLoopLifecycle)
+    godotSceneSubnodes(node).some(hasLoopLifecycle)
   );
 }
 

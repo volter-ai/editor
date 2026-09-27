@@ -1,3 +1,4 @@
+import { godotSceneSubnodes } from '../data/scene-document-plan';
 import type { TargetTsExpression, TargetTsStatement } from '../code/target-ts-syntax';
 import type {
   DirectGodotAutoloadReferencePlan,
@@ -63,7 +64,7 @@ export function directGodotSceneAutoloadReferences(
       }
       references.set(reference.name, reference);
     }
-    for (const child of candidate.children) visit(child);
+    for (const child of godotSceneSubnodes(candidate)) visit(child);
   };
   visit(node);
   return [...references.values()].sort((left, right) => left.name.localeCompare(right.name));

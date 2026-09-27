@@ -1,4 +1,4 @@
-import { godotImportedModelDataPath } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import { createHash } from 'node:crypto';
 import type { CapabilityCopyArtifact } from '../../snapshot/toolchain-snapshot';
 import type { OfficialBoundCodePlan } from '../code/lower-official-bound';
@@ -124,7 +124,7 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): rea
         );
       }
     }
-    for (const child of node.children) visit(scene, child);
+    for (const child of godotSceneSubnodes(node)) visit(scene, child);
     for (const placed of node.placements ?? []) visit(scene, placed.node);
   };
   for (const scene of composition.scenes) visit(scene, scene.root);
@@ -161,7 +161,7 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
         const file = godotGridMapDataPath(scene.targetPath, node.nodePath);
         written.set(file, projectDataJsonArtifact(file, [...setter.value.components], [scene.sourceResPath]));
       }
-      for (const child of [...node.children, ...(node.placements ?? []).map((placed) => placed.node)]) walk(child);
+      for (const child of godotSceneSubnodes(node)) walk(child);
     };
     walk(scene.root);
   }

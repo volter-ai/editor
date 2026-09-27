@@ -30,7 +30,7 @@ import type {
 } from '../data/direct-project-composition-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
-import { godotImportedModelDataPath } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import {
   attribute,
   camelName,
@@ -652,7 +652,7 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
       const current = setterValue(entry.setters, 'set_current');
       if (current?.kind === 'bool' && current.value) authored ??= entry.nodePath;
     }
-    for (const child of entry.children) walk(child);
+    for (const child of godotSceneSubnodes(entry)) walk(child);
   };
   walk(node);
   return { ...(first === undefined ? {} : { first }), ...(authored === undefined ? {} : { authored }) };
@@ -665,7 +665,7 @@ function refTargets(scene: DirectGodotSceneDocumentPlan): ReadonlySet<string> {
   const walk = (node: DirectGodotSceneNodePlan): void => {
     if (node.scriptInstance !== undefined) targets.add(node.nodePath);
     if (node.unique === true) unique = true;
-    for (const child of node.children) walk(child);
+    for (const child of godotSceneSubnodes(node)) walk(child);
   };
   walk(scene.root);
   // A scene whose nodes its owner finds as `%Name` marks its root (`useGodotScene`).
@@ -737,7 +737,7 @@ export function idiomaticSceneSourceFile(
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   if ((function hasUnique(entry: DirectGodotSceneNodePlan): boolean {
-    return entry.unique === true || entry.children.some(hasUnique);
+    return entry.unique === true || godotSceneSubnodes(entry).some(hasUnique);
   })(scene.root)) {
     // Marked before any script attaches (a script mounted outside a startup enters at once).
     const rootRef = emission.nodeRefs.get(scene.root.nodePath) as string;

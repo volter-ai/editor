@@ -1,3 +1,4 @@
+import { godotSceneSubnodes } from './data/scene-document-plan';
 import type { BoundGodotProject } from '../analyze/bound-project';
 import type { GodotImportToolchainSnapshot } from '../snapshot/toolchain-snapshot';
 import { planDirectGodotArtifacts } from './artifacts/plan';
@@ -52,8 +53,7 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
   const paths = new Set<string>();
   const walk = (node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
     if (node.model !== undefined) paths.add(node.model.sourceResPath);
-    for (const child of node.children) walk(child);
-    for (const placed of node.placements ?? []) walk(placed.node);
+    for (const child of godotSceneSubnodes(node)) walk(child);
   };
   for (const scene of composition.scenes) walk(scene.root);
   return [...paths].sort().flatMap((resPath) => {

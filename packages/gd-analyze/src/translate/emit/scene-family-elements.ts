@@ -1,3 +1,4 @@
+import { godotSceneSubnodes } from '../data/scene-document-plan';
 /**
  * The JSX element each carried node family is written as (GODOT.md, "The output is idiomatic
  * three.js"), whatever shape the rest of its scene is written in: the element's tag, its literal
@@ -700,7 +701,7 @@ export function familyCountUses(emission: FamilyEmission, root: DirectGodotScene
         if (resource !== undefined) emission.uses.set(resource.key, (emission.uses.get(resource.key) ?? 0) + 1);
       }
     }
-    for (const child of [...node.children, ...(node.placements ?? []).map((placed) => placed.node)]) walk(child);
+    for (const child of godotSceneSubnodes(node)) walk(child);
   };
   walk(root);
 }

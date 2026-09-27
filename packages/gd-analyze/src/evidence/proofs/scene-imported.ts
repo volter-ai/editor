@@ -46,12 +46,24 @@ window/size/viewport_height=540
 [rendering]
 renderer/rendering_method="gl_compatibility"
 `,
-  'main.tscn': `[gd_scene load_steps=3 format=3]
+  // The scene's script reads a node it places into the player model as \`%Hand\` (a unique name
+  // the scene root owns through the placement).
+  'main.gd': `extends Node3D
+
+var hand: String = ""
+
+func _ready() -> void:
+\thand = str(%Hand.name)
+`,
+  'main.tscn': `[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="1_enemy"]
 [ext_resource type="PackedScene" path="res://player/player.glb" id="2_player"]
 
+[ext_resource type="Script" path="res://main.gd" id="3_main"]
+
 [node name="Main" type="Node3D"]
+script = ExtResource("3_main")
 
 [node name="Enemy" parent="." instance=ExtResource("1_enemy")]
 transform = Transform3D(0.8, 0, -0.6, 0, 1, 0, 0.6, 0, 0.8, 1.5, 0, -2)
@@ -75,6 +87,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.2, 1)
 layers = 2
 
 [node name="Hand" type="Node3D" parent="Player/Skeleton" index="1"]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.1, 0)
 
 [editable path="Enemy"]
@@ -132,6 +145,7 @@ func _initialize() -> void:
 func _process(_delta: float) -> bool:
 \tvar rows := []
 \t_walk(main, main, rows)
+\trows.append(["hand", main.hand])
 \tprint("TREE " + JSON.stringify(rows))
 \treturn true
 `;
@@ -160,7 +174,7 @@ import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
 import { GodotProjectStartup } from './src/lib/godot-compat/react-lifecycle';
 import { godot_tree_set_root } from './src/lib/godot-compat/scene-tree';
-import { get_children, get_name, godot_is_native, godot_node_is_spatial } from './src/lib/godot-compat/node';
+import { get_children, get_name, godot_is_native, godot_node_enter_pending, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import * as SK from './src/lib/godot-compat/skeleton-3d';
 import { get_layer_mask } from './src/lib/godot-compat/visual-instance-3d';
@@ -207,6 +221,8 @@ await act(async () => { root.render(createElement('group', { ref: setRoot }, cre
 for (let tries = 0; tries < 200 && (holder.current?.children[0]?.children.length ?? 0) === 0; tries += 1) {
   await act(async () => { await new Promise((resolve) => setTimeout(resolve, 25)); });
 }
+// The SceneTree enters what React registered (Main::start readies the main scene before the first frame).
+godot_node_enter_pending();
 const rows = [];
 holder.current.updateMatrixWorld(true);
 const v3 = (value) => [bits(value.x), bits(value.y), bits(value.z)];
@@ -254,6 +270,7 @@ const walk = (path, object) => {
   }
 };
 walk('.', holder.current.children[0]);
+rows.push(['hand', godot_node_object(holder.current.children[0]).hand]);
 await act(async () => { root.unmount(); });
 console.log('TREE ' + JSON.stringify(rows));
 `;
