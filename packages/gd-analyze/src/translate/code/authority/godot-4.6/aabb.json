@@ -1,0 +1,1268 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/aabb"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "AABB",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "construct",
+        "localName": "AABB_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.AABB"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "position",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "with_position",
+        "localName": "AABB_with_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.position.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "size",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "with_size",
+        "localName": "AABB_with_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.size.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "end",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "with_end",
+        "localName": "AABB_with_end",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.end.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "get_longest_axis_size",
+        "kind": "builtin-member",
+        "signature": "hash:466405837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "get_longest_axis_size",
+        "localName": "AABB_get_longest_axis_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.get_longest_axis_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "get_center",
+        "kind": "builtin-member",
+        "signature": "hash:1776574132"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "get_center",
+        "localName": "AABB_get_center",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.get_center"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "get_volume",
+        "kind": "builtin-member",
+        "signature": "hash:466405837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "get_volume",
+        "localName": "AABB_get_volume",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.get_volume"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "abs",
+        "kind": "builtin-member",
+        "signature": "hash:1576868580"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "abs",
+        "localName": "AABB_abs",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.abs"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "grow",
+        "kind": "builtin-member",
+        "signature": "hash:239217291"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "grow",
+        "localName": "AABB_grow",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.grow"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "has_point",
+        "kind": "builtin-member",
+        "signature": "hash:1749054343"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "has_point",
+        "localName": "AABB_has_point",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.has_point"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "expand",
+        "kind": "builtin-member",
+        "signature": "hash:2851643018"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "expand",
+        "localName": "AABB_expand",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.expand"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "merge",
+        "kind": "builtin-member",
+        "signature": "hash:1271470306"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "merge",
+        "localName": "AABB_merge",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.merge"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "intersects",
+        "kind": "builtin-member",
+        "signature": "hash:299946684"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "intersects",
+        "localName": "AABB_intersects",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.intersects"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "encloses",
+        "kind": "builtin-member",
+        "signature": "hash:299946684"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "encloses",
+        "localName": "AABB_encloses",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.encloses"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "is_equal_approx",
+        "kind": "builtin-member",
+        "signature": "hash:299946684"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "is_equal_approx",
+        "localName": "AABB_is_equal_approx",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.is_equal_approx"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "OP_EQUAL",
+        "kind": "builtin-operator",
+        "signature": "right:AABB"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "op_equal",
+        "localName": "AABB_op_equal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.OP_EQUAL.right:AABB"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AABB",
+        "member": "OP_NOT_EQUAL",
+        "kind": "builtin-operator",
+        "signature": "right:AABB"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/aabb",
+        "exportName": "op_not_equal",
+        "localName": "AABB_op_not_equal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AABB.OP_NOT_EQUAL.right:AABB"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "sourceDatatype": "BUILTIN:AABB",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "AABB",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/aabb",
+        "exportName": "AABB"
+      },
+      "evidenceClaimId": "godot-4.6-datatype-AABB"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.AABB",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-constructor\u0000AABB\u0000AABB\u0000unhashed",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.AABB",
+        "sourceLine": 148
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "fbc09d5ab32c774117fcf5956c1dbbc9e8a2002ed92ad34e379fa450dcc4060b",
+        "callsite": "res://probe.gd _init() construct-empty construct-vectors-zero construct-copy-zero construct-vectors-unit construct-copy-unit construct-vectors-decimals construct-copy-decimals construct-vectors-negative-size construct-copy-negative-size construct-vectors-flat construct-copy-flat construct-vectors-signed-zero construct-copy-signed-zero construct-vectors-touching construct-copy-touching construct-vectors-inside construct-copy-inside construct-vectors-huge construct-copy-huge construct-vectors-nan construct-copy-nan construct-vectors-nan-size construct-copy-nan-size",
+        "observedOutputSha256": "a226f6a2b8b417515381a1bd0b76fea1e3189ee934be914f1b61bfff183542ad"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts construct",
+        "observedOutputSha256": "8cef213d15dd79d66921246c8566ad6a8fc368fa4c8515aa89b88dfd6fa47397"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "aafae6086e4b9244796456d7c87d734251483b83acd07fce91fb069a6fa2ba55"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.position.set",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member-set\u0000AABB\u0000position\u0000set",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.position",
+        "sourceLine": 45
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "5bba718df7e2d7f4099ed2bea8dfcf73dbb18dae4aab2df27807eb5833a5f002",
+        "callsite": "res://probe.gd _init() with_position-zero with_position-unit with_position-decimals with_position-negative-size with_position-flat with_position-signed-zero with_position-touching with_position-inside with_position-huge with_position-nan with_position-nan-size",
+        "observedOutputSha256": "b3222b86005ac76df8fbb37a0d5e157ca3c4e36c365c8d3afca5feeb2723331f"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts with_position",
+        "observedOutputSha256": "ae07745bf9048d78916f03a435330ee2e17b07b40f82744b8a5fac1bbd4320ff"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0285d2ddb49c6df5a8d0bb38b80b54795b56fcc7ae1c02c081b09b129fe45152"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.size.set",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member-set\u0000AABB\u0000size\u0000set",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.size",
+        "sourceLine": 46
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "de3a8bfe309111b0703184b1321e62f68ba3c127517f7274b7813c589cad0abc",
+        "callsite": "res://probe.gd _init() with_size-zero with_size-unit with_size-decimals with_size-negative-size with_size-flat with_size-signed-zero with_size-touching with_size-inside with_size-huge with_size-nan with_size-nan-size",
+        "observedOutputSha256": "eed03cdc02aa0f50fcda6f87698464d809e3a6578920786afe17f824f12f543a"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts with_size",
+        "observedOutputSha256": "f8284796ac79833a9b0f8b1dc03649457b57b13027b5964853df8211042aa828"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0ec74005e515441cb0e6a939669a97b4ffdd495071b2e70db3a3dc456977f385"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.end.set",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member-set\u0000AABB\u0000end\u0000set",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.end",
+        "sourceLine": 123
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "cb7b34cabf49a1b3f99757f93c29a62f1cbc38e4e4775f3a7e3c8bec10e7e1d5",
+        "callsite": "res://probe.gd _init() with_end-zero with_end-unit with_end-decimals with_end-negative-size with_end-flat with_end-signed-zero with_end-touching with_end-inside with_end-huge with_end-nan with_end-nan-size",
+        "observedOutputSha256": "eab86fae0a4e03c5a73b59df462ba28554f51b9f9a5870fbc7b5ceac656c156d"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts with_end",
+        "observedOutputSha256": "9301e27bf22c450dfa5cdfc449a5e38f058888c04cee29dfa8c840d0557eb3d9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "38bf05954b0e0663a2bffa7e30f1050179064737ffc54693055c3f812b0763ee"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.get_longest_axis_size",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000get_longest_axis_size\u0000hash:466405837",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.get_longest_axis_size",
+        "sourceLine": 399
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "1f64f4829e67b9e37d4decd020d5a89f178d5e55a5fe9b4664013b357fb1fcf6",
+        "callsite": "res://probe.gd _init() get_longest_axis_size-zero get_longest_axis_size-unit get_longest_axis_size-decimals get_longest_axis_size-negative-size get_longest_axis_size-flat get_longest_axis_size-signed-zero get_longest_axis_size-touching get_longest_axis_size-inside get_longest_axis_size-huge get_longest_axis_size-nan get_longest_axis_size-nan-size",
+        "observedOutputSha256": "b7681366446051558cfc714bac9038268f3a87b692f0df257cc02cc821254630"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts get_longest_axis_size",
+        "observedOutputSha256": "b7681366446051558cfc714bac9038268f3a87b692f0df257cc02cc821254630"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "27ddc410d10800ae9860eb76c3dcc6c5a71e51dff9ed201d48fb9bb81370d929"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.get_center",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000get_center\u0000hash:1776574132",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.get_center",
+        "sourceLine": 131
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "e4003056822b94d3994009397e45548e50c67276537e521110bebbf8d3225e56",
+        "callsite": "res://probe.gd _init() get_center-zero get_center-unit get_center-decimals get_center-negative-size get_center-flat get_center-signed-zero get_center-touching get_center-inside get_center-huge get_center-nan get_center-nan-size",
+        "observedOutputSha256": "ab919375716ef1d0f93833f5c0aae0afa072aa2fe5465a61ec0ec69c702fd529"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts get_center",
+        "observedOutputSha256": "ab919375716ef1d0f93833f5c0aae0afa072aa2fe5465a61ec0ec69c702fd529"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6ae85fb79d30b53f180864afef674799e957d1afe0a4b14bbec48a2d21945c2b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.get_volume",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000get_volume\u0000hash:466405837",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.cpp",
+        "sourceSymbol": "AABB.get_volume",
+        "sourceLine": 36
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "dd63488abd355dd444ee919ebe15a1c67293b1bce89b8334ebdc9e99bf7827eb",
+        "callsite": "res://probe.gd _init() get_volume-zero get_volume-unit get_volume-decimals get_volume-negative-size get_volume-flat get_volume-signed-zero get_volume-touching get_volume-inside get_volume-huge get_volume-nan get_volume-nan-size",
+        "observedOutputSha256": "f03459c456735b9404c3e0b6cf939e823046bd4d8f136095b1afda89d67458e1"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts get_volume",
+        "observedOutputSha256": "f03459c456735b9404c3e0b6cf939e823046bd4d8f136095b1afda89d67458e1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "23c173fa4cc64030b18fc4f5fa6ab35bfaa972fe6be4c00af1058745e1ab4a9f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.abs",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000abs\u0000hash:1576868580",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.abs",
+        "sourceLine": 113
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "6f45f6363c56fa58053cfa74864e6a7e08b5b475bd4fa9825567a429f6562bdd",
+        "callsite": "res://probe.gd _init() abs-zero abs-unit abs-decimals abs-negative-size abs-flat abs-signed-zero abs-touching abs-inside abs-huge abs-nan abs-nan-size",
+        "observedOutputSha256": "1592fe3ac3318ae522462f6aac01da3e808decaaaa93ffe45c20fa640eddac37"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts abs",
+        "observedOutputSha256": "d8d1e6fd5dbe29355c08b009983996323f79373f24ae0438d05a9d9bba7d4d09"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1a9e612609d7033da65fbe5e82158653092474e5e27a4e8974dad5a0fed9c8de"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.grow",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000grow\u0000hash:239217291",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.cpp",
+        "sourceSymbol": "AABB.grow",
+        "sourceLine": 351
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "e14b45623e0d3720b7f0775ba2cea595f334a36713dad6da750506521a99fec5",
+        "callsite": "res://probe.gd _init() grow-zero-zero grow-zero-tenth grow-zero-shrink grow-zero-huge grow-unit-zero grow-unit-tenth grow-unit-shrink grow-unit-huge grow-decimals-zero grow-decimals-tenth grow-decimals-shrink grow-decimals-huge grow-negative-size-zero grow-negative-size-tenth grow-negative-size-shrink grow-negative-size-huge grow-flat-zero grow-flat-tenth grow-flat-shrink grow-flat-huge grow-signed-zero-zero grow-signed-zero-tenth grow-signed-zero-shrink grow-signed-zero-huge grow-touching-zero grow-touching-tenth grow-touching-shrink grow-touching-huge grow-inside-zero grow-inside-tenth grow-inside-shrink grow-inside-huge grow-huge-zero grow-huge-tenth grow-huge-shrink grow-huge-huge grow-nan-zero grow-nan-tenth grow-nan-shrink grow-nan-huge grow-nan-size-zero grow-nan-size-tenth grow-nan-size-shrink grow-nan-size-huge",
+        "observedOutputSha256": "59e679281c37f3d52566c8c08a47bcf7029f12c25c25112acf8fc9d63b97664a"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts grow",
+        "observedOutputSha256": "40e939b0e31281041389d3425615f4d127b85d470938c59685e9782f074c38ff"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "261da3fd6eefd8bca7fc78d98a1107bf657bc9507aa45364ed2002148fb16c73"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.has_point",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000has_point\u0000hash:1749054343",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.has_point",
+        "sourceLine": 328
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "e47371f879daf5998438abb2d0a7ff5e3272a7b815aa1ae9eeff73cdebc4392c",
+        "callsite": "res://probe.gd _init() has_point-zero-origin has_point-zero-center has_point-zero-end has_point-zero-past-end-ulp has_point-zero-below-ulp has_point-zero-far has_point-zero-decimal-end has_point-zero-nan has_point-zero-own-end has_point-unit-origin has_point-unit-center has_point-unit-end has_point-unit-past-end-ulp has_point-unit-below-ulp has_point-unit-far has_point-unit-decimal-end has_point-unit-nan has_point-unit-own-end has_point-decimals-origin has_point-decimals-center has_point-decimals-end has_point-decimals-past-end-ulp has_point-decimals-below-ulp has_point-decimals-far has_point-decimals-decimal-end has_point-decimals-nan has_point-decimals-own-end has_point-negative-size-origin has_point-negative-size-center has_point-negative-size-end has_point-negative-size-past-end-ulp has_point-negative-size-below-ulp has_point-negative-size-far has_point-negative-size-decimal-end has_point-negative-size-nan has_point-negative-size-own-end has_point-flat-origin has_point-flat-center has_point-flat-end has_point-flat-past-end-ulp has_point-flat-below-ulp has_point-flat-far has_point-flat-decimal-end has_point-flat-nan has_point-flat-own-end has_point-signed-zero-origin has_point-signed-zero-center has_point-signed-zero-end has_point-signed-zero-past-end-ulp has_point-signed-zero-below-ulp has_point-signed-zero-far has_point-signed-zero-decimal-end has_point-signed-zero-nan has_point-signed-zero-own-end has_point-touching-origin has_point-touching-center has_point-touching-end has_point-touching-past-end-ulp has_point-touching-below-ulp has_point-touching-far has_point-touching-decimal-end has_point-touching-nan has_point-touching-own-end has_point-inside-origin has_point-inside-center has_point-inside-end has_point-inside-past-end-ulp has_point-inside-below-ulp has_point-inside-far has_point-inside-decimal-end has_point-inside-nan has_point-inside-own-end has_point-huge-origin has_point-huge-center has_point-huge-end has_point-huge-past-end-ulp has_point-huge-below-ulp has_point-huge-far has_point-huge-decimal-end has_point-huge-nan has_point-huge-own-end has_point-nan-origin has_point-nan-center has_point-nan-end has_point-nan-past-end-ulp has_point-nan-below-ulp has_point-nan-far has_point-nan-decimal-end has_point-nan-nan has_point-nan-own-end has_point-nan-size-origin has_point-nan-size-center has_point-nan-size-end has_point-nan-size-past-end-ulp has_point-nan-size-below-ulp has_point-nan-size-far has_point-nan-size-decimal-end has_point-nan-size-nan has_point-nan-size-own-end",
+        "observedOutputSha256": "87cc411bf4e0d4ff9e9e30d58d1aefb04bc3cd4593696ac17f43b853d0f37380"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts has_point",
+        "observedOutputSha256": "87cc411bf4e0d4ff9e9e30d58d1aefb04bc3cd4593696ac17f43b853d0f37380"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "44dfd74c2abc1ed41d01c8bdbf9c506959e5809941142523cc794a5704793068"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.expand",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000expand\u0000hash:2851643018",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.cpp",
+        "sourceSymbol": "AABB.expand",
+        "sourceLine": 345
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "cb059b5a00f6ac5fb43fa9f7acd92c44bcb693545ad76b81371d2aaa4f1a4062",
+        "callsite": "res://probe.gd _init() expand-zero-origin expand-zero-center expand-zero-end expand-zero-past-end-ulp expand-zero-below-ulp expand-zero-far expand-zero-decimal-end expand-zero-nan expand-unit-origin expand-unit-center expand-unit-end expand-unit-past-end-ulp expand-unit-below-ulp expand-unit-far expand-unit-decimal-end expand-unit-nan expand-decimals-origin expand-decimals-center expand-decimals-end expand-decimals-past-end-ulp expand-decimals-below-ulp expand-decimals-far expand-decimals-decimal-end expand-decimals-nan expand-negative-size-origin expand-negative-size-center expand-negative-size-end expand-negative-size-past-end-ulp expand-negative-size-below-ulp expand-negative-size-far expand-negative-size-decimal-end expand-negative-size-nan expand-flat-origin expand-flat-center expand-flat-end expand-flat-past-end-ulp expand-flat-below-ulp expand-flat-far expand-flat-decimal-end expand-flat-nan expand-signed-zero-origin expand-signed-zero-center expand-signed-zero-end expand-signed-zero-past-end-ulp expand-signed-zero-below-ulp expand-signed-zero-far expand-signed-zero-decimal-end expand-signed-zero-nan expand-touching-origin expand-touching-center expand-touching-end expand-touching-past-end-ulp expand-touching-below-ulp expand-touching-far expand-touching-decimal-end expand-touching-nan expand-inside-origin expand-inside-center expand-inside-end expand-inside-past-end-ulp expand-inside-below-ulp expand-inside-far expand-inside-decimal-end expand-inside-nan expand-huge-origin expand-huge-center expand-huge-end expand-huge-past-end-ulp expand-huge-below-ulp expand-huge-far expand-huge-decimal-end expand-huge-nan expand-nan-origin expand-nan-center expand-nan-end expand-nan-past-end-ulp expand-nan-below-ulp expand-nan-far expand-nan-decimal-end expand-nan-nan expand-nan-size-origin expand-nan-size-center expand-nan-size-end expand-nan-size-past-end-ulp expand-nan-size-below-ulp expand-nan-size-far expand-nan-size-decimal-end expand-nan-size-nan",
+        "observedOutputSha256": "35e8138a2c1c3ed4be0ffebe95dce4d989fcbdcfe38cec209f6db34903378e12"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts expand",
+        "observedOutputSha256": "c3f183a00e9128f80d687babfb2c01fe891982a2b48e5e5eabd29036dfbfb5b7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0ca54821f73204703ecfb5bc19e1a0be6cd6e3ebeb77e59324b8f3c971393d66"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.merge",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000merge\u0000hash:1271470306",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.cpp",
+        "sourceSymbol": "AABB.merge",
+        "sourceLine": 339
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "7b7cbb910dc755606c9dc873bd3dc0a2185d5e27d583a2c95e55eba7f84d9441",
+        "callsite": "res://probe.gd _init() merge-zero-zero merge-zero-unit merge-zero-decimals merge-zero-negative-size merge-zero-flat merge-zero-signed-zero merge-zero-touching merge-zero-inside merge-zero-huge merge-zero-nan merge-zero-nan-size merge-zero-empty merge-empty-zero merge-unit-zero merge-unit-unit merge-unit-decimals merge-unit-negative-size merge-unit-flat merge-unit-signed-zero merge-unit-touching merge-unit-inside merge-unit-huge merge-unit-nan merge-unit-nan-size merge-unit-empty merge-empty-unit merge-decimals-zero merge-decimals-unit merge-decimals-decimals merge-decimals-negative-size merge-decimals-flat merge-decimals-signed-zero merge-decimals-touching merge-decimals-inside merge-decimals-huge merge-decimals-nan merge-decimals-nan-size merge-decimals-empty merge-empty-decimals merge-negative-size-zero merge-negative-size-unit merge-negative-size-decimals merge-negative-size-negative-size merge-negative-size-flat merge-negative-size-signed-zero merge-negative-size-touching merge-negative-size-inside merge-negative-size-huge merge-negative-size-nan merge-negative-size-nan-size merge-negative-size-empty merge-empty-negative-size merge-flat-zero merge-flat-unit merge-flat-decimals merge-flat-negative-size merge-flat-flat merge-flat-signed-zero merge-flat-touching merge-flat-inside merge-flat-huge merge-flat-nan merge-flat-nan-size merge-flat-empty merge-empty-flat merge-signed-zero-zero merge-signed-zero-unit merge-signed-zero-decimals merge-signed-zero-negative-size merge-signed-zero-flat merge-signed-zero-signed-zero merge-signed-zero-touching merge-signed-zero-inside merge-signed-zero-huge merge-signed-zero-nan merge-signed-zero-nan-size merge-signed-zero-empty merge-empty-signed-zero merge-touching-zero merge-touching-unit merge-touching-decimals merge-touching-negative-size merge-touching-flat merge-touching-signed-zero merge-touching-touching merge-touching-inside merge-touching-huge merge-touching-nan merge-touching-nan-size merge-touching-empty merge-empty-touching merge-inside-zero merge-inside-unit merge-inside-decimals merge-inside-negative-size merge-inside-flat merge-inside-signed-zero merge-inside-touching merge-inside-inside merge-inside-huge merge-inside-nan merge-inside-nan-size merge-inside-empty merge-empty-inside merge-huge-zero merge-huge-unit merge-huge-decimals merge-huge-negative-size merge-huge-flat merge-huge-signed-zero merge-huge-touching merge-huge-inside merge-huge-huge merge-huge-nan merge-huge-nan-size merge-huge-empty merge-empty-huge merge-nan-zero merge-nan-unit merge-nan-decimals merge-nan-negative-size merge-nan-flat merge-nan-signed-zero merge-nan-touching merge-nan-inside merge-nan-huge merge-nan-nan merge-nan-nan-size merge-nan-empty merge-empty-nan merge-nan-size-zero merge-nan-size-unit merge-nan-size-decimals merge-nan-size-negative-size merge-nan-size-flat merge-nan-size-signed-zero merge-nan-size-touching merge-nan-size-inside merge-nan-size-huge merge-nan-size-nan merge-nan-size-nan-size merge-nan-size-empty merge-empty-nan-size",
+        "observedOutputSha256": "f3ec5e9a53e51ed0ee837aef2ac376329804273ed5f9eea5a5db5cf26c54dac5"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts merge",
+        "observedOutputSha256": "ae394e350c21e1834c1799da32e10bd54bca65ff3113b83277ff050984481eb5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6481f2953e9d0753d60ee1d6daa136b599e7cfff62e6ee86cab37d4e200d960a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.intersects",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000intersects\u0000hash:299946684",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.intersects",
+        "sourceLine": 154
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "edbf2f9bfc94c1c06e11183d384cb3e523ac3420e2ab48aeaee84dadcfbfd6b4",
+        "callsite": "res://probe.gd _init() intersects-zero-zero intersects-zero-unit intersects-zero-decimals intersects-zero-negative-size intersects-zero-flat intersects-zero-signed-zero intersects-zero-touching intersects-zero-inside intersects-zero-huge intersects-zero-nan intersects-zero-nan-size intersects-unit-zero intersects-unit-unit intersects-unit-decimals intersects-unit-negative-size intersects-unit-flat intersects-unit-signed-zero intersects-unit-touching intersects-unit-inside intersects-unit-huge intersects-unit-nan intersects-unit-nan-size intersects-decimals-zero intersects-decimals-unit intersects-decimals-decimals intersects-decimals-negative-size intersects-decimals-flat intersects-decimals-signed-zero intersects-decimals-touching intersects-decimals-inside intersects-decimals-huge intersects-decimals-nan intersects-decimals-nan-size intersects-negative-size-zero intersects-negative-size-unit intersects-negative-size-decimals intersects-negative-size-negative-size intersects-negative-size-flat intersects-negative-size-signed-zero intersects-negative-size-touching intersects-negative-size-inside intersects-negative-size-huge intersects-negative-size-nan intersects-negative-size-nan-size intersects-flat-zero intersects-flat-unit intersects-flat-decimals intersects-flat-negative-size intersects-flat-flat intersects-flat-signed-zero intersects-flat-touching intersects-flat-inside intersects-flat-huge intersects-flat-nan intersects-flat-nan-size intersects-signed-zero-zero intersects-signed-zero-unit intersects-signed-zero-decimals intersects-signed-zero-negative-size intersects-signed-zero-flat intersects-signed-zero-signed-zero intersects-signed-zero-touching intersects-signed-zero-inside intersects-signed-zero-huge intersects-signed-zero-nan intersects-signed-zero-nan-size intersects-touching-zero intersects-touching-unit intersects-touching-decimals intersects-touching-negative-size intersects-touching-flat intersects-touching-signed-zero intersects-touching-touching intersects-touching-inside intersects-touching-huge intersects-touching-nan intersects-touching-nan-size intersects-inside-zero intersects-inside-unit intersects-inside-decimals intersects-inside-negative-size intersects-inside-flat intersects-inside-signed-zero intersects-inside-touching intersects-inside-inside intersects-inside-huge intersects-inside-nan intersects-inside-nan-size intersects-huge-zero intersects-huge-unit intersects-huge-decimals intersects-huge-negative-size intersects-huge-flat intersects-huge-signed-zero intersects-huge-touching intersects-huge-inside intersects-huge-huge intersects-huge-nan intersects-huge-nan-size intersects-nan-zero intersects-nan-unit intersects-nan-decimals intersects-nan-negative-size intersects-nan-flat intersects-nan-signed-zero intersects-nan-touching intersects-nan-inside intersects-nan-huge intersects-nan-nan intersects-nan-nan-size intersects-nan-size-zero intersects-nan-size-unit intersects-nan-size-decimals intersects-nan-size-negative-size intersects-nan-size-flat intersects-nan-size-signed-zero intersects-nan-size-touching intersects-nan-size-inside intersects-nan-size-huge intersects-nan-size-nan intersects-nan-size-nan-size",
+        "observedOutputSha256": "969aa530c82329ef0d5f65647f58112aebe0696b60ca8712fdd9f7be265ed85f"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts intersects",
+        "observedOutputSha256": "969aa530c82329ef0d5f65647f58112aebe0696b60ca8712fdd9f7be265ed85f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1926e36bbb494280650aa45561df879bf8b985cdb4bc12d9fc027fafb9cf8f42"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.encloses",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000encloses\u0000hash:299946684",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.encloses",
+        "sourceLine": 210
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "a9d8cc16d5d7d3682dd7753042b7822e7d66f0ffd5717f22d9d14a57c5bc3953",
+        "callsite": "res://probe.gd _init() encloses-zero-zero encloses-zero-unit encloses-zero-decimals encloses-zero-negative-size encloses-zero-flat encloses-zero-signed-zero encloses-zero-touching encloses-zero-inside encloses-zero-huge encloses-zero-nan encloses-zero-nan-size encloses-unit-zero encloses-unit-unit encloses-unit-decimals encloses-unit-negative-size encloses-unit-flat encloses-unit-signed-zero encloses-unit-touching encloses-unit-inside encloses-unit-huge encloses-unit-nan encloses-unit-nan-size encloses-decimals-zero encloses-decimals-unit encloses-decimals-decimals encloses-decimals-negative-size encloses-decimals-flat encloses-decimals-signed-zero encloses-decimals-touching encloses-decimals-inside encloses-decimals-huge encloses-decimals-nan encloses-decimals-nan-size encloses-negative-size-zero encloses-negative-size-unit encloses-negative-size-decimals encloses-negative-size-negative-size encloses-negative-size-flat encloses-negative-size-signed-zero encloses-negative-size-touching encloses-negative-size-inside encloses-negative-size-huge encloses-negative-size-nan encloses-negative-size-nan-size encloses-flat-zero encloses-flat-unit encloses-flat-decimals encloses-flat-negative-size encloses-flat-flat encloses-flat-signed-zero encloses-flat-touching encloses-flat-inside encloses-flat-huge encloses-flat-nan encloses-flat-nan-size encloses-signed-zero-zero encloses-signed-zero-unit encloses-signed-zero-decimals encloses-signed-zero-negative-size encloses-signed-zero-flat encloses-signed-zero-signed-zero encloses-signed-zero-touching encloses-signed-zero-inside encloses-signed-zero-huge encloses-signed-zero-nan encloses-signed-zero-nan-size encloses-touching-zero encloses-touching-unit encloses-touching-decimals encloses-touching-negative-size encloses-touching-flat encloses-touching-signed-zero encloses-touching-touching encloses-touching-inside encloses-touching-huge encloses-touching-nan encloses-touching-nan-size encloses-inside-zero encloses-inside-unit encloses-inside-decimals encloses-inside-negative-size encloses-inside-flat encloses-inside-signed-zero encloses-inside-touching encloses-inside-inside encloses-inside-huge encloses-inside-nan encloses-inside-nan-size encloses-huge-zero encloses-huge-unit encloses-huge-decimals encloses-huge-negative-size encloses-huge-flat encloses-huge-signed-zero encloses-huge-touching encloses-huge-inside encloses-huge-huge encloses-huge-nan encloses-huge-nan-size encloses-nan-zero encloses-nan-unit encloses-nan-decimals encloses-nan-negative-size encloses-nan-flat encloses-nan-signed-zero encloses-nan-touching encloses-nan-inside encloses-nan-huge encloses-nan-nan encloses-nan-nan-size encloses-nan-size-zero encloses-nan-size-unit encloses-nan-size-decimals encloses-nan-size-negative-size encloses-nan-size-flat encloses-nan-size-signed-zero encloses-nan-size-touching encloses-nan-size-inside encloses-nan-size-huge encloses-nan-size-nan encloses-nan-size-nan-size",
+        "observedOutputSha256": "0864025fb66ab1a6ace7eb69be53e4d7b5088f33d406e799cd295d78df48c272"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts encloses",
+        "observedOutputSha256": "0864025fb66ab1a6ace7eb69be53e4d7b5088f33d406e799cd295d78df48c272"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "556e896a425520342dd701472121d6cd1472a1fbeb7e8b8cb713716dd30e8726"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.is_equal_approx",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000AABB\u0000is_equal_approx\u0000hash:299946684",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.cpp",
+        "sourceSymbol": "AABB.is_equal_approx",
+        "sourceLine": 67
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "9afd835af58f07ee1e6fc11c332805183cdc587ce713ea396ec60b758f536ae6",
+        "callsite": "res://probe.gd _init() is_equal_approx-zero-zero is_equal_approx-zero-unit is_equal_approx-zero-decimals is_equal_approx-zero-negative-size is_equal_approx-zero-flat is_equal_approx-zero-signed-zero is_equal_approx-zero-touching is_equal_approx-zero-inside is_equal_approx-zero-huge is_equal_approx-zero-nan is_equal_approx-zero-nan-size is_equal_approx-zero-nearly is_equal_approx-unit-zero is_equal_approx-unit-unit is_equal_approx-unit-decimals is_equal_approx-unit-negative-size is_equal_approx-unit-flat is_equal_approx-unit-signed-zero is_equal_approx-unit-touching is_equal_approx-unit-inside is_equal_approx-unit-huge is_equal_approx-unit-nan is_equal_approx-unit-nan-size is_equal_approx-unit-nearly is_equal_approx-decimals-zero is_equal_approx-decimals-unit is_equal_approx-decimals-decimals is_equal_approx-decimals-negative-size is_equal_approx-decimals-flat is_equal_approx-decimals-signed-zero is_equal_approx-decimals-touching is_equal_approx-decimals-inside is_equal_approx-decimals-huge is_equal_approx-decimals-nan is_equal_approx-decimals-nan-size is_equal_approx-decimals-nearly is_equal_approx-negative-size-zero is_equal_approx-negative-size-unit is_equal_approx-negative-size-decimals is_equal_approx-negative-size-negative-size is_equal_approx-negative-size-flat is_equal_approx-negative-size-signed-zero is_equal_approx-negative-size-touching is_equal_approx-negative-size-inside is_equal_approx-negative-size-huge is_equal_approx-negative-size-nan is_equal_approx-negative-size-nan-size is_equal_approx-negative-size-nearly is_equal_approx-flat-zero is_equal_approx-flat-unit is_equal_approx-flat-decimals is_equal_approx-flat-negative-size is_equal_approx-flat-flat is_equal_approx-flat-signed-zero is_equal_approx-flat-touching is_equal_approx-flat-inside is_equal_approx-flat-huge is_equal_approx-flat-nan is_equal_approx-flat-nan-size is_equal_approx-flat-nearly is_equal_approx-signed-zero-zero is_equal_approx-signed-zero-unit is_equal_approx-signed-zero-decimals is_equal_approx-signed-zero-negative-size is_equal_approx-signed-zero-flat is_equal_approx-signed-zero-signed-zero is_equal_approx-signed-zero-touching is_equal_approx-signed-zero-inside is_equal_approx-signed-zero-huge is_equal_approx-signed-zero-nan is_equal_approx-signed-zero-nan-size is_equal_approx-signed-zero-nearly is_equal_approx-touching-zero is_equal_approx-touching-unit is_equal_approx-touching-decimals is_equal_approx-touching-negative-size is_equal_approx-touching-flat is_equal_approx-touching-signed-zero is_equal_approx-touching-touching is_equal_approx-touching-inside is_equal_approx-touching-huge is_equal_approx-touching-nan is_equal_approx-touching-nan-size is_equal_approx-touching-nearly is_equal_approx-inside-zero is_equal_approx-inside-unit is_equal_approx-inside-decimals is_equal_approx-inside-negative-size is_equal_approx-inside-flat is_equal_approx-inside-signed-zero is_equal_approx-inside-touching is_equal_approx-inside-inside is_equal_approx-inside-huge is_equal_approx-inside-nan is_equal_approx-inside-nan-size is_equal_approx-inside-nearly is_equal_approx-huge-zero is_equal_approx-huge-unit is_equal_approx-huge-decimals is_equal_approx-huge-negative-size is_equal_approx-huge-flat is_equal_approx-huge-signed-zero is_equal_approx-huge-touching is_equal_approx-huge-inside is_equal_approx-huge-huge is_equal_approx-huge-nan is_equal_approx-huge-nan-size is_equal_approx-huge-nearly is_equal_approx-nan-zero is_equal_approx-nan-unit is_equal_approx-nan-decimals is_equal_approx-nan-negative-size is_equal_approx-nan-flat is_equal_approx-nan-signed-zero is_equal_approx-nan-touching is_equal_approx-nan-inside is_equal_approx-nan-huge is_equal_approx-nan-nan is_equal_approx-nan-nan-size is_equal_approx-nan-nearly is_equal_approx-nan-size-zero is_equal_approx-nan-size-unit is_equal_approx-nan-size-decimals is_equal_approx-nan-size-negative-size is_equal_approx-nan-size-flat is_equal_approx-nan-size-signed-zero is_equal_approx-nan-size-touching is_equal_approx-nan-size-inside is_equal_approx-nan-size-huge is_equal_approx-nan-size-nan is_equal_approx-nan-size-nan-size is_equal_approx-nan-size-nearly",
+        "observedOutputSha256": "3e8aa561e64176899bce0c10a4ab7398f61754bbee08bd58df1d971ea2c42b7a"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts is_equal_approx",
+        "observedOutputSha256": "3e8aa561e64176899bce0c10a4ab7398f61754bbee08bd58df1d971ea2c42b7a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "06a62543c3b673193a02d904063ee6e8c7bca8397f793b57e1857b446f87d6de"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.OP_EQUAL.right:AABB",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-operator\u0000AABB\u0000OP_EQUAL\u0000right:AABB",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.OP_EQUAL",
+        "sourceLine": 62
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "07a765c6500aa95d67a568a7296d87a0ae10a3a656be89c80dd53c6e17345f5a",
+        "callsite": "res://probe.gd _init() op_equal-zero-zero op_equal-zero-unit op_equal-zero-decimals op_equal-zero-negative-size op_equal-zero-flat op_equal-zero-signed-zero op_equal-zero-touching op_equal-zero-inside op_equal-zero-huge op_equal-zero-nan op_equal-zero-nan-size op_equal-unit-zero op_equal-unit-unit op_equal-unit-decimals op_equal-unit-negative-size op_equal-unit-flat op_equal-unit-signed-zero op_equal-unit-touching op_equal-unit-inside op_equal-unit-huge op_equal-unit-nan op_equal-unit-nan-size op_equal-decimals-zero op_equal-decimals-unit op_equal-decimals-decimals op_equal-decimals-negative-size op_equal-decimals-flat op_equal-decimals-signed-zero op_equal-decimals-touching op_equal-decimals-inside op_equal-decimals-huge op_equal-decimals-nan op_equal-decimals-nan-size op_equal-negative-size-zero op_equal-negative-size-unit op_equal-negative-size-decimals op_equal-negative-size-negative-size op_equal-negative-size-flat op_equal-negative-size-signed-zero op_equal-negative-size-touching op_equal-negative-size-inside op_equal-negative-size-huge op_equal-negative-size-nan op_equal-negative-size-nan-size op_equal-flat-zero op_equal-flat-unit op_equal-flat-decimals op_equal-flat-negative-size op_equal-flat-flat op_equal-flat-signed-zero op_equal-flat-touching op_equal-flat-inside op_equal-flat-huge op_equal-flat-nan op_equal-flat-nan-size op_equal-signed-zero-zero op_equal-signed-zero-unit op_equal-signed-zero-decimals op_equal-signed-zero-negative-size op_equal-signed-zero-flat op_equal-signed-zero-signed-zero op_equal-signed-zero-touching op_equal-signed-zero-inside op_equal-signed-zero-huge op_equal-signed-zero-nan op_equal-signed-zero-nan-size op_equal-touching-zero op_equal-touching-unit op_equal-touching-decimals op_equal-touching-negative-size op_equal-touching-flat op_equal-touching-signed-zero op_equal-touching-touching op_equal-touching-inside op_equal-touching-huge op_equal-touching-nan op_equal-touching-nan-size op_equal-inside-zero op_equal-inside-unit op_equal-inside-decimals op_equal-inside-negative-size op_equal-inside-flat op_equal-inside-signed-zero op_equal-inside-touching op_equal-inside-inside op_equal-inside-huge op_equal-inside-nan op_equal-inside-nan-size op_equal-huge-zero op_equal-huge-unit op_equal-huge-decimals op_equal-huge-negative-size op_equal-huge-flat op_equal-huge-signed-zero op_equal-huge-touching op_equal-huge-inside op_equal-huge-huge op_equal-huge-nan op_equal-huge-nan-size op_equal-nan-zero op_equal-nan-unit op_equal-nan-decimals op_equal-nan-negative-size op_equal-nan-flat op_equal-nan-signed-zero op_equal-nan-touching op_equal-nan-inside op_equal-nan-huge op_equal-nan-nan op_equal-nan-nan-size op_equal-nan-size-zero op_equal-nan-size-unit op_equal-nan-size-decimals op_equal-nan-size-negative-size op_equal-nan-size-flat op_equal-nan-size-signed-zero op_equal-nan-size-touching op_equal-nan-size-inside op_equal-nan-size-huge op_equal-nan-size-nan op_equal-nan-size-nan-size",
+        "observedOutputSha256": "d9268b696371b1311157d6e87acad17ed18f853fda008d758b6418e8ef1fd29a"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts op_equal",
+        "observedOutputSha256": "d9268b696371b1311157d6e87acad17ed18f853fda008d758b6418e8ef1fd29a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "73229a3a23bb1c7a8909af08f4466deccc1c5de26c73f91d137c80c41323b3e0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AABB.OP_NOT_EQUAL.right:AABB",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-operator\u0000AABB\u0000OP_NOT_EQUAL\u0000right:AABB",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/math/aabb.h",
+        "sourceSymbol": "AABB.OP_NOT_EQUAL",
+        "sourceLine": 65
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "509e18187f2432d64961400fcaa9effa39e385087ecee525aa72ca960ccfbf39",
+        "callsite": "res://probe.gd _init() op_not_equal-zero-zero op_not_equal-zero-unit op_not_equal-zero-decimals op_not_equal-zero-negative-size op_not_equal-zero-flat op_not_equal-zero-signed-zero op_not_equal-zero-touching op_not_equal-zero-inside op_not_equal-zero-huge op_not_equal-zero-nan op_not_equal-zero-nan-size op_not_equal-unit-zero op_not_equal-unit-unit op_not_equal-unit-decimals op_not_equal-unit-negative-size op_not_equal-unit-flat op_not_equal-unit-signed-zero op_not_equal-unit-touching op_not_equal-unit-inside op_not_equal-unit-huge op_not_equal-unit-nan op_not_equal-unit-nan-size op_not_equal-decimals-zero op_not_equal-decimals-unit op_not_equal-decimals-decimals op_not_equal-decimals-negative-size op_not_equal-decimals-flat op_not_equal-decimals-signed-zero op_not_equal-decimals-touching op_not_equal-decimals-inside op_not_equal-decimals-huge op_not_equal-decimals-nan op_not_equal-decimals-nan-size op_not_equal-negative-size-zero op_not_equal-negative-size-unit op_not_equal-negative-size-decimals op_not_equal-negative-size-negative-size op_not_equal-negative-size-flat op_not_equal-negative-size-signed-zero op_not_equal-negative-size-touching op_not_equal-negative-size-inside op_not_equal-negative-size-huge op_not_equal-negative-size-nan op_not_equal-negative-size-nan-size op_not_equal-flat-zero op_not_equal-flat-unit op_not_equal-flat-decimals op_not_equal-flat-negative-size op_not_equal-flat-flat op_not_equal-flat-signed-zero op_not_equal-flat-touching op_not_equal-flat-inside op_not_equal-flat-huge op_not_equal-flat-nan op_not_equal-flat-nan-size op_not_equal-signed-zero-zero op_not_equal-signed-zero-unit op_not_equal-signed-zero-decimals op_not_equal-signed-zero-negative-size op_not_equal-signed-zero-flat op_not_equal-signed-zero-signed-zero op_not_equal-signed-zero-touching op_not_equal-signed-zero-inside op_not_equal-signed-zero-huge op_not_equal-signed-zero-nan op_not_equal-signed-zero-nan-size op_not_equal-touching-zero op_not_equal-touching-unit op_not_equal-touching-decimals op_not_equal-touching-negative-size op_not_equal-touching-flat op_not_equal-touching-signed-zero op_not_equal-touching-touching op_not_equal-touching-inside op_not_equal-touching-huge op_not_equal-touching-nan op_not_equal-touching-nan-size op_not_equal-inside-zero op_not_equal-inside-unit op_not_equal-inside-decimals op_not_equal-inside-negative-size op_not_equal-inside-flat op_not_equal-inside-signed-zero op_not_equal-inside-touching op_not_equal-inside-inside op_not_equal-inside-huge op_not_equal-inside-nan op_not_equal-inside-nan-size op_not_equal-huge-zero op_not_equal-huge-unit op_not_equal-huge-decimals op_not_equal-huge-negative-size op_not_equal-huge-flat op_not_equal-huge-signed-zero op_not_equal-huge-touching op_not_equal-huge-inside op_not_equal-huge-huge op_not_equal-huge-nan op_not_equal-huge-nan-size op_not_equal-nan-zero op_not_equal-nan-unit op_not_equal-nan-decimals op_not_equal-nan-negative-size op_not_equal-nan-flat op_not_equal-nan-signed-zero op_not_equal-nan-touching op_not_equal-nan-inside op_not_equal-nan-huge op_not_equal-nan-nan op_not_equal-nan-nan-size op_not_equal-nan-size-zero op_not_equal-nan-size-unit op_not_equal-nan-size-decimals op_not_equal-nan-size-negative-size op_not_equal-nan-size-flat op_not_equal-nan-size-signed-zero op_not_equal-nan-size-touching op_not_equal-nan-size-inside op_not_equal-nan-size-huge op_not_equal-nan-size-nan op_not_equal-nan-size-nan-size",
+        "observedOutputSha256": "2ac10e03d19c66ae874cba666a4b39b1fb2c28c73e70cbf913f3dd07f04c833c"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts op_not_equal",
+        "observedOutputSha256": "2ac10e03d19c66ae874cba666a4b39b1fb2c28c73e70cbf913f3dd07f04c833c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6f02c5255980c71a55359cddf6cf204cfbcb653fd722f867c8d9a080b9d3a2b8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-datatype-AABB",
+      "layer": "translate-code",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000datatype\u0000BUILTIN:AABB",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::AABB",
+        "sourceLine": 117
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "3740537cf6ad88c0a18a3c7ec185eb4c82521f518b19d1412ad37fa8bc499038",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "909495602bc8cdae62e59f5575713e49b4e1730cb7de245d22ddbdd1befd6490"
+      },
+      "target": {
+        "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8",
+        "callsite": "lib/godot-compat/aabb.ts AABB",
+        "observedOutputSha256": "e6a1544f6ff0814e4de4cd47f1466f7743474d54d2a48b424bb72211c455e7db"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fc4c02fb24a44d32028035c5f64726384f8c8fff66096da690ca6f6a5382ec7a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "aabb",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.6/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-AABB.AABB",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "fbc09d5ab32c774117fcf5956c1dbbc9e8a2002ed92ad34e379fa450dcc4060b",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.position.set",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "5bba718df7e2d7f4099ed2bea8dfcf73dbb18dae4aab2df27807eb5833a5f002",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.size.set",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "de3a8bfe309111b0703184b1321e62f68ba3c127517f7274b7813c589cad0abc",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.end.set",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "cb7b34cabf49a1b3f99757f93c29a62f1cbc38e4e4775f3a7e3c8bec10e7e1d5",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.get_longest_axis_size",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "1f64f4829e67b9e37d4decd020d5a89f178d5e55a5fe9b4664013b357fb1fcf6",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.get_center",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "e4003056822b94d3994009397e45548e50c67276537e521110bebbf8d3225e56",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.get_volume",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "dd63488abd355dd444ee919ebe15a1c67293b1bce89b8334ebdc9e99bf7827eb",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.abs",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "6f45f6363c56fa58053cfa74864e6a7e08b5b475bd4fa9825567a429f6562bdd",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.grow",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "e14b45623e0d3720b7f0775ba2cea595f334a36713dad6da750506521a99fec5",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.has_point",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "e47371f879daf5998438abb2d0a7ff5e3272a7b815aa1ae9eeff73cdebc4392c",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.expand",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "cb059b5a00f6ac5fb43fa9f7acd92c44bcb693545ad76b81371d2aaa4f1a4062",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.merge",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "7b7cbb910dc755606c9dc873bd3dc0a2185d5e27d583a2c95e55eba7f84d9441",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.intersects",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "edbf2f9bfc94c1c06e11183d384cb3e523ac3420e2ab48aeaee84dadcfbfd6b4",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.encloses",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "a9d8cc16d5d7d3682dd7753042b7822e7d66f0ffd5717f22d9d14a57c5bc3953",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.is_equal_approx",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "9afd835af58f07ee1e6fc11c332805183cdc587ce713ea396ec60b758f536ae6",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.OP_EQUAL.right:AABB",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "07a765c6500aa95d67a568a7296d87a0ae10a3a656be89c80dd53c6e17345f5a",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-binding-AABB.OP_NOT_EQUAL.right:AABB",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "509e18187f2432d64961400fcaa9effa39e385087ecee525aa72ca960ccfbf39",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    },
+    {
+      "claimId": "godot-4.6-datatype-AABB",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "3740537cf6ad88c0a18a3c7ec185eb4c82521f518b19d1412ad37fa8bc499038",
+      "implementationSha256": "2d7f1b7dd766a9cb06a66e340dcbb545b52f0e6abea67be889d031d9fade23f8"
+    }
+  ]
+}

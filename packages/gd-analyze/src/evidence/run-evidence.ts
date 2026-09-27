@@ -114,6 +114,7 @@ const STRUCTURED = {
   Rect2: { position: 'Vector2', size: 'Vector2' },
   Transform2D: { x: 'Vector2', y: 'Vector2', origin: 'Vector2' },
   Plane: { normal: 'Vector3', d: 'float' },
+  AABB: { position: 'Vector3', size: 'Vector3' },
   Basis: { x: 'Vector3', y: 'Vector3', z: 'Vector3' },
   Transform3D: { basis: 'Basis', origin: 'Vector3' },
   Color: { r: 'float', g: 'float', b: 'float', a: 'float' },
@@ -343,6 +344,8 @@ func _enc(value: Variant) -> Dictionary:
 \t\t\treturn {"t": "Transform2D", "x": _enc(value.x), "y": _enc(value.y), "origin": _enc(value.origin)}
 \t\tTYPE_PLANE:
 \t\t\treturn {"t": "Plane", "normal": _enc(value.normal), "d": _bits(value.d)}
+\t\tTYPE_AABB:
+\t\t\treturn {"t": "AABB", "position": _enc(value.position), "size": _enc(value.size)}
 \t\tTYPE_BASIS:
 \t\t\treturn {"t": "Basis", "x": _enc(value.x), "y": _enc(value.y), "z": _enc(value.z)}
 \t\tTYPE_TRANSFORM3D:
