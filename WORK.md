@@ -1,17 +1,16 @@
 # Public release status
 
-Volter Editor 0.5.67 (editor-blender 0.1.10, blender-engine 0.1.9) is public on npm from the tag
-`release-0.5.67-source`, both lists ([release/modeling.json](release/modeling.json),
-[release/game.json](release/game.json)), with `@volter/dawproject` and `@volter/editor-dawproject` published for
-the first time, so `add music` works outside a checkout: `npx @volter/game-editor@0.5.67 create`, run with no
-credentials and a fresh home, installed from the registry, downloaded its workbench anonymously, took `add music`,
-opened the Harbor example, rendered it through `project.music.render` with provenance, and undid a note drag
-byte-identically. All seventeen versions are live, each registry digest matching its tested archive and each
-tarball downloading without credentials byte-identical to it (`@volter/model-editor` sat staged for about forty
-minutes, then went live without approval). The model editor's archive passed packed acceptance: cube.blend, a
-Blender edit, undo and redo. Packed acceptance found and fixed three defects the checkout could not show: the SDK's undeclared CodeMirror
-imports, editor-threejs's undeclared react-dom, and an installed contribution package's CommonJS imports served raw
-(the piece document failed on every install) ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
+Volter Editor 0.5.68 (editor-blender 0.1.11, blender-engine 0.1.9 unchanged) is published from the tag
+`release-0.5.68-source`, both lists ([release/modeling.json](release/modeling.json),
+[release/game.json](release/game.json)), carrying the music layer (automation, LFOs, groups, sidechain, audio
+tracks, the clip launcher, recording and comping). Sixteen versions are live, each registry digest matching its tested
+archive and each tarball downloading without credentials byte-identical to it; `@volter/model-editor` 0.5.68 is held
+staged by the registry, as 0.5.67's was for about forty minutes. From the registry, with no credentials and a fresh
+home, `npx @volter/game-editor@0.5.68 create` installed the runtime image, downloaded its workbench anonymously, took
+`add music`, launched a scene of a two-scene piece (its slots playing, the scene's strips metering and the stopped
+track reading −inf), rendered it through `project.music.render` with both scene loops and provenance, and undid an
+added scene byte-identically. Packed acceptance found and fixed one defect the checkout could not show: the game
+template imported `pixi.js` and `@pixi/react` undeclared ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
 
 ## Game editor (branch `game-editor`)
 
