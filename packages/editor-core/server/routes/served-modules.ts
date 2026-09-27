@@ -96,7 +96,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
             message:
               'This session serves no module graph, so it cannot serve the editor to the Code-OSS ' +
               `frame (no bundler behind it). ${commandLine('edit')} sessions — the dev checkout and the ` +
-              "project's own installed @volter/editor — both can.",
+              "project's own installed product — both can.",
           },
         ],
       });
@@ -124,7 +124,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
           {
             id: FRAME_BRIDGE_MODULE_ID,
             message:
-              'This session is serving no volter product, so there is no editor for the Code-OSS ' +
+              'This session is serving no Volter product, so there is no editor for the Code-OSS ' +
               'frame to import. A product is the running program — the editor IS ' +
               '@volter/game-editor or @volter/model-editor — and which one runs is what the project ' +
               `installed. Install one and run ${commandLine('edit')} again:\n` +

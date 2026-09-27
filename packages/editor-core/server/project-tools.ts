@@ -450,7 +450,7 @@ async function loadCatalog(
       const definition = imported?.['tool'];
       if (!operationShape(definition)) {
         throw new Error(
-          'does not export a complete `tool` definition; export `tool = defineTool({...})` from @volter/sdk/tools',
+          'does not export a complete `tool` definition; export `tool = defineTool({...})` from @volter/editor-sdk/tools/registry',
         );
       }
       if (!definition.name.startsWith('project.')) {
