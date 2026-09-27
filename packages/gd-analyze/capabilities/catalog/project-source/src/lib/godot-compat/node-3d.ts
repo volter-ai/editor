@@ -23,7 +23,9 @@
  * computes it; three's `matrixWorld` is only the renderer's copy (a top-level node writes its own).
  *
  * An Object3D compat has not seen starts as Godot would have it: an identity transform is a fresh
- * Node3D; any other is a Node3D whose `transform` was set (as a scene file sets it).
+ * Node3D; any other is a Node3D whose `transform` was set (as a scene file sets it), the scene's
+ * own authored `Transform3D` when the element carries it (`userData.godotLocal`) and three still
+ * holds what its props made of it.
  */
 
 import { Matrix4, type Object3D } from 'three';
@@ -502,12 +504,30 @@ function isIdentity(local: Local): boolean {
   return local.basis.every((value, index) => value === IDENTITY[index]) && local.origin.every((value) => value === 0);
 }
 
+/**
+ * The transform a scene authored on a node, exactly (`userData.godotLocal`: its `Transform3D`'s
+ * basis rows and origin, as the scene file writes them), while three's `position`, `quaternion`
+ * and `scale` still hold what the emitted props made of it; three's Euler props carry a rotation
+ * only to within float32 ulps of the authored basis, so the authored one is what Godot holds.
+ */
+function authoredLocal(object: Object3D, now: readonly number[]): Local | undefined {
+  const authored = (object.userData as { readonly godotLocal?: readonly number[] }).godotLocal;
+  if (authored === undefined || authored.length !== 12) return undefined;
+  const local: Local = {
+    basis: authored.slice(0, 9).map((value) => f32(value)) as unknown as Rows,
+    origin: [f32(authored[9] as number), f32(authored[10] as number), f32(authored[11] as number)],
+  };
+  const three = fromThree(now);
+  const same = (a: readonly number[], b: readonly number[]) => a.every((value, index) => Math.abs(value - (b[index] as number)) <= 1e-5 * Math.max(1, Math.abs(value)));
+  return same(three.basis, local.basis) && same(three.origin, local.origin) ? local : undefined;
+}
+
 function stateOf(object: Object3D): Node3DState {
   let state = NODE3D.get(object);
   if (state !== undefined) return state;
   const fromMatrix = !object.matrixAutoUpdate;
   const now = threeValues(object);
-  const local = fromMatrix ? readMatrix(object) : fromThree(now);
+  const local = fromMatrix ? readMatrix(object) : (authoredLocal(object, now) ?? fromThree(now));
   state = {
     euler: [0, 0, 0],
     scale: [1, 1, 1],

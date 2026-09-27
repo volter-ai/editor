@@ -101,6 +101,12 @@ function transformAttributes(at: string, matrix: readonly number[] | undefined):
   if (position.some((value) => value !== 0)) result.push(attribute('position', numbers(position)));
   if ([x, y, z].some((value) => float32Literal(value) !== 0)) result.push(attribute('rotation', numbers([x, y, z])));
   if (scale.some((value) => float32Literal(value) !== 1)) result.push(attribute('scale', numbers(scale)));
+  // three's Euler props carry a rotation only to within float32 ulps of the authored basis: the
+  // authored Transform3D itself (basis rows, origin) is what compat's Node3D holds (`node-3d.ts`).
+  if (result.some((entry) => entry.kind === 'jsx-expression-attribute' && (entry.name === 'rotation' || entry.name === 'scale'))) {
+    const rows = [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => e[c * 4 + r] as number));
+    result.push(attribute('userData-godotLocal', numbers([...rows, ...position])));
+  }
   return result;
 }
 
