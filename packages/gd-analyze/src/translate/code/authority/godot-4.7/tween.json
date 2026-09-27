@@ -1,0 +1,1714 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/tween"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "tween_property",
+        "kind": "native-member",
+        "signature": "hash:4049770449"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "tween_property",
+        "localName": "Tween_tween_property",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.tween_property"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "tween_callback",
+        "kind": "native-member",
+        "signature": "hash:1540176488"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "tween_callback",
+        "localName": "Tween_tween_callback",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.tween_callback"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_parallel",
+        "kind": "native-member",
+        "signature": "hash:1942052223"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_parallel",
+        "localName": "Tween_set_parallel",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_parallel"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "parallel",
+        "kind": "native-member",
+        "signature": "hash:3426978995"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "parallel",
+        "localName": "Tween_parallel",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.parallel"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "chain",
+        "kind": "native-member",
+        "signature": "hash:3426978995"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "chain",
+        "localName": "Tween_chain",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.chain"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_loops",
+        "kind": "native-member",
+        "signature": "hash:2670836414"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_loops",
+        "localName": "Tween_set_loops",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_loops"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "get_loops_left",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "get_loops_left",
+        "localName": "Tween_get_loops_left",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.get_loops_left"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_speed_scale",
+        "kind": "native-member",
+        "signature": "hash:3961971106"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_speed_scale",
+        "localName": "Tween_set_speed_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_speed_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_trans",
+        "kind": "native-member",
+        "signature": "hash:3965963875"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_trans",
+        "localName": "Tween_set_trans",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_trans"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_ease",
+        "kind": "native-member",
+        "signature": "hash:1208117252"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_ease",
+        "localName": "Tween_set_ease",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_ease"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "interpolate_value",
+        "kind": "native-member",
+        "signature": "hash:3452526450"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "interpolate_value",
+        "localName": "Tween_interpolate_value",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.interpolate_value"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "kill",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "kill",
+        "localName": "Tween_kill",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.kill"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "stop",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "stop",
+        "localName": "Tween_stop",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.stop"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "pause",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "pause",
+        "localName": "Tween_pause",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.pause"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "play",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "play",
+        "localName": "Tween_play",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.play"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "is_running",
+        "kind": "native-member",
+        "signature": "hash:2240911060"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "is_running",
+        "localName": "Tween_is_running",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.is_running"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "is_valid",
+        "kind": "native-member",
+        "signature": "hash:2240911060"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "is_valid",
+        "localName": "Tween_is_valid",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.is_valid"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "has_tweeners",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "has_tweeners",
+        "localName": "Tween_has_tweeners",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.has_tweeners"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "get_total_elapsed_time",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "get_total_elapsed_time",
+        "localName": "Tween_get_total_elapsed_time",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.get_total_elapsed_time"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "bind_node",
+        "kind": "native-member",
+        "signature": "hash:2946786331"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "bind_node",
+        "localName": "Tween_bind_node",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.bind_node"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_process_mode",
+        "kind": "native-member",
+        "signature": "hash:855258840"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_process_mode",
+        "localName": "Tween_set_process_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_process_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "set_pause_mode",
+        "kind": "native-member",
+        "signature": "hash:3363368837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "set_pause_mode",
+        "localName": "Tween_set_pause_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.set_pause_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "finished",
+        "kind": "native-signal",
+        "signature": "signal"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "finished",
+        "localName": "Tween_finished",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.finished"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "step_finished",
+        "kind": "native-signal",
+        "signature": "signal"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "step_finished",
+        "localName": "Tween_step_finished",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.step_finished"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Tween",
+        "member": "loop_finished",
+        "kind": "native-signal",
+        "signature": "signal"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/tween",
+        "exportName": "loop_finished",
+        "localName": "Tween_loop_finished",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Tween.loop_finished"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.tween_property",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000tween_property\u0000hash:4049770449",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.tween_property",
+        "sourceLine": 100
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1ef764fb88def86425a1c4f8e86c6ce67352d6e59eb76f628cd15f8d3b29e5af",
+        "callsite": "res://probe.gd _init() tween_property-vector2-position tween_property-vector3-position tween_property-color-modulate tween_property-float-rotation tween_property-scale-to-zero tween_property-zero-duration tween_property-initial-at-start tween_property-write-during tween_property-type-mismatch tween_property-target-freed tween_property-leftover tween_property-after-start tween_property-match3-move-to",
+        "observedOutputSha256": "86480c9541ac0e29d73027eac2155817dcd12281ceeb1b0c1b7d457605841376"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts tween_property",
+        "observedOutputSha256": "449f3cbf0a2a222be476636f137a706f4ae4d53400b7cec0f13409ce4ee464cf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "85602593e54d4392279a8774d199148a2fdcdc694880e2129421fcdb063dc8fc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.tween_callback",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000tween_callback\u0000hash:1540176488",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.tween_callback",
+        "sourceLine": 132
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "75cdac7d21c8cfb59c3e489c39f12ef752f6f564264d32cc05fe63d7f7eb76c0",
+        "callsite": "res://probe.gd _init() tween_callback-alone tween_callback-after-property tween_callback-parallel tween_callback-invalid",
+        "observedOutputSha256": "f4f0e00e4c4ed8198c60603ba5ed0f296d5e563d07bd99719c286f84fde814cd"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts tween_callback",
+        "observedOutputSha256": "f4f0e00e4c4ed8198c60603ba5ed0f296d5e563d07bd99719c286f84fde814cd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3e957a3f158f9453822d27d53d104803f83aecc04300cc40251ff4ac7ffbe29c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_parallel",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_parallel\u0000hash:1942052223",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_parallel",
+        "sourceLine": 273
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1c323eee58da9fd7fef0ac158bb066e668fb0f42416f46e7afd22173fbda1989",
+        "callsite": "res://probe.gd _init() set_parallel-true set_parallel-false",
+        "observedOutputSha256": "c72ab267522ee135e19b1ec5d11001b8b9f73737d6d31057a59caa0f38fa0255"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_parallel",
+        "observedOutputSha256": "b9ef394a256aa56f81bc2e1e990a44157f16abedaa197b3a92fe280004b7a60b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1118ec857fe24e27b3707426f68d47026ecee7a2ba1983285e7cb06025c80a95"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.parallel",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000parallel\u0000hash:3426978995",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.parallel",
+        "sourceLine": 315
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "91477d1c56583c0347285d1c5b31b2e2bcb2e96e92597d76f7bf0076f7128e05",
+        "callsite": "res://probe.gd _init() parallel-one",
+        "observedOutputSha256": "6d9604771e9e066fdf594b17053608080a44693e81bc256761e9f46ca9f4e1c3"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts parallel",
+        "observedOutputSha256": "6d9604771e9e066fdf594b17053608080a44693e81bc256761e9f46ca9f4e1c3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7075255bc92a6e2456d4d0131d9efc5630a45f9743065e20da38da51147152b1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.chain",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000chain\u0000hash:3426978995",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.chain",
+        "sourceLine": 320
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9a456e0a55c7b526b3abe8d32d251cd23468debf4b9eca3289c4482eef13c742",
+        "callsite": "res://probe.gd _init() chain-after-parallel",
+        "observedOutputSha256": "1b271553038aad32e1101b18e192911e8c0e49f0202512f73726748f531874ce"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts chain",
+        "observedOutputSha256": "ebd6a0bf98da148dbbebe8de3000c3290ad5389dd6fd09966d8d4ec88925fff5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e934cf98f268c3391766d70e53da6b5d103af8031a9243aa425ef793967ca403"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_loops",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_loops\u0000hash:2670836414",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_loops",
+        "sourceLine": 279
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ed5a2dbccc1bdd3d4c7df46879eea76113aebce7a18dd7aed380c871619cf445",
+        "callsite": "res://probe.gd _init() set_loops-three set_loops-infinite set_loops-infinite-empty",
+        "observedOutputSha256": "5c5baa6d49a4fb2922696076394da95aad9306073478a33dd21e8c6fd14d03a5"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_loops",
+        "observedOutputSha256": "5c5baa6d49a4fb2922696076394da95aad9306073478a33dd21e8c6fd14d03a5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ee0c9fc938d7038297084f57cc61997be773c59189821d22960fb54cc473feb7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.get_loops_left",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000get_loops_left\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.get_loops_left",
+        "sourceLine": 284
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "eb3371d746c2548291c9febe5cef4e35a03df7356c45afb0f1a23b3358c556c0",
+        "callsite": "res://probe.gd _init() get_loops_left",
+        "observedOutputSha256": "211d6ff69925b170e954892e4e566a3e5ebb28a5b8dbcf5f834279d42a7ea5a6"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts get_loops_left",
+        "observedOutputSha256": "211d6ff69925b170e954892e4e566a3e5ebb28a5b8dbcf5f834279d42a7ea5a6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3ab750ce0660bee0f940dcd3b985e69b8540d9f8e6bb8d52fa505b2e921290fb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_speed_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_speed_scale\u0000hash:3961971106",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_speed_scale",
+        "sourceLine": 292
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "56224904321d7fc9b19da202e3f6a991da545a8a5bbeadb66ad4c8841fe59c0e",
+        "callsite": "res://probe.gd _init() set_speed_scale-2 set_speed_scale-0.5 set_speed_scale-0",
+        "observedOutputSha256": "b2ec82e959e28dbd1803bd3c2e6526c33505f8d75c9edc2adf6f6a381576b5f6"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_speed_scale",
+        "observedOutputSha256": "b2ec82e959e28dbd1803bd3c2e6526c33505f8d75c9edc2adf6f6a381576b5f6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "61bdc2bc643da2f25128b0266b7d1dfbc2ee716c5a901ffd128240588e1bf618"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_trans",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_trans\u0000hash:3965963875",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_trans",
+        "sourceLine": 297
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6a5809d3f7349b82b1a0a25ab829c2c27a7e15633598832177d337a2457218f5",
+        "callsite": "res://probe.gd _init() set_trans-LINEAR-IN set_trans-LINEAR-OUT set_trans-LINEAR-IN_OUT set_trans-LINEAR-OUT_IN set_trans-SINE-IN set_trans-SINE-OUT set_trans-SINE-IN_OUT set_trans-SINE-OUT_IN set_trans-QUINT-IN set_trans-QUINT-OUT set_trans-QUINT-IN_OUT set_trans-QUINT-OUT_IN set_trans-QUART-IN set_trans-QUART-OUT set_trans-QUART-IN_OUT set_trans-QUART-OUT_IN set_trans-QUAD-IN set_trans-QUAD-OUT set_trans-QUAD-IN_OUT set_trans-QUAD-OUT_IN set_trans-EXPO-IN set_trans-EXPO-OUT set_trans-EXPO-IN_OUT set_trans-EXPO-OUT_IN set_trans-ELASTIC-IN set_trans-ELASTIC-OUT set_trans-ELASTIC-IN_OUT set_trans-ELASTIC-OUT_IN set_trans-CUBIC-IN set_trans-CUBIC-OUT set_trans-CUBIC-IN_OUT set_trans-CUBIC-OUT_IN set_trans-CIRC-IN set_trans-CIRC-OUT set_trans-CIRC-IN_OUT set_trans-CIRC-OUT_IN set_trans-BOUNCE-IN set_trans-BOUNCE-OUT set_trans-BOUNCE-IN_OUT set_trans-BOUNCE-OUT_IN set_trans-BACK-IN set_trans-BACK-OUT set_trans-BACK-IN_OUT set_trans-BACK-OUT_IN set_trans-SPRING-IN set_trans-SPRING-OUT set_trans-SPRING-IN_OUT set_trans-SPRING-OUT_IN set_trans-after-append",
+        "observedOutputSha256": "4ce48f3069767e7c2a6471b58e1f8f32a9a24a5c47923dee3027920c545ae9e5"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_trans",
+        "observedOutputSha256": "4ce48f3069767e7c2a6471b58e1f8f32a9a24a5c47923dee3027920c545ae9e5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1e7355134fb64271af613eeebb4205ca7b2b2731c2bcb4d135a80bca81a2d037"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_ease",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_ease\u0000hash:1208117252",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_ease",
+        "sourceLine": 306
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a470f261edcfa07b9c407fe58f67aa3749d564690efe40ad7a6d51fdc6b1c360",
+        "callsite": "res://probe.gd _init() set_ease-IN set_ease-OUT set_ease-IN_OUT set_ease-OUT_IN set_ease-default",
+        "observedOutputSha256": "32cc15fdaa081df880feafd57fcb04d0467fd351174a2a863fb236bee633038d"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_ease",
+        "observedOutputSha256": "7aa0eb1afe4e247af6b8a6f30453604b5249e5932c4ea84aec5a2fa1e2dda1da"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eb87403a87f90522e58230669fa2c9a33bf79779db0862c27759eedd84aa8646"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.interpolate_value",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000interpolate_value\u0000hash:3452526450",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.interpolate_value",
+        "sourceLine": 467
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a9a15946590edbce50c0f38bd213b5188e8f000f78d9170c08687ca7ca77f70e",
+        "callsite": "res://probe.gd _init() interpolate_value-LINEAR-IN interpolate_value-LINEAR-OUT interpolate_value-LINEAR-IN_OUT interpolate_value-LINEAR-OUT_IN interpolate_value-SINE-IN interpolate_value-SINE-OUT interpolate_value-SINE-IN_OUT interpolate_value-SINE-OUT_IN interpolate_value-QUINT-IN interpolate_value-QUINT-OUT interpolate_value-QUINT-IN_OUT interpolate_value-QUINT-OUT_IN interpolate_value-QUART-IN interpolate_value-QUART-OUT interpolate_value-QUART-IN_OUT interpolate_value-QUART-OUT_IN interpolate_value-QUAD-IN interpolate_value-QUAD-OUT interpolate_value-QUAD-IN_OUT interpolate_value-QUAD-OUT_IN interpolate_value-EXPO-IN interpolate_value-EXPO-OUT interpolate_value-EXPO-IN_OUT interpolate_value-EXPO-OUT_IN interpolate_value-ELASTIC-IN interpolate_value-ELASTIC-OUT interpolate_value-ELASTIC-IN_OUT interpolate_value-ELASTIC-OUT_IN interpolate_value-CUBIC-IN interpolate_value-CUBIC-OUT interpolate_value-CUBIC-IN_OUT interpolate_value-CUBIC-OUT_IN interpolate_value-CIRC-IN interpolate_value-CIRC-OUT interpolate_value-CIRC-IN_OUT interpolate_value-CIRC-OUT_IN interpolate_value-BOUNCE-IN interpolate_value-BOUNCE-OUT interpolate_value-BOUNCE-IN_OUT interpolate_value-BOUNCE-OUT_IN interpolate_value-BACK-IN interpolate_value-BACK-OUT interpolate_value-BACK-IN_OUT interpolate_value-BACK-OUT_IN interpolate_value-SPRING-IN interpolate_value-SPRING-OUT interpolate_value-SPRING-IN_OUT interpolate_value-SPRING-OUT_IN interpolate_value-zero-duration",
+        "observedOutputSha256": "8f6871df9255dae68875190f44e1be400d809640ea2e38e236dd251a37bf1c79"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts interpolate_value",
+        "observedOutputSha256": "2534466714df6658d593890f551e134beccfdfbd47c1cd8c950e4eb7ebc09a22"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c3945f1673dd8d9b39a06930052203dfb2ffe1c4a563dd4aa223573a33bdf74a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.kill",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000kill\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.kill",
+        "sourceLine": 210
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3a4b38472f8547caf0aa4ae500bc556b6eb74385142d164496419b3773f4b0b0",
+        "callsite": "res://probe.gd _init() kill-mid-tween",
+        "observedOutputSha256": "c29fbc82bbdef31d5e76b3c87065c07e177a752a5d992436a055afce9b9e43a2"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts kill",
+        "observedOutputSha256": "c29fbc82bbdef31d5e76b3c87065c07e177a752a5d992436a055afce9b9e43a2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4311b4a410d0890044231e4dd0f2a65573f7f3f86ade6294a0241f5c8c0e9582"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.stop",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000stop\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.stop",
+        "sourceLine": 196
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5ce9af364ead1212c9797ace6cd558e2605a4c0f13d99060376007064ea527a7",
+        "callsite": "res://probe.gd _init() stop-then-play stop-after-finish",
+        "observedOutputSha256": "95552544b338b9eb29dd670040f5364cd1735d09bf31f41c47a0c53860332017"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts stop",
+        "observedOutputSha256": "95552544b338b9eb29dd670040f5364cd1735d09bf31f41c47a0c53860332017"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1e0f655054dddf7b2e94f7fe2f6f3659b8509ee027930576100d084588ffeb9d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.pause",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000pause\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.pause",
+        "sourceLine": 200
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f1c5748c2a8555b2544486b37744d01a23673bb320ce3ace84481e1a720aea26",
+        "callsite": "res://probe.gd _init() pause-then-play",
+        "observedOutputSha256": "dab5908cd7c6815b2a9d3a64c49361f27ef7d938eb83cdfdb4b7d3f05d3626ca"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts pause",
+        "observedOutputSha256": "dab5908cd7c6815b2a9d3a64c49361f27ef7d938eb83cdfdb4b7d3f05d3626ca"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9cc719b812e311f4f0f734d76a52dead8c7f7b09f8e8321d148c06027ed8f0fe"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.play",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000play\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.play",
+        "sourceLine": 204
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fb874b7665ea33a36d07aa0175a5cf338660d96a496a1ed7bdb61a6eafdcdfbd",
+        "callsite": "res://probe.gd _init() play-finished",
+        "observedOutputSha256": "a2b01b28decde09d8739412df2a962a173e64ef9ad1a8f7eaec02fcc83b04662"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts play",
+        "observedOutputSha256": "a2b01b28decde09d8739412df2a962a173e64ef9ad1a8f7eaec02fcc83b04662"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "640901f0e37bd67877bb65d3972f1dac7a35dbc4f3a2a90fd8764e6441fc199b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.is_running",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000is_running\u0000hash:2240911060",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.is_running",
+        "sourceLine": 225
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9f37c0c955436e508927f8f9c1e6677a698306e431b26db873c3e18cf56cb4e3",
+        "callsite": "res://probe.gd _init() is_running-lifecycle",
+        "observedOutputSha256": "f04c5d3cae45cd3e4cde7e5314c70c284004bfaffc9c8880b28239359ad757c7"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts is_running",
+        "observedOutputSha256": "f04c5d3cae45cd3e4cde7e5314c70c284004bfaffc9c8880b28239359ad757c7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cbe5ec1317e355e526e674d77866d9bc42c87da7a487c615d192feece7f89c71"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.is_valid",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000is_valid\u0000hash:2240911060",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.is_valid",
+        "sourceLine": 229
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0edf2ff75fd82bc2aaa2eeee919308b1d30140cc74ab6299e9a72035f9f55169",
+        "callsite": "res://probe.gd _init() is_valid-empty",
+        "observedOutputSha256": "ea879c6061b38637aa0cf0c6c1a849b30d034dae27f6ef30693cc4f8336ba331"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts is_valid",
+        "observedOutputSha256": "ea879c6061b38637aa0cf0c6c1a849b30d034dae27f6ef30693cc4f8336ba331"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f237a1fd7b5aceb710d14b933300783a83b832aec2387e1f78211ae99c746afa"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.has_tweeners",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000has_tweeners\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.has_tweeners",
+        "sourceLine": 221
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "92a9c1f9c1d96fd3bfc7e760cdcf8dcf08400cefe1bdfe058fb0d098f0a5389b",
+        "callsite": "res://probe.gd _init() has_tweeners",
+        "observedOutputSha256": "26f6627c7c52326d90393525853414df33831d1dc6b3c046ce2f49ba839d7df8"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts has_tweeners",
+        "observedOutputSha256": "26f6627c7c52326d90393525853414df33831d1dc6b3c046ce2f49ba839d7df8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "acf1f4f111d8a326bd4c530d0d4ffbe256f4dbc7aed02b318f9ff533f6da9b64"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.get_total_elapsed_time",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000get_total_elapsed_time\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.get_total_elapsed_time",
+        "sourceLine": 453
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1123a37c73e520388ae3cf7b88761bc7e3224ece824c43101b9399e3a51f7c6c",
+        "callsite": "res://probe.gd _init() get_total_elapsed_time",
+        "observedOutputSha256": "c79e72f293d9d75d3a1df26889821fac5c7e935c69317cf1db52778ddc17d50f"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts get_total_elapsed_time",
+        "observedOutputSha256": "c79e72f293d9d75d3a1df26889821fac5c7e935c69317cf1db52778ddc17d50f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5ec31f7a6b1521920d06ec2230cebab7194477d97e4af36fc2d2e81ed1f79b77"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.bind_node",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000bind_node\u0000hash:2946786331",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.bind_node",
+        "sourceLine": 238
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "34bb892fd8710030e899a81c0013f32c3de3a957008311c29eaf292b0b1d1641",
+        "callsite": "res://probe.gd _init() bind_node-removed-and-readded bind_node-freed bind_node-queue-free-on-finish",
+        "observedOutputSha256": "77d887b8b9d06c7b8a26b3dbb7b9a4dc07c69d387660bf6597a7fbd6496d474f"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts bind_node",
+        "observedOutputSha256": "77d887b8b9d06c7b8a26b3dbb7b9a4dc07c69d387660bf6597a7fbd6496d474f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9c582f350ce5d5c50c3f63d42340f5dc1da5a2881e1ec82c6d696cb149c4689b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_process_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_process_mode\u0000hash:855258840",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_process_mode",
+        "sourceLine": 246
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e160423dcb1cfc1a586d60c92310e8f128ec6ea632d382cbecfeae0239e2c956",
+        "callsite": "res://probe.gd _init() set_process_mode-physics",
+        "observedOutputSha256": "5febed7cddbb3d5cc2154984e4c090ed00f0532639d65b840b93dfce1b465e8f"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_process_mode",
+        "observedOutputSha256": "5febed7cddbb3d5cc2154984e4c090ed00f0532639d65b840b93dfce1b465e8f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "01c36d904015edc5ac871db803614ef48d8d8547adaa75253b8ac34cbc22f056"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.set_pause_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Tween\u0000set_pause_mode\u0000hash:3363368837",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.set_pause_mode",
+        "sourceLine": 255
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9fd075fc17563f8dc7228b4a4c9bef1812ca9428a2b958caff7196622ab787f2",
+        "callsite": "res://probe.gd _init() set_pause_mode-BOUND-disabled-node set_pause_mode-STOP-disabled-node set_pause_mode-PROCESS-disabled-node",
+        "observedOutputSha256": "b03d30c48a6c5e9b4e078cc92e44f76a2c53a810d7ef9d222847f43aab19e35a"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts set_pause_mode",
+        "observedOutputSha256": "b03d30c48a6c5e9b4e078cc92e44f76a2c53a810d7ef9d222847f43aab19e35a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "faf22a671a5db4fa3b0a138a157abed656ec21b6ef2e1ec74b277ab7357143d6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.finished",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000Tween\u0000finished\u0000signal",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.finished",
+        "sourceLine": 522
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9fbf392f5da0e159519d8373b9bbbfd08f4f045c30a4959e8a2f61c95872d28f",
+        "callsite": "res://probe.gd _init() signal-finished",
+        "observedOutputSha256": "0462ba0eb0cd074b34a9ef90453a3e54de2d21a2572549626596ff24f30b59d7"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts finished",
+        "observedOutputSha256": "0462ba0eb0cd074b34a9ef90453a3e54de2d21a2572549626596ff24f30b59d7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c9a5783906c1802eb5f1017ab909dea8a633c37e2fe3d70594e39ac17a44d1b3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.step_finished",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000Tween\u0000step_finished\u0000signal",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.step_finished",
+        "sourceLine": 520
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "927342a2379f6c2349da194689f6e9d3a38ce2d3970c16baeb2a75140f529395",
+        "callsite": "res://probe.gd _init() signal-step_finished",
+        "observedOutputSha256": "1a9572d235ce5e2d850d95693abd20d1ab1eff419d109a4af7c3a76d2fb21bea"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts step_finished",
+        "observedOutputSha256": "1a9572d235ce5e2d850d95693abd20d1ab1eff419d109a4af7c3a76d2fb21bea"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c4ebff1318e670d4a24c0c5ce521ee3a4a21a0ee3c69d558911334767bab5873"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Tween.loop_finished",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000Tween\u0000loop_finished\u0000signal",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tween.loop_finished",
+        "sourceLine": 521
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d948ccc8278d8c7fc9c581e23a94be1586f55879e24e87ef58f4e4b2a9779a26",
+        "callsite": "res://probe.gd _init() signal-loop_finished",
+        "observedOutputSha256": "d0c7684c02921b317e1d150ee630b3c36360e8f03c664a358bb065bd2a281fa9"
+      },
+      "target": {
+        "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7",
+        "callsite": "lib/godot-compat/tween.ts loop_finished",
+        "observedOutputSha256": "d0c7684c02921b317e1d150ee630b3c36360e8f03c664a358bb065bd2a281fa9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f1ff2aa2756b9c68944773a2c2721eb42601a03cc599667b44b4a1b6031419e7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "tween",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Tween.tween_property",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1ef764fb88def86425a1c4f8e86c6ce67352d6e59eb76f628cd15f8d3b29e5af",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.tween_callback",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "75cdac7d21c8cfb59c3e489c39f12ef752f6f564264d32cc05fe63d7f7eb76c0",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_parallel",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1c323eee58da9fd7fef0ac158bb066e668fb0f42416f46e7afd22173fbda1989",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.parallel",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "91477d1c56583c0347285d1c5b31b2e2bcb2e96e92597d76f7bf0076f7128e05",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.chain",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9a456e0a55c7b526b3abe8d32d251cd23468debf4b9eca3289c4482eef13c742",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_loops",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ed5a2dbccc1bdd3d4c7df46879eea76113aebce7a18dd7aed380c871619cf445",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.get_loops_left",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "eb3371d746c2548291c9febe5cef4e35a03df7356c45afb0f1a23b3358c556c0",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_speed_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "56224904321d7fc9b19da202e3f6a991da545a8a5bbeadb66ad4c8841fe59c0e",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_trans",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6a5809d3f7349b82b1a0a25ab829c2c27a7e15633598832177d337a2457218f5",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_ease",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a470f261edcfa07b9c407fe58f67aa3749d564690efe40ad7a6d51fdc6b1c360",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.interpolate_value",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a9a15946590edbce50c0f38bd213b5188e8f000f78d9170c08687ca7ca77f70e",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.kill",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3a4b38472f8547caf0aa4ae500bc556b6eb74385142d164496419b3773f4b0b0",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.stop",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5ce9af364ead1212c9797ace6cd558e2605a4c0f13d99060376007064ea527a7",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.pause",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f1c5748c2a8555b2544486b37744d01a23673bb320ce3ace84481e1a720aea26",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.play",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fb874b7665ea33a36d07aa0175a5cf338660d96a496a1ed7bdb61a6eafdcdfbd",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.is_running",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9f37c0c955436e508927f8f9c1e6677a698306e431b26db873c3e18cf56cb4e3",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.is_valid",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0edf2ff75fd82bc2aaa2eeee919308b1d30140cc74ab6299e9a72035f9f55169",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.has_tweeners",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "92a9c1f9c1d96fd3bfc7e760cdcf8dcf08400cefe1bdfe058fb0d098f0a5389b",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.get_total_elapsed_time",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1123a37c73e520388ae3cf7b88761bc7e3224ece824c43101b9399e3a51f7c6c",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.bind_node",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "34bb892fd8710030e899a81c0013f32c3de3a957008311c29eaf292b0b1d1641",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_process_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e160423dcb1cfc1a586d60c92310e8f128ec6ea632d382cbecfeae0239e2c956",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.set_pause_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9fd075fc17563f8dc7228b4a4c9bef1812ca9428a2b958caff7196622ab787f2",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.finished",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9fbf392f5da0e159519d8373b9bbbfd08f4f045c30a4959e8a2f61c95872d28f",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.step_finished",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "927342a2379f6c2349da194689f6e9d3a38ce2d3970c16baeb2a75140f529395",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Tween.loop_finished",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d948ccc8278d8c7fc9c581e23a94be1586f55879e24e87ef58f4e4b2a9779a26",
+      "implementationSha256": "33e6b43342abc515ac1119168dc5813f697420d7d907485e424cf6aef0b43ea7"
+    }
+  ]
+}
