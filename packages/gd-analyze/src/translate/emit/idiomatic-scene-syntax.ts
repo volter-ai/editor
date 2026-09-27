@@ -27,10 +27,12 @@ import type {
   DirectGodotProjectCompositionPlan,
   DirectGodotSceneDocumentPlan,
   DirectGodotSceneNodePlan,
+  DirectGodotScriptInstancePlan,
 } from '../data/direct-project-composition-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
+import { godotResolveNodePath } from '../data/scene-animation';
 import {
   attribute,
   camelName,
@@ -111,6 +113,8 @@ interface Emission {
   readonly rapier: Set<string>;
   readonly scripts: Map<string, { readonly local: string; readonly module: string; readonly exportName: string }>;
   readonly hooks: TargetTsStatement[];
+  /** The scripts' attachments, after every ref (a field may reference another node's). */
+  readonly scriptHooks: (() => TargetTsStatement)[];
   readonly refNames: Set<string>;
   /** The nodes another statement refers to (a script's, a connection's): their refs, once made. */
   readonly needsRef: ReadonlySet<string>;
@@ -179,7 +183,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
         exportName: cls.exportName,
       });
     }
-    emission.hooks.push({
+    emission.scriptHooks.push(() => ({
       kind: 'expression-statement',
       expression: {
         kind: 'call-expression',
@@ -194,7 +198,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
                   kind: 'object-expression' as const,
                   properties: script.fields.map((field) => ({
                     key: field.fieldName,
-                    value: { kind: 'literal-expression' as const, value: field.value.value },
+                    value: fieldValue(emission, node, field.value),
                   })),
                 },
               ]),
@@ -216,9 +220,26 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
               ]),
         ],
       },
-    });
+    }));
   }
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
+}
+
+/**
+ * A script field's authored value: a literal, or a node reference as the referenced node's ref
+ * (`godot_node_reference`), null for a path leaving the scene (`validateNodeReferences`).
+ */
+function fieldValue(emission: Emission, node: DirectGodotSceneNodePlan, value: DirectGodotScriptInstancePlan['fields'][number]['value']): TargetTsExpression {
+  if (value.kind !== 'node-reference') return { kind: 'literal-expression', value: value.value };
+  const target = godotResolveNodePath(node.nodePath, value.value);
+  if (target === undefined) return { kind: 'literal-expression', value: null };
+  const ref = emission.nodeRefs.get(target);
+  if (ref === undefined) throw new Error(`${emission.scene.sourceResPath}#${node.nodePath}: the referenced node ${target} mounts no ref`);
+  return {
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'godot_node_reference') },
+    arguments: [{ kind: 'identifier-expression', name: ref }],
+  };
 }
 
 /** A three type's local name: drei's components share some names (`PerspectiveCamera`). */
@@ -671,6 +692,15 @@ function refTargets(scene: DirectGodotSceneDocumentPlan): ReadonlySet<string> {
   // A scene whose nodes its owner finds as `%Name` marks its root (`useGodotScene`).
   if (unique) targets.add(scene.root.nodePath);
   for (const connection of scene.connections) targets.add(connection.fromNodePath).add(connection.toNodePath);
+  // A script field's referenced node (`fieldValue`).
+  const referenced = (node: DirectGodotSceneNodePlan): void => {
+    for (const field of node.scriptInstance?.fields ?? []) {
+      const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
+      if (target !== undefined) targets.add(target);
+    }
+    for (const child of godotSceneSubnodes(node)) referenced(child);
+  };
+  referenced(scene.root);
   return targets;
 }
 
@@ -726,6 +756,7 @@ export function idiomaticSceneSourceFile(
     rapier: new Set(),
     scripts: new Map(),
     hooks: [],
+    scriptHooks: [],
     refNames: new Set(),
     needsRef: refTargets(scene),
     nodeRefs: new Map(),
@@ -736,6 +767,7 @@ export function idiomaticSceneSourceFile(
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
+  emission.hooks.push(...emission.scriptHooks.map((hook) => hook()));
   if ((function hasUnique(entry: DirectGodotSceneNodePlan): boolean {
     return entry.unique === true || godotSceneSubnodes(entry).some(hasUnique);
   })(scene.root)) {

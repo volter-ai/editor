@@ -8,7 +8,9 @@
  * instancing scene adds), a plain Node between Node3Ds, groups, authored order, Node3D transforms,
  * Camera3D with defaults and authored values, the class each node records, and authored
  * `[connection]`s (Node `ready` and `tree_entered`), compared by the order the root's script sees
- * its own callbacks and the connected calls.
+ * its own callbacks and the connected calls, and the root script's authored node references (to a
+ * node before it, one after it, one placed under an instance, itself, and a path leaving the scene)
+ * as its `_ready` reads them.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -69,12 +71,20 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.3, 0)
 
 var events: Array = []
 
+# Node references, set once the scene's nodes all exist: before any _ready.
+@export var sibling: Node3D
+@export var later: Camera3D
+@export var added: Node3D
+@export var own: Node
+@export var outside: Node
+
 func _enter_tree() -> void:
 \tevents.append("main_enter_tree")
 
 func _ready() -> void:
 \tevents.append("main_ready")
 \tevents.append(%Cam.name)
+\tevents.append([sibling.name, later.name, added.name, own == self, outside == null])
 
 func _on_placed_ready() -> void:
 \tevents.append("placed_ready")
@@ -90,8 +100,13 @@ func _on_main_ready() -> void:
 [ext_resource type="PackedScene" path="res://prop.tscn" id="1_prop"]
 [ext_resource type="Script" path="res://main.gd" id="2_main"]
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("sibling", "later", "added", "own", "outside")]
 script = ExtResource("2_main")
+sibling = NodePath("Plain/UnderPlain")
+later = NodePath("DefaultCam")
+added = NodePath("Prop1/Extra")
+own = NodePath(".")
+outside = NodePath("..")
 
 [node name="Plain" type="Node" parent="."]
 

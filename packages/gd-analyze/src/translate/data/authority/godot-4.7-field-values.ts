@@ -114,15 +114,48 @@ function claim(rule: GodotFieldValueRule): SemanticClaimRecord {
   };
 }
 
-export const GODOT_4_7_FIELD_VALUE_CLAIMS: readonly SemanticClaimRecord[] =
-  GODOT_4_7_FIELD_VALUE_RULES.map(claim);
+/**
+ * A field the scene stores as a NodePath (`node_paths`), whatever its object type (keyed by the
+ * datatype's class): set to the node at the path once the scene's nodes all exist
+ * (`SceneState::instantiate`, packed_scene.cpp:597), measured by the scene-structure proof's root
+ * script reading its references in `_ready`.
+ */
+export const GODOT_4_7_NODE_REFERENCE_RULES: readonly GodotFieldValueRule[] = (['NATIVE:*', 'CLASS:*'] as const).map((datatype) => ({
+  sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
+  fieldDatatype: datatype,
+  serializedValue: 'node-path',
+  targetKind: 'node-reference',
+  evidenceClaimId: `godot-4.7-field-value-node-reference-${datatype === 'NATIVE:*' ? 'native' : 'class'}`,
+}));
 
-export const GODOT_4_7_FIELD_VALUE_LIVENESS: readonly GodotFieldValueClaimLiveness[] =
-  GODOT_4_7_FIELD_VALUE_CLAIMS.map((entry) => ({
+const STRUCTURE_IDENTITIES = godotProofIdentities('scene-structure');
+
+function nodeReferenceClaim(rule: GodotFieldValueRule): SemanticClaimRecord {
+  const base = claim(rule);
+  return {
+    ...base,
+    godot: { ...base.godot, sourceSymbol: 'SceneState::instantiate deferred_node_paths', sourceLine: 597 },
+    native: { ...base.native, inputSha256: STRUCTURE_IDENTITIES.input, callsite: 'res://main.gd _ready()', observedOutputSha256: STRUCTURE_IDENTITIES.observed },
+    target: { implementationSha256: STRUCTURE_IDENTITIES.implementation, callsite: 'MainScene mounted by @react-three/fiber, read through compat', observedOutputSha256: STRUCTURE_IDENTITIES.observed },
+    comparison: { ...base.comparison, resultSha256: STRUCTURE_IDENTITIES.comparison },
+  };
+}
+
+export const GODOT_4_7_FIELD_VALUE_CLAIMS: readonly SemanticClaimRecord[] = [
+  ...GODOT_4_7_FIELD_VALUE_RULES.map(claim),
+  ...GODOT_4_7_NODE_REFERENCE_RULES.map(nodeReferenceClaim),
+];
+
+const liveness = (claims: readonly SemanticClaimRecord[]): readonly GodotFieldValueClaimLiveness[] =>
+  claims.map((entry) => ({
     claimId: entry.claimId,
     sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
     apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
     executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
-    inputSha256: GODOT_4_7_FIELD_VALUE_INPUT_SHA256,
-    implementationSha256: GODOT_4_7_FIELD_VALUE_IMPLEMENTATION_SHA256,
+    inputSha256: entry.native.inputSha256,
+    implementationSha256: entry.target.implementationSha256,
   }));
+
+export const GODOT_4_7_FIELD_VALUE_LIVENESS = liveness(GODOT_4_7_FIELD_VALUE_RULES.map(claim));
+/** The node-reference claims' liveness: the scene-structure proof's implementation. */
+export const GODOT_4_7_NODE_REFERENCE_LIVENESS = liveness(GODOT_4_7_NODE_REFERENCE_RULES.map(nodeReferenceClaim));

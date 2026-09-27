@@ -6,9 +6,11 @@ import {
 
 export const GODOT_FIELD_VALUE_AUTHORITY_VERSION = 1 as const;
 
-export type SerializedPrimitiveIdentity = 'bool' | 'number:float' | 'number:int' | 'string';
+/** A serialized field value's kind; `node-path` is a property the scene stores as a NodePath (`node_paths`). */
+export type SerializedPrimitiveIdentity = 'bool' | 'number:float' | 'number:int' | 'string' | 'node-path';
 
-export type TargetPrimitiveKind = 'boolean' | 'number' | 'string';
+/** What the target sets: a primitive, or (`node-reference`) the node at the path once the scene exists. */
+export type TargetPrimitiveKind = 'boolean' | 'number' | 'string' | 'node-reference';
 
 export interface GodotFieldValueRule {
   readonly sourceRevision: string;
@@ -84,13 +86,15 @@ export class GodotFieldValueAuthorityResolver {
     this.#rules = rules;
   }
 
+  /** The rule for the exact datatype, else for its class (`NATIVE:*`), when one is keyed by class. */
   rule(
     fieldDatatype: string,
     serializedValue: SerializedPrimitiveIdentity,
+    datatypeClass?: string,
   ): GodotFieldValueRule | undefined {
-    const rule = this.#rules.get(
-      godotFieldValueRuleKey(this.sourceRevision, fieldDatatype, serializedValue),
-    );
+    const rule =
+      this.#rules.get(godotFieldValueRuleKey(this.sourceRevision, fieldDatatype, serializedValue)) ??
+      (datatypeClass === undefined ? undefined : this.#rules.get(godotFieldValueRuleKey(this.sourceRevision, datatypeClass, serializedValue)));
     if (rule === undefined) return undefined;
     const liveness = this.#liveness.get(rule.evidenceClaimId);
     if (liveness === undefined) {

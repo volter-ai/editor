@@ -1,4 +1,5 @@
 import type { GodotValue } from '../../read/godot-value';
+import { godotResolveNodePath } from './scene-animation';
 import type {
   BoundGodotLifecycleEntry,
   BoundGodotProject,
@@ -355,6 +356,37 @@ function validateAttachedScript(
   return true;
 }
 
+/**
+ * A script field authored as a node path is set to the node at that path once the scene's nodes all
+ * exist (`SceneState::instantiate`, packed_scene.cpp:597): a node the scene itself writes, or null
+ * for a path leaving the scene (it is not yet under a parent). A path by absolute path, unique name
+ * or subpath, or into an instanced scene, is not planned.
+ */
+function validateNodeReferences(scene: DirectGodotSceneDocumentPlan, diagnostics: DirectGodotCompositionDiagnostic[]): void {
+  const own = new Set<string>();
+  const collect = (node: DirectGodotSceneNodePlan): void => {
+    own.add(node.nodePath);
+    // An instance's children here are the ones this document places under it.
+    for (const child of node.children) collect(child);
+  };
+  collect(scene.root);
+  const check = (node: DirectGodotSceneNodePlan): void => {
+    for (const field of node.scriptInstance?.fields ?? []) {
+      if (field.value.kind !== 'node-reference') continue;
+      const path = field.value.value;
+      const at = `${scene.sourceResPath}#${node.nodePath}.${field.fieldName}`;
+      if (path.startsWith('/') || path.includes('%') || path.includes(':')) {
+        diagnostics.push({ at, message: `a node reference by ${path.startsWith('/') ? 'absolute path' : path.includes('%') ? 'unique name' : 'subpath'} is not planned` });
+        continue;
+      }
+      const target = godotResolveNodePath(node.nodePath, path);
+      if (target !== undefined && !own.has(target)) diagnostics.push({ at, message: `a node reference into an instanced scene (${target}) is not planned` });
+    }
+    for (const child of node.children) check(child);
+  };
+  check(scene.root);
+}
+
 function attachScriptInstances(
   project: BoundGodotProject,
   scenes: readonly TargetGodotSceneDocumentPlan[],
@@ -413,6 +445,7 @@ function attachScriptInstances(
     };
   };
   const result = scenes.map((scene) => ({ ...scene, root: attach(scene, scene.root) }));
+  for (const scene of result) validateNodeReferences(scene, diagnostics);
   for (const instance of instances) {
     const key = nodeLocationKey(instance.documentPath, instance.nodePath);
     if (consumed.has(key) || representedByInstance(instance)) continue;

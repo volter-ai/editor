@@ -1241,7 +1241,9 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   let ok = true;
   // An AnimationTree's `root_node` and `anim_player` are its setters' paths (`treeNodePath`).
   const tree = node.class.nativeAncestry.includes('AnimationTree');
-  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined))) {
+  // A script field's node path is the field plan's (`godot_node_reference`).
+  const scriptFields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
+  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined) && !scriptFields.has(name))) {
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
   }

@@ -467,6 +467,17 @@ rule('default-builtin', 'VARIABLE', 'type-default', [], B, structural('type-defa
 rule('default-native', 'VARIABLE', 'type-default', [], NATIVE, structural('type-default'), DEFAULTS);
 rule('default-enum', 'VARIABLE', 'type-default', [], ENUM, structural('type-default'), DEFAULTS);
 rule('default-variant', 'VARIABLE', 'type-default', [], 'VARIANT:*', structural('type-default'), DEFAULTS);
+rule('default-class', 'VARIABLE', 'type-default', [], CLASS, structural('type-default'), DEFAULTS);
+// An @export field declared without an initializer starts at its type's default.
+rules.push({
+  id: 'field-export-declared-uninitialized',
+  nodeKind: 'VARIABLE',
+  semanticKey: 'variable:declared:instance|annotations:[@export:resolved:applied:*]',
+  inputDatatypes: [],
+  resultDatatype: '',
+  target: structural('variable'),
+  source: DEFAULTS,
+});
 
 // @export fields are ordinary fields in code; their arguments are editor hints.
 for (const [annotation, name] of [
@@ -1059,6 +1070,8 @@ var flag: bool = true
 var vector: Vector3
 @export var inferred_export := 4.5
 var node_field: Node
+@export var exported_node: Node3D
+var self_typed: MemberCases
 enum Kind { LOW, HIGH = 7 }
 const HIGH_KIND := Kind.HIGH
 const DECLARED_KIND: Kind = Kind.LOW
@@ -1115,7 +1128,7 @@ func get_inferred_export() -> float:
 \treturn inferred_export
 
 func node_field_is_null() -> bool:
-\treturn node_field == null
+\treturn node_field == null and exported_node == null and self_typed == null
 
 func kinds() -> bool:
 \tvar k: Kind = DECLARED_KIND

@@ -108,6 +108,8 @@ export const GODOT_SCENE_STRUCTURE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/data/scene-node-authority.ts',
   'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
   'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/data/script-field-initialization-plan.ts',
+  'packages/gd-analyze/src/translate/data/field-value-authority.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
   'packages/gd-analyze/src/translate/data/scene-families.ts',
   'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',

@@ -4,7 +4,7 @@ import type {
   BoundGodotScriptFieldAttachmentValue,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
-import { godotBoundDatatypeIdentity } from '../code/lowering-rules';
+import { godotBoundDatatypeIdentity, godotDatatypeClass } from '../code/lowering-rules';
 import {
   type GodotFieldValueAuthority,
   GodotFieldValueAuthorityResolver,
@@ -17,7 +17,9 @@ export const SCRIPT_FIELD_INITIALIZATION_PLAN_VERSION = 1 as const;
 export type TargetPrimitiveValue =
   | { readonly kind: 'boolean'; readonly value: boolean }
   | { readonly kind: 'number'; readonly value: number }
-  | { readonly kind: 'string'; readonly value: string };
+  | { readonly kind: 'string'; readonly value: string }
+  /** The node at `value`, a path relative to the field's node, once the scene's nodes all exist. */
+  | { readonly kind: 'node-reference'; readonly value: string };
 
 export interface ScriptFieldValuePlan {
   readonly fieldName: string;
@@ -100,18 +102,27 @@ function planAuthoredValue(
     nodePath: attachment.nodePath,
     fieldName: field.name,
   } as const;
-  if (attachment.valueKind === 'node-reference') {
-    state.diagnostics.push({
-      ...at,
-      message: 'authored Node reference requires a composition-time node lookup recipe',
-    });
-    return;
-  }
   const value = attachment.authoredValue;
   if (value === undefined) {
     throw new Error(
       `${attachment.documentPath}#${attachment.nodePath}.${field.name}: authored value is absent`,
     );
+  }
+  if (attachment.valueKind === 'node-reference') {
+    // One node path (`NodePath("../X")`); an array or dictionary of them is not planned.
+    const path = value.kind === 'ctor' && value.name === 'NodePath' && value.args.length === 1 && value.args[0]?.kind === 'string' ? value.args[0].value : undefined;
+    if (path === undefined) {
+      state.diagnostics.push({ ...at, message: `an authored ${value.kind} of node references is not planned` });
+      return;
+    }
+    const datatype = godotBoundDatatypeIdentity(field.datatype);
+    const rule = resolved.rule(datatype, 'node-path', godotDatatypeClass(datatype));
+    if (rule === undefined) {
+      state.diagnostics.push({ ...at, message: `no live field-value evidence for ${datatype} receiving a node path` });
+      return;
+    }
+    addField(state, scriptResPath, attachment, { fieldName: field.name, application: 'script-property-set', value: { kind: 'node-reference', value: path }, evidenceClaimId: rule.evidenceClaimId });
+    return;
   }
   const serialized = serializedIdentity(value);
   if (serialized === undefined) {
@@ -130,6 +141,20 @@ function planAuthoredValue(
     });
     return;
   }
+  addField(state, scriptResPath, attachment, {
+    fieldName: field.name,
+    application: 'script-property-set',
+    value: targetValue(value, rule.targetKind),
+    evidenceClaimId: rule.evidenceClaimId,
+  });
+}
+
+function addField(
+  state: FieldPlanState,
+  scriptResPath: string,
+  attachment: BoundGodotScriptFieldAttachmentValue,
+  field: ScriptFieldValuePlan,
+): void {
   const key = `${scriptResPath}\0${attachment.documentPath}\0${attachment.nodePath}`;
   const current = state.attachments.get(key) ?? {
     scriptResPath,
@@ -137,19 +162,8 @@ function planAuthoredValue(
     nodePath: attachment.nodePath,
     fields: [],
   };
-  state.attachments.set(key, {
-    ...current,
-    fields: [
-      ...current.fields,
-      {
-        fieldName: field.name,
-        application: 'script-property-set',
-        value: targetValue(value, rule.targetKind),
-        evidenceClaimId: rule.evidenceClaimId,
-      },
-    ],
-  });
-  state.evidence.add(rule.evidenceClaimId);
+  state.attachments.set(key, { ...current, fields: [...current.fields, field] });
+  state.evidence.add(field.evidenceClaimId);
 }
 
 /**
