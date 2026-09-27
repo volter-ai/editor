@@ -1,3 +1,4 @@
+import { builtinDatatype } from '../../analyze/refined-types';
 import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
@@ -1231,6 +1232,36 @@ function stringifiedArgument(
   };
 }
 
+function numericImport(name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: 'lib/godot-compat/numeric', imported: name, local: name, typeOnly: false };
+}
+
+function numericCall(name: string, argument: TargetTsExpression): TargetTsExpression {
+  return { kind: 'call-expression', callee: { kind: 'identifier-expression', name }, arguments: [argument] };
+}
+
+/** The one built-in type a plain value has: its switch result, else its datatype. */
+function plainType(context: LoweringContext, node: GodotBoundNode): string | undefined {
+  const types = context.numericTypes(node);
+  if (types !== undefined) return types.size === 1 ? [...types][0] : undefined;
+  if (node.datatype.kind === 'ENUM') return 'int';
+  return node.datatype.kind === 'BUILTIN' && !node.datatype.metaType ? node.datatype.builtinType : undefined;
+}
+
+/** A plain int or float stored into an int-or-float place: tagged by its type (`numeric-tag`). */
+export function numericTag(context: LoweringContext, site: GodotBoundNode, valueNode: GodotBoundNode, value: LoweredExpression): LoweredExpression {
+  const type = plainType(context, valueNode);
+  if (type !== 'int' && type !== 'float') {
+    return context.refuse(valueNode, `a ${type ?? valueNode.datatype.display} value stored into an int-or-float variable: only an int or a float is tagged`);
+  }
+  const name = type === 'int' ? 'godot_numeric_int' : 'godot_numeric_float';
+  return {
+    ...value,
+    value: numericCall(name, value.value),
+    requirements: [...value.requirements, ...context.structural(site, 'numeric-tag', [valueNode], 'numeric-tag'), numericImport(name), context.numericRequirement()],
+  };
+}
+
 export function lowerOfficialExpression(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -1245,6 +1276,19 @@ export function lowerOfficialExpression(
    * and an `as` cast are the class the analysis resolved, and a local narrowed by `is T` is a T.
    */
   function lowerExpression(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
+    // An operand a switch branch reads as one type: the branch's value for it.
+    const substituted = context.overrideValue(node);
+    if (substituted !== undefined) return expression(substituted);
+    if (involvesNumeric(context, node)) return lowerNumeric(context, node);
+    const plain = lowerTypedExpression(context, node);
+    // A value passed to a tagged parameter is tagged by its type at the call.
+    const call = context.taggedArgumentCall(node);
+    if (call === undefined || tagged(context, node)) return plain;
+    const owner = context.rawNode(call, node);
+    return numericTag(context, owner, node, plain);
+  }
+
+  function lowerTypedExpression(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
     const lowered = lowerExpressionKind(context, node);
     const datatype = node.datatype;
     const typedValue =
@@ -1267,6 +1311,179 @@ export function lowerOfficialExpression(
     };
   }
 
+  /** The direct operands an operation reads: a switch branches over the tagged ones. */
+  function operandsOf(node: GodotBoundNode): readonly number[] {
+    if (node.kind === 'BINARY_OPERATOR') return [node.leftOperand, node.rightOperand];
+    if (node.kind === 'UNARY_OPERATOR') return [node.operand];
+    if (node.kind === 'CALL') return node.arguments;
+    return [];
+  }
+
+  /** Whether an operation reads an int-or-float value directly (and so switches over its tag). */
+  function involvesNumeric(context: LoweringContext, node: GodotBoundNode): boolean {
+    if (node.kind === 'ASSIGNMENT') {
+      const assignee = context.rawNode(node.assignee, node);
+      const value = context.rawNode(node.assignedValue, node);
+      return context.isNumericVariable(assignee) || tagged(context, value);
+    }
+    if (node.kind === 'CALL' && context.numericTypes(node) === undefined) return false;
+    if (node.kind !== 'BINARY_OPERATOR' && node.kind !== 'UNARY_OPERATOR' && node.kind !== 'CALL') return false;
+    return operandsOf(node).some((id) => tagged(context, context.rawNode(id, node)));
+  }
+
+  function tagged(context: LoweringContext, node: GodotBoundNode): boolean {
+    const types = context.numericTypes(node);
+    return types !== undefined && types.size > 1;
+  }
+
+  /**
+   * An operation reading an int-or-float value: each tagged operand is evaluated once (every
+   * operand is, in order), then a callsite-local switch over the tags runs the operation's own
+   * evidenced rule for each combination of int and float (`godot_numeric_is_int`), each branch
+   * reading the operand as that type. A result that is an int in one branch and a float in another
+   * is tagged again; any other result is plain.
+   */
+  function numericSwitch(context: LoweringContext, node: GodotBoundNode, operandIds: readonly number[]): { readonly lowered: LoweredExpression; readonly types: ReadonlySet<string> } {
+    const operands = operandIds.map((id) => context.rawNode(id, node));
+    const settled = operands.map((operand) => {
+      const isTagged = tagged(context, operand);
+      const value = materialize(context, isTagged ? lowerExpression(context, operand) : lowerExpression(context, context.node(operand.id, node)));
+      return { operand, isTagged, value };
+    });
+    const taggedOperands = settled.filter((entry) => entry.isTagged);
+    const requirements: OfficialBoundLoweringRequirement[] = [
+      ...settled.flatMap((entry) => entry.value.requirements),
+      ...context.structural(node, 'numeric-switch', [], 'numeric-switch'),
+      numericImport('godot_numeric_is_int'),
+      numericImport('godot_numeric_value'),
+      context.numericRequirement(),
+    ];
+    type Branch = { readonly type: string; readonly value: TargetTsExpression };
+    const branch = (choice: readonly string[]): Branch => {
+      const overrides = new Map<number, { readonly datatype: GodotBoundNode['datatype']; readonly value: TargetTsExpression }>();
+      settled.forEach((entry) => {
+        const index = taggedOperands.indexOf(entry);
+        overrides.set(
+          entry.operand.id,
+          index >= 0
+            ? { datatype: builtinDatatype(choice[index] as string), value: numericCall('godot_numeric_value', entry.value.value) }
+            : { datatype: context.node(entry.operand.id, node).datatype, value: entry.value.value },
+        );
+      });
+      return context.withOverrides(overrides, () => {
+        const types = context.numericTypes(node);
+        const type = node.kind === 'ASSIGNMENT' ? undefined : types === undefined || types.size !== 1 ? undefined : [...types][0];
+        if (type === undefined || type === 'unknown') {
+          return context.refuse(node, `the operator table has no result for ${choice.join(' and ')} here`);
+        }
+        const lowered = lowerTypedExpression(context, { ...node, datatype: builtinDatatype(type) } as GodotBoundNode);
+        if (lowered.before.length > 0 || lowered.after.length > 0) {
+          return context.refuse(node, 'a branch of an int-or-float switch needs statements of its own');
+        }
+        requirements.push(...lowered.requirements);
+        return { type, value: lowered.value };
+      });
+    };
+    // Every combination, nested in operand order.
+    const leaves: { readonly choice: readonly string[]; readonly branch: Branch }[] = [];
+    const walk = (prefix: readonly string[]): void => {
+      if (prefix.length === taggedOperands.length) leaves.push({ choice: prefix, branch: branch(prefix) });
+      else {
+        walk([...prefix, 'int']);
+        walk([...prefix, 'float']);
+      }
+    };
+    walk([]);
+    const types = new Set(leaves.map((leaf) => leaf.branch.type));
+    const retag = types.size > 1;
+    if (retag && [...types].some((type) => type !== 'int' && type !== 'float')) {
+      return context.refuse(node, `an int-or-float switch whose branches give ${[...types].join(' and ')}`);
+    }
+    const valueOf = (leaf: (typeof leaves)[number]): TargetTsExpression => {
+      if (!retag) return leaf.branch.value;
+      const name = leaf.branch.type === 'int' ? 'godot_numeric_int' : 'godot_numeric_float';
+      requirements.push(numericImport(name));
+      return numericCall(name, leaf.branch.value);
+    };
+    const build = (depth: number, from: number, to: number): TargetTsExpression => {
+      if (to - from === 1) return valueOf(leaves[from] as (typeof leaves)[number]);
+      const middle = (from + to) / 2;
+      const entry = taggedOperands[depth] as (typeof settled)[number];
+      return {
+        kind: 'conditional-expression',
+        condition: numericCall('godot_numeric_is_int', entry.value.value),
+        whenTrue: build(depth + 1, from, middle),
+        whenFalse: build(depth + 1, middle, to),
+        span: span(context.script, node),
+      };
+    };
+    return {
+      lowered: {
+        before: settled.flatMap((entry) => entry.value.before),
+        value: build(0, 0, leaves.length),
+        after: [],
+        requirements,
+      },
+      types,
+    };
+  }
+
+  /** An operation or store that reads or writes an int-or-float variable. */
+  function lowerNumeric(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
+    if (node.kind !== 'ASSIGNMENT') return numericSwitch(context, node, operandsOf(node)).lowered;
+    const assignee = context.rawNode(node.assignee, node);
+    const valueNode = context.rawNode(node.assignedValue, node);
+    // The value stored: the plain or tagged value, or a compound's operator switched over the tags
+    // (`a op= b` reads as `a op b`).
+    let value: LoweredExpression;
+    let types: ReadonlySet<string>;
+    if (node.operation === 'OP_NONE') {
+      value = lowerExpression(context, tagged(context, valueNode) ? valueNode : context.node(valueNode.id, node));
+      types = context.numericTypes(valueNode) ?? new Set([plainType(context, valueNode) ?? 'unknown']);
+    } else {
+      const binary = {
+        ...node,
+        kind: 'BINARY_OPERATOR',
+        leftOperand: node.assignee,
+        rightOperand: node.assignedValue,
+      } as unknown as GodotBoundNode;
+      if (!tagged(context, assignee) && !tagged(context, valueNode)) {
+        return context.refuse(node, 'a compound assignment reaching an int-or-float variable reads neither operand as one');
+      }
+      const switched = numericSwitch(context, binary, [node.assignee, node.assignedValue]);
+      value = switched.lowered;
+      types = switched.types;
+    }
+    const isTagged = types.size > 1;
+    let stored: LoweredExpression;
+    const requirements: OfficialBoundLoweringRequirement[] = [];
+    if (context.isNumericVariable(assignee)) {
+      stored = isTagged ? value : numericTag(context, node, { ...valueNode, datatype: builtinDatatype([...types][0] as string) } as GodotBoundNode, value);
+    } else if (isTagged) {
+      // A tagged number into a typed place converts (`write_assign_with_conversion`): an int place
+      // truncates a float (`Variant::operator int64_t`), a float place takes either as its value.
+      const place = plainType(context, assignee);
+      if (place !== 'int' && place !== 'float') {
+        return context.refuse(node, `an int-or-float value stored into a ${assignee.datatype.display} place, which no conversion takes`);
+      }
+      const name = place === 'int' ? 'godot_numeric_to_int' : 'godot_numeric_value';
+      stored = {
+        ...value,
+        value: numericCall(name, value.value),
+        requirements: [...value.requirements, ...context.structural(node, 'numeric-convert', [assignee], 'numeric-convert'), numericImport(name)],
+      };
+    } else {
+      const type = [...types][0];
+      const place = plainType(context, assignee);
+      if (type !== place && !(place === 'float' && type === 'int')) {
+        return context.refuse(node, `a ${type ?? 'value'} from an int-or-float operation stored into a ${assignee.datatype.display} place`);
+      }
+      stored = value;
+    }
+    requirements.push(...context.structural(node, 'numeric-store', [], 'numeric-store'));
+    return assignment(context, node, undefined, assignee, stored, lowerExpression, requirements);
+  }
+
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: exhaustive official expression union
   function lowerExpressionKind(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
     switch (node.kind) {
@@ -1287,6 +1504,19 @@ export function lowerOfficialExpression(
         );
       }
       case 'IDENTIFIER': {
+        if (context.isNumericVariable(node) && (node.source === 'FUNCTION_PARAMETER' || node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE')) {
+          // An int-or-float variable read as its tagged number (`numeric-variant`).
+          const local = node.source === 'FUNCTION_PARAMETER';
+          return expression(
+            local
+              ? { kind: 'identifier-expression', name: context.lexicalName(node.name), span: span(context.script, node) }
+              : { kind: 'property-expression', object: { kind: 'this-expression' }, property: node.name, span: span(context.script, node) },
+            [
+              ...context.structural(node, local ? 'local-identifier' : 'member-identifier', [], local ? 'local-identifier:numeric' : 'member-identifier:numeric'),
+              context.numericRequirement(),
+            ],
+          );
+        }
         if (
           node.source === 'FUNCTION_PARAMETER' ||
           node.source === 'LOCAL_VARIABLE' ||

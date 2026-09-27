@@ -8,6 +8,7 @@ import type {
   BoundGodotScriptField,
   BoundGodotSourceScript,
 } from '../../analyze/bound-project';
+import { OPERATOR_SPELLING } from '../../analyze/project-setting-types';
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
 import type { GodotValue } from '../../read/godot-value';
@@ -563,6 +564,7 @@ function lowerScript(
   nativeMethods: NativeMethodLookup | undefined,
   nativeType: ((className: string) => readonly GodotNativeTypePart[]) | undefined,
   nativeSignalOwner?: (className: string, signal: string) => string | undefined,
+  operatorResult?: (left: string, operator: number, right: string | undefined) => string | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -609,6 +611,8 @@ function lowerScript(
     new Set(source.refinedTypes.filter((entry) => entry.rule === 'type-test-narrowing').map((entry) => entry.nodeId)),
     new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
     nativeSignalOwner,
+    source.numericVariants,
+    operatorResult,
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -765,6 +769,17 @@ export const GODOT_FORWARDED_SETTERS: Readonly<Record<string, string>> = {
   'Control.size': 'set_size',
 };
 
+/** Godot's operator table (`Variant::get_operator_return_type`): `left op right`'s result type. */
+export function operatorResultLookup(apiDump: GodotApiDump): (left: string, operator: number, right: string | undefined) => string | undefined {
+  const builtins = new Map((apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
+  return (left, operator, right) => {
+    const spelling = OPERATOR_SPELLING[operator];
+    if (spelling === undefined) return undefined;
+    const found = builtins.get(left)?.operatorSignatures?.find((entry) => entry.name === spelling && entry.rightType === right)?.returnType;
+    return found === undefined || found === 'Variant' ? undefined : found;
+  };
+}
+
 /** The engine class up a class's chain that declares a signal (`ClassDB::has_signal`). */
 export function nativeSignalLookup(apiDump: GodotApiDump): (className: string, signal: string) => string | undefined {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
@@ -837,6 +852,7 @@ export function lowerOfficialBoundProgram(
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
   const nativeSignalOwner = apiDump === undefined ? undefined : nativeSignalLookup(apiDump);
+  const operatorResult = apiDump === undefined ? undefined : operatorResultLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -861,6 +877,7 @@ export function lowerOfficialBoundProgram(
         nativeMethods,
         nativeType,
         nativeSignalOwner,
+        operatorResult,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

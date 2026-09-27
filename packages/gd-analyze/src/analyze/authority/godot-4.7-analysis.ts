@@ -240,6 +240,7 @@ export const GODOT_4_7_PARAMETER_PROOF = provenRules(
     'call-site-parameter': { file: 'modules/gdscript/gdscript_vm.cpp', symbol: 'OPCODE_CALL', line: 1903 },
     'script-method-dispatch': { file: 'core/object/object.cpp', symbol: 'Object::callp (the script instance first)', line: 768 },
     'member-assignment-type': { file: 'modules/gdscript/gdscript_vm.cpp', symbol: 'OPCODE_ASSIGN (an untyped member holds what is stored in it)', line: 1384 },
+    'numeric-variant': { file: 'modules/gdscript/gdscript_vm.cpp', symbol: 'OPCODE_ASSIGN (an untyped variable keeps the int or float stored in it)', line: 1384 },
   },
   {
     native: 'res://main.gd _ready() and the engine callbacks it records',

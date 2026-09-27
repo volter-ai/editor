@@ -45,6 +45,11 @@ export interface ParameterTypeInputs {
   readonly scriptAt: (documentPath: string, nodePath: string) => string | undefined;
   /** Every project scene and resource document's text, for names they mention as strings. */
   readonly documentTexts: readonly string[];
+  /**
+   * Filled with the parameters (`parameterKey`) only script calls reach, each passing an int or a
+   * float and both occurring (`numeric-variants.ts`).
+   */
+  readonly numeric?: Set<string>;
 }
 
 /** The key of a function's parameter: `resPath`, function name, parameter name. */
@@ -98,9 +103,11 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
   const escaped = new Set<string>();
   for (const program of inputs.programs) {
     const callees = new Set(program.nodes.flatMap((node) => (node.kind === 'CALL' ? [node.callee] : [])));
+    // `has_method("name")` asks whether a method exists (`Object::has_method`); it calls nothing.
+    const queried = new Set(program.nodes.flatMap((node) => (node.kind === 'CALL' && node.functionName === 'has_method' && node.arguments.length === 1 ? [node.arguments[0] as number] : [])));
     for (const node of program.nodes) {
       if (node.kind === 'IDENTIFIER' && node.source === 'MEMBER_FUNCTION' && !callees.has(node.id)) escaped.add(node.name);
-      if (node.kind === 'LITERAL' && (node.value.kind === 'string' || node.value.kind === 'string-name')) escaped.add(node.value.value);
+      if (node.kind === 'LITERAL' && (node.value.kind === 'string' || node.value.kind === 'string-name') && !queried.has(node.id)) escaped.add(node.value.value);
     }
   }
   const connectionLine = /^\[connection [^\]]*\]$/u;
@@ -130,7 +137,10 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
   for (const program of inputs.programs) {
     const argumentTypes = (ids: readonly number[]) =>
       ids.map((id) => {
-        const datatype = program.nodes[id]?.datatype;
+        const node = program.nodes[id];
+        const datatype = node?.datatype;
+        // An untyped member's weak datatype is not what it holds.
+        if (node?.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && datatype?.typeSource === 'INFERRED') return undefined;
         return datatype !== undefined && known(datatype) && !datatype.metaType ? datatype : undefined;
       });
     const record = (name: string, ids: readonly number[]) => {
@@ -251,6 +261,8 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
       const found = fn === undefined ? undefined : resolvedTypes.get(parameterKey(program.resPath, fn, node.name));
       if (found !== undefined) return found.datatype;
     }
+    // An untyped member's datatype is only its initializer's (a weak type): what it holds is not.
+    if (node.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && node.datatype.typeSource === 'INFERRED') return undefined;
     return known(node.datatype) && !node.datatype.metaType ? node.datatype : undefined;
   };
 
@@ -285,7 +297,17 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
         const found = [...(sources[index] as Source[]), ...(direct.get(siteKey(site.resPath, name))?.[index] ?? [])];
         if (found.length === 0 || found.some((source) => source.datatype === undefined)) return;
         const first = found[0]?.datatype as GodotBoundDatatype;
-        if (!found.every((source) => sameType(source.datatype as GodotBoundDatatype, first))) return;
+        if (!found.every((source) => sameType(source.datatype as GodotBoundDatatype, first))) {
+          // Script calls alone, passing ints and floats: the parameter holds either (a tagged number).
+          const numeric = found.map((source) => {
+            const datatype = source.datatype as GodotBoundDatatype;
+            return datatype.metaType ? undefined : datatype.kind === 'ENUM' ? 'int' : datatype.kind === 'BUILTIN' ? datatype.builtinType : undefined;
+          });
+          if (found.every((source) => source.rule === 'call-site-parameter') && numeric.every((type) => type === 'int' || type === 'float') && new Set(numeric).size === 2) {
+            inputs.numeric?.add(parameterKey(site.resPath, name, parameter.name));
+          }
+          return;
+        }
         const rules = [...new Set(found.map((source) => source.rule))].sort();
         resolvedTypes.set(parameterKey(site.resPath, name, parameter.name), { datatype: first, rules });
       });

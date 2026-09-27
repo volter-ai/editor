@@ -12,6 +12,7 @@ import {
   convertedValue,
   lowerOfficialExpression,
   lowerTypeDefault,
+  numericTag,
 } from './lower-official-expression';
 import {
   type LoweringContext,
@@ -574,7 +575,10 @@ function lowerField(
       ? node.kind === 'VARIABLE' && !node.static
         ? lowerTypeDefault(context, node)
         : undefined
-      : convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode));
+      : context.isNumericVariable(node)
+        ? // An int-or-float member starts as its initializer's type (`numeric-variant`).
+          numericTag(context, node, initializerNode, lowerExpression(context, initializerNode))
+        : convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode));
   const readyValue =
     onready && initializerNode !== undefined
       ? settleForStatement(

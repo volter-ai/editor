@@ -556,7 +556,7 @@ rule('implicit-ready', 'CLASS', 'implicit-ready', [], '', structural('implicit-r
 });
 
 // Constructs an older exact rule already decides (seed and language-semantics authorities).
-for (const id of ['member-constant-native', 'member-constant-class', 'member-variable-variant', 'member-constant-variant', 'variable-inferred-variant', 'while-bool', 'local-iterator-int', 'OP_NEGATIVE-int', 'assign-OP_SUBTRACTION-ii']) {
+for (const id of ['member-constant-native', 'member-constant-class', 'member-variable-variant', 'member-constant-variant', 'variable-inferred-variant', 'while-bool', 'local-iterator-int', 'assign-OP_SUBTRACTION-ii']) {
   rules.splice(
     rules.findIndex((entry) => entry.id === id),
     1,
@@ -642,6 +642,31 @@ for (const [id, result] of [['singleton-property-enum', ENUM]] as const) {
     file: COMPILER,
     symbol: 'GDScriptCompiler::_parse_expression IDENTIFIER (a global-map singleton) and Object::set through ClassDB property accessors',
     line: 419,
+  });
+}
+// An untyped variable holding an int at some times and a float at others (\`numeric-variant\`)
+// holds compat's tagged number (\`numeric.ts\`): each store tags the value by its type (Godot's
+// Variant keeps it), each operation on it switches over the tag and runs that type's rule, and a
+// tagged value stored into a typed place converts (an int place truncates a float).
+const NUMERIC_VM = { file: 'modules/gdscript/gdscript_vm.cpp', symbol: 'OPCODE_ASSIGN (an untyped variable keeps the stored Variant and its type)', line: 1384 };
+for (const [kind, type] of [['VARIABLE', INT], ['ASSIGNMENT', INT], ['ASSIGNMENT', FLOAT], ['CALL', INT], ['CALL', FLOAT]] as const) {
+  rule(`numeric-tag-${kind.toLowerCase()}-${type.slice('BUILTIN:'.length)}`, kind, 'numeric-tag', [type], '', structural('numeric-tag'), NUMERIC_VM);
+}
+for (const kind of ['BINARY_OPERATOR', 'UNARY_OPERATOR', 'CALL'] as const) {
+  rule(`numeric-switch-${kind.toLowerCase()}`, kind, 'numeric-switch', [], '', structural('numeric-switch'), {
+    file: 'core/variant/variant_op.cpp',
+    symbol: 'Variant::evaluate (the operator selected by the operands\' types)',
+    line: 1041,
+  });
+}
+rule('numeric-store', 'ASSIGNMENT', 'numeric-store', [], '', structural('numeric-store'), NUMERIC_VM);
+rule('numeric-member-read', 'IDENTIFIER', 'member-identifier:numeric', [], '*', structural('member-identifier'), NUMERIC_VM);
+rule('numeric-parameter-read', 'IDENTIFIER', 'local-identifier:numeric', [], '*', structural('local-identifier'), NUMERIC_VM);
+for (const type of [INT, FLOAT] as const) {
+  rule(`numeric-convert-${type.slice('BUILTIN:'.length)}`, 'ASSIGNMENT', 'numeric-convert', [type], '', structural('numeric-convert'), {
+    file: COMPILER,
+    symbol: 'GDScriptCompiler write_assign_with_conversion (a Variant into a typed place: Variant::operator int64_t truncates a float)',
+    line: 1006,
   });
 }
 // An engine signal a native object's class declares reads as Signal(object, name), which compat
@@ -1450,6 +1475,44 @@ func signals() -> Array:
 \tpinged.emit(2)
 \treturn [heard, connected, pinged.is_connected(_on_ping), counted.is_connected(_on_ping)]
 
+# An untyped member holding an int, then a float (\`numeric-variant\`): a tagged number, every
+# operator on it switching over the tag; and a parameter script calls pass an int and a float.
+var fall = 0
+var health: int = 100
+var heard_amounts := []
+
+func absorb(amount) -> void:
+\thealth -= amount
+\theard_amounts.append(str(amount))
+
+func numerics() -> Array:
+\tvar out := []
+\tvar f: float = 0.0
+\tvar i: int = 0
+\tout.append(str(fall))
+\ti = fall / 2
+\tout.append(i)
+\tfall += 0.5
+\tout.append(str(fall))
+\tf = fall / 2
+\tout.append(f)
+\ti = fall * 3
+\tout.append(i)
+\tf = -fall
+\tout.append(f)
+\tout.append(fall > 0)
+\tfall = 3
+\tout.append(str(fall))
+\tf = fall / 2
+\tout.append(f)
+\tf = -fall
+\tout.append(f)
+\tabsorb(5)
+\tabsorb(2.5)
+\tout.append(health)
+\tout.append(heard_amounts)
+\treturn out
+
 # An engine signal read as a Signal value, on an untyped and a typed receiver (\`native-signal\`).
 var finishes := []
 
@@ -1886,7 +1949,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'native_signals', 'switched', 'singletons', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'native_signals', 'numerics', 'switched', 'singletons', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
@@ -1976,6 +2039,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
   compatModules: [
     'lib/godot-compat/animation-tree',
     'lib/godot-compat/audio-stream-player',
+    'lib/godot-compat/numeric',
     'lib/godot-compat/array',
     'lib/godot-compat/basis',
     'lib/godot-compat/dictionary',

@@ -2,6 +2,7 @@ import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
 import { memberKey, typeMembers } from './member-types';
+import { numericVariants, type ScriptNumericVariants } from './numeric-variants';
 import { parameterKey, typeFunctionParameters } from './parameter-types';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
@@ -75,6 +76,8 @@ export interface BoundGodotSourceScript {
   readonly settingTypes: readonly BoundGodotTypedValue[];
   /** Datatypes the project fixes where the analyzer left a node untyped (`refineDatatypes`). */
   readonly refinedTypes: readonly BoundGodotRefinedType[];
+  /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
+  readonly numericVariants?: ScriptNumericVariants & { readonly evidenceClaimId: string };
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -1324,7 +1327,9 @@ export function bindGodotProject(
     for (let current = apiClasses.get(name); current !== undefined; current = current.base_class === '' ? undefined : apiClasses.get(current.base_class)) out.push(current.name);
     return out;
   };
+  const numericParameters = new Set<string>();
   const parameterTypes = typeFunctionParameters({
+    numeric: numericParameters,
     programs: code.scripts,
     apiDump: apiDump.parsed,
     nativeBase: (resPath) => inheritance.get(resPath)?.engineBase,
@@ -1342,6 +1347,17 @@ export function bindGodotProject(
     scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
     apiDump: apiDump.parsed,
   });
+  // Every untyped variable holding an int at some times and a float at others (`numeric-variants.ts`).
+  // The rule's claim is asked only when some variable is one, so a project without any records none.
+  const foundNumeric = numericVariants({
+    programs: code.scripts,
+    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
+    apiDump: apiDump.parsed,
+    parameterType: (resPath, fn, parameter) => parameterTypes.get(parameterKey(resPath, fn, parameter))?.datatype,
+    numericParameters,
+  });
+  const numericClaim = foundNumeric.size === 0 ? undefined : analysisEvidence.liveClaim('numeric-variant');
+  const numericByScript = numericClaim === undefined ? new Map<string, ScriptNumericVariants>() : foundNumeric;
   const storedMemberType = (resPath: string, name: string): GodotBoundDatatype | undefined => {
     for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
       const found = memberTypes.get(memberKey(scriptPath, name));
@@ -1469,6 +1485,9 @@ export function bindGodotProject(
       fields: scriptFields(program, attachments, analysisEvidence),
       ...callReceiverFacts(program, attachments),
       refinedTypes,
+      ...(numericClaim === undefined || !numericByScript.has(program.resPath)
+        ? {}
+        : { numericVariants: { ...(numericByScript.get(program.resPath) as ScriptNumericVariants), evidenceClaimId: numericClaim } }),
       settingTypes: typeProjectSettingValues({
         program,
         projectSettings: decoded.authoredSettings,

@@ -103,7 +103,7 @@ export function scriptDatatype(resPath: string, info: RefinedScriptInfo): GodotB
   };
 }
 
-function builtinDatatype(name: string): GodotBoundDatatype {
+export function builtinDatatype(name: string): GodotBoundDatatype {
   return { ...BASE, kind: 'BUILTIN', display: name, builtinType: name, nativeType: '', enumType: '', scriptPath: '', className: '' };
 }
 

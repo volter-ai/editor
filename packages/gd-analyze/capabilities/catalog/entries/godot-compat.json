@@ -76,6 +76,7 @@
     "src/lib/godot-compat/node-2d.ts",
     "src/lib/godot-compat/node-3d.ts",
     "src/lib/godot-compat/node.ts",
+    "src/lib/godot-compat/numeric.ts",
     "src/lib/godot-compat/object.ts",
     "src/lib/godot-compat/omni-light-3d.ts",
     "src/lib/godot-compat/packed-scene-instance.tsx",

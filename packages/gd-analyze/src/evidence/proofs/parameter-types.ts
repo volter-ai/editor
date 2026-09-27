@@ -8,7 +8,9 @@
  * and whether it classified the call as a script dispatch; an untyped member takes the one type
  * every value stored in it has (`member-assignment-type`), a call on it typed by that class; a call on such a parameter is typed by
  * its class's ClassDB method; a compound assignment of a typed member
- * with such a parameter has the operator's result type (the member's own). A parameter whose callers disagree (the
+ * with such a parameter has the operator's result type (the member's own). An untyped member
+ * stored an int and a float, and a parameter script calls pass an int and a float, hold either
+ * (`numeric-variant`). A parameter whose callers disagree (the
  * recorder's own `value`, the handler of a signal emitted with an int and a String) or that a `Callable` reaches (`escaped`) must stay untyped; the native
  * side records such a parameter as untyped when its values had more than one type.
  */
@@ -54,6 +56,9 @@ var accumulated := 0.0
 var hits = 0
 var speed = 1.5
 var rng = RandomNumberGenerator.new()
+# An untyped member holding an int, then a float (\`numeric-variant\`).
+var fall = 0
+var numeric_rows := {}
 
 # The type each label's value had, or "untyped" when its values had more than one.
 func record(label, value) -> void:
@@ -62,7 +67,28 @@ func record(label, value) -> void:
 \t\tseen = "untyped"
 \trows[label] = seen
 
+# The types a label's values had: "numeric" when they were ints and floats.
+func record_numeric(label, value) -> void:
+\tvar seen: Array = numeric_rows.get(label, [])
+\tvar name := type_string(typeof(value))
+\tif not seen.has(name):
+\t\tseen.append(name)
+\tseen.sort()
+\tnumeric_rows[label] = seen
+\trows[label] = "numeric" if seen == ["float", "int"] else (seen[0] if seen.size() == 1 else "untyped")
+
+# Called with an int and a float by script calls alone (\`has_method\` names it without calling it).
+func take(amount) -> void:
+\trecord_numeric("numeric-parameter", amount)
+
 func _ready() -> void:
+\tfall += 0.5
+\trecord_numeric("numeric-member", fall)
+\tfall = 0
+\trecord_numeric("numeric-member", fall)
+\tif has_method("take"):
+\t\ttake(5)
+\t\ttake(2.5)
 \thelper(1.5)
 \thelper(2.25)
 \tvar b: Base = $Derived
@@ -197,7 +223,14 @@ export function measureParameterTypeProof(tools: GodotProofTools): readonly Godo
     if (main === undefined) throw new Error('bound project omitted res://main.gd');
     const program = main.program;
     const target: Record<string, string> = {};
+    const numeric = new Set(main.numericVariants?.variables ?? []);
     for (const node of program.nodes) {
+      if (node.kind === 'CALL' && node.functionName === 'record_numeric' && node.arguments.length === 2) {
+        const label = program.nodes[node.arguments[0] as number];
+        const argument = node.arguments[1] as number;
+        if (label?.kind === 'LITERAL' && label.value.kind === 'string') target[label.value.value] = numeric.has(argument) ? 'numeric' : 'untyped';
+        continue;
+      }
       if (node.kind !== 'CALL' || node.functionName !== 'record' || node.arguments.length !== 2) continue;
       const label = program.nodes[node.arguments[0] as number];
       const argument = program.nodes[node.arguments[1] as number];

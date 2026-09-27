@@ -1,5 +1,6 @@
 import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
+import { builtinDatatype } from '../../analyze/refined-types';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
 import type { SemanticClaimLayer } from '../../godot-frontend/semantic-claims';
 import { safeIdent } from '../target-names';
@@ -22,7 +23,7 @@ import {
   godotCodeRuleKey,
   godotDatatypeRuleKey,
 } from './lowering-rules';
-import type { TargetTsSpan, TargetTsType } from './target-ts-syntax';
+import type { TargetTsExpression, TargetTsSpan, TargetTsType } from './target-ts-syntax';
 
 export class BoundLoweringRefusal extends Error {
   constructor(
@@ -222,7 +223,24 @@ export class LoweringContext {
     readonly scriptSwitches: ReadonlyMap<number, readonly string[]> = new Map(),
     /** The engine class up a class's chain that declares a signal of this name. */
     readonly nativeSignalOwner?: (className: string, signal: string) => string | undefined,
+    /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
+    readonly numericVariants?: {
+      readonly variables: readonly number[];
+      readonly taggedArguments: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
+      readonly evidenceClaimId: string;
+    },
+    /** Godot's operator table: the result type of `left op right` (right absent for a unary). */
+    readonly operatorResult?: (left: string, operator: number, right: string | undefined) => string | undefined,
   ) {
+    this.#numericVariables = new Set(numericVariants?.variables ?? []);
+    for (const entry of numericVariants?.taggedArguments ?? []) {
+      const call = script.nodes[entry.callId];
+      if (call?.kind !== 'CALL') continue;
+      for (const index of entry.indexes) {
+        const argument = call.arguments[index];
+        if (argument !== undefined) this.#taggedArguments.set(argument, entry.callId);
+      }
+    }
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();
     const sourceNames = new Set<string>();
@@ -356,7 +374,113 @@ export class LoweringContext {
   node(id: number, owner: GodotBoundNode): GodotBoundNode {
     const node = id < 0 ? undefined : this.script.nodes[id];
     if (node === undefined) this.refuse(owner, `official bound node ${String(id)} is missing`);
-    return node;
+    const override = this.#overrides.get(id);
+    if (override !== undefined) return { ...node, datatype: override.datatype } as GodotBoundNode;
+    const types = this.numericTypes(node);
+    if (types === undefined) return node;
+    if (types.size > 1) {
+      // Only the switches over the tag take a tagged number; a tagged argument passes on to a
+      // tagged parameter as it is.
+      if (this.#taggedArguments.get(id) === owner.id && owner.kind === 'CALL') return node;
+      this.refuse(
+        node,
+        `this value is an int or a float (${node.kind === 'IDENTIFIER' ? `the untyped \`${node.name}\` holds both` : 'an operation on such a variable'}), and ${owner.kind} does not switch over the two`,
+      );
+    }
+    const [type] = types;
+    if (type === undefined || type === 'unknown') this.refuse(node, 'an operation on an int-or-float variable that the operator table does not type');
+    return { ...node, datatype: builtinDatatype(type) } as GodotBoundNode;
+  }
+
+  /** An official node as the bound program holds it, bypassing the int-or-float checks. */
+  rawNode(id: number, owner: GodotBoundNode): GodotBoundNode {
+    const node = id < 0 ? undefined : this.script.nodes[id];
+    if (node === undefined) this.refuse(owner, `official bound node ${String(id)} is missing`);
+    const override = this.#overrides.get(id);
+    return override === undefined ? node : ({ ...node, datatype: override.datatype } as GodotBoundNode);
+  }
+
+  readonly #numericVariables: ReadonlySet<number>;
+  readonly #taggedArguments = new Map<number, number>();
+  readonly #overrides = new Map<number, { readonly datatype: GodotBoundNode['datatype']; readonly value: TargetTsExpression }>();
+
+  /** Whether a VARIABLE, PARAMETER or IDENTIFIER is an int-or-float variable. */
+  isNumericVariable(node: GodotBoundNode): boolean {
+    return this.#numericVariables.has(node.id) && !this.#overrides.has(node.id);
+  }
+
+  /** The call a node is a tagged argument of (it reaches a tagged parameter). */
+  taggedArgumentCall(node: GodotBoundNode): number | undefined {
+    return this.#taggedArguments.get(node.id);
+  }
+
+  /** The value a switch branch substitutes for an operand. */
+  overrideValue(node: GodotBoundNode): TargetTsExpression | undefined {
+    return this.#overrides.get(node.id)?.value;
+  }
+
+  /** Lowers `operation` with operands read as the given types and values (one switch branch). */
+  withOverrides<Result>(
+    overrides: ReadonlyMap<number, { readonly datatype: GodotBoundNode['datatype']; readonly value: TargetTsExpression }>,
+    operation: () => Result,
+  ): Result {
+    const saved = new Map([...overrides.keys()].map((id) => [id, this.#overrides.get(id)] as const));
+    for (const [id, entry] of overrides) this.#overrides.set(id, entry);
+    try {
+      return operation();
+    } finally {
+      for (const [id, entry] of saved) {
+        if (entry === undefined) this.#overrides.delete(id);
+        else this.#overrides.set(id, entry);
+      }
+    }
+  }
+
+  /**
+   * The built-in types a value may have when an int-or-float variable reaches it: {int, float} for
+   * the variable, an operator's results over its operands' (Godot's operator table), `String` for
+   * `str()` of one; undefined where no such variable reaches. `unknown` marks a combination the
+   * table does not type.
+   */
+  numericTypes(node: GodotBoundNode): ReadonlySet<string> | undefined {
+    if (this.#numericVariables.size === 0) return undefined;
+    const override = this.#overrides.get(node.id);
+    if (override !== undefined) {
+      const type = override.datatype.kind === 'ENUM' ? 'int' : override.datatype.builtinType;
+      return new Set([type]);
+    }
+    if (node.kind === 'IDENTIFIER') return this.#numericVariables.has(node.id) ? new Set(['int', 'float']) : undefined;
+    const own = (child: GodotBoundNode): ReadonlySet<string> =>
+      this.numericTypes(child) ?? new Set([child.datatype.kind === 'ENUM' ? 'int' : child.datatype.kind === 'BUILTIN' ? child.datatype.builtinType : 'unknown']);
+    if (node.kind === 'BINARY_OPERATOR' || node.kind === 'UNARY_OPERATOR') {
+      const children = (node.kind === 'BINARY_OPERATOR' ? [node.leftOperand, node.rightOperand] : [node.operand]).map((id) => this.script.nodes[id]);
+      if (children.some((child) => child === undefined)) return undefined;
+      if (!children.some((child) => this.numericTypes(child as GodotBoundNode) !== undefined)) return undefined;
+      const [left, right] = children.map((child) => own(child as GodotBoundNode));
+      const results = new Set<string>();
+      for (const l of left as ReadonlySet<string>) {
+        for (const r of right ?? new Set<string | undefined>([undefined])) {
+          results.add(this.operatorResult?.(l, node.variantOperatorId, r) ?? 'unknown');
+        }
+      }
+      return results;
+    }
+    if (node.kind === 'CALL' && node.functionName === 'str' && node.compilerTarget.kind === 'variant-utility') {
+      return node.arguments.some((id) => {
+        const argument = this.script.nodes[id];
+        return argument !== undefined && this.numericTypes(argument) !== undefined;
+      })
+        ? new Set(['String'])
+        : undefined;
+    }
+    return undefined;
+  }
+
+  /** The analysis claim an int-or-float lowering rests on. */
+  numericRequirement(): OfficialBoundLoweringRequirement {
+    const claimId = this.numericVariants?.evidenceClaimId;
+    if (claimId === undefined) throw new Error('numeric variants lowered without their claim');
+    return { kind: 'evidence-requirement', layer: 'analysis', claimId, canonicalIdentity: `${this.sourceRevision}\0analyze\0numeric-variant` };
   }
 
   refuse(node: GodotBoundNode, message: string): never {
@@ -569,6 +693,16 @@ export class LoweringContext {
   }
 
   targetType(node: GodotBoundNode): OfficialBoundTypeUse {
+    if ((node.kind === 'VARIABLE' || node.kind === 'PARAMETER') && this.#numericVariables.has(node.id)) {
+      // An int-or-float variable holds compat's tagged number (`numeric.ts`).
+      return {
+        type: { kind: 'type-reference', name: 'GodotNumeric', arguments: [] },
+        requirements: [
+          { kind: 'compat-import-requirement', module: 'lib/godot-compat/numeric', imported: 'GodotNumeric', local: 'GodotNumeric', typeOnly: true },
+          this.numericRequirement(),
+        ],
+      };
+    }
     const entry = this.rules.datatype(node.datatype);
     if (entry === undefined) {
       this.refuse(
