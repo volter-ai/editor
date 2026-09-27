@@ -154,7 +154,7 @@
         "observedOutputSha256": "693b14c6ff8006d8ac5236a2049ab32773616d416d705e62e0b8170b0cbb2cd2"
       },
       "target": {
-        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214",
         "callsite": "lib/godot-compat/curve-texture.ts set_width",
         "observedOutputSha256": "693b14c6ff8006d8ac5236a2049ab32773616d416d705e62e0b8170b0cbb2cd2"
       },
@@ -193,7 +193,7 @@
         "observedOutputSha256": "c36d0930bb04094c0b6e23acdc1381cb88e45b5034f80161ba3af4f1593f1e08"
       },
       "target": {
-        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214",
         "callsite": "lib/godot-compat/curve-texture.ts set_texture_mode",
         "observedOutputSha256": "c36d0930bb04094c0b6e23acdc1381cb88e45b5034f80161ba3af4f1593f1e08"
       },
@@ -232,7 +232,7 @@
         "observedOutputSha256": "6e6d3256c4f6e830fde1d4e1a187cb2876d42d4a5391fad9d4ae89fed38c76e4"
       },
       "target": {
-        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214",
         "callsite": "lib/godot-compat/curve-texture.ts construct",
         "observedOutputSha256": "6e6d3256c4f6e830fde1d4e1a187cb2876d42d4a5391fad9d4ae89fed38c76e4"
       },
@@ -271,7 +271,7 @@
         "observedOutputSha256": "b4b12aeaf5c50b79f278125dfd642c8b58fddb53b6918bbc4d34ce70d363b4f0"
       },
       "target": {
-        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214",
         "callsite": "lib/godot-compat/curve-texture.ts get_texture_mode",
         "observedOutputSha256": "b4b12aeaf5c50b79f278125dfd642c8b58fddb53b6918bbc4d34ce70d363b4f0"
       },
@@ -310,7 +310,7 @@
         "observedOutputSha256": "e72f3b5abc68bd28f2ab8b38cbf9fdd5b21cf148269d2b0412128c19c484d489"
       },
       "target": {
-        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214",
         "callsite": "lib/godot-compat/curve-texture.ts set_curve",
         "observedOutputSha256": "e72f3b5abc68bd28f2ab8b38cbf9fdd5b21cf148269d2b0412128c19c484d489"
       },
@@ -349,7 +349,7 @@
         "observedOutputSha256": "f3dd0156798e7ef93da9022ab3e7a1a1bd77ab0755c864504a6d7cce551d0bb7"
       },
       "target": {
-        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214",
         "callsite": "lib/godot-compat/curve-texture.ts get_curve",
         "observedOutputSha256": "f3dd0156798e7ef93da9022ab3e7a1a1bd77ab0755c864504a6d7cce551d0bb7"
       },
@@ -376,7 +376,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2337579c4d218ba5294b54adb66ff9694f306f278b6312b7b04104b95363b4a8",
-      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+      "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214"
     },
     {
       "claimId": "godot-4.7-binding-CurveTexture.set_texture_mode",
@@ -384,7 +384,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e7783e08eb12f2793d9f1a69c23c9a164b633d126f23259fdf644cb08ff37800",
-      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+      "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214"
     },
     {
       "claimId": "godot-4.7-binding-CurveTexture.CurveTexture",
@@ -392,7 +392,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "95a33a593febdd2f6090a55e3d15ec55e06887197bf787f1ea393fe39b862e35",
-      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+      "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214"
     },
     {
       "claimId": "godot-4.7-binding-CurveTexture.get_texture_mode",
@@ -400,7 +400,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "cbabf96e0018ba7620d86934b272c1dc99353a938b9c2353b260764cfd894633",
-      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+      "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214"
     },
     {
       "claimId": "godot-4.7-binding-CurveTexture.set_curve",
@@ -408,7 +408,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f765a2cfc86e7df04f6ed3a3eeea382953e8022d51be80c50f952d20f57a0c81",
-      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+      "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214"
     },
     {
       "claimId": "godot-4.7-binding-CurveTexture.get_curve",
@@ -416,7 +416,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3c8a8dfdff09263463da5dca696d4505d54925337961a852c7ea424df47c9125",
-      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+      "implementationSha256": "c0847c8c1b9405eeb1cf13366f5b7e4bbb4e60cc2be467d52502ed92a0633214"
     }
   ]
 }
