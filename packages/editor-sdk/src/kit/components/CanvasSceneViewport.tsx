@@ -829,19 +829,12 @@ function CanvasSceneViewMenu({
     },
     { label: 'Hide Grid', on: !gridShown, pick: () => setViewGridVisible(documentId, false) },
   ];
-  // Godot's Toggle Grid (measured on 4.7.1): from any other state it shows the grid, and from Show
-  // it returns to the state it came from (When Snapping → Show → When Snapping).
+  // Godot's Toggle Grid (measured on 4.7.1): from Show it goes to Show When Snapping, and from
+  // any other state (When Snapping, Hide) to Show — Hide → Show → When Snapping → Show.
   const toggleGrid = (): void => {
     const showing = gridShown && !drafting.gridWhenSnapping;
-    if (!showing) {
-      gridStatesBeforeShow.set(documentId, gridShown ? 'snapping' : 'hide');
-      setViewGridVisible(documentId, true);
-      setViewDrafting(documentId, { gridWhenSnapping: false });
-      return;
-    }
-    const back = gridStatesBeforeShow.get(documentId) ?? 'snapping';
-    if (back === 'hide') setViewGridVisible(documentId, false);
-    else setViewDrafting(documentId, { gridWhenSnapping: true });
+    setViewGridVisible(documentId, true);
+    setViewDrafting(documentId, { gridWhenSnapping: showing });
   };
   const switches: readonly { label: string; on: boolean; toggle: () => void }[] = [
     { label: 'Rulers', on: drafting.rulers, toggle: () => setViewDrafting(documentId, { rulers: !drafting.rulers }) },
@@ -965,8 +958,6 @@ function CanvasSceneLockButton({ adapter, selected }: { adapter: AuthoringAdapte
 /** Godot's 2D modes beside the transform tools: Pan, Ruler, List Select and Pivot. */
 type CanvasSceneMode = 'pan' | 'ruler' | 'list' | 'pivot';
 const sceneModes = new WeakMap<RootViewController, CanvasSceneMode | null>();
-/** Per view, the Grid state Toggle Grid returns to from Show. */
-const gridStatesBeforeShow = new Map<string, 'snapping' | 'hide'>();
 
 function CanvasSceneModeLayer({
   mode,

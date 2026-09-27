@@ -403,7 +403,10 @@ function keybindingStrings(chord, apis) {
 function whenFor(id, scope, keymapId) {
 	const focus = scope === 'stage' ? 'vgai.stage.focused' : 'vgai.focused';
 	const game = scope === 'global' ? '' : " && vgai.document.kind != 'game'";
-	return `${focus}${game} && vgai.keymap == '${keymapId}'`;
+	// A `canvas.*` action exists only on a 2D (canvas) stage: on any other surface its key is free
+	// rather than a press that reports no handler.
+	const surface = id.startsWith('canvas.') ? " && vgai.stage.surface == 'canvas'" : '';
+	return `${focus}${game}${surface} && vgai.keymap == '${keymapId}'`;
 }
 
 // ---------------------------------------------------------------------------------------------

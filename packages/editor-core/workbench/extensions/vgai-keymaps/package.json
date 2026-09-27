@@ -282,12 +282,12 @@
 			{
 				"command": "vgai.canvas.panMode",
 				"key": "G",
-				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.keymap == 'vgai'"
+				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface == 'canvas' && vgai.keymap == 'vgai'"
 			},
 			{
 				"command": "vgai.canvas.rulerMode",
 				"key": "M",
-				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.keymap == 'vgai'"
+				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface == 'canvas' && vgai.keymap == 'vgai'"
 			},
 			{
 				"command": "vgai.viewport.snapToFloor",
