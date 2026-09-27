@@ -198,6 +198,17 @@ them. `GeometryInstance3D.transparency` is stored and read back but draws nothin
 because the Compatibility renderer never reads the instance's `force_alpha`
 (`drivers/gles3/rasterizer_scene_gles3.cpp:1477`, and `rendering_method.web` is fixed to
 `gl_compatibility`, `main/main.cpp:2644`); the material keeps its opacity.
+Environment effects the Compatibility renderer draws only in its post pass (glow, SSAO,
+brightness/contrast/saturation) are drawn by one `EffectComposer` (`@react-three/postprocessing`,
+the library `threejs-runtime` already builds its chain on), mounted only when the environment
+enables one. Its effect transcribes gles3's own `post.glsl`, `glow.glsl` and `s4ao` passes (vendored
+with Godot's license); the `post-effects` proof evaluates them bit-exact against Godot's shader
+math. Not yet measured at runtime: no proof renders WebGL.
+Engine-generated shaders (PanoramaSkyMaterial, ProceduralSkyMaterial, PhysicalSkyMaterial) are
+lowered like a project `.gdshader`: the exporter module captures the text Godot generates for each
+variant (`export_engine_shader`) and runs it through the same frontend. The exporter's source patch
+keeps shader code in the headless RenderingServer so it can be read; the patch affects only the
+capture tool, never the official binary evidence runs against.
 A `Decal` likewise draws nothing: the Compatibility renderer's decal API is empty
 (`drivers/gles3/storage/texture_storage.cpp:2497`), so `<GodotDecal>` stores and reads back its
 parameters and bakes no geometry.
@@ -517,6 +528,16 @@ Measured through the lane's own commands and, for the platformer, the game edito
   `systems.physics`. In the game editor the scene document opens; the world does not yet render
   (the current defect is ownership of nodes placed inside an imported model).
 - **The six 4.6 starter kits** import through the 4.7 authority as far as their refusals (below).
+
+**Only what the game loads is planned.** The reader walks the main scene, autoloads, project
+settings, every `res://`/`uid://` path spelled in scripts or data (a prefix reaches every path
+under it), ext_resources and extracted materials. A document outside that walk is reported as
+unplanned with its reason; a reachable one with a missing dependency refuses. A path assembled from
+pieces that never spell `res://` is not seen.
+
+**Official Godot's own `--headless --import` crashed twice** (SIGSEGV on a worker thread, same
+frame chain, stripped binary) and 0 of 80 instrumented reruns reproduced it. Unexplained; the
+import reports the signal and does not retry.
 
 **Godot 4.6 projects run as Godot 4.7 runs them.** Godot 4.x minor releases are forward
 compatible, and the supported path for a 4.6 project is opening it in the 4.7 editor, so a 4.6
