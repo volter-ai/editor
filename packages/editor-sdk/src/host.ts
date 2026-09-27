@@ -433,7 +433,7 @@ export interface EditorHostSession {
    * Diagnostics only: this neither cancels work nor changes its deadline. */
   beginWork(label: string): () => void;
   /**
-   * Contribute fields to the editor's state report (`volter status`, the SDK's
+   * Contribute fields to the editor's state report (the editor's `status` command, the SDK's
    * `editor.state`): the collect runs on every report and its keys are
    * spread in. A lane reports what only it knows — its loop's time scale and
    * liveness, its seed — where the host reports the session. Returns the
@@ -472,7 +472,7 @@ export interface EditorHostSession {
    */
   onSample(fn: () => void): () => void;
   /** Every relayed command, by type, as it is dispatched — the signal an
-   *  idle watchdog reads ("an agent still driving through `volter eval` is
+   *  idle watchdog reads ("an agent still driving through the editor's `eval` command is
    *  not idle"). Returns the unsubscribe. */
   onCommandDispatched(fn: (type: string) => void): () => void;
   playState(): 'stopped' | 'playing' | 'paused';
@@ -495,7 +495,7 @@ export interface EditorHostSession {
   open(): boolean;
   /**
    * THIS PAGE'S SESSION ENDED — the tombstone every end goes through, graceful
-   * (`volter close`) or not (the server died, another session took the port).
+   * (the editor's `close` command) or not (the server died, another session took the port).
    * Returns the unsubscribe.
    *
    * NEW (2026-09-19), and it is a RELEASE hook: a page told `tab-close` keeps
@@ -525,7 +525,7 @@ export interface EditorHostSession {
    * tasks, and which of them overlapped the call — and starts measuring when
    * the first meter arrives; the page's stalls are never a lane's to observe.
    *
-   * `lane` is the name the census carries the meter under and `volter status`
+   * `lane` is the name the census carries the meter under and the editor's `status` command
    * prints (`Blender`). One meter per name: publishing again under the same
    * name replaces it.
    */
@@ -534,7 +534,7 @@ export interface EditorHostSession {
 
 /**
  * A LANE'S WORKER CALLS, as numbers — what the tab census carries so that
- * `volter status` can say a tab stopped answering and why.
+ * the editor's `status` command can say a tab stopped answering and why.
  *
  * Times are milliseconds on `performance.now()`; counters are monotonic since
  * the lane's runtime was constructed. MEASUREMENT ONLY: nothing here cancels,
@@ -607,7 +607,7 @@ export interface EditorHostNotification {
   }[];
 }
 
-/** The editor's console — the session-held set `volter console` prints. A
+/** The editor's console — the session-held set the editor's `console` command prints. A
  *  contribution's diagnostics go here, never to `console.*`, so they reach
  *  every door whether or not anyone looks at the tab. */
 export interface EditorHostConsole {
@@ -624,7 +624,7 @@ export interface EditorHostConsole {
  * UI → the configuration service (the ADAPTER layer between user and
  * workspace … is the one addition)"*. The same two-owner shape as
  * {@link EditorHostKeyboard}, {@link EditorHostHistory} and
- * {@link EditorHostFiles}: `'host'` is standalone `volter edit`, where
+ * {@link EditorHostFiles}: `'host'` is standalone the editor's `edit` command, where
  * `settings-store.ts`'s three layers ARE the settings; `'frame'` is the
  * Code-OSS frame, where `IConfigurationService` is.
  *
@@ -634,7 +634,7 @@ export interface EditorHostConsole {
  * flat dotted names `@volter/editor-project/settings/keys` derives from the settings
  * schema, which is also what the fork's `contributes.configuration` is
  * generated from. One spelling in this door, in `.vscode/settings.json`, in
- * VS Code's Settings editor and in what `volter eval` prints, because the moment
+ * VS Code's Settings editor and in what the editor's `eval` command prints, because the moment
  * there are two a reader has to know which side of which seam they are on to
  * know which to type.
  *
@@ -861,7 +861,7 @@ export interface EditorHostHistoryElement {
  * *"history-service.ts → IUndoRedoService … there is one Cmd+Z"*).
  *
  * The same two halves as {@link EditorHostKeyboard}, for the same reason: the
- * STANDALONE `volter edit` shape fills this with the editor's own
+ * STANDALONE the editor's `edit` command shape fills this with the editor's own
  * `history-service.ts` cursor, and the FRAME takes ownership before the editor
  * mounts and pushes every {@link EditorHostHistoryElement} into VS Code's
  * `IUndoRedoService` instead. Nothing here caps anything by bytes — snapshot
@@ -887,7 +887,7 @@ export interface EditorHostHistory {
    *
    * The delegate is the OTHER direction of this door: the editor has undo
    * affordances that are not the keyboard — its Edit menu's "Undo <label>",
-   * the command palette, `volter eval`'s undo verb — and every one of them must
+   * the command palette, the editor's `eval` command's undo verb — and every one of them must
    * reach the ONE stack. Without it the Edit menu still names the step (the
    * label comes from the last recorded entry) while the click refuses, which
    * is worse than no menu item at all.

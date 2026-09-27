@@ -6,7 +6,7 @@ import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
  *
  * A tool document (`workspace.document`) may hand the host ONE object — the
  * live session it edits through — and `editor.document.run(ctx => …)`
- * (`volter eval`) runs a wire-carried step against it, in Edit mode, without
+ * (the editor's `eval` command) runs a wire-carried step against it, in Edit mode, without
  * play. This is the "explore in the REPL, commit as source" half of the
  * parity program's one spine (docs/BLENDER-PARITY.md §Execution model): the
  * mesh document publishes its `MeshEditSession`, whose `ctx` is the

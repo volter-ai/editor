@@ -7,7 +7,7 @@
  * difficult situations, and judge the mechanic under test. It says nothing
  * about HOW. REWRITE THIS FILE WHOLE in the game's own vocabulary: rename it,
  * split it into several faces, and structure it the way THIS game's studio
- * would. The error below holds `volter console` red until you do; delete it
+ * would. The error below holds `volter-game-editor console` red until you do; delete it
  * with the stub.
  *
  * Make the controller's current owner and the tester's repertoire legible.

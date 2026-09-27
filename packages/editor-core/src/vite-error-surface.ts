@@ -33,7 +33,7 @@
  * `server/project-validation.ts` parses every `src/` write, and
  * `server/editor-server.ts` prints `✖ Invalid project file`, broadcasts it to
  * every tab, and holds it in `/__editor/state`'s `projectValidation` (what
- * `volter status` reads) until the file saves clean again. Recovery therefore
+ * the editor's `status` command reads) until the file saves clean again. Recovery therefore
  * needs nothing here: this module holds no state to clear.
  */
 

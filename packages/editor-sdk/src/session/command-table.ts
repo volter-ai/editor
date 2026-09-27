@@ -190,7 +190,7 @@ export const RELAY_COMMANDS = {
   // `open` WAITS FOR THE PROJECT ADAPTER, for the same reason `play` waits on
   // the project's async `setup()`: on a cold session the adapter's scene table
   // is not there yet, and the door's whole job is to put a document on screen
-  // once it is. MEASURED on three cold `volter edit` sessions over a
+  // once it is. MEASURED on three cold the editor's `edit` command sessions over a
   // `--template models` probe — 6025 / 6831 / 6474 ms from tab-connected to
   // the entry being listed, every one of them first refusing with
   // `SCENE_TABLE_UNAVAILABLE`. At the 5 s default the relay's timer won that

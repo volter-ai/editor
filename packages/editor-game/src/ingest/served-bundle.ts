@@ -3,13 +3,13 @@
  *
  * `public/ingest/<id>/` holds games vendored as build output rather than as
  * source (CLAUDE.md, "Repo layout"). Those folders carry their own
- * `volter.project.json`, so `volter edit public/ingest/<id>` opens them like any
+ * `volter.project.json`, so `volter-game-editor edit public/ingest/<id>` opens them like any
  * other project — and the manifest ingest route then built the entry's import
  * url with `fsImportPath`, i.e. `/@fs/<abs>/…`, putting a file that lives in
  * VITE'S OWN `public/` DIRECTORY into Vite's module graph.
  *
  * That is the one thing Vite refuses outright. Measured on this route
- * (2026-08-20, `volter edit public/ingest/tanks`, identically for `simcity`):
+ * (2026-08-20, `volter-game-editor edit public/ingest/tanks`, identically for `simcity`):
  *
  *   [vite] Internal Server Error
  *   Cannot import non-asset file /ingest/tanks/three-r170.module.js which is

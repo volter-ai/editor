@@ -29,7 +29,7 @@
  *
  * Not a thing the frame adds on the way in. One spelling in the door
  * (`EditorHost.settings`), in `.vscode/settings.json`, in the Settings editor,
- * and in what `volter eval` prints — because the moment there are two, a reader
+ * and in what the editor's `eval` command prints — because the moment there are two, a reader
  * has to know which side of which seam they are on to know which to type.
  */
 import { z } from 'zod';

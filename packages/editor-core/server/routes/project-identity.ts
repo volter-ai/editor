@@ -122,10 +122,10 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
   // ---- Current project info ----
   /**
    * Who is answering — the server's own pid, and whether it is a throwaway
-   * probe (`VOLTER_EPHEMERAL_SESSION`, today `volter doctor`) rather than a
+   * probe (`VOLTER_EPHEMERAL_SESSION`) rather than a
    * session anyone owns.
    *
-   * FX-1: `volter edit` decided "this project's editor is already open" from the
+   * FX-1: the editor's `edit` command decided "this project's editor is already open" from the
    * `project.path` above alone, and a probe server answers with exactly that
    * path for the few seconds it lives — so an attach could succeed, exit 0,
    * and leave every control command with nothing to talk to. The CLI now ASKS

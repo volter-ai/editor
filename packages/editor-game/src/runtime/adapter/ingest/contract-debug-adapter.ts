@@ -9,7 +9,7 @@
  * game must not have to learn a parallel vocabulary. A first-party game
  * registers verbs with `ctx.debug.registerCommand`; an ingested game declares
  * them in its entry shim. Both arrive at the SAME `DebugAdapter`, so every
- * consumer downstream — the CLI's `volter eval`, `@volter/e2e`'s `GameClient`, the
+ * consumer downstream — the CLI's `volter-game-editor eval`, `@volter/e2e`'s `GameClient`, the
  * editor's Debug Console and State Watch panels — works unchanged and unaware
  * of the provenance.
  *

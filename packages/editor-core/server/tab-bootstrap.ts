@@ -10,7 +10,7 @@
  * page.
  *
  * WHAT IT IS FOR: without it a window runs the editor, answers commands and
- * NEVER BEATS — `volter status` says "TAB PRESENCE — SOMETHING IS OFF", and it
+ * NEVER BEATS — the editor's `status` command says "TAB PRESENCE — SOMETHING IS OFF", and it
  * is right (docs/CODE-OSS.md §The frame's page is a TAB; WORK.md U11).
  *
  * ONE AUTHOR, and it is `packages/editor/src/tab-bootstrap.js`. This route

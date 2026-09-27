@@ -498,7 +498,7 @@ export function composeNullInspectionSubject(input: ComposeNullInspectionInput):
  * "The active Inspector has no field at …", because
  * `@volter/dom/react-inspector-section.tsx` claims `PROPERTIES_SECTION_ID` and
  * renders custom bodies — so the lane the editor's panels could author was
- * unreachable to `volter eval`'s `editor.setField`, the one door an agent has.
+ * unreachable to the editor's `eval` command's `editor.setField`, the one door an agent has.
  *
  * The `io` handed in is the SAME one the generic bodies use and the SAME
  * `adapter.inspector.set` the contributed widgets call, so this adds a door,

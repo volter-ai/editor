@@ -341,7 +341,7 @@ const distPath = path.join(sessionProductIdentity.dir, 'dist');
 const productSourceEntry = path.join(sessionProductIdentity.dir, 'src', 'index.ts');
 const fromSource = process.env['VOLTER_EDITOR_FROM_SOURCE'] === '1' && existsSync(productSourceEntry);
 
-// WHAT THIS SESSION WAS TOLD TO FRAME — the workbench directory `volter edit`
+// WHAT THIS SESSION WAS TOLD TO FRAME — the workbench directory the editor's `edit` command
 // resolved and the two reserved ports. `null` when the launch named none.
 const frameLaunch = frameLaunchFromEnv();
 /** What the frame is running, once it is. Read by `/__editor/state`. */
@@ -519,7 +519,7 @@ async function main(): Promise<void> {
   // viewport renderer, gizmos, ~100 modules) and evaluates it at boot; this
   // project-rooted Vite would otherwise prebundle the PROJECT's own three into
   // `.vite/deps`, a SECOND instance whose module body trips three's
-  // `window.__THREE__` "Multiple instances" guard and keeps `volter console` off
+  // `window.__THREE__` "Multiple instances" guard and keeps the editor's `console` command off
   // exit-0. The build publishes the shell's three as a chunk;
   // `sharedThreePlugin` (below, via project-serving-plugins) redirects the
   // project graph's `three` onto its URL, and `optimizeDeps.exclude` below
@@ -580,7 +580,7 @@ async function main(): Promise<void> {
     // node_modules in SSR — handing the .ts files to Node, whose type
     // stripping refuses anything under node_modules. So a standalone project
     // could not run its own tool contributions (`project.bake.*`,
-    // `volter screenshot <module>`) until a checkout link existed. noExternal
+    // the editor's `screenshot <module>` command) until a checkout link existed. noExternal
     // keeps every @volter package inside Vite's own SSR transform, where TS
     // source is ordinary input; a checkout link resolves outside
     // node_modules and never hit the wall, which is why only registry
@@ -1037,7 +1037,7 @@ async function main(): Promise<void> {
       // workbench page, and the url is arithmetic over the reserved proxy port.
       editorUrl: frameLaunch ? frameWorkbenchUrl(frameLaunch, projectPath) : `${EDITOR_ORIGIN}/`,
     },
-    // The session's children are the session's to report (`volter status`).
+    // The session's children are the session's to report (the editor's `status` command).
     workbench: () => frameWorkbench?.identity ?? null,
     // The serving door (routes/served-modules.ts), same contract as dev.ts:
     // where the Code-OSS frame finds the editor. Registered on BOTH bundler
@@ -1061,7 +1061,7 @@ async function main(): Promise<void> {
     }),
     loadProjectModule: freshProjectModuleLoader(vite, () => projectPath),
     // Same contract as dev.ts: a dependency installed under a live session
-    // (`volter add <capability>`) is invisible until the SSR module graph, which
+    // (the editor's `add <capability>` command) is invisible until the SSR module graph, which
     // caches even a REJECTED module load, is dropped.
     invalidateProjectModules() {
       vite.environments.ssr.moduleGraph.invalidateAll();
@@ -1076,7 +1076,7 @@ async function main(): Promise<void> {
       vite.watcher.add(newProjectPath);
       currentProjectRoot = newProjectPath;
       // Session parity with dev.ts (D12): keep the registry pointing
-      // at the CURRENT project so `volter edit`/`sessions`/cwd-resolution see
+      // at the CURRENT project so the editor's `edit` command/`sessions`/cwd-resolution see
       // switches, not boot state — same call, same shape.
       registerSession({
         project: newProjectPath,
@@ -1153,7 +1153,7 @@ async function main(): Promise<void> {
             `editor tab and no request (${IDLE_SHUTDOWN_MINUTES_ENV}=0 disables)\n`,
         );
       }
-      // D12: announce this session so `volter edit`/`sessions`/`play`
+      // D12: announce this session so the editor's `edit` command/`sessions`/`play`
       // (cwd-resolution) see the packaged runtime exactly like dev.ts's.
       registerSession({
         project: projectPath,
@@ -1163,7 +1163,7 @@ async function main(): Promise<void> {
       });
       // The workbench, last and for the same reason dev.ts starts it last: it
       // is the slowest thing this boot does, and a frame that cannot start is a
-      // `volter edit` that has failed (frame-workbench.ts states the ownership).
+      // the editor's `edit` command that has failed (frame-workbench.ts states the ownership).
       if (frameLaunch) {
         // THE WORKBENCH DOES NOT WAIT FOR THE AGENT'S RUNTIME. The extension
         // host is spawned with the chat controls channel, whose state carries
@@ -1208,7 +1208,7 @@ async function main(): Promise<void> {
   // Self-healing registration — same rationale and cadence as dev.ts: the
   // registry's unlocked read-modify-write can lose this entry to a concurrent
   // writer's interleaved write, leaving a healthy server invisible to
-  // `volter edit`/`sessions`/`close`; re-asserting once a minute heals it.
+  // the editor's `edit` command/`sessions`/`close`; re-asserting once a minute heals it.
   const reregisterTimer = setInterval(() => {
     registerSession({
       project: currentProjectRoot,
@@ -1220,7 +1220,7 @@ async function main(): Promise<void> {
   reregisterTimer.unref();
 
   // Best-effort, and nothing but the HTTP server waits on it — see dev.ts's
-  // note at its own `tabNotice` for the measurement (a `volter close` under load
+  // note at its own `tabNotice` for the measurement (a the editor's `close` command under load
   // died inside this notify, the shutdown list never ran, and the Code-OSS
   // server outlived the session on its reserved port).
   let tabNotice: Promise<void> | null = null;
@@ -1239,7 +1239,7 @@ async function main(): Promise<void> {
         },
       },
       // THE ONE TEARDOWN for the REH and the proxy (frame-workbench.ts's
-      // ownership note) — the path `volter close`, SIGTERM and the idle timer
+      // ownership note) — the path the editor's `close` command, SIGTERM and the idle timer
       // all take. The detached CHILD waits on nothing; the proxy is the tab's
       // route and waits with the HTTP server.
       { name: 'Code-OSS server', run: () => frameWorkbench?.stopServer() },

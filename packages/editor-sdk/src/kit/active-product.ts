@@ -30,7 +30,7 @@
 /** What a product's entry composed, as the kit reads it. */
 export interface ActiveProduct {
   /** The product's id — `game-editor`, `model-editor`. Reported by the session
-   *  beside the workbench (`volter status`), never read as a branch. */
+   *  beside the workbench (the editor's `status` command), never read as a branch. */
   readonly id: string;
   /** The packages it mounts, by name, in composition order. The contributions
    *  themselves are already in the bundle (`tool-loader.ts`); this is the list

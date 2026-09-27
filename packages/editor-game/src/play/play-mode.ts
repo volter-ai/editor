@@ -365,8 +365,8 @@ export function markRestartRequired(reason: string): void {
  *
  * They are kept because the unresolved-console ledger names conditions BY
  * THEIR TEXT, and a remount is the event that resolves them: measured
- * 2026-08-29, `volter restart` reported "↻ Restarted — session ready" while its
- * own named warning stayed in `volter console` forever, because the ledger's
+ * 2026-08-29, `volter-game-editor restart` reported "↻ Restarted — session ready" while its
+ * own named warning stayed in `volter-game-editor console` forever, because the ledger's
  * automatic clearing rule is a PAGE LOAD and a remount is not one — only
  * `game.reloadPage()` could silence a warning the named verb had already
  * fixed. `clearRestartRequired` now reports them resolved (ledger clearing
@@ -428,7 +428,7 @@ let _playEpoch = 0;
 //
 // PD-1: this used to be nulled by `exitPlayMode()`, which meant the errors of
 // a run that FAILED became invisible the instant the failed run rolled back —
-// `volter status` reported `pageErrors: []` for a play that had just thrown, the
+// `volter-game-editor status` reported `pageErrors: []` for a play that had just thrown, the
 // exact "every diagnostic says healthy" symptom. The fence's job is to exclude
 // a PREVIOUS run's noise, and the next `enterPlayMode` re-stamping it does
 // that; dropping it on exit only ever hid the evidence of the last run.
@@ -438,7 +438,7 @@ let _playStartedAtMs: number | null = null;
 //
 // Why an end and not just a start: with an open-ended window every editor error
 // logged AFTER a run stopped still counted as "during the play run", so it fell
-// into the play-fenced `consoleErrors` facet — which `volter status` renders only
+// into the play-fenced `consoleErrors` facet — which `volter-game-editor status` renders only
 // while play is live. One play run, and every later editor-frame error went
 // invisible again, which is the exact defect the session-lifetime facets exist
 // to close. Stamped at the END of `exitPlayMode`, so a FAILED run's errors (all
@@ -938,7 +938,7 @@ if (import.meta.hot) {
   // PlayBar's Restart button lights up (variant 'primary') carrying this
   // reason, and ONE click remounts every root from fresh source and
   // re-enters play (`enterPlayMode` re-imports the entry with a
-  // cache-busting query — see `loadProjectScripts`). `volter status` reports
+  // cache-busting query — see `loadProjectScripts`). `volter-game-editor status` reports
   // the same pending-restart state via `collectState().restartRequired`, so
   // agents get the signal humans get. EDIT-mode behavior is unchanged
   // (`_instance.session` is null there; absorb-by-remount stays as landed — see
@@ -1286,7 +1286,7 @@ export function resizeGame(width: number, height: number, pixelRatio?: number): 
 
 /**
  * Serializes every `enterPlayMode()` invocation (the ghost-runtime bug:
- * `volter play` on an already-playing/still-booting session left the
+ * `volter-game-editor play` on an already-playing/still-booting session left the
  * PREVIOUS runtime alive, ticking and rendering alongside the new one).
  *
  * Root cause: `enterPlayModeInner`'s own `if (_instance.session) exitPlayMode()`
@@ -1404,7 +1404,7 @@ async function startAutoLaunchedAdapterPlay(store: EditorShellStore): Promise<bo
 /**
  * Enter play mode: create a game canvas, start game, disable editor controls.
  *
- * `explicitSeed` (D15/T-D15.6, objection-4 fix — `volter play --seed <n>`)
+ * `explicitSeed` (D15/T-D15.6, objection-4 fix — `volter-game-editor play --seed <n>`)
  * — the CLI's `play` command relays it through as `cmd['seed']`
  * (`command-listener.ts`'s `'play'` case); it is the "explicit config"
  * leg of `resolveDeterminismSeed`'s precedence (highest — beats
@@ -1413,7 +1413,7 @@ async function startAutoLaunchedAdapterPlay(store: EditorShellStore): Promise<bo
  * below, exactly like `mountManifestRoots`'s own `opts.seed` already is
  * for a standalone boot.
  *
- * `runName` (optional — `volter play --name <text>`) is FINDABILITY and nothing
+ * `runName` (optional — `volter-game-editor play --name <text>`) is FINDABILITY and nothing
  * else: the server slugifies it into this run's `logs/play-*.jsonl` filename
  * and its session-journal line, so "the run where I tested the boss fight" is
  * a grep instead of timestamp archaeology. No registry, no uniqueness check —
@@ -1470,7 +1470,7 @@ async function enterPlayModeInner(
   // `enterPlayMode` owns the begin/end pair; this function owns the marks.
   // Play must never start while the boot-time project bootstrap is still in
   // flight. Resolves immediately when no bootstrap is pending; gating HERE
-  // rather than in the Play button covers every caller — UI, `volter play` relay,
+  // rather than in the Play button covers every caller — UI, `volter-game-editor play` relay,
   // SDK.
   markPlayBootPhase('waiting for the project bootstrap to settle');
   await projectBootstrapSettled();
@@ -1713,7 +1713,7 @@ async function enterPlayModeInner(
       entries,
       width: rw,
       height: rh,
-      // D15/T-D15.6 — `volter play --seed`'s explicit config leg; `undefined`
+      // D15/T-D15.6 — `volter-game-editor play --seed`'s explicit config leg; `undefined`
       // (the overwhelmingly common case) leaves `mountManifestRoots`'s own
       // manifest/`?volter-seed=` precedence untouched.
       seed: explicitSeed,
@@ -1734,7 +1734,7 @@ async function enterPlayModeInner(
     // PD-3 — close the window and report LOUDLY. A split does not stop the
     // game (both copies run; they just disagree), so this is an error-level
     // report rather than a throw: the failure mode being fixed is SILENCE,
-    // not a crash. `collectState` carries the same reports to `volter status`,
+    // not a crash. `collectState` carries the same reports to `volter-game-editor status`,
     // and `editorConsole.error` reaches the editor console panel and the
     // play-log sink the CLI reads back.
     for (const split of endProjectModuleSplitWatch(project.rootPath)) {
@@ -1745,7 +1745,7 @@ async function enterPlayModeInner(
     // mount, and `mountManifestRoots` resolving IS that answer — including the
     // roots' own async setup, which it awaits. So every one of these roots
     // reports `declared`, and no measured wait stands anywhere behind them
-    // (`readiness.ts`; published as `volter status`'s `readiness` facet).
+    // (`readiness.ts`; published as `volter-game-editor status`'s `readiness` facet).
     for (const rootId of _hostMountedReadyRootIds) {
       recordRootReadiness({ rootId, mechanism: 'host-mount', source: 'declared', state: 'ready' });
     }
@@ -2484,7 +2484,7 @@ editorHost().live.register({
 });
 
 // What only Play knows of the state report (`host.session.reportFacet`):
-// `volter status --json` spreads these beside the host's own fields.
+// `volter-game-editor status --json` spreads these beside the host's own fields.
 editorHost().session.reportFacet(() => ({
   // The live loop's time-scale, so `play.status` reports the real applied
   // value after a `set-time-scale` instead of an honest-gap null.

@@ -23,7 +23,7 @@
  * Two doors, one derivation — the same shape `ingest/mount-coverage.ts` already
  * uses:
  *
- *  - `volter status`, through {@link rootCoverageFacet}, so an agent reads the
+ *  - `volter-game-editor status`, through {@link rootCoverageFacet}, so an agent reads the
  *    same answer without opening the editor;
  *  - the editor console, through `coverage/session-coverage.ts`, which unions
  *    this family with the game- and project-scoped ones so the warning's

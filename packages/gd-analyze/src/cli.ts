@@ -7,7 +7,7 @@ const USAGE = `usage: gd-analyze <command> [options]
 
   import <godot-project-dir> <target-dir> --bound-exporter-binary <path> --official-binary <path>
            Compile one immutable Godot project snapshot through the pinned official
-           frontend into a complete standalone volter project.
+           frontend into a complete standalone volter-game-editor project.
 
   sweep [fixture ...] --bound-exporter-binary <path> --official-binary <path>
            Run that same import pipeline over every pinned source fixture, or only

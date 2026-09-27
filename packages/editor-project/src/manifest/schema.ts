@@ -531,7 +531,7 @@ export const GameManifestSchema = z
       .describe(
         "The project's run configurations — its ENTRYPOINTS beyond the host mount (`play`): each an " +
           'id and a registered kind (`process`, `compound`, and whatever a capability registers) with ' +
-          "that kind's own fields. The editor's transport, `volter run <id>` and a harness start the same declaration.",
+          "that kind's own fields. The editor's transport and a harness start the same declaration.",
       ),
     resolution: z
       .object({

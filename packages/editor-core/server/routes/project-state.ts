@@ -87,7 +87,7 @@ export function registerProjectStateRoutes(
     const departedTabs = table?.departedReport() ?? [];
     // The snapshot to report is the BLESSED TAB's own — one truth, the same
     // one the relay routes to. Reading it from a separately-computed
-    // "controller" was how `volter status` and `volter play` could disagree about
+    // "controller" was how the editor's `status` command and the editor's `play` command could disagree about
     // which tab they were talking about.
     const blessed = table?.blessedTabId() ?? null;
     const controllerClientId =
@@ -116,8 +116,8 @@ export function registerProjectStateRoutes(
     // renders the refusal, and the project-switch endpoint enforces it. But an
     // editor started on an incompatible project serves happily — the server
     // never activates anything — so the refusal lived only in the tab, and
-    // every CLI surface reported a healthy session. `volter status` said
-    // `connected: true` with empty validation, and `volter play` timed out into
+    // every CLI surface reported a healthy session. the editor's `status` command said
+    // `connected: true` with empty validation, and the editor's `play` command timed out into
     // "Editor reloaded during play startup; retrying…", which reads as a flaky
     // socket and sends you bisecting the toolchain. An agent drives this editor
     // THROUGH the CLI, so a gate that reports itself only in pixels is
@@ -194,7 +194,7 @@ export function registerProjectStateRoutes(
       servedAt: Date.now(),
       // #103: server-computed (never part of the browser-POSTed snapshot
       // above), so it's always current — a file present here is currently
-      // failing validation; a clean project reports `{}`. `volter status`
+      // failing validation; a clean project reports `{}`. the editor's `status` command
       // prints this whole object as-is, so no CLI changes were needed to
       // surface it.
       projectValidation: Object.fromEntries(projectValidation),

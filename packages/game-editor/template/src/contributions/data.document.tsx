@@ -4,7 +4,7 @@
  * An OBLIGATION, not an implementation: the game's numbers and content
  * tables (`src/data/` — plain typed TS literals) must be viewable, with
  * their derived picture, by the humans collaborating on this game. How is
- * yours. REWRITE THIS FILE WHOLE; the error below holds `volter console`
+ * yours. REWRITE THIS FILE WHOLE; the error below holds `volter-game-editor console`
  * red until you do.
  *
  * The method: render the data modules as tables (a plain `<table>` until a

@@ -1,7 +1,7 @@
 /**
  * Merge declared region `include` globs into a project's own `volter.adapter.ts`.
  *
- * WHY THIS EXISTS (measured on a cold fox run, 2026-08-29). `volter add mesh`
+ * WHY THIS EXISTS (measured on a cold fox run, 2026-08-29). `volter-game-editor add mesh`
  * copies `src/lib/mesh/ground-projection.tsx` — a real R3F component — into the
  * project, and a fresh project's console then went RED at boot:
  *

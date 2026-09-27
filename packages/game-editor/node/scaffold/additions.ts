@@ -476,7 +476,7 @@ Workspaces: \`model\`, \`sculpt\`, \`texture\`, \`animate\`, \`design\`, \`look\
 (\`npm run --silent volter -- eval 'editor.workspace("sculpt")'\`; a wrong id
 refuses and names the list). The look and keymap are Blender's
 (\`@volter/editor-blender\` contributes them). There is no Game workspace and
-\`volter play\` refuses: this project declares no roots.
+\`volter-game-editor play\` refuses: this project declares no roots.
 
 ## Verification contract — after every change
 

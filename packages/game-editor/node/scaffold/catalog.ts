@@ -70,7 +70,7 @@ export interface CatalogEntry {
    * `addCapabilities` reads that off `volter.project.json`. Without this the
    * declaration existed only where somebody had typed it by hand (the starter
    * template's adapter names `src/lib/reflections/**` and
-   * `src/lib/static-batch/**` and nothing else), so every `volter add` of a
+   * `src/lib/static-batch/**` and nothing else), so every `volter-game-editor add` of a
    * capability with a `.tsx` in it left a fresh project's console RED with
    * `OID001` and no automatic repair — measured on a cold run, 2026-08-29.
    *
@@ -153,7 +153,7 @@ export interface CatalogAddReport {
   /**
    * Every pack entry the added capabilities declare, after the merge — i.e.
    * what the project's `asset-manifest.json` now says its capability source
-   * needs on disk. The CALLER materializes these (`volter add` does); this
+   * needs on disk. The CALLER materializes these (`volter-game-editor add` does); this
    * function only writes the declaration, so `addCapabilities` stays
    * filesystem-only and offline.
    */
@@ -221,7 +221,7 @@ export function renamedCapabilityIdMessage(where: string, oldId: string, newId: 
     `Fix: in this project, rename the file — \`git mv .volter/catalog/${oldId}.json ` +
     `.volter/catalog/${newId}.json\` — and change its \`"id"\` to \`"${newId}"\`. ` +
     `If a stamp file names the old id, rename that too (\`src/tools/${oldId}.*\` -> ` +
-    `\`src/tools/${newId}.*\`). Then \`volter outdated\` will report against the ` +
+    `\`src/tools/${newId}.*\`). Then \`volter-game-editor outdated\` will report against the ` +
     `current entry. Nothing else about the capability changed.`
   );
 }
@@ -595,7 +595,7 @@ function dependencyOrder(ids: string[], byId: Map<string, CatalogEntry>): Catalo
     const manifest = byId.get(id);
     // Name the alternatives rather than dead-ending. A bare id is easy to
     // mistype and easy to guess wrong, and the listing lives behind a bare
-    // `volter add` that nothing else advertises — so this error is one of the few
+    // `volter-game-editor add` that nothing else advertises — so this error is one of the few
     // places a caller learns the real vocabulary.
     if (!manifest) {
       // A RENAMED id is not an unknown one, and must not be answered as if it
@@ -641,7 +641,7 @@ const SPEC_WIDTH: Record<string, number> = { '^': 2, '~': 1, '': 0 };
  * Two specs CONFLICT only when they name different versions. `4.3.6` and
  * `^4.3.6` name the same one and differ only in how much newer they accept, so
  * refusing the pair is a false conflict — and a load-bearing one. It throws
- * during the dependency merge, which aborts `volter upgrade` outright, and a
+ * during the dependency merge, which aborts a template re-sync outright, and a
  * project that cannot upgrade keeps whatever vendored copies it was scaffolded
  * with. `check-idioms.ts` is one of those: rules added upstream since then
  * never run, and nothing announces that they are not running, because a lint
@@ -1193,7 +1193,7 @@ export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddRepo
 
 /**
  * Every project-relative path a catalog unit declares, for the units present
- * in this project. `volter upgrade` uses it to keep unit-owned files out of the
+ * in this project. A template re-sync uses it to keep unit-owned files out of the
  * generic template-file pass: those files are ordinary project source, and the
  * project — not a shadow baseline — owns what happens to them.
  */
@@ -1300,7 +1300,7 @@ function stampedCapabilityVersion(projectDir: string, entry: CatalogEntry): stri
  * one record of. Measured on a minutes-old scaffold (2026-08-19): the project
  * vendored `static-batch` 0.1.2 from the checkout's template while its own
  * `npm install` pulled `@volter/editor-core` from the registry, whose catalog ships
- * `static-batch` 0.1.1 with two files genuinely different. `volter remove
+ * `static-batch` 0.1.1 with two files genuinely different. `volter-game-editor remove
  * static-batch` then told the user they had edited two files they had never
  * opened, kept them, and left the capability half-removed.
  *

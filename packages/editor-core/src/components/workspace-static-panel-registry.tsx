@@ -70,11 +70,11 @@ const CONTENT_BY_KIND: Readonly<
  * key from the harness UI, then "Maximum update depth exceeded"): 53
  * recoveries, the main thread pegged, the WebSocket dropped with 1006, the
  * tab's heartbeat silent for 30 s, the tab declared departed, and every
- * `volter screenshot` refused with "No tab has been present" until the agent
- * ran `volter edit` again — in four of five sessions.
+ * the editor's `screenshot` command refused with "No tab has been present" until the agent
+ * ran the editor's `edit` command again — in four of five sessions.
  *
- * The boundary reports the throw ONCE to the editor console (so `volter
- * console` carries it and its component stack), renders a small notice in the
+ * The boundary reports the throw ONCE to the editor console (so the editor's
+ * `console` carries it and its component stack), renders a small notice in the
  * panel's own space, and remounts the panel ONLY when the user clicks Retry —
  * never automatically, because an automatic remount of a deterministic crash
  * is the loop above.

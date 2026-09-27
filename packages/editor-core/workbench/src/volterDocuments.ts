@@ -175,7 +175,7 @@ export class VolterDocuments extends Disposable {
 		}));
 		// A PERSON'S CLOSE IS THE DOCUMENT'S CLOSE (walk 4, W12). `View: Close Editor` on a
 		// volter editor used to leave the registry reporting that document open and ACTIVE with
-		// no editor anywhere — `volter status` disagreed with the screen, and the next reconcile
+		// no editor anywhere — the editor's `status` command disagreed with the screen, and the next reconcile
 		// simply re-opened the tab. `this.applying` is what tells a person's close from one of
 		// our own: every close this class makes runs inside a pass with that flag set.
 		this._register(this.editorService.onDidCloseEditor(event => {
@@ -273,7 +273,7 @@ export class VolterDocuments extends Disposable {
 	 * THE BOOTSTRAP SIZE, APPLIED THROUGH THE WORKBENCH'S OWN SETTLING AND THEN NEVER AGAIN.
 	 *
 	 * One `setSize` is not enough, and this is the measurement that says so — taken 2026-09-20,
-	 * one action at a time, on a `--template models` probe under `volter edit --frame`:
+	 * one action at a time, on a `--template models` probe under the editor's `edit --frame` command:
 	 *
 	 *   right after `addGroup` + `setSize`   main 872 / area  70   (what we asked for)
 	 *   the ONE `onDidLayout` that followed  main  70 / area 882   (EXCHANGED, not scaled)

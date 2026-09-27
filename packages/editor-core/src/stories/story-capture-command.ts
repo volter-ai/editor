@@ -1,5 +1,5 @@
 /**
- * THE STORY LANE OF `volter screenshot` on the session wire:
+ * THE STORY LANE OF the editor's `screenshot` command on the session wire:
  * `capture-story-variants`.
  *
  * Registered through `command-registry.ts` — the contributed-command registry

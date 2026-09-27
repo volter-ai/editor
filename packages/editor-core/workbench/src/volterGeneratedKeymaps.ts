@@ -5,7 +5,7 @@
  *  `extensions/volter-keymaps/package.json`, which VS Code's own keymap-extension path
  *  (`contributes.keybindings`) resolves at load; this file is what `volterKeyboard.ts` needs in
  *  CODE: the command ids to register, and the keymap ids to compare the open project's choice
- *  against so a keymap the frame does NOT carry is a named warning in the volter console rather
+ *  against so a keymap the frame does NOT carry is a named warning in the Volter console rather
  *  than a keyboard that silently does nothing.
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write

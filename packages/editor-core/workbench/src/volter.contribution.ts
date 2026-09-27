@@ -8,11 +8,11 @@
  *
  *  ADDITIVE ONLY in the fork: two overlaid directories plus two import lines in
  *  workbench.common.main.ts — this one and the PRODUCT's (`volterProduct.ts`). The volter editor
- *  itself is served by the `volter edit` SESSION, which also runs the one-origin proxy this page
+ *  itself is served by the the editor's `edit` command SESSION, which also runs the one-origin proxy this page
  *  is behind; the session's frame entry swaps the SDK layout host so the project's own layout
  *  renders its header, document, hierarchy and inspector into the parts this file hands over:
  *  the title bar, an editor pane and two sidebar views. The status bar is the workbench's own
- *  and every volter status item is a real entry in it.
+ *  and every Volter status item is a real entry in it.
  *
  *  IT NAMES NO PRODUCT. What the document is called, what this editor says when it asks for
  *  trust, which themes its look wears and whatever else a product installs come from
@@ -154,7 +154,7 @@ function offerPart(id: PartId, element: HTMLElement): void {
  * WHY THE TAB IS NOT PART OF THE MOUNT, measured 2026-09-21 on a fresh scaffold:
  * the mount awaits `requestWorkspaceTrust` before it reaches the bootstrap, so
  * for the whole trust window the page was NOT a tab. Chrome held two established
- * connections to the proxy while `volter status` said "no tab has ever reported"
+ * connections to the proxy while the editor's `status` command said "no tab has ever reported"
  * and the CLI said the auto-open had likely failed silently — the product could
  * not tell "nothing opened" from "open, waiting for a person", which are
  * opposite situations with opposite remedies.
@@ -169,7 +169,7 @@ function offerPart(id: PartId, element: HTMLElement): void {
  *
  * A SESSION ON THIS FOLDER IS THE TRUST DECISION, already made (owner,
  * 2026-09-21, on their own first open: *"wait why do I have to click that?"*).
- * `volter edit <folder>` starts a session that RUNS THE FOLDER'S OWN CODE — its
+ * the editor's `edit <folder>` command starts a session that RUNS THE FOLDER'S OWN CODE — its
  * dev server executes the project's `volter.adapter.ts`, its contributions load
  * from the project's `node_modules` — before this page exists at all, by the
  * person's own command. Workspace trust exists to gate exactly that, and
@@ -509,7 +509,7 @@ registerAction2(class extends Action2 {
 			instantiationService,
 			store: keyboardStore,
 		});
-		// WORKSPACE TRUST (U12, ruled 2026-09-19). A volter project executes its OWN code the
+		// WORKSPACE TRUST (U12, ruled 2026-09-19). A Volter project executes its OWN code the
 		// moment it opens: its contributions load from its `node_modules`, its dev server runs
 		// its config, its game runs in this pane. That is exactly what workspace trust exists
 		// to gate, so the frame keeps trust ON and the bridge DOES NOT MOUNT in a restricted
@@ -531,7 +531,7 @@ registerAction2(class extends Action2 {
 		// makes this gate read an ANSWER instead of a race — the tab connection starts at
 		// BlockRestore and this command runs at AfterRestored, so without the await the check
 		// would fire while the session was still being found and prompt a person who had
-		// already said yes by typing `volter edit`. A rejection is "no session", and then this
+		// already said yes by typing the editor's `edit` command. A rejection is "no session", and then this
 		// gate is exactly the right thing to happen.
 		await connectSessionTab(fileService, workspaceService, workspaceTrust).catch(() => { /* no session: the gate below asks, and the mount says why */ });
 		if (!workspaceTrust.isWorkspaceTrusted()) {
@@ -811,13 +811,13 @@ for (const { id, wholeGroup } of [
 /**
  * A VOLTER PROJECT OPENS AS THE VOLTER EDITOR, with no gesture.
  *
- * `volter edit` IS this workbench: it starts the session, starts this server on
+ * the editor's `edit` command IS this workbench: it starts the session, starts this server on
  * the project folder and opens the one tab at it. A person who ran that
  * command has already said which project they are editing and what they want
  * to edit it in — asking them to then find `VOLTER: Open Workspace` in the
  * palette is asking twice, and until the mount runs the page is not one of the
- * session's TABS at all (the bootstrap loads with the mount), so `volter status`
- * reads "no tab", `volter eval` has nothing to reach and `volter edit` reports that
+ * session's TABS at all (the bootstrap loads with the mount), so the editor's `status` command
+ * reads "no tab", the editor's `eval` command has nothing to reach and the editor's `edit` command reports that
  * no browser ever connected. The gesture was not a choice; it was a missing
  * door.
  *
@@ -876,7 +876,7 @@ registerWorkbenchContribution2(
  * Everything else of ours waits for something — the mount waits for trust, the
  * auto-open waits for the workbench to restore — and while a page waits, the
  * session has to be able to say WHICH wait it is. It cannot say that about a
- * page it has never heard from: `volter status` reported "no tab has ever
+ * page it has never heard from: the editor's `status` command reported "no tab has ever
  * reported" for a workbench that was open on screen asking a person to trust
  * the folder (measured 2026-09-21).
  *

@@ -315,7 +315,7 @@ const TERMINAL_PATHS = new Set([
   // Reporting a command listener is what makes a tab ELIGIBLE to receive the
   // owner's commands, so it belongs with its two siblings rather than with
   // ordinary presence: a remote page that could claim eligibility could become
-  // the target of a `volter eval` the local owner ran. (Undeclared until now —
+  // the target of a the editor's `eval` command the local owner ran. (Undeclared until now —
   // the literal-route guard has been red on main since this route landed.)
   '/__editor/command-listener',
   '/__editor/command-received',

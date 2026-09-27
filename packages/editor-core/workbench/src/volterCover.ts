@@ -8,7 +8,7 @@
  *  is build output.
  *
  *  WHY IT EXISTS (owner, 2026-09-21, watching their own first open after creating a project
- *  with `--workbench <release>`): *"why does it first show vscode?"* `volter edit` IS the volter editor —
+ *  with `--workbench <release>`): *"why does it first show vscode?"* the editor's `edit` command IS the volter editor —
  *  a person who typed it asked for THIS product — and for the seconds between the page load and
  *  `mountVolter` resolving they were shown somebody else's application instead: VS Code's
  *  menubar, an empty editor group, its trust modal. The frame cannot make the mount instant, so

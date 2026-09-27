@@ -28,7 +28,7 @@ export async function handleBridgeCall(cmd: EditorCommandMessage): Promise<Edito
   // the still edit world can be driven.
   if (!isPlayModeActive() && !hasLiveDebugPlane()) {
     // A LIVE INGEST that publishes no plane is a third state, and answering it
-    // with "not in play mode" sends the reader to `volter play` over a game that
+    // with "not in play mode" sends the reader to `volter-game-editor play` over a game that
     // is already running and visible. MEASURED on the `flappy` canvas ingest:
     // `game.waitSimTime(...)` refused with the play sentence while the mount's
     // own play state read `playing`. The mount is what is missing a plane, so

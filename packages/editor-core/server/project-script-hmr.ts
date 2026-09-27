@@ -16,10 +16,10 @@
  * now owns the whole file-event vocabulary — see
  * {@link handleProjectScriptHotUpdate}'s create/delete branch.
  *
- * WHY THIS MODULE EXISTS AT ALL: `volter restart` served STALE CODE
+ * WHY THIS MODULE EXISTS AT ALL: the editor's `restart` command served STALE CODE
  * ---------------------------------------------------------------
  * Measured 2026-08-02, live: editing `src/components/Dragon.tsx` (a component
- * the R3F entry imports) and then running `volter restart` + play left the edit
+ * the R3F entry imports) and then running the editor's `restart` command + play left the edit
  * UNAPPLIED, while an edit to `src/world.tsx` (the entry ITSELF) applied after
  * the same restart. Only closing the session and re-running `npm run dev`
  * picked the component edit up — i.e. the documented restart contract ("so

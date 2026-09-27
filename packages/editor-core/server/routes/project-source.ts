@@ -644,7 +644,7 @@ export function registerModuleTransportNotFound(
   //     http://…/src/world.tsx?volter-mount=19
   //
   // which names the ENTRY (a file that exists), never the deleted file, and
-  // carries a `?volter-mount=N` that grows per attempt. `volter play` then refuses
+  // carries a `?volter-mount=N` that grows per attempt. the editor's `play` command then refuses
   // four times in a row with a message that reads like the server serving a
   // stale mount graph — which is where a probe went looking, and there is no
   // such bug: the unlink watcher fires, `project-script-hmr.ts` stamps the

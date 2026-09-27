@@ -126,7 +126,7 @@ export function formatMountFailureTitle(reports: readonly MountFailureReport[]):
  * mounts successfully (`clearMountFailureReport`) or the whole attempt
  * resets (`clearMountFailureReports`). Nothing to dismiss by hand: the item
  * is the shell's compact problem signal, and hiding it would also blank the
- * report `volter status` reads.
+ * report the editor's `status` command reads.
  */
 export function MountFailureStatus() {
   const reports = useSyncExternalStore(subscribeToMountFailures, getMountFailureReports);

@@ -38,7 +38,7 @@ export type ReadinessSource = 'declared' | 'measured';
 
 /**
  * The three blockers a mount that never reached a live world can have. Carried
- * on the report so a reader (status bar, `volter status`, the Console line) can
+ * on the report so a reader (status bar, the editor's `status` command, the Console line) can
  * branch without re-parsing the sentence.
  */
 export type MountFailureKind =

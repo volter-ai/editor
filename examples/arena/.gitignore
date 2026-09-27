@@ -11,7 +11,7 @@ dist-server/
 
 # Editor autosaved UI state (panel layout etc.) — local-machine ephemeral.
 # NOT the rest of .volter/: .volter/scaffold-baseline.json is committed project
-# state `volter upgrade` diffs against (packages/create-volter-project/src/baseline.ts),
+# state: the scaffold's record of the files it wrote (node/scaffold/baseline.ts),
 # and .volter/overlays/*.json + .volter/thumbnail.png + .volter/provenance.json +
 # .volter/generations.json are real project data too.
 .volter/editor-state.json
@@ -23,7 +23,7 @@ dist-server/
 .volter/captures/
 .volter/tmp/
 .volter/last-run/
-# `volter screenshot`'s default output directory — looking at the game is the
+# `volter-game-editor screenshot`'s default output directory — looking at the game is the
 # documented way to verify it, so an ordinary session leaves dozens of PNGs here.
 .volter/screenshots/
 # Run artifacts a driving script writes (screenshots a failure block points at,
@@ -47,7 +47,7 @@ dist-server/
 # src/models/arena-weapons.blend silently.
 /models/
 
-# `volter play`'s run logs (logs/play-*.jsonl — see packages/volter-cli/src/index.ts)
+# `volter-game-editor play`'s run logs (logs/play-*.jsonl — see packages/volter-cli/src/index.ts)
 logs/
 *.jsonl
 

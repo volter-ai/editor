@@ -555,7 +555,7 @@ export function createLiveCanvasWriteTarget(
    * `literalsFor` is what a rendering one needs. A revert or an apply is a
    * deliberate act with somewhere to await, so it must not silently do nothing
    * merely because nothing happened to have described this node first (an agent
-   * driving the provider through `volter eval` never does).
+   * driving the provider through `volter-game-editor eval` never does).
    */
   const literalsNow = async (
     id: string,
@@ -908,7 +908,7 @@ export function createLiveCanvasWriteTarget(
      * channel a refused transform does: they asked for source writes, so each
      * one that did not land matters individually. Unarmed, the first structural
      * edit of the session raises the warning that reaches the product's own
-     * doors (`volter status`, the session journal, one ack to clear) — a whole
+     * doors (`volter-game-editor status`, the session journal, one ack to clear) — a whole
      * class of this author's edits will not be saved, which is exactly what an
      * unresolved warning is for — and every later op logs, because repeating an
      * ack-requiring entry per created node would flood the set with the lane

@@ -86,12 +86,12 @@ export function sessionRegistryPath(): string {
 /**
  * Is this dev server an EPHEMERAL PROBE rather than a session anyone owns?
  *
- * `volter doctor` spawns a real dev server on the target folder for a few
+ * An ephemeral probe spawns a real dev server on the target folder for a few
  * seconds and drives it with its own headless browser. It is not an editing
- * session: nobody should be able to reuse it, `volter close` should not list
+ * session: nobody should be able to reuse it, the editor's `close` command should not list
  * it, and — the defect this exists for (SimCity ingest dogfood, S-6) — it
  * must not touch the project's `.volter/session.json`, which belongs to
- * whichever `volter edit` session is actually serving that folder. The probe
+ * whichever the editor's `edit` command session is actually serving that folder. The probe
  * used to OVERWRITE that file at boot with its own throwaway port/pid and
  * then DELETE it on exit, so a live session the user was watching became
  * undiscoverable (`cat .volter/session.json` → ENOENT) because they ran a
@@ -116,7 +116,7 @@ export function isEphemeralSession(env: NodeJS.ProcessEnv = process.env): boolea
  * reaches for. Two kinds of dev server have no such human by construction and
  * must therefore stay out of it:
  *
- * - an EPHEMERAL PROBE (`isEphemeralSession`, today `volter doctor`), which is
+ * - an EPHEMERAL PROBE (`isEphemeralSession`), which is
  *   not an editing session at all; and
  * - a HEADLESS session (`VOLTER_NO_OPEN` — the CLI's `--no-open`), which
  *   maintains no browser tab whatsoever: CI, headless harnesses, and every
@@ -161,8 +161,8 @@ export function liveSessions(): EditorSession[] {
  * would persist that empty view and silently wipe every other live session's
  * entry. Reproduced live 2026-07-25: two concurrent restart-churn processes
  * emptied a registry seeded with three entries whose PIDs were still alive —
- * the wiped sessions kept running but became invisible to `volter
- * edit`/`sessions`/`close`, which is the "new editors starting over and over
+ * the wiped sessions kept running but became invisible to the editor's
+ * `edit`/`sessions`/`close`, which is the "new editors starting over and over
  * while strays accumulate" failure mode.
  */
 function replaceRegistry(sessions: EditorSession[]): void {

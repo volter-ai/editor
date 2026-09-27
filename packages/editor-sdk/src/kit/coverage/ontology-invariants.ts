@@ -49,7 +49,7 @@ export interface OntologyInvariantRow {
    * five distinct entries for one violation in twenty seconds). So the warning
    * is built from THIS, which is identical for as long as the condition holds —
    * repeats then sum into one counted row, which is the whole contract of the
-   * ledger. The live number stays in `detail`, where `volter status` re-derives it
+   * ledger. The live number stays in `detail`, where the editor's `status` command re-derives it
    * on every read. Present only on a violation.
    */
   readonly cause?: string;

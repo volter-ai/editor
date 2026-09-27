@@ -17,7 +17,7 @@
  * three's own module body runs `if (window.__THREE__) console.warn('WARNING:
  * Multiple instances of Three.js being imported.')` on evaluation, so the
  * SECOND graph's copy trips the guard. That warning is not cosmetic: it keeps
- * `volter console` from reaching exit-0, a hard gate. `dev.ts` never sees it —
+ * the editor's `console` command from reaching exit-0, a hard gate. `dev.ts` never sees it —
  * one Vite instance, and the repo-root `vite.config.ts`'s
  * `resolve.dedupe: ['three', …]` already collapses the project's copy onto the
  * editor's — so nothing in a checkout ever reproduced it.

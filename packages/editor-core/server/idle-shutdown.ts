@@ -19,7 +19,7 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  *   registry, remove `.volter/session.json`, close the blessed tab, close
  *   HTTP/router/Vite, exit). Idle shutdown adds no second path and no special
  *   case; it only supplies a different `why` string, so the server's last-gasp
- *   line names idleness as the cause and a vanished `volter sessions` entry is
+ *   line names idleness as the cause and a vanished the editor's `sessions` command entry is
  *   explainable from the log. (The session registry is a ledger of what IS
  *   running — a dead entry is pruned, never annotated — so there is
  *   deliberately no "close reason" recorded there.)
@@ -28,7 +28,7 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  *
  * WHAT RESETS THE TIMER — existing signals only, no new heartbeat protocol:
  * 1. A CONNECTED EDITOR CLIENT. `hasConnectedClients` is the live SSE client
- *    count (`editor-sse.ts`'s `clientCount()`), the same number `volter status`
+ *    count (`editor-sse.ts`'s `clientCount()`), the same number the editor's `status` command
  *    reports as `connected`. It is polled rather than evented, which makes a
  *    connected tab PERMANENTLY non-idle while it is open: every tick with a
  *    client present stamps the clock forward, so the window can only start
@@ -41,7 +41,7 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  *    traffic" can only delay a shutdown, and anything fetching modules from
  *    this server is something using it.
  *
- * Autosave means a shutdown loses nothing, and `volter edit` brings the session
+ * Autosave means a shutdown loses nothing, and the editor's `edit` command brings the session
  * back in seconds — which is what makes 45 minutes a cheap default rather than
  * a risky one.
  */
@@ -62,7 +62,7 @@ export const IDLE_SHUTDOWN_MINUTES_ENV = 'VOLTER_IDLE_SHUTDOWN_MINUTES';
  * - `VOLTER_IDLE_SHUTDOWN_MINUTES=0` — the explicit opt-out;
  * - `CI` is set — a CI runner already owns and reaps its child processes, and
  *   a lane that pauses longer than the window must not lose its server;
- * - the session is EPHEMERAL (`VOLTER_EPHEMERAL_SESSION`, today `volter doctor`) —
+ * - the session is EPHEMERAL (`VOLTER_EPHEMERAL_SESSION`, a throwaway probe) —
  *   a probe's whole lifetime belongs to the tool that spawned it.
  *
  * `VOLTER_NO_OPEN` deliberately does NOT disable it: a headless session is

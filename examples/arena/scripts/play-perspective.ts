@@ -15,7 +15,7 @@
  * configuration whose process is one call into the live session.
  *
  * ── What it does ──────────────────────────────────────────────────────────
- * Resolves this project's own `volter edit` session, waits for a game to be
+ * Resolves this project's own `volter-game-editor edit` session, waits for a game to be
  * mounted (the transport starts a configuration and THEN enters Play, so on
  * that path there is nothing to talk to for a moment), and calls the game's
  * own `setPerspective`. It exits 0 the moment the camera has changed. It is
@@ -28,7 +28,7 @@
  *
  * ── The other way in, which needs no process at all ───────────────────────
  * `?perspective=third` on the page the game is mounted in. `src/perspective.ts`
- * reads it at module load, so a link, a hosted deep-link or a `volter edit` URL
+ * reads it at module load, so a link, a hosted deep-link or a `volter-game-editor edit` URL
  * opens the arena in that camera with nothing running beside it. The two doors
  * are the same store.
  */

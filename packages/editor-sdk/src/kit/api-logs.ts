@@ -43,7 +43,7 @@ export async function startLogSession(name?: string | null): Promise<string | nu
     const res = await fetch(`${BASE}/log-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // `name` (optional — `volter play --name <text>`) is passed through RAW;
+      // `name` (optional — the editor's `play --name <text>` command) is passed through RAW;
       // the server owns the slugifier, so there is exactly one definition of
       // what the run is called on disk and in the journal.
       body: JSON.stringify({ action: 'start', ...(name ? { name } : {}) }),

@@ -958,7 +958,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       // system, positively. Asking it by ATTEMPTING the read routes an
       // ordinary absence through the source backend's failure path, which
       // ANNOUNCES before it throws — so every project that simply never ran
-      // `volter add reflections` carried a permanent unresolved console error
+      // `volter-game-editor add reflections` carried a permanent unresolved console error
       // about a file it is not supposed to have (runhuman pass 92, on the
       // strategy example). The catch swallowed the exception; it could not
       // swallow the report.

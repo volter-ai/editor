@@ -329,7 +329,7 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
    * re-render, never cached" discipline as
    * `hierarchy.roots()`/`hierarchy.node()` above), not a count taken once at
    * construction. Backs `__volterIngestReact.domEvidence().hierarchyNodeCount`
-   * — one of the four legs `volter doctor`'s react-ingest MOUNTED bar requires
+   * — one of the four legs the react-ingest MOUNTED bar requires
    * (`clearsReactIngestMountedBar`, `packages/editor/src/doctor/report.ts`).
    */
   nodeCount(): number {

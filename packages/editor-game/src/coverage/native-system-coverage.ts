@@ -4,7 +4,7 @@
  *
  * It reads the session's own singletons and hands the facts to the pure
  * derivation. The report goes out the two doors coverage already uses —
- * `volter status`'s `systemCoverage` facet, and the editor console via
+ * `volter-game-editor status`'s `systemCoverage` facet, and the editor console via
  * `coverage/session-coverage.ts`, which unions this family with the others so
  * one headline counts them all — so an unbound slot becomes a STANDING
  * condition rather than a one-off line. No new transport, no new panel, and no
@@ -129,7 +129,7 @@ export function nativeSystemCoverage(): CapabilityCoverageReport | null {
       // NetworkingAdapter for a single-player game, telling its author to
       // register one because "this project declares a `server` block" when it
       // declares nothing of the sort. A matchmaker is a listener; no port, no
-      // server. (`volter edit`'s auto-boot had the identical bug — see
+      // server. (`volter-game-editor edit`'s auto-boot had the identical bug — see
       // `packages/volter-cli/src/colyseus-autoboot.ts`'s `readDeclaredProcess`.)
       declaresServer: (project.config.configurations ?? []).some(
         (c) => c.kind === 'process' && typeof (c as { port?: unknown }).port === 'number',

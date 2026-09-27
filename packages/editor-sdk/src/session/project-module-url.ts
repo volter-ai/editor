@@ -4,7 +4,7 @@
  *
  * WHY THIS MODULE EXISTS: PD-3, a SILENT CROSS-ROOT MODULE SPLIT
  * -------------------------------------------------------------
- * A volter project declares several adapter roots, and two of them routinely
+ * A Volter project declares several adapter roots, and two of them routinely
  * import the SAME project module (the worked reference is a three root
  * writing `arena-state.ts`'s module-level `let snapshot` each frame while a
  * `dom` root's HUD reads it). Browser ES-module identity is per-URL, so the
@@ -113,7 +113,7 @@ export const PROJECT_MOUNT_QUERY = 'volter-mount';
  * lane's readers (the contract shim's `window.volterGame`, the live plane, the
  * evidence surface) all read the DEFAULT realm. Busting the ingest entry with
  * `volter-mount` moved the shim's assignment into a per-epoch realm nobody
- * reads: the game played while `volter status` said "idle — commands/providers
+ * reads: the game played while the editor's `status` command said "idle — commands/providers
  * enumerate while playing" and the doctor read "declares no game-state
  * providers" — measured on racing-game, 2026-08-22. A key the server does not
  * interpret busts the URL and changes nothing else.

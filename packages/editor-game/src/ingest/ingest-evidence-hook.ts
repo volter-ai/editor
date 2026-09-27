@@ -1,7 +1,7 @@
 /**
  * The `__volterIngest` / `__volterIngest2D` / `__volterIngestReact` dev hooks: the
  * headless-readable evidence a live ingest mount publishes for automation,
- * screenshots and `volter doctor`.
+ * screenshots and probes.
  *
  * Everything here is EVIDENCE, not control: names read off the live adapter,
  * counters read off the live gate, the coverage report re-derived on demand.

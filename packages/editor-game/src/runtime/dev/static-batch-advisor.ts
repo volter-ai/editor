@@ -138,7 +138,7 @@ export function decideStaticBatchAdvisory(
     `are repeats of ${grouped(structural.familyCount)} structural families, ` +
     `${where}. If that scenery is mount-static — nothing under it moves, re-colours or ` +
     `unmounts after mount — one wrapper collapses it to a few draws: wrap it in ` +
-    `${fix}…</Frozen>  (volter add static-batch). Reactive scenery goes outside the wrapper, ` +
+    `${fix}…</Frozen>  (volter-game-editor add static-batch). Reactive scenery goes outside the wrapper, ` +
     `and a subtree that must stay unbatched declares it: userData={{ staticBatch: false }}.`;
 
   return { drawCalls, collapsible, subtree, fix, message };
@@ -157,7 +157,7 @@ function alreadyWarned(): boolean {
 }
 
 /**
- * The console IS this advisory's channel: `volter status` reports console
+ * The console IS this advisory's channel: `volter-game-editor status` reports console
  * warnings, which is where a building agent already looks. An in-editor
  * banner would be one nobody opens, and a provider would be one nobody reads
  * without already knowing to ask.

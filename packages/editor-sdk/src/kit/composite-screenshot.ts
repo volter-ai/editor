@@ -512,7 +512,7 @@ export function rootSurfaceBackdrops(container: HTMLElement): HTMLElement[] {
  * the tree. The ancestor walk cannot see it; the overlay leg clones it opaque
  * and paints it over the canvas the canvas leg just drew.
  *
- * MEASURED (`volter screenshot editor` of the Game document in play, the
+ * MEASURED (the editor's `screenshot editor` command of the Game document in play, the
  * starter cube and daylight sky on screen): the whole game region came back
  * flat `rgb(36,36,36)` with every ancestor already cleared — the overlay leg
  * rasterized alone read that grey at the canvas centre and the SVG carried no
@@ -1011,7 +1011,7 @@ function layerFailure(layer: CaptureLayer, error: unknown): CaptureLayerError {
  * capture time.
  *
  * `warning` is the ONE place the sentence is spelled. Every surface that
- * shows this (the `volter screenshot` verb, the `/__volter/screenshot` poke, the
+ * shows this (the the editor's `screenshot` command verb, the `/__volter/screenshot` poke, the
  * relay transport behind `game.screenshot()`) lives in a different package,
  * and three copies of a sentence is three sentences that drift — so the layer
  * holding the pixels writes the words and the rest print them verbatim.

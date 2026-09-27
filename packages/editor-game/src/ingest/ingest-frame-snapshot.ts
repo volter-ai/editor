@@ -1,5 +1,5 @@
 /**
- * SAME-FRAME PIXELS for an ingested game's canvas — the reason `volter
+ * SAME-FRAME PIXELS for an ingested game's canvas — the reason `volter-game-editor
  * screenshot` no longer returns black over a running ingest.
  *
  * ## The failure

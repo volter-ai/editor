@@ -60,7 +60,7 @@ export const TITLE_BAR_HEIGHT_KEY = 'window.titleBarHeight';
 // WINDOW scope, not APPLICATION: the height is a property of the window a project is open in,
 // so a project may answer it in `.vscode/settings.json` and the adapter layer's inspect gate
 // hands it the win. Declared with NO default, so an unset key leaves the part's own 30/35
-// arithmetic untouched — a workbench with no volter project open is byte-identical to upstream.
+// arithmetic untouched — a workbench with no Volter project open is byte-identical to upstream.
 Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
 	id: 'window',
 	order: 8,

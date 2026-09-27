@@ -15,7 +15,7 @@
  * which portals ProjectHeader and the active document surface + hierarchy + inspector
  * into the VS Code parts the contribution hands over (title bar, editor pane, two
  * sidebar views). The FOOTER portals nothing: the status bar is the workbench's own
- * and every volter status item is a real entry in it (see `Footer` below).
+ * and every Volter status item is a real entry in it (see `Footer` below).
  *
  * IT IS THE KIT'S MOUNT, AND IT IS NOT THE SERVED MODULE. A PRODUCT is what the
  * session serves (`packages/game-editor/src/index.ts`,
@@ -214,7 +214,7 @@ export interface VolterHistoryHandle {
   focusedResource(): string | null;
   focusedDocument(): { id: string; label: string } | null;
   /** Hand the frame's OWN undo to the editor, so its Edit menu, palette and
-   *  `volter eval` reach the one stack instead of a cursor nobody drives. */
+   *  the editor's `eval` command reach the one stack instead of a cursor nobody drives. */
   setDelegate(delegate: {
     undo(): void | boolean | Promise<void | boolean>;
     redo(): void | boolean | Promise<void | boolean>;
@@ -371,7 +371,7 @@ export interface VolterDocumentsHandle {
    *
    * A person closing a volter editor is closing the DOCUMENT; without this the
    * registry kept reporting it open and active while the workbench had no
-   * editor for it, so `volter status` disagreed with the screen and reopening it
+   * editor for it, so the editor's `status` command disagreed with the screen and reopening it
    * was a no-op against a registry that never noticed (walk 4, W12). The
    * contribution calls this only for a close it did NOT make itself.
    */
@@ -1094,7 +1094,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   // alone, copied out of the editor's `main.tsx` without the
   // `installConsoleSync()` line beside it — so this page's errors filled the
   // editor console and its bottom-bar counter and never reached the session
-  // ledger `volter console` reads. U6b's walk spent 44 React duplicate-key errors
+  // ledger the editor's `console` command reads. U6b's walk spent 44 React duplicate-key errors
   // inside that gap with a CLI calling the session clean. The editor now
   // publishes the two as one door that cannot be half-called.
   installEditorConsoleReporting();
@@ -1108,7 +1108,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   // THE NOTE THE LAST WINDOW AT THIS ADDRESS LEFT when it lost its server
   // (`session-orphan-record.ts`). Said right after the console pipe is wired,
   // because the server that would have recorded it is exactly the one that
-  // died — this boot is the first moment the fact can reach `volter console` and
+  // died — this boot is the first moment the fact can reach the editor's `console` command and
   // the session journal at all. Taken, not peeked: one episode, said once.
   const orphaned = takeSessionOrphanRecord();
   if (orphaned && sessionOrphanIsWorthReporting(orphaned, Date.now())) {

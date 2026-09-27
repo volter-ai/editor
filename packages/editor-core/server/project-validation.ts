@@ -106,7 +106,7 @@ function isAssetParseError(err: unknown): err is Error & { issues: ZodError['iss
  *  `js`, for the same parity reason: the dev server accepts JSX inside a
  *  project's `.js` files (the CRA-era idiom — `vite-plugin-project-jsx-js.ts`
  *  is the serving half and names all three seams), so redding them here would
- *  fill `volter status` with false errors for a game that mounts fine. `jsx` is
+ *  fill the editor's `status` command with false errors for a game that mounts fine. `jsx` is
  *  a strict parse superset of `js`, so nothing formerly valid now reds. */
 function sourceLoader(absPath: string): 'ts' | 'tsx' | 'jsx' {
   if (/\.tsx$/i.test(absPath)) return 'tsx';

@@ -2,7 +2,7 @@
  * THE on-disk shape of `<project>/logs/play-*.jsonl` — one definition, shared
  * by the writer (`editor-server.ts`'s `/__editor/log-session` +
  * `/__editor/log-entries` handlers) and every reader (`play.log.*` here,
- * `volter status`'s play-error banner, the project Analytics utility).
+ * the editor's `status` command's play-error banner, the project Analytics utility).
  *
  * A play log is JSONL with TWO record kinds:
  *
@@ -37,11 +37,11 @@ export interface PlayLogHeader {
   readonly kind: typeof PLAY_LOG_HEADER_KIND;
   readonly v: number;
   /** The editor session that opened the file (`processSessionId()`) — the same
-   *  id `volter sessions` lists, so a log file names the session that wrote it. */
+   *  id the editor's `sessions` command lists, so a log file names the session that wrote it. */
   readonly session: string;
   /** Absolute project root the session was serving. */
   readonly project: string;
-  /** The run's slug (`volter play --name <text>`), `null` for an unnamed run —
+  /** The run's slug (the editor's `play --name <text>` command), `null` for an unnamed run —
    *  the same slug that goes in the filename and the session journal. */
   readonly run: string | null;
   /** Wall-clock ms at which the file was opened. */

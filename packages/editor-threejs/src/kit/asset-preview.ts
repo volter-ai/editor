@@ -2587,7 +2587,7 @@ export async function captureGlbBytesAssetPreview(
 
 /**
  * The same bytes, photographed as a LABELED SHOT SET instead of the four
- * views — what `volter screenshot <module> --orbit <n>` renders. A shot set
+ * views — what the editor's `screenshot <module> --orbit <n>` command renders. A shot set
  * stages the subject itself, exactly the way the asset-path lane's
  * {@link captureShotSetModelPreview} does, so bytes are no less valid a
  * subject here than a project GLB is.

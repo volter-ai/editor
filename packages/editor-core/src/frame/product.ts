@@ -38,7 +38,7 @@ import { mountEditor } from './bridge';
  *  can make: which packages it is, what it looks like, what it opens in. */
 export interface ProductDefinition {
   /** The product's id — `game-editor`, `model-editor`. Reported beside the
-   *  workbench by `volter status`; never branched on. */
+   *  workbench by the editor's `status` command; never branched on. */
   readonly id: string;
   /**
    * The packages this product mounts, keyed by package name, each value the

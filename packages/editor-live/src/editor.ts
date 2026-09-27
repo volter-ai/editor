@@ -190,7 +190,7 @@ export class LiveEditor {
 
   /**
    * Photograph the editor PAGE — every panel, tab strip and viewport as the
-   * person sees it. `volter screenshot editor` is this verb from the shell. The
+   * person sees it. the editor's `screenshot editor` command is this verb from the shell. The
    * one door for judging chrome sighted: a skin, a workspace arrangement or a
    * contributed panel is looked at through this, never guessed at from DOM
    * probes. The page at its own layout, `scale` output pixels per CSS pixel
@@ -519,7 +519,7 @@ export class LiveEditor {
    *     await editor.command('volter.blender-node-view.look', { node: 'Principled BSDF' })
    *
    * Under the Code-OSS frame this is the workbench's own command service, so
-   * any command id works — ours and VS Code's alike. Standalone `volter edit`
+   * any command id works — ours and VS Code's alike. Standalone the editor's `edit` command
    * has no command service and answers the `volter.<view>.<verb>` shape off the
    * SAME verb table the frame's commands call, refusing any other id by name.
    * One table, two doors, exactly like the keymap's.
@@ -674,7 +674,7 @@ export class LiveEditor {
     await this.#client.reloadPage();
   }
 
-  /** Mirrors `volter status` — the full live editor state as JSON. */
+  /** Mirrors the editor's `status` command — the full live editor state as JSON. */
   async status(): Promise<EditorState> {
     return this.#client.getState();
   }

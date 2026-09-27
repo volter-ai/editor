@@ -47,7 +47,7 @@
  * timeouts that read as "tab present, did not respond". The product had no
  * number for either. Owner ruling: a tab that stops answering is the product's
  * defect regardless of what the machine is doing, and the product has to
- * surface it — so these ride the census to `volter status`.
+ * surface it — so these ride the census to the editor's `status` command.
  *
  * MEASURED BY THE PAGE, because neither blocked party can report on itself: the
  * worker's own loop is what is stuck, and a stalled main thread cannot send.

@@ -437,7 +437,7 @@ export class CompositeAuthoringAdapter implements AuthoringAdapter {
    *
    * MEASURED on the vendored `racing-game` ingest: six
    * `[CompositeAuthoringAdapter] inspector.get: no root owns entity id
-   * "live:racing-game:N"` errors in three of four `volter doctor` runs, every one
+   * "live:racing-game:N"` errors in three of four probe runs, every one
    * of them within two seconds of ▶ — `GameHierarchy` re-rendering rows it read
    * before the swap against the children that came after it, one render before
    * its own row rebuild lands. (Flaky precisely because it is a race.)

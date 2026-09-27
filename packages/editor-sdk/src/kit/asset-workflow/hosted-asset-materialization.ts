@@ -179,7 +179,7 @@ export interface VerifiedPackEntryBytes {
  * to the caller, because the two materialization sites differ only in where the
  * bytes land: this module writes through a `StorageBackend` (browser/hosted),
  * and `packages/volter-cli/src/asset-packs.ts` writes to the filesystem for an
- * on-disk project `volter add` just declared a pack into. Extracted so neither
+ * on-disk project the editor's `add` command just declared a pack into. Extracted so neither
  * site can drift from the other on the part that matters — a second copy of
  * "fetch then trust" is exactly how trust-on-first-use gets reintroduced.
  *

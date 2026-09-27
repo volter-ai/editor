@@ -1,12 +1,12 @@
 /**
  * THE EDITOR CONSOLE - and the one thing to know before wiring it into a host.
  *
- * THE BOTTOM BAR'S ERROR COUNT AND THE SET `volter console` PRINTS ARE ONE SET.
+ * THE BOTTOM BAR'S ERROR COUNT AND THE SET the editor's `console` command PRINTS ARE ONE SET.
  * The status bar, the Console panel and the Console utility's badge all read
- * this store; `volter console` reads the SERVER's ledger; and `console-sync.ts`
+ * this store; the editor's `console` command reads the SERVER's ledger; and `console-sync.ts`
  * is the only thing that makes them the same set, by forwarding every error and
  * warning captured here to that ledger. An error the bottom bar counts MUST be
- * an error `volter console` prints and exits non-zero on - that equality IS the
+ * an error the editor's `console` command prints and exits non-zero on - that equality IS the
  * loudness convention, not an implementation detail of it.
  *
  * So `installEditorConsoleCapture()` is HALF of an act and never a whole one. A
@@ -253,7 +253,7 @@ function inspectArg(value: unknown): string {
  * "React does not recognize the `%s` prop on a DOM element…" with `%s`
  * UNINTERPOLATED and the prop name riding in a later argument — which the
  * summary's per-message truncation (`command-listener.ts`) then cut off
- * entirely. `volter status` is the one channel agents are told to trust, and it
+ * entirely. the editor's `status` command is the one channel agents are told to trust, and it
  * was delivering evidence with the identifying detail amputated.
  *
  * Behaviour follows the WHATWG console Formatter: directives are consumed
@@ -302,7 +302,7 @@ export function formatConsoleArgs(args: readonly unknown[]): string {
 /**
  * React 19 prints a DEV warning's component tree through the browser's own
  * console task stack, never as an argument — so a duplicate-key or
- * setState-in-effect warning reached `volter console` as one sentence with no
+ * setState-in-effect warning reached the editor's `console` command as one sentence with no
  * hint of WHICH list. `captureOwnerStack()` is React's door to that tree and
  * is only populated while React itself is calling `console.error`, which is
  * exactly when this wrapper runs. Appended for React's warning shapes only;
@@ -356,7 +356,7 @@ export function formatAttributedError(
  *    funnel from a raw `console.error` into this store — and it is installed at
  *    play START and removed at play STOP. So an editor-frame error outside play
  *    (measured: Content-tab story previews throwing `useRapier must be used
- *    within <Physics>`) reached this store never, and `volter status` answered
+ *    within <Physics>`) reached this store never, and the editor's `status` command answered
  *    `consoleErrors: {count: 0}` to a console full of red.
  * 2. Play-mode's patch is installed LATER, so it sits OUTSIDE this one: it
  *    captures whatever `console.error` currently is (this wrapper) as its

@@ -26,7 +26,7 @@ import { disposeGameRealm } from './gated-globals';
  *
  * The report is the point: a game that released everything it registered is
  * silent, and a game that did not is named, with the count, on the editor
- * console (and therefore in `volter console`). The editor reclaims either way.
+ * console (and therefore in `volter-game-editor console`). The editor reclaims either way.
  */
 export function reclaimGameRealm(id: string, name: string): void {
   const released = disposeGameRealm(id);

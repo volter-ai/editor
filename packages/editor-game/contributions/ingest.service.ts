@@ -9,7 +9,7 @@
  *    registration, its `ingest`/`ingestCaptureWait` state facets and its
  *    `onShellStore` binding are module-load side effects of
  *    `mount-ingest-root.ts`. The static import below is therefore load-bearing
- *    — `volter status` carries `ingest: null` / `ingestCaptureWait: null` before
+ *    — `volter-game-editor status` carries `ingest: null` / `ingestCaptureWait: null` before
  *    contribution pass. A product that composes no `@volter/editor-game` reports
  *    neither key, which is the honest state: no lane claims to mount
  *    unmodified games.

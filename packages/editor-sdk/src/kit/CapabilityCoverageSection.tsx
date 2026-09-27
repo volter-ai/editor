@@ -3,7 +3,7 @@
  *
  * The report is derived in `coverage/capability-coverage.ts`; this component never
  * re-measures or reinterprets a seam. It only gives the same rows already
- * exposed by `volter status` and the console an Inspector-shaped reading: the
+ * exposed by the editor's `status` command and the console an Inspector-shaped reading: the
  * measured fact first, then the consequence and the concrete fix for gaps.
  */
 

@@ -43,7 +43,7 @@ const handle = await startColyseus({ rooms, monitor: process.env['VOLTER_ROOM_MO
   console.error(
     'Colyseus: the server port is already in use — this server did not start.\n' +
       '  Another `npm run server` in a second terminal is the likely holder. Stop\n' +
-      '  whatever holds the port and re-run (`volter sessions` lists live editors).',
+      '  whatever holds the port and re-run (`volter-game-editor sessions` lists live editors).',
   );
   process.exit(1);
 });

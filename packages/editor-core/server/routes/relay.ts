@@ -89,7 +89,7 @@ export function registerRelayRoutes(
     //    separate, much larger history and survives ordinary clip eviction.
     //  - Outside a Gameplay Session, the unnamed fallback is the single
     //    rotating `play-latest.webm`.
-    //  - Named (`volter play --record <name>`): the caller's own keepsake, and
+    //  - Named (the editor's `play --record <name>` command): the caller's own keepsake, and
     //    NOTHING rotates it. Reusing a name overwrites that name's own file —
     //    an explicit instruction, unlike rotation — so a name is also how you
     //    keep a clip past the next play.
@@ -550,11 +550,11 @@ export function registerRelayRoutes(
     else res.status(outcome.status).json({ error: outcome.error });
   });
 
-  // ---- The unresolved console set (CLI reads; `volter status` prints in full) ----
+  // ---- The unresolved console set (CLI reads; the editor's `status` command prints in full) ----
   //
   // The counts ride every command envelope (`commandResponseFor`), so this
   // route exists for the DETAIL: the complete list of distinct conditions with
-  // their occurrence counts, which is what `volter status` / `volter console`
+  // their occurrence counts, which is what the editor's `status` command / the editor's `console` command
   // print. Deliberately a plain GET with no tab cooperation — the whole point
   // is that it answers when the tab is dead.
   router.get('/__editor/console', (req: Request, res: Response) => {

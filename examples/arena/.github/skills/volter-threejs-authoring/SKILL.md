@@ -246,12 +246,12 @@ drift is intentional.
 
 The `castle` capability is a removable premade: editable construction,
 rigging, ink, validation, and bake source that a project is expected to
-remake. **It is not in your project until you add it** — `volter add castle`
+remake. **It is not in your project until you add it** — `volter-game-editor add castle`
 (invoking one of its registered tools through the CLI also adds it, loudly,
 but reading its source is not an invocation). It adds its
 required capabilities, copies transparent source into `src/lib/` and
 `src/contributions/` and `src/tools/`, and registers the project tools without overwriting existing
-files. Restart `volter edit .`, open **Tools → Walking Castle Builder**,
+files. Restart `volter-game-editor edit .`, open **Tools → Walking Castle Builder**,
 validate, and bake. Never import the premade from the engine checkout at
 runtime.
 
@@ -264,12 +264,12 @@ its integration boundary.
 
 ## Add secondary motion as a project dependency
 
-The `motion` capability ("Secondary motion", `volter add motion`) is a removable
+The `motion` capability ("Secondary motion", `volter-game-editor add motion`) is a removable
 kit for spring-bone chains and
 Jolt soft-body cloth. It preserves failure-prone setup and lifetime rules
 without making hair, capes, garments, or physics tuning part of engine core.
 
-Like every capability it is ADDED, not shipped: `volter add motion` copies
+Like every capability it is ADDED, not shipped: `volter-game-editor add motion` copies
 `src/lib/motion/` in and
 declares its two direct dependencies. Initialize Jolt in the project and pass
 the resolved module into the cloth helper; import the VRM spring-bone library
@@ -290,15 +290,15 @@ before proceeding. Self-reports ("the topology is correct", "tests pass")
 are not visual evidence; only a render is.
 
 **Everything below happens inside YOUR project directory.** The one command
-is `volter screenshot`, and the module lane is the asset loop:
+is `volter-game-editor screenshot`, and the module lane is the asset loop:
 
-1. Look at a builder: `volter screenshot src/models/<thing>.ts` runs that
+1. Look at a builder: `volter-game-editor screenshot src/models/<thing>.ts` runs that
    module's default export headlessly in Node, exports the `Object3D` it
    returns to an in-memory GLB, and photographs it in your live editor
    session. `--export <fn>` picks a non-default export. Nothing is written
    under `public/` and no provenance record is created — a look is not an
-   export. (It needs a live session for this project: `volter edit .`.)
-2. Look at a baked file: `volter screenshot <path.glb>` — front/right/top/
+   export. (It needs a live session for this project: `volter-game-editor edit .`.)
+2. Look at a baked file: `volter-game-editor screenshot <path.glb>` — front/right/top/
    3-quarter plus a contact sheet, through the Asset Lab.
 3. Ask for canonical angles rather than ad-hoc ones: `--shots <set>`
    resolves the registered `project.<set>.previewShots` tool, and a lib that
@@ -312,7 +312,7 @@ is `volter screenshot`, and the module lane is the asset loop:
    the camera. The corollary is a real blind spot: an asset lane auto-frames
    its subject, so it can NEVER show you a wrong origin, a floating contact
    plane, or a scale that disagrees with the world. Only a scene shot can —
-   `volter screenshot` with no target (play mode, whole stack) or `volter
+   `volter-game-editor screenshot` with no target (play mode, whole stack) or `volter-game-editor
    screenshot <entityId>` (one entity where it stands, under the scene's own
    lighting).
 

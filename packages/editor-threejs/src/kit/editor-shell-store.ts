@@ -612,7 +612,7 @@ export class EditorShellStore {
       renderer.setRenderTarget(sceneTarget);
       // The same view policy the on-screen draw applies (`scene-view-fog.ts`).
       // This capture is the ONLY look anyone gets at the Edit viewport — the
-      // `volter screenshot` evidence and every project thumbnail — so a capture
+      // the editor's `screenshot` command evidence and every project thumbnail — so a capture
       // that renders the game's fog while the viewport does not would make the
       // one door onto the image disagree with the image.
       withSceneFogNeutralized(this._scene, () =>

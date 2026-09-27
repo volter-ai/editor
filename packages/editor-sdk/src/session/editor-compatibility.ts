@@ -94,9 +94,9 @@ interface ProjectIdentity {
  * source compiles against. An INGEST root has no such source: the game is
  * foreign, unmodified, and reaches the host through the adapter seam, so
  * there is nothing in it that a `@volter/editor-project` version could break — and
- * nothing `volter upgrade` could rewrite if the pin did complain. Found
+ * nothing an upgrade could rewrite if the pin did complain. Found
  * source-mounting SimCity: the project scaffolded at an older pin, and the
- * editor refused to open it with "run volter upgrade", an instruction that
+ * editor refused to open it with an instruction to upgrade the project, that
  * could not be carried out because the project has no engine surface to
  * upgrade.
  *

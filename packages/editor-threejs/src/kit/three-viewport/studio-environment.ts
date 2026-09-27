@@ -1,7 +1,7 @@
 /**
  * The LOOK LANES' neutral studio IBL — `scene.environment` for every surface
  * that photographs an asset instead of displaying it: the Asset Lab capture
- * path (`asset-preview.ts`: the model-file lane, `volter screenshot <module>`
+ * path (`asset-preview.ts`: the model-file lane, the editor's `screenshot <module>` command
  * through `project.bake.preview`, labeled shot sets, source-review sheets,
  * splats) and the asset-browser thumbnails (`model-thumbnail.ts`).
  *

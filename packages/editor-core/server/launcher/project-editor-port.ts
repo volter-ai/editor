@@ -122,7 +122,7 @@ function withRegistryLock<T>(registryFile: string, action: () => T): T {
 
 /**
  * A project needs MORE THAN ONE reserved port in the web + server shape: the
- * `volter edit` session, the Code-OSS remote extension host that frames it, and the
+ * the editor's `edit` command session, the Code-OSS remote extension host that frames it, and the
  * one-origin proxy in front of both (docs/CODE-OSS.md §Boot, WEB + SERVER). Each is
  * a ROLE, and each role gets its own reservation in this same registry under the
  * same worktree/project key — so the whole set is stable per worktree, refuses

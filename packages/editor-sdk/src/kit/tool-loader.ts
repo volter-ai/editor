@@ -388,7 +388,7 @@ function contributionIdFromPath(entryPath: string): string {
  * a console line.
  *
  * The console line existed already and is captured (`editor-console.ts`'s
- * session-lifetime wrapper puts it in `volter status`'s `sessionErrors`). What
+ * session-lifetime wrapper puts it in the editor's `status` command's `sessionErrors`). What
  * did not exist was a RECORD any consumer could read, so every downstream
  * refusal was blind: `editor.present` answered "Tool document is not
  * registered: data-tables.document" while the real answer — its capability's
@@ -1528,8 +1528,8 @@ function packageNameOf(specifier: string): string {
  * only once the newest pass has installed.
  */
 /**
- * The origin that served THIS module — the editor's own dev server (the `volter
- * edit` session), which is also what serves the open project's modules.
+ * The origin that served THIS module — the editor's own dev server (the the editor's
+ * `edit` session), which is also what serves the open project's modules.
  *
  * Everywhere but one shape it equals the page's origin. Inside the Code-OSS
  * DESKTOP frame it does not: the page is `vscode-file://vscode-app` and the

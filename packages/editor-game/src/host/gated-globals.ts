@@ -865,12 +865,12 @@ export function makeGatedProxy<T extends EventTarget>(
   };
 
   /** Report a refused navigation on the page's own console — which is a real
-   *  product door: `volter status` reports page console errors. */
+   *  product door: `volter-game-editor status` reports page console errors. */
   const refuseNavigation = (attempt: string): void => {
     // A NEW native console.error site, suppressed to keep this task's diff at
     // zero new lint warnings — and it is deliberately native rather than
     // `editorConsole`: game code runs in the page, and the page console is the
-    // surface `volter status` already reads (same reasoning as
+    // surface `volter-game-editor status` already reads (same reasoning as
     // `ingest-root-adapter.ts`'s loop-gate warning).
     // biome-ignore lint/suspicious/noConsole: see comment above
     console.error(refusedNavigationMessage(attempt));
@@ -1115,7 +1115,7 @@ function createOwnedRealmProxy<T extends EventTarget>(
     if (refusalReported) return;
     refusalReported = true;
     const realm = options.realmId ? `"${options.realmId}"` : 'the default realm';
-    // biome-ignore lint/suspicious/noConsole: game code runs in the page, and the page console is the surface `volter status` reads (same reasoning as `refuseNavigation` above)
+    // biome-ignore lint/suspicious/noConsole: game code runs in the page, and the page console is the surface `volter-game-editor status` reads (same reasoning as `refuseNavigation` above)
     console.warn(
       `volter: a stopped game tried to register ${what} on its ${options.role} after its realm ` +
         `(${realm}) was reclaimed; refused. Later refusals in this generation are silent.`,

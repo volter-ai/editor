@@ -37,7 +37,7 @@ import { shouldShadowGameGlobals } from './server/game-globals-shadow';
  *
  * Returns the ROOT and not just a boolean because the recorded path must be
  * root-relative: that string is shown in the inspector and read back through
- * `volter eval`, and an absolute path would put the host's directory layout into
+ * the editor's `eval` command, and an absolute path would put the host's directory layout into
  * a product surface. Longest matching root wins, so a project nested inside
  * another root is described against the nearest one.
  */

@@ -1,21 +1,21 @@
 /**
- * Session-resolution decisions for `volter edit` and `volter close` — pure, so the
+ * Session-resolution decisions for the editor's `edit` command and the editor's `close` command — pure, so the
  * rules that decide WHICH editor session a command acts on are testable as
  * data-in/decision-out instead of only through a live dev server.
  *
  * The two defects these exist for were both "the command ignored the
  * argument it was given".
  *
- * 1. `volter edit` claimed ANY idle (projectless) session it found, printing
+ * 1. the editor's `edit` command claimed ANY idle (projectless) session it found, printing
  *    "Reused the idle editor", even when the launch had named a port. An
- *    agent's `volter edit <scratchpad>` therefore retargeted the OWNER'S idle
+ *    agent's the editor's `edit <scratchpad>` command therefore retargeted the OWNER'S idle
  *    repo editor — which is also how the owner's scratchpad ended up in the
  *    person-scoped Recents list (the `open-project` switch writes it) and how
  *    a "restarted repo server" came up serving a project nobody asked it for.
- *    The recorded contract (CLAUDE.md, D12) is that `volter edit` "reuses the
+ *    The recorded contract (CLAUDE.md, D12) is that the editor's `edit` command "reuses the
  *    editor already serving THAT project … never silently retargets" another.
  *
- * 2. `volter close --url X` swept every session matching the CWD's project
+ * 2. the editor's `close --url X` command swept every session matching the CWD's project
  *    rather than closing the session at X — the shape that took the owner's
  *    live editor down twice while an agent was cleaning up its own.
  *
@@ -51,29 +51,29 @@ export interface ResolvableSession {
    * "unreachable"; `classifyProjectSession` is the one decision that reads it.
    */
   registered?: boolean;
-  /** `VOLTER_EPHEMERAL_SESSION` — a throwaway probe server (`volter doctor`) that
+  /** `VOLTER_EPHEMERAL_SESSION` — a throwaway probe server that
    *  deliberately keeps itself out of the registry and dies in seconds. */
   ephemeral?: boolean;
 }
 
 /**
- * FX-1 — is the session answering for this project one `volter edit` may ATTACH
+ * FX-1 — is the session answering for this project one the editor's `edit` command may ATTACH
  * to, i.e. one every other command can reach too?
  *
- * The measured defect: `volter edit` printed `Editor already open on this
+ * The measured defect: the editor's `edit` command printed `Editor already open on this
  * project — http://localhost:29423/` and exited 0, no editor process was owned
- * by that project, and once the answering process died `volter status` reported
+ * by that project, and once the answering process died the editor's `status` command reported
  * `No live editor session matches …` from then on. The two commands do not
- * resolve sessions the same way — `volter edit` probes LIVE (`verifiedSessions`,
+ * resolve sessions the same way — the editor's `edit` command probes LIVE (`verifiedSessions`,
  * which also includes an unregistered listener found on the preferred port),
- * while `volter status`/`play`/`eval` (`getClient`) read the session REGISTRY
- * alone. Anything in the gap between those two sets is a session `volter edit`
+ * while the editor's `status` command/`play`/`eval` (`getClient`) read the session REGISTRY
+ * alone. Anything in the gap between those two sets is a session the editor's `edit` command
  * can claim and nothing else can talk to.
  *
  * Registration is not a heuristic here: dev.ts/packaged.ts both call
  * `registerSession` INSIDE their listen callback, before the server can answer
  * a single request — so a server that answers and is still absent from the
- * registry is not an ordinary session at all (an ephemeral `volter doctor`
+ * registry is not an ordinary session at all (an ephemeral probe
  * probe, a server from another checkout, or one whose registry entry was
  * lost). None of those may be reported as this project's editor.
  */
@@ -100,7 +100,7 @@ export function classifyProjectSession(
   };
 }
 
-/** What `volter edit` says out loud before starting its own session instead of
+/** What the editor's `edit` command says out loud before starting its own session instead of
  *  claiming one nothing else can reach. */
 export function describeUnreachableProjectSession(
   verdict: Extract<ProjectSessionVerdict, { kind: 'unreachable' }>,
@@ -151,7 +151,7 @@ export type EditTarget =
   | { kind: 'port-conflict'; port: number; heldBy: string };
 
 /**
- * Which editor session should `volter edit <project>` act on?
+ * Which editor session should the editor's `edit <project>` command act on?
  *
  * The table, in order (first match wins):
  *
@@ -170,7 +170,7 @@ export type EditTarget =
  * Rule 1 matches on PROJECT alone, deliberately — not on "same project AND
  * requested port". Under the stricter reading, a project whose live session
  * landed on a fallback port would get a SECOND server on the next
- * `volter edit` — precisely the
+ * the editor's `edit` command — precisely the
  * duplicate-session failure D12 and the tab bijection exist to prevent
  * ("per edited game, one and only one tab"; a duplicate for one project was
  * reproduced live 2026-07-25). Reusing the project's own session is never the
@@ -267,7 +267,7 @@ export interface CloseSelectionInput {
    */
   everywhere: boolean;
   /** The canonical project to sweep when no address was named (bare
-   *  `volter close`, `volter close <project>`, or `volter close --all`). */
+   *  the editor's `close` command, the editor's `close <project>` command, or the editor's `close --all` command). */
   projectSweep: string | null;
 }
 
@@ -277,7 +277,7 @@ export type CloseSelection =
   | { kind: 'no-session-for-project'; project: string };
 
 /**
- * Which sessions does a `volter close` invocation stop?
+ * Which sessions does a the editor's `close` command invocation stop?
  *
  * | target                              | result |
  * |-------------------------------------|--------|
@@ -289,7 +289,7 @@ export type CloseSelection =
  * more than it was pointed at".
  *
  * - An explicit address used to be collected and then discarded, so
- *   `volter close --url http://localhost:5180` swept every session on the CWD's
+ *   the editor's `close --url http://localhost:5180` command swept every session on the CWD's
  *   project — including, twice, the owner's. A named target is a target.
  * - `--all` used to mean every session on the BOX. On a machine running
  *   several concurrent agents it took two unrelated agents' editors down

@@ -16,7 +16,7 @@
  * view: **under the Code-OSS frame every one of our views is a VS Code view
  * in a view container, and its state and verbs are reached through
  * `volter.<view>.<verb>` commands the bridge dispatches into the view** — the
- * same one-name door as every other verb, so `volter eval` reaches it through
+ * same one-name door as every other verb, so the editor's `eval` command reaches it through
  * the frame's command service.
  *
  * ## Why the registry is HERE and not in the editor
@@ -29,7 +29,7 @@
  *
  * ## The two doors, one table
  *
- * Standalone `volter edit` has no VS Code command service, so the SESSION's own
+ * Standalone the editor's `edit` command has no VS Code command service, so the SESSION's own
  * verb is how a view is driven there. That is not a second implementation:
  * the session verb calls {@link invokeViewVerb} on the same table the frame's
  * commands call, exactly as `key-actions.ts`'s action table is one

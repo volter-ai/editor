@@ -43,7 +43,7 @@ VOLTER project on the machine. `npm run --silent volter -- edit .` never silentl
 DIFFERENT project's already-running editor — if one is already open
 elsewhere, this one starts a second instance on a fresh free port and prints
 that URL instead (use `--switch` to retarget the existing one on purpose).
-If you might have another volter project's tab open in the browser already,
+If you might have another volter-game-editor project's tab open in the browser already,
 don't assume it's this project: read the URL `npx volter-game-editor edit` actually prints
 (check `npx volter-game-editor sessions` to see every live session's port → project), or pass
 `npx volter-game-editor edit --port <n>` to pin an explicit port for this project so a stale
@@ -85,7 +85,7 @@ npm run --silent volter -- edit . --no-open # ONLY when no human could be watchi
 await page.goto('http://localhost:5173', { waitUntil: 'load' });
 ```
 
-Once that page has loaded, it registers as a connected client and `volter
+Once that page has loaded, it registers as a connected client and `volter-game-editor
 status`/`npx volter-game-editor play`/etc. from another shell will reach it for real.
 
 ## Drive the running game — `npx volter-game-editor eval`, the general door

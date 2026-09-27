@@ -20,7 +20,7 @@
  * `arena-state.ts` beside it — no volter runtime, no context, no provider. The
  * initial value comes from `?perspective=` on the page the game is mounted in
  * (the URL-parameter pattern a game's boot options have always used here), so
- * a link, a `volter edit` URL or a run configuration can open the arena already
+ * a link, a `volter-game-editor edit` URL or a run configuration can open the arena already
  * in the other camera; absent or unrecognised, first person.
  */
 
@@ -75,7 +75,7 @@ export function subscribePerspective(listener: () => void): () => void {
  * Play from `next` from the very next frame.
  *
  * REFUSES an unknown value by name rather than silently keeping the current
- * one: this is the door `volter eval` and the run configurations call, and a
+ * one: this is the door `volter-game-editor eval` and the run configurations call, and a
  * typo that appears to succeed is how a caller concludes the feature is
  * broken.
  */

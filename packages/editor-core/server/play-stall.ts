@@ -5,14 +5,14 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  * ## What this replaces
  *
  * Measured 2026-08-20 with `packages/editor/scripts/scale-harness`, canvas lane,
- * N=20000, four consecutive runs. `volter play` spent its full 120s budget and was
+ * N=20000, four consecutive runs. the editor's `play` command spent its full 120s budget and was
  * refused with
  *
  *     Command timed out — the tab is present (last heartbeat 0.8s ago) and
  *     did not respond.
  *
  * and then `screenshot` (15s) and `stop` (30s) were refused with that same
- * sentence. Three silent timeouts in a row, and every reader — `volter status`,
+ * sentence. Three silent timeouts in a row, and every reader — the editor's `status` command,
  * the tab table, the journal — described a healthy session, because the
  * heartbeat is a WORKER and kept beating at 0.4s while the page's main thread
  * sat inside one 199.5-second synchronous block.

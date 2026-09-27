@@ -1,6 +1,6 @@
 /**
  * Relay play-control dispatch for an INGEST session — the SimCity ledger's S-2
- * ("`volter play` destroys a working source-mount").
+ * ("`volter-game-editor play` destroys a working source-mount").
  *
  * ## The defect
  *

@@ -16,7 +16,7 @@
  *      the same files;
  *   3. `sourceLoader` in `server/project-validation.ts` — the
  *      validate-on-change parse mirrors what the dev server will serve, or a
- *      servable file reds `volter status`.
+ *      servable file reds the editor's `status` command.
  *
  * Scope is deliberately the SAME predicate the globals shadow uses
  * (`shouldShadowGameGlobals`) — "is this a project-owned `/src/` module" is

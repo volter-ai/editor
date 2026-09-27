@@ -43,13 +43,13 @@ import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
  *    registered — through the SAME `setActiveSystems` door play/ingest/module
  *    modes use, under the UNNAMED (solo) seat. That is what lets the relay
  *    answer `list-gameplay-state`/`inspect-gameplay-state`/
- *    `list-debug-commands`/`invoke-debug-command` and `volter eval`'s
+ *    `list-debug-commands`/`invoke-debug-command` and `volter-game-editor eval`'s
  *    `game.state()`/`game.commands()` from the EDIT world. It publishes
  *    declarations, never a run: the loop is still never advanced.
  *  - SHARERS: none, ever, at the same instant. Play mode registers its mount
  *    under its OWN mount id, so a seat held by both would make
  *    `systemsForInstance(undefined)` ambiguous and break every unaddressed
- *    `volter eval` call. The store subscription below therefore withdraws this
+ *    `volter-game-editor eval` call. The store subscription below therefore withdraws this
  *    seat the moment `playState` leaves 'stopped' — synchronously, at
  *    `store.setPlayState('playing')`, long before play's own
  *    `setActiveSystems` lands — and republishes when play ends without a
@@ -901,7 +901,7 @@ export async function mountR3FDesignSession(
       const alive = restoreIds.filter((id) => adapter?.hierarchy.node(id) !== null);
       if (alive.length > 0) store.shell.selectMultiple(alive);
       // PD-1: this world is mounted again — retract its failure report so the
-      // status item (and `volter status`) can go back to healthy.
+      // status item (and `volter-game-editor status`) can go back to healthy.
       clearMountFailureReport(worldId);
       // The plane follows the FRESH game (`disposeMounted` withdrew the old
       // one's), so a stat added by the edit that triggered this remount is
@@ -1141,7 +1141,7 @@ export async function mountR3FDesignSession(
     if (torndown) return;
     // Seat handover, BEFORE the deferred visual suspend below: play mode
     // registers under its own mount id, so holding both seats would make an
-    // unaddressed `volter eval` ambiguous. This fires at
+    // unaddressed `volter-game-editor eval` ambiguous. This fires at
     // `store.setPlayState('playing')`, which precedes play's own
     // `setActiveSystems` — so the two never overlap in either direction.
     if (store.shell.playState === 'stopped') publishPlane();

@@ -50,16 +50,16 @@ export interface VolterCommandsBridge {
 	/**
 	 * How `editor.command(id, args)` — the editor's ONE door to a command by id — runs one in
 	 * this window. This is `ICommandService.executeCommand`, so EVERY command id the workbench
-	 * knows is reachable: a view's `volter.<view>.<verb>` (U8's ruling 1, "so `volter eval` reaches
+	 * knows is reachable: a view's `volter.<view>.<verb>` (U8's ruling 1, "so the editor's `eval` command reaches
 	 * it through the frame's command service"), an action's `volter.action.<id>`, or one of VS
 	 * Code's own.
 	 *
 	 * Optional so a bridge older than this member is a missing door rather than a crash; absent,
 	 * the editor answers a `volter.<view>.<verb>` id off the views registry itself and refuses any
-	 * other by name — which is also exactly what standalone `volter edit` does.
+	 * other by name — which is also exactly what standalone the editor's `edit` command does.
 	 */
 	setCommandExecutor?(run: (id: string, args?: unknown) => Promise<unknown>): void;
-	/** Say something in the volter editor's OWN console, where `volter console` reads it. */
+	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
 
@@ -117,7 +117,7 @@ export class VolterCommands extends Disposable {
 		// id the caller names, which is what makes a drawer view drivable by the product at all —
 		// `editor.document.*` reaches the active centre document by its own contract, and a view
 		// is not one. The command's own result is handed straight back: a view verb answers with
-		// its state, and the session serialises it for `volter eval`.
+		// its state, and the session serialises it for the editor's `eval` command.
 		bridge.setCommandExecutor?.((id, args) => commandService.executeCommand(id, args));
 		this._register(toDisposable(bridge.subscribe(() => this.publish())));
 		this._register(toDisposable(() => bridge.setPaletteOpener(() => { })));

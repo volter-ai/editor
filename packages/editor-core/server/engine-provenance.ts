@@ -11,7 +11,7 @@
  *
  * So the server computes its own checkout's git provenance and reports it
  * everywhere a human or an agent looks: the `/__editor/project` payload, the
- * server's own startup banner, `volter edit`'s ready line, and `volter status`.
+ * server's own startup banner, the editor's `edit` command's ready line, and the editor's `status` command.
  *
  * Two rules this module exists to hold:
  *
@@ -140,7 +140,7 @@ export function engineProvenance(engineRoot: string, run?: GitRunner): Promise<E
 }
 
 /**
- * The ONE wording. The server banner, `volter edit` and `volter status` all print
+ * The ONE wording. The server banner, the editor's `edit` command and the editor's `status` command all print
  * this exact string, so a reader comparing two surfaces is never left deciding
  * whether they disagree or are merely phrased differently.
  */

@@ -34,7 +34,7 @@
  * The fix is not to derive less truth, it is to derive it OFF the critical
  * path: an interaction reports immediately with the cheap fields fresh and the
  * derived families reused from the last full snapshot, and schedules ONE
- * deferred full collect that makes them current again. `volter status` readers
+ * deferred full collect that makes them current again. the editor's `status` command readers
  * are never handed a snapshot older than that deferral, and the snapshot
  * already carries its own age.
  */
@@ -42,7 +42,7 @@
 /**
  * How long the deferred full collect may wait for an idle moment before the
  * browser runs it anyway. Short enough that "current shortly after the change"
- * stays true for a `volter status` reader; long enough that the interaction that
+ * stays true for a the editor's `status` command reader; long enough that the interaction that
  * triggered it paints first, which is the entire point.
  */
 export const DEFERRED_FULL_REPORT_TIMEOUT_MS = 500;

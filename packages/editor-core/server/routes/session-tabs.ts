@@ -105,7 +105,7 @@ export function registerSessionTabRoutes(
 
   // ---- Tab bijection (one browser tab per edited game — tab-lifecycle.ts) ----
   //
-  // POST /__editor/tab/ensure — `volter edit`/`create`'s idempotent
+  // POST /__editor/tab/ensure — the editor's `edit` command/`create`'s idempotent
   // convergence: focus/retarget the blessed tab, wait for an arriving one,
   // or open exactly one. `{ open: false }` (the caller's --no-open) never
   // opens. When bijection is off for this session, answer honestly from the

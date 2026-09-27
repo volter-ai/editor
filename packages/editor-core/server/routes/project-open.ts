@@ -408,7 +408,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
 
     // Track in recent projects (unless this session is nobody's launcher —
     // see `recordRecentProject`). This route is exactly where an agent's
-    // `volter edit <scratchpad>` used to plant its project in the owner's
+    // the editor's `edit <scratchpad>` command used to plant its project in the owner's
     // Recents, by retargeting the owner's idle editor.
     await recordRecentProject((config['name'] as string) ?? 'Untitled', absPath);
 

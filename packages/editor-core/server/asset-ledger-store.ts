@@ -13,7 +13,7 @@
  *     `recordAssetMaterialization` calls do not both read the pre-write object
  *     and lose the earlier record.
  *   - Other processes: an exclusive `assets.json.lock` beside the ledger.
- *     Two `volter edit` sessions, or `asset-packs:sync` racing an editor, are
+ *     Two the editor's `edit` command sessions, or `asset-packs:sync` racing an editor, are
  *     separate processes and the in-process chain cannot see them.
  *
  * The write itself is ATOMIC — staging file then `rename` — so a crash or a

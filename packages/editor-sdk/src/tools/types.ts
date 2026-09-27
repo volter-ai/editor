@@ -151,7 +151,7 @@ export interface ToolContext {
    *  `src/models/barrel.ts` — MUST load through this rather than a raw
    *  `import()`: Node's ESM cache never invalidates, so a raw import returned
    *  the FIRST version of a model for the life of the server and every later
-   *  edit re-rendered byte-identical until `volter restart` (measured on the
+   *  edit re-rendered byte-identical until the editor's `restart` command (measured on the
    *  blind modeling bench, 2026-09-05: three restarts in one barrel). Absent
    *  only when the tool runs outside an editor server. */
   loadProjectModule?: (absolutePath: string) => Promise<unknown>;

@@ -1,7 +1,7 @@
 /**
  * THE CHROME-CAPTURE DOOR: photograph the editor PAGE — every panel, every
  * tab strip, the Inspector, the viewport inside it — as the person is seeing
- * it. `volter screenshot editor` / `editor.captureEditorChrome()`.
+ * it. the editor's `screenshot editor` command / `editor.captureEditorChrome()`.
  *
  * WHY IT EXISTS. Every other capture door photographs a SUBJECT: the running
  * game, the active document, the Scene viewport, a model. None photographs

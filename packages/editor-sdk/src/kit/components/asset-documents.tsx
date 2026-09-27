@@ -8,8 +8,8 @@
  *
  * Identity (§7.1 stable ids): document ids keep the exact key vocabulary the
  * old store tabs used, so the control-API surface (`open-asset-tab` /
- * `close-asset-tab` / `active-tab` in `command-listener.ts`, `volter
- * open-asset`) keeps its meaning unchanged:
+ * `close-asset-tab` / `active-tab` in `command-listener.ts`, the editor's
+ * `open-asset`) keeps its meaning unchanged:
  *
  *   - project asset  → the serving path itself (`/textures/crate.png`)
  *   - Asset Editor → `asset-editor:entity:<entityId>`

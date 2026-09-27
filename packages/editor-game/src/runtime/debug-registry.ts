@@ -129,7 +129,7 @@ const REGISTRATION_HINT =
  *  (`POST /__editor/command`) and `page.evaluate` both serialize the error's
  *  `data` bag — and an `Error` stringifies to `{}` there, so a command's own
  *  refusal text ("no such waypoint") vanished and the developer at
- *  `volter eval` saw only `debug: command "x" threw`. The text has to travel as
+ *  `volter-game-editor eval` saw only `debug: command "x" threw`. The text has to travel as
  *  plain strings, and in the `message` above all: that is the one field every
  *  client (`SessionError`, the CLI's own error print) actually surfaces. */
 function describeCause(cause: unknown): {

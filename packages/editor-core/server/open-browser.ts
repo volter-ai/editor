@@ -49,12 +49,12 @@ export interface TabOpenPlacementInput {
  * Decide whether this session's ONE tab should open behind the human's
  * current window instead of stealing focus.
  *
- * Measured (owner, three times in one day): every builder/reviewer `volter edit`
+ * Measured (owner, three times in one day): every builder/reviewer the editor's `edit` command
  * auto-opened a FOREGROUND tab on the one display, so the owner kept ending up
  * looking at an agent's session instead of their own. A session rooted in an
  * agent worktree therefore opens in the BACKGROUND; the human flow — a normal
  * checkout, or a scaffolded game anywhere else — keeps foreground, because for
- * a person the whole point of `volter edit` is that the editor comes up in front
+ * a person the whole point of the editor's `edit` command is that the editor comes up in front
  * of them.
  *
  * `VOLTER_TAB_BACKGROUND` overrides in BOTH directions: `1` backgrounds a tab

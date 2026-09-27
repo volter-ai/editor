@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  volter: WHERE THE SESSION IS, and how a page that is not on its origin talks to it.
  *
- *  The volter editor is served by a `volter edit` session (a Vite dev server plus the
+ *  The volter editor is served by a the editor's `edit` command session (a Vite dev server plus the
  *  `/__editor/*` routes). In the WEB shape the Code-OSS workbench and that session sit
  *  behind one proxy origin, so every URL the editor writes is same-origin and nothing in
  *  this file does anything. In the DESKTOP shape the workbench page is
@@ -15,7 +15,7 @@
  *
  *  1. WHERE THE SESSION IS. Not an env var, not a setting: the open WORKSPACE FOLDER is the
  *     project, and a live session writes `<project>/.volter/session.json` with its own port —
- *     the same file `volter sessions`/`volter close` read. The frame reads the project's own
+ *     the same file the editor's `sessions` command/the editor's `close` command read. The frame reads the project's own
  *     statement through the file service. If the page is already http(s) (the web shape),
  *     the page's origin IS the session and the file is not consulted.
  *
@@ -87,7 +87,7 @@ export async function resolveSessionOrigin(
 }
 
 /**
- * Does `origin` serve a `volter edit` session? The serving door is the cheapest honest
+ * Does `origin` serve a the editor's `edit` command session? The serving door is the cheapest honest
  * question — it is a session-only route, it needs no project state, and it is the very
  * next thing the contribution asks of whatever this function returns.
  *
@@ -156,7 +156,7 @@ export function installDefaultTrustedTypesPolicy(): 'installed' | 'not-needed' |
  * that bootstrap is inline in `index.html`, before the module graph.
  *
  * This page's HTML is VS Code's, so it has none of that. Measured on 2026-09-19 (U1): the
- * workbench ran the editor, took commands, and NEVER BEAT — `volter status` said "TAB PRESENCE
+ * workbench ran the editor, took commands, and NEVER BEAT — the editor's `status` command said "TAB PRESENCE
  * — SOMETHING IS OFF … no heartbeat", and no bpy call ever answered, because the Blender
  * engine's own doors wait on a session that believes this tab is not really there.
  *

@@ -266,7 +266,7 @@ const STARVED_DRIVE_MAX_BATCHES = 2000;
  *  string. */
 export const HOLD_STARVED_NO_DRIVER_REASON =
   "the host loop reported liveness 'loop-starved' and this session has no way to drive " +
-  'ticks — no recent rAF progress was observed. Check `volter status` for the separate ' +
+  'ticks — no recent rAF progress was observed. Check `volter-game-editor status` for the separate ' +
   'visibility readings; foreground/reload the editor, or start play to wire the run-ticks ' +
   'target, then retry.';
 

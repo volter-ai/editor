@@ -184,7 +184,7 @@ function scriptKindFor(file: string): ts.ScriptKind {
  * Stamp every direct `new` expression in `code`.
  *
  * `displayFile` is the path recorded for this module — project-root-RELATIVE,
- * because that string is what the inspector shows and what `volter eval` reads
+ * because that string is what the inspector shows and what the editor's `eval` command reads
  * back; an absolute path would leak the host's directory layout into the
  * product surface.
  *

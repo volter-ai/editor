@@ -62,7 +62,7 @@ export interface IngestMount2D {
  * `onWait` is the three lane's own seam (`ingest-root-adapter.ts` passes
  * `setCaptureWait`): the capture window PARKS while the tab is hidden, and a
  * parked wait is otherwise indistinguishable from a hung mount at every door.
- * Threading it here is what lets `volter status` say "waiting for the first
+ * Threading it here is what lets `volter-game-editor status` say "waiting for the first
  * visible frame — the tab is hidden" over a canvas ingest too.
  */
 export async function mountIngestGame2D(

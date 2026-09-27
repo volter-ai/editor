@@ -350,7 +350,7 @@ const FIRST_FRAME_TIMEOUT_MS = PIXI_MOUNT_TIMEOUT_MS;
  * Wait until every collected `Application` has PRESENTED a frame with content
  * in it — the readiness test a capture of a canvas story owes itself.
  *
- * MEASURED DEFECT (this is why the function exists): `volter screenshot
+ * MEASURED DEFECT (this is why the function exists): `volter-game-editor screenshot
  * <file>.stories.tsx` photographed a `@pixi/react` story blank. The capture
  * lane's own readiness test is "the container has committed child nodes", and
  * `<Application>` commits its `<canvas>` on the FIRST commit — before

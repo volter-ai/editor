@@ -173,7 +173,7 @@ registerEditorStateFacet(() => ({
  * mount is attempted (that flag is what swaps the viewport onto the live
  * scene). When the mount then throws, that flag, plus any authoring
  * adapter/adopted scene a partial mount installed, used to survive — so
- * `volter status` reported `playing`, the hierarchy kept presenting whatever tree
+ * `volter-game-editor status` reported `playing`, the hierarchy kept presenting whatever tree
  * was underneath, and the only trace of the failure was one console line. This
  * is the single teardown every failure path runs: drop the partial session,
  * reset the play surface, and record + broadcast the failure so the status item
@@ -509,7 +509,7 @@ async function tryManifestIngestRoute2D(
  * DOM sibling of {@link tryManifestIngestRoute}/{@link tryManifestIngestRoute2D}
  * (D-Y2, slice S2): a manifest-backed project declaring an `ingest-react` root
  * mounts the native-React ingest session straight from that root (external
- * folder — `volter edit <folder>` — not the in-tree `ingest/games/<id>` fixture
+ * folder — `volter-game-editor edit <folder>` — not the in-tree `ingest/games/<id>` fixture
  * registry). Same "applied or not" contract, same D-V2 composite scan/
  * route-selection/sibling-mount shape as its three/canvas siblings above.
  */
@@ -722,7 +722,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
   // `packages/editor/src/authoring/mount-failure-report.ts`'s multi-entry
   // list is otherwise only ever read by the status bar's `mount-failure`
   // contribution (a React component), invisible to `page.evaluate()`. This is
-  // a plain function returning the LIVE list — `volter doctor`'s browser
+  // a plain function returning the LIVE list — a probe's browser
   // phase is this surface's first consumer, but any other dev/e2e caller can
   // poll it the same way `__volterIngestApi*` are already polled.
   (window as unknown as Record<string, unknown>)['__volterMountFailureReports'] = () =>

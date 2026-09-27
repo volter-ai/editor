@@ -129,14 +129,14 @@ export interface ChromeRegions {
  * Miss the fourth and NOTHING fails to compile: a region value the person sets is
  * written into `~/.volter/settings.json`, the server rejects the unknown key with a 400, and the only report is a `[settings] Could not save
  * user settings` line in the editor console — every appearance preference
- * silently stops persisting. Measured 2026-09-18, found by `volter console`
+ * silently stops persisting. Measured 2026-09-18, found by the editor's `console` command
  * after nine failed writes.
  *
  * Miss the FIFTH and the frame drops the key on the way through instead: the
  * workbench's configuration service knows only the generated list, so
  * `volterSettings.ts` reports "…is not a volter setting, so it was not applied" and
  * the region reverts to its default on the next read of persisted settings.
- * Measured 2026-09-21 by `volter console` on the first boot after a new key
+ * Measured 2026-09-21 by the editor's `console` command on the first boot after a new key
  * landed, which is the reason this list says five now.
  *
  * AND THE FIFTH HAS A RELEASE IN IT, which is the part that decides where a

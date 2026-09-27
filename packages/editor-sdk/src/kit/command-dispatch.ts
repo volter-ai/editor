@@ -2,7 +2,7 @@
  * EVERY RELAYED COMMAND, observed — the host's side of
  * `host.session.onCommandDispatched`. `command-listener.ts` notes each
  * command's type at the top of its dispatch; an idle watchdog (Play's
- * recording: "an agent still driving through `volter eval` is not idle,
+ * recording: "an agent still driving through the editor's `eval` command is not idle,
  * whatever the command was") subscribes rather than being named there.
  */
 const listeners = new Set<(type: string) => void>();

@@ -27,7 +27,7 @@ import { EDITOR_CLIENT_ID, sendControl } from '@volter/editor-sdk/kit/editor-pre
  * called `installEditorConsoleCapture()` WITHOUT the `installConsoleSync()`
  * line that stood next to it. So 44 React duplicate-key
  * errors filled the page console and the bottom bar's counter while
- * `volter console` reported a clean session — the one outcome the loudness
+ * the editor's `console` command reported a clean session — the one outcome the loudness
  * convention exists to prevent, arrived at by a single omitted line in a
  * two-line sequence. Two lines a caller must remember to write together are a
  * defect in the door, not in the caller; there is now one door, and it cannot

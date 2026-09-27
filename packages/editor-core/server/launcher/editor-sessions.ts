@@ -39,15 +39,15 @@ export interface VerifiedEditorSession {
   baseCommit: string | null;
   /**
    * FX-1 — does this session have a LIVE REGISTRY ENTRY, or was it found only
-   * by probing a port? The distinction is the whole gap between what `volter
-   * edit` can see (this live probe) and what `volter status`/`play`/`eval` can
+   * by probing a port? The distinction is the whole gap between what the editor's
+   * `edit` can see (this live probe) and what the editor's `status` command/`play`/`eval` can
    * see (`liveSessions()`, the registry alone): a session in the gap is one
-   * `volter edit` could claim and no other command could reach. Required, not
+   * the editor's `edit` command could claim and no other command could reach. Required, not
    * optional, so every producer must answer it.
    */
   registered: boolean;
   /** The server said it is a throwaway probe (`VOLTER_EPHEMERAL_SESSION`,
-   *  `volter doctor`). `undefined` from a server too old to say. */
+   *  a throwaway probe). `undefined` from a server too old to say. */
   ephemeral?: boolean;
   /** Set when the server is SERVING `project` but cannot describe it — the
    *  manifest is unparseable or fails strict validation. See
@@ -76,7 +76,7 @@ export function canonicalPath(p: string): string {
  * The timeout is the DUPLICATE-SESSION knob, not just a latency budget: when
  * a live same-project server merely answers slowly (a dev server's event
  * loop routinely blocks for seconds during Vite dep-optimize/ssrLoadModule),
- * a timeout here reads as "no session" and `volter edit` silently starts a
+ * a timeout here reads as "no session" and the editor's `edit` command silently starts a
  * second editor for the same project on the next port (reproduced live
  * 2026-07-25 with a paused server). A dead port still fails in
  * milliseconds with ECONNREFUSED — only genuinely hung servers pay the full
@@ -591,19 +591,19 @@ export async function waitForEditorStateAfter(
  * even show up" but the WRONG one for "did the editor app finish loading":
  * a freshly scaffolded project's FIRST page load pays Vite's dep-optimize
  * cold start (worse on drvfs/9P), which can take far longer than 15s while
- * the tab sits there loading correctly. Proven live: create/`volter edit`
+ * the tab sits there loading correctly. Proven live: create/the editor's `edit` command
  * printed "auto-open likely failed silently" while the browser tab was, in
  * fact, open and loading.
  *
  * WHAT "CONNECTED" MEANS, and the correction this carries (measured
- * 2026-09-19, WORK.md §"The editor tab can wedge in a state `volter edit` cannot
+ * 2026-09-19, WORK.md §"The editor tab can wedge in a state the editor's `edit` command cannot
  * self-heal"). This used to succeed on `editorsConnected > 0` and its own doc
  * called that "SSE attached, i.e. the app finished booting". That equivalence
  * was true when presence WAS the page's socket; it stopped being true when
  * presence moved to the heartbeat table, because `index.html`'s inline
  * bootstrap starts the heartbeat worker before the module graph exists. A page
  * that stalls before React mounts therefore reached `editorsConnected: 1` in
- * about two seconds, and `volter edit` printed
+ * about two seconds, and the editor's `edit` command printed
  *
  *     Editor page connected — the browser is showing http://127.0.0.1:22845/
  *
@@ -634,7 +634,7 @@ export async function waitForEditorStateAfter(
  * A TAB THAT IS THERE AND NOT YET MOUNTED IS NOT AN OUTCOME, because it is not
  * over: the wait continues to `totalTimeoutMs`, and `onProgress` is what
  * narrates it. Nothing here asks the person for anything, and nothing here says
- * they are being asked — a `volter edit` workbench opens on a folder
+ * they are being asked — a the editor's `edit` command workbench opens on a folder
  * whose session IS the trust decision, so the only reason it can still be
  * loading is a cold Vite dep-optimize (see the workbench contribution's
  * `connectSessionTab`, packages/editor/workbench/src/volter.contribution.ts). The
@@ -719,7 +719,7 @@ export interface PendingSessionHint {
  * Restart-window race guard (editor-session diagnosis cause 3): the dev
  * host's exit-75 source-change handoff leaves a multi-second window with NO
  * server on the project's port while the owning CLI relaunches it. A
- * concurrent `volter edit` probing during that window sees "no session" and
+ * concurrent the editor's `edit` command probing during that window sees "no session" and
  * spawns its own server — which then collides with the owner's relaunch on
  * the same port ("Port already in use" + registry churn). The dying server
  * REFRESHES the in-project `.volter/session.json` on a restart exit instead of
@@ -841,7 +841,7 @@ function isEsrch(err: unknown): boolean {
  * This mirrors `packages/editor/e2e/helpers/server.ts`'s `stopProcess`
  * discipline (group kill first, bare-pid fallback; `taskkill /T` is the
  * Windows tree-kill equivalent) but is reimplemented against a bare `pid` read
- * back from the JSON session registry — `volter close` runs in a DIFFERENT
+ * back from the JSON session registry — the editor's `close` command runs in a DIFFERENT
  * process than the one that spawned the server, so there is no live
  * `ChildProcess` handle to hand `stopProcess` itself.
  *
@@ -851,7 +851,7 @@ function isEsrch(err: unknown): boolean {
  * may already be gone (first `process.kill(-pid, …)` throws `ESRCH`) AND the
  * pid itself may ALSO already be gone by the time the fallback tries it
  * (second `process.kill(pid, …)` throws its OWN `ESRCH`). An unguarded
- * fallback call would let that second throw escape uncaught — `volter close`
+ * fallback call would let that second throw escape uncaught — the editor's `close` command
  * must never crash just because there was, in the end, nothing left to kill.
  * Both attempts are therefore wrapped, and only `ESRCH` is swallowed; any
  * other error (e.g. `EPERM`) still propagates — a real problem, not "already
@@ -894,7 +894,7 @@ export function killProcessGroup(pid: number, signal: NodeJS.Signals = 'SIGTERM'
 /** Return the POSIX process-group id for `pid`, or `undefined` when it cannot
  * be read. Editor sessions are launched detached, but the registry records the
  * inner `dev.ts` Node pid rather than the `npx` group leader. Looking the group
- * up here lets `volter close` reach the complete npx -> tsx -> Vite/esbuild tree
+ * up here lets the editor's `close` command reach the complete npx -> tsx -> Vite/esbuild tree
  * without changing the durable registry format. */
 function processGroupId(pid: number): number | undefined {
   if (process.platform === 'win32') return undefined;

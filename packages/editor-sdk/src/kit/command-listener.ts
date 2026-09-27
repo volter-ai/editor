@@ -503,7 +503,7 @@ export function collectState(
     presence: collectPresence(),
     // Target-blaster friction #3 (#146 ledger): the play-verify loop's error
     // channel — the same current-run-fenced uncaught-error list the relay
-    // snapshot carries (see collectPlayRunPageErrors), so `volter status` answers
+    // snapshot carries (see collectPlayRunPageErrors), so the editor's `status` command answers
     // "did anything go wrong since play started" without a second command.
     // [] while stopped or when nothing threw.
     pageErrors: collectPlayRunPageErrors(),
@@ -606,14 +606,14 @@ export function collectState(
  * Two things must happen and neither used to: the caller is told what killed
  * its command (rather than timing out against a message about the tab), and
  * the failure is logged so it reaches `editorConsole` — which is what
- * `collectSessionErrors` reads, and therefore what `volter status` prints. The
+ * `collectSessionErrors` reads, and therefore what the editor's `status` command prints. The
  * browser's own `unhandledrejection` path did the second job only for the
  * FIRST occurrence, because the console capture dedupes an identical message.
  */
 export function commandThrewResult(cmd: EditorCommand, error: unknown): CommandResult {
   const message = error instanceof Error ? error.message : String(error);
   const text = `editor command "${String(cmd['type'])}" threw: ${message}`;
-  // biome-ignore lint/suspicious/noConsole: this IS the loud leg — editorConsole is fed by the console, and it is what `volter status` prints.
+  // biome-ignore lint/suspicious/noConsole: this IS the loud leg — editorConsole is fed by the console, and it is what the editor's `status` command prints.
   console.error(text, error);
   return { ok: false, error: text };
 }
@@ -635,7 +635,7 @@ function inPlayRun(timestamp: number): boolean {
   return window.endedAt === null || timestamp <= window.endedAt;
 }
 
-/** #146 — uncaught page errors from the CURRENT play run, for `volter status`
+/** #146 — uncaught page errors from the CURRENT play run, for the editor's `status` command
  *  and for `@volter/game`'s `bridge-call` snapshot, which imports it from here
  *  (the two must report the same set; the facet moves when Play does).
  *  Reads the editor console's 'runtime'-source error entries
@@ -703,7 +703,7 @@ function summarizeEntries(entries: readonly ConsoleEntry[]): { count: number; re
  *
  *  Measured defect this closes: a human watching the editor's browser console
  *  saw real errors — Content-tab story previews throwing `useRapier must be
- *  used within <Physics>` — while `volter status` reported `consoleErrors:
+ *  used within <Physics>` — while the editor's `status` command reported `consoleErrors:
  *  {count: 0}` and `pageErrors: []`. Nothing was wrong with either facet: both
  *  are fenced to a play run, and the ONLY funnel from a raw `console.error`
  *  into the store was play-mode's patch, installed at play start and removed at
@@ -838,7 +838,7 @@ export async function handleCommand(
     // `ThreeHostContext` not carrying an `EditorStore` — true, internal, and
     // about a mechanism the reader was never using. MEASURED on the
     // bubbo-bubbo canvas ingest: the real cause was a capture window spent on
-    // a hidden tab, and `volter play` reported the resolver's contract note,
+    // a hidden tab, and the editor's `play` command reported the resolver's contract note,
     // naming neither the game nor the reason. A failed mount is the answer to
     // "why can't I play this", whichever lane failed.
     const failures = getMountFailureReports();
@@ -1233,7 +1233,7 @@ export async function handleCommand(
     }
     case 'run-command': {
       // `editor.command(id, args)` — the ONE door to a command by id (U8's
-      // ruling 1: "so `volter eval` reaches it through the frame's command
+      // ruling 1: "so the editor's `eval` command reaches it through the frame's command
       // service"). Under the frame that IS `ICommandService`; standalone it is
       // the views registry, and `editor-commands.ts` owns both arms plus
       // the refusal that names the id shape that would have worked.
@@ -1800,7 +1800,7 @@ export function connectCommandListener(
   let playSettleTimer: ReturnType<typeof setTimeout> | null = null;
   let playCommandContentVersion: number | null = null;
   let playCommandContentTimer: ReturnType<typeof setTimeout> | null = null;
-  // A tombstone stops POSTing snapshots too. `volter status` reads the server's
+  // A tombstone stops POSTing snapshots too. the editor's `status` command reads the server's
   // last snapshot, so a corpse that kept reporting would keep MINTING
   // fresh-looking state for a session that no longer exists — the exact
   // impersonation the tombstone latch exists to end.
@@ -1894,7 +1894,7 @@ export function connectCommandListener(
    * current in the background.
    *
    * This is the path every interaction takes. The immediate POST is what keeps
-   * the "UI Play/Stop is visible to `volter status` immediately" contract and
+   * the "UI Play/Stop is visible to the editor's `status` command immediately" contract and
    * every other same-tick freshness promise in this file — playState, loop
    * liveness, selection, save state, presence and the error channels are all
    * derived fresh here. What it does NOT do is re-walk the hierarchy and
@@ -1954,7 +1954,7 @@ export function connectCommandListener(
   const scheduleStateReport = (needsFullRefresh: boolean) => {
     // One editor action commonly emits several store notifications. Collapse
     // that synchronous burst into one current snapshot without delaying it a
-    // frame — UI Play/Stop must be visible to `volter status` immediately even
+    // frame — UI Play/Stop must be visible to the editor's `status` command immediately even
     // though no relayed command caused the transition.
     if (needsFullRefresh) storeReportNeedsFullRefresh = true;
     if (storeReportScheduled) return;
@@ -1975,7 +1975,7 @@ export function connectCommandListener(
   const reportExternalChange = () => scheduleStateReport(true);
   const unsubscribeStoreReport = store.subscribe(reportStoreChange);
   // R1 — restart-required transitions don't flow through the store (they
-  // have their own listener set in play-mode.ts), but `volter status` readers
+  // have their own listener set in play-mode.ts), but the editor's `status` command readers
   // need `restartRequired` fresh even when NO editor command caused the
   // change (an external agent editing an R3F entry mid-play is exactly the
   // silent-staleness case R1 closes). Re-POST state on every transition.
@@ -1983,7 +1983,7 @@ export function connectCommandListener(
   // Same reason, for the ingest capture wait: it starts and ends outside any
   // store notification (a mount awaiting its game's first frame), and on a
   // hidden tab it can hold for as long as the human is away. Without this the
-  // server's snapshot would predate the wait entirely, so `volter status` would
+  // server's snapshot would predate the wait entirely, so the editor's `status` command would
   // answer "nothing is ingested" for a mount that is very much in flight. The
   // wait's OTHER transition — parked↔running as the tab hides and shows —
   // already re-POSTs through `reportPresence`'s `visibilitychange` listener.
@@ -2136,7 +2136,7 @@ export function connectCommandListener(
   window.addEventListener('blur', reportPresence);
 
   // pageErrors freshness (target-blaster friction #3): a runtime error
-  // between commands must reach the server snapshot too, or `volter status`
+  // between commands must reach the server snapshot too, or the editor's `status` command
   // reads stale-clean. Deferred a tick so the boot-installed error-capture
   // listener (`installEditorConsoleCapture`, which feeds editorConsole — the
   // list collectPlayRunPageErrors/collectSessionErrors read) runs FIRST regardless of

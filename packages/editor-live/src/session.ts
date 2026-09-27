@@ -141,7 +141,7 @@ function manifestRefusal(projectRoot: string, manifestError: string): Error {
 
 /**
  * Resolve `projectDir` (default `process.cwd()`) to the port of its already-
- * running `volter edit` session. Throws a descriptive error (never hangs
+ * running the editor's `edit` command session. Throws a descriptive error (never hangs
  * indefinitely — bounded by `EDITOR_SESSION_DISCOVERY_TIMEOUT_MS`, and never
  * silently attaches to an unrelated project's session — see the module doc
  * above) when no volter.project.json is found, or no live session covers it.
@@ -149,7 +149,7 @@ function manifestRefusal(projectRoot: string, manifestError: string): Error {
 /**
  * THE REFUSAL WHEN NOTHING MATCHED — and it says WHICH nothing.
  *
- * "No live editor session found … run `volter edit`" used to be the answer to
+ * "No live editor session found … run the editor's `edit` command" used to be the answer to
  * four different states, only one of which it described. The other three sent
  * the operator to start an editor that was already running:
  *
@@ -243,7 +243,7 @@ export async function resolveSession(
   let sessions: EditorSessionInfo[];
   // A FAILED discovery is not an empty one. Collapsing the two into `[]` is
   // what made this door answer "no live editor session found" — and prescribe
-  // `volter edit` — for a probe that merely timed out under load, sending the
+  // the editor's `edit` command — for a probe that merely timed out under load, sending the
   // operator to start an editor that was already running while the real defect
   // went unnamed. The same collapse the manifest refusal above was added for.
   let discoveryFailure: string | null = null;

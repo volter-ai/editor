@@ -127,7 +127,7 @@ export function creationSiteOf(o: unknown): CreationSite | null {
   return sites.get(o as object) ?? null;
 }
 
-/** `src/scripts/sim/city.js:59` — the text the inspector shows and `volter eval` reads. */
+/** `src/scripts/sim/city.js:59` — the text the inspector shows and the editor's `eval` command reads. */
 export function formatCreationSite(site: CreationSite): string {
   return `${site.file}:${site.line}`;
 }

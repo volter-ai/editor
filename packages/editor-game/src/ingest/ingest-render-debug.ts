@@ -284,7 +284,7 @@ export function wireIngestSystems(opts: {
   // (last writer wins), so this is the only place that may install it, and
   // anything needing the game's render pass multiplexes here rather than
   // opening a second seam. The second consumer is the same-frame canvas
-  // snapshot (`ingest-frame-snapshot.ts`) that makes `volter screenshot` readable
+  // snapshot (`ingest-frame-snapshot.ts`) that makes `volter-game-editor screenshot` readable
   // over a game whose canvas has no `preserveDrawingBuffer`; it costs nothing
   // until armed, and `deliverArmedIngestFrame` no-ops while no source is set —
   // which is the canvas lane's state, because a Pixi ingest is already

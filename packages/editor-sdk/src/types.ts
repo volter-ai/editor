@@ -176,7 +176,7 @@ export interface GameCapture {
   /** True when the host loop was starved and the runtime rendered one
    *  deterministic tick to produce this frame. */
   loopRecoveryFrame?: boolean;
-  /** Present when this frame came out of a RECORDED run (every `volter play`
+  /** Present when this frame came out of a RECORDED run (every the editor's `play` command
    *  records). The still is delivered either way; `notice` is the sentence
    *  naming the clip, its offset-0 wall clock, and what a still cannot answer —
    *  shown verbatim, never re-derived by the caller. */
@@ -313,7 +313,7 @@ export type AssetPreviewSource =
 export type AssetPreviewStage = 'lab' | 'scene';
 
 /**
- * A free capture camera for the Asset Lab legs (`volter screenshot`'s
+ * A free capture camera for the Asset Lab legs (the editor's `screenshot` command's
  * `--azimuth/--elevation/--distance`): ONE view from a chosen angle instead
  * of the fixed four. Angles are relative to the subject's AUTHORED front —
  * azimuth 0 photographs the declared front, 90 walks toward the side the
@@ -328,7 +328,7 @@ export interface AssetPreviewCameraChoice {
 }
 
 /**
- * Pose an animated subject before capturing (`volter screenshot`'s
+ * Pose an animated subject before capturing (the editor's `screenshot` command's
  * `--clip <name> --time <t>`): the named clip is sampled at `timeSeconds`
  * on the capture's disposable snapshot — the source is never mutated. The
  * capture fails loudly (naming the clips that DO exist) when the subject
@@ -372,7 +372,7 @@ export interface AssetPreviewCapture {
 }
 
 /**
- * The STORY lane (`volter screenshot <file>.stories.tsx`): a project CSF file's
+ * The STORY lane (the editor's `screenshot <file>.stories.tsx` command): a project CSF file's
  * exports rendered in the live session's DOM and captured through the same
  * composite leg the game lane uses, as ONE variant sheet per file. `story`
  * narrows to a single export. See
@@ -411,8 +411,8 @@ export interface StoryVariantCapture {
 }
 
 /**
- * B8.4 — the Asset Lab compare mode (`volter screenshot <model.glb>
- * --compare <ref.glb>`): the asset and a caller-supplied reference GLB rendered with
+ * B8.4 — the Asset Lab compare mode (the editor's `screenshot <model.glb>
+ * --compare <ref.glb>` command): the asset and a caller-supplied reference GLB rendered with
  * matched orthographic front + side framing (equal-height bounding-box
  * normalization, both yaw-normalized to face the camera), scored by
  * silhouette IoU with per-view overlay evidence (orange asset / cyan
@@ -445,7 +445,7 @@ export interface AssetCompareCapture {
 /**
  * THE shot-set contract. This block is the ONE declaration of it.
  *
- * A project-defined labeled shot set (`volter screenshot <target> --shots <set>`).
+ * A project-defined labeled shot set (the editor's `screenshot <target> --shots <set>` command).
  * The DEFINITION is project data: a registered project tool named
  * `project.<set>.previewShots` returns it (installed capabilities register
  * theirs — the bird, humanoid and walking-castle capabilities each contribute
@@ -595,7 +595,7 @@ export interface EditorState {
    * `kind` is how the bytes were obtained: a `release` is an extracted
    * `vscode-reh-web-*` package (its `BUILD.json` carries the commit), `sources`
    * is a fork checkout (`git rev-parse HEAD` is the commit). `dir` is what the
-   * project's `.volter/workbench.json` — or `volter edit --workbench` — named.
+   * project's `.volter/workbench.json` — or the editor's `edit --workbench` command — named.
    * `product` is the product whose workbench half is overlaid on those bytes
    * (P3): a workbench is built for ONE product, and the session refuses one
    * built for another than this project's before it spawns.
@@ -661,7 +661,7 @@ export interface EditorState {
    * The pending-restart reason when source changed while the game was
    * RUNNING and the running session is now stale (e.g. an R3F entry-file
    * write-back during play, a registry.ts edit). The editor's Restart button
-   * surfaces the same reason; one restart (`volter play`, or the button)
+   * surfaces the same reason; one restart (the editor's `play` command, or the button)
    * remounts every root from fresh source and clears it. `null` when the
    * running session is fresh; absent against an older server that predates
    * the field.
@@ -898,7 +898,7 @@ export interface EditorState {
    * browser-POSTed snapshot, so it is always current. A file appears here
    * ONLY while it is currently failing; a clean write removes its entry
    * (absence means "not known to be invalid", not "never checked"). Always
-   * present (`{}` when nothing is failing) so `volter status` consumers can
+   * present (`{}` when nothing is failing) so the editor's `status` command consumers can
    * read it unconditionally.
    */
   projectValidation?: Record<string, { errors: string[]; at: number }>;
@@ -911,7 +911,7 @@ export interface EditorState {
    * path, present only while the file currently warns, `{}` when clean.
    *
    * The server has sent this since the R3F authoring diagnostics landed; it
-   * was missing from this interface, so every typed consumer — `volter status`
+   * was missing from this interface, so every typed consumer — the editor's `status` command
    * included — could only reach it through a cast. Declared here so a caller
    * that wants to react to authoring warnings can see they exist.
    */
@@ -937,8 +937,8 @@ export interface EditorState {
    * gate was previously reported ONLY in the browser: an editor started on an
    * incompatible project serves happily (it activates nothing), so the tab
    * showed "This project is pinned to @volter/editor-project X, but this editor is
-   * running Y" while `volter status` reported a connected session with empty
-   * validation and `volter play` timed out into a retry message about the tab
+   * running Y" while the editor's `status` command reported a connected session with empty
+   * validation and the editor's `play` command timed out into a retry message about the tab
    * reloading. An agent drives this editor through the CLI, so a gate visible
    * only in pixels is invisible by construction.
    */
@@ -951,7 +951,7 @@ export interface EditorState {
    * open — server-computed (never part of the browser-POSTed snapshot,
    * exactly like `projectValidation` above), so it is always current. Added
    * so a watcher/relay holding only a port number (e.g. an agent that
-   * printed a `volter edit` URL earlier and lost track of which project it
+   * printed a the editor's `edit` command URL earlier and lost track of which project it
    * belongs to) can identify which project that port serves without also
    * reading the `~/.volter/editor-sessions.json` registry file. `null` when no
    * project is open (the in-repo "no project selected" default server
@@ -1439,7 +1439,7 @@ export interface InspectedSubjectLink {
 }
 
 /** The whole inspection subject, as data — what a human sees in the
- *  inspector, for an agent (`volter eval 'editor.inspect()'`). */
+ *  inspector, for an agent (the editor's `eval 'editor.inspect()'` command). */
 export interface InspectedSubject {
   id: string;
   title: string;

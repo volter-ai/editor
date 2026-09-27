@@ -74,7 +74,7 @@ export interface ProductWorkbench {
 export interface ProductIdentity {
   /** The package name — `@volter/game-editor`. */
   readonly name: string;
-  /** Its version, reported beside the workbench by `volter status`. */
+  /** Its version, reported beside the workbench by the editor's `status` command. */
   readonly version: string;
   /**
    * The command a person types to run it — the ONE key of its package.json

@@ -255,7 +255,7 @@ export function endProjectModuleSplitWatch(projectRoot: string): readonly Projec
 }
 
 /** What the last closed mount window found — `[]` on a healthy mount. Read by
- *  `command-listener.ts`'s `collectState` so `volter status` carries it. */
+ *  `command-listener.ts`'s `collectState` so the editor's `status` command carries it. */
 export function getProjectModuleSplitReports(): readonly ProjectModuleSplit[] {
   return reports;
 }

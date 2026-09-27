@@ -4,7 +4,7 @@
  *
  * ## Why this exists (WO: "No product door drives or reads EDITOR CHROME")
  *
- * `volter eval`'s `page()` step is play-mode-gated and rooted at the GAME
+ * the editor's `eval` command's `page()` step is play-mode-gated and rooted at the GAME
  * container, so an editor surface that is not a running game — a capability's
  * workspace document, the Data sheet, the Project Tools catalog — could be
  * neither driven nor read through the product at all. The Sheets build could

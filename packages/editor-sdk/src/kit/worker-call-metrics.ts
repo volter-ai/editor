@@ -1,5 +1,5 @@
 /**
- * A LANE'S WORKER STALLS, measured by the page and carried to `volter status`.
+ * A LANE'S WORKER STALLS, measured by the page and carried to the editor's `status` command.
  *
  * WHY (measured 2026-09-16): one Blender call held its worker for over 1,800s
  * and wedged the tab; the only report anyone got was a replay harness timing

@@ -30,7 +30,7 @@
  * before React mounts), so a consumer's first synchronous read already sees
  * the person's palette; the project layer reloads whenever the active
  * project changes. A file that does not parse is reported to the editor
- * console by path — an unresolved condition, so `volter console` carries it —
+ * console by path — an unresolved condition, so the editor's `console` command carries it —
  * and that layer reads as empty until it is fixed.
  *
  * ## UNDER THE CODE-OSS FRAME THIS MODULE IS THE FALLBACK, not the truth

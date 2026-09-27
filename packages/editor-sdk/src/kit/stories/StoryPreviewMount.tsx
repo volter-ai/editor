@@ -180,7 +180,7 @@ export async function mountIsolatedStory(
   // in that game's page-level stylesheet — without it the card renders real
   // DOM with zero layout, which reads as wreckage rather than as a component.
   // This is the ONE seam every story surface passes through (the UI board's
-  // cards, the story documents, `volter screenshot <file>.stories.tsx`), so
+  // cards, the story documents, the editor's `screenshot <file>.stories.tsx` command), so
   // marking the container here styles all of them; the sheet itself is
   // installed once per project, never per card (`scoped-game-css.ts`).
   // Deliberately awaited BEFORE the first render so a card never flashes

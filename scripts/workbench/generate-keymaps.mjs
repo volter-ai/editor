@@ -41,7 +41,7 @@
  *  The second exists for one reason: a keymap a PROJECT contributes (a capability's copied
  *  `*.keymap.ts`, which the project then owns and edits — `unreal.keymap.ts` is the shipped
  *  case) cannot be in a manifest built here. `volterKeyboard.ts` compares the project's active
- *  keymap against this list and says so in the volter console when it is not carried. A
+ *  keymap against this list and says so in the Volter console when it is not carried. A
  *  standing warning naming its mechanism, never a silent degrade.
  *
  *  DRIFT. Both artifacts carry the sha256 of every source they were generated from. Run
@@ -421,7 +421,7 @@ function whenFor(id, scope, keymapId) {
 // A rule here would take that back: an extension keybinding outweighs `undo`'s EditorCore
 // weight, so `volter.edit.undo` would win the chord with a stage focused and walk the editor's
 // OWN cursor instead - a second stack, which is precisely the defect U4 closes. The commands
-// stay registered because the editor's palette and `volter eval` still name them, and the
+// stay registered because the editor's palette and the editor's `eval` command still name them, and the
 // standalone shape (which never loads this extension) keeps its own chords unchanged.
 const UNBOUND_UNDER_THE_FRAME = new Set(['edit.undo', 'edit.redo']);
 
@@ -522,7 +522,7 @@ async function main() {
  *  \`extensions/volter-keymaps/package.json\`, which VS Code's own keymap-extension path
  *  (\`contributes.keybindings\`) resolves at load; this file is what \`volterKeyboard.ts\` needs in
  *  CODE: the command ids to register, and the keymap ids to compare the open project's choice
- *  against so a keymap the frame does NOT carry is a named warning in the volter console rather
+ *  against so a keymap the frame does NOT carry is a named warning in the Volter console rather
  *  than a keyboard that silently does nothing.
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write

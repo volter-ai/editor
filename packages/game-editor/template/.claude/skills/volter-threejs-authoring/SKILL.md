@@ -267,7 +267,7 @@ is `npx volter-game-editor screenshot`, and the module lane is the asset loop:
    the camera. The corollary is a real blind spot: an asset lane auto-frames
    its subject, so it can NEVER show you a wrong origin, a floating contact
    plane, or a scale that disagrees with the world. Only a scene shot can —
-   `npx volter-game-editor screenshot` with no target (play mode, whole stack) or `volter
+   `npx volter-game-editor screenshot` with no target (play mode, whole stack) or `volter-game-editor
    screenshot <entityId>` (one entity where it stands, under the scene's own
    lighting).
 

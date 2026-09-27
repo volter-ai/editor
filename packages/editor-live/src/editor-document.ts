@@ -28,7 +28,7 @@
  * active; `editor.hierarchy()` / `editor.inspect()` keep answering what those
  * panels RESOLVED, where this door answers what they DREW.
  *
- * A field on `LiveEditor` rather than methods on it, so `volter eval --list`
+ * A field on `LiveEditor` rather than methods on it, so the editor's `eval --list` command
  * shows the verbs as one named surface — the same reason `game.input`
  * and `game.events` are instance fields.
  */

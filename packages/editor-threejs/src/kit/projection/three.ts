@@ -76,7 +76,7 @@ export interface ThreeWalkStats {
    * object drawing N units — so `count`/`meshes` (and the hierarchy rows built
    * from the same nodes) report 1 where a reader sees N, with no error
    * anywhere, because both numbers are individually correct. These two fields
-   * are the only place the shortfall is expressible; `volter doctor`'s
+   * are the only place the shortfall is expressible; a probe's
    * instanced-content check reads exactly this pair
    * (`packages/editor/src/doctor/detection-gaps.ts`).
    */

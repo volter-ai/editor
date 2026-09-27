@@ -173,7 +173,7 @@
  * bundled `react-dom`, and `compose-project-stories.ts` composed them with the
  * editor's own bundled `@storybook/react`. Two React module instances: every
  * story render died on "Invalid hook call" — confirmed live in a package-native
- * project, where the Stories panel and the `volter screenshot` story lane were
+ * project, where the Stories panel and the the editor's `screenshot` command story lane were
  * both dead.
  *
  * ### `/__volter-r3f-runtime` (`R3F_DOORWAY`)

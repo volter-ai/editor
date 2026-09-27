@@ -20,9 +20,9 @@ export type ProjectViewResult = { ok: true; view: ProjectView } | { ok: false; e
  * just a loud one.
  *
  * The reason is rendered by `project-validation.ts`'s `errorsFor` — the same
- * `path.to.field: message` form the watcher's terminal/console/`volter status`
+ * `path.to.field: message` form the watcher's terminal/console/the editor's `status` command
  * legs already print — because this string is read by people and by agents:
- * the editor's startup-error screen, `volter sessions`, and `@volter/live`'s
+ * the editor's startup-error screen, the editor's `sessions` command, and `@volter/live`'s
  * refusal all quote it. A bare `ZodError.message` is a pretty-printed JSON
  * array of issue objects; it contains the failing key and hides it.
  */

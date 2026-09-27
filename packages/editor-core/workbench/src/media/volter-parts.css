@@ -21,7 +21,7 @@
 .monaco-workbench .volter-host-part select:focus-visible { border-color: var(--volter-accent); }
 .monaco-workbench .volter-host-part select[data-dynamic="true"] { border-color: var(--volter-dynamic); }
 /* The title bar is the volter header. THE STATUS BAR IS NOT HOSTED — it is the
-   workbench's own, and every volter status item is a real `IStatusbarService`
+   workbench's own, and every Volter status item is a real `IStatusbarService`
    entry in it (U8 step 7, `volterStatus.ts`). The two rules that used to live
    here hid `.items-container` and stretched a `.volter-status-host` over the
    whole 22px band, so those entries measured 0x0 and the bar's context menu

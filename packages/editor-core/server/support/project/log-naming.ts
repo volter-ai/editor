@@ -1,6 +1,6 @@
 /**
  * The play log's NAMING scheme, defined once. The dev server mints the files
- * in `routes/logs.ts`, and every downstream reader (`volter status`'s
+ * in `routes/logs.ts`, and every downstream reader (the editor's `status` command's
  * play-error banner, `@volter/sdk/build-discipline`'s evidence walk, the
  * pruner, the session catalog) sorts them lexicographically and expects
  * chronological order. Moved here from `server/recent-projects-store.ts`
@@ -35,7 +35,7 @@ export function playRunSlug(name: string | null | undefined): string | null {
  * A play session's JSONL filename.
  *
  * `play-<stamp>-<sequence>.jsonl` unchanged when the run is unnamed — that
- * shape is depended on by the newest-log readers (`volter status`'s play-error
+ * shape is depended on by the newest-log readers (the editor's `status` command's play-error
  * banner, `@volter/sdk/build-discipline`'s evidence walk) and by the pruner, all
  * of which sort lexicographically and expect chronological order.
  *

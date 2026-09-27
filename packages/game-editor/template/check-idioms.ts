@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 //   ERROR (exit 1 always) — unambiguous drift, one canonical fix each:
 //     E1. `playwright`/`@playwright/test` imported anywhere in the project —
 //         the resident tester (directed through its running game module via
-//         `volter eval`) is the ONE bot harness, and a
+//         `volter-game-editor eval`) is the ONE bot harness, and a
 //         hand-rolled browser boot is banned.
 //         VALUE imports only: a type-only import (`import type {Page}`, or
 //         an inline `{ type Page }` with no value specifier) binds nothing
@@ -105,7 +105,7 @@ import { fileURLToPath } from 'node:url';
 // E9 is the one rule that does NOT answer its question from the file tree
 // alone: the R3F00x codes come from the editor's own source analyzer
 // (`ui-source/r3f-project-contracts.ts`), the same pass validate-on-save and
-// `volter status` report from. It is loaded OFFLINE — the analyzer is a pure
+// `volter-game-editor status` report from. It is loaded OFFLINE — the analyzer is a pure
 // `(code, file) => diagnostics` function over `typescript`, with no dev
 // server, browser or editor session anywhere in it — through this project's
 // own `@editor/*` tsconfig mapping, so check-idioms never requires a running
@@ -347,7 +347,7 @@ function checkPlaywrightImports(): void {
         'error',
         'bot-canonical',
         `"${pkg}" imported — the resident tester, directed through the running game's own module, is the ONE bot harness; hand-rolled Playwright boots are banned.`,
-        "Drive the game through the live session (volter eval + the running tester module), or take the Playwright types from '@volter/game-live' as a type-only import.",
+        "Drive the game through the live session (volter-game-editor eval + the running tester module), or take the Playwright types from '@volter/game-live' as a type-only import.",
       );
     }
   }
@@ -380,7 +380,7 @@ function checkPackageJsonScripts(): void {
       'error',
       'bot-canonical',
       `script "${name}" invokes playwright directly ("${cmd}") — this project has no Playwright lane to own a browser binary or config.`,
-      `Delete the "${name}" script — playtesting is the live session (volter eval + the running tester module), not a script.`,
+      `Delete the "${name}" script — playtesting is the live session (volter-game-editor eval + the running tester module), not a script.`,
     );
   }
 }
@@ -393,7 +393,7 @@ function checkPackageJsonScripts(): void {
  *  file enters an endless cycle of rewriting assertions and actions (owner
  *  ruling, 2026-08-21 — measured live: three assertion renegotiations in
  *  twenty minutes on one balance suite). The playtest loop is INTERACTIVE:
- *  `volter eval` + cheats set the situation, bot policy runs behavior, event
+ *  `volter-game-editor eval` + cheats set the situation, bot policy runs behavior, event
  *  logs are read on an interval, and the run is redirected live until the
  *  operator is satisfied. The play log (logs/play-*.jsonl) is the receipt. This
  *  rule keeps the furniture out so the cheapest path stays the sanctioned
@@ -711,7 +711,7 @@ function checkTriggerNameIdentity(): void {
 // git-history plumbing shared by slice-proxy rules (W9)
 // ---------------------------------------------------------------------------
 // The volter CLI mirrors this exact measurement (source path, gameplay
-// pathspecs, threshold, silent-on-unaskable) as `volter status`'s ambient
+// pathspecs, threshold, silent-on-unaskable) as `volter-game-editor status`'s ambient
 // bot-drift line — engine repo, packages/volter-cli/src/instrumentation-signal.ts.
 // If you change any of the three constants below, change them there too, or
 // the ambient signal and this rule will disagree about whether a bot drifted.
@@ -1141,7 +1141,7 @@ function loadRegionSurfaces(): RegionSurfaces | null {
 function checkAuthoringWarnings(): void {
   const analyze = loadR3fAnalyzer();
   if (!analyze) {
-    // Silent for a folder that is not a volter project at all — this scanner
+    // Silent for a folder that is not a volter-game-editor project at all — this scanner
     // is pointed at scratch directories by its own tests and by curious
     // agents, and a rule about a missing tsconfig mapping is a rule about a
     // project. Inside a real project the mapping is scaffolded, so its
@@ -1470,7 +1470,7 @@ const warnFindings = findings.filter((f) => f.severity === 'warn');
  *
  * Measured failure: a blind probe ran `typecheck` seven times and this scanner
  * once, at minute 19, which turned every open finding into an end-of-build
- * scramble. `volter status` — the command an agent polls constantly — reads this
+ * scramble. `volter-game-editor status` — the command an agent polls constantly — reads this
  * file and surfaces the open ERROR findings as an advisory count, so they are
  * visible from the first status call while THIS script stays the gate.
  *

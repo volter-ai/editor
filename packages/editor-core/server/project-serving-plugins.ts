@@ -64,7 +64,7 @@ export interface PackagedOnlyServingOptions {
    * ONE three for the WHOLE page — the shell's. Packaged-only, same reason as
    * `sharedReactUrls`: the shell's inlined `three` and the project's prebundled
    * `three` are two module instances on one page, and three's own
-   * duplicate-instance guard warns (blocking `volter console`). The build
+   * duplicate-instance guard warns (blocking the editor's `console` command). The build
    * publishes the shell's three as a chunk; `sharedThreePlugin` points every
    * project-graph `three` import at its URL. `null` when this dist predates the
    * shared-three entry chunk (the host warns at boot). See

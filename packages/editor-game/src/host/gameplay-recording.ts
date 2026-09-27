@@ -1,6 +1,6 @@
 /**
  * Live gameplay recording over the SAME clean game compositor used by
- * `volter screenshot`: world canvases + DOM HUD, no editor chrome.
+ * `volter-game-editor screenshot`: world canvases + DOM HUD, no editor chrome.
  *
  * This is intentionally a browser primitive, not a CLI workflow. The page
  * owns `MediaRecorder` and the live pixels/audio, streams bounded chunks to
@@ -21,7 +21,7 @@
  * A counter for it was written, shipped and REMOVED in the same afternoon: it
  * keyed on `domOverlays === 0` and therefore reported a clean zero over clips
  * visibly missing their HUD. A measurement that can only ever say "fine" is
- * worse than none, so the limit is stated — here, and in the ack `volter stop`
+ * worse than none, so the limit is stated — here, and in the ack `volter-game-editor stop`
  * prints — rather than counted. Read the world layer as complete evidence and
  * the HUD as present-when-present.
  */
@@ -211,7 +211,7 @@ interface FrameClock {
  * `setInterval` on the page is the obvious pacer and it is the wrong one for
  * the case this recorder exists to serve. Chrome clamps a background tab's
  * timers to 1 Hz, and to roughly 1/min once the tab has been hidden for five
- * minutes — and an agent's `volter edit` tab is hidden BY DESIGN (worktree
+ * minutes — and an agent's `volter-game-editor edit` tab is hidden BY DESIGN (worktree
  * sessions open behind the human's window; see `after-paint.ts` for the same
  * fact stated for rAF). A 30 fps request would encode as a handful of frames.
  *
@@ -370,7 +370,7 @@ function samplePreviewFrame(recording: ActiveRecording, mediaTimeMs: number): vo
  *
  * The refusal this replaced ("show the editor tab, then start recording")
  * exempted exactly the sessions the recorder exists for: an agent's
- * `volter edit` tab opens behind the human's window and stays hidden for the
+ * `volter-game-editor edit` tab opens behind the human's window and stays hidden for the
  * whole run, so every unattended playthrough — the ones with no human to
  * describe what happened — would have produced no evidence at all. What a
  * hidden tab actually costs is two things, and both are handled rather than

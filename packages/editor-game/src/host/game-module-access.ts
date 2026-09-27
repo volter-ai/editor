@@ -1,6 +1,6 @@
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 /**
- * THE MODULE LANE of `volter eval` — reach the RUNNING mount's own module
+ * THE MODULE LANE of `volter-game-editor eval` — reach the RUNNING mount's own module
  * instances, by served path, using URLs retained by their owning realm.
  *
  * WHY THE MOUNT STAMP IS LOAD-BEARING. Project modules are served per mount
@@ -76,7 +76,7 @@ export function loadedGameModulePaths(instanceId: string): string[] {
 }
 
 /**
- * The `modules` binding of `volter eval`'s `game.run` scope and of the
+ * The `modules` binding of `volter-game-editor eval`'s `game.run` scope and of the
  * `game-eval` op — a RESOLVER, `modules('src/sim/host.ts')`, that also
  * ENUMERATES what it can resolve.
  *

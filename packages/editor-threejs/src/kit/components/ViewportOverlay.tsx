@@ -41,7 +41,7 @@ import { stageViewName } from './stage-view-name';
  * GRID is the stage's VIEW's switch (`overlays.grid.visible` in
  * `kit/viewport-presentation`, keyed by `documentId`): the one flag this
  * button, the document's header, the `toggle.grid` action, `set-grid` and
- * `volter status`'s `showGrid` all read and write.
+ * the editor's `status` command's `showGrid` all read and write.
  */
 export function ViewportOverlay({
   store,

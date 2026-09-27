@@ -149,7 +149,7 @@ const VIEW_VERB_COMMAND = /^volter\.([^.]+)\.(.+)$/;
  *
  * The workbench's `ICommandService` when it has landed; before that, the
  * views registry, reached through a DYNAMIC import so a module only a
- * `volter eval` reaches never joins the editor entry's static closure.
+ * the editor's `eval` command reaches never joins the editor entry's static closure.
  *
  * A refusal is always BY NAME. `invokeViewVerb` names the view's whole
  * vocabulary when it does not carry the verb (that refusal is the VIEW's, and

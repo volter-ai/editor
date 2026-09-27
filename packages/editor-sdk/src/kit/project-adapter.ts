@@ -31,7 +31,7 @@
  *      is exactly how every vendored game silently lost its scene table once.
  *      **A binding taken from here is NEVER silent**:
  *      the facet's `source` says `'registry'` and its `modulePath` names the
- *      repo file, so `volter status` reports whose declaration is running. A
+ *      repo file, so the editor's `status` command reports whose declaration is running. A
  *      project bound this way did not ship that table; the host did, and the
  *      user is entitled to read that off the same door as everything else;
  *   3. the project has NONE ⇒ it gets `nativeAdapter()`. **That absence IS the
@@ -52,7 +52,7 @@
  *
  * The resolved table is published as the `adapter` facet of `/__editor/state`
  * (`command-listener.ts`'s `collectState`), which is the minimal proof-of-load
- * client: `volter status` / `volter eval 'await editor.status()'` read which
+ * client: the editor's `status` command / the editor's `eval 'await editor.status()'` command read which
  * adapter loaded, its regions, and its scene table.
  *
  * The OBSERVATION table has one client and it is not the facet: the ingest
@@ -855,7 +855,7 @@ async function resolveAdapterDefinition(
       sources: _adapterSources.length,
     });
     // THE FACET IS NOT A DOOR THE USER READS. `error` reaches
-    // `/__editor/state` and `volter status` prints it, but `volter console` stayed
+    // `/__editor/state` and the editor's `status` command prints it, but the editor's `console` command stayed
     // SILENT while the editor showed a vendored game the native default's
     // scene table — measured live, 2026-09-19, by removing the wait above and
     // reading both doors. "Unresolved editor console is remaining work" is the

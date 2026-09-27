@@ -1,10 +1,9 @@
 /**
  * Data-asset integrity core — the PURE half of W5 enforcement ("dangling
  * `file#key` ref" / §6.7 build-path validation). No filesystem, no vite, no
- * zod: plain parsed-JSON in, findings out, so BOTH consumers — `volter
- * doctor`'s data checks (`packages/editor/src/doctor/data-checks.ts`) and the
- * build-time plugin (`./vite-plugin-data.ts`) — share one definition of "what
- * is a ref" and "what counts as dangling" and can never drift apart.
+ * zod: plain parsed-JSON in, findings out, so its consumers (the build-time
+ * plugin, `./vite-plugin-data.ts`, through `./data-ref.ts`) share one
+ * definition of "what is a ref" and "what counts as dangling".
  *
  * What is a ref (§2.2): a cross-asset reference is a plain string
  * `"file#key"` — optionally with a field path, `"tuning#economy.slotGrowth"`

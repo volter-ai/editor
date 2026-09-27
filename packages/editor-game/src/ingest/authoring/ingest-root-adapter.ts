@@ -650,7 +650,7 @@ export async function mountIngestGame(
     // boots in the background parks here instead of dying, with the trap still
     // installed, so the first frame after the human foregrounds the tab is the
     // captured one. `setCaptureWait` is what keeps that park from reading as a
-    // hung mount — `volter status` names it.
+    // hung mount — `volter-game-editor status` names it.
     rt = await capture.waitForCapture({
       timeoutMs,
       onWait: (wait) => setCaptureWait(game.id, wait),
@@ -797,7 +797,7 @@ export async function mountIngestGame(
     // well after `setPaused` returned. Nothing else would notify the store, and
     // `collectState` is push-based — the control API would keep serving a
     // snapshot taken before the measurement existed, reporting `loop: null`
-    // forever. Broadcast so `volter status` sees the verdict it just produced.
+    // forever. Broadcast so `volter-game-editor status` sees the verdict it just produced.
     onVerdict: () => store.shell.notifyIngestEdit(),
   });
   // The game's DECLARED system surface (`window.volterGame.systems`), projected

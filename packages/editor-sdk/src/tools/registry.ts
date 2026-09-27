@@ -135,7 +135,7 @@ export type ToolOutcome<TResult = unknown> =
  *     `Error`, or a non-Error throw — normalized into INTERNAL_ERROR. The
  *     raw exception/message is never used as the identifying `code`, but it
  *     IS carried in `message` as well as `data.message`: every projection
- *     (the CLI's `volter tool`, the oclif commands, `volter screenshot`'s module
+ *     (the CLI's `volter tool`, the oclif commands, the editor's `screenshot` command's module
  *     lane) shows `error.message` and only some of them dump `data`, so a
  *     `message` that said nothing but "threw an unstructured exception"
  *     hid the one sentence the caller needed ("No editor connected — open

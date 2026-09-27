@@ -24,7 +24,7 @@
  *
  * It owns assembly and the console door. Every family still derives itself, in
  * its own file, from its own facts; nothing here decides a verdict. The
- * per-family facets on `volter status` (`command-listener.ts`) stay separate for
+ * per-family facets on `volter-game-editor status` (`command-listener.ts`) stay separate for
  * the same reason they always were — a machine reader wants the rows keyed by
  * subject, and it is the HUMAN-facing sentence that has to be a union.
  */
@@ -90,7 +90,7 @@ export function sessionCoverageReport(
  *
  * Keyed on the rendered TEXT rather than a mount or project token, because the
  * union's inputs come and go inside one session (a root mounts, a design
- * session attaches, `volter add` lands a script) and the honest rule is "say it
+ * session attaches, `volter-game-editor add` lands a script) and the honest rule is "say it
  * when the answer changes". A recurrence after a real change is a new condition
  * and gets said again; the server ledger sums repeats of an unchanged one.
  */

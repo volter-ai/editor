@@ -22,7 +22,7 @@ npm run dev
 ```
 
 Playtest it live: direct the resident tester by goal from the session
-(`volter eval 'return game.command("bot.goal", "<behavior>")'` — the
+(`volter-game-editor eval 'return game.command("bot.goal", "<behavior>")'` — the
 repertoire lives in `src/bot/behaviors.ts`), arrange situations with the
 declared cheats, and read the emitted events. Play exercises ordinary
 gameplay through the real input bindings and writes the persisted play log

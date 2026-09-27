@@ -62,7 +62,7 @@ export interface VolterKeyboardBridge {
 		readonly documentKind: string | null;
 		readonly play: string;
 	};
-	/** Say something in the volter editor's OWN console, where `volter console` reads it —
+	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it —
 	 *  the frame's refusals belong in the session's ledger, not in a toast. */
 	report(level: 'warn' | 'error', message: string): void;
 }

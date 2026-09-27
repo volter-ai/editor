@@ -7,7 +7,7 @@
  * Colyseus room as an unowned "ghost" player that nothing ever removes. So the
  * tab has to supervise its server.
  *
- * The graceful case (a clean `volter close` sends a `tab-close` push) is handled
+ * The graceful case (a clean the editor's `close` command sends a `tab-close` push) is handled
  * elsewhere (tab-lifecycle-client.ts). This module is the UNGRACEFUL case that
  * push never reaches.
  *

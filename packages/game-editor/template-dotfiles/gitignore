@@ -11,7 +11,7 @@ dist-server/
 
 # Editor autosaved UI state (panel layout etc.) — local-machine ephemeral.
 # NOT the rest of .volter/: .volter/scaffold-baseline.json is committed project
-# state `volter upgrade` diffs against (packages/create-volter-project/src/baseline.ts),
+# state: the scaffold's record of the files it wrote (node/scaffold/baseline.ts),
 # and .volter/overlays/*.json + .volter/thumbnail.png + .volter/provenance.json +
 # .volter/generations.json are real project data too.
 .volter/editor-state.json
@@ -19,7 +19,7 @@ dist-server/
 # Which Code-OSS workbench THIS machine opens the project in — an absolute path
 # to an extracted release or a fork checkout, so it is a fact about this box and
 # never about the project. The product's `create --workbench <dir>` writes it;
-# `volter edit --workbench <dir>` overrides it for one launch.
+# `volter-game-editor edit --workbench <dir>` overrides it for one launch.
 .volter/workbench.json
 # The editor's chat panel: which agent harness this machine chose and its conversations.
 .volter/chat-selection.json
@@ -32,10 +32,10 @@ dist-server/
 .volter/captures/
 .volter/tmp/
 .volter/last-run/
-# `volter screenshot`'s default output directory — looking at the game is the
+# `volter-game-editor screenshot`'s default output directory — looking at the game is the
 # documented way to verify it, so an ordinary session leaves dozens of PNGs here.
 .volter/screenshots/
-# `volter play`'s gameplay video. EVERY play records, so this directory is
+# `volter-game-editor play`'s gameplay video. EVERY play records, so this directory is
 # written on every run — and it is bounded by design, not by cleanup: the
 # unnamed clip is one rotating file (play-latest.webm) that each play
 # overwrites, and `--record <name>` keepsakes are the user's own. Never
@@ -47,7 +47,7 @@ dist-server/
 # committing.
 .volter/prev-run/
 # The idiom scanner's last findings (check-idioms.ts writes it every run, and
-# `volter status` reads it so open ERROR findings surface from the first status
+# `volter-game-editor status` reads it so open ERROR findings surface from the first status
 # call instead of at handoff). A cache of a fact recomputable in under a
 # second — machine-local, never project state.
 .volter/check-idioms.json
@@ -61,7 +61,7 @@ dist-server/
 # the very dirty-file count the commit-cadence tripwire reports.
 .volter/tripwire-gate.json
 
-# `volter play`'s run logs (logs/play-*.jsonl — see packages/volter-cli/src/index.ts)
+# `volter-game-editor play`'s run logs (logs/play-*.jsonl — see packages/volter-cli/src/index.ts)
 logs/
 *.jsonl
 

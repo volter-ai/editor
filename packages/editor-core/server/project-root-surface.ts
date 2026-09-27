@@ -759,7 +759,7 @@ export function resolveOidSurface(
  * involved. Called by `server/project-validation.ts`'s `validateSource`, which
  * runs on every project source write and reports through the three surfaces
  * issue #103 established — the terminal, the editor console (the `server-log`
- * SSE event), and `/__editor/state` (what `volter status` prints).
+ * SSE event), and `/__editor/state` (what the editor's `status` command prints).
  *
  * Excludes `OID001`/`OID002` by construction: both need graph reach to be true,
  * and without a graph EVERY non-entry file looks unreachable — a warning on
@@ -815,7 +815,7 @@ const reportedDiagnostics = new Set<string>();
  * Print a decision's diagnostics to the dev server's terminal, once per
  * (file, code). `[ui-oid]` is the prefix the OID plugin's existing warnings
  * already use, so this lands in the same place an author is already reading
- * when `volter edit` is running.
+ * when the editor's `edit` command is running.
  */
 export function reportOidSurfaceDiagnostics(
   decision: OidSurfaceDecision,

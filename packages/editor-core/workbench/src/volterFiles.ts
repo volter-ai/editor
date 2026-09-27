@@ -83,7 +83,7 @@ export interface VolterFilesBridge {
 	/** Install the frame's file provider on `EditorHost.files`. Called once, after the mount,
 	 *  because the services it needs exist only inside the command's own invocation. */
 	setProvider(provider: VolterFileProvider): void;
-	/** Say something in the volter editor's OWN console, where `volter console` reads it. */
+	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
 

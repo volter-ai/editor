@@ -5,7 +5,7 @@
  * Which surface does launching the editor land on? The design fixes the order:
  *
  *   1. An EXPLICIT target always wins, and it is always the SESSION —
- *      `volter edit <path>` / `VOLTER_PROJECT` / the project browser all re-root
+ *      the editor's `edit <path>` command / `VOLTER_PROJECT` / the project browser all re-root
  *      the server, and the client asks it (rung 1b below). The hub never
  *      renders. (Already true before G5; preserved here as the first rung so
  *      the whole ladder reads in one place.)
@@ -94,7 +94,7 @@ export function resolveBootTarget(input: BootRoutingInput): BootTarget {
  * open. Everything else — an unreachable/failed `/__editor/project`, a
  * malformed answer, a server that IS serving a project whose manifest it could
  * not read — is "could not determine", and reading that as "no project" is what
- * dropped a project-serving session's tab onto the hub while `volter status` was
+ * dropped a project-serving session's tab onto the hub while the editor's `status` command was
  * still naming the project on that very port.
  *
  * Two failure shapes, kept apart because their remedies are:

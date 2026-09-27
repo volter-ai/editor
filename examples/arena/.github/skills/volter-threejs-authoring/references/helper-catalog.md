@@ -17,8 +17,8 @@ to see how a shipped shape was derived; nothing on main imports it.
 
 **Add a capability before you look for its source.** Everything under
 `src/lib/` below is a CAPABILITY, not scaffold contents — a fresh project has
-no `src/lib/` directory at all. Run `volter add <id>` to copy the source in as
-ordinary project files you own and edit; bare `volter add` lists every
+no `src/lib/` directory at all. Run `volter-game-editor add <id>` to copy the source in as
+ordinary project files you own and edit; bare `volter-game-editor add` lists every
 capability and marks what is already present.
 
 
@@ -79,7 +79,7 @@ color composite, and SMAA. Treat these as proven craft techniques and
 candidate copyable helpers, not automatic VOLTER runtime APIs.
 
 Its accepted typed source lived in `src/lib/stylized/` and `src/lib/castle/`;
-only `stylized` remains (`volter add stylized`, and none of it is in a fresh
+only `stylized` remains (`volter-game-editor add stylized`, and none of it is in a fresh
 scaffold) — the `castle` and `mesh` halves are deleted, at
 `archive/mesh-kit-capabilities-2026-09-19`. Edit only the helpers implicated by
 the project's real work. The portable GLB ink

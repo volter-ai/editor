@@ -5,13 +5,13 @@
  * against the checkout's engine version. This compares a `package.json` DEPENDENCY spec for a `@volter/*`
  * package against a target version. Project dependencies use normal semver,
  * so that spec may be a CARET range (`^0.2.0`) rather than an exact pin — the
- * two axes are independent by design (see upgrade.ts's module doc): the
+ * two axes are independent by design: the
  * manifest pin stays exact, the dependency spec keeps whatever form
  * (caret or exact) the project already used.
  *
  * Both endpoints are caller-supplied — never read from disk here — same
- * discipline as `compareEnginePin`/`currentEngineVersion` (upgrade.ts's
- * module doc), so tests and the CLI's own target-version resolution (§D,
+ * discipline as `compareEnginePin`/`currentEngineVersion`, so tests and the
+ * CLI's own target-version resolution (§D,
  * the baked-constant/`--to`/`ENGINE_ROOT` precedence) control both without
  * this module touching a filesystem.
  */
@@ -28,9 +28,8 @@ export interface DependencyVersionComparison {
    * The bare semver parsed out of `currentSpec`, when recognized (an exact
    * version or a caret-prefixed one). Undefined for anything else — a
    * legacy `file:` dependency, a `*`/`~`/other range — which is exactly
-   * `status: 'invalid'`; those specs are never rewritten by the re-pin step
-   * (`upgrade.ts`'s `rewriteDependencyVersions` skips any entry without a
-   * `currentVersion`).
+   * `status: 'invalid'`; those specs are never rewritten by a re-pin, which
+   * skips any entry without a `currentVersion`.
    */
   currentVersion?: string;
   /**

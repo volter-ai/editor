@@ -7,9 +7,9 @@
  * background — the normal human path — no longer burns its window unable to
  * draw. What it does instead is WAIT, potentially for as long as the human
  * takes to come back to the tab, and a wait is exactly the state every door
- * used to report as silence: nothing mounted, nothing failed, `volter status`
+ * used to report as silence: nothing mounted, nothing failed, `volter-game-editor status`
  * counting down a clock that was not running. So the wait is published:
- * `collectState`'s `ingestCaptureWait` carries it, and `volter status` prints
+ * `collectState`'s `ingestCaptureWait` carries it, and `volter-game-editor status` prints
  * "waiting for first visible frame — tab is hidden" instead of a countdown.
  *
  * A LIVE VIEW, never a snapshot — same rule as `IngestMount.realmLoopVerdict`
@@ -27,7 +27,7 @@
 import { notifyLiveSessionsChanged } from '@volter/editor-sdk/kit/live-session-registry';
 import type { VisibleCaptureWindow } from '@volter/threejs-runtime/adapter/ingest/visible-capture-window';
 
-/** The wait as `volter status` reports it. */
+/** The wait as `volter-game-editor status` reports it. */
 export interface CaptureWaitStatus {
   /** The world whose first frame is being waited for. */
   readonly worldId: string;

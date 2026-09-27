@@ -9,7 +9,7 @@
  * since the baseline is built after `scaffoldProject` finishes all of its
  * rewrite steps).
  *
- * `volter upgrade` (slice 2) uses this for three-way classification of a
+ * A template re-sync uses this for three-way classification of a
  * template re-sync: unchanged (hash still matches -> safe to update),
  * user-edited (hash differs -> never overwritten, diffed instead), or
  * both-moved. The hashing helper (`hashFile`) is kept pure and exported so
@@ -97,7 +97,7 @@ export function readEngineSourceState(engineDir: string): EngineSourceState | un
 
 /**
  * Pure sha256 hex digest of one file's contents. Exported (not just an
- * internal helper) because `volter upgrade` (slice 2) reuses it verbatim to
+ * internal helper) because a template re-sync reuses it verbatim to
  * hash the CURRENT project tree for comparison against a baseline recorded
  * here — the two must hash identically byte-for-byte or classification
  * would be unreliable.

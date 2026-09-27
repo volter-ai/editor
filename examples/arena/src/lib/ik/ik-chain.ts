@@ -6,7 +6,7 @@
  * the chain tip (effector) reaches a world-space target each frame,
  * refining the pose animation produced.
  *
- * Provided by the `ik` standard capability (`volter add ik`; general skeletal
+ * Provided by the `ik` standard capability (`volter-game-editor add ik`; general skeletal
  * animation — not humanoid-specific; any bone chain works). This copied source
  * is project-owned and may be extended for the game's actual rig.
  *

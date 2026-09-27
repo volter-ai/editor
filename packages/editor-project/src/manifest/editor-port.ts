@@ -1,7 +1,7 @@
 /**
  * The editor's built-in port fallback, and the paired HMR-socket derivation.
  *
- * ONE owner for the number, because it is spelled in a launcher (`volter edit`),
+ * ONE owner for the number, because it is spelled in a launcher (the editor's `edit` command),
  * three servers (dev / prod / packaged), and a client default — a duplicated
  * literal across those drifts silently.
  *

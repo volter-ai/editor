@@ -65,7 +65,7 @@ const DEFAULT_URL = 'http://127.0.0.1:20173';
  * `/__editor/command` has always answered `{ ok: false, error, code }` and
  * this client has always dropped the `code` on the floor, so every caller that
  * wanted to react to a specific refusal had to substring-match an English
- * sentence. `volter screenshot`'s loop-recovery fallback is the first caller that
+ * sentence. the editor's `screenshot` command's loop-recovery fallback is the first caller that
  * genuinely must branch (`BRIDGE_SCREENSHOT_STALE` has a working recovery;
  * "not in play mode" does not), and a fallback keyed on prose would fire on
  * the wrong failure the first time someone rewords the message.
@@ -84,7 +84,7 @@ export class EditorCommandError extends Error {
    * the receipt window closing unanswered, a beating-but-dead tab, and no tab
    * present at all. The last four can fail in milliseconds.
    *
-   * A caller that converges by retrying (`volter restart`) needs the distinction
+   * A caller that converges by retrying (the editor's `restart` command) needs the distinction
    * because a refusal the editor ANSWERED may go differently next time, while
    * a command the relay abandoned tells you nothing new on a second identical
    * attempt — and when the abandonment was a 120s budget, re-running it three
@@ -124,7 +124,7 @@ const UNDICI_DEFAULT_HEADERS_TIMEOUT_MS = 300_000;
 /**
  * Ceiling on {@link EditorClient.getUnresolvedConsole}. The CLI drains this
  * on every verb, including ones that never wait for a command envelope, so
- * a silent hang here would become a silent hang on `volter sessions`. The
+ * a silent hang here would become a silent hang on the editor's `sessions` command. The
  * server route is a plain in-process GET; 1.5s is already longer than it
  * should ever take.
  */
@@ -437,18 +437,18 @@ export class EditorClient {
 
   // --- Play control ---
 
-  /** `opts.seed` (D15/T-D15.6, objection-4 fix) — `volter play --seed <n>`'s
+  /** `opts.seed` (D15/T-D15.6, objection-4 fix) — the editor's `play --seed <n>` command's
    *  explicit config leg, relayed as `cmd['seed']`; `handleCommand`'s
    *  `'play'` case threads it into `enterPlayMode`'s highest-precedence seed
    *  argument (beats manifest.determinism.defaultSeed/?volter-seed=). Omitted,
    *  boot seeding falls back to that precedence unchanged.
    *
-   *  `opts.name` (`volter play --name <text>`) — an OPTIONAL label for this run,
+   *  `opts.name` (the editor's `play --name <text>` command) — an OPTIONAL label for this run,
    *  relayed as `cmd['name']` and slugified server-side into the run's
    *  `logs/play-*.jsonl` filename and its session-journal line. Findability
    *  only: no registry, no uniqueness, no lookup verb — grep and `ls` are the
    *  query engine. Omitted, the filename keeps its exact unnamed shape. */
-  /*  `opts.record` (`volter play --record <name>`) — NAMES this run's recording
+  /*  `opts.record` (the editor's `play --record <name>` command) — NAMES this run's recording
    *  file. It does not ENABLE recording: every relayed play records, with no
    *  flag (see `@volter/game`'s `src/play/play-recording.ts`). Omitted, the clip is named for
    *  the durable Gameplay Session; named, it becomes an explicit keepsake in
@@ -585,8 +585,8 @@ export class EditorClient {
   }
 
   /**
-   * Unit 4 (live-front-door wave) — capture the RUNNING GAME (`volter
-   * screenshot`'s wire leg). Sends the SAME `bridge-screenshot` relay op
+   * Unit 4 (live-front-door wave) — capture the RUNNING GAME (the editor's
+   * `screenshot`'s wire leg). Sends the SAME `bridge-screenshot` relay op
    * `@volter/live`'s `RelayTransport.screenshot` (and therefore
    * `game.screenshot()` on the relay path) already sends, so all three
    * surfaces composite the identical full game stack — canvas(es) plus the
@@ -606,7 +606,7 @@ export class EditorClient {
    * current. Setting this asks the relay to render exactly ONE deterministic
    * tick (`runTicks(1, {render:'last'})`) first — the same escape
    * `@volter/live`'s `RelayTransport.screenshot` has always used, which is why
-   * `volter eval` could recover these frames while `volter screenshot` could not.
+   * the editor's `eval` command could recover these frames while the editor's `screenshot` command could not.
    * Off by default: a caller who does not ask must never be handed a frame
    * that only exists because the capture drove the game.
    */
@@ -742,8 +742,8 @@ export class EditorClient {
         ...source,
         ...options,
       },
-      // Photographing changes nothing, and this is the relay `volter screenshot
-      // <module>` / `project.bake.preview` rides — the lane where a momentary
+      // Photographing changes nothing, and this is the relay the editor's `screenshot
+      // <module>` command and `project.bake.preview` ride — the lane where a momentary
       // transport failure cost a cold agent three probe modules.
       { retryTransport: true },
     );
@@ -758,7 +758,7 @@ export class EditorClient {
   }
 
   /**
-   * A project-defined labeled shot set (`volter screenshot <target> --shots <set>`):
+   * A project-defined labeled shot set (the editor's `screenshot <target> --shots <set>` command):
    * the DEFINITION travels with the command (project data — see
    * `AssetPreviewShotSetDefinition`; the CLI resolves it from the registered
    * `project.<set>.previewShots` tool), and the editor's generic
@@ -792,8 +792,8 @@ export class EditorClient {
   }
 
   /**
-   * B8.4 — score the asset against a reference GLB (`volter screenshot
-   * <model.glb> --compare <ref.glb>`): matched orthographic front + side silhouettes
+   * B8.4 — score the asset against a reference GLB (the editor's `screenshot
+   * <model.glb> --compare <ref.glb>` command): matched orthographic front + side silhouettes
    * (equal-height bounding-box framing, both yaw-normalized to face the
    * camera), per-view IoU numbers, and overlay evidence images. The
    * reference GLB's raw bytes travel base64 in the command; the editor
@@ -815,7 +815,7 @@ export class EditorClient {
   }
 
   /**
-   * The STORY lane (`volter screenshot <file>.stories.tsx`): every CSF export of
+   * The STORY lane (the editor's `screenshot <file>.stories.tsx` command): every CSF export of
    * one project story file rendered in the live session's DOM and captured
    * through the same composite leg {@link captureGame} uses, returned as
    * per-export images plus one variant sheet. `options.story` narrows to a
@@ -985,7 +985,7 @@ export class EditorClient {
    *
    * Under the Code-OSS frame this is the workbench's own `ICommandService`, so
    * any command id works: a view's `volter.<view>.<verb>`, an editor action's
-   * `volter.action.<id>`, or one of VS Code's own. Standalone `volter edit` has no
+   * `volter.action.<id>`, or one of VS Code's own. Standalone the editor's `edit` command has no
    * command service and answers the `volter.<view>.<verb>` shape directly off
    * the views registry, refusing anything else BY NAME.
    *

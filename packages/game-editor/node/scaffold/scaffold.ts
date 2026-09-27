@@ -221,8 +221,8 @@ function writeJson(path: string, data: unknown): void {
  * relocate it against that package's own installed root, rather than
  * assuming a fixed depth.
  *
- * Exported (not just an internal helper) so `volter upgrade`'s new-template
- * snapshot (`upgrade.ts`'s `reapplyScaffoldRewrites`) can reuse this EXACT
+ * Exported (not just an internal helper) so a template re-sync's new-template
+ * snapshot can reuse this EXACT
  * rewrite when mirroring `rewriteTsconfig`'s `files` array handling —
  * without it, the snapshot's `tsconfig.json` would never match a real
  * scaffolded project's rewritten `files` array, permanently
@@ -264,19 +264,19 @@ export function rewriteEngineRelativeFilePath(original: string, _engineRelPath: 
  * there, and is still wanted: it makes a scaffold reproducible rather than
  * "whatever the registry served that day".
  *
- * Exported so `volter upgrade`'s new-template snapshot (`upgrade.ts`'s
- * `reapplyScaffoldRewrites`) can reuse this EXACT pinning when mirroring
+ * Exported so a template re-sync's new-template snapshot
+ * can reuse this EXACT pinning when mirroring
  * `rewritePackageJson`'s handling of `package.json` — without it, the
  * snapshot's `package.json` would keep the template's floating dependency
  * ranges while a real scaffolded project's `package.json` has them pinned
  * to this checkout's exact installed versions, permanently misclassifying
  * `package.json` as `template-updated` on every run (found via a real
- * create + `volter upgrade` end-to-end smoke test).
+ * create-then-re-sync end-to-end smoke test).
  *
  * `fallbackDir`: a second directory to read
  * BOTH the engine's declared dependency names and each shared dep's
  * installed version from, tried whenever the `monoRoot`-rooted read fails.
- * Only `volter upgrade`'s snapshot builder passes this (as the PROJECT
+ * Only a template re-sync's snapshot builder passes this (as the PROJECT
  * directory being upgraded) — `rewritePackageJson`'s real scaffold-time
  * call site never does, since a freshly-scaffolded project has no
  * `node_modules` of its own yet.
@@ -298,8 +298,8 @@ export function rewriteEngineRelativeFilePath(original: string, _engineRelPath: 
  * the NEW template's declared range for that dep (this function runs before
  * anything else touches a shared-dep line — see both call sites: at real
  * scaffold time `deps` comes straight from the freshly-copied template, and
- * in `upgrade.ts`'s `reapplyScaffoldRewrites` it comes from the freshly-copied
- * NEW-template snapshot). If a future engine/template release WIDENS a
+ * in a template re-sync it comes from the freshly-copied NEW-template
+ * snapshot). If a future engine/template release WIDENS a
  * shared range (e.g. `three: "^0.170.0"` -> `"^0.180.0"`) while the project
  * being upgraded still has the OLDER version installed, blindly pinning to
  * the installed version overwrites the new, wider range with the old exact
@@ -472,7 +472,7 @@ function readEngineDependencyNames(engineDir: string): Set<string> | undefined {
 
 /**
  * Read `packageName`'s installed version from `<monoRoot>/node_modules`.
- * Exported (not just an internal helper) so `volter upgrade`'s CLI call site
+ * Exported (not just an internal helper) so a template re-sync's CLI call site
  * (`packages/volter-cli/src/index.ts`) can default `currentEngineVersion` from
  * `readInstalledVersion(monoRoot, '@volter/editor-project')` — the SAME resolution
  * `rewriteGameManifest`/`pinSharedDependencyVersions` use at scaffold time —
@@ -777,8 +777,8 @@ function rewritePackageJson(
 }
 
 /**
- * Exported so `volter upgrade`'s new-template snapshot (`upgrade.ts`'s
- * `reapplyScaffoldRewrites`) can reuse the exact package-native roots that a
+ * Exported so a template re-sync's new-template snapshot
+ * can reuse the exact package-native roots that a
  * fresh scaffold writes. Keeping one definition prevents upgrade snapshots
  * from drifting from newly created projects.
  */
@@ -919,7 +919,7 @@ function rewriteGameManifest(
  * This runs after a successful install, reads the version the project
  * ACTUALLY got, and rewrites the pin — plus the scaffold baseline's
  * `engineVersion` and the manifest's recorded hash, so pristine-baseline
- * classification (`volter upgrade`) still sees the manifest as unchanged. A
+ * classification (a template re-sync) still sees the manifest as unchanged. A
  * `file:`-linked dev scaffold resolves to the checkout's own version, so
  * this is a no-op there.
  *
@@ -964,13 +964,13 @@ export function repinEngineAfterInstall(targetDir: string): { from: string; to: 
  * dependencies (`engineDependencySpec` above writes `^<version>`), so its own
  * `npm install` fetches `@volter/editor-core` from the REGISTRY — even when the CLI
  * that scaffolded it is this checkout's. `@volter/editor-core` is where the
- * CAPABILITY CATALOG lives, and `volter add` copies from the catalog of
+ * CAPABILITY CATALOG lives, and `volter-game-editor add` copies from the catalog of
  * whichever distribution answers (`catalogDistributionDir()` in
  * `packages/volter-cli/src/index.ts`, resolved from the RUNNING CLI's own root
  * — and a project's `npm run volter` runs the project's OWN
  * `node_modules/.bin/volter`, which the scaffold's package.json scripts point
  * every other verb at). Measured on a minutes-old scaffold, 2026-08-20:
- * `volter add unity-compat` copied capability 0.22.0 while this checkout's
+ * `volter-game-editor add unity-compat` copied capability 0.22.0 while this checkout's
  * catalog was at 0.29.0 — seven versions of the day's work silently absent,
  * with nothing to notice it by, because the PACKAGE version was 0.5.22 on
  * both sides. `removeCapabilities`'s doc in ./catalog.ts measured the same
@@ -1196,7 +1196,7 @@ export function pointUnpublishedPackagesAtCheckout(projectDir: string, monoRoot:
  * r15-blocky entry): `scaffoldProject` ran {@link
  * pointUnpublishedPackagesAtCheckout} AFTER `addCapabilities`, so a project's
  * `package.json` already said `"@volter/editor-blender": "file:<checkout>"` — and a
- * LATER `volter add <capability that requires it>` computed the desired `0.1.0`
+ * LATER `volter-game-editor add <capability that requires it>` computed the desired `0.1.0`
  * from the catalog entry, saw a different existing value, and threw
  * `Capability mesh requires dependencies.@volter/editor-blender=0.1.0, but the project
  * package.json already set …=file:…`. Unpinning to `0.1.0` then 404s, because
@@ -1344,7 +1344,7 @@ export function linkCheckoutPackages(
  * A composition's product and lanes are a REPLACEMENT, not an addition: the
  * base template is the game editor's full set, and a modeling scaffold must
  * end up with the model editor and none of the game editor's lanes — two
- * products in one project is a refusal `volter edit` states by name.
+ * products in one project is a refusal `volter-game-editor edit` states by name.
  *
  * WHICH of the template's `@volter/*` are "editor-side" is read from the KIT's
  * side, the only side a library may name: everything the kit itself puts in a
@@ -1611,8 +1611,8 @@ function rewriteViteConfig(targetDir: string): void {
 
 /**
  * The pure text rewrite behind {@link rewriteViteConfig} — exported so
- * `volter upgrade`'s new-template snapshot (`upgrade.ts`'s
- * `reapplyScaffoldRewrites`) applies the exact same transformation. Engine,
+ * a template re-sync's new-template snapshot
+ * applies the exact same transformation. Engine,
  * editor, P2P, and config-time data imports are package-native already and
  * therefore need no checkout-relative rewriting.
  */
@@ -1630,11 +1630,11 @@ export function rewriteViteConfigContent(content: string): string {
  * which copy an `examples/<id>/vite.config.ts` that mostly does NOT ship it
  * (`examples/r3f-first-party/vite.config.ts` is the one exception, already
  * deduping `three`/`react`/`react-dom` for the equivalent react-world
- * reason). `rewriteViteConfigContent` is also the exact function
- * `upgrade.ts`'s `reapplyScaffoldRewrites` reuses to build the new-template
- * snapshot for 3-way classification, so an existing project with an
- * unmodified `vite.config.ts` picks up the dedupe automatically on `volter
- * upgrade` (classified `template-updated`); a hand-edited `vite.config.ts`
+ * reason). `rewriteViteConfigContent` is also the exact function a template
+ * re-sync reuses to build the new-template snapshot for 3-way
+ * classification, so an existing project with an unmodified
+ * `vite.config.ts` picks up the dedupe automatically on a re-sync
+ * (classified `template-updated`); a hand-edited `vite.config.ts`
  * is classified `user-edited` and left alone, same as any other
  * user customization.
  *

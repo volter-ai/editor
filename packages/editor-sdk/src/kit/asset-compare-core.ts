@@ -1,6 +1,6 @@
 /**
- * B8.4 — pure math for the Asset Lab compare mode (`volter screenshot
- * <model.glb> --compare <ref.glb>`): silhouette masks, IoU, the overlay pixel recipe,
+ * B8.4 — pure math for the Asset Lab compare mode (the editor's `screenshot
+ * <model.glb> --compare <ref.glb>` command): silhouette masks, IoU, the overlay pixel recipe,
  * forward-facing normalization, and the equal-height placement that lets a
  * procedural humanoid be scored numerically against a reference GLB.
  *

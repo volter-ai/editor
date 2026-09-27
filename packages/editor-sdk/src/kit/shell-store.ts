@@ -588,7 +588,7 @@ export class ShellStore implements ShellDocumentState {
    *
    * The other question has its own door and only one caller may use it:
    * `reported-play-state.ts`'s `deriveReportedPlayState`, which resolves the
-   * live session slots and is what `collectState` (`volter status`) reports. If
+   * live session slots and is what `collectState` (the editor's `status` command) reports. If
    * you are about to send this value outside the editor, you want that instead.
    */
   get playState(): 'stopped' | 'playing' | 'paused' {

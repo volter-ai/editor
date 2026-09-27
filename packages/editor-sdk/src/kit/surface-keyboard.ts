@@ -5,7 +5,7 @@
  *
  * The documented rule is "game input only fires while play is running AND the
  * Game tab is active" (the repo's CLAUDE.md, §Play-mode input isolation), and
- * standalone `volter edit` those two clauses are the whole truth: the editor page
+ * standalone the editor's `edit` command those two clauses are the whole truth: the editor page
  * IS the surface, so a keystroke that reaches it was meant for it. Under the
  * frame (WORK.md §The core is Code-OSS, U2) the page is a VS Code workbench and
  * our stage is ONE EDITOR PANE in it. A person typing into Monaco in the group

@@ -578,8 +578,8 @@ async function mountCanvasIngestRootInner(
   const stage = mount.stage as Container;
   // The game's async setup may add display objects after its first captured frame —
   // wait for the stage to settle. `nextPaint()` rather than a bare rAF because
-  // this mount is awaited by `volter play`: in a hidden tab (every agent-worktree
-  // `volter edit` opens one — see `after-paint.ts`) no frame ever arrives, so a
+  // this mount is awaited by `volter-game-editor play`: in a hidden tab (every agent-worktree
+  // `volter-game-editor edit` opens one — see `after-paint.ts`) no frame ever arrives, so a
   // bare chain hangs this bounded loop on iteration 1 and play stalls in its
   // boot phase with nothing to report.
   for (let i = 0; i < 90 && (stage.children?.length ?? 0) === 0; i++) {

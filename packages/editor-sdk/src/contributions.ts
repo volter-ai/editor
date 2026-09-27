@@ -240,7 +240,7 @@ export interface ToolContributionProps {
   /**
    * Present with `documentId`. Hand the host the ONE object this document
    * edits through — its live session — and `editor.document.run(ctx => …)`
-   * (`volter eval`) runs a step against it in Edit mode, without play: the
+   * (the editor's `eval` command) runs a step against it in Edit mode, without play: the
    * agent's REPL over the document. Re-publish whenever that object changes
    * (a reload that swaps a session); the return value unpublishes.
    */

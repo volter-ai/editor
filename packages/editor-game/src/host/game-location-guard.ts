@@ -16,7 +16,7 @@
  * naming the game, the exact assignment, and this mechanism. Refused, never
  * swallowed — a silent no-op would make "the quit button does nothing" an
  * unexplainable bug, and the console line is a real product door
- * (`volter status` reports page console errors).
+ * (`volter-game-editor status` reports page console errors).
  *
  * `hash` is deliberately NOT refused: it changes the URL without leaving the
  * document, and games use it for their own state.

@@ -135,7 +135,7 @@ export interface SceneCaptureOptions {
    * forever, and the real world that renders one frame later reaches no reader
    * at all. This is that reader. It never changes which world is adopted — it
    * makes the ambiguity a recorded fact (`packages/editor/src/world-adoption.ts`
-   * publishes it to `volter status`).
+   * publishes it to `volter-game-editor status`).
    *
    * Post-processing games legitimately render several (scene, camera) pairs per
    * frame, so alternates are INFORMATION, never an error. Host renders are
@@ -810,7 +810,7 @@ export function installSceneCapture(
         waiters.push(wrapped);
         waitingVisibility = opts.visibility ?? documentVisibilityClock();
         opts.onWait?.(captureWindow);
-        // A waiter that starts already-hidden (the normal `volter play` path
+        // A waiter that starts already-hidden (the normal `volter-game-editor play` path
         // against a backgrounded tab) must not wait for a human to foreground
         // it. Pump any loop the game has already registered.
         queueMicrotask(pumpHiddenLoops);

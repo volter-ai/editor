@@ -16,7 +16,7 @@ import { detectServerProject, getCurrentProject } from './project-manager';
  * The safety comes from an ordering invariant one level up instead:
  * `EditorProvider` calls `bootstrapProject()` in its RENDER BODY, so every
  * descendant lifecycle — Play's binding on the store's arrival, the `?play=1`
- * autoplay effect, `connectCommandListener`'s `volter play` relay — observes an
+ * autoplay effect, `connectCommandListener`'s the editor's `play` command relay — observes an
  * already-armed gate, and `DefaultEditorLayout` additionally SUSPENDS on the
  * same promise via `use(useEditorInit())`. Moving that call into a `useEffect`
  * would break this silently (effects run child-first), which is why the

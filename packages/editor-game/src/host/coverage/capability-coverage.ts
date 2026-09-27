@@ -276,7 +276,7 @@ export interface WriteReachFacts {
    * reads healthy while every one of the 12 belongs to one lane and a whole
    * other lane — a world's physics-placed cargo, or its level-data records —
    * goes unwritten and unexercised. A per-kind tally is what makes an
-   * exhaustive walk possible; `volter doctor`'s edit-write phase is its reader.
+   * exhaustive walk possible.
    *
    * Optional, because callers older than the vocabulary supply none and a
    * fabricated zero for every kind would read as a measurement.
@@ -1571,7 +1571,7 @@ export function formatCapabilityCoverageBlocks(
  * The console door, ONCE PER MOUNT.
  *
  * The report is derived on demand (the status facet re-derives it on every
- * read, so `volter status` never serves a verdict older than the question), which
+ * read, so `volter-game-editor status` never serves a verdict older than the question), which
  * makes "print it" a thing that could happen many times — per status poll, per
  * re-render, in the limit per frame. The guard is a mount token: the same
  * mount's report is emitted once and then never again, and a NEW mount emits

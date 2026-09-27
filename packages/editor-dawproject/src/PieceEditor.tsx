@@ -45,7 +45,7 @@ const button: CSSProperties = {
 };
 
 /**
- * What this document publishes for the agent's REPL (`volter eval` → `editor.document.run`): the
+ * What this document publishes for the agent's REPL (`volter-game-editor eval` → `editor.document.run`): the
  * piece as it currently renders and the transport. Getters, so a step always reads the live value.
  */
 export interface PieceDocumentContext {

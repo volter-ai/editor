@@ -53,7 +53,7 @@
  * the write-back ban becomes IDENTITY-scoped, not just location-scoped: the
  * `/vendor/` regex above only protects the repo's OWN vendored trees, but
  * wave 2 lets an `ingest-react` world live in ANY external, user-owned
- * folder (`volter edit <folder>`) — an ingested-as-is foreign game there would
+ * folder (`volter-game-editor edit <folder>`) — an ingested-as-is foreign game there would
  * otherwise be silently stamped/writable, reopening the never-modify-game-
  * source rule by location rather than by identity. `nearestManifestExcludesIngestReact`
  * walks up from a candidate `.tsx`'s own directory to the NEAREST

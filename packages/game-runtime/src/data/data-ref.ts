@@ -3,7 +3,7 @@
  *
  * Cross-asset references (`"enemies#goblin"`, `"tuning#economy.slotGrowth"`)
  * have been DETECTED and VALIDATED since W5 (`data-check-core.ts`'s
- * `DATA_REF_PATTERN` + `findDanglingDataRefs`, enforced by both `volter doctor`
+ * `DATA_REF_PATTERN` + `findDanglingDataRefs`, enforced by both a probe
  * and the build plugin) — but nothing could actually RESOLVE one at runtime,
  * and nothing declared a field AS a ref in its schema (detection was by
  * string-shape convention alone). This module closes both halves:

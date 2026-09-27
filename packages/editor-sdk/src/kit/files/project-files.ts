@@ -4,7 +4,7 @@
  *
  * Under the FRAME this is VS Code's `IFileService`/`ITextFileService` over the
  * workspace folder, installed as a provider by the Code-OSS bridge. Under the
- * HOST — standalone `volter edit`, and the hosted browser build — it is today's
+ * HOST — standalone the editor's `edit` command, and the hosted browser build — it is today's
  * transports, and this module is the ONE place that says which transport owns
  * which path. That statement used to be spread across five files' doc
  * comments; it is written down once, here, because the fragmentation is the

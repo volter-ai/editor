@@ -228,7 +228,7 @@ export function isServableFsPath(path: string): boolean {
  * Measured 2026-08-20: the missing-module 404 below fired on
  * `react_jsx-dev-runtime.js` and `react-dom_client.js` mid-optimization, so the
  * editor shell never got React, the page sat on "Opening project…" forever, and
- * `volter doctor` waited out its whole budget for a play control that could never
+ * A probe waited out its whole budget for a play control that could never
  * mount. */
 export function isViteDepCachePath(path: string): boolean {
   return path.split(/[\\/]+/).some((segment) => segment.toLowerCase().startsWith('.vite'));
@@ -824,7 +824,7 @@ export { type CommandResult, relayCommandTimeoutMs };
  * The long budgets above are for the WORK — a game's async `setup()`, a
  * teardown chain, a sheet of rasterized stories. They were also, silently,
  * the budget for DELIVERY: a tab that stopped answering the SSE command
- * channel altogether made `volter play` sit for the full 120 seconds and then
+ * channel altogether made the editor's `play` command sit for the full 120 seconds and then
  * report "Command timed out — editor connected but did not respond", a
  * sentence that names no cause and no remedy (this file's own note above
  * records the same message sending a real investigation looking for a dead
@@ -1009,7 +1009,7 @@ export function unacknowledgedCommandMessage(context: UnacknowledgedCommandConte
  * module loads, while the listener that actually executes commands attaches
  * much later (`connectCommandListener`, once the whole React graph is up). So a
  * page can beat, hold a live socket, count as PRESENT and BLESSED — and be
- * unable to run anything. During the incident this comes from, `volter status`
+ * unable to run anything. During the incident this comes from, the editor's `status` command
  * answered happily for eight minutes about a session in exactly that state; the
  * only way to learn the truth was to issue a command and watch it hang.
  *
@@ -1026,7 +1026,7 @@ export interface CommandListenerFacts {
   readonly lastReceiptAt: number | null;
 }
 
-/** The standing health verdict `volter status` prints per tab. */
+/** The standing health verdict the editor's `status` command prints per tab. */
 export type CommandListenerHealth = 'ready' | 'not attached' | `silent since ${string}`;
 
 /**
@@ -1042,7 +1042,7 @@ export type CommandListenerHealth = 'ready' | 'not attached' | `silent since ${s
  * The grace before "silent" is {@link RELAY_DELIVERY_ACK_MS}, deliberately the
  * same window the relay itself waits for a receipt: a command relayed 50ms ago
  * has not had time to be acknowledged, and calling that silence would make the
- * field cry wolf on every healthy `volter play`.
+ * field cry wolf on every healthy the editor's `play` command.
  */
 export function commandListenerHealth(
   facts: CommandListenerFacts,
@@ -1072,7 +1072,7 @@ export function commandListenerHealth(
  *  unsuppressable "Failed to load resource: 400" console error for every
  *  non-2xx subresource, so an editor panel's 700 ms `bot.status` poll flooded
  *  the editor console (~1.4 lines/s, all play long) — the exact channel the
- *  dev-tools warning backstop and `volter status` report from — and no
+ *  dev-tools warning backstop and the editor's `status` command report from — and no
  *  try/catch on the caller can silence the browser's own network log. The
  *  timeout stays 504: no-editor/no-answer is a genuine gateway condition,
  *  and rare enough that its console line is signal. */

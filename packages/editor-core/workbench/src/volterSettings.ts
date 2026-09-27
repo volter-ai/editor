@@ -103,7 +103,7 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
  * window did not cover.
  *
  * `files.autoSaveDelay` IS DELIBERATELY INCLUDED, and it SHADOWS a person's own value while a
- * volter project is open. That is the point rather than an oversight: the delay is the LENGTH of
+ * Volter project is open. That is the point rather than an oversight: the delay is the LENGTH of
  * the window in which a volter write is refused, so a cross-project "save after 30 seconds" is a
  * thirty-second hole in this project's authoring. The value is the workbench's OWN default, so
  * what a person gets here is VS Code's normal behaviour and nothing invented. A project that
@@ -197,7 +197,7 @@ export interface VolterSettingsBridge {
 	/** Fires when the adapter's declaration changes — a project opening, an adapter module
 	 *  loading or unloading, the active look changing. Returns the unsubscribe. */
 	subscribe(listener: () => void): () => void;
-	/** Say something in the volter editor's OWN console, where `volter console` reads it. */
+	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 	/** Show one EVENT-shaped message to the person, through the editor's `notify()` door —
 	 *  which under this frame is `INotificationService` (`volterNotifications.ts`). Not
@@ -364,7 +364,7 @@ export class VolterSettings extends Disposable {
 	private async applyOnce(): Promise<void> {
 		try {
 			// The workbench keys FIRST, so a project's adapter that somehow declares one of them
-			// wins — the project's own code outranks this file's claim about what a volter project
+			// wins — the project's own code outranks this file's claim about what a Volter project
 			// needs, which is the same precedence the layers already state.
 			const declared = new Map<string, unknown>(WORKBENCH_ADAPTER_VALUES);
 			// THE LOOK'S OWN (U9), before the adapter's for the same precedence reason: what the

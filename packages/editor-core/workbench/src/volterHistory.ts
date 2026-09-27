@@ -30,7 +30,7 @@
  *     returns truthy, so returning false with a stage focused would hand ⌘Z to Monaco's
  *     implementation and undo a keystroke in a text editor the person is not looking at —
  *     exactly the wrong-stack defect this unit exists to close. So a focused stage ALWAYS
- *     handles ⌘Z, and when it has nothing to undo it says so in the volter console, by name.
+ *     handles ⌘Z, and when it has nothing to undo it says so in the Volter console, by name.
  *
  *  3. SCOPES that ⌘Z to THE FOCUSED DOCUMENT, which is the fix for "Component-view Ctrl+Z acts
  *     on the MAIN scene's history" (WORK.md §The core is Code-OSS, U4's absorb list). The
@@ -77,10 +77,10 @@ export interface VolterHistoryBridge {
 	/** WHICH DOCUMENT has the stage, so a ⌘Z there can only reach edits made IN it. */
 	focusedDocument(): { id: string; label: string } | null;
 	/** Hand the editor the frame's OWN undo: its Edit menu ("Undo Set position"), its
-	 *  palette and `volter eval`'s undo verb all call the editor's `edit.undo`, and under
+	 *  palette and the editor's `eval` command's undo verb all call the editor's `edit.undo`, and under
 	 *  the frame every one of them has to reach THIS stack. */
 	setDelegate(delegate: { undo(): boolean | Promise<boolean>; redo(): boolean | Promise<boolean>; canUndo(): boolean; canRedo(): boolean; undoLabel(): string | null; redoLabel(): string | null }): void;
-	/** Say something in the volter editor's OWN console, where `volter console` reads it. */
+	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
 
@@ -148,7 +148,7 @@ export class VolterHistory extends Disposable {
 		this._register(UndoCommand.addImplementation(PRIORITY, 'volter-stage', async () => { await this.run('undo'); }, stageFocused));
 		this._register(RedoCommand.addImplementation(PRIORITY, 'volter-stage', async () => { await this.run('redo'); }, stageFocused));
 
-		// The editor's OWN undo affordances (its Edit menu, its palette, `volter eval`) now run
+		// The editor's OWN undo affordances (its Edit menu, its palette, the editor's `eval` command) now run
 		// this same resolution rather than the editor's cursor, so there is one answer to
 		// "undo" however it is asked for. `canUndo`/`canRedo` are what enable those items.
 		bridge.setDelegate({

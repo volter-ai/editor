@@ -630,7 +630,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       // pending job names, at the moment it runs it. See
       // `provider-credentials.ts`'s header — this five-second timer used to
       // sweep every provider's Keychain item on the first tick of every
-      // session, which is a stack of unlock prompts per `volter edit`.
+      // session, which is a stack of unlock prompts per the editor's `edit` command.
       await reconcileGenerationJobs(projectRoot, loadProjectModule, 3, account);
     } catch (error) {
       broadcast('server-log', {
@@ -647,7 +647,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   const compatibilityIdentity = (): EditorServerCompatibility => {
     // Unlike source bytes, project-local npm links can change without a file
     // event the engine watcher observes. Re-evaluate them on the reuse
-    // handshake so `volter edit` restarts a server from checkout A after the
+    // handshake so the editor's `edit` command restarts a server from checkout A after the
     // project is relinked to checkout B, instead of composing both identities.
     const workspaceIdentityError = checkoutWorkspaceIdentityError(
       engineRoot,
@@ -688,7 +688,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   // prove themselves by heartbeat.
   //
   // The table exists for EVERY session, including a headless one. Presence is
-  // not a maintenance feature — it is how the relay and `volter status` know
+  // not a maintenance feature — it is how the relay and the editor's `status` command know
   // whether anybody is home — and a `--no-open` session that a person later
   // opens the URL on must see that tab and take its commands. What the flag
   // turns off is `maintain`: this session enforces one tab and never OPENS
@@ -742,7 +742,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   /**
    * The tab table's transport. It exists even for a `--no-open` session (no
    * bijection controller at all): presence is not a maintenance feature, it
-   * is how `volter status` and the relay know whether anybody is home, and a
+   * is how the editor's `status` command and the relay know whether anybody is home, and a
    * headless session that a person later opens the URL on must still see
    * that tab. Beats with no controller to feed simply have nowhere to land.
    */
@@ -788,7 +788,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       // EVERY local page shares the host's tab table. A participant id is
       // localStorage per browser PROFILE, and `open <url>` lands in whichever
       // profile window the owner last touched — so a tab opened by a later
-      // `volter edit` routinely carries a participant id the first tab never
+      // the editor's `edit` command routinely carries a participant id the first tab never
       // had. Giving that id its own lifecycle split one tab's facts across
       // two tables: its heartbeat reached the host table (beats carry no
       // participant), its control channel reached the new table, and the

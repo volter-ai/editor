@@ -1212,7 +1212,7 @@ export class HarnessChatService {
       if (!controller) throw new Error('Volter Harness is unavailable.');
       if (!this.managedRuntime || this.managedRuntime.closed) {
         // REOPENING A PROJECT RESUMES ITS LAST SESSION, it does not start a second one.
-        // `volter close` ends the runtime with the session, so without this every reopen
+        // the editor's `close` command ends the runtime with the session, so without this every reopen
         // handed the panel a FRESH Claude session and the person's own conversation was
         // gone — measured: close, reopen, and the Chat view came back empty while the
         // extension's status door listed a brand new runtime id.

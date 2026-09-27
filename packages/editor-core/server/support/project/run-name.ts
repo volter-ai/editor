@@ -1,10 +1,10 @@
 /**
  * What a run is CALLED — one owner of the bound.
  *
- * WHY THIS EXISTS. `volter play --name <text>` exists so a run is findable by
+ * WHY THIS EXISTS. the editor's `play --name <text>` command exists so a run is findable by
  * what it was testing.
  *
- * WHAT STAYS UNNAMED, deliberately: interactive `volter play` with no `--name`.
+ * WHAT STAYS UNNAMED, deliberately: interactive the editor's `play` command with no `--name`.
  * A person pressing play is not testing a named thing, and inventing a label
  * for it would put noise in exactly the directory this makes greppable.
  *

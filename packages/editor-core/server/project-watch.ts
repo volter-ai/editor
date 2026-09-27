@@ -105,7 +105,7 @@ export interface ProjectWatch {
   readonly close: () => Promise<void>;
 }
 
-/** Does a manifest (as read, unvalidated) declare any root — anything `volter play`
+/** Does a manifest (as read, unvalidated) declare any root — anything the editor's `play` command
  *  could run? A models project declares `roots: []`. */
 function manifestDeclaresRoots(manifest: unknown): boolean {
   const roots = (manifest as { roots?: unknown } | null)?.roots;
@@ -119,7 +119,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   // P20 — the OTHER half of the load clock. `lastIndexRequestAt` (the server's)
   // says when the running document loaded; these say when bytes under
   // `public/` last moved. A write that POSTDATES the load is the divergence
-  // `volter restart` used to paper over: `restart` remounts every root from
+  // the editor's `restart` command used to paper over: `restart` remounts every root from
   // fresh SOURCE, and re-running module-scope loaders against a page-lifetime
   // asset cache (Pixi `Assets`, three's loader caches) can hand the remounted
   // world the OLD bytes with nothing reporting it. Naming the divergence is
@@ -412,9 +412,9 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   // ---- Build-discipline tripwires on the save event (P53) ----
   //
   // "This work has been uncommitted for 40 minutes" and "this session has
-  // never once played the game" used to reach an agent through `volter status`
+  // never once played the game" used to reach an agent through the editor's `status` command
   // and nowhere else. Measured on a blind probe: a 17-minute build ran the
-  // editor, `playtest` and `eval` and invoked `volter status` ZERO times, so
+  // editor, `playtest` and `eval` and invoked the editor's `status` command ZERO times, so
   // neither banner had a delivery path and the build still landed as one
   // end-of-run commit. The mechanisms were right; "a building agent polls
   // status constantly" was false.
@@ -771,7 +771,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       // when. This watcher is the door rather than the project-outputs writer
       // (`project-output-writer.ts`) deliberately: the writer sees only the
       // batches that go through it, while this sees the bytes actually
-      // landing — a bake through the outputs door, a `volter add` copy, and a
+      // landing — a bake through the outputs door, a the editor's `add` command copy, and a
       // hand-written file all stamp the same way, because what matters
       // downstream is that the running document's caches predate them.
       publicAssetsLastChangedAt = Date.now();

@@ -4,7 +4,7 @@
  * `PlayBar` renders two different transports — the native one (title "Play
  * (run game)") and the ingest one (label "Run ingested game") — and anything
  * outside the component that needs to find "the play control" was matching a
- * LABEL. `volter doctor` polled for the native string as its editor-readiness
+ * LABEL. A probe polled for the native string as its editor-readiness
  * boundary and therefore waited out its whole timeout budget on every ingest
  * project, which renders the other one (SimCity ingest dogfood, S-6).
  *

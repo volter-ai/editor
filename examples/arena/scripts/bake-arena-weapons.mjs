@@ -78,7 +78,7 @@ const volter = (argv, options = {}) =>
     child.on('exit', (code) => done({ code, out }));
   });
 
-// Reuse-or-start. `volter sessions` names the projects that are live; anything
+// Reuse-or-start. `volter-game-editor sessions` names the projects that are live; anything
 // else is this script's to start and this script's to close.
 const listed = await volter(['sessions']);
 const alreadyLive = listed.out.includes(project);

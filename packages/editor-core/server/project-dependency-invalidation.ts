@@ -5,7 +5,7 @@ import type { ProjectModuleLoader } from './project-tools';
 /**
  * Makes a live editor session see dependencies installed UNDER it.
  *
- * The problem, measured: `volter add mesh` copies `src/lib/mesh/**` in and runs
+ * The problem, measured: the editor's `add mesh` command copies `src/lib/mesh/**` in and runs
  * `npm install three-bvh-csg …`, but a session that is already running keeps
  * failing every Node module-lane call with
  * `Cannot find module 'three-bvh-csg' imported from …/src/lib/mesh/modifiers.ts`
@@ -24,12 +24,12 @@ import type { ProjectModuleLoader } from './project-tools';
  *
  * That also explains the two things the symptom report noted. Editing the
  * importing file "fixes" it, because an HMR invalidation drops the module
- * node together with its rejected promise. And `volter restart` does not, because
+ * node together with its rejected promise. And the editor's `restart` command does not, because
  * it re-issues `play` to the browser and never touches this Node process.
  *
  * The fix is to perform that same invalidation when the project's dependency
  * set moves. This is checked ON USE rather than from a file watcher on
- * purpose: `volter add` installs and returns, and the next thing a caller does
+ * purpose: the editor's `add` command installs and returns, and the next thing a caller does
  * is run the tool. A debounced watcher races that window; a fingerprint read
  * at load time cannot.
  */
@@ -38,7 +38,7 @@ import type { ProjectModuleLoader } from './project-tools';
  * Files whose contents define which packages a project has. `package.json`
  * alone is not enough — a bare `npm install` that only writes the lockfile
  * still changes what is resolvable — and the lockfile alone is not enough
- * either, since `volter add` merges dependencies into `package.json` first.
+ * either, since the editor's `add` command merges dependencies into `package.json` first.
  */
 export const DEPENDENCY_MANIFEST_FILES = [
   'package.json',

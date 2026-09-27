@@ -73,7 +73,7 @@
      These go out on the control connection the bootstrap already holds,
      falling back to a POST exactly like editor-presence.ts's `sendControl`
      does for a tunnelled tab. The server journals them and serves them
-     back on `/__editor/state` — a plain GET — so `volter status` answers with
+     back on `/__editor/state` — a plain GET — so the editor's `status` command answers with
      no listener, no module graph, and no cooperation from the page beyond
      this handler. */
   const pendingPageErrors = [];
@@ -180,7 +180,7 @@
     pageGeneration: epoch,
   });
   /* Only a page that is not the editor's own sends this; the tab table
-     keeps it so `volter status` can name the page instead of guessing. */
+     keeps it so the editor's `status` command can name the page instead of guessing. */
   if (pageSurface) query.set('surface', pageSurface);
   /* The tab's control channel. Downstream it looks exactly like an
      EventSource (same named events, same `data` strings). Upstream it
@@ -188,7 +188,7 @@
      route — so they never queue behind a module flood in the browser's
      per-origin HTTP connection pool. That queueing is what made a cold
      boot's blocked main thread indistinguishable from a dead tab on
-     2026-08-09: five `volter play` commands were refused as "not picked
+     2026-08-09: five the editor's `play` command commands were refused as "not picked
      up" and every one of them ran later.
 
      `duplex` is granted by the SERVER, never assumed: the share tunnel's
@@ -473,11 +473,11 @@
 
      The beat is what PROVES a tab to the server (server/tab-presence.ts),
      so a page that keeps beating after its session ended stays present,
-     stays blessed, and `volter edit` answers "focused" instead of opening a
+     stays blessed, and the editor's `edit` command answers "focused" instead of opening a
      real tab — a corpse holding the session's one tab slot. Measured on
      this box, 2026-08-15: a page that had painted the "session ended"
-     notice went on beating under the same tabId across a `volter close` and
-     a fresh `volter edit`, so the new server blessed it and every command
+     notice went on beating under the same tabId across a the editor's `close` command and
+     a fresh the editor's `edit` command, so the new server blessed it and every command
      had nowhere to go.
 
      Stopping the beat is the whole withdrawal: the table departs the tab
@@ -568,7 +568,7 @@
      here, replayed by editor-presence.ts once a real consumer subscribes.
      `editor-command` belongs on this list for the same reason the tab-*
      events do, and its absence was a silent command loss: the event
-     dispatched to zero listeners and left no trace, so `volter play` was
+     dispatched to zero listeners and left no trace, so the editor's `play` command was
      refused for a tab that never saw the command. Capped because a tab
      whose consumer never arrives must not grow this without bound. */
   /* `tab-reload` is the ONE instruction that is not buffered, because it is
@@ -589,7 +589,7 @@
 
      Measured 2026-09-21 on a first open of an untrusted folder: the page is a
      tab from the moment it loads (the frame's activation bootstrap) while the
-     workbench is still asking whether the person trusts it, so `volter close`
+     workbench is still asking whether the person trusts it, so the editor's `close` command
      reached a tab whose consumer was never coming — the instruction went onto
      a queue nobody drains, the session waited out its two seconds and exited
      with "tab … did not acknowledge", and the browser was left showing a

@@ -40,7 +40,7 @@
  *
  * Both halves were bought by one measured failure. A `.catch(() => false)`
  * latch turned a single unreachable fetch — a mount landing in the window
- * while `volter edit` restarts its dev server, which it does on any
+ * while the editor's `edit` command restarts its dev server, which it does on any
  * server-file change — into a page where EVERY doorway
  * (`three-ingest-runtime`, `canvas-entry-runtime`, `r3f-entry-runtime`,
  * the two story runtimes, `binding-resolver`'s react

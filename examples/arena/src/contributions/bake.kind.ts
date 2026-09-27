@@ -6,7 +6,7 @@
  *
  *   { "id": "cube-glb", "kind": "bake", "modulePath": "src/models/cube.ts", "name": "cube" }
  *
- * and `volter build cage-glb` (or Export) bakes it. This module is a plain
+ * and Build Profiles (Export) bakes it. This module is a plain
  * object the HOST registers; it mounts no UI.
  */
 

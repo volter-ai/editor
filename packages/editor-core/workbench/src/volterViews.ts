@@ -8,7 +8,7 @@
  *  verb per view: under the frame every one of our views is a VS Code view in a view
  *  container, and its state and verbs are reached through `volter.<view>.<verb>` commands the
  *  bridge dispatches into the view — the same one-name door as every other verb, so
- *  `volter eval` reaches it through the frame's command service.
+ *  the editor's `eval` command reaches it through the frame's command service.
  *
  *  ARGUMENTS ARE THE VIEW'S. A command here passes its argument object straight through: what
  *  an argument MEANS belongs to the view, and a registry that validated them would be a second
@@ -36,7 +36,7 @@ export interface VolterViewsBridge {
 		readonly verbs: readonly { readonly id: string; readonly title?: string }[];
 	}[];
 	/** Run one. Throws with the view's own refusal, which the command re-throws so the caller
-	 *  — `volter eval` through the command service, or the palette — sees the sentence. */
+	 *  — the editor's `eval` command through the command service, or the palette — sees the sentence. */
 	invoke(view: string, verb: string, args?: Record<string, unknown>): unknown;
 	/** Fires when a view registers or unregisters its verbs. */
 	subscribe(listener: () => void): () => void;

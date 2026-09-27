@@ -1,11 +1,11 @@
 /**
  * THE SESSION OWNS THE FRAME. This module is where it does.
  *
- * `volter edit` IS the Code-OSS workbench, and the workbench is two things: the
+ * the editor's `edit` command IS the Code-OSS workbench, and the workbench is two things: the
  * remote extension host (a child process, serving the VS Code page) and the
  * one-origin proxy (a listener in THIS process, `frame-proxy.ts`). Both belong
  * to the session, which is the only owner that can be right: they exist to
- * serve this project's session, they must die when it does, and a `volter edit`
+ * serve this project's session, they must die when it does, and a the editor's `edit` command
  * that merely REUSES a live session must not have to adopt somebody else's
  * children.
  *
@@ -13,15 +13,15 @@
  *  - OWNER: this session process. It spawns the REH into its own process group
  *    and listens for the proxy itself.
  *  - SHARERS: none. The CLI allocates the two reserved ports and hands them
- *    over; after that it owns nothing of the frame. A second `volter edit` on
+ *    over; after that it owns nothing of the frame. A second the editor's `edit` command on
  *    this project reuses the session and therefore reuses the frame.
  *  - THE ONE TEARDOWN: the host's shutdown task list (`dev.ts`/`packaged.ts`'s
- *    `createProcessShutdown`), which is the same path `volter close`, SIGTERM and
+ *    `createProcessShutdown`), which is the same path the editor's `close` command, SIGTERM and
  *    the idle timer all take — the path that already ends run configurations.
  *    Nothing else may stop it.
  *
  * WHERE THE WORKBENCH IS comes from the project's own declaration
- * (`.volter/workbench.json`) or `volter edit --workbench <dir>`; the CLI resolves it
+ * (`.volter/workbench.json`) or the editor's `edit --workbench <dir>` command; the CLI resolves it
  * once to refuse early and passes the directory here. `@volter/editor-sdk/session/
  * workbench-locator` is the one resolver and the one set of refusal texts.
  */
@@ -77,7 +77,7 @@ export function frameWorkbenchUrl(launch: FrameLaunch, projectRoot: string): str
 }
 
 export interface FrameWorkbench {
-  /** What this session is running, for `EditorState.workbench` and `volter status`. */
+  /** What this session is running, for `EditorState.workbench` and the editor's `status` command. */
   readonly identity: WorkbenchIdentity;
   readonly url: string;
   /**
@@ -92,7 +92,7 @@ export interface FrameWorkbench {
    * `/__editor/*` call it makes, the tab-close ACK BEACON included, arrives
    * here first. So it closes with the HTTP server, AFTER the tab-close notice,
    * and not with the child above. Measured 2026-09-21: closing it beside the
-   * child turned every `volter close` from `session-end-acked … ms 26` into
+   * child turned every the editor's `close` command from `session-end-acked … ms 26` into
    * `session-end-unacked … ms 2002` — the page was told, closed itself, and
    * its beacon had nowhere to land.
    */
@@ -213,11 +213,11 @@ export async function startFrameWorkbench(options: {
   };
   // 2 s between SIGTERM and SIGKILL, not `stopProcess`'s 5 s default: this
   // runs as ONE TASK of the session's shutdown list, which bounds each task at
-  // 4 s so the whole shutdown fits inside `volter close`'s 5.5 s grace. The
+  // 4 s so the whole shutdown fits inside the editor's `close` command's 5.5 s grace. The
   // escalation must COMPLETE inside that window — the REH is detached into its
-  // own process group, so the group SIGKILL `volter close` sends at 5.5 s never
+  // own process group, so the group SIGKILL the editor's `close` command sends at 5.5 s never
   // reaches it, and a REH that outlives this process is an orphan on the
-  // reserved `frame` port that refuses the next `volter edit` by name (measured
+  // reserved `frame` port that refuses the next the editor's `edit` command by name (measured
   // 2026-09-21 under load average ~30).
   const stopServer = (): Promise<void> => stopProcess(reh, 2_000);
   const stop = async (): Promise<void> => {

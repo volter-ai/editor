@@ -472,7 +472,7 @@ const activeDocumentContent = activeDocumentContainer;
  * A BLACK FRAME IS NOT AN ANSWER — the refusal text when a document holding a
  * live three ingest's own canvas photographs blank, or `null` when it did not.
  *
- * MEASURED (`volter doctor public/ingest/three-clipping-intersection`): the Game
+ * MEASURED (a probe of public/ingest/three-clipping-intersection): the Game
  * document came back "~100% one flat surface (#000000)" and the walk filed it
  * as that ingestion's play evidence until the flatness measure caught it.
  *
@@ -607,7 +607,7 @@ export async function captureActiveEditorDocument(
     // contentless frame (`sampleFlatness`), and `ActiveDocumentCapture`
     // declares the field — this door simply dropped it, so a blank-white
     // headless play frame came back through it looking exactly like a good
-    // one. `volter doctor` files that frame as an ingestion's evidence, so a
+    // one. A probe files that frame as an ingestion's evidence, so a
     // degenerate capture that cannot say so is a capture that lies.
     ...(composite.flatness ? { flatness: composite.flatness } : {}),
   };

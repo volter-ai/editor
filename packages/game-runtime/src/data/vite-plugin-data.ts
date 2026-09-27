@@ -2,7 +2,7 @@
  * `volterDataCheck` — build-path validation for data assets and project tools (the
  * enforcement half of W5). A Vite plugin for the PROJECT's own `vite.config.ts`
  * (the template wires it; the editor dev server boots Vite from the ENGINE's
- * config and never runs this — its surface is covered by `volter doctor` instead).
+ * config and never runs this — its surface is covered by a probe instead).
  * Build-only (`apply: 'build'`): in dev, `defineData`'s parse-on-load already
  * fails loud in the console.
  *
@@ -19,7 +19,7 @@
  *    place project Zod schemas can run.
  * 2. **Ref integrity** (`buildStart`): every `file#key(.field)*` string in
  *    every `src/data/*.data.json` (registered or not) must resolve — shared
- *    definition with `volter doctor` via {@link findDanglingDataRefs}, so the
+ *    definition with a probe via {@link findDanglingDataRefs}, so the
  *    two surfaces can never disagree about what "dangling" means. A second,
  *    narrower ref check runs alongside it for REGISTERED assets only: any
  *    field declared with `dataRef(target)` (`./data-ref.ts`) whose `target`

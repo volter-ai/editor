@@ -4,7 +4,7 @@
  *
  * It reads the session's own singletons plus two project files the browser
  * cannot read for itself, and hands the facts to the pure derivation. The
- * report goes out the doors coverage already uses — `volter status`'s
+ * report goes out the doors coverage already uses — `volter-game-editor status`'s
  * `projectCoverage` facet, and the editor console via
  * `coverage/session-coverage.ts`, which unions this family with the other two
  * so one headline counts them all. No new transport, no new panel: the console
@@ -59,7 +59,7 @@ let _filesFor: string | null = null;
 
 /**
  * Drop the cached file facts so the next read re-asks the dev server. Called
- * on `volter restart` (a restart is precisely "my project's files changed —
+ * on `volter-game-editor restart` (a restart is precisely "my project's files changed —
  * re-read them"; the probe-measured failure was the dependency detector
  * grading rows against a package.json edit two restarts old) and by tests.
  */
@@ -148,7 +148,7 @@ export function projectVerbFacts(): ProjectVerbFacts | null {
 
 /**
  * The `project.*` report for the open project, re-derived on every read — the
- * scripts a project declares change while it is open (`volter add` writes them),
+ * scripts a project declares change while it is open (`volter-game-editor add` writes them),
  * so a cached answer would start lying.
  */
 export function projectVerbCoverage(): CapabilityCoverageReport | null {

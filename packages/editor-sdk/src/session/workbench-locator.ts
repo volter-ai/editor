@@ -1,7 +1,7 @@
 /**
  * WHICH CODE-OSS WORKBENCH A PROJECT OPENS IN — one declaration, one resolver.
  *
- * `volter edit` is the workbench. The workbench itself is not in this repository
+ * the editor's `edit` command is the workbench. The workbench itself is not in this repository
  * and is not published to a registry yet, so the one thing a project must state
  * is WHERE the bytes are:
  *
@@ -12,7 +12,7 @@
  * in `<project>/.volter/workbench.json`. `--workbench <dir>` overrides it for one
  * invocation. There is deliberately NO env var, NO setting and NO search path:
  * a machine-local path that decides which editor a person gets belongs in the
- * project's own machine-local file, where `volter status` can report it and a
+ * project's own machine-local file, where the editor's `status` command can report it and a
  * second person can read it, not in whichever shell happened to start the
  * session.
  *
@@ -93,7 +93,7 @@ export interface WorkbenchIdentity {
   /** The Code-OSS fork commit these bytes are. */
   readonly commit: string;
   /** The product whose workbench half is overlaid on them — `model-editor`,
-   *  `game-editor`. Reported beside the commit by `volter status`. */
+   *  `game-editor`. Reported beside the commit by the editor's `status` command. */
   readonly product: string;
 }
 

@@ -2,13 +2,13 @@
  * WHICH PRODUCT THIS SESSION IS SERVING — the session's half of the resolution
  * the CLI already did.
  *
- * `volter edit` resolves the product from the project's own dependencies
+ * the editor's `edit` command resolves the product from the project's own dependencies
  * (`@volter/editor-sdk/session/product-locator`) so a bad or missing declaration
  * is named before a server exists, then hands the directory over in
  * `VOLTER_PRODUCT_DIR`, beside `VOLTER_WORKBENCH_DIR`. The session reads it back
  * for the two things only it can do: SERVE the product's entry through
  * `/__editor/served-modules`, and REPORT it (`EditorState.product`, printed by
- * `volter status` on the workbench's line) — a process reports what it is running.
+ * the editor's `status` command on the workbench's line) — a process reports what it is running.
  *
  * A session started without the variable resolves from the project itself
  * rather than guessing, so `npx tsx packages/editor/server/dev.ts` by hand

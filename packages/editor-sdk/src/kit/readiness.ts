@@ -17,7 +17,7 @@
  *     stated this" is a visible fact rather than silence.
  *
  * Published as the `readiness` facet of `/__editor/state`
- * (`command-listener.ts`'s `collectState`), which is what `volter status` reads.
+ * (`command-listener.ts`'s `collectState`), which is what the editor's `status` command reads.
  */
 
 import type {

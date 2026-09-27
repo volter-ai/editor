@@ -11,13 +11,13 @@
  * (ARCHITECTURE-CORE §Agent surface, the look-verb decision).
  *
  * The PNGs land under `<project>/.volter/screenshots/` — the same
- * machine-written-evidence namespace `volter screenshot` already writes to,
+ * machine-written-evidence namespace `volter-game-editor screenshot` already writes to,
  * beside the run artifacts and the session file, and gitignored like the rest of
  * it.
  *
  * A live session is REQUIRED and cannot be worked around: Node has no GPU, so
  * "build the model here, photograph it there" is the whole shape of this
- * tool. With no session it refuses by name and points at `volter edit`, rather
+ * tool. With no session it refuses by name and points at `volter-game-editor edit`, rather
  * than building an Object3D nobody will ever see.
  */
 
@@ -47,7 +47,7 @@ export const NO_EDITOR_SESSION_ERROR: ToolErrorDefinition = {
   code: 'NO_EDITOR_SESSION',
   summary:
     'No live editor session for this project — rasterization happens in the editor, so a look ' +
-    'is impossible without one. Run `volter edit <project>`.',
+    'is impossible without one. Run `volter-game-editor edit <project>`.',
   data: z.object({ projectRoot: z.string(), reason: z.string() }),
 };
 
@@ -371,7 +371,7 @@ export const tool = defineTool({
       throw new ToolError(
         NO_EDITOR_SESSION_ERROR.code,
         'project.bake.preview renders through the live editor session (Node has no GPU), and ' +
-          `none is open for this project. Run \`volter edit ${projectRoot}\` first. (${reason})`,
+          `none is open for this project. Run \`volter-game-editor edit ${projectRoot}\` first. (${reason})`,
         { projectRoot, reason },
       );
     }

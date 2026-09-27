@@ -6,7 +6,7 @@
  *
  *  - LOCAL (server-backed) — it ASKS the server. The editor server holds
  *    "which project is open" as session state, re-rooted live by
- *    `POST /__editor/open-project` (the project browser, `volter edit <path>`).
+ *    `POST /__editor/open-project` (the project browser, the editor's `edit <path>` command).
  *    The URL carries no project identity at all, so a
  *    refresh or a tab-heal navigation back to the bare origin lands in the
  *    same project — a VS Code window, not a deep link. A `?project=` on a
@@ -185,7 +185,7 @@ export async function detectProject(): Promise<ActiveProject | null> {
   assertNoRemovedBootParams(window.location.search);
 
   // 1. ASK THE SESSION. This is the one explicit target —
-  //    `volter edit <path>`, `VOLTER_PROJECT`, and the project browser all reach
+  //    the editor's `edit <path>` command, `VOLTER_PROJECT`, and the project browser all reach
   //    the client the same way, because they all move the SERVER's project
   //    and the client reads it from there. There is no URL param and no
   //    boot-time Vite define snapshot in this path: the define is a
