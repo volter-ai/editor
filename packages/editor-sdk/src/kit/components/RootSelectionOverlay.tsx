@@ -822,6 +822,9 @@ interface GestureState {
   startAngleDeg?: number;
   /** Other selected nodes moved by the same direct-manipulation gesture. */
   movePeers?: readonly MovePeer[];
+  /** A 2D group rotate or scale: the point every node turns or scales about (the temporary pivot,
+   *  else the selection's centre). Each peer's origin moves about it with the primary's. */
+  groupCenter?: { x: number; y: number };
 }
 
 interface MovePeer {
@@ -1743,11 +1746,64 @@ export function RootSelectionOverlay({
     [adapter, store, toHostLocal],
   );
 
+  /** A native 2D multi-selection as one group (Godot's): its first node leads the gesture, the rest
+   *  follow as peers, about the temporary pivot or the centre of their bounds. */
+  const nativeGroup = useCallback((): {
+    primary: MovePeer & { nativeOrigin: { x: number; y: number } };
+    peers: MovePeer[];
+    center: { x: number; y: number };
+  } | null => {
+    if (!transformModeAware || store.selectedEntityIds.size < 2) return null;
+    const members = [...store.selectedEntityIds].flatMap((id) => {
+      const owner = boxEditForId(adapter, id);
+      const rect = rectForId(adapter, id);
+      const origin = owner?.gizmoOrigin?.(id);
+      return owner && rect && origin ? [{ id, ownerBoxEdit: owner, origRect: rect, nativeOrigin: origin }] : [];
+    });
+    if (members.length < 2) return null;
+    const minX = Math.min(...members.map((m) => m.origRect.x));
+    const minY = Math.min(...members.map((m) => m.origRect.y));
+    const maxX = Math.max(...members.map((m) => m.origRect.x + m.origRect.width));
+    const maxY = Math.max(...members.map((m) => m.origRect.y + m.origRect.height));
+    const center = temporaryPivot(view) ?? { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+    return { primary: members[0]!, peers: members.slice(1), center };
+  }, [adapter, store, transformModeAware, view]);
+
+  const startGroupGesture = useCallback(
+    (kind: 'rotate' | 'native-scale', e: ReactPointerEvent): boolean => {
+      const group = nativeGroup();
+      if (!group) return false;
+      capturePointer(e);
+      group.primary.ownerBoxEdit.begin(group.primary.id);
+      for (const peer of group.peers) peer.ownerBoxEdit.begin(peer.id);
+      gestureRef.current = {
+        kind,
+        id: group.primary.id,
+        ownerBoxEdit: group.primary.ownerBoxEdit,
+        startLocal: toHostLocal(e.clientX, e.clientY),
+        origRect: group.primary.origRect,
+        center: group.center,
+        nativeOrigin: group.primary.nativeOrigin,
+        movePeers: group.peers,
+        groupCenter: group.center,
+        ...(kind === 'native-scale'
+          ? { nativeScaleAxis: 'both' as const, nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom }
+          : {}),
+      };
+      return true;
+    },
+    [nativeGroup, toHostLocal, pan.zoom],
+  );
+
   const startRotateGesture = useCallback(
     (e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
       const selected = store.selectedEntityIds;
+      if (selected.size > 1) {
+        startGroupGesture('rotate', e);
+        return;
+      }
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1770,7 +1826,7 @@ export function RootSelectionOverlay({
         ...(nativeOrigin ? { nativeOrigin } : {}),
       };
     },
-    [adapter, store, toHostLocal, transformModeAware],
+    [adapter, store, toHostLocal, transformModeAware, startGroupGesture, view],
   );
 
   const startMoveGizmoGesture = useCallback(
@@ -1808,6 +1864,10 @@ export function RootSelectionOverlay({
       e.stopPropagation();
       if (e.button !== 0) return;
       const selected = store.selectedEntityIds;
+      if (selected.size > 1) {
+        startGroupGesture('native-scale', e);
+        return;
+      }
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1830,7 +1890,7 @@ export function RootSelectionOverlay({
         nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom,
       };
     },
-    [adapter, pan.zoom, store, toHostLocal],
+    [adapter, pan.zoom, store, toHostLocal, startGroupGesture],
   );
 
   const startReferenceGesture = useCallback(
@@ -2092,7 +2152,7 @@ export function RootSelectionOverlay({
           patch = { rotate: Math.round((angle - offset) / step) * step + offset - start };
         }
         // About a temporary pivot the node turns around that point: its origin moves by the turn.
-        const pivot = gesture.nativeOrigin ? temporaryPivot(view) : null;
+        const pivot = gesture.groupCenter ?? (gesture.nativeOrigin ? temporaryPivot(view) : null);
         if (pivot && gesture.nativeOrigin && patch['rotate'] !== undefined) {
           const turn = (patch['rotate'] * Math.PI) / 180;
           const ox = gesture.nativeOrigin.x - pivot.x;
@@ -2106,7 +2166,46 @@ export function RootSelectionOverlay({
       } else {
         patch = computeSpacingPatch(gesture.side!, dx, dy, gesture.origValue ?? 0);
       }
+      // A 2D group scale (Godot's): every node scales by the same factors, and its origin moves
+      // away from the group's centre by them.
+      if (gesture.kind === 'native-scale' && gesture.groupCenter && gesture.nativeOrigin) {
+        const c = gesture.groupCenter;
+        const fx = patch['scaleXFactor'] ?? 1;
+        const fy = patch['scaleYFactor'] ?? 1;
+        patch = {
+          ...patch,
+          originX: c.x + (gesture.nativeOrigin.x - c.x) * fx,
+          originY: c.y + (gesture.nativeOrigin.y - c.y) * fy,
+        };
+      }
       gesture.ownerBoxEdit.apply(gesture.id, patch);
+      if (gesture.groupCenter && gesture.movePeers && (gesture.kind === 'rotate' || gesture.kind === 'native-scale')) {
+        const c = gesture.groupCenter;
+        const turn = ((patch['rotate'] ?? 0) * Math.PI) / 180;
+        const fx = patch['scaleXFactor'] ?? 1;
+        const fy = patch['scaleYFactor'] ?? 1;
+        for (const peer of gesture.movePeers) {
+          if (!peer.nativeOrigin) continue;
+          const ox = peer.nativeOrigin.x - c.x;
+          const oy = peer.nativeOrigin.y - c.y;
+          peer.ownerBoxEdit.apply(
+            peer.id,
+            gesture.kind === 'rotate'
+              ? {
+                  rotate: patch['rotate'] ?? 0,
+                  originX: c.x + ox * Math.cos(turn) - oy * Math.sin(turn),
+                  originY: c.y + ox * Math.sin(turn) + oy * Math.cos(turn),
+                }
+              : {
+                  ...(patch['scaleXFactor'] !== undefined ? { scaleXFactor: fx } : {}),
+                  ...(patch['scaleYFactor'] !== undefined ? { scaleYFactor: fy } : {}),
+                  ...(patch['scaleStep'] !== undefined ? { scaleStep: patch['scaleStep'] } : {}),
+                  originX: c.x + ox * fx,
+                  originY: c.y + oy * fy,
+                },
+          );
+        }
+      }
       if (gesture.kind === 'move' && gesture.movePeers) {
         const primaryDx = gesture.nativeOrigin
           ? (patch['originX'] ?? gesture.nativeOrigin.x) - gesture.nativeOrigin.x
@@ -2280,7 +2379,19 @@ export function RootSelectionOverlay({
       // gesture).
       // Godot's Select-mode modifier drags on a native 2D surface: Cmd (Ctrl) rotates the selected
       // node about its pivot, Cmd+Alt (Ctrl+Alt) scales it — wherever the press lands.
-      if (transformModeAware && store.selectedEntityIds.size === 1 && (e.metaKey || e.ctrlKey)) {
+      // With several nodes selected, Rotate and Scale mode act on the whole group from any press, as
+      // Godot's modes do on a multi-selection.
+      if (
+        transformModeAware &&
+        store.selectedEntityIds.size > 1 &&
+        !(e.metaKey || e.ctrlKey) &&
+        (store.transformMode === 'rotate' || store.transformMode === 'scale')
+      ) {
+        if (store.transformMode === 'rotate') startRotateGesture(e);
+        else startNativeScaleGesture('both', e);
+        return;
+      }
+      if (transformModeAware && store.selectedEntityIds.size >= 1 && (e.metaKey || e.ctrlKey)) {
         if (e.altKey) startNativeScaleGesture('both', e);
         else startRotateGesture(e);
         return;
@@ -2925,6 +3036,25 @@ export function RootSelectionOverlay({
         {!transformModeAware && alignEntries && (
           <AlignToolbar adapter={adapter} entries={alignEntries} />
         )}
+        {tempPivot ? (
+          // Godot's temporary pivot: a cross where rotation turns the selection.
+          <div
+            data-testid="world-2d-temporary-pivot"
+            aria-label="Temporary pivot"
+            style={{
+              position: 'absolute',
+              left: tempPivot.x - 8,
+              top: tempPivot.y - 8,
+              width: 16,
+              height: 16,
+              transform: `scale(${chromeScale})`,
+              transformOrigin: 'center',
+              pointerEvents: 'none',
+              background:
+                'linear-gradient(#ffb020, #ffb020) center / 16px 2px no-repeat, linear-gradient(#ffb020, #ffb020) center / 2px 16px no-repeat',
+            }}
+          />
+        ) : null}
         {singleRect && singleOwnerBoxEdit && (
           <>
             {/* B-fix (D1-visual + D4 review): the B3 spacing bands render
@@ -2995,25 +3125,6 @@ export function RootSelectionOverlay({
                 {referencePoint.kind === 'anchor' ? 'A' : 'P'}
               </div>
             )}
-            {tempPivot ? (
-              // Godot's temporary pivot: a cross where rotation turns the selection.
-              <div
-                data-testid="world-2d-temporary-pivot"
-                aria-label="Temporary pivot"
-                style={{
-                  position: 'absolute',
-                  left: tempPivot.x - 8,
-                  top: tempPivot.y - 8,
-                  width: 16,
-                  height: 16,
-                  transform: `scale(${chromeScale})`,
-                  transformOrigin: 'center',
-                  pointerEvents: 'none',
-                  background:
-                    'linear-gradient(#ffb020, #ffb020) center / 16px 2px no-repeat, linear-gradient(#ffb020, #ffb020) center / 2px 16px no-repeat',
-                }}
-              />
-            ) : null}
             {/* Adapter-owned component handles — the ONE draggable point per
                 entry, drawn where the provider says it is. The 3D viewport
                 draws the same contract's layers by raycast; this is the same
