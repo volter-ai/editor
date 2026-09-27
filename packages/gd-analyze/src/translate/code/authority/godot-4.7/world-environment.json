@@ -70,7 +70,7 @@
         "observedOutputSha256": "89afbebf9aace17a7794d39fe214080ec90a9f4b2336a776110f887788796441"
       },
       "target": {
-        "implementationSha256": "a6e7f0485c46e6826f11636bac38ff1e3642f84256c4b28f073c2710653fab4e",
+        "implementationSha256": "3e3805e352369bd1fb4823779ada75945e49b97f964b1a1643a9610c8aad9edd",
         "callsite": "lib/godot-compat/world-environment.ts set_environment",
         "observedOutputSha256": "89afbebf9aace17a7794d39fe214080ec90a9f4b2336a776110f887788796441"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
       },
       "target": {
-        "implementationSha256": "a6e7f0485c46e6826f11636bac38ff1e3642f84256c4b28f073c2710653fab4e",
+        "implementationSha256": "3e3805e352369bd1fb4823779ada75945e49b97f964b1a1643a9610c8aad9edd",
         "callsite": "lib/godot-compat/world-environment.ts get_environment",
         "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "548ad1157f359d20c720d257ed4095b2103623379de77fff001fc57606c88107",
-      "implementationSha256": "a6e7f0485c46e6826f11636bac38ff1e3642f84256c4b28f073c2710653fab4e"
+      "implementationSha256": "3e3805e352369bd1fb4823779ada75945e49b97f964b1a1643a9610c8aad9edd"
     },
     {
       "claimId": "godot-4.7-binding-WorldEnvironment.get_environment",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "dc956df2f03c3109ad478c9a4a0359b42136270fff4636ca67e546d055c10070",
-      "implementationSha256": "a6e7f0485c46e6826f11636bac38ff1e3642f84256c4b28f073c2710653fab4e"
+      "implementationSha256": "3e3805e352369bd1fb4823779ada75945e49b97f964b1a1643a9610c8aad9edd"
     }
   ]
 }
