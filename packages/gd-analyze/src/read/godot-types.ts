@@ -16,6 +16,7 @@
  */
 
 import type { ImportedClip } from './gltf-animation-import';
+import type { GltfExternalImage } from './gltf-document';
 import type { GodotValue, ResourceId } from './godot-value';
 import type { ImportSidecar } from './import-sidecar';
 import type { ResolvedSetting } from './known-settings';
@@ -218,8 +219,8 @@ export interface GltfSceneOrigin {
   readonly nameByPath: ReadonlyMap<string, string>;
   /** The Godot paths of the glTF's own `scenes[<default>].nodes` — see `GlbScene.sceneRootPaths`. */
   readonly sceneRootPaths: readonly string[];
-  /** File-backed `images[].uri` values resolved beside this model by the native loader. */
-  readonly externalImageUris: readonly string[];
+  /** File-backed `images[].uri` values with their index, resolved beside this model as Godot's importer resolves them. */
+  readonly externalImages: readonly GltfExternalImage[];
   /** Exact source material identity used to plan native-loader transparency. */
   readonly sourceMaterials: readonly {
     readonly name?: string;

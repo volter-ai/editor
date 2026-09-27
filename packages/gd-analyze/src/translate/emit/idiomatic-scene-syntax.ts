@@ -49,6 +49,7 @@ import {
   familyThreeType,
   flag,
   float32Literal,
+  importedTextureHook,
   literal,
   moduleSpecifier,
   numberValue,
@@ -623,6 +624,18 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
       attribute('tree', { kind: 'identifier-expression', name: local }),
       ...transform,
       ...(overrides.length === 0 ? [] : [attribute('overrides', { kind: 'object-expression', properties: overrides })]),
+      // The file's external images: the project's imported textures, shared with every other use.
+      ...(model.images === undefined
+        ? []
+        : [
+            attribute('images', {
+              kind: 'object-expression',
+              properties: model.images.map((image) => ({
+                key: String(image.index),
+                value: { kind: 'identifier-expression' as const, name: importedTextureHook(emission.family, `ext:${image.load.sourceResPath}`, image.load) },
+              })),
+            }),
+          ]),
     ],
     [...node.children.map((child) => nodeElement(emission, child)), ...placements],
   );

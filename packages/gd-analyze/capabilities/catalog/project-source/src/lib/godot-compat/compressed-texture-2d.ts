@@ -34,6 +34,19 @@ export interface GodotTextureImport {
 }
 
 const IMAGES = new WeakMap<Texture, Image>();
+/** The copied file each loaded texture was imported from. */
+const SOURCES = new WeakMap<Texture, string>();
+
+/**
+ * The URL of the copied image file a loaded texture was imported from (its `resource_path`'s file
+ * beside the app), or undefined for a texture not loaded from one.
+ *
+ * @godot CompressedTexture2D (protocol)
+ * @source core/io/resource.cpp:118
+ */
+export function godot_compressed_texture_2d_source(texture: Texture): string | undefined {
+  return SOURCES.get(texture);
+}
 
 /** An image's level as RGBA8. */
 function rgba(image: Image, level: number, width: number, height: number): Uint8Array {
@@ -120,6 +133,7 @@ export function godot_compressed_texture_2d_new(): Texture {
  */
 export function godot_compressed_texture_2d_load(url: string, options: GodotTextureImport): Texture {
   const texture = godot_compressed_texture_2d_new();
+  SOURCES.set(texture, url);
   godot_resource_loader_track(
     fetch(url)
       .then((response) => response.arrayBuffer())
@@ -152,6 +166,7 @@ export function useGodotTexture(
   let load = SCENE_LOADS.get(key);
   if (load === undefined) {
     const texture = godot_compressed_texture_2d_new();
+    SOURCES.set(texture, url);
     load = {
       texture,
       loaded: fetch(url)
