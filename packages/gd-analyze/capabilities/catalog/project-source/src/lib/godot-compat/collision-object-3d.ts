@@ -105,7 +105,7 @@ function markOwner(entity: object): void {
       DIRTY.add(node);
       return;
     }
-    node = node.parent;
+    node = node.parent ?? null;
   }
 }
 

@@ -701,9 +701,9 @@ function setProcessing(entity: object, state: NodeState, change: () => void): vo
 function treePath(entity: object): number[] {
   const path: number[] = [];
   let node = entity as Object3D;
-  while (node.parent !== null) {
-    path.push(node.parent.children.indexOf(node));
-    node = node.parent;
+  for (let parent = node.parent ?? null; parent !== null; parent = node.parent ?? null) {
+    path.push(parent.children.indexOf(node));
+    node = parent;
   }
   return path.reverse();
 }
