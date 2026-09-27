@@ -102,12 +102,13 @@ export class SemanticClaimRegistry {
     this.digest = semanticClaimRegistryDigest(claims);
   }
 
-  claim(id: string, expected: SemanticClaimLiveness): SemanticClaimRecord {
+  /**
+   * The rule a claim id names. Staleness no longer refuses (docs/GODOT.md §The lane's law, ruling
+   * 2: there is no evidence gate); the records go with the rest of the evidence machinery.
+   */
+  claim(id: string, _expected: SemanticClaimLiveness): SemanticClaimRecord {
     const claim = this.#claims.get(id);
     if (claim === undefined) throw new Error(`semantic claim is missing: ${id}`);
-    if (!semanticClaimIsLive(claim, expected)) {
-      throw new Error(`semantic claim is stale: ${id}`);
-    }
     return claim;
   }
 }
