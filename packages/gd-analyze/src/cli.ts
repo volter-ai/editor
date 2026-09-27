@@ -27,8 +27,10 @@ const USAGE = `usage: gd-analyze <command> [options]
            through production code lowering (which needs the bound exporter). On full agreement
            write what it proves to src/translate/code/authority/godot-4.7/<name>.json.
 
-  evidence --refresh --official-binary <path> --bound-exporter-binary <path>
-           Run every authority's native/target proof; where they agree, rewrite that
+  evidence --refresh [--stale] --official-binary <path> --bound-exporter-binary <path>
+           Run every authority's native/target proof (with --stale, 4.7 only: just the proofs and
+           case files whose claims are stale or whose sources, evidence tooling, fixtures or
+           lockfile changed, then check liveness; the full refresh remains the authority); where they agree, rewrite that
            proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
            is named and nothing is written for it.
 
@@ -174,6 +176,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
       return await refreshEvidence(
         { officialBinary: binary, exporterBinary: requiredExporter(rest), ...(pipeline === undefined ? {} : { pipelineOfficialBinary: pipeline }) },
         version,
+        { stale: rest.includes('--stale') },
       );
     }
     if (positional.length !== 1) fail('evidence needs exactly one Godot class');

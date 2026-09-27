@@ -18,8 +18,8 @@ interface Authority {
   readonly liveness: readonly (SemanticClaimLiveness & { readonly claimId: string })[];
 }
 
-/** The stale claim ids of each authority, by authority. */
-export function godotStaleClaims(): ReadonlyMap<string, readonly string[]> {
+/** The stale claims of each authority, by authority. */
+export function godotStaleClaimRecords(): ReadonlyMap<string, readonly SemanticClaimRecord[]> {
   const source = godotSourceAuthority(4);
   const authorities: readonly (readonly [string, Authority])[] = [
     ['read', godotReadAuthority(source) as unknown as Authority],
@@ -29,16 +29,23 @@ export function godotStaleClaims(): ReadonlyMap<string, readonly string[]> {
     ['scene-nodes', godotSceneNodeAuthority(source) as unknown as Authority],
     ['lifecycle', godotLifecycleAuthority(source) as unknown as Authority],
   ];
-  const stale = new Map<string, string[]>();
+  const stale = new Map<string, SemanticClaimRecord[]>();
   for (const [name, authority] of authorities) {
     const claims = new Map(authority.claims.map((claim) => [claim.claimId, claim] as const));
-    const found = authority.liveness.filter((entry) => {
+    const found = authority.liveness.flatMap((entry) => {
       const claim = claims.get(entry.claimId);
-      return claim === undefined || !semanticClaimIsLive(claim, entry);
+      if (claim !== undefined && semanticClaimIsLive(claim, entry)) return [];
+      // A liveness entry with no claim at all: a stand-in that names only its id.
+      return [claim ?? ({ claimId: entry.claimId } as SemanticClaimRecord)];
     });
-    if (found.length > 0) stale.set(name, found.map((entry) => entry.claimId));
+    if (found.length > 0) stale.set(name, found);
   }
   return stale;
+}
+
+/** The stale claim ids of each authority, by authority. */
+export function godotStaleClaims(): ReadonlyMap<string, readonly string[]> {
+  return new Map([...godotStaleClaimRecords()].map(([name, claims]) => [name, claims.map((claim) => claim.claimId)] as const));
 }
 
 export function runLiveness(): number {

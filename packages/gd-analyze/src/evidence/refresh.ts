@@ -8,8 +8,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { enterEvidenceMeasurement } from '../godot-frontend/implementation-liveness';
+import { godotEvidenceSourceDigests, godotStaleEvidence, recordGodotEvidenceSources } from './stale';
 import {
   type GodotEvidenceVersion,
+  type GodotProofName,
   type GodotProofIdentities,
   godotProofIdentities,
   godotProofIdentityFile,
@@ -103,16 +105,33 @@ function same(left: GodotProofIdentities, right: GodotProofIdentities): boolean 
  * same target (the 4.7 pipeline and compat, `exporterBinary` the 4.7 exporter) and records them in
  * `authority/godot-4.6/`.
  */
-export async function refreshEvidence(tools: GodotProofTools, version: GodotEvidenceVersion = '4.7'): Promise<number> {
+export async function refreshEvidence(
+  tools: GodotProofTools,
+  version: GodotEvidenceVersion = '4.7',
+  options: { readonly stale?: boolean } = {},
+): Promise<number> {
   const executable = createHash('sha256').update(readFileSync(tools.officialBinary)).digest('hex');
   const pinned = version === '4.7' ? GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256 : GODOT_4_SOURCE_AUTHORITIES[version].officialEditor?.executableSha256;
   if (executable !== pinned) {
     throw new Error(`refusing ${tools.officialBinary}: it is not the official Godot ${version}-stable executable`);
   }
+  // `--stale`: only what a change touched (`stale.ts`), chosen before anything is measured.
+  const caseNames = await godotEvidenceCaseNames();
+  const before = godotEvidenceSourceDigests(PROOFS.map(([name]) => name), caseNames);
+  const selection = options.stale === true ? godotStaleEvidence(PROOFS.map(([name]) => name as GodotProofName), caseNames, before, version) : undefined;
+  if (selection !== undefined) {
+    process.stdout.write(
+      selection.all
+        ? `stale: everything (${String(selection.reasons.get('*'))})\n`
+        : `stale: ${String(selection.proofs.size)} proofs, ${String(selection.cases.size)} case files\n${[...selection.reasons].map(([name, reason]) => `  ${name}: ${reason}\n`).join('')}`,
+    );
+  }
   // The proofs run the pipeline whose claims they re-measure; see enterEvidenceMeasurement.
   enterEvidenceMeasurement();
   const failed: string[] = [];
+  const measured: (readonly ['proof' | 'case', string])[] = [];
   for (const [proof, measure] of PROOFS) {
+    if (selection !== undefined && !selection.proofs.has(proof)) continue;
     let measurements: readonly GodotProofMeasurement[];
     try {
       measurements = await measure(tools);
@@ -146,11 +165,13 @@ export async function refreshEvidence(tools: GodotProofTools, version: GodotEvid
       );
       process.stdout.write(`${measurement.name}: agrees, refreshed ${changed.join(', ')}\n`);
     }
+    if (measurements.every((measurement) => measurement.agree)) measured.push(['proof', proof]);
   }
   // Then every case file: compat modules, then the language rules lowered through them. Each runs
   // in its own process, as `gd-analyze evidence <name>` does: compat modules hold module-level
   // state (the tree, a physics world), and one case file's state must not reach the next's.
-  for (const name of await godotEvidenceCaseNames()) {
+  for (const name of caseNames) {
+    if (selection !== undefined && !selection.cases.has(name)) continue;
     const run = spawnSync(
       process.execPath,
       [
@@ -176,11 +197,24 @@ export async function refreshEvidence(tools: GodotProofTools, version: GodotEvid
     if (run.status !== 0) {
       failed.push(name);
       process.stdout.write(`${name}: the case file failed; nothing written\n  ${run.stderr.split('\n').slice(0, 6).join('\n  ')}\n`);
+    } else {
+      measured.push(['case', name]);
     }
   }
+  // What agreed was measured from these sources; `--stale` compares against them.
+  recordGodotEvidenceSources(measured, before, version);
   if (failed.length > 0) {
     process.stdout.write(`refresh failed for: ${failed.join(', ')}\n`);
     return 1;
+  }
+  if (selection !== undefined) {
+    // A stale refresh ends live, or says what it left.
+    const { godotStaleClaims } = await import('../report/liveness');
+    const left = [...godotStaleClaims().values()].flat();
+    if (left.length > 0) {
+      process.stdout.write(`stale refresh left ${String(left.length)} stale claims: ${left.slice(0, 5).join(', ')}; run the full refresh\n`);
+      return 1;
+    }
   }
   return 0;
 }
