@@ -19,7 +19,7 @@
  * Per-segment breakdown is OPT-IN. First-frame stamps stay always-on (a
  * Date.now is cheap); the named segments and per-story list allocate only
  * when {@link viewportTimingsEnabled} is true — doctor `--timings` sets
- * `window.__VGAI_VIEWPORT_TIMINGS__` before boot, or the URL carries
+ * `window.__VOLTER_VIEWPORT_TIMINGS__` before boot, or the URL carries
  * `?vgaiTimings=1`. Off by default so a normal session never pays for it.
  *
  * The breakdown clock starts at the ACTIVATION GESTURE (`setActive`), not at
@@ -211,8 +211,8 @@ export type ViewportSegmentName =
 export function viewportTimingsEnabled(): boolean {
   if (timingsForced !== null) return timingsForced;
   if (typeof window === 'undefined') return false;
-  const flag = (window as Window & { __VGAI_VIEWPORT_TIMINGS__?: unknown })
-    .__VGAI_VIEWPORT_TIMINGS__;
+  const flag = (window as Window & { __VOLTER_VIEWPORT_TIMINGS__?: unknown })
+    .__VOLTER_VIEWPORT_TIMINGS__;
   if (flag === true || flag === '1') return true;
   try {
     return new URLSearchParams(window.location.search).get('vgaiTimings') === '1';

@@ -270,7 +270,7 @@ functions, which is exactly why the door is general.
 
 ```bash
 --url <url>                      # Editor URL (default: http://localhost:5173)
-                                 # Also: VGAI_EDITOR_URL env var
+                                 # Also: VOLTER_EDITOR_URL env var
 ```
 
 ## Entity IDs

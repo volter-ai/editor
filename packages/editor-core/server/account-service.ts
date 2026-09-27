@@ -47,7 +47,7 @@ interface PersistedAccount {
   name?: string;
   /**
    * Managed-twin identity (the placeholder-IdP path of the `live` backend, active when
-   * `VGAI_TWIN_URL` is set). The durable handle is the SESSION id, not a token: session
+   * `VOLTER_TWIN_URL` is set). The durable handle is the SESSION id, not a token: session
    * tokens are ≈60s-lived and re-minted on demand. See `twin-auth.ts`.
    */
   twinUserId?: string;
@@ -134,8 +134,8 @@ function base64Url(value: Buffer): string {
   return value.toString('base64url');
 }
 
-const ACCOUNT_PATH = process.env['VGAI_ACCOUNT_PATH']
-  ? resolve(process.env['VGAI_ACCOUNT_PATH'])
+const ACCOUNT_PATH = process.env['VOLTER_ACCOUNT_PATH']
+  ? resolve(process.env['VOLTER_ACCOUNT_PATH'])
   : join(homedir(), '.vgai', 'account.json');
 async function readPersisted(path: string): Promise<PersistedAccount> {
   try {
@@ -169,8 +169,8 @@ async function readPersisted(path: string): Promise<PersistedAccount> {
     // remains a development backend and therefore does not trigger this move.
     if (
       value.backend === 'mock' &&
-      process.env['VGAI_ACCOUNT_URL'] &&
-      !process.env['VGAI_TWIN_URL']
+      process.env['VOLTER_ACCOUNT_URL'] &&
+      !process.env['VOLTER_TWIN_URL']
     ) {
       value.backend = 'live';
       delete value.userId;
@@ -189,8 +189,8 @@ async function readPersisted(path: string): Promise<PersistedAccount> {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return {
         version: 1,
-        backend: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'live',
-        preferredRoute: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
+        backend: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'live',
+        preferredRoute: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
       };
     }
     throw error;
@@ -233,16 +233,16 @@ export class EditorAccountService {
     providerCredentialStore?: ProviderCredentialStore,
   ) {
     this.statePromise = readPersisted(accountPath);
-    this.environmentAccessToken = process.env['VGAI_ACCESS_TOKEN'];
-    this.cloudInferenceGrant = process.env['VGAI_CLOUD_INFERENCE_GRANT'];
-    this.cloudInferenceModel = process.env['VGAI_CLOUD_INFERENCE_MODEL'];
+    this.environmentAccessToken = process.env['VOLTER_ACCESS_TOKEN'];
+    this.cloudInferenceGrant = process.env['VOLTER_CLOUD_INFERENCE_GRANT'];
+    this.cloudInferenceModel = process.env['VOLTER_CLOUD_INFERENCE_MODEL'];
     this.cloudInferenceRoute =
-      process.env['VGAI_CLOUD_INFERENCE_ROUTE'] === 'byok' ? 'byok' : 'managed';
-    this.cloudAccount = parseCloudAccount(process.env['VGAI_CLOUD_ACCOUNT_JSON']);
-    delete process.env['VGAI_CLOUD_INFERENCE_GRANT'];
-    delete process.env['VGAI_CLOUD_ACCOUNT_JSON'];
+      process.env['VOLTER_CLOUD_INFERENCE_ROUTE'] === 'byok' ? 'byok' : 'managed';
+    this.cloudAccount = parseCloudAccount(process.env['VOLTER_CLOUD_ACCOUNT_JSON']);
+    delete process.env['VOLTER_CLOUD_INFERENCE_GRANT'];
+    delete process.env['VOLTER_CLOUD_ACCOUNT_JSON'];
     this.credentialStore =
-      credentialStore ?? createSystemAccountCredentialStore(process.env['VGAI_ACCOUNT_URL']);
+      credentialStore ?? createSystemAccountCredentialStore(process.env['VOLTER_ACCOUNT_URL']);
     this.providerCredentials = new ProviderCredentialService(
       providerCredentialStore ?? createSystemProviderCredentialStore(),
       this.providerCredentialMarkers(),
@@ -282,7 +282,7 @@ export class EditorAccountService {
     // The job path's own read: this provider's secret, now, and no other's.
     const configured = (await this.providerCredentials.ensure(provider)) !== undefined;
     const state = await this.state();
-    const mock = state.backend === 'mock' && process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1';
+    const mock = state.backend === 'mock' && process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1';
     if (pinned === 'mock' || (!pinned && mock && state.preferredRoute === 'mock')) {
       if (!mock) throw new Error('This recorded mock job requires its development account.');
       return 'mock';
@@ -294,7 +294,7 @@ export class EditorAccountService {
     if (!pinned && state.preferredRoute === 'byok')
       throw new Error(`Connect ${provider} in Account before generating with your own key.`);
     const token = await this.accessToken();
-    if (process.env['VGAI_GENERATION_GATEWAY'] && token) return 'managed';
+    if (process.env['VOLTER_GENERATION_GATEWAY'] && token) return 'managed';
 
     throw new Error(`Connect ${provider} or sign in to Volter Editor in Account before generating.`);
   }
@@ -313,30 +313,30 @@ export class EditorAccountService {
   /**
    * The managed twin base URL, or undefined when the twin path is not configured. When
    * set, the `live` backend is twin-backed (identity is minted against the twin's Backend
-   * API) instead of the OAuth authorization-code flow. `VGAI_TWIN_SECRET` is optional and
+   * API) instead of the OAuth authorization-code flow. `VOLTER_TWIN_SECRET` is optional and
    * cosmetic — the twin accepts any Bearer.
    */
   private twinBaseUrl(): string | undefined {
-    const url = process.env['VGAI_TWIN_URL'];
+    const url = process.env['VOLTER_TWIN_URL'];
     if (!url || url.trim().length === 0) return undefined;
     const parsed = new URL(url);
     if (
       parsed.protocol !== 'http:' ||
       !['127.0.0.1', 'localhost', '[::1]'].includes(parsed.hostname)
     ) {
-      throw new Error('VGAI_TWIN_URL must be an HTTP loopback Clerk Twin URL.');
+      throw new Error('VOLTER_TWIN_URL must be an HTTP loopback Clerk Twin URL.');
     }
     return parsed.toString().replace(/\/$/, '');
   }
 
   private twinSecret(): string | undefined {
-    return process.env['VGAI_TWIN_SECRET'];
+    return process.env['VOLTER_TWIN_SECRET'];
   }
 
   /**
    * A fresh twin session token, minting on demand and caching it until it nears its ≈60s
    * expiry. The token is never persisted — the durable handle is `state.twinSessionId`.
-   * Also mirrored onto `VGAI_ACCESS_TOKEN` so provider-native managed transports and a
+   * Also mirrored onto `VOLTER_ACCESS_TOKEN` so provider-native managed transports and a
    * spawned deploy read the same conventional credential (same seam as the OAuth path).
    */
   private async twinAccessToken(state: PersistedAccount): Promise<string | undefined> {
@@ -347,24 +347,24 @@ export class EditorAccountService {
       const jwt = await mintTwinSessionToken(baseUrl, state.twinSessionId, this.twinSecret());
       this.twinToken = { jwt, expiresAtMs: Date.now() + 50_000 };
     }
-    process.env['VGAI_ACCESS_TOKEN'] = this.twinToken.jwt;
+    process.env['VOLTER_ACCESS_TOKEN'] = this.twinToken.jwt;
     return this.twinToken.jwt;
   }
 
   /**
    * Sign in against the managed twin: get-or-create the user, open a durable session, and
    * mint the first token. Identity flows from here to managed generation (`/verify`)
-   * via the shared `VGAI_ACCESS_TOKEN`.
+   * via the shared `VOLTER_ACCESS_TOKEN`.
    */
   async signInTwin(email: string): Promise<EditorAccountSnapshot> {
     const normalized = email.trim().toLowerCase();
     if (!normalized.includes('@')) throw new Error('Enter a valid email address.');
     const baseUrl = this.twinBaseUrl();
-    if (!baseUrl) throw new Error('No managed twin is configured (VGAI_TWIN_URL is unset).');
+    if (!baseUrl) throw new Error('No managed twin is configured (VOLTER_TWIN_URL is unset).');
     const identity = await signInToTwin(baseUrl, normalized, this.twinSecret());
     // Capture the managed endpoints so a standalone `vgai deploy` can mint from the session
-    // (VGAI_AUTH_URL is the vgai-auth base; its `/relay/token` is the deploy's mint endpoint).
-    const authUrl = process.env['VGAI_AUTH_URL'];
+    // (VOLTER_AUTH_URL is the vgai-auth base; its `/relay/token` is the deploy's mint endpoint).
+    const authUrl = process.env['VOLTER_AUTH_URL'];
     const state: PersistedAccount = {
       version: 1,
       backend: 'live',
@@ -391,7 +391,7 @@ export class EditorAccountService {
     if (this.twinBaseUrl() && state.twinSessionId) return this.twinAccessToken(state);
     this.credential ??= await this.credentialStore.read();
     if (!this.credential) return undefined;
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const expiresSoon =
       this.credential.expiresAt !== undefined &&
       Date.parse(this.credential.expiresAt) <= Date.now() + 60_000;
@@ -402,7 +402,7 @@ export class EditorAccountService {
     // Provider-native managed transports read this conventional process-local
     // credential. Project tools already run as trusted Node code; the security
     // boundary here is durable storage and browser/contribution exposure.
-    process.env['VGAI_ACCESS_TOKEN'] = this.credential.accessToken;
+    process.env['VOLTER_ACCESS_TOKEN'] = this.credential.accessToken;
     return this.credential.accessToken;
   }
 
@@ -448,13 +448,13 @@ export class EditorAccountService {
   }
 
   private oauthClientId(): string {
-    return process.env['VGAI_OAUTH_CLIENT_ID'] ?? 'vgai-editor';
+    return process.env['VOLTER_OAUTH_CLIENT_ID'] ?? 'vgai-editor';
   }
 
   private oauthMetadata(): Promise<OAuthServerMetadata> {
     this.oauthMetadataPromise ??= (async () => {
-      const accountUrl = process.env['VGAI_ACCOUNT_URL'];
-      const issuerUrl = process.env['VGAI_OAUTH_ISSUER_URL'] ?? accountUrl;
+      const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
+      const issuerUrl = process.env['VOLTER_OAUTH_ISSUER_URL'] ?? accountUrl;
       if (!issuerUrl) throw new Error('No production Volter account service is configured.');
       const response = await fetch(
         `${issuerUrl.replace(/\/$/, '')}/.well-known/oauth-authorization-server`,
@@ -496,7 +496,7 @@ export class EditorAccountService {
       mock: true as const,
       managed: Boolean(
         state.backend === 'live' &&
-          process.env['VGAI_GENERATION_GATEWAY'] &&
+          process.env['VOLTER_GENERATION_GATEWAY'] &&
           hasAccessToken &&
           managedServicesAllowed,
       ),
@@ -633,7 +633,7 @@ export class EditorAccountService {
         ...(await this.editorProjection(state, Boolean(token))),
       };
     }
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     if (!accountUrl || !token) {
       throw new Error('Clerk Twin development requires the managed account service.');
     }
@@ -682,7 +682,7 @@ export class EditorAccountService {
     // A configured twin makes the `live` backend twin-backed (identity minted against the
     // twin's Backend API), superseding the OAuth authorization-code path.
     if (this.twinBaseUrl()) return this.twinSnapshot(state);
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const token = await this.accessToken();
     if (!accountUrl || !token) {
       return {
@@ -734,7 +734,7 @@ export class EditorAccountService {
     const snapshot = await this.snapshot();
     if (!snapshot.authenticated) throw new Error('Sign in to your Volter account before sharing.');
     const accessToken = await this.accessToken();
-    const authUrl = process.env['VGAI_AUTH_URL']?.trim() || state.authUrl?.trim();
+    const authUrl = process.env['VOLTER_AUTH_URL']?.trim() || state.authUrl?.trim();
     if (!accessToken || !authUrl) {
       throw new Error('The signed-in Volter account is missing collaboration authorization config.');
     }
@@ -787,7 +787,7 @@ export class EditorAccountService {
   }
 
   async signInMock(email: string): Promise<EditorAccountSnapshot> {
-    if (process.env['VGAI_TEST_ACCOUNT_MOCK'] !== '1') {
+    if (process.env['VOLTER_TEST_ACCOUNT_MOCK'] !== '1') {
       throw new Error('The in-process account mock is available only to isolated tests.');
     }
     const normalized = email.trim().toLowerCase();
@@ -797,14 +797,14 @@ export class EditorAccountService {
       version: 1,
       backend: 'mock',
       email: normalized,
-      preferredRoute: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
+      preferredRoute: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
       ...(prior.mockControlState ? { mockControlState: prior.mockControlState } : {}),
     };
     await writePersisted(this.accountPath, state);
     this.statePromise = Promise.resolve(state);
     await this.credentialStore.delete();
     this.credential = null;
-    if (!this.environmentAccessToken) delete process.env['VGAI_ACCESS_TOKEN'];
+    if (!this.environmentAccessToken) delete process.env['VOLTER_ACCESS_TOKEN'];
     this.mockControl = undefined;
     this.mockControlOwner = undefined;
     this.mockToken = undefined;
@@ -816,8 +816,8 @@ export class EditorAccountService {
     const prior = await this.state();
     const state: PersistedAccount = {
       version: 1,
-      backend: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'live',
-      preferredRoute: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
+      backend: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'live',
+      preferredRoute: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
       ...(prior.mockControlState ? { mockControlState: prior.mockControlState } : {}),
     };
     await writePersisted(this.accountPath, state);
@@ -826,7 +826,7 @@ export class EditorAccountService {
     this.twinToken = undefined;
     await this.credentialStore.delete();
     this.credential = null;
-    if (!this.environmentAccessToken) delete process.env['VGAI_ACCESS_TOKEN'];
+    if (!this.environmentAccessToken) delete process.env['VOLTER_ACCESS_TOKEN'];
     return this.snapshot();
   }
 
@@ -877,7 +877,7 @@ export class EditorAccountService {
     ) {
       throw new Error('A model and non-negative token estimates are required.');
     }
-    const gateway = process.env['VGAI_GENERATION_GATEWAY']?.replace(/\/$/, '');
+    const gateway = process.env['VOLTER_GENERATION_GATEWAY']?.replace(/\/$/, '');
     const token = this.cloudInferenceGrant ?? (await this.accessToken());
     if (!gateway || !token) throw new Error('Managed coding pricing is unavailable.');
     const modelPath = this.cloudInferenceGrant
@@ -940,13 +940,13 @@ export class EditorAccountService {
    * the reusable account token stays in this trusted server. */
   async resolvedCodingInference(workspace: string): Promise<ResolvedCodingInference | null> {
     if (this.cloudInferenceGrant) {
-      const gateway = process.env['VGAI_GENERATION_GATEWAY']?.replace(/\/$/, '');
+      const gateway = process.env['VOLTER_GENERATION_GATEWAY']?.replace(/\/$/, '');
       const model = this.cloudInferenceModel ?? 'z-ai/glm-5.2';
       if (!gateway || !/^https:\/\//.test(gateway) || !/^[A-Za-z0-9._:/-]{1,200}$/.test(model)) {
         throw new Error('Cloud managed coding is not configured securely.');
       }
       // A hosted container has no device login to fall back to, so the deployment's own
-      // `VGAI_CLOUD_INFERENCE_ROUTE` IS the explicit choice the gate reads.
+      // `VOLTER_CLOUD_INFERENCE_ROUTE` IS the explicit choice the gate reads.
       const route = this.cloudInferenceRoute ?? 'managed';
       return {
         provider: 'openrouter',
@@ -982,9 +982,9 @@ export class EditorAccountService {
         apiKey,
       };
     }
-    const gateway = process.env['VGAI_GENERATION_GATEWAY']?.replace(/\/$/, '');
+    const gateway = process.env['VOLTER_GENERATION_GATEWAY']?.replace(/\/$/, '');
     const accessToken = await this.accessToken();
-    const authUrl = process.env['VGAI_AUTH_URL']?.trim() || state.authUrl?.trim();
+    const authUrl = process.env['VOLTER_AUTH_URL']?.trim() || state.authUrl?.trim();
     if (!gateway || !accessToken || !authUrl) {
       throw new Error('Managed OpenRouter coding is unavailable for this account session.');
     }
@@ -1103,7 +1103,7 @@ export class EditorAccountService {
       const body = (await response.json()) as { entries?: AccountUsageEntry[] };
       return AccountUsageEntrySchema.array().parse(body.entries ?? []);
     }
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const token = await this.accessToken();
     if (!accountUrl || !token) return [];
     const response = await fetch(`${accountUrl.replace(/\/$/, '')}/v1/usage`, {
@@ -1122,7 +1122,7 @@ export class EditorAccountService {
       if (!response.ok) throw new Error(`Mock catalog request failed (${response.status}).`);
       return AccountCatalogSchema.parse(await response.json());
     }
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const token = await this.accessToken();
     if (!accountUrl || !token) throw new Error('Sign in before loading the billing catalog.');
     const response = await fetch(`${accountUrl.replace(/\/$/, '')}/v1/catalog`, {
@@ -1136,7 +1136,7 @@ export class EditorAccountService {
     const state = await this.state();
     if (state.backend === 'mock')
       return { url: `mock://billing/${state.email ?? 'signed-out'}`, mock: true };
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const token = await this.accessToken();
     if (!accountUrl || !token) throw new Error('Sign in before opening billing.');
     const response = await fetch(`${accountUrl.replace(/\/$/, '')}/v1/billing/portal`, {
@@ -1282,16 +1282,16 @@ export class EditorAccountService {
       const persisted: PersistedAccount = {
         version: 1,
         backend: 'live',
-        preferredRoute: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
-        ...(process.env['VGAI_ACCOUNT_URL'] ? { accountUrl: process.env['VGAI_ACCOUNT_URL'] } : {}),
-        ...(process.env['VGAI_OAUTH_ISSUER_URL']
-          ? { oauthIssuerUrl: process.env['VGAI_OAUTH_ISSUER_URL'] }
+        preferredRoute: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
+        ...(process.env['VOLTER_ACCOUNT_URL'] ? { accountUrl: process.env['VOLTER_ACCOUNT_URL'] } : {}),
+        ...(process.env['VOLTER_OAUTH_ISSUER_URL']
+          ? { oauthIssuerUrl: process.env['VOLTER_OAUTH_ISSUER_URL'] }
           : {}),
-        ...(process.env['VGAI_AUTH_URL'] ? { authUrl: process.env['VGAI_AUTH_URL'] } : {}),
+        ...(process.env['VOLTER_AUTH_URL'] ? { authUrl: process.env['VOLTER_AUTH_URL'] } : {}),
       };
       await writePersisted(this.accountPath, persisted);
       this.statePromise = Promise.resolve(persisted);
-      process.env['VGAI_ACCESS_TOKEN'] = accessToken;
+      process.env['VOLTER_ACCESS_TOKEN'] = accessToken;
       pending.status = 'complete';
     } catch (error) {
       pending.status = 'failed';
@@ -1351,12 +1351,12 @@ export class EditorAccountService {
     const state: PersistedAccount = {
       version: 1,
       backend: 'live',
-      preferredRoute: process.env['VGAI_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
-      ...(process.env['VGAI_ACCOUNT_URL'] ? { accountUrl: process.env['VGAI_ACCOUNT_URL'] } : {}),
-      ...(process.env['VGAI_OAUTH_ISSUER_URL']
-        ? { oauthIssuerUrl: process.env['VGAI_OAUTH_ISSUER_URL'] }
+      preferredRoute: process.env['VOLTER_TEST_ACCOUNT_MOCK'] === '1' ? 'mock' : 'auto',
+      ...(process.env['VOLTER_ACCOUNT_URL'] ? { accountUrl: process.env['VOLTER_ACCOUNT_URL'] } : {}),
+      ...(process.env['VOLTER_OAUTH_ISSUER_URL']
+        ? { oauthIssuerUrl: process.env['VOLTER_OAUTH_ISSUER_URL'] }
         : {}),
-      ...(process.env['VGAI_AUTH_URL'] ? { authUrl: process.env['VGAI_AUTH_URL'] } : {}),
+      ...(process.env['VOLTER_AUTH_URL'] ? { authUrl: process.env['VOLTER_AUTH_URL'] } : {}),
     };
     this.credential = {
       accessToken: body['access_token'],
@@ -1368,7 +1368,7 @@ export class EditorAccountService {
     await this.credentialStore.write(this.credential);
     await writePersisted(this.accountPath, state);
     this.statePromise = Promise.resolve(state);
-    process.env['VGAI_ACCESS_TOKEN'] = this.credential.accessToken;
+    process.env['VOLTER_ACCESS_TOKEN'] = this.credential.accessToken;
     return { pending: false, account: await this.snapshot() };
   }
 
@@ -1378,7 +1378,7 @@ export class EditorAccountService {
     input: unknown,
   ): Promise<EditorAccountSnapshot> {
     await this.state();
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const token = await this.accessToken();
     if (!accountUrl || !token) throw new Error('Sign in before managing the account.');
     const response = await fetch(`${accountUrl.replace(/\/$/, '')}${path}`, {
@@ -1396,7 +1396,7 @@ export class EditorAccountService {
     idempotencyKey: string,
   ): Promise<string | undefined> {
     await this.state();
-    const accountUrl = process.env['VGAI_ACCOUNT_URL'];
+    const accountUrl = process.env['VOLTER_ACCOUNT_URL'];
     const token = await this.accessToken();
     if (!accountUrl || !token) throw new Error('Sign in before opening checkout.');
     const response = await fetch(`${accountUrl.replace(/\/$/, '')}${path}`, {

@@ -56,14 +56,14 @@ import bpy
 # `{offset, length, dtype, count, stride}` in a small JSON frame.
 import _blender_web
 
-ROOT = os.environ.get("VGAI_PRESENTER_ROOT", "/tmp/vgai-presenter")
+ROOT = os.environ.get("VOLTER_PRESENTER_ROOT", "/tmp/vgai-presenter")
 ASK = os.path.join(ROOT, "ask")
 REPLY = os.path.join(ROOT, "reply")
 # WHERE THE EXPORT DOOR LEAVES THE ARENA. The host cannot reach this program's
 # linear memory, so the arena crosses as a file -- the door writes it when
 # `buffer_path` is set, and the host reads it beside the ask.
 EXPORT_BUFFER_PATH = os.environ.get(
-    "VGAI_EXPORT_BUFFER_PATH", os.path.join(ROOT, "arena.bin")
+    "VOLTER_EXPORT_BUFFER_PATH", os.path.join(ROOT, "arena.bin")
 )
 # THE FRAME'S IDENTITY IS A PAIR, `(session, revision)`, and the presenter
 # refuses a revision that went backwards under a name it already holds. One
@@ -381,7 +381,7 @@ class VgaiRenderEngine(bpy.types.RenderEngine):
     starts a path trace nobody asked for.
     """
 
-    bl_idname = "VGAI_THREE"
+    bl_idname = "VOLTER_THREE"
     bl_label = "three.js"
     bl_use_preview = False
 
@@ -496,7 +496,7 @@ def _register_engine():
             # keeps `BLENDER_EEVEE` and `BLENDER_WORKBENCH`: a fact about the
             # build, not a warning on every boot.
             unavailable.append(identifier)
-    # `VGAI_THREE` is the engine under its own name, registered ONCE: this runs
+    # `VOLTER_THREE` is the engine under its own name, registered ONCE: this runs
     # again after every file load (the ids have to be retaken), and Blender
     # refuses a class it already holds -- which is not a capability anyone
     # lost, so it is not a warning.
@@ -518,7 +518,7 @@ def _adopt():
     _register_engine()
     for scene in bpy.data.scenes:
         try:
-            scene.render.engine = "VGAI_THREE"
+            scene.render.engine = "VOLTER_THREE"
         except (TypeError, AttributeError) as error:
             warn("scene %s kept its own render engine: %s" % (scene.name, error))
 

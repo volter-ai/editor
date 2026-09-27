@@ -164,11 +164,11 @@ writeFileSync(
   join(generatedModule, 'build_identity.gen.h'),
   [
     '#pragma once',
-    `#define VGAI_GODOT_SOURCE_REVISION "${REVISION}"`,
-    `#define VGAI_GODOT_SOURCE_TREE_SHA256 "${SOURCE_TREE_SHA256}"`,
-    `#define VGAI_GODOT_SOURCE_ARCHIVE_SHA256 "${SOURCE_ARCHIVE_SHA256}"`,
-    `#define VGAI_GODOT_EXPORTER_SOURCE_SHA256 "${exporterSha256}"`,
-    `#define VGAI_GODOT_EXPORTER_BUILD_OPTIONS "${BUILD_OPTIONS}"`,
+    `#define VOLTER_GODOT_SOURCE_REVISION "${REVISION}"`,
+    `#define VOLTER_GODOT_SOURCE_TREE_SHA256 "${SOURCE_TREE_SHA256}"`,
+    `#define VOLTER_GODOT_SOURCE_ARCHIVE_SHA256 "${SOURCE_ARCHIVE_SHA256}"`,
+    `#define VOLTER_GODOT_EXPORTER_SOURCE_SHA256 "${exporterSha256}"`,
+    `#define VOLTER_GODOT_EXPORTER_BUILD_OPTIONS "${BUILD_OPTIONS}"`,
     '',
   ].join('\n'),
 );

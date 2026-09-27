@@ -129,7 +129,7 @@ export const SERVER_PROJECT_PROBE_RETRY_MS = 300;
 
 /**
  * Detect and open whatever project the server currently has active.
- * Used in production where __VGAI_PROJECT_PATH__ isn't available at build time.
+ * Used in production where __VOLTER_PROJECT_PATH__ isn't available at build time.
  *
  * Returns null ONLY when the server said it has no project open — that is the
  * one answer the launcher is a truthful response to. A server that is serving
@@ -185,7 +185,7 @@ export async function detectProject(): Promise<ActiveProject | null> {
   assertNoRemovedBootParams(window.location.search);
 
   // 1. ASK THE SESSION. This is the one explicit target —
-  //    `vgai edit <path>`, `VGAI_PROJECT`, and the project browser all reach
+  //    `vgai edit <path>`, `VOLTER_PROJECT`, and the project browser all reach
   //    the client the same way, because they all move the SERVER's project
   //    and the client reads it from there. There is no URL param and no
   //    boot-time Vite define snapshot in this path: the define is a

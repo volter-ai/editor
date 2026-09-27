@@ -68,7 +68,7 @@ import { localize } from '../../../../nls.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions as ConfigurationExtensions, IConfigurationDefaults, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { VGAI_CONFIGURATION_NODE, VGAI_SETTING_KEYS } from './vgaiGeneratedSettings.js';
+import { VOLTER_CONFIGURATION_NODE, VOLTER_SETTING_KEYS } from './vgaiGeneratedSettings.js';
 import { IWorkbenchThemeService, ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
 import { TITLE_BAR_HEIGHT_KEY } from './vgaiTitleBar.js';
 
@@ -78,7 +78,7 @@ import { TITLE_BAR_HEIGHT_KEY } from './vgaiTitleBar.js';
 // its Zod `.describe()` call already carries, and `.vscode/settings.json` autocompletes them.
 // It is additive and no core file is touched. A generated module rather than an extension
 // manifest: configuration, unlike keybindings (U6b), is honoured at load from here.
-Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration(VGAI_CONFIGURATION_NODE);
+Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration(VOLTER_CONFIGURATION_NODE);
 // A product opens its project document; upstream onboarding is not a project.
 Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerDefaultConfigurations([{ overrides: { 'workbench.startupEditor': 'none', 'zenMode.showTabs': 'none', 'workbench.layoutControl.enabled': true, 'workbench.layoutControl.type': 'toggles' } }]);
 
@@ -239,9 +239,9 @@ export class VgaiSettings extends Disposable {
 
 	/** Every key this layer may carry: the generated `vgai.*` set plus the workbench keys
 	 *  above. A key outside it is refused BY NAME rather than dropped. */
-	private readonly keys = new Set([...VGAI_SETTING_KEYS, ...WORKBENCH_ADAPTER_VALUES.map(([key]) => key), ...LOOK_KEYS]);
+	private readonly keys = new Set([...VOLTER_SETTING_KEYS, ...WORKBENCH_ADAPTER_VALUES.map(([key]) => key), ...LOOK_KEYS]);
 	/** The order `apply()` walks. Same set, as a list. */
-	private readonly appliedKeys: readonly string[] = [...VGAI_SETTING_KEYS, ...WORKBENCH_ADAPTER_VALUES.map(([key]) => key), ...LOOK_KEYS];
+	private readonly appliedKeys: readonly string[] = [...VOLTER_SETTING_KEYS, ...WORKBENCH_ADAPTER_VALUES.map(([key]) => key), ...LOOK_KEYS];
 	private readonly listeners = new Set<() => void>();
 	/** See the header: one run at a time, and whether a call arrived during it. */
 	private applyRun: Promise<void> | null = null;
@@ -448,7 +448,7 @@ export class VgaiSettings extends Disposable {
 	 */
 	private syncDefaults(declared: ReadonlyMap<string, unknown>): void {
 		const overrides: Record<string, unknown> = {};
-		for (const key of VGAI_SETTING_KEYS) {
+		for (const key of VOLTER_SETTING_KEYS) {
 			const value = declared.get(key);
 			if (value !== undefined) { overrides[key] = value; }
 		}

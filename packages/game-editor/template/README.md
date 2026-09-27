@@ -26,7 +26,7 @@ The `studio` addition (`game-editor create <name> --with studio`, or `--template
 brings three development contributions; no other preset does. The files are:
 `src/contributions/tester.inspector.tsx`, `src/contributions/data.document.tsx` and
 `src/contributions/analytics.analytics.tsx`. They emit
-`VGAI_STUB_UNIMPLEMENTED`, so the editor console and `check-idioms` remain red
+`VOLTER_STUB_UNIMPLEMENTED`, so the editor console and `check-idioms` remain red
 until the game supplies its own Tester, Data and Analytics surfaces (or deletes
 Data because it genuinely has no authored content tables). Analytics must provide
 game-specific analysis. The editor already provides session selection, playback

@@ -74,7 +74,7 @@ export async function managedInferenceLaunch(
   inference: ResolvedCodingInference,
   piExtensionPath: string,
 ): Promise<HarnessRuntimeLaunch | undefined> {
-  const PROCESS_TOKEN = 'VGAI_OPENROUTER_TOKEN';
+  const PROCESS_TOKEN = 'VOLTER_OPENROUTER_TOKEN';
   const commonEnv = {
     [PROCESS_TOKEN]: inference.apiKey,
     OPENROUTER_API_KEY: inference.apiKey,
@@ -152,8 +152,8 @@ export async function managedInferenceLaunch(
       await writeFile(
         piExtensionPath,
         `export default function vgaiOpenRouter(pi) {
-  const baseUrl = process.env.VGAI_OPENROUTER_BASE_URL;
-  if (!baseUrl) throw new Error('VGAI_OPENROUTER_BASE_URL is required.');
+  const baseUrl = process.env.VOLTER_OPENROUTER_BASE_URL;
+  if (!baseUrl) throw new Error('VOLTER_OPENROUTER_BASE_URL is required.');
   pi.registerProvider('openrouter', { baseUrl, apiKey: '$OPENROUTER_API_KEY' });
 }\n`,
         { encoding: 'utf8', mode: 0o600 },
@@ -173,7 +173,7 @@ export async function managedInferenceLaunch(
       ],
       env: {
         ...commonEnv,
-        VGAI_OPENROUTER_BASE_URL: inference.baseUrl,
+        VOLTER_OPENROUTER_BASE_URL: inference.baseUrl,
       },
     };
   }

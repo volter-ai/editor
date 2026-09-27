@@ -23,7 +23,7 @@
  * setting and no flag, because nothing a user does may depend on the skew —
  * the ruling's "a skew may refuse a capability by name, never answer the same
  * question differently" leaves nothing for a chooser to choose.
- * `VGAI_BLENDER_WASM_DIR` is the existing door for pointing the editor at a
+ * `VOLTER_BLENDER_WASM_DIR` is the existing door for pointing the editor at a
  * different build, and pointing it at a WALI pack is how the substrate skew is
  * reached in development.
  *
@@ -110,7 +110,7 @@ export const BLENDER_WALI_SUBSTRATE = [
   { segment: 'browser-runtime', specifier: '@volter/browser-runtime' },
 ] as const;
 
-export const BLENDER_WASM_DIR_VARIABLE = 'VGAI_BLENDER_WASM_DIR';
+export const BLENDER_WASM_DIR_VARIABLE = 'VOLTER_BLENDER_WASM_DIR';
 
 /**
  * The bundle `@volter/blender-engine` ships — Blender itself, so its own GPL

@@ -29,7 +29,7 @@
  * load-bearing, not decoration:
  *
  * - `flag` / `env` — the CALLER named a port for THIS invocation (`--port`,
- *   `VGAI_EDITOR_PORT`). An instruction: never traded for another session's
+ *   `VOLTER_EDITOR_PORT`). An instruction: never traded for another session's
  *   port, and never quietly swapped for a free one.
  * - `worktree` — the machine-local stable allocation for this worktree/project.
  *   It is RESERVED: reuse-or-refuse on that exact port, never free-port drift.
@@ -51,7 +51,7 @@ export interface ResolvableSession {
    * "unreachable"; `classifyProjectSession` is the one decision that reads it.
    */
   registered?: boolean;
-  /** `VGAI_EPHEMERAL_SESSION` — a throwaway probe server (`vgai doctor`) that
+  /** `VOLTER_EPHEMERAL_SESSION` — a throwaway probe server (`vgai doctor`) that
    *  deliberately keeps itself out of the registry and dies in seconds. */
   ephemeral?: boolean;
 }
@@ -234,7 +234,7 @@ function allowsFallback(source: EditorPortSource): boolean {
 }
 
 /**
- * The port an explicit `--url`/`VGAI_EDITOR_URL` names, or `null` when the
+ * The port an explicit `--url`/`VOLTER_EDITOR_URL` names, or `null` when the
  * string is not a URL this CLI can target. Implicit ports count: an editor is
  * always an HTTP origin, so `http://localhost` is port 80 as surely as
  * `http://localhost:80` is.
@@ -258,7 +258,7 @@ export function editorUrlPort(rawUrl: string): number | null {
 export interface CloseSelectionInput {
   /** Live registered sessions, with `project` already canonicalized. */
   sessions: readonly ResolvableSession[];
-  /** `--port`, or the port parsed out of `--url`/`VGAI_EDITOR_URL`. */
+  /** `--port`, or the port parsed out of `--url`/`VOLTER_EDITOR_URL`. */
   requestedPort: number | null;
   /**
    * `--everywhere`: the explicit cross-project opt-in. EVERY live session on

@@ -84,7 +84,7 @@ export function registerAccountRoutes(router: EditorServerRouter, ctx: RouteCont
     }
   });
   // Managed sign-in against the deployed twin (placeholder IdP). Active only when the
-  // editor is launched with VGAI_TWIN_URL set; otherwise signInTwin throws a loud 400.
+  // editor is launched with VOLTER_TWIN_URL set; otherwise signInTwin throws a loud 400.
   router.post('/__editor/account/twin-session', async (req: Request, res: Response) => {
     try {
       const body = req.body as { email?: unknown };

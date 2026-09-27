@@ -117,7 +117,7 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
  *
  * ## Discovery and warmup lifetimes
  *
- * Dependency discovery computes this ONCE from the boot-time `VGAI_PROJECT`,
+ * Dependency discovery computes this ONCE from the boot-time `VOLTER_PROJECT`,
  * exactly like `engineSrc`/`resolve.alias` in `packaged.ts`; those settings
  * are baked into Vite's `createServer` call. Checkout-dev source warmup also
  * calls this helper after `onProjectOpened`, so a switched-to project warms

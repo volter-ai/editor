@@ -11,7 +11,7 @@
  * server.
  *
  * `getProjectRoot` is a THUNK, exactly like `uiOidPlugin`'s: `server/dev.ts`
- * keeps `process.env.VGAI_PROJECT` current as projects open and close
+ * keeps `process.env.VOLTER_PROJECT` current as projects open and close
  * (`onProjectOpened`), so a route resolved per request follows the switch and a
  * snapshot taken at config time would not.
  *

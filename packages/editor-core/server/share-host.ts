@@ -248,7 +248,7 @@ export class ShareHost {
     const hostName = hostAccount.user.name ?? hostAccount.user.email;
     const gateway = await createSessionShareGateway({
       targetPort: this.targetPort,
-      hmrPort: Number(process.env['VGAI_HMR_PORT']) || editorHmrPort(this.targetPort),
+      hmrPort: Number(process.env['VOLTER_HMR_PORT']) || editorHmrPort(this.targetPort),
       claimSecret: this.claimSecret,
       now: this.now,
       display: {

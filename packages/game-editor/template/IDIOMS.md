@@ -60,7 +60,7 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
   behavior being judged. The tester's repertoire grows in the slice that adds
   each mechanic. **LOOK**
 - `src/tools/` is literal contribution TSX. The unfinished Tester/Data/Analytics stubs
-  emit `VGAI_STUB_UNIMPLEMENTED`; replacing or honestly deleting the relevant
+  emit `VOLTER_STUB_UNIMPLEMENTED`; replacing or honestly deleting the relevant
   stub is required before completion. **ERROR E6**
 - Tester holds live QA state, controller ownership, goals/mind, setup cheats,
   and judgment readings. Analytics holds historical session data. Data holds

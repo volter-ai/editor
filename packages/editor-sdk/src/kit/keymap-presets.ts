@@ -106,7 +106,7 @@ export function registerContributedKeymap(contribution: KeymapContribution): () 
       title: contribution.title,
       description: contribution.description,
     },
-    table: Object.freeze({ ...VGAI_KEYMAP, ...contribution.bindings }) as EditorKeymapTable,
+    table: Object.freeze({ ...VOLTER_KEYMAP, ...contribution.bindings }) as EditorKeymapTable,
     navigation: contribution.navigation ?? null,
   };
   contributedKeymaps.set(contribution.id, entry);
@@ -138,7 +138,7 @@ export type EditorKeymapTable = Readonly<Record<EditorKeyActionId, readonly KeyC
  * existed, chord for chord. It is the regression bar: any change here is a
  * change to the default editor, not to a keymap.
  */
-const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
+const VOLTER_KEYMAP: EditorKeymapTable = Object.freeze({
   'edit.undo': [{ key: 'z', mod: true }],
   // Ctrl+Y mirrors Ctrl+Shift+Z (Windows convention).
   'edit.redo': [
@@ -342,7 +342,7 @@ export function activeKeymapNavigation(): KeymapNavigation {
 /** A named table, for a surface that must show a keymap it is not running.
  *  An unregistered id answers the editor's own table. */
 export function keymapTable(id: EditorKeymapId): EditorKeymapTable {
-  return contributedKeymaps.get(id)?.table ?? VGAI_KEYMAP;
+  return contributedKeymaps.get(id)?.table ?? VOLTER_KEYMAP;
 }
 
 // ---------------------------------------------------------------------------

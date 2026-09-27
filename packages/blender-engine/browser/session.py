@@ -122,7 +122,7 @@ import _blender_web
 _UNKNOWN_GEOMETRY = "RUNTIME_FRAME_UNKNOWN_GEOMETRY"
 _UNKNOWN_IMAGE = "RUNTIME_FRAME_UNKNOWN_IMAGE"
 
-ROOT = os.environ.get("VGAI_SESSION_ROOT", "/work/.vgai-session")
+ROOT = os.environ.get("VOLTER_SESSION_ROOT", "/work/.vgai-session")
 IN = os.path.join(ROOT, "in")
 OUT = os.path.join(ROOT, "out")
 ASK = os.path.join(ROOT, "ask")
@@ -142,7 +142,7 @@ REPLY = os.path.join(ROOT, "reply")
 # whose host cannot reach the module's memory at all
 # (`blender-wali-engine.mts`), where the file is not a fallback but the
 # native door onto the same bytes.
-EXPORT_BUFFER_PATH = os.environ.get("VGAI_EXPORT_BUFFER_PATH", "")
+EXPORT_BUFFER_PATH = os.environ.get("VOLTER_EXPORT_BUFFER_PATH", "")
 _real_stderr = sys.stderr
 
 
@@ -1989,7 +1989,7 @@ class VgaiRenderEngine(bpy.types.RenderEngine):
     starts a path trace nobody asked for inside the tab.
     """
 
-    bl_idname = "VGAI_THREE"
+    bl_idname = "VOLTER_THREE"
     bl_label = "three.js"
     bl_use_preview = False
 
@@ -2115,7 +2115,7 @@ def _register_engine():
             # in the start reply and refused by name at the render, never a
             # warning on every boot.
             unavailable.append(identifier)
-    # `VGAI_THREE` is the engine under its own name, registered ONCE: this runs
+    # `VOLTER_THREE` is the engine under its own name, registered ONCE: this runs
     # again after every file load (the ids have to be retaken), and Blender
     # refuses a class it already holds -- which is not a capability anyone
     # lost, so it is not a warning.

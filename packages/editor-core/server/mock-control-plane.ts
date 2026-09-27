@@ -129,7 +129,7 @@ function validUsageKind(value: unknown): value is AccountUsageEntry['kind'] {
 /**
  * In-memory HTTP-shaped account/billing service for local development. It is
  * intentionally explicit about being a zero-charge mock and also implements
- * the gateway's production `VGAI_AUTH` service-binding contract.
+ * the gateway's production `VOLTER_AUTH` service-binding contract.
  */
 export function createMockGenerativeControlPlane(
   options: MockGenerativeControlPlaneOptions = {},

@@ -122,7 +122,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
   // ---- Current project info ----
   /**
    * Who is answering — the server's own pid, and whether it is a throwaway
-   * probe (`VGAI_EPHEMERAL_SESSION`, today `vgai doctor`) rather than a
+   * probe (`VOLTER_EPHEMERAL_SESSION`, today `vgai doctor`) rather than a
    * session anyone owns.
    *
    * FX-1: `vgai edit` decided "this project's editor is already open" from the

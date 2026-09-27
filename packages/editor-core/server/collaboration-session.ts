@@ -914,14 +914,14 @@ export class CollaborationSession {
  * must be process-owned too; canonical project roots remain the per-room key.
  */
 const collaborationSessionScope = globalThis as typeof globalThis & {
-  __VGAI_COLLABORATION_SESSIONS__?: Map<string, CollaborationSession>;
+  __VOLTER_COLLABORATION_SESSIONS__?: Map<string, CollaborationSession>;
 };
 // `const`, not `let`: a `let` typed `Map | undefined` cannot carry its
 // narrowing into `collaborationSession` below (a closure may observe a later
 // assignment), so every use inside the function was a type error.
 const sessions: Map<string, CollaborationSession> =
-  collaborationSessionScope.__VGAI_COLLABORATION_SESSIONS__ ?? new Map();
-collaborationSessionScope.__VGAI_COLLABORATION_SESSIONS__ = sessions;
+  collaborationSessionScope.__VOLTER_COLLABORATION_SESSIONS__ ?? new Map();
+collaborationSessionScope.__VOLTER_COLLABORATION_SESSIONS__ = sessions;
 
 export function collaborationSession(projectRoot: string): CollaborationSession {
   const root = canonicalProjectRoot(projectRoot);

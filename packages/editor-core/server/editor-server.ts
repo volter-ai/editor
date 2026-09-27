@@ -750,7 +750,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     authorize: (request) =>
       isAllowedEditorOrigin(
         headerValue(request, 'origin'),
-        process.env['VGAI_EDITOR_HOST'] ? [process.env['VGAI_EDITOR_HOST']] : [],
+        process.env['VOLTER_EDITOR_HOST'] ? [process.env['VOLTER_EDITOR_HOST']] : [],
       )
         ? null
         : 'Cross-origin request rejected.',
@@ -1295,7 +1295,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     const isMutating =
       method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
     if (isMutating && req.path.startsWith('/__editor')) {
-      const host = process.env['VGAI_EDITOR_HOST'];
+      const host = process.env['VOLTER_EDITOR_HOST'];
       const extra = host ? [host] : [];
       if (!isAllowedEditorOrigin(req.headers.origin, extra)) {
         res.status(403).json({ error: 'Cross-origin request rejected.' });

@@ -470,7 +470,7 @@ export function resolveBindHost(
   env: NodeJS.ProcessEnv = process.env,
   platform: NodeJS.Platform = process.platform,
 ): string {
-  const explicitHost = env['VGAI_EDITOR_HOST'] || env['EDITOR_HOST'];
+  const explicitHost = env['VOLTER_EDITOR_HOST'] || env['EDITOR_HOST'];
   if (explicitHost) return explicitHost;
 
   const isWsl = platform === 'linux' && Boolean(env['WSL_INTEROP'] || env['WSL_DISTRO_NAME']);
@@ -482,9 +482,9 @@ export function resolveBindHost(
  *
  * `portEnvVar` is REQUIRED because the editor servers do not read the
  * same variable, and the message used to hardcode the wrong one. `dev.ts` (what
- * `npm run dev` runs) honours only `VGAI_EDITOR_PORT`;
- * `packaged.ts` honours `PORT` then `VGAI_EDITOR_PORT`. The old text
- * said "set PORT / VGAI_EDITOR_HOST" for both — so on the most common path
+ * `npm run dev` runs) honours only `VOLTER_EDITOR_PORT`;
+ * `packaged.ts` honours `PORT` then `VOLTER_EDITOR_PORT`. The old text
+ * said "set PORT / VOLTER_EDITOR_HOST" for both — so on the most common path
  * it named a variable `dev.ts` ignores, and offered a HOST variable as the way
  * out of a PORT conflict. Following it verbatim reproduces the exact error it
  * was printed to resolve (confirmed 2026-07-30: `PORT=5311 npm run dev` bound
@@ -500,7 +500,7 @@ export function friendlyListenError(
     return (
       `Port ${port} is already in use on ${host}. ` +
       `Another editor instance may already be running — stop it, or set ${portEnvVar} ` +
-      `to a free port (or VGAI_EDITOR_HOST to a different address) and try again.`
+      `to a free port (or VOLTER_EDITOR_HOST to a different address) and try again.`
     );
   }
   if (err.code === 'EACCES') {
@@ -765,7 +765,7 @@ function sourceTreeOf(entryPath: string): string {
  * that made drvfs stat-flood starve the event loop (dev.ts field note
  * 2026-07-10).
  *
- * Same env contract as dev.ts's poller: `VGAI_WATCH_POLL=0` forces off
+ * Same env contract as dev.ts's poller: `VOLTER_WATCH_POLL=0` forces off
  * anywhere, `=1` forces on (default 1000ms interval), `=<ms>` forces on with
  * that interval. Unset: auto-enable iff `root` sits on a drvfs mount
  * (linux + `/mnt/<drive>/`). Pass `root: null` to opt out of auto-detection
@@ -777,7 +777,7 @@ export function resolveWatcherPollOptions(
   env: Record<string, string | undefined> = process.env,
   platform: NodeJS.Platform = process.platform,
 ): { usePolling: true; interval: number } | Record<string, never> {
-  const raw = env['VGAI_WATCH_POLL'];
+  const raw = env['VOLTER_WATCH_POLL'];
   if (raw !== undefined && raw !== '') {
     if (raw === '0') return {};
     const ms = Number(raw);

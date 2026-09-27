@@ -53,7 +53,7 @@
  */
 export function gameGlobalsPrelude(mountId?: string): string {
   const realm = `(__vgaiHost.__vgaiGameRealm?__vgaiHost.__vgaiGameRealm(${JSON.stringify(mountId ?? '')}):null)`;
-  return PRELUDE_HEAD.replace('__VGAI_REALM__', realm);
+  return PRELUDE_HEAD.replace('__VOLTER_REALM__', realm);
 }
 
 const PRELUDE_HEAD =
@@ -65,7 +65,7 @@ const PRELUDE_HEAD =
   // arbitrary same-realm code can reach the same constructor, which is why
   // the architecture does not claim a browsing-context boundary.
   "const __vgaiHost=({}).constructor.constructor('return globalThis')()," +
-  '__vgaiR=__VGAI_REALM__,' +
+  '__vgaiR=__VOLTER_REALM__,' +
   '__vgaiGlobal=((__vgaiR&&__vgaiR.globalThis)||__vgaiHost.__vgaiGameWindow||__vgaiHost),' +
   'globalThis=__vgaiGlobal,' +
   '__vgaiSched=((__vgaiR&&__vgaiR.timers)||__vgaiHost.__vgaiGameTimers||__vgaiHost),' +

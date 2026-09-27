@@ -65,6 +65,6 @@ export async function resolveProviderMode(
   const name = credentialNames[provider];
   if (!name) throw new Error(`Unknown generation provider ${JSON.stringify(provider)}.`);
   if (process.env[name]?.trim()) return 'direct';
-  if (process.env['VGAI_GENERATION_GATEWAY'] && process.env['VGAI_ACCESS_TOKEN']) return 'managed';
+  if (process.env['VOLTER_GENERATION_GATEWAY'] && process.env['VOLTER_ACCESS_TOKEN']) return 'managed';
   throw new Error(`Connect ${provider} or sign in to Volter Editor in Account before generating.`);
 }

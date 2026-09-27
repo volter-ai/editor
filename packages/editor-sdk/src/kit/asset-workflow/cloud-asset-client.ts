@@ -5,7 +5,7 @@
  * GET-only, no `process.env` overrides, no admin routes, no Node imports —
  * so a Vite browser bundle can include it directly. Node's own client
  * (`packages/editor/server/cloud-asset-catalog.ts`) additionally proxies
- * Poly Haven/ambientcg and reads `VGAI_CLOUD_ASSET_URL`, so the two clients'
+ * Poly Haven/ambientcg and reads `VOLTER_CLOUD_ASSET_URL`, so the two clients'
  * FETCHING stays separate; the two clients' idea of what the worker RETURNS
  * does not. This module is where the worker's record shape is declared, and
  * the Node client imports it from here.

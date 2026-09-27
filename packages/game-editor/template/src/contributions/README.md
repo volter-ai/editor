@@ -87,7 +87,7 @@ project inherits may error, and these three THROW until they are rewritten
   answers this game's development questions. A raw event listing does not
   fulfill the contribution; never import live simulation state into Analytics.
 
-All three stubs emit `VGAI_STUB_UNIMPLEMENTED`. That warning keeps the live
+All three stubs emit `VOLTER_STUB_UNIMPLEMENTED`. That warning keeps the live
 console red, and `npm run check-idioms` reports it as unfinished work. Remove
 the sentinel only by replacing the stub with the game's real surface (or by
 honestly deleting the optional Data surface), not by silencing the warning.

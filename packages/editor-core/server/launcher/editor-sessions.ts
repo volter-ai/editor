@@ -46,7 +46,7 @@ export interface VerifiedEditorSession {
    * optional, so every producer must answer it.
    */
   registered: boolean;
-  /** The server said it is a throwaway probe (`VGAI_EPHEMERAL_SESSION`,
+  /** The server said it is a throwaway probe (`VOLTER_EPHEMERAL_SESSION`,
    *  `vgai doctor`). `undefined` from a server too old to say. */
   ephemeral?: boolean;
   /** Set when the server is SERVING `project` but cannot describe it — the
@@ -444,7 +444,7 @@ export async function waitForEditorPageConnected(
  * false means "never open", the caller's --no-open). Two answers come from
  * outside the lifecycle proper:
  * - `'disabled'` — the session maintains no tab (started headless with
- *   VGAI_NO_OPEN) and none is connected; the CALLER decides whether to open.
+ *   VOLTER_NO_OPEN) and none is connected; the CALLER decides whether to open.
  * - `'unsupported'` — an older server without the endpoint (or an
  *   unreachable one); the caller falls back to client-side convergence.
  */

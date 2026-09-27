@@ -137,7 +137,7 @@ export interface EditorServerOptions {
   /**
    * Does this session write the PERSON's launcher memory (recent projects)?
    * Defaults to `writesRecentProjects()` — false for an ephemeral probe or a
-   * headless (`VGAI_NO_OPEN`) session, which has no human at a launcher. See
+   * headless (`VOLTER_NO_OPEN`) session, which has no human at a launcher. See
    * that predicate's doc comment for why an agent's transient
    * session must not seed the owner's Recents.
    */
@@ -148,7 +148,7 @@ export interface EditorServerOptions {
    * Tab-bijection maintenance (see tab-lifecycle.ts): one blessed browser tab
    * per session — duplicates yield, a lost tab self-heals, shutdown closes it.
    * Omitted (or `enabled: false`) for headless sessions (`--no-open` /
-   * `VGAI_NO_OPEN`), embedded hosts, and test servers — that disables the
+   * `VOLTER_NO_OPEN`), embedded hosts, and test servers — that disables the
    * WHOLE loop for the session, not just the first open.
    */
   tabBijection?:
@@ -184,7 +184,7 @@ export function noEditorConnectedMessage(
     return `No editor connected — this session has no browser tab attached. ${open} (or run ${commandLine('edit')} for this project, which converges on its one tab), then retry.`;
   }
   return (
-    'No editor connected — this session runs headless (--no-open / VGAI_NO_OPEN), so it never ' +
+    'No editor connected — this session runs headless (--no-open / VOLTER_NO_OPEN), so it never ' +
     `opens or maintains a browser tab, and a relayed command needs one. ${open}, or restart ` +
     `the session with ${commandLine('edit')} (no --no-open), then retry.`
   );

@@ -286,7 +286,7 @@ async function start(project: string, document?: string): Promise<unknown> {
     throw new Error(
       'Headless Blender is not served by this editor, so there is no modeling engine: ' +
         `${served.missing.join('; ')}. The engine is Blender compiled to WebAssembly ` +
-        '(packages/blender-engine/wasm, or the directory VGAI_BLENDER_WASM_DIR names); nothing stands in for it.',
+        '(packages/blender-engine/wasm, or the directory VOLTER_BLENDER_WASM_DIR names); nothing stands in for it.',
     );
   projectRoot = project;
   return startBlender(project, document);

@@ -98,7 +98,7 @@ export interface RestartOptions {
  */
 export async function restart(command: string, options: RestartOptions = {}): Promise<void> {
   const { client, url, projectRoot } = await sessionClient();
-  const noOpen = Boolean(process.env['VGAI_NO_OPEN']);
+  const noOpen = Boolean(process.env['VOLTER_NO_OPEN']);
   // A source remount cannot freshen page-lifetime binary caches. When public/
   // bytes changed after the current document loaded, destroy that document
   // before asking it to remount — through the product's own witnessed reload

@@ -19,7 +19,7 @@
       "entry": "server/main.ts",
       "command": "npx tsx --tsconfig server/tsconfig.json server/main.ts",
       "port": 2567,
-      "env": { "VGAI_ROOM_MONITOR": "1" }
+      "env": { "VOLTER_ROOM_MONITOR": "1" }
     },
     { "id": "play + server", "kind": "compound", "run": ["server", "play"] }
   ],

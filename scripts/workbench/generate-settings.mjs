@@ -138,11 +138,11 @@ import { localize } from '../../../../nls.js';
 import { ConfigurationScope, IConfigurationNode } from '../../../../platform/configuration/common/configurationRegistry.js';
 
 /** Every vgai settings key, in the settings document's own declaration order. */
-export const VGAI_SETTING_KEYS: readonly string[] = [
+export const VOLTER_SETTING_KEYS: readonly string[] = [
 ${entries.map(([key]) => `\t'${key}',`).join('\n')}
 ];
 
-export const VGAI_CONFIGURATION_NODE: IConfigurationNode = {
+export const VOLTER_CONFIGURATION_NODE: IConfigurationNode = {
 	id: 'vgai',
 	order: 100,
 	title: localize('vgaiConfigurationTitle', "vgai"),

@@ -15,10 +15,10 @@
  *
  * `projectRoot` can't come from `import.meta.glob`/`import.meta.url` alone
  * (those resolve to HTTP URLs in the browser, not filesystem paths) — it is
- * built from `__VGAI_ENGINE_ROOT__` (a dev-server-only Vite `define`,
- * `server/dev.ts`, mirroring the existing `__VGAI_PROJECT_PATH__` define) plus
+ * built from `__VOLTER_ENGINE_ROOT__` (a dev-server-only Vite `define`,
+ * `server/dev.ts`, mirroring the existing `__VOLTER_PROJECT_PATH__` define) plus
  * this folder's FIXED, known-at-build-time relative offset. `browser`
- * editor-mode builds (no dev server) never define `__VGAI_ENGINE_ROOT__` —
+ * editor-mode builds (no dev server) never define `__VOLTER_ENGINE_ROOT__` —
  * callers must check `getEditorMode() !== 'browser'` first (mirrors every other
  * `/@fs/`-dependent ingest route's guard, e.g. `ingest/mount-ingest-root.ts`'s
  * `tryManifestIngestRoute`).
@@ -27,7 +27,7 @@
 import { type IngestEntry, ingestEntriesOnSurface } from '../host/ingest/registry';
 import type { ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 
-declare const __VGAI_ENGINE_ROOT__: string;
+declare const __VOLTER_ENGINE_ROOT__: string;
 
 /** A discovered `dom`-surface ingest fixture: its parsed manifest (exactly one
  *  ingest root) plus that root's id for convenience. */
@@ -72,13 +72,13 @@ export function getIngestGameDom(folderId: string): IngestGameDom | undefined {
 /**
  * The absolute on-disk `projectRoot` for a discovered dom ingest fixture's
  * folder — what `resolveRootBinding`/`resolveAllRoots` need to resolve its
- * `entry`. `undefined` when `__VGAI_ENGINE_ROOT__` isn't defined (browser-mode
+ * `entry`. `undefined` when `__VOLTER_ENGINE_ROOT__` isn't defined (browser-mode
  * static build — no dev server, no `/@fs/` route to resolve through anyway).
  */
 export function ingestGameDomProjectRoot(folderId: string): string | undefined {
-  if (typeof __VGAI_ENGINE_ROOT__ !== 'string' || !__VGAI_ENGINE_ROOT__) return undefined;
-  const root = __VGAI_ENGINE_ROOT__.endsWith('/')
-    ? __VGAI_ENGINE_ROOT__.slice(0, -1)
-    : __VGAI_ENGINE_ROOT__;
+  if (typeof __VOLTER_ENGINE_ROOT__ !== 'string' || !__VOLTER_ENGINE_ROOT__) return undefined;
+  const root = __VOLTER_ENGINE_ROOT__.endsWith('/')
+    ? __VOLTER_ENGINE_ROOT__.slice(0, -1)
+    : __VOLTER_ENGINE_ROOT__;
   return `${root}/packages/editor/src/ingest/games/${folderId}`;
 }

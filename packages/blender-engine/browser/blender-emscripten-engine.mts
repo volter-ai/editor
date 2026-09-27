@@ -224,11 +224,11 @@ export async function startEmscriptenBlenderEngine(
           BLENDER_SYSTEM_PYTHON: '/bw/python',
           BLENDER_SYSTEM_SCRIPTS: '/bw/scripts',
           BLENDER_SYSTEM_DATAFILES: '/bw/datafiles',
-          VGAI_SESSION_ROOT: SESSION_ROOT,
+          VOLTER_SESSION_ROOT: SESSION_ROOT,
           HOME: '/root',
           TMPDIR: '/tmp',
         });
-        // VGAI_EXPORT_BUFFER_PATH IS DELIBERATELY UNSET. This engine reads the
+        // VOLTER_EXPORT_BUFFER_PATH IS DELIBERATELY UNSET. This engine reads the
         // arena off `HEAPU8`; asking the door to also write it to a file would
         // cost this skew a megabyte-scale write per present for bytes it
         // already has (`session.py`, EXPORT_BUFFER_PATH).

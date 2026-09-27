@@ -108,7 +108,7 @@ function projectRelative(project: string, absolute: string): string | null {
 /**
  * The worker's filesystem is the only place a script's outputs exist; this
  * mirrors them to disk. Roots: the project (a script's `public/models/x.glb`
- * lands in the project) plus any `VGAI_BLENDER_MIRROR_ROOTS` (colon-separated
+ * lands in the project) plus any `VOLTER_BLENDER_MIRROR_ROOTS` (colon-separated
  * absolute paths — the replay harness names its run directory). Only files
  * whose size or mtime changed since the last mirror are read back, and only
  * files the SESSION owns are listed at all — a project file it merely read
@@ -232,7 +232,7 @@ class TabSession {
   #origin: string | null = null;
   #port: number | null = null;
   /** A replay starts with a fresh model once; ordinary agent sessions persist. */
-  #freshSessionPending = Boolean(process.env['VGAI_BLENDER_FRESH_SESSION']);
+  #freshSessionPending = Boolean(process.env['VOLTER_BLENDER_FRESH_SESSION']);
   constructor(
     private readonly project: string,
     private readonly ensureEditor: () => Promise<void>,
@@ -308,7 +308,7 @@ export async function serveBlenderMcp(
   const defaults = blenderDefaults as Record<string, string>;
   const mirror = new Mirror(project, [
     project,
-    ...(process.env['VGAI_BLENDER_MIRROR_ROOTS'] ?? '')
+    ...(process.env['VOLTER_BLENDER_MIRROR_ROOTS'] ?? '')
       .split(':')
       .filter((root) => root.startsWith('/')),
   ], `${command} blender-mcp`);

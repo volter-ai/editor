@@ -191,7 +191,7 @@ project inherits may error and these three throw until they are rewritten:
 - Analytics shows game-specific charts and metrics from the selected recorded
   Gameplay Session, using the editor's existing playback controls.
 
-All three stubs emit `VGAI_STUB_UNIMPLEMENTED`, which makes the live console and
+All three stubs emit `VOLTER_STUB_UNIMPLEMENTED`, which makes the live console and
 `check-idioms` report remaining work. Rewrite the files whole in the game's
 vocabulary.
 

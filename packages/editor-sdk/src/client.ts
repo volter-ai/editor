@@ -1549,7 +1549,7 @@ export class EditorClient {
     // and depends on neither `@volter/editor-project` nor the editor bundle (see
     // `DEFAULT_URL` above for that policy).
     //
-    // Not theoretical here: `baseUrl` is whatever `--url`/`VGAI_EDITOR_URL`
+    // Not theoretical here: `baseUrl` is whatever `--url`/`VOLTER_EDITOR_URL`
     // says, so the CLI is routinely pointed at a SHARE TUNNEL or a static host
     // — both of which answer `200 text/html` for a route nothing serves, and
     // `res.json()` then died as `Unexpected token '<'`, naming neither the URL

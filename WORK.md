@@ -303,7 +303,7 @@ Open, with what closes each:
   selection, group move, length, grid, quantize, clipboard, duplicate and articulation; in the
   arranger, clip move/resize/create/delete/duplicate, seek, loop region, metronome, markers,
   tempo and meter, the tempo row, and adding tracks, devices and sends. Playing, read in a
-  headless, muted tab hosting the session (`VGAI_NO_OPEN`, Chromium with `--mute-audio` and
+  headless, muted tab hosting the session (`VOLTER_NO_OPEN`, Chromium with `--mute-audio` and
   `--autoplay-policy=no-user-gesture-required`): a ruler click at bar 10 while playing moved
   the playhead from beat 5.3 to 36.6 and on; with a loop region of beats 8–16 a play from 0
   ran into it and wrapped from 15.6 to 9.0; the metronome scheduled a blip every 0.75 s at

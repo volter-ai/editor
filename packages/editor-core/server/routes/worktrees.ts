@@ -67,14 +67,14 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
     const launch = worktreeEditorLaunchCommand({
       targetProject,
       targetWorktreeRoot,
-      inheritedCliEntry: process.env['VGAI_CLI_ENTRY'],
+      inheritedCliEntry: process.env['VOLTER_CLI_ENTRY'],
     });
     const env = { ...process.env };
-    delete env['VGAI_PROJECT'];
-    delete env['VGAI_EDITOR_PORT'];
-    delete env['VGAI_NO_OPEN'];
-    delete env['VGAI_RESTART_ON_SOURCE_CHANGE'];
-    env['VGAI_DETACH_AFTER_READY'] = '1';
+    delete env['VOLTER_PROJECT'];
+    delete env['VOLTER_EDITOR_PORT'];
+    delete env['VOLTER_NO_OPEN'];
+    delete env['VOLTER_RESTART_ON_SOURCE_CHANGE'];
+    env['VOLTER_DETACH_AFTER_READY'] = '1';
     await new Promise<void>((resolveLaunch, rejectLaunch) => {
       execFile(
         launch.command,

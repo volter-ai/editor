@@ -72,7 +72,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   const projectRoot = ingestGameDomProjectRoot(folderId);
   if (!projectRoot) {
     editorConsole.error(
-      `React ingest "${folderId}": no __VGAI_ENGINE_ROOT__ available to resolve its entry`,
+      `React ingest "${folderId}": no __VOLTER_ENGINE_ROOT__ available to resolve its entry`,
       'ingest',
     );
     return;

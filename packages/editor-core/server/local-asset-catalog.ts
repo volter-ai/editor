@@ -22,7 +22,7 @@ import { isPathInside } from './server-utils';
  * every shipped npm package, and it turns "this host has no local library"
  * into a filesystem error about a disk the reader does not have.
  */
-export const LOCAL_ASSET_LIBRARY_ROOT_ENV = 'VGAI_ASSET_LIBRARY_ROOT';
+export const LOCAL_ASSET_LIBRARY_ROOT_ENV = 'VOLTER_ASSET_LIBRARY_ROOT';
 
 /**
  * The checkout's own committed catalog index, or `null` when this process is

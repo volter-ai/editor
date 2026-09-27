@@ -11,11 +11,11 @@
 // type, operator and resolved name is the official parser's.
 
 #ifdef RSE
-#define VGAI_SHADER_MODE RSE::ShaderMode
-#define VGAI_SHADER_ENUM(name) RSE::name
+#define VOLTER_SHADER_MODE RSE::ShaderMode
+#define VOLTER_SHADER_ENUM(name) RSE::name
 #else
-#define VGAI_SHADER_MODE RS::ShaderMode
-#define VGAI_SHADER_ENUM(name) RS::name
+#define VOLTER_SHADER_MODE RS::ShaderMode
+#define VOLTER_SHADER_ENUM(name) RS::name
 #endif
 
 namespace {
@@ -305,17 +305,17 @@ Dictionary GDScriptFrontendExporter::export_shader(const String &p_source, const
 	result["preprocessed"] = preprocessed;
 	const String type = SL::get_shader_type(preprocessed);
 	result["shaderType"] = type;
-	VGAI_SHADER_MODE mode;
+	VOLTER_SHADER_MODE mode;
 	if (type == "spatial") {
-		mode = VGAI_SHADER_ENUM(SHADER_SPATIAL);
+		mode = VOLTER_SHADER_ENUM(SHADER_SPATIAL);
 	} else if (type == "canvas_item") {
-		mode = VGAI_SHADER_ENUM(SHADER_CANVAS_ITEM);
+		mode = VOLTER_SHADER_ENUM(SHADER_CANVAS_ITEM);
 	} else if (type == "particles") {
-		mode = VGAI_SHADER_ENUM(SHADER_PARTICLES);
+		mode = VOLTER_SHADER_ENUM(SHADER_PARTICLES);
 	} else if (type == "sky") {
-		mode = VGAI_SHADER_ENUM(SHADER_SKY);
+		mode = VOLTER_SHADER_ENUM(SHADER_SKY);
 	} else if (type == "fog") {
-		mode = VGAI_SHADER_ENUM(SHADER_FOG);
+		mode = VOLTER_SHADER_ENUM(SHADER_FOG);
 	} else {
 		result["ok"] = false;
 		result["stage"] = "type";

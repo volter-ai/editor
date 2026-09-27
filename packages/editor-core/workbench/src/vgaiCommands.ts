@@ -90,7 +90,7 @@ function categoryFor(category: string) {
  * appended to the menubar only while they have an item.
  */
 interface VgaiMenuTitle { readonly value: string; readonly original: string; readonly mnemonicTitle: string }
-const VGAI_MENUS: Readonly<Record<string, { readonly id: MenuId; readonly title?: VgaiMenuTitle; readonly order?: number }>> = {
+const VOLTER_MENUS: Readonly<Record<string, { readonly id: MenuId; readonly title?: VgaiMenuTitle; readonly order?: number }>> = {
 	view: { id: MenuId.MenubarViewMenu },
 	help: { id: MenuId.MenubarHelpMenu },
 	debug: { id: new MenuId('VgaiMenubarDebugMenu'), title: { value: 'Debug', original: 'Debug', mnemonicTitle: localize({ key: 'vgaiMenuDebug', comment: ['&& denotes a mnemonic'] }, "&&Debug") }, order: 6.5 },
@@ -150,7 +150,7 @@ export class VgaiCommands extends Disposable {
 			this.generation.add(MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 				command: { id, title: entry.label, category: categoryFor(entry.category) },
 			}));
-			const menu = entry.menu && VGAI_MENUS[entry.menu.id];
+			const menu = entry.menu && VOLTER_MENUS[entry.menu.id];
 			if (entry.menu && menu) {
 				menusWithItems.add(entry.menu.id);
 				this.generation.add(MenuRegistry.appendMenuItem(menu.id, {
@@ -159,7 +159,7 @@ export class VgaiCommands extends Disposable {
 			}
 		}
 		for (const key of menusWithItems) {
-			const menu = VGAI_MENUS[key];
+			const menu = VOLTER_MENUS[key];
 			if (!menu?.title) { continue; }
 			this.generation.add(MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
 				submenu: menu.id, title: menu.title, order: menu.order,

@@ -12,8 +12,8 @@
  * would reject. Whole-document replace, like `/__editor/editor-state`: the
  * client store is the one writer and merges its own patches.
  *
- * The user file's home is `VGAI_USER_SETTINGS_PATH` when set (the same
- * override idiom as `VGAI_ACCOUNT_PATH`), else `~/.vgai/settings.json`.
+ * The user file's home is `VOLTER_USER_SETTINGS_PATH` when set (the same
+ * override idiom as `VOLTER_ACCOUNT_PATH`), else `~/.vgai/settings.json`.
  *
  * Beside it, the person's own UI STATE (`@volter/editor-sdk/kit/user-local-state`):
  *
@@ -35,8 +35,8 @@ import { type EditorSettings, parseEditorSettings } from '@volter/editor-project
 import type { EditorServerRouter } from '../editor-server';
 import type { RouteContext } from './context';
 
-export const USER_SETTINGS_PATH = process.env['VGAI_USER_SETTINGS_PATH']
-  ? resolve(process.env['VGAI_USER_SETTINGS_PATH'])
+export const USER_SETTINGS_PATH = process.env['VOLTER_USER_SETTINGS_PATH']
+  ? resolve(process.env['VOLTER_USER_SETTINGS_PATH'])
   : join(homedir(), '.vgai', 'settings.json');
 
 export const USER_STATE_PATH = join(dirname(USER_SETTINGS_PATH), 'editor-state.json');

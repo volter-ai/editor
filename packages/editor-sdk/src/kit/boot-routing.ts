@@ -5,7 +5,7 @@
  * Which surface does launching the editor land on? The design fixes the order:
  *
  *   1. An EXPLICIT target always wins, and it is always the SESSION —
- *      `vgai edit <path>` / `VGAI_PROJECT` / the project browser all re-root
+ *      `vgai edit <path>` / `VOLTER_PROJECT` / the project browser all re-root
  *      the server, and the client asks it (rung 1b below). The hub never
  *      renders. (Already true before G5; preserved here as the first rung so
  *      the whole ladder reads in one place.)

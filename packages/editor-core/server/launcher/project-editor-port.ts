@@ -189,7 +189,7 @@ export function releaseWorktreeEditorPorts(
 /** Explicit environment overrides remain useful for CI and parallel test workers. */
 export function readEditorPortEnv(value: string | undefined): number | undefined {
   if (value === undefined || value.trim() === '') return undefined;
-  return assertPort(Number(value), 'VGAI_EDITOR_PORT');
+  return assertPort(Number(value), 'VOLTER_EDITOR_PORT');
 }
 
 /** Resolve launcher precedence: CLI flag, environment, then worktree-local allocation. */

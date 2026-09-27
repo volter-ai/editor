@@ -29,8 +29,8 @@ function parseHarnessChatCallerSession(value: unknown): HarnessChatCallerSession
 export function harnessChatCallerSessionFromEnv(
   env: Record<string, string | undefined> = process.env,
 ): HarnessChatCallerSession | null {
-  const harness = env['VGAI_CALLER_HARNESS'];
-  const sessionId = env['VGAI_CALLER_SESSION_ID'];
+  const harness = env['VOLTER_CALLER_HARNESS'];
+  const sessionId = env['VOLTER_CALLER_SESSION_ID'];
   if (harness === undefined && sessionId === undefined) return null;
   return parseHarnessChatCallerSession({ harness, sessionId });
 }

@@ -170,13 +170,13 @@ function readVgaiTable(ts, file) {
 	const source = parseSource(ts, file);
 	let table;
 	const visit = (node) => {
-		if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'VGAI_KEYMAP' && node.initializer) {
+		if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'VOLTER_KEYMAP' && node.initializer) {
 			table = literalOf(ts, node.initializer, {});
 		}
 		ts.forEachChild(node, visit);
 	};
 	visit(source);
-	if (!table) { fail(`${file}: could not read the VGAI_KEYMAP table. It is expected to be a literal \`const VGAI_KEYMAP = Object.freeze({…})\`; if it stopped being one, this generator is what has to change.`); }
+	if (!table) { fail(`${file}: could not read the VOLTER_KEYMAP table. It is expected to be a literal \`const VOLTER_KEYMAP = Object.freeze({…})\`; if it stopped being one, this generator is what has to change.`); }
 	return table;
 }
 

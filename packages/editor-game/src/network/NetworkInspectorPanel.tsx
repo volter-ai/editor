@@ -1338,7 +1338,7 @@ function ServerView({
   if (inspection === null) {
     return (
       <AbsentNote testId="net-server-absent">
-        The room server serves no Monitor view (its `server` configuration sets VGAI_ROOM_MONITOR=1).
+        The room server serves no Monitor view (its `server` configuration sets VOLTER_ROOM_MONITOR=1).
       </AbsentNote>
     );
   }

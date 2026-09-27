@@ -245,9 +245,9 @@ export async function startWaliBlenderEngine(
       // `--python-use-system-env` below is what makes Blender read the
       // variable at all.
       PYTHONPATH: `${RESOURCES}/python/lib/numpy313.zip:${RESOURCES}/python/lib/wheels313.zip`,
-      VGAI_SESSION_ROOT: SESSION_ROOT,
+      VOLTER_SESSION_ROOT: SESSION_ROOT,
       // THE ARENA'S DOOR ON THIS SKEW. See `readArena`.
-      VGAI_EXPORT_BUFFER_PATH: ARENA_PATH,
+      VOLTER_EXPORT_BUFFER_PATH: ARENA_PATH,
     },
     threadPoolSize: workers.pool,
     // Blender talks to nothing. The editor's own routes are this worker's, not

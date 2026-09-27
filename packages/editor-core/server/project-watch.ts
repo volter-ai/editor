@@ -752,7 +752,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // polling every broadcast below is dead and the editor UI sits stale
     // until a manual refresh. Auto-detection keys off the PROJECT root and is
     // skipped in engine-repo mode (host.projectRoot() === engineRoot), where
-    // `public/` includes the vendored-game trees — `VGAI_WATCH_POLL` still
+    // `public/` includes the vendored-game trees — `VOLTER_WATCH_POLL` still
     // forces it there. Re-derived on every startWatcher() call so a project
     // switch onto/off a drvfs mount re-decides correctly.
     const pollOptions = resolveWatcherPollOptions(
@@ -851,11 +851,11 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // NEW file there never showed up without a full editor reload (spec §7
     // W4 field note c). Vite's own HMR (`vgai-script-hmr` in dev.ts, and
     // `tool-loader.ts`'s listener on it) only fires on `change`, and the
-    // `VGAI_WATCH_POLL` poll-watcher (dev.ts) forwards its synthetic events
+    // `VOLTER_WATCH_POLL` poll-watcher (dev.ts) forwards its synthetic events
     // into VITE's chokidar watcher only — never into this one. So this
     // second watcher is self-contained here: it works in dev AND
     // packaged/prod (this module is shared by both), and on drvfs
-    // (`/mnt/c`, no inotify) via the same `VGAI_WATCH_POLL` env var.
+    // (`/mnt/c`, no inotify) via the same `VOLTER_WATCH_POLL` env var.
     //
     // Tool/story lists use add/unlink. Registered tool modules also use
     // change because their metadata and implementation are Node-loaded.

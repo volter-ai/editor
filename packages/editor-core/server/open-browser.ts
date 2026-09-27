@@ -32,7 +32,7 @@ function isWSL(): boolean {
 const AGENT_WORKTREE_MARKER = '/.claude/worktrees/';
 
 /** Env override for the placement decision (`1` background, `0` foreground). */
-export const TAB_BACKGROUND_ENV = 'VGAI_TAB_BACKGROUND';
+export const TAB_BACKGROUND_ENV = 'VOLTER_TAB_BACKGROUND';
 
 export interface TabOpenPlacementInput {
   /**
@@ -57,7 +57,7 @@ export interface TabOpenPlacementInput {
  * a person the whole point of `vgai edit` is that the editor comes up in front
  * of them.
  *
- * `VGAI_TAB_BACKGROUND` overrides in BOTH directions: `1` backgrounds a tab
+ * `VOLTER_TAB_BACKGROUND` overrides in BOTH directions: `1` backgrounds a tab
  * that would have been foreground, `0` foregrounds one inside a worktree (an
  * agent deliberately showing the owner something).
  *

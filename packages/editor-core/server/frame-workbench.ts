@@ -39,11 +39,11 @@ import { stopProcess } from './process-shutdown';
 import { sessionProduct } from './session-product';
 
 /** The workbench directory the CLI resolved and handed over. */
-const WORKBENCH_DIR_ENV = 'VGAI_WORKBENCH_DIR';
+const WORKBENCH_DIR_ENV = 'VOLTER_WORKBENCH_DIR';
 /** The reserved port for the Code-OSS server. */
-const FRAME_PORT_ENV = 'VGAI_FRAME_PORT';
+const FRAME_PORT_ENV = 'VOLTER_FRAME_PORT';
 /** The reserved port for the one-origin proxy — the url a person opens. */
-const FRAME_PROXY_PORT_ENV = 'VGAI_FRAME_PROXY_PORT';
+const FRAME_PROXY_PORT_ENV = 'VOLTER_FRAME_PROXY_PORT';
 
 export interface FrameLaunch {
   readonly workbenchDir: string;

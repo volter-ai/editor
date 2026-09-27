@@ -4,7 +4,7 @@
  * the phase plan's D-FORK decision + §0/§3 "the real work" for `@vgai/editor`).
  *
  * Run with:
- *   VGAI_PROJECT=<projectDir> node dist-server/packaged.mjs
+ *   VOLTER_PROJECT=<projectDir> node dist-server/packaged.mjs
  *
  * ## Why this file exists (and isn't just `dev.ts`)
  *
@@ -276,31 +276,31 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const editorPackageRoot = path.resolve(__dirname, '..');
 const checkoutRoot = path.resolve(editorPackageRoot, '..', '..');
 // The CLI's reservation wins over an inherited `PORT`: a product's `edit`
-// allocates this project's port, hands it over as VGAI_EDITOR_PORT and waits
+// allocates this project's port, hands it over as VOLTER_EDITOR_PORT and waits
 // on it, so a shell or platform that sets PORT for its own reasons (a
 // container's convention of 8080) left the server on 8080 and the CLI waiting
 // on the port it reserved until it gave up.
 const PORT =
-  Number(process.env['VGAI_EDITOR_PORT']) || Number(process.env['PORT']) || DEFAULT_EDITOR_PORT;
-const HMR_PORT = Number(process.env['VGAI_HMR_PORT']) || editorHmrPort(PORT);
-const HMR_CLIENT_PORT = Number(process.env['VGAI_HMR_CLIENT_PORT']) || HMR_PORT;
+  Number(process.env['VOLTER_EDITOR_PORT']) || Number(process.env['PORT']) || DEFAULT_EDITOR_PORT;
+const HMR_PORT = Number(process.env['VOLTER_HMR_PORT']) || editorHmrPort(PORT);
+const HMR_CLIENT_PORT = Number(process.env['VOLTER_HMR_CLIENT_PORT']) || HMR_PORT;
 // S3: bind to loopback by default; opt-in to a wider interface via env.
 const HOST = resolveBindHost();
 // Same rule as dev.ts: every URL this process prints or opens names the host it
 // actually bound, never `localhost` (see `editorOrigin`).
 const EDITOR_ORIGIN = editorOrigin(PORT, HOST);
 
-if (!process.env['VGAI_PROJECT']) {
+if (!process.env['VOLTER_PROJECT']) {
   console.error(
-    '\n  \x1b[31mVGAI_PROJECT is required — the packaged editor has no monorepo checkout to fall ' +
-      'back to. Set VGAI_PROJECT=<absolute path to your project>.\x1b[0m\n',
+    '\n  \x1b[31mVOLTER_PROJECT is required — the packaged editor has no monorepo checkout to fall ' +
+      'back to. Set VOLTER_PROJECT=<absolute path to your project>.\x1b[0m\n',
   );
   process.exit(1);
 }
 // Canonicalized (symlink-resolved) — see canonical-path.ts's doc comment
 // (dev.ts's identical fix: one project module loads twice if this path and
 // Vite's own resolver disagree on a symlinked segment).
-const projectPath = canonicalProjectRoot(process.env['VGAI_PROJECT']);
+const projectPath = canonicalProjectRoot(process.env['VOLTER_PROJECT']);
 
 // THE PRODUCT'S BUILD is what this host serves — `npm run build -w
 // @vgai/game-editor` / `-w @vgai/model-editor`, each into its own package's
@@ -996,7 +996,7 @@ async function main(): Promise<void> {
   // `<product> prepare`: the image a project is shipped in runs this session's
   // own dependency optimizer ahead of time and carries what it recorded, so an
   // opened session reuses it instead of optimizing (launcher/launch.ts).
-  if (process.env['VGAI_PREPARE']) {
+  if (process.env['VOLTER_PREPARE']) {
     console.log(`Prepared ${projectPath}: ${path.join(resolvedViteConfig.cacheDir, 'deps', '_metadata.json')}`);
     process.exit(0);
   }
@@ -1029,10 +1029,10 @@ async function main(): Promise<void> {
     // install instead of reporting the live-only floor forever.
     ingestSourceWriteRoutes: servesIngestSourceRoutes(vite.config.plugins),
     // Tab bijection — same session contract as dev.ts: one blessed browser
-    // tab, self-healed and closed with the session; VGAI_NO_OPEN (the CLI's
+    // tab, self-healed and closed with the session; VOLTER_NO_OPEN (the CLI's
     // --no-open) disables the whole loop for headless sessions.
     tabBijection: {
-      enabled: !process.env['VGAI_NO_OPEN'],
+      enabled: !process.env['VOLTER_NO_OPEN'],
       // Same contract as dev.ts: under the frame this session's ONE tab is the
       // workbench page, and the url is arithmetic over the reserved proxy port.
       editorUrl: frameLaunch ? frameWorkbenchUrl(frameLaunch, projectPath) : `${EDITOR_ORIGIN}/`,

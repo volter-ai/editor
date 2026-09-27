@@ -444,7 +444,7 @@ function patchRehCopilotShim(checkout) {
 	const path = join(checkout, REH_GULPFILE);
 	const source = readFileSync(path, 'utf8')
 		.split('\n')
-		.filter((line) => !line.includes('// VGAI (overlaid tier') && !line.includes('VGAI_NO_BUILTIN_COPILOT'))
+		.filter((line) => !line.includes('// VGAI (overlaid tier') && !line.includes('VOLTER_NO_BUILTIN_COPILOT'))
 		.join('\n');
 	const anchor = "\t\tconst builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');\n";
 	if (!source.includes(anchor)) {
@@ -452,7 +452,7 @@ function patchRehCopilotShim(checkout) {
 	}
 	const guard =
 		'\t\t// VGAI (overlaid tier — scripts/workbench/overlay.mjs): extensions/copilot is not in\n' +
-		'\t\t// this release, so there is no built-in Copilot SDK to shim. VGAI_NO_BUILTIN_COPILOT.\n' +
+		'\t\t// this release, so there is no built-in Copilot SDK to shim. VOLTER_NO_BUILTIN_COPILOT.\n' +
 		'\t\tif (!fs.existsSync(builtInCopilotExtensionDir)) { return; }\n';
 	writeFileSync(path, source.replace(anchor, anchor + guard));
 }

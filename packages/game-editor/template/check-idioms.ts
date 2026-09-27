@@ -41,7 +41,7 @@ import { fileURLToPath } from 'node:url';
 //         two, the engine-src permanent scan and the examples/ burn-down
 //         scan, live in the engine repo's own test suite; see
 //         packages/engine/test/gameplay-rng-ban.test.ts).
-//     E6. `VGAI_STUB_UNIMPLEMENTED` remains in src/tools/** or src/contributions/** — this
+//     E6. `VOLTER_STUB_UNIMPLEMENTED` remains in src/tools/** or src/contributions/** — this
 //         is the starter's explicit unfinished-work sentinel, so a completion
 //         check containing it cannot be green. Replace the Tester/Data/Analytics stub
 //         whole in the game's vocabulary; a game with no content tables may
@@ -957,7 +957,7 @@ function checkDeterminismRng(): void {
 // ---------------------------------------------------------------------------
 
 function checkUnconfiguredProjectTools(): void {
-  const sentinel = /\bVGAI_STUB_UNIMPLEMENTED\b/g;
+  const sentinel = /\bVOLTER_STUB_UNIMPLEMENTED\b/g;
   const toolFiles = srcFiles.filter((file) => /^(src\/tools|src\/contributions)\//.test(relPath(file)));
   for (const file of toolFiles) {
     const { rawLines, blanked } = readFileText(file);
@@ -969,7 +969,7 @@ function checkUnconfiguredProjectTools(): void {
         'E6',
         'error',
         'studio-surfaces-complete',
-        'VGAI_STUB_UNIMPLEMENTED remains in an editor contribution — this is an explicit starter obligation, not a usable game-specific surface.',
+        'VOLTER_STUB_UNIMPLEMENTED remains in an editor contribution — this is an explicit starter obligation, not a usable game-specific surface.',
         "Rewrite the stub whole in this game's vocabulary and remove its warning. If this is the Data stub and the game genuinely has no authored content tables, delete the file.",
       );
     }

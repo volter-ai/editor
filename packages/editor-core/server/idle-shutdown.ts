@@ -46,10 +46,10 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  * a risky one.
  */
 
-/** Idle window when `VGAI_IDLE_SHUTDOWN_MINUTES` is unset. */
+/** Idle window when `VOLTER_IDLE_SHUTDOWN_MINUTES` is unset. */
 export const DEFAULT_IDLE_SHUTDOWN_MINUTES = 45;
 
-export const IDLE_SHUTDOWN_MINUTES_ENV = 'VGAI_IDLE_SHUTDOWN_MINUTES';
+export const IDLE_SHUTDOWN_MINUTES_ENV = 'VOLTER_IDLE_SHUTDOWN_MINUTES';
 
 /**
  * The configured idle window in milliseconds; `0` means "never self-shut".
@@ -59,13 +59,13 @@ export const IDLE_SHUTDOWN_MINUTES_ENV = 'VGAI_IDLE_SHUTDOWN_MINUTES';
  * second seconds-only env var would just be a second thing to keep in sync.
  *
  * Disabled when:
- * - `VGAI_IDLE_SHUTDOWN_MINUTES=0` — the explicit opt-out;
+ * - `VOLTER_IDLE_SHUTDOWN_MINUTES=0` — the explicit opt-out;
  * - `CI` is set — a CI runner already owns and reaps its child processes, and
  *   a lane that pauses longer than the window must not lose its server;
- * - the session is EPHEMERAL (`VGAI_EPHEMERAL_SESSION`, today `vgai doctor`) —
+ * - the session is EPHEMERAL (`VOLTER_EPHEMERAL_SESSION`, today `vgai doctor`) —
  *   a probe's whole lifetime belongs to the tool that spawned it.
  *
- * `VGAI_NO_OPEN` deliberately does NOT disable it: a headless session is
+ * `VOLTER_NO_OPEN` deliberately does NOT disable it: a headless session is
  * exactly the kind that gets abandoned. Harnesses that drive their own server
  * stay alive because driving it is activity (see the header).
  *
@@ -74,7 +74,7 @@ export const IDLE_SHUTDOWN_MINUTES_ENV = 'VGAI_IDLE_SHUTDOWN_MINUTES';
  */
 export function resolveIdleShutdownMs(env: NodeJS.ProcessEnv = process.env): number {
   if (env['CI']) return 0;
-  const ephemeral = env['VGAI_EPHEMERAL_SESSION'];
+  const ephemeral = env['VOLTER_EPHEMERAL_SESSION'];
   if (ephemeral !== undefined && ephemeral !== '' && ephemeral !== '0') return 0;
   const raw = env[IDLE_SHUTDOWN_MINUTES_ENV];
   if (raw === undefined || raw.trim() === '') return DEFAULT_IDLE_SHUTDOWN_MINUTES * 60_000;

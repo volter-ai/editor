@@ -1395,8 +1395,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       // both read the event stream and push control frames. `EventSource`
       // on the same path is refused by the browser's own CORS, which is why
       // the GET form does not need it. Same predicate as the mutating-route
-      // gate above, including its VGAI_EDITOR_HOST escape.
-      const host = process.env['VGAI_EDITOR_HOST'];
+      // gate above, including its VOLTER_EDITOR_HOST escape.
+      const host = process.env['VOLTER_EDITOR_HOST'];
       if (!isAllowedEditorOrigin(headerValue(request, 'origin'), host ? [host] : [])) {
         return 'Cross-origin request rejected.';
       }
@@ -1731,7 +1731,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
                 // session's own host participant is an internal identity — once
                 // its tab goes away, naming it says nothing the caller can act
                 // on, while `noEditorConnectedMessage` names the URL to open and,
-                // for a `--no-open`/`VGAI_NO_OPEN` session, why no tab appeared
+                // for a `--no-open`/`VOLTER_NO_OPEN` session, why no tab appeared
                 // by itself.
                 participantId !== null && participantId !== ctx.hostParticipantId
                 ? `No editor tab is connected for participant ${participantId}.`

@@ -29,7 +29,7 @@
  * and that IS the answer. There is no manifest field, no setting and no flag,
  * because nothing a user does should depend on the skew -- if it did, the
  * skews would be answering differently, which the ruling forbids.
- * `VGAI_BLENDER_WASM_DIR` is the existing door for pointing the editor at a
+ * `VOLTER_BLENDER_WASM_DIR` is the existing door for pointing the editor at a
  * different build and is how the substrate skew is reached in development.
  *
  * WHAT DIFFERS, and it is four things, all below this line:
@@ -404,7 +404,7 @@ export function openSessionChannel(
           `Blender is gone, so this call will never be answered: ${ended}. ` +
             'The session keeps its directory and its cached banner, so every later call would ' +
             'wait on the same missing answer; start a new program with `blender-start {fresh: true}` ' +
-            '(`VGAI_BLENDER_FRESH_SESSION=1` for the battery harness).',
+            '(`VOLTER_BLENDER_FRESH_SESSION=1` for the battery harness).',
         );
       await sleep(pollDelay(performance.now() - began));
     }

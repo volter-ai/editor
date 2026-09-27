@@ -5,7 +5,7 @@
  * `vgai edit` resolves the product from the project's own dependencies
  * (`@volter/editor-sdk/session/product-locator`) so a bad or missing declaration
  * is named before a server exists, then hands the directory over in
- * `VGAI_PRODUCT_DIR`, beside `VGAI_WORKBENCH_DIR`. The session reads it back
+ * `VOLTER_PRODUCT_DIR`, beside `VOLTER_WORKBENCH_DIR`. The session reads it back
  * for the two things only it can do: SERVE the product's entry through
  * `/__editor/served-modules`, and REPORT it (`EditorState.product`, printed by
  * `vgai status` on the workbench's line) — a process reports what it is running.
@@ -26,7 +26,7 @@ import {
 } from '@volter/editor-sdk/session/product-locator';
 
 /** The product directory the CLI resolved and handed over. */
-export const PRODUCT_DIR_ENV = 'VGAI_PRODUCT_DIR';
+export const PRODUCT_DIR_ENV = 'VOLTER_PRODUCT_DIR';
 
 /**
  * The product this session serves, or `null` when there is none to find — a

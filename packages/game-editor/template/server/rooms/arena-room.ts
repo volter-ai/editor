@@ -152,9 +152,9 @@ export class ArenaRoom extends Room {
     // Off by default (FROZEN DECISION: env-var OR room-option) — the loopback harness/
     // the loopback harness (`../loopback.ts`) opt in via the room option; a
     // plain `npm run server` boot never accepts debug commands unless
-    // VGAI_ALLOW_DEBUG_COMMANDS is set in its environment.
+    // VOLTER_ALLOW_DEBUG_COMMANDS is set in its environment.
     const debugCommandsAllowed =
-      options?.allowDebugCommands === true || Boolean(process.env['VGAI_ALLOW_DEBUG_COMMANDS']);
+      options?.allowDebugCommands === true || Boolean(process.env['VOLTER_ALLOW_DEBUG_COMMANDS']);
 
     this.onMessage(
       '__vgai:debugCommand',

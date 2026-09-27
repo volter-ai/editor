@@ -97,12 +97,12 @@ export function sessionRegistryPath(): string {
  * undiscoverable (`cat .vgai/session.json` → ENOENT) because they ran a
  * read-only diagnostic against it.
  *
- * Same shape as `VGAI_NO_OPEN`: an env flag the spawning tool sets on the
+ * Same shape as `VOLTER_NO_OPEN`: an env flag the spawning tool sets on the
  * child, never a mode the server infers. `'0'` explicitly opts back in, so
  * the variable can be cleared by value in an inherited environment.
  */
 export function isEphemeralSession(env: NodeJS.ProcessEnv = process.env): boolean {
-  const value = env['VGAI_EPHEMERAL_SESSION'];
+  const value = env['VOLTER_EPHEMERAL_SESSION'];
   return value !== undefined && value !== '' && value !== '0';
 }
 
@@ -118,7 +118,7 @@ export function isEphemeralSession(env: NodeJS.ProcessEnv = process.env): boolea
  *
  * - an EPHEMERAL PROBE (`isEphemeralSession`, today `vgai doctor`), which is
  *   not an editing session at all; and
- * - a HEADLESS session (`VGAI_NO_OPEN` — the CLI's `--no-open`), which
+ * - a HEADLESS session (`VOLTER_NO_OPEN` — the CLI's `--no-open`), which
  *   maintains no browser tab whatsoever: CI, headless harnesses, and every
  *   background-agent session. Measured: an agent's transient session wrote
  *   its scratchpad project into the owner's Recents, and the owner's next
@@ -130,7 +130,7 @@ export function isEphemeralSession(env: NodeJS.ProcessEnv = process.env): boolea
  */
 export function writesRecentProjects(env: NodeJS.ProcessEnv = process.env): boolean {
   if (isEphemeralSession(env)) return false;
-  return !env['VGAI_NO_OPEN'];
+  return !env['VOLTER_NO_OPEN'];
 }
 
 /** All recorded sessions, unvalidated beyond shape (callers liveness-filter). */
