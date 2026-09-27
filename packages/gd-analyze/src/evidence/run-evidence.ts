@@ -984,6 +984,9 @@ function bindingSymbol(
         kind: 'native-member',
         signature: ((hash) => (hash === 0 ? 'unhashed' : `hash:${String(hash)}`))(apiClassMethodHash(pins.apiDumpFile, symbol.owner, symbol.member)),
       };
+    case 'native-constructor':
+      // The identity lowering gives `Class.new()` (`nativeClassBinding`): the class as a value.
+      return { ...base, kind: 'native-class', signature: 'GDScriptNativeClass' };
     case 'utility-function':
       return {
         ...base,
@@ -1007,6 +1010,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
     case 'utility-function':
     case 'singleton-member':
     case 'native-static':
+    case 'native-constructor':
       return { kind: 'call', sourceReceiver: 'absent' };
     case 'builtin-constant':
       return { kind: 'value' };

@@ -19,6 +19,9 @@ add('call_deferred-in-physics', 'call_deferred', [now({ new: 'a' }, { add: 'a' }
 add('call_deferred-freed-target', 'call_deferred', [now({ new: 'a' }, { add: 'a' }), proc({ deferred: 'a', what: 'x' }, { free: 'a' }), proc()]);
 add('call_deferred-before-tree', 'call_deferred', [now({ new: 'a', script: 'quiet' }, { deferred: 'a', what: 'early' }, { add: 'a' })]);
 add('set_deferred', 'set_deferred', [now({ new: 'a', script: 'quiet' }, { add: 'a' }, { setDeferred: 'a', value: 'v1' }, { readMark: 'a' }), phys({ readMark: 'a' }, { setDeferred: 'a', value: 'v2' }, { readMark: 'a' }), proc({ readMark: 'a' })]);
+// has_method for names no engine class declares: a scripted node's own function, a missing one,
+// a plain node, and `free` (always true, object.cpp:656).
+add('has_method-script-chain', 'has_method', [now({ new: 'a' }, { new: 'p', script: 'none' }, { add: 'a' }, { add: 'p' }, { read: ['has_method', 'a', 'note'] }, { read: ['has_method', 'a', 'missing_fn'] }, { read: ['has_method', 'p', 'note'] }, { read: ['has_method', 'a', 'free'] }, { read: ['has_method', 'p', 'free'] })]);
 add('is_queued_for_deletion', 'is_queued_for_deletion', [now({ new: 'a' }, { add: 'a' }, { read: ['queued', 'a'] }, { free: 'a' }, { read: ['queued', 'a'] })]);
 
 // Metadata: a node's entries in insertion order, erased by a null value.

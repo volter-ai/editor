@@ -812,6 +812,43 @@ export function set_global_basis(self: Object3D, p_basis: Basis): void {
 }
 
 /**
+ * The rotation in degrees, each Euler angle converted in float (`Math::deg_to_rad(float)`,
+ * `math_funcs.h:324`).
+ *
+ * @godot Node3D.set_rotation_degrees
+ * @source scene/3d/node_3d.cpp:813
+ */
+export function set_rotation_degrees(self: Object3D, p_euler_degrees: Vector3): void {
+  const toRad = (value: number) => f32(f32(value) * f32(f32(PI) / 180));
+  set_rotation(self, vector3(toRad(p_euler_degrees.x), toRad(p_euler_degrees.y), toRad(p_euler_degrees.z)));
+}
+
+/**
+ * The rotation in degrees, each Euler angle converted in float (`Math::rad_to_deg(float)`,
+ * `math_funcs.h:331`).
+ *
+ * @godot Node3D.get_rotation_degrees
+ * @source scene/3d/node_3d.cpp:850
+ */
+export function get_rotation_degrees(self: Object3D): Vector3 {
+  const radians = get_rotation(self);
+  const toDeg = (value: number) => f32(f32(value) * f32(180 / f32(PI)));
+  return vector3(toDeg(radians.x), toDeg(radians.y), toDeg(radians.z));
+}
+
+/**
+ * Fails (does nothing) outside the tree; otherwise `look_at_from_position` from the global origin.
+ * The Variant defaults are `up = Vector3.UP`, `use_model_front = false`.
+ *
+ * @godot Node3D.look_at
+ * @source scene/3d/node_3d.cpp:1251
+ */
+export function look_at(self: Object3D, p_target: Vector3, p_up: Vector3 = vector3(0, 1, 0), p_use_model_front = false): void {
+  if (!is_inside_tree(self)) return;
+  look_at_from_position(self, toVector3(globalOf(self).origin), p_target, p_up, p_use_model_front);
+}
+
+/**
  * `t.basis.rotate(Vector3(0, 1, 0), p_angle)`: `Basis(axis, angle) * basis`
  * (`core/math/basis.cpp:352`).
  *

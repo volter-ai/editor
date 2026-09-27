@@ -98,6 +98,7 @@
     "src/lib/godot-compat/project-settings.ts",
     "src/lib/godot-compat/quad-mesh.ts",
     "src/lib/godot-compat/quaternion.ts",
+    "src/lib/godot-compat/random-number-generator.ts",
     "src/lib/godot-compat/random-pcg.ts",
     "src/lib/godot-compat/ray-cast-3d.ts",
     "src/lib/godot-compat/react-lifecycle.tsx",

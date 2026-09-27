@@ -31,7 +31,12 @@ export type GodotEvidenceSymbolKind =
    * A native class's static method (`PhysicsRayQueryParameters3D.create`): the API dump's method
    * identity, called with no receiver.
    */
-  | 'native-static';
+  | 'native-static'
+  /**
+   * `Class.new()` of a native class (`ClassDB::instantiate`): owner and member are the class; the
+   * binding constructs it with no receiver.
+   */
+  | 'native-constructor';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;

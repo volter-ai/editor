@@ -17,7 +17,7 @@
 
 import type { Object3D } from 'three';
 import { get_length as streamLength, godot_audio_context, godot_audio_stream_start } from './audio-stream';
-import { godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_tree } from './scene-tree';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import type { ReactElement } from 'react';
@@ -104,6 +104,20 @@ export function godot_audio_player_mount(entity: Object3D, output: GodotAudioPla
  */
 export function godot_audio_stream_player_mount(entity: Object3D): void {
   godot_audio_player_mount(entity, (audio) => audio.destination);
+}
+
+/**
+ * A new AudioStreamPlayer (`AudioStreamPlayer.new()`): a Node outside the tree, its playbacks
+ * sounding in the page's output once it enters.
+ *
+ * @godot AudioStreamPlayer.AudioStreamPlayer
+ * @source scene/audio/audio_stream_player.cpp:302
+ */
+export function construct(): Group {
+  const entity = new Group();
+  godot_node_adopt(entity, { kind: 'node', classes: ['AudioStreamPlayer', 'Node', 'Object'] });
+  godot_audio_stream_player_mount(entity);
+  return entity;
 }
 
 /**

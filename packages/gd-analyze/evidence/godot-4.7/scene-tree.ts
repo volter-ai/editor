@@ -4,6 +4,7 @@
  */
 import { Group, Object3D, Scene } from 'three';
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import * as B from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
 import * as T from '../../capabilities/catalog/project-source/src/lib/godot-compat/transform-3d';
 import * as V2 from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector2';
@@ -67,6 +68,8 @@ export function scene(
   result: { readonly call: string; readonly on: string; readonly args?: readonly Value[] },
   modules: readonly Exports[],
   setSize: (viewport: Object3D, size: unknown) => void,
+  /** The target's holder is the tree's root (the GDScript holder is always inside the tree). */
+  inTree = false,
 ): { readonly gdscript: string; readonly target: () => unknown } {
   const lines: string[] = [];
   for (const step of steps) {
@@ -93,6 +96,7 @@ export function scene(
   };
   const target = (): unknown => {
     const holder = new Scene();
+    if (inTree) ST.godot_tree_set_root(holder);
     const nodes = new Map<string, Object3D>();
     for (const step of steps) {
       if ('node' in step) {
@@ -105,7 +109,11 @@ export function scene(
         } else {
           const node = step.plain === true ? new Group() : new Object3D();
           if (step.plain === true) N.godot_node_adopt(node, { kind: 'node' });
-          (step.parent === undefined ? holder : (nodes.get(step.parent) as Object3D)).add(node);
+          const parent = step.parent === undefined ? holder : (nodes.get(step.parent) as Object3D);
+          if (inTree) {
+            if (step.plain !== true) N.godot_node_adopt(node, { kind: 'spatial' });
+            N.add_child(parent, node);
+          } else parent.add(node);
           nodes.set(step.node, node);
         }
       } else {

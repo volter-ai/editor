@@ -68,3 +68,28 @@ export function godot_random_pcg_randf(self: RandomPCG): number {
   const bits = (next(self) | 0x80000001) >>> 0;
   return Math.fround(Math.fround(bits) * 2 ** (-32 - Math.clz32(proto)));
 }
+
+/**
+ * `RandomPCG::rand` (`core/math/random_pcg.h:75`): the next output.
+ *
+ * @godot RandomPCG (protocol)
+ * @source core/math/random_pcg.h:75
+ */
+export function godot_random_pcg_rand(self: RandomPCG): number {
+  return next(self);
+}
+
+/**
+ * `RandomPCG::rand(bounds)` (`pcg32_boundedrand_r`, `thirdparty/misc/pcg.cpp:30`): uniform in
+ * `[0, bound)` by rejection below `-bound % bound`.
+ *
+ * @godot RandomPCG (protocol)
+ * @source thirdparty/misc/pcg.cpp:30
+ */
+export function godot_random_pcg_rand_bounded(self: RandomPCG, bound: number): number {
+  const threshold = ((0x100000000 - bound) >>> 0) % bound;
+  for (;;) {
+    const r = next(self);
+    if (r >= threshold) return r % bound;
+  }
+}

@@ -733,6 +733,12 @@ export function nativeMethodLookup(apiDump: GodotApiDump): NativeMethodLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
   const builtins = new Map((apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
   return (className, name) => {
+    // `*`: any engine class that declares the method.
+    if (className === '*') {
+      const declaring = apiDump.classes.find((entry) => entry.methods.some((method) => method.name === name));
+      const found = declaring?.methods.find((method) => method.name === name);
+      return declaring === undefined || found === undefined ? undefined : { owner: declaring.name, name, hash: found.hash ?? 0 };
+    }
     for (let current = classes.get(className); current !== undefined; ) {
       const found = current.methods.find((entry) => entry.name === name);
       if (found !== undefined) return { owner: current.name, name, hash: found.hash ?? 0 };

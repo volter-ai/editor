@@ -187,3 +187,27 @@ export function godot_object_equal(a: unknown, b: unknown): boolean {
 export function godot_object_truthy(value: unknown): boolean {
   return validated(value) !== null;
 }
+
+/**
+ * Whether the object's script chain declares the function: a script instance's own method (a
+ * lowered GDScript function; the translation's `$`-named members are not functions of the script).
+ * Translation calls this only for a name no engine class declares (`lower-official-expression.ts`),
+ * where `ClassDB::has_method` is false for every object, so the script's answer is Godot's.
+ *
+ * @godot Object.has_method
+ * @source core/object/object.cpp:655
+ */
+export function has_method(self: object, method: string): boolean {
+  if (method === 'free') return true;
+  if (method.startsWith('$')) return false;
+  const entity = godot_node_entity(self);
+  // A native entity has no script functions; a script instance is the object its entity differs from.
+  if (entity === self) return false;
+  let prototype: object | null = self;
+  while (prototype !== null && prototype !== Object.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, method);
+    if (descriptor !== undefined && typeof descriptor.value === 'function' && method !== 'constructor') return true;
+    prototype = Object.getPrototypeOf(prototype) as object | null;
+  }
+  return false;
+}

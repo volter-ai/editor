@@ -7,9 +7,9 @@ import { basis, int, scene, type Step, transform, v3, type Value } from './scene
 const cases: GodotEvidenceCase[] = [];
 const member = (name: string): GodotEvidenceSymbol => ({ kind: 'native-member', owner: 'Node3D', member: name });
 
-function add(id: string, symbol: string, steps: readonly Step[], call: string, on = 'a', args: readonly Value[] = []): void {
-  const built = scene(steps, { call, on, args }, [N], (viewport, size) => SV.set_size(viewport, size as never));
-  cases.push({ id, symbol: member(symbol), gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+function add(id: string, symbol: string, steps: readonly Step[], call: string, on = 'a', args: readonly Value[] = [], inTree = false, comparator: GodotEvidenceCase['comparator'] = 'exact'): void {
+  const built = scene(steps, { call, on, args }, [N], (viewport, size) => SV.set_size(viewport, size as never), inTree);
+  cases.push({ id, symbol: member(symbol), gdscript: built.gdscript, target: built.target, comparator });
 }
 
 const A: Step = { node: 'a' };
@@ -28,6 +28,28 @@ const GETTERS = [
 
 // A fresh Node3D.
 for (const getter of GETTERS) add(`fresh-${getter}`, getter, [A], getter);
+
+// Rotation in degrees, set and read back in float, and as the rotation it sets.
+for (const [name, degrees] of [['zero', v3(0, 0, 0)], ['mixed', v3(30, -45.5, 90)], ['large', v3(370, -200, 12.25)], ['random', v3(0, 0, 33.7)]] as const) {
+  add(`set_rotation_degrees-${name}`, 'set_rotation_degrees', [A, { call: 'set_rotation_degrees', on: 'a', args: [degrees] }], 'get_rotation_degrees');
+  add(`set_rotation_degrees-${name}-radians`, 'set_rotation_degrees', [A, { call: 'set_rotation_degrees', on: 'a', args: [degrees] }], 'get_rotation');
+}
+add('get_rotation_degrees-from-radians', 'get_rotation_degrees', [A, { call: 'set_rotation', on: 'a', args: [v3(0.4, -0.7, 1.3)] }], 'get_rotation_degrees');
+add('get_rotation_degrees-fresh', 'get_rotation_degrees', [A], 'get_rotation_degrees');
+// look_at from the node's global origin (inside the tree), with the default up and model front.
+// `look_at_from_position` restores the scale through `set_scale`, which recomposes the basis from
+// its Euler angles (`atan2f`/`asinf` of the C library, which compat takes as the double result
+// rounded): within one float32 ulp.
+for (const [name, target, up, front] of [
+  ['forward', v3(0, 0, -5), undefined, undefined],
+  ['diagonal', v3(3, 2, -1), undefined, undefined],
+  ['up-x', v3(1, 4, 2), v3(1, 0, 0), undefined],
+  ['model-front', v3(-2, 1, 3), v3(0, 1, 0), true],
+  ['same-position', v3(0.5, 0.25, 0), undefined, undefined],
+] as const) {
+  const args: Value[] = [target, ...(up === undefined ? [] : [up]), ...(front === undefined ? [] : [front])];
+  add(`look_at-${name}`, 'look_at', [A, { call: 'set_position', on: 'a', args: [v3(0.5, 0.25, 0)] }, { call: 'look_at', on: 'a', args }], 'get_global_transform', 'a', [], true, 'float32-ulp');
+}
 
 const EULERS: readonly (readonly [string, Value])[] = [
   ['zero', v3(0, 0, 0)],

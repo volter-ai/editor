@@ -1786,6 +1786,17 @@ export function lowerOfficialExpression(
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );
         const target = callTargetBinding(context, node);
+        // `Object.has_method(name)` answers from the script chain first, then ClassDB. Compat answers
+        // the script chain (`object.ts`); a name some engine class declares, or one only known at run
+        // time, would need ClassDB at run time and is refused by name.
+        const selected = node.compilerTarget.kind === 'native-method' ? node.compilerTarget : context.callReceivers.get(node.id)?.target;
+        if (selected?.owner === 'Object' && selected.member === 'has_method') {
+          const argument = argumentNodes[0];
+          const name = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;
+          if (name === undefined) return context.refuse(node, 'has_method of a name only known at run time needs ClassDB at run time');
+          const declared = context.nativeMethod('*', name);
+          if (declared !== undefined) return context.refuse(node, `has_method("${name}"): the engine class ${declared.owner} declares ${name}, which compat's script-chain answer does not see`);
+        }
         if (
           calleeNode.kind === 'SUBSCRIPT' &&
           calleeNode.isAttribute &&

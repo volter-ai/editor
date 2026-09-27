@@ -50,6 +50,8 @@ export type Read =
   | readonly ['queued', string]
   /** The node as an Object value, freed or not: `== null`, `!= null`, `is_instance_valid`, `if n:`, `not n`. */
   | readonly ['object_value', string]
+  /** `node.has_method(name)` on the node as a script sees it (its script instance when it has one). */
+  | readonly ['has_method', string, string]
   | readonly ['node_ready', string]
   | readonly ['processing', string]
   | readonly ['physics_processing', string]
@@ -111,6 +113,8 @@ function gdRead(read: Read): string {
       return `${v(read[1])}.is_inside_tree()`;
     case 'queued':
       return `${v(read[1])}.is_queued_for_deletion()`;
+    case 'has_method':
+      return `${v(read[1])}.has_method(${gs(read[2])})`;
     case 'object_value':
       return `[${v(read[1])} == null, ${v(read[1])} != null, is_instance_valid(${v(read[1])}), true if ${v(read[1])} else false, not ${v(read[1])}]`;
     case 'node_ready':
@@ -254,6 +258,8 @@ function target(segments: readonly Segment[]): () => unknown {
           return N.is_inside_tree(node(r[1]));
         case 'queued':
           return O.is_queued_for_deletion(node(r[1]));
+        case 'has_method':
+          return O.has_method(N.get_node(node(r[1]), '.') as object, r[2]);
         case 'object_value': {
           const value = node(r[1]);
           return [O.godot_object_equal(value, null), !O.godot_object_equal(value, null), GS.is_instance_valid(value), O.godot_object_truthy(value), !O.godot_object_truthy(value)];
