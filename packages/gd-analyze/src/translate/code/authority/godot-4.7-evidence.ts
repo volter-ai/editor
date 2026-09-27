@@ -33,6 +33,24 @@ export interface GodotEvidenceFile {
   readonly datatypes: readonly GodotDatatypeRuleEntry[];
   readonly claims: readonly SemanticClaimRecord[];
   readonly liveness: readonly GodotCodeClaimLiveness[];
+  /**
+   * An earlier release's record (`authority/godot-4.6/`): the cases whose native run there
+   * disagrees with the target, each with its values and the source change that explains it.
+   */
+  readonly deltas?: readonly GodotUpgradeDelta[];
+}
+
+/** One measured upgrade delta (`evidence/godot-4.6/upgrade-deltas.ts`). */
+export interface GodotUpgradeDelta {
+  readonly caseId: string;
+  readonly symbol: string;
+  readonly comparator: string;
+  /** The value the earlier release's official binary produced, and the target's (4.7's). */
+  readonly native: unknown;
+  readonly target: unknown;
+  readonly explanation:
+    | { readonly file: string; readonly line46: number | 'absent'; readonly line47: number; readonly change: string }
+    | { readonly unexplained: string };
 }
 
 export function compatModuleFile(module: string): string {

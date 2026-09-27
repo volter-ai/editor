@@ -1,0 +1,124 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/input-event"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "InputEvent",
+        "member": "is_pressed",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input-event",
+        "exportName": "is_pressed",
+        "localName": "InputEvent_is_pressed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-InputEvent.is_pressed"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-InputEvent.is_pressed",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000InputEvent\u0000is_pressed\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/input/input_event.cpp",
+        "sourceSymbol": "InputEvent.is_pressed",
+        "sourceLine": 82
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "8d47aed8633073bd259753eb394a8ef402fca69db87fc745d45dd51565551b2e",
+        "callsite": "res://probe.gd _init() is_pressed-key-pressed is_pressed-key-released is_pressed-key-device-zero is_pressed-mouse-pressed is_pressed-mouse-canceled is_pressed-motion is_pressed-joypad-button is_pressed-touch is_pressed-touch-canceled is_pressed-drag is_pressed-action",
+        "observedOutputSha256": "fb4eb34a4c4623fc491529db16d225d89b81d7a71e2e23df4635558b415dc188"
+      },
+      "target": {
+        "implementationSha256": "3c20f3f8d6868870476523bc57a302e1302b5225f2adc29a472ae85c9ee466e0",
+        "callsite": "lib/godot-compat/input-event.ts is_pressed",
+        "observedOutputSha256": "fb4eb34a4c4623fc491529db16d225d89b81d7a71e2e23df4635558b415dc188"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "95bdd91b288d653eba6e5c1947aa74c2a9b6db89faa5d95d1f7935d972058a5d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input-event",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-InputEvent.is_pressed",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "8d47aed8633073bd259753eb394a8ef402fca69db87fc745d45dd51565551b2e",
+      "implementationSha256": "3c20f3f8d6868870476523bc57a302e1302b5225f2adc29a472ae85c9ee466e0"
+    }
+  ],
+  "deltas": [
+    {
+      "caseId": "get_device-key-pressed",
+      "symbol": "InputEvent.get_device",
+      "comparator": "exact",
+      "native": {
+        "t": "int",
+        "v": "0"
+      },
+      "target": {
+        "t": "int",
+        "v": "16"
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "get_device-mouse-canceled",
+      "symbol": "InputEvent.get_device",
+      "comparator": "exact",
+      "native": {
+        "t": "int",
+        "v": "0"
+      },
+      "target": {
+        "t": "int",
+        "v": "32"
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    }
+  ]
+}

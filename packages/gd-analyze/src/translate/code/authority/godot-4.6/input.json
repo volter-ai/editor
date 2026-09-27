@@ -1,0 +1,1362 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/input"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Input",
+        "member": "action_release",
+        "kind": "native-member",
+        "signature": "hash:3304788590"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input",
+        "exportName": "action_release",
+        "localName": "Input_action_release",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Input.action_release"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Input",
+        "member": "get_action_strength",
+        "kind": "native-member",
+        "signature": "hash:801543509"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input",
+        "exportName": "get_action_strength",
+        "localName": "Input_get_action_strength",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Input.get_action_strength"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Input",
+        "member": "get_action_raw_strength",
+        "kind": "native-member",
+        "signature": "hash:801543509"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input",
+        "exportName": "get_action_raw_strength",
+        "localName": "Input_get_action_raw_strength",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Input.get_action_raw_strength"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Input",
+        "member": "set_custom_mouse_cursor",
+        "kind": "native-member",
+        "signature": "hash:703945977"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input",
+        "exportName": "set_custom_mouse_cursor",
+        "localName": "Input_set_custom_mouse_cursor",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Input.set_custom_mouse_cursor"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Input.action_release",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Input\u0000action_release\u0000hash:3304788590",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/input/input.cpp",
+        "sourceSymbol": "Input.action_release",
+        "sourceLine": 1428
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "8da7d1247448962960a51c8ff58d49fbe451f37d69bbaaa3283712a9651f3236",
+        "callsite": "res://probe.gd _init() action_release action_release-unknown",
+        "observedOutputSha256": "c9a6fd6503f702ede567ee6e422c693fc290ce488a9672b2871f2fc15fed77ca"
+      },
+      "target": {
+        "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48",
+        "callsite": "lib/godot-compat/input.ts action_release",
+        "observedOutputSha256": "c9a6fd6503f702ede567ee6e422c693fc290ce488a9672b2871f2fc15fed77ca"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e417897555f8e2f276aa7519c2e1d647db0b97d41e8bd624758cf551db85a981"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Input.get_action_strength",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Input\u0000get_action_strength\u0000hash:801543509",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/input/input.cpp",
+        "sourceSymbol": "Input.get_action_strength",
+        "sourceLine": 533
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "084ab479e819b0f8c514998d712b75dc8aea3e519596a22d0358db3f2ee022fc",
+        "callsite": "res://probe.gd _init() joypad-strength-0.2-0 joypad-strength-0.2-0.1 joypad-strength-0.2-0.2 joypad-strength-0.2-0.2000001 joypad-strength-0.2-0.35 joypad-strength-0.2-0.5 joypad-strength-0.2-0.75 joypad-strength-0.2-1 joypad-strength-0.2--0.3 joypad-strength-0.2--0.5 joypad-strength-0.2--1 joypad-strength-0.2-1.5 joypad-strength-0.5-0 joypad-strength-0.5-0.1 joypad-strength-0.5-0.2 joypad-strength-0.5-0.2000001 joypad-strength-0.5-0.35 joypad-strength-0.5-0.5 joypad-strength-0.5-0.75 joypad-strength-0.5-1 joypad-strength-0.5--0.3 joypad-strength-0.5--0.5 joypad-strength-0.5--1 joypad-strength-0.5-1.5 joypad-strength-0-0 joypad-strength-0-0.1 joypad-strength-0-0.2 joypad-strength-0-0.2000001 joypad-strength-0-0.35 joypad-strength-0-0.5 joypad-strength-0-0.75 joypad-strength-0-1 joypad-strength-0--0.3 joypad-strength-0--0.5 joypad-strength-0--1 joypad-strength-0-1.5 joypad-strength-1-0 joypad-strength-1-0.1 joypad-strength-1-0.2 joypad-strength-1-0.2000001 joypad-strength-1-0.35 joypad-strength-1-0.5 joypad-strength-1-0.75 joypad-strength-1-1 joypad-strength-1--0.3 joypad-strength-1--0.5 joypad-strength-1--1 joypad-strength-1-1.5",
+        "observedOutputSha256": "b3c07f27319acf81d788a163795c4724365b48eb87f0278a6dcd039859f517d3"
+      },
+      "target": {
+        "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48",
+        "callsite": "lib/godot-compat/input.ts get_action_strength",
+        "observedOutputSha256": "b3c07f27319acf81d788a163795c4724365b48eb87f0278a6dcd039859f517d3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c3e752adbbc2667f07906a68c51aeae290dfd4adc41bef848d6fba11ba8399ac"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Input.get_action_raw_strength",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Input\u0000get_action_raw_strength\u0000hash:801543509",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/input/input.cpp",
+        "sourceSymbol": "Input.get_action_raw_strength",
+        "sourceLine": 552
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "2325feadddb379cf07fdd8ae8c207cfb8766a1b16831140b18a12d488eeca194",
+        "callsite": "res://probe.gd _init() joypad-two-devices",
+        "observedOutputSha256": "c10e41f243a1a5ee605721e2455b191a72aeefa1ea62185c570f19af42227303"
+      },
+      "target": {
+        "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48",
+        "callsite": "lib/godot-compat/input.ts get_action_raw_strength",
+        "observedOutputSha256": "c10e41f243a1a5ee605721e2455b191a72aeefa1ea62185c570f19af42227303"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6152373163fd56cf06a609bb0d21817a69f5919c5921028b609bde0a3e4aa0ea"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Input.set_custom_mouse_cursor",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Input\u0000set_custom_mouse_cursor\u0000hash:703945977",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/input/input.cpp",
+        "sourceSymbol": "Input.set_custom_mouse_cursor",
+        "sourceLine": 1509
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "bbb073a4aa3bd7fa3dba711d05bce5ad8e13b2229631ba131f15a5c0fbe7f164",
+        "callsite": "res://probe.gd _init() set_custom_mouse_cursor-0 set_custom_mouse_cursor-16 set_custom_mouse_cursor-17 set_custom_mouse_cursor--1",
+        "observedOutputSha256": "0578f19c557cbf32629d36f57f656523193055bdfd3c108e91e9088b46d6fef8"
+      },
+      "target": {
+        "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48",
+        "callsite": "lib/godot-compat/input.ts set_custom_mouse_cursor",
+        "observedOutputSha256": "0578f19c557cbf32629d36f57f656523193055bdfd3c108e91e9088b46d6fef8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e09a7a34dec364b847b004ff965186c08acfaa876f35d2922a3859691be54f16"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-Input.action_release",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "8da7d1247448962960a51c8ff58d49fbe451f37d69bbaaa3283712a9651f3236",
+      "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48"
+    },
+    {
+      "claimId": "godot-4.6-binding-Input.get_action_strength",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "084ab479e819b0f8c514998d712b75dc8aea3e519596a22d0358db3f2ee022fc",
+      "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48"
+    },
+    {
+      "claimId": "godot-4.6-binding-Input.get_action_raw_strength",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "2325feadddb379cf07fdd8ae8c207cfb8766a1b16831140b18a12d488eeca194",
+      "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48"
+    },
+    {
+      "claimId": "godot-4.6-binding-Input.set_custom_mouse_cursor",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "bbb073a4aa3bd7fa3dba711d05bce5ad8e13b2229631ba131f15a5c0fbe7f164",
+      "implementationSha256": "1ad794e923d219abaf5ac4cd3497939b1467ce45e2b2f1f13709460420ea7d48"
+    }
+  ],
+  "deltas": [
+    {
+      "caseId": "key-press-timeline",
+      "symbol": "Input.is_action_just_pressed",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "key-release-physics-first",
+      "symbol": "Input.is_action_just_released",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "key-press-flushed-mid-frame",
+      "symbol": "Input.flush_buffered_events",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "key-press-release-same-frame",
+      "symbol": "Input.is_action_pressed",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "key-device-zero-does-not-match",
+      "symbol": "Input.parse_input_event",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "key-echo",
+      "symbol": "Input.parse_input_event",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "key-modifiers",
+      "symbol": "Input.is_action_pressed",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "physical-and-label-keys",
+      "symbol": "Input.is_action_pressed",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "action_press-then-key-release",
+      "symbol": "Input.action_press",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000e03f"
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000e03f"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "get_axis-keys",
+      "symbol": "Input.get_axis",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "float",
+            "v": "000000403333d3bf"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "float",
+            "v": "000000000000f0bf"
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "get_vector-overlapping",
+      "symbol": "Input.get_vector",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "Vector2",
+            "x": "0000000000000000",
+            "y": "0000000000000000"
+          },
+          {
+            "t": "Vector2",
+            "x": "000000802449c23f",
+            "y": "0000000000000000"
+          },
+          {
+            "t": "Vector2",
+            "x": "0000000000000000",
+            "y": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "Vector2",
+            "x": "000000609ea0e6bf",
+            "y": "000000609ea0e6bf"
+          },
+          {
+            "t": "Vector2",
+            "x": "0000000000000000",
+            "y": "000000000000f0bf"
+          },
+          {
+            "t": "Vector2",
+            "x": "0000000000000000",
+            "y": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    },
+    {
+      "caseId": "mouse-button",
+      "symbol": "Input.is_action_pressed",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "float",
+            "v": "000000000000f03f"
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": false
+          },
+          {
+            "t": "bool",
+            "v": true
+          },
+          {
+            "t": "float",
+            "v": "0000000000000000"
+          }
+        ]
+      },
+      "explanation": {
+        "file": "core/input/input_event.cpp",
+        "line46": "absent",
+        "line47": 669,
+        "change": "InputEventKey and InputEventMouse default to DEVICE_ID_KEYBOARD (16) and DEVICE_ID_MOUSE (32) in 4.7 (their constructors, :669 and :715), and InputMap::action_add_event rewrites a device-0 key or mouse event to them (core/input/input_map.cpp:211); in 4.6 they are device 0, so action matching and get_device differ"
+      }
+    }
+  ]
+}

@@ -1,0 +1,408 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/animation-tree"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AnimationTree",
+        "member": "set_tree_root",
+        "kind": "native-member",
+        "signature": "hash:2581683800"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "set_tree_root",
+        "localName": "AnimationTree_set_tree_root",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AnimationTree.set_tree_root"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AnimationTree",
+        "member": "get_tree_root",
+        "kind": "native-member",
+        "signature": "hash:4110384712"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "get_tree_root",
+        "localName": "AnimationTree_get_tree_root",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AnimationTree.get_tree_root"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "AnimationTree",
+        "member": "get_animation_player",
+        "kind": "native-member",
+        "signature": "hash:4075236667"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "get_animation_player",
+        "localName": "AnimationTree_get_animation_player",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-AnimationTree.get_animation_player"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AnimationTree.set_tree_root",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000AnimationTree\u0000set_tree_root\u0000hash:2581683800",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.set_tree_root",
+        "sourceLine": 634
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "5391ca667096cf28c1747e6511237fd18b470579a00c3bea82159ffe7b137f89",
+        "callsite": "res://probe.gd _init() set_tree_root-blend",
+        "observedOutputSha256": "7162560cfdeed6ce3523d460ce74e0a3c910cfc14af164243cd373e24cf305eb"
+      },
+      "target": {
+        "implementationSha256": "fca5e4928afcc2896efe0c1765a59428b18e3f2f3247e024fdb9da59af815eb6",
+        "callsite": "lib/godot-compat/animation-tree.ts set_tree_root",
+        "observedOutputSha256": "7162560cfdeed6ce3523d460ce74e0a3c910cfc14af164243cd373e24cf305eb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5c74fb9c47f096ef3cec243fb4edeb93234f04ec856bfeac91914ccddef486bc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AnimationTree.get_tree_root",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000AnimationTree\u0000get_tree_root\u0000hash:4110384712",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.get_tree_root",
+        "sourceLine": 656
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "0012469a322dbd9cf011b318ff484178ad583b72cfe7a1b815271135961ef842",
+        "callsite": "res://probe.gd _init() get_tree_root",
+        "observedOutputSha256": "a8671028e933af06ba12a0896ef85c71595c91c5bcbfa820ac3d1a26a3f6e710"
+      },
+      "target": {
+        "implementationSha256": "fca5e4928afcc2896efe0c1765a59428b18e3f2f3247e024fdb9da59af815eb6",
+        "callsite": "lib/godot-compat/animation-tree.ts get_tree_root",
+        "observedOutputSha256": "a8671028e933af06ba12a0896ef85c71595c91c5bcbfa820ac3d1a26a3f6e710"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a309c15c3563601dedca01a5e9976d682b76502c4e5296886309c736964b27ba"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-AnimationTree.get_animation_player",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000AnimationTree\u0000get_animation_player\u0000hash:4075236667",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.get_animation_player",
+        "sourceLine": 992
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "7ec9be9c0abc5214e339a8a9d68012a2e1a391bad784a1a5241ea71ee253b53f",
+        "callsite": "res://probe.gd _init() get_animation_player",
+        "observedOutputSha256": "d13cea589a38c978c6544cfa6a328130b65383d399221693b474caa8e07dbdb5"
+      },
+      "target": {
+        "implementationSha256": "fca5e4928afcc2896efe0c1765a59428b18e3f2f3247e024fdb9da59af815eb6",
+        "callsite": "lib/godot-compat/animation-tree.ts get_animation_player",
+        "observedOutputSha256": "d13cea589a38c978c6544cfa6a328130b65383d399221693b474caa8e07dbdb5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "be74ad2142ede571d031c1d30c26facc9ce8a53b63b74045729ff2e58ed83cc4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-AnimationTree.set_tree_root",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "5391ca667096cf28c1747e6511237fd18b470579a00c3bea82159ffe7b137f89",
+      "implementationSha256": "fca5e4928afcc2896efe0c1765a59428b18e3f2f3247e024fdb9da59af815eb6"
+    },
+    {
+      "claimId": "godot-4.6-binding-AnimationTree.get_tree_root",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "0012469a322dbd9cf011b318ff484178ad583b72cfe7a1b815271135961ef842",
+      "implementationSha256": "fca5e4928afcc2896efe0c1765a59428b18e3f2f3247e024fdb9da59af815eb6"
+    },
+    {
+      "claimId": "godot-4.6-binding-AnimationTree.get_animation_player",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "7ec9be9c0abc5214e339a8a9d68012a2e1a391bad784a1a5241ea71ee253b53f",
+      "implementationSha256": "fca5e4928afcc2896efe0c1765a59428b18e3f2f3247e024fdb9da59af815eb6"
+    }
+  ],
+  "deltas": [
+    {
+      "caseId": "set_animation_player",
+      "symbol": "AnimationTree.set_animation_player",
+      "comparator": "exact",
+      "native": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "String",
+            "v": "started:y"
+          },
+          {
+            "t": "Vector3",
+            "x": "0000000000000000",
+            "y": "000000000000e03f",
+            "z": "0000000000000000"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111a13f",
+            "y": "000000201111e13f",
+            "z": "000000201111a1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111b13f",
+            "y": "000000202222e23f",
+            "z": "000000201111b1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000a09999b93f",
+            "y": "000000403333e33f",
+            "z": "000000a09999b9bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111a13f",
+            "y": "000000201111e13f",
+            "z": "000000201111a1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111b13f",
+            "y": "000000202222e23f",
+            "z": "000000201111b1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000a09999b93f",
+            "y": "000000403333e33f",
+            "z": "000000a09999b9bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000605555c53f",
+            "y": "000000605555e53f",
+            "z": "000000605555c5bf"
+          }
+        ]
+      },
+      "target": {
+        "t": "Array",
+        "v": [
+          {
+            "t": "String",
+            "v": "started:y"
+          },
+          {
+            "t": "Vector3",
+            "x": "0000000000000000",
+            "y": "000000000000e03f",
+            "z": "0000000000000000"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111a13f",
+            "y": "000000201111e13f",
+            "z": "000000201111a1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111b13f",
+            "y": "000000202222e23f",
+            "z": "000000201111b1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000a09999b93f",
+            "y": "000000403333e33f",
+            "z": "000000a09999b9bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111c13f",
+            "y": "000000404444e43f",
+            "z": "000000201111c1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000605555c53f",
+            "y": "000000605555e53f",
+            "z": "000000605555c5bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000a09999c93f",
+            "y": "000000606666e63f",
+            "z": "000000a09999c9bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000e0ddddcd3f",
+            "y": "000000807777e73f",
+            "z": "000000e0ddddcdbf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000201111d13f",
+            "y": "000000808888e83f",
+            "z": "000000201111d1bf"
+          },
+          {
+            "t": "Vector3",
+            "x": "000000403333d33f",
+            "y": "000000a09999e93f",
+            "z": "000000403333d3bf"
+          }
+        ]
+      },
+      "explanation": {
+        "unexplained": "on re-attaching the player, 4.6 restarts the blend from time 0 and 4.7 resumes; the AnimationTree instance and process-state model was rewritten between the revisions and the line is not isolated"
+      }
+    }
+  ]
+}

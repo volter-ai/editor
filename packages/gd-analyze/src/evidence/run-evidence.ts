@@ -45,6 +45,7 @@ import {
   GODOT_4_7_EVIDENCE_DIR,
   type GodotEvidenceFile,
   type GodotEvidenceImplementation,
+  type GodotUpgradeDelta,
   godotEvidenceCaseReads,
   godotEvidenceImplementationDigest,
 } from '../translate/code/authority/godot-4.7-evidence';
@@ -66,6 +67,7 @@ import {
   godotDatatypeRuleKey,
 } from '../translate/code/lowering-rules';
 import { printTargetTsSourceFile } from '../translate/emit/target-ts-printer';
+import { GODOT_4_6_UPGRADE_DELTAS } from '../../evidence/godot-4.6/upgrade-deltas';
 import type {
   GodotEvidenceCase,
   GodotEvidenceCaseFile,
@@ -1128,11 +1130,45 @@ async function runCompatEvidence(
   process.stdout.write(
     `gd-analyze evidence ${evidence.godotClass}: ${String(evidence.cases.length)} cases over ${String(bySymbol.size)} bound symbols, ${pinned.buildIdentity}\n`,
   );
-  if (disagreements.length > 0) {
+  // On an earlier release, a disagreeing case is an upgrade delta when the table explains it (or
+  // marks it unexplained); its symbol's binding is not recorded, the delta is.
+  const disagreeing = new Set(disagreements.map((line) => line.split(/[ :]/u)[0] as string));
+  const deltas: GodotUpgradeDelta[] = [];
+  if (version !== '4.7' && disagreements.length > 0) {
+    const table = GODOT_4_6_UPGRADE_DELTAS;
+    const unlisted = [...disagreeing].filter((id) => table[`${name}:${id}`] === undefined);
+    if (unlisted.length > 0) {
+      process.stdout.write(
+        `${String(unlisted.length)} disagreeing cases are not in evidence/godot-4.6/upgrade-deltas.ts; nothing written.\n  ${disagreements.filter((line) => unlisted.includes(line.split(/[ :]/u)[0] as string)).join('\n  ')}\n`,
+      );
+      return 1;
+    }
+    evidence.cases.forEach((entry, index) => {
+      if (!disagreeing.has(entry.id)) return;
+      deltas.push({
+        caseId: entry.id,
+        symbol: `${entry.symbol.owner}.${entry.symbol.member}`,
+        comparator: entry.comparator,
+        native: (nativeRows[index] as Row)[1],
+        target: (targetRows[index] as Row)[1],
+        explanation: table[`${name}:${entry.id}`] as GodotUpgradeDelta['explanation'],
+      });
+    });
+    process.stdout.write(`${String(deltas.length)} of ${String(evidence.cases.length)} cases are upgrade deltas; recorded with their source changes\n`);
+  } else if (disagreements.length > 0) {
     process.stdout.write(
       `${String(disagreements.length)} of ${String(evidence.cases.length)} cases disagree; nothing written.\n  ${disagreements.join('\n  ')}\n`,
     );
     return 1;
+  }
+  if (version !== '4.7') {
+    const stale = Object.keys(GODOT_4_6_UPGRADE_DELTAS).filter(
+      (key) => key.startsWith(`${name}:`) && evidence.cases.some((entry) => `${name}:${entry.id}` === key) && !disagreeing.has(key.slice(name.length + 1)),
+    );
+    if (stale.length > 0) {
+      process.stdout.write(`upgrade-deltas.ts lists cases that agree: ${stale.join(', ')}; nothing written.\n`);
+      return 1;
+    }
   }
 
   const implementation: GodotEvidenceImplementation = {
@@ -1155,6 +1191,7 @@ async function runCompatEvidence(
   const claims: SemanticClaimRecord[] = [];
   const liveness: GodotCodeClaimLiveness[] = [];
   for (const indexes of bySymbol.values()) {
+    if (indexes.some((index) => disagreeing.has((evidence.cases[index] as GodotEvidenceCase).id))) continue;
     const symbolCases = indexes.map((index) => evidence.cases[index] as GodotEvidenceCase);
     const first = symbolCases[0] as GodotEvidenceCase;
     const symbol = bindingSymbol(pinned, first.symbol);
@@ -1245,6 +1282,7 @@ async function runCompatEvidence(
     datatypes,
     claims,
     liveness,
+    ...(deltas.length === 0 ? {} : { deltas }),
   });
   process.stdout.write(
     `all ${String(evidence.cases.length)} cases agree; wrote ${String(bindings.length)} bindings, ${String(datatypes.length)} datatype rules and their claims to ${written}\n`,
