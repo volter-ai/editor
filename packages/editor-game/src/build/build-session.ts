@@ -17,6 +17,7 @@ import {
 } from '../host/api/configurations';
 import type { EditorHostOutputDiagnostic } from '@volter/editor-sdk/host';
 import { editorHost } from '@volter/editor-sdk/host';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 import type { BuildReport } from '@volter/editor-sdk/session/build-report';
 import { useEffect, useState } from 'react';
 import { formatBytes } from './format-bytes';
@@ -32,6 +33,40 @@ export const BUILD_PROFILES_DOCUMENT_ID = 'build-profiles.document';
  *  Window menu and the `show-build` verb. */
 export function openBuildProfilesDocument(): boolean {
   return editorHost().workspace.openContributedDocument(BUILD_PROFILES_DOCUMENT_ID);
+}
+
+/** The Build Player document's contribution id (`build-player.document.tsx`). */
+export const BUILD_PLAYER_DOCUMENT_ID = 'build-player.document';
+
+/** Where the editor server serves the project's built `dist/` (`routes/configurations.ts`). */
+export const BUILD_PLAYER_URL = `${BASE}/build/web/index.html`;
+
+let _runs = 0;
+const _runListeners = new Set<() => void>();
+
+/** How many times the build has been run: the player reloads on each. */
+export function buildRunCount(): number {
+  return _runs;
+}
+
+export function subscribeBuildRuns(fn: () => void): () => void {
+  _runListeners.add(fn);
+  return () => {
+    _runListeners.delete(fn);
+  };
+}
+
+/** Run the last build in the Build Player document, fresh. */
+export function runBuild(): boolean {
+  _runs++;
+  for (const fn of _runListeners) fn();
+  return editorHost().workspace.openContributedDocument(BUILD_PLAYER_DOCUMENT_ID);
+}
+
+/** Unity's Build And Run: build, and run the result when the build succeeds. */
+export async function buildAndRun(target: BuildTarget): Promise<void> {
+  await startBuild(target);
+  if (_session.phase === 'done' && _session.result?.ok) runBuild();
 }
 
 /** A build-role configuration's id (ARCHITECTURE-CORE §The project model). */

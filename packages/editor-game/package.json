@@ -42,6 +42,7 @@
       "./contributions/autoplay.service.ts",
       "./contributions/bridge.command.ts",
       "./contributions/build-profiles.document.tsx",
+      "./contributions/build-player.document.tsx",
       "./contributions/build-progress.status.tsx",
       "./contributions/build.action.ts",
       "./contributions/build.command.ts",

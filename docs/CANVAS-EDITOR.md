@@ -122,8 +122,14 @@ its entrypoint's scene table, which the probes lack, and none is an ingested gam
 A game's own standalone boot (`src/main.ts`, the template's) mounts a `canvas` root, which it used to
 refuse: every `pixi.js` class is registered and the entry renders inside `<Application>`, as the
 editor mounts it (walked: a fresh game with a `canvas` root holding a TilingSprite and a BitmapText
-built through Build Profiles, and the bundle carries the canvas branch and those classes; running the
-exported build is not walked, no door serving it).
+built through Build Profiles, and the bundle carries the canvas branch and those classes).
+
+Build Profiles' Build And Run (Unity's; Godot's Web export runs in a browser) builds, then opens the
+Build Player document on the build's own `dist/`, which the editor server serves; what the running
+build prints, and its uncaught errors, reach the editor's console prefixed `[Build Player]`, as a
+Godot export run with remote debug reports into the editor (walked: the exported game's `canvas` root
+mounted its TilingSprite and BitmapText in the player, read from the console, with no errors). The
+editor's screenshot composite does not draw the player's frame.
 
 Remaining partials, tagged: all [minor] — a single node's scale about the temporary pivot, a group's
 shared frame and handles, single-axis group scale, rotated members under unequal group scale, a turn
