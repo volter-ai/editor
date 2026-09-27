@@ -1484,6 +1484,11 @@ function isInside(path: string, root: string): boolean {
   return root === '.' ? path !== '.' : path.startsWith(`${root}/`);
 }
 
+/** `path` below `root` (both scene paths, `root` possibly the scene root `.`). */
+function relativeTo(path: string, root: string): string {
+  return root === '.' ? path : path.slice(root.length + 1);
+}
+
 function planScene(context: PlanContext, scene: BoundGodotSceneDocument): TargetGodotSceneDocumentPlan | undefined {
   context.document = { scene, planned: new Map(), order: [] };
   if (scene.sourceKind !== 'packed-scene') return undefined;
@@ -1502,6 +1507,8 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   >();
   // Nodes this document placed under an imported model's nodes: their own children are ordinary.
   const placedUnderModels = new Set<string>();
+  // Instance roots that refused: the edits inside them are that refusal's, not new ones.
+  const refusedRoots = new Set<string>();
   const planned: TargetGodotSceneNodePlan[] = [];
   let refused = false;
   for (const authoredNode of scene.nodes) {
@@ -1515,11 +1522,15 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     const at = `${scene.resPath}#${node.nodePath}`;
     const enclosing = [...instanceRoots.keys()].find((root) => isInside(node.nodePath, root));
     const importedEnclosing = enclosing === undefined ? undefined : importedPlans.get(enclosing);
+    if (enclosing !== undefined && refusedRoots.has(enclosing)) {
+      refused = true;
+      continue;
+    }
     const underPlaced = [...placedUnderModels].some((placedPath) => isInside(node.nodePath, placedPath));
     if (enclosing !== undefined && importedEnclosing !== undefined && !underPlaced) {
       // Inside an imported model: an override of one of its nodes is that node's setters, a node
       // placed under one of its nodes a portal into it.
-      const relative = node.nodePath.slice(enclosing.length + 1);
+      const relative = relativeTo(node.nodePath, enclosing);
       const origin =
         node.inheritedNode === undefined
           ? undefined
@@ -1549,7 +1560,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
             return { className: model.rootClasses[0] ?? 'Node3D', ancestry: model.rootClasses, ...(own?.scriptResPath === undefined ? {} : { scriptResPath: own.scriptResPath }) };
           }
           if (isInside(path, enclosing)) {
-            const member = model.nodes.find((candidate) => candidate.path === path.slice(enclosing.length + 1));
+            const member = model.nodes.find((candidate) => candidate.path === relativeTo(path, enclosing));
             return member === undefined ? undefined : { className: member.classes[0] ?? 'Node', ancestry: member.classes };
           }
           return documentTargets(context)(path);
@@ -1567,7 +1578,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
             ? node.placement.authoredParentPath
             : undefined;
       if (authoredParent !== undefined && authoredParent !== enclosing && isInside(authoredParent, enclosing)) {
-        const target = authoredParent.slice(enclosing.length + 1);
+        const target = relativeTo(authoredParent, enclosing);
         const modelChildren = importedEnclosing.nodes.filter(
           (member) => member.path.lastIndexOf('/') >= 0 && member.path.slice(0, member.path.lastIndexOf('/')) === target,
         ).length;
@@ -1648,6 +1659,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         const plannedRoot = planImportedInstance(context, node, instanced);
         if (plannedRoot === undefined || plannedRoot.model === undefined) {
           refused = true;
+          refusedRoots.add(node.nodePath);
         } else {
           const overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[]; animation?: TargetGodotAnimationBindingsPlan }[] = [];
           importedPlans.set(node.nodePath, { rootClasses: plannedRoot.model.rootClasses, nodes: plannedRoot.model.nodes, animated: plannedRoot.model.animations !== undefined, overrides, placedAt: new Map() });
@@ -1669,7 +1681,10 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
       }
       instanceRoots.set(node.nodePath, instanced);
       const plannedRoot = planInstanceRoot(context, node, instanced);
-      if (plannedRoot === undefined) refused = true;
+      if (plannedRoot === undefined) {
+        refused = true;
+        refusedRoots.add(node.nodePath);
+      }
       else planned.push(place(plannedRoot));
       continue;
     }
@@ -1692,7 +1707,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     if (playerPath === undefined) continue;
     const own = planned.find((candidate) => candidate.nodePath === playerPath);
     const enclosing = [...importedPlans.keys()].find((root) => isInside(playerPath, root));
-    const override = enclosing === undefined ? undefined : importedPlans.get(enclosing)?.overrides.find((entry) => entry.at === playerPath.slice(enclosing.length + 1));
+    const override = enclosing === undefined ? undefined : importedPlans.get(enclosing)?.overrides.find((entry) => entry.at === relativeTo(playerPath, enclosing));
     // An imported model's own clips (the importer's, `read/gltf-animation-import.ts`) are transform
     // tracks, which need no binding.
     if (enclosing !== undefined && importedPlans.get(enclosing)?.animated !== true && override?.setters.some((entry) => entry.setter.exportName === 'godot_animation_mixer_set_library' && entry.index === '') !== true) {

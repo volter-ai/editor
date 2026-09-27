@@ -6,7 +6,8 @@
  * drawn bone transforms, to 1e-4; the overridden bones' poses exactly), against the emitted
  * component mounted in Node by @react-three/fiber: three's glTF loader loads the copied `.glb` and
  * compat's packed scene makes Godot's importer tree of it, its skeletons' bones the loader's joints,
- * read through compat.
+ * read through compat. A scene inheriting enemy.glb (a bone scale override and a node placed into
+ * its skeleton) is instanced too.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -55,10 +56,24 @@ var hand: String = ""
 func _ready() -> void:
 \thand = str(%Hand.name)
 `,
-  'main.tscn': `[gd_scene load_steps=4 format=3]
+  // A scene inheriting enemy.glb: a bone pose override on its skeleton and a node placed into it.
+  'enemy_edit.tscn': `[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="1_enemy"]
+
+[node name="EnemyEdit" instance=ExtResource("1_enemy")]
+
+[node name="Skeleton3D" parent="Skeleton" index="0"]
+bones/2/scale = Vector3(1.25, 1.25, 1.25)
+
+[node name="Flag" type="Node3D" parent="Skeleton" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+`,
+  'main.tscn': `[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="1_enemy"]
 [ext_resource type="PackedScene" path="res://player/player.glb" id="2_player"]
+[ext_resource type="PackedScene" path="res://enemy_edit.tscn" id="4_edit"]
 
 [ext_resource type="Script" path="res://main.gd" id="3_main"]
 
@@ -89,6 +104,9 @@ layers = 2
 [node name="Hand" type="Node3D" parent="Player/Skeleton" index="1"]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.1, 0)
+
+[node name="Edited" parent="." instance=ExtResource("4_edit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
 
 [editable path="Enemy"]
 `,
