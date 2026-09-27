@@ -669,6 +669,20 @@ export function CanvasSceneControls({
             </Tooltip>
           </>
         }
+        // …and after snapping, Godot's Lock, Group and View menu, in the same row.
+        trailingTools={
+          <>
+            <CanvasSceneLockButton adapter={adapter} selected={[...store.selectedEntityIds]} />
+            <CanvasSceneGroupButton adapter={adapter} selected={[...store.selectedEntityIds]} />
+            <CanvasSceneViewMenu
+              documentId={documentId}
+              view={view}
+              hasSelection={store.selectedEntityIds.size > 0}
+              onCenterSelection={centerSelection}
+              onFrameSelection={frameSelection}
+            />
+          </>
+        }
       />
       <CanvasSceneEditGizmos adapter={adapter} view={view} documentId={documentId} />
       {mode ? (
@@ -688,15 +702,6 @@ export function CanvasSceneControls({
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
         </Button>
-        <CanvasSceneLockButton adapter={adapter} selected={[...store.selectedEntityIds]} />
-        <CanvasSceneGroupButton adapter={adapter} selected={[...store.selectedEntityIds]} />
-        <CanvasSceneViewMenu
-          documentId={documentId}
-          view={view}
-          hasSelection={store.selectedEntityIds.size > 0}
-          onCenterSelection={centerSelection}
-          onFrameSelection={frameSelection}
-        />
       </FloatingToolbar>
       <FloatingToolbar
         label="2D scene navigation"

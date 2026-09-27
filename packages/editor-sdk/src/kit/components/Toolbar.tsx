@@ -676,6 +676,7 @@ export function ToolStrip({
   otherToolActive = false,
   onToolArmed,
   viewTools,
+  trailingTools,
 }: {
   dimensions?: '2d' | '3d';
   door?: StageTransformDoor;
@@ -688,6 +689,9 @@ export function ToolStrip({
   /** A view's own tools in the same group, drawn after these (a 2D view's List Select, Pivot,
    *  Pan and Ruler, in Godot's order). */
   viewTools?: React.ReactNode;
+  /** A view's controls after snapping in the same row (a 2D view's Lock, Group and View menu, where
+   *  Godot's 2D toolbar keeps them). */
+  trailingTools?: React.ReactNode;
 } = {}) {
   const shell = useEditorStore();
   const store = stage ?? shell;
@@ -775,6 +779,7 @@ export function ToolStrip({
       )}
       {viewTools}
       {dimensions === '2d' ? <SnapButton store={store} dimensions="2d" /> : null}
+      {trailingTools}
     </FloatingToolbar>
   );
 }
