@@ -71,7 +71,7 @@ export interface VgaiKeyboardBridge {
 
 export const VgaiFocused = new RawContextKey<boolean>('vgai.focused', false, localize('vgaiFocused', "Whether keyboard focus is inside one of the Volter Editor's parts (its stage, outliner or properties)."));
 export const VgaiStageFocused = new RawContextKey<boolean>('vgai.stage.focused', false, localize('vgaiStageFocused', "Whether keyboard focus is on a vgai stage."));
-export const VgaiStageSurface = new RawContextKey<string>('vgai.stage.surface', '', localize('vgaiStageSurface', "'three' when the focused vgai stage paints three.js; empty otherwise (a 2D canvas stage included)."));
+export const VgaiStageSurface = new RawContextKey<string>('vgai.stage.surface', '', localize('vgaiStageSurface', "The surface the focused vgai stage paints: 'three', 'canvas' (a mounted 2D canvas document), or empty."));
 export const VgaiStageMode = new RawContextKey<string>('vgai.stage.mode', '', localize('vgaiStageMode', "The focused vgai document's own interaction mode (Blender's object, edit or sculpt), when it reports one."));
 export const VgaiDocumentKind = new RawContextKey<string>('vgai.document.kind', '', localize('vgaiDocumentKind', "The kind of the active vgai document."));
 export const VgaiPlay = new RawContextKey<string>('vgai.play', 'stopped', localize('vgaiPlay', "The vgai session's play state: stopped, playing or paused."));

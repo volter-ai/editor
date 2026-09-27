@@ -403,10 +403,9 @@ function keybindingStrings(chord, apis) {
 function whenFor(id, scope, keymapId) {
 	const focus = scope === 'stage' ? 'vgai.stage.focused' : 'vgai.focused';
 	const game = scope === 'global' ? '' : " && vgai.document.kind != 'game'";
-	// A `canvas.*` action has no handler on a three.js stage, so its key is left free there. Keyed on
-	// the value the stage context actually reports (`'three'` or empty; nothing sets `'canvas'`,
-	// whatever the context key's description says), so a canvas stage still matches.
-	const surface = id.startsWith('canvas.') ? " && vgai.stage.surface != 'three'" : '';
+	// A `canvas.*` action has a handler only on a 2D canvas stage, which the stage context reports
+	// as `canvas` (a mounted canvas document marks itself: `markCanvasStageDocument`).
+	const surface = id.startsWith('canvas.') ? " && vgai.stage.surface == 'canvas'" : '';
 	return `${focus}${game}${surface} && vgai.keymap == '${keymapId}'`;
 }
 

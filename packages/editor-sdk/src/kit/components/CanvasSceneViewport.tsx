@@ -56,6 +56,7 @@ import {
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
 import { bindCanvasSceneKeys } from './canvas-scene-hotkeys';
+import { markCanvasStageDocument } from '@volter/editor-sdk/kit/stage-context';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 import { ViewportPickMenu } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import {
@@ -507,6 +508,8 @@ export function CanvasSceneControls({
     },
     [view],
   );
+  // This document paints a canvas stage: the stage context says so, and the canvas keys key on it.
+  useEffect(() => markCanvasStageDocument(documentId), [documentId]);
   // The tools' keys and Godot's Pan and Ruler keys, on this 2D view while it is the active one.
   useEffect(() => {
     if (!active) return;
