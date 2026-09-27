@@ -573,6 +573,77 @@ reaches; it informs and never gates.
   is not an import path. The Godot 3 games need a Godot 3.6.2 exporter and a lowering for
   GDScript 3's tree. That is its own lane-sized unit.
 
+## Handoff (2026-09-27): moving the lane to another machine
+
+The lane was stopped cleanly at the owner's word. Nothing runs; every builder's work is on a
+branch of `volter-ai/editor`.
+
+**Where the work is.**
+- `main` carries the lane (`godot` merged). `godot` is the lane's branch; resume from it.
+- `origin/godot-wip-e` (`a648c53b`): imported-model external images, working, not verified.
+  Resume: print the `scene-imported` proof's rows, plant the two reverts (one texture per model
+  must make the shared row false; letting three's loader decode the image must empty the texture
+  path), add the named same-frame deviation to `collision-object-3d.ts`'s header, full refresh,
+  platformer gate, push to `godot`.
+- `origin/godot-wip-r` (`87e44ea6`): GPUParticles3D, never refreshed or gated. It captures each
+  ParticleProcessMaterial's generated shader (bound-program protocol 13), lowers `start()`/
+  `process()`, vendors Godot's `particles*.glsl`, and runs them through WebGL2 transform feedback
+  (not the ping-pong ruled earlier; transform feedback is what gles3 itself does, so either is
+  defensible; decide before finishing). Still to do: scene rules, cases for the node, material and
+  CurveTexture, particles in the shader evaluator, a structural proof, draw passes, the first live
+  run. Headless official Godot cannot simulate GPU particles, so the simulation is recorded as
+  unmeasured. Also holds the Sprite3D drafts (`packages/gd-analyze/wip-r/d-drafts/`).
+- `origin/godot-wip-t` (`9a8f8ae6`): Tween, PropertyTweener, CallbackTweener, `create_tween` on
+  Node and SceneTree, bit-exact cases (150 Tween cases, every transition and ease). Resume:
+  re-run the match-3 import (official Godot crashed on it), the platformer gate, rebase, push.
+
+**Open work.**
+- [core] The full denominator: lowering stops at a script's first refusal
+  (`lower-official-bound.ts`, one catch per script), so refusal counts show one gap per file.
+  Record every refusal and report them by family per kit; plan work from that.
+- [core] `evidence --refresh --stale`: re-measure only what `gd-analyze liveness` reports stale.
+- [core] The platformer traced against official Godot on the same scripted inputs, frame by frame.
+- [core] Land the three wip branches (above), then GPUParticles2D (one shared WebGL context, each
+  emitter's frame into its own DOM element), Sprite3D, scripts extending Resource.
+- [core] The Godot 3 frontend (six games): a 3.6.2 bound exporter and a GDScript 1 lowering; the
+  scope of 3.x runtime semantics against 4.x compat is undecided and needs characterizing first.
+- [core] Move the capabilities into `@volter/game-editor`'s catalog with their dependency closure.
+- [minor] Quiet-machine timings (all measurements so far ran at load 7–49); the frame-130 hitch.
+- [minor] Official Godot's own `--headless --import` crashes intermittently (SIGSEGV/SIGABRT on a
+  worker thread, stripped binary; 1 in ~40 runs); the import reports the signal and does not retry.
+
+Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, match-3 24,
+3d-platformer 50, city-builder 7, racing 35.
+
+**Prerequisites on the new machine.**
+- macOS on arm64: the official editors and the bound exporters are macOS arm64 builds.
+- Node 22 or later (the lane ran on 26.8.1); `npm ci` at the repository root.
+- Official Godot 4.7-stable (executable sha256 `445c6f95…`, reports
+  `4.7.stable.official.5b4e0cb0f`) and 4.6-stable (`974197a7…`), from the Godot releases.
+- The bound exporters, pinned by executable sha in `src/godot-frontend/source-authority.ts`
+  (4.7 `21e4bd4c…`). Either copy them (`tools/godot-4.7-bound-exporter-engine-shader`, 600 MB;
+  `tools/godot-4.6-bound-exporter-shader`, 619 MB), or rebuild with
+  `node packages/gd-analyze/scripts/build-godot-bound-exporter.mjs --version 4.7` from the pinned
+  source trees (`godot-4.7-source`, `godot-4.6-source`, revision and tree sha in the same file;
+  needs scons and the Xcode command-line tools) into a new out-dir, then check the sha against the
+  pin. A rebuild that differs means re-pinning and a full refresh.
+- The Godot 3.6.2 source (307 MB) for the Godot 3 frontend.
+- About 4 GB for the tools; the corpus fixtures are in git (`packages/gd-analyze/test/fixtures`).
+- No fixed ports: `volter-game-editor edit` picks a free one.
+- `TMPDIR` on a large volume: imports and refreshes write several GB of temporary projects.
+
+**Resuming the evidence refresh.**
+- `GODOT_OFFICIAL_4_7=<Godot binary> GODOT_BOUND_EXPORTER_4_7=<exporter> npm run
+  godot-evidence-refresh -w packages/gd-analyze` (15–20 minutes); `npx tsx src/cli.ts liveness`
+  (seconds) says whether any claim is stale.
+- Never edit compat or the translator while a refresh runs (it hashes them). After a rebase that
+  conflicts on authority JSON, take upstream's and refresh.
+- Push only with the re-measure in the same push, after liveness is live and the platformer gate
+  passes: `cli.ts import packages/gd-analyze/test/fixtures/platformer-3d-godot4 <out>
+  --bound-exporter-binary … --official-binary …`, then `cli.ts run <out> --frames 120` (0 thrown,
+  stepped physics frames). Live reading: `npm ci` in `<out>`, `npx volter-game-editor edit .`,
+  `play`, and drive it through `game.input.set/tap` (the game's `debug.input` door).
+
 ## What comes next
 
 In order.
