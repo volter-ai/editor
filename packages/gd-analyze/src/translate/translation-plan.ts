@@ -101,11 +101,47 @@ function validateInputClosure(
       ),
     ),
   ]);
+  // What the planned files name: a scene's or resource's `[ext_resource]`s, a script's `preload`s.
+  const relative = (resPath: string): string => resPath.slice('res://'.length);
+  const referenced = new Set<string>();
+  for (const scene of project.documents.scenes) {
+    if (consumed.has(relative(scene.resPath))) for (const entry of scene.extResources) referenced.add(relative(entry.resPath));
+  }
+  for (const resource of project.documents.resources) {
+    if (consumed.has(relative(resource.resPath))) for (const entry of resource.extResources) referenced.add(relative(entry.resPath));
+  }
+  for (const script of project.scripts) {
+    if (!consumed.has(relative(script.resPath))) continue;
+    for (const node of script.program.nodes) if (node.kind === 'PRELOAD') referenced.add(relative(node.resolvedPath));
+  }
+  const roots = new Map(project.read.runtimeRoots.map((root) => [relative(root.resPath), root.mechanism] as const));
+  // An empty AudioBusLayout is refused by `AudioServer::set_bus_layout` (servers/audio/audio_server.cpp:1755):
+  // the one Master bus stays, which is compat's.
+  const emptyBusLayout = (path: string): boolean =>
+    roots.get(path) === 'default-audio-bus-layout' &&
+    project.documents.resources.some(
+      (resource) => relative(resource.resPath) === path && resource.resource.type === 'AudioBusLayout' && Object.keys(resource.resource.properties).length === 0 && resource.subResources.length === 0,
+    );
+  /**
+   * Accounted for without a plan: a consumed file's `.uid` sidecar (the path's UID, which the plan
+   * resolves by path); the empty default bus layout; the application icon (`DisplayServer::set_icon`,
+   * main/main.cpp:4753, window chrome the page host owns); and a file nothing planned names, with
+   * its `.import` sidecar: the translated game reads files only through a planned scene, resource or
+   * `preload` (no runtime `load` is bound), so such a file is never read.
+   */
+  const accounted = (path: string): boolean => {
+    if (path.endsWith('.uid') && consumed.has(path.slice(0, -'.uid'.length))) return true;
+    if (emptyBusLayout(path) || roots.get(path) === 'application-icon') return true;
+    const source = path.endsWith('.import') ? path.slice(0, -'.import'.length) : path;
+    if (source !== path && (roots.get(source) === 'application-icon')) return true;
+    return !referenced.has(source) && !roots.has(source) && (source === path || !consumed.has(source));
+  };
   return project.inputs.flatMap((entry) => {
     if (
       entry.entryType === 'directory' ||
       entry.kind === 'explicit-non-input' ||
-      consumed.has(entry.relativePath)
+      consumed.has(entry.relativePath) ||
+      accounted(entry.relativePath)
     ) {
       return [];
     }
