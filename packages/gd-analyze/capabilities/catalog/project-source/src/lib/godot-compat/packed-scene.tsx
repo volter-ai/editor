@@ -297,6 +297,9 @@ export function GodotImportedScene({
     [gltf, nodes],
   );
   const root = useRef<Group | null>(null);
+  // The instancing scene's values are set once, as the scene instantiates: a render that rebuilds
+  // the `overrides` object with the same values sets nothing again.
+  const authored = useRef(overrides);
   useLayoutEffect(() => {
     const entity = root.current;
     if (entity === null) return;
@@ -344,7 +347,7 @@ export function GodotImportedScene({
     if (reset !== null) godot_animation_player_apply_reset(entity, reset);
     // Godot sets the instancing scene's values on the instantiated nodes (`SceneState::instantiate`,
     // packed_scene.cpp:400).
-    for (const [at, properties] of Object.entries(overrides)) {
+    for (const [at, properties] of Object.entries(authored.current)) {
       const target = tree.byPath.get(at);
       if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${at}`);
       for (const [property, value] of Object.entries(properties)) applyOverride(target, property, value, members);
@@ -352,7 +355,7 @@ export function GodotImportedScene({
     return () => {
       for (const child of tree.depthOne) entity.remove(child);
     };
-  }, [tree, nodes, rootClasses, overrides]);
+  }, [tree, nodes, rootClasses]);
   return createElement(
     'group',
     { ...props, ref: root },
