@@ -500,28 +500,31 @@ the output is plain library code (ARCHITECTURE.md rule 4):
 | Imported textures (PNG, lossless WebP), `ArrayMesh`, `Label3D`, `AudioStreamPlayer`/`AudioStreamPlayer3D` with WAV streams and randomizers | Landed in the pre-ruling output shape (proofs `scene-textures`, `scene-meshes`, `scene-audio`); their Godot-semantics modules carry over, their scene emission is redone in the idiomatic shape. Named deviations: `audio-compression`, `web-audio-attenuation`. Not yet: audio buses, sequential randomizer playback. GridMap waits on a ruling for static collision that is not a node. |
 | `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
 
-## Where it stands (2026-09-26, 03:30)
+## Where it stands (2026-09-27)
 
-Measured through the lane's own commands.
+Measured through the lane's own commands and, for the platformer, the game editor's own doors.
 
-- **Frontend.** The pinned 4.7 exporter binds every script of the 4.7 game. Before capture, the
-  official editor performs Godot's own `--headless --import`, so preloads of imported assets
-  resolve. `gd-analyze closure` reads all six Godot 4 games. Godot 4.6 has its own authority:
-  the official binary, API dump, source tree and a ported patch. Its exporter is being built.
-- **Evidence.** `gd-analyze evidence <class>` and `gd-analyze evidence --refresh` produce every
-  claim by running official Godot and the translated code on the same input. Before the refresh
-  existed, digests were copied into TypeScript by hand. 16 built-in types and utilities are
-  proven: 3,165 cases, all bit-exact apart from the platform-maths comparator below, and 126 bindings.
-  The instrument's own findings are recorded in each module's header: signed zeros merged by GDScript's constant pool,
-  `atan2f`'s range at ±π, float literals Godot does not parse to the nearest double, and
-  float-to-int saturation on arm64.
-- **Lowering.** Operators, constants and built-in member writes (`v.x = e` becomes
-  `v = with_x(v, e)`) go through evidenced bindings. Structural rules key a datatype class where
-  semantics do not depend on the type. Dynamic calls are typed from project facts
-  (`analyze/call-receivers.ts`); the two rules' evidence is in progress.
-- **Import of `platformer-3d-godot4`.** It stops in planning. On the script side the gaps are
-  language rules and native-class bindings; on the scene side, the structure and node families
-  above.
+- **Frontend.** Every Godot 4.x project up to the pinned 4.7 runs under the 4.7 authority: its
+  exporter, its editor's `--headless --import`, and every table. The snapshot records the release
+  the project was authored in beside the authority it ran under; a project newer than 4.7 refuses
+  by name. The feature vocabulary is measured on 4.6 and 4.7; older minors are assumed to share
+  it (an extrapolation, not a measurement), and a tag outside it refuses.
+- **Evidence.** `gd-analyze evidence --refresh` produces every claim by running official Godot and
+  the translated code on the same input, and every proof agrees at the current head.
+- **`platformer-3d-godot4`.** The production `import` plans, emits, installs, typechecks (0
+  errors) and builds with vite. Output: `game.tsx` is plain R3F, each instanced `.tscn` a
+  component, scripts as classes, `world.tsx` a `<GodotMain>` with the editor's `scenes` slot and
+  `systems.physics`. In the game editor the scene document opens; the world does not yet render
+  (the current defect is ownership of nodes placed inside an imported model).
+- **The six 4.6 starter kits** import through the 4.7 authority as far as their refusals (below).
+
+**Godot 4.6 projects run as Godot 4.7 runs them.** Godot 4.x minor releases are forward
+compatible, and the supported path for a 4.6 project is opening it in the 4.7 editor, so a 4.6
+project imports under the 4.7 authority with no 4.6 fork of compat. The same cases run on the
+official 4.6 binary: 58 cases in 14 files behave differently, each explained by a source change
+recorded in `evidence/godot-4.6/upgrade-deltas.ts` (one, the AnimationTree player re-attach, is
+unexplained). For a 4.6-authored project the import report lists each delta member the game
+reaches; it informs and never gates.
 
 **Rulings made while building (the author's; the owner has not reviewed them):**
 
@@ -537,19 +540,17 @@ Measured through the lane's own commands.
 
 ## What comes next
 
-In order. The first three run now.
+In order.
 
-1. **Native classes, one family at a time.** Node3D and Camera3D first; they set the native
-   receiver pattern. Then Node and SceneTree (tree operations, groups, timers, signals),
-   Input, the physics bodies over Rapier, AnimationPlayer, audio and Tween. Each is proven by
-   node cases in the instrument: the same tree built in Godot and in three.
-2. **Language rules** until the platformer's scripts lower completely, including static
-   built-in calls, Dictionary literals and Godot's own literal values.
-3. **Pin the 4.6 exporter**, then refresh every claim for the 4.6 revision. The instrument
-   re-runs the same cases against the official 4.6 binary.
-4. **Scene structure and node families** (the sections above), until the platformer produces a
-   project. Then build it, boot it in the game editor, and compare it side by side with Godot.
-5. **The Godot 3 frontend.**
-6. **Open question: the frontend in the tab.** Blender runs in the browser as WebAssembly. The
+1. **The platformer in the game editor.** Render, Play, and compare it side by side with official
+   Godot on the same inputs.
+2. **The 4.6 starter kits' shared families**, by count across the five that read: Environment
+   bindings (21), GPUParticles3D (21), authored node references (20), explicit sibling order (20),
+   nodes placed inside instanced scenes (14), scene inheritance (12), GPUParticles2D (11),
+   imported models with external images (9), GDScript language rules (13), untyped dynamic
+   `new` (6). The racing kit's fixture lacks `res://models/track-ramp.glb`.
+3. **The Godot 3 frontend.**
+4. **Capabilities into `@volter/game-editor`**, with their dependency closure.
+5. **Open question: the frontend in the tab.** Blender runs in the browser as WebAssembly. The
    Godot exporter is the same substrate, a C++ program built from pinned source. Built with
    emsdk, import would need no native binary on the importer's machine.
