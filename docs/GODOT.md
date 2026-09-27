@@ -254,6 +254,16 @@ type Godot itself guarantees there, and records the rule as evidence:
   (`@implicit_ready`, `gdscript_compiler.cpp:2409`). An `AnimationTree` subscript on such a
   member must name a parameter of that tree's graph. Assignment through reflection
   (`set("name", …)`) is not seen.
+- an untyped parameter takes the one type every caller passes (engine virtuals, a scene
+  connection's signal, script calls by name); a parameter reachable any other way (a `Callable`,
+  a string naming the function) stays untyped;
+- an untyped signal's handler parameter takes the one type every `.emit()`/`emit_signal()` in the
+  project passes; disagreement or a dynamic emit leaves it untyped;
+- an untyped member takes the one type every assignment in the project gives it.
+
+A freed object is null to GDScript 4: `freed == null` is true, `if freed:` is false,
+`is_instance_valid(freed)` is false, and two freed objects compare equal (measured on official
+4.7). Every `==`, `!=`, `not` and truthiness rule over Object types reads compat's freed state.
 
 Compound assignment on a Variant subscript (`x[k] += v`) refuses: Godot's evaluator picks the
 operator from the runtime type, and compat's numbers carry no int/float tag. No game in the
