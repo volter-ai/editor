@@ -571,7 +571,9 @@ function valueAttributeTarget(
   if (node.kind !== 'SUBSCRIPT' || !node.isAttribute) return undefined;
   const baseNode = context.node(node.base, node);
   const attribute = officialBoundPropertyName(context, node.attribute, node);
-  if (!builtinValueType(baseNode) && !nativeMemberReceiver(context, baseNode, attribute)) return undefined;
+  // An engine singleton's property (`Input.mouse_mode`) is written through its accessors.
+  const singleton = baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS' && context.nativeProperty(baseNode.name, attribute) !== undefined;
+  if (!singleton && !builtinValueType(baseNode) && !nativeMemberReceiver(context, baseNode, attribute)) return undefined;
   return { baseNode, attribute };
 }
 

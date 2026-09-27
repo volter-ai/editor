@@ -635,6 +635,15 @@ for (const [id, receiver, result] of [
     line: 243,
   });
 }
+// An engine singleton's property (`Input.mouse_mode`): the class name is the one object
+// (`Engine::get_singleton_object`), its property written through its API-dump accessors.
+for (const [id, result] of [['singleton-property-enum', ENUM]] as const) {
+  rule(id, 'SUBSCRIPT', 'subscript-attribute:native-property', ['NATIVE:meta:*'], result, { kind: 'binding' }, {
+    file: COMPILER,
+    symbol: 'GDScriptCompiler::_parse_expression IDENTIFIER (a global-map singleton) and Object::set through ClassDB property accessors',
+    line: 419,
+  });
+}
 // ClassDB integer constants and enum values are their values (the API dump states them).
 for (const [name, result] of [
   ['enum', ENUM],
@@ -1397,6 +1406,12 @@ func switched() -> Array:
 \tvar d: Node3D = $Derived
 \treturn [t.describe(), d.describe()]
 
+# An engine singleton's property written through its setter (\`Input.mouse_mode\`); headless, the
+# display server keeps the mouse visible.
+func singletons() -> Array:
+\tInput.mouse_mode = Input.MOUSE_MODE_HIDDEN
+\treturn [Input.get_mouse_mode()]
+
 # A script function called through a receiver declared as the base script: the instance's own
 # (most derived) function runs (\`script-method-dispatch\`).
 func dispatched() -> Array:
@@ -1832,7 +1847,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'switched', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'switched', 'singletons', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
@@ -1935,6 +1950,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     'lib/godot-compat/directional-light-3d',
     'lib/godot-compat/float',
     'lib/godot-compat/global-scope',
+    'lib/godot-compat/input',
     'lib/godot-compat/light-3d',
     'lib/godot-compat/node',
     'lib/godot-compat/node-3d',
