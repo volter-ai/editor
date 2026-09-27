@@ -277,6 +277,24 @@ files under `public/music/harbor` (no problems, −18 LUFS, seam 0.177) with eac
 `.vgai/provenance.json`, rendering in its own process (the editor answered in about 270 ms
 throughout) and byte-identical to an in-process render; console silent.
 
+Bitwig's mixing, session and recording layer, each written in the piece's source and read in
+the headless, muted host (edits undone byte-identically): track automation of volume, pan and
+sends; `<Lfo>` modulators on the same targets; group tracks (`role="submix"`); sidechained
+compressors; audio tracks (`<Audio file offset gain>`); and comping of `<Audio take>`
+recordings with `<Comp take at>`. Offline in the page on the export's dry signals, the editor's
+graph nulls against the export's mix at −139.6 dB with lanes moving, −138.2 dB with groups,
+−139.9 dB sidechained, −139.7 dB with an audio track, −139 dB with four LFOs (which move the mix
+by −19.2 dB), and −140 dB across comp boundaries. The clip launcher (`<Scene>` of
+`<ClipSlot track>`) launches a scene or a slot on the next bar: a scene launched at beat 23.6
+switched at 24, the tracks it leaves out reading −inf on the strips' peak meters while its own
+metered (Drums −18.6 dBFS); `render-piece` writes each scene as a seamless loop and the game's
+player queues scenes by name. Rec records notes from Web MIDI or the computer keyboard into the
+selected track (driven by keyboard; no MIDI device in the host), and on a track without an
+instrument the audio input: on the host's fake input a take was saved, placed on its bar and
+metered at −4.7 dBFS in playback, and over a one-bar loop it cut into one take per pass. The
+DAWproject export carries scenes, audio (embedded), LFOs (as points) and comps (as segments)
+and validates against `Project.xsd`.
+
 Open, with what closes each:
 - Bitwig's editing basics, landed and each driven through its own control on Harbor (source
   diff read, undo byte-identical, generated targets refused whole): in the piano roll,
