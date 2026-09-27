@@ -1015,11 +1015,32 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
 
 async function runCompatEvidence(
   name: string,
-  evidence: GodotEvidenceCaseFile,
+  allCases: GodotEvidenceCaseFile,
   officialBinary: string,
   version: GodotEvidenceVersion,
 ): Promise<number> {
   const pinned = pins(name, version, officialBinary);
+  // Another release's API may lack a member the cases bind (a 4.7 addition): its cases, and every
+  // case whose GDScript calls it, are not run there, and are named.
+  const absent = new Set<string>();
+  if (version !== '4.7') {
+    for (const entry of allCases.cases) {
+      try {
+        bindingSymbol(pinned, entry.symbol);
+      } catch {
+        absent.add(entry.symbol.member);
+      }
+    }
+  }
+  const evidence: GodotEvidenceCaseFile = {
+    ...allCases,
+    cases: allCases.cases.filter((entry) => ![...absent].some((member) => entry.symbol.member === member || new RegExp(`\\b${member}\\b`).test(entry.gdscript))),
+  };
+  if (absent.size > 0) {
+    process.stdout.write(
+      `absent from the Godot ${version} API: ${[...absent].join(', ')}; ${String(allCases.cases.length - evidence.cases.length)} cases not run\n`,
+    );
+  }
   const moduleBytes = readFileSync(compatModuleFile(evidence.compatModule));
   const moduleSource = moduleBytes.toString('utf8');
   if (!new RegExp(`@godot-class\\s+${evidence.godotClass}\\b`).test(moduleSource)) {
@@ -1034,7 +1055,7 @@ async function runCompatEvidence(
   const exports = compatExports(moduleSource).filter((entry) => !entry.protocol);
   const exportByMember = new Map(exports.map((entry) => [entry.godotMember, entry]));
   const covered = new Set<string>();
-  for (const entry of evidence.cases) {
+  for (const entry of allCases.cases) {
     const godotMember = `${entry.symbol.owner}.${entry.symbol.member}`;
     if (!exportByMember.has(godotMember)) {
       throw new Error(`${entry.id}: no compat export carries @godot ${godotMember}`);
