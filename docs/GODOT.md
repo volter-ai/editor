@@ -525,8 +525,12 @@ Measured through the lane's own commands and, for the platformer, the game edito
 - **`platformer-3d-godot4`.** The production `import` plans, emits, installs, typechecks (0
   errors) and builds with vite. Output: `game.tsx` is plain R3F, each instanced `.tscn` a
   component, scripts as classes, `world.tsx` a `<GodotMain>` with the editor's `scenes` slot and
-  `systems.physics`. In the game editor the scene document opens; the world does not yet render
-  (the current defect is ownership of nodes placed inside an imported model).
+  `systems.physics` (since dropped: the editor reads the game's own `<Physics>`). In the game
+  editor (0.5.68) the scene document opens and renders the level, and Play runs it: the robot
+  moves and jumps through the editor's input door (`debug.input` over Godot's own
+  `Input.action_press`), animates, and the Label3D coin counter draws; 0 console errors.
+  Measured headless (`gd-analyze run`, 120 Hz physics, load 9–11): physics per frame p50
+  5.1–5.6 ms, p99 7.7–10.7 ms.
 - **The six 4.6 starter kits** import through the 4.7 authority as far as their refusals (below).
 
 **Only what the game loads is planned.** The reader walks the main scene, autoloads, project
