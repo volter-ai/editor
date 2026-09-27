@@ -129,7 +129,7 @@ import type {
   TruthProvider,
   WriteAnchorKind,
 } from '@volter/editor-project/adapter';
-import { emptyWriteAnchorKindCounts } from '@volter/editor-project/adapter';
+import { emptyWriteAnchorKindCounts, physicsOwnerOf } from '@volter/editor-project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { bodyOwningNode } from '@volter/threejs-runtime/adapter/body-marks';
 import { colorMaterialOf } from '@volter/threejs-runtime/adapter/ingest/structural-ids';
@@ -388,7 +388,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
    */
   private physicsFor(id: string): PhysicsAdapter | null {
     const physics = getActivePhysics();
-    return physics && physics.ownerOf(id) !== 'unresolved' ? physics : null;
+    return physics && physicsOwnerOf(physics, id) !== 'unresolved' ? physics : null;
   }
 
   /** This session's edits, keyed by node id. In-memory only. */
@@ -1078,7 +1078,8 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
     const cached = this.bodyOwnershipByObject.get(object);
     if (cached !== undefined) return cached;
 
-    const owner = getActivePhysics()?.ownerOf(id);
+    const physics = getActivePhysics();
+    const owner = physics ? physicsOwnerOf(physics, id) : undefined;
     if (owner === 'physics') {
       this.bodyOwnershipByObject.set(object, true);
       return true;

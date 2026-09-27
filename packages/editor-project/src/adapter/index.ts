@@ -193,7 +193,7 @@ export type {
 } from './system-adapter';
 /** The two narrowings of the tagged `SystemAdapters['physics']` union — see
  *  `PhysicsAdapter`'s comment for why it is tagged at all. */
-export { displayKeyedPhysics, nodeKeyedPhysics } from './system-adapter';
+export { displayKeyedPhysics, nodeKeyedPhysics, physicsOwnerOf } from './system-adapter';
 export {
   AUDIO_ADAPTER_SHAPE,
   CAMERA_ADAPTER_SHAPE,

@@ -113,6 +113,7 @@ import {
   nodeKeyedPhysics,
   type TransformProvider,
 } from '@volter/editor-project/adapter';
+import { physicsOwnerOf } from '@volter/editor-project/adapter';
 import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
 import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import { readOidSourceAnchors } from '../three/authoring/oid-source-persistence';
@@ -1861,7 +1862,7 @@ async function enterPlayModeInner(
     store.setEcsSyncTransform((id, obj) => {
       // `commit` refuses an id this adapter cannot resolve rather than
       // returning as if the write landed — so ask before driving it.
-      if (!physics || physics.ownerOf(id) === 'unresolved') return;
+      if (!physics || physicsOwnerOf(physics, id) === 'unresolved') return;
       physics.commit(id, {
         position: obj.position.toArray() as [number, number, number],
         rotation: obj.quaternion.toArray() as [number, number, number, number],

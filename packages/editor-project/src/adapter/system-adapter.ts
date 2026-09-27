@@ -823,6 +823,20 @@ export function nodeKeyedPhysics(
   return isDisplayKeyedPhysics(carrier) ? null : carrier;
 }
 
+/**
+ * Who drives `key`, asked of the game's own physics carrier by an editor surface that renders the
+ * answer. A declared system slot with nothing attached yet (a world whose `<Physics>` mounts late)
+ * refuses by name, and a refusal read from an outliner row would take the editor's chrome down with
+ * it: to the editor a carrier that cannot answer does not know the node, which `'unresolved'` says.
+ */
+export function physicsOwnerOf<K, O extends string>(carrier: { ownerOf(key: K): O }, key: K): O | 'unresolved' {
+  try {
+    return carrier.ownerOf(key);
+  } catch {
+    return 'unresolved';
+  }
+}
+
 /** The carrier a DISPLAY-keyed consumer may call, or `null`. Mirror of
  *  {@link nodeKeyedPhysics}. */
 export function displayKeyedPhysics(
