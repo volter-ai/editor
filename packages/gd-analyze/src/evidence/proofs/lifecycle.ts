@@ -226,7 +226,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     const toolchain = captureGodotImportToolchainSnapshot({
       projectEngine: snapshot.engine,
       boundExporterBinary: exporterBinary,
-      officialBinary,
+      officialBinary: tools.pipelineOfficialBinary ?? officialBinary,
     });
     const project = bindGodotProject(
       snapshot,

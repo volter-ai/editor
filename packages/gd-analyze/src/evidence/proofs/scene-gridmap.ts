@@ -326,7 +326,7 @@ export async function measureSceneGridMapProof(tools: GodotProofTools): Promise<
     const toolchain = captureGodotImportToolchainSnapshot({
       projectEngine: snapshot.engine,
       boundExporterBinary: exporterBinary,
-      officialBinary,
+      officialBinary: tools.pipelineOfficialBinary ?? officialBinary,
     });
     const bound = bindGodotProject(
       snapshot,

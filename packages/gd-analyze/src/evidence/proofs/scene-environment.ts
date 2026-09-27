@@ -218,7 +218,7 @@ export async function measureSceneEnvironmentProof(tools: GodotProofTools): Prom
       copyFileSync(path.join(FIXTURE, `${image}.import`), path.join(project, `${image}.import`));
     }
     const snapshot = captureGodotProjectSnapshot(project);
-    const toolchain = captureGodotImportToolchainSnapshot({ projectEngine: snapshot.engine, boundExporterBinary: exporterBinary, officialBinary });
+    const toolchain = captureGodotImportToolchainSnapshot({ projectEngine: snapshot.engine, boundExporterBinary: exporterBinary, officialBinary: tools.pipelineOfficialBinary ?? officialBinary });
     const read = readGodotProjectSnapshot(snapshot, toolchain.frontend.readAuthority);
     const bound = bindGodotProject(
       snapshot,

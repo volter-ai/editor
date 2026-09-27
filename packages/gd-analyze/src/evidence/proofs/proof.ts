@@ -3,8 +3,14 @@ import type { GodotProofIdentities, GodotProofName } from '../../godot-frontend/
 
 /** The two pinned executables every proof runs. */
 export interface GodotProofTools {
+  /** The official editor whose run is the native side. */
   readonly officialBinary: string;
   readonly exporterBinary: string;
+  /**
+   * The official editor the target pipeline imports with (its toolchain pin), when the native side
+   * runs another release (`evidence --godot 4.6`); else `officialBinary`.
+   */
+  readonly pipelineOfficialBinary?: string;
 }
 
 /** One proof's run: the identities it measured and whether native and target agreed. */

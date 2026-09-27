@@ -447,7 +447,7 @@ export async function measureSceneAnimationProof(tools: GodotProofTools): Promis
     const toolchain = captureGodotImportToolchainSnapshot({
       projectEngine: snapshot.engine,
       boundExporterBinary: exporterBinary,
-      officialBinary,
+      officialBinary: tools.pipelineOfficialBinary ?? officialBinary,
     });
     const read = readGodotProjectSnapshot(snapshot, toolchain.frontend.readAuthority);
     const bound = bindGodotProject(

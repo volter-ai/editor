@@ -28,9 +28,10 @@ const USAGE = `usage: gd-analyze <command> [options]
            proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
            is named and nothing is written for it.
 
-  evidence ... --godot 4.6
+  evidence ... --godot 4.6 [--pipeline-official-binary <4.7 editor>]
            The same cases and proofs with the official 4.6 binary as the native side, against
-           the same target (compat, and the 4.7 pipeline through the 4.7 exporter); written to
+           the same target (compat, and the 4.7 pipeline through the 4.7 exporter and, for the
+           refresh's proofs, the 4.7 editor as its importer); written to
            src/translate/code/authority/godot-4.6/.
 `;
 
@@ -109,7 +110,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     );
   }
   if (command === 'evidence') {
-    const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary', '--godot']);
+    const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary', '--godot', '--pipeline-official-binary']);
     const version = optionValue(rest, '--godot') ?? '4.7';
     if (version !== '4.6' && version !== '4.7') fail('evidence --godot takes 4.6 or 4.7');
     const binary = optionValue(rest, '--official-binary');
@@ -117,7 +118,12 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     if (rest.includes('--refresh')) {
       if (positional.length !== 0) fail('evidence --refresh takes no class');
       const { refreshEvidence } = await import('./evidence/refresh');
-      return await refreshEvidence({ officialBinary: binary, exporterBinary: requiredExporter(rest) }, version);
+      const pipeline = optionValue(rest, '--pipeline-official-binary');
+      if (version !== '4.7' && pipeline === undefined) fail('evidence --refresh --godot 4.6 needs --pipeline-official-binary <the 4.7 editor>');
+      return await refreshEvidence(
+        { officialBinary: binary, exporterBinary: requiredExporter(rest), ...(pipeline === undefined ? {} : { pipelineOfficialBinary: pipeline }) },
+        version,
+      );
     }
     if (positional.length !== 1) fail('evidence needs exactly one Godot class');
     const { runEvidence } = await import('./evidence/run-evidence');
