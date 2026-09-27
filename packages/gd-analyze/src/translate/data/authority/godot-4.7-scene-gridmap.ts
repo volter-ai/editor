@@ -4,22 +4,11 @@
  * items and shapes, the items' meshes the scene's own).
  */
 import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
-import type { GodotSceneNodeRule, GodotSceneResourceRule } from '../scene-node-authority';
+import type { GodotSceneResourceRule } from '../scene-node-authority';
 
 const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
 
 type Source = Readonly<{ file: string; symbol: string; line: number }>;
-
-const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
-
-export const GODOT_4_7_GRIDMAP_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = [
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('GridMap'),
-    targetKind: 'three-group',
-    source: { file: 'modules/gridmap/grid_map.cpp', symbol: 'GridMap::_set (data)', line: 64 },
-  },
-];
 
 export const GODOT_4_7_GRIDMAP_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = [
   {

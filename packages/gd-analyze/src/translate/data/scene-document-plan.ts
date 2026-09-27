@@ -41,7 +41,6 @@ import {
   GodotSceneNodeAuthorityResolver,
   type GodotSceneStructureRuleId,
   type SerializedScenePropertyIdentity,
-  type TargetSceneNodeKind,
   type TargetScenePropertyKind,
 } from './scene-node-authority';
 import { type GodotSceneNodeIdiom, godotSceneNodeIdiom } from './scene-node-idioms';
@@ -55,19 +54,17 @@ export interface TargetGodotSceneNodePlan {
   readonly parentNodePath?: string;
   readonly name: string;
   /**
-   * A native entity's kind; `scene-instance` mounts `instance`'s generated component,
-   * `imported-scene` an imported model's tree (`model`).
+   * A native node's library idiom (`scene-node-idioms.ts`), which emit writes. A node without one
+   * mounts `instance`'s generated component, or an imported model's tree (`model`).
    */
-  readonly targetKind: TargetSceneNodeKind | 'scene-instance' | 'imported-scene';
-  /** A native node's library idiom (`scene-node-idioms.ts`), which emit writes. */
   readonly idiom?: GodotSceneNodeIdiom;
-  /** For `imported-scene`: the importer's tree over the model file, and this scene's edits in it. */
+  /** For an imported model: the importer's tree over the model file, and this scene's edits in it. */
   readonly model?: TargetGodotImportedModelPlan;
   /** A node this scene places under a node of an imported model: that instance and the path. */
   readonly portal?: { readonly instanceNodePath: string; readonly at: string };
-  /** For `imported-scene`: the nodes this scene places under its model's nodes. */
+  /** For an imported model: the nodes this scene places under its model's nodes. */
   readonly placements?: readonly { readonly at: string; readonly node: TargetGodotSceneNodePlan }[];
-  /** The instanced scene, for a `scene-instance` node. */
+  /** The instanced scene, for a node that instances one (`scene-instance`). */
   readonly instance?: { readonly sourceResPath: string };
   readonly scriptResPath?: string;
   /** Authored values (for an instance, its root overrides), each through a property rule. */
@@ -904,8 +901,7 @@ function treeProperty(context: PlanContext, at: string, propertyName: string, va
   const parameter = /^parameters\/(.+)$/u.exec(propertyName);
   const path = TREE_NODE_PATHS[propertyName];
   if (parameter === null && path === undefined) return null;
-  const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0AnimationTree`);
-  if (rule === undefined) {
+  if (godotSceneNodeIdiom('AnimationTree') === undefined) {
     refuse(context, at, 'no scene-node rule writes AnimationTree', 'node-family', 'AnimationTree');
     return undefined;
   }
@@ -938,8 +934,7 @@ function treeProperty(context: PlanContext, at: string, propertyName: string, va
  * that name, which compat's `godot_animation_mixer_set_library` sets.
  */
 function mixerLibrary(context: PlanContext, at: string, name: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined {
-  const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0AnimationPlayer`);
-  if (rule === undefined) {
+  if (godotSceneNodeIdiom('AnimationPlayer') === undefined) {
     refuse(context, at, 'no scene-node rule writes AnimationPlayer', 'node-family', 'AnimationPlayer');
     return undefined;
   }
@@ -1253,8 +1248,7 @@ function groupsOf(context: PlanContext, node: BoundGodotSceneNode): readonly str
  * written, once the reader's transcription of `GridMap::_set` accepts them.
  */
 function gridMapData(context: PlanContext, at: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined {
-  const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0GridMap`);
-  if (rule === undefined) {
+  if (godotSceneNodeIdiom('GridMap') === undefined) {
     refuse(context, at, 'no scene-node rule writes GridMap', 'node-family', 'GridMap');
     return undefined;
   }
@@ -1289,11 +1283,11 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     refuse(context, at, 'instance placeholder is not planned', 'structure');
     ok = false;
   }
-  const rule = context.authority.rule(node.class.nativeCanonicalIdentity);
-  if (rule === undefined) {
+  // The idiom table is the one table of node classes the lane writes (`scene-node-idioms.ts`).
+  const idiom = godotSceneNodeIdiom(node.class.nativeName);
+  if (idiom === undefined) {
     refuse(context, at, `no scene-node rule writes ${node.class.nativeName}`, 'node-family', node.class.nativeName);
     ok = false;
-  } else {
   }
   const fields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
   const setters: TargetGodotSceneSetterPlan[] = [];
@@ -1311,7 +1305,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   );
   const groups = groupsOf(context, node);
   const placed = placement(context, node);
-  if (!ok || rule === undefined || properties === undefined || groups === undefined || placed === undefined) {
+  if (!ok || idiom === undefined || properties === undefined || groups === undefined || placed === undefined) {
     return undefined;
   }
   const unstated = godotFamilyRefusal(node.class.nativeName, 'node', setters);
@@ -1321,13 +1315,11 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   }
   const animation = node.class.nativeAncestry.includes('AnimationMixer') ? animationBindings(context, at, node.nodePath, setters) : undefined;
   if (animation === null) return undefined;
-  const idiom = godotSceneNodeIdiom(node.class.nativeName);
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
-    targetKind: rule.targetKind,
-    ...(idiom === undefined ? {} : { idiom }),
+    idiom,
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     properties,
     groups,
@@ -1439,7 +1431,6 @@ function planImportedInstance(
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
-    targetKind: 'imported-scene',
     // A script on the model's root (an imported model's root has none of its own).
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     model: {
@@ -1509,7 +1500,6 @@ function planInstanceRoot(
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
-    targetKind: 'scene-instance',
     instance: { sourceResPath: instanced.resPath },
     // Its own script, where the base's root has none (the component's root carries it).
     ...(node.scriptResPath !== undefined && origin.scriptResPath === undefined ? { scriptResPath: node.scriptResPath } : {}),
@@ -2051,7 +2041,7 @@ function planConnections(
   instanceRoots: ReadonlyMap<string, BoundGodotSceneDocument>,
 ): readonly TargetGodotSceneConnectionPlan[] | undefined {
   const mounted = new Map(
-    planned.filter((node) => node.targetKind !== 'scene-instance').map((node) => [node.nodePath, node] as const),
+    planned.filter((node) => node.instance === undefined).map((node) => [node.nodePath, node] as const),
   );
   const bound = new Map(scene.nodes.map((node) => [node.nodePath, node] as const));
   let ok = true;

@@ -4,53 +4,42 @@ import {
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from '../code/authority/godot-4.7-seed';
 import {
-  GODOT_4_7_SCENE_NODE_RULES,
   GODOT_4_7_SCENE_PLACEMENT_RULES,
   GODOT_4_7_SCENE_PROPERTY_RULES,
-  GODOT_4_7_STRUCTURE_NODE_RULES,
   GODOT_4_7_STRUCTURE_PROPERTY_RULES,
   GODOT_4_7_SIGNAL_RULES,
   GODOT_4_7_STRUCTURE_RULES,
 } from './authority/godot-4.7-scene-nodes';
 import {
   GODOT_4_7_IMPORTED_STRUCTURE_RULES,
-  GODOT_4_7_RENDER_NODE_RULES,
   GODOT_4_7_RENDER_RESOURCE_RULES,
   GODOT_4_7_RENDER_STRUCTURE_RULES,
 } from './authority/godot-4.7-scene-render';
 import {
-  GODOT_4_7_UI_NODE_RULES,
   GODOT_4_7_UI_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-ui';
 import {
   GODOT_4_7_TEXTURE_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-textures';
 import {
-  GODOT_4_7_MESH_NODE_RULES,
   GODOT_4_7_MESH_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-meshes';
 import {
-  GODOT_4_7_GRIDMAP_NODE_RULES,
   GODOT_4_7_GRIDMAP_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-gridmap';
 import {
-  GODOT_4_7_ANIMATION_NODE_RULES,
   GODOT_4_7_ANIMATION_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-animation';
 import {
-  GODOT_4_7_AUDIO_NODE_RULES,
   GODOT_4_7_AUDIO_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-audio';
 import {
-  GODOT_4_7_ENVIRONMENT_NODE_RULES,
   GODOT_4_7_ENVIRONMENT_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-environment';
 import {
-  GODOT_4_7_PARTICLE_NODE_RULES,
   GODOT_4_7_PARTICLE_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-particles';
 import {
-  GODOT_4_7_PHYSICS_NODE_RULES,
   GODOT_4_7_PHYSICS_RESOURCE_RULES,
   GODOT_4_7_PHYSICS_SIGNAL_RULES,
 } from './authority/godot-4.7-scene-physics';
@@ -62,7 +51,10 @@ import {
   type GodotSceneNodeAuthority,
 } from './scene-node-authority';
 
-/** The scene-node mapping rules for the selected official frontend. */
+/**
+ * The scene rules for the selected official frontend: placement, properties, structure, connections
+ * and resources. Node classes are the idiom table's (`scene-node-idioms.ts`).
+ */
 export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotSceneNodeAuthority {
   const supported =
     source.revision === GODOT_4_7_CODE_SEED_SOURCE_REVISION &&
@@ -71,21 +63,6 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
     version: GODOT_SCENE_NODE_AUTHORITY_VERSION,
     sourceRevision: source.revision,
     apiDumpSha256: source.apiDumpSha256,
-    rules: supported
-      ? [
-          ...GODOT_4_7_SCENE_NODE_RULES,
-          ...GODOT_4_7_STRUCTURE_NODE_RULES,
-          ...GODOT_4_7_RENDER_NODE_RULES,
-          ...GODOT_4_7_UI_NODE_RULES,
-          ...GODOT_4_7_PHYSICS_NODE_RULES,
-          ...GODOT_4_7_MESH_NODE_RULES,
-          ...GODOT_4_7_AUDIO_NODE_RULES,
-          ...GODOT_4_7_GRIDMAP_NODE_RULES,
-          ...GODOT_4_7_PARTICLE_NODE_RULES,
-          ...GODOT_4_7_ENVIRONMENT_NODE_RULES,
-          ...GODOT_4_7_ANIMATION_NODE_RULES,
-        ]
-      : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
     propertyRules: supported
       ? [...GODOT_4_7_SCENE_PROPERTY_RULES, ...GODOT_4_7_STRUCTURE_PROPERTY_RULES]

@@ -8,32 +8,13 @@
  */
 import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
 import type {
-  GodotSceneNodeRule,
   GodotSceneResourceRule,
   GodotSceneSignalRule,
 } from '../scene-node-authority';
 
 const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
-const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
 
 type Source = Readonly<{ file: string; symbol: string; line: number }>;
-
-export const GODOT_4_7_PHYSICS_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = (
-  [
-    ['CollisionShape3D', 'collision-shape-3d', 'scene/3d/physics/collision_shape_3d.cpp', 325],
-    ['StaticBody3D', 'static-body-3d', 'scene/3d/physics/static_body_3d.cpp', 251],
-    ['RigidBody3D', 'rigid-body-3d', 'scene/3d/physics/rigid_body_3d.cpp', 829],
-    ['CharacterBody3D', 'character-body-3d', 'scene/3d/physics/character_body_3d.cpp', 966],
-    ['Area3D', 'area-3d', 'scene/3d/physics/area_3d.cpp', 818],
-    ['RayCast3D', 'ray-cast-3d', 'scene/3d/physics/ray_cast_3d.cpp', 564],
-    ['Marker3D', 'marker-3d', 'scene/3d/marker_3d.cpp', 54],
-  ] as const
-).map(([className, module, file, line]) => ({
-  sourceRevision: REVISION,
-  nativeCanonicalIdentity: identityOf(className),
-  targetKind: 'three-group' as const,
-  source: { file, symbol: `${className}::${className}`, line },
-}));
 
 export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = (
   [

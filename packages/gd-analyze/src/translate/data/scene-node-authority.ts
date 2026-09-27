@@ -1,28 +1,9 @@
 export const GODOT_SCENE_NODE_AUTHORITY_VERSION = 1 as const;
 
-/**
- * The native entity a Godot node class mounts as: a Node3D is a `<group>`; a plain Node a
- * `<group>` compat marks non-spatial (identity matrix, skipped by Node3D's parent rule); a
- * Camera3D a `<perspectiveCamera>` mounted with Godot's defaults.
- */
-export type TargetSceneNodeKind =
-  | 'three-group'
-  | 'three-node'
-  | 'three-perspective-camera'
-  | 'three-mesh'
-  | 'three-directional-light'
-  | 'three-point-light';
-
 /** A compat export the composition calls: `module` relative to the project's `src/`. */
 export interface GodotCompatExport {
   readonly module: string;
   readonly exportName: string;
-}
-
-export interface GodotSceneNodeRule {
-  readonly sourceRevision: string;
-  readonly nativeCanonicalIdentity: string;
-  readonly targetKind: TargetSceneNodeKind;
 }
 
 /** A resource class the composition constructs (`construct`), then sets authored properties on. */
@@ -124,7 +105,6 @@ export interface GodotSceneNodeAuthority {
   readonly version: typeof GODOT_SCENE_NODE_AUTHORITY_VERSION;
   readonly sourceRevision: string;
   readonly apiDumpSha256: string;
-  readonly rules: readonly GodotSceneNodeRule[];
   readonly placementRules: readonly GodotScenePlacementRule[];
   readonly propertyRules: readonly GodotScenePropertyRule[];
   readonly structureRules: readonly GodotSceneStructureRule[];
@@ -137,13 +117,6 @@ function godotScenePlacementRuleKey(
   placement: GodotScenePlacementKind,
 ): string {
   return [sourceRevision, 'scene-node-placement', placement].join('\0');
-}
-
-function godotSceneNodeRuleKey(
-  sourceRevision: string,
-  nativeCanonicalIdentity: string,
-): string {
-  return [sourceRevision, 'scene-node-target', nativeCanonicalIdentity].join('\0');
 }
 
 function godotScenePropertyRuleKey(
@@ -159,21 +132,6 @@ function godotScenePropertyRuleKey(
     propertyName,
     serializedValue,
   ].join('\0');
-}
-
-function indexNodeRules(
-  authority: GodotSceneNodeAuthority,
-): ReadonlyMap<string, GodotSceneNodeRule> {
-  const result = new Map<string, GodotSceneNodeRule>();
-  for (const rule of authority.rules) {
-    if (rule.sourceRevision !== authority.sourceRevision) {
-      throw new Error(`Godot scene-node rule has a different source: ${rule.nativeCanonicalIdentity}`);
-    }
-    const key = godotSceneNodeRuleKey(rule.sourceRevision, rule.nativeCanonicalIdentity);
-    if (result.has(key)) throw new Error(`duplicate Godot scene-node rule: ${key}`);
-    result.set(key, rule);
-  }
-  return result;
 }
 
 function indexPlacementRules(
@@ -211,10 +169,12 @@ function indexPropertyRules(
   return result;
 }
 
-/** Lookup from an already-bound native ClassDB identity to one target node kind. */
+/**
+ * Lookup of the scene rules a node's placement, properties, structure, connections and resources
+ * are planned by. Which node classes the lane writes is the idiom table's (`scene-node-idioms.ts`).
+ */
 export class GodotSceneNodeAuthorityResolver {
   readonly sourceRevision: string;
-  readonly #rules: ReadonlyMap<string, GodotSceneNodeRule>;
   readonly #placementRules: ReadonlyMap<string, GodotScenePlacementRule>;
   readonly #propertyRules: ReadonlyMap<string, GodotScenePropertyRule>;
   readonly #structureRules: ReadonlyMap<string, GodotSceneStructureRule>;
@@ -226,7 +186,6 @@ export class GodotSceneNodeAuthorityResolver {
       throw new Error(`unsupported Godot scene-node authority: ${String(authority.version)}`);
     }
     this.sourceRevision = authority.sourceRevision;
-    this.#rules = indexNodeRules(authority);
     this.#placementRules = indexPlacementRules(authority);
     this.#propertyRules = indexPropertyRules(authority);
     const structure = new Map<string, GodotSceneStructureRule>();
@@ -272,10 +231,6 @@ export class GodotSceneNodeAuthorityResolver {
   /** A structure rule, or undefined. */
   structureRule(id: GodotSceneStructureRuleId): GodotSceneStructureRule | undefined {
     return this.#structureRules.get(godotSceneStructureRuleKey(this.sourceRevision, id));
-  }
-
-  rule(nativeCanonicalIdentity: string): GodotSceneNodeRule | undefined {
-    return this.#rules.get(godotSceneNodeRuleKey(this.sourceRevision, nativeCanonicalIdentity));
   }
 
   placementRule(placement: GodotScenePlacementKind): GodotScenePlacementRule | undefined {

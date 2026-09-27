@@ -1,6 +1,5 @@
 import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
 import type {
-  GodotSceneNodeRule,
   GodotScenePlacementRule,
   GodotScenePropertyRule,
   GodotSceneSignalRule,
@@ -8,14 +7,6 @@ import type {
 } from '../scene-node-authority';
 
 const NODE_3D_IDENTITY = `${GODOT_4_7_CODE_SEED_SOURCE_REVISION}\0ClassDB\0Node3D`;
-
-export const GODOT_4_7_SCENE_NODE_RULES: readonly GodotSceneNodeRule[] = [
-  {
-    sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
-    nativeCanonicalIdentity: NODE_3D_IDENTITY,
-    targetKind: 'three-group',
-  },
-];
 
 export const GODOT_4_7_SCENE_PLACEMENT_RULES: readonly GodotScenePlacementRule[] = [
   {
@@ -52,21 +43,6 @@ const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
 const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
 
 type Source = Readonly<{ file: string; symbol: string; line: number }>;
-
-export const GODOT_4_7_STRUCTURE_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = [
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('Node'),
-    targetKind: 'three-node',
-    source: { file: 'scene/main/node.cpp', symbol: 'Node::Node', line: 4092 },
-  },
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('Camera3D'),
-    targetKind: 'three-perspective-camera',
-    source: { file: 'scene/3d/camera_3d.cpp', symbol: 'Camera3D::Camera3D', line: 871 },
-  },
-];
 
 export const GODOT_4_7_STRUCTURE_PROPERTY_RULES: readonly (GodotScenePropertyRule & { readonly source: Source })[] = [
   {

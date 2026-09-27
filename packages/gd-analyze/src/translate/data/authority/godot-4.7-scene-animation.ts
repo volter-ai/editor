@@ -5,28 +5,11 @@
  * (`<GodotAnimationTree>`, its `AnimationNodeBlendTree` a data file, its parameters a prop).
  */
 import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
-import type { GodotSceneNodeRule, GodotSceneResourceRule } from '../scene-node-authority';
+import type { GodotSceneResourceRule } from '../scene-node-authority';
 
 const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
 
 type Source = Readonly<{ file: string; symbol: string; line: number }>;
-
-const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
-
-export const GODOT_4_7_ANIMATION_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = [
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('AnimationPlayer'),
-    targetKind: 'three-group',
-    source: { file: 'scene/animation/animation_mixer.cpp', symbol: 'AnimationMixer::_update_caches', line: 651 },
-  },
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('AnimationTree'),
-    targetKind: 'three-group',
-    source: { file: 'scene/animation/animation_tree.cpp', symbol: 'AnimationTree::_blend_pre_process', line: 660 },
-  },
-];
 
 export const GODOT_4_7_ANIMATION_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = [
   {

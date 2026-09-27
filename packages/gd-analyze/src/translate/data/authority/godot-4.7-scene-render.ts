@@ -4,36 +4,13 @@
  */
 import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
 import type {
-  GodotSceneNodeRule,
   GodotSceneResourceRule,
   GodotSceneStructureRule,
 } from '../scene-node-authority';
 
 const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
-const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
 
 type Source = Readonly<{ file: string; symbol: string; line: number }>;
-
-export const GODOT_4_7_RENDER_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = [
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('MeshInstance3D'),
-    targetKind: 'three-mesh',
-    source: { file: 'scene/3d/mesh_instance_3d.cpp', symbol: 'MeshInstance3D::MeshInstance3D', line: 951 },
-  },
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('DirectionalLight3D'),
-    targetKind: 'three-directional-light',
-    source: { file: 'scene/3d/light_3d.cpp', symbol: 'DirectionalLight3D::DirectionalLight3D', line: 612 },
-  },
-  {
-    sourceRevision: REVISION,
-    nativeCanonicalIdentity: identityOf('OmniLight3D'),
-    targetKind: 'three-point-light',
-    source: { file: 'scene/3d/light_3d.cpp', symbol: 'OmniLight3D::OmniLight3D', line: 661 },
-  },
-];
 
 export const GODOT_4_7_RENDER_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = (
   [
