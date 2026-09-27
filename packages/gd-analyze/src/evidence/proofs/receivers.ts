@@ -241,7 +241,7 @@ size = Vector3(4, 1, 4)
 [node name="Main" type="Node3D" node_paths=PackedStringArray("target", "exported_lamp")]
 script = ExtResource("1_main")
 target = NodePath("Scripted")
-exported_lamp = NodePath("Level/Inner/Lamp")
+exported_lamp = NodePath("Level/Inner/../Inner/Lamp")
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 

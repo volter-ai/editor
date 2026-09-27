@@ -272,15 +272,20 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
   };
 
   let sceneNodes: { readonly documentPath: string; readonly pathInDocument: string }[] = [];
+  /** Why the last exported node reference stayed untyped. */
+  let exportCause: string | undefined;
   /** The node at `path` in every attached scene, when they agree; `sceneNodes` holds where each is. */
-  const sceneNode = (path: string | ((attachment: CallReceiverAttachment) => string | undefined)): GodotBoundDatatype | undefined => {
+  const sceneNode = (
+    path: string | ((attachment: CallReceiverAttachment) => { readonly from: CallReceiverAttachment; readonly path: string } | undefined),
+  ): GodotBoundDatatype | undefined => {
     sceneNodes = [];
     if (inputs.attachments.length === 0) return undefined;
     let agreed: GodotBoundDatatype | undefined;
     for (const attachment of inputs.attachments) {
-      const own = typeof path === 'string' ? path : path(attachment);
+      const own = typeof path === 'string' ? { from: attachment, path } : path(attachment);
       if (own === undefined) return undefined;
-      const resolved = resolveScenePath(scenes, attachment, own);
+      const resolved = resolveScenePath(scenes, own.from, own.path);
+      if (typeof resolved === 'string' && typeof path !== 'string') exportCause = resolved;
       if (typeof resolved === 'string') return undefined;
       sceneNodes.push({ documentPath: resolved.documentPath, pathInDocument: resolved.pathInDocument });
       const script = inputs.scriptAt(resolved.documentPath, resolved.pathInDocument);
@@ -399,8 +404,7 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       (document) => (document.root !== undefined && walk(document.root)) || document.unplacedNodes.some(patches),
     );
   };
-  let exportCause: string | undefined;
-  const exportedPath = (name: string) => (attachment: CallReceiverAttachment): string | undefined => {
+  const exportedPath = (name: string) => (attachment: CallReceiverAttachment): { readonly from: CallReceiverAttachment; readonly path: string } | undefined => {
     const at = `${attachment.documentPath}#${attachment.nodePath}`;
     let node = scenes.get(attachment.documentPath)?.root;
     if (attachment.nodePath !== '.' && attachment.nodePath !== '') {
@@ -426,7 +430,17 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       exportCause = `${at} authors a path that is not relative to it`;
       return undefined;
     }
-    return text;
+    // Relative to the attached node, which may climb (`../Player`): walked from the document root.
+    const segments: string[] = attachment.nodePath === '.' || attachment.nodePath === '' ? [] : attachment.nodePath.split('/');
+    for (const segment of text.split('/')) {
+      if (segment === '' || segment === '.') continue;
+      if (segment !== '..') segments.push(segment);
+      else if (segments.pop() === undefined) {
+        exportCause = `${at}'s path ${text} leaves the scene`;
+        return undefined;
+      }
+    }
+    return { from: { documentPath: attachment.documentPath, nodePath: '.' }, path: segments.length === 0 ? '.' : segments.join('/') };
   };
 
   /**
