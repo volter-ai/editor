@@ -57,6 +57,6 @@ export const threeComponentBoard: ComponentBoard = {
     `This project has no ${THREE_COMPONENTS_TITLE} board (${THREE_COMPONENTS_DOCUMENT_ID}): ` +
     "board presence keys on STORIES, not on roots, and none of this project's stories declares " +
     'the "three" medium. Declare it — a manifest root entry naming the story\'s module, or a ' +
-    `\`vgai.adapter.ts\` regionInclude that covers it — and the board appears. ${commandLine('console')} ` +
+    `\`volter.adapter.ts\` regionInclude that covers it — and the board appears. ${commandLine('console')} ` +
     'names every story it could not place.',
 };

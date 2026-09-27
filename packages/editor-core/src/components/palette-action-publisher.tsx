@@ -131,7 +131,7 @@ export function PaletteActionPublisher() {
   // subscriptions the table it published is the one from before that moment,
   // permanently: under the frame this component is mounted for the window's
   // whole life, so nothing ever re-runs the memo. Measured 2026-09-20 on a
-  // `--template models` scaffold: ⌘⇧P listed `VGAI: Workspace Style: Classic /
+  // `--template models` scaffold: ⌘⇧P listed `VOLTER: Workspace Style: Classic /
   // Glass / Maya / Substance` and NOT `Blender`, so the one gesture that
   // switches the LOOK (palette + material + icons + regions in one act, which
   // is why it is a command and not a settings key) did not exist in the only

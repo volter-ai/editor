@@ -294,7 +294,7 @@ export function measureReceiverProof(tools: GodotProofTools): readonly GodotProo
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = packageImplementationDigest(GODOT_RECEIVER_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-receivers-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-receivers-'));
   try {
     for (const [relative, source] of Object.entries(files)) {
       writeFileSync(path.join(temp, relative), source);

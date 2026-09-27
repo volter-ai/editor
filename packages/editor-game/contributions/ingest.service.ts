@@ -9,7 +9,7 @@
  *    registration, its `ingest`/`ingestCaptureWait` state facets and its
  *    `onShellStore` binding are module-load side effects of
  *    `mount-ingest-root.ts`. The static import below is therefore load-bearing
- *    — `vgai status` carries `ingest: null` / `ingestCaptureWait: null` before
+ *    — `volter status` carries `ingest: null` / `ingestCaptureWait: null` before
  *    contribution pass. A product that composes no `@volter/editor-game` reports
  *    neither key, which is the honest state: no lane claims to mount
  *    unmodified games.
@@ -24,7 +24,7 @@
  *    `isIngestActive()` is answered by a mount this hook already made.
  *
  * 3. REGISTERING THIS LANE'S ADAPTER DECLARATIONS. A repo-vendored game does
- *    not ship its own `vgai.adapter.ts` — by the REALM rule its host-realm
+ *    not ship its own `volter.adapter.ts` — by the REALM rule its host-realm
  *    declaration lives in the in-tree registry (`@editor/ingest/registry`),
  *    which the host used to import directly and therefore carried in every
  *    editor boot, a `models` build that mounts no unmodified game included.

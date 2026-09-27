@@ -54,7 +54,7 @@ function staticReactRootMountRuntime(): ReactRootMountRuntime {
 
 /**
  * Import + shape-check the packaged runtime's synthetic
- * `/__vgai-react-world-runtime` module (`vite-plugin-module-doorways.ts`,
+ * `/__volter-react-world-runtime` module (`vite-plugin-module-doorways.ts`,
  * registered only by `packaged.ts`'s project-rooted Vite instance and by
  * `vitest.config.ts` for test coverage — never by `dev.ts`/the root
  * `vite.config.ts`). A loud, named failure if the module resolves but is

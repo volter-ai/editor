@@ -16,7 +16,7 @@ export type ComponentContractAnalyzer = (
   path: string,
 ) => ReadonlyMap<string, R3fComponentContract>;
 
-const ANALYZER_KEY = Symbol.for('vgai.editor.componentContractAnalyzer');
+const ANALYZER_KEY = Symbol.for('volter.editor.componentContractAnalyzer');
 type AnalyzerSlot = { [ANALYZER_KEY]?: ComponentContractAnalyzer | null };
 
 export function registerComponentContractAnalyzer(analyzer: ComponentContractAnalyzer | null): void {

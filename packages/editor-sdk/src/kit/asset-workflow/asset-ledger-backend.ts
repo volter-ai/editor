@@ -1,11 +1,11 @@
 /**
  * `StorageBackend` side of the asset provenance ledger (D-AP3) — the
  * browser/isomorphic sibling of `packages/editor/server/asset-ledger-store.ts`,
- * which reads/writes `.vgai/assets.json` via `node:fs` for the local
+ * which reads/writes `.volter/assets.json` via `node:fs` for the local
  * (HttpStorage-backed) Node editor. Every environment materializes through the
  * SAME record shape (`../asset-workflow/asset-ledger.ts`'s pure schema) — only
  * the I/O side differs, exactly like `storage/seed.ts`'s `readProjectManifest`
- * reading `vgai.project.json` through a `StorageBackend` instead of `node:fs`.
+ * reading `volter.project.json` through a `StorageBackend` instead of `node:fs`.
  *
  * Used by `hosted-asset-materialization.ts` (D-AP4 — a project's declared
  * packs).

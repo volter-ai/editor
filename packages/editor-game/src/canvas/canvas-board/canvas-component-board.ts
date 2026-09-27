@@ -51,6 +51,6 @@ export const canvasComponentBoard: ComponentBoard = {
     `This project has no ${CANVAS_COMPONENTS_TITLE} board (${CANVAS_COMPONENTS_DOCUMENT_ID}): ` +
     "board presence keys on STORIES, not on roots, and none of this project's stories declares " +
     'the "canvas" medium. Declare it — a manifest root entry naming the story\'s module, or a ' +
-    '`vgai.adapter.ts` regionInclude that covers it — and the board appears. `vgai console` ' +
+    '`volter.adapter.ts` regionInclude that covers it — and the board appears. `volter console` ' +
     'names every story it could not place.',
 };

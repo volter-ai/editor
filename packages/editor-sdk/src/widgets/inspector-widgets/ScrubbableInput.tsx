@@ -133,13 +133,13 @@ export function ScrubbableInput({
   return (
     <div style={{ ...rowStyle, ...extraStyle }}>
       <span
-        className="vgai-scrub-label"
+        className="volter-scrub-label"
         data-testid={testId ? `${testId}-label` : undefined}
         onMouseDown={handleScrubStart}
         data-disabled={disabled || undefined}
         style={{
           fontSize: 11,
-          // Resting/hover color comes from `.vgai-scrub-label` in theme.css —
+          // Resting/hover color comes from `.volter-scrub-label` in theme.css —
           // an inline color here forced the hover rule into `!important`.
           ...(disabled ? { color: THEME.dynamic } : {}),
           flexShrink: 0,

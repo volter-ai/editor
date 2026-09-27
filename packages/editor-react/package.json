@@ -31,7 +31,7 @@
     "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
   },
-  "vgai": {
+  "volter": {
     "contributions": [
       "./contributions/component-contracts.service.ts"
     ],

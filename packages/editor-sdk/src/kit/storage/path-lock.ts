@@ -8,7 +8,7 @@
  * happens to hold. Sharing the function is not enough on its own: one caller
  * passes an already-normalized path and the other passes a module constant, so
  * agreement used to rest on that constant being spelled in normalized form.
- * Respell it as `/.vgai/assets.json` and the two names diverge, both locks are
+ * Respell it as `/.volter/assets.json` and the two names diverge, both locks are
  * "held", and mutual exclusion is silently gone with nothing failing. Deriving
  * the name from `normalize()` makes the agreement structural.
  *
@@ -40,5 +40,5 @@ export function withPathLock<T>(
   // `Promise<Promise<T>>`. The platform awaits the returned promise before
   // releasing the lock — that flattening is the documented behavior, not an
   // assumption — so the settled value really is `T`.
-  return locks.request(`vgai:${backendId}:${normalize(path)}`, operation) as Promise<T>;
+  return locks.request(`volter:${backendId}:${normalize(path)}`, operation) as Promise<T>;
 }

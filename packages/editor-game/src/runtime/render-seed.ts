@@ -54,14 +54,14 @@ export function installDeterministicRandom(seed: number): void {
  *  mode must be unavailable/protected in normal production gameplay unless
  *  explicitly enabled). Shared with `render-control.ts`'s own production
  *  guard so both checks agree on the same flag. */
-export const RENDER_MODE_QUERY_PARAM = 'vgai-render';
+export const RENDER_MODE_QUERY_PARAM = 'volter-render';
 /** Optional query param to pin a specific seed (default below when absent). */
-export const RENDER_SEED_QUERY_PARAM = 'vgai-seed';
+export const RENDER_SEED_QUERY_PARAM = 'volter-seed';
 const DEFAULT_RENDER_SEED = 0x9e3779b9; // golden-ratio constant — an arbitrary but fixed default
 
 /**
  * Seed `Math.random` iff the page's URL opts into render mode
- * (`?vgai-render=1`), reading an optional `?vgai-seed=<int>` override.
+ * (`?volter-render=1`), reading an optional `?volter-seed=<int>` override.
  * Returns whether it seeded, purely for the caller's own diagnostics/log —
  * the bootstrap entry doesn't need to branch on it.
  */

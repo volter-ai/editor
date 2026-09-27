@@ -95,7 +95,7 @@ export function measureProjectSettingProof(tools: GodotProofTools): readonly God
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = packageImplementationDigest(GODOT_PROJECT_SETTING_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-settings-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-settings-'));
   try {
     for (const [relative, source] of Object.entries(files)) {
       writeFileSync(path.join(temp, relative), source);

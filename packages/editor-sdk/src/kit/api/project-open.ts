@@ -148,7 +148,7 @@ export async function browseFolder(title?: string): Promise<string | null> {
   }
 }
 
-/** Inspect an arbitrary local folder without opening it or writing VGAI files. */
+/** Inspect an arbitrary local folder without opening it or writing VOLTER files. */
 export async function inspectProjectFolder(
   path: string,
 ): Promise<{ path: string; report: ProjectInspection }> {
@@ -170,7 +170,7 @@ export async function inspectProjectFolder(
   return { path: payload.path, report: payload.report };
 }
 
-/** Add the one-file VGAI metadata bridge after the user approves an inspection. */
+/** Add the one-file VOLTER metadata bridge after the user approves an inspection. */
 export async function adaptProjectFolder(
   path: string,
   selection?: { surface?: ProjectInspection['suggestedSurface']; entry?: string },
@@ -235,7 +235,7 @@ export interface ServerProject {
   packaged?: boolean;
   /** The engine package resolved from this project's own node_modules graph. */
   enginePackage?: {
-    name: '@vgai/game-runtime';
+    name: '@volter/game-runtime';
     version: string | null;
     path: string;
     installPath: string;

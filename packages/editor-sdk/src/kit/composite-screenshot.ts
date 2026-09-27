@@ -20,7 +20,7 @@
  * mechanism html-to-image libraries rely on).
  *
  * A canvas is only readable this late when its WebGL context was created with
- * `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME mounts sets it
+ * `preserveDrawingBuffer: true`. Every canvas the volter RUNTIME mounts sets it
  * (`@volter/editor-game/runtime/create-runtime`), so first-party play reads directly. A
  * canvas an INGESTED game created is its own — racing-game's `<Canvas>` passes
  * no `gl` prop, so fiber's `false` default applies and this read returns black.
@@ -43,7 +43,7 @@ export interface OverlaySvg {
   overlayCount: number;
 }
 
-const ROOT_SURFACE_SELECTOR = '[data-vgai-root-surface="true"]';
+const ROOT_SURFACE_SELECTOR = '[data-volter-root-surface="true"]';
 
 // A DOM root is also marked as a surface. Its descendant canvases are UI
 // content (for example a 3D die), not additional host surfaces. Keep their
@@ -51,7 +51,7 @@ const ROOT_SURFACE_SELECTOR = '[data-vgai-root-surface="true"]';
 export function isRootCanvas(canvas: HTMLCanvasElement): boolean {
   return (
     canvas.matches(ROOT_SURFACE_SELECTOR) ||
-    canvas.closest('[data-vgai-canvas-scene="true"]') !== null
+    canvas.closest('[data-volter-canvas-scene="true"]') !== null
   );
 }
 
@@ -241,7 +241,7 @@ export interface CaptureOptions {
    * Same-frame pixels for a canvas this process cannot read back late.
    *
    * A WebGL canvas is only `drawImage`-able after its frame if its context was
-   * created with `preserveDrawingBuffer: true`. Every canvas the vgai runtime
+   * created with `preserveDrawingBuffer: true`. Every canvas the volter runtime
    * mounts sets it; a canvas an INGESTED game created does not, so reading it
    * here — several paint boundaries after its frame — yields black. The caller
    * supplies this when it has a seam that can copy the buffer inside the
@@ -512,7 +512,7 @@ export function rootSurfaceBackdrops(container: HTMLElement): HTMLElement[] {
  * the tree. The ancestor walk cannot see it; the overlay leg clones it opaque
  * and paints it over the canvas the canvas leg just drew.
  *
- * MEASURED (`vgai screenshot editor` of the Game document in play, the
+ * MEASURED (`volter screenshot editor` of the Game document in play, the
  * starter cube and daylight sky on screen): the whole game region came back
  * flat `rgb(36,36,36)` with every ancestor already cleared — the overlay leg
  * rasterized alone read that grey at the canvas centre and the SVG carried no
@@ -570,7 +570,7 @@ function paintsOpaqueWithin(element: Element, container: HTMLElement): element i
  * A detached clone has no ancestors, so anything an ancestor paints is simply
  * gone — and in this editor the panel fill is DELIBERATELY an ancestor's:
  * `components/workspace-surfaces.css` says in as many words that interior
- * wrappers (`.vgai-dock-document-content`, the element every document capture
+ * wrappers (`.volter-dock-document-content`, the element every document capture
  * and the document probe resolve as "the document") paint NOTHING, because
  * the surface AROUND them carries the fill for every theme.
  *
@@ -1011,7 +1011,7 @@ function layerFailure(layer: CaptureLayer, error: unknown): CaptureLayerError {
  * capture time.
  *
  * `warning` is the ONE place the sentence is spelled. Every surface that
- * shows this (the `vgai screenshot` verb, the `/__vgai/screenshot` poke, the
+ * shows this (the `volter screenshot` verb, the `/__volter/screenshot` poke, the
  * relay transport behind `game.screenshot()`) lives in a different package,
  * and three copies of a sentence is three sentences that drift — so the layer
  * holding the pixels writes the words and the rest print them verbatim.

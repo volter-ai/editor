@@ -7,7 +7,7 @@
  *
  * This is the SIBLING of `contract-debug-adapter.ts` and deliberately the same
  * shape: a projection rather than a second door. The two differ only in WHO
- * declared the surface — the game itself, on `window.vgaiGame.systems`, or the
+ * declared the surface — the game itself, on `window.volterGame.systems`, or the
  * game's adapter module beside it — and a consumer downstream must not be able
  * to tell them apart. `merge-debug-adapters.ts` is what folds both onto the one
  * slot.

@@ -43,13 +43,13 @@ import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
  *    registered — through the SAME `setActiveSystems` door play/ingest/module
  *    modes use, under the UNNAMED (solo) seat. That is what lets the relay
  *    answer `list-gameplay-state`/`inspect-gameplay-state`/
- *    `list-debug-commands`/`invoke-debug-command` and `vgai eval`'s
+ *    `list-debug-commands`/`invoke-debug-command` and `volter eval`'s
  *    `game.state()`/`game.commands()` from the EDIT world. It publishes
  *    declarations, never a run: the loop is still never advanced.
  *  - SHARERS: none, ever, at the same instant. Play mode registers its mount
  *    under its OWN mount id, so a seat held by both would make
  *    `systemsForInstance(undefined)` ambiguous and break every unaddressed
- *    `vgai eval` call. The store subscription below therefore withdraws this
+ *    `volter eval` call. The store subscription below therefore withdraws this
  *    seat the moment `playState` leaves 'stopped' — synchronously, at
  *    `store.setPlayState('playing')`, long before play's own
  *    `setActiveSystems` lands — and republishes when play ends without a
@@ -321,7 +321,7 @@ function rebuildWhenPlayStops(store: EditorShellStore): () => void {
  *   - source write-back posted to `/__ui-source/*` →
  *     the session's recorder reads/writes the same files through
  *     storage, running the SAME `planSourceEdit` the server does;
- *   - the remount trigger was Vite's `vgai:r3f-entry-update` HMR event →
+ *   - the remount trigger was Vite's `volter:r3f-entry-update` HMR event →
  *     `StorageBackend.watch`, which in a server-less editor reports the
  *     editor's own writes (exactly the signal absorb-by-remount needs).
  * A hosted EXAMPLE (`?project=<id>`) is still excluded: it is opened read-only
@@ -697,7 +697,7 @@ export async function mountR3FDesignSession(
     clearTimeout(stallTimer);
     // PD-1: report the failure and FALL THROUGH — a first mount that throws
     // must not kill the session. This used to `return`, which skipped the
-    // `vgai:r3f-entry-update` subscription and the play-handoff store
+    // `volter:r3f-entry-update` subscription and the play-handoff store
     // subscription installed below, so the world stayed a Boundary
     // ("Unavailable" in the hierarchy) with a stale error report for the rest
     // of the page's life: fixing the source recovered NOTHING, and the only
@@ -901,7 +901,7 @@ export async function mountR3FDesignSession(
       const alive = restoreIds.filter((id) => adapter?.hierarchy.node(id) !== null);
       if (alive.length > 0) store.shell.selectMultiple(alive);
       // PD-1: this world is mounted again — retract its failure report so the
-      // status item (and `vgai status`) can go back to healthy.
+      // status item (and `volter status`) can go back to healthy.
       clearMountFailureReport(worldId);
       // The plane follows the FRESH game (`disposeMounted` withdrew the old
       // one's), so a stat added by the edit that triggered this remount is
@@ -1101,12 +1101,12 @@ export async function mountR3FDesignSession(
       // refreshes still need an inspector/viewport notification.
       store.shell.notifyIngestEdit();
     };
-    hot.on('vgai:r3f-entry-update', onUpdate);
-    hot.on('vgai:r3f-refresh-source', onSource);
+    hot.on('volter:r3f-entry-update', onUpdate);
+    hot.on('volter:r3f-refresh-source', onSource);
     hot.on('vite:afterUpdate', onRefreshed);
     disposeHot = () => {
-      hot.off('vgai:r3f-entry-update', onUpdate);
-      hot.off('vgai:r3f-refresh-source', onSource);
+      hot.off('volter:r3f-entry-update', onUpdate);
+      hot.off('volter:r3f-refresh-source', onSource);
       hot.off('vite:afterUpdate', onRefreshed);
       clearTimeout(revisionFallback);
     };
@@ -1141,7 +1141,7 @@ export async function mountR3FDesignSession(
     if (torndown) return;
     // Seat handover, BEFORE the deferred visual suspend below: play mode
     // registers under its own mount id, so holding both seats would make an
-    // unaddressed `vgai eval` ambiguous. This fires at
+    // unaddressed `volter eval` ambiguous. This fires at
     // `store.setPlayState('playing')`, which precedes play's own
     // `setActiveSystems` — so the two never overlap in either direction.
     if (store.shell.playState === 'stopped') publishPlane();

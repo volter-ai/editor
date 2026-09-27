@@ -2,7 +2,7 @@
  * The kit's side of the project-serving door (`@volter/editor-sdk/session/project-serving`):
  * the server capabilities a serving module may use, built from the kit's own region decision,
  * write recording and collaboration record, and the loader that asks each composed
- * package's `vgai.serving` module for its plugins.
+ * package's `volter.serving` module for its plugins.
  */
 
 import { registerModelConverter } from './model-converters';
@@ -175,7 +175,7 @@ export async function loadServingPlugins(
   for (const file of files) {
     const module = (await import(pathToFileURL(file).href)) as Partial<ProjectServingModule>;
     if (typeof module.servingPlugins !== 'function') {
-      throw new Error(`${file} is declared as vgai.serving but exports no servingPlugins(services).`);
+      throw new Error(`${file} is declared as volter.serving but exports no servingPlugins(services).`);
     }
     plugins.push(...module.servingPlugins(services));
     adoptSourceAnalysis(module);

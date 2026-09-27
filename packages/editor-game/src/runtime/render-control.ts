@@ -17,14 +17,14 @@
  *
  * Also does NOT install anything by default — a caller must explicitly call
  * {@link installRenderControlHarness}, and even then it only actually
- * publishes `window.__vgaiRender` when the page's URL opts in via
- * `?vgai-render=1` (AC 4: unavailable/protected in normal production
+ * publishes `window.__volterRender` when the page's URL opts in via
+ * `?volter-render=1` (AC 4: unavailable/protected in normal production
  * gameplay unless explicitly enabled). See `render-seed.ts` for the
  * matching `Math.random` determinism hardening, which must run BEFORE this
  * module (or any other game module) is even imported.
  *
  * I5 (`--simulate` render, §15 I5) is implemented HERE, alongside `renderOnce`:
- * {@link VgaiRenderHarness.simulateSubsteps} drives `game.runFrame(fixedDt)` a
+ * {@link VolterRenderHarness.simulateSubsteps} drives `game.runFrame(fixedDt)` a
  * fixed integer number of times — the FULL fixed-step gameplay frame (every
  * phase in `PHASE_ORDER`, including `physics`/`gameLogic`/`animation`), unlike
  * `renderOnce`'s deliberately gameplay-free `preRender`+`render`-only pass.
@@ -109,11 +109,11 @@ export interface SeekableClock {
  */
 export type FrameAdvancer = (dt: number) => void;
 
-/** The `window.__vgaiRender` surface (I2 AC, extended by I8's `advanceFrame`).
+/** The `window.__volterRender` surface (I2 AC, extended by I8's `advanceFrame`).
  *  Every method here is synchronous except the two that genuinely need to
  *  wait on the browser (composited render completion, async readiness
  *  probes). */
-export interface VgaiRenderHarness {
+export interface VolterRenderHarness {
   /** Evaluate every registered sequence/cinematic-participating evaluator at
    *  exact time `t` (seconds) via `clock.seek(t)` — never advances gameplay
    *  substeps. Synchronous: the clock's subscribed evaluators run inline,
@@ -129,7 +129,7 @@ export interface VgaiRenderHarness {
    * by exactly `dt` seconds, in registration order. A render-mode capture
    * loop calls this ONCE per OUTPUT frame, with `dt = 1 / fps`, BEFORE
    * `seekFrame`/`renderOnce` for that frame — see
-   * `packages/vgai-sdk/src/render/render-cinematic.ts`'s `captureFrames`, which
+   * `packages/volter-sdk/src/render/render-cinematic.ts`'s `captureFrames`, which
    * drives exactly this sequence. `advanceFrame` is a genuinely
    * FORWARD-ONLY, INCREMENTAL tick (it has no notion of "time" to seek
    * to — it only knows "advance by `dt` more") — unlike {@link seek}/
@@ -213,7 +213,7 @@ export interface VgaiRenderHarness {
    */
   simulateFixedDt(): number;
   /**
-   * W3d (F11 perf regression gates) — the `vgai perf` sampling seam. Runs
+   * W3d (F11 perf regression gates) — the `volter perf` sampling seam. Runs
    * exactly `steps` FULL fixed-step gameplay frames (the same
    * `game.runFrame(fixedDt)` path {@link simulateSubsteps} drives — every
    * phase in `PHASE_ORDER`, including `render`, so `renderer.info`-backed
@@ -226,7 +226,7 @@ export interface VgaiRenderHarness {
    * from the existing profiler (timings, render counters) or the live world
    * roots themselves (counts).
    *
-   * Honesty notes, recorded here because this seam is what `vgai perf`
+   * Honesty notes, recorded here because this seam is what `volter perf`
    * reports: `gpuMs` is whatever the profiler's render reporter measured —
    * `null` under headless SwiftShader (no usable GPU timer), never a
    * fabricated 0; CPU timings include the profiler's own (small) phase
@@ -237,7 +237,7 @@ export interface VgaiRenderHarness {
   perfSample(steps: number): PerfSampleReport;
 }
 
-/** One measured fixed-step frame from {@link VgaiRenderHarness.perfSample}. */
+/** One measured fixed-step frame from {@link VolterRenderHarness.perfSample}. */
 export interface PerfFrameSample {
   /** CPU time (ms) for the whole `runFrame` pass (profiler `cpuMs`). */
   readonly cpuMs: number;
@@ -255,7 +255,7 @@ export interface PerfFrameSample {
   };
 }
 
-/** Per-world structural counts from {@link VgaiRenderHarness.perfSample}. */
+/** Per-world structural counts from {@link VolterRenderHarness.perfSample}. */
 export interface PerfRootCount {
   readonly id: string;
   readonly kind: string;
@@ -279,7 +279,7 @@ export interface RenderControlHarnessOptions {
   /**
    * `GameInternal` (not just the game-facing `Game`) — this harness is
    * itself a host (the render/capture driver), and I5's
-   * {@link VgaiRenderHarness.simulateSubsteps} needs the host-only
+   * {@link VolterRenderHarness.simulateSubsteps} needs the host-only
    * `runFrame` surface (`runtime/game.ts`'s `GameInternal.runFrame` doc
    * comment: "the host loop ... and `GameSession.step()` are the only
    * callers"). Every real call site already holds a `GameInternal` (the
@@ -292,9 +292,9 @@ export interface RenderControlHarnessOptions {
   /** Where to publish the harness. Defaults to the real `window` — override
    *  in a unit test to avoid touching the global object. */
   readonly target?: Record<string, unknown>;
-  /** Where to read `?vgai-render=1` from. Defaults to `window.location`. */
+  /** Where to read `?volter-render=1` from. Defaults to `window.location`. */
   readonly location?: { readonly search: string };
-  /** I8 render-integration seam — see {@link VgaiRenderHarness.advanceFrame}.
+  /** I8 render-integration seam — see {@link VolterRenderHarness.advanceFrame}.
    *  Zero or more `FrameAdvancer`s invoked, in array order, on every
    *  `harness.advanceFrame(dt)` call. Default `[]` (no-op), which is exactly
    *  what a fixture with nothing gameplay-phase-driven (e.g. I0's fixture)
@@ -303,7 +303,7 @@ export interface RenderControlHarnessOptions {
   readonly frameAdvancers?: readonly FrameAdvancer[];
   /**
    * I5 `--simulate` seam: the fixed substep `dt` (seconds)
-   * {@link VgaiRenderHarness.simulateSubsteps} passes to every
+   * {@link VolterRenderHarness.simulateSubsteps} passes to every
    * `game.runFrame(fixedDt)` call. Default `1/60` — the same fixed timestep
    * every real host's `createGameLoop` config uses (`create-runtime.ts`), so
    * a `--simulate` fixture's Rapier world (whose own `integrationParameters.dt`
@@ -313,7 +313,7 @@ export interface RenderControlHarnessOptions {
    */
   readonly simulateFixedDt?: number;
   /**
-   * I5 AC 5 — see {@link VgaiRenderHarness.excludedFromDeterminism}. A
+   * I5 AC 5 — see {@link VolterRenderHarness.excludedFromDeterminism}. A
    * static, page-declared list of subsystems this fixture/game has that do
    * NOT participate in deterministic capture (e.g. live networking,
    * non-seeded ambient audio) — named here as an explicit, reviewable
@@ -412,7 +412,7 @@ function warnUnrenderable(worldLabel: string, reason: string): void {
 
 /**
  * I5 AC 5 policy text for the two conditions {@link renderableRoots} skips —
- * shared so {@link VgaiRenderHarness.excludedFromDeterminism} names the SAME
+ * shared so {@link VolterRenderHarness.excludedFromDeterminism} names the SAME
  * roots `renderOnce()` warns about, in the SAME words, rather than
  * maintaining a second, driftable description of the same two checks.
  */
@@ -539,17 +539,17 @@ async function buildReadinessReport(hooks: RenderReadinessHooks): Promise<Readin
 
 /**
  * Build (and, when render mode is actually requested, publish) the
- * `window.__vgaiRender` harness. AC 4 — production protection — lives HERE,
+ * `window.__volterRender` harness. AC 4 — production protection — lives HERE,
  * not just at the call site: even if a host application calls this
  * unconditionally on every boot, the harness is only ever constructed *and*
  * attached to `target` when `isRenderModeRequested(location)` is true;
  * otherwise this is a no-op that returns `undefined`. A normal production
- * gameplay page therefore never gets `window.__vgaiRender` no matter how
+ * gameplay page therefore never gets `window.__volterRender` no matter how
  * this function is wired into its entry point.
  */
 export function installRenderControlHarness(
   opts: RenderControlHarnessOptions,
-): VgaiRenderHarness | undefined {
+): VolterRenderHarness | undefined {
   const location = opts.location ?? window.location;
   if (!isRenderModeRequested(location)) return undefined;
 
@@ -559,7 +559,7 @@ export function installRenderControlHarness(
   const simulateFixedDt = opts.simulateFixedDt ?? 1 / 60;
   const declaredExclusions = opts.excludedFromDeterminism ?? [];
 
-  const harness: VgaiRenderHarness = {
+  const harness: VolterRenderHarness = {
     seek(t: number): void {
       clock.seek(t);
     },
@@ -610,7 +610,7 @@ export function installRenderControlHarness(
     },
   };
 
-  target['__vgaiRender'] = harness;
+  target['__volterRender'] = harness;
   return harness;
 }
 

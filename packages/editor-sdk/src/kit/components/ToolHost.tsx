@@ -90,7 +90,7 @@ export class ToolErrorBoundary extends Component<ToolErrorBoundaryProps, ToolErr
         <div
           style={{
             padding: space[6],
-            fontSize: 'var(--vgai-font-md)',
+            fontSize: 'var(--volter-font-md)',
             color: themeVars.semantic.danger,
             maxWidth: 640,
           }}
@@ -122,7 +122,7 @@ export class ToolErrorBoundary extends Component<ToolErrorBoundaryProps, ToolErr
  * `react` resolved to the SHELL's own chunk (`vite-plugin-shared-react.ts` —
  * the doorway that made inspector contributions render at all), while this
  * mount used to create its root from the PROJECT's `react-dom/client`
- * (`/__vgai-react-world-runtime`). Hooks from one React inside a tree
+ * (`/__volter-react-world-runtime`). Hooks from one React inside a tree
  * reconciled by another is "Invalid hook call", and it killed EVERY workspace
  * document and utility on a packaged editor while the same contributions
  * rendered fine in a checkout — measured on `node dist-server/packaged.mjs`:

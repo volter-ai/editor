@@ -50,7 +50,7 @@ export interface LayoutHost {
   readonly Workspace: ComponentType<WorkspaceProps>;
   readonly Document: ComponentType<DocumentViewProps>;
 }
-const HOST_KEY = Symbol.for('vgai.editor.layout-host');
+const HOST_KEY = Symbol.for('volter.editor.layout-host');
 const hosts = globalThis as typeof globalThis & { [HOST_KEY]?: LayoutHost };
 /** Installed once by the editor runtime; project modules share this SDK instance. */
 export function registerLayoutHost(value: LayoutHost): void {

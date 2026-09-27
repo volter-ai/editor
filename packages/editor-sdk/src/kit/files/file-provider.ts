@@ -7,7 +7,7 @@
  * spelling the history door hands over, so both resolve against one workspace
  * folder.
  *
- * WHAT THE PROVIDER BUYS, measured (U5): a vgai write the workbench did not
+ * WHAT THE PROVIDER BUYS, measured (U5): a volter write the workbench did not
  * make is an EXTERNAL change to it — Monaco reloads the file,
  * `modelService.updateModel` pushes a fresh text element through `EditStack`,
  * and `IUndoRedoService.pushElement` clears that resource's FUTURE, so a gizmo

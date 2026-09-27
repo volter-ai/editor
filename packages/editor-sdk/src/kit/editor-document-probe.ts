@@ -4,7 +4,7 @@
  *
  * ## Why this exists (WO: "No product door drives or reads EDITOR CHROME")
  *
- * `vgai eval`'s `page()` step is play-mode-gated and rooted at the GAME
+ * `volter eval`'s `page()` step is play-mode-gated and rooted at the GAME
  * container, so an editor surface that is not a running game — a capability's
  * workspace document, the Data sheet, the Project Tools catalog — could be
  * neither driven nor read through the product at all. The Sheets build could
@@ -67,12 +67,12 @@
  *
  * ## How a scope finds its element: the owner's own stamp, never a class guess
  *
- * The Properties rail and the Outliner are VS CODE VIEWS (`vgai.properties`,
- * `vgai.outliner`) holding React portals of ours, so their roots are not
+ * The Properties rail and the Outliner are VS CODE VIEWS (`volter.properties`,
+ * `volter.outliner`) holding React portals of ours, so their roots are not
  * anywhere near the document's box and cannot be reached by walking down from
  * it. They are found by the id THE WORKBENCH REGISTERED: the contribution
- * hands each view's body element over as a named part, and `offerVgaiPart`
- * (`frame/bridge.tsx`) stamps it `data-vgai-part="<part>"` at the moment of
+ * hands each view's body element over as a named part, and `offerVolterPart`
+ * (`frame/bridge.tsx`) stamps it `data-volter-part="<part>"` at the moment of
  * the handover. A pane that is disposed takes its stamped element with it, so
  * a closed view answers "not open" instead of matching a stale node. The same
  * shape as `activeDocumentContainer`'s `data-workspace-document-id` and as the
@@ -102,7 +102,7 @@
  *    Without this a document's own header MENU could be opened by its trigger
  *    and never chosen from, which is "a control is accepted through its own
  *    click" failing one step short (measured on the Model document's Add
- *    menu). Widening further — every `.vgai-menu` on the root — is still the
+ *    menu). Widening further — every `.volter-menu` on the root — is still the
  *    "general automation framework" this module exists to not become.
  *  - The GAME document is refused outright by the three scopes that ARE the
  *    active document (see `resolveDocumentScope`): a game is driven through
@@ -164,12 +164,12 @@ const SCOPE_NAMES: readonly DocumentProbeScope[] = [
 ];
 
 /** The two scopes that are VS Code views: the part id the contribution hands
- *  over (`frame/bridge.tsx`'s `offerVgaiPart` stamps it), and the view id the
- *  workbench registered it under (`vgai.contribution.ts`). */
+ *  over (`frame/bridge.tsx`'s `offerVolterPart` stamps it), and the view id the
+ *  workbench registered it under (`volter.contribution.ts`). */
 const VIEW_SCOPES = {
-  rail: { part: 'properties', view: 'vgai.properties', title: 'Properties' },
-  outliner: { part: 'outliner', view: 'vgai.outliner', title: 'Outliner' },
-  content: { part: 'content', view: 'vgai.content', title: 'Content' },
+  rail: { part: 'properties', view: 'volter.properties', title: 'Properties' },
+  outliner: { part: 'outliner', view: 'volter.outliner', title: 'Outliner' },
+  content: { part: 'content', view: 'volter.content', title: 'Content' },
 } as const satisfies Record<string, { part: string; view: string; title: string }>;
 
 /** The two scopes that are strips of the ACTIVE DOCUMENT's own box, by the
@@ -185,10 +185,10 @@ const DOCUMENT_STRIPS = {
  * PORTALED out of itself.
  *
  * `ThemeRootPortal` writes an anchor span where the portal was declared and
- * stamps both ends with one generated id (`data-vgai-portal` in place,
- * `data-vgai-portal-content` on what landed at the theme root). So a menu the
+ * stamps both ends with one generated id (`data-volter-portal` in place,
+ * `data-volter-portal-content` on what landed at the theme root). So a menu the
  * document's own header opened is found by walking that pair from INSIDE the
- * box — not by a heuristic over every `.vgai-menu` on the root, which would
+ * box — not by a heuristic over every `.volter-menu` on the root, which would
  * also reach the editor's chrome menus and is exactly the widening this
  * module's header rules out. A portal the chrome opened has its anchor in the
  * chrome, so it is not a root here and stays refused.
@@ -205,11 +205,11 @@ function scopeRoots(scope: Scope): HTMLElement[] {
   // 2026-09-21 on the Model document). The walk terminates because each id is
   // taken once.
   for (let index = 0; index < roots.length; index++) {
-    for (const anchor of roots[index]!.querySelectorAll<HTMLElement>('[data-vgai-portal]')) {
-      const id = anchor.dataset['vgaiPortal'];
+    for (const anchor of roots[index]!.querySelectorAll<HTMLElement>('[data-volter-portal]')) {
+      const id = anchor.dataset['volterPortal'];
       if (id === undefined) continue;
       const content = document.querySelector<HTMLElement>(
-        `[data-vgai-portal-content="${CSS.escape(id)}"]`,
+        `[data-volter-portal-content="${CSS.escape(id)}"]`,
       );
       if (content && !roots.includes(content)) roots.push(content);
     }
@@ -224,13 +224,13 @@ function scopeRoots(scope: Scope): HTMLElement[] {
 /** A registered VIEW's handed-over body, by the part id the workbench stamped
  *  on it. `null` when the view is closed — its pane took the element with it. */
 function viewPart(part: string): HTMLElement | null {
-  return document.querySelector<HTMLElement>(`[data-vgai-part="${part}"]`);
+  return document.querySelector<HTMLElement>(`[data-volter-part="${part}"]`);
 }
 
 /** The utility view showing in the panel: its body is the one of the stamped
  *  bodies (`frame/bridge.tsx`'s `setUtilityBody`) that has a box on screen. */
 function resolveUtilityScope(): Scope {
-  const showing = [...document.querySelectorAll<HTMLElement>('[data-vgai-utility]')].find((body) => {
+  const showing = [...document.querySelectorAll<HTMLElement>('[data-volter-utility]')].find((body) => {
     const box = body.getBoundingClientRect();
     return box.width > 0 && box.height > 0;
   });
@@ -240,7 +240,7 @@ function resolveUtilityScope(): Scope {
         'panel (View: Open View…) and retry.',
     );
   }
-  const id = showing.dataset['vgaiUtility'] ?? '';
+  const id = showing.dataset['volterUtility'] ?? '';
   return { container: showing, name: 'utility', id, title: id };
 }
 
@@ -260,7 +260,7 @@ function resolveScope(name: DocumentProbeScope): Scope {
     const card =
       name === 'rail'
         ? ([
-            ...document.querySelectorAll<HTMLElement>('[data-testid="inspector-panel"][data-vgai-inspector-presentation="card"]'),
+            ...document.querySelectorAll<HTMLElement>('[data-testid="inspector-panel"][data-volter-inspector-presentation="card"]'),
           ].find((candidate) => {
             const box = candidate.getBoundingClientRect();
             return box.width > 0 && box.height > 0;
@@ -322,7 +322,7 @@ function resolveDocumentScope(name: DocumentProbeScope): Scope {
   // measured the same wall: a document's own header controls and menus were
   // unreachable and unreadable through the product, so a header could not be
   // driven by its own click. The Game document's refusal above still holds.
-  const box = container.closest<HTMLElement>('.vgai-dock-document') ?? container;
+  const box = container.closest<HTMLElement>('.volter-dock-document') ?? container;
   if (name === 'document') return { container: box, name, id, title: active.title };
   // `header` / `shelf` — MEASURED to be inside the box already (the strips are
   // this element's own children), so these names buy AIM rather than reach: a
@@ -390,7 +390,7 @@ const STYLE_PROBE_INITIAL = 'rgba(0, 0, 0, 0)';
  * back and the reading came back as the surrounding text colour — a confident
  * wrong answer, identical for a real token, a misspelled one and a group the
  * palette does not declare. (Measured under Classic:
- * `--vgai-viewport-background` and a deliberately nonexistent name both
+ * `--volter-viewport-background` and a deliberately nonexistent name both
  * answered `rgb(197, 200, 206)`, and a reader nearly concluded Classic
  * declares a viewport group.) A custom property's computed value is the empty
  * string exactly when it is undeclared, so that is the answer.
@@ -402,7 +402,7 @@ const STYLE_PROBE_INITIAL = 'rgba(0, 0, 0, 0)';
  * time does not keep its previous value, it takes the INHERITED one — so a
  * token holding a length read back as whatever colour the surrounding text
  * happened to be, the same confident lie one paragraph up. Measured 2026-09-21
- * on the Outliner: `--vgai-tree-row-height`, which holds `20px`, answered
+ * on the Outliner: `--volter-tree-row-height`, which holds `20px`, answered
  * `rgb(195, 195, 195)` while a reader was measuring row heights with it.
  * `background-color` is NOT inherited, so the same invalid declaration lands
  * on its initial value — `rgba(0, 0, 0, 0)`, a constant this module knows —
@@ -1034,7 +1034,7 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     case 'key': {
       const target = gestureTarget(scope, step);
       // A person's keystroke lands where their click put focus; what the workbench decides a
-      // chord means follows that focus (its `vgai.stage.focused` context), so the target takes
+      // chord means follows that focus (its `volter.stage.focused` context), so the target takes
       // focus first unless focus is already inside it.
       if (!(document.activeElement instanceof Node && target.contains(document.activeElement))) {
         // As a click does: the nearest element that can hold focus, the target or an ancestor.

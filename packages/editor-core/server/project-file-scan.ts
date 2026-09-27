@@ -47,7 +47,7 @@ export function readRunningEngineVersion(engineRoot: string): string | null {
       // Try the next supported checkout/installed-package layout.
     }
   }
-  // Packaged mode passes the installed `@vgai/editor` package as engineRoot.
+  // Packaged mode passes the installed `@volter/editor` package as engineRoot.
   // npm/pnpm may hoist its runtime-package dependencies to the PROJECT's
   // node_modules, outside both candidates above; reading that project copy
   // would merely echo the manifest pin and make every mismatch look healthy.
@@ -129,7 +129,7 @@ const COLLABORATION_IGNORED_DIRS = new Set([
   'coverage',
   'logs',
   '.git',
-  '.vgai',
+  '.volter',
 ]);
 
 /** The project-owned estate: every file under the project root except the

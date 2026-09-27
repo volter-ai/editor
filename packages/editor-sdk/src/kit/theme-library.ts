@@ -19,8 +19,8 @@ import mayaPalette from './palettes/maya.palette.json';
 import substancePalette from './palettes/substance.palette.json';
 
 // Custom themes are PALETTE DOCUMENTS, one file per theme, named by id:
-// `~/.vgai/themes/<id>.json` (the user layer, where the Theme Manager
-// writes) and `<project>/.vgai/themes/<id>.json` (the project layer, a
+// `~/.volter/themes/<id>.json` (the user layer, where the Theme Manager
+// writes) and `<project>/.volter/themes/<id>.json` (the project layer, a
 // theme a project ships to everyone who opens it; on an id collision the
 // project's wins). `api/themes.ts` is the wire; a file that fails the
 // contract below is reported by path and skipped, never silently dropped.
@@ -355,7 +355,7 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
   // group missing from it is dropped from every palette that arrives as a
   // DOCUMENT — which is every contributed palette. Measured live: the Blender
   // palette's `color.viewport` reached the library and vanished here, so
-  // `--vgai-viewport-*` emitted empty, `nativeViewportLook` read all-null, and
+  // `--volter-viewport-*` emitted empty, `nativeViewportLook` read all-null, and
   // the 3D viewport kept its dressing gradient, its 0x999999 grid and no axis
   // lines under a palette that names all three.
   const viewportKeys = ['background', 'grid', 'axisX', 'axisY', 'selection', 'active'] as const;

@@ -1,7 +1,7 @@
 import ts from 'typescript';
 
 /**
- * A SYNCHRONOUS, source-only read of what a project's `vgai.adapter.ts`
+ * A SYNCHRONOUS, source-only read of what a project's `volter.adapter.ts`
  * declares about which files belong to which SURFACE: each region's `include`
  * globs, and the additional surfaces it `mounts` — stated either as parameters
  * layered onto the `'manifest-roots'` rule (`regionIncludes`, what every
@@ -69,8 +69,8 @@ const UNREADABLE_REGION_INCLUDES: AdapterRegionIncludes = {
   unreadable: true,
 };
 
-/** The game's adapter module lives beside `vgai.project.json`, by contract. */
-export const ADAPTER_MODULE_FILENAME = 'vgai.adapter.ts';
+/** The game's adapter module lives beside `volter.project.json`, by contract. */
+export const ADAPTER_MODULE_FILENAME = 'volter.adapter.ts';
 
 function stringLiteralOf(node: ts.Node | undefined): string | undefined {
   return node && ts.isStringLiteralLike(node) ? node.text : undefined;
@@ -140,7 +140,7 @@ function readDefinition(source: ts.SourceFile): DefinitionRead {
  *  `adapter-region-includes-conformance.test.ts` pins it against what
  *  `parseAdapterDefinition` yields from EVALUATING the same source. */
 export function parseAdapterRegionIncludes(code: string): AdapterRegionIncludes {
-  const source = ts.createSourceFile('vgai.adapter.ts', code, ts.ScriptTarget.Latest, true);
+  const source = ts.createSourceFile('volter.adapter.ts', code, ts.ScriptTarget.Latest, true);
   const definition = readDefinition(source);
   if (definition.kind === 'unreadable') return UNREADABLE_REGION_INCLUDES;
   if (definition.kind !== 'literal') return EMPTY_REGION_INCLUDES;

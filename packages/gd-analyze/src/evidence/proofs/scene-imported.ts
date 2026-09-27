@@ -312,7 +312,7 @@ export async function measureSceneImportedProof(tools: GodotProofTools): Promise
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-imported-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-imported-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

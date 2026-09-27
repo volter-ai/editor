@@ -7,7 +7,7 @@
  * sourced `invariant`. That is the whole integration: the console sync already
  * forwards every warning to the server's unresolved-console ledger, so an
  * ontology violation becomes a STANDING condition that rides the loudness
- * banner on every `vgai` command until it stops recurring or somebody acks it
+ * banner on every `volter` command until it stops recurring or somebody acks it
  * by name. No new transport, no new door.
  *
  * ## What is measured, and what is honestly not
@@ -88,7 +88,7 @@ function fireSessionSample(): void {
 }
 
 /** How often the vitals are derived and reported. Long enough that the check
- *  itself is free, short enough that a violation reaches the next `vgai`
+ *  itself is free, short enough that a violation reaches the next `volter`
  *  command a human would run. */
 const SAMPLE_INTERVAL_MS = 5_000;
 
@@ -422,7 +422,7 @@ export function reportOntologyInvariants(): readonly OntologyInvariantRow[] {
  *  - {@link runRevealFailsafe} is a REPAIR, not a report — it clears the one
  *    inline property hiding a canvas. Gating it meant a blank hosted viewport
  *    was the one viewport that could never self-heal, which is precisely the
- *    realm where no `vgai` command can be run to diagnose it.
+ *    realm where no `volter` command can be run to diagnose it.
  *  - {@link reportOntologyInvariants} and every {@link onSessionSample}
  *    subscriber derive from in-memory registries and speak through
  *    `editorConsole`, an in-page store read by `useSyncExternalStore`. It
@@ -451,7 +451,7 @@ export function installSessionVitals(): () => void {
     if (!playing) _playStartedAt = null;
     // EVERY periodic derivation about this session runs on THIS pass, the
     // host's and a lane's alike. The capability-coverage union used to be a
-    // direct call here; it is `@vgai/game`'s now and subscribes through
+    // direct call here; it is `@volter/game`'s now and subscribes through
     // {@link onSessionSample}, which is why the door exists at all: one
     // session, one cadence, one instant — a package timer beside this one
     // would sample the same session a fraction of a second later and publish

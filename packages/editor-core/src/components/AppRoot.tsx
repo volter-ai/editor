@@ -6,7 +6,7 @@
  * (`decideProjectDetectionRecovery`), because a tab that is merely still
  * booting must never settle into a terminal screen with no listener on it.
  *
- * THERE IS NO PROJECT PICKER. A session serves ONE project — `vgai edit <dir>`
+ * THERE IS NO PROJECT PICKER. A session serves ONE project — `volter edit <dir>`
  * is how you choose it, and the workbench's own Open Folder is how you leave —
  * so a page that has no project has nothing to offer but the sentence saying
  * so. The picker, its New Project wizard, its `?create-from=` deep link and
@@ -74,7 +74,7 @@ interface EditorRuntimeBoundaryProps {
  * Keep the application-level EditorProvider alive when editor chrome throws.
  * The provider owns the command listener, so letting an unwrapped descendant
  * error unmount it leaves a still-beating tab that can no longer answer
- * `vgai status`, `play`, or recovery commands. The fallback is deliberately a
+ * `volter status`, `play`, or recovery commands. The fallback is deliberately a
  * normal startup-error surface inside the provider: Retry re-renders the
  * chrome; Project Browser remains reachable; the listener never goes away.
  */
@@ -249,12 +249,12 @@ export function AppRoot() {
             // A TERMINAL failure renders `StartupErrorScreen` in the tab and,
             // until now, nothing else: the tab beat, reported `no-project`,
             // attached no command listener, and every session door read that
-            // as a healthy cold boot (`vgai status`: "commandListener not
+            // as a healthy cold boot (`volter status`: "commandListener not
             // attached"). Measured 2026-09-17 on two sessions at once — a
             // project pinned below the editor's engine, and an editor server
             // older than the project it served — both invisible for an hour.
-            // The console is server-held, so this reaches `vgai status` and
-            // `vgai console` whether or not anyone looks at the tab.
+            // The console is server-held, so this reaches `volter status` and
+            // `volter console` whether or not anyone looks at the tab.
             const command =
               failure.recovery && 'verbs' in failure.recovery ? commandSequence(failure.recovery.verbs) : null;
             editorConsole.error(
@@ -267,14 +267,14 @@ export function AppRoot() {
           const reason = error instanceof Error ? error.message : String(error);
           // A RETRY THAT NEVER SUCCEEDS IS INVISIBLE FROM OUTSIDE. The boot
           // surface says how long it has been waiting, on screen; every other
-          // door -- `vgai status`, the session journal -- sees only
+          // door -- `volter status`, the session journal -- sees only
           // `route: unknown` and a tab with no command listener, which is also
           // what a healthy cold boot looks like. A project pinned to an older
           // engine than the editor throws here on EVERY attempt, and the tab
           // then waits for something that cannot change, silently.
           //
           // So the reason goes to the editor console, which the server holds
-          // and `vgai console` prints whether or not this page ever mounts.
+          // and `volter console` prints whether or not this page ever mounts.
           // Once, on the attempt the patient loop stops being patient about.
           if (failures === PROJECT_DETECTION_REPORT_AFTER) {
             editorConsole.error(
@@ -319,7 +319,7 @@ export function AppRoot() {
   // decides it. `detecting` says nothing: a booting tab is on its way to the
   // project, and the server reads an unreported route exactly that way. That
   // stays true through the patient retry loop — a tab still asking is still on
-  // its way, so `vgai edit` refocuses it rather than opening a second one, and
+  // its way, so `volter edit` refocuses it rather than opening a second one, and
   // the vocabulary is unchanged.
   useEffect(() => {
     if (state.status === 'detecting') return;
@@ -360,7 +360,7 @@ export function AppRoot() {
           error={{
             message:
               'This window has no project open. A session serves one project: open a folder ' +
-              `that carries a vgai.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`,
+              `that carries a volter.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`,
           }}
           onRetry={() => setDetectionAttempt((attempt) => attempt + 1)}
         />

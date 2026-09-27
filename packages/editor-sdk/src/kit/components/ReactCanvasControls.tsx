@@ -68,7 +68,7 @@ function ResponsiveViewportControls({
         value={viewportValue}
         disabled={boardViewport?.locked === true}
         onChange={(event) => selectViewport(event.target.value)}
-        className="vgai-react-viewport-select"
+        className="volter-react-viewport-select"
       >
         <option value="fill">Responsive</option>
         {boardViewport ? (
@@ -232,8 +232,8 @@ export function ReactCanvasControls({
         label={boardOnly ? '2D component board view' : 'React canvas view'}
         data-testid={boardOnly ? 'canvas-board-zoom-controls' : 'react-canvas-zoom-controls'}
         {...(boardOnly ? { 'data-board-zoom': '' } : {})}
-        data-vgai-canvas-navigation-ignore="true"
-        className="vgai-react-canvas-controls"
+        data-volter-canvas-navigation-ignore="true"
+        className="volter-react-canvas-controls"
       >
         {!boardOnly && (
           <ResponsiveViewportControls

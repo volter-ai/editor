@@ -166,7 +166,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
   readonly importer?: GodotOfficialImporter;
 }): GodotBoundProgram {
   assertExporterSnapshot(options.exporter);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-bound-program-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-bound-program-'));
   const project = path.join(temp, 'project');
   const output = path.join(temp, 'bound-program.json');
   const binary = path.join(temp, 'godot-bound-exporter');
@@ -186,7 +186,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
       spawnSync('chmod', ['-R', 'u+w', project]);
       runOfficialImport(options.importer, project);
     }
-    const projectCaptureScript = path.join(project, '.vgai-bound-capture.gd');
+    const projectCaptureScript = path.join(project, '.volter-bound-capture.gd');
     writeFileSync(projectCaptureScript, options.exporter.captureScriptBytes);
     const reportsBefore = godotCrashReports();
     const result = spawnSync(
@@ -196,7 +196,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
         '--path',
         project,
         '--script',
-        'res://.vgai-bound-capture.gd',
+        'res://.volter-bound-capture.gd',
         '--',
         '--out',
         output,

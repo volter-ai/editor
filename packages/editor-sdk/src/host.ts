@@ -44,15 +44,15 @@ import type { ActiveDocumentCapture, CaptureDimensions } from './types';
  * address by importing this constant, so there is one spelling and the package
  * reads it through the published door like any other host fact.
  */
-export const STORY_RUNTIME_PATH = '/__vgai-story-runtime';
+export const STORY_RUNTIME_PATH = '/__volter-story-runtime';
 /** Project-owned React/Three namespace shared by preview consumers and the server. */
-export const R3F_RUNTIME_PATH = '/__vgai-r3f-runtime';
+export const R3F_RUNTIME_PATH = '/__volter-r3f-runtime';
 /** The project's React and react-dom for a React world mount. */
-export const REACT_WORLD_RUNTIME_PATH = '/__vgai-react-world-runtime';
+export const REACT_WORLD_RUNTIME_PATH = '/__volter-react-world-runtime';
 /** The project's Pixi and canvas entry resolver for a canvas root mount. */
-export const CANVAS_RUNTIME_PATH = '/__vgai-canvas-runtime';
+export const CANVAS_RUNTIME_PATH = '/__volter-canvas-runtime';
 /** The project's three.js and post-processing for an ingested three root. */
-export const THREE_INGEST_RUNTIME_PATH = '/__vgai-three-ingest-runtime';
+export const THREE_INGEST_RUNTIME_PATH = '/__volter-three-ingest-runtime';
 
 /** The live session's system adapters, as the editor inspects them: the
  *  instance under inspection when several run, the solo one otherwise. */
@@ -154,8 +154,8 @@ export interface EditorHostDocuments {
    * door), or `undefined` when that document published none.
    *
    * NEW (2026-09-19) because the document a package DRIVES is not always the
-   * document it opened: `@vgai/blender` presents every Blender frame into the
-   * Model document, which `@vgai/blender` contributes and publishes — so the two
+   * document it opened: `@volter/blender` presents every Blender frame into the
+   * Model document, which `@volter/blender` contributes and publishes — so the two
    * packages meet at this registry and neither may reach the host's
    * `@editor/document-context-registry` to find it. The value is `unknown` on
    * purpose: what a document publishes is an agreement between the package
@@ -176,7 +176,7 @@ export interface EditorHostDocuments {
    * document, which is not always the package that published it.
    *
    * NEW (2026-09-19, WORK.md §Blender in the tab is Blender, "Inspection
-   * parity", I1) because a context object is a LIVE HANDLE: `@vgai/blender`
+   * parity", I1) because a context object is a LIVE HANDLE: `@volter/blender`
    * reads the engine through its RNA door, and that answer decides which
    * Properties tabs exist for the selected datablock — an armature has a Bone
    * tab, a cube does not. Nothing in the host's own stores moves when the
@@ -197,7 +197,7 @@ export interface EditorHostDocuments {
 }
 
 /**
- * The project's editor-local state document (`.vgai/editor-state.json`):
+ * The project's editor-local state document (`.volter/editor-state.json`):
  * per-project preferences a contribution keeps — pins, collapsed sections —
  * that are neither the game's data nor a person's global settings. One
  * section per contribution, named by it.
@@ -433,7 +433,7 @@ export interface EditorHostSession {
    * Diagnostics only: this neither cancels work nor changes its deadline. */
   beginWork(label: string): () => void;
   /**
-   * Contribute fields to the editor's state report (`vgai status`, the SDK's
+   * Contribute fields to the editor's state report (`volter status`, the SDK's
    * `editor.state`): the collect runs on every report and its keys are
    * spread in. A lane reports what only it knows — its loop's time scale and
    * liveness, its seed — where the host reports the session. Returns the
@@ -472,7 +472,7 @@ export interface EditorHostSession {
    */
   onSample(fn: () => void): () => void;
   /** Every relayed command, by type, as it is dispatched — the signal an
-   *  idle watchdog reads ("an agent still driving through `vgai eval` is
+   *  idle watchdog reads ("an agent still driving through `volter eval` is
    *  not idle"). Returns the unsubscribe. */
   onCommandDispatched(fn: (type: string) => void): () => void;
   playState(): 'stopped' | 'playing' | 'paused';
@@ -486,7 +486,7 @@ export interface EditorHostSession {
    * shell that edits it, so a document can be opened and something can be
    * presented into it.
    *
-   * NEW (2026-09-19). `@vgai/blender` refuses every verb but its own status
+   * NEW (2026-09-19). `@volter/blender` refuses every verb but its own status
    * read without one, so that a call arriving at a session-less page answers at
    * once instead of booting a Blender worker (gigabytes) into a page with
    * nowhere to show it. It took the same answer from the host's
@@ -495,7 +495,7 @@ export interface EditorHostSession {
   open(): boolean;
   /**
    * THIS PAGE'S SESSION ENDED — the tombstone every end goes through, graceful
-   * (`vgai close`) or not (the server died, another session took the port).
+   * (`volter close`) or not (the server died, another session took the port).
    * Returns the unsubscribe.
    *
    * NEW (2026-09-19), and it is a RELEASE hook: a page told `tab-close` keeps
@@ -525,7 +525,7 @@ export interface EditorHostSession {
    * tasks, and which of them overlapped the call — and starts measuring when
    * the first meter arrives; the page's stalls are never a lane's to observe.
    *
-   * `lane` is the name the census carries the meter under and `vgai status`
+   * `lane` is the name the census carries the meter under and `volter status`
    * prints (`Blender`). One meter per name: publishing again under the same
    * name replaces it.
    */
@@ -534,7 +534,7 @@ export interface EditorHostSession {
 
 /**
  * A LANE'S WORKER CALLS, as numbers — what the tab census carries so that
- * `vgai status` can say a tab stopped answering and why.
+ * `volter status` can say a tab stopped answering and why.
  *
  * Times are milliseconds on `performance.now()`; counters are monotonic since
  * the lane's runtime was constructed. MEASUREMENT ONLY: nothing here cancels,
@@ -569,13 +569,13 @@ export interface EditorHostProject {
   mounts(): boolean;
   /**
    * The engine version the OPEN project is pinned to
-   * (`vgai.project.json`'s `engine.version`), or null when no project is
+   * (`volter.project.json`'s `engine.version`), or null when no project is
    * open — the same one source `ProjectHeader.tsx` renders, so a package's
    * version readout can never disagree with the host's.
    *
    * A primitive rather than the project object on purpose: `ActiveProject`
    * is a host internal, and the SDK's door grows one member per
-   * contribution that needs it (`@vgai/blender`'s `workspace.status` version
+   * contribution that needs it (`@volter/blender`'s `workspace.status` version
    * item is the reader). Paired with {@link subscribe}, this is the whole
    * "current project + change" the door owes a contribution — and it is
    * stable enough for `useSyncExternalStore` without a snapshot cache.
@@ -607,7 +607,7 @@ export interface EditorHostNotification {
   }[];
 }
 
-/** The editor's console — the session-held set `vgai console` prints. A
+/** The editor's console — the session-held set `volter console` prints. A
  *  contribution's diagnostics go here, never to `console.*`, so they reach
  *  every door whether or not anyone looks at the tab. */
 export interface EditorHostConsole {
@@ -617,24 +617,24 @@ export interface EditorHostConsole {
 }
 
 /**
- * THE SETTINGS DOOR — one dotted `vgai.*` key at a time, with the LAYER each
+ * THE SETTINGS DOOR — one dotted `volter.*` key at a time, with the LAYER each
  * value came from, and the one write that lands where it wins.
  *
  * ARCHITECTURE-CORE §The core is Code-OSS: *"the settings layers and settings
  * UI → the configuration service (the ADAPTER layer between user and
  * workspace … is the one addition)"*. The same two-owner shape as
  * {@link EditorHostKeyboard}, {@link EditorHostHistory} and
- * {@link EditorHostFiles}: `'host'` is standalone `vgai edit`, where
+ * {@link EditorHostFiles}: `'host'` is standalone `volter edit`, where
  * `settings-store.ts`'s three layers ARE the settings; `'frame'` is the
  * Code-OSS frame, where `IConfigurationService` is.
  *
- * ## The keys are `vgai.*`, and the prefix is part of the key
+ * ## The keys are `volter.*`, and the prefix is part of the key
  *
- * `vgai.appearance.palette`, `vgai.keymap`, `vgai.devicePreview.preset` — the
+ * `volter.appearance.palette`, `volter.keymap`, `volter.devicePreview.preset` — the
  * flat dotted names `@volter/editor-project/settings/keys` derives from the settings
  * schema, which is also what the fork's `contributes.configuration` is
  * generated from. One spelling in this door, in `.vscode/settings.json`, in
- * VS Code's Settings editor and in what `vgai eval` prints, because the moment
+ * VS Code's Settings editor and in what `volter eval` prints, because the moment
  * there are two a reader has to know which side of which seam they are on to
  * know which to type.
  *
@@ -688,12 +688,12 @@ export interface EditorHostSettingsInspection {
   /** The built-in value, when the layer that declares the key carries one.
    *  The standalone layers carry none, so this is `undefined` there. */
   readonly default: unknown;
-  /** `~/.vgai/settings.json` standalone; the USER target under the frame. */
+  /** `~/.volter/settings.json` standalone; the USER target under the frame. */
   readonly user: unknown;
-  /** What `vgai.adapter.ts` DECLARES (`editor: { style, keymap }`); the
+  /** What `volter.adapter.ts` DECLARES (`editor: { style, keymap }`); the
    *  MEMORY target under the frame. */
   readonly adapter: unknown;
-  /** `<project>/.vgai/settings.json` standalone; the WORKSPACE (and folder)
+  /** `<project>/.volter/settings.json` standalone; the WORKSPACE (and folder)
    *  target under the frame. */
   readonly project: unknown;
   /** Project over adapter over user over default. */
@@ -702,7 +702,7 @@ export interface EditorHostSettingsInspection {
 
 /**
  * THE FRAME'S HALF — what the Code-OSS bridge installs, backed by
- * `IConfigurationService`. Keys are the same `vgai.*` names the door takes.
+ * `IConfigurationService`. Keys are the same `volter.*` names the door takes.
  *
  * There is no `owner`/`setOwner` here and no optional member: unlike
  * {@link EditorHostFileProvider}, a configuration service can answer every one
@@ -715,7 +715,7 @@ export interface EditorHostSettingsProvider {
   /** Settles when the write has landed or failed — a configuration service's write is
    *  asynchronous, and a reader that must not see the previous value until then waits on it. */
   set(key: string, value: unknown, target: EditorHostSettingsTarget): Promise<void>;
-  /** Fires when any `vgai.*` value changes in any layer. Returns the
+  /** Fires when any `volter.*` value changes in any layer. Returns the
    *  unsubscribe. */
   subscribe(listener: () => void): () => void;
 }
@@ -727,7 +727,7 @@ export interface EditorHostSettingsProvider {
  * ARCHITECTURE-CORE §The core is Code-OSS rule 3: *"Keyboard ownership is VS
  * Code's. One keybinding system … Two listeners cannot both own the
  * keyboard."* Under the Code-OSS frame the workbench's keybinding service is
- * the one keyboard: the fork's contribution registers one `vgai.<action id>`
+ * the one keyboard: the fork's contribution registers one `volter.<action id>`
  * command per entry of `actions()`, gives each the chords `keymaps()` reports
  * under a `when` clause over its own context keys, and dispatches through
  * `invoke`. The editor installs no `keydown` listener of its own at all.
@@ -743,7 +743,7 @@ export interface EditorHostKeyboard {
   actions(): readonly { readonly id: string; readonly scope: 'stage' | 'panel' | 'global' }[];
   /**
    * Every registered keymap and the chords it assigns each action — the
-   * editor's own `vgai` table and whatever a project's packages contribute
+   * editor's own `volter` table and whatever a project's packages contribute
    * (Blender's G/R/S). A keymap is a SET of keybinding rules to the frame:
    * the same commands, different chords, gated on `activeKeymap()`.
    */
@@ -861,7 +861,7 @@ export interface EditorHostHistoryElement {
  * *"history-service.ts → IUndoRedoService … there is one Cmd+Z"*).
  *
  * The same two halves as {@link EditorHostKeyboard}, for the same reason: the
- * STANDALONE `vgai edit` shape fills this with the editor's own
+ * STANDALONE `volter edit` shape fills this with the editor's own
  * `history-service.ts` cursor, and the FRAME takes ownership before the editor
  * mounts and pushes every {@link EditorHostHistoryElement} into VS Code's
  * `IUndoRedoService` instead. Nothing here caps anything by bytes — snapshot
@@ -887,7 +887,7 @@ export interface EditorHostHistory {
    *
    * The delegate is the OTHER direction of this door: the editor has undo
    * affordances that are not the keyboard — its Edit menu's "Undo <label>",
-   * the command palette, `vgai eval`'s undo verb — and every one of them must
+   * the command palette, `volter eval`'s undo verb — and every one of them must
    * reach the ONE stack. Without it the Edit menu still names the step (the
    * label comes from the last recorded entry) while the click refuses, which
    * is worse than no menu item at all.
@@ -908,7 +908,7 @@ export interface EditorHostHistory {
   elements(): readonly EditorHostHistoryElement[];
   /**
    * THE FOCUSED DOCUMENT'S OWN FILE, project-relative — the first resource a
-   * ⌘Z with focus on a vgai stage tries, and the one a refusal names. `null`
+   * ⌘Z with focus on a volter stage tries, and the one a refusal names. `null`
    * when nothing is open and the active adapter writes nowhere.
    *
    * It is deliberately NOT the whole answer, because a three root's document
@@ -945,7 +945,7 @@ export interface EditorHostHistory {
  * Both product shapes already have a real file service over the project:
  * DESKTOP opens the project folder as the workspace folder on Electron's own
  * disk provider, and WEB + SERVER (the REH) serves the same folder over
- * `vscode-remote://`. A `vgai-session:` provider mounting the session's
+ * `vscode-remote://`. A `volter-session:` provider mounting the session's
  * `/__editor/*` routes would be a SECOND path to bytes the workbench can
  * already reach — more code, a second cache, and two notions of when a file
  * changed. So under the frame this door CALLS `IFileService` (and
@@ -954,7 +954,7 @@ export interface EditorHostHistory {
  *
  * ## Why the frame's write is the point (U4's open, closed here)
  *
- * A vgai element's REDO used to be lost while a text model for that file was
+ * A volter element's REDO used to be lost while a text model for that file was
  * open: the editor's undo wrote the file through its own transport, which is
  * an EXTERNAL change to the workbench, so Monaco reloaded and
  * `modelService.updateModel` pushed a fresh text element — and `pushElement`
@@ -976,7 +976,7 @@ export interface EditorHostHistory {
  * different things by tier — measured 2026-09-19: `HttpStorage` is rooted at
  * `<project>/public/` while a project-rooted backend is rooted at the
  * PROJECT ROOT, which is why the session grew four separate purpose-scoped
- * project-root routes beside it (`/__editor/vgai-file`,
+ * project-root routes beside it (`/__editor/volter-file`,
  * `/__editor/project-resource`, `/__editor/data-file`,
  * `/__editor/source-files`). One spelling, here.
  */
@@ -1119,11 +1119,11 @@ export interface EditorHost {
  * a package's contribution is served from the project's own installed SDK —
  * two module instances, so plain module state would be an empty registry on
  * the contribution's side (measured 2026-09-17: "No editor host is
- * registered" from `@vgai/game`'s connection pill on a registry install).
+ * registered" from `@volter/game`'s connection pill on a registry install).
  * The layout host (`layouts.tsx`) solved the same split with a `Symbol.for`
  * key on `globalThis`; this door does the same.
  */
-const HOST_KEY = Symbol.for('vgai.editor.host');
+const HOST_KEY = Symbol.for('volter.editor.host');
 const hosts = globalThis as typeof globalThis & { [HOST_KEY]?: EditorHost | null };
 
 /** The editor's boot registers itself; `null` unregisters (tests). */

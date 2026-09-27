@@ -10,6 +10,6 @@ import { ArenaRoom } from './rooms/arena-room.js';
 import { GameRoom } from './rooms/game-room.js';
 
 export const rooms = [
-  { name: 'game_room', handler: GameRoom, matchBy: ['vgaiPlaytest'] },
-  { name: 'arena_room', handler: ArenaRoom, matchBy: ['vgaiPlaytest'] },
+  { name: 'game_room', handler: GameRoom, matchBy: ['volterPlaytest'] },
+  { name: 'arena_room', handler: ArenaRoom, matchBy: ['volterPlaytest'] },
 ];

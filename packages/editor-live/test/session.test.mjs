@@ -32,9 +32,9 @@ test('installed client attaches only to the intended project and reads command r
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const {port} = server.address();
   try {
-    await mkdir(join(root, '.vgai'));
-    await writeFile(join(root, 'vgai.project.json'), '{}');
-    await writeFile(join(root, '.vgai/session.json'), JSON.stringify({port, pid: process.pid,
+    await mkdir(join(root, '.volter'));
+    await writeFile(join(root, 'volter.project.json'), '{}');
+    await writeFile(join(root, '.volter/session.json'), JSON.stringify({port, pid: process.pid,
       startedAt: new Date().toISOString(), url: `http://127.0.0.1:${port}`}));
     const deps = {transport: {listSessions: async () => []}};
     const session = await connect(root, deps);

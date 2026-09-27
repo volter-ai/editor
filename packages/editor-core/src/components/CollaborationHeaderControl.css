@@ -1,74 +1,74 @@
-.vgai-collaboration-header {
+.volter-collaboration-header {
   display: flex;
   min-width: 0;
   align-items: center;
 }
 
-.vgai-collaboration-header-trigger {
+.volter-collaboration-header-trigger {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
 
-.vgai-collaboration-header-count {
+.volter-collaboration-header-count {
   min-width: 1ch;
-  color: var(--vgai-content-dim);
+  color: var(--volter-content-dim);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
-.vgai-collaboration-header-menu {
+.volter-collaboration-header-menu {
   width: min(360px, calc(100vw - 24px));
-  padding: var(--vgai-space-2);
+  padding: var(--volter-space-2);
 }
 
-.vgai-session-access-control {
-  padding: var(--vgai-space-2);
+.volter-session-access-control {
+  padding: var(--volter-space-2);
 }
 
-.vgai-collaboration-header-label {
-  padding: var(--vgai-space-2) var(--vgai-space-3);
+.volter-collaboration-header-label {
+  padding: var(--volter-space-2) var(--volter-space-3);
   font-weight: 600;
   text-transform: uppercase;
 }
 
-.vgai-collaboration-header-person {
+.volter-collaboration-header-person {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-2);
-  padding-block: var(--vgai-space-2);
+  gap: var(--volter-space-2);
+  padding-block: var(--volter-space-2);
 }
 
-.vgai-collaboration-header-elsewhere {
-  padding-inline: var(--vgai-space-3);
+.volter-collaboration-header-elsewhere {
+  padding-inline: var(--volter-space-3);
 }
 
-.vgai-collaboration-header-dot {
+.volter-collaboration-header-dot {
   width: 9px;
   height: 9px;
   flex: 0 0 auto;
-  border-radius: var(--vgai-radius-full);
+  border-radius: var(--volter-radius-full);
 }
 
-.vgai-collaboration-header-copy {
+.volter-collaboration-header-copy {
   display: grid;
   min-width: 0;
   flex: 1;
 }
 
-.vgai-collaboration-header-copy > span {
+.volter-collaboration-header-copy > span {
   overflow: hidden;
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-xs);
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.vgai-collaboration-header-actions {
+.volter-collaboration-header-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--vgai-space-2);
-  padding: var(--vgai-space-2);
+  gap: var(--volter-space-2);
+  padding: var(--volter-space-2);
 }

@@ -1,5 +1,5 @@
 /**
- * THE STORY LANE OF `vgai screenshot` on the session wire:
+ * THE STORY LANE OF `volter screenshot` on the session wire:
  * `capture-story-variants`.
  *
  * Registered through `command-registry.ts` — the contributed-command registry
@@ -73,7 +73,7 @@ async function handle(cmd: EditorCommandMessage): Promise<EditorCommandResult> {
     // project that declares nothing.
     const declared = await (async (): Promise<{ width: number; height: number } | null> => {
       try {
-        const text = await readProjectTextFile('vgai.project.json');
+        const text = await readProjectTextFile('volter.project.json');
         if (!text) return null;
         const manifest = JSON.parse(text) as {
           resolution?: { width?: unknown; height?: unknown };

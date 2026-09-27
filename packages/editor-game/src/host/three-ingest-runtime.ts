@@ -4,7 +4,7 @@
  * `canvas-entry-runtime.ts`'s `resolveCanvasPixiForEditor`.
  *
  * See `../vite-plugin-module-doorways.ts` for the measured failure this
- * closes and for why the ingest lane does not borrow `/__vgai-r3f-runtime`.
+ * closes and for why the ingest lane does not borrow `/__volter-r3f-runtime`.
  *
  * A mount site resolves this ONCE and hands what it gets to everything it
  * builds for that game. Nothing further down reaches for a static import: a

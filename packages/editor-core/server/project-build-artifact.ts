@@ -74,7 +74,7 @@ export async function projectBuildArtifactName(projectRoot: string): Promise<str
 
 /** The ignored, machine-local artifact used by the editor's Download action. */
 export async function projectBuildArtifactPath(projectRoot: string): Promise<string> {
-  return resolve(projectRoot, '.vgai', 'tmp', 'build', await projectBuildArtifactName(projectRoot));
+  return resolve(projectRoot, '.volter', 'tmp', 'build', await projectBuildArtifactName(projectRoot));
 }
 
 export async function packageProjectWebBuild(projectRoot: string): Promise<BuildReport> {
@@ -90,11 +90,11 @@ export async function packageProjectWebBuild(projectRoot: string): Promise<Build
   // Keep the native manifest beside the static output, matching the existing
   // deploy staging contract. If a custom build already emitted one, the source
   // manifest is the authority and intentionally replaces it.
-  archive['vgai.project.json'] = await readFile(resolveManifestPath(projectRoot));
+  archive['volter.project.json'] = await readFile(resolveManifestPath(projectRoot));
 
   const bytes = zipSync(archive, { level: 6 });
   const artifact = await projectBuildArtifactName(projectRoot);
-  const artifactPath = resolve(projectRoot, '.vgai', 'tmp', 'build', artifact);
+  const artifactPath = resolve(projectRoot, '.volter', 'tmp', 'build', artifact);
   await mkdir(dirname(artifactPath), { recursive: true });
   await writeFile(artifactPath, bytes);
 

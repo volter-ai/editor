@@ -64,7 +64,7 @@ static func evaluate(seed: int = 4) -> Array[int]:
 const PROJECT_SOURCE = `config_version=5
 
 [application]
-config/name="VGAI language semantics authority"
+config/name="VOLTER language semantics authority"
 run/main_scene="res://main.tscn"
 
 [rendering]
@@ -131,7 +131,7 @@ export function measureLanguageProof(tools: GodotProofTools): readonly GodotProo
   const { exporterBinary, officialBinary } = tools;
   const actualInput = sha256(LANGUAGE_SOURCE);
   const actualImplementation = packageImplementationDigest(GODOT_CODE_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-language-authority-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-language-authority-'));
   try {
     writeFileSync(path.join(temp, 'project.godot'), PROJECT_SOURCE);
     writeFileSync(path.join(temp, 'main.tscn'), MAIN_SCENE);

@@ -2,8 +2,8 @@
 
 The Godot lane translates a Godot project into a game this editor opens: its scenes become React
 components, its scripts become ordinary TypeScript, and what Godot's API means at runtime comes
-from a copied capability. The owner called its turn on 2026-09-25. It came back from vgai-engine's
-tag `archive/godot-lane-2026-09-19` (vgai-engine `6499489cb`); nothing here was re-derived.
+from a copied capability. The owner called its turn on 2026-09-25. It came back from volter-engine's
+tag `archive/godot-lane-2026-09-19` (volter-engine `6499489cb`); nothing here was re-derived.
 
 ## Where it lives
 
@@ -21,7 +21,7 @@ that port's dependency closure.
 
 ## The intended architecture
 
-The design is vgai-engine `docs/ARCHITECTURE-CORE.md` §Foreign games and §Migration compiler
+The design is volter-engine `docs/ARCHITECTURE-CORE.md` §Foreign games and §Migration compiler
 reference architecture, at the tag. In short:
 
 - One compile-time pipeline: an immutable project and toolchain snapshot, the official Godot
@@ -50,7 +50,7 @@ uses.
 
 ## What was built (measured 2026-09-25)
 
-**The compiler has the ruled shape.** vgai-engine's 2026-09-03 series (`ca737bcbd` onward) deleted
+**The compiler has the ruled shape.** volter-engine's 2026-09-03 series (`ca737bcbd` onward) deleted
 the handwritten translator (`lang36`/`lang40`, `translate.ts`, `surface.ts`). Production lowering
 now goes official bound nodes → `TargetTsSyntax` → TypeScript's printer, behind accepted/refused
 plans. No blind review has run on it.
@@ -87,7 +87,7 @@ Godot 3 exporter meets the 4.7 contract. Five declare 4.6, and no 4.6 frontend i
 by the retired translator. They import names the 09-03 lifecycle refactor removed, and they inline
 what row 8 forbids (`components/scene-runtime.ts`, `sampleCurve`, per-scene particle simulators).
 
-**The frontend is pinned.** vgai-engine's 09-15 record found no way to tell which of eight exporter
+**The frontend is pinned.** volter-engine's 09-15 record found no way to tell which of eight exporter
 builds was authoritative. The answer was already on disk: each build's `identity.json` records its
 exporter-source digest. The restored source matched `-current`, `-full` and `-multiplayer`. Only
 `-full` enables every engine module, which a game's scripts need (GridMap, CSG, navigation), and
@@ -295,7 +295,7 @@ removed (609 of 612 modules, with `godot-runtime`, `character`, `sprite` and the
 modules remain: `node-process.ts`, `react-lifecycle.tsx` and `signal.ts`. `signal.ts` keys a
 connection by reference identity until a conformant `callable.ts` supplies Godot's Callable
 equality. Everything else is rebuilt class by class from the closure. The Godot source is the
-authority; the old module at the tag is a reference (vgai-engine
+authority; the old module at the tag is a reference (volter-engine
 `archive/godot-lane-2026-09-19:packages/editor/catalog/project-source/src/lib/godot-compat/`).
 
 **First class through the instrument: `Vector3`.** 413 cases agree bit-exactly with official Godot

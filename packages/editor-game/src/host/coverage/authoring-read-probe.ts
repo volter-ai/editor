@@ -510,7 +510,7 @@ function probeDocumentProviders(adapter: AuthoringAdapter, id: string, record: R
     record(
       'editor.assetDrop.accepts',
       'operation',
-      () => adapter.assetDrop?.accepts(id, '__vgai_read_probe__'),
+      () => adapter.assetDrop?.accepts(id, '__volter_read_probe__'),
       (value) => typeof value === 'boolean',
     );
   }

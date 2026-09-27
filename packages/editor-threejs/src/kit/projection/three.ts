@@ -61,7 +61,7 @@ export type ThreeNode = ProjectedNode<THREE.Object3D>;
 
 /**
  * Reflection stats for one walk. Surfaced by the adapters' `refresh()` for
- * proof/telemetry (the ingest console line, the `__vgaiIngest.reflected` hook) —
+ * proof/telemetry (the ingest console line, the `__volterIngest.reflected` hook) —
  * deliberately a fresh measurement each walk rather than a mount-time snapshot,
  * because a running world keeps streaming objects in.
  */
@@ -76,7 +76,7 @@ export interface ThreeWalkStats {
    * object drawing N units — so `count`/`meshes` (and the hierarchy rows built
    * from the same nodes) report 1 where a reader sees N, with no error
    * anywhere, because both numbers are individually correct. These two fields
-   * are the only place the shortfall is expressible; `vgai doctor`'s
+   * are the only place the shortfall is expressible; `volter doctor`'s
    * instanced-content check reads exactly this pair
    * (`packages/editor/src/doctor/detection-gaps.ts`).
    */
@@ -254,7 +254,7 @@ export function threeEntityId(worldId: string, oid: string): string {
 }
 
 /**
- * The LIVE OID scheme. A node stamped by the served TSX's `__vgaiOid` transform
+ * The LIVE OID scheme. A node stamped by the served TSX's `__volterOid` transform
  * keeps `r3f:<worldId>:<oid>`, so selection survives Edit→Play; anything a
  * source location cannot claim gets a session-stable `live:<worldId>:<n>`.
  */

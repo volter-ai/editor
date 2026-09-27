@@ -412,7 +412,7 @@ export async function measureSceneRenderProof(tools: GodotProofTools): Promise<r
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_RENDER_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-render-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-render-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

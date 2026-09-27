@@ -1063,7 +1063,7 @@ export interface WriteAck {
  * union does not have (excess-property error). The values are `true` and carry
  * no meaning — the KEYS are the payload.
  *
- * What this buys downstream: the per-kind write-reach counts and `vgai doctor`'s
+ * What this buys downstream: the per-kind write-reach counts and `volter doctor`'s
  * edit-write walk both enumerate {@link WRITE_ANCHOR_KINDS} rather than a
  * hand-written list, so a new kind arrives already measured and already walked
  * instead of silently untested.

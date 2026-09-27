@@ -135,8 +135,8 @@ export function WorkspaceDocumentSurface({
   const controlsOnBar = onBar && stageChrome.transformControls === 'bar' && driver === 'gizmo' && TransformControls !== undefined;
   const controlsEdge = !controlsOnBar ? null : (toolsEdge ?? displayEdge ?? 'start');
   const barGroup = (edge: 'start' | 'end') => (
-    <div className="vgai-stage-bar-group" data-edge={edge}>
-      {displayEdge === edge ? <div className="vgai-stage-bar-slot" data-stage-bar-slot="display" /> : null}
+    <div className="volter-stage-bar-group" data-edge={edge}>
+      {displayEdge === edge ? <div className="volter-stage-bar-slot" data-stage-bar-slot="display" /> : null}
       {toolsEdge === edge ? transformTools : null}
       {controlsEdge === edge && TransformControls ? (
         <Suspense fallback={null}>
@@ -147,10 +147,10 @@ export function WorkspaceDocumentSurface({
   );
   return (
     <div
-      className="vgai-dock-document"
+      className="volter-dock-document"
       data-testid={`workspace-doc:${descriptor.id}`}
       data-editor-hotkey-scope={family === 'world' ? 'viewport' : 'workspace'}
-      data-vgai-document-family={family}
+      data-volter-document-family={family}
     >
       {chrome && (
         <DocumentHeaderStrip
@@ -170,18 +170,18 @@ export function WorkspaceDocumentSurface({
         </DocumentHeaderStrip>
       )}
       <div
-        className="vgai-dock-document-content"
+        className="volter-dock-document-content"
         data-workspace-document-id={descriptor.id}
         data-workspace-view-id={viewId}
-        data-vgai-stage-bar={placesStage && stageChrome.bar !== 'none' ? stageChrome.bar : undefined}
+        data-volter-stage-bar={placesStage && stageChrome.bar !== 'none' ? stageChrome.bar : undefined}
         // Whether the shelf rail draws anything, so a control placed at the stage's left edge
         // (Godot's view pill) stands past it only when it is there.
-        data-vgai-stage-rail={chrome && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
+        data-volter-stage-rail={chrome && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
         {/* THE STAGE'S BAR, when the look draws one (`workspace-surfaces.css`, "THE STAGE'S BAR"). */}
         {onBar ? (
-          <div className="vgai-stage-bar" data-form={stageChrome.bar} role="toolbar" aria-label="Viewport">
+          <div className="volter-stage-bar" data-form={stageChrome.bar} role="toolbar" aria-label="Viewport">
             {barGroup('start')}
             {barGroup('end')}
           </div>

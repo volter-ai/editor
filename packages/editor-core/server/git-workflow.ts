@@ -415,7 +415,7 @@ export function checkpointGitChanges(
     '-m',
     message,
     '-m',
-    `VGAI-Participant: ${input.author.participantId}\nVGAI-Account: ${input.author.accountId}`,
+    `VOLTER-Participant: ${input.author.participantId}\nVOLTER-Account: ${input.author.accountId}`,
     `--author=${input.author.name} <${input.author.email}>`,
   ]);
   return gitWorkflowStatus(projectRoot);

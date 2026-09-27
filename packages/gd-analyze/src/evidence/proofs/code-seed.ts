@@ -31,7 +31,7 @@ static func answer() -> int:
 const PROJECT_SOURCE = `config_version=5
 
 [application]
-config/name="VGAI code authority seed"
+config/name="VOLTER code authority seed"
 run/main_scene="res://main.tscn"
 
 [rendering]
@@ -82,7 +82,7 @@ export function measureCodeSeedProof(tools: GodotProofTools): readonly GodotProo
   const { exporterBinary, officialBinary } = tools;
   const actualInput = sha256(ANSWER_SOURCE);
   const actualImplementation = packageImplementationDigest(GODOT_CODE_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-code-authority-seed-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-code-authority-seed-'));
   try {
     mkdirSync(temp, { recursive: true });
     writeFileSync(path.join(temp, 'project.godot'), PROJECT_SOURCE);

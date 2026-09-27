@@ -203,7 +203,7 @@ export function Object3DDocumentToolbar({
     if (!assetPath) return;
     setError(null);
     try {
-      // The shell owns where a framing is RECORDED (`.vgai/thumbnails.json`,
+      // The shell owns where a framing is RECORDED (`.volter/thumbnails.json`,
       // written through the project-file route); this surface only knows the
       // asset and the pose. See `object3d-document-write-policy.ts`.
       await object3DDocumentWritePolicy().saveThumbnailFraming(
@@ -230,11 +230,11 @@ export function Object3DDocumentToolbar({
 
   const frameLabel = session.selection().length > 0 ? 'Frame selection' : 'Frame all';
   return (
-    <div className="vgai-model-document-header">
+    <div className="volter-model-document-header">
       <EditorToolbar
         compact
         label="Viewport view controls"
-        className="vgai-model-viewport-toolbar vgai-model-viewport-toolbar--view"
+        className="volter-model-viewport-toolbar volter-model-viewport-toolbar--view"
       >
         {/* THE BUTTON SAYS WHAT IT DOES. `session.frame()` frames the
             selection when there is one and the whole subject when there is
@@ -248,7 +248,7 @@ export function Object3DDocumentToolbar({
             <EditorIcon icon={faExpand} size="md" />
           </IconButton>
         </Tooltip>
-        <div className="vgai-viewport-popover-anchor">
+        <div className="volter-viewport-popover-anchor">
           <Tooltip text="Camera orientation and projection">
             <Button
               ref={viewRef}
@@ -264,7 +264,7 @@ export function Object3DDocumentToolbar({
               aria-haspopup="menu"
               aria-expanded={viewOpen}
               onClick={() => setViewOpen((open) => !open)}
-              className="vgai-model-toolbar-labelled-control"
+              className="volter-model-toolbar-labelled-control"
             >
               <EditorIcon icon={faCube} size="sm" />
               <span>
@@ -306,7 +306,7 @@ export function Object3DDocumentToolbar({
                     setViewOpen(false);
                   }}
                 >
-                  <span className="vgai-menu-check">
+                  <span className="volter-menu-check">
                     {presentation.projection === projection && (
                       <EditorIcon icon={faCheck} size="xs" />
                     )}
@@ -338,7 +338,7 @@ export function Object3DDocumentToolbar({
       <EditorToolbar
         compact
         label="Viewport preview controls"
-        className="vgai-model-viewport-toolbar vgai-model-viewport-toolbar--preview"
+        className="volter-model-viewport-toolbar volter-model-viewport-toolbar--preview"
       >
         {/* THE DISPLAY CONTROLS SIT AT THE TRAILING EDGE, which is where
             Blender's are: its 3D View header packs Visibility, Gizmo,
@@ -463,7 +463,7 @@ export function Object3DDocumentToolbar({
                 }))),
           ]}
         />
-        <div className="vgai-viewport-popover-anchor">
+        <div className="volter-viewport-popover-anchor">
           <Tooltip text="Asset preview actions">
             <IconButton
               ref={moreRef}
@@ -527,7 +527,7 @@ export function Object3DDocumentToolbar({
         </div>
       </EditorToolbar>
       {capture ? (
-        <EditorPopover className="vgai-model-capture-preview">
+        <EditorPopover className="volter-model-capture-preview">
           <div>
             <Text as="strong" variant="label">
               Deterministic views
@@ -540,7 +540,7 @@ export function Object3DDocumentToolbar({
         </EditorPopover>
       ) : null}
       {error ? (
-        <EditorBanner className="vgai-model-toolbar-error" tone="error">
+        <EditorBanner className="volter-model-toolbar-error" tone="error">
           {error}
         </EditorBanner>
       ) : null}

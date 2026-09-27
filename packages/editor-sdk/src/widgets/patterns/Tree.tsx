@@ -18,7 +18,7 @@ export const EditorTree = forwardRef<HTMLDivElement, EditorTreeProps>(function E
       ref={ref}
       role="tree"
       aria-label={label}
-      className={classes('vgai-tree', className)}
+      className={classes('volter-tree', className)}
     />
   );
 });
@@ -61,12 +61,12 @@ export const EditorTreeRow = forwardRef<HTMLDivElement, EditorTreeRowProps>(func
       data-selected={selected || undefined}
       data-muted={muted || undefined}
       data-dragging={dragging || undefined}
-      className={classes('vgai-tree-row', className)}
+      className={classes('volter-tree-row', className)}
       style={{ paddingLeft: 6 + Math.max(0, level - 1) * 14, ...style }}
     >
-      {leading && <span className="vgai-tree-row-leading">{leading}</span>}
-      <span className="vgai-tree-row-label">{children}</span>
-      {actions && <span className="vgai-tree-row-actions">{actions}</span>}
+      {leading && <span className="volter-tree-row-leading">{leading}</span>}
+      <span className="volter-tree-row-label">{children}</span>
+      {actions && <span className="volter-tree-row-actions">{actions}</span>}
     </div>
   );
 });

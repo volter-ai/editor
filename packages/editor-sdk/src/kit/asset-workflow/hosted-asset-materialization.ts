@@ -1,7 +1,7 @@
 /**
  * Materialize a project's DECLARED asset packs (`asset-manifest.json`, D-AP1)
  * from the `cloud-asset-library` Worker into a `StorageBackend`, recording
- * the same provenance ledger (`.vgai/assets.json`, D-AP3) every other
+ * the same provenance ledger (`.volter/assets.json`, D-AP3) every other
  * materialization site writes.
  *
  * This is the D-AP4 mechanism: a project's DECLARED packs are materialized
@@ -49,7 +49,7 @@ import {
   recordAssetMaterializationInBackend,
 } from './asset-ledger-backend';
 /** Project-relative path of the pack declaration (D-AP1) — sibling of
- *  `vgai.project.json` in the template/every example, and (per D-AP4) one of
+ *  `volter.project.json` in the template/every example, and (per D-AP4) one of
  *  the plain-text files the browser build's seed writes alongside the rest
  *  of the template source. */
 import {
@@ -178,8 +178,8 @@ export interface VerifiedPackEntryBytes {
  * cross-check, byte fetch, digest verification — with the destination IO left
  * to the caller, because the two materialization sites differ only in where the
  * bytes land: this module writes through a `StorageBackend` (browser/hosted),
- * and `packages/vgai-cli/src/asset-packs.ts` writes to the filesystem for an
- * on-disk project `vgai add` just declared a pack into. Extracted so neither
+ * and `packages/volter-cli/src/asset-packs.ts` writes to the filesystem for an
+ * on-disk project `volter add` just declared a pack into. Extracted so neither
  * site can drift from the other on the part that matters — a second copy of
  * "fetch then trust" is exactly how trust-on-first-use gets reintroduced.
  *

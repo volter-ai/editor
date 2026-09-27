@@ -83,9 +83,9 @@ type PresenceEventSource = Pick<
 };
 
 const bootstrapGlobal = globalThis as typeof globalThis & {
-  __VGAI_EDITOR_PRESENCE_BOOTSTRAP__?: EditorPresenceBootstrap;
+  __VOLTER_EDITOR_PRESENCE_BOOTSTRAP__?: EditorPresenceBootstrap;
 };
-const bootstrap = bootstrapGlobal.__VGAI_EDITOR_PRESENCE_BOOTSTRAP__;
+const bootstrap = bootstrapGlobal.__VOLTER_EDITOR_PRESENCE_BOOTSTRAP__;
 
 export const EDITOR_CLIENT_ID =
   bootstrap?.clientId ?? globalThis.crypto?.randomUUID?.() ?? `editor-${Date.now()}`;
@@ -116,7 +116,7 @@ export function reportTabCensus(census: TabCensus): void {
  * 2026-08-15, stopping only the beat was not enough — the inert page's control
  * socket reconnected to the successor server on the same port, which kept the
  * corpse present, blessed, and reported as `commandListener not attached`
- * while `vgai edit` answered "focused" instead of opening a real tab.
+ * while `volter edit` answered "focused" instead of opening a real tab.
  *
  * The channel is closed unconditionally, not by releasing a reference: this
  * page is over, so there is no consumer whose refcount could legitimately hold
@@ -323,13 +323,13 @@ const BOOT_ERROR_CAP = 5;
  *
  * MEASURED 2026-09-15: a tab beat for the better part of an hour, answered
  * liveness echoes, and reported `commandListener not attached` with no page
- * error and an empty `vgai console` -- so `vgai status` could say only that
+ * error and an empty `volter console` -- so `volter status` could say only that
  * the app "never finished loading", which is the symptom, never the cause.
  * Every door the CLI offers was blind to a crash before the app came up.
  *
  * Presence is connected by this point, so this reports through the SAME
  * `console-entries` door the app uses later and lands in the same ledger
- * `vgai console` reads. A duplicate once the app's own capture starts is
+ * `volter console` reads. A duplicate once the app's own capture starts is
  * deduplicated there by fingerprint.
  */
 function reportBootErrors(): () => void {

@@ -21,7 +21,7 @@ export interface ProjectWorkAssociation {
 }
 
 export interface ProjectWorkSnapshot {
-  schema: 'vgai.project-work.v1';
+  schema: 'volter.project-work.v1';
   revision: number;
   projectKey: string | null;
   tracker: ProjectWorkTrackerState;
@@ -59,7 +59,7 @@ export function hasVisibleProjectWork(snapshot: ProjectWorkSnapshot): boolean {
 
 export function unavailableProjectWorkSnapshot(reason: string): ProjectWorkSnapshot {
   return {
-    schema: 'vgai.project-work.v1',
+    schema: 'volter.project-work.v1',
     revision: 0,
     projectKey: null,
     tracker: { state: 'unsupported', reason },
@@ -135,7 +135,7 @@ export function parseProjectWorkSnapshot(value: unknown): ProjectWorkSnapshot {
   const activity = record['activityByIssue'];
   const presentation = record['presentation'] as Record<string, unknown> | undefined;
   if (
-    record['schema'] !== 'vgai.project-work.v1' ||
+    record['schema'] !== 'volter.project-work.v1' ||
     typeof record['revision'] !== 'number' ||
     (projectKey !== null && typeof projectKey !== 'string') ||
     !validTrackerState(tracker) ||

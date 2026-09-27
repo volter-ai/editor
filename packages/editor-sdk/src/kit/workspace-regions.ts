@@ -74,7 +74,7 @@ export interface ChromeRegions {
    *  every skin that predates this key is pixel-identical.
    *
    *  Note the SEPARATE, older mechanism it sits above:
-   *  `--vgai-tree-active-name-underline` (`theme.ts`) drops the rule on the
+   *  `--volter-tree-active-name-underline` (`theme.ts`) drops the rule on the
    *  SELECTED row alone, and only for a palette that declares an active ink,
    *  so two marks never argue on one row. That one is the palette's; this one
    *  is the look's, and where a look hides the rule outright the palette rule
@@ -123,20 +123,20 @@ export interface ChromeRegions {
  * against), `@volter/editor-project`'s `ChromeRegionsSettingsSchema`, which is
  * `.strict()`, and the FRAME's own configuration contribution
  * (`node scripts/workbench/generate-settings.mjs --write`, which rewrites
- * `packages/editor/workbench/src/vgaiGeneratedSettings.ts` from the JSON
+ * `packages/editor/workbench/src/volterGeneratedSettings.ts` from the JSON
  * Schema).
  *
  * Miss the fourth and NOTHING fails to compile: a region value the person sets is
- * written into `~/.vgai/settings.json`, the server rejects the unknown key with a 400, and the only report is a `[settings] Could not save
+ * written into `~/.volter/settings.json`, the server rejects the unknown key with a 400, and the only report is a `[settings] Could not save
  * user settings` line in the editor console — every appearance preference
- * silently stops persisting. Measured 2026-09-18, found by `vgai console`
+ * silently stops persisting. Measured 2026-09-18, found by `volter console`
  * after nine failed writes.
  *
  * Miss the FIFTH and the frame drops the key on the way through instead: the
  * workbench's configuration service knows only the generated list, so
- * `vgaiSettings.ts` reports "…is not a vgai setting, so it was not applied" and
+ * `volterSettings.ts` reports "…is not a volter setting, so it was not applied" and
  * the region reverts to its default on the next read of persisted settings.
- * Measured 2026-09-21 by `vgai console` on the first boot after a new key
+ * Measured 2026-09-21 by `volter console` on the first boot after a new key
  * landed, which is the reason this list says five now.
  *
  * AND THE FIFTH HAS A RELEASE IN IT, which is the part that decides where a

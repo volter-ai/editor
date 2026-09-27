@@ -634,7 +634,7 @@ export class BlenderRuntimeView {
    * visibility belongs to the viewport's Helpers menu rather than to this
    * presenter, and the door for that is the host's own — a document hands
    * each group to its stage's `setHelper(kind, object)`
-   * (`@vgai/editor-sdk/host`, `EditorHostStage`), which marks it
+   * (`@volter/editor-sdk/host`, `EditorHostStage`), which marks it
    * `editorHelper`, keeps it out of the hierarchy and the raycast, and turns
    * it on and off with the kind's checkbox. `blender-runtime.document.tsx`
    * is where they are handed over.
@@ -912,7 +912,7 @@ export class BlenderRuntimeView {
   /**
    * BLENDER'S MODE, PUBLISHED ON THE DOCUMENT'S OWN CONTEXT.
    *
-   * `vgai.stage.mode` (U6's context key, `editor-host-door.ts`'s `stage()`) had
+   * `volter.stage.mode` (U6's context key, `editor-host-door.ts`'s `stage()`) had
    * no reporter at all: Edit Mesh went with the mesh kit and the Model document
    * had no mode strip, so every `when` clause that reads it was answering
    * `null`. The engine HAS a mode — `bpy.context.mode`, and `Object.mode` on the
@@ -1005,9 +1005,9 @@ export class BlenderRuntimeView {
     this.weightRoot.name = 'BlenderWeights';
     this.cursorRoot.name = 'Blender3DCursor';
     this.cameraExtrasRoot.name = 'BlenderCameraExtras';
-    // The extras are picked as the objects they draw (`userData.vgaiPicksAs` on each part).
+    // The extras are picked as the objects they draw (`userData.volterPicksAs` on each part).
     for (const root of [this.cameraExtrasRoot, this.lightExtrasRoot, this.emptyExtrasRoot])
-      root.userData['vgaiPickable'] = true;
+      root.userData['volterPickable'] = true;
     this.lightExtrasRoot.name = 'BlenderLightExtras';
     this.emptyExtrasRoot.name = 'BlenderEmptyExtras';
   }
@@ -1768,8 +1768,8 @@ export class BlenderRuntimeView {
       object.name = obj.name;
       // A camera, a light and an empty are drawn by the overlay's extras, selection colour and
       // all (`blender-runtime-extras.ts`); the editor's own marks for them stand down.
-      if (obj.type === 'CAMERA' || obj.type === 'LIGHT' || obj.type === 'EMPTY') object.userData['vgaiOwnOverlay'] = true;
-      else delete object.userData['vgaiOwnOverlay'];
+      if (obj.type === 'CAMERA' || obj.type === 'LIGHT' || obj.type === 'EMPTY') object.userData['volterOwnOverlay'] = true;
+      else delete object.userData['volterOwnOverlay'];
       object.matrixAutoUpdate = false;
       object.matrix.set(...(obj.matrix.flat() as Parameters<THREE.Matrix4['set']>));
       if (obj.parent) {
@@ -1804,7 +1804,7 @@ export class BlenderRuntimeView {
         if (light.parent !== object) object.add(light);
         // Blender's overlay draws this light (`blender-runtime-extras.ts`); the editor's own
         // light helper stands down for it.
-        light.userData['vgaiOwnOverlay'] = true;
+        light.userData['volterOwnOverlay'] = true;
         aimLight(light, object);
         this.lights.set(obj.light, light);
       }

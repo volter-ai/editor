@@ -37,7 +37,7 @@
  *    It is the frame's `ICommandService.executeCommand`, installed by the
  *    contribution, so ANY workbench command id is reachable — ours and
  *    upstream's alike. That is the point of running inside a workbench.
- *    Before the executor lands, a `vgai.<view>.<verb>` id still resolves off
+ *    Before the executor lands, a `volter.<view>.<verb>` id still resolves off
  *    `@volter/editor-sdk/views` — the same table the frame's command would have
  *    called — and any OTHER id is refused BY NAME, because a silent nothing
  *    is how an agent concludes a command "did not work".
@@ -131,7 +131,7 @@ export function setCommandExecutor(run: ((id: string, args?: unknown) => unknown
 }
 
 /**
- * Reveal a workbench view by id (`vgai.properties`, `vgai.outliner`) through its `.focus`
+ * Reveal a workbench view by id (`volter.properties`, `volter.outliner`) through its `.focus`
  * command, which the workbench registers for every view. Without the Code-OSS frame there is
  * no workbench and the editor's own panels are in the page, so there is nothing to reveal.
  */
@@ -140,16 +140,16 @@ export function revealWorkbenchView(viewId: string): void {
   void Promise.resolve(commandExecutor(`${viewId}.focus`)).catch(() => {});
 }
 
-/** The `vgai.<view>.<verb>` shape the views registry keys, and the ONLY id
+/** The `volter.<view>.<verb>` shape the views registry keys, and the ONLY id
  *  shape standalone can answer. */
-const VIEW_VERB_COMMAND = /^vgai\.([^.]+)\.(.+)$/;
+const VIEW_VERB_COMMAND = /^volter\.([^.]+)\.(.+)$/;
 
 /**
  * Run a command by id — `editor.command(id, args)`'s one implementation.
  *
  * The workbench's `ICommandService` when it has landed; before that, the
  * views registry, reached through a DYNAMIC import so a module only a
- * `vgai eval` reaches never joins the editor entry's static closure.
+ * `volter eval` reaches never joins the editor entry's static closure.
  *
  * A refusal is always BY NAME. `invokeViewVerb` names the view's whole
  * vocabulary when it does not carry the verb (that refusal is the VIEW's, and
@@ -164,7 +164,7 @@ export async function executeCommand(id: string, args?: unknown): Promise<unknow
     throw new Error(
       `No command "${id}". Without the Code-OSS frame there is no command service, so the ` +
         "only commands this editor answers are a view's own verbs, spelled " +
-        'vgai.<view>.<verb> (for example vgai.blender-node-view.view-all).',
+        'volter.<view>.<verb> (for example volter.blender-node-view.view-all).',
     );
   }
   const { invokeViewVerb } = await import('@volter/editor-sdk/views');

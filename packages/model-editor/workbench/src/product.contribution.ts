@@ -11,7 +11,7 @@
  *  called, what it says when it asks for trust, and which of this build's theme artifacts the
  *  look wears. Both are thin, and neither is a switch.
  *
- *  IT IMPORTS TWO LEAVES OF THE KIT and nothing else of it (`vgaiProduct.ts`'s header says
+ *  IT IMPORTS TWO LEAVES OF THE KIT and nothing else of it (`volterProduct.ts`'s header says
  *  why): importing the kit's contribution would evaluate it before this file registers, and
  *  the kit reads its product at load.
  *--------------------------------------------------------------------------------------------*/
@@ -36,8 +36,8 @@ import { IEditorService, SIDE_GROUP } from '../../../services/editor/common/edit
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
-import { registerViewBackground } from '../../vgai/browser/vgaiColors.js';
-import { registerVgaiProduct, type VgaiProductCover, type VgaiProductCoverContext, type VgaiProductMountContext } from '../../vgai/browser/vgaiProduct.js';
+import { registerViewBackground } from '../../volter/browser/volterColors.js';
+import { registerVolterProduct, type VolterProductCover, type VolterProductCoverContext, type VolterProductMountContext } from '../../volter/browser/volterProduct.js';
 
 // BLENDER'S OWN UI FONT (Inter, OFL), lifted from the Blender payload's datafiles/fonts. It is
 // loaded through `FileAccess.asBrowserUri` off the APP ROOT, which is what makes the look
@@ -47,7 +47,7 @@ import { registerVgaiProduct, type VgaiProductCover, type VgaiProductCoverContex
 // which is what keeps this literal and the build's resource glob from drifting apart.
 (() => {
 	const style = mainWindow.document.createElement('style');
-	style.textContent = `@font-face { font-family: 'Inter'; src: url(${FileAccess.asBrowserUri('vs/workbench/contrib/vgaiProduct/browser/media/Inter.woff2').toString(true)}) format('woff2'); font-weight: 100 900; }`;
+	style.textContent = `@font-face { font-family: 'Inter'; src: url(${FileAccess.asBrowserUri('vs/workbench/contrib/volterProduct/browser/media/Inter.woff2').toString(true)}) format('woff2'); font-weight: 100 900; }`;
 	mainWindow.document.head.appendChild(style);
 })();
 
@@ -56,22 +56,22 @@ import { registerVgaiProduct, type VgaiProductCover, type VgaiProductCoverContex
  *
  * The colour id and its row are the MODEL EDITOR's, because both halves are: the utility is
  * `@volter/editor-blender`'s node editor and the value is `theme-blender`'s traced `TH_BACK`. The kit
- * keeps the generic `vgai.view.background` that every other view resolves to. The default is
- * null for the reason `vgaiColors.ts` states: a default of `#1a1a1a` would make an unthemed
+ * keeps the generic `volter.view.background` that every other view resolves to. The default is
+ * null for the reason `volterColors.ts` states: a default of `#1a1a1a` would make an unthemed
  * workbench wear a Blender value under a different name.
  */
-const vgaiNodeEditorBackground = registerColor('vgai.nodeEditor.background',
+const volterNodeEditorBackground = registerColor('volter.nodeEditor.background',
 	{ dark: null, light: null, hcDark: null, hcLight: null },
-	localize('vgaiNodeEditorBackground', "The node editor's canvas backdrop. Blender's Shader Editor fills its area with TH_BACK (#1a1a1a) inside a #303030 panel, which is why this view does not read as a panel."));
-registerViewBackground('blender-node-editor', vgaiNodeEditorBackground);
+	localize('volterNodeEditorBackground', "The node editor's canvas backdrop. Blender's Shader Editor fills its area with TH_BACK (#1a1a1a) inside a #303030 panel, which is why this view does not read as a panel."));
+registerViewBackground('blender-node-editor', volterNodeEditorBackground);
 
 /** What this product reads off the mount — the kit installs its own doors and hands the whole
  *  object over. `activeSource()`'s `path` is PROJECT-RELATIVE and may be empty, which is the
  *  honest answer for a document that is not a file on disk.
  *
- *  It is a MIRROR of the kit's `VgaiDocumentsBridge` and not an import of it, the same way the
+ *  It is a MIRROR of the kit's `VolterDocumentsBridge` and not an import of it, the same way the
  *  game editor mirrors its own half: a product declares the shape it expects
- *  (`vgaiProduct.ts`'s header), and a door this build's kit does not have reads as missing
+ *  (`volterProduct.ts`'s header), and a door this build's kit does not have reads as missing
  *  rather than as a crash. */
 interface DocumentsSource {
 	activeSource(): { readonly kind: string; readonly path: string } | null;
@@ -125,13 +125,13 @@ const MODEL_OPEN_BUDGET_MS = 90_000;
  *  the cover it drew. Set by `cover`, cleared by the handle's `dispose`. */
 let splash: { say(text: string): void } | undefined;
 
-registerVgaiProduct({
+registerVolterProduct({
 	id: 'model-editor',
 	layout: {
 		sidebarWidth: 255,
 		containers: [
 			{
-				id: 'workbench.view.vgai',
+				id: 'workbench.view.volter',
 				title: 'Model',
 				location: 'sidebar',
 				views: [
@@ -141,22 +141,22 @@ registerVgaiProduct({
 			},
 		],
 	},
-	title: localize('vgaiModelTitle', "Volter Model Editor"),
+	title: localize('volterModelTitle', "Volter Model Editor"),
 	// The workbench's own trust prompt, in this product's words: what actually runs when the
 	// folder is trusted is this project's contributions, its dev server and Blender itself in
 	// the tab's worker. A model editor has no game, which is what the one shared sentence used
 	// to claim for both products.
-	trustSentence: localize('vgaiModelTrustRequest', "Volter Model Editor runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
+	trustSentence: localize('volterModelTrustRequest', "Volter Model Editor runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
 	// THIS PRODUCT'S OWN SPLASH (F4). The kit owns the cover's mechanism — when it goes up,
 	// that it comes away whole, what a refusal looks like; this is the picture inside it, in
 	// Blender's own palette and this product's own words, drawn with no image to fetch so the
 	// first painted frame is already this.
-	cover(host: HTMLElement, context: VgaiProductCoverContext): VgaiProductCover {
-		const root = $('.vgai-model-cover');
+	cover(host: HTMLElement, context: VolterProductCoverContext): VolterProductCover {
+		const root = $('.volter-model-cover');
 		// THE MARK: Blender's three viewport axes, built as ELEMENTS. Not `innerHTML` — the
 		// page carries a Trusted Types policy and the workbench's own code never assigns
 		// markup — and not a file either, because an image to fetch is a frame to wait for.
-		const axes = $.SVG<SVGElement>('svg', { class: 'vgai-model-cover-mark', viewBox: '0 0 48 48', 'aria-hidden': 'true' });
+		const axes = $.SVG<SVGElement>('svg', { class: 'volter-model-cover-mark', viewBox: '0 0 48 48', 'aria-hidden': 'true' });
 		const group = $.SVG<SVGElement>('g', { fill: 'none', 'stroke-width': '3', 'stroke-linecap': 'round' });
 		// `viewport.axisX` / `axisY` and the Z blue Blender uses in the same gizmo.
 		group.append(
@@ -165,13 +165,13 @@ registerVgaiProduct({
 			$.SVG<SVGElement>('path', { d: 'M24 28 L24 10', stroke: '#4772b3' }),
 		);
 		axes.append(group, $.SVG<SVGElement>('circle', { cx: '24', cy: '28', r: '3.2', fill: '#e6e6e6' }));
-		const title = $('.vgai-model-cover-title');
-		title.textContent = localize('vgaiModelCoverTitle', "Model");
-		const folder = $('.vgai-model-cover-folder');
+		const title = $('.volter-model-cover-title');
+		title.textContent = localize('volterModelCoverTitle', "Model");
+		const folder = $('.volter-model-cover-folder');
 		folder.textContent = context.folderName;
-		const state = $('.vgai-model-cover-state');
-		state.textContent = localize('vgaiModelCoverStarting', "Starting Blender…");
-		root.append(axes, title, folder, $('.vgai-model-cover-rail'), state);
+		const state = $('.volter-model-cover-state');
+		state.textContent = localize('volterModelCoverStarting', "Starting Blender…");
+		root.append(axes, title, folder, $('.volter-model-cover-rail'), state);
 		host.appendChild(root);
 		splash = { say: (text: string) => { state.textContent = text; } };
 		return {
@@ -182,11 +182,11 @@ registerVgaiProduct({
 		};
 	},
 	// WHEN THIS PRODUCT IS OPEN: when its Model document is registered, active and drawn.
-	// `mountVgai` resolving is the EDITOR being assembled, and on this product that is about
+	// `mountVolter` resolving is the EDITOR being assembled, and on this product that is about
 	// twelve seconds before there is a model to look at — the editor's own "No document open
 	// yet (0 registered)" is what a person watched in that window. So the cover stays up over
 	// it, narrating, and lifts onto the model itself.
-	async ready(context: VgaiProductMountContext): Promise<void> {
+	async ready(context: VolterProductMountContext): Promise<void> {
 		const registry = context.mount['documents'] as DocumentsSource | undefined;
 		// A BRIDGE WITHOUT THE DOOR IS A MISSING DOOR, never a crash and never a wait that
 		// cannot end: with nothing to watch, the mount resolving IS the answer, which is what
@@ -194,7 +194,7 @@ registerVgaiProduct({
 		if (!registry?.subscribe || !registry.list || !registry.activeId) { return; }
 		const open = (): boolean => openDocument(registry);
 		if (!open()) {
-			splash?.say(localize('vgaiModelCoverWaiting', "Opening the first model…"));
+			splash?.say(localize('volterModelCoverWaiting', "Opening the first model…"));
 			await new Promise<void>((resolve, reject) => {
 				let unsubscribe: (() => void) | undefined;
 				let timer: number | undefined;
@@ -208,7 +208,7 @@ registerVgaiProduct({
 				};
 				timer = mainWindow.setTimeout(() => {
 					stop();
-					reject(new Error(localize('vgaiModelCoverTimedOut', "Blender did not open a model within {0}s. The engine runs in this tab's worker; the vgai session's console (`volter-editor console`) is where it says why.", Math.round(MODEL_OPEN_BUDGET_MS / 1000))));
+					reject(new Error(localize('volterModelCoverTimedOut', "Blender did not open a model within {0}s. The engine runs in this tab's worker; the volter session's console (`volter-editor console`) is where it says why.", Math.round(MODEL_OPEN_BUDGET_MS / 1000))));
 				}, MODEL_OPEN_BUDGET_MS);
 				unsubscribe = registry.subscribe?.(() => { if (open()) { stop(); resolve(); } });
 				// One more read after subscribing: the document can land between the check
@@ -219,16 +219,16 @@ registerVgaiProduct({
 		// DRAWN, not merely registered. The pane paints the active document on the frame after
 		// the registry names it, so the cover comes off one frame later — otherwise it lifts
 		// onto the empty pane it was covering and the person sees the gap anyway.
-		splash?.say(localize('vgaiModelCoverDrawing', "Drawing…"));
+		splash?.say(localize('volterModelCoverDrawing', "Drawing…"));
 		await new Promise<void>((resolve) => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
 	},
-	mount(context: VgaiProductMountContext): void {
+	mount(context: VolterProductMountContext): void {
 		documents = context.mount['documents'] as DocumentsSource | undefined;
 		context.store.add({ dispose: () => { documents = undefined; } });
 	},
 });
 
-// ---- Native VS Code beside the vgai panels: the Explorer on the opposite side bar, and the
+// ---- Native VS Code beside the volter panels: the Explorer on the opposite side bar, and the
 // active model's SOURCE in VS Code's own text editor, split next to the Model document.
 //
 // IT IS THE MODEL EDITOR'S, not the kit's: what it opens is the `<name>.py` beside a
@@ -236,7 +236,7 @@ registerVgaiProduct({
 // star). A product editing something else has a different sibling or none.
 registerAction2(class extends Action2 {
 	constructor() {
-		super({ id: 'vgai.model.openSourceBeside', title: localize2('vgaiOpenSource', "Volter Editor: Show Explorer and Open Model Source Beside"), category: Categories.View, f1: true });
+		super({ id: 'volter.model.openSourceBeside', title: localize2('volterOpenSource', "Volter Editor: Show Explorer and Open Model Source Beside"), category: Categories.View, f1: true });
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const layoutService = accessor.get(IWorkbenchLayoutService);
@@ -252,7 +252,7 @@ registerAction2(class extends Action2 {
 		for (const id of ['workbench.view.explorer', 'workbench.view.scm']) {
 			const container = viewDescriptorService.getViewContainerById(id);
 			if (container && viewDescriptorService.getViewContainerLocation(container) !== ViewContainerLocation.AuxiliaryBar) {
-				viewDescriptorService.moveViewContainerToLocation(container, ViewContainerLocation.AuxiliaryBar, undefined, 'vgai');
+				viewDescriptorService.moveViewContainerToLocation(container, ViewContainerLocation.AuxiliaryBar, undefined, 'volter');
 			}
 		}
 		layoutService.setPartHidden(false, Parts.AUXILIARYBAR_PART);
@@ -277,17 +277,17 @@ registerAction2(class extends Action2 {
 		const files = accessor.get(IFileService);
 		const active = documents?.activeSource() ?? null;
 		if (!folder) {
-			notifications.warn(localize('vgaiNoFolder', "No folder is open, so there is no model source to open. Open the project folder first."));
+			notifications.warn(localize('volterNoFolder', "No folder is open, so there is no model source to open. Open the project folder first."));
 			return;
 		}
 		if (!active) {
-			notifications.warn(localize('vgaiNoModelOpen', "No document is open in the Volter Editor, so this command has no source to show. Run \"Volter Editor: Open Workspace\" and open a model first."));
+			notifications.warn(localize('volterNoModelOpen', "No document is open in the Volter Editor, so this command has no source to show. Run \"Volter Editor: Open Workspace\" and open a model first."));
 			return;
 		}
 		if (active.path === '') {
 			// Naming the KIND is the difference between a refusal and a shrug: the reader
 			// learns that a document IS open and that it is not one with a file behind it.
-			notifications.warn(localize('vgaiNotAModel', "The active vgai document is a \"{0}\", which is not a file on disk, so there is no source to open beside it. Open a model first.", active.kind));
+			notifications.warn(localize('volterNotAModel', "The active volter document is a \"{0}\", which is not a file on disk, so there is no source to open beside it. Open a model first.", active.kind));
 			return;
 		}
 		const model = joinPath(folder, active.path);
@@ -298,6 +298,6 @@ registerAction2(class extends Action2 {
 		}
 		// No bpy beside it — show where the model lives instead of opening its bytes.
 		await commands.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, model);
-		notifications.info(localize('vgaiNoModelScript', "{0} has no bpy script beside it ({1}), so the Explorer is showing the model's folder instead.", basename(model), basename(script)));
+		notifications.info(localize('volterNoModelScript', "{0} has no bpy script beside it ({1}), so the Explorer is showing the model's folder instead.", basename(model), basename(script)));
 	}
 });

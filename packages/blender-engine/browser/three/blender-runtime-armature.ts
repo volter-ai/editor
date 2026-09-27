@@ -240,7 +240,7 @@ const BONE_SOLID_VERTEX = /* glsl */ `
  * ONLY THE `_fragment` HALF: three PREPENDS `colorspace_pars_fragment` to every
  * `ShaderMaterial` already, so including it here declared `LinearTransferOETF`,
  * `sRGBTransferEOTF` and `sRGBTransferOETF` twice and the whole program refused
- * to compile ("function already has a body", measured live in `vgai console`).
+ * to compile ("function already has a body", measured live in `volter console`).
  */
 const BONE_SOLID_FRAGMENT = /* glsl */ `
   varying vec3 vColor;

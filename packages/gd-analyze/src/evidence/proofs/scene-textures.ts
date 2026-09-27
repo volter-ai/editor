@@ -223,7 +223,7 @@ export async function measureSceneTexturesProof(tools: GodotProofTools): Promise
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_TEXTURE_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-textures-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-textures-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

@@ -746,7 +746,7 @@ export function StoryDocsDocumentContent({ documentId }: WorkspaceDocumentConten
     <article
       data-testid="story-docs-document"
       // §2.31 P2 amendment: docs prose reads over a local frost layer.
-      className="vgai-content-frost"
+      className="volter-content-frost"
       style={{
         // §2.31: no root fill — the dock document surface shows through.
         flex: 1,
@@ -975,7 +975,7 @@ function ArgRow({ id, name, value }: { id: string; name: string; value: unknown 
       </span>
       {typeof value === 'boolean' ? (
         <Checkbox
-          className="vgai-checkbox"
+          className="volter-checkbox"
           data-testid={`story-arg-${name}`}
           checked={value}
           onChange={(e) => setStoryArgOverride(id, name, e.target.checked)}
@@ -983,7 +983,7 @@ function ArgRow({ id, name, value }: { id: string; name: string; value: unknown 
       ) : typeof value === 'number' ? (
         <TextInput
           type="number"
-          className="vgai-input"
+          className="volter-input"
           data-testid={`story-arg-${name}`}
           value={value}
           onChange={(e) => {
@@ -1002,7 +1002,7 @@ function ArgRow({ id, name, value }: { id: string; name: string; value: unknown 
       ) : typeof value === 'string' ? (
         <TextInput
           type="text"
-          className="vgai-input"
+          className="volter-input"
           data-testid={`story-arg-${name}`}
           value={value}
           onChange={(e) => setStoryArgOverride(id, name, e.target.value)}

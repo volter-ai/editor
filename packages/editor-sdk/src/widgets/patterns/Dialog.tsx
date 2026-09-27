@@ -42,12 +42,12 @@ export function Dialog({
   // any child input right after a consumer's mount-time autofocus ran. That is
   // exactly why Ctrl+K opened the Command Palette with its search box unfocused
   // (focus fell to <body>), so typed text and Enter went nowhere and no
-  // document opened. The editor mounts a single `.vgai-editor-theme` root at
+  // document opened. The editor mounts a single `.volter-editor-theme` root at
   // app init, long before any Dialog opens, so a plain `document.querySelector`
   // finds it on render 1 — the scrim portals from the start, the input mounts
   // once, and focus is preserved.
   const [portalRoot] = useState<Element | null>(() =>
-    typeof document === 'undefined' ? null : document.querySelector('.vgai-editor-theme'),
+    typeof document === 'undefined' ? null : document.querySelector('.volter-editor-theme'),
   );
 
   // The portal records where it came from, as `ThemeRootPortal`'s does: the anchor stays in the
@@ -55,8 +55,8 @@ export function Dialog({
   const portalId = useId();
   const scrim = (
     <div
-      data-vgai-portal-content={portalRoot ? portalId : undefined}
-      className="vgai-dialog-scrim"
+      data-volter-portal-content={portalRoot ? portalId : undefined}
+      className="volter-dialog-scrim"
       data-variant={variant}
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) onDismiss?.();
@@ -69,14 +69,14 @@ export function Dialog({
         aria-labelledby={labelledBy}
         data-size={size}
         data-variant={variant}
-        className={classes('vgai-dialog', className)}
+        className={classes('volter-dialog', className)}
       />
     </div>
   );
 
   return portalRoot ? (
     <>
-      <span data-vgai-portal={portalId} style={{ display: 'none' }} />
+      <span data-volter-portal={portalId} style={{ display: 'none' }} />
       {createPortal(scrim, portalRoot)}
     </>
   ) : (
@@ -94,7 +94,7 @@ export function DialogHeader({
   description?: ReactNode;
 }) {
   return (
-    <Stack className="vgai-dialog-header" gap={2}>
+    <Stack className="volter-dialog-header" gap={2}>
       <Text id={titleId} as="h2" variant="heading">
         {title}
       </Text>
@@ -108,19 +108,19 @@ export function DialogHeader({
 }
 
 export function DialogBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <Stack {...props} className={classes('vgai-dialog-body', className)} />;
+  return <Stack {...props} className={classes('volter-dialog-body', className)} />;
 }
 
 export function DialogFooter({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <Actions {...props} className={classes('vgai-dialog-footer', className)}>
+    <Actions {...props} className={classes('volter-dialog-footer', className)}>
       {children}
     </Actions>
   );
 }
 
 export function DialogField({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label {...props} className={classes('vgai-dialog-field', className)} />;
+  return <label {...props} className={classes('volter-dialog-field', className)} />;
 }
 
 export function DialogFieldLabel({ children }: { children: ReactNode }) {
@@ -132,9 +132,9 @@ export function DialogFieldLabel({ children }: { children: ReactNode }) {
 }
 
 export function JoinedField({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <Inline {...props} className={classes('vgai-joined-field', className)} />;
+  return <Inline {...props} className={classes('volter-joined-field', className)} />;
 }
 
 export function JoinedFieldSuffix({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
-  return <span {...props} className={classes('vgai-joined-field-suffix', className)} />;
+  return <span {...props} className={classes('volter-joined-field-suffix', className)} />;
 }

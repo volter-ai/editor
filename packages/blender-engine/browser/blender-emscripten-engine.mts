@@ -193,9 +193,9 @@ export async function startEmscriptenBlenderEngine(
   // editor's console door is for conditions somebody must resolve, so only the
   // session's OWN named conditions go there.
   const say = (_level: 'log' | 'error', text: string) => {
-    if (text.startsWith('@@VGAI-READY ')) readyLine = text.slice('@@VGAI-READY '.length);
+    if (text.startsWith('@@VOLTER-READY ')) readyLine = text.slice('@@VOLTER-READY '.length);
     options.log(
-      text.startsWith('@@VGAI-WARN') || text.startsWith('@@VGAI-ERROR') ? 'error' : 'log',
+      text.startsWith('@@VOLTER-WARN') || text.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
       text,
     );
   };

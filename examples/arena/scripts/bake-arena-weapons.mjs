@@ -2,18 +2,18 @@
  * Bake the arena weapon family through the editor session's Blender.
  *
  *   npm run bake:weapons                    # all three, into public/models/generated/
- *   npm run bake:weapons -- --dry           # into .vgai/tmp/ instead, unrecorded
+ *   npm run bake:weapons -- --dry           # into .volter/tmp/ instead, unrecorded
  *   npm run bake:weapons -- arena-pistol    # one of them
  *   npm run bake:weapons -- --document      # also save src/models/arena-weapons.blend
  *
  * WHY A SCRIPT AND NOT A REGISTERED TOOL. The kit's source is
  * `src/assets/arena-weapons.py` — Blender Python — and the only thing that can
  * run it is the Blender the editor session holds. The door onto that session
- * is the `blender` MCP server (`vgai blender-mcp`), whose `execute_blender_code`
+ * is the `blender` MCP server (`volter blender-mcp`), whose `execute_blender_code`
  * tool runs a script AND mirrors whatever it wrote into the project. A file
  * that lands under `public/` is POSTed to the session's
  * `/__editor/blender-output`, which commits the bytes and the
- * `.vgai/provenance.json` entry as one transaction — so the recording door is
+ * `.volter/provenance.json` entry as one transaction — so the recording door is
  * the transport, and a second project-side tool in front of it would only be
  * a tool that shells this one. A `.blend` is mirrored with a plain write and
  * deliberately not recorded: the ledger is about what the project SHIPS.
@@ -65,9 +65,9 @@ for (const asset of assets) {
   if (!ASSETS.includes(asset)) throw new Error(`Unknown asset '${asset}'. One of: ${ASSETS}`);
 }
 
-const vgai = (argv, options = {}) =>
+const volter = (argv, options = {}) =>
   new Promise((done) => {
-    const child = spawn('npm', ['run', '--silent', 'vgai', '--', ...argv], {
+    const child = spawn('npm', ['run', '--silent', 'volter', '--', ...argv], {
       cwd: project,
       stdio: options.inherit === true ? 'inherit' : ['ignore', 'pipe', 'pipe'],
       ...options.spawn,
@@ -78,14 +78,14 @@ const vgai = (argv, options = {}) =>
     child.on('exit', (code) => done({ code, out }));
   });
 
-// Reuse-or-start. `vgai sessions` names the projects that are live; anything
+// Reuse-or-start. `volter sessions` names the projects that are live; anything
 // else is this script's to start and this script's to close.
-const listed = await vgai(['sessions']);
+const listed = await volter(['sessions']);
 const alreadyLive = listed.out.includes(project);
 let started = false;
 if (!alreadyLive) {
   console.log('no live session for this project — starting one');
-  const child = spawn('npm', ['run', '--silent', 'vgai', '--', 'edit', '.'], {
+  const child = spawn('npm', ['run', '--silent', 'volter', '--', 'edit', '.'], {
     cwd: project,
     stdio: 'ignore',
     detached: true,
@@ -94,14 +94,14 @@ if (!alreadyLive) {
   started = true;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     await new Promise((done) => setTimeout(done, 1000));
-    const again = await vgai(['sessions']);
+    const again = await volter(['sessions']);
     if (again.out.includes(project)) break;
   }
 }
 
 const transport = new StdioClientTransport({
   command: 'npm',
-  args: ['run', '--silent', 'vgai', '--', 'blender-mcp'],
+  args: ['run', '--silent', 'volter', '--', 'blender-mcp'],
   cwd: project,
   stderr: 'inherit',
 });
@@ -138,6 +138,6 @@ if (withDocument) await run('document', `document(dry_run=${dryRun ? 'True' : 'F
 await client.close();
 if (started) {
   console.log('closing the session this bake started');
-  await vgai(['close'], { inherit: true });
+  await volter(['close'], { inherit: true });
 }
 process.exit(failed > 0 ? 1 : 0);

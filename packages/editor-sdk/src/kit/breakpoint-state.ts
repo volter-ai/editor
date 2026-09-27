@@ -18,22 +18,22 @@
 // the breakpoint), so module-local state is not a singleton here. One global
 // slot is.
 interface BreakpointGlobal {
-  __vgaiActiveBreakpoint?: string | null;
-  __vgaiBreakpointListeners?: Set<() => void>;
+  __volterActiveBreakpoint?: string | null;
+  __volterBreakpointListeners?: Set<() => void>;
 }
 const g = globalThis as BreakpointGlobal;
 
 function listeners(): Set<() => void> {
-  g.__vgaiBreakpointListeners ??= new Set();
-  return g.__vgaiBreakpointListeners;
+  g.__volterBreakpointListeners ??= new Set();
+  return g.__volterBreakpointListeners;
 }
 
 export function activeBreakpoint(): string | null {
-  return g.__vgaiActiveBreakpoint ?? null;
+  return g.__volterActiveBreakpoint ?? null;
 }
 
 export function setActiveBreakpoint(media: string | null): void {
-  g.__vgaiActiveBreakpoint = media;
+  g.__volterActiveBreakpoint = media;
   for (const listener of listeners()) listener();
 }
 

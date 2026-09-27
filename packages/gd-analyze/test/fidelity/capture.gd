@@ -151,7 +151,7 @@ func _physics_process(_delta: float) -> bool:
 
 func _finish() -> void:
 	var trace := {
-		"schema": "vgai-fidelity-ground-truth@1",
+		"schema": "volter-fidelity-ground-truth@1",
 		"engine": "Godot %s" % Engine.get_version_info()["string"],
 		"script": {"seed": DRIVE_SEED, "settleTicks": SETTLE_TICKS, "holdTicks": HOLD_TICKS, "steps": _steps},
 		"samples": _samples,

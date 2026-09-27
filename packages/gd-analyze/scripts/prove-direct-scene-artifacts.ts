@@ -52,7 +52,7 @@ position = Vector3(-4, 5.5, 6)
 `;
 
 const exporterBinary = argument('--exporter-binary');
-const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-direct-scene-artifacts-'));
+const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-direct-scene-artifacts-'));
 try {
   writeFileSync(path.join(temp, 'project.godot'), projectSource);
   writeFileSync(path.join(temp, 'main.tscn'), sceneSource);

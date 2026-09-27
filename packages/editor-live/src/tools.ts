@@ -15,7 +15,7 @@ export class LiveTools {
     this.#client = client;
   }
 
-  /** Enumerate the exact `package.json#vgai.tools` catalog without executing it. */
+  /** Enumerate the exact `package.json#volter.tools` catalog without executing it. */
   async list(): Promise<ProjectToolCatalog> {
     return this.#client.listProjectTools();
   }

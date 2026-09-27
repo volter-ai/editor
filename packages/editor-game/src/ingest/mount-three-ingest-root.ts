@@ -80,7 +80,7 @@ function captureMechanism(via: CaptureMechanism | null): string {
 
 /**
  * Publish a captured three ingest to the whole editor: resize lifecycle,
- * hierarchy/inspector adapter, viewport adoption and the `__vgaiIngest`
+ * hierarchy/inspector adapter, viewport adoption and the `__volterIngest`
  * proof hook.
  */
 function activateCapturedThreeIngest(args: {
@@ -143,7 +143,7 @@ function activateCapturedThreeIngest(args: {
   // physics/input/animation/etc.) → those are correctly N/A while ingested. Only
   // the asset-path remap (done at mount) is a first-party asset-adapter behavior.
   // The ONE exception is earned, never inferred: a game that DECLARES verbs and
-  // state in its contract (`window.vgaiGame.systems`) gets a `debug` adapter
+  // state in its contract (`window.volterGame.systems`) gets a `debug` adapter
   // projected from those declarations by `mountIngestGame`, so `game.commands()`
   // /`game.state()` reach it through the ordinary bridge. A game that declares
   // nothing still lands here with `{}` and the pre-contract floor stands.
@@ -211,7 +211,7 @@ function activateCapturedThreeIngest(args: {
     ...(import.meta.env.DEV ? { adapter: liveAuthoring, store } : {}),
   };
   defineLoopHookFields(hook, mount);
-  publishIngestHook('__vgaiIngest', hook);
+  publishIngestHook('__volterIngest', hook);
 }
 
 async function mountThreeIngestRootInner(
@@ -314,7 +314,7 @@ async function mountThreeIngestRootInner(
  * {@link mountThreeIngestRootFromManifest} builds the descriptor straight from
  * an arbitrary project's manifest instead (the CLI-on-folder route, for a game
  * folder never registered in source) — both end up here. `sessionId` is the
- * id this session is known by — the `__vgaiIngest` dev-hook's reported
+ * id this session is known by — the `__volterIngest` dev-hook's reported
  * `gameId` and the id every log line names; it is always the world/game id
  * (`game.id`), passed explicitly rather than re-read off `game` so the two
  * callers' "id" concept — a fixture's registry-era id vs. a manifest's world
@@ -350,7 +350,7 @@ export async function mountThreeIngestRootById(
 /**
  * Mount straight from a manifest's `ingest-three` world — the CLI-on-folder
  * route (T3.3 slice 3): a game folder never registered in source, whose
- * `vgai.project.json` declares an ingest-three world. Builds the descriptor via
+ * `volter.project.json` declares an ingest-three world. Builds the descriptor via
  * `resolveIngestDescriptor` (ingest/resolve-three.ts — parameterized by the
  * manifest's ingest fields, no registry lookup) and mounts it exactly like any
  * other {@link IngestGame}. The session is known by the world id — the same

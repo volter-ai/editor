@@ -284,7 +284,7 @@ export interface DownloadOnlineAssetResult {
   provenanceOperationId?: string;
   history?: AppliedAssetImportHistory;
   error?: string;
-  /** The import SUCCEEDED but `.vgai/assets.json` could not be updated (D-AP3).
+  /** The import SUCCEEDED but `.volter/assets.json` could not be updated (D-AP3).
    *  Loud, non-fatal degradation: the bytes are in the project, the provenance
    *  record is not. */
   ledgerError?: string;

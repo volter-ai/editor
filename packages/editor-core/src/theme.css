@@ -1,21 +1,21 @@
-.vgai-editor-theme {
+.volter-editor-theme {
   /* Legacy aliases. New code consumes the semantic variables above. */
-  --vgai-bg-0: var(--vgai-surface-shell);
-  --vgai-bg-1: var(--vgai-surface-panel);
-  --vgai-bg-2: var(--vgai-surface-chrome);
-  --vgai-bg-3: var(--vgai-surface-raised);
-  --vgai-bg-inset: var(--vgai-surface-inset);
+  --volter-bg-0: var(--volter-surface-shell);
+  --volter-bg-1: var(--volter-surface-panel);
+  --volter-bg-2: var(--volter-surface-chrome);
+  --volter-bg-3: var(--volter-surface-raised);
+  --volter-bg-inset: var(--volter-surface-inset);
 
   /* Borders */
-  --vgai-border-1: var(--vgai-boundary-default);
-  --vgai-border-2: var(--vgai-boundary-strong);
+  --volter-border-1: var(--volter-boundary-default);
+  --volter-border-2: var(--volter-boundary-strong);
 
   /* Text */
-  --vgai-text-1: var(--vgai-content-primary);
-  --vgai-text-2: var(--vgai-content-muted);
-  --vgai-text-3: var(--vgai-content-dim);
+  --volter-text-1: var(--volter-content-primary);
+  --volter-text-2: var(--volter-content-muted);
+  --volter-text-3: var(--volter-content-dim);
 
-  /* Interior STICKY surfaces (--vgai-surface-sticky/-panel and their
+  /* Interior STICKY surfaces (--volter-surface-sticky/-panel and their
    * -backdrop-filter): emitted per-theme by editorThemeVariables() in
    * theme.ts since §2.31 P2 — treatment themes use the translucent token +
    * a sticky blur (soft occlusion), treatment-less themes the opaque
@@ -30,19 +30,19 @@
    * paint (same doctrine as the color guard's visualization allowlist), so
    * they stay literal instead of remapping through accent/semantic slots;
    * both shipped editor themes are dark, and these mid-tone values read on
-   * each. Named --vgai-* so the migration guard's dangling-variable check
+   * each. Named --volter-* so the migration guard's dangling-variable check
    * owns them: the previous --asset-* spelling was silently deleted in a
    * refactor and every glyph went invisible. */
-  --vgai-asset-icon-folder: #e8a740;
-  --vgai-asset-icon-model: #6bc5f7;
-  --vgai-asset-icon-prefab: #3b82f6;
-  --vgai-asset-icon-component: #9ca3af;
-  --vgai-asset-icon-audio: #34d399;
-  --vgai-asset-icon-image: #f472b6;
-  --vgai-asset-icon-video: #c084fc;
-  --vgai-asset-icon-json: #fbbf24;
-  --vgai-asset-icon-unknown: #6b7280;
-  --vgai-asset-icon-source: #fb923c;
+  --volter-asset-icon-folder: #e8a740;
+  --volter-asset-icon-model: #6bc5f7;
+  --volter-asset-icon-prefab: #3b82f6;
+  --volter-asset-icon-component: #9ca3af;
+  --volter-asset-icon-audio: #34d399;
+  --volter-asset-icon-image: #f472b6;
+  --volter-asset-icon-video: #c084fc;
+  --volter-asset-icon-json: #fbbf24;
+  --volter-asset-icon-unknown: #6b7280;
+  --volter-asset-icon-source: #fb923c;
 
   /* Content-legibility text shadow (liquid glass, report §2.32): themes with
    * a `textShadowOpacity` treatment axis emit a real shadow via this var;
@@ -50,7 +50,7 @@
    * for them. Near-white text + a concentrated local shadow keeps chrome legible
    * when the surface itself is only a ≤15% white whisper over live scene
    * content. */
-  text-shadow: var(--vgai-content-text-shadow, none);
+  text-shadow: var(--volter-content-text-shadow, none);
 
   /* THE BASELINE. Every descendant inherits the product's type from here and
    * declares only what differs. Before this, the root minted the tokens but
@@ -59,10 +59,10 @@
    * the command palette). Declared here rather than inherited from <body>: a
    * game's own `body { font }` rule shares this document, and a declared
    * value on the root is what keeps it out of editor chrome. */
-  font-family: var(--vgai-font-sans);
-  font-size: var(--vgai-font-base);
-  line-height: var(--vgai-leading-normal);
-  color: var(--vgai-content-primary);
+  font-family: var(--volter-font-sans);
+  font-size: var(--volter-font-base);
+  line-height: var(--volter-leading-normal);
+  color: var(--volter-content-primary);
 }
 
 /* Content-zone frost (§2.31 P2 owner amendment): text-dense interior zones
@@ -74,72 +74,72 @@
  * The parent card's refraction url() filter makes the card a backdrop root,
  * so this blur samples the already-refracted backdrop — frost over the
  * lensed scene, the intended composite. */
-.vgai-content-frost {
-  background: var(--vgai-content-frost-bg, transparent);
-  backdrop-filter: var(--vgai-content-frost-filter, none);
-  -webkit-backdrop-filter: var(--vgai-content-frost-filter, none);
-  border-radius: var(--vgai-radius-md);
+.volter-content-frost {
+  background: var(--volter-content-frost-bg, transparent);
+  backdrop-filter: var(--volter-content-frost-filter, none);
+  -webkit-backdrop-filter: var(--volter-content-frost-filter, none);
+  border-radius: var(--volter-radius-md);
 }
 
 /* Adaptive foreground ink follows measured backdrop luminance. Compact
  * navigation islands expose this as a local appearance flip. Larger Regular
  * surfaces use the same foreground threshold, while retaining a shallow
  * material correction independent of that ink decision. */
-.vgai-editor-theme [data-vgai-adaptive-ink="bright"] {
-  --vgai-backdrop-dim: none;
-  --vgai-content-primary: var(--vgai-content-primary-on-bright);
-  --vgai-content-muted: var(--vgai-content-muted-on-bright);
-  --vgai-content-dim: var(--vgai-content-dim-on-bright);
-  --vgai-content-text-shadow: var(--vgai-content-text-shadow-on-bright);
-  --vgai-content-frost-bg: var(--vgai-content-frost-bg-on-bright);
-  --vgai-island-border-color: color-mix(
+.volter-editor-theme [data-volter-adaptive-ink="bright"] {
+  --volter-backdrop-dim: none;
+  --volter-content-primary: var(--volter-content-primary-on-bright);
+  --volter-content-muted: var(--volter-content-muted-on-bright);
+  --volter-content-dim: var(--volter-content-dim-on-bright);
+  --volter-content-text-shadow: var(--volter-content-text-shadow-on-bright);
+  --volter-content-frost-bg: var(--volter-content-frost-bg-on-bright);
+  --volter-island-border-color: color-mix(
     in srgb,
-    var(--vgai-content-primary-on-bright) 30%,
+    var(--volter-content-primary-on-bright) 30%,
     transparent
   );
-  --vgai-text-1: var(--vgai-content-primary);
-  --vgai-text-2: var(--vgai-content-muted);
-  --vgai-text-3: var(--vgai-content-dim);
-  --dv-activegroup-visiblepanel-tab-color: var(--vgai-content-primary);
-  --dv-activegroup-hiddenpanel-tab-color: var(--vgai-content-muted);
-  --dv-inactivegroup-visiblepanel-tab-color: var(--vgai-content-muted);
-  --dv-inactivegroup-hiddenpanel-tab-color: var(--vgai-content-dim);
-  text-shadow: var(--vgai-content-text-shadow, none);
+  --volter-text-1: var(--volter-content-primary);
+  --volter-text-2: var(--volter-content-muted);
+  --volter-text-3: var(--volter-content-dim);
+  --dv-activegroup-visiblepanel-tab-color: var(--volter-content-primary);
+  --dv-activegroup-hiddenpanel-tab-color: var(--volter-content-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--volter-content-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--volter-content-dim);
+  text-shadow: var(--volter-content-text-shadow, none);
 }
 
 /* Complex authored UI is a deliberately non-adaptive backdrop. Regular
  * panels over it use stable light ink and a strong dark frost rather than
  * chasing local component colors as the interface changes beneath them. */
-.vgai-editor-theme [data-vgai-panel-backdrop-policy="dark-frost"] {
-  --vgai-content-primary: #f4f8ff;
-  --vgai-content-muted: #c3cedd;
-  --vgai-content-dim: #94a2b5;
-  --vgai-content-text-shadow: 0 1px 3px rgb(0 0 0 / 72%);
-  --vgai-text-1: var(--vgai-content-primary);
-  --vgai-text-2: var(--vgai-content-muted);
-  --vgai-text-3: var(--vgai-content-dim);
-  --dv-activegroup-visiblepanel-tab-color: var(--vgai-content-primary);
-  --dv-activegroup-hiddenpanel-tab-color: var(--vgai-content-muted);
-  --dv-inactivegroup-visiblepanel-tab-color: var(--vgai-content-muted);
-  --dv-inactivegroup-hiddenpanel-tab-color: var(--vgai-content-dim);
+.volter-editor-theme [data-volter-panel-backdrop-policy="dark-frost"] {
+  --volter-content-primary: #f4f8ff;
+  --volter-content-muted: #c3cedd;
+  --volter-content-dim: #94a2b5;
+  --volter-content-text-shadow: 0 1px 3px rgb(0 0 0 / 72%);
+  --volter-text-1: var(--volter-content-primary);
+  --volter-text-2: var(--volter-content-muted);
+  --volter-text-3: var(--volter-content-dim);
+  --dv-activegroup-visiblepanel-tab-color: var(--volter-content-primary);
+  --dv-activegroup-hiddenpanel-tab-color: var(--volter-content-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--volter-content-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--volter-content-dim);
 }
 
 /* Native controls otherwise fall back to the browser's unrelated UI font.
  * Keep the reset scoped to the editor shell; component classes and inline
  * styles can still opt into a different size or the monospace stack. */
-.vgai-editor-shell button,
-.vgai-editor-shell input,
-.vgai-editor-shell select,
-.vgai-editor-shell textarea {
+.volter-editor-shell button,
+.volter-editor-shell input,
+.volter-editor-shell select,
+.volter-editor-shell textarea {
   font-family: inherit;
 }
 
-.vgai-editor-shell button {
+.volter-editor-shell button {
   font-size: inherit;
 }
 
 /* Visually hidden content remains available to assistive technology. */
-.vgai-sr-only {
+.volter-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -150,60 +150,60 @@
   border: 0;
 }
 
-.vgai-tooltip-anchor {
+.volter-tooltip-anchor {
   position: relative;
   display: inline-flex;
 }
-.vgai-tooltip {
+.volter-tooltip {
   position: fixed;
-  z-index: var(--vgai-z-dropdown);
+  z-index: var(--volter-z-dropdown);
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-4);
-  padding: var(--vgai-space-2) var(--vgai-space-4);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-inset);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-md);
-  box-shadow: var(--vgai-shadow-sm);
-  font-size: var(--vgai-font-base);
+  gap: var(--volter-space-4);
+  padding: var(--volter-space-2) var(--volter-space-4);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-inset);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-md);
+  box-shadow: var(--volter-shadow-sm);
+  font-size: var(--volter-font-base);
   white-space: nowrap;
   pointer-events: none;
 }
-.vgai-tooltip kbd {
-  padding: 1px var(--vgai-space-3);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-raised);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-sm);
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-sm);
+.volter-tooltip kbd {
+  padding: 1px var(--volter-space-3);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-raised);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-sm);
 }
 /* U6a (P6 glass-native chrome, inventory row "tooltip"): under islands
- * chrome the tooltip is transient overlay chrome like `.vgai-menu` — the
- * self-sufficient Regular material (`--vgai-glass-regular-bg` + its
+ * chrome the tooltip is transient overlay chrome like `.volter-menu` — the
+ * self-sufficient Regular material (`--volter-glass-regular-bg` + its
  * strong frost) statically paired with the `-on-bright` ink ramp, legible
- * over ANY backdrop. Same re-declaration rationale as the `.vgai-menu`
+ * over ANY backdrop. Same re-declaration rationale as the `.volter-menu`
  * block below: descendants inherit the theme root's COMPUTED shadow, so the
  * flipped var needs a fresh `text-shadow` declaration here. Bars chrome
  * (graphite/classic, reduced-transparency/lite) never matches — the dark
  * inset slab above stays byte-identical. The kbd chip re-tints from
  * `currentColor` so it reads on either ink side. */
-[data-vgai-chrome="islands"] .vgai-tooltip {
-  --vgai-content-primary: var(--vgai-content-primary-on-bright);
-  --vgai-content-muted: var(--vgai-content-muted-on-bright);
-  --vgai-content-dim: var(--vgai-content-dim-on-bright);
-  --vgai-content-text-shadow: var(--vgai-content-text-shadow-on-bright);
-  --vgai-text-1: var(--vgai-content-primary);
-  --vgai-text-2: var(--vgai-content-muted);
-  --vgai-text-3: var(--vgai-content-dim);
-  text-shadow: var(--vgai-content-text-shadow, none);
-  background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
-  border-color: var(--vgai-border-1);
-  backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
-  -webkit-backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
+[data-volter-chrome="islands"] .volter-tooltip {
+  --volter-content-primary: var(--volter-content-primary-on-bright);
+  --volter-content-muted: var(--volter-content-muted-on-bright);
+  --volter-content-dim: var(--volter-content-dim-on-bright);
+  --volter-content-text-shadow: var(--volter-content-text-shadow-on-bright);
+  --volter-text-1: var(--volter-content-primary);
+  --volter-text-2: var(--volter-content-muted);
+  --volter-text-3: var(--volter-content-dim);
+  text-shadow: var(--volter-content-text-shadow, none);
+  background: var(--volter-glass-regular-bg, var(--volter-surface-chrome));
+  border-color: var(--volter-border-1);
+  backdrop-filter: var(--volter-glass-regular-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--volter-glass-regular-backdrop-filter, none);
 }
-[data-vgai-chrome="islands"] .vgai-tooltip kbd {
+[data-volter-chrome="islands"] .volter-tooltip kbd {
   color: inherit;
   background: color-mix(in srgb, currentColor 10%, transparent);
   border-color: color-mix(in srgb, currentColor 28%, transparent);
@@ -214,7 +214,7 @@
 /* here.                                                                    */
 /* ---------------------------------------------------------------------- */
 
-.vgai-btn {
+.volter-btn {
   display: inline-flex;
   /* Inline controls should keep their intrinsic size even when authored as
    * direct children of a CSS grid. Grid's default align-items: stretch
@@ -224,64 +224,64 @@
   max-width: 100%;
   align-items: center;
   justify-content: center;
-  gap: var(--vgai-space-2);
-  font-family: var(--vgai-font-sans);
-  font-size: var(--vgai-font-md);
-  line-height: var(--vgai-leading-tight);
-  border-radius: var(--vgai-radius-sm);
+  gap: var(--volter-space-2);
+  font-family: var(--volter-font-sans);
+  font-size: var(--volter-font-md);
+  line-height: var(--volter-leading-tight);
+  border-radius: var(--volter-radius-sm);
   cursor: pointer;
   border: 1px solid transparent;
   box-sizing: border-box;
   transition:
-    background-color 0.12s var(--vgai-ease-standard),
-    border-color 0.12s var(--vgai-ease-standard),
-    color 0.12s var(--vgai-ease-standard),
-    filter 0.12s var(--vgai-ease-standard);
+    background-color 0.12s var(--volter-ease-standard),
+    border-color 0.12s var(--volter-ease-standard),
+    color 0.12s var(--volter-ease-standard),
+    filter 0.12s var(--volter-ease-standard);
 }
 
-.vgai-btn[data-size="compact"] {
-  height: var(--vgai-control-compact-height);
+.volter-btn[data-size="compact"] {
+  height: var(--volter-control-compact-height);
   padding-top: 0;
   padding-bottom: 0;
-  font-size: var(--vgai-font-base);
+  font-size: var(--volter-font-base);
 }
-.vgai-btn:not([data-size]),
-.vgai-btn[data-size="default"] {
-  height: var(--vgai-control-default-height);
+.volter-btn:not([data-size]),
+.volter-btn[data-size="default"] {
+  height: var(--volter-control-default-height);
   padding-top: 0;
   padding-bottom: 0;
-  font-size: var(--vgai-font-base);
+  font-size: var(--volter-font-base);
 }
-.vgai-btn[data-size="comfortable"] {
-  height: var(--vgai-control-comfortable-height);
+.volter-btn[data-size="comfortable"] {
+  height: var(--volter-control-comfortable-height);
   padding-top: 0;
   padding-bottom: 0;
-  font-size: var(--vgai-font-md);
+  font-size: var(--volter-font-md);
 }
 
-.vgai-btn[data-variant="primary"] {
-  background: var(--vgai-accent);
-  color: var(--vgai-content-on-accent);
-  border-color: var(--vgai-accent);
-  padding: var(--vgai-space-3) var(--vgai-space-6);
+.volter-btn[data-variant="primary"] {
+  background: var(--volter-accent);
+  color: var(--volter-content-on-accent);
+  border-color: var(--volter-accent);
+  padding: var(--volter-space-3) var(--volter-space-6);
   font-weight: 600;
 }
-.vgai-btn[data-variant="primary"]:hover:not(:disabled) {
+.volter-btn[data-variant="primary"]:hover:not(:disabled) {
   filter: brightness(1.08);
 }
-.vgai-btn[data-variant="primary"]:active:not(:disabled) {
+.volter-btn[data-variant="primary"]:active:not(:disabled) {
   filter: brightness(0.92);
 }
 
-/* A PUSHBUTTON — Blender's `wcol_regular` widget class. `--vgai-widget-regular`
+/* A PUSHBUTTON — Blender's `wcol_regular` widget class. `--volter-widget-regular`
    resolves to `surface.raised` for any palette that does not name the class,
    which is every palette but Blender's. */
-.vgai-btn:not([data-variant]),
-.vgai-btn[data-variant="secondary"] {
-  background: var(--vgai-widget-regular);
-  color: var(--vgai-content-primary);
-  border-color: var(--vgai-boundary-default);
-  padding-inline: var(--vgai-space-4);
+.volter-btn:not([data-variant]),
+.volter-btn[data-variant="secondary"] {
+  background: var(--volter-widget-regular);
+  color: var(--volter-content-primary);
+  border-color: var(--volter-boundary-default);
+  padding-inline: var(--volter-space-4);
   /* THE EMBOSS — Blender lays a 1 px translucent-black line under EVERY
      widget, below its own outline. One rule, verified on five widget kinds
      (pushbutton, text field, dropdown well, checkbox, list box) in
@@ -289,14 +289,14 @@
      `properties-data-edit.png`; the measurements and the alpha solve live on
      `EditorTheme.color.widget.emboss`. It is a shadow, so it costs no layout
      and a palette that names no emboss resolves the token to `none`. */
-  box-shadow: var(--vgai-widget-emboss-shadow);
+  box-shadow: var(--volter-widget-emboss-shadow);
 }
-.vgai-btn:not([data-variant]):hover:not(:disabled),
-.vgai-btn[data-variant="secondary"]:hover:not(:disabled) {
+.volter-btn:not([data-variant]):hover:not(:disabled),
+.volter-btn[data-variant="secondary"]:hover:not(:disabled) {
   /* Hover LIFTS the widget (Blender lifts a widget by a step); the bar colour it
      used to take sank it below its own resting fill under an opaque skin. */
-  background: var(--vgai-widget-regular-hover);
-  border-color: var(--vgai-boundary-strong);
+  background: var(--volter-widget-regular-hover);
+  border-color: var(--volter-boundary-strong);
 }
 
 /* A MENU BUTTON — Blender's `wcol_menu`, a dark well, not a pushbutton: a
@@ -307,13 +307,13 @@
    a menu or a listbox IS a menu button — so no call site grows a marker
    attribute. Scoped to the two button-shaped variants only: `ghost` menu
    words (the viewport header's View/Select/Add, the app menus' own
-   `.vgai-menu-trigger`) carry no chrome in Blender either, and must not
+   `.volter-menu-trigger`) carry no chrome in Blender either, and must not
    acquire a well here.
 
-   `.vgai-field-trigger` is deliberately NOT in this list: it is a LAYOUT
+   `.volter-field-trigger` is deliberately NOT in this list: it is a LAYOUT
    class (full width, mono, left-aligned) and two of its three users are
    genuine select-like triggers while the third
-   (`@vgai/dom/react-inspector-section.tsx`'s "No gradient — click to add")
+   (`@volter/dom/react-inspector-section.tsx`'s "No gradient — click to add")
    is a plain action that opens nothing. Paint follows what the control DOES,
    which the ARIA already states.
 
@@ -324,127 +324,127 @@
    ARIA and must not be bent to win paint. The one other `dialog` trigger in
    the estate (the conversation tray) is `ghost`, which this rule does not
    reach. */
-.vgai-btn:is(:not([data-variant]), [data-variant="secondary"]):is(
+.volter-btn:is(:not([data-variant]), [data-variant="secondary"]):is(
     [aria-haspopup="menu"],
     [aria-haspopup="listbox"],
     [aria-haspopup="dialog"]
   ) {
-  background: var(--vgai-widget-menu);
+  background: var(--volter-widget-menu);
 }
-.vgai-btn:is(:not([data-variant]), [data-variant="secondary"]):is(
+.volter-btn:is(:not([data-variant]), [data-variant="secondary"]):is(
     [aria-haspopup="menu"],
     [aria-haspopup="listbox"],
     [aria-haspopup="dialog"]
   ):hover:not(:disabled) {
-  background: var(--vgai-widget-menu-hover);
+  background: var(--volter-widget-menu-hover);
 }
-.vgai-btn:not([data-variant]):active:not(:disabled),
-.vgai-btn[data-variant="secondary"]:active:not(:disabled) {
-  background: var(--vgai-surface-inset);
-}
-
-.vgai-btn[data-variant="outline"] {
-  background: transparent;
-  color: var(--vgai-content-primary);
-  border-color: var(--vgai-boundary-default);
-  padding-inline: var(--vgai-space-4);
-}
-.vgai-btn[data-variant="outline"]:hover:not(:disabled) {
-  background: var(--vgai-neutral-hover);
-  border-color: var(--vgai-boundary-strong);
-}
-.vgai-btn[data-variant="outline"]:active:not(:disabled) {
-  background: var(--vgai-neutral-active);
+.volter-btn:not([data-variant]):active:not(:disabled),
+.volter-btn[data-variant="secondary"]:active:not(:disabled) {
+  background: var(--volter-surface-inset);
 }
 
-.vgai-btn[data-variant="ghost"] {
+.volter-btn[data-variant="outline"] {
   background: transparent;
-  color: var(--vgai-content-muted);
+  color: var(--volter-content-primary);
+  border-color: var(--volter-boundary-default);
+  padding-inline: var(--volter-space-4);
+}
+.volter-btn[data-variant="outline"]:hover:not(:disabled) {
+  background: var(--volter-neutral-hover);
+  border-color: var(--volter-boundary-strong);
+}
+.volter-btn[data-variant="outline"]:active:not(:disabled) {
+  background: var(--volter-neutral-active);
+}
+
+.volter-btn[data-variant="ghost"] {
+  background: transparent;
+  color: var(--volter-content-muted);
   border-color: transparent;
-  padding-inline: var(--vgai-space-3);
+  padding-inline: var(--volter-space-3);
 }
-.vgai-btn[data-variant="ghost"]:hover:not(:disabled) {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-neutral-hover);
+.volter-btn[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--volter-content-primary);
+  background: var(--volter-neutral-hover);
 }
-.vgai-btn[data-variant="ghost"]:active:not(:disabled) {
-  background: var(--vgai-neutral-active);
+.volter-btn[data-variant="ghost"]:active:not(:disabled) {
+  background: var(--volter-neutral-active);
 }
 
-.vgai-btn[data-variant="danger"] {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-danger-muted);
-  border-color: var(--vgai-danger);
-  padding-inline: var(--vgai-space-4);
+.volter-btn[data-variant="danger"] {
+  color: var(--volter-content-primary);
+  background: var(--volter-danger-muted);
+  border-color: var(--volter-danger);
+  padding-inline: var(--volter-space-4);
   font-weight: 600;
 }
-.vgai-btn[data-variant="danger"]:hover:not(:disabled) {
+.volter-btn[data-variant="danger"]:hover:not(:disabled) {
   filter: brightness(1.12);
 }
-.vgai-btn[data-variant="danger"]:active:not(:disabled) {
+.volter-btn[data-variant="danger"]:active:not(:disabled) {
   filter: brightness(0.9);
 }
 
-.vgai-btn[data-variant="success"] {
-  color: var(--vgai-content-on-accent);
-  background: var(--vgai-success);
-  border-color: var(--vgai-success);
-  padding-inline: var(--vgai-space-4);
+.volter-btn[data-variant="success"] {
+  color: var(--volter-content-on-accent);
+  background: var(--volter-success);
+  border-color: var(--volter-success);
+  padding-inline: var(--volter-space-4);
   font-weight: 600;
 }
-.vgai-btn[data-variant="success"]:hover:not(:disabled) {
+.volter-btn[data-variant="success"]:hover:not(:disabled) {
   filter: brightness(1.1);
 }
-.vgai-btn[data-variant="success"]:active:not(:disabled) {
+.volter-btn[data-variant="success"]:active:not(:disabled) {
   filter: brightness(0.92);
 }
 
-.vgai-btn[aria-pressed="true"] {
+.volter-btn[aria-pressed="true"] {
   /* The ink PAIRS WITH THE FILL, and the fill differs per skin: white on
      Blender's solid widget blue, the ordinary ink on the translucent accent
      wash every other skin uses. `theme.ts`'s `selectionInkValue` derives it —
      hardcoding on-accent here painted near-black on a dark wash and made a
      pressed toggle unreadable in every skin but Blender. */
-  color: var(--vgai-content-on-selection, var(--vgai-content-primary));
-  background: var(--vgai-selection-bg);
-  border-color: var(--vgai-selection-border);
+  color: var(--volter-content-on-selection, var(--volter-content-primary));
+  background: var(--volter-selection-bg);
+  border-color: var(--volter-selection-border);
 }
-.vgai-btn[aria-busy="true"] {
+.volter-btn[aria-busy="true"] {
   cursor: progress;
 }
 
-.vgai-btn.vgai-sprite-frame-option {
+.volter-btn.volter-sprite-frame-option {
   width: 100%;
   min-width: 0;
   height: 72px;
   flex-direction: column;
-  gap: var(--vgai-space-1);
-  padding: var(--vgai-space-1);
-  background: var(--vgai-surface-inset);
-  border-color: var(--vgai-boundary-default);
+  gap: var(--volter-space-1);
+  padding: var(--volter-space-1);
+  background: var(--volter-surface-inset);
+  border-color: var(--volter-boundary-default);
 }
 
-.vgai-btn.vgai-sprite-frame-option[aria-pressed="true"] {
-  background: var(--vgai-selection-bg);
-  border-color: var(--vgai-selection-border);
+.volter-btn.volter-sprite-frame-option[aria-pressed="true"] {
+  background: var(--volter-selection-bg);
+  border-color: var(--volter-selection-border);
 }
 
-.vgai-btn[data-icon="true"] {
-  width: var(--vgai-control-default-height);
+.volter-btn[data-icon="true"] {
+  width: var(--volter-control-default-height);
   padding: 0;
 }
-.vgai-btn[data-icon="true"][data-size="compact"] {
-  width: var(--vgai-control-compact-height);
+.volter-btn[data-icon="true"][data-size="compact"] {
+  width: var(--volter-control-compact-height);
 }
-.vgai-btn[data-icon="true"][data-size="comfortable"] {
-  width: var(--vgai-control-comfortable-height);
+.volter-btn[data-icon="true"][data-size="comfortable"] {
+  width: var(--volter-control-comfortable-height);
 }
 
 /* A labelled icon button is the same canonical toolbar control with a
    vertical content arrangement. Toolbars choose whether its pressed state is
    independent or part of one exclusive selection; product surfaces don't
    author their own icon/label metrics. */
-.vgai-btn[data-icon="true"][data-label-placement="below"] {
+.volter-btn[data-icon="true"][data-label-placement="below"] {
   width: 68px;
   min-width: 68px;
   height: 42px;
@@ -452,100 +452,100 @@
   gap: 3px;
   padding: 4px 8px 3px;
 }
-.vgai-icon-button-label {
+.volter-icon-button-label {
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  font-size: var(--vgai-font-xs);
-  line-height: var(--vgai-leading-tight);
+  font-size: var(--volter-font-xs);
+  line-height: var(--volter-leading-tight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.vgai-btn:disabled,
-.vgai-btn[aria-disabled="true"] {
+.volter-btn:disabled,
+.volter-btn[aria-disabled="true"] {
   opacity: 0.4;
   cursor: not-allowed;
   filter: none;
 }
 
-.vgai-btn:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-btn:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: 1px;
 }
 
-.vgai-machine-list-entry {
+.volter-machine-list-entry {
   display: block;
   width: 100%;
   height: auto;
   justify-content: flex-start;
-  border-left: var(--vgai-stroke-active) solid transparent;
-  padding: var(--vgai-space-3) var(--vgai-space-4);
+  border-left: var(--volter-stroke-active) solid transparent;
+  padding: var(--volter-space-3) var(--volter-space-4);
   text-align: left;
 }
 /* Selected rows are a thin state overlay on the panel's one content floor,
    never another blur-bearing layer. */
-.vgai-machine-list-entry[data-selected="true"] {
-  border-left-color: var(--vgai-selection-indicator);
-  background: var(--vgai-selection-bg);
+.volter-machine-list-entry[data-selected="true"] {
+  border-left-color: var(--volter-selection-indicator);
+  background: var(--volter-selection-bg);
 }
-.vgai-performance-overlay {
+.volter-performance-overlay {
   pointer-events: auto;
   display: grid;
   grid-template-columns: repeat(5, auto);
   width: auto;
   height: auto;
-  gap: var(--vgai-space-5);
-  border-color: var(--vgai-boundary-default);
-  background: var(--vgai-surface-overlay);
-  color: var(--vgai-content-primary);
-  padding: var(--vgai-space-3) var(--vgai-space-4);
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-sm);
+  gap: var(--volter-space-5);
+  border-color: var(--volter-boundary-default);
+  background: var(--volter-surface-overlay);
+  color: var(--volter-content-primary);
+  padding: var(--volter-space-3) var(--volter-space-4);
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-sm);
 }
-.vgai-performance-overlay[data-enabled="true"] {
-  border-color: var(--vgai-accent);
+.volter-performance-overlay[data-enabled="true"] {
+  border-color: var(--volter-accent);
 }
 /* Viewport HUD overlays (P6-U6, owner taste decision 3 — "HUD overlays →
    real islands"): the shared base paint for the stats / network /
    tile-palette HUD whispers, byte-identical to their former inline recipes
    (overlay surface, radius-md, per-site border/shadow variants). Under
-   islands chrome each of these elements also carries `vgai-chrome-island`
-   (+ `vgai-glass-island` for the refraction upgrade), whose higher-
+   islands chrome each of these elements also carries `volter-chrome-island`
+   (+ `volter-glass-island` for the refraction upgrade), whose higher-
    specificity material rules override this base — that is the promotion. */
-.vgai-hud-overlay {
-  background: var(--vgai-surface-overlay);
-  border-radius: var(--vgai-radius-md);
+.volter-hud-overlay {
+  background: var(--volter-surface-overlay);
+  border-radius: var(--volter-radius-md);
 }
-.vgai-hud-overlay[data-hud-border="strong"] {
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+.volter-hud-overlay[data-hud-border="strong"] {
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-strong);
 }
-.vgai-hud-overlay[data-hud-border="default"] {
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+.volter-hud-overlay[data-hud-border="default"] {
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
 }
-.vgai-hud-overlay[data-hud-shadow="true"] {
-  box-shadow: var(--vgai-shadow-sm);
+.volter-hud-overlay[data-hud-shadow="true"] {
+  box-shadow: var(--volter-shadow-sm);
 }
-.vgai-field-trigger {
+.volter-field-trigger {
   width: 100%;
   justify-content: space-between;
   overflow: hidden;
-  font-family: var(--vgai-font-mono);
+  font-family: var(--volter-font-mono);
   text-align: left;
 }
-.vgai-inspector-group-trigger {
+.volter-inspector-group-trigger {
   width: 100%;
   height: auto;
   justify-content: flex-start;
-  padding: var(--vgai-space-4);
+  padding: var(--volter-space-4);
   font-weight: 600;
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
-.vgai-hierarchy-more {
+.volter-hierarchy-more {
   width: 100%;
-  height: var(--vgai-tree-row-height);
+  height: var(--volter-tree-row-height);
   justify-content: flex-start;
   font-style: italic;
   text-align: left;
@@ -554,39 +554,39 @@
    caret is a pictogram, and the icon rungs default to the type scale's values
    so no skin that declares none moves. Blender's chevron measures 4.5x9 CSS
    collapsed and 8.5x5 expanded on the native 2x `outliner.png`. */
-.vgai-btn.vgai-tree-caret {
+.volter-btn.volter-tree-caret {
   /* ONE INDENT CELL, and no inline padding — a button's `padding-inline` is
      what made the expander's cell 19 px against the leaf spacer's 14, so a
      child row's type glyph sat 15 px right of its parent's where the tree's
      own step is 20. Blender's chevron and type glyph each own exactly one
      indent cell (`outliner.png`: chevron centres 30.25/50.25, glyph centres
      one cell right of each), which is what this width says. */
-  width: var(--vgai-tree-indent);
+  width: var(--volter-tree-indent);
   height: 18px;
-  flex: 0 0 var(--vgai-tree-indent);
+  flex: 0 0 var(--volter-tree-indent);
   padding-inline: 0;
-  font-size: var(--vgai-icon-xs);
+  font-size: var(--volter-icon-xs);
 }
-.vgai-chat-icon {
-  width: var(--vgai-control-default-height);
+.volter-chat-icon {
+  width: var(--volter-control-default-height);
   padding-inline: 0;
 }
-.vgai-chat-session-row {
+.volter-chat-session-row {
   width: 100%;
   height: auto;
   justify-content: flex-start;
-  padding: var(--vgai-space-4);
+  padding: var(--volter-space-4);
   text-align: left;
 }
-.vgai-chat-session-row[data-selected="true"] {
-  background: var(--vgai-surface-raised);
+.volter-chat-session-row[data-selected="true"] {
+  background: var(--volter-surface-raised);
 }
-.vgai-chat-harness-trigger {
+.volter-chat-harness-trigger {
   max-width: 190px;
   overflow: hidden;
   white-space: nowrap;
 }
-.vgai-chat-header-trigger {
+.volter-chat-header-trigger {
   min-width: 0;
   flex: 1;
   justify-content: flex-start;
@@ -594,22 +594,22 @@
   text-align: left;
 }
 /* ---------------------------------------------------------------------- */
-/* .vgai-input / .vgai-select / .vgai-checkbox — shared form-control       */
+/* .volter-input / .volter-select / .volter-checkbox — shared form-control       */
 /* classes.                                                                */
 /* ---------------------------------------------------------------------- */
 
-.vgai-input {
-  background: var(--vgai-input-surface, var(--vgai-bg-inset));
-  color: var(--vgai-text-1);
-  border: 1px solid var(--vgai-input-border, var(--vgai-border-1));
-  border-radius: var(--vgai-radius-sm);
-  box-shadow: var(--vgai-input-shadow, none);
-  padding: var(--vgai-space-1) var(--vgai-space-3);
-  font-size: var(--vgai-font-base);
-  font-family: var(--vgai-font-sans);
+.volter-input {
+  background: var(--volter-input-surface, var(--volter-bg-inset));
+  color: var(--volter-text-1);
+  border: 1px solid var(--volter-input-border, var(--volter-border-1));
+  border-radius: var(--volter-radius-sm);
+  box-shadow: var(--volter-input-shadow, none);
+  padding: var(--volter-space-1) var(--volter-space-3);
+  font-size: var(--volter-font-base);
+  font-family: var(--volter-font-sans);
   outline: none;
   min-width: 0;
-  min-height: var(--vgai-control-default-height);
+  min-height: var(--volter-control-default-height);
   box-sizing: border-box;
 }
 /* A PLACEHOLDER IS A PALETTE INK, and until this rule existed it was a
@@ -622,168 +622,168 @@
    dim, which is where a placeholder belongs. `content.placeholder` falls back
    to `content.dim` in the emitter; see theme.ts for why the fallback is the
    palette's ink rather than a transcription of the browser's. */
-.vgai-input::placeholder {
-  color: var(--vgai-content-placeholder);
+.volter-input::placeholder {
+  color: var(--volter-content-placeholder);
   /* Chrome's UA rule carries no opacity, but Firefox's does (0.54) and would
      halve the declared ink. Stated so the token means the same on both. */
   opacity: 1;
 }
-/* A single-line field is exactly control height, like `.vgai-btn`; padding
+/* A single-line field is exactly control height, like `.volter-btn`; padding
    used to add to it, so a 20 px density still drew a 22 px field. */
-input.vgai-input,
-select.vgai-input {
-  height: var(--vgai-control-default-height);
+input.volter-input,
+select.volter-input {
+  height: var(--volter-control-default-height);
   padding-block: 0;
 }
-.vgai-input:hover:not(:disabled) {
-  border-color: var(--vgai-border-2);
+.volter-input:hover:not(:disabled) {
+  border-color: var(--volter-border-2);
 }
-.vgai-input:focus-visible {
-  border-color: var(--vgai-accent);
-  outline: var(--vgai-focus-ring);
+.volter-input:focus-visible {
+  border-color: var(--volter-accent);
+  outline: var(--volter-focus-ring);
   outline-offset: -1px;
 }
-.vgai-input[aria-invalid="true"] {
-  border-color: var(--vgai-danger);
+.volter-input[aria-invalid="true"] {
+  border-color: var(--volter-danger);
 }
-.vgai-input[data-tone="danger"] {
-  color: var(--vgai-danger);
+.volter-input[data-tone="danger"] {
+  color: var(--volter-danger);
 }
-.vgai-input[data-state="editing"] {
-  border-color: var(--vgai-accent);
+.volter-input[data-state="editing"] {
+  border-color: var(--volter-accent);
 }
-.vgai-input[data-emphasis="strong"] {
-  font-size: var(--vgai-font-md);
+.volter-input[data-emphasis="strong"] {
+  font-size: var(--volter-font-md);
   font-weight: 600;
 }
-.vgai-input[data-emphasis="semibold"] {
+.volter-input[data-emphasis="semibold"] {
   font-weight: 600;
 }
-.vgai-input[data-monospace="true"] {
-  font-family: var(--vgai-font-mono);
+.volter-input[data-monospace="true"] {
+  font-family: var(--volter-font-mono);
 }
-.vgai-input[data-density="compact"],
-.vgai-select[data-density="compact"] {
-  min-height: var(--vgai-control-compact-height);
-  font-size: var(--vgai-font-sm);
+.volter-input[data-density="compact"],
+.volter-select[data-density="compact"] {
+  min-height: var(--volter-control-compact-height);
+  font-size: var(--volter-font-sm);
 }
-.vgai-input[data-density="comfortable"],
-.vgai-select[data-density="comfortable"] {
-  min-height: var(--vgai-control-comfortable-height);
-  font-size: var(--vgai-font-md);
+.volter-input[data-density="comfortable"],
+.volter-select[data-density="comfortable"] {
+  min-height: var(--volter-control-comfortable-height);
+  font-size: var(--volter-font-md);
 }
-.vgai-input[data-density="compact-tall"],
-.vgai-select[data-density="compact-tall"] {
-  min-height: var(--vgai-control-comfortable-height);
-  font-size: var(--vgai-font-sm);
+.volter-input[data-density="compact-tall"],
+.volter-select[data-density="compact-tall"] {
+  min-height: var(--volter-control-comfortable-height);
+  font-size: var(--volter-font-sm);
 }
-.vgai-input[data-leading-icon="true"] {
-  padding-left: calc(var(--vgai-space-12) + 1px);
+.volter-input[data-leading-icon="true"] {
+  padding-left: calc(var(--volter-space-12) + 1px);
 }
-.vgai-input[data-variant="entity-name"] {
-  min-height: var(--vgai-control-comfortable-height);
-  padding: var(--vgai-space-2) var(--vgai-space-3);
-  font-size: var(--vgai-font-lg);
+.volter-input[data-variant="entity-name"] {
+  min-height: var(--volter-control-comfortable-height);
+  padding: var(--volter-space-2) var(--volter-space-3);
+  font-size: var(--volter-font-lg);
   font-weight: 600;
 }
-.vgai-input[data-variant="tree-edit"] {
-  min-height: var(--vgai-control-compact-height);
-  padding: 0 var(--vgai-space-2);
-  border-color: var(--vgai-accent);
-  font-size: var(--vgai-font-lg);
+.volter-input[data-variant="tree-edit"] {
+  min-height: var(--volter-control-compact-height);
+  padding: 0 var(--volter-space-2);
+  border-color: var(--volter-accent);
+  font-size: var(--volter-font-lg);
   outline: none;
 }
-.vgai-input[data-variant="prominent"] {
-  min-height: var(--vgai-command-bar-height);
-  padding: var(--vgai-space-5) calc(var(--vgai-space-6) + var(--vgai-space-1));
+.volter-input[data-variant="prominent"] {
+  min-height: var(--volter-command-bar-height);
+  padding: var(--volter-space-5) calc(var(--volter-space-6) + var(--volter-space-1));
   border: 0;
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-boundary-strong);
   border-radius: 0;
-  font-size: var(--vgai-font-xl);
+  font-size: var(--volter-font-xl);
 }
-.vgai-input[data-variant="prominent"]:focus-visible {
+.volter-input[data-variant="prominent"]:focus-visible {
   outline-offset: -2px;
 }
-.vgai-input[data-variant="seamless"] {
-  padding: var(--vgai-space-4);
-  color: var(--vgai-content-primary);
+.volter-input[data-variant="seamless"] {
+  padding: var(--volter-space-4);
+  color: var(--volter-content-primary);
   background: transparent;
   border: 0;
   border-radius: 0;
 }
-.vgai-input[data-dynamic="true"],
-.vgai-select[data-dynamic="true"] {
-  color: var(--vgai-dynamic);
-  background-color: var(--vgai-dynamic-muted);
-  border-color: var(--vgai-dynamic);
+.volter-input[data-dynamic="true"],
+.volter-select[data-dynamic="true"] {
+  color: var(--volter-dynamic);
+  background-color: var(--volter-dynamic-muted);
+  border-color: var(--volter-dynamic);
 }
-.vgai-input[data-mixed="true"],
-.vgai-select[data-mixed="true"] {
-  color: var(--vgai-content-dim);
+.volter-input[data-mixed="true"],
+.volter-select[data-mixed="true"] {
+  color: var(--volter-content-dim);
   font-style: italic;
 }
-.vgai-input:disabled {
+.volter-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.vgai-select {
+.volter-select {
   appearance: none;
   -webkit-appearance: none;
-  background-color: var(--vgai-input-surface, var(--vgai-bg-inset));
-  background-image: var(--vgai-select-chevron);
+  background-color: var(--volter-input-surface, var(--volter-bg-inset));
+  background-image: var(--volter-select-chevron);
   background-repeat: no-repeat;
   background-position: right 6px center;
   background-size: 8px 5px;
-  color: var(--vgai-text-1);
-  border: 1px solid var(--vgai-input-border, var(--vgai-border-1));
-  border-radius: var(--vgai-radius-sm);
-  box-shadow: var(--vgai-input-shadow, none);
-  padding: var(--vgai-space-1) var(--vgai-space-6) var(--vgai-space-1) var(--vgai-space-3);
-  font-size: var(--vgai-font-base);
-  font-family: var(--vgai-font-sans);
+  color: var(--volter-text-1);
+  border: 1px solid var(--volter-input-border, var(--volter-border-1));
+  border-radius: var(--volter-radius-sm);
+  box-shadow: var(--volter-input-shadow, none);
+  padding: var(--volter-space-1) var(--volter-space-6) var(--volter-space-1) var(--volter-space-3);
+  font-size: var(--volter-font-base);
+  font-family: var(--volter-font-sans);
   outline: none;
-  min-height: var(--vgai-control-default-height);
+  min-height: var(--volter-control-default-height);
   box-sizing: border-box;
   cursor: pointer;
 }
-.vgai-select:hover:not(:disabled) {
-  border-color: var(--vgai-border-2);
+.volter-select:hover:not(:disabled) {
+  border-color: var(--volter-border-2);
 }
-.vgai-select:focus-visible {
-  border-color: var(--vgai-accent);
-  outline: var(--vgai-focus-ring);
+.volter-select:focus-visible {
+  border-color: var(--volter-accent);
+  outline: var(--volter-focus-ring);
   outline-offset: -1px;
 }
-.vgai-select:disabled {
+.volter-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.vgai-select option {
-  background: var(--vgai-bg-2);
-  color: var(--vgai-text-1);
+.volter-select option {
+  background: var(--volter-bg-2);
+  color: var(--volter-text-1);
 }
 
-.vgai-textarea {
+.volter-textarea {
   display: block;
   width: 100%;
-  min-height: calc(var(--vgai-control-default-height) * 2);
+  min-height: calc(var(--volter-control-default-height) * 2);
   resize: vertical;
-  line-height: var(--vgai-leading-normal);
+  line-height: var(--volter-leading-normal);
 }
-.vgai-textarea[data-variant="code"] {
-  padding: var(--vgai-space-5);
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-base);
-  line-height: var(--vgai-leading-relaxed);
+.volter-textarea[data-variant="code"] {
+  padding: var(--volter-space-5);
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-base);
+  line-height: var(--volter-leading-relaxed);
 }
-.vgai-textarea[data-variant="inline-editor"] {
-  padding: var(--vgai-space-1);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-input-surface, var(--vgai-surface-inset));
-  border: var(--vgai-stroke-active) solid var(--vgai-accent);
+.volter-textarea[data-variant="inline-editor"] {
+  padding: var(--volter-space-1);
+  color: var(--volter-content-primary);
+  background: var(--volter-input-surface, var(--volter-surface-inset));
+  border: var(--volter-stroke-active) solid var(--volter-accent);
   font: inherit;
-  font-size: var(--vgai-font-lg);
+  font-size: var(--volter-font-lg);
   line-height: 1.3;
   outline: none;
 }
@@ -794,399 +794,399 @@ select.vgai-input {
 /* behavior.                                                               */
 /* ---------------------------------------------------------------------- */
 
-.vgai-tool-page {
+.volter-tool-page {
   width: 100%;
   max-width: 960px;
   min-height: 100%;
   margin: 0 auto;
-  padding: var(--vgai-space-6);
-  color: var(--vgai-content-primary);
+  padding: var(--volter-space-6);
+  color: var(--volter-content-primary);
   box-sizing: border-box;
 }
-.vgai-tool-header {
+.volter-tool-header {
   max-width: 720px;
-  margin-bottom: var(--vgai-space-5);
+  margin-bottom: var(--volter-space-5);
 }
-.vgai-tool-eyebrow {
-  margin-bottom: var(--vgai-space-2);
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-sm);
+.volter-tool-eyebrow {
+  margin-bottom: var(--volter-space-2);
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-sm);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.vgai-tool-title {
-  margin: 0 0 var(--vgai-space-2);
-  font-size: var(--vgai-font-xl);
+.volter-tool-title {
+  margin: 0 0 var(--volter-space-2);
+  font-size: var(--volter-font-xl);
 }
-.vgai-tool-description {
+.volter-tool-description {
   margin: 0;
-  color: var(--vgai-content-muted);
-  line-height: var(--vgai-leading-relaxed);
+  color: var(--volter-content-muted);
+  line-height: var(--volter-leading-relaxed);
 }
-.vgai-tool-card {
-  padding: var(--vgai-space-5);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-md);
-  background: var(--vgai-surface-panel);
+.volter-tool-card {
+  padding: var(--volter-space-5);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-md);
+  background: var(--volter-surface-panel);
 }
-.vgai-tool-form {
+.volter-tool-form {
   display: grid;
   max-width: 720px;
-  gap: var(--vgai-space-4);
+  gap: var(--volter-space-4);
 }
-.vgai-tool-field {
+.volter-tool-field {
   display: grid;
   min-width: 0;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
-.vgai-tool-field > .vgai-input,
-.vgai-tool-field > .vgai-select {
+.volter-tool-field > .volter-input,
+.volter-tool-field > .volter-select {
   width: 100%;
 }
-.vgai-tool-field-label {
-  color: var(--vgai-content-primary);
+.volter-tool-field-label {
+  color: var(--volter-content-primary);
   font-weight: 500;
 }
-.vgai-tool-help {
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-sm);
-  line-height: var(--vgai-leading-normal);
+.volter-tool-help {
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-sm);
+  line-height: var(--volter-leading-normal);
 }
-.vgai-tool-advanced {
-  padding: var(--vgai-space-3);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-sm);
-  background: var(--vgai-surface-inset);
+.volter-tool-advanced {
+  padding: var(--volter-space-3);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
+  background: var(--volter-surface-inset);
 }
-.vgai-tool-advanced > summary {
-  color: var(--vgai-content-muted);
+.volter-tool-advanced > summary {
+  color: var(--volter-content-muted);
   cursor: pointer;
   font-weight: 500;
 }
-.vgai-tool-advanced[open] > summary {
-  margin-bottom: var(--vgai-space-3);
-  color: var(--vgai-content-primary);
+.volter-tool-advanced[open] > summary {
+  margin-bottom: var(--volter-space-3);
+  color: var(--volter-content-primary);
 }
-.vgai-tool-actions {
+.volter-tool-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--vgai-space-3);
-  padding-top: var(--vgai-space-1);
+  gap: var(--volter-space-3);
+  padding-top: var(--volter-space-1);
 }
-.vgai-cost-disclosure {
+.volter-cost-disclosure {
   display: grid;
-  gap: var(--vgai-space-1);
-  padding: var(--vgai-space-3) var(--vgai-space-4);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-left: var(--vgai-stroke-active) solid var(--vgai-accent);
-  border-radius: var(--vgai-radius-sm);
-  background: var(--vgai-surface-inset);
+  gap: var(--volter-space-1);
+  padding: var(--volter-space-3) var(--volter-space-4);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-left: var(--volter-stroke-active) solid var(--volter-accent);
+  border-radius: var(--volter-radius-sm);
+  background: var(--volter-surface-inset);
 }
-.vgai-cost-disclosure[data-route="mock"] {
-  border-left-color: var(--vgai-success);
+.volter-cost-disclosure[data-route="mock"] {
+  border-left-color: var(--volter-success);
 }
-.vgai-cost-disclosure[data-route="managed"] {
-  border-left-color: var(--vgai-accent);
+.volter-cost-disclosure[data-route="managed"] {
+  border-left-color: var(--volter-accent);
 }
-.vgai-cost-disclosure[data-route="direct"] {
-  border-left-color: var(--vgai-warn);
+.volter-cost-disclosure[data-route="direct"] {
+  border-left-color: var(--volter-warn);
 }
-.vgai-cost-disclosure-title {
+.volter-cost-disclosure-title {
   font-weight: 600;
 }
-.vgai-cost-disclosure-detail {
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-sm);
+.volter-cost-disclosure-detail {
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-sm);
 }
-.vgai-tool-confirmation {
+.volter-tool-confirmation {
   display: grid;
-  gap: var(--vgai-space-3);
-  padding: var(--vgai-space-4);
-  border: var(--vgai-stroke-resting) solid var(--vgai-warn);
-  border-radius: var(--vgai-radius-sm);
-  background: var(--vgai-warn-muted);
+  gap: var(--volter-space-3);
+  padding: var(--volter-space-4);
+  border: var(--volter-stroke-resting) solid var(--volter-warn);
+  border-radius: var(--volter-radius-sm);
+  background: var(--volter-warn-muted);
 }
-.vgai-tool-status {
+.volter-tool-status {
   max-width: 720px;
-  margin-top: var(--vgai-space-4);
-  padding: var(--vgai-space-3) var(--vgai-space-4);
-  border-radius: var(--vgai-radius-sm);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-raised);
+  margin-top: var(--volter-space-4);
+  padding: var(--volter-space-3) var(--volter-space-4);
+  border-radius: var(--volter-radius-sm);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-raised);
 }
-.vgai-tool-status[data-tone="error"] {
-  color: var(--vgai-danger);
-  background: var(--vgai-danger-faint);
+.volter-tool-status[data-tone="error"] {
+  color: var(--volter-danger);
+  background: var(--volter-danger-faint);
 }
-.vgai-tool-status[data-tone="success"] {
-  color: var(--vgai-success);
-  background: var(--vgai-success-muted);
+.volter-tool-status[data-tone="success"] {
+  color: var(--volter-success);
+  background: var(--volter-success-muted);
 }
 
-.vgai-generation-job-meta {
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-sm);
+.volter-generation-job-meta {
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-sm);
 }
-.vgai-generation-document {
+.volter-generation-document {
   display: grid;
   width: 100%;
   max-width: 1120px;
   min-height: 100%;
   margin: 0 auto;
-  padding: var(--vgai-space-6);
-  gap: var(--vgai-space-4);
-  color: var(--vgai-content-primary);
+  padding: var(--volter-space-6);
+  gap: var(--volter-space-4);
+  color: var(--volter-content-primary);
   box-sizing: border-box;
 }
-.vgai-generation-document-header {
+.volter-generation-document-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--vgai-space-4);
+  gap: var(--volter-space-4);
 }
-.vgai-generation-result {
+.volter-generation-result {
   min-height: 280px;
-  padding: var(--vgai-space-4);
+  padding: var(--volter-space-4);
   overflow: auto;
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-md);
-  background: var(--vgai-surface-inset);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-md);
+  background: var(--volter-surface-inset);
 }
-.vgai-generation-document-empty,
-.vgai-generation-result-empty {
-  padding: var(--vgai-space-5);
-  color: var(--vgai-content-muted);
+.volter-generation-document-empty,
+.volter-generation-result-empty {
+  padding: var(--volter-space-5);
+  color: var(--volter-content-muted);
 }
-.vgai-generation-native-result {
+.volter-generation-native-result {
   margin: 0;
   overflow: auto;
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-sm);
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-sm);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.vgai-generation-image-grid {
+.volter-generation-image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--vgai-space-3);
+  gap: var(--volter-space-3);
 }
-.vgai-generation-image-grid img,
-.vgai-generation-panorama,
-.vgai-generation-world-result img {
+.volter-generation-image-grid img,
+.volter-generation-panorama,
+.volter-generation-world-result img {
   display: block;
   width: 100%;
   max-height: 620px;
-  border-radius: var(--vgai-radius-sm);
+  border-radius: var(--volter-radius-sm);
   object-fit: contain;
 }
-.vgai-generation-media {
+.volter-generation-media {
   display: block;
   width: min(100%, 860px);
   margin: auto;
 }
-.vgai-generation-result-links,
-.vgai-generation-world-result,
-.vgai-generation-output-paths {
+.volter-generation-result-links,
+.volter-generation-world-result,
+.volter-generation-output-paths {
   display: grid;
   align-content: start;
   justify-items: start;
-  gap: var(--vgai-space-3);
+  gap: var(--volter-space-3);
 }
-.vgai-generation-output-paths code {
-  color: var(--vgai-content-muted);
+.volter-generation-output-paths code {
+  color: var(--volter-content-muted);
   overflow-wrap: anywhere;
 }
-.vgai-generation-document-footer {
+.volter-generation-document-footer {
   display: flex;
   justify-content: flex-end;
 }
-.vgai-generation-create-grid {
+.volter-generation-create-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
-.vgai-generation-create-card {
+.volter-generation-create-card {
   display: grid;
-  gap: var(--vgai-space-1);
-  padding: var(--vgai-space-3);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-sm);
-  color: var(--vgai-content-primary);
+  gap: var(--volter-space-1);
+  padding: var(--volter-space-3);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
+  color: var(--volter-content-primary);
   text-align: left;
-  background: var(--vgai-surface-raised);
+  background: var(--volter-surface-raised);
   cursor: pointer;
 }
-.vgai-generation-create-card:hover {
-  border-color: var(--vgai-boundary-strong);
-  background: var(--vgai-neutral-hover);
+.volter-generation-create-card:hover {
+  border-color: var(--volter-boundary-strong);
+  background: var(--volter-neutral-hover);
 }
-.vgai-generation-create-card:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-generation-create-card:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: 1px;
 }
-.vgai-generation-create-card span {
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-sm);
+.volter-generation-create-card span {
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-sm);
 }
 
 /* Live account markup class (account-documents.tsx); its visual treatment
  * lives in product-shell.css — this only provides the card's internal flow.
- * The rest of the legacy account vocabulary (.vgai-account-summary-grid,
- * .vgai-provider-connection singular, …) was dead and has been pruned. */
-.vgai-provider-connections {
+ * The rest of the legacy account vocabulary (.volter-account-summary-grid,
+ * .volter-provider-connection singular, …) was dead and has been pruned. */
+.volter-provider-connections {
   display: grid;
-  gap: var(--vgai-space-4);
+  gap: var(--volter-space-4);
 }
 
 @media (max-width: 720px) {
-  .vgai-tool-page {
-    padding: var(--vgai-space-4);
+  .volter-tool-page {
+    padding: var(--volter-space-4);
   }
-  .vgai-generation-document {
-    padding: var(--vgai-space-4);
+  .volter-generation-document {
+    padding: var(--volter-space-4);
   }
-  .vgai-generation-document-header {
+  .volter-generation-document-header {
     display: grid;
   }
 }
 
-.vgai-checkbox {
-  accent-color: var(--vgai-accent);
+.volter-checkbox {
+  accent-color: var(--volter-accent);
   width: 13px;
   height: 13px;
   cursor: pointer;
   margin: 0;
 }
-.vgai-checkbox:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-checkbox:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: 2px;
 }
-.vgai-checkbox:indeterminate {
-  accent-color: var(--vgai-warn);
+.volter-checkbox:indeterminate {
+  accent-color: var(--volter-warn);
 }
-.vgai-checkbox:disabled {
+.volter-checkbox:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.vgai-color-swatch {
-  width: var(--vgai-control-compact-height);
-  height: var(--vgai-control-compact-height);
+.volter-color-swatch {
+  width: var(--volter-control-compact-height);
+  height: var(--volter-control-compact-height);
   flex: 0 0 auto;
   padding: 0;
   overflow: hidden;
   background: transparent;
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-sm);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
   cursor: pointer;
 }
-.vgai-color-swatch:hover:not(:disabled) {
-  border-color: var(--vgai-boundary-strong);
+.volter-color-swatch:hover:not(:disabled) {
+  border-color: var(--volter-boundary-strong);
 }
-.vgai-color-swatch:focus-visible,
-.vgai-file-input:focus-visible,
-.vgai-range:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-color-swatch:focus-visible,
+.volter-file-input:focus-visible,
+.volter-range:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: 2px;
 }
-.vgai-color-swatch:disabled,
-.vgai-file-input:disabled,
-.vgai-range:disabled {
+.volter-color-swatch:disabled,
+.volter-file-input:disabled,
+.volter-range:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.vgai-file-input {
-  color: var(--vgai-content-muted);
+.volter-file-input {
+  color: var(--volter-content-muted);
   font: inherit;
 }
-.vgai-range {
+.volter-range {
   min-width: 0;
-  accent-color: var(--vgai-accent);
+  accent-color: var(--volter-accent);
 }
 
-.vgai-number-input,
-.vgai-color-input {
+.volter-number-input,
+.volter-color-input {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
-.vgai-number-input-label {
+.volter-number-input-label {
   width: 12px;
   flex: 0 0 auto;
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-sm);
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-sm);
   font-weight: 600;
   text-align: center;
   user-select: none;
 }
-.vgai-number-input-editor,
-.vgai-number-input-scrub,
-.vgai-color-input > .vgai-input {
+.volter-number-input-editor,
+.volter-number-input-scrub,
+.volter-color-input > .volter-input {
   width: 100%;
   min-width: 0;
 }
-.vgai-number-input-scrub {
+.volter-number-input-scrub {
   box-sizing: border-box;
   overflow: hidden;
-  padding: var(--vgai-space-1) var(--vgai-space-3);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-input-surface, var(--vgai-surface-inset));
-  border: var(--vgai-stroke-resting) solid var(--vgai-input-border, var(--vgai-boundary-default));
-  border-radius: var(--vgai-radius-sm);
-  box-shadow: var(--vgai-input-shadow, none);
-  font-size: var(--vgai-font-base);
+  padding: var(--volter-space-1) var(--volter-space-3);
+  color: var(--volter-content-primary);
+  background: var(--volter-input-surface, var(--volter-surface-inset));
+  border: var(--volter-stroke-resting) solid var(--volter-input-border, var(--volter-boundary-default));
+  border-radius: var(--volter-radius-sm);
+  box-shadow: var(--volter-input-shadow, none);
+  font-size: var(--volter-font-base);
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: ew-resize;
   user-select: none;
 }
-.vgai-number-input-scrub:hover {
-  border-color: var(--vgai-boundary-strong);
+.volter-number-input-scrub:hover {
+  border-color: var(--volter-boundary-strong);
 }
-.vgai-scrub-label {
+.volter-scrub-label {
   transition:
-    color 0.12s var(--vgai-ease-standard),
-    filter 0.12s var(--vgai-ease-standard);
+    color 0.12s var(--volter-ease-standard),
+    filter 0.12s var(--volter-ease-standard);
 }
-.vgai-scrub-label {
-  color: var(--vgai-content-muted);
+.volter-scrub-label {
+  color: var(--volter-content-muted);
 }
-.vgai-scrub-label:hover:not([data-disabled="true"]) {
-  color: var(--vgai-content-primary);
+.volter-scrub-label:hover:not([data-disabled="true"]) {
+  color: var(--volter-content-primary);
 }
-.vgai-number-input-scrub[data-disabled] {
+.volter-number-input-scrub[data-disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.vgai-number-input-scrub[data-mixed="true"],
-.vgai-color-input > .vgai-input[data-mixed="true"] {
-  color: var(--vgai-content-dim);
+.volter-number-input-scrub[data-mixed="true"],
+.volter-color-input > .volter-input[data-mixed="true"] {
+  color: var(--volter-content-dim);
   font-style: italic;
 }
-.vgai-color-input-mixed {
-  width: var(--vgai-control-compact-height);
-  height: var(--vgai-control-compact-height);
+.volter-color-input-mixed {
+  width: var(--volter-control-compact-height);
+  height: var(--volter-control-compact-height);
   flex: 0 0 auto;
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-sm);
-  background-color: var(--vgai-surface-inset);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
+  background-color: var(--volter-surface-inset);
   background-image:
     linear-gradient(
       45deg,
-      var(--vgai-content-dim) 25%,
+      var(--volter-content-dim) 25%,
       transparent 25%,
       transparent 75%,
-      var(--vgai-content-dim) 75%
+      var(--volter-content-dim) 75%
     ),
     linear-gradient(
       45deg,
-      var(--vgai-content-dim) 25%,
+      var(--volter-content-dim) 25%,
       transparent 25%,
       transparent 75%,
-      var(--vgai-content-dim) 75%
+      var(--volter-content-dim) 75%
     );
   background-position:
     0 0,
@@ -1194,77 +1194,77 @@ select.vgai-input {
   background-size: 8px 8px;
 }
 
-.vgai-section {
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+.volter-section {
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
 }
-.vgai-section-header {
+.volter-section-header {
   display: flex;
   width: 100%;
-  min-height: var(--vgai-control-default-height);
+  min-height: var(--volter-control-default-height);
   align-items: center;
-  gap: var(--vgai-space-1);
-  color: var(--vgai-content-primary);
+  gap: var(--volter-space-1);
+  color: var(--volter-content-primary);
   /* A header is a slab lifted off its panel (Blender's header sits a step above its panel),
      derived from the palette's own two surfaces so every skin keeps the
      relationship. */
-  background: var(--vgai-surface-section);
+  background: var(--volter-surface-section);
 }
-.vgai-section-trigger {
+.volter-section-trigger {
   display: flex;
   min-width: 0;
-  min-height: var(--vgai-control-default-height);
+  min-height: var(--volter-control-default-height);
   flex: 1;
   align-items: center;
-  gap: var(--vgai-space-2);
-  padding: var(--vgai-space-2) var(--vgai-space-4);
+  gap: var(--volter-space-2);
+  padding: var(--volter-space-2) var(--volter-space-4);
   color: inherit;
   background: transparent;
   border: 0;
   font: inherit;
-  font-size: var(--vgai-font-base);
+  font-size: var(--volter-font-base);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
-.vgai-section-trigger:hover {
-  background: var(--vgai-neutral-hover);
+.volter-section-trigger:hover {
+  background: var(--volter-neutral-hover);
 }
 /* A section heading that cannot collapse is a label, not a control: no
    disclosure arrow, no pointer, no hover feedback promising a toggle. */
-.vgai-section-trigger[data-vgai-static],
-.vgai-section-trigger[data-vgai-static]:hover {
+.volter-section-trigger[data-volter-static],
+.volter-section-trigger[data-volter-static]:hover {
   cursor: default;
   background: transparent;
 }
-.vgai-section-trigger:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-section-trigger:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -2px;
 }
-.vgai-section-title {
+.volter-section-title {
   display: grid;
   min-width: 0;
   flex: 1;
 }
-.vgai-section-title > span,
-.vgai-section-title > small {
+.volter-section-title > span,
+.volter-section-title > small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.vgai-section-title > small {
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-sm);
+.volter-section-title > small {
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-sm);
   font-weight: 400;
 }
-.vgai-section-actions {
+.volter-section-actions {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--vgai-space-1);
-  padding-right: var(--vgai-space-2);
+  gap: var(--volter-space-1);
+  padding-right: var(--volter-space-2);
 }
-.vgai-section-body {
-  padding: 0 var(--vgai-space-4) var(--vgai-space-4);
+.volter-section-body {
+  padding: 0 var(--volter-space-4) var(--volter-space-4);
 }
 /* One contributed inspector section's frame (`components/InspectorToolSection.tsx`).
    These three values were inline literals on that element; they are the same
@@ -1272,46 +1272,46 @@ select.vgai-input {
    them is that the Properties presentation can now REPLACE them (Blender's
    Properties editor has no rule between its datablock row and its first panel,
    and insets its panel column once, not twice; `compact-inspector.css`). */
-.vgai-inspector-tool-section {
-  padding: var(--vgai-space-4);
-  margin-top: var(--vgai-space-2);
-  border-top: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+.volter-inspector-tool-section {
+  padding: var(--volter-space-4);
+  margin-top: var(--volter-space-2);
+  border-top: var(--volter-stroke-resting) solid var(--volter-structural-divider);
 }
 
-.vgai-xstate-node {
+.volter-xstate-node {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: var(--vgai-space-1);
-  padding: var(--vgai-space-3) var(--vgai-space-5);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-panel);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  font-size: var(--vgai-font-base);
+  gap: var(--volter-space-1);
+  padding: var(--volter-space-3) var(--volter-space-5);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-panel);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  font-size: var(--volter-font-base);
   text-align: left;
   transition:
-    background 0.1s var(--vgai-ease-standard),
-    border-color 0.1s var(--vgai-ease-standard),
-    box-shadow 0.1s var(--vgai-ease-standard);
+    background 0.1s var(--volter-ease-standard),
+    border-color 0.1s var(--volter-ease-standard),
+    box-shadow 0.1s var(--volter-ease-standard);
 }
-.vgai-xstate-node:hover {
-  background: var(--vgai-surface-chrome);
+.volter-xstate-node:hover {
+  background: var(--volter-surface-chrome);
 }
-.vgai-xstate-node[data-active="true"] {
-  border-color: var(--vgai-success);
+.volter-xstate-node[data-active="true"] {
+  border-color: var(--volter-success);
 }
-.vgai-xstate-node[data-selected="true"] {
-  border-color: var(--vgai-selection-border);
-  box-shadow: 0 0 0 var(--vgai-stroke-resting) var(--vgai-selection-border);
+.volter-xstate-node[data-selected="true"] {
+  border-color: var(--volter-selection-border);
+  box-shadow: 0 0 0 var(--volter-stroke-resting) var(--volter-selection-border);
 }
-.vgai-xstate-node-type {
-  color: var(--vgai-content-dim);
-  transition: color 0.1s var(--vgai-ease-standard);
+.volter-xstate-node-type {
+  color: var(--volter-content-dim);
+  transition: color 0.1s var(--volter-ease-standard);
 }
-.vgai-xstate-node:hover .vgai-xstate-node-type,
-.vgai-xstate-node[data-selected="true"] .vgai-xstate-node-type {
-  color: var(--vgai-content-primary);
+.volter-xstate-node:hover .volter-xstate-node-type,
+.volter-xstate-node[data-selected="true"] .volter-xstate-node-type {
+  color: var(--volter-content-primary);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1319,128 +1319,128 @@ select.vgai-input {
 /* roles instead of restating their visual recipes in inline objects.      */
 /* ---------------------------------------------------------------------- */
 
-.vgai-stack {
+.volter-stack {
   display: flex;
   min-width: 0;
   flex-direction: column;
 }
-.vgai-inline {
+.volter-inline {
   display: flex;
   min-width: 0;
 }
-.vgai-spacer {
+.volter-spacer {
   min-width: 0;
   flex: 1 1 auto;
 }
-.vgai-actions {
+.volter-actions {
   flex: 0 0 auto;
 }
-.vgai-divider {
+.volter-divider {
   flex: 0 0 auto;
-  background: var(--vgai-boundary-default);
+  background: var(--volter-boundary-default);
 }
-.vgai-divider[data-orientation="horizontal"] {
+.volter-divider[data-orientation="horizontal"] {
   width: 100%;
-  height: var(--vgai-stroke-resting);
+  height: var(--volter-stroke-resting);
 }
-.vgai-divider[data-orientation="vertical"] {
-  width: var(--vgai-stroke-resting);
+.volter-divider[data-orientation="vertical"] {
+  width: var(--volter-stroke-resting);
   /* A rule between controls is exactly as tall as the controls it separates —
      measured in Blender's top bar, the rule closing the menu words is 20px,
      the same as every widget in that bar. It was a hard 16px, a literal that
      outranked whatever height the material asked for. */
-  height: var(--vgai-control-compact-height);
+  height: var(--volter-control-compact-height);
 }
 
-.vgai-text {
+.volter-text {
   min-width: 0;
   margin: 0;
-  color: var(--vgai-content-primary);
-  font-size: var(--vgai-font-base);
+  color: var(--volter-content-primary);
+  font-size: var(--volter-font-base);
   font-weight: 400;
   line-height: 1.35;
 }
-.vgai-text[data-variant="caption"] {
-  font-size: var(--vgai-font-sm);
+.volter-text[data-variant="caption"] {
+  font-size: var(--volter-font-sm);
 }
-.vgai-text[data-variant="body"] {
-  font-size: var(--vgai-font-base);
+.volter-text[data-variant="body"] {
+  font-size: var(--volter-font-base);
 }
-.vgai-text[data-variant="label"] {
-  font-size: var(--vgai-font-base);
+.volter-text[data-variant="label"] {
+  font-size: var(--volter-font-base);
   font-weight: 600;
 }
-.vgai-text[data-variant="title"] {
-  font-size: var(--vgai-font-md);
+.volter-text[data-variant="title"] {
+  font-size: var(--volter-font-md);
   font-weight: 600;
 }
-.vgai-text[data-variant="heading"] {
-  font-size: var(--vgai-font-xl);
+.volter-text[data-variant="heading"] {
+  font-size: var(--volter-font-xl);
   font-weight: 600;
 }
-.vgai-text[data-variant="display"] {
-  font-size: var(--vgai-font-heading);
+.volter-text[data-variant="display"] {
+  font-size: var(--volter-font-heading);
   font-weight: 600;
 }
-.vgai-text[data-variant="code"] {
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-base);
+.volter-text[data-variant="code"] {
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-base);
 }
-.vgai-text[data-tone="muted"] {
-  color: var(--vgai-content-muted);
+.volter-text[data-tone="muted"] {
+  color: var(--volter-content-muted);
 }
-.vgai-text[data-tone="dim"] {
-  color: var(--vgai-content-dim);
+.volter-text[data-tone="dim"] {
+  color: var(--volter-content-dim);
 }
-.vgai-text[data-tone="accent"] {
-  color: var(--vgai-accent);
+.volter-text[data-tone="accent"] {
+  color: var(--volter-accent);
 }
-.vgai-text[data-tone="danger"] {
-  color: var(--vgai-danger);
+.volter-text[data-tone="danger"] {
+  color: var(--volter-danger);
 }
-.vgai-text[data-tone="warning"] {
-  color: var(--vgai-warn);
+.volter-text[data-tone="warning"] {
+  color: var(--volter-warn);
 }
-.vgai-text[data-tone="success"] {
-  color: var(--vgai-success);
+.volter-text[data-tone="success"] {
+  color: var(--volter-success);
 }
-.vgai-text[data-truncate="true"] {
+.volter-text[data-truncate="true"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.vgai-text[data-selectable="true"] {
+.volter-text[data-selectable="true"] {
   user-select: text;
 }
 
-.vgai-surface {
+.volter-surface {
   min-width: 0;
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-panel);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-panel);
   box-sizing: border-box;
 }
-.vgai-surface[data-variant="shell"] {
-  background: var(--vgai-surface-shell);
+.volter-surface[data-variant="shell"] {
+  background: var(--volter-surface-shell);
 }
-.vgai-surface[data-variant="panel"] {
-  background: var(--vgai-surface-panel);
+.volter-surface[data-variant="panel"] {
+  background: var(--volter-surface-panel);
 }
-.vgai-surface[data-variant="chrome"] {
-  background: var(--vgai-surface-chrome);
+.volter-surface[data-variant="chrome"] {
+  background: var(--volter-surface-chrome);
 }
-.vgai-surface[data-variant="raised"] {
-  background: var(--vgai-surface-raised);
+.volter-surface[data-variant="raised"] {
+  background: var(--volter-surface-raised);
 }
-.vgai-surface[data-variant="inset"] {
-  background: var(--vgai-surface-inset);
+.volter-surface[data-variant="inset"] {
+  background: var(--volter-surface-inset);
 }
-.vgai-surface[data-variant="overlay"] {
-  background: var(--vgai-surface-overlay);
+.volter-surface[data-variant="overlay"] {
+  background: var(--volter-surface-overlay);
 }
-.vgai-surface[data-border="true"] {
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+.volter-surface[data-border="true"] {
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
 }
-.vgai-surface[data-scroll="true"] {
+.volter-surface[data-scroll="true"] {
   min-height: 0;
   overflow: auto;
 }
@@ -1448,154 +1448,154 @@ select.vgai-input {
 /* Modal composition. Product dialogs supply content; this family owns chrome.
    Glass themes pair a LIGHTER dim with a scrim blur (the macOS modal read,
    P6-U6 owner taste decision 3) — the blur var is `none` for every
-   treatment-less theme, whose heavier `--vgai-scrim` dim then paints
+   treatment-less theme, whose heavier `--volter-scrim` dim then paints
    byte-identically to before. */
-.vgai-dialog-scrim {
+.volter-dialog-scrim {
   position: fixed;
   inset: 0;
-  z-index: var(--vgai-z-modal);
+  z-index: var(--volter-z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--vgai-space-10);
-  background: var(--vgai-scrim);
-  backdrop-filter: var(--vgai-scrim-backdrop-filter, none);
-  -webkit-backdrop-filter: var(--vgai-scrim-backdrop-filter, none);
+  padding: var(--volter-space-10);
+  background: var(--volter-scrim);
+  backdrop-filter: var(--volter-scrim-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--volter-scrim-backdrop-filter, none);
   pointer-events: auto;
   box-sizing: border-box;
 }
-.vgai-dialog-scrim[data-variant="command"] {
+.volter-dialog-scrim[data-variant="command"] {
   align-items: flex-start;
-  padding-top: calc(var(--vgai-space-12) + var(--vgai-space-10) + var(--vgai-space-8));
+  padding-top: calc(var(--volter-space-12) + var(--volter-space-10) + var(--volter-space-8));
 }
-.vgai-dialog {
+.volter-dialog {
   display: flex;
   width: min(520px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   min-width: 360px;
   flex-direction: column;
   overflow: hidden;
-  color: var(--vgai-content-primary);
-  background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-lg);
-  box-shadow: var(--vgai-shadow-lg);
+  color: var(--volter-content-primary);
+  background: var(--volter-glass-regular-bg, var(--volter-surface-chrome));
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-lg);
+  box-shadow: var(--volter-shadow-lg);
   box-sizing: border-box;
 }
-.vgai-dialog[data-size="compact"] {
+.volter-dialog[data-size="compact"] {
   width: min(420px, calc(100vw - 48px));
 }
-.vgai-dialog[data-size="wide"] {
+.volter-dialog[data-size="wide"] {
   width: min(920px, calc(100vw - 48px));
   height: min(720px, calc(100vh - 48px));
 }
-.vgai-dialog[data-variant="command"] {
+.volter-dialog[data-variant="command"] {
   width: min(500px, calc(100vw - 48px));
   max-height: min(480px, calc(100vh - 48px));
 }
-.vgai-command-results {
+.volter-command-results {
   min-height: 0;
   max-height: 400px;
   flex: 1;
   overflow-y: auto;
 }
-.vgai-command-category {
-  padding: var(--vgai-space-3) calc(var(--vgai-space-6) + var(--vgai-space-1)) var(--vgai-space-1);
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-base);
+.volter-command-category {
+  padding: var(--volter-space-3) calc(var(--volter-space-6) + var(--volter-space-1)) var(--volter-space-1);
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-base);
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-.vgai-command-row {
+.volter-command-row {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-4);
-  padding: 5px calc(var(--vgai-space-6) + var(--vgai-space-1));
+  gap: var(--volter-space-4);
+  padding: 5px calc(var(--volter-space-6) + var(--volter-space-1));
   cursor: pointer;
 }
-.vgai-command-row[data-highlighted="true"] {
-  background: var(--vgai-selection-bg);
+.volter-command-row[data-highlighted="true"] {
+  background: var(--volter-selection-bg);
 }
-.vgai-command-icon {
+.volter-command-icon {
   width: 14px;
   flex-shrink: 0;
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-sm);
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-sm);
   text-align: center;
 }
-.vgai-command-label {
+.volter-command-label {
   min-width: 0;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.vgai-command-shortcut {
+.volter-command-shortcut {
   flex-shrink: 0;
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-base);
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-base);
 }
-.vgai-command-empty {
-  padding: var(--vgai-space-8) calc(var(--vgai-space-6) + var(--vgai-space-1));
-  color: var(--vgai-content-dim);
+.volter-command-empty {
+  padding: var(--volter-space-8) calc(var(--volter-space-6) + var(--volter-space-1));
+  color: var(--volter-content-dim);
   text-align: center;
 }
-.vgai-dialog-header {
-  padding: var(--vgai-space-8) var(--vgai-space-10);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+.volter-dialog-header {
+  padding: var(--volter-space-8) var(--volter-space-10);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
 }
-.vgai-dialog-body {
+.volter-dialog-body {
   min-height: 0;
-  padding: var(--vgai-space-8) var(--vgai-space-10);
+  padding: var(--volter-space-8) var(--volter-space-10);
   overflow: auto;
 }
-.vgai-dialog-footer {
+.volter-dialog-footer {
   justify-content: flex-end;
-  padding: var(--vgai-space-6) var(--vgai-space-10);
-  border-top: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  padding: var(--volter-space-6) var(--volter-space-10);
+  border-top: var(--volter-stroke-resting) solid var(--volter-boundary-default);
 }
-.vgai-dialog-field {
+.volter-dialog-field {
   display: grid;
   min-width: 0;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
-.vgai-dialog-field > .vgai-input {
+.volter-dialog-field > .volter-input {
   width: 100%;
 }
-.vgai-joined-field {
+.volter-joined-field {
   align-items: stretch;
   gap: 0;
 }
-.vgai-joined-field > .vgai-input {
+.volter-joined-field > .volter-input {
   width: 100%;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.vgai-joined-field-suffix {
+.volter-joined-field-suffix {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  padding: 0 var(--vgai-space-4);
-  color: var(--vgai-content-dim);
-  background: var(--vgai-surface-raised);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  padding: 0 var(--volter-space-4);
+  color: var(--volter-content-dim);
+  background: var(--volter-surface-raised);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
   border-left: 0;
-  border-radius: 0 var(--vgai-radius-sm) var(--vgai-radius-sm) 0;
+  border-radius: 0 var(--volter-radius-sm) var(--volter-radius-sm) 0;
   white-space: nowrap;
 }
 
 /* ---------------------------------------------------------------------- */
-/* .vgai-menu / .vgai-menu-item — shared floating-menu classes (optional,  */
+/* .volter-menu / .volter-menu-item — shared floating-menu classes (optional,  */
 /* for later units).                                                      */
 /* ---------------------------------------------------------------------- */
 
 /* REGULAR Liquid Glass (P3 overlay chrome, formalized as
- * `--vgai-glass-regular-*` in P6-U6 — the owner's Apple-HIG call: menus/
+ * `--volter-glass-regular-*` in P6-U6 — the owner's Apple-HIG call: menus/
  * popovers/dialogs/palette are the REGULAR variant, "more solid", never the
  * refractive Clear family): transient surfaces are never
  * backdrop-classified — the material is self-sufficient on both luminance
- * sides instead. `--vgai-glass-regular-bg` is a raised light tint (adaptive
+ * sides instead. `--volter-glass-regular-bg` is a raised light tint (adaptive
  * themes) or the theme's own chrome tone at high opacity (dark-side glass
  * themes) over a strong frost (`…-backdrop-filter`), statically paired with
  * the `-on-bright` ink ramp so they read over ANY backdrop (the ramp
@@ -1603,73 +1603,73 @@ select.vgai-input {
  * inert). For every theme without a treatment these vars mirror the plain
  * chrome surface / `none` — byte-identical paint. Same text-shadow
  * re-declaration rationale as the bright-scope rule above. */
-.vgai-menu,
-.vgai-popover,
-.vgai-dialog {
-  --vgai-content-primary: var(--vgai-content-primary-on-bright);
-  --vgai-content-muted: var(--vgai-content-muted-on-bright);
-  --vgai-content-dim: var(--vgai-content-dim-on-bright);
-  --vgai-content-text-shadow: var(--vgai-content-text-shadow-on-bright);
-  --vgai-content-frost-bg: var(--vgai-content-frost-bg-on-bright);
-  --vgai-text-1: var(--vgai-content-primary);
-  --vgai-text-2: var(--vgai-content-muted);
-  --vgai-text-3: var(--vgai-content-dim);
-  text-shadow: var(--vgai-content-text-shadow, none);
-  backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
-  -webkit-backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
+.volter-menu,
+.volter-popover,
+.volter-dialog {
+  --volter-content-primary: var(--volter-content-primary-on-bright);
+  --volter-content-muted: var(--volter-content-muted-on-bright);
+  --volter-content-dim: var(--volter-content-dim-on-bright);
+  --volter-content-text-shadow: var(--volter-content-text-shadow-on-bright);
+  --volter-content-frost-bg: var(--volter-content-frost-bg-on-bright);
+  --volter-text-1: var(--volter-content-primary);
+  --volter-text-2: var(--volter-content-muted);
+  --volter-text-3: var(--volter-content-dim);
+  text-shadow: var(--volter-content-text-shadow, none);
+  backdrop-filter: var(--volter-glass-regular-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--volter-glass-regular-backdrop-filter, none);
 }
 
-.vgai-menu {
+.volter-menu {
   /* Opaque skins: the shell, a step darker than the bar a menu opens from
      (Blender's popups are a step darker than its top bar). Glass keeps its own. */
-  background: var(--vgai-glass-regular-bg, var(--vgai-surface-shell));
-  border: 1px solid var(--vgai-border-1);
-  border-radius: var(--vgai-radius-md);
-  box-shadow: var(--vgai-shadow-md);
-  padding: var(--vgai-space-2);
-  z-index: var(--vgai-z-dropdown);
+  background: var(--volter-glass-regular-bg, var(--volter-surface-shell));
+  border: 1px solid var(--volter-border-1);
+  border-radius: var(--volter-radius-md);
+  box-shadow: var(--volter-shadow-md);
+  padding: var(--volter-space-2);
+  z-index: var(--volter-z-dropdown);
   /* Menus can portal directly under the theme root to escape a glass
      stacking context. Own typography at the primitive boundary instead of
-     inheriting through `.vgai-shell`, or portaled dropdowns fall back to the
+     inheriting through `.volter-shell`, or portaled dropdowns fall back to the
      browser's serif default. */
 }
-.vgai-menu-item {
+.volter-menu-item {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: var(--vgai-control-default-height);
+  min-height: var(--volter-control-default-height);
   box-sizing: border-box;
   border: 0;
   background: transparent;
-  padding: var(--vgai-space-2) var(--vgai-space-4);
-  border-radius: var(--vgai-radius-sm);
-  font-size: var(--vgai-font-base);
-  color: var(--vgai-text-1);
+  padding: var(--volter-space-2) var(--volter-space-4);
+  border-radius: var(--volter-radius-sm);
+  font-size: var(--volter-font-base);
+  color: var(--volter-text-1);
   cursor: pointer;
   user-select: none;
   font-family: inherit;
   text-align: left;
   white-space: nowrap;
 }
-.vgai-menu-item:hover {
-  background: var(--vgai-selection-bg);
+.volter-menu-item:hover {
+  background: var(--volter-selection-bg);
 }
-.vgai-menu-item:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-menu-item:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -1px;
 }
-.vgai-menu-item:disabled {
-  color: var(--vgai-text-3);
+.volter-menu-item:disabled {
+  color: var(--volter-text-3);
   cursor: default;
 }
-.vgai-menu-item:disabled:hover {
+.volter-menu-item:disabled:hover {
   background: transparent;
 }
-.vgai-menu-separator {
-  height: var(--vgai-stroke-resting);
-  margin: var(--vgai-space-1) var(--vgai-space-2);
+.volter-menu-separator {
+  height: var(--volter-stroke-resting);
+  margin: var(--volter-space-1) var(--volter-space-2);
   border: 0;
-  background: var(--vgai-boundary-default);
+  background: var(--volter-boundary-default);
 }
 
 /* A top-bar menu word (File/Edit/Render in Blender; Edit/View/Window here) is
@@ -1680,11 +1680,11 @@ select.vgai-input {
    trigger collapsed to its 15px line box (font 11 x leading 1.4) and the row
    read as text floating in a bar. `min-height` rather than `height`: where a
    parent DOES have a definite height (a panel header), 100% still wins. */
-.vgai-menu-trigger {
+.volter-menu-trigger {
   height: 100%;
-  min-height: var(--vgai-control-compact-height);
+  min-height: var(--volter-control-compact-height);
   border: 0;
-  border-radius: var(--vgai-radius-sm);
+  border-radius: var(--volter-radius-sm);
   background: transparent;
   /* A MENU WORD IS ITS OWN INK (`content.menu`; see theme.ts for the two
      backdrops that prove it opaque). This rule used to read `text-2` — the
@@ -1693,18 +1693,18 @@ select.vgai-input {
      primary: one role split across two members. The token falls back to
      `content.primary` in the emitter, which is what the top bar already
      painted, so a palette naming no menu ink leaves that bar untouched. */
-  color: var(--vgai-content-menu);
-  padding: 0 var(--vgai-space-4);
+  color: var(--volter-content-menu);
+  padding: 0 var(--volter-space-4);
   cursor: pointer;
   font: inherit;
 }
-.vgai-menu-trigger:hover,
-.vgai-menu-trigger[aria-expanded="true"] {
-  color: var(--vgai-text-1);
-  background: var(--vgai-bg-3);
+.volter-menu-trigger:hover,
+.volter-menu-trigger[aria-expanded="true"] {
+  color: var(--volter-text-1);
+  background: var(--volter-bg-3);
 }
-.vgai-menu-trigger:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-menu-trigger:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -1px;
 }
 
@@ -1712,27 +1712,27 @@ select.vgai-input {
  * sampled backdrop instead of replacing it with a high-opacity card. The
  * normal light-ink state adds shade only when contrast begins to fail; bright
  * scenes switch to dark ink and nearly transparent fills. The panel host
- * owns the ONE body frost; dense `.vgai-content-frost` floors receive a
+ * owns the ONE body frost; dense `.volter-content-frost` floors receive a
  * stronger correction, but never a second filter. */
-[data-vgai-chrome="islands"] .vgai-glass-regular-panel {
-  color: var(--vgai-content-primary);
-  text-shadow: var(--vgai-content-text-shadow, none);
+[data-volter-chrome="islands"] .volter-glass-regular-panel {
+  color: var(--volter-content-primary);
+  text-shadow: var(--volter-content-text-shadow, none);
   background: var(
-    --vgai-glass-regular-panel-adaptive-bg,
-    var(--vgai-glass-regular-panel-bg, var(--vgai-surface-panel))
+    --volter-glass-regular-panel-adaptive-bg,
+    var(--volter-glass-regular-panel-bg, var(--volter-surface-panel))
   );
-  backdrop-filter: var(--vgai-glass-regular-panel-backdrop-filter, none);
-  -webkit-backdrop-filter: var(--vgai-glass-regular-panel-backdrop-filter, none);
-  border: var(--vgai-stroke-resting) solid
-    color-mix(in srgb, var(--vgai-content-primary) 22%, transparent);
-  border-radius: var(--vgai-radius-lg);
-  box-shadow: var(--vgai-card-specular-shadow, var(--vgai-shadow-lg));
+  backdrop-filter: var(--volter-glass-regular-panel-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--volter-glass-regular-panel-backdrop-filter, none);
+  border: var(--volter-stroke-resting) solid
+    color-mix(in srgb, var(--volter-content-primary) 22%, transparent);
+  border-radius: var(--volter-radius-lg);
+  box-shadow: var(--volter-card-specular-shadow, var(--volter-shadow-lg));
 }
 
-[data-vgai-chrome="islands"] .vgai-glass-regular-panel .vgai-content-frost {
+[data-volter-chrome="islands"] .volter-glass-regular-panel .volter-content-frost {
   background: var(
-    --vgai-glass-regular-content-adaptive-bg,
-    var(--vgai-content-frost-bg, transparent)
+    --volter-glass-regular-content-adaptive-bg,
+    var(--volter-content-frost-bg, transparent)
   );
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -1742,67 +1742,67 @@ select.vgai-input {
 /* Editor composition patterns: toolbars, tabs, trees, fields, and states. */
 /* ---------------------------------------------------------------------- */
 
-.vgai-toolbar {
+.volter-toolbar {
   display: flex;
   min-width: 0;
-  min-height: var(--vgai-local-toolbar-height);
+  min-height: var(--volter-local-toolbar-height);
   align-items: center;
-  gap: var(--vgai-space-2);
-  padding: 0 var(--vgai-space-3);
-  color: var(--vgai-content-primary);
+  gap: var(--volter-space-2);
+  padding: 0 var(--volter-space-3);
+  color: var(--volter-content-primary);
   /* Structural chrome is clear. Significant text floors own the single
      content-frost tier; a toolbar inside that floor must not blur again.
      Floating toolbars below remain independent glass islands. */
   background: transparent;
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
   box-sizing: border-box;
 }
-.vgai-toolbar[data-compact="true"] {
-  min-height: var(--vgai-control-default-height);
-  padding-inline: var(--vgai-space-2);
+.volter-toolbar[data-compact="true"] {
+  min-height: var(--volter-control-default-height);
+  padding-inline: var(--volter-space-2);
 }
-.vgai-toolbar-group {
+.volter-toolbar-group {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
-.vgai-toolbar-divider {
+.volter-toolbar-divider {
   width: 1px;
   height: 16px;
   flex: 0 0 auto;
-  margin: 0 var(--vgai-space-1);
-  background: var(--vgai-boundary-default);
+  margin: 0 var(--volter-space-1);
+  background: var(--volter-boundary-default);
 }
 /* Floating toolbars are glass ISLANDS (P6 glass-native chrome, U2): the
    owner's "just transparent blurs" call-out. Fill, filter, radius, border,
-   and shadow all arrive through the treatment-driven --vgai-island-* vars
+   and shadow all arrive through the treatment-driven --volter-island-* vars
    (theme.ts) — a glass theme paints the card material (panel-whisper fill,
    the theme's plain backdrop list, radius 17, deep shadow) and the
-   refraction engine upgrades each `.vgai-glass-island` (the class
+   refraction engine upgrades each `.volter-glass-island` (the class
    patterns/Toolbar.tsx adds alongside this one) to its own url()
    displacement chain where capable; this declaration is the var-driven
    plain-list fallback it suspends to. Treatment-less themes emit the exact
    pre-P6 recipe through the same vars, so graphite/lite paint
    byte-identically. Text opts into the theme's content shadow (inert
    'none' without the axis). */
-.vgai-floating-toolbar {
+.volter-floating-toolbar {
   position: relative;
   min-height: auto;
-  padding: var(--vgai-space-2) var(--vgai-space-3);
-  border: var(--vgai-stroke-resting) solid
-    var(--vgai-island-border-color, var(--vgai-boundary-default));
-  border-radius: var(--vgai-island-radius, var(--vgai-radius-md));
+  padding: var(--volter-space-2) var(--volter-space-3);
+  border: var(--volter-stroke-resting) solid
+    var(--volter-island-border-color, var(--volter-boundary-default));
+  border-radius: var(--volter-island-radius, var(--volter-radius-md));
   /* Ambient-lift layer (P6-U6 taste decision 2): 'none' for every
      treatment-less theme, so the composed background stays byte-equivalent
      to the single-layer paint. */
   background:
-    var(--vgai-ambient-lift, none), var(--vgai-backdrop-dim, none),
-    var(--vgai-island-surface, color-mix(in srgb, var(--vgai-surface-panel) 90%, transparent));
-  box-shadow: var(--vgai-island-shadow, var(--vgai-shadow-sm));
-  backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
-  -webkit-backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
-  text-shadow: var(--vgai-content-text-shadow, none);
+    var(--volter-ambient-lift, none), var(--volter-backdrop-dim, none),
+    var(--volter-island-surface, color-mix(in srgb, var(--volter-surface-panel) 90%, transparent));
+  box-shadow: var(--volter-island-shadow, var(--volter-shadow-sm));
+  backdrop-filter: var(--volter-island-backdrop-filter, blur(8px));
+  -webkit-backdrop-filter: var(--volter-island-backdrop-filter, blur(8px));
+  text-shadow: var(--volter-content-text-shadow, none);
   pointer-events: auto;
 }
 /* Apple-style segmented chrome uses a neutral material lift for selection.
@@ -1810,24 +1810,24 @@ select.vgai-input {
    choosing Move/Rotate/Scale or a viewport display toggle is not an accent
    action. This toolbar-scoped rule intentionally leaves pressed buttons in
    ordinary panels on their existing semantic treatment. */
-.vgai-floating-toolbar .vgai-btn[aria-pressed="true"] {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-selection-bg);
+.volter-floating-toolbar .volter-btn[aria-pressed="true"] {
+  color: var(--volter-content-primary);
+  background: var(--volter-selection-bg);
   border-color: transparent;
 }
 /* Exclusive selection uses the same toolbar material and button geometry,
    but the one selected destination receives the stronger tab-style accent.
    Independent viewport toggles above intentionally keep the neutral state so
    several simultaneous selections don't compete for primary emphasis. */
-.vgai-floating-toolbar[data-selection-mode="single"] .vgai-btn[aria-pressed="true"] {
-  color: var(--vgai-accent);
-  background: var(--vgai-neutral-active);
+.volter-floating-toolbar[data-selection-mode="single"] .volter-btn[aria-pressed="true"] {
+  color: var(--volter-accent);
+  background: var(--volter-neutral-active);
 }
 /* Transform modes are segments, not isolated circular icon buttons. Keep
    every segment wider than it is tall so the neutral selection reads as a
    generous oval and changing modes never shifts the toolbar geometry. */
-.vgai-floating-toolbar .vgai-btn[data-shape="segment"] {
-  width: calc(var(--vgai-control-comfortable-height) + 12px);
+.volter-floating-toolbar .volter-btn[data-shape="segment"] {
+  width: calc(var(--volter-control-comfortable-height) + 12px);
 }
 /* Specular rim, consistent with cards (workspace-dock.css's card ::before):
    the 1.5px gradient ring via the padding + mask-composite trick — only the
@@ -1838,14 +1838,14 @@ select.vgai-input {
    with interactive children explicitly above it; a huge decorative z-index
    made Chromium target the toolbar surface instead of its buttons despite
    `pointer-events:none`. */
-.vgai-floating-toolbar::before {
+.volter-floating-toolbar::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: var(--vgai-z-base);
+  z-index: var(--volter-z-base);
   padding: 1px;
   border-radius: inherit;
-  background: var(--vgai-island-specular-ring, none);
+  background: var(--volter-island-specular-ring, none);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -1855,17 +1855,17 @@ select.vgai-input {
     linear-gradient(#000 0 0);
   pointer-events: none;
 }
-.vgai-floating-toolbar > * {
+.volter-floating-toolbar > * {
   position: relative;
   z-index: 1;
 }
 /* Header/footer chrome ISLANDS (P6 glass-native chrome, U3/U4): under
-   islands chrome — `data-vgai-chrome="islands"` on the theme root, derived
+   islands chrome — `data-volter-chrome="islands"` on the theme root, derived
    in theme.ts from the glass TREATMENT, never from theme identity — the
    command-bar clusters (ProjectHeader.css) and status-bar groups / tray
    button (EditorBottomBar.css) paint the same island material as
-   .vgai-floating-toolbar above, through the same --vgai-island-* vars; the
-   refraction engine upgrades each one (they all carry .vgai-glass-island)
+   .volter-floating-toolbar above, through the same --volter-island-* vars; the
+   refraction engine upgrades each one (they all carry .volter-glass-island)
    to the url() displacement chain where capable, and this declaration is
    the plain-list fallback it suspends to. `:not(:empty)` doubles as the
    auto-hide affordance: an empty status group paints NOTHING (no 2px
@@ -1881,16 +1881,16 @@ select.vgai-input {
    Blender style flattens every control height to 20 for its menus and
    headers, which is right there and wrong here, so the cluster restates
    the one number it owns rather than bending the style's scale. */
-.vgai-viewport-navigation {
-  --vgai-control-compact-height: 28px;
-  --vgai-control-default-height: 28px;
-  --vgai-control-comfortable-height: 28px;
+.volter-viewport-navigation {
+  --volter-control-compact-height: 28px;
+  --volter-control-default-height: 28px;
+  --volter-control-comfortable-height: 28px;
 }
 
 /* THE GLYPH INK IS 203, MEASURED (2026-09-19, `modeling-edit-none.png`,
    device x 2774..2805 across all four buttons): mode 203, max 204. Ours
    inked 194 because the cluster's buttons are `ghost`, and
-   `.vgai-btn[data-variant="ghost"]` paints `content.muted` — which is the
+   `.volter-btn[data-variant="ghost"]` paints `content.muted` — which is the
    TREE ROW TEXT colour. The palette's own record already says that is the
    wrong family here: `category.tool`'s docblock (`theme.ts`, the derivation
    from the Properties rail's inactive `#a8a8a8`) states that Blender's
@@ -1947,7 +1947,7 @@ select.vgai-input {
    measured, its cluster plate reads 39 against the same 63 viewport, and
    shell-at-0.225 would put it at 54.7, dropping its separation from the
    stage from 24 levels to 8. The knob that could carry it is a per-look
-   ISLAND SURFACE — `--vgai-island-surface` is emitted by `theme.ts`'s
+   ISLAND SURFACE — `--volter-island-surface` is emitted by `theme.ts`'s
    `islandSurfaceValue`, which branches on the MATERIAL and hardcodes
    `surface-panel at 90%` for every non-glass look — and giving a material
    or palette its own island recipe is a new noun, which is a decision, not
@@ -1956,7 +1956,7 @@ select.vgai-input {
    TWO SELECTOR STEPS PAST THE GHOST RULE, and that is the bought lesson:
    the ghost rule is (0,2,0) and lives in this same file, so a single-class
    rule here would be a coin toss on source order.
-   UNGATED, AND I TRIED TO GATE IT FIRST. A `[data-vgai-palette="blender"]`
+   UNGATED, AND I TRIED TO GATE IT FIRST. A `[data-volter-palette="blender"]`
    scope was written, and `validate-style-tokens`' `css-style-identity-
    selector` refused it by name — CSS may not branch on which palette is
    installed, because that makes every new palette a source edit. The gate
@@ -1972,35 +1972,35 @@ select.vgai-input {
    TEXT role. `content.primary` is the readable ink in every palette and the
    mix only moves it toward the plate it sits on, so no skin can lose
    contrast by it. Classic cold-booted and read after. */
-.vgai-viewport-navigation .vgai-btn[data-variant="ghost"] {
-  color: color-mix(in srgb, var(--vgai-content-primary) 85.56%, transparent);
+.volter-viewport-navigation .volter-btn[data-variant="ghost"] {
+  color: color-mix(in srgb, var(--volter-content-primary) 85.56%, transparent);
 }
 
-[data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty) {
+[data-volter-chrome="islands"] .volter-chrome-island:not(:empty) {
   position: relative;
-  border: var(--vgai-stroke-resting) solid
-    var(--vgai-island-border-color, var(--vgai-boundary-default));
-  border-radius: var(--vgai-island-radius, var(--vgai-radius-md));
+  border: var(--volter-stroke-resting) solid
+    var(--volter-island-border-color, var(--volter-boundary-default));
+  border-radius: var(--volter-island-radius, var(--volter-radius-md));
   background:
-    var(--vgai-ambient-lift, none), var(--vgai-backdrop-dim, none),
-    var(--vgai-island-surface, color-mix(in srgb, var(--vgai-surface-panel) 90%, transparent));
-  box-shadow: var(--vgai-island-shadow, var(--vgai-shadow-sm));
-  backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
-  -webkit-backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
-  text-shadow: var(--vgai-content-text-shadow, none);
+    var(--volter-ambient-lift, none), var(--volter-backdrop-dim, none),
+    var(--volter-island-surface, color-mix(in srgb, var(--volter-surface-panel) 90%, transparent));
+  box-shadow: var(--volter-island-shadow, var(--volter-shadow-sm));
+  backdrop-filter: var(--volter-island-backdrop-filter, blur(8px));
+  -webkit-backdrop-filter: var(--volter-island-backdrop-filter, blur(8px));
+  text-shadow: var(--volter-content-text-shadow, none);
   box-sizing: border-box;
   pointer-events: auto;
 }
-/* Same specular rim as .vgai-floating-toolbar::before. Keep decorative
+/* Same specular rim as .volter-floating-toolbar::before. Keep decorative
    paint beneath interactive island children so it can never own a hit. */
-[data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty)::before {
+[data-volter-chrome="islands"] .volter-chrome-island:not(:empty)::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   padding: 1px;
   border-radius: inherit;
-  background: var(--vgai-island-specular-ring, none);
+  background: var(--volter-island-specular-ring, none);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -2010,7 +2010,7 @@ select.vgai-input {
     linear-gradient(#000 0 0);
   pointer-events: none;
 }
-[data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty) > * {
+[data-volter-chrome="islands"] .volter-chrome-island:not(:empty) > * {
   position: relative;
   z-index: 1;
 }
@@ -2018,50 +2018,50 @@ select.vgai-input {
    big-chrome weight. Compact islands — the tray button and any other
    small single-control island — get a quieter rim, a smaller shadow, and
    a tighter radius than the full clusters/toolbars. */
-[data-vgai-chrome="islands"] .vgai-chrome-island[data-island-scale="compact"]:not(:empty) {
+[data-volter-chrome="islands"] .volter-chrome-island[data-island-scale="compact"]:not(:empty) {
   border-radius: 12px;
-  box-shadow: var(--vgai-shadow-sm);
+  box-shadow: var(--volter-shadow-sm);
 }
-[data-vgai-chrome="islands"] .vgai-chrome-island[data-island-scale="compact"]:not(:empty)::before {
+[data-volter-chrome="islands"] .volter-chrome-island[data-island-scale="compact"]:not(:empty)::before {
   opacity: 0.55;
 }
 /* HUD islands (P6-U6): component-specific corrections the shared island
    material must not clobber. The camera pill is a READOUT — it must never
    start intercepting viewport pointers just because it became an island;
    the profiler chip's enabled state keeps its accent border signal. */
-[data-vgai-chrome="islands"] .vgai-camera-info.vgai-chrome-island:not(:empty) {
+[data-volter-chrome="islands"] .volter-camera-info.volter-chrome-island:not(:empty) {
   pointer-events: none;
 }
-[data-vgai-chrome="islands"]
-  .vgai-performance-overlay.vgai-chrome-island[data-enabled="true"]:not(:empty) {
-  border-color: var(--vgai-accent);
+[data-volter-chrome="islands"]
+  .volter-performance-overlay.volter-chrome-island[data-enabled="true"]:not(:empty) {
+  border-color: var(--volter-accent);
 }
 /* Concentricity (owner design review, canonical HIG rule): highlights
    nested inside pill chrome follow the pill — capsule hover/active chips,
    not the flat design's small-radius rectangles. Var resolves to
    radius-full only for treatment themes; opaque themes keep radius-sm. */
-[data-vgai-chrome="islands"] .vgai-chrome-island .vgai-btn,
-.vgai-floating-toolbar .vgai-btn {
-  border-radius: var(--vgai-island-control-radius, var(--vgai-radius-sm));
+[data-volter-chrome="islands"] .volter-chrome-island .volter-btn,
+.volter-floating-toolbar .volter-btn {
+  border-radius: var(--volter-island-control-radius, var(--volter-radius-sm));
 }
 /* Singleton toolbar buttons ARE their own capsules (unrelated actions
    never share a glass tray — grouping is by relatedness, per the HIG). The
    one prominent action wears the tinted-glass capsule: accent as a
    translucent tint over the blur, never an opaque painted slab. */
-[data-vgai-chrome="islands"] .vgai-btn.vgai-chrome-island:not(:empty) {
-  border-radius: var(--vgai-island-control-radius, var(--vgai-radius-sm));
+[data-volter-chrome="islands"] .volter-btn.volter-chrome-island:not(:empty) {
+  border-radius: var(--volter-island-control-radius, var(--volter-radius-sm));
 }
-[data-vgai-chrome="islands"] .vgai-btn.vgai-chrome-island[data-variant="primary"]:not(:empty) {
-  background: var(--vgai-island-primary-bg, var(--vgai-accent));
+[data-volter-chrome="islands"] .volter-btn.volter-chrome-island[data-variant="primary"]:not(:empty) {
+  background: var(--volter-island-primary-bg, var(--volter-accent));
 }
-.vgai-split-button {
+.volter-split-button {
   display: inline-flex;
   min-width: 0;
   align-items: stretch;
 }
 /* A SPLIT IS ONE WELL WITH ONE DIVIDER, and reaching the halves takes both
-   shapes: `Tooltip` renders a `span.vgai-tooltip-anchor` AROUND its child, so
-   `> .vgai-btn` silently matched nothing for every split whose halves carry
+   shapes: `Tooltip` renders a `span.volter-tooltip-anchor` AROUND its child, so
+   `> .volter-btn` silently matched nothing for every split whose halves carry
    tooltips — which is all of them but one. Measured 2026-09-18 through
    `editor.document.query` on the viewport header's snap group: the two halves
    each kept a full 1px border (2px of seam) and both kept their outer radii,
@@ -2070,43 +2070,43 @@ select.vgai-input {
    snap dropdown at #272727). The tooltip anchor is `position: relative;
    display: inline-flex` and carries no paint of its own, so only the button
    inside it needs the rule. */
-.vgai-split-button > .vgai-btn:first-child,
-.vgai-split-button > :first-child > .vgai-btn {
+.volter-split-button > .volter-btn:first-child,
+.volter-split-button > :first-child > .volter-btn {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.vgai-split-button > .vgai-btn + .vgai-btn,
-.vgai-split-button > * + .vgai-btn,
-.vgai-split-button > * + * > .vgai-btn {
+.volter-split-button > .volter-btn + .volter-btn,
+.volter-split-button > * + .volter-btn,
+.volter-split-button > * + * > .volter-btn {
   min-width: 20px;
-  padding-inline: var(--vgai-space-1);
+  padding-inline: var(--volter-space-1);
   border-left: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-.vgai-keycap {
-  padding: 1px var(--vgai-space-2);
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-raised);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-sm);
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-sm);
+.volter-keycap {
+  padding: 1px var(--volter-space-2);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-raised);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-sm);
 }
-.vgai-viewport-toolbar {
+.volter-viewport-toolbar {
   position: absolute;
-  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
+  top: var(--volter-viewport-overlay-top, var(--volter-space-4));
   /* The full-canvas selection hit layer is z50. Keep viewport controls in
      the upper overlay band below menus (1000) but decisively above every
      canvas-local interaction surface, including nested stacking contexts. */
-  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  z-index: calc(var(--volter-z-dropdown, 1000) - 1);
   isolation: isolate;
 }
-.vgai-viewport-toolbar-left {
-  left: var(--vgai-space-4);
+.volter-viewport-toolbar-left {
+  left: var(--volter-space-4);
 }
-.vgai-viewport-toolbar-right {
-  right: var(--vgai-space-4);
+.volter-viewport-toolbar-right {
+  right: var(--volter-space-4);
 }
 /* U6.5 F1 — header-island clearance for viewport-overlay chrome. Under
    islands chrome over a BACKDROP document the header row is a
@@ -2117,8 +2117,8 @@ select.vgai-input {
    view-controls under Export/Account — the stats toggle was 100%
    pointer-intercepted by the Account pill (the U6.5-FEED "Account ghost").
    Two inherited offsets move ALL of it below the 48px band instead:
-   - `--vgai-viewport-overlay-top`: the toolbar rows' top — 48 + 8 = 56px.
-   - `--vgai-viewport-overlay-hud-top`: the second HUD tier (stats /
+   - `--volter-viewport-overlay-top`: the toolbar rows' top — 48 + 8 = 56px.
+   - `--volter-viewport-overlay-hud-top`: the second HUD tier (stats /
      network readouts, StatsOverlay.tsx / NetworkInspectorPanel.tsx) — toolbar
      bottom (56 + 38) + the 8px breathing band (P2-18) = 102px.
    Under islands (glass) chrome the HUD tier gets the 8px breathing band:
@@ -2127,226 +2127,226 @@ select.vgai-input {
    Treatment-less "bars" chrome (graphite/classic/lite/reduced) leaves the var
    UNSET so the components' bare 48px fallback applies — pixel-identical to
    pre-glass main (the degrade-ladder invariant). */
-[data-vgai-chrome="islands"] {
-  --vgai-viewport-overlay-hud-top: 54px;
+[data-volter-chrome="islands"] {
+  --volter-viewport-overlay-hud-top: 54px;
 }
-[data-vgai-chrome="islands"] .vgai-editor-shell:has(.vgai-workspace-dock[data-vgai-backdrop]) {
-  --vgai-viewport-overlay-top: 56px;
-  --vgai-viewport-overlay-hud-top: 102px;
+[data-volter-chrome="islands"] .volter-editor-shell:has(.volter-workspace-dock[data-volter-backdrop]) {
+  --volter-viewport-overlay-top: 56px;
+  --volter-viewport-overlay-hud-top: 102px;
 }
-.vgai-viewport-popover-anchor {
+.volter-viewport-popover-anchor {
   position: relative;
   display: inline-flex;
   align-items: center;
 }
-.vgai-snap-popover {
+.volter-snap-popover {
   position: absolute;
-  top: calc(100% + var(--vgai-space-2));
+  top: calc(100% + var(--volter-space-2));
   left: 0;
-  z-index: var(--vgai-z-dropdown);
+  z-index: var(--volter-z-dropdown);
   width: 170px;
-  padding: var(--vgai-space-4);
+  padding: var(--volter-space-4);
 }
-.vgai-helpers-menu {
+.volter-helpers-menu {
   position: absolute;
-  top: calc(100% + var(--vgai-space-2));
+  top: calc(100% + var(--volter-space-2));
   right: 0;
-  z-index: var(--vgai-z-dropdown);
+  z-index: var(--volter-z-dropdown);
   min-width: 140px;
 }
-.vgai-menu-check {
+.volter-menu-check {
   display: inline-flex;
   width: 14px;
   flex: 0 0 auto;
   justify-content: center;
-  margin-right: var(--vgai-space-2);
+  margin-right: var(--volter-space-2);
 }
-.vgai-selectable {
+.volter-selectable {
   transition:
-    background-color 0.12s var(--vgai-ease-standard),
-    border-color 0.12s var(--vgai-ease-standard),
-    color 0.12s var(--vgai-ease-standard);
+    background-color 0.12s var(--volter-ease-standard),
+    border-color 0.12s var(--volter-ease-standard),
+    color 0.12s var(--volter-ease-standard);
 }
-.vgai-selectable:hover {
-  background: var(--vgai-neutral-hover);
+.volter-selectable:hover {
+  background: var(--volter-neutral-hover);
 }
-.vgai-selectable[data-selected="true"] {
-  background: var(--vgai-selection-bg);
+.volter-selectable[data-selected="true"] {
+  background: var(--volter-selection-bg);
 }
-.vgai-list-button {
+.volter-list-button {
   display: block;
   width: 100%;
   min-width: 0;
   border: 0;
-  border-left: var(--vgai-stroke-active) solid transparent;
+  border-left: var(--volter-stroke-active) solid transparent;
   background: transparent;
-  color: var(--vgai-content-muted);
-  padding: var(--vgai-space-3) var(--vgai-space-4);
+  color: var(--volter-content-muted);
+  padding: var(--volter-space-3) var(--volter-space-4);
   text-align: left;
   font: inherit;
   cursor: pointer;
   box-sizing: border-box;
 }
-.vgai-list-button:hover {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-neutral-hover);
+.volter-list-button:hover {
+  color: var(--volter-content-primary);
+  background: var(--volter-neutral-hover);
 }
-.vgai-list-button[data-selected="true"] {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-selection-bg);
+.volter-list-button[data-selected="true"] {
+  color: var(--volter-content-primary);
+  background: var(--volter-selection-bg);
 }
-.vgai-list-button[data-selected="true"][data-accent="bar"] {
-  border-left-color: var(--vgai-selection-indicator);
+.volter-list-button[data-selected="true"][data-accent="bar"] {
+  border-left-color: var(--volter-selection-indicator);
 }
-.vgai-list-button:disabled {
+.volter-list-button:disabled {
   opacity: 0.5;
   cursor: default;
 }
-.vgai-list-button:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-list-button:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -2px;
 }
-.vgai-playbar {
+.volter-playbar {
   pointer-events: auto;
 }
-.vgai-play-edit-regime {
+.volter-play-edit-regime {
   display: inline-flex;
-  width: var(--vgai-control-compact-height);
-  height: var(--vgai-control-compact-height);
+  width: var(--volter-control-compact-height);
+  height: var(--volter-control-compact-height);
   align-items: center;
   justify-content: center;
-  color: var(--vgai-warn);
+  color: var(--volter-warn);
 }
-.vgai-play-edit-regime[data-regime="overlay"] {
-  color: var(--vgai-success);
+.volter-play-edit-regime[data-regime="overlay"] {
+  color: var(--volter-success);
 }
-.vgai-playbar-popover-anchor {
+.volter-playbar-popover-anchor {
   position: relative;
 }
-.vgai-resolution-menu {
-  z-index: var(--vgai-z-dropdown);
+.volter-resolution-menu {
+  z-index: var(--volter-z-dropdown);
   min-width: 220px;
 }
-.vgai-resolution-menu [aria-checked="true"] {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-selection-bg);
+.volter-resolution-menu [aria-checked="true"] {
+  color: var(--volter-content-primary);
+  background: var(--volter-selection-bg);
 }
-.vgai-camera-info {
+.volter-camera-info {
   position: absolute;
   /* Bottom-LEFT: the bottom-right corner belongs to the compact inspector
      card (owner, 2026-08-07 — the readout was sitting underneath it). */
-  left: var(--vgai-space-4);
-  bottom: var(--vgai-space-4);
-  padding: var(--vgai-space-2) var(--vgai-space-3);
-  border-radius: var(--vgai-radius-md);
+  left: var(--volter-space-4);
+  bottom: var(--volter-space-4);
+  padding: var(--volter-space-2) var(--volter-space-3);
+  border-radius: var(--volter-radius-md);
   backdrop-filter: blur(8px);
   pointer-events: none;
 }
-.vgai-camera-preview {
+.volter-camera-preview {
   position: absolute;
-  z-index: calc(var(--vgai-z-dropdown, 1000) - 2);
-  left: var(--vgai-space-4);
+  z-index: calc(var(--volter-z-dropdown, 1000) - 2);
+  left: var(--volter-space-4);
   bottom: 52px;
   width: clamp(220px, 26vw, 360px);
-  max-width: calc(100% - var(--vgai-space-8));
+  max-width: calc(100% - var(--volter-space-8));
   overflow: visible;
-  border-radius: var(--vgai-radius-md);
+  border-radius: var(--volter-radius-md);
   background: transparent;
-  box-shadow: var(--vgai-shadow-md);
+  box-shadow: var(--volter-shadow-md);
 }
-.vgai-camera-preview-header {
+.volter-camera-preview-header {
   min-height: 28px;
   flex-wrap: nowrap;
-  padding: 0 var(--vgai-space-2);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  padding: 0 var(--volter-space-2);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
   border-bottom: 0;
-  border-radius: var(--vgai-radius-md) var(--vgai-radius-md) 0 0;
-  background: var(--vgai-surface-overlay);
+  border-radius: var(--volter-radius-md) var(--volter-radius-md) 0 0;
+  background: var(--volter-surface-overlay);
   backdrop-filter: blur(12px);
 }
-.vgai-camera-preview-title {
+.volter-camera-preview-title {
   min-width: 0;
   flex: 1;
 }
-.vgai-camera-preview-image {
+.volter-camera-preview-image {
   width: 100%;
   min-height: 120px;
   overflow: hidden;
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
   border-top: 0;
-  border-radius: 0 0 var(--vgai-radius-md) var(--vgai-radius-md);
+  border-radius: 0 0 var(--volter-radius-md) var(--volter-radius-md);
   cursor: zoom-in;
 }
-.vgai-camera-preview-menu-anchor {
+.volter-camera-preview-menu-anchor {
   position: relative;
   display: flex;
 }
-.vgai-camera-preview-menu {
+.volter-camera-preview-menu {
   position: absolute;
-  z-index: var(--vgai-z-dropdown);
-  top: calc(100% + var(--vgai-space-1));
+  z-index: var(--volter-z-dropdown);
+  top: calc(100% + var(--volter-space-1));
   right: 0;
   display: grid;
   width: max-content;
   min-width: 210px;
-  padding: var(--vgai-space-1);
+  padding: var(--volter-space-1);
 }
-.vgai-camera-preview-menu .vgai-btn {
+.volter-camera-preview-menu .volter-btn {
   justify-content: flex-start;
 }
-.vgai-camera-view-banner {
+.volter-camera-view-banner {
   position: absolute;
-  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
-  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
+  z-index: calc(var(--volter-z-dropdown, 1000) - 1);
+  top: var(--volter-viewport-overlay-top, var(--volter-space-4));
   left: 50%;
   max-width: calc(100% - 520px);
-  padding: var(--vgai-space-1) var(--vgai-space-2);
-  border-radius: var(--vgai-radius-full);
+  padding: var(--volter-space-1) var(--volter-space-2);
+  border-radius: var(--volter-radius-full);
   transform: translateX(-50%);
   backdrop-filter: blur(12px);
 }
-.vgai-camera-guides {
+.volter-camera-guides {
   position: absolute;
-  z-index: calc(var(--vgai-z-sticky, 100) - 1);
+  z-index: calc(var(--volter-z-sticky, 100) - 1);
   inset: 0;
   overflow: hidden;
   pointer-events: none;
 }
-.vgai-camera-guide {
+.volter-camera-guide {
   position: absolute;
-  background: color-mix(in srgb, var(--vgai-content-primary) 40%, transparent);
-  box-shadow: 0 0 1px color-mix(in srgb, var(--vgai-surface-shell) 70%, transparent);
+  background: color-mix(in srgb, var(--volter-content-primary) 40%, transparent);
+  box-shadow: 0 0 1px color-mix(in srgb, var(--volter-surface-shell) 70%, transparent);
 }
-.vgai-camera-guide-v1,
-.vgai-camera-guide-v2 {
+.volter-camera-guide-v1,
+.volter-camera-guide-v2 {
   top: 0;
   bottom: 0;
   width: 1px;
 }
-.vgai-camera-guide-v1 {
+.volter-camera-guide-v1 {
   left: 33.333%;
 }
-.vgai-camera-guide-v2 {
+.volter-camera-guide-v2 {
   left: 66.666%;
 }
-.vgai-camera-guide-h1,
-.vgai-camera-guide-h2 {
+.volter-camera-guide-h1,
+.volter-camera-guide-h2 {
   right: 0;
   left: 0;
   height: 1px;
 }
-.vgai-camera-guide-h1 {
+.volter-camera-guide-h1 {
   top: 33.333%;
 }
-.vgai-camera-guide-h2 {
+.volter-camera-guide-h2 {
   top: 66.666%;
 }
-.vgai-camera-safe-frame {
+.volter-camera-safe-frame {
   position: absolute;
   inset: 6%;
-  border: 1px solid color-mix(in srgb, var(--vgai-content-primary) 48%, transparent);
+  border: 1px solid color-mix(in srgb, var(--volter-content-primary) 48%, transparent);
 }
-.vgai-camera-center-mark {
+.volter-camera-center-mark {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -2354,117 +2354,117 @@ select.vgai-input {
   height: 18px;
   transform: translate(-50%, -50%);
 }
-.vgai-camera-center-mark::before,
-.vgai-camera-center-mark::after {
+.volter-camera-center-mark::before,
+.volter-camera-center-mark::after {
   position: absolute;
-  background: color-mix(in srgb, var(--vgai-content-primary) 60%, transparent);
+  background: color-mix(in srgb, var(--volter-content-primary) 60%, transparent);
   content: "";
 }
-.vgai-camera-center-mark::before {
+.volter-camera-center-mark::before {
   top: 8px;
   left: 0;
   width: 18px;
   height: 1px;
 }
-.vgai-camera-center-mark::after {
+.volter-camera-center-mark::after {
   top: 0;
   left: 8px;
   width: 1px;
   height: 18px;
 }
 @media (max-width: 900px) {
-  .vgai-camera-view-banner {
-    top: calc(var(--vgai-viewport-overlay-top, var(--vgai-space-4)) + 44px);
-    max-width: calc(100% - var(--vgai-space-8));
+  .volter-camera-view-banner {
+    top: calc(var(--volter-viewport-overlay-top, var(--volter-space-4)) + 44px);
+    max-width: calc(100% - var(--volter-space-8));
   }
 }
-.vgai-react-canvas-controls {
+.volter-react-canvas-controls {
   position: absolute;
-  right: var(--vgai-space-6);
-  bottom: var(--vgai-space-6);
-  z-index: var(--vgai-z-sticky);
+  right: var(--volter-space-6);
+  bottom: var(--volter-space-6);
+  z-index: var(--volter-z-sticky);
   overflow: visible;
 }
 /* Figma's zoom sits at the top right, against its properties panel: the board's does too. */
-.vgai-react-canvas-controls[data-board-zoom] {
-  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
-  right: var(--vgai-space-4);
+.volter-react-canvas-controls[data-board-zoom] {
+  top: var(--volter-viewport-overlay-top, var(--volter-space-4));
+  right: var(--volter-space-4);
   bottom: auto;
 }
-.vgai-canvas-scene-navigation {
+.volter-canvas-scene-navigation {
   position: absolute;
-  top: calc(var(--vgai-viewport-overlay-top, var(--vgai-space-4)) + 44px);
-  left: var(--vgai-space-4);
-  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  top: calc(var(--volter-viewport-overlay-top, var(--volter-space-4)) + 44px);
+  left: var(--volter-space-4);
+  z-index: calc(var(--volter-z-dropdown, 1000) - 1);
   overflow: visible;
 }
-.vgai-react-viewport-select {
+.volter-react-viewport-select {
   border-color: transparent;
   background-color: transparent;
 }
 
-.vgai-tabs {
+.volter-tabs {
   display: flex;
-  height: var(--vgai-panel-header-height);
+  height: var(--volter-panel-header-height);
   min-width: 0;
   align-items: stretch;
-  gap: var(--vgai-space-1);
-  padding-inline: var(--vgai-space-2);
+  gap: var(--volter-space-1);
+  padding-inline: var(--volter-space-2);
   overflow: hidden;
-  background: var(--vgai-surface-sticky);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  background: var(--volter-surface-sticky);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
 }
-.vgai-tab {
+.volter-tab {
   position: relative;
   display: inline-flex;
   min-width: 0;
   max-width: 220px;
   align-items: center;
-  gap: var(--vgai-space-2);
-  padding: 0 var(--vgai-space-4);
-  color: var(--vgai-content-muted);
+  gap: var(--volter-space-2);
+  padding: 0 var(--volter-space-4);
+  color: var(--volter-content-muted);
   background: transparent;
   border: 0;
   font: inherit;
   cursor: pointer;
 }
-.vgai-tab:hover {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-raised);
+.volter-tab:hover {
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-raised);
 }
-.vgai-tab[data-selected="true"] {
-  color: var(--vgai-content-primary);
+.volter-tab[data-selected="true"] {
+  color: var(--volter-content-primary);
   /* The active tab wears the panel it opens (Blender's tabs are filled
      slabs); the indicator below stays for the skins that read it. */
-  background: var(--vgai-surface-panel);
+  background: var(--volter-surface-panel);
 }
-.vgai-tab[data-selected="true"]::after {
+.volter-tab[data-selected="true"]::after {
   position: absolute;
-  right: var(--vgai-space-4);
+  right: var(--volter-space-4);
   bottom: 0;
-  left: var(--vgai-space-4);
-  height: var(--vgai-stroke-active);
+  left: var(--volter-space-4);
+  height: var(--volter-stroke-active);
   border-radius: 2px 2px 0 0;
-  background: var(--vgai-selection-indicator);
+  background: var(--volter-selection-indicator);
   content: "";
 }
-.vgai-tab:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-tab:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -2px;
 }
-.vgai-tab-label {
+.volter-tab-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.vgai-tab-dirty {
+.volter-tab-dirty {
   width: 6px;
   height: 6px;
   flex: 0 0 auto;
-  border-radius: var(--vgai-radius-full);
-  background: var(--vgai-warn);
+  border-radius: var(--volter-radius-full);
+  background: var(--volter-warn);
 }
-.vgai-tab-badge {
+.volter-tab-badge {
   display: inline-flex;
   width: max-content;
   max-width: 100%;
@@ -2475,12 +2475,12 @@ select.vgai-input {
   /* space-2, not space-1: with true half-circle end caps (radius-full is
    * 9999px, no longer 50%) multi-char content needs breathing room past the
    * cap curve; border-box + min-width keeps a single digit a perfect circle. */
-  padding: 0 var(--vgai-space-2);
-  border-radius: var(--vgai-radius-full);
-  color: var(--vgai-surface-shell);
-  background: var(--vgai-content-muted);
-  font-size: var(--vgai-font-xs);
-  line-height: var(--vgai-leading-tight);
+  padding: 0 var(--volter-space-2);
+  border-radius: var(--volter-radius-full);
+  color: var(--volter-surface-shell);
+  background: var(--volter-content-muted);
+  font-size: var(--volter-font-xs);
+  line-height: var(--volter-leading-tight);
   box-sizing: border-box;
 }
 
@@ -2488,7 +2488,7 @@ select.vgai-input {
  * non-flexing box make multiword content safe: it cannot turn into the long
  * elliptical capsule produced by border-radius: 50% on a wide rectangle, nor
  * stretch to fill a grid/flex track. True counters opt into data-shape=count. */
-.vgai-badge {
+.volter-badge {
   display: inline-flex;
   flex: 0 0 auto;
   align-self: center;
@@ -2498,42 +2498,42 @@ select.vgai-input {
   min-height: 18px;
   align-items: center;
   justify-content: center;
-  padding: 1px var(--vgai-space-2);
+  padding: 1px var(--volter-space-2);
   overflow: hidden;
-  border-radius: var(--vgai-radius-sm);
-  color: var(--vgai-surface-shell);
-  background: var(--vgai-content-muted);
-  font-size: var(--vgai-font-xs);
-  line-height: var(--vgai-leading-tight);
+  border-radius: var(--volter-radius-sm);
+  color: var(--volter-surface-shell);
+  background: var(--volter-content-muted);
+  font-size: var(--volter-font-xs);
+  line-height: var(--volter-leading-tight);
   white-space: nowrap;
   text-overflow: ellipsis;
   vertical-align: middle;
   box-sizing: border-box;
 }
 
-.vgai-badge[data-shape="count"] {
+.volter-badge[data-shape="count"] {
   min-width: 15px;
   min-height: 15px;
   height: 15px;
   /* space-2, not space-1: at 2–3 digits the 9999px end-caps eat into a
    * 2px pad and the glyphs graze the curve (reviewer finding, U0). */
-  padding: 0 var(--vgai-space-2);
-  border-radius: var(--vgai-radius-full);
+  padding: 0 var(--volter-space-2);
+  border-radius: var(--volter-radius-full);
 }
 
-.vgai-tree {
+.volter-tree {
   min-width: 0;
-  color: var(--vgai-content-primary);
+  color: var(--volter-content-primary);
 }
-.vgai-tree-row {
+.volter-tree-row {
   display: flex;
-  height: var(--vgai-tree-row-height);
+  height: var(--volter-tree-row-height);
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-2);
-  padding-right: var(--vgai-space-2);
-  color: var(--vgai-content-muted);
-  border-left: var(--vgai-stroke-active) solid transparent;
+  gap: var(--volter-space-2);
+  padding-right: var(--volter-space-2);
+  color: var(--volter-content-muted);
+  border-left: var(--volter-stroke-active) solid transparent;
   box-sizing: border-box;
   cursor: default;
   user-select: none;
@@ -2542,8 +2542,8 @@ select.vgai-input {
    phased on the row's ABSOLUTE index — `nth-child` counted this virtualized
    list's leading spacer div as sibling one, so row 0 always drew the alternate
    and the whole stripe flipped with the scroll window. */
-.vgai-tree-row[data-row-alt] {
-  background: var(--vgai-surface-row-alt);
+.volter-tree-row[data-row-alt] {
+  background: var(--volter-surface-row-alt);
 }
 /* THE STRIPE BELONGS TO THE BODY, NOT TO THE ROWS — and that one rule is the
    largest area of the whole frame that differed from Blender.
@@ -2562,7 +2562,7 @@ select.vgai-input {
    the body's parity is exactly the `rowIndex % 2 === 1` the occupied rows
    already use. The two painters therefore agree by construction; an occupied
    alternate row paints its own identical fill over this gradient, which is
-   what keeps a region-substituted `--vgai-surface-row-alt` (the workspace host
+   what keeps a region-substituted `--volter-surface-row-alt` (the workspace host
    re-emits it per region) correct on both.
 
    `background-attachment: local` is the whole trick, and it is what makes
@@ -2578,39 +2578,39 @@ select.vgai-input {
    a LIST because it is striped to the bottom edge — so it belongs to the look
    that measured it and not to a host with none declared (ARCHITECTURE-CORE
    §The core is the workbench, "Host default versus skew"; Classic's frame is
-   "no zebra"). The condition is the AREA, not a look: `data-vgai-region` is
+   "no zebra"). The condition is the AREA, not a look: `data-volter-region` is
    published on the tree body by the panel that IS the Outliner, and only
    while the installed palette names `color.region.outliner`
    (`components/GameHierarchy.tsx`, `theme-preference.ts`'s
    `editorPaintedRegions`). So any palette that paints editor areas gets the
    stripe and no rule here ever learns a palette's name. The ink stays
-   `--vgai-surface-row-alt`, which every palette derives, so there is still no
+   `--volter-surface-row-alt`, which every palette derives, so there is still no
    new theme member and no flag. */
-.vgai-tree-body[data-vgai-region="outliner"] {
+.volter-tree-body[data-volter-region="outliner"] {
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent var(--vgai-tree-row-height),
-    var(--vgai-surface-row-alt) var(--vgai-tree-row-height),
-    var(--vgai-surface-row-alt) calc(var(--vgai-tree-row-height) * 2)
+    transparent var(--volter-tree-row-height),
+    var(--volter-surface-row-alt) var(--volter-tree-row-height),
+    var(--volter-surface-row-alt) calc(var(--volter-tree-row-height) * 2)
   );
   background-attachment: local;
 }
-.vgai-tree-row:hover {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-neutral-hover);
+.volter-tree-row:hover {
+  color: var(--volter-content-primary);
+  background: var(--volter-neutral-hover);
 }
 /* THE SELECTION BAND, and why it is a background LAYER rather than a fill.
    The canonical selected treatment is the FILL alone (the viewport menus'
-   aria-checked rows, .vgai-selectable, the chat rows). The left accent bar this
+   aria-checked rows, .volter-selectable, the chat rows). The left accent bar this
    once added read as a stray one-sided border (owner, 2026-08-07). The fill is
-   the TREE's own band, not `--vgai-selection-bg`: a selected Outliner row is a
+   the TREE's own band, not `--volter-selection-bg`: a selected Outliner row is a
    darker navy than the accent that variable resolves to, which Blender keeps
    for pressed widgets.
 
    Measured in `modeling-object-selected.png` (Blender 5.2, object mode, every
    object selected; the values and the derivations are on
-   `--vgai-tree-row-selected-bg` in theme.ts): Blender's band is 18 of the row's
+   `--volter-tree-row-selected-bg` in theme.ts): Blender's band is 18 of the row's
    20 px, so ONE row of the ordinary #272727/#2a2a2a stripe shows above and
    below every selected row. Ours filled the whole 20, and the difference is not
    subtle at a multi-selection: eleven adjacent selected rows painted ONE
@@ -2626,11 +2626,11 @@ select.vgai-input {
    (band at device x 7 against content from x 2). The right inset is 0 in the
    frame and 0 here. Blender rounds the box by 1 px; at that radius it is one
    corner pixel and it is deliberately not drawn. */
-.vgai-tree-row[data-selected="true"] {
-  color: var(--vgai-content-primary);
+.volter-tree-row[data-selected="true"] {
+  color: var(--volter-content-primary);
   background-image: linear-gradient(
-    var(--vgai-tree-row-selected-bg),
-    var(--vgai-tree-row-selected-bg)
+    var(--volter-tree-row-selected-bg),
+    var(--volter-tree-row-selected-bg)
   );
   background-repeat: no-repeat;
   background-position: 0 1px;
@@ -2648,10 +2648,10 @@ select.vgai-input {
    inset box, the fill sized 1 px smaller on each side and offset to match. A
    `box-shadow: inset` would paint the ring on the BORDER box — the full 20 px —
    and miss the inset entirely. */
-.vgai-tree-row[data-selection-active="true"] {
+.volter-tree-row[data-selection-active="true"] {
   background-image:
-    linear-gradient(var(--vgai-tree-row-active-bg), var(--vgai-tree-row-active-bg)),
-    linear-gradient(var(--vgai-tree-row-active-border), var(--vgai-tree-row-active-border));
+    linear-gradient(var(--volter-tree-row-active-bg), var(--volter-tree-row-active-bg)),
+    linear-gradient(var(--volter-tree-row-active-border), var(--volter-tree-row-active-border));
   background-position:
     1px 2px,
     0 1px;
@@ -2659,13 +2659,13 @@ select.vgai-input {
     calc(100% - 2px) calc(100% - 4px),
     100% calc(100% - 2px);
 }
-.vgai-tree-row[data-muted="true"] {
-  color: var(--vgai-content-dim);
+.volter-tree-row[data-muted="true"] {
+  color: var(--volter-content-dim);
 }
-.vgai-tree-row[data-dragging="true"] {
-  color: var(--vgai-content-muted);
-  background: var(--vgai-neutral-hover);
-  outline: 1px dashed var(--vgai-boundary-strong);
+.volter-tree-row[data-dragging="true"] {
+  color: var(--volter-content-muted);
+  background: var(--volter-neutral-hover);
+  outline: 1px dashed var(--volter-boundary-strong);
   outline-offset: -1px;
 }
 /* THE INDENT GUIDE — the vertical rule an OPEN parent draws down its own
@@ -2704,26 +2704,26 @@ select.vgai-input {
    The geometry is not a density member for the same reason `content.active`
    is not: a palette that names no `color.boundary.indent` draws no guide at
    all, so there is nothing for another skin to retune. */
-.vgai-tree-indent-guide {
+.volter-tree-indent-guide {
   position: absolute;
   width: 0.5px;
-  background: var(--vgai-tree-indent-guide);
+  background: var(--volter-tree-indent-guide);
   pointer-events: none;
 }
-.vgai-tree-remote-selection {
+.volter-tree-remote-selection {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
 }
-.vgai-tree-remote-selection > span {
+.volter-tree-remote-selection > span {
   width: 7px;
   height: 7px;
   margin-left: -2px;
-  border: 1px solid var(--vgai-surface-panel);
-  border-radius: var(--vgai-radius-full);
+  border: 1px solid var(--volter-surface-panel);
+  border-radius: var(--volter-radius-full);
 }
-.vgai-tree-row:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-tree-row:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -2px;
 }
 /* THE GLYPH PLATE — ONE WIDGET, TWO SITES. Blender draws the same rounded
@@ -2741,10 +2741,10 @@ select.vgai-input {
    y=175, and the top edge is first full at x=131 on a box whose left is
    x=121. FIVE is not `radius.sm`'s four, and the one CSS px shows at 6x on a
    20-px box; it is this plate's own number and it has no token. */
-.vgai-tree-row {
-  --vgai-tree-glyph-plate-width: var(--vgai-tree-indent);
-  --vgai-tree-glyph-plate-height: calc(var(--vgai-tree-row-height) - var(--vgai-space-1));
-  --vgai-tree-glyph-plate-radius: 5px;
+.volter-tree-row {
+  --volter-tree-glyph-plate-width: var(--volter-tree-indent);
+  --volter-tree-glyph-plate-height: calc(var(--volter-tree-row-height) - var(--volter-space-1));
+  --volter-tree-glyph-plate-radius: 5px;
 }
 /* THE ACTIVE OBJECT'S PLATE, and WHICH FACT IT MARKS. Blender puts this plate
    behind the type glyph of the ACTIVE object, and it is INDEPENDENT of
@@ -2777,31 +2777,31 @@ select.vgai-input {
    (1-b)(1-0.26) = 1-0.41 gives b = 0.203, which puts the painted column back
    at 41% of the ink over the row. Measured before the correction: the border
    landed at an effective 56.5% and read as a bright hairline. */
-.vgai-tree-type-glyph {
+.volter-tree-type-glyph {
   position: relative;
   z-index: 0;
 }
 /* The site's half of the category ink, on the GLYPH and not on the cell —
-   the same split `.vgai-tree-datablock > *` makes, and for the same reason:
+   the same split `.volter-tree-datablock > *` makes, and for the same reason:
    the plate's fill and border are measured as PAINTED, and a group opacity
    on the cell would put 0.80 through them a second time. */
-.vgai-tree-type-glyph > * {
+.volter-tree-type-glyph > * {
   opacity: 0.8;
 }
-.vgai-tree-row[data-selection-active="true"] .vgai-tree-type-glyph::before {
+.volter-tree-row[data-selection-active="true"] .volter-tree-type-glyph::before {
   content: "";
   position: absolute;
   z-index: -1;
   top: 50%;
   left: 50%;
   box-sizing: border-box;
-  width: var(--vgai-tree-glyph-plate-width);
-  height: var(--vgai-tree-glyph-plate-height);
+  width: var(--volter-tree-glyph-plate-width);
+  height: var(--volter-tree-glyph-plate-height);
   transform: translate(-50%, -50%);
-  border: var(--vgai-stroke-resting) solid
-    color-mix(in srgb, var(--vgai-content-muted) 20.3%, transparent);
-  border-radius: var(--vgai-tree-glyph-plate-radius);
-  background: color-mix(in srgb, var(--vgai-content-muted) 26%, transparent);
+  border: var(--volter-stroke-resting) solid
+    color-mix(in srgb, var(--volter-content-muted) 20.3%, transparent);
+  border-radius: var(--volter-tree-glyph-plate-radius);
+  background: color-mix(in srgb, var(--volter-content-muted) 26%, transparent);
   pointer-events: none;
 }
 /* THE COLLAPSED ROW'S DATABLOCK GLYPH — Blender's rest state (the summary a
@@ -2849,182 +2849,182 @@ select.vgai-input {
    its ordinary stripe, so over our blue selection the plate reads as a teal
    chip rather than the frame's dark green. That difference is the row FILL's,
    not this plate's, and closing it is the selected row's own unit. */
-.vgai-tree-datablock {
+.volter-tree-datablock {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   flex-shrink: 0;
   vertical-align: middle;
-  width: var(--vgai-tree-glyph-plate-width);
-  height: var(--vgai-tree-glyph-plate-height);
-  margin-left: var(--vgai-tree-indent);
-  font-size: var(--vgai-icon-sm);
-  border: var(--vgai-stroke-resting) solid transparent;
+  width: var(--volter-tree-glyph-plate-width);
+  height: var(--volter-tree-glyph-plate-height);
+  margin-left: var(--volter-tree-indent);
+  font-size: var(--volter-icon-sm);
+  border: var(--volter-stroke-resting) solid transparent;
   /* The SAME corner as the active object's plate above — one widget, one
      number. It read `radius.sm` (4) against the frame's measured 5. */
-  border-radius: var(--vgai-tree-glyph-plate-radius);
+  border-radius: var(--volter-tree-glyph-plate-radius);
 }
 /* The site's half of the category ink — the Outliner composites its GLYPHS at
    0.80, the same measurement the row's own type glyph applies. On the glyph
    and not on the cell: the plate's own fill and border are measured as
    painted, and dimming the whole cell would put 0.80 through them twice. */
-.vgai-tree-datablock > * {
+.volter-tree-datablock > * {
   opacity: 0.8;
 }
-.vgai-tree-datablock[data-active="true"] {
+.volter-tree-datablock[data-active="true"] {
   /* The fill and ring are the palette's (`theme.ts`, beside the tree bands): Blender's
      transcription above on a dark panel, a light tint of the data ink on a light one, where
      darkening toward black paints a dark blob on the selection band. */
-  background: var(--vgai-tree-datablock-fill);
-  border-color: var(--vgai-tree-datablock-border);
+  background: var(--volter-tree-datablock-fill);
+  border-color: var(--volter-tree-datablock-border);
 }
-.vgai-tree-row-leading {
+.volter-tree-row-leading {
   display: inline-flex;
   width: 14px;
   flex: 0 0 auto;
   justify-content: center;
 }
-.vgai-tree-row-label {
+.volter-tree-row-label {
   min-width: 0;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.vgai-tree-row-actions {
+.volter-tree-row-actions {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--vgai-space-1);
+  gap: var(--volter-space-1);
 }
 /* A ROW'S TOGGLES ARE BRIGHTER THAN ITS LABEL. Measured in `outliner.png`:
    the eye and camera toggles ink at #e5e5e5 (src x 510–586, y 98–172) while
    the row's own text is #c2c2c2 (src x 166–276) — which under the Blender
    palette are exactly `content.primary` and `content.muted`. A ghost
-   IconButton reads `--vgai-content-muted`, i.e. the label's ink, so inside a
+   IconButton reads `--volter-content-muted`, i.e. the label's ink, so inside a
    tree row the toggles were as quiet as the name they act on. They are
-   controls: the brighter token is `--vgai-content-primary`. Scoped to the
+   controls: the brighter token is `--volter-content-primary`. Scoped to the
    row (both shapes — `patterns/Tree.tsx`'s actions slot and the flat rows
    `GameHierarchy.tsx` builds), never to ghost buttons at large. */
-.vgai-tree-row .vgai-btn[data-variant="ghost"]:not(.vgai-tree-caret) {
-  color: var(--vgai-content-primary);
+.volter-tree-row .volter-btn[data-variant="ghost"]:not(.volter-tree-caret) {
+  color: var(--volter-content-primary);
 }
 /* ...but the EXPANDER is not one of them. Same frame, same scale: the
    Collection row's open chevron inks #c2c2c2 (src x 52-69, y 110-119) — the
    row's own label ink, not the toggles' #e5e5e5. It is a disclosure mark on
    the name, not a control acting on the object, and the rule above had swept
    it up with the eye. */
-.vgai-tree-row .vgai-btn.vgai-tree-caret {
-  color: var(--vgai-content-muted);
+.volter-tree-row .volter-btn.volter-tree-caret {
+  color: var(--volter-content-muted);
 }
 
-.vgai-field-group {
+.volter-field-group {
   display: grid;
-  gap: var(--vgai-space-3);
-  padding: var(--vgai-space-4);
+  gap: var(--volter-space-3);
+  padding: var(--volter-space-4);
 }
-.vgai-field-row {
+.volter-field-row {
   display: grid;
   grid-template-columns: minmax(64px, 84px) minmax(0, 1fr);
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-3);
+  gap: var(--volter-space-3);
 }
-.vgai-field-row[data-compact="true"] {
+.volter-field-row[data-compact="true"] {
   grid-template-columns: minmax(52px, 72px) minmax(0, 1fr);
 }
-.vgai-field-label {
+.volter-field-label {
   min-width: 0;
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-base);
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-base);
 }
-.vgai-field-control {
+.volter-field-control {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
-.vgai-field-hint {
+.volter-field-hint {
   grid-column: 2;
-  color: var(--vgai-content-dim);
-  font-size: var(--vgai-font-sm);
+  color: var(--volter-content-dim);
+  font-size: var(--volter-font-sm);
   line-height: 1.35;
 }
 
-.vgai-state-surface {
+.volter-state-surface {
   display: flex;
   min-width: 0;
   min-height: 120px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--vgai-space-3);
-  padding: var(--vgai-space-8);
-  color: var(--vgai-content-muted);
+  gap: var(--volter-space-3);
+  padding: var(--volter-space-8);
+  color: var(--volter-content-muted);
   text-align: center;
   box-sizing: border-box;
 }
-.vgai-state-surface[data-compact="true"] {
+.volter-state-surface[data-compact="true"] {
   min-height: 64px;
-  padding: var(--vgai-space-4);
+  padding: var(--volter-space-4);
 }
-.vgai-state-surface[data-tone="error"] {
-  color: var(--vgai-danger);
+.volter-state-surface[data-tone="error"] {
+  color: var(--volter-danger);
 }
-.vgai-state-surface[data-tone="success"] {
-  color: var(--vgai-success);
+.volter-state-surface[data-tone="success"] {
+  color: var(--volter-success);
 }
-.vgai-state-surface[data-tone="loading"] .vgai-state-surface-icon {
-  animation: vgai-editor-spin 0.8s linear infinite;
+.volter-state-surface[data-tone="loading"] .volter-state-surface-icon {
+  animation: volter-editor-spin 0.8s linear infinite;
 }
-.vgai-state-surface-icon {
+.volter-state-surface-icon {
   color: currentColor;
-  font-size: var(--vgai-font-2xl);
+  font-size: var(--volter-font-2xl);
 }
-.vgai-state-surface-title {
-  color: var(--vgai-content-primary);
-  font-size: var(--vgai-font-md);
+.volter-state-surface-title {
+  color: var(--volter-content-primary);
+  font-size: var(--volter-font-md);
 }
-.vgai-state-surface-description {
+.volter-state-surface-description {
   max-width: 42ch;
-  color: var(--vgai-content-dim);
-  line-height: var(--vgai-leading-normal);
+  color: var(--volter-content-dim);
+  line-height: var(--volter-leading-normal);
 }
-.vgai-state-surface-action {
-  margin-top: var(--vgai-space-2);
+.volter-state-surface-action {
+  margin-top: var(--volter-space-2);
 }
 
-.vgai-banner {
+.volter-banner {
   /* U6a: the tone tint is a custom property so the islands-gated glass rule
    * below can LAYER it over the island material instead of repeating the
    * four tone selectors. Inert for the base (bars) paint — the background
    * consumes it directly, byte-identical to the former literal. */
-  --vgai-banner-tone-tint: var(--vgai-accent-muted);
+  --volter-banner-tone-tint: var(--volter-accent-muted);
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--vgai-space-3);
-  padding: var(--vgai-space-3) var(--vgai-space-5);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-accent);
-  color: var(--vgai-accent);
-  background: var(--vgai-banner-tone-tint);
+  gap: var(--volter-space-3);
+  padding: var(--volter-space-3) var(--volter-space-5);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-accent);
+  color: var(--volter-accent);
+  background: var(--volter-banner-tone-tint);
   box-sizing: border-box;
 }
-.vgai-banner[data-tone="warning"] {
-  --vgai-banner-tone-tint: var(--vgai-warn-muted);
-  color: var(--vgai-warn);
-  border-color: var(--vgai-warn);
+.volter-banner[data-tone="warning"] {
+  --volter-banner-tone-tint: var(--volter-warn-muted);
+  color: var(--volter-warn);
+  border-color: var(--volter-warn);
 }
-.vgai-banner[data-tone="error"] {
-  --vgai-banner-tone-tint: var(--vgai-danger-faint);
-  color: var(--vgai-danger);
-  border-color: var(--vgai-danger);
+.volter-banner[data-tone="error"] {
+  --volter-banner-tone-tint: var(--volter-danger-faint);
+  color: var(--volter-danger);
+  border-color: var(--volter-danger);
 }
-.vgai-banner[data-tone="success"] {
-  --vgai-banner-tone-tint: var(--vgai-success-muted);
-  color: var(--vgai-success);
-  border-color: var(--vgai-success);
+.volter-banner[data-tone="success"] {
+  --volter-banner-tone-tint: var(--volter-success-muted);
+  color: var(--volter-success);
+  border-color: var(--volter-success);
 }
 /* U6a (P6 glass-native chrome, inventory row "scene banners"): under islands
  * chrome — treatment presence, never theme identity — a banner is glass: the
@@ -3034,111 +3034,111 @@ select.vgai-input {
  * paint inside documents/cards, and the one-lens-per-card rule holds. Bars
  * chrome (graphite/classic and every reduced-transparency/lite fallback)
  * never matches this rule and keeps the flat tint byte-identically. */
-[data-vgai-chrome="islands"] .vgai-banner {
+[data-volter-chrome="islands"] .volter-banner {
   background:
-    linear-gradient(var(--vgai-banner-tone-tint), var(--vgai-banner-tone-tint)),
-    var(--vgai-island-surface, transparent);
-  backdrop-filter: var(--vgai-island-backdrop-filter, none);
-  -webkit-backdrop-filter: var(--vgai-island-backdrop-filter, none);
-  text-shadow: var(--vgai-content-text-shadow, none);
+    linear-gradient(var(--volter-banner-tone-tint), var(--volter-banner-tone-tint)),
+    var(--volter-island-surface, transparent);
+  backdrop-filter: var(--volter-island-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--volter-island-backdrop-filter, none);
+  text-shadow: var(--volter-content-text-shadow, none);
 }
-.vgai-banner-icon {
+.volter-banner-icon {
   display: inline-flex;
   flex: 0 0 auto;
 }
-.vgai-banner-content {
+.volter-banner-content {
   min-width: 0;
   flex: 1;
-  color: var(--vgai-content-primary);
+  color: var(--volter-content-primary);
 }
-.vgai-banner-actions {
+.volter-banner-actions {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
 }
 
-.vgai-popover {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
-  border-radius: var(--vgai-radius-md);
-  box-shadow: var(--vgai-shadow-md);
+.volter-popover {
+  color: var(--volter-content-primary);
+  background: var(--volter-glass-regular-bg, var(--volter-surface-chrome));
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-md);
+  box-shadow: var(--volter-shadow-md);
 }
-.vgai-drop-indicator {
+.volter-drop-indicator {
   position: absolute;
-  z-index: var(--vgai-z-overlay-low);
+  z-index: var(--volter-z-overlay-low);
   pointer-events: none;
-  border: var(--vgai-stroke-active) solid var(--vgai-selection-border);
-  background: var(--vgai-selection-bg);
+  border: var(--volter-stroke-active) solid var(--volter-selection-border);
+  background: var(--volter-selection-bg);
   box-sizing: border-box;
 }
-.vgai-drop-indicator[data-position="before"] {
+.volter-drop-indicator[data-position="before"] {
   inset: 0 0 auto;
-  height: var(--vgai-stroke-active);
+  height: var(--volter-stroke-active);
 }
-.vgai-drop-indicator[data-position="after"] {
+.volter-drop-indicator[data-position="after"] {
   inset: auto 0 0;
-  height: var(--vgai-stroke-active);
+  height: var(--volter-stroke-active);
 }
-.vgai-drop-indicator[data-position="inside"] {
+.volter-drop-indicator[data-position="inside"] {
   inset: 1px;
-  border-radius: var(--vgai-radius-sm);
+  border-radius: var(--volter-radius-sm);
 }
 
-.vgai-model-tree-item {
+.volter-model-tree-item {
   text-align: left;
 }
-.vgai-btn.vgai-project-tool-card {
+.volter-btn.volter-project-tool-card {
   display: grid;
   width: 100%;
   height: auto;
   align-items: start;
   justify-content: normal;
-  gap: var(--vgai-space-2);
-  padding-block: var(--vgai-space-3);
+  gap: var(--volter-space-2);
+  padding-block: var(--volter-space-3);
   text-align: left;
 }
 
-.vgai-resize-handle {
+.volter-resize-handle {
   position: relative;
-  z-index: var(--vgai-z-overlay-low);
+  z-index: var(--volter-z-overlay-low);
   flex: 0 0 5px;
   background: transparent;
   touch-action: none;
 }
-.vgai-resize-handle[data-orientation="vertical"] {
+.volter-resize-handle[data-orientation="vertical"] {
   cursor: col-resize;
 }
-.vgai-resize-handle[data-orientation="horizontal"] {
+.volter-resize-handle[data-orientation="horizontal"] {
   cursor: row-resize;
 }
-.vgai-resize-handle::before {
+.volter-resize-handle::before {
   position: absolute;
-  background: var(--vgai-boundary-default);
+  background: var(--volter-boundary-default);
   content: "";
   transition:
-    background-color 80ms var(--vgai-ease-standard),
-    transform 80ms var(--vgai-ease-standard);
+    background-color 80ms var(--volter-ease-standard),
+    transform 80ms var(--volter-ease-standard);
 }
-.vgai-resize-handle[data-orientation="vertical"]::before {
+.volter-resize-handle[data-orientation="vertical"]::before {
   inset: 0 auto 0 2px;
   width: 1px;
 }
-.vgai-resize-handle[data-orientation="horizontal"]::before {
+.volter-resize-handle[data-orientation="horizontal"]::before {
   inset: 2px 0 auto;
   height: 1px;
 }
-.vgai-resize-handle:hover::before,
-.vgai-resize-handle:focus-visible::before {
-  background: var(--vgai-selection-indicator);
+.volter-resize-handle:hover::before,
+.volter-resize-handle:focus-visible::before {
+  background: var(--volter-selection-indicator);
 }
-.vgai-resize-handle[data-orientation="vertical"]:hover::before,
-.vgai-resize-handle[data-orientation="vertical"]:focus-visible::before {
+.volter-resize-handle[data-orientation="vertical"]:hover::before,
+.volter-resize-handle[data-orientation="vertical"]:focus-visible::before {
   transform: scaleX(2);
 }
-.vgai-resize-handle[data-orientation="horizontal"]:hover::before,
-.vgai-resize-handle[data-orientation="horizontal"]:focus-visible::before {
+.volter-resize-handle[data-orientation="horizontal"]:hover::before,
+.volter-resize-handle[data-orientation="horizontal"]:focus-visible::before {
   transform: scaleY(2);
 }
 
@@ -3148,41 +3148,41 @@ select.vgai-input {
 /* themed; visible only where content actually overflows.                 */
 /* ---------------------------------------------------------------------- */
 
-.vgai-editor-theme,
-.vgai-editor-theme :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *) {
+.volter-editor-theme,
+.volter-editor-theme :where(*):not([data-volter-world-surface], [data-volter-world-surface] *) {
   scrollbar-width: thin;
-  scrollbar-color: var(--vgai-bg-3) transparent;
+  scrollbar-color: var(--volter-bg-3) transparent;
 }
-.vgai-editor-theme::-webkit-scrollbar,
-.vgai-editor-theme
-  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar {
+.volter-editor-theme::-webkit-scrollbar,
+.volter-editor-theme
+  :where(*):not([data-volter-world-surface], [data-volter-world-surface] *)::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
-.vgai-editor-theme::-webkit-scrollbar-track,
-.vgai-editor-theme
-  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar-track {
+.volter-editor-theme::-webkit-scrollbar-track,
+.volter-editor-theme
+  :where(*):not([data-volter-world-surface], [data-volter-world-surface] *)::-webkit-scrollbar-track {
   background: transparent;
 }
-.vgai-editor-theme::-webkit-scrollbar-thumb,
-.vgai-editor-theme
-  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar-thumb {
-  background-color: var(--vgai-bg-3);
-  border-radius: var(--vgai-radius-full);
-  border: 2px solid var(--vgai-bg-1);
+.volter-editor-theme::-webkit-scrollbar-thumb,
+.volter-editor-theme
+  :where(*):not([data-volter-world-surface], [data-volter-world-surface] *)::-webkit-scrollbar-thumb {
+  background-color: var(--volter-bg-3);
+  border-radius: var(--volter-radius-full);
+  border: 2px solid var(--volter-bg-1);
   background-clip: padding-box;
 }
-.vgai-editor-theme::-webkit-scrollbar-thumb:hover,
-.vgai-editor-theme
+.volter-editor-theme::-webkit-scrollbar-thumb:hover,
+.volter-editor-theme
   :where(*):not(
-    [data-vgai-world-surface],
-    [data-vgai-world-surface] *
+    [data-volter-world-surface],
+    [data-volter-world-surface] *
   )::-webkit-scrollbar-thumb:hover {
-  background-color: var(--vgai-border-2);
+  background-color: var(--volter-border-2);
 }
-.vgai-editor-theme::-webkit-scrollbar-corner,
-.vgai-editor-theme
-  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar-corner {
+.volter-editor-theme::-webkit-scrollbar-corner,
+.volter-editor-theme
+  :where(*):not([data-volter-world-surface], [data-volter-world-surface] *)::-webkit-scrollbar-corner {
   background: transparent;
 }
 
@@ -3191,12 +3191,12 @@ select.vgai-input {
 /* (closes C-9, referenced by BuildPanel.tsx:325's build-log cursor).      */
 /* ---------------------------------------------------------------------- */
 
-@keyframes vgai-editor-spin {
+@keyframes volter-editor-spin {
   to {
     transform: rotate(360deg);
   }
 }
-@keyframes vgai-editor-blink {
+@keyframes volter-editor-blink {
   0%,
   100% {
     opacity: 1;
@@ -3209,11 +3209,11 @@ select.vgai-input {
 /* Shared animation roles — components apply these classes instead of inline
    `animation:` styles so the reduced-motion overrides below can reach them
    (a media-query rule cannot beat an inline style without !important). */
-.vgai-anim-spin {
-  animation: vgai-editor-spin 0.8s linear infinite;
+.volter-anim-spin {
+  animation: volter-editor-spin 0.8s linear infinite;
 }
-.vgai-anim-blink {
-  animation: vgai-editor-blink 1s step-end infinite;
+.volter-anim-blink {
+  animation: volter-editor-blink 1s step-end infinite;
 }
 
 /* Chrome is not prose — the VSCode model (glass-UI W7, report §2.23,
@@ -3223,188 +3223,188 @@ select.vgai-input {
    defect's real vector stays closed: a drag that starts on chrome rather
    than on prose cannot anchor a selection, because chrome opts out below. A
    drag over plain prose selecting that prose
-   is normal browser behavior, not a defect. `data-vgai-noselect`
+   is normal browser behavior, not a defect. `data-volter-noselect`
    (the workspace host, static/utility panel wrappers; never documents, never
    the agent conversation) now only scopes the bare-element button rule so
    it cannot reach hosted-game DOM. */
 
 /* Buttons and button-shaped triggers (labels are affordances, not text). */
-.vgai-btn,
-.vgai-list-button,
-.vgai-split-button,
-.vgai-menu,
-.vgai-menu-trigger,
-.vgai-field-trigger,
-.vgai-inspector-group-trigger,
-.vgai-status-action,
+.volter-btn,
+.volter-list-button,
+.volter-split-button,
+.volter-menu,
+.volter-menu-trigger,
+.volter-field-trigger,
+.volter-inspector-group-trigger,
+.volter-status-action,
 /* Panel toolbars / headers / internal tab strips. */
-  .vgai-toolbar,
-.vgai-dock-document-toolbar,
-.vgai-viewport-toolbar,
-.vgai-floating-toolbar,
-.vgai-playbar,
-.vgai-project-assets-toolbar,
-.vgai-section-header,
-.vgai-tabs,
+  .volter-toolbar,
+.volter-dock-document-toolbar,
+.volter-viewport-toolbar,
+.volter-floating-toolbar,
+.volter-playbar,
+.volter-project-assets-toolbar,
+.volter-section-header,
+.volter-tabs,
 /* Drag-source rows/tiles: a reparent or place gesture must not paint
    selection (hierarchy rows are HTML5 drag sources; asset tiles are
    draggable when placeable; folder-tree rows are drop/drag chrome). */
-  .vgai-tree-row,
-.vgai-asset-tree-row,
-.vgai-project-asset-entry,
-.vgai-model-tree-item,
+  .volter-tree-row,
+.volter-asset-tree-row,
+.volter-project-asset-entry,
+.volter-model-tree-item,
 /* Scrub chrome: numeric scrubbing is a pointer drag on the readout and
    its axis label (base rules/inline styles already set these; kept here
    so the chrome inventory is complete in one place). */
-  .vgai-number-input-label,
-.vgai-number-input-scrub,
-.vgai-scrub-label,
+  .volter-number-input-label,
+.volter-number-input-scrub,
+.volter-scrub-label,
 /* Resize handles. */
-  .vgai-resize-handle {
+  .volter-resize-handle {
   user-select: none;
 }
 /* Bare <button>/[role=button] chrome inside editor panels only — scoped
    to the noselect markers so hosted-game DOM keeps its own defaults. */
-[data-vgai-noselect] button,
-[data-vgai-noselect] [role="button"] {
+[data-volter-noselect] button,
+[data-volter-noselect] [role="button"] {
   user-select: none;
 }
 /* Form fields nested under chrome-none ancestors (e.g. the hierarchy
    rename input inside a tree row, toolbar search/filter inputs) stay
-   selectable; `vgai-selectable-text` remains an explicit opt-in. */
-[data-vgai-noselect] input,
-[data-vgai-noselect] textarea,
-[data-vgai-noselect] [contenteditable="true"],
-.vgai-toolbar input,
-.vgai-dock-document-toolbar input,
-.vgai-project-assets-toolbar input,
-.vgai-tree-row input,
-.vgai-selectable-text {
+   selectable; `volter-selectable-text` remains an explicit opt-in. */
+[data-volter-noselect] input,
+[data-volter-noselect] textarea,
+[data-volter-noselect] [contenteditable="true"],
+.volter-toolbar input,
+.volter-dock-document-toolbar input,
+.volter-project-assets-toolbar input,
+.volter-tree-row input,
+.volter-selectable-text {
   user-select: text;
 }
 
 /* Light Explorer — a wide, scene-level audit table in the on-demand bottom
    utility group. Interaction paint stays on the shared controls; this block
    owns only the table's geometry and semantic selection/readability states. */
-.vgai-light-explorer {
+.volter-light-explorer {
   display: flex;
   flex-direction: column;
   min-width: 0;
   height: 100%;
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-panel);
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-panel);
 }
 
-.vgai-light-explorer-toolbar {
+.volter-light-explorer-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
   min-height: 38px;
-  padding: var(--vgai-space-2) var(--vgai-space-3);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  padding: var(--volter-space-2) var(--volter-space-3);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
 }
 
-.vgai-light-explorer-toolbar > .vgai-input {
+.volter-light-explorer-toolbar > .volter-input {
   width: min(280px, 38vw);
 }
 
-.vgai-light-explorer-summary {
+.volter-light-explorer-summary {
   margin-left: auto;
-  color: var(--vgai-content-muted);
-  font-size: var(--vgai-font-small);
+  color: var(--volter-content-muted);
+  font-size: var(--volter-font-small);
   white-space: nowrap;
 }
 
-.vgai-light-explorer-scroll {
+.volter-light-explorer-scroll {
   min-height: 0;
   flex: 1;
   overflow: auto;
 }
 
-.vgai-light-explorer-table {
+.volter-light-explorer-table {
   width: 100%;
   min-width: 760px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: var(--vgai-font-base);
+  font-size: var(--volter-font-base);
 }
 
-.vgai-light-explorer-table th {
+.volter-light-explorer-table th {
   position: sticky;
   top: 0;
   z-index: 1;
   height: 30px;
-  padding: 0 var(--vgai-space-2);
+  padding: 0 var(--volter-space-2);
   text-align: left;
-  font-weight: var(--vgai-font-weight-medium);
-  color: var(--vgai-content-muted);
-  background: var(--vgai-surface-raised);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  font-weight: var(--volter-font-weight-medium);
+  color: var(--volter-content-muted);
+  background: var(--volter-surface-raised);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
 }
 
-.vgai-light-explorer-table td {
+.volter-light-explorer-table td {
   height: 34px;
-  padding: var(--vgai-space-1) var(--vgai-space-2);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  padding: var(--volter-space-1) var(--volter-space-2);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-structural-divider);
   vertical-align: middle;
 }
 
-.vgai-light-explorer-table tbody tr[data-selected="true"] td {
-  background: var(--vgai-selection-bg);
+.volter-light-explorer-table tbody tr[data-selected="true"] td {
+  background: var(--volter-selection-bg);
 }
 
-.vgai-light-explorer-table tbody tr:hover td {
-  background: var(--vgai-neutral-hover);
+.volter-light-explorer-table tbody tr:hover td {
+  background: var(--volter-neutral-hover);
 }
 
-.vgai-light-explorer-table tbody tr[data-selected="true"]:hover td {
-  background: var(--vgai-selection-bg);
+.volter-light-explorer-table tbody tr[data-selected="true"]:hover td {
+  background: var(--volter-selection-bg);
 }
 
-.vgai-light-explorer-check-column,
-.vgai-light-explorer-table td:first-child,
-.vgai-light-explorer-table td:last-child {
+.volter-light-explorer-check-column,
+.volter-light-explorer-table td:first-child,
+.volter-light-explorer-table td:last-child {
   width: 54px;
   text-align: center;
 }
 
-.vgai-light-explorer-sort.vgai-btn,
-.vgai-light-explorer-name.vgai-btn {
+.volter-light-explorer-sort.volter-btn,
+.volter-light-explorer-name.volter-btn {
   justify-content: flex-start;
   min-width: 0;
   padding-inline: 0;
 }
 
-.vgai-light-explorer-name.vgai-btn {
+.volter-light-explorer-name.volter-btn {
   width: 100%;
-  color: var(--vgai-content-primary);
+  color: var(--volter-content-primary);
 }
 
-.vgai-light-explorer-type,
-.vgai-light-explorer-color span {
-  color: var(--vgai-content-muted);
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-small);
+.volter-light-explorer-type,
+.volter-light-explorer-color span {
+  color: var(--volter-content-muted);
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-small);
 }
 
-.vgai-light-explorer-color {
+.volter-light-explorer-color {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
   white-space: nowrap;
 }
 
-.vgai-light-explorer-table .vgai-number-input {
+.volter-light-explorer-table .volter-number-input {
   width: 86px;
 }
 
-.vgai-light-explorer-unavailable {
-  color: var(--vgai-content-dim);
+.volter-light-explorer-unavailable {
+  color: var(--volter-content-dim);
 }
 
-.vgai-light-explorer-empty {
-  padding: var(--vgai-space-4);
-  color: var(--vgai-content-muted);
+.volter-light-explorer-empty {
+  padding: var(--volter-space-4);
+  color: var(--volter-content-muted);
   font-style: italic;
 }
 
@@ -3416,25 +3416,25 @@ select.vgai-input {
 /* ---------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .vgai-anim-spin,
-  .vgai-state-surface[data-tone="loading"] .vgai-state-surface-icon {
+  .volter-anim-spin,
+  .volter-state-surface[data-tone="loading"] .volter-state-surface-icon {
     /* Stepped rotation still reads as activity without continuous motion. */
     animation-duration: 1.6s;
     animation-timing-function: steps(8, end);
   }
-  .vgai-anim-blink {
+  .volter-anim-blink {
     animation: none;
     opacity: 1;
   }
-  .vgai-resize-handle::before {
+  .volter-resize-handle::before {
     transition-property: background-color;
   }
 }
 
 /* Project-work conflict/stale notice — a ghost text-button in warning ink
    (stylesheet re-scope; inline Button color is guard-banned). */
-.vgai-project-work-conflict {
-  color: var(--vgai-warn);
-  font-size: var(--vgai-font-sm);
+.volter-project-work-conflict {
+  color: var(--volter-warn);
+  font-size: var(--volter-font-sm);
   text-align: left;
 }

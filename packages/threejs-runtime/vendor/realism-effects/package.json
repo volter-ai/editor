@@ -1,7 +1,7 @@
 {
   "name": "realism-effects",
-  "version": "1.1.2-vgai.1",
-  "description": "VGAI-maintained Three r180-compatible fork of realism-effects 1.1.2",
+  "version": "1.1.2-volter.1",
+  "description": "VOLTER-maintained Three r180-compatible fork of realism-effects 1.1.2",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

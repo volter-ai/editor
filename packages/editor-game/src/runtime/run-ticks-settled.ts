@@ -1,6 +1,6 @@
 /**
  * `runTicksWhenSettled` — the settled-aware tick driver behind BOTH session run-ticks doors
- * (the bridge's `window.__vgai.runTicksSettled`, the editor relay's `run-ticks` case), one
+ * (the bridge's `window.__volter.runTicksSettled`, the editor relay's `run-ticks` case), one
  * implementation with byte-identical semantics across doors, exactly as `runTicks` itself is
  * shared (D17).
  *

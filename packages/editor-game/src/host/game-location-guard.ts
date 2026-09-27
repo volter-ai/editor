@@ -9,14 +9,14 @@
  * ordinary game code and there is no cooperative way for a game to know better.
  *
  * So the game realm's `location` is a facade: reads of the game's own
- * query keep working, host control-plane keys (`play`, `project`, `vgai-*`,
+ * query keep working, host control-plane keys (`play`, `project`, `volter-*`,
  * …) are stripped from `search`/`href` (bubbo's `getUrlParam('play')` is a
  * debug skip-to-Game; the editor's `?play=1` autoplay is not that flag),
  * and every write that would NAVIGATE is refused with a `console.error`
  * naming the game, the exact assignment, and this mechanism. Refused, never
  * swallowed — a silent no-op would make "the quit button does nothing" an
  * unexplainable bug, and the console line is a real product door
- * (`vgai status` reports page console errors).
+ * (`volter status` reports page console errors).
  *
  * `hash` is deliberately NOT refused: it changes the URL without leaving the
  * document, and games use it for their own state.
@@ -49,7 +49,7 @@ const HOST_SEARCH_KEYS = new Set([
 ]);
 
 function isHostSearchKey(key: string): boolean {
-  return HOST_SEARCH_KEYS.has(key) || key.startsWith('vgai');
+  return HOST_SEARCH_KEYS.has(key) || key.startsWith('volter');
 }
 
 /** The search string a game is allowed to read — host keys removed. */

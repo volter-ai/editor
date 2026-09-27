@@ -108,7 +108,7 @@ async function withGenerationBilling(
  * Project-relative, contained, and under one of the writable output roots —
  * `public/` (shipped game assets) or `references/` (reference material the
  * editor's Content panel indexes but no export copies). The root rule itself
- * lives in `@vgai/sdk/output-roots` because provider boundaries enforce the
+ * lives in `@volter/sdk/output-roots` because provider boundaries enforce the
  * same one; `isContainedRelativePath` stays here as the host's own escape
  * check, which knows about absolute Windows paths and NUL bytes.
  */
@@ -285,11 +285,11 @@ async function nextProvenanceFile(
 }
 
 /**
- * Both halves of "a read-modify-write of `.vgai/provenance.json` never loses a
- * record", exactly as `asset-ledger-store.ts` holds them for `.vgai/assets.json`
+ * Both halves of "a read-modify-write of `.volter/provenance.json` never loses a
+ * record", exactly as `asset-ledger-store.ts` holds them for `.volter/assets.json`
  * — the queue below is the in-process half, and it CANNOT see another process.
  *
- * The other process is ordinary now, not exotic: `vgai blender-mcp` mirrors a
+ * The other process is ordinary now, not exotic: `volter blender-mcp` mirrors a
  * session's `public/` outputs in through this same writer while the editor
  * server it is talking to may be committing a bake for the same project. Both
  * read the whole document, add one operation, and write it back; interleaved,
@@ -352,7 +352,7 @@ export function createProjectOutputWriter(
         const committedFiles = [...normalized, provenanceFile];
         const transactionRoot = resolve(
           projectRoot,
-          '.vgai',
+          '.volter',
           'tmp',
           `project-output-${provenanceOperationId}`,
         );
@@ -454,7 +454,7 @@ export function projectOutputMediaType(path: string): string | undefined {
 }
 
 function stagedRole(path: string): ProjectOutputFile['role'] {
-  if (path.endsWith('/.vgai-thumbnail.webp')) return 'other';
+  if (path.endsWith('/.volter-thumbnail.webp')) return 'other';
   return 'asset';
 }
 
@@ -586,7 +586,7 @@ export async function attestExistingProjectOutputs(options: {
     );
     const transactionRoot = resolve(
       options.projectRoot,
-      '.vgai',
+      '.volter',
       'tmp',
       `project-attest-${provenanceOperationId}`,
     );
@@ -641,7 +641,7 @@ export async function commitStagedProjectDirectory(options: {
     );
     const transactionRoot = resolve(
       options.projectRoot,
-      '.vgai',
+      '.volter',
       'tmp',
       `project-directory-${provenanceOperationId}`,
     );

@@ -94,7 +94,7 @@ export interface ProviderCredentialMarker {
 
 /**
  * The non-secret record of WHICH providers have a key in the system store.
- * `EditorAccountService` backs this with `~/.vgai/account.json`, the file it
+ * `EditorAccountService` backs this with `~/.volter/account.json`, the file it
  * already owns; an unbacked service keeps it in memory for the process.
  */
 export interface ProviderCredentialMarkerStore {
@@ -138,7 +138,7 @@ function maskedKey(value: string): string {
  *
  * A SECRET IS READ AT THE MOMENT A JOB NEEDS IT, NEVER AT BOOT, AND ONLY FOR
  * THE PROVIDER THAT JOB NAMES. macOS prompts to unlock a Keychain item once
- * per item per calling binary per read, and `vgai edit` is a fresh process
+ * per item per calling binary per read, and `volter edit` is a fresh process
  * every time, so a boot-time sweep of every provider is a stack of unlock
  * dialogs in front of someone who asked to open a project — and a model
  * project has no generation job at all. `ensure(provider)` is therefore THE

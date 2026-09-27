@@ -210,7 +210,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
    *
    * Measured 2026-09-19 (U6b's Model-workspace walk): the fork's bridge boots
    * the editor without `installConsoleSync()`, so 44 React errors filled that
-   * page's console and the bottom bar's counter while `vgai console` printed a
+   * page's console and the bottom bar's counter while `volter console` printed a
    * clean session for the length of a walk. The page-side fix is one door that
    * cannot be half-called (`src/console-sync.ts`); this is the half that
    * NOTICES when some future host gets it wrong anyway, because a convention
@@ -792,7 +792,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       consoleLedger.noteLoad(clientId);
       // A CHAT VIEW WITH NO AGENT OUTLIVES A PAGE LOAD, and rule (a) would sweep it: the
       // condition was raised before any page existed, so the first real load retires it and
-      // `vgai console` goes quiet while the panel is still dead. Measured. So the session
+      // `volter console` goes quiet while the panel is still dead. Measured. So the session
       // re-observes it HERE, under this load's own id — which is exactly what the ledger's
       // own contract says a recurrence is ("the same fingerprint is observed again under the
       // new load id and its count keeps climbing").
@@ -933,7 +933,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
    * one the product could not describe. It could say `commandListener: not
    * attached` and never why. These errors arrive on the control connection the
    * bootstrap already holds, are journaled, and are read back through
-   * `/__editor/state` (a plain GET), so `vgai status` answers with no listener
+   * `/__editor/state` (a plain GET), so `volter status` answers with no listener
    * and no tab cooperation beyond the socket.
    */
   function handlePageError(payload: Record<string, unknown>): ControlOutcome {
@@ -1339,7 +1339,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       // instead of letting the timer expire into a misleading "editor
       // connected but did not respond". The classic trigger is a mid-command
       // full page reload — e.g. Vite discovering/re-optimizing deps on a first
-      // play (dogfooded 2026-07-12: every first `vgai play` on a cold cache
+      // play (dogfooded 2026-07-12: every first `volter play` on a cold cache
       // burned the full 120s window).
       //
       // A RECEIPTED command survives this: see
@@ -1489,7 +1489,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         default:
           // An unknown control type is a client/server version skew, never a
           // silent partial read.
-          console.warn(`[vgai-editor] ignoring unknown control frame "${type}"`);
+          console.warn(`[volter-editor] ignoring unknown control frame "${type}"`);
       }
     },
   });
@@ -1605,7 +1605,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
 
   /** The lifecycle whose TABLE answers for this command's participant. */
   function tabTableFor(participantId: string | null): TabLifecycleController | null {
-    if (participantId === '__vgai_missing_local_host__') return null;
+    if (participantId === '__volter_missing_local_host__') return null;
     if (participantId !== null && participantId !== ctx.hostParticipantId) {
       return participantTabLifecycles.get(participantId) ?? null;
     }
@@ -1699,7 +1699,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     const participantId =
       requestedParticipantId ??
       ctx.hostParticipantId ??
-      (participantConnections.size > 0 ? '__vgai_missing_local_host__' : null);
+      (participantConnections.size > 0 ? '__volter_missing_local_host__' : null);
     const table = tabTableFor(participantId);
     const targetTabId = table?.blessedTabId() ?? null;
     // Fail fast when the TABLE says no tab is present — and say so in table
@@ -1725,7 +1725,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
           ok: false,
           timedOut: true,
           error:
-            participantId === '__vgai_missing_local_host__'
+            participantId === '__volter_missing_local_host__'
               ? 'No local editor tab is connected; refusing to route this command to a remote participant.'
               : // A participant id only helps a caller who NAMED one. The local
                 // session's own host participant is an internal identity — once
@@ -1799,7 +1799,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
           phaseAgeMs: stall.phaseAgeMs,
           waitedMs: timeoutMs,
         });
-        // …and into the console ledger, so `vgai status` explains the stuck
+        // …and into the console ledger, so `volter status` explains the stuck
         // play instead of printing a healthy tab. Keyed on the PHASE, never on
         // the duration, so a repeating stall stays one condition with a count.
         consoleLedger.observe({

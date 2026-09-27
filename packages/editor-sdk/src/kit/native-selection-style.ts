@@ -1,6 +1,6 @@
 /**
  * Theme-backed renderer selection ink shared by the native Three and Pixi
- * views. CSS can consume `var(--vgai-accent)` directly; WebGL cannot, so this
+ * views. CSS can consume `var(--volter-accent)` directly; WebGL cannot, so this
  * module resolves the inherited token to the integer both renderers speak.
  */
 
@@ -77,27 +77,27 @@ function themeToken(root: Element | null, name: string): string {
 
 /**
  * THE STAGE'S COLOURS ARE THE WORKBENCH'S FIRST. Under the Code-OSS frame each is a theme
- * colour (`vgai.viewport.*`, `vgai.gizmo.*`, the frame's `vgaiColors.ts`) the look sets and a
+ * colour (`volter.viewport.*`, `volter.gizmo.*`, the frame's `volterColors.ts`) the look sets and a
  * person's `workbench.colorCustomizations` override, emitted as `--vscode-<id>` with dots as
  * dashes; the page's own token is what the look said, read where there is no workbench.
  */
 const WORKBENCH_COLOR: Readonly<Record<string, string>> = {
-  '--vgai-viewport-background': '--vscode-vgai-viewport-background',
-  '--vgai-viewport-grid': '--vscode-vgai-viewport-grid',
-  '--vgai-viewport-axis-x': '--vscode-vgai-viewport-axisX',
-  '--vgai-viewport-axis-y': '--vscode-vgai-viewport-axisY',
-  '--vgai-viewport-axis-z': '--vscode-vgai-viewport-axisZ',
-  '--vgai-viewport-selection': '--vscode-vgai-viewport-selection',
-  '--vgai-viewport-active': '--vscode-vgai-viewport-active',
-  '--vgai-viewport-wire': '--vscode-vgai-viewport-wire',
-  '--vgai-gizmo-x': '--vscode-vgai-gizmo-x',
-  '--vgai-gizmo-y': '--vscode-vgai-gizmo-y',
-  '--vgai-gizmo-z': '--vscode-vgai-gizmo-z',
-  '--vgai-gizmo-navigation-x': '--vscode-vgai-gizmo-navigationX',
-  '--vgai-gizmo-navigation-y': '--vscode-vgai-gizmo-navigationY',
-  '--vgai-gizmo-navigation-z': '--vscode-vgai-gizmo-navigationZ',
-  '--vgai-gizmo-hover': '--vscode-vgai-gizmo-hover',
-  '--vgai-gizmo-drag': '--vscode-vgai-gizmo-drag',
+  '--volter-viewport-background': '--vscode-volter-viewport-background',
+  '--volter-viewport-grid': '--vscode-volter-viewport-grid',
+  '--volter-viewport-axis-x': '--vscode-volter-viewport-axisX',
+  '--volter-viewport-axis-y': '--vscode-volter-viewport-axisY',
+  '--volter-viewport-axis-z': '--vscode-volter-viewport-axisZ',
+  '--volter-viewport-selection': '--vscode-volter-viewport-selection',
+  '--volter-viewport-active': '--vscode-volter-viewport-active',
+  '--volter-viewport-wire': '--vscode-volter-viewport-wire',
+  '--volter-gizmo-x': '--vscode-volter-gizmo-x',
+  '--volter-gizmo-y': '--vscode-volter-gizmo-y',
+  '--volter-gizmo-z': '--vscode-volter-gizmo-z',
+  '--volter-gizmo-navigation-x': '--vscode-volter-gizmo-navigationX',
+  '--volter-gizmo-navigation-y': '--vscode-volter-gizmo-navigationY',
+  '--volter-gizmo-navigation-z': '--vscode-volter-gizmo-navigationZ',
+  '--volter-gizmo-hover': '--vscode-volter-gizmo-hover',
+  '--volter-gizmo-drag': '--vscode-volter-gizmo-drag',
 };
 
 function stageColorToken(root: Element | null, name: string): string {
@@ -109,14 +109,14 @@ function stageColorToken(root: Element | null, name: string): string {
  *  (Blender's orange), the accent otherwise. */
 export function nativeSelectionColors(element?: Element | null): NativeSelectionColors {
   const root = themeRoot(element);
-  const raw = stageColorToken(root, '--vgai-viewport-selection') || themeToken(root, '--vgai-accent');
+  const raw = stageColorToken(root, '--volter-viewport-selection') || themeToken(root, '--volter-accent');
   const visible =
     parseCssColor(raw || graphiteDarkEditorTheme.color.accent.default) ??
     DEFAULT_NATIVE_SELECTION_COLOR;
-  const active = parseCssColor(stageColorToken(root, '--vgai-viewport-active'));
-  const style = themeToken(root, '--vgai-viewport-outline-style');
-  const width = Number.parseFloat(themeToken(root, '--vgai-viewport-outline-width'));
-  const hidden = themeToken(root, '--vgai-viewport-outline-hidden');
+  const active = parseCssColor(stageColorToken(root, '--volter-viewport-active'));
+  const style = themeToken(root, '--volter-viewport-outline-style');
+  const width = Number.parseFloat(themeToken(root, '--volter-viewport-outline-width'));
+  const hidden = themeToken(root, '--volter-viewport-outline-hidden');
   return {
     visible,
     hidden: dimColor(visible),
@@ -182,17 +182,17 @@ export function nativeViewportLook(element?: Element | null): NativeViewportLook
     return raw ? parseCssColor(raw) : null;
   };
   return {
-    background: read('--vgai-viewport-background'),
-    grid: read('--vgai-viewport-grid'),
-    axisX: read('--vgai-viewport-axis-x'),
-    axisY: read('--vgai-viewport-axis-y'),
-    axisZ: read('--vgai-viewport-axis-z'),
+    background: read('--volter-viewport-background'),
+    grid: read('--volter-viewport-grid'),
+    axisX: read('--volter-viewport-axis-x'),
+    axisY: read('--volter-viewport-axis-y'),
+    axisZ: read('--volter-viewport-axis-z'),
     axisLineWidth: (() => {
-      const raw = themeToken(root, '--vgai-viewport-axis-line-width');
+      const raw = themeToken(root, '--volter-viewport-axis-line-width');
       const value = raw ? Number.parseFloat(raw) : Number.NaN;
       return Number.isFinite(value) ? value : null;
     })(),
-    active: read('--vgai-viewport-active'),
+    active: read('--volter-viewport-active'),
   };
 }
 
@@ -237,23 +237,23 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     return x !== null && y !== null && z !== null ? [x, y, z] : null;
   };
   return {
-    axes: trio('--vgai-gizmo'),
-    navigation: trio('--vgai-gizmo-navigation'),
-    hover: color('--vgai-gizmo-hover'),
-    drag: color('--vgai-gizmo-drag'),
-    opacity: number('--vgai-viewport-gizmo-opacity'),
-    arrowLength: number('--vgai-viewport-gizmo-arrow-length'),
-    arrowHead: number('--vgai-viewport-gizmo-arrow-head'),
-    ringWidth: number('--vgai-viewport-gizmo-ring-width'),
-    navigationSize: number('--vgai-viewport-navigation-size'),
-    background: color('--vgai-viewport-background'),
+    axes: trio('--volter-gizmo'),
+    navigation: trio('--volter-gizmo-navigation'),
+    hover: color('--volter-gizmo-hover'),
+    drag: color('--volter-gizmo-drag'),
+    opacity: number('--volter-viewport-gizmo-opacity'),
+    arrowLength: number('--volter-viewport-gizmo-arrow-length'),
+    arrowHead: number('--volter-viewport-gizmo-arrow-head'),
+    ringWidth: number('--volter-viewport-gizmo-ring-width'),
+    navigationSize: number('--volter-viewport-navigation-size'),
+    background: color('--volter-viewport-background'),
     navigationForm: ((form) => (form === 'cones' || form === 'triad' || form === 'godot' ? form : 'balls'))(
-      themeToken(root, '--vgai-viewport-navigation-gizmo'),
+      themeToken(root, '--volter-viewport-navigation-gizmo'),
     ),
     navigationCorner:
-      themeToken(root, '--vgai-viewport-navigation-corner') === 'bottom-left' ? 'bottom-left' : 'top-right',
-    highlightSaturation: number('--vgai-viewport-gizmo-highlight-saturation'),
-    highlightValue: number('--vgai-viewport-gizmo-highlight-value'),
+      themeToken(root, '--volter-viewport-navigation-corner') === 'bottom-left' ? 'bottom-left' : 'top-right',
+    highlightSaturation: number('--volter-viewport-gizmo-highlight-saturation'),
+    highlightValue: number('--volter-viewport-gizmo-highlight-value'),
   };
 }
 
@@ -270,7 +270,7 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
  * number; nothing here knows about three's units.
  */
 export function nativeViewportGizmoSize(element?: Element | null): number | null {
-  const raw = themeToken(themeRoot(element), '--vgai-viewport-gizmo-size');
+  const raw = themeToken(themeRoot(element), '--volter-viewport-gizmo-size');
   if (!raw) return null;
   const value = Number.parseFloat(raw);
   return Number.isFinite(value) && value > 0 ? value : null;
@@ -289,11 +289,11 @@ export function nativeViewportGrid(element?: Element | null): {
     const value = Number.parseFloat(themeToken(root, name) ?? '');
     return Number.isFinite(value) && value > 0 ? value : fallback;
   };
-  const lineWidth = read('--vgai-viewport-grid-line-width', 1);
+  const lineWidth = read('--volter-viewport-grid-line-width', 1);
   return {
     lineWidth,
-    majorWidth: read('--vgai-viewport-grid-major-width', lineWidth),
-    majorContrast: read('--vgai-viewport-grid-major-contrast', 1),
+    majorWidth: read('--volter-viewport-grid-major-width', lineWidth),
+    majorContrast: read('--volter-viewport-grid-major-contrast', 1),
   };
 }
 
@@ -306,8 +306,8 @@ export function nativeViewportWire(element?: Element | null): {
   readonly opacity: number | null;
 } {
   const root = themeRoot(element);
-  const raw = stageColorToken(root, '--vgai-viewport-wire');
-  const opacity = Number.parseFloat(themeToken(root, '--vgai-viewport-wire-opacity'));
+  const raw = stageColorToken(root, '--volter-viewport-wire');
+  const opacity = Number.parseFloat(themeToken(root, '--volter-viewport-wire-opacity'));
   return {
     color: raw ? parseCssColor(raw) : null,
     opacity: Number.isFinite(opacity) ? opacity : null,
@@ -320,10 +320,10 @@ export function nativeViewportSelectionBox(element?: Element | null): {
   readonly frame: 'world' | 'object';
 } {
   const root = themeRoot(element);
-  const width = Number.parseFloat(themeToken(root, '--vgai-viewport-selection-box-width'));
+  const width = Number.parseFloat(themeToken(root, '--volter-viewport-selection-box-width'));
   return {
-    edges: themeToken(root, '--vgai-viewport-selection-box') === 'edges',
-    frame: themeToken(root, '--vgai-viewport-selection-box-frame') === 'object' ? 'object' : 'world',
+    edges: themeToken(root, '--volter-viewport-selection-box') === 'edges',
+    frame: themeToken(root, '--volter-viewport-selection-box-frame') === 'object' ? 'object' : 'world',
     lineWidth: Number.isFinite(width) && width > 0 ? width : null,
   };
 }
@@ -343,11 +343,11 @@ export interface NativeViewportChrome {
 export function nativeViewportChromeKey(element?: Element | null): string {
   const root = themeRoot(element);
   return [
-    '--vgai-viewport-chrome-bar',
-    '--vgai-viewport-chrome-view-name',
-    '--vgai-viewport-chrome-tools',
-    '--vgai-viewport-chrome-display',
-    '--vgai-viewport-chrome-transform-controls',
+    '--volter-viewport-chrome-bar',
+    '--volter-viewport-chrome-view-name',
+    '--volter-viewport-chrome-tools',
+    '--volter-viewport-chrome-display',
+    '--volter-viewport-chrome-transform-controls',
   ]
     .map((name) => themeToken(root, name))
     .join('|');
@@ -397,8 +397,8 @@ let wordsKey: string | null = null;
 function viewportWordsKeyNow(): string {
   const root = themeRoot();
   return JSON.stringify([
-    STAGE_WORD_MODES.map((mode) => themeToken(root, `--vgai-viewport-word-${mode}`)),
-    themeToken(root, '--vgai-viewport-word-helpers'),
+    STAGE_WORD_MODES.map((mode) => themeToken(root, `--volter-viewport-word-${mode}`)),
+    themeToken(root, '--volter-viewport-word-helpers'),
   ]);
 }
 function subscribeViewportWords(listener: () => void): () => void {

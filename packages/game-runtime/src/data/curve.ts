@@ -59,8 +59,8 @@ export interface CurveAxes {
   y: { min: number; max: number; label?: string };
 }
 
-/** How the marker rides out to the emitted JSON Schema — the editor's detection key, the exact shape `dataRef` uses with `x-vgai-ref`. */
-const CURVE_META_KEY = 'x-vgai-curve';
+/** How the marker rides out to the emitted JSON Schema — the editor's detection key, the exact shape `dataRef` uses with `x-volter-ref`. */
+const CURVE_META_KEY = 'x-volter-curve';
 
 function axisLabel(axes: CurveAxes, axis: 'x' | 'y'): string {
   return axes[axis].label ?? axis;
@@ -119,9 +119,9 @@ function checkPoints(value: CurveValue, axes: CurveAxes, ctx: z.RefinementCtx): 
  * the fix rather than the rule.
  *
  * The emitted JSON Schema (`toDataJsonSchema`) carries
- * `"x-vgai-curve": axes` — a Zod `.meta()`, which survives `z.toJSONSchema`
+ * `"x-volter-curve": axes` — a Zod `.meta()`, which survives `z.toJSONSchema`
  * including inside a table's `additionalProperties` row schema, exactly the
- * way `dataRef`'s `"x-vgai-ref"` does. That marker is what makes the editor's
+ * way `dataRef`'s `"x-volter-ref"` does. That marker is what makes the editor's
  * Data panel render a curve EDITOR instead of a raw-JSON cell, with no emitter
  * changes anywhere.
  */

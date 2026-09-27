@@ -21494,7 +21494,7 @@
    "tick": 405
   }
  ],
- "schema": "vgai-fidelity-ground-truth@1",
+ "schema": "volter-fidelity-ground-truth@1",
  "script": {
   "holdTicks": 30,
   "seed": 20260821,

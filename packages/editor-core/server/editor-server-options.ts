@@ -82,7 +82,7 @@ export interface EditorServerOptions {
    * {@link workbench} is one: `open-project` can switch the project under a
    * live session, and which product opens it is a fact about the project.
    *
-   * `vgai status` prints it on the workbench's line: the two together are what
+   * `volter status` prints it on the workbench's line: the two together are what
    * the running product IS — this code, in that workbench.
    */
   product?: (() => EditorState['product']) | undefined;
@@ -93,7 +93,7 @@ export interface EditorServerOptions {
    * taken here would report `null` forever.
    *
    * The session's children are the session's to report, exactly as its run
-   * configurations are (`routes/configurations.ts`). `vgai status` prints it.
+   * configurations are (`routes/configurations.ts`). `volter status` prints it.
    */
   workbench?: (() => EditorState['workbench']) | undefined;
   /** Dev checkout only: mark this long-running process stale when server-loaded source changes. */
@@ -126,7 +126,7 @@ export interface EditorServerOptions {
    * Supplied by the bundler-owning hosts as
    * `vite.environments.ssr.moduleGraph.invalidateAll()`; the editor calls it
    * when the project's dependency manifests move, so a package installed under
-   * a LIVE session (`vgai add <capability>`, or a hand-run `npm install`) is
+   * a LIVE session (`volter add <capability>`, or a hand-run `npm install`) is
    * visible to the very next tool call. Without it, Vite's SSR module runner
    * replays the rejected load forever — see
    * `project-dependency-invalidation.ts` for the measured mechanism.
@@ -164,11 +164,11 @@ export interface EditorServerOptions {
 
 /**
  * What a caller is told when a relayed command finds NO browser tab on this
- * session — every rasterizing lane (`vgai screenshot`, story/asset/module
+ * session — every rasterizing lane (`volter screenshot`, story/asset/module
  * previews), every play control, every inspect.
  *
  * A live server with no tab is a state a person cannot see and a session list
- * cannot show: `vgai sessions` reports the session, `vgai edit` reports it
+ * cannot show: `volter sessions` reports the session, `volter edit` reports it
  * ready, and the capture then fails for a reason none of that mentions. So the
  * message names the missing TAB (not the session), the URL that fixes it, and —
  * when the session was launched headless — that fact, since a `--no-open`

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "vgai": {
+    "volter": {
       "command": "npm",
-      "args": ["run", "vgai", "--", "mcp", "."]
+      "args": ["run", "volter", "--", "mcp", "."]
     }
   }
 }

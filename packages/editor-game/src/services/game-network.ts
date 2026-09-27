@@ -445,9 +445,9 @@ function observeMatchmaking(input: RequestInfo | URL, response: Response): void 
 
 /** Install once at editor boot (`network-observer.service.ts`). Idempotent. */
 export function installGameNetwork(): void {
-  const host = window as unknown as { __vgaiNetworkObserver?: boolean } & typeof window;
-  if (host.__vgaiNetworkObserver) return;
-  host.__vgaiNetworkObserver = true;
+  const host = window as unknown as { __volterNetworkObserver?: boolean } & typeof window;
+  if (host.__volterNetworkObserver) return;
+  host.__volterNetworkObserver = true;
   const Orig = window.WebSocket;
   if (typeof Orig === 'function') {
     const Observed = class extends Orig {

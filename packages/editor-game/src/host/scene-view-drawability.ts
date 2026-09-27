@@ -21,7 +21,7 @@
  * throw, attributes it to that scene, and stops re-throwing it forever.
  *
  * The game is NOT lost when this fires: its own renderer keeps drawing into its
- * own canvas, which the host adopted, so the Game tab and `vgai screenshot`
+ * own canvas, which the host adopted, so the Game tab and `volter screenshot`
  * show the real thing. What is lost is the editor-camera Scene view of it,
  * which is exactly what the message says.
  */

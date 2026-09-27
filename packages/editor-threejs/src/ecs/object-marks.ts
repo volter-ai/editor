@@ -43,8 +43,8 @@ export interface ObjectMarkSchema {
   skeletonEnabled: boolean;
   engineInternal: boolean;
   editorHelper: boolean;
-  vgaiComponentRoot: string;
-  vgaiBuiltInternal: boolean;
+  volterComponentRoot: string;
+  volterBuiltInternal: boolean;
 }
 
 export const ObjectMarkKeys = {
@@ -53,8 +53,8 @@ export const ObjectMarkKeys = {
   skeletonEnabled: 'skeletonEnabled',
   engineInternal: 'engineInternal',
   editorHelper: 'editorHelper',
-  vgaiComponentRoot: 'vgaiComponentRoot',
-  vgaiBuiltInternal: 'vgaiBuiltInternal',
+  volterComponentRoot: 'volterComponentRoot',
+  volterBuiltInternal: 'volterBuiltInternal',
 } as const satisfies Record<keyof ObjectMarkSchema, string>;
 
 export function getObjectMark<K extends keyof ObjectMarkSchema>(

@@ -3,17 +3,17 @@
  * the editor.
  *
  * WHO ASKS. The fork's workbench contribution (docs/CODE-OSS.md). It boots into
- * a VS Code page, hands over its parts, and then needs the vgai editor's own
+ * a VS Code page, hands over its parts, and then needs the volter editor's own
  * entry point to import — the PRODUCT's entry, which mounts the kit's bridge and
  * so swaps the SDK layout host that renders our panels into those parts. The
  * contribution reads `modules[].url` for the id `vscode-bridge`, imports exactly
- * that, and reads `mountVgai` off it.
- * `vgaiSessionOrigin.ts` also uses this route as its "is there a session here"
+ * that, and reads `mountVolter` off it.
+ * `volterSessionOrigin.ts` also uses this route as its "is there a session here"
  * probe, so it answers 200 even when it has nothing to serve.
  *
- * WHAT IT SERVES: the PRODUCT's one source entry — `@vgai/game-editor`'s or
- * `@vgai/model-editor`'s `src/index.ts`, which composes the product and
- * re-exports `mountVgai` (`packages/editor/src/frame/product.ts`). Which
+ * WHAT IT SERVES: the PRODUCT's one source entry — `@volter/game-editor`'s or
+ * `@volter/model-editor`'s `src/index.ts`, which composes the product and
+ * re-exports `mountVolter` (`packages/editor/src/frame/product.ts`). Which
  * product that is comes from the project's own dependencies, resolved by the
  * CLI and handed over (`session-product.ts`); the kit's own mount,
  * `frame/bridge.tsx`'s `mountEditor`, is not served to anybody and names no
@@ -43,7 +43,7 @@ import type { RouteContext } from './context';
 
 /**
  * The one id this door serves, and the one the fork's contribution looks for
- * (`vgaiBlender.contribution.ts`). It is a wire constant shared by two
+ * (`volterBlender.contribution.ts`). It is a wire constant shared by two
  * repositories: changing it here without changing it there is a frame that
  * mounts nothing.
  */
@@ -96,7 +96,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
             message:
               'This session serves no module graph, so it cannot serve the editor to the Code-OSS ' +
               `frame (no bundler behind it). ${commandLine('edit')} sessions — the dev checkout and the ` +
-              "project's own installed @vgai/editor — both can.",
+              "project's own installed @volter/editor — both can.",
           },
         ],
       });
@@ -124,9 +124,9 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
           {
             id: FRAME_BRIDGE_MODULE_ID,
             message:
-              'This session is serving no vgai product, so there is no editor for the Code-OSS ' +
+              'This session is serving no volter product, so there is no editor for the Code-OSS ' +
               'frame to import. A product is the running program — the editor IS ' +
-              '@vgai/game-editor or @vgai/model-editor — and which one runs is what the project ' +
+              '@volter/game-editor or @volter/model-editor — and which one runs is what the project ' +
               `installed. Install one and run ${commandLine('edit')} again:\n` +
               `${PRODUCT_INSTALL_LINES.join('\n')}`,
           },

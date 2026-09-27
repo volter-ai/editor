@@ -1,15 +1,15 @@
 /**
  * The scaffold pristine baseline (T2.3/D3 §1.D).
  *
- * At scaffold time, `.vgai/scaffold-baseline.json` records the engine
+ * At scaffold time, `.volter/scaffold-baseline.json` records the engine
  * version this project was scaffolded against plus a sha256 hash of every
  * template-derived file (the copied template tree PLUS the scaffold's own
  * rewrites — `package.json`, `tsconfig.json`, `vite.config.ts`,
- * `vgai.project.json`, etc. — hashed at their FINAL post-rewrite content,
+ * `volter.project.json`, etc. — hashed at their FINAL post-rewrite content,
  * since the baseline is built after `scaffoldProject` finishes all of its
  * rewrite steps).
  *
- * `vgai upgrade` (slice 2) uses this for three-way classification of a
+ * `volter upgrade` (slice 2) uses this for three-way classification of a
  * template re-sync: unchanged (hash still matches -> safe to update),
  * user-edited (hash differs -> never overwritten, diffed instead), or
  * both-moved. The hashing helper (`hashFile`) is kept pure and exported so
@@ -23,7 +23,7 @@
  * dependency — the checkout can advance (new commits, uncommitted edits)
  * WITHOUT a version bump, so the semver pin alone cannot see drift that
  * breaks a project (e.g. an engine API a project's copied template code
- * references gets removed upstream). `vgai validate` compares this recorded
+ * references gets removed upstream). `volter validate` compares this recorded
  * sha against the engine checkout's CURRENT HEAD to surface that drift.
  * Optional and best-effort: absent whenever the runtime package isn't a git
  * checkout (e.g. a tarball/registry install with no `.git` at all) — the
@@ -37,7 +37,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 /** Project-relative path (POSIX-separated) of the baseline file itself. */
-export const SCAFFOLD_BASELINE_RELATIVE_PATH = '.vgai/scaffold-baseline.json';
+export const SCAFFOLD_BASELINE_RELATIVE_PATH = '.volter/scaffold-baseline.json';
 
 /** Engine checkout git state at scaffold/last-upgrade time — see this module's header comment. */
 export interface EngineSourceState {
@@ -97,7 +97,7 @@ export function readEngineSourceState(engineDir: string): EngineSourceState | un
 
 /**
  * Pure sha256 hex digest of one file's contents. Exported (not just an
- * internal helper) because `vgai upgrade` (slice 2) reuses it verbatim to
+ * internal helper) because `volter upgrade` (slice 2) reuses it verbatim to
  * hash the CURRENT project tree for comparison against a baseline recorded
  * here — the two must hash identically byte-for-byte or classification
  * would be unreliable.
@@ -156,7 +156,7 @@ export function buildScaffoldBaseline(
 }
 
 /**
- * Build and write the baseline to `.vgai/scaffold-baseline.json` inside
+ * Build and write the baseline to `.volter/scaffold-baseline.json` inside
  * `targetDir`. Returns the written record so callers/tests don't need a
  * separate read-back.
  */
@@ -166,7 +166,7 @@ export function writeScaffoldBaseline(
   engineDir?: string,
 ): ScaffoldBaseline {
   const baseline = buildScaffoldBaseline(targetDir, engineVersion, engineDir);
-  mkdirSync(join(targetDir, '.vgai'), { recursive: true });
+  mkdirSync(join(targetDir, '.volter'), { recursive: true });
   writeFileSync(
     join(targetDir, SCAFFOLD_BASELINE_RELATIVE_PATH),
     `${JSON.stringify(baseline, null, 2)}\n`,

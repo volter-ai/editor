@@ -5,7 +5,7 @@
  * Everything here is a measurement or the plumbing of one — the mount-time
  * one-shot probe (the editor capabilities reached),
  * the live re-read of the loop verdict, the once-per-mount
- * console door, and the report the status facet and the `__vgaiIngest` hook
+ * console door, and the report the status facet and the `__volterIngest` hook
  * both serve. Mount PLUMBING lives in the `mount-*-ingest-root.ts` siblings
  * and deliberately not here: a reader asking "what did the editor actually
  * measure about this game, and where does that number come from" should have
@@ -37,7 +37,7 @@ import {
   type ContractSurface,
   projectContractSystemAdapters,
 } from '../runtime/adapter/ingest/contract-system-adapters';
-import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import { activeIngest } from './active-ingest';
 import type { IngestMount } from './authoring/ingest-root-adapter';
@@ -163,7 +163,7 @@ export const LOOP_PROBE_ABSENT =
  */
 export function measureSystemAdapters(
   active: SystemAdapters,
-  contract: VgaiGameContract | null,
+  contract: VolterGameContract | null,
   /** The mount's surface when the caller has one — see
    *  `contract-system-adapters.ts`'s header for the one slot it decides
    *  (`physics`, whose vocabulary follows the surface). */

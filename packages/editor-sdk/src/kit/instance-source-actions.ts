@@ -24,7 +24,7 @@
  * FILE MANAGER at a path, with no line and no caller), and `launch-editor` is
  * not in the dependency tree — adding a dependency for this was explicitly out
  * of scope. So "open" degrades to copying the `file:line` locator and SAYING
- * so, which is the same honest degradation `@vgai/dom/react-inspector-section.tsx`'s
+ * so, which is the same honest degradation `@volter/dom/react-inspector-section.tsx`'s
  * `SourceLocationRow` already ships for the identical problem. Never a silent
  * no-op.
  */

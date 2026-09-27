@@ -44,7 +44,7 @@ import type { ReactNode } from 'react';
  * produces it; the field renderer normalizes it to "no single value" (blank +
  * placeholder), which is the correct reading, not a special case.
  */
-export const MIXED: unique symbol = Symbol('vgai.inspection.mixed');
+export const MIXED: unique symbol = Symbol('volter.inspection.mixed');
 export type Mixed = typeof MIXED;
 
 /** A value read from an inspection subject: a real value, or {@link MIXED}. */

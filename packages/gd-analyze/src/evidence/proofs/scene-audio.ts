@@ -192,7 +192,7 @@ export async function measureSceneAudioProof(tools: GodotProofTools): Promise<re
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_AUDIO_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-audio-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-audio-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

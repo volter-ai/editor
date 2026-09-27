@@ -61,7 +61,7 @@ export function stripProjectLocalDependencyCaches(nodeModules: string): void {
 export interface DepCacheEnv {
   /** Enable flag. Unset/empty/`0`/`false` disables the cache entirely. */
   VOLTER_DEP_CACHE?: string;
-  /** Store location override. Defaults to `~/.cache/vgai/dep-store`. */
+  /** Store location override. Defaults to `~/.cache/volter/dep-store`. */
   VOLTER_DEP_CACHE_DIR?: string;
 }
 
@@ -74,7 +74,7 @@ export function isDepCacheEnabled(env: DepCacheEnv): boolean {
 export function depStoreDir(env: DepCacheEnv): string {
   const override = env.VOLTER_DEP_CACHE_DIR?.trim();
   if (override) return resolve(override);
-  return join(homedir(), '.cache', 'vgai', 'dep-store');
+  return join(homedir(), '.cache', 'volter', 'dep-store');
 }
 
 interface KeyInputs {

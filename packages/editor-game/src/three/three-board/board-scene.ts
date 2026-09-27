@@ -111,16 +111,16 @@ import {
 import type { BoardBounds, BoardDistrictPlacement, BoardItemPlacement } from './board-layout';
 
 /** `userData` key carrying an exhibit's story id, read by the picking path. */
-export const BOARD_STORY_ID_KEY = 'vgaiBoardStoryId';
+export const BOARD_STORY_ID_KEY = 'volterBoardStoryId';
 
 /** `userData` key carrying a ghost slot's component key (`<path>#<name>`),
  *  read by the picking path exactly like {@link BOARD_STORY_ID_KEY}. */
-export const BOARD_COMPONENT_KEY = 'vgaiBoardComponentKey';
+export const BOARD_COMPONENT_KEY = 'volterBoardComponentKey';
 
 /** The district group key ghost slots share. A sentinel outside the story
  *  grouping model's vocabulary, so it can never collide with an authored
  *  group; the scene labels it, the layout only clusters by it. */
-export const BOARD_GHOST_GROUP_KEY = 'vgai:board:no-story';
+export const BOARD_GHOST_GROUP_KEY = 'volter:board:no-story';
 
 /** Who a given exhibit is — everything the Inspector shows for a picked object. */
 export interface BoardStoryIdentity {
@@ -380,7 +380,7 @@ function createDistrictPad(district: BoardDistrictPlacement): THREE.Mesh {
     new THREE.BoxGeometry(width, PAD_THICKNESS, depth),
     new THREE.MeshStandardMaterial(PAD_MATERIAL_PARAMS),
   );
-  pad.name = `vgai:board-pad:${district.groupKey || UNGROUPED_LABEL}`;
+  pad.name = `volter:board-pad:${district.groupKey || UNGROUPED_LABEL}`;
   pad.position.set(
     (district.extent.minX + district.extent.maxX) / 2,
     PAD_TOP_Y - PAD_THICKNESS / 2,
@@ -430,7 +430,7 @@ function dashedFloorRectangle(width: number, depth: number): THREE.LineSegments 
  */
 function createGhostSlot(slot: BoardGhostSlot): THREE.Object3D {
   const group = new THREE.Group();
-  group.name = `vgai:board-ghost:${slot.name}`;
+  group.name = `volter:board-ghost:${slot.name}`;
   group.userData[BOARD_COMPONENT_KEY] = slot.key;
 
   const [width, depth] = slot.placement.footprint;
@@ -596,7 +596,7 @@ function createExhibitGroup(
   mounted: MountedStoryObject3D,
 ): THREE.Object3D {
   const exhibit = new THREE.Group();
-  exhibit.name = `vgai:board-exhibit:${identity.label}`;
+  exhibit.name = `volter:board-exhibit:${identity.label}`;
   exhibit.position.set(...(placement.translation as [number, number, number]));
   exhibit.add(mounted.root);
   exhibit.userData[BOARD_STORY_ID_KEY] = identity.id;
@@ -744,9 +744,9 @@ async function assembleThreeBoard(
   const tAssemble = Date.now();
 
   const root = new THREE.Group();
-  root.name = 'vgai:three-board';
+  root.name = 'volter:three-board';
   const chrome = new THREE.Group();
-  chrome.name = 'vgai:board-chrome';
+  chrome.name = 'volter:board-chrome';
   markChrome(chrome);
   root.add(chrome);
 
@@ -761,7 +761,7 @@ async function assembleThreeBoard(
   for (const district of layout.districts) {
     const ghostDistrict = district.groupKey === BOARD_GHOST_GROUP_KEY;
     const districtGroup = new THREE.Group();
-    districtGroup.name = `vgai:board-district:${
+    districtGroup.name = `volter:board-district:${
       ghostDistrict ? GHOST_DISTRICT_LABEL : district.groupKey || UNGROUPED_LABEL
     }`;
     root.add(districtGroup);

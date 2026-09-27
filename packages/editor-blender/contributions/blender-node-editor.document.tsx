@@ -31,7 +31,7 @@
  *
  * WHY IT IS THE DRAWER AND NOT A SECOND DOCUMENT. Blender's Shading workspace
  * puts the Shader Editor in the AREA BELOW the 3D viewport, and this host's
- * bottom group (`vgai:bottom-center`) is that area: the Model workspace hides
+ * bottom group (`volter:bottom-center`) is that area: the Model workspace hides
  * it for exactly this reason, recorded in `workspace-regions.ts` — "Blender's
  * modeling workspace has no timeline strip". The Shading workspace shows it
  * and puts this in it.
@@ -109,8 +109,8 @@ export const title = 'Shader Editor';
 
 // THE VIEW'S PRODUCT DOOR (WORK.md §The core is Code-OSS U8, ruling 1). This
 // view's verbs are published ONCE, here, where the view itself is contributed:
-// under the Code-OSS frame each becomes a `vgai.blender-node-view.<verb>`
-// command the bridge dispatches into the view, and standalone `vgai edit` —
+// under the Code-OSS frame each becomes a `volter.blender-node-view.<verb>`
+// command the bridge dispatches into the view, and standalone `volter edit` —
 // which has no command service — reaches the SAME table through the session's
 // `blender-node-view` verb. One table, two doors, which is why the remaining
 // read-only editors (UV Editing, Animation, Texture Paint) add no session verb
@@ -1171,9 +1171,9 @@ function NodeEditorHeader({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 'var(--vgai-space-2)',
+        gap: 'var(--volter-space-2)',
         height: HEADER_HEIGHT,
-        padding: '0 var(--vgai-space-2)',
+        padding: '0 var(--volter-space-2)',
         background: NODE_THEME.background,
         color: NODE_THEME.text,
         font: `${UI_TEXT_POINTS}px inherit`,
@@ -1189,7 +1189,7 @@ function NodeEditorHeader({
       <span style={{ opacity: 0.6 }}>{Math.round(zoom * 100)}%</span>
       <button
         type="button"
-        className="vgai-btn"
+        className="volter-btn"
         data-variant="ghost"
         data-size="sm"
         onClick={onViewAll}
@@ -1199,7 +1199,7 @@ function NodeEditorHeader({
       </button>
       <button
         type="button"
-        className="vgai-btn"
+        className="volter-btn"
         data-variant="ghost"
         data-size="sm"
         data-testid="node-editor-use-nodes"
@@ -1258,7 +1258,7 @@ function StatusLine({
         height: STATUS_HEIGHT,
         display: 'flex',
         alignItems: 'center',
-        padding: '0 var(--vgai-space-2)',
+        padding: '0 var(--volter-space-2)',
         background: NODE_THEME.background,
         color: error || refusal ? '#ffa028' : '#888888',
         font: `${UI_TEXT_POINTS}px inherit`,
@@ -1302,14 +1302,14 @@ function NodePanel({
         overflow: 'auto',
         // THE SIDEBAR IS PART OF THE NODE EDITOR'S AREA, so it wears the
         // space's own `TH_BACK` like the header and the canvas do. It used to
-        // paint `--vgai-color-surface-panel`, which is the DOCK's grey
+        // paint `--volter-color-surface-panel`, which is the DOCK's grey
         // (#303030 under the Blender look): Blender fills every region of a
         // node editor area with `TH_BACK` and draws panels ON it
         // (`ED_region_panels`), so the grey was this view wearing its
         // container's colour. MEASURED 2026-09-19 (the frame walk, beat 5):
         // at (600,500) — inside the Shader Editor's pane, which a 320px
         // sidebar had squeezed the canvas out of — the read was #303030 where
-        // the beat named #1a1a1a. The frame's `vgai.nodeEditor.background`
+        // the beat named #1a1a1a. The frame's `volter.nodeEditor.background`
         // theme colour carries the same traced value for the workbench's own
         // painting; this is the same number, from the same trace, for the
         // pixels we paint ourselves.
@@ -1317,10 +1317,10 @@ function NodePanel({
         color: NODE_THEME.text,
         font: `${UI_TEXT_POINTS}px inherit`,
         borderLeft: '1px solid #161616',
-        padding: 'var(--vgai-space-2)',
+        padding: 'var(--volter-space-2)',
       }}
     >
-      <div style={{ opacity: 0.6, marginBottom: 'var(--vgai-space-2)' }}>Node</div>
+      <div style={{ opacity: 0.6, marginBottom: 'var(--volter-space-2)' }}>Node</div>
       {!node ? (
         // Blender's panel `poll` is `context.active_node is not None`
         // (`space_node.py:806-808`): with no active node the tab draws nothing.
@@ -1339,7 +1339,7 @@ function NodePanel({
           <div
             style={{
               opacity: 0.6,
-              margin: 'var(--vgai-space-3) 0 var(--vgai-space-1)',
+              margin: 'var(--volter-space-3) 0 var(--volter-space-1)',
             }}
           >
             Properties
@@ -1371,7 +1371,7 @@ function Row({
 }) {
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', gap: 'var(--vgai-space-2)', height: 20 }}
+      style={{ display: 'flex', alignItems: 'center', gap: 'var(--volter-space-2)', height: 20 }}
       onPointerDown={() =>
         onRefuse(`"${label}" is read here and written nowhere — inspection parity.`)
       }

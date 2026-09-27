@@ -30,7 +30,7 @@
     "./host/stories/story-pixi-preview": "./src/host/stories/story-pixi-preview.ts",
     "./host/stories/story-media-captures": "./src/host/stories/story-media-captures.ts"
   },
-  "vgai": {
+  "volter": {
     "contributions": [
       "./contributions/asset-budget-asset.menu.ts",
       "./contributions/asset-budget.action.ts",

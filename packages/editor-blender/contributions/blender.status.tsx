@@ -38,8 +38,8 @@
  * a surface ever makes a button mean something else, it publishes that and
  * this reads it; it does not get hardcoded here.
  *
- * The inline styles spell the theme tokens directly (`var(--vgai-space-5)`,
- * `var(--vgai-font-md)`) instead of importing the host's `spaceVar` /
+ * The inline styles spell the theme tokens directly (`var(--volter-space-5)`,
+ * `var(--volter-font-md)`) instead of importing the host's `spaceVar` /
  * `fontSizeVar` handles: `@volter/editor-blender` is pinned at ZERO host imports
  * (`validate-editor-closure.mjs`). See `blender-version.status.tsx`.
  */
@@ -140,7 +140,7 @@ const RADIUS = 3.6;
 const BOX = { width: 12, height: 16 } as const;
 
 function MouseGlyph({ button }: { button: MouseButton }) {
-  const id = `vgai-mouse-${button}`;
+  const id = `volter-mouse-${button}`;
   const rightX = BOX.width - BUTTON_W;
   const fillX = button === 'right' ? rightX : 0;
   // The stroke's own rect runs along the centre line of a 1-unit stroke, so it
@@ -156,7 +156,7 @@ function MouseGlyph({ button }: { button: MouseButton }) {
       // 16 CSS px, which is the `lg` icon rung — and Blender's glyph measures
       // exactly 16 CSS tall in the frame. `width: auto` then resolves to 12
       // from the viewBox, the measured width, with no second number to drift.
-      style={{ height: 'var(--vgai-icon-lg)', width: 'auto', display: 'block', flex: '0 0 auto' }}
+      style={{ height: 'var(--volter-icon-lg)', width: 'auto', display: 'block', flex: '0 0 auto' }}
     >
       <title>{button} mouse button</title>
       {/* The outer silhouette: what the fill is intersected with, so the lit
@@ -209,11 +209,11 @@ function MouseGlyph({ button }: { button: MouseButton }) {
 export default function BlenderMouseHintsStatus() {
   return (
     <span
-      className="vgai-status-copy"
+      className="volter-status-copy"
       data-testid="status-blender-mouse-hints"
       // Blender's hint-to-hint gap is 9.5 CSS (glyph 1 ends at 51.5, glyph 2
       // starts at 61; the second gap repeats it to a tenth). `space-5` is 10.
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--vgai-space-5)' }}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--volter-space-5)' }}
     >
       {HINTS.map((hint) => (
         <span
@@ -231,8 +231,8 @@ export default function BlenderMouseHintsStatus() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 'var(--vgai-space-1)',
-            fontSize: 'var(--vgai-font-md)',
+            gap: 'var(--volter-space-1)',
+            fontSize: 'var(--volter-font-md)',
           }}
           title={`${hint.label} — the ${hint.button} mouse button in the viewport`}
         >

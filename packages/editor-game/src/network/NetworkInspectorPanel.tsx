@@ -680,7 +680,7 @@ export function NetworkInspectorPanel() {
       data-testid="network-inspector"
       // §2.31 P2 amendment: text-dense output region reads over a local
       // frosted layer (inert for non-frost themes).
-      className="vgai-content-frost"
+      className="volter-content-frost"
       style={{
         flex: 1,
         minHeight: 0,

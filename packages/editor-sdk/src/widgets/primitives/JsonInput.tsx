@@ -100,7 +100,7 @@ export function JsonInput({
         <div
           data-testid="json-input-error"
           style={{
-            fontSize: 'var(--vgai-font-sm)',
+            fontSize: 'var(--volter-font-sm)',
             color: themeVars.semantic.danger,
             marginTop: 2,
           }}

@@ -18,4 +18,4 @@ export {
   sampleCurve,
 } from './data/curve';
 export { type DataRef, dataRef, getRef } from './data/data-ref';
-export { type VgaiDataCheckOptions, vgaiDataCheck } from './data/vite-plugin-data';
+export { type VolterDataCheckOptions, volterDataCheck } from './data/vite-plugin-data';

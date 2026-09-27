@@ -39,7 +39,7 @@ import {
 } from '@volter/editor-sdk/kit/account-client';
 import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { openWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { VgaiLogo } from './VgaiLogo';
+import { VolterLogo } from './VolterLogo';
 
 export const ACCOUNT_DOCUMENT_ID = 'account';
 
@@ -89,8 +89,8 @@ function providerSource(provider: ProviderCredentialStatus): string {
 /** Quiet blue-tinted information strip (spec §4) — one icon, one line. */
 function InfoStrip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="vgai-account-infostrip">
-      <EditorIcon icon={faCircleInfo} className="vgai-account-infostrip-icon" aria-hidden="true" />
+    <div className="volter-account-infostrip">
+      <EditorIcon icon={faCircleInfo} className="volter-account-infostrip-icon" aria-hidden="true" />
       <span>{children}</span>
     </div>
   );
@@ -119,34 +119,34 @@ function ProviderRow({
 }: ProviderRowProps) {
   const [key, setKey] = useState('');
   return (
-    <div className="vgai-account-provider" data-configured={provider.configured}>
-      <span className="vgai-account-provider-monogram" aria-hidden="true">
+    <div className="volter-account-provider" data-configured={provider.configured}>
+      <span className="volter-account-provider-monogram" aria-hidden="true">
         {provider.label.slice(0, 1)}
       </span>
-      <div className="vgai-account-provider-main">
-        <div className="vgai-account-provider-name">
+      <div className="volter-account-provider-main">
+        <div className="volter-account-provider-name">
           <strong>{provider.label}</strong>
           {provider.configured && (
             <>
-              <span className="vgai-account-provider-dot" aria-hidden="true" />
-              <span className="vgai-account-provider-key">{provider.maskedKey}</span>
+              <span className="volter-account-provider-dot" aria-hidden="true" />
+              <span className="volter-account-provider-key">{provider.maskedKey}</span>
             </>
           )}
         </div>
-        <span className="vgai-account-provider-source">{providerSource(provider)}</span>
+        <span className="volter-account-provider-source">{providerSource(provider)}</span>
         {provider.source === 'session' && provider.configured && (
-          <span className="vgai-account-provider-warning">
+          <span className="volter-account-provider-warning">
             No system credential manager is available. This key will be forgotten when the editor
             stops.
           </span>
         )}
         {provider.problem && (
-          <span className="vgai-account-provider-warning" role="alert">
+          <span className="volter-account-provider-warning" role="alert">
             {provider.problem}
           </span>
         )}
         {provider.source === 'environment' && (
-          <span className="vgai-account-provider-source">
+          <span className="volter-account-provider-source">
             Restart the editor after changing {provider.environmentVariable}.
           </span>
         )}
@@ -154,7 +154,7 @@ function ProviderRow({
 
       {editing ? (
         <form
-          className="vgai-account-provider-form"
+          className="volter-account-provider-form"
           onSubmit={(event) => {
             event.preventDefault();
             void run(async () => {
@@ -164,8 +164,8 @@ function ProviderRow({
             }, `${provider.label} credential saved.`);
           }}
         >
-          <label className="vgai-field">
-            <span className="vgai-field-label">{provider.label} API key</span>
+          <label className="volter-field">
+            <span className="volter-field-label">{provider.label} API key</span>
             <TextInput
               autoComplete="off"
               autoFocus
@@ -174,7 +174,7 @@ function ProviderRow({
               onChange={(event) => setKey(event.target.value)}
             />
           </label>
-          <div className="vgai-account-provider-form-actions">
+          <div className="volter-account-provider-form-actions">
             <Button type="submit" variant="primary" disabled={busy || key.trim() === ''}>
               Save key
             </Button>
@@ -192,7 +192,7 @@ function ProviderRow({
           </div>
         </form>
       ) : (
-        <div className="vgai-account-provider-actions">
+        <div className="volter-account-provider-actions">
           {provider.configured && (
             <Button
               size="compact"
@@ -278,20 +278,20 @@ function ProviderConnections({ busy, run }: { busy: boolean; run: AccountActionR
   ).length;
 
   return (
-    <section className="vgai-account-card vgai-provider-connections">
-      <div className="vgai-account-providers-header">
+    <section className="volter-account-card volter-provider-connections">
+      <div className="volter-account-providers-header">
         <div>
-          <h3 className="vgai-account-card-title">Provider connections</h3>
-          <p className="vgai-account-card-sub">
+          <h3 className="volter-account-card-title">Provider connections</h3>
+          <p className="volter-account-card-sub">
             Keys live in this computer&apos;s credential manager — never in project files or the
             editor UI.
           </p>
         </div>
-        <span className="vgai-status-dot" data-state={connectedCount > 0 ? 'on' : 'off'}>
+        <span className="volter-status-dot" data-state={connectedCount > 0 ? 'on' : 'off'}>
           {connectedCount} connected
         </span>
       </div>
-      <div className="vgai-account-provider-list">
+      <div className="volter-account-provider-list">
         {account.providerCredentials.map((provider) => (
           <ProviderRow
             key={provider.provider}
@@ -337,9 +337,9 @@ function CodingInferenceCard({ busy, run }: { busy: boolean; run: AccountActionR
     );
 
   return (
-    <section className="vgai-account-card">
-      <h3 className="vgai-account-card-title">Coding inference</h3>
-      <p className="vgai-account-card-sub">
+    <section className="volter-account-card">
+      <h3 className="volter-account-card-title">Coding inference</h3>
+      <p className="volter-account-card-sub">
         Coding agents run on the login you already did — <code>codex login</code>, Claude&apos;s
         device login, <code>grok login</code> — and Volter Editor injects nothing into them. Turn this on
         only for a harness you have no subscription for: it routes that harness through OpenRouter
@@ -347,13 +347,13 @@ function CodingInferenceCard({ busy, run }: { busy: boolean; run: AccountActionR
         Preferred route above is Managed or BYOK. Existing sessions keep the route they launched
         with.
       </p>
-      <label className="vgai-account-switch-row">
+      <label className="volter-account-switch-row">
         <Checkbox
           checked={settings.enabled}
           disabled={busy}
           onChange={(event) => void save({ enabled: event.target.checked })}
         />
-        <span className="vgai-account-switch-copy">
+        <span className="volter-account-switch-copy">
           <strong>Use OpenRouter for coding agents</strong>
           <small>
             Codex, Claude Code, OpenCode and Pi are configured per spawned process. Grok takes no
@@ -361,8 +361,8 @@ function CodingInferenceCard({ busy, run }: { busy: boolean; run: AccountActionR
           </small>
         </span>
       </label>
-      <label className="vgai-field">
-        <span className="vgai-field-label">Managed coding model</span>
+      <label className="volter-field">
+        <span className="volter-field-label">Managed coding model</span>
         <Select
           value={model}
           disabled={busy}
@@ -380,7 +380,7 @@ function CodingInferenceCard({ busy, run }: { busy: boolean; run: AccountActionR
         </Select>
       </label>
       {account.preferredRoute === 'managed' ? (
-        <div className="vgai-account-card-footer">
+        <div className="volter-account-card-footer">
           <Button
             size="compact"
             disabled={busy}
@@ -396,14 +396,14 @@ function CodingInferenceCard({ busy, run }: { busy: boolean; run: AccountActionR
             Preflight typical coding session
           </Button>
           {quote && (
-            <span className="vgai-account-help">
+            <span className="volter-account-help">
               Estimate: {quote.estimatedCredits.toLocaleString()} Volter credits ($
               {quote.providerAmountUsd.toFixed(4)} provider cost) for 100k input + 20k output
               tokens.
             </span>
           )}
           {quoteProblem && (
-            <span className="vgai-account-provider-warning" role="alert">
+            <span className="volter-account-provider-warning" role="alert">
               {quoteProblem}
             </span>
           )}
@@ -438,17 +438,17 @@ function PlanChips({
   const redundant =
     plan.status === 'active' || status.toLowerCase() === plan.name.trim().toLowerCase();
   return (
-    <span className="vgai-account-plan-chips">
-      <span className="vgai-chip" data-tone="accent">
+    <span className="volter-account-plan-chips">
+      <span className="volter-chip" data-tone="accent">
         {plan.name} plan
       </span>
       {!redundant && (
-        <span className="vgai-chip" data-tone={plan.status === 'cancelling' ? 'warn' : undefined}>
+        <span className="volter-chip" data-tone={plan.status === 'cancelling' ? 'warn' : undefined}>
           {status}
         </span>
       )}
       {(plan.renewsAt || plan.endsAt) && (
-        <span className="vgai-chip">
+        <span className="volter-chip">
           {plan.endsAt ? 'Access ends' : 'Renews'}{' '}
           {new Date(plan.endsAt ?? plan.renewsAt!).toLocaleDateString()}
         </span>
@@ -570,26 +570,26 @@ export function AccountDocument() {
 
   if (!account.authenticated) {
     return (
-      <div className="vgai-account" data-testid="account-document">
-        <div className="vgai-account-signin-stack">
+      <div className="volter-account" data-testid="account-document">
+        <div className="volter-account-signin-stack">
           {/* §4-R cinematic sign-in: the key-lit mark floats on the CANVAS above
            * the card (hub empty-state anatomy) — the card carries only the form. */}
-          <div className="vgai-account-signin-hero">
-            <span className="vgai-account-signin-mark" aria-hidden="true">
-              <VgaiLogo size={52} />
+          <div className="volter-account-signin-hero">
+            <span className="volter-account-signin-mark" aria-hidden="true">
+              <VolterLogo size={52} />
             </span>
-            <h1 className="vgai-account-signin-title">Sign in to Volter Editor</h1>
+            <h1 className="volter-account-signin-title">Sign in to Volter Editor</h1>
           </div>
           {account.accountEnvironment === 'development-twin' ? (
             <form
-              className="vgai-account-card vgai-account-signin-card"
+              className="volter-account-card volter-account-signin-card"
               onSubmit={(event) => {
                 event.preventDefault();
                 void run(() => signInTwinAccount(email), 'Signed in through the local Clerk Twin.');
               }}
             >
-              <label className="vgai-field">
-                <span className="vgai-field-label">Development email</span>
+              <label className="volter-field">
+                <span className="volter-field-label">Development email</span>
                 <TextInput
                   value={email}
                   type="email"
@@ -605,7 +605,7 @@ export function AccountDocument() {
               </InfoStrip>
             </form>
           ) : account.backend === 'live' ? (
-            <section className="vgai-account-card vgai-account-signin-card">
+            <section className="volter-account-card volter-account-signin-card">
               <Button
                 variant="primary"
                 disabled={busy || authorization !== null || browserAuthorization !== null}
@@ -635,7 +635,7 @@ export function AccountDocument() {
                 </Button>
               )}
               {authorization && (
-                <div className="vgai-account-device-code">
+                <div className="volter-account-device-code">
                   <strong>{authorization.userCode}</strong>
                   <span>
                     Complete authorization in the browser. This editor polls without receiving your
@@ -649,7 +649,7 @@ export function AccountDocument() {
             </section>
           ) : (
             <form
-              className="vgai-account-card vgai-account-signin-card"
+              className="volter-account-card volter-account-signin-card"
               onSubmit={(event) => {
                 event.preventDefault();
                 void run(
@@ -658,8 +658,8 @@ export function AccountDocument() {
                 );
               }}
             >
-              <label className="vgai-field">
-                <span className="vgai-field-label">Email</span>
+              <label className="volter-field">
+                <span className="volter-field-label">Email</span>
                 <TextInput
                   value={email}
                   type="email"
@@ -672,7 +672,7 @@ export function AccountDocument() {
               <InfoStrip>Local mock — no payment, network identity, or provider request.</InfoStrip>
             </form>
           )}
-          <ul className="vgai-account-signin-points">
+          <ul className="volter-account-signin-points">
             <li>Every paid generation shows its route and estimate first</li>
             <li>Spend controls and hard limits are on by default</li>
             <li>Provider keys stay in your system credential manager</li>
@@ -680,7 +680,7 @@ export function AccountDocument() {
           <CodingInferenceCard busy={busy} run={run} />
           <ProviderConnections busy={busy} run={run} />
           {(notice || accountError()) && (
-            <div className="vgai-account-status" role="status">
+            <div className="volter-account-status" role="status">
               {notice ?? accountError()}
             </div>
           )}
@@ -702,19 +702,19 @@ export function AccountDocument() {
     updateAccountSpendPolicy({ ...account.spendPolicy, ...patch });
 
   return (
-    <div className="vgai-account" data-testid="account-document">
-      <h1 className="vgai-sr-only">Account</h1>
-      <div className="vgai-account-stack">
-        <header className="vgai-account-identity">
-          <span className="vgai-account-avatar" aria-hidden="true">
+    <div className="volter-account" data-testid="account-document">
+      <h1 className="volter-sr-only">Account</h1>
+      <div className="volter-account-stack">
+        <header className="volter-account-identity">
+          <span className="volter-account-avatar" aria-hidden="true">
             {account.user.email.slice(0, 1)}
           </span>
-          <div className="vgai-account-identity-main">
-            <div className="vgai-account-identity-row">
-              <h2 className="vgai-account-identity-email">{account.user.email}</h2>
+          <div className="volter-account-identity-main">
+            <div className="volter-account-identity-row">
+              <h2 className="volter-account-identity-email">{account.user.email}</h2>
               <PlanChips plan={account.plan} />
             </div>
-            <p className="vgai-account-identity-note">
+            <p className="volter-account-identity-note">
               {account.accountEnvironment === 'development-twin'
                 ? 'Clerk + Polar Twin development account'
                 : account.backend === 'mock'
@@ -724,7 +724,7 @@ export function AccountDocument() {
           </div>
           <Button
             variant="ghost"
-            className="vgai-account-signout"
+            className="volter-account-signout"
             disabled={busy}
             onClick={() => void run(signOutAccount)}
           >
@@ -732,9 +732,9 @@ export function AccountDocument() {
           </Button>
         </header>
 
-        <section className="vgai-account-card">
-          <div className="vgai-account-card-head">
-            <h3 className="vgai-account-card-title">Credits</h3>
+        <section className="volter-account-card">
+          <div className="volter-account-card-head">
+            <h3 className="volter-account-card-title">Credits</h3>
             {account.plan.id !== 'free' && account.plan.status === 'cancelling' && (
               <Button
                 size="compact"
@@ -752,9 +752,9 @@ export function AccountDocument() {
             </InfoStrip>
           )}
           {catalog && (
-            <div className="vgai-account-card-footer">
-              <label className="vgai-field">
-                <span className="vgai-field-label">Subscription tier</span>
+            <div className="volter-account-card-footer">
+              <label className="volter-field">
+                <span className="volter-field-label">Subscription tier</span>
                 <Select
                   value={selectedPlan}
                   disabled={busy || !managedAccess}
@@ -801,14 +801,14 @@ export function AccountDocument() {
               </Button>
             </div>
           )}
-          <div className="vgai-account-credit-figure">
-            <span className="vgai-account-credit-number">
+          <div className="volter-account-credit-figure">
+            <span className="volter-account-credit-number">
               {account.credits.remaining.toLocaleString()}
             </span>
-            <span className="vgai-account-credit-unit">credits remaining</span>
+            <span className="volter-account-credit-unit">credits remaining</span>
           </div>
           <div
-            className="vgai-meter"
+            className="volter-meter"
             role="progressbar"
             aria-label="Credits used"
             aria-valuenow={Math.round(usedPercent)}
@@ -816,48 +816,48 @@ export function AccountDocument() {
             aria-valuemax={100}
             data-state={overQuota ? 'over' : undefined}
           >
-            <span className="vgai-meter-fill" style={{ width: `${usedPercent}%` }} />
+            <span className="volter-meter-fill" style={{ width: `${usedPercent}%` }} />
             {reservedPercent > 0 && (
               <span
-                className="vgai-meter-fill"
+                className="volter-meter-fill"
                 data-part="reserved"
                 style={{ left: `${usedPercent}%`, width: `${reservedPercent}%` }}
               />
             )}
           </div>
-          <p className="vgai-account-cycle-line">
+          <p className="volter-account-cycle-line">
             {account.credits.used.toLocaleString()} of {totalCredits.toLocaleString()} used this
             cycle
             {account.credits.resetsAt && (
               <> · resets {new Date(account.credits.resetsAt).toLocaleDateString()}</>
             )}
-            {overQuota && <span className="vgai-account-cycle-over"> · over allowance</span>}
+            {overQuota && <span className="volter-account-cycle-over"> · over allowance</span>}
           </p>
-          <div className="vgai-account-legend" data-state={overQuota ? 'over' : undefined}>
-            <span className="vgai-account-legend-item" data-part="included">
-              <span className="vgai-account-legend-dot" aria-hidden="true" />
+          <div className="volter-account-legend" data-state={overQuota ? 'over' : undefined}>
+            <span className="volter-account-legend-item" data-part="included">
+              <span className="volter-account-legend-dot" aria-hidden="true" />
               {account.credits.included.toLocaleString()} included
             </span>
-            <span className="vgai-account-legend-item" data-part="used">
-              <span className="vgai-account-legend-dot" aria-hidden="true" />
+            <span className="volter-account-legend-item" data-part="used">
+              <span className="volter-account-legend-dot" aria-hidden="true" />
               {account.credits.used.toLocaleString()} used
             </span>
-            <span className="vgai-account-legend-item" data-part="reserved">
-              <span className="vgai-account-legend-dot" aria-hidden="true" />
+            <span className="volter-account-legend-item" data-part="reserved">
+              <span className="volter-account-legend-dot" aria-hidden="true" />
               {account.credits.reserved.toLocaleString()} reserved
             </span>
-            <span className="vgai-account-legend-item" data-part="purchased">
-              <span className="vgai-account-legend-dot" aria-hidden="true" />
+            <span className="volter-account-legend-item" data-part="purchased">
+              <span className="volter-account-legend-dot" aria-hidden="true" />
               {account.credits.purchased.toLocaleString()} purchased
             </span>
           </div>
           {account.credits.purchasedExpiresAt && (
-            <p className="vgai-account-help vgai-account-expiry">
+            <p className="volter-account-help volter-account-expiry">
               Purchased credits expire{' '}
               {new Date(account.credits.purchasedExpiresAt).toLocaleDateString()}.
             </p>
           )}
-          <div className="vgai-account-card-footer">
+          <div className="volter-account-card-footer">
             {catalog && selectedPack && catalog.creditPacks[selectedPack] && (
               <>
                 <Select
@@ -910,7 +910,7 @@ export function AccountDocument() {
               <Button
                 size="compact"
                 variant="ghost"
-                className="vgai-account-quiet-danger"
+                className="volter-account-quiet-danger"
                 disabled={busy}
                 onClick={() => void run(() => updateAccountPlan('cancel'))}
               >
@@ -920,14 +920,14 @@ export function AccountDocument() {
           </div>
         </section>
 
-        <section className="vgai-account-card">
-          <h3 className="vgai-account-card-title">Generation routing</h3>
-          <p className="vgai-account-card-sub">
+        <section className="volter-account-card">
+          <h3 className="volter-account-card-title">Generation routing</h3>
+          <p className="volter-account-card-sub">
             Billing preference for AI usage. Provider libraries apply it automatically; requests
             show the resolved account and cost before submission.
           </p>
-          <label className="vgai-field">
-            <span className="vgai-field-label">Preferred route</span>
+          <label className="volter-field">
+            <span className="volter-field-label">Preferred route</span>
             <Select
               value={account.preferredRoute}
               onChange={(event) =>
@@ -956,9 +956,9 @@ export function AccountDocument() {
         <ProviderConnections busy={busy} run={run} />
 
         {(account.alerts?.length ?? 0) > 0 && (
-          <section className="vgai-account-card">
-            <div className="vgai-account-card-head">
-              <h3 className="vgai-account-card-title">Account alerts</h3>
+          <section className="volter-account-card">
+            <div className="volter-account-card-head">
+              <h3 className="volter-account-card-title">Account alerts</h3>
               {account.alerts?.some((alert) => !alert.readAt) && (
                 <Button
                   size="compact"
@@ -970,9 +970,9 @@ export function AccountDocument() {
                 </Button>
               )}
             </div>
-            <div className="vgai-account-usage">
+            <div className="volter-account-usage">
               {account.alerts?.map((alert) => (
-                <div className="vgai-account-usage-row" key={alert.id}>
+                <div className="volter-account-usage-row" key={alert.id}>
                   <span>
                     <strong>{alert.readAt ? 'Notice' : 'New'}</strong>
                     <small>{alert.message}</small>
@@ -984,12 +984,12 @@ export function AccountDocument() {
           </section>
         )}
 
-        <section className="vgai-account-card">
-          <h3 className="vgai-account-card-title">Spend controls</h3>
-          <p className="vgai-account-card-sub">
+        <section className="volter-account-card">
+          <h3 className="volter-account-card-title">Spend controls</h3>
+          <p className="volter-account-card-sub">
             Alerts at {account.spendPolicy.alertThresholds.join('%, ')}% of the available allowance.
           </p>
-          <label className="vgai-account-switch-row">
+          <label className="volter-account-switch-row">
             <Checkbox
               checked={account.spendPolicy.overageEnabled}
               onChange={(event) =>
@@ -1004,15 +1004,15 @@ export function AccountDocument() {
                 )
               }
             />
-            <span className="vgai-account-switch-copy">
+            <span className="volter-account-switch-copy">
               <strong>Allow paid overage</strong>
               <small>Off by default. Managed requests stop before provider submission.</small>
             </span>
           </label>
-          <div className="vgai-account-limit-field">
-            <label className="vgai-field">
-              <span className="vgai-field-label">Monthly overage hard limit</span>
-              <span className="vgai-account-input-suffix">
+          <div className="volter-account-limit-field">
+            <label className="volter-field">
+              <span className="volter-field-label">Monthly overage hard limit</span>
+              <span className="volter-account-input-suffix">
                 <TextInput
                   key={account.spendPolicy.monthlyLimitCredits}
                   type="number"
@@ -1025,13 +1025,13 @@ export function AccountDocument() {
                     )
                   }
                 />
-                <span className="vgai-account-suffix" aria-hidden="true">
+                <span className="volter-account-suffix" aria-hidden="true">
                   credits
                 </span>
               </span>
             </label>
           </div>
-          <label className="vgai-account-switch-row">
+          <label className="volter-account-switch-row">
             <Checkbox
               checked={account.spendPolicy.autoReload?.enabled === true}
               onChange={(event) =>
@@ -1048,16 +1048,16 @@ export function AccountDocument() {
                 )
               }
             />
-            <span className="vgai-account-switch-copy">
+            <span className="volter-account-switch-copy">
               <strong>Automatically reload credits</strong>
               <small>Optional, independently capped, and never enabled by checkout.</small>
             </span>
           </label>
           {account.spendPolicy.autoReload?.enabled && (
-            <div className="vgai-account-policy-fields">
-              <label className="vgai-field">
-                <span className="vgai-field-label">Reload below</span>
-                <span className="vgai-account-input-suffix">
+            <div className="volter-account-policy-fields">
+              <label className="volter-field">
+                <span className="volter-field-label">Reload below</span>
+                <span className="volter-account-input-suffix">
                   <TextInput
                     key={account.spendPolicy.autoReload.whenRemainingBelow}
                     type="number"
@@ -1074,14 +1074,14 @@ export function AccountDocument() {
                       )
                     }
                   />
-                  <span className="vgai-account-suffix" aria-hidden="true">
+                  <span className="volter-account-suffix" aria-hidden="true">
                     credits
                   </span>
                 </span>
               </label>
-              <label className="vgai-field">
-                <span className="vgai-field-label">Reload balance to</span>
-                <span className="vgai-account-input-suffix">
+              <label className="volter-field">
+                <span className="volter-field-label">Reload balance to</span>
+                <span className="volter-account-input-suffix">
                   <TextInput
                     key={account.spendPolicy.autoReload.reloadTo}
                     type="number"
@@ -1098,14 +1098,14 @@ export function AccountDocument() {
                       )
                     }
                   />
-                  <span className="vgai-account-suffix" aria-hidden="true">
+                  <span className="volter-account-suffix" aria-hidden="true">
                     credits
                   </span>
                 </span>
               </label>
-              <label className="vgai-field">
-                <span className="vgai-field-label">Monthly reload cap</span>
-                <span className="vgai-account-input-suffix">
+              <label className="volter-field">
+                <span className="volter-field-label">Monthly reload cap</span>
+                <span className="volter-account-input-suffix">
                   <TextInput
                     key={account.spendPolicy.autoReload.monthlyLimitCredits}
                     type="number"
@@ -1122,7 +1122,7 @@ export function AccountDocument() {
                       )
                     }
                   />
-                  <span className="vgai-account-suffix" aria-hidden="true">
+                  <span className="volter-account-suffix" aria-hidden="true">
                     credits
                   </span>
                 </span>
@@ -1131,16 +1131,16 @@ export function AccountDocument() {
           )}
         </section>
 
-        <section className="vgai-account-card">
-          <h3 className="vgai-account-card-title">Current-cycle usage</h3>
+        <section className="volter-account-card">
+          <h3 className="volter-account-card-title">Current-cycle usage</h3>
           {usage.length === 0 ? (
-            <p className="vgai-account-help">
+            <p className="volter-account-help">
               No managed credit usage has been settled in this account.
             </p>
           ) : (
-            <div className="vgai-account-usage">
+            <div className="volter-account-usage">
               {usage.map((entry) => (
-                <div className="vgai-account-usage-row" key={entry.id}>
+                <div className="volter-account-usage-row" key={entry.id}>
                   <span>
                     {entry.kind} · {entry.provider} · {entry.operation ?? 'managed operation'}
                   </span>
@@ -1152,7 +1152,7 @@ export function AccountDocument() {
         </section>
 
         {(notice || accountError()) && (
-          <div className="vgai-account-status" role="status">
+          <div className="volter-account-status" role="status">
             {notice ?? accountError()}
           </div>
         )}

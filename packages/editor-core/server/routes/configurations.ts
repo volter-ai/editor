@@ -4,7 +4,7 @@
  * declares an entrypoint by registered kind; this is the host that starts
  * and stops the `process` kind beside the editor and reports it, and
  * expands a `compound` into its members (`play` is the browser's own mount,
- * never started here). The editor's transport, `vgai run <id>` and a
+ * never started here). The editor's transport, `volter run <id>` and a
  * harness all come through this one door, so a process started by any of
  * them is the same process, listed the same way, and dies with the session.
  *

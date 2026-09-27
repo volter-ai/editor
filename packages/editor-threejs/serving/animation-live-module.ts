@@ -9,7 +9,7 @@
  * the editor's bundle reads it (`src/animation/live-mixers.ts`).
  */
 
-export const ANIMATION_LIVE_MODULE_ID = 'virtual:vgai-three-animation-live';
+export const ANIMATION_LIVE_MODULE_ID = 'virtual:volter-three-animation-live';
 
 export const animationLiveModuleSource = `
 const live = (globalThis[Symbol.for('volter.three.animation.live')] ??= {
@@ -23,10 +23,10 @@ function notify() {
     try { listener(); } catch (error) { console.error(error); }
   }
 }
-export function __vgaiMixer(mixer, key) {
+export function __volterMixer(mixer, key) {
   if (!mixer || typeof mixer.clipAction !== 'function') return mixer;
-  if (mixer.__vgaiMixerKey) return mixer;
-  Object.defineProperty(mixer, '__vgaiMixerKey', { value: key });
+  if (mixer.__volterMixerKey) return mixer;
+  Object.defineProperty(mixer, '__volterMixerKey', { value: key });
   const entry = { key, mixer, clips: new Map(), roots: new Set() };
   live.mixers.set(mixer, entry);
   const clipAction = mixer.clipAction;
@@ -54,9 +54,9 @@ export function __vgaiMixer(mixer, key) {
   return mixer;
 }
 /** drei's \`useAnimations\` result: its mixer, and the clips it was handed. */
-export function __vgaiAnimations(result, key) {
+export function __volterAnimations(result, key) {
   if (!result || !result.mixer) return result;
-  __vgaiMixer(result.mixer, key);
+  __volterMixer(result.mixer, key);
   const entry = live.mixers.get(result.mixer);
   if (entry && Array.isArray(result.clips)) {
     let changed = false;

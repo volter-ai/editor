@@ -36,9 +36,9 @@ function resumeSuspended(): void {
 
 /** Install once at editor boot (`audio.service.ts`). Idempotent. */
 export function installGameAudio(): void {
-  const host = window as unknown as { __vgaiAudioUnlock?: boolean } & typeof window;
-  if (host.__vgaiAudioUnlock) return;
-  host.__vgaiAudioUnlock = true;
+  const host = window as unknown as { __volterAudioUnlock?: boolean } & typeof window;
+  if (host.__volterAudioUnlock) return;
+  host.__volterAudioUnlock = true;
   const Orig = window.AudioContext;
   if (typeof Orig !== 'function') return;
   window.AudioContext = class extends Orig {

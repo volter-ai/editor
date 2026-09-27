@@ -49,7 +49,7 @@ function billingLabel(billing: GenerationBilling): string {
   if (billing.route === 'managed') {
     if (billing.settledCredits !== undefined) return `${billing.settledCredits} credits settled`;
     if (billing.estimatedCredits !== undefined) return `Up to ${billing.estimatedCredits} credits`;
-    return 'VGAI subscription · estimate unavailable';
+    return 'VOLTER subscription · estimate unavailable';
   }
   if (billing.settledAmount !== undefined) return `$${billing.settledAmount.toFixed(3)} settled`;
   if (billing.estimatedAmount !== undefined) return `Up to $${billing.estimatedAmount.toFixed(3)}`;
@@ -109,11 +109,11 @@ export function GenerationCreateDocumentContent() {
     providers.set(provider, [...(providers.get(provider) ?? []), item]);
   }
   return (
-    <div className="vgai-tool-page" data-testid="generation-create-catalog">
-      <header className="vgai-tool-header">
-        <div className="vgai-tool-eyebrow">Installed provider extensions</div>
-        <h2 className="vgai-tool-title">Create an asset</h2>
-        <p className="vgai-tool-description">
+    <div className="volter-tool-page" data-testid="generation-create-catalog">
+      <header className="volter-tool-header">
+        <div className="volter-tool-eyebrow">Installed provider extensions</div>
+        <h2 className="volter-tool-title">Create an asset</h2>
+        <p className="volter-tool-description">
           Choose a native provider operation. Mock, managed, and BYOK execution remain explicit in
           the operation you open. Current default: {account.preferredRoute}.
         </p>
@@ -126,13 +126,13 @@ export function GenerationCreateDocumentContent() {
         onChange={(event) => setQuery(event.target.value)}
       />
       {[...providers.entries()].map(([provider, contributions]) => (
-        <section className="vgai-tool-card" key={provider}>
-          <h3 className="vgai-tool-section-title">{provider}</h3>
-          <div className="vgai-generation-create-grid">
+        <section className="volter-tool-card" key={provider}>
+          <h3 className="volter-tool-section-title">{provider}</h3>
+          <div className="volter-generation-create-grid">
             {contributions.map((contribution) => (
               <Button
                 variant="ghost"
-                className="vgai-generation-create-card"
+                className="volter-generation-create-card"
                 key={contribution.id}
                 onClick={() => openToolDocument(contribution.id)}
               >
@@ -144,7 +144,7 @@ export function GenerationCreateDocumentContent() {
         </section>
       ))}
       {tools.length === 0 && (
-        <div className="vgai-generation-document-empty">
+        <div className="volter-generation-document-empty">
           No installed generation operation matches this search.
         </div>
       )}
@@ -173,7 +173,7 @@ function ProviderResult({
   );
   const contribution = getGenerationResultContribution(job.poll.tool, job, result);
   if (!contribution) {
-    return <pre className="vgai-generation-native-result">{JSON.stringify(result, null, 2)}</pre>;
+    return <pre className="volter-generation-native-result">{JSON.stringify(result, null, 2)}</pre>;
   }
   const Component = contribution.Component;
   return (
@@ -228,7 +228,7 @@ export function GenerationDocumentContent({ documentId, active }: WorkspaceDocum
 
   if (!job) {
     return (
-      <div className="vgai-generation-document-empty">
+      <div className="volter-generation-document-empty">
         This generation is no longer in project activity.
       </div>
     );
@@ -244,18 +244,18 @@ export function GenerationDocumentContent({ documentId, active }: WorkspaceDocum
       : null);
 
   return (
-    <div className="vgai-generation-document" data-status={job.status}>
-      <header className="vgai-generation-document-header">
+    <div className="volter-generation-document" data-status={job.status}>
+      <header className="volter-generation-document-header">
         <div>
-          <div className="vgai-tool-eyebrow">
+          <div className="volter-tool-eyebrow">
             {job.provider} · {job.operation}
           </div>
-          <h2 className="vgai-tool-title">{job.label}</h2>
-          <div className="vgai-generation-job-meta">
+          <h2 className="volter-tool-title">{job.label}</h2>
+          <div className="volter-generation-job-meta">
             {GENERATION_STATE_LABEL[generationCardState(job)]} · {billingLabel(job.billing)}
           </div>
         </div>
-        <div className="vgai-tool-actions">
+        <div className="volter-tool-actions">
           <Button
             size="compact"
             variant="ghost"
@@ -289,16 +289,16 @@ export function GenerationDocumentContent({ documentId, active }: WorkspaceDocum
         </div>
       </header>
 
-      {job.message && <div className="vgai-tool-status">{job.message}</div>}
+      {job.message && <div className="volter-tool-status">{job.message}</div>}
       {alert && (
-        <div className="vgai-tool-status" data-tone="error" role="alert">
+        <div className="volter-tool-status" data-tone="error" role="alert">
           {alert}
         </div>
       )}
 
-      <section className="vgai-generation-result" aria-label="Generation result">
+      <section className="volter-generation-result" aria-label="Generation result">
         {result === undefined ? (
-          <div className="vgai-generation-document-empty">
+          <div className="volter-generation-document-empty">
             {loading ? 'Loading provider result…' : 'No provider result is available yet.'}
           </div>
         ) : (
@@ -307,7 +307,7 @@ export function GenerationDocumentContent({ documentId, active }: WorkspaceDocum
       </section>
 
       {job.outputPaths && job.outputPaths.length > 0 && (
-        <section className="vgai-generation-output-paths">
+        <section className="volter-generation-output-paths">
           <strong>Project assets</strong>
           {job.outputPaths.map((path) => (
             <code key={path}>{path}</code>
@@ -316,7 +316,7 @@ export function GenerationDocumentContent({ documentId, active }: WorkspaceDocum
       )}
 
       {generationRemovable(job) && (
-        <div className="vgai-generation-document-footer">
+        <div className="volter-generation-document-footer">
           <Button
             size="compact"
             variant="ghost"

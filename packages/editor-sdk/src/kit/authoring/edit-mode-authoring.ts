@@ -1,5 +1,5 @@
 /**
- * Edit-mode authoring — project open loads `vgai.project.json` and
+ * Edit-mode authoring — project open loads `volter.project.json` and
  * installs a {@link CompositeAuthoringAdapter} over EVERY declared world, so a
  * project's composition is disclosed in edit mode. Unlike play mode,
  * roots are NOT running here: a world whose SURFACE has a registered live
@@ -60,7 +60,7 @@ import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
  * completion path rather than timing choreography.
  */
 /**
- * The `surface` of the ONE placeholder root installed when `vgai.project.json`
+ * The `surface` of the ONE placeholder root installed when `volter.project.json`
  * cannot be parsed. `world-documents.tsx` reads it to keep the Scene document
  * (and with it the edit-mode rebuild OWNER) mounted through that state, so a
  * manifest that becomes valid again can remount without a reload.
@@ -194,7 +194,7 @@ function displayAdapter(adapter: unknown): string | undefined {
 }
 
 /**
- * LENIENT parse (defect 2): read a raw `vgai.project.json` object's `roots[]`
+ * LENIENT parse (defect 2): read a raw `volter.project.json` object's `roots[]`
  * defensively into `EditModeRootSpec[]`, so a single bad world (unknown
  * `surface`, missing `scene`+`entry`) becomes an error node (#18) while its VALID
  * siblings still open — never the strict-Zod all-or-nothing of
@@ -262,7 +262,7 @@ export function resolveRootFailureReason(world: EditModeRootSpec): string | null
 // A4 (D8) — ManifestAuthoring: read-modify-write root composition properties
 // ---------------------------------------------------------------------------
 
-/** A raw `vgai.project.json` world entry, read/written defensively — same
+/** A raw `volter.project.json` world entry, read/written defensively — same
  *  looseness as {@link EditModeRootSpec}, but this is the RAW (unknown)
  *  object, never Zod-parsed, so unrelated fields survive a round trip. */
 type RawAdapterRoot = Record<string, unknown>;
@@ -284,7 +284,7 @@ function ensureRawRoot(raw: Record<string, unknown>, worldId: string): RawAdapte
 
 /**
  * ManifestAuthoring (A4, D8) — authored roots' manifest-backed
- * {@link RootManifestProvider}: holds the RAW parsed `vgai.project.json`
+ * {@link RootManifestProvider}: holds the RAW parsed `volter.project.json`
  * object (read-modify-write — NEVER round-tripped through the strict Zod
  * schema, so fields this module doesn't know about survive untouched) and
  * writes it back via `POST /__editor/manifest` (the one manifest-write verb,
@@ -292,12 +292,12 @@ function ensureRawRoot(raw: Record<string, unknown>, worldId: string): RawAdapte
  *
  * Two write modes:
  *  - a REAL manifest (`synthesized: false`) writes through on every edit —
- *    the acceptance's "round-trips vgai.project.json on disk" needs no separate
+ *    the acceptance's "round-trips volter.project.json on disk" needs no separate
  *    save step.
- *  - a SYNTHESIZED manifest (`synthesized: true`, no `vgai.project.json` on disk
+ *  - a SYNTHESIZED manifest (`synthesized: true`, no `volter.project.json` on disk
  *    yet) BUFFERS edits in memory only; nothing is written until the
  *    explicit `materialize()` call (the generic inspector's "Create
- *    vgai.project.json" action). D19 makes this branch reachable for a
+ *    volter.project.json" action). D19 makes this branch reachable for a
  *    manifest-less conventional project because its inferred root is always
  *    present.
  *
@@ -323,7 +323,7 @@ export class ManifestAuthoring implements RootManifestProvider {
       : null;
     this.unsubscribeHistory = this.fileHistory
       ? this.fileHistory.subscribeAll((path) => {
-          if (path !== 'vgai.project.json') return;
+          if (path !== 'volter.project.json') return;
           void getManifestHistoryBackend()
             .readBytes(path)
             .then((bytes) => JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>)
@@ -385,7 +385,7 @@ export class ManifestAuthoring implements RootManifestProvider {
     this.persist('Change World Pausing');
   }
 
-  /** The "Create vgai.project.json" action (generic inspector, while
+  /** The "Create volter.project.json" action (generic inspector, while
    *  `synthesized`) — materializes the buffered edits to disk. Also safe to
    *  call on a non-synthesized instance (equivalent to an explicit re-save). */
   async materialize(): Promise<boolean> {
@@ -407,7 +407,7 @@ export class ManifestAuthoring implements RootManifestProvider {
     const content = JSON.stringify(this.raw, null, 2);
     try {
       if (this.fileHistory) {
-        await this.fileHistory.write('vgai.project.json', content, {
+        await this.fileHistory.write('volter.project.json', content, {
           label,
           kind: 'manifest',
           contentType: 'application/json',
@@ -415,7 +415,7 @@ export class ManifestAuthoring implements RootManifestProvider {
         this.store.notifyIngestEdit();
         return true;
       }
-      // `vgai.project.json` is PROJECT-ROOT-relative, which is why it is
+      // `volter.project.json` is PROJECT-ROOT-relative, which is why it is
       // written through the session's own manifest route rather than the
       // asset storage backend (that one is rooted at `public/`).
       const write = async () => {
@@ -423,17 +423,17 @@ export class ManifestAuthoring implements RootManifestProvider {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            path: 'vgai.project.json',
+            path: 'volter.project.json',
             content,
             ...sourceMutationAttribution(),
           }),
         });
         // `!res.ok` alone read a page fallback as a written manifest.
-        assertEditorServerAnswered(res, 'Write vgai.project.json failed');
+        assertEditorServerAnswered(res, 'Write volter.project.json failed');
         if (!res.ok) {
           await handleProjectMutationFailure(res, {
-            label: 'Write vgai.project.json',
-            attempted: { 'vgai.project.json': content },
+            label: 'Write volter.project.json',
+            attempted: { 'volter.project.json': content },
             reapply: write,
           });
         }
@@ -446,7 +446,7 @@ export class ManifestAuthoring implements RootManifestProvider {
     } catch (err) {
       if (this.fileHistory) {
         void getManifestHistoryBackend()
-          .readBytes('vgai.project.json')
+          .readBytes('volter.project.json')
           .then((bytes) => JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>)
           .then((next) => {
             for (const key of Object.keys(this.raw)) delete this.raw[key];
@@ -455,7 +455,7 @@ export class ManifestAuthoring implements RootManifestProvider {
           })
           .catch(() => {});
       }
-      editorConsole.error(`Failed to write vgai.project.json: ${err}`, 'project');
+      editorConsole.error(`Failed to write volter.project.json: ${err}`, 'project');
       return false;
     }
   }
@@ -473,7 +473,7 @@ let _manifestAuthoring: ManifestAuthoring | null = null;
  * accepts no focus parameter and never arbitrates between competing Three
  * documents.
  *
- * `rawManifestInfo` (A4, D8, optional) — the RAW parsed `vgai.project.json` +
+ * `rawManifestInfo` (A4, D8, optional) — the RAW parsed `volter.project.json` +
  * whether it was synthesized (never written to disk); when given and the
  * composite has a world, a `ManifestAuthoring` is built over it
  * and passed to `CompositeAuthoringAdapter` as its root-property manifest
@@ -565,7 +565,7 @@ export function installEditModeAuthoring(
     const placeholder = makeNoAuthoringAdapter(
       store,
       'No world yet',
-      'Declare a root in vgai.project.json',
+      'Declare a root in volter.project.json',
     );
     setEmptyProjectAuthoring(placeholder);
     setActiveAuthoring(placeholder);
@@ -593,7 +593,7 @@ export function exitEditModeAuthoring(installed?: CompositeAuthoringAdapter): vo
 }
 
 /**
- * Project-open wiring: fetch the RAW `vgai.project.json` and install the edit-mode
+ * Project-open wiring: fetch the RAW `volter.project.json` and install the edit-mode
  * composite via the LENIENT parse (defect 2) — a manifest with one bad world
  * still opens its valid roots, surfacing the bad one as an error node (#18).
  * ONLY a genuinely ABSENT manifest (the route 404s → `fetchRawGameManifest`
@@ -624,7 +624,7 @@ export async function installEditModeAuthoringForProject(
     }
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    editorConsole.error(`Failed to load vgai.project.json: ${detail}`, 'project');
+    editorConsole.error(`Failed to load volter.project.json: ${detail}`, 'project');
     manifest = {
       roots: [{ id: 'manifest', surface: INVALID_MANIFEST_SURFACE, adapter: detail }],
     };

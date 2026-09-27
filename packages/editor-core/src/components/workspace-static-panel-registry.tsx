@@ -34,13 +34,13 @@ const CONTENT_BY_KIND: Readonly<
   Record<WorkspaceStaticPanelKind, ComponentType<WorkspaceStaticPanelContentProps>>
 > = {
   // The CONVERSATIONS panel's place is the host's; its surface is not. The
-  // agent-harness conversation UI is `@vgai/agents`, filling the `panel:agent`
+  // agent-harness conversation UI is `@volter/agents`, filling the `panel:agent`
   // chrome slot (`chrome-slot-registry.ts`); a build without that package
   // shows an empty panel rather than an imported one.
   agent: () => <ChromeSlot slot="panel:agent" />,
   // The PROJECT WORK panel's place is the host's; its surface is not. A
   // `ztrack` board of the worktree's open work, with "work on this with an
-  // agent" beside it, is `@vgai/agents` — the same reasoning as the two rows
+  // agent" beside it, is `@volter/agents` — the same reasoning as the two rows
   // around it, and the same door. Its `services` prop came with it: nothing in
   // the product ever supplied one (only a design-system story did), so the
   // panel's own defaults are what ran.
@@ -48,7 +48,7 @@ const CONTENT_BY_KIND: Readonly<
   hierarchy: GameHierarchy,
   assets: ({ dependencies }) => <AssetBrowser services={dependencies?.assets} />,
   // The LIBRARY panel's place is the host's; its surface is not. Browsing an
-  // external provider's catalog is `@vgai/asset-library`, filling the
+  // external provider's catalog is `@volter/asset-library`, filling the
   // `panel:asset-library` chrome slot (`chrome-slot-registry.ts`) exactly as
   // the `agent` row above does; a build without that package — the
   // open-source core+Blender cut — shows an empty panel rather than an
@@ -70,10 +70,10 @@ const CONTENT_BY_KIND: Readonly<
  * key from the harness UI, then "Maximum update depth exceeded"): 53
  * recoveries, the main thread pegged, the WebSocket dropped with 1006, the
  * tab's heartbeat silent for 30 s, the tab declared departed, and every
- * `vgai screenshot` refused with "No tab has been present" until the agent
- * ran `vgai edit` again — in four of five sessions.
+ * `volter screenshot` refused with "No tab has been present" until the agent
+ * ran `volter edit` again — in four of five sessions.
  *
- * The boundary reports the throw ONCE to the editor console (so `vgai
+ * The boundary reports the throw ONCE to the editor console (so `volter
  * console` carries it and its component stack), renders a small notice in the
  * panel's own space, and remounts the panel ONLY when the user clicks Retry —
  * never automatically, because an automatic remount of a deterministic crash

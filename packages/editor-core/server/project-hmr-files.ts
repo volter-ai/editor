@@ -177,7 +177,7 @@ export function classifyProjectHotUpdate(
     }
     return 'outside';
   }
-  if (relative === 'vgai.project.json') return 'restart';
+  if (relative === 'volter.project.json') return 'restart';
   if (!relative.startsWith('src/')) return 'ignore';
   if (/\.data\.json$/.test(relative)) return 'stock-data';
   if (!/\.(ts|tsx|js|jsx)$/.test(relative)) return 'ignore';
@@ -206,7 +206,7 @@ export function classifyProjectHotUpdate(
       return isReactRefreshBoundary(source) ? 'r3f-refresh' : 'r3f-entry';
     // Stock Fast Refresh ONLY when the module provably is a Fast Refresh
     // boundary. Anything else the editor owns (swallow + stamp the module
-    // graph + `vgai:restart-required`), because letting Vite propagate a
+    // graph + `volter:restart-required`), because letting Vite propagate a
     // project module that is not a boundary full-reloads the editor page and
     // silently destroys the running game — see `isReactRefreshBoundary`.
     return isReactRefreshBoundary(source) ? 'react' : 'restart';

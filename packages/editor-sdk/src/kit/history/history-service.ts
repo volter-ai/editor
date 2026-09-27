@@ -121,12 +121,12 @@ function defaultId(): string {
  * THE REFUSING SENTENCE behind a failure, or `null` when the cause carries
  * none.
  *
- * Measured 2026-09-19 under the Code-OSS frame: `vgaiFiles.write` refused to
+ * Measured 2026-09-19 under the Code-OSS frame: `volterFiles.write` refused to
  * write over a Monaco model holding unsaved keystrokes — by name, naming the
  * file and what to do about it — and the only thing any door said was
  * *"Source write rolled back: Failed to apply “Set position”; prior state was
  * restored. (apply-failed)"*. The refusal was RIGHT THERE, as this error's
- * `cause`, and every reader of the failure — the console ledger, `vgai
+ * `cause`, and every reader of the failure — the console ledger, `volter
  * console`, the document's own message — restated the generic half and threw
  * the specific half away. A rollback line that cannot say WHY is a line that
  * sends its reader to look somewhere else.
@@ -455,7 +455,7 @@ export class HistoryService {
 
   /**
    * Every editor affordance that says "undo" — the Edit menu, the palette,
-   * `vgai eval` — goes through here, so under the frame they all reach the
+   * `volter eval` — goes through here, so under the frame they all reach the
    * ONE stack instead of walking a cursor nobody is driving. A frame that has
    * not installed its undo yet gets a named refusal rather than silence.
    */
@@ -1031,7 +1031,7 @@ export class HistoryService {
     // Code-OSS). Dropping an entry the frame still holds an element for would
     // make that element's undo refuse for a reason the person never caused, so
     // eviction is the host shape's alone. The PRESSURE is still reported — the
-    // limit warning below reaches the vgai console through
+    // limit warning below reaches the volter console through
     // `history-limit-notices.ts` — because a standing warning naming its
     // mechanism is the doctrine, and a silent unbounded stack is not.
     if (historyDelegateInstalled()) {

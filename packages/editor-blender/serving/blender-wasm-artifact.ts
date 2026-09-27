@@ -117,7 +117,7 @@ export const BLENDER_WASM_DIR_VARIABLE = 'VOLTER_BLENDER_WASM_DIR';
  * package (ARCHITECTURE-CORE §Licensing, "Blender's licence stops at the
  * wire"). This resolution is a PATH, not an import: the editor serves those
  * bytes and never imports the engine. `import.meta.url` is THIS FILE's esbuild bundle
- * (`<pkg>/dist-node/serving.mjs`, the `vgai.serving` module); from it, two
+ * (`<pkg>/dist-node/serving.mjs`, the `volter.serving` module); from it, two
  * directories up and across is the sibling package -- `packages/blender-engine/wasm`
  * in a checkout, `node_modules/@volter/blender-engine/wasm` installed. Existence is
  * checked once so a realm that lacks it gets a named absence, not a path.

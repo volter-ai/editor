@@ -15,8 +15,8 @@ import {
   type GameplayRecordingSink,
 } from '@volter/editor-sdk/kit/editor-api';
 
-const BLOCK_ATTRIBUTE = 'data-vgai-replay-block';
-const VIDEO_ATTRIBUTE = 'data-vgai-replay-video';
+const BLOCK_ATTRIBUTE = 'data-volter-replay-block';
+const VIDEO_ATTRIBUTE = 'data-volter-replay-video';
 const ASSET_PREFIX = 'https://replay-assets.invalid/';
 const EVENT_FLUSH_MS = 1_000;
 const EVENT_FLUSH_CHARS = 256 * 1024;
@@ -249,7 +249,7 @@ export function startGameplayDomRecording(
     typeof ResizeObserver === 'undefined'
       ? null
       : new ResizeObserver(() => {
-          record.addCustomEvent('vgai-canvas-layout', {
+          record.addCustomEvent('volter-canvas-layout', {
             rect: rectOf(videoCanvas),
             drawingWidth: videoCanvas.width,
             drawingHeight: videoCanvas.height,
@@ -257,7 +257,7 @@ export function startGameplayDomRecording(
           });
         });
   resizeObserver?.observe(videoCanvas);
-  record.addCustomEvent('vgai-canvas-layout', {
+  record.addCustomEvent('volter-canvas-layout', {
     rect: initialCanvas,
     drawingWidth: videoCanvas.width,
     drawingHeight: videoCanvas.height,
@@ -278,7 +278,7 @@ export function startGameplayDomRecording(
     async stop(videoFile) {
       if (stopped) throw new Error('gameplay DOM recording is already stopped');
       stopped = true;
-      record.addCustomEvent('vgai-recording-stop', {});
+      record.addCustomEvent('volter-recording-stop', {});
       stopRecorder();
       release();
       flush();

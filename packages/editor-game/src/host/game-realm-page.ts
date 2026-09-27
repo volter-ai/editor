@@ -70,7 +70,7 @@ function captureOf(options?: boolean | AddEventListenerOptions | EventListenerOp
 
 /** Mark carrying the text this observer last wrote, so its own write is not
  *  re-scoped and a game's next rewrite is. */
-export const SCOPED_STYLE_MARK = 'vgaiScopedCss';
+export const SCOPED_STYLE_MARK = 'volterScopedCss';
 
 /**
  * The `@scope` rewriter, loaded on FIRST USE — the one page-side door to the
@@ -128,7 +128,7 @@ export function loadGameCssScoper(): Promise<(css: string) => string> {
  * `url.fileURLToPath/pathToFileURL`,
  * `source-map-js.SourceMapConsumer/SourceMapGenerator` — straight into the
  * game realm's console, which made the console-silence contract unreachable in
- * a fresh scaffold and every `vgai` verb exit non-zero (measured three times:
+ * a fresh scaffold and every `volter` verb exit non-zero (measured three times:
  * the donut, cold-barrel and lit-lanes probes). The chain was
  * `play-mode.enterPlayModeInner` -> `gated-globals.setGameSurface` ->
  * `GameRealmPage.surface` -> `observeInjectedStyles` -> `import('../server/
@@ -356,7 +356,7 @@ export class GameRealmPage {
     if (!surface) return null;
     if (!this.headElement || this.headElement.parentElement !== surface) {
       const head = document.createElement('div');
-      head.dataset['vgaiGameHead'] = '';
+      head.dataset['volterGameHead'] = '';
       head.hidden = true;
       surface.prepend(head);
       this.headElement = head;

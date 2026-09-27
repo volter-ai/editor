@@ -22,9 +22,9 @@
  *     region's `surface` is a first-party statement about what the host hands
  *     that root;
  *   · a HOST-MOUNTED root's canvas is stamped with its root id by the mount
- *     that created it (`create-runtime.ts`, `data-vgai-root-id`);
+ *     that created it (`create-runtime.ts`, `data-volter-root-id`);
  *   · a SELF-BOOTING game's canvas is its own, so its contract declares it
- *     (`window.vgaiGame.presentation`), and the ingest mount records it here.
+ *     (`window.volterGame.presentation`), and the ingest mount records it here.
  *
  * The measured answers all remain, because a game that declares nothing must
  * keep working — but they are REPORTED as measured (`source`), so "nobody
@@ -58,7 +58,7 @@ export interface PresentationSurfaceReading {
 }
 
 /** The host stamp `create-runtime.ts` writes on every surface it mounts. */
-const ROOT_ID_ATTRIBUTE = 'data-vgai-root-id';
+const ROOT_ID_ATTRIBUTE = 'data-volter-root-id';
 
 /**
  * Presentation elements a SELF-BOOTING game owns, keyed by root id — the
@@ -84,7 +84,7 @@ const _selfBooting = new Map<
  * Record the element a self-booting game presents on.
  *
  * `source` is the honesty: `declared` when the game's own contract named it
- * (`window.vgaiGame.presentation`), `measured` when the host took the captured
+ * (`window.volterGame.presentation`), `measured` when the host took the captured
  * renderer's `domElement` — which is a real measurement off the render trap,
  * not a DOM-order guess, but still not a statement by the game.
  */
@@ -210,7 +210,7 @@ function declaredCanvas(
       : [];
   for (const region of contentRegions()) {
     if (region.surface === 'dom') continue;
-    const match = stamped.find((canvas) => canvas.dataset['vgaiRootId'] === region.id);
+    const match = stamped.find((canvas) => canvas.dataset['volterRootId'] === region.id);
     if (match) return { canvas: match, rootId: region.id };
   }
   return null;

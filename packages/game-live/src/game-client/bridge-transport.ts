@@ -2,7 +2,7 @@
  * The transport seam `GameClient` (`client.ts`) drives (#140). Two
  * implementations answer the identical contract below:
  *  - `PageTransport` (`client.ts`) — Playwright's `page.evaluate` against
- *    `window.__vgai`, for a standalone game page the caller drives itself.
+ *    `window.__volter`, for a standalone game page the caller drives itself.
  *  - `RelayTransport` (`relay-transport.ts`) — the editor dev-server's
  *    session wire (`POST /__editor/command`, `bridge-call`/
  *    `bridge-screenshot` ops), driving the SAME live session a human already

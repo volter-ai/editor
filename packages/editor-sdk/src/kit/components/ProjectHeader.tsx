@@ -75,7 +75,7 @@ export function ProjectHeader({
   }, [menuOpen]);
 
   return (
-    <header className="vgai-project-header">
+    <header className="volter-project-header">
       {/* W5 (W4-reviewer candidate — transport narrow-width overlap guard):
           the header is now THREE flex columns — name (shrinkable, ellipsized)
           | transport (fixed) | right spacer — replacing the W4 absolute
@@ -88,10 +88,10 @@ export function ProjectHeader({
           under islands chrome (P6-U3); the dropdown Menu stays a SIBLING of
           the island so the island's backdrop-filter never captures it. */}
       {activeProduct()?.nativeMenus ? (
-        <div className="vgai-project-header-left" />
+        <div className="volter-project-header-left" />
       ) : (
-        <div ref={menuRef} className="vgai-project-header-left">
-          <div className="vgai-project-header-cluster vgai-chrome-island vgai-glass-island">
+        <div ref={menuRef} className="volter-project-header-left">
+          <div className="volter-project-header-cluster volter-chrome-island volter-glass-island">
             {/* THE LEADING ITEM IS A BARE GLYPH, and that is transcription, not
               economy. Blender opens its top bar with an app mark whose INK
               starts at the band's own inset and whose click opens a MENU —
@@ -120,7 +120,7 @@ export function ProjectHeader({
                 event.preventDefault();
                 setMenuOpen(true);
               }}
-              className="vgai-project-trigger"
+              className="volter-project-trigger"
             >
               <EditorIcon icon={editorIcons.content.project} />
               {/* The name stays in the DOM at zero pixels: the accessible name
@@ -132,13 +132,13 @@ export function ProjectHeader({
                 data-project={projectName}
                 data-project-version={projectVersion ?? undefined}
                 variant="label"
-                className="vgai-sr-only"
+                className="volter-sr-only"
               >
                 {projectName}
               </Text>
             </MenuTrigger>
             <WorktreeSwitcher />
-            <Inline onPointerDown={() => setMenuOpen(false)} className="vgai-project-app-menus">
+            <Inline onPointerDown={() => setMenuOpen(false)} className="volter-project-app-menus">
               <ApplicationMenus />
             </Inline>
           </div>
@@ -154,7 +154,7 @@ export function ProjectHeader({
                 setMenuOpen(false);
                 requestAnimationFrame(() => trigger?.focus());
               }}
-              className="vgai-project-menu"
+              className="volter-project-menu"
             >
               {/* IDENTITY'S READABLE HOME. The trigger is a glyph, so the name
                 is the first thing this menu says — the row Blender's OS title
@@ -164,7 +164,7 @@ export function ProjectHeader({
                 title={projectName}
                 variant="label"
                 truncate
-                className="vgai-project-menu-name"
+                className="volter-project-menu-name"
               >
                 {projectName}
               </Text>
@@ -176,7 +176,7 @@ export function ProjectHeader({
                   tone="dim"
                   selectable
                   truncate
-                  className="vgai-project-path"
+                  className="volter-project-path"
                 >
                   {projectPath}
                 </Text>
@@ -184,7 +184,7 @@ export function ProjectHeader({
               {projectVersion && engineVersion && manifestVersion !== null && (
                 <>
                   {projectPath && <MenuSeparator />}
-                  <div data-testid="project-version-summary" className="vgai-project-versions">
+                  <div data-testid="project-version-summary" className="volter-project-versions">
                     <span>Editor</span>
                     <Text variant="code" tone="muted">
                       v{BUNDLED_EDITOR_VERSION}
@@ -237,17 +237,17 @@ export function ProjectHeader({
           Centered in the row, matching the §4.1 mock's `>  ||  >`. */}
       <Inline
         data-testid="header-transport"
-        className="vgai-project-transport vgai-chrome-island vgai-glass-island"
+        className="volter-project-transport volter-chrome-island volter-glass-island"
         align="center"
       >
         {transport ?? <ProjectTransport />}
       </Inline>
       {/* Conversation entry moved to the global bottom shell row. Keep this
           equal-width spacer so transport remains visually centered. */}
-      <Inline className="vgai-project-header-right" justify="end" align="center">
+      <Inline className="volter-project-header-right" justify="end" align="center">
         {/* WHO IS IN THIS SESSION. A chrome slot, not a component: the host
             owns the place and a package owns what sits there
-            (`chrome-slot-registry.ts`). `@vgai/collaboration` fills it; a
+            (`chrome-slot-registry.ts`). `@volter/collaboration` fills it; a
             build without that package renders nothing here, which is the
             honest answer for an editor nobody else is in. */}
         <ChromeSlot slot="header-trailing" />
@@ -282,12 +282,12 @@ function WorkspaceTabs() {
           past `Help`'s ink). Without it the two regions read as one
           undifferentiated run of words, which is what ours did. It belongs to
           the strip, so it appears and disappears with it. */}
-      <Divider orientation="vertical" className="vgai-project-menu-rule" />
+      <Divider orientation="vertical" className="volter-project-menu-rule" />
       <div
         role="tablist"
         aria-label="Workspaces"
         data-testid="workspace-tabs"
-        className="vgai-workspace-tabs"
+        className="volter-workspace-tabs"
       >
         {workspaces.map((entry) => (
           <button
@@ -296,7 +296,7 @@ function WorkspaceTabs() {
             role="tab"
             aria-selected={entry.id === active}
             title={entry.description}
-            className="vgai-workspace-tab"
+            className="volter-workspace-tab"
             onClick={() => setEditorWorkspace(entry.id)}
           >
             {entry.title}
@@ -309,7 +309,7 @@ function WorkspaceTabs() {
 
 /** The global transport cluster: whatever the project's packages contribute
  *  to the header (`@volter/editor-sdk/chrome`, `.header`) — the Play transport
- *  ships with `@vgai/game`; a folder of models contributes nothing here. */
+ *  ships with `@volter/game`; a folder of models contributes nothing here. */
 function ProjectTransport() {
   useSyncExternalStore(
     subscribeContributedChrome,

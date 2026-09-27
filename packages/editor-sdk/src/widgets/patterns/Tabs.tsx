@@ -11,7 +11,7 @@ export const EditorTabList = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEl
         {...props}
         ref={ref}
         role="tablist"
-        className={classes('vgai-tabs', className)}
+        className={classes('volter-tabs', className)}
         onKeyDown={(event) => {
           onKeyDown?.(event);
           if (event.defaultPrevented) return;
@@ -65,16 +65,16 @@ export const EditorTab = forwardRef<HTMLButtonElement, EditorTabProps>(function 
       tabIndex={tabIndex ?? (selected ? 0 : -1)}
       aria-selected={selected}
       data-selected={selected || undefined}
-      className={classes('vgai-tab', className)}
+      className={classes('volter-tab', className)}
     >
       {dirty && (
         <>
-          <span className="vgai-tab-dirty" title="Unsaved" aria-hidden="true" />
-          <span className="vgai-sr-only">Unsaved</span>
+          <span className="volter-tab-dirty" title="Unsaved" aria-hidden="true" />
+          <span className="volter-sr-only">Unsaved</span>
         </>
       )}
-      <span className="vgai-tab-label">{children}</span>
-      {badge !== undefined && <span className="vgai-tab-badge">{badge}</span>}
+      <span className="volter-tab-label">{children}</span>
+      {badge !== undefined && <span className="volter-tab-badge">{badge}</span>}
     </button>
   );
 });

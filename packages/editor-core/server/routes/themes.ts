@@ -3,10 +3,10 @@
  * "Settings have four layers with named homes": themes stay v3 palette
  * DOCUMENTS under `themes/` at the user and project homes):
  *
- *   GET    /__editor/themes/user            ~/.vgai/themes/<id>.json
+ *   GET    /__editor/themes/user            ~/.volter/themes/<id>.json
  *   POST   /__editor/themes/user            { id, document } → write one
  *   DELETE /__editor/themes/user?id=<id>    remove one
- *   …/project                               <project>/.vgai/themes/<id>.json
+ *   …/project                               <project>/.volter/themes/<id>.json
  *
  * The server stores JSON objects by id; the palette contract itself
  * (`theme-library.ts`, `parseCustomEditorThemeDocument`) is the editor's,
@@ -24,7 +24,7 @@ import { USER_SETTINGS_PATH } from './settings';
 export const USER_THEMES_DIR = join(dirname(USER_SETTINGS_PATH), 'themes');
 
 export function projectThemesDir(projectRoot: string): string {
-  return join(projectRoot, '.vgai', 'themes');
+  return join(projectRoot, '.volter', 'themes');
 }
 
 const THEME_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;

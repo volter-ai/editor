@@ -36,7 +36,7 @@ export interface ProjectConfig {
    * Multiplayer server config from the manifest (`server.room` — the Colyseus
    * room this game registers), if declared. Carried here so edit-mode
    * networking can answer "does this project declare a server" from the
-   * already-parsed manifest, NOT by re-reading `vgai.project.json` through the
+   * already-parsed manifest, NOT by re-reading `volter.project.json` through the
    * asset-scoped `StorageBackend.read` (which resolves under `public/` and so
    * returns the SPA fallback for a root manifest — the bug that left the
    * player-count picker hidden on the local dev server).
@@ -75,7 +75,7 @@ export interface ProjectConfig {
 export interface ActiveProject {
   /** Absolute path to the project root (as passed via URL param / env). */
   rootPath: string;
-  /** Parsed vgai.project.json project configuration plus derived editor fields. */
+  /** Parsed volter.project.json project configuration plus derived editor fields. */
   config: ProjectConfig;
 }
 

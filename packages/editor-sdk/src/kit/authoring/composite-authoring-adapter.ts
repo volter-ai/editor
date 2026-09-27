@@ -210,7 +210,7 @@ function humanizeId(id: string): string {
 
 /**
  * Manifest-backed properties on each authored root, implemented by
- * `edit-mode-authoring.ts`'s `ManifestAuthoring` over the RAW `vgai.project.json`
+ * `edit-mode-authoring.ts`'s `ManifestAuthoring` over the RAW `volter.project.json`
  * (read-modify-write, never round-tripped through Zod). Defined here (not
  * imported from `edit-mode-authoring.ts`) to avoid a circular import — that
  * module already imports `CompositeAuthoringAdapter`.
@@ -437,7 +437,7 @@ export class CompositeAuthoringAdapter implements AuthoringAdapter {
    *
    * MEASURED on the vendored `racing-game` ingest: six
    * `[CompositeAuthoringAdapter] inspector.get: no root owns entity id
-   * "live:racing-game:N"` errors in three of four `vgai doctor` runs, every one
+   * "live:racing-game:N"` errors in three of four `volter doctor` runs, every one
    * of them within two seconds of ▶ — `GameHierarchy` re-rendering rows it read
    * before the swap against the children that came after it, one render before
    * its own row rebuild lands. (Flaky precisely because it is a race.)

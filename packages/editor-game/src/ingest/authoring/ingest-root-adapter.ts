@@ -385,7 +385,7 @@ function bootWindowPageErrors(startedAt: number): string[] {
 /**
  * Wait for the game's world to be BUILT, declaration first.
  *
- * A game that declares `window.vgaiGame.ready` is awaited exactly once and the
+ * A game that declares `window.volterGame.ready` is awaited exactly once and the
  * measured poll never runs — the game states when it is done, so the host has
  * nothing to estimate. Everything else keeps {@link waitForSceneToSettle},
  * which is the MEASURED fallback and is labelled as such wherever readiness is
@@ -408,7 +408,7 @@ async function awaitWorldReady(
       return 'declared';
     } catch (err) {
       editorConsole.error(
-        `Ingest game "${gameId}" declared \`window.vgaiGame.ready\` and it REJECTED (${String(err)}) ` +
+        `Ingest game "${gameId}" declared \`window.volterGame.ready\` and it REJECTED (${String(err)}) ` +
           '— the world was already captured, so the host fell back to the measured settle wait. ' +
           'This root now reports readiness as measured.',
         'ingest',
@@ -442,8 +442,8 @@ async function waitForSceneToSettle(scene: THREE.Scene, maxMs = 5000): Promise<v
  * Some games append their canvas to `document.body` — reparent it into the
  * host. A DOM-hybrid game (React/R3F with HTML UI: HUDs, overlay panels, drei
  * `<Html>` portals) can declare the element that OWNS its canvas via
- * `window.vgaiGame.root` (the declared game→host contract, game-contract.ts;
- * `__vgaiGameRoot` is the pre-contract alias). Adopting only the bare canvas
+ * `window.volterGame.root` (the declared game→host contract, game-contract.ts;
+ * `__volterGameRoot` is the pre-contract alias). Adopting only the bare canvas
  * would strand that UI at page level over the editor chrome, and following the
  * canvas would require the game to know host layout internals — an arcane
  * demand. Adopt the declared root wholesale so the game's own DOM structure
@@ -472,7 +472,7 @@ function adoptGameDomRoot(hostEl: HTMLElement, surface: HTMLElement): HTMLElemen
   const realmWindow = ingestGameRealmWindow();
   const declaredRoot =
     readIngestGameContract()?.root ??
-    (realmWindow as unknown as { __vgaiGameRoot?: unknown }).__vgaiGameRoot;
+    (realmWindow as unknown as { __volterGameRoot?: unknown }).__volterGameRoot;
   const declared =
     declaredRoot instanceof HTMLElement && declaredRoot.contains(surface) ? declaredRoot : surface;
   if (declared.contains(hostEl)) return hostEl;
@@ -516,7 +516,7 @@ export async function mountIngestGame(
   // Host policy, not per-game CSS — see `game-realm-page.ts` for the four
   // page-shaped assumptions this covers and why each one breaks an in-realm
   // mount. Registered on the DEFAULT realm because an ingest descriptor's
-  // module urls carry no `?vgai-mount=` (binding-resolver.ts's
+  // module urls carry no `?volter-mount=` (binding-resolver.ts's
   // `resolveIngestDescriptor` builds bare `fsImportPath` urls).
   const realmPage = setGameSurface(hostEl);
 
@@ -614,10 +614,10 @@ export async function mountIngestGame(
   // Signal COLD MOUNT before the entry executes: editor mounts are for
   // inspection first, so a session-driven game MAY defer its side-effects
   // (backend connection, narrative, audio) until the editor's play control
-  // dispatches 'vgai:ingest-play' (getIngestPlayControl, ingest/mount-ingest-root.ts).
+  // dispatches 'volter:ingest-play' (getIngestPlayControl, ingest/mount-ingest-root.ts).
   // Rendering must continue regardless — capture needs a frame — and games
   // that ignore the flag behave exactly as before (opt-in, never demanded).
-  (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
+  (window as unknown as { __volterMountCold?: boolean }).__volterMountCold = true;
   // THE BOOT WINDOW OPENS HERE (M29). Everything the page throws from this
   // instant until the mount resolves belongs to this game's boot, and it is the
   // fact that separates "crashed before ready" from "never became ready" — the
@@ -650,7 +650,7 @@ export async function mountIngestGame(
     // boots in the background parks here instead of dying, with the trap still
     // installed, so the first frame after the human foregrounds the tab is the
     // captured one. `setCaptureWait` is what keeps that park from reading as a
-    // hung mount — `vgai status` names it.
+    // hung mount — `volter status` names it.
     rt = await capture.waitForCapture({
       timeoutMs,
       onWait: (wait) => setCaptureWait(game.id, wait),
@@ -797,10 +797,10 @@ export async function mountIngestGame(
     // well after `setPaused` returned. Nothing else would notify the store, and
     // `collectState` is push-based — the control API would keep serving a
     // snapshot taken before the measurement existed, reporting `loop: null`
-    // forever. Broadcast so `vgai status` sees the verdict it just produced.
+    // forever. Broadcast so `volter status` sees the verdict it just produced.
     onVerdict: () => store.shell.notifyIngestEdit(),
   });
-  // The game's DECLARED system surface (`window.vgaiGame.systems`), projected
+  // The game's DECLARED system surface (`window.volterGame.systems`), projected
   // onto the host's ordinary `SystemAdapters.debug`. `activateCapturedThreeIngest`
   // hands `mounted.systems` straight to `setActiveSystems`, so a shim that
   // declares verbs makes `game.commands()`/`game.state()` work through the same

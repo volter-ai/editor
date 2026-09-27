@@ -3,7 +3,7 @@
  * of "which live game is this contribution looking at", read by all four
  * contribution hosts (`components/ToolHost.tsx`,
  * `components/InspectorToolSection.tsx`,
- * `components/AssetInspectorToolSection.tsx`, and `@vgai/game`'s generation
+ * `components/AssetInspectorToolSection.tsx`, and `@volter/game`'s generation
  * documents).
  *
  * A dev-GUI contribution's whole subject is the running game (owner ruling,

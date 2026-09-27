@@ -89,7 +89,7 @@ export type GenerationBilling = z.infer<typeof GenerationBillingSchema>;
 export type GenerationJob = z.infer<typeof GenerationJobSchema>;
 export type GenerationJobsDocument = z.infer<typeof GenerationJobsDocumentSchema>;
 
-/** The MANAGED arm of {@link GenerationBilling} — vgai credits, not currency. */
+/** The MANAGED arm of {@link GenerationBilling} — volter credits, not currency. */
 export type ManagedGenerationBilling = Extract<GenerationBilling, { route: 'managed' }>;
 
 /**

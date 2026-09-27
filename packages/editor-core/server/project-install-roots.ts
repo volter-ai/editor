@@ -15,7 +15,7 @@
  *    game) has no `node_modules` of its own at all; npm hoists the install to
  *    the workspace root ABOVE the project folder;
  *  - a workspace member's own sibling packages resolve through SYMLINKS that
- *    land outside the project entirely (`@vgai/game-runtime` → `<repo>/packages/
+ *    land outside the project entirely (`@volter/game-runtime` → `<repo>/packages/
  *    engine`), and Vite's `fs.allow` matches the symlink-RESOLVED path;
  *  - a git worktree shares one install, so even the walk-up `node_modules`
  *    can be a tree of links into another checkout.

@@ -59,7 +59,7 @@
  * PURELY ADDITIVE. The channel these diagnostics have always had is untouched:
  * `server/project-validation.ts`'s `validateSource` still formats every one of
  * them into the dev server's terminal warning block and into the project
- * warnings map that `/__editor/state` (and so `vgai status`) reports. Rows are
+ * warnings map that `/__editor/state` (and so `volter status`) reports. Rows are
  * a second, better-placed audience, not a replacement.
  */
 

@@ -117,7 +117,7 @@ function projectRelative(project: string, absolute: string): string | null {
  * THIS IS THE DOOR THAT RECORDS, because it is the door a session's bytes
  * enter the project through. MEASURED 2026-09-18: a script's
  * `export_scene.gltf` to `<project>/public/models/lantern.glb` landed here and
- * `.vgai/provenance.json` was never created — the one state
+ * `.volter/provenance.json` was never created — the one state
  * `scripts/validate-project-provenance.mjs` calls fatal, and the opposite of
  * the doctrine that a generated artifact enters `public/` through a door that
  * records it atomically. So a file this lands under `public/` is POSTed to the
@@ -131,7 +131,7 @@ function projectRelative(project: string, absolute: string): string | null {
  * transport uses that same session boundary as the other product commands;
  * it never creates a second ledger writer in the MCP process.
  *
- * Everything else the session owns — `.vgai/tmp/*.png`, a `.blend`, a replay
+ * Everything else the session owns — `.volter/tmp/*.png`, a `.blend`, a replay
  * harness's run directory outside the project — is mirrored with a plain write
  * and deliberately NOT recorded: the ledger is about what the project SHIPS,
  * and `public/` is what ships.

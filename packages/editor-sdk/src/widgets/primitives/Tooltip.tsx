@@ -102,7 +102,7 @@ export function Tooltip({
   });
 
   useLayoutEffect(() => {
-    setPortalRoot(wrapperRef.current?.closest('.vgai-editor-theme') ?? null);
+    setPortalRoot(wrapperRef.current?.closest('.volter-editor-theme') ?? null);
   }, []);
 
   useEffect(
@@ -159,7 +159,7 @@ export function Tooltip({
   return (
     <span
       ref={wrapperRef}
-      className="vgai-tooltip-anchor"
+      className="volter-tooltip-anchor"
       onMouseEnter={() => {
         hovered.current = true;
         show(delay);
@@ -187,7 +187,7 @@ export function Tooltip({
             ref={tooltipRef}
             id={id}
             role="tooltip"
-            className="vgai-tooltip"
+            className="volter-tooltip"
             style={{
               left: coordinates.left,
               top: coordinates.top,

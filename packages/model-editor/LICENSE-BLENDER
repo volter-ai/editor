@@ -1,6 +1,6 @@
                     NOTICE — WHAT THIS PACKAGE IS, AND WHOSE IT IS
 
-This package (`@vgai/blender`) is the EDITOR-SIDE half of Blender in the tab:
+This package (`@volter/blender`) is the EDITOR-SIDE half of Blender in the tab:
 the Model document and its presenters, the Properties tabs, the outliner, the
 node and UV editors, the display transforms, the sky, the status items, the
 layouts, the finder and the Blender LOOK. Our code here is ours. Its ICON
@@ -57,7 +57,7 @@ package is:
 that means the whole package must be conveyed under terms that satisfy both.
 Both licence texts follow: the AGPL first, then the GPL.
 
-This package is NOT `@vgai/blender-engine`, which is Blender ITSELF compiled to
+This package is NOT `@volter/blender-engine`, which is Blender ITSELF compiled to
 WebAssembly and is GPL-3.0-or-later in whole (`packages/blender-engine/LICENSE`).
 This package imports only that engine's wire TYPES plus the one tab-side handle
 that owns the worker; the process boundary is the package boundary

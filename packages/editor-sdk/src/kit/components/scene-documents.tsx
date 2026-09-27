@@ -57,7 +57,7 @@ export type SceneOpenResult =
  * How long {@link openSceneTableEntryWhenListed} will wait for the project
  * adapter's table before refusing.
  *
- * MEASURED, not chosen: three cold `vgai edit` sessions on a
+ * MEASURED, not chosen: three cold `volter edit` sessions on a
  * `--template models` probe, opening `model:src/models/cube.blend` in a poll
  * loop from the moment the tab connected — **6025 ms, 6831 ms, 6474 ms**, and
  * in all three the first refusal was `SCENE_TABLE_UNAVAILABLE`, i.e. the
@@ -211,7 +211,7 @@ export function openSceneTableEntry(id: string): SceneOpenResult {
           error:
             `open: "${id}" is reached by story "${plan.storyId}", and nothing in this editor ` +
             "opened it — either this project's story registry does not hold that id, or its " +
-            'module declares no medium (declare it via `vgai.adapter.ts` regionIncludes or a ' +
+            'module declares no medium (declare it via `volter.adapter.ts` regionIncludes or a ' +
             'manifest root entry). The session console names which.',
         };
       }

@@ -306,7 +306,7 @@ export async function measureProjectWorldProof(tools: GodotProofTools): Promise<
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_PROJECT_WORLD_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-project-world-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-project-world-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

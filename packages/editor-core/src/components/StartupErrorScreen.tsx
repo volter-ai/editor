@@ -26,7 +26,7 @@ import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
 import type { ServerProjectFailureReport } from '@volter/editor-sdk/kit/boot-routing';
 import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '@volter/editor-sdk/kit/build-identity';
 import { ErrorBanner, type ScreenError } from './ErrorBanner';
-import { VgaiLogo } from '@volter/editor-sdk/kit/components/VgaiLogo';
+import { VolterLogo } from '@volter/editor-sdk/kit/components/VolterLogo';
 
 export interface StartupErrorScreenProps {
   error: ScreenError;
@@ -41,21 +41,21 @@ export function StartupErrorScreen({ error, report, onRetry }: StartupErrorScree
   // live tab that is simply not on the project — visible, never duplicated,
   // and adoptable the moment the project becomes readable again.
   return (
-    <div className="vgai-shell" data-testid="project-detection-error">
-      <div className="vgai-shell-container" data-view="startup-error">
-        <header className="vgai-shell-header">
-          <span className="vgai-shell-brand-static">
-            <span className="vgai-shell-brand-mark" aria-hidden="true">
-              <VgaiLogo size={30} />
+    <div className="volter-shell" data-testid="project-detection-error">
+      <div className="volter-shell-container" data-view="startup-error">
+        <header className="volter-shell-header">
+          <span className="volter-shell-brand-static">
+            <span className="volter-shell-brand-mark" aria-hidden="true">
+              <VolterLogo size={30} />
             </span>
-            <span className="vgai-shell-wordmark">{EDITOR_BRAND.name}</span>
+            <span className="volter-shell-wordmark">{EDITOR_BRAND.name}</span>
           </span>
         </header>
 
         <ErrorBanner error={error} onRetry={onRetry} startup />
 
         {report?.projectPath && (
-          <div className="vgai-shell-notice" data-testid="project-startup-serving">
+          <div className="volter-shell-notice" data-testid="project-startup-serving">
             <span>
               This editor server is serving{' '}
               <code data-testid="project-startup-serving-path">{report.projectPath}</code> — the
@@ -65,8 +65,8 @@ export function StartupErrorScreen({ error, report, onRetry }: StartupErrorScree
           </div>
         )}
 
-        <footer className="vgai-shell-footer">
-          <span className="vgai-chip" data-variant="tag">
+        <footer className="volter-shell-footer">
+          <span className="volter-chip" data-variant="tag">
             Editor v{BUNDLED_EDITOR_VERSION} · Engine v{BUNDLED_ENGINE_VERSION}
           </span>
         </footer>

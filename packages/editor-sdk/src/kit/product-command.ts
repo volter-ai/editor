@@ -4,7 +4,7 @@
  * The kit has no command of its own: a person runs `volter-model-editor` or
  * `volter-game-editor`, and a message that tells them to run a verb must name
  * the one they have. The owner of the answer is the served product's
- * package.json — its single `bin` key and `vgai.product.displayName`
+ * package.json — its single `bin` key and `volter.product.displayName`
  * (`readProductManifest`, `@volter/editor-sdk/session/product-locator`). The
  * server learns it at boot (`packaged.ts`); the page learns it from
  * `/__editor/project`, which its mount asks once (`loadProductNames`).

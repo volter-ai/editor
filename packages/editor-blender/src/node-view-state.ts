@@ -6,11 +6,11 @@
  * own header says so: "a selector resolving outside that document's container
  * is refused by a message naming the scope". The node editor is a DRAWER
  * utility, so nothing in the product could read or drive it: the sighted door
- * (`editor.captureEditorChrome`, `vgai screenshot editor`) photographs it, and
+ * (`editor.captureEditorChrome`, `volter screenshot editor`) photographs it, and
  * a photograph cannot click.
  *
  * So the view's actions are SESSION VERBS, which is the pattern the keyboard
- * ruling already asks for — a `vgai.*` command per action rather than a raw
+ * ruling already asks for — a `volter.*` command per action rather than a raw
  * listener — and this module is the one place their state lives. The component
  * subscribes to it; `blender-node-view` (the command) reads and writes it. One
  * store, two readers, no second copy.

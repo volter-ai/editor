@@ -4,14 +4,14 @@
 
 - [CLI invocation](#cli-invocation--use-the-project-local-cli)
 - [Quick start](#quick-start)
-- [Connection precondition](#precondition-most-verbs-need-a-connected-browser-tab-not-just-vgai-edit-running)
-- [**Drive the running game — `npx volter-game-editor eval`**](#drive-the-running-game--vgai-eval-the-general-door)
+- [Connection precondition](#precondition-most-verbs-need-a-connected-browser-tab-not-just-volter-edit-running)
+- [**Drive the running game — `npx volter-game-editor eval`**](#drive-the-running-game--volter-eval-the-general-door)
 - [CLI reference](#cli-reference)
 - [Entity IDs](#entity-ids)
 - [Typical workflows](#typical-workflows)
 - [SDK](#sdk-programmatic-access)
 
-Use the `vgai` CLI to create projects, launch the editor, and control it programmatically. The editor is a browser-based WebGL app; the CLI sends commands to it over HTTP.
+Use the `volter` CLI to create projects, launch the editor, and control it programmatically. The editor is a browser-based WebGL app; the CLI sends commands to it over HTTP.
 
 **Driving a running GAME is a different question from driving the editor**, and
 it has one answer: `npx volter-game-editor eval`. Read that section before the verb list — the
@@ -19,31 +19,31 @@ verbs cover the editor, and a game's own commands are never verbs.
 
 ## CLI invocation — use the project-local CLI
 
-Inside this scaffold, invoke every CLI verb as `npm run --silent vgai -- <verb>`. The
+Inside this scaffold, invoke every CLI verb as `npm run --silent volter -- <verb>`. The
 script points at the versioned `@volter/game-editor` installed with this project. Never
-use a bare global `vgai` command here: another installation can own that binary
+use a bare global `volter` command here: another installation can own that binary
 and can silently target the wrong session or apply different manifest rules.
 
 ## Quick Start
 
 ```bash
-npm run --silent vgai -- create "My Game" # Scaffold a new project in ./my-game
+npm run --silent volter -- create "My Game" # Scaffold a new project in ./my-game
 cd my-game
-npm run --silent vgai -- edit .           # Launch editor + open browser
-npm run --silent vgai -- play             # Enter play mode
-npm run --silent vgai -- restart          # Remount all game roots — acks only when the session is READY
+npm run --silent volter -- edit .           # Launch editor + open browser
+npm run --silent volter -- play             # Enter play mode
+npm run --silent volter -- restart          # Remount all game roots — acks only when the session is READY
                                  # again (relay up, tab attached, play measured running); exits
                                  # non-zero naming the gap otherwise. No sleep-then-play dance.
-npm run --silent vgai -- status           # Check editor state
-npm run --silent vgai -- eval --list      # Everything you can drive — ask this FIRST
+npm run --silent volter -- status           # Check editor state
+npm run --silent volter -- eval --list      # Everything you can drive — ask this FIRST
 ```
 
 **Port cross-talk:** the default editor port (5173) is shared across every
-VGAI project on the machine. `npm run --silent vgai -- edit .` never silently retargets a
+VOLTER project on the machine. `npm run --silent volter -- edit .` never silently retargets a
 DIFFERENT project's already-running editor — if one is already open
 elsewhere, this one starts a second instance on a fresh free port and prints
 that URL instead (use `--switch` to retarget the existing one on purpose).
-If you might have another vgai project's tab open in the browser already,
+If you might have another volter project's tab open in the browser already,
 don't assume it's this project: read the URL `npx volter-game-editor edit` actually prints
 (check `npx volter-game-editor sessions` to see every live session's port → project), or pass
 `npx volter-game-editor edit --port <n>` to pin an explicit port for this project so a stale
@@ -74,7 +74,7 @@ one legitimate case is a fully unattended CI job that then drives the
 editor itself, e.g. via Playwright:
 
 ```bash
-npm run --silent vgai -- edit . --no-open # ONLY when no human could be watching (e.g. CI)
+npm run --silent volter -- edit . --no-open # ONLY when no human could be watching (e.g. CI)
 ```
 
 ```ts
@@ -85,7 +85,7 @@ npm run --silent vgai -- edit . --no-open # ONLY when no human could be watching
 await page.goto('http://localhost:5173', { waitUntil: 'load' });
 ```
 
-Once that page has loaded, it registers as a connected client and `vgai
+Once that page has loaded, it registers as a connected client and `volter
 status`/`npx volter-game-editor play`/etc. from another shell will reach it for real.
 
 ## Drive the running game — `npx volter-game-editor eval`, the general door
@@ -97,12 +97,12 @@ is no command registry, provider registry, or fixed game vocabulary to learn.
 `{ editor, game, page, tools, session }` from `@volter/game-live` already in scope:
 
 ```bash
-npm run --silent vgai -- eval --list                     # what's in scope (no session needed)
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const arena = await modules("src/sim/arena.ts"); return arena.readArena(); })'
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const arena = await modules("src/sim/arena.ts"); arena.setupBossWave(); return arena.readArena(); })'
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.hireTester("sweep"); })'
-npm run --silent vgai -- eval 'await game.waitSimTime({simSeconds: 4})'
-npm run --silent vgai -- eval 'await editor.grid(false)' # the editor half, same door
+npm run --silent volter -- eval --list                     # what's in scope (no session needed)
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const arena = await modules("src/sim/arena.ts"); return arena.readArena(); })'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const arena = await modules("src/sim/arena.ts"); arena.setupBossWave(); return arena.readArena(); })'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.hireTester("sweep"); })'
+npm run --silent volter -- eval 'await game.waitSimTime({simSeconds: 4})'
+npm run --silent volter -- eval 'await editor.grid(false)' # the editor half, same door
 ```
 
 `--list` walks the live binding objects themselves rather than a written list,
@@ -112,7 +112,7 @@ template's `src/tools/use-game-modules.ts` shows how a literal contribution
 reads the exact same running instances.
 
 **NEVER pilot a realtime game from the developer REPL, with synthetic key
-events, rAF loops, wall-clock sleeps, or direct `window.__vgai*`/scene-graph
+events, rAF loops, wall-clock sleeps, or direct `window.__volter*`/scene-graph
 reads.** Arrange expensive preconditions with exported setup functions, then
 hire the resident tester to act through the game's real input store.
 `waitSimTime` advances deterministically even while the editor tab is HIDDEN.
@@ -137,9 +137,9 @@ providers every other tool reads.
 ### Project Management (no running editor needed)
 
 ```bash
-npm run --silent vgai -- create <name> [location]   # Empty project (default location: ./<name>)
-npm run --silent vgai -- create <name> [location] --template game # Game composition; also empty, website, models
-npm run --silent vgai -- edit [project-path]        # Launch editor for project (default: cwd).
+npm run --silent volter -- create <name> [location]   # Empty project (default location: ./<name>)
+npm run --silent volter -- create <name> [location] --template game # Game composition; also empty, website, models
+npm run --silent volter -- edit [project-path]        # Launch editor for project (default: cwd).
                                            # Reuses the session already serving THIS
                                            # project; otherwise starts a NEW instance on
                                            # a free port rather than silently retargeting
@@ -148,15 +148,15 @@ npm run --silent vgai -- edit [project-path]        # Launch editor for project 
                                            #   --switch    retarget an existing instance
                                            #               instead of starting a new one
                                            #   --port <n>  force a port for a fresh instance
-npm run --silent vgai -- sessions                   # List live editor sessions (port -> project)
+npm run --silent volter -- sessions                   # List live editor sessions (port -> project)
 ```
 
 ### Scene & Project Info (needs running editor)
 
 ```bash
-npm run --silent vgai -- open <path>      # Switch project in running editor
-npm run --silent vgai -- project          # Show current project info
-npm run --silent vgai -- projects         # List recent projects
+npm run --silent volter -- open <path>      # Switch project in running editor
+npm run --silent volter -- project          # Show current project info
+npm run --silent volter -- projects         # List recent projects
 ```
 
 `open` / `project` / `projects` stay first-class for a concrete reason: project
@@ -166,11 +166,11 @@ management lives on `EditorClient` and was never lifted onto `@volter/editor-liv
 ### Play Control
 
 ```bash
-npm run --silent vgai -- play             # Enter play mode
-npm run --silent vgai -- restart          # Dispose + remount every game root — waits out a relaunching dev
+npm run --silent volter -- play             # Enter play mode
+npm run --silent volter -- restart          # Dispose + remount every game root — waits out a relaunching dev
                                  # server, re-ensures the one tab, and acks only once play is
                                  # measured running (a failure names the next step)
-npm run --silent vgai -- stop             # Exit play mode
+npm run --silent volter -- stop             # Exit play mode
 ```
 
 `pause` / `resume` / `step` were REMOVED — `npx volter-game-editor eval 'editor.pause()'`,
@@ -191,16 +191,16 @@ exposes, so they were deleted rather than kept as aliases. Typing one now
 errors with its exact replacement:
 
 ```bash
-npm run --silent vgai -- eval 'editor.select("<entityId>")'   # or "all"
-npm run --silent vgai -- eval 'editor.deselect()'
-npm run --silent vgai -- eval 'editor.focus("<entityId>")'    # omit arg = current selection
-npm run --silent vgai -- eval 'editor.view("top")'            # top|front|right|perspective
-npm run --silent vgai -- eval 'editor.showPanel("inspector")' # viewport|inspector|console|build
-npm run --silent vgai -- eval 'editor.openAsset("<path>", "<kind>")'
-npm run --silent vgai -- eval 'editor.grid(false)'
-npm run --silent vgai -- eval 'editor.helpers(true)'
-npm run --silent vgai -- eval 'editor.stats(true)'
-npm run --silent vgai -- eval 'editor.shading("wireframe")'   # solid|unlit|wireframe|normals|overdraw
+npm run --silent volter -- eval 'editor.select("<entityId>")'   # or "all"
+npm run --silent volter -- eval 'editor.deselect()'
+npm run --silent volter -- eval 'editor.focus("<entityId>")'    # omit arg = current selection
+npm run --silent volter -- eval 'editor.view("top")'            # top|front|right|perspective
+npm run --silent volter -- eval 'editor.showPanel("inspector")' # viewport|inspector|console|build
+npm run --silent volter -- eval 'editor.openAsset("<path>", "<kind>")'
+npm run --silent volter -- eval 'editor.grid(false)'
+npm run --silent volter -- eval 'editor.helpers(true)'
+npm run --silent volter -- eval 'editor.stats(true)'
+npm run --silent volter -- eval 'editor.shading("wireframe")'   # solid|unlit|wireframe|normals|overdraw
 ```
 
 The advantage is not brevity — it is that one door composes. Selecting an
@@ -208,7 +208,7 @@ entity, framing it, and capturing the result is a single round trip instead of
 four processes:
 
 ```bash
-npm run --silent vgai -- eval 'await editor.select(id); await editor.focus(); await editor.shading("wireframe"); return editor.screenshot()'
+npm run --silent volter -- eval 'await editor.select(id); await editor.focus(); await editor.shading("wireframe"); return editor.screenshot()'
 ```
 
 Shading is temporary, render-only editor state: it never rewrites scene or
@@ -222,7 +222,7 @@ bounds toggles; use `setHelperType()` through the SDK when you need one category
 ### State
 
 ```bash
-npm run --silent vgai -- status           # Print full editor state as JSON
+npm run --silent volter -- status           # Print full editor state as JSON
 ```
 
 The `status` command returns:
@@ -240,9 +240,9 @@ The `status` command returns:
 ### Verification — the LIVE playtest, in as many seats as it needs
 
 ```bash
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const mechanic = await modules("src/sim/<mechanic>.ts"); mechanic.<setup>(); return mechanic.<read>(); })'
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.hireTester("<goal>"); })'
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.describeTester(); })'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const mechanic = await modules("src/sim/<mechanic>.ts"); mechanic.<setup>(); return mechanic.<read>(); })'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.hireTester("<goal>"); })'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.describeTester(); })'
 ```
 
 Verification IS the interactive playtest: cheats set the situation, the
@@ -278,7 +278,7 @@ functions, which is exactly why the door is general.
 Entity ids are minted by the active authoring adapter (a three world's are
 keyed on the OID its source carries — stable across reloads). To find one:
 
-1. `npm run --silent vgai -- eval 'return editor.hierarchy()'` — the hierarchy panel's
+1. `npm run --silent volter -- eval 'return editor.hierarchy()'` — the hierarchy panel's
    rows as data, each with its `id` and label
 2. Use that id with `editor.select("<id>")` / `editor.focus("<id>")` through
    `npx volter-game-editor eval`
@@ -288,29 +288,29 @@ keyed on the OID its source carries — stable across reloads). To find one:
 ### Start a new project from scratch
 
 ```bash
-npm run --silent vgai -- create "My Platformer"
+npm run --silent volter -- create "My Platformer"
 cd my-platformer
-npm run --silent vgai -- edit .
+npm run --silent volter -- edit .
 ```
 
 ### Show the user an entity you just created/modified
 
 ```bash
 # After editing the world's TSX source — select and frame the entity in one round trip:
-npm run --silent vgai -- eval 'await editor.select("<entity-id>"); await editor.focus()'
+npm run --silent volter -- eval 'await editor.select("<entity-id>"); await editor.focus()'
 ```
 
 ### Test gameplay
 
 ```bash
-npm run --silent vgai -- play
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const mechanic = await modules("src/sim/<mechanic>.ts"); mechanic.<setup>(); return mechanic.<read>(); })'
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.hireTester("<goal>"); })'
-npm run --silent vgai -- eval 'await game.waitSimTime({simSeconds: 5})'
-npm run --silent vgai -- eval 'return game.run(async ({ modules }) => { const mechanic = await modules("src/sim/<mechanic>.ts"); return mechanic.<read>(); })'
-npm run --silent vgai -- screenshot                            # and LOOK at the pixels
-npm run --silent vgai -- restart                               # after an init-time source change
-npm run --silent vgai -- stop
+npm run --silent volter -- play
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const mechanic = await modules("src/sim/<mechanic>.ts"); mechanic.<setup>(); return mechanic.<read>(); })'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const tester = await modules("src/bot/tester-station.ts"); return tester.hireTester("<goal>"); })'
+npm run --silent volter -- eval 'await game.waitSimTime({simSeconds: 5})'
+npm run --silent volter -- eval 'return game.run(async ({ modules }) => { const mechanic = await modules("src/sim/<mechanic>.ts"); return mechanic.<read>(); })'
+npm run --silent volter -- screenshot                            # and LOOK at the pixels
+npm run --silent volter -- restart                               # after an init-time source change
+npm run --silent volter -- stop
 ```
 
 Arrange and read through the mechanic's own exported functions; let the
@@ -321,7 +321,7 @@ disagrees.
 ### Debug a specific view angle
 
 ```bash
-npm run --silent vgai -- eval 'await editor.view("top"); await editor.shading("wireframe"); await editor.helpers(true)'
+npm run --silent volter -- eval 'await editor.view("top"); await editor.shading("wireframe"); await editor.helpers(true)'
 ```
 
 ## SDK (Programmatic Access)
@@ -358,6 +358,6 @@ the right import for editor-only automation that has no game running — plus th
 handful of project-management calls (`createProject()`, `openProject()`,
 `getProject()`, `listRecentProjects()`) that `@volter/editor-live` does not re-expose.
 
-Run `npm run --silent vgai -- eval --list` for the current member list on every binding.
+Run `npm run --silent volter -- eval --list` for the current member list on every binding.
 It walks the live objects at runtime, so it is accurate in a way this page
 cannot promise to be.

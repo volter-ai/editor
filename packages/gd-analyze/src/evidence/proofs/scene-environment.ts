@@ -334,7 +334,7 @@ export async function measureSceneEnvironmentProof(tools: GodotProofTools): Prom
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_ENVIRONMENT_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-environment-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-environment-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

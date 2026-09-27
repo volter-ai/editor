@@ -32,7 +32,7 @@ async function readOptionalFile(path: string): Promise<string | null> {
 }
 
 const SOURCE_EXTENSION = /\.(?:[cm]?[jt]sx)$/i;
-const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', '.git', '.vgai', 'tools']);
+const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', '.git', '.volter', 'tools']);
 
 function indexSourceEntry(
   directory: string,

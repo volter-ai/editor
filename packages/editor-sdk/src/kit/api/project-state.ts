@@ -1,7 +1,7 @@
 /**
  * What the session currently IS, as the editor's own UI reads it: the server
  * validation log, the editor lease identity, and the durable
- * `.vgai/editor-state.json` view/tool state.
+ * `.volter/editor-state.json` view/tool state.
  *
  */
 
@@ -63,7 +63,7 @@ export async function pollEditorLeaseIdentity(timeoutMs = 3000): Promise<LeasePo
 }
 
 // ---------------------------------------------------------------------------
-// Persistent editor state (.vgai/editor-state.json)
+// Persistent editor state (.volter/editor-state.json)
 // ---------------------------------------------------------------------------
 
 /** Load persisted editor state (remembered transform mode/snap/last
@@ -81,7 +81,7 @@ export async function loadEditorState(): Promise<Record<string, unknown>> {
  *  on every viewport change reports a permanently broken origin ONCE. */
 let reportedEditorStateWriteFailure = false;
 
-/** Save editor state (persisted in .vgai/editor-state.json — see
+/** Save editor state (persisted in .volter/editor-state.json — see
  *  `loadEditorState`'s doc comment for the browser-mode routing).
  *
  *  The boolean is this function's only channel and its one caller

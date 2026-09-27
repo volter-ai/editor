@@ -92,7 +92,7 @@ import { SCAFFOLD_PRESENTATIONS, type ScaffoldPresentation } from './templates.j
 export { SCAFFOLD_PRESENTATIONS, type ScaffoldPresentation };
 
 export interface ScaffoldOptions {
-  /** Display name of the project (vgai.project.json `name`, index.html title). */
+  /** Display name of the project (volter.project.json `name`, index.html title). */
   name: string;
   /** Absolute path to create the project at. Must not already exist. */
   targetDir: string;
@@ -189,7 +189,7 @@ export function resolveScaffoldStarterDir(productDir: string): string {
 export interface ScaffoldResult {
   targetDir: string;
   slug: string;
-  /** The final contents written to the scaffolded project's vgai.project.json. */
+  /** The final contents written to the scaffolded project's volter.project.json. */
   manifest: Record<string, unknown>;
 }
 
@@ -221,7 +221,7 @@ function writeJson(path: string, data: unknown): void {
  * relocate it against that package's own installed root, rather than
  * assuming a fixed depth.
  *
- * Exported (not just an internal helper) so `vgai upgrade`'s new-template
+ * Exported (not just an internal helper) so `volter upgrade`'s new-template
  * snapshot (`upgrade.ts`'s `reapplyScaffoldRewrites`) can reuse this EXACT
  * rewrite when mirroring `rewriteTsconfig`'s `files` array handling —
  * without it, the snapshot's `tsconfig.json` would never match a real
@@ -264,19 +264,19 @@ export function rewriteEngineRelativeFilePath(original: string, _engineRelPath: 
  * there, and is still wanted: it makes a scaffold reproducible rather than
  * "whatever the registry served that day".
  *
- * Exported so `vgai upgrade`'s new-template snapshot (`upgrade.ts`'s
+ * Exported so `volter upgrade`'s new-template snapshot (`upgrade.ts`'s
  * `reapplyScaffoldRewrites`) can reuse this EXACT pinning when mirroring
  * `rewritePackageJson`'s handling of `package.json` — without it, the
  * snapshot's `package.json` would keep the template's floating dependency
  * ranges while a real scaffolded project's `package.json` has them pinned
  * to this checkout's exact installed versions, permanently misclassifying
  * `package.json` as `template-updated` on every run (found via a real
- * create + `vgai upgrade` end-to-end smoke test).
+ * create + `volter upgrade` end-to-end smoke test).
  *
  * `fallbackDir`: a second directory to read
  * BOTH the engine's declared dependency names and each shared dep's
  * installed version from, tried whenever the `monoRoot`-rooted read fails.
- * Only `vgai upgrade`'s snapshot builder passes this (as the PROJECT
+ * Only `volter upgrade`'s snapshot builder passes this (as the PROJECT
  * directory being upgraded) — `rewritePackageJson`'s real scaffold-time
  * call site never does, since a freshly-scaffolded project has no
  * `node_modules` of its own yet.
@@ -472,8 +472,8 @@ function readEngineDependencyNames(engineDir: string): Set<string> | undefined {
 
 /**
  * Read `packageName`'s installed version from `<monoRoot>/node_modules`.
- * Exported (not just an internal helper) so `vgai upgrade`'s CLI call site
- * (`packages/vgai-cli/src/index.ts`) can default `currentEngineVersion` from
+ * Exported (not just an internal helper) so `volter upgrade`'s CLI call site
+ * (`packages/volter-cli/src/index.ts`) can default `currentEngineVersion` from
  * `readInstalledVersion(monoRoot, '@volter/editor-project')` — the SAME resolution
  * `rewriteGameManifest`/`pinSharedDependencyVersions` use at scaffold time —
  * rather than a second, possibly-diverging lookup.
@@ -526,7 +526,7 @@ function materializeTemplate(
         );
       }
       throw new Error(
-        `Unknown example id "${exampleId}": no vgai.project.json found at ${examplesSrcDir}`,
+        `Unknown example id "${exampleId}": no volter.project.json found at ${examplesSrcDir}`,
       );
     }
     mkdirSync(targetDir, { recursive: true });
@@ -593,7 +593,7 @@ function assertDevelopmentLog(targetDir: string): void {
   const path = join(targetDir, PROJECT_DEVELOPMENT_LOG_RELATIVE_PATH);
   if (!existsSync(path)) {
     throw new Error(
-      `Scaffolded project is missing ${PROJECT_DEVELOPMENT_LOG_RELATIVE_PATH}; restore it from the VGAI starter template`,
+      `Scaffolded project is missing ${PROJECT_DEVELOPMENT_LOG_RELATIVE_PATH}; restore it from the VOLTER starter template`,
     );
   }
 }
@@ -626,7 +626,7 @@ function trackedExampleFiles(exampleDir: string): string[] | null {
   });
   if (result.status !== 0 || !result.stdout) return null;
   const paths = result.stdout.toString('utf8').split('\0').filter(Boolean);
-  return paths.includes('vgai.project.json') ? paths : null;
+  return paths.includes('volter.project.json') ? paths : null;
 }
 
 function copyTrackedExampleFiles(exampleDir: string, targetDir: string): boolean {
@@ -672,11 +672,11 @@ function writeExampleReadme(
   writeFileSync(
     path,
     `# ${projectName}\n\n` +
-      `An editable standalone VGAI project scaffolded from the \`${exampleId ?? 'example'}\` reference. ` +
+      `An editable standalone VOLTER project scaffolded from the \`${exampleId ?? 'example'}\` reference. ` +
       'Its gameplay source and assets were copied unchanged; this folder is now your project.\n\n' +
       '```bash\n' +
       'npm run dev                 # open/reuse the visual editor\n' +
-      'npm run vgai -- play        # verify Play mode\n' +
+      'npm run volter -- play        # verify Play mode\n' +
       'npm run typecheck\n' +
       'npm run validate-manifest\n' +
       '```\n\n' +
@@ -691,7 +691,7 @@ export function shouldCopyExamplePath(exampleDir: string, sourcePath: string): b
   const topLevel = relativePath.split('/')[0] ?? '';
   const segments = relativePath.split('/');
   return (
-    !['node_modules', 'dist', 'logs', '.vgai', '.git', 'package-lock.json'].includes(topLevel) &&
+    !['node_modules', 'dist', 'logs', '.volter', '.git', 'package-lock.json'].includes(topLevel) &&
     !segments.some((segment) => segment === '.env' || segment.startsWith('.env.'))
   );
 }
@@ -702,7 +702,7 @@ export function shouldCopyExamplePath(exampleDir: string, sourcePath: string): b
 export function shouldCopyStarterPath(templateDir: string, sourcePath: string): boolean {
   const relativePath = relative(templateDir, sourcePath).replaceAll('\\', '/');
   const topLevel = relativePath.split('/')[0] ?? '';
-  return !['node_modules', 'dist', 'logs', '.vgai'].includes(topLevel);
+  return !['node_modules', 'dist', 'logs', '.volter'].includes(topLevel);
 }
 
 /**
@@ -760,13 +760,13 @@ function rewritePackageJson(
     }
   }
 
-  // A script written as `vgai <verb>` (an example's) runs through the
-  // project's own `vgai` script, which the template points at this product's
+  // A script written as `volter <verb>` (an example's) runs through the
+  // project's own `volter` script, which the template points at this product's
   // command.
   pkg.scripts ??= {};
   for (const [name, script] of Object.entries(pkg.scripts)) {
-    if (name !== 'vgai' && script.startsWith('vgai ')) {
-      pkg.scripts[name] = `npm run vgai -- ${script.slice('vgai '.length)}`;
+    if (name !== 'volter' && script.startsWith('volter ')) {
+      pkg.scripts[name] = `npm run volter -- ${script.slice('volter '.length)}`;
     }
   }
   pkg.devDependencies = pkg.devDependencies ?? {};
@@ -777,7 +777,7 @@ function rewritePackageJson(
 }
 
 /**
- * Exported so `vgai upgrade`'s new-template snapshot (`upgrade.ts`'s
+ * Exported so `volter upgrade`'s new-template snapshot (`upgrade.ts`'s
  * `reapplyScaffoldRewrites`) can reuse the exact package-native roots that a
  * fresh scaffold writes. Keeping one definition prevents upgrade snapshots
  * from drifting from newly created projects.
@@ -797,7 +797,7 @@ export function resolvePackageRoots(): {
 }
 
 /**
- * The dependency spec for a vgai package: a caret range on the version this
+ * The dependency spec for a volter package: a caret range on the version this
  * engine distribution currently holds.
  *
  * The manifest's exact engine compatibility pin is a separate axis and is not
@@ -832,7 +832,7 @@ function engineDependencySpec(monoRoot: string, packageName: string, checkoutRel
 }
 
 /**
- * Step 3.5: vgai.project.json — name + engine.version (T3.3 §1G).
+ * Step 3.5: volter.project.json — name + engine.version (T3.3 §1G).
  *
  * Reuses `readInstalledVersion` — the SAME installed-version resolution
  * `pinSharedDependencyVersions` already uses for shared deps — rather than a
@@ -845,7 +845,7 @@ function engineDependencySpec(monoRoot: string, packageName: string, checkoutRel
  * it), so this function writes a minimal but real one — one `three`
  * world with the `default` adapter pointing at the scaffolded default scene
  * — the FIRST time it's called for such a project. The `starter` template
- * already ships a `vgai.project.json` (stale `name`/frozen `engine.version`);
+ * already ships a `volter.project.json` (stale `name`/frozen `engine.version`);
  * that file is read back and only those two fields are rewritten.
  */
 function rewriteGameManifest(
@@ -855,7 +855,7 @@ function rewriteGameManifest(
   additions: ReadonlySet<ScaffoldAddition> | null,
   monoRoot: string,
 ): JsonRecord {
-  const manifestPath = join(targetDir, 'vgai.project.json');
+  const manifestPath = join(targetDir, 'volter.project.json');
   const engineVersion = readInstalledVersion(monoRoot, '@volter/editor-project');
 
   let manifest: JsonRecord;
@@ -876,7 +876,7 @@ function rewriteGameManifest(
 
   manifest['name'] = name;
   manifest['manifestVersion'] = 2;
-  manifest['$schema'] = './node_modules/@volter/editor-project/schemas/vgai-project.schema.json';
+  manifest['$schema'] = './node_modules/@volter/editor-project/schemas/volter-project.schema.json';
   manifest['appId'] = `com.example.${slug.replace(/[^a-zA-Z0-9]/g, '')}`;
   if (additions) {
     // The empty project declares nothing; each addition declares its own
@@ -915,11 +915,11 @@ function rewriteGameManifest(
  * runs, from the CLI checkout's engine — the only version that exists at
  * that moment. A registry install can then resolve a NEWER published engine
  * (the checkout's package.json lags the release train between cuts), leaving
- * `vgai validate` reporting pin ≠ installed on a project nobody has touched.
+ * `volter validate` reporting pin ≠ installed on a project nobody has touched.
  * This runs after a successful install, reads the version the project
  * ACTUALLY got, and rewrites the pin — plus the scaffold baseline's
  * `engineVersion` and the manifest's recorded hash, so pristine-baseline
- * classification (`vgai upgrade`) still sees the manifest as unchanged. A
+ * classification (`volter upgrade`) still sees the manifest as unchanged. A
  * `file:`-linked dev scaffold resolves to the checkout's own version, so
  * this is a no-op there.
  *
@@ -947,7 +947,7 @@ export function repinEngineAfterInstall(targetDir: string): { from: string; to: 
   try {
     const baseline = JSON.parse(readFileSync(baselinePath, 'utf-8')) as ScaffoldBaseline;
     baseline.engineVersion = installed;
-    baseline.files['vgai.project.json'] = hashFile(manifestPath);
+    baseline.files['volter.project.json'] = hashFile(manifestPath);
     writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`, 'utf-8');
   } catch {
     // No baseline (or unreadable) — nothing to keep consistent with.
@@ -964,13 +964,13 @@ export function repinEngineAfterInstall(targetDir: string): { from: string; to: 
  * dependencies (`engineDependencySpec` above writes `^<version>`), so its own
  * `npm install` fetches `@volter/editor-core` from the REGISTRY — even when the CLI
  * that scaffolded it is this checkout's. `@volter/editor-core` is where the
- * CAPABILITY CATALOG lives, and `vgai add` copies from the catalog of
+ * CAPABILITY CATALOG lives, and `volter add` copies from the catalog of
  * whichever distribution answers (`catalogDistributionDir()` in
- * `packages/vgai-cli/src/index.ts`, resolved from the RUNNING CLI's own root
- * — and a project's `npm run vgai` runs the project's OWN
- * `node_modules/.bin/vgai`, which the scaffold's package.json scripts point
+ * `packages/volter-cli/src/index.ts`, resolved from the RUNNING CLI's own root
+ * — and a project's `npm run volter` runs the project's OWN
+ * `node_modules/.bin/volter`, which the scaffold's package.json scripts point
  * every other verb at). Measured on a minutes-old scaffold, 2026-08-20:
- * `vgai add unity-compat` copied capability 0.22.0 while this checkout's
+ * `volter add unity-compat` copied capability 0.22.0 while this checkout's
  * catalog was at 0.29.0 — seven versions of the day's work silently absent,
  * with nothing to notice it by, because the PACKAGE version was 0.5.22 on
  * both sides. `removeCapabilities`'s doc in ./catalog.ts measured the same
@@ -979,7 +979,7 @@ export function repinEngineAfterInstall(targetDir: string): { from: string; to: 
  * THE RULE. A scaffold created from a checkout uses that checkout's catalog;
  * a scaffold created from a published install uses its published catalog.
  * So the CONTEXT is read off the scaffolding root itself — see
- * {@link checkoutVgaiPackageDirs} — and this is a no-op in a published
+ * {@link checkoutVolterPackageDirs} — and this is a no-op in a published
  * install. Deliberately no environment variable: a dev loop that is only true
  * when you remember to export something is not true.
  *
@@ -990,7 +990,7 @@ export function repinEngineAfterInstall(targetDir: string): { from: string; to: 
  * package dirs>`. `--no-save` leaves `package.json` and the lockfile naming
  * ordinary versioned packages, so the project stays location-free and
  * publishable; only the on-disk `node_modules` entries change — including the
- * `.bin` shims, which is what redirects `npm run vgai` at the checkout's CLI.
+ * `.bin` shims, which is what redirects `npm run volter` at the checkout's CLI.
  *
  * Runs BEFORE `repinEngineAfterInstall`, so the re-pin reads the version the
  * project actually has after linking (the checkout's) rather than the
@@ -1001,9 +1001,9 @@ export function repinEngineAfterInstall(targetDir: string): { from: string; to: 
 export type NpmLinkRunner = (projectDir: string, packageDirs: readonly string[]) => void;
 
 const runNpmLink: NpmLinkRunner = (projectDir, packageDirs) => {
-  // THE GLOBAL `vgai` IS NOT OURS TO MOVE. `npm link <dir>` is two steps, and
+  // THE GLOBAL `volter` IS NOT OURS TO MOVE. `npm link <dir>` is two steps, and
   // the first one is GLOBAL: it links each named directory into the npm
-  // prefix, which on this box is where the `vgai` every other session resolves
+  // prefix, which on this box is where the `volter` every other session resolves
   // lives. Scaffolding from a task checkout therefore silently retargeted the
   // box's CLI at that checkout -- measured twice, and docs/LOCAL-DEV.md says
   // the global links point at the donor checkout and nowhere else.
@@ -1015,7 +1015,7 @@ const runNpmLink: NpmLinkRunner = (projectDir, packageDirs) => {
   // rather than temporary on purpose -- the project's symlinks point INTO it,
   // so a directory deleted afterwards would leave a dangling chain.
   const checkout = packageDirs[0] ? resolve(packageDirs[0], '..', '..') : projectDir;
-  const prefix = join(checkout, '.vgai', 'npm-link-prefix');
+  const prefix = join(checkout, '.volter', 'npm-link-prefix');
   // npm's global layout under a prefix is `lib/node_modules` (+ `bin`), and
   // `npm link` lstats `lib` before creating anything: an empty prefix dir
   // fails with ENOENT and the scaffold silently keeps the registry's
@@ -1066,7 +1066,7 @@ export interface CheckoutLinkPlan {
  * spells the same fact the other way round ("the package directory itself for
  * a package with no `src/`").
  */
-export function checkoutVgaiPackageDirs(monoRoot: string): Map<string, string> {
+export function checkoutVolterPackageDirs(monoRoot: string): Map<string, string> {
   const found = new Map<string, string>();
   const packagesDir = join(monoRoot, 'packages');
   let entries: string[];
@@ -1095,7 +1095,7 @@ export function checkoutVgaiPackageDirs(monoRoot: string): Map<string, string> {
 }
 
 /** The `@volter/*` packages `projectDir`'s package.json declares (both sections), sorted. */
-function declaredVgaiDependencies(projectDir: string): string[] {
+function declaredVolterDependencies(projectDir: string): string[] {
   let pkg: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
   try {
     pkg = JSON.parse(readFileSync(join(projectDir, 'package.json'), 'utf-8')) as typeof pkg;
@@ -1116,9 +1116,9 @@ function declaredVgaiDependencies(projectDir: string): string[] {
  * dependency the project does not have.
  */
 export function planCheckoutLink(projectDir: string, monoRoot: string): CheckoutLinkPlan {
-  const owned = checkoutVgaiPackageDirs(monoRoot);
+  const owned = checkoutVolterPackageDirs(monoRoot);
   if (owned.size === 0) return { packages: [], directories: [] };
-  const packages = declaredVgaiDependencies(projectDir).filter((name) => owned.has(name));
+  const packages = declaredVolterDependencies(projectDir).filter((name) => owned.has(name));
   return { packages, directories: packages.map((name) => owned.get(name) as string) };
 }
 
@@ -1196,7 +1196,7 @@ export function pointUnpublishedPackagesAtCheckout(projectDir: string, monoRoot:
  * r15-blocky entry): `scaffoldProject` ran {@link
  * pointUnpublishedPackagesAtCheckout} AFTER `addCapabilities`, so a project's
  * `package.json` already said `"@volter/editor-blender": "file:<checkout>"` — and a
- * LATER `vgai add <capability that requires it>` computed the desired `0.1.0`
+ * LATER `volter add <capability that requires it>` computed the desired `0.1.0`
  * from the catalog entry, saw a different existing value, and threw
  * `Capability mesh requires dependencies.@volter/editor-blender=0.1.0, but the project
  * package.json already set …=file:…`. Unpinning to `0.1.0` then 404s, because
@@ -1207,7 +1207,7 @@ export function pointUnpublishedPackagesAtCheckout(projectDir: string, monoRoot:
  * version npm cannot fetch.
  */
 export function checkoutPackageSpec(name: string, monoRoot: string): string | null {
-  const dir = checkoutVgaiPackageDirs(monoRoot).get(name);
+  const dir = checkoutVolterPackageDirs(monoRoot).get(name);
   return dir === undefined ? null : `file:${dir}`;
 }
 
@@ -1276,13 +1276,13 @@ function declaredBins(packageDir: string): DeclaredBin[] {
  * @volter/game-editor`. So {@link linkCheckoutPackages} would swap the
  * project's WORKING registry package (whose published tarball ships its
  * build) for a checkout copy with no bin — and the project's own documented door,
- * `npm run vgai -- <verb>`, died with `sh: vgai: command not found` on a
+ * `npm run volter -- <verb>`, died with `sh: volter: command not found` on a
  * minutes-old scaffold. Linking must never take away a bin the plain install
  * had.
  *
  * Only MISSING targets are built; a stale one is a different question and
  * already has its own guard (`ensureCliDistFresh` in
- * `packages/vgai-cli/src/dist-freshness.ts`). A package with no `build`
+ * `packages/volter-cli/src/dist-freshness.ts`). A package with no `build`
  * script and no target is left alone — {@link assertLinkedBins} reports it
  * after the link, where the evidence is what the project actually got.
  */
@@ -1344,7 +1344,7 @@ export function linkCheckoutPackages(
  * A composition's product and lanes are a REPLACEMENT, not an addition: the
  * base template is the game editor's full set, and a modeling scaffold must
  * end up with the model editor and none of the game editor's lanes — two
- * products in one project is a refusal `vgai edit` states by name.
+ * products in one project is a refusal `volter edit` states by name.
  *
  * WHICH of the template's `@volter/*` are "editor-side" is read from the KIT's
  * side, the only side a library may name: everything the kit itself puts in a
@@ -1460,11 +1460,11 @@ function rewriteTemplateVariantFiles(
     for (const relative of THREE_OWNED_PATHS) {
       rmSync(join(targetDir, relative), { recursive: true, force: true });
     }
-    writeFileSync(join(targetDir, 'vgai.adapter.ts'), adapterSourceFor(additions), 'utf-8');
+    writeFileSync(join(targetDir, 'volter.adapter.ts'), adapterSourceFor(additions), 'utf-8');
   } else {
     // The template's adapter keeps its scene and prefab finders; the finders
     // the other additions bring join them.
-    const adapterPath = join(targetDir, 'vgai.adapter.ts');
+    const adapterPath = join(targetDir, 'volter.adapter.ts');
     const source = joinAdditionFinders(readFileSync(adapterPath, 'utf-8'), additions);
     writeFileSync(adapterPath, source, 'utf-8');
   }
@@ -1575,7 +1575,7 @@ function rewriteTsconfig(targetDir: string, engineRelPath: string, editorRelPath
       ]),
     ),
     // `@volter/editor-blender`'s two VALUE exports — the look and the layout a models
-    // project's `vgai.adapter.ts` imports. Spelled entry by entry rather than
+    // project's `volter.adapter.ts` imports. Spelled entry by entry rather than
     // as a wildcard because the package's `exports` names them individually;
     // both entries are inert for a project that never declares the package.
     '@volter/editor-blender/looks': ['node_modules/@volter/editor-blender/src/looks.ts'],
@@ -1611,7 +1611,7 @@ function rewriteViteConfig(targetDir: string): void {
 
 /**
  * The pure text rewrite behind {@link rewriteViteConfig} — exported so
- * `vgai upgrade`'s new-template snapshot (`upgrade.ts`'s
+ * `volter upgrade`'s new-template snapshot (`upgrade.ts`'s
  * `reapplyScaffoldRewrites`) applies the exact same transformation. Engine,
  * editor, P2P, and config-time data imports are package-native already and
  * therefore need no checkout-relative rewriting.
@@ -1633,7 +1633,7 @@ export function rewriteViteConfigContent(content: string): string {
  * reason). `rewriteViteConfigContent` is also the exact function
  * `upgrade.ts`'s `reapplyScaffoldRewrites` reuses to build the new-template
  * snapshot for 3-way classification, so an existing project with an
- * unmodified `vite.config.ts` picks up the dedupe automatically on `vgai
+ * unmodified `vite.config.ts` picks up the dedupe automatically on `volter
  * upgrade` (classified `template-updated`); a hand-edited `vite.config.ts`
  * is classified `user-edited` and left alone, same as any other
  * user customization.
@@ -1750,7 +1750,7 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
       resolveScaffoldStarterDir(productDir),
     );
     if (additions.has('canvas')) applyCanvasAddition(targetDir, productDir);
-    const adapterPath = join(targetDir, 'vgai.adapter.ts');
+    const adapterPath = join(targetDir, 'volter.adapter.ts');
     writeFileSync(
       adapterPath,
       withEditorDeclaration(readFileSync(adapterPath, 'utf-8'), composition.editor),
@@ -1792,7 +1792,7 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
 
   // Pristine baseline (T2.3/D3 §1.D) — hashed AFTER every rewrite above, so
   // rewritten files (package.json, tsconfig.json, vite.config.ts,
-  // vgai.project.json, ...) are recorded at their FINAL post-rewrite content,
+  // volter.project.json, ...) are recorded at their FINAL post-rewrite content,
   // not the template's pre-rewrite copy.
   const engineVersion = readInstalledVersion(monoRoot, '@volter/editor-project') ?? '0.0.0';
   writeScaffoldBaseline(targetDir, engineVersion, engineDir);

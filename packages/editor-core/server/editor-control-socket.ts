@@ -142,7 +142,7 @@ export interface EditorControlSocketServer {
  * The discriminator and the payload live in SEPARATE keys, and that
  * separation is load-bearing in both directions. Flattened
  * (`{ type, ...payload }`) the envelope leaked its own `type` into the state
- * the server stored, so `vgai status` printed a field the tab never
+ * the server stored, so `volter status` printed a field the tab never
  * reported — on the exact seam this transport promises the POST route
  * cannot drift from. And a payload key named `type` (a state snapshot is an
  * open-ended object) would have overwritten the discriminator on the way

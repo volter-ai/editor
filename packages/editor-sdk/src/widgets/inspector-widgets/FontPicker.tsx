@@ -85,7 +85,7 @@ export function FontPicker({
       <Button
         type="button"
         variant="secondary"
-        className="vgai-field-trigger"
+        className="volter-field-trigger"
         /* This trigger opens a listbox popover and never said so: the ARIA was
            missing, which is both an a11y defect and — since the widget classes
            landed — what decides whether it paints as a menu well or a
@@ -111,7 +111,7 @@ export function FontPicker({
             top: '100%',
             left: 0,
             right: 0,
-            zIndex: 'var(--vgai-z-dropdown)',
+            zIndex: 'var(--volter-z-dropdown)',
             marginTop: 2,
           }}
         >

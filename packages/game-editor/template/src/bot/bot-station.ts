@@ -3,10 +3,10 @@
  *
  * The resident QA tester (`src/bot/tester-station.ts`) plays this game from
  * INSIDE the page, directed live from the REPL through `hireTester`. This module
- * holds what it is doing so the game's Tester surface and `vgai eval`
+ * holds what it is doing so the game's Tester surface and `volter eval`
  * both watch one run, and it implements the operator controls the tester
  * honors between steps. This module is plain application state and imports no
- * vgai API; its exports are the whole control surface.
+ * volter API; its exports are the whole control surface.
  *
  * `getBotStatus()` reads `{active, seat, goal, step, phase, progress,
  * waitingOn, note, seed, directive}`. `pauseBot()`, `resumeBot()`,

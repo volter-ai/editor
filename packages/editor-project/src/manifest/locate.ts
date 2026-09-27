@@ -30,9 +30,9 @@ export function assertNoRemovedManifestFilename(dir: string): void {
 }
 
 /**
- * The manifest path inside `dir`. Always `vgai.project.json` — so a "not
+ * The manifest path inside `dir`. Always `volter.project.json` — so a "not
  * found" message names the filename a project must be using — except that a
- * directory carrying only the removed `vgai.game.json` THROWS the rename
+ * directory carrying only the removed `volter.game.json` THROWS the rename
  * instruction instead of reporting a phantom path.
  *
  * This is the drop-in replacement for a hand-written `join(dir, …)` everywhere
@@ -43,7 +43,7 @@ export function resolveManifestPath(dir: string): string {
   return join(dir, MANIFEST_FILENAME);
 }
 
-/** True when `dir` holds a manifest. A lone `vgai.game.json` throws. */
+/** True when `dir` holds a manifest. A lone `volter.game.json` throws. */
 export function hasManifest(dir: string): boolean {
   assertNoRemovedManifestFilename(dir);
   return existsSync(join(dir, MANIFEST_FILENAME));

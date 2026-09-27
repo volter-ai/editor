@@ -30,7 +30,7 @@
     "./mcp": "./node/blender-mcp.ts",
     "./package.json": "./package.json"
   },
-  "vgai": {
+  "volter": {
     "contributions": [
       "./contributions/blender-node-editor.document.tsx",
       "./contributions/blender-timeline.document.tsx",

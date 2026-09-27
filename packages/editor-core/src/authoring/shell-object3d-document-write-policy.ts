@@ -5,7 +5,7 @@
  * `openPersistence` and `replaceSource` are one-line delegations to the
  * modules that already owned them. `saveThumbnailFraming` moved here WHOLE
  * from `components/Object3DDocumentToolbar.tsx` (nothing about it changed) —
- * merging `.vgai/thumbnails.json` is transport work end to end: read the
+ * merging `.volter/thumbnails.json` is transport work end to end: read the
  * project's manifest, refuse an unreadable one, write the merged bytes back
  * through the project-file route.
  *

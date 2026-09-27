@@ -3,7 +3,7 @@
  * `../../../visual-edit/preload.ts`'s inspection FUNCTIONS ported as DIRECT-CALL helpers.
  *
  * The no-iframe adaptation (see the parity spec): visual-edit injects `preload.ts` into
- * an iframe and inspects the target app across a `postMessage` bridge. vgai mounts React
+ * an iframe and inspects the target app across a `postMessage` bridge. volter mounts React
  * roots as DOM layers in the SAME document and `ReactRootAuthoringAdapter` already holds
  * the live root — so these run against the live element directly, no iframe/bridge.
  *
@@ -320,7 +320,7 @@ function readRuleProperties(rule: StyleRuleLike): Record<string, string> {
  * Walk every STYLE rule of every first-party stylesheet (one with a
  * `data-vite-dev-id` — a real source file Vite is serving), DESCENDING grouping
  * rules. Descent is the load-bearing half: the dev server wraps a project
- * stylesheet's whole body in `@scope ([data-vgai-game-styles]) { … }`
+ * stylesheet's whole body in `@scope ([data-volter-game-styles]) { … }`
  * (`@volter/editor-sdk/session/scoped-game-css`), so in the served CSSOM every project rule is a
  * grouping-rule CHILD — a top-level-only walk sees none of them, which is
  * exactly why the Cap-2 cascade route never fired for scoped game CSS. A
@@ -466,7 +466,7 @@ export function traceTokenDeclarations(
     if (isStyleRule(rule)) {
       const selector = rule.selectorText;
       // The dev server rewrites a project stylesheet's `:root { … }` into
-      // `@scope ([data-vgai-game-styles]) { :scope { … } }` (measured), so a
+      // `@scope ([data-volter-game-styles]) { :scope { … } }` (measured), so a
       // scope-wrapped `:scope` IS a `:root` declaration — and the recorded
       // write address is the SOURCE's `:root`, because the css writer edits
       // source text, not the served rewrite.
@@ -504,7 +504,7 @@ export function traceTokenDeclarations(
  * Enumerate the `:root` CSS custom properties (design tokens) resolved on the document
  * root, classified color/spacing/other (visual-edit `getDesignTokens` :506). Captures
  * Tailwind v4 `@theme`/`oklch` vars; skips Tailwind internal `--tw-*`, Font
- * Awesome internals, and the editor chrome's reserved `--vgai-*` namespace.
+ * Awesome internals, and the editor chrome's reserved `--volter-*` namespace.
  * The latter is infrastructure inherited from the editor host, never authored
  * game data. The computed declaration is injectable for headless tests
  * (defaults to the live `:root`).
@@ -521,14 +521,14 @@ export function getDesignTokens(
       !name.startsWith('--') ||
       name.startsWith('--tw-') ||
       name.startsWith('--fa-') ||
-      name.startsWith('--vgai-') ||
+      name.startsWith('--volter-') ||
       // Code-OSS theme tokens inherit into game roots but belong to the host.
       name.startsWith('--vscode-') ||
       name === '--chat-input-control-height' ||
       // The `--dv-*` chrome variables inherit from the editor shell into
       // every game-CSS scope root, so a board's token read sees them
       // (measured: 15 heuristic warnings per board open). Editor chrome, not
-      // game data — same exclusion as `--vgai-*`.
+      // game data — same exclusion as `--volter-*`.
       name.startsWith('--dv-') ||
       seen.has(name)
     )
@@ -547,7 +547,7 @@ export function getDesignTokens(
   for (const name of declarations.keys()) {
     if (seen.has(name) || name.startsWith('--tw-') || name.startsWith('--fa-')) continue;
     if (
-      name.startsWith('--vgai-') ||
+      name.startsWith('--volter-') ||
       name.startsWith('--dv-') ||
       name.startsWith('--vscode-') ||
       name === '--chat-input-control-height'

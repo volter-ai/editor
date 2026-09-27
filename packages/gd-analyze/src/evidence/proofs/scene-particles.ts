@@ -360,7 +360,7 @@ export async function measureSceneParticlesProof(tools: GodotProofTools): Promis
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-particles-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-particles-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

@@ -28,7 +28,7 @@ export interface BoardGuide {
   readonly value: number;
 }
 
-const STORAGE_KEY = 'vgai:board-guides:v1';
+const STORAGE_KEY = 'volter:board-guides:v1';
 
 type Stored = Record<string, Record<string, BoardGuide[]>>;
 

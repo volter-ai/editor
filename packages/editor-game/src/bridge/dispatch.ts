@@ -109,19 +109,19 @@ function recordContractSystemUse(member: string, value: unknown, name?: string):
 
 /**
  * #140 — the generic session-wire dispatch table: the SAME method-name
- * surface `window.__vgai` exposes (`@volter/editor-game/runtime/debug-bridge`'s
- * `VgaiDebugHandle` — `state`/`stateAll`/`providers`/`commands`/`events`/
+ * surface `window.__volter` exposes (`@volter/editor-game/runtime/debug-bridge`'s
+ * `VolterDebugHandle` — `state`/`stateAll`/`providers`/`commands`/`events`/
  * `snapshot`/`invoke`/`runTicks`/`input.*`), built from the SAME
  * registry-backed accessors the sibling
  * `gameplay.command.ts` verbs (`list-gameplay-state`/`inject-input`/`run-ticks`)
  * already use. This is what makes the
  * `bridge-call` relay op (below) a session-generic primitive rather than a
  * test-specific one — any client of the live session (the `@volter/editor-live`
- * `RelayTransport`, a future one-shot `vgai game state/call/hold` REPL) can
+ * `RelayTransport`, a future one-shot `volter game state/call/hold` REPL) can
  * issue `{method, callArgs}` against it with no dependency on a proof run's
  * own lifecycle/env, and get byte-identical dispatch to the page-transport's
  * `page.evaluate(bridgeCallInPage)` (D17) — without requiring the editor tab
- * to be loaded with `?vgai-debug=1` (that gate exists for the bridge's own
+ * to be loaded with `?volter-debug=1` (that gate exists for the bridge's own
  * production exposure; this relay is already local-loopback-only — see
  * `editor-server.ts`'s CSRF/origin guard).
  */
@@ -228,7 +228,7 @@ export async function dispatchBridgeMethod(
         // funnels window error/unhandledrejection into the editor console as
         // level 'error' / source 'runtime' (`installEditorConsoleCapture`'s
         // boot-time listeners) — the SAME events and message format
-        // `window.__vgai`'s own handle buffers. Fenced to the current play run
+        // `window.__volter`'s own handle buffers. Fenced to the current play run
         // via `inPlayRun` so a probe never reads a previous run's stale
         // failures, capped at 100 for parity with the bridge's ring buffer.
         pageErrors: collectPlayRunPageErrors(),
@@ -308,10 +308,10 @@ export async function dispatchBridgeMethod(
     case 'input.clearVirtualActions':
     // bridge↔wire coverage-parity gate (`bridge-wire-parity.test.ts`)
     // closed this trio's gap: `startRecording`/`stopRecording`/`isRecording`
-    // exist on the page bridge's `VgaiDebugInputHandle` (`runtime/
+    // exist on the page bridge's `VolterDebugInputHandle` (`runtime/
     // debug-bridge.ts`) but had no relay case at all — an agent driving the
     // input-trace recorder over the session wire (RelayTransport) instead of
-    // `?vgai-debug=1` simply had no door to it. Same single optional
+    // `?volter-debug=1` simply had no door to it. Same single optional
     // trailing `worldId` shape as `clearVirtualActions`.
     case 'input.startRecording':
     case 'input.stopRecording':
@@ -320,10 +320,10 @@ export async function dispatchBridgeMethod(
       // D15/T-D15.5 (rebase composition with #140): this wire is a THIRD
       // door to the virtual-input target — it must resolve through the SAME
       // `DebugRegistry.getVirtualInputTarget(worldId?)` the page bridge
-      // (`window.__vgai.input.*`) and the `inject-input` relay case use, so
+      // (`window.__volter.input.*`) and the `inject-input` relay case use, so
       // no two doors can ever disagree about which world an unqualified
       // actuation targets. Each method takes the page bridge's own optional
-      // trailing `worldId` (byte-parity with `VgaiDebugInputHandle`); an
+      // trailing `worldId` (byte-parity with `VolterDebugInputHandle`); an
       // explicit, unregistered id throws the registry's structured
       // `DEBUG_INPUT_WORLD_NOT_FOUND`, shipped back over the wire as-is.
       const worldId = (
@@ -365,7 +365,7 @@ export async function dispatchBridgeMethod(
       return inputTarget.isInputRecording();
     }
     case 'input.scheduleActionAtTick': {
-      // bridge↔wire coverage-parity gate: `window.__vgai.input.
+      // bridge↔wire coverage-parity gate: `window.__volter.input.
       // scheduleActionAtTick` (`runtime/debug-bridge.ts`, D15/T-D15.5) had NO
       // bridge-call case — it was reachable over the relay ONLY via the
       // separate `inject-input` command's `atTick` field (see that case,
@@ -390,7 +390,7 @@ export async function dispatchBridgeMethod(
     }
     case 'input.injectPointerDelta':
     case 'input.injectPointerPosition': {
-      // pointer-dispatch op: `window.__vgai.input.injectPointerDelta`/
+      // pointer-dispatch op: `window.__volter.input.injectPointerDelta`/
       // `injectPointerPosition` (`runtime/debug-bridge.ts`) had no relay case
       // — this is the HONEST gameplay-seam reading of "pointer dispatch": the
       // engine's existing virtual pointer-injection, never a synthesized DOM
@@ -417,7 +417,7 @@ export async function dispatchBridgeMethod(
       return undefined;
     }
     case 'holdFor': {
-      // #140/D17: byte-identical semantics to `window.__vgai.holdFor` (door
+      // #140/D17: byte-identical semantics to `window.__volter.holdFor` (door
       // a, `runtime/debug-bridge.ts`) — same `getInputTarget(worldId?)`
       // resolution as the `input.*` cases above, same `waitForHoldBudget`
       // poll/stall loop (imported, not hand-copied, so the two doors can

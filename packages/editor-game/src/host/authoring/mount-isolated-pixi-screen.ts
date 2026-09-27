@@ -148,7 +148,7 @@ export async function mountIsolatedPixiScreen(
     preserveDrawingBuffer: true,
   });
   const canvas = app.canvas as HTMLCanvasElement;
-  canvas.dataset['vgaiCanvasSceneSurface'] = 'true';
+  canvas.dataset['volterCanvasSceneSurface'] = 'true';
   canvas.style.position = 'absolute';
   canvas.style.inset = '0';
   canvas.style.width = '100%';

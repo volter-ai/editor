@@ -8,7 +8,7 @@
  * (`bl_rna.properties`) — the ruling's "everything Blender SHOWS about a
  * datablock, we show, in OUR panels, read from the engine through bpy and RNA"
  * (ARCHITECTURE-CORE §Blender north star, "Inspection parity, not editing
- * parity"). Nothing in this file is a vgai invention over RNA: every field is
+ * parity"). Nothing in this file is a volter invention over RNA: every field is
  * a `PropertyRNA` member, a `bpy.types` name, or an address `path_from_id()`
  * produced.
  */
@@ -241,7 +241,7 @@ export interface BlenderRnaWrite {
 // session's scene, as rows (WORK.md §Blender in the tab is Blender,
 // "Inspection parity", I3). Every field below is Blender's own — a `TSE_*`
 // element type, an `ICON_*` name `tree_element_get_icon` picks, a restriction
-// column `outliner_draw_restrictbuts` draws — and nothing here is a vgai
+// column `outliner_draw_restrictbuts` draws — and nothing here is a volter
 // invention over the Outliner.
 
 /**

@@ -109,7 +109,7 @@ export function dispatchLiveCommand(cmd: LiveCommand): LiveCommandResult | null 
  *
  * The shape check is STRUCTURAL and stays here rather than importing a lane's
  * own type guard (it imported the ingest lane's `isContractScenesStories`,
- * by name, until 2026-09-18, and with it the whole `window.vgaiGame` contract
+ * by name, until 2026-09-18, and with it the whole `window.volterGame` contract
  * — an INGEST vocabulary inside the registry every lane registers through).
  * `LiveSceneTable` is a declaration, and a lane is foreign code: the
  * host checks that the declaration is honoured before handing the table to the

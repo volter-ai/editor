@@ -9,7 +9,7 @@
  * to the Blender it started:
  *
  *     const { createPresenter, attachPresenter } = await import(url);
- *     const detach = attachPresenter(filesystem, "/tmp/vgai-presenter", createPresenter());
+ *     const detach = attachPresenter(filesystem, "/tmp/volter-presenter", createPresenter());
  *
  * NO HOST BUNDLES THIS. The module is GPL because it is part of the Blender
  * release; a host loads it the way it loads the wasm -- by URL, under a pinned

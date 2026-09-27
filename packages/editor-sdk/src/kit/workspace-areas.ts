@@ -15,7 +15,7 @@
  * WHY THE OPEN LIVES HERE AND NOT IN THE DOCK. The dock is a RECONCILER: it
  * draws whatever the document registry holds, and `reconcileWorkspace` runs on
  * every mutation, so opening a document from inside it is a write during a
- * read. The registry is the truth; the frame places it (`vgaiDocuments.ts`'s
+ * read. The registry is the truth; the frame places it (`volterDocuments.ts`'s
  * `reconcileAreaDocumentPanels`), and under the frame the layout host places
  * the same registry entry in a VS Code editor group instead. One list, two
  * hosts — the shape every U8 seam takes.

@@ -161,7 +161,7 @@ export function registerHotkeys(bindings: HotkeyBinding[]): () => void {
  *
  * THERE IS NO KEYDOWN LISTENER HERE, and that is the whole shape of this
  * module: VS Code's keybinding service is the one keyboard, and every editor
- * action reaches it as a `vgai.<id>` command with a `when` clause over our
+ * action reaches it as a `volter.<id>` command with a `when` clause over our
  * panes' context keys (`scripts/workbench/generate-keymaps.mjs` writes one rule per
  * (action, chord, keymap) into a built-in extension). A second window-level
  * listener here would be the second owner the ruling forbids — and it was

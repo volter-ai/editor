@@ -1,6 +1,6 @@
 /**
  * The Playwright-page-bound wiring for `game`'s client methods (D17: specs
- * drive `window.__vgai` via `page.evaluate` — the standalone page has no HTTP
+ * drive `window.__volter` via `page.evaluate` — the standalone page has no HTTP
  * channel). This module is deliberately the ONLY place that touches `Page`;
  * the budget math (`wait-for.ts`), the events matcher (`events-matcher.ts`),
  * and the failure-block assembler (`failure-block.ts`) are plain modules
@@ -48,11 +48,11 @@ import {
  *  closure over Node state) because `page.evaluate(fn, arg)` only ships
  *  `fn`'s own source across the boundary. */
 function bridgeCallInPage(args: { method: string; callArgs: unknown[] }): BridgeCallOutcome {
-  const bridge = (window as unknown as { __vgai?: Record<string, unknown> }).__vgai;
+  const bridge = (window as unknown as { __volter?: Record<string, unknown> }).__volter;
   if (!bridge) {
     return {
       ok: false,
-      error: { code: undefined, message: 'window.__vgai is not installed on this page' },
+      error: { code: undefined, message: 'window.__volter is not installed on this page' },
     };
   }
   const parts = args.method.split('.');
@@ -80,11 +80,11 @@ async function bridgeCallInPageAsync(args: {
   method: string;
   callArgs: unknown[];
 }): Promise<BridgeCallOutcome> {
-  const bridge = (window as unknown as { __vgai?: Record<string, unknown> }).__vgai;
+  const bridge = (window as unknown as { __volter?: Record<string, unknown> }).__volter;
   if (!bridge) {
     return {
       ok: false,
-      error: { code: undefined, message: 'window.__vgai is not installed on this page' },
+      error: { code: undefined, message: 'window.__volter is not installed on this page' },
     };
   }
   const parts = args.method.split('.');
@@ -126,7 +126,7 @@ function selfContainedStepSource(step: (scope: unknown) => unknown): string {
 
 /**
  * #140 — the `BridgeTransport` `page.evaluate` implementation. This is the
- * ONE place a `Page` is ever touched to drive `window.__vgai` (module doc
+ * ONE place a `Page` is ever touched to drive `window.__volter` (module doc
  * above); `RelayTransport` (`relay-transport.ts`) is the sibling
  * implementation for the live editor session, and imports no Playwright at
  * all. Exported so `fixture.ts` (which already imports `@playwright/test`
@@ -180,7 +180,7 @@ export class PageTransport implements BridgeTransport {
 
   /** THE MODULE LANE under a real Playwright host: the step's source is
    *  evaluated INSIDE the editor page via the same in-page handler the relay
-   *  op uses (`window.__vgaiGameEval`), because `modules()` only means
+   *  op uses (`window.__volterGameEval`), because `modules()` only means
    *  anything in the page's own module space — a Node-side call could never
    *  hand back the running mount's instances. Same serialization contract
    *  as the relay leg. */
@@ -192,12 +192,12 @@ export class PageTransport implements BridgeTransport {
     try {
       const result = await this.page.evaluate(
         async (args: { src: string; instance?: string }) => {
-          const hook = (window as unknown as Record<string, unknown>)['__vgaiGameEval'] as
+          const hook = (window as unknown as Record<string, unknown>)['__volterGameEval'] as
             | ((src: string, instance?: string) => Promise<unknown>)
             | undefined;
           if (typeof hook !== 'function') {
             throw new Error(
-              'game-eval: this page has no __vgaiGameEval hook — is the editor page loaded?',
+              'game-eval: this page has no __volterGameEval hook — is the editor page loaded?',
             );
           }
           return hook(args.src, args.instance);
@@ -225,7 +225,7 @@ export interface GameClientOptions {
   /** The bridge transport — `new PageTransport(page)` for a standalone page
    *  (`fixture.ts`), `new RelayTransport({ port })` for `--in-editor`
    *  (`relay-fixture.ts`). See `bridge-transport.ts`'s module doc: every
-   *  method below reaches `window.__vgai` (or its relay-side equivalent)
+   *  method below reaches `window.__volter` (or its relay-side equivalent)
    *  ONLY through this seam. */
   transport: BridgeTransport;
   /** Populated by the fixture's `pageerror` listener, installed before goto. */
@@ -544,7 +544,7 @@ export class GameEvents {
 }
 
 /**
- * The `game` fixture value. Every method reaches `window.__vgai` (or its
+ * The `game` fixture value. Every method reaches `window.__volter` (or its
  * relay-side equivalent) through `this.#transport` — see `bridge-transport.ts`'s
  * module doc for the seam, and this file's own module doc for why it, alone,
  * is allowed to import Playwright (via `PageTransport`, above).
@@ -610,7 +610,7 @@ export class GameClient {
     this.fenceSeq = opts.fenceSeq;
     this.fenceSimSeconds = opts.fenceSimSeconds;
     this.fenceWallMs = opts.fenceWallMs;
-    this.artifactsDir = opts.artifactsDir ?? resolve('.vgai/last-run');
+    this.artifactsDir = opts.artifactsDir ?? resolve('.volter/last-run');
     this.#projectRoot = opts.projectRoot;
     this.#warmSession = opts.warmSession ?? false;
     this.#testTitle = opts.testTitle ?? 'test';

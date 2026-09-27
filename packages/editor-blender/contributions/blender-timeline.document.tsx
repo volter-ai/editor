@@ -117,12 +117,12 @@ const REFUSALS = {
  * sentence, with ONE author: the `play` verb throws it and the header's
  * controls wear it as their title while they are disabled.
  *
- * It exists because the two halves disagreed. `vgai.timeline.play` refused by
+ * It exists because the two halves disagreed. `volter.timeline.play` refused by
  * name while the BUTTON called `transport()?.play()` straight through — the
  * clock went to `playing`, both glyphs flipped to Pause, and the playhead
  * stayed on frame 1 forever, because `#seek`/the play tick return early with
  * no mixer to move (`blender-runtime-skin.ts`). Measured on U8's walk 3
- * (2026-09-20) over a `--template models` scaffold: `vgai.timeline.state`
+ * (2026-09-20) over a `--template models` scaffold: `volter.timeline.state`
  * answered `action: null` with that warning while the header showed a running
  * transport. A control whose success can be invisible must say so.
  */
@@ -240,8 +240,8 @@ function report(): unknown {
  *  no mixer (`blender-runtime-skin.ts`), so the seek was a no-op and
  *  `report()` then answered `frame: 1` — the playhead's honest position and a
  *  complete lie about the gesture. Measured on walk 5 over a fresh
- *  `model-editor create` scaffold: `vgai.timeline.frame {frame:120}` and
- *  `vgai.timeline.jump-end` (frame 250) both answered `frame: 1`,
+ *  `model-editor create` scaffold: `volter.timeline.frame {frame:120}` and
+ *  `volter.timeline.jump-end` (frame 250) both answered `frame: 1`,
  *  `refusal: null`. This is the half of walk 4's W5 (#7740) that the header
  *  got and the VERBS did not — there the buttons were disabled wearing this
  *  sentence as their title while `play` threw it, and the five verbs that
@@ -822,9 +822,9 @@ function TimelineViewMenu() {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 'var(--vgai-space-2)',
+        gap: 'var(--volter-space-2)',
         width: '100%',
-        padding: 'var(--vgai-space-1) var(--vgai-space-3)',
+        padding: 'var(--volter-space-1) var(--volter-space-3)',
         border: 'none',
         background: 'transparent',
         color: TIMELINE_CHROME.widgetText,
@@ -851,7 +851,7 @@ function TimelineViewMenu() {
           background: 'transparent',
           color: TIMELINE_CHROME.text,
           font: 'inherit',
-          padding: '0 var(--vgai-space-2)',
+          padding: '0 var(--volter-space-2)',
           cursor: 'pointer',
         }}
       >

@@ -1,6 +1,6 @@
 /**
  * The two shared settings layers over the wire (`server/routes/settings.ts`):
- * `~/.vgai/settings.json` (user) and `<project>/.vgai/settings.json`
+ * `~/.volter/settings.json` (user) and `<project>/.volter/settings.json`
  * (project), both files the editor server owns.
  */
 import type { EditorSettings } from '@volter/editor-project/settings/schema';

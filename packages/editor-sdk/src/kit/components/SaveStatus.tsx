@@ -59,11 +59,11 @@ export function SaveStatus() {
       data-save-state={state}
       variant="ghost"
       size="compact"
-      className="vgai-save-status"
+      className="volter-save-status"
       onClick={() => (failed ? showConsoleUtility() : void saveActiveAuthoring(store))}
       title={title}
     >
-      <span className="vgai-save-status-dot" />
+      <span className="volter-save-status-dot" />
       {config.label}
     </Button>
   );

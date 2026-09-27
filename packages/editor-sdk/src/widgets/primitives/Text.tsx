@@ -44,11 +44,11 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       data-tone={tone}
       data-truncate={truncate || undefined}
       data-selectable={selectable || undefined}
-      className={classes('vgai-text', className)}
+      className={classes('volter-text', className)}
     />
   );
 });
 
 export function Keycap({ className, ...props }: HTMLAttributes<HTMLElement>) {
-  return <kbd {...props} className={classes('vgai-keycap', className)} />;
+  return <kbd {...props} className={classes('volter-keycap', className)} />;
 }

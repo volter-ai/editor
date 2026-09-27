@@ -334,7 +334,7 @@ const TEMPLATE_EXAMPLE = 'src/contributions/my-tool.document.tsx';
  * Every point a contribution module may declare — the whole vocabulary, and
  * the teaching error's own list, so the two cannot disagree.
  *
- * It must stay equal to `@vgai/sdk`'s `ToolContributionPoint` union and to the
+ * It must stay equal to `@volter/sdk`'s `ToolContributionPoint` union and to the
  * server scan's `TOOL_CONTRIBUTION_SUFFIXES` (`server/server-utils.ts`): a
  * point the scan finds and this loader rejects is a module that loads,
  * teaching-errors, and mounts nowhere.
@@ -388,7 +388,7 @@ function contributionIdFromPath(entryPath: string): string {
  * a console line.
  *
  * The console line existed already and is captured (`editor-console.ts`'s
- * session-lifetime wrapper puts it in `vgai status`'s `sessionErrors`). What
+ * session-lifetime wrapper puts it in `volter status`'s `sessionErrors`). What
  * did not exist was a RECORD any consumer could read, so every downstream
  * refusal was blind: `editor.present` answered "Tool document is not
  * registered: data-tables.document" while the real answer — its capability's
@@ -536,7 +536,7 @@ function resolveDeclaredTool(
     return {
       error:
         `[tool contributions] ${file} drives ${JSON.stringify(declaredTool)}, which no ` +
-        'registered tool declares. Register it in package.json#vgai.tools, or fix the name. ' +
+        'registered tool declares. Register it in package.json#volter.tools, or fix the name. ' +
         'Skipped.',
     };
   }
@@ -853,8 +853,8 @@ export function extractProjectToolContribution(
  * The kit names none of them (rule 1). A product's entry is the only writer:
  * `product({ packages: { '@volter/editor-blender': blender, … } })`
  * (`frame/product.ts`) hands over the lists it imported as
- * `vgai:contributions/<package>` modules, each row synthesized from that
- * package's own `package.json#vgai.contributions`
+ * `volter:contributions/<package>` modules, each row synthesized from that
+ * package's own `package.json#volter.contributions`
  * (`vite-plugin-product-contributions.ts`).
  *
  * The SESSION is what decides which of these actually mount: its catalog
@@ -864,7 +864,7 @@ export function extractProjectToolContribution(
  * time through `/@fs/` — and the open project's own declared packages by
  * absolute path. A package on both lists is listed once, as the product's.
  *
- * Filled at the product entry's module scope, before its `mountVgai` can be
+ * Filled at the product entry's module scope, before its `mountVolter` can be
  * called, so no refresh pass can see a half-composed page.
  */
 // The product registers once at module evaluation. A loader-only HMR update
@@ -1512,7 +1512,7 @@ function clearProjectToolContributions(): void {
   publishToolContributions();
 }
 
-/** `@vgai/game/contributions/x.ts` → `@vgai/game`. */
+/** `@volter/game/contributions/x.ts` → `@volter/game`. */
 function packageNameOf(specifier: string): string {
   const parts = specifier.split('/');
   return specifier.startsWith('@') ? `${parts[0]}/${parts[1]}` : (parts[0] ?? specifier);
@@ -1528,7 +1528,7 @@ function packageNameOf(specifier: string): string {
  * only once the newest pass has installed.
  */
 /**
- * The origin that served THIS module — the editor's own dev server (the `vgai
+ * The origin that served THIS module — the editor's own dev server (the `volter
  * edit` session), which is also what serves the open project's modules.
  *
  * Everywhere but one shape it equals the page's origin. Inside the Code-OSS
@@ -1644,7 +1644,7 @@ async function runContributionRefresh(): Promise<void> {
     source: (path) =>
       (
         import(
-          /* @vite-ignore */ `/@fs/${absolute(path)}?raw&vgai-source=${Date.now()}`
+          /* @vite-ignore */ `/@fs/${absolute(path)}?raw&volter-source=${Date.now()}`
         ) as Promise<{ default?: unknown }>
       ).then((raw) => {
         if (typeof raw.default !== 'string') {
@@ -1759,7 +1759,7 @@ async function runContributionRefresh(): Promise<void> {
         // The project's own module registers first, so the loser is the
         // later one — a package's, when a project still carries the copy a
         // capability shipped before it became a package.
-        const packaged = entryPath.startsWith('@vgai/') || entryPath.includes('/node_modules/');
+        const packaged = entryPath.startsWith('@volter/') || entryPath.includes('/node_modules/');
         teachingError(
           `[tool contributions] ${entryPath} claims id ${JSON.stringify(result.contribution.id)}, ` +
             'which another contribution already uses. ' +
@@ -1890,7 +1890,7 @@ function teachingNote(message: string): void {
 }
 
 if (hot) {
-  hot.on('vgai:script-update', (data: { file: string }) => {
+  hot.on('volter:script-update', (data: { file: string }) => {
     if (!isEditorLanePath(data.file)) return;
     void refreshProjectToolContributions();
   });

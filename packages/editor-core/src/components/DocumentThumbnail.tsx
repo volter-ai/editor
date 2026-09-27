@@ -65,7 +65,7 @@ async function projectDependencyFingerprint(): Promise<string> {
   dependencyFingerprint ??= Promise.all([
     listProjectSourceFiles([
       MANIFEST_FILENAME,
-      'vgai.adapter.ts',
+      'volter.adapter.ts',
       '.storybook/**/*',
       'src/**/*.ts',
       'src/**/*.tsx',
@@ -96,7 +96,7 @@ function subscribeProjectDependencies(listener: () => void): () => void {
     if (
       !/^(src|public|\.storybook)\//.test(event.path) &&
       event.path !== MANIFEST_FILENAME &&
-      event.path !== 'vgai.adapter.ts'
+      event.path !== 'volter.adapter.ts'
     )
       return;
     dependencyFingerprint = null;
@@ -187,7 +187,7 @@ async function resolvePreview(
   });
   signal.throwIfAborted();
   const key = await digest(identity);
-  const path = `.vgai/cache/document-previews/${key}.png`;
+  const path = `.volter/cache/document-previews/${key}.png`;
   if (force === 0 && (await projectFiles.exists(path))) {
     return blobUrl(await projectFiles.readBytes(path));
   }

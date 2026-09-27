@@ -1,5 +1,5 @@
 /**
- * Projects an ingested game's declared SCENES (`window.vgaiGame.scenes`, see
+ * Projects an ingested game's declared SCENES (`window.volterGame.scenes`, see
  * `@volter/editor-project/adapter/ingest/game-contract`) onto the ordinary
  * {@link StoriesProvider} the editor's story picker already reads — the sibling
  * of `contract-hierarchy-authoring.ts`, which does the same job for the
@@ -29,11 +29,11 @@ import type {
   LiveSceneTable,
 } from '@volter/editor-sdk/host';
 import type { StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
-import type { VgaiGameContract, VgaiGameScene } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameContract, VolterGameScene } from '@volter/editor-project/adapter/ingest/game-contract';
 import { readGameScenes } from '@volter/editor-project/adapter/ingest/game-contract';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 
-function assertScenes(value: unknown): VgaiGameScene[] {
+function assertScenes(value: unknown): VolterGameScene[] {
   if (!Array.isArray(value)) throw new Error('scenes.list() did not return an array');
   const ids = new Set<string>();
   for (const scene of value) {
@@ -111,7 +111,7 @@ export interface ContractScenesSeams {
  * bound: `readGameScenes` owns that shape check.
  */
 export function createContractScenesStories(
-  contract: VgaiGameContract | null | undefined,
+  contract: VolterGameContract | null | undefined,
   seams: ContractScenesSeams = {},
 ): ContractScenesStories | null {
   const { scenes, malformed } = readGameScenes(contract);
@@ -121,7 +121,7 @@ export function createContractScenesStories(
   if (!scenes) return null;
 
   let warned = false;
-  const list = (): VgaiGameScene[] => {
+  const list = (): VolterGameScene[] => {
     try {
       return assertScenes(scenes.list());
     } catch (error) {

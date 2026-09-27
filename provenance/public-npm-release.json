@@ -22,7 +22,7 @@
   "servedModules": "served-bundle table matches the template and catalog (18 packages); runtime image carries every template and catalog dependency (38)"
  },
  "packedAcceptance": {
-  "game": "Runtime image installed from the seventeen archives with no workspace links; create linked it; a fresh empty game took add music, opened a piece with two launcher scenes, launched Combat (its three slots playing; strip meters Pad -26.2, Bass -20.3, Drums -18.6 dBFS, Lead -inf), rendered through project.music.render (23 files including both scene loops, no problems, -18 LUFS, each recorded in .vgai/provenance.json), and an added scene undid byte-identically; console silent.",
+  "game": "Runtime image installed from the seventeen archives with no workspace links; create linked it; a fresh empty game took add music, opened a piece with two launcher scenes, launched Combat (its three slots playing; strip meters Pad -26.2, Bass -20.3, Drums -18.6 dBFS, Lead -inf), rendered through project.music.render (23 files including both scene loops, no problems, -18 LUFS, each recorded in .volter/provenance.json), and an added scene undid byte-identically; console silent.",
   "modeling": "The eight archives installed with no links; a model project from the packed product opened cube.blend; a Blender edit moved Cube to x=1.5, undo returned it to 0 and redo to 1.5; console silent."
  },
  "installation": {

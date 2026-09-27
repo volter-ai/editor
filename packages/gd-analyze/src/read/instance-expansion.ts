@@ -176,7 +176,7 @@ function retainPathAlias(node: ExpandedNode, path: string): void {
   node.authoredPathAliases = [...(node.authoredPathAliases ?? []), path];
 }
 
-const IMPORTED_RESOURCE_ID = /^__vgai_instance_\d+_(?:ext|sub)_/;
+const IMPORTED_RESOURCE_ID = /^__volter_instance_\d+_(?:ext|sub)_/;
 
 /**
  * Whether `copyId`, a resource id on a node copied into an instancing document, names the
@@ -189,7 +189,7 @@ export function isImportedResourceId(copyId: string, originId: string): boolean 
 
 function remapForImport(source: SceneDocument, parts: MutableDocumentParts): ResourceRemap {
   const serial = parts.importSerial++;
-  const prefix = `__vgai_instance_${String(serial)}`;
+  const prefix = `__volter_instance_${String(serial)}`;
   const ext = new Map<ResourceId, ResourceId>();
   const sub = new Map<ResourceId, ResourceId>();
   for (const ref of source.extResources) ext.set(ref.id, `${prefix}_ext_${String(ref.id)}`);

@@ -75,10 +75,10 @@ export type SessionJournalEvent =
    * The host's shutdown list runs each task independently and bounds each one
    * (`packages/editor/server/process-shutdown.ts`); this is what a task writes
    * when its bound expires or it throws. Measured 2026-09-21 under load average
-   * ~30: a `vgai close` died inside the tab notify before the workbench's
+   * ~30: a `volter close` died inside the tab notify before the workbench's
    * children were stopped, and the ONLY evidence was a journal that stopped —
    * no `session-shutdown` line, a Code-OSS server orphaned at PPID 1 on its
-   * reserved port, and the next `vgai edit` refusing by name. A silence names
+   * reserved port, and the next `volter edit` refusing by name. A silence names
    * nothing; this line names the resource.
    */
   | {
@@ -97,8 +97,8 @@ export type SessionJournalEvent =
    * 150 ms sleep and the HTTP server coming down, so nothing ever recorded
    * whether a page received it. A page that did not kept its Blender engine
    * worker — one engine thread plus a 16-thread pthread pool — at 100%+ CPU
-   * for minutes after `vgai close`, and the box swapped. These two lines are
-   * the difference, and `vgai close` prints whichever one it finds.
+   * for minutes after `volter close`, and the box swapped. These two lines are
+   * the difference, and `volter close` prints whichever one it finds.
    */
   | { readonly kind: 'session-end-acked'; readonly tabs: number; readonly ms: number }
   /** …and the other outcome: these tabs never said they got it, so whatever
@@ -111,7 +111,7 @@ export type SessionJournalEvent =
   /**
    * WHERE EDITOR BOOT TIME WENT — written ONCE, when the first page proves it
    * is RUNNING the editor document (its command listener attaches), which is
-   * the honest end of the wait `vgai edit` narrates as "Vite cold start".
+   * the honest end of the wait `volter edit` narrates as "Vite cold start".
    *
    * The gap between "Editor ready at …" and that line is the largest stage of
    * opening a project and nothing used to record it: on an imported Unity port
@@ -167,7 +167,7 @@ export type SessionJournalEvent =
   /**
    * A play-mode log session opened or closed.
    *
-   * `name` is the run's OPTIONAL slug (`vgai play --name <text>`), `null` for
+   * `name` is the run's OPTIONAL slug (`volter play --name <text>`), `null` for
    * an unnamed run — the same slug that goes in the log filename, so grepping
    * the journal for a run and listing `logs/` for it are the same question.
    */
@@ -180,7 +180,7 @@ export type SessionJournalEvent =
   /**
    * A play run's VIDEO evidence opened or landed.
    *
-   * Every `vgai play` records — there is no flag — so this row is the answer
+   * Every `volter play` records — there is no flag — so this row is the answer
    * to "where is the footage of that run", and it has to be in the journal
    * rather than only in a terminal ack: the runs whose footage matters most
    * are the unattended ones, whose ack nobody read.
@@ -192,7 +192,7 @@ export type SessionJournalEvent =
   | {
       readonly kind: 'play-recording';
       readonly action: 'started' | 'finalized';
-      /** Basename under the project's `.vgai/recordings/`. */
+      /** Basename under the project's `.volter/recordings/`. */
       readonly file: string;
       readonly rotates: boolean;
       readonly reason: string | null;
@@ -223,7 +223,7 @@ export type SessionJournalEvent =
   /**
    * THE TRANSPORT ARM. Everything below is one line per transport or
    * presence fact, and it exists because the journal was BLIND to all of
-   * them: on 2026-08-09 a session refused five `vgai play` commands against
+   * them: on 2026-08-09 a session refused five `volter play` commands against
    * a healthy connected tab and the whole file it left behind was
    * `session-started` plus validation lines. A relay that can refuse has to
    * be able to say who it refused, to which tab, and on what evidence.
@@ -321,7 +321,7 @@ export type SessionJournalEvent =
     }
   /** An extra tab was told to yield. */
   | { readonly kind: 'tab-yielded'; readonly tabId8: string }
-  /** `vgai edit` asked for this session's tab: what the session answered, and
+  /** `volter edit` asked for this session's tab: what the session answered, and
    *  whether it was allowed to open one. */
   | { readonly kind: 'tab-ensure'; readonly open: boolean; readonly outcome: string }
   /**
@@ -449,7 +449,7 @@ export type SessionJournalEvent =
       readonly count: number;
       readonly message: string;
     }
-  /** A condition waved through BY NAME (`vgai console ack`). The audit row is
+  /** A condition waved through BY NAME (`volter console ack`). The audit row is
    *  the whole point: an acknowledgment records who and why, and never erases
    *  what was acknowledged. */
   | {
@@ -548,7 +548,7 @@ function pruneJournals(logsDir: string): void {
  * The newest journal in a project, or `null`.
  *
  * File-native on purpose (the same shape as the CLI's newest-play-log reader):
- * the journal path is a fact about the PROJECT DIRECTORY, so `vgai status` and
+ * the journal path is a fact about the PROJECT DIRECTORY, so `volter status` and
  * the boot pointer can name it without a server round-trip — and can still name
  * it after the session that wrote it is gone.
  */
@@ -572,7 +572,7 @@ export function newestSessionJournal(projectRoot: string): string | null {
  * doesn't. The foundry probe's journal held the notice-tier tripwire crossing
  * that predicted its own end-of-run batch commit, and nothing that agent ran
  * ever rendered a line of it. So the record grows a RENDERER on the command
- * agents already poll (`vgai status`) — same principle as the tripwires' own
+ * agents already poll (`volter status`) — same principle as the tripwires' own
  * origin: the mechanism was right and the delivery assumption was false.
  *
  * Every failure is the same case — no project, no journal, unreadable file, a
@@ -643,7 +643,7 @@ function bootLine(line: Extract<SessionJournalEvent, { kind: 'boot' }>): string 
 function playRecordingLine(line: Extract<SessionJournalEvent, { kind: 'play-recording' }>): string {
   const why = line.reason === null ? '' : ` (${line.reason})`;
   const life = line.rotates ? ' — replaced by the next play' : ' — kept';
-  return `play-recording ${line.action} .vgai/recordings/${line.file}${why}${life}`;
+  return `play-recording ${line.action} .volter/recordings/${line.file}${why}${life}`;
 }
 
 export function formatJournalLine(line: SessionJournalLine): string {
@@ -766,7 +766,7 @@ function tabDeathProfileBody(line: SessionJournalEvent & { kind: 'tab-death-prof
   return `${census} (sampled ${Math.round(line.censusAgeMs / 100) / 10}s before)`;
 }
 
-/** The resource profile a `tab-death-profile` line and a `vgai status` tab row
+/** The resource profile a `tab-death-profile` line and a `volter status` tab row
  *  both quote. ONE wording, for `sessionJournalPointerLine`'s reason: two
  *  phrasings of the same numbers is how a reader ends up believing there are
  *  two measurements. Renderer counts appear only when the page could read them
@@ -831,7 +831,7 @@ export function formatTabCensus(census: RecordedTabCensus | null): string {
 
 /**
  * The ONE wording for "here is the journal" — printed by the editor server's
- * boot block, by `vgai edit`'s ready/detach lines, and by `vgai status`.
+ * boot block, by `volter edit`'s ready/detach lines, and by `volter status`.
  *
  * One owner of the sentence, for `build-discipline.ts`'s reason: three
  * processes point at this file, and a second phrasing of the same pointer is

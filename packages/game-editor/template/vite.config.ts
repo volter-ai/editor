@@ -4,9 +4,9 @@ import { defineConfig } from 'vite';
 // Config-relative TS imports get bundled the same way — that is what lets the
 // project's executable Zod schemas reach the build-time check below.
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
-import manifest from './vgai.project.json';
+import manifest from './volter.project.json';
 
-/** A vgai runtime package served as SOURCE, the way the editor serves it. */
+/** A volter runtime package served as SOURCE, the way the editor serves it. */
 const packageSource = (name: string) =>
   path.join(path.dirname(createRequire(import.meta.url).resolve(`${name}/package.json`)), 'src');
 
@@ -68,7 +68,7 @@ export default defineConfig({
   //
   // This project has no `@vitejs/plugin-react`; Vite's built-in esbuild does
   // the JSX transform, and it picks the runtime from the tsconfig nearest the
-  // FILE. That covers `src/**`, but the vgai runtime packages are served as
+  // FILE. That covers `src/**`, but the volter runtime packages are served as
   // source out of their installed directories (see the aliases below), where
   // the project's tsconfig does not reach — so their `.tsx` compiled with the CLASSIC runtime, emitting
   // bare `React.createElement` calls into a module that never imports React.
@@ -97,7 +97,7 @@ export default defineConfig({
     // example modules (or injected by the JSX transform, like the React
     // runtimes) so Vite does not discover them at runtime, re-optimize, and
     // hard-reload the standalone runtime the first time a game selects them —
-    // that mid-session reload resets `window.__vgaiScene`/the menu out from
+    // that mid-session reload resets `window.__volterScene`/the menu out from
     // under whatever is driving the page (the dep-optimize-reload flake the
     // 04 spec hit: the first cold select of `editor-tutorial` reloaded on
     // `react/jsx-dev-runtime`). Verified against a cold scaffold: with these
@@ -155,7 +155,7 @@ export default defineConfig({
     //
     // VOLTER_NO_WATCH=1 (set by a harness driving this page):
     // disable watching entirely — a mid-run Vite reload resets
-    // `window.__vgai`/whatever is driving the standalone page out from under
+    // `window.__volter`/whatever is driving the standalone page out from under
     // an in-flight run (the hollowstone reload-kills-the-run
     // lesson). Mutually exclusive with the poll option (same `server.watch`
     // key) — NO_WATCH wins when both would otherwise apply.

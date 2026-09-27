@@ -35,7 +35,7 @@ import { DraftColorInput } from './primitives/DraftColorInput';
 import { useProjectImageAssets } from './use-project-image-assets';
 
 /** Layout-only remnant of the old hand-rolled field style — chrome now comes
- *  from the shared `.vgai-input`/`.vgai-select` classes (theme.css), so
+ *  from the shared `.volter-input`/`.volter-select` classes (theme.css), so
  *  every field here shares one height/padding/radius/focus treatment. */
 const NUM_STYLE: React.CSSProperties = { width: 64 };
 
@@ -43,7 +43,7 @@ const NUM_STYLE: React.CSSProperties = { width: 64 };
  *  `LABEL_COL_WIDTH` (I-13). */
 export const ROW_LABEL_STYLE: React.CSSProperties = {
   width: LABEL_COL_WIDTH,
-  fontSize: 'var(--vgai-font-md)',
+  fontSize: 'var(--volter-font-md)',
   color: themeVars.content.muted,
 };
 
@@ -154,7 +154,7 @@ export function InspectorField({
           gap: 6,
           alignItems: 'center',
           padding: '6px 8px',
-          fontSize: 'var(--vgai-font-md)',
+          fontSize: 'var(--volter-font-md)',
         }}
       >
         <Checkbox

@@ -53,10 +53,10 @@ interface PersistedAccount {
   twinUserId?: string;
   twinSessionId?: string;
   /**
-   * Managed service endpoints captured at sign-in. Persisted so a STANDALONE `vgai deploy`
+   * Managed service endpoints captured at sign-in. Persisted so a STANDALONE `volter deploy`
    * (a separate process from the editor, with none of its env) can mint a fresh relay token
    * from the stored session and reach the relay-token endpoint — see
-   * `packages/vgai-cli/src/managed-deploy-auth.ts`, the reader of these fields.
+   * `packages/volter-cli/src/managed-deploy-auth.ts`, the reader of these fields.
    */
   twinUrl?: string;
   accountUrl?: string;
@@ -136,7 +136,7 @@ function base64Url(value: Buffer): string {
 
 const ACCOUNT_PATH = process.env['VOLTER_ACCOUNT_PATH']
   ? resolve(process.env['VOLTER_ACCOUNT_PATH'])
-  : join(homedir(), '.vgai', 'account.json');
+  : join(homedir(), '.volter', 'account.json');
 async function readPersisted(path: string): Promise<PersistedAccount> {
   try {
     const value = JSON.parse(await readFile(path, 'utf8')) as Partial<PersistedAccount> & {
@@ -362,8 +362,8 @@ export class EditorAccountService {
     const baseUrl = this.twinBaseUrl();
     if (!baseUrl) throw new Error('No managed twin is configured (VOLTER_TWIN_URL is unset).');
     const identity = await signInToTwin(baseUrl, normalized, this.twinSecret());
-    // Capture the managed endpoints so a standalone `vgai deploy` can mint from the session
-    // (VOLTER_AUTH_URL is the vgai-auth base; its `/relay/token` is the deploy's mint endpoint).
+    // Capture the managed endpoints so a standalone `volter deploy` can mint from the session
+    // (VOLTER_AUTH_URL is the volter-auth base; its `/relay/token` is the deploy's mint endpoint).
     const authUrl = process.env['VOLTER_AUTH_URL'];
     const state: PersistedAccount = {
       version: 1,
@@ -448,7 +448,7 @@ export class EditorAccountService {
   }
 
   private oauthClientId(): string {
-    return process.env['VOLTER_OAUTH_CLIENT_ID'] ?? 'vgai-editor';
+    return process.env['VOLTER_OAUTH_CLIENT_ID'] ?? 'volter-editor';
   }
 
   private oauthMetadata(): Promise<OAuthServerMetadata> {

@@ -9,7 +9,7 @@
  * and the checkout's CURRENT engine version (deliberately a parameter, not
  * read from disk here, so callers — including the §2 AC test — can inject
  * both endpoints), report whether the project is up to date, behind
- * (`vgai upgrade`, slice 2, should re-pin it), ahead (the checkout was
+ * (`volter upgrade`, slice 2, should re-pin it), ahead (the checkout was
  * downgraded — unusual, still reported rather than silently ignored), or
  * either string isn't a valid exact semver in the first place.
  */

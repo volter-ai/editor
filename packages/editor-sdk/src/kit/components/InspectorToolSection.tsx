@@ -75,7 +75,7 @@ export function InspectorToolSection({
   );
   const node = nodeId ? adapter.hierarchy.node(nodeId) : null;
   return (
-    <div className="vgai-inspector-tool-section" data-testid={`inspector-tool-${id}`}>
+    <div className="volter-inspector-tool-section" data-testid={`inspector-tool-${id}`}>
       <ToolErrorBoundary file={file}>
         <EditorSelectionProvider adapter={adapter} nodeId={nodeId}>
           <Component

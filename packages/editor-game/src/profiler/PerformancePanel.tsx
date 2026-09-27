@@ -68,7 +68,7 @@ function downloadCapture(profiler: PerformanceProfiler): void {
   const url = URL.createObjectURL(new Blob([profiler.exportJSON()], { type: 'application/json' }));
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `vgai-performance-${new Date().toISOString().replaceAll(':', '-')}.json`;
+  anchor.download = `volter-performance-${new Date().toISOString().replaceAll(':', '-')}.json`;
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -84,7 +84,7 @@ function downloadTrace(profiler: PerformanceProfiler, processName: string): void
   const url = URL.createObjectURL(new Blob([JSON.stringify(trace)], { type: 'application/json' }));
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `vgai-trace-${new Date().toISOString().replaceAll(':', '-')}.json`;
+  anchor.download = `volter-trace-${new Date().toISOString().replaceAll(':', '-')}.json`;
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -874,7 +874,7 @@ export function PerformancePanel() {
 
   return (
     <div
-      className="vgai-content-frost"
+      className="volter-content-frost"
       style={{
         height: '100%',
         overflow: 'auto',
@@ -937,7 +937,7 @@ export function PerformancePanel() {
         <Button
           size="compact"
           data-testid="profiler-export-trace"
-          onClick={() => downloadTrace(profiler, source?.label ?? 'vgai')}
+          onClick={() => downloadTrace(profiler, source?.label ?? 'volter')}
         >
           Export Chrome trace
         </Button>

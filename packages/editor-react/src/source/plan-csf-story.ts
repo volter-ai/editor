@@ -188,7 +188,7 @@ export function planDeleteStory(source: string, name: string): CsfStoryPlan {
     return {
       ok: false,
       reason:
-        `'${name}' is this file's declared defaultStory — point vgai.defaultStory at another ` +
+        `'${name}' is this file's declared defaultStory — point volter.defaultStory at another ` +
         'story first',
     };
   }

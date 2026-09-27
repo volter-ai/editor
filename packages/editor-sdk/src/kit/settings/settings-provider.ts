@@ -2,7 +2,7 @@
  * WHERE THE SETTINGS ARE: `IConfigurationService`, through a provider the
  * contribution installs here.
  *
- * Every setting is one dotted `vgai.*` name per LEAF of the settings document,
+ * Every setting is one dotted `volter.*` name per LEAF of the settings document,
  * and the prefix is part of the key everywhere — in `EditorHost.settings`, in
  * `.vscode/settings.json`, in the Settings editor and in what a probe prints.
  * The table is DERIVED, never written: `@volter/editor-project/settings/keys` walks the
@@ -16,7 +16,7 @@
  *
  * IT ARRIVES AFTER THE MOUNT, for the same reason the file provider does, and
  * a reader falls back to the store's own layers until it lands — which is why
- * a preference gesture made too early cannot write a `.vgai/settings.json` the
+ * a preference gesture made too early cannot write a `.volter/settings.json` the
  * workbench knows nothing about.
  *
  * A provider's own change stream is subscribed HERE rather than by each

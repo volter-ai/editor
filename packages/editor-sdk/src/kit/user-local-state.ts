@@ -1,7 +1,7 @@
 /**
- * THE PERSON'S OWN UI STATE — one in-memory document mirroring `~/.vgai/editor-state.json`
+ * THE PERSON'S OWN UI STATE — one in-memory document mirroring `~/.volter/editor-state.json`
  * (`GET/POST /__editor/user-state`), the per-user sibling of a project's
- * `.vgai/editor-state.json` (`@volter/editor-core` `project-local-state.ts`): what this
+ * `.volter/editor-state.json` (`@volter/editor-core` `project-local-state.ts`): what this
  * person's editor remembers in every project, as named sections, loaded once at boot.
  *
  * Browser storage cannot hold it. Every project and worktree is served on its own port

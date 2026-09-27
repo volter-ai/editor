@@ -109,7 +109,7 @@ function inputDigest(): string {
 }
 
 export function measureShaderLoweringProof(tools: GodotProofTools): readonly GodotProofMeasurement[] {
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-shader-lowering-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-shader-lowering-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

@@ -3,8 +3,8 @@
  * project's own system declares itself with.
  *
  * It lives in the CONTRACT because two runtimes speak it and neither owns it:
- * `@vgai/game-runtime`'s loop and system runner schedule by phase, and
- * `@vgai/threejs-runtime`'s animation clock orders its evaluators by the same
+ * `@volter/game-runtime`'s loop and system runner schedule by phase, and
+ * `@volter/threejs-runtime`'s animation clock orders its evaluators by the same
  * `PHASE_ORDER`. A vocabulary two shipped twins both read is the contract's,
  * or it is a value edge between twins — and that edge is the one thing the
  * twin row may not have (docs/ARCHITECTURE-CORE.md §The target shape: a twin

@@ -31,7 +31,7 @@ const justifyValue: Record<LayoutJustification, CSSProperties['justifyContent']>
 };
 
 function token(value: LayoutGap | undefined): string | undefined {
-  return value === 0 ? '0px' : value === undefined ? undefined : `var(--vgai-space-${value})`;
+  return value === 0 ? '0px' : value === undefined ? undefined : `var(--volter-space-${value})`;
 }
 
 function layoutStyle({
@@ -59,17 +59,17 @@ function classes(base: string, className?: string): string {
 }
 
 export function Stack({ className, ...props }: LayoutProps) {
-  return <div {...props} className={classes('vgai-stack', className)} style={layoutStyle(props)} />;
+  return <div {...props} className={classes('volter-stack', className)} style={layoutStyle(props)} />;
 }
 
 export function Inline({ className, ...props }: LayoutProps) {
   return (
-    <div {...props} className={classes('vgai-inline', className)} style={layoutStyle(props)} />
+    <div {...props} className={classes('volter-inline', className)} style={layoutStyle(props)} />
   );
 }
 
 export function Spacer({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
-  return <span {...props} aria-hidden="true" className={classes('vgai-spacer', className)} />;
+  return <span {...props} aria-hidden="true" className={classes('volter-spacer', className)} />;
 }
 
 export function Divider({
@@ -82,7 +82,7 @@ export function Divider({
       {...props}
       aria-hidden="true"
       data-orientation={orientation}
-      className={classes('vgai-divider', className)}
+      className={classes('volter-divider', className)}
     />
   );
 }
@@ -93,7 +93,7 @@ export function Actions({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
-    <Inline {...props} className={classes('vgai-actions', className)} gap={2} align="center">
+    <Inline {...props} className={classes('volter-actions', className)} gap={2} align="center">
       {children}
     </Inline>
   );

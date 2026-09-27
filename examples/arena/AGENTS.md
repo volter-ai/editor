@@ -1,6 +1,6 @@
-# AGENTS.md — VGAI Game Project
+# AGENTS.md — VOLTER Game Project
 
-A standalone game built with VGAI — work here, not in the engine repo.
+A standalone game built with VOLTER — work here, not in the engine repo.
 The editor is the authoring and verification surface.
 
 ## Route the request first
@@ -9,9 +9,9 @@ The editor is the authoring and verification surface.
 | --- | --- |
 | Build or change this game | This file + the relevant section of the engine checkout's `packages/editor/template/.agents/references/project-manual.md` |
 | Open, play, or verify it | `.agents/skills/editor/SKILL.md` |
-| Model a shape — a prop, a piece, a module in `src/models/` | `.agents/skills/vgai-3d-models/SKILL.md` |
-| The game needs a 3D asset placed, rigged, or baked | `.agents/skills/vgai-3d-assets/SKILL.md` |
-| Other craft (2D/3D art, animation, humanoids, generated assets) | The matching `.agents/skills/vgai-*/SKILL.md` |
+| Model a shape — a prop, a piece, a module in `src/models/` | `.agents/skills/volter-3d-models/SKILL.md` |
+| The game needs a 3D asset placed, rigged, or baked | `.agents/skills/volter-3d-assets/SKILL.md` |
+| Other craft (2D/3D art, animation, humanoids, generated assets) | The matching `.agents/skills/volter-*/SKILL.md` |
 | Import an existing web game | Read-only compatibility report; never rewrite its source |
 | Browse or modify an example | Read-only, or scaffold a copy; user games never go in `examples/` |
 
@@ -21,7 +21,7 @@ generated projections (never edit); `CLAUDE.md` and
 
 **Capabilities are this project's standard libraries, and they are ADDED.**
 A fresh scaffold has no `src/lib/`; before writing reusable plumbing, run
-bare `npm run vgai -- add` (lists), inspect the match, and `add <id>` it —
+bare `npm run volter -- add` (lists), inspect the match, and `add <id>` it —
 the installed source is project-owned and editable. A doc naming
 `src/lib/<x>` describes what that capability installs.
 
@@ -29,15 +29,15 @@ the installed source is project-owned and editable. A doc naming
 
 1. Read the brief; write the initial `ROADMAP.md` task first (shape:
    the ROADMAP rule below).
-2. Study the closest shipped example (`npm run vgai -- examples` lists;
+2. Study the closest shipped example (`npm run volter -- examples` lists;
    `create study --example <id>` scaffolds a copy) and copy its idioms.
-3. Read `vgai.project.json` — each root's `adapter` owns its document
+3. Read `volter.project.json` — each root's `adapter` owns its document
    and lifecycle; read the root entry files and any data schema before
    editing. `src/main.ts` registers each root's adapter (`three`, `dom`).
 4. Start the editor now (`npm run dev`); tell the user the URL in your
    FIRST visible message. Keep it running and narrate as you build. The
    editor IS the Code-OSS workbench this machine declares in
-   `.vgai/workbench.json` (the product's `create --workbench <dir>` writes it); with
+   `.volter/workbench.json` (the product's `create --workbench <dir>` writes it); with
    no declaration `npm run dev` refuses and prints the exact JSON to write —
    write it, do not work around it.
 5. Multiplayer: every SEAT is a person — an INSTANCE in one editor,
@@ -78,12 +78,12 @@ the sections the request needs.
 - **`DEVLOG.md` is the development journal, not a second tracker.** One
   entry per arc: what changed, why, decisions, playtest outcome, what
   remains — with reviewed screenshots (a clip when motion matters)
-  promoted from `.vgai/` history into `media/`; inspect every artifact
+  promoted from `.volter/` history into `media/`; inspect every artifact
   you attach, never the latest blindly.
 - **Record through the eval door**: Play running →
   `eval 'return editor.recording.start({ fps: 30 })'`, drive via
   `game.*`, `eval 'return editor.recording.stop()'` → WebM under
-  `.vgai/recordings/`. Inspect/trim with ordinary `ffmpeg`; no wrappers.
+  `.volter/recordings/`. Inspect/trim with ordinary `ffmpeg`; no wrappers.
 - **Keep Three source modular:** thin `src/world.tsx`; compositions in
   `src/scenes/*Scene.tsx` (no stories); placeables in `src/prefabs/` with
   stories; support in `src/components/`. Owned parts stay inside their
@@ -110,7 +110,7 @@ the sections the request needs.
 - Generated assets: provider-native APIs + `ctx.projectOutputs.write(...)`;
   load the generative-assets skill before spending funds.
 - Repeatable sequences: flat scripts in `scripts/<task>/steps/` (README
-  per step); intermediates in `.vgai/tmp/<task>/`. Helpers in
+  per step); intermediates in `.volter/tmp/<task>/`. Helpers in
   `src/lib/<domain>/` only when reusable and purely mechanical; no
   runners, task graphs, or auto-judges.
 - Editor control is observation and verification; write through source
@@ -130,15 +130,15 @@ endless rewrite cycle. Playtest live; the play log is the receipt.
    the editor-owned tab — set up, enter Play, advance sim time, inspect,
    act one step at a time. Keep the probe disposable (never a spec,
    script, or harness). After init-time edits, `restart`.
-3. `vgai status` must show `connected: true`; it tails the session
+3. `volter status` must show `connected: true`; it tails the session
    journal (`logs/editor-*.jsonl`). Read the play logs. Any
-   `UNRESOLVED CONSOLE SET` is remaining work; `vgai console` silent is
+   `UNRESOLVED CONSOLE SET` is remaining work; `volter console` silent is
    the only all-clear.
 4. Enter Play and look. Capture a legible screenshot; **a hidden tab
    captures t≈0** — drive `game.waitSimTime` first.
-5. Drive the game with `npm run vgai -- eval '<js>'` — the one general
+5. Drive the game with `npm run volter -- eval '<js>'` — the one general
    door (`{ editor, game, page, tools, session }`). Never synthetic
-   keys, rAF loops, wall-clock sleeps, or `window.__vgai*` reads.
+   keys, rAF loops, wall-clock sleeps, or `window.__volter*` reads.
 6. Repeat for the few varied situations that could expose the change;
    the observations and screenshots ARE the proof.
 7. Inspect the live hierarchy against the taxonomy above; every prefab
@@ -152,17 +152,17 @@ endless rewrite cycle. Playtest live; the play log is the receipt.
 ## Commands
 
 ```bash
-npm run dev                   # open/reuse this project's editor (the workbench .vgai/workbench.json names)
-npm run vgai -- status        # require connected: true
-npm run vgai -- play          # editor Play mode
-npm run vgai -- restart       # remount after init-time edits
-npm run vgai -- screenshot    # visible evidence
-npm run vgai -- eval '<js>'   # THE door onto the running game
+npm run dev                   # open/reuse this project's editor (the workbench .volter/workbench.json names)
+npm run volter -- status        # require connected: true
+npm run volter -- play          # editor Play mode
+npm run volter -- restart       # remount after init-time edits
+npm run volter -- screenshot    # visible evidence
+npm run volter -- eval '<js>'   # THE door onto the running game
 npm run check-idioms          # every slice
 npm run validate              # manifest/files + React design states
 npm run typecheck             # THE gate: src + src/tools + server
 npm run dev:standalone        # EXPORTED builds only
 ```
 
-Always `npm run vgai -- <verb>`, never a bare `vgai` (a global one may
+Always `npm run volter -- <verb>`, never a bare `volter` (a global one may
 belong to another checkout).

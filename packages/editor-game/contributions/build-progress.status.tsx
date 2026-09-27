@@ -23,7 +23,7 @@ export default function BuildProgressStatus() {
   if (session.phase === 'building') {
     return (
       <span
-        className="vgai-status-copy"
+        className="volter-status-copy"
         data-testid="status-build-progress"
         data-build-phase="building"
         data-status-tone="accent"
@@ -34,7 +34,7 @@ export default function BuildProgressStatus() {
   }
   return (
     <span
-      className="vgai-status-copy"
+      className="volter-status-copy"
       data-testid="status-build-progress"
       data-build-phase={session.result?.ok ? 'complete' : 'failed'}
       data-status-tone={session.result?.ok ? 'success' : 'danger'}

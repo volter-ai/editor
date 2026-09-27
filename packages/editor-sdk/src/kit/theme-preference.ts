@@ -17,13 +17,13 @@ import { effectiveSettings, subscribeSettings, updatePreferenceSettings } from '
 import { resolveEditorTheme, subscribeEditorThemeLibrary } from './theme-library';
 
 // The palette and material are `appearance.palette` / `appearance.material`
-// in the settings layers (`settings-store.ts`: `~/.vgai/settings.json`, a
-// project's `.vgai/settings.json` overriding it). A stored preference carries
+// in the settings layers (`settings-store.ts`: `~/.volter/settings.json`, a
+// project's `.volter/settings.json` overriding it). A stored preference carries
 // no authored content, so an unreadable/absent one simply falls back to the
 // default appearance — no migration, no alias. The ONE thing still in browser
 // storage here is the PREPAINT record: the shell colour `index.html` paints
 // before any module loads, a cache of the last paint and never a setting.
-export const PREPAINT_EDITOR_THEME_STORAGE_KEY = 'vgai.editor.prepaint.v1';
+export const PREPAINT_EDITOR_THEME_STORAGE_KEY = 'volter.editor.prepaint.v1';
 
 /**
  * THE HOST'S OWN DEFAULT APPEARANCE — what the editor wears when no product
@@ -42,7 +42,7 @@ export const DEFAULT_EDITOR_MATERIAL_ID: EditorMaterialId = 'classic';
  * product's entry names a style bundle id (`frame/product.ts`'s `look`), and
  * `workspace-style.ts` — which is the module that knows what a bundle IS —
  * resolves it and calls this. It is a DEFAULT and nothing more: the person's
- * `~/.vgai/settings.json`, the project's own, and the adapter's declaration all
+ * `~/.volter/settings.json`, the project's own, and the adapter's declaration all
  * outrank it, because each of those is something somebody said about THIS
  * machine or THIS project.
  *
@@ -273,8 +273,8 @@ function applyCurrentTheme(): void {
   const palette = previewTheme ?? persisted;
   if (palette) {
     applyEditorTheme(installedRoot, resolvePaintTheme(palette));
-    installedRoot.dataset['vgaiPalette'] = palette.id;
-    installedRoot.dataset['vgaiMaterial'] = editorMaterialSnapshot();
+    installedRoot.dataset['volterPalette'] = palette.id;
+    installedRoot.dataset['volterMaterial'] = editorMaterialSnapshot();
   }
   if (!previewTheme && persisted) {
     const painted = resolvePaintTheme(persisted);
@@ -417,7 +417,7 @@ subscribeEditorThemeLibrary(() => {
   // default and cached it. Re-read it now that the library has grown — the
   // stored choice wins on arrival, exactly as a late-registering MATERIAL
   // already does in `installEditorTheme`. Without this, a project whose
-  // `.vgai/settings.json` names a contributed palette painted Graphite
+  // `.volter/settings.json` names a contributed palette painted Graphite
   // forever and nothing said why.
   if (!pendingWrites.has('palette')) {
     const stored = readStoredPaletteId();

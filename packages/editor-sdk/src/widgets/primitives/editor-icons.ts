@@ -225,7 +225,7 @@ export const editorIcons = {
    * about the reference frames rather than about effort. `outliner` and
    * `properties` are Blender's own marks, read at native 2x off
    * `outliner.png` and `modeling-edit-none.png`'s Properties area and drawn
-   * in `@vgai/blender`'s `blender-icons.source.mjs`, which carries the pixel
+   * in `@volter/blender`'s `blender-icons.source.mjs`, which carries the pixel
    * edges. The other five have NO Blender reading at all: the reference set
    * photographs the Layout, Modeling, Sculpting and Texture Paint workspaces
    * — 3D View, Outliner, Properties, Timeline, Image Editor and the asset

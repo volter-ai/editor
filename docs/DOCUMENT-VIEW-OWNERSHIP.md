@@ -2,7 +2,7 @@
 
 # Document, view, and execution ownership
 
-Implementation specification. Written in `volter-ai/vgai-engine`
+Implementation specification. Written in `volter-ai/volter-engine`
 (`docs/DOCUMENT-VIEW-OWNERSHIP.md` at `526dbcfb9`, 2026-09-22) and carried here with
 this repository's package names. [ARCHITECTURE.md](../ARCHITECTURE.md) states the
 decision; [WORK.md](../WORK.md) is the completion ledger. This specification defines
@@ -147,7 +147,7 @@ Measured from `editor-viewport.ts`, `StageHost.tsx`, `viewport-door.ts` and
 three, R3F, quarks or `@volter/editor-threejs`. Those 44 import 35 neutral kit
 modules, and 54 other kit modules import them.
 
-- **Licensing.** `editor-core` code is AGPL-3.0-only, imported from `@vgai/editor`
+- **Licensing.** `editor-core` code is AGPL-3.0-only, imported from `@volter/editor`
   (`provenance/editor-host.json`), and `@volter/editor-sdk` is Apache-2.0. Kit
   modules therefore do not move into the SDK. The SDK gains contracts (new
   interfaces and host doors), and core implements them.
@@ -252,8 +252,8 @@ from a timeout, a global active-document variable, or a React unmount alone.
 
 ## 5. SDK and native bridge changes
 
-- `workbench/src/vgaiDocumentInput.ts`, `vgaiDocuments.ts`, and
-  `vgai.contribution.ts`: own native occurrence tracking, native input identity,
+- `workbench/src/volterDocumentInput.ts`, `volterDocuments.ts`, and
+  `volter.contribution.ts`: own native occurrence tracking, native input identity,
   model references, dirty/save integration and native view-state handoff.
   Reuse native editor services. Same-document splitting is enabled only once
   its provider supports the lifecycle; a refused split explains why.
@@ -321,7 +321,7 @@ hidden; its rendering can suspend independently of simulation.
 
 ## 7. Scene and Canvas thumbnails
 
-Keep the detailed visual contract in VIEWPORT-CONTENT.md (vgai-engine).
+Keep the detailed visual contract in VIEWPORT-CONTENT.md (volter-engine).
 The Content UI requests a preview for a document/revision; the document's provider
 supplies capture and framing operations. Core owns scheduling and cache mechanics,
 not camera choice, traversal, or artboard geometry. Content category names/order
@@ -392,7 +392,7 @@ edges with the release evidence in WORK and the implementing PRs.
 | Shared boundary | Blender uses explicit shared renderer/capture exports without editor-internal imports, game services or unrelated contribution activation. Neutral host, SDK and project contracts require no native media types. Verify public declarations as well as runtime imports and the actual product bundle. A smaller static value-import count alone cannot pass. |
 | Native document lifecycle | With a real `.blend`, observe one model/evaluation and two native ViewIds; independent cameras/helpers, shared native selection/time, one edit and native resource undo history. Save/reopen, undo across views, hide/reveal, move and reload retain correct revision/view state. Closing one leaves the other usable; final close respects dirty state and disposes once. Failed/stale rebuilds cannot replace the last good revision. Different-file conflicts never retarget the live worker. |
 | Capture isolation | Exercise same-file capture during edits, cancellation, provider failure and late completion; no live model replacement or change to selection/time/cameras, no stale image publication, no leaked snapshot/renderer. Different-file capture either has an explicitly isolated evaluation or refuses without changing the live binding. Observe resource counts through repeated split/hide/capture/close cycles. |
-| Packed consumer | In a clean directory/profile outside the checkout, install the exact packed closure without workspace links, source aliases or private credentials. Build a public-type consumer and use current `model-editor create` and `vgai edit` entrypoints with the declared workbench. Exercise the lifecycle above; verify worker/WASM/asset URLs resolve from shipped files and the editor console is clear. Any local registry test must serve the actual packed artifacts and include all required packages. |
+| Packed consumer | In a clean directory/profile outside the checkout, install the exact packed closure without workspace links, source aliases or private credentials. Build a public-type consumer and use current `model-editor create` and `volter edit` entrypoints with the declared workbench. Exercise the lifecycle above; verify worker/WASM/asset URLs resolve from shipped files and the editor console is clear. Any local registry test must serve the actual packed artifacts and include all required packages. |
 | Source and distribution | Audit licenses/notices for all distributed files and bundled dependencies. Tie the exact WASM and worker payload hashes to the actual modified fork commit, corresponding source, dependency sources and build recipe; reproduce under L0's clean-room rules. An upstream-only SHA, machine-local path or older registry dry-run is insufficient. Release evidence must describe the bytes being conveyed, including the workbench. |
 
 The current `validate-editor-closure.mjs` is a static value-import ratchet. Its
@@ -442,7 +442,7 @@ repository or the pinned Code-OSS checkout, not new infrastructure to invent.
 
 ### Native occurrence mapping
 
-Keep one canonical `VgaiDocumentInput` per document. Code-OSS's default
+Keep one canonical `VolterDocumentInput` per document. Code-OSS's default
 `EditorInput.copy()` returns that input; sharing it does not mean sharing the
 view. Maintain an occurrence lookup by `(group.id, input)` whose value is a
 ViewId and model reference. This is attachment bookkeeping, not a second tab

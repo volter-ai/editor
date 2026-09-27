@@ -149,8 +149,8 @@ export function AlignToolbar({ adapter, entries }: AlignToolbarProps): React.Rea
   return (
     // U6a (P6 glass-native chrome): the one floating tool cluster that still
     // hand-rolled an opaque chrome slab — now the shared `FloatingToolbar`
-    // island (var-driven `--vgai-island-*` material, refraction-upgradable
-    // via `vgai-glass-island`; treatment-less themes emit the pre-P6 recipe
+    // island (var-driven `--volter-island-*` material, refraction-upgradable
+    // via `volter-glass-island`; treatment-less themes emit the pre-P6 recipe
     // through the same vars). Geometry/placement stays inline.
     <FloatingToolbar
       label="Align and distribute"

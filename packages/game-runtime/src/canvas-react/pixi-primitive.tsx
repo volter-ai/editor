@@ -102,11 +102,11 @@ class AdoptedPixiObject {
   }
 }
 
-extend({ VgaiAdopted: AdoptedPixiObject });
+extend({ VolterAdopted: AdoptedPixiObject });
 
 /** The intrinsic `extend` above registered. Typed as a component so this module is the ONE place
  *  that knows the tag; nothing else in the repo, and no game, ever spells it. */
-const ADOPTION_ELEMENT = 'pixiVgaiAdopted' as unknown as FunctionComponent<Record<string, unknown>>;
+const ADOPTION_ELEMENT = 'pixiVolterAdopted' as unknown as FunctionComponent<Record<string, unknown>>;
 
 export interface PixiPrimitiveProps {
   /** The container to adopt. It must not change for the life of one element — see below. */

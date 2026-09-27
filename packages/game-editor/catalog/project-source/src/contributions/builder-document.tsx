@@ -10,7 +10,7 @@ import type { BuilderState } from './builder-state';
  *
  * This is a plain helper with explicit inputs and outputs — NOT a registry, base
  * class, or generator kind. Each lib still owns its own contribution file and
- * its own `vgaiTools` entry; the file just shrinks to the handful of facts that
+ * its own `volterTools` entry; the file just shrinks to the handful of facts that
  * are genuinely its own (what to build, what it is called, and where its
  * source lives).
  */

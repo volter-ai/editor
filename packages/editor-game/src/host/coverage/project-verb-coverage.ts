@@ -22,7 +22,7 @@
  * something the product itself already acts on:
  *
  *  - `export` reads what the export path ACTUALLY requires of a project, taken
- *    from the door's own source: `create-vgai-project/src/deploy.ts` runs
+ *    from the door's own source: `create-volter-project/src/deploy.ts` runs
  *    `npm run build` in the project (`runProjectBuild`) and stages the `dist/`
  *    that emits (`stageBuildOutput`). Ingest roots pass that door because the
  *    ingest project's own build is already its standalone game; arbitrary

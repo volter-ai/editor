@@ -274,7 +274,7 @@ const SKIP_DIR_NAMES = new Set([
   '.git',
   'dist',
   'dist-server',
-  '.vgai',
+  '.volter',
   '.ci-scaffold',
 ]);
 

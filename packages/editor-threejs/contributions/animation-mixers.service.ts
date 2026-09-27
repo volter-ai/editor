@@ -1,6 +1,6 @@
 /**
  * The animation stamp's status facet (`@volter/editor-sdk/services`, a `workspace.service`
- * contribution): `vgai status` reports the mixers the running world's own code made, with the
+ * contribution): `volter status` reports the mixers the running world's own code made, with the
  * clips it has played through each and the objects each animates, so "the timeline found
  * nothing" is answerable from the session.
  */

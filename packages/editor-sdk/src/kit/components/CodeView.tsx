@@ -267,23 +267,23 @@ function codeViewTheme(
         backgroundColor: 'inherit',
         borderRadius: '2px',
       },
-      '.cm-source-change-0': { animationName: 'vgai-source-change-even' },
-      '.cm-source-change-1': { animationName: 'vgai-source-change-odd' },
-      '.cm-line:has(.cm-source-change-0)': { animationName: 'vgai-source-line-even' },
-      '.cm-line:has(.cm-source-change-1)': { animationName: 'vgai-source-line-odd' },
-      '@keyframes vgai-source-line-even': {
+      '.cm-source-change-0': { animationName: 'volter-source-change-even' },
+      '.cm-source-change-1': { animationName: 'volter-source-change-odd' },
+      '.cm-line:has(.cm-source-change-0)': { animationName: 'volter-source-line-even' },
+      '.cm-line:has(.cm-source-change-1)': { animationName: 'volter-source-line-odd' },
+      '@keyframes volter-source-line-even': {
         '0%, 40%': { backgroundColor: sourceChangeLineBackground },
         '100%': { backgroundColor: 'transparent' },
       },
-      '@keyframes vgai-source-line-odd': {
+      '@keyframes volter-source-line-odd': {
         '0%, 40%': { backgroundColor: sourceChangeLineBackground },
         '100%': { backgroundColor: 'transparent' },
       },
-      '@keyframes vgai-source-change-even': {
+      '@keyframes volter-source-change-even': {
         '0%, 40%': { backgroundColor: sourceChangeBackground },
         '100%': { backgroundColor: 'transparent' },
       },
-      '@keyframes vgai-source-change-odd': {
+      '@keyframes volter-source-change-odd': {
         '0%, 40%': { backgroundColor: sourceChangeBackground },
         '100%': { backgroundColor: 'transparent' },
       },

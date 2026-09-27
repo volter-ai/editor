@@ -39,7 +39,7 @@
  *   widget text        #e6e6e6  :98         number slider   #4772b3    :97
  *   checkbox mark      #ffffff  :77 (wcol_option.item)
  *
- * The values are literal rather than `var(--vgai-…)` because the palette is
+ * The values are literal rather than `var(--volter-…)` because the palette is
  * the FRAME's grading (U8/U9) and eyedropped: `blender.palette.json` carries
  * `surface.panel` #2f2f2f where the source says `.space_properties.back` is
  * #303030, and `content.primary` #e5e5e5 against `.text` #e6e6e6. Where a

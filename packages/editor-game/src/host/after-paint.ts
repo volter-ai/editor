@@ -4,13 +4,13 @@
  * READ THIS BEFORE WRITING `requestAnimationFrame` INTO A BOOT PATH.
  * **rAF does not fire in a hidden tab, ever** — not throttled, not late:
  * zero callbacks until the tab is foregrounded. And "hidden at boot" is the
- * ORDINARY case for this editor, not an edge: every `vgai edit` session rooted
+ * ORDINARY case for this editor, not an edge: every `volter edit` session rooted
  * in an agent worktree opens its one tab behind the human's window
- * (`server/open-browser.ts` → `open -g`), and any `vgai edit` that fires while
+ * (`server/open-browser.ts` → `open -g`), and any `volter edit` that fires while
  * the browser is not frontmost lands the same way. Measured twice in one hour:
  * an editor whose shell mount sat behind a bare double-rAF heartbeat for 20
  * minutes with the relay answering, `document.visibilityState: "hidden"`, and
- * zero console errors, while every `vgai play` refused with "the editor shell
+ * zero console errors, while every `volter play` refused with "the editor shell
  * is not bound yet".
  *
  * A paint deferral is only ever an OPTIMISATION — let the committed chrome

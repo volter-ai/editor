@@ -44,8 +44,8 @@
  * `import.meta.hot?.accept('./tuning.data.json', (m) => tuning.hotSwap(…))`
  * precisely so that edit hot-swaps into the running game instead.
  *
- * The module graph said why. `tuning.ts?vgai-mount=1` imported
- * `tuning.data.json?vgai-mount=1` (its import specifier WAS stamped) while its
+ * The module graph said why. `tuning.ts?volter-mount=1` imported
+ * `tuning.data.json?volter-mount=1` (its import specifier WAS stamped) while its
  * `acceptedHmrDeps` held the BARE `tuning.data.json` — because the accept
  * call's specifier is a string ARGUMENT, not an import statement, so the
  * rewrite below never saw it. Two consequences, both bad:
@@ -75,12 +75,12 @@ import { init, parse } from 'es-module-lexer';
  *  `project-module-instance.test.ts`, which imports both and compares them —
  *  the server half cannot import the browser half's module without dragging
  *  DOM-typed code into `tsconfig.server.json`. */
-export const MOUNT_QUERY_KEY = 'vgai-mount';
+export const MOUNT_QUERY_KEY = 'volter-mount';
 
 /** Kept in sync with `src/project-module-url.ts` by the same tripwire as
  *  {@link MOUNT_QUERY_KEY}. */
-export const SELECTION_QUERY_KEY = 'vgai-selection';
-export const SCENE_QUERY_KEY = 'vgai-scene';
+export const SELECTION_QUERY_KEY = 'volter-selection';
+export const SCENE_QUERY_KEY = 'volter-scene';
 
 /**
  * Isolation loads a SCREEN CLASS, not the running game. Vendor entries
@@ -89,7 +89,7 @@ export const SCENE_QUERY_KEY = 'vgai-scene';
  * grew a live game on `document.body`. The isolate query keys a separate
  * module graph whose `init();` is silenced; Play keeps the unstamped graph.
  */
-export const ISOLATE_QUERY_KEY = 'vgai-isolate';
+export const ISOLATE_QUERY_KEY = 'volter-isolate';
 export const ISOLATE_QUERY_VALUE = '1';
 
 /** Read a swap-slot remount off a module id, or `undefined` when it carries none. */
@@ -346,7 +346,7 @@ function rewriteProjectImports(code: string, stamp: (specifier: string) => strin
     // STATIC import `s..e` excludes the quotes, while for a DYNAMIC one
     // (`d > -1`) it spans the whole argument expression INCLUDING them. Writing
     // the bare specifier over a dynamic import's bounds yields
-    // `import(./state?vgai-mount=3)`. Re-quote with the source's own quote
+    // `import(./state?volter-mount=3)`. Re-quote with the source's own quote
     // character so the module's style survives too.
     if (record.d > -1) {
       const quote = code[record.s];

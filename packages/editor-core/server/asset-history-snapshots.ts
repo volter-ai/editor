@@ -78,7 +78,7 @@ async function hashDirectory(
 /**
  * Content-addressed, server-resident snapshots for one imported asset directory.
  * History stores only the stable digest token in browser memory; exact model,
- * dependency, recipe, thumbnail, and provenance bytes stay under `.vgai/tmp`.
+ * dependency, recipe, thumbnail, and provenance bytes stay under `.volter/tmp`.
  */
 export class AssetHistorySnapshots {
   private readonly projectRoot: string;
@@ -86,7 +86,7 @@ export class AssetHistorySnapshots {
 
   constructor(private readonly publicRoot: string) {
     this.projectRoot = dirname(publicRoot);
-    this.snapshotRoot = resolve(this.projectRoot, '.vgai', 'tmp', 'asset-history-snapshots');
+    this.snapshotRoot = resolve(this.projectRoot, '.volter', 'tmp', 'asset-history-snapshots');
   }
 
   async capture(assetPath: string): Promise<string> {
@@ -149,7 +149,7 @@ export class AssetHistorySnapshots {
     }
     const provenance = resolve(this.projectRoot, PROJECT_PROVENANCE_PATH);
     const transaction = await mkdtemp(
-      resolve(this.projectRoot, '.vgai', 'tmp', `.asset-history-restore-${randomUUID()}-`),
+      resolve(this.projectRoot, '.volter', 'tmp', `.asset-history-restore-${randomUUID()}-`),
     );
     const stagedAsset = resolve(transaction, 'staged-asset');
     const backupAsset = resolve(transaction, 'backup-asset');

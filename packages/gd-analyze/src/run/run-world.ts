@@ -254,13 +254,13 @@ function pausedStack(
 export async function runImportedWorld(projectDir: string, options: RunWorldOptions): Promise<number> {
   const source = path.resolve(projectDir);
   if (!existsSync(path.join(source, 'src', 'world.tsx'))) throw new Error(`${source} has no src/world.tsx`);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-run-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-run-'));
   const cwd = process.cwd();
   const out = path.join(temp, 'project');
   try {
     cpSync(source, out, {
       recursive: true,
-      filter: (entry) => !/(^|[\\/])(node_modules|logs|dist|\.vgai)([\\/]|$)/u.test(path.relative(source, entry)),
+      filter: (entry) => !/(^|[\\/])(node_modules|logs|dist|\.volter)([\\/]|$)/u.test(path.relative(source, entry)),
     });
     linkEmittedNodeModules(out);
     writeFileSync(path.join(out, 'gd-analyze-run-world.mts'), DRIVER);
@@ -457,7 +457,7 @@ export async function runSpinSelfCheck(tools: { readonly exporterBinary: string;
   const { writeGodotTranslationArtifacts } = await import('../materialize');
   const { mkdirSync, readFileSync } = await import('node:fs');
   const { spawnSync } = await import('node:child_process');
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-run-check-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-run-check-'));
   try {
     const project = path.join(temp, 'godot');
     mkdirSync(project);

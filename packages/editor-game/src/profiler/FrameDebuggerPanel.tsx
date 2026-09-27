@@ -69,7 +69,7 @@ function DrawRow({
       data-testid="frame-draw-row"
       data-draw-index={draw.index}
       data-selected={selected || undefined}
-      className="vgai-frame-draw-row"
+      className="volter-frame-draw-row"
       onClick={onSelect}
     >
       <span style={{ ...MONO, color: themeVars.content.dim, width: 34, display: 'inline-block' }}>
@@ -381,7 +381,7 @@ export function FrameDebuggerPanel() {
       data-testid="frame-debugger"
       // §2.31 P2 amendment: text-dense output region reads over a local
       // frosted layer (inert for non-frost themes).
-      className="vgai-content-frost"
+      className="volter-content-frost"
       style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', fontSize: 12 }}
     >
       {/* Header: capture control + honest scope statement + history strip */}

@@ -1,5 +1,5 @@
 /**
- * Pure predicate for the `vgai-game-globals` Vite plugin in `dev.ts` — split
+ * Pure predicate for the `volter-game-globals` Vite plugin in `dev.ts` — split
  * out into its own side-effect-free module so it's unit-testable without
  * booting Vite/Express (`dev.ts`'s module top-level calls `main()`, which
  * starts real servers — importing it directly in a test would do that).
@@ -66,7 +66,7 @@ export function ingestGameShadowRoots(editorSrcRoot: string): string[] {
  * `three.js` was instrumented by `vite-plugin-creation-site`, so
  * `DRACOLoader`'s worker — which it builds by `DRACOWorker.toString()` and
  * hands to a Blob URL — carried the recorder identifier into a realm that has
- * no such binding. `__vgaiCS$ is not defined` in a `blob:` URL, every Draco
+ * no such binding. `__volterCS$ is not defined` in a `blob:` URL, every Draco
  * mesh failed to decode, `useGLTF` suspended forever, and the scene mounted
  * EMPTY with no error naming any of it. Ordinary projects were safe only by
  * accident of their path.

@@ -89,12 +89,12 @@ export function registerRelayRoutes(
     //    separate, much larger history and survives ordinary clip eviction.
     //  - Outside a Gameplay Session, the unnamed fallback is the single
     //    rotating `play-latest.webm`.
-    //  - Named (`vgai play --record <name>`): the caller's own keepsake, and
+    //  - Named (`volter play --record <name>`): the caller's own keepsake, and
     //    NOTHING rotates it. Reusing a name overwrites that name's own file —
     //    an explicit instruction, unlike rotation — so a name is also how you
     //    keep a clip past the next play.
     //
-    // The directory is gitignored in the scaffold (`.vgai/recordings/`), so
+    // The directory is gitignored in the scaffold (`.volter/recordings/`), so
     // neither kind is ever a commit's problem.
     const slug = playRunSlug(req.body?.name);
     if (purpose === 'export' && slug === null) {
@@ -106,7 +106,7 @@ export function registerRelayRoutes(
       : null;
     const path = resolve(
       ctx.projectRoot,
-      '.vgai',
+      '.volter',
       'recordings',
       slug === null && sessionStem !== null
         ? `${sessionStem}.webm`
@@ -429,7 +429,7 @@ export function registerRelayRoutes(
         res.status(400).json({ error: 'Replay file request is invalid.' });
         return;
       }
-      const recordingsRoot = resolve(ctx.projectRoot, '.vgai', 'recordings');
+      const recordingsRoot = resolve(ctx.projectRoot, '.volter', 'recordings');
       const replayRoot =
         replay === basename(replay)
           ? resolve(recordingsRoot, replay)
@@ -440,7 +440,7 @@ export function registerRelayRoutes(
       ) {
         res.status(400).json({
           error:
-            'Replay must be inside this project’s .vgai/recordings directory; use the original recording, not an external copy.',
+            'Replay must be inside this project’s .volter/recordings directory; use the original recording, not an external copy.',
         });
         return;
       }
@@ -550,11 +550,11 @@ export function registerRelayRoutes(
     else res.status(outcome.status).json({ error: outcome.error });
   });
 
-  // ---- The unresolved console set (CLI reads; `vgai status` prints in full) ----
+  // ---- The unresolved console set (CLI reads; `volter status` prints in full) ----
   //
   // The counts ride every command envelope (`commandResponseFor`), so this
   // route exists for the DETAIL: the complete list of distinct conditions with
-  // their occurrence counts, which is what `vgai status` / `vgai console`
+  // their occurrence counts, which is what `volter status` / `volter console`
   // print. Deliberately a plain GET with no tab cooperation — the whole point
   // is that it answers when the tab is dead.
   router.get('/__editor/console', (req: Request, res: Response) => {

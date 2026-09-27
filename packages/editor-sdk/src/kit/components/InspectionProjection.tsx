@@ -228,7 +228,7 @@ function SectionIconStrip({
   if (tabs.length < 5 || new Set(tabs.map((tab) => drawnGlyph(tab.icon))).size < 3) return null;
   return (
     <div
-      className="vgai-inspector-icon-strip"
+      className="volter-inspector-icon-strip"
       role="toolbar"
       aria-label="Sections"
       data-testid="inspector-section-strip"
@@ -298,7 +298,7 @@ function SubjectNameField({ subject }: { readonly subject: InspectionSubject }) 
         style={{
           flex: 1,
           minWidth: 0,
-          fontSize: 'var(--vgai-font-md)',
+          fontSize: 'var(--volter-font-md)',
           fontWeight: 600,
           color: themeVars.content.primary,
           whiteSpace: 'nowrap',
@@ -336,13 +336,13 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
   if (!identity) {
     return (
       <div style={{ padding: 12 }}>
-        <div style={{ fontSize: 'var(--vgai-font-md)', fontWeight: 600 }}>{subject.title}</div>
+        <div style={{ fontSize: 'var(--volter-font-md)', fontWeight: 600 }}>{subject.title}</div>
         {subject.hint && (
           <div
             data-testid="inspector-subject-hint"
             style={{
               marginTop: 4,
-              fontSize: 'var(--vgai-font-base)',
+              fontSize: 'var(--volter-font-base)',
               color: themeVars.content.dim,
             }}
           >
@@ -355,7 +355,7 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
   const definition = definitionLink(subject);
   return (
     <div
-      className="vgai-inspector-identity"
+      className="volter-inspector-identity"
       // Blender's datablock row — the counterpart to this one — is 21px: its
       // 18px name field plus a hair. An 8px inset all round made ours 37, the
       // tallest thing in the column and the loudest place it stopped reading
@@ -363,7 +363,7 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
       // second lines below still need a floor) and stays 8px across.
       style={{
         padding: `${spaceVar[1]} ${spaceVar[4]}`,
-        borderBottom: '1px solid var(--vgai-structural-divider)',
+        borderBottom: '1px solid var(--volter-structural-divider)',
       }}
     >
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -374,7 +374,7 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
           <span
             data-testid="inspector-kind-label"
             style={{
-              fontSize: 'var(--vgai-font-base)',
+              fontSize: 'var(--volter-font-base)',
               color: themeVars.content.dim,
               whiteSpace: 'nowrap',
             }}
@@ -399,7 +399,7 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
           {...(identity.document.title ? { title: identity.document.title } : {})}
           style={{
             marginTop: spaceVar[1],
-            fontSize: 'var(--vgai-font-base)',
+            fontSize: 'var(--volter-font-base)',
             color: themeVars.content.muted,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -421,7 +421,7 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
       {subject.alsoSelected ? (
         <div
           data-testid="inspector-also-selected"
-          style={{ marginTop: 6, fontSize: 'var(--vgai-font-base)', color: themeVars.content.dim }}
+          style={{ marginTop: 6, fontSize: 'var(--volter-font-base)', color: themeVars.content.dim }}
         >
           {`${subject.alsoSelected + 1} selected — fields edit this one, the gizmo moves all`}
         </div>
@@ -429,7 +429,7 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
       {identity.note?.text && (
         <div
           data-testid="inspector-subject-note"
-          style={{ marginTop: 6, fontSize: 'var(--vgai-font-base)', color: themeVars.content.dim }}
+          style={{ marginTop: 6, fontSize: 'var(--volter-font-base)', color: themeVars.content.dim }}
         >
           {identity.note.text}
         </div>
@@ -522,14 +522,14 @@ function PropertiesIdentity({ subject }: { readonly subject: InspectionSubject }
     .filter(Boolean)
     .join(' — ');
   return (
-    <div className="vgai-inspector-identity" data-vgai-identity-layout="properties">
-      <div className="vgai-inspector-breadcrumb">
+    <div className="volter-inspector-identity" data-volter-identity-layout="properties">
+      <div className="volter-inspector-breadcrumb">
         <EditorIcon icon={glyph} tone="primary" />
         {/* A NAME, not a path: it ellipsizes at the TAIL like every other
             name in the chrome. The head-ellipsis (`direction: rtl`) this row
             used to carry existed for the path, which is now the tooltip. */}
         <span
-          className="vgai-inspector-breadcrumb-chain"
+          className="volter-inspector-breadcrumb-chain"
           data-testid="inspector-document-path"
           {...(identity.document ? { 'data-document-path': identity.document.path } : {})}
           {...(chainTitle ? { title: chainTitle } : {})}
@@ -541,9 +541,9 @@ function PropertiesIdentity({ subject }: { readonly subject: InspectionSubject }
         ))}
       </div>
       {
-        <div className="vgai-inspector-datablock">
+        <div className="volter-inspector-datablock">
           <span
-            className="vgai-inspector-datablock-kind"
+            className="volter-inspector-datablock-kind"
             data-testid="inspector-kind-label"
             {...(identity.kindLabel ? { title: identity.kindLabel } : {})}
           >
@@ -561,7 +561,7 @@ function PropertiesIdentity({ subject }: { readonly subject: InspectionSubject }
           data-testid="inspector-also-selected"
           style={{
             marginTop: spaceVar[3],
-            fontSize: 'var(--vgai-font-base)',
+            fontSize: 'var(--volter-font-base)',
             color: themeVars.content.dim,
           }}
         >
@@ -573,7 +573,7 @@ function PropertiesIdentity({ subject }: { readonly subject: InspectionSubject }
           data-testid="inspector-subject-note"
           style={{
             marginTop: spaceVar[3],
-            fontSize: 'var(--vgai-font-base)',
+            fontSize: 'var(--volter-font-base)',
             color: themeVars.content.dim,
           }}
         >
@@ -680,16 +680,16 @@ export function PropertiesColumn({ subject }: { readonly subject: InspectionSubj
     // to reach the bottom of the panel (`compact-inspector.css`, beside the
     // rail's own `min-height: 100%`). Without a name this wrapper sizes to
     // its content and the rail stops under the last tab.
-    <div className="vgai-inspector-properties-fill" style={{ pointerEvents: 'auto' }}>
+    <div className="volter-inspector-properties-fill" style={{ pointerEvents: 'auto' }}>
       {/* THE RAIL IS THE AREA'S FULL LEFT EDGE, and the identity rows sit
           BESIDE it, not above. Measured on `properties-object.png` at 2x: the
           rail column runs x 2..57 from the body's top (y=47) to the frame's
           bottom, and the breadcrumb's own glyph starts at x=80 — everything
           the editor draws is to the right of the rail. Ours used to stack the
           identity across the full width and start the rail under it. */}
-      <div className="vgai-inspector-properties" data-testid="inspector-properties">
+      <div className="volter-inspector-properties" data-testid="inspector-properties">
         <div
-          className="vgai-inspector-properties-rail"
+          className="volter-inspector-properties-rail"
           role="tablist"
           aria-orientation="vertical"
           aria-label="Sections"
@@ -708,7 +708,7 @@ export function PropertiesColumn({ subject }: { readonly subject: InspectionSubj
                   at all, which is every non-Blender rail. */}
               {index > 0 && tab.railGroup !== tabs[index - 1]?.railGroup ? (
                 <div
-                  className="vgai-inspector-properties-rail-separator"
+                  className="volter-inspector-properties-rail-separator"
                   data-testid="properties-tab-separator"
                   role="presentation"
                 />
@@ -730,7 +730,7 @@ export function PropertiesColumn({ subject }: { readonly subject: InspectionSubj
             </Fragment>
           ))}
         </div>
-        <div className="vgai-inspector-properties-body" role="tabpanel">
+        <div className="volter-inspector-properties-body" role="tabpanel">
           <PropertiesIdentity subject={subject} />
           <RelatedSubjects subject={subject} />
           {/* NO HEADER OVER THE ACTIVE TAB. Blender's Properties editor never
@@ -803,15 +803,15 @@ export function MiniInspectorCard({
   const inIdentity = subject.identity !== null;
   return (
     <div
-      className="vgai-mini-inspector"
+      className="volter-mini-inspector"
       data-testid="inspector-panel"
-      data-vgai-inspector-presentation="card"
+      data-volter-inspector-presentation="card"
       onPointerDown={() => setActiveScope('inspector')}
     >
       {host && (
         <IconButton
           size="compact"
-          className="vgai-mini-inspector-minimize"
+          className="volter-mini-inspector-minimize"
           data-testid="inspector-minimize"
           aria-label="Minimize inspector"
           title="Minimize inspector"
@@ -823,7 +823,7 @@ export function MiniInspectorCard({
       {/* The preview (or kind glyph) is the primary EXPAND gesture — clicking
           the box restores the column. */}
       <div
-        className="vgai-mini-inspector-preview"
+        className="volter-mini-inspector-preview"
         data-testid="inspector-mini-preview"
         {...(expand
           ? {
@@ -848,22 +848,22 @@ export function MiniInspectorCard({
         />
       </div>
       {inIdentity ? (
-        <div className="vgai-mini-inspector-identity">
+        <div className="volter-mini-inspector-identity">
           <SubjectNameField subject={subject} />
           {actionsPlacedAt(subject, 'identity').map((action) => (
             <QuickActionIconButton key={action.id} action={action} />
           ))}
         </div>
       ) : (
-        <div className="vgai-mini-inspector-identity">
-          <div style={{ flex: 1, minWidth: 0, fontSize: 'var(--vgai-font-md)', fontWeight: 600 }}>
+        <div className="volter-mini-inspector-identity">
+          <div style={{ flex: 1, minWidth: 0, fontSize: 'var(--volter-font-md)', fontWeight: 600 }}>
             {subject.title}
           </div>
         </div>
       )}
       <SectionIconStrip subject={subject} onJump={() => expand?.()} />
       {definition && (
-        <div className="vgai-mini-inspector-actions">
+        <div className="volter-mini-inspector-actions">
           <EditDefinitionButton link={definition} />
         </div>
       )}
@@ -889,13 +889,13 @@ export function InspectorPill({
   const previewSection = subject.sections.find((section) => section.body.kind === 'preview');
   const previewBody = previewSection?.body.kind === 'preview' ? previewSection.body : null;
   return (
-    <div className="vgai-inspector-pill" data-testid="inspector-pill">
+    <div className="volter-inspector-pill" data-testid="inspector-pill">
       {/* The role-annotated div is the sanctioned clickable-card idiom — a raw
           native control here trips the design-system product-chrome scan. */}
       <div
         role="button"
         tabIndex={0}
-        className="vgai-inspector-pill-open"
+        className="volter-inspector-pill-open"
         aria-label={`Expand inspector for ${subject.title}`}
         title={`Expand inspector for ${subject.title}`}
         onClick={onExpand}
@@ -906,14 +906,14 @@ export function InspectorPill({
           }
         }}
       >
-        <span className="vgai-inspector-pill-thumb" aria-hidden="true">
+        <span className="volter-inspector-pill-thumb" aria-hidden="true">
           {previewBody ? (
             previewBody.render('thumbnail')
           ) : (
             <EditorIcon icon={firstSectionGlyph(subject)} />
           )}
         </span>
-        <span className="vgai-inspector-pill-name">{subject.title}</span>
+        <span className="volter-inspector-pill-name">{subject.title}</span>
       </div>
       {onClear && (
         <IconButton
@@ -973,9 +973,9 @@ export function InspectionProjectionView({
     <Panel
       name="Inspector"
       hideHeader
-      className="vgai-content-frost"
+      className="volter-content-frost"
       data-testid="inspector-panel"
-      data-vgai-inspector-presentation={presentation}
+      data-volter-inspector-presentation={presentation}
       onPointerDown={() => setActiveScope('inspector')}
       style={{ overflowY: 'auto' }}
       ref={restoreScroll}

@@ -74,7 +74,7 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(function Menu(
       {...props}
       ref={localRef}
       role={role}
-      className={classes('vgai-menu', className)}
+      className={classes('volter-menu', className)}
       onKeyDown={(event) => {
         onKeyDown?.(event);
         if (event.defaultPrevented) return;
@@ -112,7 +112,7 @@ export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(function Me
       ref={ref}
       type={type}
       role={role}
-      className={classes('vgai-menu-item', className)}
+      className={classes('volter-menu-item', className)}
       onClick={(event) => {
         onClick?.(event);
         if (!event.defaultPrevented) onSelect?.();
@@ -122,7 +122,7 @@ export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(function Me
 });
 
 export function MenuSeparator(props: HTMLAttributes<HTMLHRElement>) {
-  return <hr {...props} className={classes('vgai-menu-separator', props.className)} />;
+  return <hr {...props} className={classes('volter-menu-separator', props.className)} />;
 }
 
 export const MenuTrigger = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement>>(
@@ -133,7 +133,7 @@ export const MenuTrigger = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HT
         ref={ref}
         type={type}
         aria-haspopup={props['aria-haspopup'] ?? 'menu'}
-        className={classes('vgai-menu-trigger', className)}
+        className={classes('volter-menu-trigger', className)}
       />
     );
   },

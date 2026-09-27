@@ -163,7 +163,7 @@ export interface SerializedInspectionSubject {
  * ("nobody answered"). "Somebody answered, and the answer is that there is
  * nothing to inspect" is a DIFFERENT fact, and it deserves a token that
  * survives the same hops — an object, which every layer already carries
- * unchanged, and which prints as `{none: true}` in a `vgai eval` rather than
+ * unchanged, and which prints as `{none: true}` in a `volter eval` rather than
  * as a bare `null` an agent would read as a failure.
  */
 export interface SerializedNoInspection {

@@ -19,7 +19,7 @@
  *
  * THE DOOR THE RECORD NAMED WAS A BIGGER ONE, AND THE CODE DID NOT WANT IT.
  * Unit 21 specified "a chrome slot that can hand its filler a dismiss/refresh
- * callback", i.e. the whole form becoming `@vgai/agents`' surface. Measured
+ * callback", i.e. the whole form becoming `@volter/agents`' surface. Measured
  * against the form: of its ~120 lines, everything but the harness `<Select>`
  * is the worktree board's own vocabulary — the branch slug, the two
  * isolations, the copy about sibling checkouts, and

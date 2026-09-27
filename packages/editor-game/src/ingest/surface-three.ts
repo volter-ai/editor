@@ -3,7 +3,7 @@
  * `ingest/discovery.ts`, which owned its own glob of `games/*`).
  *
  * Discovery is no longer here: `registry.ts` does the one glob over
- * `./games/*\/vgai.project.json` and hands back parsed entries. This module's only
+ * `./games/*\/volter.project.json` and hands back parsed entries. This module's only
  * job is turning a `three`-surface entry into the `IngestGame` descriptor
  * `ingest/mount-ingest-root.ts` mounts — which is genuinely per-surface work, and is why the
  * builders stayed split when discovery was unified.

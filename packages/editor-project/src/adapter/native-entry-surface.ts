@@ -6,7 +6,7 @@
  *
  *   export { debug } from './commands';
  *
- * and the command module imports no vgai API — its functions are the
+ * and the command module imports no volter API — its functions are the
  * application's own functions over its own stores. The READER that validates
  * one of these exports, and the adapter that projects it onto the session's
  * debug/input doors, are the game runtime's

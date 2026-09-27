@@ -174,7 +174,7 @@ export function registerRuntimeModules(modules: Record<string, ModuleNamespace>)
   }
   // Exposed on globalThis so shim modules (which run in their own module scope)
   // can reach the live namespaces by specifier.
-  (globalThis as Record<string, unknown>)['__vgaiModules'] = Object.fromEntries(runtimeModules);
+  (globalThis as Record<string, unknown>)['__volterModules'] = Object.fromEntries(runtimeModules);
 }
 
 /**
@@ -259,7 +259,7 @@ function loadRuntimeModule(spec: string): Promise<void> {
 
 /**
  * The call-time half of a literal dynamic import in project code. The rewrite
- * turns `import('tone')` into `globalThis.__vgaiImportRuntimeModule('tone')`,
+ * turns `import('tone')` into `globalThis.__volterImportRuntimeModule('tone')`,
  * so the load — and the wall, if the browser editor does not ship it — happens
  * exactly when the project's own code executes the import, never earlier.
  */
@@ -267,7 +267,7 @@ export async function importRuntimeModule(spec: string): Promise<ModuleNamespace
   if (!runtimeModules.has(spec)) await loadRuntimeModule(spec);
   return runtimeModules.get(spec) as ModuleNamespace;
 }
-(globalThis as Record<string, unknown>)['__vgaiImportRuntimeModule'] = importRuntimeModule;
+(globalThis as Record<string, unknown>)['__volterImportRuntimeModule'] = importRuntimeModule;
 
 /**
  * Bring every static bare import live, then rewrite by the lexer's own byte
@@ -304,7 +304,7 @@ export async function resolveAndRewriteBareImports(code: string): Promise<string
       out = `${out.slice(0, record.s)}${shimUrlFor(record.n)}${out.slice(record.e)}`;
     } else if (record.d >= 0) {
       // Literal dynamic import: swap the whole `import(...)` expression.
-      out = `${out.slice(0, record.ss)}globalThis.__vgaiImportRuntimeModule(${JSON.stringify(
+      out = `${out.slice(0, record.ss)}globalThis.__volterImportRuntimeModule(${JSON.stringify(
         record.n,
       )})${out.slice(record.se)}`;
     }
@@ -379,7 +379,7 @@ function shimUrlFor(spec: string): string {
   // `registerRuntimeModules` user) — the same wall, said the same way.
   if (!ns) throw unregisteredRuntimeModules([spec]);
 
-  const lines = [`const __m = globalThis.__vgaiModules[${JSON.stringify(spec)}];`];
+  const lines = [`const __m = globalThis.__volterModules[${JSON.stringify(spec)}];`];
   for (const key of Object.keys(ns)) {
     if (key === 'default' || !IDENT_RE.test(key) || RESERVED_WORDS.has(key)) continue;
     lines.push(`export const ${key} = __m[${JSON.stringify(key)}];`);
@@ -432,7 +432,7 @@ export async function transpileToModuleUrl(
 
 /**
  * Prepend the game-globals lexical shadow to project source — the browser-side
- * analogue of the dev server's `vgai-game-globals` Vite plugin
+ * analogue of the dev server's `volter-game-globals` Vite plugin
  * (`server/dev.ts` + `shouldShadowGameGlobals`). The server shadows per-module
  * because Vite transforms EVERY module indiscriminately and must be told which
  * ones are game code; the browser has no such firehose — {@link importFromSource}
@@ -541,7 +541,7 @@ export function loaderFor(path: string): esbuild.Loader {
 function resolveServedModulePath(importer: string, specifier: string): string {
   if (specifier.startsWith('/')) return specifier;
   if (/^(?:https?:|blob:|data:)/.test(specifier)) return specifier;
-  const origin = globalThis.location?.origin ?? 'https://vgai.invalid';
+  const origin = globalThis.location?.origin ?? 'https://volter.invalid';
   const resolved = new URL(specifier, new URL(importer, origin));
   return resolved.origin === origin
     ? `${resolved.pathname}${resolved.search}${resolved.hash}`
@@ -572,7 +572,7 @@ export async function bundleServedModule(
     define: PROJECT_MODULE_DEFINES,
     plugins: [
       {
-        name: 'vgai-served-module',
+        name: 'volter-served-module',
         setup(build) {
           build.onResolve({ filter: /.*/ }, (args) => {
             if (
@@ -586,9 +586,9 @@ export async function bundleServedModule(
               args.kind === 'entry-point'
                 ? args.path
                 : resolveServedModulePath(args.importer, args.path);
-            return { path, namespace: 'vgai-served' };
+            return { path, namespace: 'volter-served' };
           });
-          build.onLoad({ filter: /.*/, namespace: 'vgai-served' }, async (args) => {
+          build.onLoad({ filter: /.*/, namespace: 'volter-served' }, async (args) => {
             const response = await fetchImpl(args.path);
             if (!response.ok) {
               throw new Error(

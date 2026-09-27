@@ -1,5 +1,5 @@
 {
-  "repository": "https://github.com/volter-ai/vgai-engine",
+  "repository": "https://github.com/volter-ai/volter-engine",
   "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
   "files": [
     {
@@ -159,7 +159,7 @@
       "sha256": "a4ad5fbd6bc4541bc643786922307adb66672387353ad4a3e49a91e961450012"
     },
     {
-      "path": "packages/blender-engine/browser/vgai_three.py",
+      "path": "packages/blender-engine/browser/volter_three.py",
       "sha256": "e4bf455150d6af0b425b984c0c0452689665eb2b83a261aab61a2f3c9040e709"
     },
     {

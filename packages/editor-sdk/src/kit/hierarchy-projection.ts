@@ -1,8 +1,8 @@
 /**
  * Project-authored hierarchy projection (D20).
  *
- * This is editor metadata, not runtime composition. `vgai.project.json.roots`
- * declares adapter mounts; `vgai.project.json.authoring.hierarchy` only
+ * This is editor metadata, not runtime composition. `volter.project.json.roots`
+ * declares adapter mounts; `volter.project.json.authoring.hierarchy` only
  * chooses how those roots are labelled and grouped in the authoring tree.
  */
 
@@ -67,7 +67,7 @@ export function parseHierarchyProjection(value: unknown): HierarchyProjection | 
   };
 }
 
-/** Read the projection from a raw `vgai.project.json` config object. */
+/** Read the projection from a raw `volter.project.json` config object. */
 export function hierarchyProjectionFromProjectConfig(
   config: unknown,
 ): HierarchyProjection | undefined {

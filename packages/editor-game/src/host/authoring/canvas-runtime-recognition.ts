@@ -22,7 +22,7 @@ export interface PhaserRealmLike {
 export interface BabylonRealmLike {
   BABYLON?: { Engine?: { Instances?: BabylonEngineLike[] } };
   /** Host build seam for module-bundled Babylon, where no BABYLON global exists. */
-  __vgaiBabylon?: {
+  __volterBabylon?: {
     engines?: BabylonEngineLike[];
     /** Optional boot promise published by a host-built classic bundle. */
     ready?: PromiseLike<unknown>;
@@ -39,7 +39,7 @@ export function findPhaserGame(realm: PhaserRealmLike | null): PhaserGameLike | 
 
 /** Recognize Babylon from its public engine registry or the module-build host seam. */
 export function findBabylonEngine(realm: BabylonRealmLike | null): BabylonEngineLike | null {
-  const bridged = realm?.__vgaiBabylon?.engines;
+  const bridged = realm?.__volterBabylon?.engines;
   const engines = Array.isArray(bridged) ? bridged : realm?.BABYLON?.Engine?.Instances;
   if (!Array.isArray(engines)) return null;
   return (

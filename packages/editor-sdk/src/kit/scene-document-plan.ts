@@ -23,7 +23,7 @@ import type { DocumentEntry, SceneSource } from '@volter/editor-project/adapter/
 import type { ResolvedDocumentTable } from './project-adapter';
 
 /** Document-id namespace for a per-scene isolation document. Distinct from
- *  `three-story:` ids (the story turntable, `@vgai/game`'s): a scene is
+ *  `three-story:` ids (the story turntable, `@volter/game`'s): a scene is
  *  reached through the entrypoint's own selection table, not through a story,
  *  and the two can legitimately name the same composition. */
 export const SCENE_DOCUMENT_PREFIX = 'scene:';

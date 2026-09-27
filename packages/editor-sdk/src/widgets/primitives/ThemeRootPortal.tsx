@@ -2,7 +2,7 @@ import { type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 
 /**
- * Portal children to the nearest `.vgai-editor-theme` root — the same target
+ * Portal children to the nearest `.volter-editor-theme` root — the same target
  * resolution `Tooltip` uses (`Tooltip.tsx`), extracted for `position: fixed`
  * overlays that open from inside a panel (context menus).
  *
@@ -18,8 +18,8 @@ import { createPortal } from 'react-dom';
  * THE PORTAL RECORDS WHERE IT CAME FROM, and that is what makes a portaled
  * overlay reachable through the surface that opened it. The anchor span below
  * already sits IN PLACE — it is how the theme root is found — so the two ends
- * carry the same generated id: `data-vgai-portal` where the portal was
- * written, `data-vgai-portal-content` on what it wrote. `editor-document-probe`
+ * carry the same generated id: `data-volter-portal` where the portal was
+ * written, `data-volter-portal-content` on what it wrote. `editor-document-probe`
  * walks that pair, so `editor.document.click` can drive a menu a DOCUMENT
  * opened without being able to reach one the editor's own chrome opened. Its
  * own header used to say the DOM records no ownership and that any heuristic
@@ -33,15 +33,15 @@ export function ThemeRootPortal({ children }: { children: ReactNode }) {
   const id = useId();
 
   useLayoutEffect(() => {
-    setPortalRoot(anchorRef.current?.closest('.vgai-editor-theme') ?? null);
+    setPortalRoot(anchorRef.current?.closest('.volter-editor-theme') ?? null);
   }, []);
 
   return (
     <>
-      <span ref={anchorRef} data-vgai-portal={id} style={{ display: 'none' }} />
+      <span ref={anchorRef} data-volter-portal={id} style={{ display: 'none' }} />
       {portalRoot
         ? createPortal(
-            <div data-vgai-portal-content={id} style={{ display: 'contents' }}>
+            <div data-volter-portal-content={id} style={{ display: 'contents' }}>
               {children}
             </div>,
             portalRoot,

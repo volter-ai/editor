@@ -1,7 +1,7 @@
 /**
- * The `__vgaiIngest` / `__vgaiIngest2D` / `__vgaiIngestReact` dev hooks: the
+ * The `__volterIngest` / `__volterIngest2D` / `__volterIngestReact` dev hooks: the
  * headless-readable evidence a live ingest mount publishes for automation,
- * screenshots and `vgai doctor`.
+ * screenshots and `volter doctor`.
  *
  * Everything here is EVIDENCE, not control: names read off the live adapter,
  * counters read off the live gate, the coverage report re-derived on demand.
@@ -18,7 +18,7 @@ import type { IngestMount } from './authoring/ingest-root-adapter';
 import { ingestCoverageReport } from './mount-coverage';
 
 /** The window key each surface's mount publishes its evidence under. */
-export type IngestHookKey = '__vgaiIngest' | '__vgaiIngest2D' | '__vgaiIngestReact';
+export type IngestHookKey = '__volterIngest' | '__volterIngest2D' | '__volterIngestReact';
 
 const AUTHORING_PROVIDER_KEYS = [
   'hierarchy',
@@ -57,7 +57,7 @@ export function ingestHookEvidence(adapter: AuthoringAdapter): Record<string, un
 }
 
 /**
- * The loop fields the `__vgaiIngest` dev hook publishes — the measured verdict
+ * The loop fields the `__volterIngest` dev hook publishes — the measured verdict
  * plus the gate's own counters, so automation can drive Play/Pause/Step through
  * exactly the seam the editor's own buttons use rather than a parallel one.
  */
@@ -85,10 +85,10 @@ export function defineLoopHookFields(target: Record<string, unknown>, mount: Ing
 
 /**
  * D-L1 — the LIVE value behind
- * `__vgaiIngestReact.domEvidence()`, shared by both react ingest routes.
+ * `__volterIngestReact.domEvidence()`, shared by both react ingest routes.
  * Evaluated at scrape time (a function result, never memoized),
  * same "read the live state fresh on every call" discipline as
- * `__vgaiSiblingMounts` (D-H1).
+ * `__volterSiblingMounts` (D-H1).
  *
  * `elementCount` prefers the DOM's real `querySelectorAll('*').length` — a
  * real browser `HTMLElement` (what `reactRoot()` actually returns in

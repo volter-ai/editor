@@ -4,7 +4,7 @@
  *
  * `components/ShareSessionPanel.tsx` rendered TWO unrelated surfaces out of
  * one 850-line function: share invitations, roles and tunnel health (the
- * collaboration lane's, and now `@vgai/collaboration`'s `ShareAccessSection`)
+ * collaboration lane's, and now `@volter/collaboration`'s `ShareAccessSection`)
  * and this one — status, stage, checkpoint, publish, pull request. Only this
  * half had a host caller (`components/WorktreeSwitcher.tsx`), and moving a
  * project's changes into another checkout is the worktree board's job whether
@@ -118,7 +118,7 @@ export function VersionControlSection() {
   };
 
   return (
-    <section className="vgai-worktree-version-control">
+    <section className="volter-worktree-version-control">
       {error && (
         <div
           style={{ color: themeVars.semantic.danger, fontSize: fontSizeVar.sm, marginBottom: 5 }}
@@ -412,11 +412,11 @@ export function VersionControlSection() {
       )}
       {pullRequestTitle !== null && (
         <Dialog
-          labelledBy="vgai-pull-request-title-heading"
+          labelledBy="volter-pull-request-title-heading"
           onDismiss={() => setPullRequestTitle(null)}
         >
           <DialogHeader
-            titleId="vgai-pull-request-title-heading"
+            titleId="volter-pull-request-title-heading"
             title="Create pull request"
             description={`Opens a pull request for ${git?.branch ?? 'this branch'} on its remote.`}
           />
@@ -449,9 +449,9 @@ export function VersionControlSection() {
         </Dialog>
       )}
       {confirmMerge && (
-        <Dialog labelledBy="vgai-merge-pr-heading" onDismiss={() => setConfirmMerge(false)}>
+        <Dialog labelledBy="volter-merge-pr-heading" onDismiss={() => setConfirmMerge(false)}>
           <DialogHeader
-            titleId="vgai-merge-pr-heading"
+            titleId="volter-merge-pr-heading"
             title="Merge pull request"
             description={`Merging the pull request for ${git?.branch ?? 'this branch'} changes the remote repository.`}
           />

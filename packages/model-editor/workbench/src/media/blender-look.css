@@ -1,11 +1,11 @@
 /* THE MODEL EDITOR'S LOOK — what a COLOR THEME cannot reach in Blender's, measured 2026-09-19:
    chrome typography, widget corner radii, and the uppercase section headers. A skin layer the
    workbench does not expose to extensions; the product's overlaid contribution imports it as
-   one stylesheet. Values from `@vgai/blender`'s `blender.style.ts` (4px corners, 11-12px type)
+   one stylesheet. Values from `@volter/blender`'s `blender.style.ts` (4px corners, 11-12px type)
    and `blender.palette.json`'s typography.
 
    The KIT's part-hosting rules are NOT here — they are `packages/editor-core/workbench/src/media/
-   vgai-parts.css`, because every product needs them whatever it looks like. */
+   volter-parts.css`, because every product needs them whatever it looks like. */
 .monaco-workbench, .monaco-workbench.mac, .monaco-workbench.windows, .monaco-workbench.linux, .monaco-workbench.web {
 	font-family: 'Inter', 'DejaVu Sans', system-ui, sans-serif;
 	font-size: 12px;

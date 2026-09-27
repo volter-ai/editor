@@ -5,7 +5,7 @@
  * that overlay is the only place the fact has ever existed. Close the tab, or
  * let the browser discard it, and the entire episode is unrecoverable: the
  * server it would have been reported to is precisely the thing that died, so
- * no journal, no `vgai console` and no later session has any record that a
+ * no journal, no `volter console` and no later session has any record that a
  * window sat there orphaned. A human who steps away and comes back to a
  * relaunched editor is left to reconstruct it from how slow things felt.
  *
@@ -15,7 +15,7 @@
  * cannot erase — `localStorage`, keyed by ORIGIN, which is exactly the scope of
  * "the server that was serving this address". The next editor to boot on that
  * address picks the note up, says it out loud once through the ordinary console
- * door (so it reaches `vgai console` and the session journal like every other
+ * door (so it reaches `volter console` and the session journal like every other
  * editor fact), and clears it.
  *
  * The split here is deliberate: everything that decides or formats is a pure
@@ -43,7 +43,7 @@ export interface SessionOrphanRecord {
  *  `localStorage` is already per-origin, so the key needs no port in it — and
  *  must not have one, or a note would be invisible to the very session that
  *  replaced the writer. */
-export const SESSION_ORPHAN_KEY = 'vgai.editor.orphaned-tab.v1';
+export const SESSION_ORPHAN_KEY = 'volter.editor.orphaned-tab.v1';
 
 /**
  * Parse a stored note, rejecting anything that is not one.

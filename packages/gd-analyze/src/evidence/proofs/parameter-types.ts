@@ -206,7 +206,7 @@ function typeName(datatype: GodotBoundDatatype | undefined): string {
 
 export function measureParameterTypeProof(tools: GodotProofTools): readonly GodotProofMeasurement[] {
   const { exporterBinary, officialBinary } = tools;
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-parameter-types-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-parameter-types-'));
   try {
     for (const [relative, source] of Object.entries(files)) writeFileSync(path.join(temp, relative), source);
 

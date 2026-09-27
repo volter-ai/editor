@@ -80,7 +80,7 @@ export async function managedInferenceLaunch(
     OPENROUTER_API_KEY: inference.apiKey,
   };
   if (harness === 'codex') {
-    const provider = 'vgai-openrouter';
+    const provider = 'volter-openrouter';
     return {
       program: 'codex',
       arguments: [
@@ -151,7 +151,7 @@ export async function managedInferenceLaunch(
       await mkdir(dirname(piExtensionPath), { recursive: true, mode: 0o700 });
       await writeFile(
         piExtensionPath,
-        `export default function vgaiOpenRouter(pi) {
+        `export default function volterOpenRouter(pi) {
   const baseUrl = process.env.VOLTER_OPENROUTER_BASE_URL;
   if (!baseUrl) throw new Error('VOLTER_OPENROUTER_BASE_URL is required.');
   pi.registerProvider('openrouter', { baseUrl, apiKey: '$OPENROUTER_API_KEY' });

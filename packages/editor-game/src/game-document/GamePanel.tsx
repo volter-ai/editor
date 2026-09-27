@@ -74,7 +74,7 @@ import {
  * surfaces (stacked canvases + React DOM layers). */
 export function collectGameSurfaces(container: HTMLElement): Element[] {
   return Array.from(container.children).filter(
-    (node) => (node as HTMLElement).dataset?.['vgaiRootSurface'] === 'true',
+    (node) => (node as HTMLElement).dataset?.['volterRootSurface'] === 'true',
   );
 }
 
@@ -250,7 +250,7 @@ function InstanceViewport({ index }: { index: number }) {
       focused={mountedId != null && focused === mountedId}
       onFocus={mountedId ? () => setFocusedInstance(mountedId) : undefined}
     >
-      <div ref={ref} data-vgai-instance-viewport="" style={{ position: 'absolute', inset: 0 }} />
+      <div ref={ref} data-volter-instance-viewport="" style={{ position: 'absolute', inset: 0 }} />
     </InstanceSlot>
   );
 }
@@ -355,7 +355,7 @@ export function GamePanel({ style }: { style?: React.CSSProperties }) {
   // the same call — and switching resolution DURING play would silently drop
   // the running game's canvases with the removed element. Only nodes the game
   // HOST mounted are
-  // stashed (world surfaces carry `data-vgai-root-surface`): the fill/device branches are keyed below so
+  // stashed (world surfaces carry `data-volter-root-surface`): the fill/device branches are keyed below so
   // React really remounts, but if it ever aliases the container DOM node
   // again, a blind childNodes copy would capture React-owned children too —
   // that exact aliasing put the incoming inner div in the stash and made
@@ -412,7 +412,7 @@ export function GamePanel({ style }: { style?: React.CSSProperties }) {
   // which consults `deviceEmulatedPixelRatio()` once the session exists.)
   // What size this game is PRESENTED at. Two things can name one and the precedence lives in
   // `resolvePresentedSize`: a device preset the user picked wins, and otherwise the project's own
-  // declared `resolution` (`vgai.project.json`) puts the game on screen at its authored logical
+  // declared `resolution` (`volter.project.json`) puts the game on screen at its authored logical
   // size, uniformly scaled and letterboxed by the branch below — presentation scaling, never a
   // stretch mode. A project that declares neither fills the panel exactly as before.
   const declaredResolution = project?.config.resolution;
@@ -474,16 +474,16 @@ export function GamePanel({ style }: { style?: React.CSSProperties }) {
 
   // Safe-area contract: the game MOUNT container always carries the
   // inset CSS vars (0px unless the active preset declares insets), so game
-  // UI can style with `var(--vgai-safe-area-inset-top, 0px)` etc. Real
+  // UI can style with `var(--volter-safe-area-inset-top, 0px)` etc. Real
   // `env(safe-area-inset-*)` cannot be injected from a same-document host
   // (env() is UA-supplied for the top-level viewport only) — the vars + the
   // visual overlay below ARE the emulation.
   const safeArea = preset.safeArea;
   const safeAreaVars = {
-    '--vgai-safe-area-inset-top': `${safeArea?.top ?? 0}px`,
-    '--vgai-safe-area-inset-right': `${safeArea?.right ?? 0}px`,
-    '--vgai-safe-area-inset-bottom': `${safeArea?.bottom ?? 0}px`,
-    '--vgai-safe-area-inset-left': `${safeArea?.left ?? 0}px`,
+    '--volter-safe-area-inset-top': `${safeArea?.top ?? 0}px`,
+    '--volter-safe-area-inset-right': `${safeArea?.right ?? 0}px`,
+    '--volter-safe-area-inset-bottom': `${safeArea?.bottom ?? 0}px`,
+    '--volter-safe-area-inset-left': `${safeArea?.left ?? 0}px`,
   } as React.CSSProperties;
 
   return (

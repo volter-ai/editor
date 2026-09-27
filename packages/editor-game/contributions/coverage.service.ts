@@ -15,7 +15,7 @@
  *
  * ## The two doors, both the host's own, neither of them new vocabulary
  *
- *  - `session.reportFacet(collect, { reusableKeys })` — the four `vgai status`
+ *  - `session.reportFacet(collect, { reusableKeys })` — the four `volter status`
  *    facets. The keys are declared REUSABLE because grading a root re-walks
  *    its tree (76ms–1.3s, measured), which is exactly the cost
  *    `command-listener.ts`'s `REUSABLE_DERIVED_FACETS` exists to keep off the
@@ -86,7 +86,7 @@ function coverageFacets(reuse: Record<string, unknown> | null): Record<string, u
       : null,
     // The THIRD derived family, and the one that lives outside both adapter
     // contracts: the native verbs whose subject is the PROJECT rather than a
-    // mounted root — its committed proof route, whether `vgai add` can land a
+    // mounted root — its committed proof route, whether `volter add` can land a
     // capability here, and whether it can produce a standalone build at all
     // (`@editor/coverage/project-verb-coverage`). Without it a project could
     // be green in the other two families and silently have none of the three.

@@ -1,5 +1,5 @@
 /**
- * B8.4 — the Asset Lab COMPARE surface (`vgai screenshot <model.glb>
+ * B8.4 — the Asset Lab COMPARE surface (`volter screenshot <model.glb>
  * --compare <ref.glb>`): renders the project asset AND a caller-supplied reference GLB
  * with matched orthographic front + side framing, then scores their
  * silhouettes (IoU) and composes review overlays, so an agent can

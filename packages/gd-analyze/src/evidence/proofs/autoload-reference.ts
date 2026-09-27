@@ -146,7 +146,7 @@ function loadClass(
 
 export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly GodotProofMeasurement[] {
   const { exporterBinary, officialBinary } = tools;
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-autoload-reference-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-autoload-reference-'));
   try {
     for (const [relative, source] of Object.entries(FILES)) {
       writeFileSync(path.join(temp, relative), source);

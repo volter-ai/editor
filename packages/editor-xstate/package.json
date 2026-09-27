@@ -30,7 +30,7 @@
     "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
   },
-  "vgai": {
+  "volter": {
     "contributions": [
       "./contributions/machines.finder.ts",
       "./contributions/machine.document.tsx"

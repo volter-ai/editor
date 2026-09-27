@@ -11,7 +11,7 @@
  *
  * So the server computes its own checkout's git provenance and reports it
  * everywhere a human or an agent looks: the `/__editor/project` payload, the
- * server's own startup banner, `vgai edit`'s ready line, and `vgai status`.
+ * server's own startup banner, `volter edit`'s ready line, and `volter status`.
  *
  * Two rules this module exists to hold:
  *
@@ -85,7 +85,7 @@ function canonical(path: string): string {
 
 /**
  * `engineRoot` must BE the repository git discovers, not merely live inside
- * one. A registry-installed editor sits at `<game>/node_modules/@vgai/editor`,
+ * one. A registry-installed editor sits at `<game>/node_modules/@volter/editor`,
  * where `rev-parse --show-toplevel` happily answers with the GAME's repo — and
  * reporting the game's branch under the word "engine" is worse than reporting
  * nothing. Mismatch therefore degrades to all-null, the same as no git at all.
@@ -140,7 +140,7 @@ export function engineProvenance(engineRoot: string, run?: GitRunner): Promise<E
 }
 
 /**
- * The ONE wording. The server banner, `vgai edit` and `vgai status` all print
+ * The ONE wording. The server banner, `volter edit` and `volter status` all print
  * this exact string, so a reader comparing two surfaces is never left deciding
  * whether they disagree or are merely phrased differently.
  */

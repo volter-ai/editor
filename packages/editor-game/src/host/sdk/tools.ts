@@ -5,7 +5,7 @@
  * input/result schemas, structured error codes, and the metadata a caller reads
  * before invoking (`permission`, `host`, `mutates`, `supportsDryRun`). The
  * contract exists because a tool is called across a process boundary — CLI to
- * editor to node host, and `vgai mcp` to an external agent over stdio — where
+ * editor to node host, and `volter mcp` to an external agent over stdio — where
  * you cannot throw. `ToolRegistry.dispatch` turns every expected failure
  * (unknown name, bad input, an `impl` throw, a bad return) into a typed outcome
  * instead.

@@ -30,7 +30,7 @@
  * failure surfaces as `null`/a thrown `fetch` rejection, never a placeholder.
  */
 
-export const DEFAULT_CLOUD_ASSET_BASE_URL = 'https://vgai-asset-library.aaron-0ed.workers.dev';
+export const DEFAULT_CLOUD_ASSET_BASE_URL = 'https://volter-asset-library.aaron-0ed.workers.dev';
 
 /**
  * One deliverable object. The worker's own

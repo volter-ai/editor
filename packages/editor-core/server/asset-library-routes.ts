@@ -137,7 +137,7 @@ async function commitCatalogAsset(
     destination,
     provenance: {
       operationName: 'catalog.asset.acquire',
-      operationSource: 'vgai-catalog',
+      operationSource: 'volter-catalog',
       input,
     },
   });
@@ -146,7 +146,7 @@ async function commitCatalogAsset(
 async function centralCatalogIds(projectRoot: string): Promise<Map<string, string>> {
   try {
     const document = ProjectProvenanceDocumentSchema.parse(
-      JSON.parse(await readFile(join(projectRoot, '.vgai', 'provenance.json'), 'utf8')),
+      JSON.parse(await readFile(join(projectRoot, '.volter', 'provenance.json'), 'utf8')),
     );
     const ids = new Map<string, string>();
     for (const operation of Object.values(document.operations)) {
@@ -561,7 +561,7 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
   };
 
   /**
-   * Record a completed materialization in `.vgai/assets.json` (D-AP3).
+   * Record a completed materialization in `.volter/assets.json` (D-AP3).
    *
    * `resultPath` is public-root-relative (what the route returns); the ledger is
    * keyed project-relative, hence the `public/` prefix.
@@ -586,7 +586,7 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
       // biome-ignore lint/suspicious/noConsole: the dev server's terminal is its own report channel for a ledger write that failed after the import succeeded.
       console.error(
         `[asset-ledger] ${resultPath} was imported but its provenance could not be recorded ` +
-          `in .vgai/assets.json: ${message}`,
+          `in .volter/assets.json: ${message}`,
       );
       return message;
     }
@@ -957,7 +957,7 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
                       return {
                         label: `${variant.label} · SSD · ${file.label}`,
                         format: file.format,
-                        url: `vgai-local:${variant.id}:${index}`,
+                        url: `volter-local:${variant.id}:${index}`,
                         sizeBytes: file.sizeBytes,
                       };
                     } catch {
@@ -1165,7 +1165,7 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
         const assetSlug = localAssetSlug(asset);
         const destDir = join(publicRoot, 'asset-library', 'local', assetSlug);
 
-        const match = url.match(/^vgai-local:([a-f0-9]{24}):(\d+)$/);
+        const match = url.match(/^volter-local:([a-f0-9]{24}):(\d+)$/);
         const selectedAsset = match?.[1] ? await findLocalAsset(match[1]) : null;
         const selectedFile =
           selectedAsset && selectedAsset.familyId === family.id
@@ -1513,7 +1513,7 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
           const files = await readdir(slugDir).catch(() => [] as string[]);
           const id = centralIds.get(`${source}/${slug}`) ?? slug;
           // Find the main asset file
-          const assetFiles = files.filter((file) => file !== '.vgai-thumbnail.webp');
+          const assetFiles = files.filter((file) => file !== '.volter-thumbnail.webp');
           const mainFile =
             assetFiles.find((file) => /\.(gltf|glb|hdr|exr)$/i.test(file)) ?? assetFiles[0];
           if (mainFile) {
@@ -1589,7 +1589,7 @@ async function copyLocalAssetThumbnail(
   try {
     const source = requireLocalAssetThumbnail(getLocalAssetLibraryRoot(), asset);
     if (extname(source).toLowerCase() !== '.webp') return;
-    await copyFile(source, join(destination, '.vgai-thumbnail.webp'));
+    await copyFile(source, join(destination, '.volter-thumbnail.webp'));
   } catch {
     // A thumbnail is presentation cache, never a reason to fail an asset download.
   }

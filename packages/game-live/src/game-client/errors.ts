@@ -2,7 +2,7 @@ import type { SessionFailureData } from './failure-block.js';
 
 /**
  * Machine-readable error codes this client throws. `INPUT_GATED` is the same
- * frozen token `@vgai/sdk`'s input operations declare, so a caller classifies
+ * frozen token `@volter/sdk`'s input operations declare, so a caller classifies
  * a gated actuation identically whichever door it came through. `WAIT_FOR_*`
  * and `EVENTS_EXPECT_FAILED` are this client's own extension of the same
  * "errors carry machine-readable `code` fields" rule: nothing in the codebase

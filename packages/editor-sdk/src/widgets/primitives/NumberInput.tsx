@@ -132,10 +132,10 @@ export function NumberInput({
   };
 
   return (
-    <div className="vgai-number-input" data-testid={testId} title={title} style={style}>
+    <div className="volter-number-input" data-testid={testId} title={title} style={style}>
       {label && (
         <span
-          className="vgai-number-input-label"
+          className="volter-number-input-label"
           style={labelColor ? { color: labelColor } : undefined}
         >
           {label}
@@ -152,12 +152,12 @@ export function NumberInput({
             if (e.key === 'Escape') setEditing(false);
           }}
           placeholder={isMixed ? '—' : undefined}
-          className="vgai-number-input-editor"
+          className="volter-number-input-editor"
         />
       ) : (
         <div
           onPointerDown={handlePointerDown}
-          className="vgai-number-input-scrub"
+          className="volter-number-input-scrub"
           data-mixed={isMixed || undefined}
           data-disabled={disabled || undefined}
         >

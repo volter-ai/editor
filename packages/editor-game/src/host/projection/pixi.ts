@@ -179,8 +179,8 @@ export class PixiProjector {
     if (rect.width <= 0 || rect.height <= 0) return null;
     const mapped = this.mapping?.pointFromClient?.(clientX, clientY, rect) ?? null;
     if (this.mapping?.pointFromClient) return mapped;
-    const logicalWidth = Number(surface.dataset?.['vgaiStageWidth'] ?? rect.width);
-    const logicalHeight = Number(surface.dataset?.['vgaiStageHeight'] ?? rect.height);
+    const logicalWidth = Number(surface.dataset?.['volterStageWidth'] ?? rect.width);
+    const logicalHeight = Number(surface.dataset?.['volterStageHeight'] ?? rect.height);
     if (!(logicalWidth > 0) || !(logicalHeight > 0)) return null;
     return {
       x: (clientX - rect.left) * (logicalWidth / rect.width),

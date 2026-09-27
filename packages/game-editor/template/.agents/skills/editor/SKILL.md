@@ -1,16 +1,16 @@
 ---
 name: editor
-description: Launch, control, inspect, and verify a VGAI game through its live visual editor. Use for editor sessions, Play mode, selection, hierarchy or inspector work, screenshots, status, logs, restart after setup changes, or the live playtest loop.
+description: Launch, control, inspect, and verify a VOLTER game through its live visual editor. Use for editor sessions, Play mode, selection, hierarchy or inspector work, screenshots, status, logs, restart after setup changes, or the live playtest loop.
 ---
 
-# Control the VGAI editor
+# Control the VOLTER editor
 
 ## Open the observable session
 
 1. Run `npm run dev` from the game project. Let it auto-open unless the run is
    genuinely unattended CI.
 2. Tell the user the printed editor URL and keep the process running.
-3. Run `npm run --silent vgai -- status`; require `connected: true` before treating the
+3. Run `npm run --silent volter -- status`; require `connected: true` before treating the
    response as live state. A running server without a browser tab only has a
    cached snapshot.
 4. Use Play mode for user-visible game runs. The standalone page
@@ -18,8 +18,8 @@ description: Launch, control, inspect, and verify a VGAI game through its live v
    exported it refuses to mount, so the editor is the one surface for a game
    in development.
 
-Always invoke the scaffold-pinned CLI as `npm run --silent vgai -- <verb>`. Never use
-a bare global `vgai` command, which may come from a different checkout.
+Always invoke the scaffold-pinned CLI as `npm run --silent volter -- <verb>`. Never use
+a bare global `volter` command, which may come from a different checkout.
 
 ## Verify the loop
 
@@ -38,7 +38,7 @@ a bare global `vgai` command, which may come from a different checkout.
 - Read persisted Play logs and visible pixels as well as state. Screenshots
   must make the result being claimed legible.
 - **Every `npx volter-game-editor play` records video automatically** — the ack prints the
-  recording path (`.vgai/recordings/play-latest.webm`, replaced by the next
+  recording path (`.volter/recordings/play-latest.webm`, replaced by the next
   play; `npx volter-game-editor play --record <name>` keeps a clip forever), play auto-stops
   after 2 idle minutes, and stopping finalizes the WebM. A claim about
   MOTION (an effect, an animation, a stutter, anything that lives between

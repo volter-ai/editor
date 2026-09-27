@@ -16,7 +16,7 @@ const credentialNames: Record<string, string> = {
 
 // Project SSR and installed packages can load separate module instances.
 // The host's async context must still be shared, without sharing requests.
-const key = Symbol.for('vgai.provider-execution-context');
+const key = Symbol.for('volter.provider-execution-context');
 const globals = globalThis as typeof globalThis & {
   [key]?: AsyncLocalStorage<{
     resolve: ProviderModeResolver;

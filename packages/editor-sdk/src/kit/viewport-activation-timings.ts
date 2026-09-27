@@ -20,7 +20,7 @@
  * Date.now is cheap); the named segments and per-story list allocate only
  * when {@link viewportTimingsEnabled} is true — doctor `--timings` sets
  * `window.__VOLTER_VIEWPORT_TIMINGS__` before boot, or the URL carries
- * `?vgaiTimings=1`. Off by default so a normal session never pays for it.
+ * `?volterTimings=1`. Off by default so a normal session never pays for it.
  *
  * The breakdown clock starts at the ACTIVATION GESTURE (`setActive`), not at
  * board-build start. Time between those two marks is the prefix window
@@ -136,14 +136,14 @@ const counts = new Map<string, number>();
 
 function reportEmbeddedViewportReady(): void {
   if (typeof window === 'undefined' || window.parent === window || latest.size === 0) return;
-  window.parent.postMessage({ type: 'vgai:viewport-ready', documents: [...latest.keys()] }, '*');
+  window.parent.postMessage({ type: 'volter:viewport-ready', documents: [...latest.keys()] }, '*');
 }
 
 // A host may hydrate after this iframe has already painted. Answer its ready
 // query as well as announcing the first frame; iframe load is only HTML ready.
 if (typeof window !== 'undefined' && window.parent !== window) {
   window.addEventListener('message', (event) => {
-    if (event.source === window.parent && event.data?.type === 'vgai:request-viewport-ready')
+    if (event.source === window.parent && event.data?.type === 'volter:request-viewport-ready')
       reportEmbeddedViewportReady();
   });
 }
@@ -215,7 +215,7 @@ export function viewportTimingsEnabled(): boolean {
     .__VOLTER_VIEWPORT_TIMINGS__;
   if (flag === true || flag === '1') return true;
   try {
-    return new URLSearchParams(window.location.search).get('vgaiTimings') === '1';
+    return new URLSearchParams(window.location.search).get('volterTimings') === '1';
   } catch {
     return false;
   }

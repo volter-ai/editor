@@ -78,7 +78,7 @@ export const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'cen
  *  replaces the `{fontSize:10, color:'#8c8c8c', marginBottom:2}` literal
  *  re-authored in nearly every `components/inspectors/*` section (I-8). */
 export const fieldLabelStyle: React.CSSProperties = {
-  fontSize: 'var(--vgai-font-sm)',
+  fontSize: 'var(--volter-font-sm)',
   color: themeVars.content.muted,
   marginBottom: 2,
 };
@@ -89,7 +89,7 @@ export const fieldLabelStyle: React.CSSProperties = {
  *  standardizes on), `ParticleSection.subHeaderStyle`,
  *  `PostProcessingSection.effectLabel`, and `MaterialSection`'s Textures. */
 export const groupLabelStyle: React.CSSProperties = {
-  fontSize: 'var(--vgai-font-base)',
+  fontSize: 'var(--volter-font-base)',
   fontWeight: 600,
   color: themeVars.content.muted,
   textTransform: 'uppercase',

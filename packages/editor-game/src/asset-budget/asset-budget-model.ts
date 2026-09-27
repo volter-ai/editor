@@ -12,7 +12,7 @@
  *   - the project REFERENCE GRAPH: which manifest entries, code files, or
  *     sibling assets mention each asset ("what uses this", critique P5),
  *     the unused list derived from it, and duplicate groups by sha256
- *   - provenance stamps projected from `.vgai/provenance.json`
+ *   - provenance stamps projected from `.volter/provenance.json`
  *
  * Anti-shim: anything unmeasurable is reported as absent/unknown with a
  * reason (`inspectError`, `gpuBytes: null`, `unknownTextureCount`) — never a
@@ -190,7 +190,7 @@ export interface AssetBudgetSource {
    * Reference-owner documents living OUTSIDE the walked snapshot, scanned for
    * references but never budget rows. Server mode uses this for the project
    * manifest: `HttpStorage` is hard-rooted at `public/` (its own doc comment;
-   * the T3.3 "two-`.vgai`-dirs" finding), so `vgai.project.json` is unreachable
+   * the T3.3 "two-`.volter`-dirs" finding), so `volter.project.json` is unreachable
    * through the seam and is fetched over the dev server instead — without it,
    * every manifest-referenced asset (input maps, scenes) would be reported
    * unused, a fabricated finding.
@@ -213,7 +213,7 @@ export interface AssetBudgetSource {
   readonly codeReferencesScannable?: boolean;
   readBytes(path: string): Promise<Uint8Array>;
   readText(path: string): Promise<string>;
-  /** Parsed `.vgai/provenance.json` (or null/undefined when absent). */
+  /** Parsed `.volter/provenance.json` (or null/undefined when absent). */
   readonly provenance?: unknown;
 }
 
@@ -282,7 +282,7 @@ export function isEngineVendoredRuntimePath(path: string): boolean {
 // --- Reference scanning ------------------------------------------------------
 
 const CODE_OWNER_PATTERN = /\.(?:tsx?|jsx?|mjs|cjs)$/i;
-const MANIFEST_NAME = 'vgai.project.json';
+const MANIFEST_NAME = 'volter.project.json';
 
 /**
  * The manifest is the ONLY JSON document that owns asset references. An
@@ -450,7 +450,7 @@ const IGNORED_DIRS = new Set([
   '.git',
   'dist',
   'build',
-  '.vgai',
+  '.volter',
   '.ci-scaffold',
   'coverage',
   'test-results',
@@ -476,21 +476,21 @@ export async function collectProjectBudgetSource(
   await walk('');
 
   // Server mode: `HttpStorage` is hard-rooted at the project's `public/`
-  // folder (its doc comment; the T3.3 "two-`.vgai`-dirs" finding), so BOTH
+  // folder (its doc comment; the T3.3 "two-`.volter`-dirs" finding), so BOTH
   // project-root documents the budget needs live outside the seam. Use the
   // dev server's own idioms for each: the raw manifest served at
-  // `/vgai.project.json` (`manifest-project.ts`) and the `.vgai/`-scoped
-  // `/__editor/vgai-file` route (`project-provenance.ts`). Anything
+  // `/volter.project.json` (`manifest-project.ts`) and the `.volter/`-scoped
+  // `/__editor/volter-file` route (`project-provenance.ts`). Anything
   // unavailable stays honestly absent — no fabricated owners or stamps.
   if (isPublicRootedBackend(backend)) {
     const ownerFiles: AssetBudgetFile[] = [];
     const virtualTexts = new Map<string, string>();
     try {
-      const manifestRes = await fetch('/vgai.project.json');
+      const manifestRes = await fetch('/volter.project.json');
       if (manifestRes.ok) {
         const text = await manifestRes.text();
-        virtualTexts.set('vgai.project.json', text);
-        ownerFiles.push({ path: 'vgai.project.json', size: text.length });
+        virtualTexts.set('volter.project.json', text);
+        ownerFiles.push({ path: 'volter.project.json', size: text.length });
       }
     } catch {
       // No reachable manifest → no manifest-owned references.
@@ -501,7 +501,7 @@ export async function collectProjectBudgetSource(
       // answers `text/plain` raw file bytes, which that JSON-only reader would
       // reject as a non-answer. See `optimize-apply.ts`'s `readLedgerText`.
       const provenanceRes = await fetch(
-        `/__editor/vgai-file?${new URLSearchParams({ path: '.vgai/provenance.json' })}`,
+        `/__editor/volter-file?${new URLSearchParams({ path: '.volter/provenance.json' })}`,
       );
       if (provenanceRes.ok) provenance = JSON.parse(await provenanceRes.text());
     } catch {
@@ -525,8 +525,8 @@ export async function collectProjectBudgetSource(
 
   let provenance: unknown = null;
   try {
-    if (await backend.exists('.vgai/provenance.json')) {
-      provenance = JSON.parse(await backend.read('.vgai/provenance.json'));
+    if (await backend.exists('.volter/provenance.json')) {
+      provenance = JSON.parse(await backend.read('.volter/provenance.json'));
     }
   } catch {
     provenance = null; // unreadable provenance = no stamps, never a crash

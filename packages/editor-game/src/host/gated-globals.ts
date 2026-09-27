@@ -248,7 +248,7 @@ function realmFunction(value: unknown, receiver: object): unknown {
  * one pauses its siblings. Neither is fixable in the presentation layer.
  *
  * The lookup key comes from the MODULE'S OWN URL: every project module served
- * under a mount carries `?vgai-mount=<id>` (the isolation transform), and the
+ * under a mount carries `?volter-mount=<id>` (the isolation transform), and the
  * prelude passes `import.meta.url` to {@link gameRealmForModuleUrl}. So a
  * module resolves its own realm with no plugin involvement and no threading.
  */
@@ -402,7 +402,7 @@ export function gameSurfaces(): { surface: HTMLElement; gate: () => boolean }[] 
  */
 function gateFor(id: string): () => boolean {
   // AND THE SURFACE TERM (U2). `surfaceHoldsKeyboard()` is true standalone and
-  // under the frame is the workbench's own "is the vgai pane the active
+  // under the frame is the workbench's own "is the volter pane the active
   // editor?", so a keystroke aimed at Monaco in the group beside a running
   // game never reaches the game's listeners. It is read HERE, once, rather
   // than folded into each lane's own predicate, because this is the one place
@@ -434,7 +434,7 @@ function realmGenerationGate(id: string, live: RealmLiveness): () => boolean {
 function mountIdOfUrl(moduleUrl: string): string {
   const query = moduleUrl.split('?')[1];
   if (query === undefined) return DEFAULT_REALM_ID;
-  return new URLSearchParams(query).get('vgai-mount') ?? DEFAULT_REALM_ID;
+  return new URLSearchParams(query).get('volter-mount') ?? DEFAULT_REALM_ID;
 }
 
 /** The realm whose code is synchronously executing right now. Console capture
@@ -865,12 +865,12 @@ export function makeGatedProxy<T extends EventTarget>(
   };
 
   /** Report a refused navigation on the page's own console — which is a real
-   *  product door: `vgai status` reports page console errors. */
+   *  product door: `volter status` reports page console errors. */
   const refuseNavigation = (attempt: string): void => {
     // A NEW native console.error site, suppressed to keep this task's diff at
     // zero new lint warnings — and it is deliberately native rather than
     // `editorConsole`: game code runs in the page, and the page console is the
-    // surface `vgai status` already reads (same reasoning as
+    // surface `volter status` already reads (same reasoning as
     // `ingest-root-adapter.ts`'s loop-gate warning).
     // biome-ignore lint/suspicious/noConsole: see comment above
     console.error(refusedNavigationMessage(attempt));
@@ -1115,9 +1115,9 @@ function createOwnedRealmProxy<T extends EventTarget>(
     if (refusalReported) return;
     refusalReported = true;
     const realm = options.realmId ? `"${options.realmId}"` : 'the default realm';
-    // biome-ignore lint/suspicious/noConsole: game code runs in the page, and the page console is the surface `vgai status` reads (same reasoning as `refuseNavigation` above)
+    // biome-ignore lint/suspicious/noConsole: game code runs in the page, and the page console is the surface `volter status` reads (same reasoning as `refuseNavigation` above)
     console.warn(
-      `vgai: a stopped game tried to register ${what} on its ${options.role} after its realm ` +
+      `volter: a stopped game tried to register ${what} on its ${options.role} after its realm ` +
         `(${realm}) was reclaimed; refused. Later refusals in this generation are silent.`,
     );
   };
@@ -1460,10 +1460,10 @@ function publishDefaultRealmGlobals(): void {
   const g = globalThis as unknown as Record<string, unknown>;
   const base = gameRealmForMountId();
   loopGate = defaultLoopGate;
-  g['__vgaiGameTimers'] = base.timers;
-  g['__vgaiGameWindow'] = base.window;
-  g['__vgaiGameDocument'] = base.document;
-  g['__vgaiGameConsole'] = base.console;
+  g['__volterGameTimers'] = base.timers;
+  g['__volterGameWindow'] = base.window;
+  g['__volterGameDocument'] = base.document;
+  g['__volterGameConsole'] = base.console;
 }
 
 /**
@@ -1494,8 +1494,8 @@ export function installGatedGameGlobals(): void {
   // The microtask pop bounds the window: it runs when the current synchronous
   // evaluation chunk yields, before the mount's own import().then
   // continuation (queued later) can run editor code.
-  g['__vgaiGameModuleUrls'] = loadedGameRealmModuleUrls;
-  g['__vgaiGameRealm'] = (mountId: string): GameRealm => {
+  g['__volterGameModuleUrls'] = loadedGameRealmModuleUrls;
+  g['__volterGameRealm'] = (mountId: string): GameRealm => {
     executingRealms.push(mountId);
     queueMicrotask(() => {
       const at = executingRealms.lastIndexOf(mountId);

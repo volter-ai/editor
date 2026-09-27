@@ -7,7 +7,7 @@ import { ArenaScene } from './scenes/ArenaScene';
 
 // The game's declared system adapters, as a static module export — the host
 // reads them at mount (its navigation, which the editor bakes and draws),
-// without this world importing any vgai runtime.
+// without this world importing any volter runtime.
 // The arena's own readings and setup functions are ordinary exports of the
 // modules that own them, reached through `game.run(({ modules }) => …)`.
 export { systems } from './systems';

@@ -4,4 +4,4 @@
  * page can retire the stub whose id it supplies itself (`served-html-boot.ts`).
  * Shared here because the two sides must agree on one mark.
  */
-export const DOM_STUB_MARK = 'vgaiDomStub';
+export const DOM_STUB_MARK = 'volterDomStub';

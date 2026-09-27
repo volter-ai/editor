@@ -8,15 +8,15 @@ import { readGenerationJobs } from './generation-jobs';
  * Registered project-tool discovery and execution.
  *
  * Project modules stay ordinary TS/JS. This server-side boundary is the only
- * loader: it reads explicit `package.json#vgai.tools` registrations, asks the
+ * loader: it reads explicit `package.json#volter.tools` registrations, asks the
  * owning Vite server to load each callable module in Node, validates the
  * exported ToolDefinition, and dispatches through the existing internal SDK
  * registry.
  *
- * CALLABLES are enumerated (`vgai.tools`); the project's own CONTRIBUTION
+ * CALLABLES are enumerated (`volter.tools`); the project's own CONTRIBUTION
  * MODULES are found by walking `src/contributions/` for the naming convention
  * (`isToolContributionModule`); a DEPENDENCY's contribution modules are the
- * ones it enumerates under its own `package.json#vgai.contributions`
+ * ones it enumerates under its own `package.json#volter.contributions`
  * (`packageContributionModules`). They are still separate browser modules and
  * are never imported here, merely listed.
  */
@@ -70,7 +70,7 @@ interface PackageJsonShape {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   optionalDependencies?: Record<string, string>;
-  vgai?: { tools?: ToolRegistration[]; contributions?: unknown };
+  volter?: { tools?: ToolRegistration[]; contributions?: unknown };
 }
 
 async function readPackageJson(path: string): Promise<PackageJsonShape | null> {
@@ -128,15 +128,15 @@ async function projectContributionModules(projectRoot: string): Promise<ProjectT
 /**
  * A DEPENDENCY's contributions — the plug-in door of the universal editor
  * (ARCHITECTURE-CORE §The universal editor, owner ruling 2026-09-15): a skew
- * package (`@volter/editor-blender`, `@vgai/production`, …) enumerates its contribution
- * modules under its own `package.json#vgai.contributions`, and the editor
+ * package (`@volter/editor-blender`, `@volter/production`, …) enumerates its contribution
+ * modules under its own `package.json#volter.contributions`, and the editor
  * lists them for every dependency the OPEN PROJECT DECLARES.
  *
  * Declared, never scanned. There is still no walk of `node_modules`: a
  * package that is not in the project's `dependencies`/`devDependencies`
  * contributes nothing however it got installed, and a package that is
  * declared contributes only what it enumerates — the same explicit
- * registration idiom `vgai.tools` uses for callables. That is what keeps the
+ * registration idiom `volter.tools` uses for callables. That is what keeps the
  * surface visible: `package.json` names the package, the package's own
  * `package.json` names the modules, and both are ordinary files a person
  * reads. Entries are `./`-relative modules by the contribution naming
@@ -175,12 +175,12 @@ async function locatePackageJson(fromDir: string, name: string): Promise<string 
  *
  * WHAT A PROJECT NEEDS TO RUN IS THE PROJECT'S OWN DECLARATION and nothing
  * else. A list here used to IMPLY a lane from the manifest's roots —
- * `@vgai/game` and `@vgai/dom` — resolved out of the EDITOR's own `node_modules` when the
+ * `@volter/game` and `@volter/dom` — resolved out of the EDITOR's own `node_modules` when the
  * project declared none. It is deleted: the kit names no package (ARCHITECTURE-
  * CORE §The target shape, rule 1), and the packages a session mounts beyond the
  * project's own are the PRODUCT's, already in its bundle.
  *
- * `@vgai/asset-library` joins it on the same test and for the same reason
+ * `@volter/asset-library` joins it on the same test and for the same reason
  * (2026-09-18, phase 1 unit 10). The Library panel is a STOREFRONT the editor
  * carries: it reaches our hosted catalog and it opens with a project that has
  * no content at all, so no manifest can imply it — importing a result into the
@@ -196,22 +196,22 @@ async function locatePackageJson(fromDir: string, name: string): Promise<string 
  * gives. This list is the SESSION's own answer, for chrome that is about the
  * worktree rather than about the project.
  *
- * `@vgai/collaboration` joined on the same test (2026-09-19, phase 1 unit 15).
+ * `@volter/collaboration` joined on the same test (2026-09-19, phase 1 unit 15).
  * Who is in a live editor SESSION is a fact about the session, not about the
  * project: the people control and the presence publisher are wanted by a
  * modeling-only worktree exactly as much as by a game, and no manifest could
  * imply them.
  */
-// Empty since the launch-scope sweep (2026-09-20): `@vgai/agents`,
-// `@vgai/asset-library` and `@vgai/collaboration` are archived at
+// Empty since the launch-scope sweep (2026-09-20): `@volter/agents`,
+// `@volter/asset-library` and `@volter/collaboration` are archived at
 // `archive/launch-scope-2026-09-20`; a session package returns here with them.
 const SESSION_PACKAGES: readonly string[] = [];
 
 /**
  * EVERY PACKAGE THIS SESSION MOUNTS, from the two places one can come from.
  *
- * 1. THE PRODUCT'S COMPOSITION. `@vgai/game-editor`'s and
- *    `@vgai/model-editor`'s entries name the packages they mount in code, and
+ * 1. THE PRODUCT'S COMPOSITION. `@volter/game-editor`'s and
+ *    `@volter/model-editor`'s entries name the packages they mount in code, and
  *    `productComposedPackages` reads those imports (never the product's
  *    dependencies, which also carry what a game's capabilities add). They
  *    resolve from the PRODUCT's install, so a project declaring none of them
@@ -264,9 +264,9 @@ async function packageContributionModules(
     // to say here.
     if (packageJsonPath === null) continue;
     const manifest = await readPackageJson(packageJsonPath);
-    const registrations = manifest?.vgai?.contributions;
+    const registrations = manifest?.volter?.contributions;
     if (registrations === undefined) continue;
-    const source = `${name}/package.json#vgai.contributions`;
+    const source = `${name}/package.json#volter.contributions`;
     if (!Array.isArray(registrations)) {
       loadErrors.push({ sourcePath: source, message: 'must be an array of ./-relative modules' });
       continue;
@@ -312,11 +312,11 @@ async function packageContributionModules(
 
 async function projectToolModules(projectRoot: string): Promise<ToolModule[]> {
   const projectPackage = await readPackageJson(resolve(projectRoot, 'package.json'));
-  const registrations = projectPackage?.vgai?.tools;
+  const registrations = projectPackage?.volter?.tools;
   if (!Array.isArray(registrations)) return [];
   return registrations.map((registration, index): ToolModule => {
     const entry = registrationEntry(registration);
-    const registrationPath = `package.json#vgai.tools[${index}]`;
+    const registrationPath = `package.json#volter.tools[${index}]`;
     if (!validRelativeModule(entry)) {
       return {
         absolutePath: resolve(projectRoot, 'package.json'),
@@ -450,7 +450,7 @@ async function loadCatalog(
       const definition = imported?.['tool'];
       if (!operationShape(definition)) {
         throw new Error(
-          'does not export a complete `tool` definition; export `tool = defineTool({...})` from @vgai/sdk/tools',
+          'does not export a complete `tool` definition; export `tool = defineTool({...})` from @volter/sdk/tools',
         );
       }
       if (!definition.name.startsWith('project.')) {

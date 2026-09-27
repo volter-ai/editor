@@ -74,7 +74,7 @@
  * ## Licence
  *
  * What lands in the JSON is a table of PANEL NAMES and SOCKET NAMES read out
- * of GPL-2.0-or-later sources. `@vgai/blender` is AGPL-3.0-only, which that
+ * of GPL-2.0-or-later sources. `@volter/blender` is AGPL-3.0-only, which that
  * is compatible with (relicense to GPL-3.0, then §13), and the package
  * already carries Blender itself — the same standing this file's sibling
  * `blender-icon-trace.mjs` records for the icon paths. Nothing traced here

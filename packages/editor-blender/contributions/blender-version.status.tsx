@@ -15,7 +15,7 @@
  *
  * It is read through the SDK's host door and NOT through `@editor/*`, and
  * its two inline styles spell the theme tokens directly
- * (`var(--vgai-space-2)`, `var(--vgai-font-md)`) rather than importing the
+ * (`var(--volter-space-2)`, `var(--volter-font-md)`) rather than importing the
  * host's `fontSizeVar`/`spaceVar` handles: `@volter/editor-blender` is pinned at ZERO
  * host imports (`validate-editor-closure.mjs`), the first package to reach
  * that destination, and a token NAME is the published contract while the
@@ -53,7 +53,7 @@ export default function BlenderVersionStatus() {
   if (version === null) return null;
   return (
     <span
-      className="vgai-status-copy"
+      className="volter-status-copy"
       data-testid="status-blender-version"
       data-engine-version={version}
       // NO COLOUR AND NO `sm`. Measured on the native-2x frames, Blender's
@@ -67,8 +67,8 @@ export default function BlenderVersionStatus() {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 'var(--vgai-space-2)',
-        fontSize: 'var(--vgai-font-md)',
+        gap: 'var(--volter-space-2)',
+        fontSize: 'var(--volter-font-md)',
       }}
       title={`This project is built against engine ${version}`}
     >
@@ -82,8 +82,8 @@ export default function BlenderVersionStatus() {
       <span
         aria-hidden="true"
         style={{
-          width: 'var(--vgai-stroke-resting)',
-          height: 'var(--vgai-icon-md)',
+          width: 'var(--volter-stroke-resting)',
+          height: 'var(--volter-icon-md)',
           background: 'currentColor',
         }}
       />

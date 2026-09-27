@@ -1,26 +1,26 @@
 /*---------------------------------------------------------------------------------------------
- *  THE KEYMAP GENERATOR — vgai's chords, as a built-in extension's `contributes.keybindings`.
+ *  THE KEYMAP GENERATOR — volter's chords, as a built-in extension's `contributes.keybindings`.
  *
  *  WORK.md §The core is Code-OSS U6b, and it is what RETIRED the fork's third core edit.
- *  U6 registered the vgai editor's keybinding rules at RUNTIME, from the keymap tables the
+ *  U6 registered the volter editor's keybinding rules at RUNTIME, from the keymap tables the
  *  bridge read out of the open project's session — and an upstream rule registered after
  *  `workbench.common.main.ts` has loaded is INERT, so it cost a four-line emitter on
  *  `KeybindingsRegistry` wired to the workbench keybinding service's `updateResolver()`.
  *
  *  The reading that retires it: the chords are PACKAGE DATA, known at BUILD time. Only the
- *  CHOICE of keymap is dynamic, and `vgai.keymap` already carries it as a context key. So a
+ *  CHOICE of keymap is dynamic, and `volter.keymap` already carries it as a context key. So a
  *  keymap is a keybinding SET in a built-in extension's manifest, gated on that context key,
  *  and VS Code's own keymap-extension path (the one `ms-vscode.sublime-keybindings` uses)
  *  carries it — at load, through `keybindingsExtPoint`, with no core file touched.
  *
- *  WHAT IT READS, and why THIS way. Three files of the vgai-engine checkout it is pointed at:
+ *  WHAT IT READS, and why THIS way. Three files of the volter-engine checkout it is pointed at:
  *
- *    packages/editor-sdk/src/kit/keymap-presets.ts        the `vgai` table — the editor's own chords
- *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@vgai/blender`'s G/R/S)
+ *    packages/editor-sdk/src/kit/keymap-presets.ts        the `volter` table — the editor's own chords
+ *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@volter/blender`'s G/R/S)
  *    packages/editor-sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
  *  It reads them STATICALLY, with the TypeScript compiler API, rather than importing them
- *  through the SDK-facing door the bridge uses (`@vgai/editor-sdk/host`'s `keyboard`). That
+ *  through the SDK-facing door the bridge uses (`@volter/editor-sdk/host`'s `keyboard`). That
  *  door is the right one at RUNTIME and the wrong one at build time: reaching it means
  *  mounting the editor in a browser against a live session, because the action table is
  *  filled as a side effect of `registerEditorShellHotkeys`/`StageHost` mounting. `tsx` is no
@@ -35,13 +35,13 @@
  *
  *  WHAT IT WRITES, both checked in:
  *
- *    packages/editor-core/workbench/extensions/vgai-keymaps/package.json   the keybinding sets
- *    packages/editor-core/workbench/src/vgaiGeneratedKeymaps.ts            the ids the frame CARRIES
+ *    packages/editor-core/workbench/extensions/volter-keymaps/package.json   the keybinding sets
+ *    packages/editor-core/workbench/src/volterGeneratedKeymaps.ts            the ids the frame CARRIES
  *
  *  The second exists for one reason: a keymap a PROJECT contributes (a capability's copied
  *  `*.keymap.ts`, which the project then owns and edits — `unreal.keymap.ts` is the shipped
- *  case) cannot be in a manifest built here. `vgaiKeyboard.ts` compares the project's active
- *  keymap against this list and says so in the vgai console when it is not carried. A
+ *  case) cannot be in a manifest built here. `volterKeyboard.ts` compares the project's active
+ *  keymap against this list and says so in the volter console when it is not carried. A
  *  standing warning naming its mechanism, never a silent degrade.
  *
  *  DRIFT. Both artifacts carry the sha256 of every source they were generated from. Run
@@ -66,9 +66,9 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const EXTENSION_DIR = join(REPO_ROOT, 'packages/editor-core/workbench/extensions/vgai-keymaps');
+const EXTENSION_DIR = join(REPO_ROOT, 'packages/editor-core/workbench/extensions/volter-keymaps');
 const MANIFEST_PATH = join(EXTENSION_DIR, 'package.json');
-const CARRIED_PATH = join(REPO_ROOT, 'packages/editor-core/workbench/src/vgaiGeneratedKeymaps.ts');
+const CARRIED_PATH = join(REPO_ROOT, 'packages/editor-core/workbench/src/volterGeneratedKeymaps.ts');
 
 // ---------------------------------------------------------------------------------------------
 // Arguments
@@ -90,7 +90,7 @@ function parseArgs(argv) {
 }
 
 function fail(message) {
-	console.error(`vgai keymap generator: ${message}`);
+	console.error(`volter keymap generator: ${message}`);
 	process.exit(1);
 }
 
@@ -166,7 +166,7 @@ function fileConstants(ts, source) {
 }
 
 /** `keymap-presets.ts`'s own table: the chords every project gets. */
-function readVgaiTable(ts, file) {
+function readVolterTable(ts, file) {
 	const source = parseSource(ts, file);
 	let table;
 	const visit = (node) => {
@@ -294,12 +294,12 @@ function laneActionFiles(packagesDir) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// A vgai chord, as a VS Code keybinding string.
+// A volter chord, as a VS Code keybinding string.
 
 /**
- * The vgai keymap tables spell a chord as `KeyboardEvent.key` (lowercased), or as
+ * The volter keymap tables spell a chord as `KeyboardEvent.key` (lowercased), or as
  * `KeyboardEvent.code` where the typed character varies by layout or modifier. This is the
- * same translation `vgaiKeyboard.ts` did at runtime in U6, moved to build time.
+ * same translation `volterKeyboard.ts` did at runtime in U6, moved to build time.
  */
 function keyCodeFor(chord, KeyCode) {
 	if (chord.code) {
@@ -395,33 +395,33 @@ function keybindingStrings(chord, apis) {
 // global the host dispatcher fires these regardless of which of ITS panels is active — but
 //        "regardless of our panels" is not "regardless of the window": under the frame the
 //        Explorer, a terminal and Monaco share it, so a bare backtick must type a backtick in
-//        a text editor. Global is `vgai.focused` too.
+//        a text editor. Global is `volter.focused` too.
 //
 // A RUNNING GAME'S STAGE is the game's keyboard: with the Game document active, a stage or
 // panel chord is the player's key, not an editor verb (measured on `arena`: W held in Play ran
 // `transform.translate`, which refused and warned). Global chords still reach the editor there.
 function whenFor(id, scope, keymapId) {
-	const focus = scope === 'stage' ? 'vgai.stage.focused' : 'vgai.focused';
-	const game = scope === 'global' ? '' : " && vgai.document.kind != 'game'";
+	const focus = scope === 'stage' ? 'volter.stage.focused' : 'volter.focused';
+	const game = scope === 'global' ? '' : " && volter.document.kind != 'game'";
 	// A `canvas.*` action has a handler only on a 2D canvas stage, which the stage context reports
 	// as `canvas` (a mounted canvas document marks itself: `markCanvasStageDocument`).
-	const surface = id.startsWith('canvas.') ? " && vgai.stage.surface == 'canvas'" : '';
-	return `${focus}${game}${surface} && vgai.keymap == '${keymapId}'`;
+	const surface = id.startsWith('canvas.') ? " && volter.stage.surface == 'canvas'" : '';
+	return `${focus}${game}${surface} && volter.keymap == '${keymapId}'`;
 }
 
 // ---------------------------------------------------------------------------------------------
 // THE ONE ⌘Z (U4). `edit.undo`/`edit.redo` get a COMMAND like every other action, and
 // deliberately NO KEYBINDING RULE: under the frame ⌘Z is VS Code's own `undo`/`redo`
-// `MultiCommand`, which `vgaiHistory.ts` answers for a focused vgai stage
+// `MultiCommand`, which `volterHistory.ts` answers for a focused volter stage
 // (`UndoCommand.addImplementation`, the same door upstream's custom editors use) and Monaco
 // answers for a focused text editor. Both end at the one `IUndoRedoService`, keyed on the
 // document's own file — which is what makes a gizmo drag on `cube.ts`'s model and a keystroke
 // in `cube.ts`'s text editor undo IN ORDER from one stack.
 //
 // A rule here would take that back: an extension keybinding outweighs `undo`'s EditorCore
-// weight, so `vgai.edit.undo` would win the chord with a stage focused and walk the editor's
+// weight, so `volter.edit.undo` would win the chord with a stage focused and walk the editor's
 // OWN cursor instead - a second stack, which is precisely the defect U4 closes. The commands
-// stay registered because the editor's palette and `vgai eval` still name them, and the
+// stay registered because the editor's palette and `volter eval` still name them, and the
 // standalone shape (which never loads this extension) keeps its own chords unchanged.
 const UNBOUND_UNDER_THE_FRAME = new Set(['edit.undo', 'edit.redo']);
 
@@ -452,16 +452,16 @@ async function main() {
 	const sources = [presetsFile, hotkeysFile, ...laneFiles, ...contributionFiles];
 	const hashes = Object.fromEntries(sources.map(file => [relative(REPO_ROOT, file), sha256(file)]));
 
-	const vgaiTable = readVgaiTable(ts, presetsFile);
+	const volterTable = readVolterTable(ts, presetsFile);
 	const scopes = readActionScopes(ts, hotkeysFile);
 	readLaneActionScopes(ts, laneFiles, scopes);
 	const keymaps = [
-		{ id: 'vgai', title: 'vgai', chords: vgaiTable },
+		{ id: 'volter', title: 'volter', chords: volterTable },
 		...contributionFiles.map(file => {
 			const contribution = readKeymapContribution(ts, file);
 			// Exactly what `registerContributedKeymap` does: the editor's own table with the
 			// contribution's chords over it, so a keymap declares only where it differs.
-			return { id: contribution.id, title: contribution.title, chords: { ...vgaiTable, ...contribution.bindings } };
+			return { id: contribution.id, title: contribution.title, chords: { ...volterTable, ...contribution.bindings } };
 		}),
 	];
 
@@ -484,7 +484,7 @@ async function main() {
 					refusals.push(`${keymap.id}: "${id}" chord ${JSON.stringify(chord)} is not expressible as a VS Code keybinding`);
 					continue;
 				}
-				rules.push({ command: `vgai.${id}`, ...strings, when: whenFor(id, scope, keymap.id) });
+				rules.push({ command: `volter.${id}`, ...strings, when: whenFor(id, scope, keymap.id) });
 			}
 		}
 	}
@@ -503,15 +503,15 @@ async function main() {
 	};
 
 	const manifest = {
-		name: 'vgai-keymaps',
-		displayName: 'vgai keymaps',
-		description: "GENERATED — do not edit. The vgai editor's keyboard actions as keybinding sets, one per keymap, gated on the `vgai.keymap` context key the frame publishes from the open project's own choice. Regenerate with `node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write`.",
+		name: 'volter-keymaps',
+		displayName: 'volter keymaps',
+		description: "GENERATED — do not edit. The volter editor's keyboard actions as keybinding sets, one per keymap, gated on the `volter.keymap` context key the frame publishes from the open project's own choice. Regenerate with `node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write`.",
 		categories: ['Keymaps'],
 		version: '0.0.1',
 		publisher: 'vscode',
 		license: 'MIT',
 		engines: { vscode: '*' },
-		vgai: provenance,
+		volter: provenance,
 		contributes: { keybindings: rules },
 	};
 
@@ -519,10 +519,10 @@ async function main() {
  *  GENERATED by scripts/workbench/generate-keymaps.mjs — do not edit.
  *
  *  The keymaps the FRAME carries, and the commands they bind. The chords themselves are in
- *  \`extensions/vgai-keymaps/package.json\`, which VS Code's own keymap-extension path
- *  (\`contributes.keybindings\`) resolves at load; this file is what \`vgaiKeyboard.ts\` needs in
+ *  \`extensions/volter-keymaps/package.json\`, which VS Code's own keymap-extension path
+ *  (\`contributes.keybindings\`) resolves at load; this file is what \`volterKeyboard.ts\` needs in
  *  CODE: the command ids to register, and the keymap ids to compare the open project's choice
- *  against so a keymap the frame does NOT carry is a named warning in the vgai console rather
+ *  against so a keymap the frame does NOT carry is a named warning in the volter console rather
  *  than a keyboard that silently does nothing.
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write
@@ -534,7 +534,7 @@ ${Object.entries(hashes).map(([file, hash]) => ` *    ${hash}  ${file}`).join('\
 /** Every keymap the generated extension carries chords for. */
 export const CARRIED_KEYMAP_IDS: readonly string[] = [${keymaps.map(k => `'${k.id}'`).join(', ')}];
 
-/** Every vgai editor action the generated extension binds, without the \`vgai.\` prefix. */
+/** Every volter editor action the generated extension binds, without the \`volter.\` prefix. */
 export const CARRIED_ACTION_IDS: readonly string[] = [
 ${[...carriedActions].sort().map(id => `\t'${id}',`).join('\n')}
 ];
@@ -547,7 +547,7 @@ ${[...carriedActions].sort().map(id => `\t'${id}',`).join('\n')}
 
 	if (args.write) {
 		for (const { path, text } of wanted) { writeFileSync(path, text); }
-		console.log(`vgai keymap generator: wrote ${rules.length} rules over ${carriedActions.size} commands (${perKeymap}).`);
+		console.log(`volter keymap generator: wrote ${rules.length} rules over ${carriedActions.size} commands (${perKeymap}).`);
 		for (const [file, hash] of Object.entries(hashes)) { console.log(`  ${hash.slice(0, 12)}  ${file}`); }
 		return;
 	}
@@ -558,7 +558,7 @@ ${[...carriedActions].sort().map(id => `\t'${id}',`).join('\n')}
 		const moved = Object.entries(hashes).filter(([file, hash]) => !committed.includes(`${hash}  ${file}`)).map(([file]) => file);
 		fail(`${stale.map(s => relative(REPO_ROOT, s.path)).join(' and ')} ${stale.length > 1 ? 'are' : 'is'} stale.${moved.length ? `\n  Moved since it was generated:\n    ${moved.join('\n    ')}` : ''}\n  Fix: node scripts/workbench/generate-keymaps.mjs --checkout ${args.checkout} --write`);
 	}
-	console.log(`vgai keymap generator: up to date — ${rules.length} rules over ${carriedActions.size} commands (${perKeymap}).`);
+	console.log(`volter keymap generator: up to date — ${rules.length} rules over ${carriedActions.size} commands (${perKeymap}).`);
 }
 
 main().catch(error => fail(error instanceof Error ? (error.stack ?? error.message) : String(error)));

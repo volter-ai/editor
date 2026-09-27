@@ -206,7 +206,7 @@ export function MenuSubmenu({
   const staysOpen = (node: EventTarget | null): boolean =>
     node instanceof Element &&
     (triggerRef.current?.contains(node) === true ||
-      node.closest(`[data-vgai-submenu="${id}"]`) !== null);
+      node.closest(`[data-volter-submenu="${id}"]`) !== null);
   const leave = (event: { relatedTarget: EventTarget | null }): void => {
     if (!staysOpen(event.relatedTarget)) setOpen(false);
   };
@@ -237,14 +237,14 @@ export function MenuSubmenu({
         }}
       >
         <span style={{ flex: 1 }}>{label}</span>
-        <span aria-hidden="true" style={{ paddingInlineStart: 'var(--vgai-space-4)' }}>
+        <span aria-hidden="true" style={{ paddingInlineStart: 'var(--volter-space-4)' }}>
           ▸
         </span>
       </MenuItem>
       {open && (
         <AnchoredMenu
           anchorRef={triggerRef}
-          data-vgai-submenu={id}
+          data-volter-submenu={id}
           side="right"
           gap={gap}
           clamp

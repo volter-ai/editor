@@ -3,7 +3,7 @@
  *
  * Cross-asset references (`"enemies#goblin"`, `"tuning#economy.slotGrowth"`)
  * have been DETECTED and VALIDATED since W5 (`data-check-core.ts`'s
- * `DATA_REF_PATTERN` + `findDanglingDataRefs`, enforced by both `vgai doctor`
+ * `DATA_REF_PATTERN` + `findDanglingDataRefs`, enforced by both `volter doctor`
  * and the build plugin) — but nothing could actually RESOLVE one at runtime,
  * and nothing declared a field AS a ref in its schema (detection was by
  * string-shape convention alone). This module closes both halves:
@@ -11,7 +11,7 @@
  * - {@link dataRef} — a typed Zod schema for a ref FIELD. Stamps the emitted
  *   JSON Schema with a precise `pattern` (the target stem is baked into the
  *   regex, so VS Code validates the prefix for free) and a machine-readable
- *   `"x-vgai-ref": target` marker (a Zod `.meta()` that survives
+ *   `"x-volter-ref": target` marker (a Zod `.meta()` that survives
  *   `toDataJsonSchema`, including inside a table's `additionalProperties` row
  *   schema — no emitter changes needed). The editor's Data panel
  *   (`json-schema-fields.ts`'s `'ref'` kind) reads that marker to render a
@@ -58,7 +58,7 @@ function refPattern(target: string): RegExp {
  *
  * The emitted JSON Schema (`toDataJsonSchema`) carries both a precise
  * `pattern` (VS Code validates the target-stem prefix for free) and
- * `"x-vgai-ref": target` (the editor's Data panel picker keys off this).
+ * `"x-volter-ref": target` (the editor's Data panel picker keys off this).
  * Detection by `data-check-core.ts`'s conventional-string calibration still
  * applies at the VALUE level (a `dataRef` field's actual string still has to
  * look like `target#key` to resolve) — this only makes the field's INTENT
@@ -74,7 +74,7 @@ export function dataRef<Stem extends string>(target: Stem): z.ZodType<DataRef<St
         `must be a "${target}#<key>" reference — ` +
         `expected the target asset stem "${target}", e.g. "${target}#some-key".`,
     })
-    .meta({ 'x-vgai-ref': target }) as z.ZodType<DataRef<Stem>>;
+    .meta({ 'x-volter-ref': target }) as z.ZodType<DataRef<Stem>>;
 }
 
 /** First failing key-path segment, or `null` if the whole path resolves — same walk `data-check-core.ts`'s `firstUnresolvedSegment` does over parsed JSON, here over a live handle's value. */

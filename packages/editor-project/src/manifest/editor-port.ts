@@ -1,7 +1,7 @@
 /**
  * The editor's built-in port fallback, and the paired HMR-socket derivation.
  *
- * ONE owner for the number, because it is spelled in a launcher (`vgai edit`),
+ * ONE owner for the number, because it is spelled in a launcher (`volter edit`),
  * three servers (dev / prod / packaged), and a client default — a duplicated
  * literal across those drifts silently.
  *
@@ -11,7 +11,7 @@
  * `http://…:5173` can resolve to a FOREIGN application. Measured 2026-08-07:
  * an unrelated process on 5173 was what the editor's tab self-heal opened.
  *
- * **The band.** 20000-20199 is vgai's own reserved band: fixed, hand-picked
+ * **The band.** 20000-20199 is volter's own reserved band: fixed, hand-picked
  * ports that must never be minted for a worktree session. Machine-local
  * allocations start at 20200, so one can never land on this default by chance.
  * 20173 keeps Vite's memorable `173` tail while sitting in a range nothing
@@ -44,8 +44,8 @@ function urlAuthorityHost(host: string): string {
 }
 
 /**
- * The ONE composer for an editor origin — every URL vgai PRINTS, OPENS,
- * SELF-HEALS with, records in `.vgai/session.json`, or dials.
+ * The ONE composer for an editor origin — every URL volter PRINTS, OPENS,
+ * SELF-HEALS with, records in `.volter/session.json`, or dials.
  *
  * **It never says `localhost`.** A bare-`localhost` URL is a different address
  * from the one the server is listening on: on a dual-stack box `localhost`

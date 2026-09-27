@@ -61,7 +61,7 @@ if (existsSync(target) || existsSync(lockPath)) {
   fail(`${id} already exists; refusing to overwrite pinned evidence`);
 }
 
-const temporary = mkdtempSync(join(tmpdir(), `vgai-godot-${id}-`));
+const temporary = mkdtempSync(join(tmpdir(), `volter-godot-${id}-`));
 const checkout = join(temporary, 'upstream');
 try {
   execFileSync('git', ['init', '--quiet', checkout]);

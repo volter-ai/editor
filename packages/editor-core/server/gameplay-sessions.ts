@@ -6,7 +6,7 @@
  * drift. A server restart reconstructs the complete catalog from disk.
  *
  * The PARSE RULES live in the browser-safe core
- * (`@vgai/sdk`'s `play/session-record.ts`), and this module is the Node
+ * (`@volter/sdk`'s `play/session-record.ts`), and this module is the Node
  * wiring: the stat-keyed cache, the directory walk, and the recording
  * route/paths only a server has.
  */
@@ -119,5 +119,5 @@ export function gameplaySessionRecordingPath(
 ): string | null {
   const file = session.recording?.file;
   if (!file || basename(file) !== file) return null;
-  return join(projectRoot, '.vgai', 'recordings', file);
+  return join(projectRoot, '.volter', 'recordings', file);
 }

@@ -28,13 +28,13 @@
  * is why this arrangement is Model's with one change; and the centre column is
  * split EXACTLY 50/50, 514 over 514 of the 1031 px between the top bar and the
  * status bar. On the captured 928-px grid that is 464/464, which is the size
- * `vgai:bottom-center` was already carrying at `"visible": false`.
+ * `volter:bottom-center` was already carrying at `"visible": false`.
  *
  * WHICH AREA THE SHADER EDITOR IS, AND WHAT IT IS MADE OF. Blender's node
  * editor is the area BELOW the viewport — and an AREA IS AN EDITOR GROUP
  * (orchestrator ruling 2026-09-19), not the bottom utility drawer. So Shading
  * declares it as an `areas` entry holding the `blender-node-editor.document`
- * contribution, the dock puts it in `vgai:area:shader` below the centre at
+ * contribution, the dock puts it in `volter:area:shader` below the centre at
  * Blender's own 50/50, and the frame's layout host puts the same document in
  * a second VS Code editor group. The drawer is `hidden` here, as it is in
  * Model: Blender's Shading screen has no utility strip.
@@ -86,7 +86,7 @@ export const layout: WorkspaceLayoutContribution = {
   // `x294 y23 w1282 h514`, measured through bpy on the engine — and both the
   // dock and the Code-OSS frame have exactly that shape in editor groups. So
   // the Shader Editor is a `workspace.document` this workspace opens into
-  // `vgai:area:shader`, not a `workspace.utility` in the drawer.
+  // `volter:area:shader`, not a `workspace.utility` in the drawer.
   //
   // AND THAT IS WHAT RETIRED THE DRAWER RACE BY CONSTRUCTION. Switching to UV
   // Editing kept opening the Shader Editor — and the cause was NOT the dock

@@ -76,7 +76,7 @@ export interface FrameProxyOptions {
   readonly projectRoot: string;
   /**
    * Which way round the PRODUCT paints, from its own declaration
-   * (`package.json#vgai.product.colorTheme`, `@volter/editor-sdk/session/
+   * (`package.json#volter.product.colorTheme`, `@volter/editor-sdk/session/
    * product-locator`), or `null` when this session could not resolve a product
    * — in which case the page keeps the workbench's own web default and the
    * `served-modules` door is what says why there is no product.
@@ -221,7 +221,7 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         // themeType strings ARE `ColorScheme`'s values (`dark`, `light`).
         //
         // The colour comes from the PRODUCT's own declaration and nothing else
-        // (`package.json#vgai.product.colorTheme`), and it is a FALLBACK in the
+        // (`package.json#volter.product.colorTheme`), and it is a FALLBACK in the
         // workbench's own order: a person who has already picked a theme has it
         // in storage, and `ColorThemeData.fromStorageData` is preferred over
         // this on every open after the first.
@@ -231,7 +231,7 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         // IndexedDB keyed by the workspace id, which lost state to a folder rename, another browser
         // and another checkout (measured 2026-09-04). The fork's
         // `IWorkbenchConstructionOptions.workspaceStorageUrl` moves that scope to this server,
-        // which keeps it in `.vgai/workbench-storage.json` (`routes/project-state.ts`). A release
+        // which keeps it in `.volter/workbench-storage.json` (`routes/project-state.ts`). A release
         // cut before the option reads nothing from it and keeps IndexedDB.
         config['workspaceStorageUrl'] = '/__editor/workbench-storage';
         // THE CHAT OPENS ON SUPERCODE, NOT ON "LOCAL". Local is Code-OSS's own agent
@@ -274,11 +274,11 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
     const url = new URL(req.url ?? '/', selfOrigin);
     const pathname = url.pathname;
     // THE ONE HOSTED BOOT PARAM, ONTO THE WORKBENCH'S OWN. `?project=<id>` is
-    // what a link to the vgai editor carries; the workbench's own boot contract
+    // what a link to the volter editor carries; the workbench's own boot contract
     // is `?folder=<path>` (`WorkspaceProvider.create`, which reads a bare path
     // against `remoteAuthority`). This is a REDIRECT and not an injected
     // `folderUri`, and the reason was measured (2026-09-19): under this shape
-    // the workbench page is ALSO the vgai editor's page, and the editor's boot
+    // the workbench page is ALSO the volter editor's page, and the editor's boot
     // refuses `?project=` on a session-backed surface by name — "project
     // identity does NOT live in the URL on a local editor"
     // (`assertNoRemovedBootParams`, packages/editor/src/boot-routing.ts). The

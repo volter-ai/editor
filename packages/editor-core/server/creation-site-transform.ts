@@ -1,5 +1,5 @@
 /**
- * The `vgai-creation-site` serve-time transform — the source half of
+ * The `volter-creation-site` serve-time transform — the source half of
  * the creation-site index.
  *
  * WHAT IT DOES. Every direct `new <Ctor>(…)` expression, plus every call used
@@ -10,7 +10,7 @@
  *
  *     const t = new Tile(x, y);
  *     // becomes
- *     const t = (__vgaiCS$(new Tile(x, y), 59, 17));
+ *     const t = (__volterCS$(new Tile(x, y), 59, 17));
  *
  * Initializer calls are the factory-construction lane (`const box =
  * MeshBuilder.CreateBox(...)`). The syntactic declaration is the evidence: no
@@ -25,7 +25,7 @@
  *   - EVALUATION ORDER — the wrapper's single argument IS the original
  *     expression, so callee and arguments evaluate exactly when they did.
  *     Nesting composes: `new A(new B())` becomes
- *     `(__vgaiCS$(new A((__vgaiCS$(new B(),…))),…))`, and B is still
+ *     `(__volterCS$(new A((__volterCS$(new B(),…))),…))`, and B is still
  *     constructed before A.
  *   - `new.target` — untouched: the real `new` is still a real `new`, with the
  *     same callee expression.
@@ -38,7 +38,7 @@
  * about the OPENING paren, both closed explicitly:
  *   1. a `new` used as another `new`'s callee (`new new Foo()()`), where a bare
  *      call would re-associate the outer `new`. The wrapper is always
- *      parenthesized, so `new (__vgaiCS$(new Foo(),…))()` parses as it did.
+ *      parenthesized, so `new (__volterCS$(new Foo(),…))()` parses as it did.
  *   2. a STATEMENT-INITIAL `new` after an ASI-terminated line, where a leading
  *      `(` is the call operator and swallows the previous statement's value.
  *      {@link startsAStatementInAList} decides where a `;` must precede the
@@ -61,7 +61,7 @@
  * register the game-globals shadow). It does NOT cover the case where the two
  * passes are separated by esbuild, because esbuild DROPS the comment: the
  * second pass then sees a module with no marker and prepends a second
- * `function __vgaiCS$`, which is a `SyntaxError: Identifier '__vgaiCS$' has
+ * `function __volterCS$`, which is a `SyntaxError: Identifier '__volterCS$' has
  * already been declared` — the module never evaluates and the mount dies with
  * an error that names nothing about creation sites.
  *
@@ -76,11 +76,11 @@
 import ts from 'typescript';
 
 /** Emitted in the prologue; its presence means "already transformed". */
-export const CREATION_SITE_MARKER = '/*@vgai-creation-site*/';
+export const CREATION_SITE_MARKER = '/*@volter-creation-site*/';
 
 /** The per-module recorder identifier. Deliberately unlovely — it is a lexical
  *  declaration in the game's own module scope, and must not collide. */
-export const CREATION_SITE_RECORDER = '__vgaiCS$';
+export const CREATION_SITE_RECORDER = '__volterCS$';
 
 /**
  * The global the recorder calls through, installed by the editor page
@@ -88,7 +88,7 @@ export const CREATION_SITE_RECORDER = '__vgaiCS$';
  * evaluate before the editor has installed it, and a missing global must
  * degrade to a plain identity function, never throw.
  */
-export const CREATION_SITE_GLOBAL = '__vgaiRecordCreationSite';
+export const CREATION_SITE_GLOBAL = '__volterRecordCreationSite';
 
 export interface CreationSiteTransformResult {
   code: string;
@@ -184,7 +184,7 @@ function scriptKindFor(file: string): ts.ScriptKind {
  * Stamp every direct `new` expression in `code`.
  *
  * `displayFile` is the path recorded for this module — project-root-RELATIVE,
- * because that string is what the inspector shows and what `vgai eval` reads
+ * because that string is what the inspector shows and what `volter eval` reads
  * back; an absolute path would leak the host's directory layout into the
  * product surface.
  *

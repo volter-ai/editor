@@ -15,7 +15,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
   { className, type = 'text', ...props },
   ref,
 ) {
-  return <input {...props} ref={ref} type={type} className={classes('vgai-input', className)} />;
+  return <input {...props} ref={ref} type={type} className={classes('volter-input', className)} />;
 });
 
 export type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
@@ -24,7 +24,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   { className, ...props },
   ref,
 ) {
-  return <select {...props} ref={ref} className={classes('vgai-select', className)} />;
+  return <select {...props} ref={ref} className={classes('volter-select', className)} />;
 });
 
 export type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement>;
@@ -35,7 +35,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
   ref,
 ) {
   return (
-    <textarea {...props} ref={ref} className={classes('vgai-input vgai-textarea', className)} />
+    <textarea {...props} ref={ref} className={classes('volter-input volter-textarea', className)} />
   );
 });
 
@@ -46,7 +46,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
   ref,
 ) {
   return (
-    <input {...props} ref={ref} type="checkbox" className={classes('vgai-checkbox', className)} />
+    <input {...props} ref={ref} type="checkbox" className={classes('volter-checkbox', className)} />
   );
 });
 
@@ -60,7 +60,7 @@ export const ColorSwatchInput = forwardRef<HTMLInputElement, ColorSwatchInputPro
         {...props}
         ref={ref}
         type="color"
-        className={classes('vgai-color-swatch', className)}
+        className={classes('volter-color-swatch', className)}
       />
     );
   },
@@ -74,7 +74,7 @@ export const FileInput = forwardRef<HTMLInputElement, FileInputProps>(function F
   ref,
 ) {
   return (
-    <input {...props} ref={ref} type="file" className={classes('vgai-file-input', className)} />
+    <input {...props} ref={ref} type="file" className={classes('volter-file-input', className)} />
   );
 });
 
@@ -84,5 +84,5 @@ export const RangeInput = forwardRef<HTMLInputElement, RangeInputProps>(function
   { className, ...props },
   ref,
 ) {
-  return <input {...props} ref={ref} type="range" className={classes('vgai-range', className)} />;
+  return <input {...props} ref={ref} type="range" className={classes('volter-range', className)} />;
 });

@@ -81,13 +81,13 @@ function cubeUvSamplingFunctions(): string {
     .replace(
       /\b(textureCubeUV|bilinearCubeUV)\(([^)]*)\)/g,
       (_match, name: string, args: string) =>
-        `${name === 'textureCubeUV' ? 'vgaiTextureCubeUV' : 'vgaiBilinearCubeUV'}(${args.trim()}, ${args.includes('sampler2D') ? 'vec3 ' : ''}vgaiAtlasSize)`,
+        `${name === 'textureCubeUV' ? 'volterTextureCubeUV' : 'volterBilinearCubeUV'}(${args.trim()}, ${args.includes('sampler2D') ? 'vec3 ' : ''}volterAtlasSize)`,
     )
-    .replace(/\b(getFace|getUV|roughnessToMip)\b/g, 'vgai$1')
-    .replace(/\bcubeUV_(\w+)\b/g, 'vgaiCubeUV_$1')
-    .replaceAll('CUBEUV_MAX_MIP', 'vgaiAtlasSize.z')
-    .replaceAll('CUBEUV_TEXEL_WIDTH', 'vgaiAtlasSize.x')
-    .replaceAll('CUBEUV_TEXEL_HEIGHT', 'vgaiAtlasSize.y');
+    .replace(/\b(getFace|getUV|roughnessToMip)\b/g, 'volter$1')
+    .replace(/\bcubeUV_(\w+)\b/g, 'volterCubeUV_$1')
+    .replaceAll('CUBEUV_MAX_MIP', 'volterAtlasSize.z')
+    .replaceAll('CUBEUV_TEXEL_WIDTH', 'volterAtlasSize.x')
+    .replaceAll('CUBEUV_TEXEL_HEIGHT', 'volterAtlasSize.y');
 }
 
 /**
@@ -104,21 +104,21 @@ function atlasSizeOf(texture: Texture | null): Vector3 {
 
 function probeWeight(index: number): string {
   return `
-    vec3 lp = (vgaiProbeWorldToLocal[${index}] * vec4(${IBL_WORLD_POSITION}, 1.0)).xyz;
+    vec3 lp = (volterProbeWorldToLocal[${index}] * vec4(${IBL_WORLD_POSITION}, 1.0)).xyz;
     float weight = 0.0;
-    if (vgaiProbeShape[${index}] < 0.5) {
-      vec3 edge = vgaiProbeExtents[${index}] - abs(lp);
+    if (volterProbeShape[${index}] < 0.5) {
+      vec3 edge = volterProbeExtents[${index}] - abs(lp);
       if (all(greaterThanEqual(edge, vec3(0.0)))) {
         float nearest = min(edge.x, min(edge.y, edge.z));
-        weight = vgaiProbeBlendDistance[${index}] > 0.0001
-          ? clamp(nearest / vgaiProbeBlendDistance[${index}], 0.0, 1.0)
+        weight = volterProbeBlendDistance[${index}] > 0.0001
+          ? clamp(nearest / volterProbeBlendDistance[${index}], 0.0, 1.0)
           : 1.0;
       }
     } else {
-      float edge = vgaiProbeRadius[${index}] - length(lp);
+      float edge = volterProbeRadius[${index}] - length(lp);
       if (edge >= 0.0) {
-        weight = vgaiProbeBlendDistance[${index}] > 0.0001
-          ? clamp(edge / vgaiProbeBlendDistance[${index}], 0.0, 1.0)
+        weight = volterProbeBlendDistance[${index}] > 0.0001
+          ? clamp(edge / volterProbeBlendDistance[${index}], 0.0, 1.0)
           : 1.0;
       }
     }`;
@@ -126,29 +126,29 @@ function probeWeight(index: number): string {
 
 function probeWeightBlock(index: number): string {
   return `
-  if (vgaiProbeReady[${index}] > 0.5) {${probeWeight(index)}
-    if (weight > 0.0) bestPriority = max(bestPriority, vgaiProbePriority[${index}]);
+  if (volterProbeReady[${index}] > 0.5) {${probeWeight(index)}
+    if (weight > 0.0) bestPriority = max(bestPriority, volterProbePriority[${index}]);
   }`;
 }
 
 function probeSampleBlock(index: number, roughness: string, direction: string): string {
   return `
-  if (vgaiProbeReady[${index}] > 0.5 && abs(vgaiProbePriority[${index}] - bestPriority) < 0.001) {${probeWeight(index)}
+  if (volterProbeReady[${index}] > 0.5 && abs(volterProbePriority[${index}] - bestPriority) < 0.001) {${probeWeight(index)}
     if (weight > 0.0) {
-      vec3 probeDirection = (vgaiProbeWorldToLocal[${index}] * vec4(${direction}, 0.0)).xyz;
-      if (vgaiProbeParallax[${index}] > 0.5) {
-        vec3 boxPos = lp - vgaiProbeParallaxOffset[${index}];
+      vec3 probeDirection = (volterProbeWorldToLocal[${index}] * vec4(${direction}, 0.0)).xyz;
+      if (volterProbeParallax[${index}] > 0.5) {
+        vec3 boxPos = lp - volterProbeParallaxOffset[${index}];
         vec3 safeDirection = sign(probeDirection) * max(abs(probeDirection), vec3(0.00001));
-        vec3 rayMax = (vgaiProbeParallaxExtents[${index}] - boxPos) / safeDirection;
-        vec3 rayMin = (-vgaiProbeParallaxExtents[${index}] - boxPos) / safeDirection;
+        vec3 rayMax = (volterProbeParallaxExtents[${index}] - boxPos) / safeDirection;
+        vec3 rayMin = (-volterProbeParallaxExtents[${index}] - boxPos) / safeDirection;
         vec3 rayDistance = mix(rayMin, rayMax, greaterThan(safeDirection, vec3(0.0)));
         float nearestFace = min(rayDistance.x, min(rayDistance.y, rayDistance.z));
         probeDirection = boxPos + safeDirection * nearestFace
-          + vgaiProbeParallaxOffset[${index}] - vgaiProbeCaptureOffset[${index}];
+          + volterProbeParallaxOffset[${index}] - volterProbeCaptureOffset[${index}];
       }
-      accumulated += vgaiTextureCubeUV(
-        vgaiProbeMap${index}, probeDirection, ${roughness}, vgaiProbeAtlasSize[${index}]
-      ).rgb * vgaiProbeIntensity[${index}] * weight;
+      accumulated += volterTextureCubeUV(
+        volterProbeMap${index}, probeDirection, ${roughness}, volterProbeAtlasSize[${index}]
+      ).rgb * volterProbeIntensity[${index}] * weight;
       totalWeight += weight;
     }
   }`;
@@ -157,7 +157,7 @@ function probeSampleBlock(index: number, roughness: string, direction: string): 
 function volumeReflectionShader(probeCount: number): string {
   const samplers = Array.from(
     { length: probeCount },
-    (_, index) => `uniform sampler2D vgaiProbeMap${index};`,
+    (_, index) => `uniform sampler2D volterProbeMap${index};`,
   ).join('\n');
   const weights = Array.from({ length: probeCount }, (_, index) => probeWeightBlock(index)).join(
     '\n',
@@ -171,25 +171,25 @@ function volumeReflectionShader(probeCount: number): string {
   return `${baseIblFunctions()}
 ${cubeUvSamplingFunctions()}
 #ifdef USE_ENVMAP
-uniform float vgaiProbeReady[${probeCount}];
-uniform mat4 vgaiProbeWorldToLocal[${probeCount}];
-uniform vec3 vgaiProbeExtents[${probeCount}];
-uniform vec3 vgaiProbeParallaxExtents[${probeCount}];
-uniform vec3 vgaiProbeParallaxOffset[${probeCount}];
-uniform vec3 vgaiProbeCaptureOffset[${probeCount}];
-uniform vec3 vgaiProbeAtlasSize[${probeCount}];
-uniform float vgaiProbeShape[${probeCount}];
-uniform float vgaiProbeRadius[${probeCount}];
-uniform float vgaiProbeBlendDistance[${probeCount}];
-uniform float vgaiProbePriority[${probeCount}];
-uniform float vgaiProbeIntensity[${probeCount}];
-uniform float vgaiProbeParallax[${probeCount}];
-uniform float vgaiBaseEnvironment;
+uniform float volterProbeReady[${probeCount}];
+uniform mat4 volterProbeWorldToLocal[${probeCount}];
+uniform vec3 volterProbeExtents[${probeCount}];
+uniform vec3 volterProbeParallaxExtents[${probeCount}];
+uniform vec3 volterProbeParallaxOffset[${probeCount}];
+uniform vec3 volterProbeCaptureOffset[${probeCount}];
+uniform vec3 volterProbeAtlasSize[${probeCount}];
+uniform float volterProbeShape[${probeCount}];
+uniform float volterProbeRadius[${probeCount}];
+uniform float volterProbeBlendDistance[${probeCount}];
+uniform float volterProbePriority[${probeCount}];
+uniform float volterProbeIntensity[${probeCount}];
+uniform float volterProbeParallax[${probeCount}];
+uniform float volterBaseEnvironment;
 ${samplers}
 
 vec3 getIBLIrradiance(const in vec3 normal) {
 #ifdef ENVMAP_TYPE_CUBE_UV
-  vec3 baseIrradiance = getBaseIBLIrradiance(normal) * vgaiBaseEnvironment;
+  vec3 baseIrradiance = getBaseIBLIrradiance(normal) * volterBaseEnvironment;
   vec3 worldNormal = inverseTransformDirection(normal, viewMatrix);
   float bestPriority = -1000000.0;
 ${weights}
@@ -206,7 +206,7 @@ ${irradiance}
 
 vec3 getIBLRadiance(const in vec3 viewDir, const in vec3 normal, const in float roughness) {
 #ifdef ENVMAP_TYPE_CUBE_UV
-  vec3 baseRadiance = getBaseIBLRadiance(viewDir, normal, roughness) * vgaiBaseEnvironment;
+  vec3 baseRadiance = getBaseIBLRadiance(viewDir, normal, roughness) * volterBaseEnvironment;
   vec3 reflected = reflect(-viewDir, normal);
   reflected = normalize(mix(reflected, normal, roughness * roughness));
   vec3 worldReflect = inverseTransformDirection(reflected, viewMatrix);
@@ -236,60 +236,60 @@ function writeProbeUniforms(
     shader.uniforms[name] = { value };
   };
   values(
-    'vgaiProbeReady',
+    'volterProbeReady',
     probes.map((probe) => Number(probe.ready && !capturing)),
   );
   values(
-    'vgaiProbeWorldToLocal',
+    'volterProbeWorldToLocal',
     probes.map((probe) => probe.worldToLocal),
   );
   values(
-    'vgaiProbeExtents',
+    'volterProbeExtents',
     probes.map((probe) => probe.extents),
   );
   values(
-    'vgaiProbeParallaxExtents',
+    'volterProbeParallaxExtents',
     probes.map((probe) => probe.parallaxExtents),
   );
   values(
-    'vgaiProbeParallaxOffset',
+    'volterProbeParallaxOffset',
     probes.map((probe) => probe.parallaxOffset),
   );
   values(
-    'vgaiProbeCaptureOffset',
+    'volterProbeCaptureOffset',
     probes.map((probe) => probe.captureOffset),
   );
   values(
-    'vgaiProbeAtlasSize',
+    'volterProbeAtlasSize',
     probes.map((probe) => atlasSizeOf(probe.texture)),
   );
   values(
-    'vgaiProbeShape',
+    'volterProbeShape',
     probes.map((probe) => Number(probe.mark.config.shape === 'sphere')),
   );
   values(
-    'vgaiProbeRadius',
+    'volterProbeRadius',
     probes.map((probe) => Math.max(0.01, probe.mark.config.radius)),
   );
   values(
-    'vgaiProbeBlendDistance',
+    'volterProbeBlendDistance',
     probes.map((probe) => Math.max(0, probe.mark.config.blendDistance)),
   );
   values(
-    'vgaiProbePriority',
+    'volterProbePriority',
     probes.map((probe) => probe.mark.config.priority),
   );
   values(
-    'vgaiProbeIntensity',
+    'volterProbeIntensity',
     probes.map((probe) => Math.max(0, probe.mark.config.intensity)),
   );
   values(
-    'vgaiProbeParallax',
+    'volterProbeParallax',
     probes.map((probe) => Number(probe.mark.config.parallaxProjection)),
   );
-  values('vgaiBaseEnvironment', baseEnvironment ? 1 : 0);
+  values('volterBaseEnvironment', baseEnvironment ? 1 : 0);
   probes.forEach((probe, index) => {
-    values(`vgaiProbeMap${index}`, probe.texture);
+    values(`volterProbeMap${index}`, probe.texture);
   });
 }
 
@@ -377,7 +377,7 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
     installedCount = count;
     override = overrideMaterialIbl(material, {
       fragment: () => volumeReflectionShader(count),
-      cacheKey: () => `vgai-volume-reflections:${count}`,
+      cacheKey: () => `volter-volume-reflections:${count}`,
       onCompile: (shader) =>
         writeProbeUniforms(shader, eligible, hasBaseEnvironment(), isCapturing),
     });

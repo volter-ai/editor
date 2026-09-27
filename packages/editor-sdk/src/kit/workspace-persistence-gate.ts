@@ -21,7 +21,7 @@
  * plain boolean in production (no duplication, zero overhead).
  */
 
-const GATE_KEY = '__vgaiWorkspacePersistenceSuppressed';
+const GATE_KEY = '__volterWorkspacePersistenceSuppressed';
 
 interface GateHost {
   [GATE_KEY]?: boolean;

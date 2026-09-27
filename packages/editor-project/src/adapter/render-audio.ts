@@ -6,7 +6,7 @@
  */
 
 /** What a caller's renderer hands back: real PCM in a native `AudioBuffer`.
- *  `AudioBuffer` — not a vgai type — is the point: any offline audio path in
+ *  `AudioBuffer` — not a volter type — is the point: any offline audio path in
  *  the platform already produces one. */
 export interface RenderedAudio {
   readonly buffer: AudioBuffer;

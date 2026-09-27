@@ -1,5 +1,5 @@
 /**
- * #140 — drives `window.__vgai` through the editor dev-server's SESSION WIRE
+ * #140 — drives `window.__volter` through the editor dev-server's SESSION WIRE
  * (`POST /__editor/command`, the same relay `volter-game-editor play`/`volter-game-editor select`/every
  * other `EditorClient` method already uses — see `command-listener.ts`'s
  * `bridge-call`/`bridge-screenshot` cases, the server-side half) instead of

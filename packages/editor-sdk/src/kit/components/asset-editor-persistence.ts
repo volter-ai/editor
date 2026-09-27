@@ -50,7 +50,7 @@ function importedAssetHistoryResource(
   if (existing) return existing;
   const descriptor = history.registry.registerProject(
     'project-file',
-    `.vgai/history/imported-assets/${normalized}`,
+    `.volter/history/imported-assets/${normalized}`,
     normalized.split('/').pop(),
   );
   const resource: ImportedAssetHistoryResource = {
@@ -62,7 +62,7 @@ function importedAssetHistoryResource(
     const bytes = new TextEncoder().encode(token);
     return {
       revision: resource.revision,
-      contentType: 'application/vnd.vgai.asset-history-token',
+      contentType: 'application/vnd.volter.asset-history-token',
       bytes,
       sha256: await sha256Hex(bytes),
     };
@@ -122,7 +122,7 @@ export async function recordAppliedAssetImportsWithHistory(
         resource: resource.driver.descriptor.key,
         beforeBytes: historyTokenBytes(entry.beforeToken),
         afterBytes: historyTokenBytes(entry.afterToken),
-        contentType: 'application/vnd.vgai.asset-history-token',
+        contentType: 'application/vnd.volter.asset-history-token',
       })),
     );
   } catch (error) {

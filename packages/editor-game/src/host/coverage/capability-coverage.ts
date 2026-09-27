@@ -52,7 +52,7 @@ import type {
 } from '@volter/editor-project/adapter';
 import { WRITE_ANCHOR_KINDS } from '@volter/editor-project/adapter';
 import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
-import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import { SYSTEM_ADAPTERS_SHAPE } from '@volter/editor-project/adapter/system-seam-contract';
 import {
@@ -92,7 +92,7 @@ export {
  * gets a row.
  *
  * The rest are contract facts about an ingested game — declarations only a
- * `window.vgaiGame` can make — and they grow with the contract; nothing
+ * `window.volterGame` can make — and they grow with the contract; nothing
  * switches exhaustively on this type, so no consumer breaks when it does.
  */
 export type CapabilityCoverageSeam =
@@ -212,7 +212,7 @@ export interface SystemsPresence {
  * and this file never calls any of them.
  */
 export interface ContractPresence {
-  /** `readGameContract()` answered at all (a v1 `window.vgaiGame`). */
+  /** `readGameContract()` answered at all (a v1 `window.volterGame`). */
   readonly declared: boolean;
   readonly root: boolean;
   readonly start: boolean;
@@ -224,7 +224,7 @@ export interface ContractPresence {
 }
 
 /** Fold a read contract (or its absence) into presence flags. */
-export function measureGameContract(contract: VgaiGameContract | null): ContractPresence {
+export function measureGameContract(contract: VolterGameContract | null): ContractPresence {
   const systems = contract?.systems;
   return {
     declared: contract !== null,
@@ -276,7 +276,7 @@ export interface WriteReachFacts {
    * reads healthy while every one of the 12 belongs to one lane and a whole
    * other lane — a world's physics-placed cargo, or its level-data records —
    * goes unwritten and unexercised. A per-kind tally is what makes an
-   * exhaustive walk possible; `vgai doctor`'s edit-write phase is its reader.
+   * exhaustive walk possible; `volter doctor`'s edit-write phase is its reader.
    *
    * Optional, because callers older than the vocabulary supply none and a
    * fabricated zero for every kind would read as a measurement.
@@ -307,7 +307,7 @@ export interface DataWriterFacts {
  *    actually holds an adapter for this slot. That is the strongest available
  *    statement: it is the same object the editor's panels will call.
  *  - `empty` — the game POSITIVELY answered "I have no X" through
- *    `window.vgaiGame.systems.systemAdapters` (`evidence` is its own words).
+ *    `window.volterGame.systems.systemAdapters` (`evidence` is its own words).
  *  - `malformed` — a declaration that could not be honoured; `evidence` is the
  *    projection's reason. Reported so a broken shim is loud, never silently
  *    read as either of the two terminal states.
@@ -327,7 +327,7 @@ export interface SystemAdapterMeasurement {
    * shared default would state wrongly.
    *
    * This is what keeps the derivation provenance-NEUTRAL. The default fix text
-   * below names `window.vgaiGame.systems…`, which is true of a game that
+   * below names `window.volterGame.systems…`, which is true of a game that
    * declares a contract and false of a first-party one; rather than have the
    * row builder ask WHO produced the measurement, the measurement carries the
    * answer as a fact (`coverage/system-adapter-coverage.ts` supplies it for a
@@ -474,7 +474,7 @@ type ResolvedCoverageFacts = Required<CapabilityCoverageFacts>;
 
 /**
  * The route for a game whose bytes may not be touched — which is EVERY
- * repo-vendored ingest, by doctrine. "Declare `window.vgaiGame.root`" is the
+ * repo-vendored ingest, by doctrine. "Declare `window.volterGame.root`" is the
  * mechanism, but a game nobody may edit cannot declare anything, so a fix that
  * stopped there would be telling the reader to do something they are not
  * allowed to do. Both host-side carriers now exist, so this names them and
@@ -483,8 +483,8 @@ type ResolvedCoverageFacts = Required<CapabilityCoverageFacts>;
 const UNMODIFIABLE_ROUTE =
   'a game whose bytes must stay unmodified declares it from a host-side carrier ' +
   'instead — a contract shim beside the game (`ingest.contractShim` in its ' +
-  'vgai.project.json, injected ahead of the game`s entry module; see ' +
-  'public/ingest/simcity/vgai.shim.js) or a recorded patch';
+  'volter.project.json, injected ahead of the game`s entry module; see ' +
+  'public/ingest/simcity/volter.shim.js) or a recorded patch';
 
 const CONTRACT_FIX = (endpoint: string): string =>
   `declare ${endpoint} in the game's own entry; ${UNMODIFIABLE_ROUTE}`;
@@ -656,7 +656,7 @@ function loopRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
       missing:
         "nothing in this editor controls the game's frames: ▶/⏸ and Step do not stop it, and " +
         'Edit mode cannot be quiet — it keeps simulating while you author',
-      fix: CONTRACT_FIX('window.vgaiGame.lifecycle.pause + resume'),
+      fix: CONTRACT_FIX('window.volterGame.lifecycle.pause + resume'),
     };
   }
   // No verdict, and that is its own answer — never a gap. The caller supplies
@@ -681,7 +681,7 @@ function contractRootRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
         detail: `the game declares a root, but the seam failed — ${facts.contract.proof.root.detail}`,
         missing:
           'the host cannot trust that the declared element owns the game DOM rather than an unrelated or detached subtree',
-        fix: CONTRACT_FIX('window.vgaiGame.root'),
+        fix: CONTRACT_FIX('window.volterGame.root'),
       };
     }
     return {
@@ -703,7 +703,7 @@ function contractRootRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
       'the host adopts the bare canvas, so any DOM this game owns beside it (HUD, overlays, ' +
       'portals) is stranded at page level over the editor chrome instead of living in the ' +
       'game pane',
-    fix: CONTRACT_FIX('window.vgaiGame.root'),
+    fix: CONTRACT_FIX('window.volterGame.root'),
   };
 }
 
@@ -716,7 +716,7 @@ function contractStartRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
         detail: `lifecycle.start is declared but failed — ${facts.contract.proof.start.detail}`,
         missing:
           'the mount cannot prove it starts cold and enters a session only when Play requests one',
-        fix: CONTRACT_FIX('window.vgaiGame.lifecycle.start'),
+        fix: CONTRACT_FIX('window.volterGame.lifecycle.start'),
       };
     }
     return {
@@ -738,7 +738,7 @@ function contractStartRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
       'the mount cannot be COLD: this game runs its session side-effects (backend ' +
       'connections, audio, narrative) as it loads, so opening it in the editor starts ' +
       'playing it, and ▶ is a wire event the game may ignore',
-    fix: CONTRACT_FIX('window.vgaiGame.lifecycle.start'),
+    fix: CONTRACT_FIX('window.volterGame.lifecycle.start'),
   };
 }
 
@@ -792,7 +792,7 @@ function contractPauseRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
         status: 'gap',
         detail: `pause/resume is declared but failed — ${failed.detail}`,
         missing: pauseFallbackCost(facts),
-        fix: CONTRACT_FIX('window.vgaiGame.lifecycle.pause + resume'),
+        fix: CONTRACT_FIX('window.volterGame.lifecycle.pause + resume'),
       };
     }
     return {
@@ -814,7 +814,7 @@ function contractPauseRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
         ? 'a contract is declared, but it names no lifecycle.pause/resume'
         : 'no game→host contract is declared at all',
     missing: pauseFallbackCost(facts),
-    fix: CONTRACT_FIX('window.vgaiGame.lifecycle.pause + resume'),
+    fix: CONTRACT_FIX('window.volterGame.lifecycle.pause + resume'),
   };
 }
 
@@ -989,7 +989,7 @@ function systemsRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
         detail: `the systems carrier is declared but failed — ${facts.contract.proof.systems.detail}`,
         missing:
           '`game.commands()` / `game.providers()` cannot safely enumerate or invoke this carrier',
-        fix: CONTRACT_FIX('window.vgaiGame.systems (commands + state)'),
+        fix: CONTRACT_FIX('window.volterGame.systems (commands + state)'),
       };
     }
     return {
@@ -1013,7 +1013,7 @@ function systemsRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
       'this game exposes no verbs and no state to drive or read it with: `game.commands()` and ' +
       '`game.providers()` enumerate nothing, so there is no `game.command(...)` to play it from ' +
       `${commandLine('eval')} and no \`game.state(...)\` for ${commandLine('status')} to see anything of what it is doing`,
-    fix: CONTRACT_FIX('window.vgaiGame.systems (commands + state)'),
+    fix: CONTRACT_FIX('window.volterGame.systems (commands + state)'),
   };
 }
 
@@ -1063,9 +1063,9 @@ function systemSlotFix(slot: SystemAdapterSlot): string {
     );
   }
   if (slot === 'debug') {
-    return CONTRACT_FIX('window.vgaiGame.systems (commands + state)');
+    return CONTRACT_FIX('window.volterGame.systems (commands + state)');
   }
-  return CONTRACT_FIX(`window.vgaiGame.systems.systemAdapters.${slot}`);
+  return CONTRACT_FIX(`window.volterGame.systems.systemAdapters.${slot}`);
 }
 
 /**
@@ -1571,7 +1571,7 @@ export function formatCapabilityCoverageBlocks(
  * The console door, ONCE PER MOUNT.
  *
  * The report is derived on demand (the status facet re-derives it on every
- * read, so `vgai status` never serves a verdict older than the question), which
+ * read, so `volter status` never serves a verdict older than the question), which
  * makes "print it" a thing that could happen many times — per status poll, per
  * re-render, in the limit per frame. The guard is a mount token: the same
  * mount's report is emitted once and then never again, and a NEW mount emits

@@ -27,7 +27,7 @@ export function GameCaptureFrameButton() {
       size="compact"
       variant="ghost"
       data-testid="game-capture-frame"
-      className="vgai-frame-capture-game-button"
+      className="volter-frame-capture-game-button"
       disabled={!available}
       title={
         available

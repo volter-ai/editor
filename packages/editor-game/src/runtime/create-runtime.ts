@@ -299,7 +299,7 @@ export interface RootsRuntimeConfig {
    */
   headless?: boolean | undefined;
   /**
-   * `vgai.project.json`'s `rendering.antialias` — whether every three root's
+   * `volter.project.json`'s `rendering.antialias` — whether every three root's
    * WebGL context is built with a multisampled drawing buffer.
    *
    * It is a RUNTIME-CONFIG option rather than a world's own
@@ -315,7 +315,7 @@ export interface RootsRuntimeConfig {
    *  world's `mount()`/`setup()` runs (this function constructs the Game
    *  first — see `createRootsGameRuntime`). The manifest-aware boot path
    *  (`mount-manifest.ts`'s `mountManifestRoots`) is the real caller that
-   *  resolves this from `manifest.determinism`/`?vgai-seed=`/its own
+   *  resolves this from `manifest.determinism`/`?volter-seed=`/its own
    *  explicit-config leg; a caller building `RootsRuntimeConfig` by hand
    *  (a test, a bespoke host) may also set it directly. Omitting it falls
    *  back to `createGame`'s own fixed default. */
@@ -326,7 +326,7 @@ export interface RootsRuntimeConfig {
   /**
    * Test-only overrides for the render-control seam this host now wires up
    * for EVERY session (see `createRootsGameRuntime`): `location` is where
-   * `?vgai-render=1` is read from (defaults to the real `window.location`;
+   * `?volter-render=1` is read from (defaults to the real `window.location`;
    * a Node test has no `window` and must inject one to exercise the seam),
    * `target` is where the harness publishes (defaults to the real `window`
    * — override in a unit test to avoid touching the global object; mirrors
@@ -673,7 +673,7 @@ async function mountOneReactRoot(
  */
 
 /**
- * Dev/e2e-only `window.__vgaiScene`/`__vgaiCamera` exposure for the roots
+ * Dev/e2e-only `window.__volterScene`/`__volterCamera` exposure for the roots
  * path's default world — split out of `createRootsGameRuntime` purely
  * to keep that function's own cyclomatic complexity down. It uses the
  * "first three world, else none" rule: a non-Three default world publishes
@@ -687,7 +687,7 @@ function installDefaultRootDevGlobals(game: GameInternal): () => void {
   if (defaultMounted.kind !== 'three') return () => {};
   const scene = defaultMounted.scene;
   const w = window as unknown as Record<string, unknown>;
-  w['__vgaiScene'] = scene;
+  w['__volterScene'] = scene;
   // An ACCESSOR, not a value read once: a world may replace its camera after
   // mount (fiber's `set({ camera })` — drei's `makeDefault`, or a translated
   // Godot world installing the camera its `.tscn` authors), and a snapshot
@@ -697,15 +697,15 @@ function installDefaultRootDevGlobals(game: GameInternal): () => void {
   // rule the value comparison was.
   const readCamera = (): THREE.PerspectiveCamera =>
     defaultMounted.camera as THREE.PerspectiveCamera;
-  Object.defineProperty(w, '__vgaiCamera', {
+  Object.defineProperty(w, '__volterCamera', {
     get: readCamera,
     configurable: true,
     enumerable: true,
   });
   return () => {
-    if (w['__vgaiScene'] === scene) delete w['__vgaiScene'];
-    if (Object.getOwnPropertyDescriptor(w, '__vgaiCamera')?.get === readCamera)
-      delete w['__vgaiCamera'];
+    if (w['__volterScene'] === scene) delete w['__volterScene'];
+    if (Object.getOwnPropertyDescriptor(w, '__volterCamera')?.get === readCamera)
+      delete w['__volterCamera'];
   };
 }
 
@@ -845,7 +845,7 @@ function installSessionRenderHarness(
     target,
   });
   return () => {
-    delete target['__vgaiRender'];
+    delete target['__volterRender'];
   };
 }
 
@@ -920,14 +920,14 @@ async function createRootsGameRuntime(config: RootsRuntimeConfig): Promise<GameS
   stacked.forEach((entry, i) => {
     const isReact = kindById.get(entry.id) === 'dom';
     const surface = document.createElement(isReact ? 'div' : 'canvas') as HTMLElement;
-    surface.dataset['vgaiRootSurface'] = 'true';
+    surface.dataset['volterRootSurface'] = 'true';
     // WHICH ROOT THIS SURFACE PRESENTS — the host mounted it, so the host
     // knows, and stamping it here is the difference between a declaration and
     // the guess every late reader had to make instead ("the first <canvas> in
     // DOM order is the game's"). Read by `packages/editor/src/presentation-
     // surface.ts`, which is the one door the capture/staleness/screenshot
     // sites now ask (ARCHITECTURE-CORE §The editor protocol, zero inference).
-    surface.dataset['vgaiRootId'] = entry.id;
+    surface.dataset['volterRootId'] = entry.id;
     if (!isReact) {
       const canvas = surface as unknown as HTMLCanvasElement;
       canvas.width = w;
@@ -961,7 +961,7 @@ async function createRootsGameRuntime(config: RootsRuntimeConfig): Promise<GameS
 
   const assets = createAssetCache();
   // Every manifest/host-mounted game is a deterministic-capture candidate —
-  // the render-control seam (`?vgai-render=1`, render-control.ts) is wired
+  // the render-control seam (`?volter-render=1`, render-control.ts) is wired
   // HERE, at the one host every boot path shares (mountManifestRoots and
   // direct createGameRuntime callers both reach this function), instead of asking every project's entry page to install it
   // the way the e2e fixtures do. Production-protected twice over:
@@ -1030,7 +1030,7 @@ async function createRootsGameRuntime(config: RootsRuntimeConfig): Promise<GameS
   // Expose the default Three root's scene and camera for dev/e2e tooling.
   const retractDevGlobals = installDefaultRootDevGlobals(game);
 
-  // G3/FT-11 — publish `window.__vgaiRender` for the deterministic capture
+  // G3/FT-11 — publish `window.__volterRender` for the deterministic capture
   // host. Installed at the TAIL of the mount (same position as
   // mount-manifest.ts's debug bridge): every world's `mount()`/`setup()` has
   // resolved by now, so the harness's `scene` readiness hook reporting ready

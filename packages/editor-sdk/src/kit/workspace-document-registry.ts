@@ -139,8 +139,8 @@ export interface WorkspaceDocumentDescriptor {
    * Set only by the workspace that opens the document, from its own `areas`
    * list; a document opened by the session, a finder or the user never has
    * one and stays a centre tab. The dock reads it in
-   * `workspaceDocumentPlacement` and puts the panel in `vgai:area:<id>`
-   * rather than `vgai:center`.
+   * `workspaceDocumentPlacement` and puts the panel in `volter:area:<id>`
+   * rather than `volter:center`.
    */
   readonly area?: string;
   readonly provenance?: WorkspaceDocumentProvenance;

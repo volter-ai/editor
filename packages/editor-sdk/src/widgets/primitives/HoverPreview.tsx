@@ -62,7 +62,7 @@ export function HoverPreview({ preview, children, ...menuProps }: HoverPreviewPr
 
   return (
     <span
-      className="vgai-tooltip-anchor"
+      className="volter-tooltip-anchor"
       onMouseEnter={(event) => openAt(event.currentTarget)}
       onMouseLeave={close}
       onFocusCapture={(event) => openAt(event.currentTarget)}

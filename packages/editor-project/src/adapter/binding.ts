@@ -212,10 +212,10 @@ export interface EntryStaticSurface {
 }
 
 /**
- * WHAT THE PROJECT DECLARED — the manifest root, the parsed `vgai.adapter.ts`
+ * WHAT THE PROJECT DECLARED — the manifest root, the parsed `volter.adapter.ts`
  * definition, and the entry's static surface.
  *
- * `vgai.adapter.ts` LOADING stays where it is (`project-adapter.ts`); its
+ * `volter.adapter.ts` LOADING stays where it is (`project-adapter.ts`); its
  * parsed result is an INPUT to `resolveRootBinding`, not something this
  * binding goes and fetches. That is deliberate: the binding is the hand-off's
  * shape, never a second loader.
@@ -224,7 +224,7 @@ export interface ProjectBinding {
   /** The manifest's own resolved root record. */
   readonly root: ResolvedAdapterRoot;
   /**
-   * The project's parsed `vgai.adapter.ts`, or `null` when it declares none.
+   * The project's parsed `volter.adapter.ts`, or `null` when it declares none.
    *
    * `project-adapter.ts` is still the only thing that LOADS it; the editor's
    * `resolveComposition` asks that owner once per composition — waiting on the
@@ -316,7 +316,7 @@ export interface RootBindingParts extends RootDeclaration {
 export interface RootDeclaration {
   /** The manifest's own resolved root record. `loop` rides on it. */
   readonly root: ResolvedAdapterRoot;
-  /** The project's parsed `vgai.adapter.ts`, or `null` when it declares none —
+  /** The project's parsed `volter.adapter.ts`, or `null` when it declares none —
    *  see {@link ProjectBinding.definition} for the current wiring truth. */
   readonly definition: AdapterDefinition | null;
   /** The entry module's static surface, realm-honest about its reach. */

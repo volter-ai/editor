@@ -127,7 +127,7 @@ const CREATE_SNIPPETS: Readonly<Record<string, string>> = {
 const TEXTURE_SNIPPET_KINDS = new Set(['animatedSprite', 'tilingSprite', 'nineSliceSprite', 'meshPlane', 'perspectiveMesh']);
 
 function isHiddenProp(name: string): boolean {
-  return HIDDEN_PROPS.has(name) || /^on[A-Z]/.test(name) || name.startsWith('__vgai');
+  return HIDDEN_PROPS.has(name) || /^on[A-Z]/.test(name) || name.startsWith('__volter');
 }
 
 /** Present a source identifier the way native engine inspectors present

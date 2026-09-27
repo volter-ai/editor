@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 //   ERROR (exit 1 always) — unambiguous drift, one canonical fix each:
 //     E1. `playwright`/`@playwright/test` imported anywhere in the project —
 //         the resident tester (`bot.goal`, driven from the live session
-//         via `vgai eval`) is the ONE bot harness, and a
+//         via `volter eval`) is the ONE bot harness, and a
 //         hand-rolled browser boot is banned.
 //         VALUE imports only: a type-only import (`import type {Page}`, or
 //         an inline `{ type Page }` with no value specifier) binds nothing
@@ -30,13 +30,13 @@ import { fileURLToPath } from 'node:url';
 //         step normally needs, so the direct import is usually avoidable
 //         anyway.
 //     E2. package.json scripts invoking `playwright` directly.
-//     E3. `window.__vgai` accessed in src/** (the bot/CLI consumer
+//     E3. `window.__volter` accessed in src/** (the bot/CLI consumer
 //         surface, not the authoring surface — export the state from a module).
 //     E4. `?bot=`-style query-param bot plumbing in src/** — the project's
 //         resident tester owns bot entry.
 //     E5. raw `Math.random()`/`Date.now()`/`performance.now()` in
 //         src/scripts/** gameplay code — ONLY when this project's OWN
-//         vgai.project.json declares `determinism.seededRandom: true`; silent
+//         volter.project.json declares `determinism.seededRandom: true`; silent
 //         when undeclared (D15, T-D15.3's third enforcer leg — the other
 //         two, the engine-src permanent scan and the examples/ burn-down
 //         scan, live in the engine repo's own test suite; see
@@ -63,7 +63,7 @@ import { fileURLToPath } from 'node:url';
 //         logs read on an interval, redirected live until satisfied — and
 //         the play log (`logs/play-*.jsonl`) is the playtest's receipt.
 //   SHIP-TIER (E9) — the required naming floor for shipped 3D source (owner
-//   decision 2026-08-10; `.agents/skills/vgai-3d-assets/SKILL.md`, "The
+//   decision 2026-08-10; `.agents/skills/volter-3d-assets/SKILL.md`, "The
 //   REQUIRED floor"). E9 reports as a WARNING with a standing count the
 //   operator reads. An unnamed primitive is normal mid-build;
 //   declaring a prefab folder entry without its registration is not.
@@ -111,7 +111,7 @@ import { fileURLToPath } from 'node:url';
 // E9 is the one rule that does NOT answer its question from the file tree
 // alone: the R3F00x codes come from the editor's own source analyzer
 // (`ui-source/r3f-project-contracts.ts`), the same pass validate-on-save and
-// `vgai status` report from. It is loaded OFFLINE — the analyzer is a pure
+// `volter status` report from. It is loaded OFFLINE — the analyzer is a pure
 // `(code, file) => diagnostics` function over `typescript`, with no dev
 // server, browser or editor session anywhere in it — through this project's
 // own `@editor/*` tsconfig mapping, so check-idioms never requires a running
@@ -123,7 +123,7 @@ import { fileURLToPath } from 'node:url';
 // incomplete). This is intentionally a dumb line/regex scanner, not an AST
 // pass — it comment-strips PURE comment lines (lines whose trimmed text
 // starts with `//`, `/*`, `*`, or is exactly `*/`) before matching rule
-// patterns, so doc-comment prose that merely MENTIONS e.g. `window.__vgai`
+// patterns, so doc-comment prose that merely MENTIONS e.g. `window.__volter`
 // doesn't trip a finding, but it does not understand string literals,
 // template strings, or multi-statement lines. False positives are expected
 // occasionally; suppress them with a reason rather than fighting the regex.
@@ -153,7 +153,7 @@ if (!existsSync(rootDir)) {
 
 // This script's own resolved path — excluded from every scan so its rule
 // regexes (which literally contain the strings they look for, e.g.
-// 'colyseus.js', 'window.__vgai', '@playwright/test') never self-flag.
+// 'colyseus.js', 'window.__volter', '@playwright/test') never self-flag.
 const SELF_PATH = resolve(fileURLToPath(import.meta.url));
 
 // ---------------------------------------------------------------------------
@@ -172,7 +172,7 @@ const SKIP_DIRS = new Set([
   '.github',
   'dist',
   'build',
-  '.vgai',
+  '.volter',
   'coverage',
   '.turbo',
 ]);
@@ -353,7 +353,7 @@ function checkPlaywrightImports(): void {
         'error',
         'bot-canonical',
         `"${pkg}" imported — the resident tester (bot.goal, driven from the live session) is the ONE bot harness; hand-rolled Playwright boots are banned.`,
-        "Drive the game through the live session (vgai eval + bot.goal), or take the Playwright types from '@volter/game-live' as a type-only import.",
+        "Drive the game through the live session (volter eval + bot.goal), or take the Playwright types from '@volter/game-live' as a type-only import.",
       );
     }
   }
@@ -386,7 +386,7 @@ function checkPackageJsonScripts(): void {
       'error',
       'bot-canonical',
       `script "${name}" invokes playwright directly ("${cmd}") — this project has no Playwright lane to own a browser binary or config.`,
-      `Delete the "${name}" script — playtesting is the live session (vgai eval + bot.goal), not a script.`,
+      `Delete the "${name}" script — playtesting is the live session (volter eval + bot.goal), not a script.`,
     );
   }
 }
@@ -399,7 +399,7 @@ function checkPackageJsonScripts(): void {
  *  file enters an endless cycle of rewriting assertions and actions (owner
  *  ruling, 2026-08-21 — measured live: three assertion renegotiations in
  *  twenty minutes on one balance suite). The playtest loop is INTERACTIVE:
- *  `vgai eval` + cheats set the situation, bot policy runs behavior, event
+ *  `volter eval` + cheats set the situation, bot policy runs behavior, event
  *  logs are read on an interval, and the run is redirected live until the
  *  operator is satisfied. The play log (logs/play-*.jsonl) is the receipt. This
  *  rule keeps the furniture out so the cheapest path stays the sanctioned
@@ -409,7 +409,7 @@ function checkNoTestFurniture(): void {
     'Delete it and playtest LIVE: eval + cheats set the situation, bot goals run behavior, the ' +
     'event log is read on an interval, the run is redirected until satisfied; the play log ' +
     '(logs/play-*.jsonl) is the receipt.';
-  const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', '.vgai', 'logs', 'media', 'public']);
+  const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', '.volter', 'logs', 'media', 'public']);
   const testFile = /\.(test|spec)\.[cm]?[jt]sx?$/;
   const walk = (dir: string): void => {
     for (const entry of readdirSync(dir)) {
@@ -483,31 +483,31 @@ function checkNoTestFurniture(): void {
 }
 
 // ---------------------------------------------------------------------------
-// E3 — window.__vgai accessed in src/**
+// E3 — window.__volter accessed in src/**
 // ---------------------------------------------------------------------------
 
-function checkWindowVgai(): void {
-  // Two-part, same-line heuristic rather than a single `window\.__vgai`
+function checkWindowVolter(): void {
+  // Two-part, same-line heuristic rather than a single `window\.__volter`
   // regex: this codebase's OWN canonical way to reach the bridge (see
   // @volter/game-live's game-client/client.ts) is a cast in between —
-  // `(window as unknown as { __vgai?: ... }).__vgai` — so `window` and
-  // `.__vgai` are literal-adjacent only coincidentally. Flag any line that
-  // mentions the `window` token AND a bare `.__vgai`/`['__vgai']` property
+  // `(window as unknown as { __volter?: ... }).__volter` — so `window` and
+  // `.__volter` are literal-adjacent only coincidentally. Flag any line that
+  // mentions the `window` token AND a bare `.__volter`/`['__volter']` property
   // access. The negative lookahead on the dotted form keeps this off
-  // `__vgaiScene`/`__vgaiCamera`/`__vgaiRender`/`__vgaiBatch` etc. — those
-  // are different, unrelated dev-only globals, not the frozen `window.__vgai`
+  // `__volterScene`/`__volterCamera`/`__volterRender`/`__volterBatch` etc. — those
+  // are different, unrelated dev-only globals, not the frozen `window.__volter`
   // debug-bridge shape (D18). A file-scoped `window` ALIAS on its own line
-  // (`const w = window as …; w['__vgai']`) is a known miss — this is a
+  // (`const w = window as …; w['__volter']`) is a known miss — this is a
   // line-scan, not an AST pass.
   const windowRe = /\bwindow\b/;
-  const vgaiAccessRe = /\.__vgai(?![A-Za-z0-9_])|\[\s*['"]__vgai['"]\s*\]/g;
+  const volterAccessRe = /\.__volter(?![A-Za-z0-9_])|\[\s*['"]__volter['"]\s*\]/g;
   for (const file of srcFiles) {
     const { rawLines, blanked } = readFileText(file);
     const blankedLines = blanked.split('\n');
     blankedLines.forEach((line, i) => {
       if (!windowRe.test(line)) return;
-      vgaiAccessRe.lastIndex = 0;
-      if (!vgaiAccessRe.test(line)) return;
+      volterAccessRe.lastIndex = 0;
+      if (!volterAccessRe.test(line)) return;
       addFinding(
         file,
         rawLines,
@@ -515,7 +515,7 @@ function checkWindowVgai(): void {
         'E3',
         'error',
         'bot-canonical',
-        'window.__vgai accessed directly in src/** — this is the bot/CLI consumer surface, not the authoring surface.',
+        'window.__volter accessed directly in src/** — this is the bot/CLI consumer surface, not the authoring surface.',
         'Read and drive the game through its own exported modules instead (game.run(({ modules }) => …)).',
       );
     });
@@ -556,7 +556,7 @@ function checkBotParam(): void {
  *  reads as "none" — validating its shape is validate-manifest.ts's job. */
 function manifestDomRootEntries(): Set<string> {
   const entries = new Set<string>();
-  const manifestPath = join(rootDir, 'vgai.project.json');
+  const manifestPath = join(rootDir, 'volter.project.json');
   if (!existsSync(manifestPath)) return entries;
   try {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
@@ -836,9 +836,9 @@ function checkDetachedComponentInitialization(): void {
 // ---------------------------------------------------------------------------
 // git-history plumbing shared by slice-proxy rules (W9)
 // ---------------------------------------------------------------------------
-// The vgai CLI mirrors this exact measurement (source path, gameplay
-// pathspecs, threshold, silent-on-unaskable) as `vgai status`'s ambient
-// bot-drift line — engine repo, packages/vgai-cli/src/instrumentation-signal.ts.
+// The volter CLI mirrors this exact measurement (source path, gameplay
+// pathspecs, threshold, silent-on-unaskable) as `volter status`'s ambient
+// bot-drift line — engine repo, packages/volter-cli/src/instrumentation-signal.ts.
 // If you change any of the three constants below, change them there too, or
 // the ambient signal and this rule will disagree about whether a bot drifted.
 
@@ -974,7 +974,7 @@ function hasPlayEvidence(): boolean {
 }
 
 /** The scaffolder's own record of where this project came from
- *  (packages/create-vgai-project/src/baseline.ts). W9's history ANCHOR.
+ *  (packages/create-volter-project/src/baseline.ts). W9's history ANCHOR.
  *
  *  W7 anchors its window on a file's last commit; W9 does the same, and this
  *  is the file that means "this project began here". Anchoring matters: an
@@ -985,7 +985,7 @@ function hasPlayEvidence(): boolean {
  *  maintenance history, and a rule that shouts at our own reference material
  *  on every run is noise, not a tripwire. A project with no committed
  *  baseline cannot be asked when it started, so W9 stays silent there. */
-const SCAFFOLD_BASELINE_SOURCE = '.vgai/scaffold-baseline.json';
+const SCAFFOLD_BASELINE_SOURCE = '.volter/scaffold-baseline.json';
 
 /** Gameplay commits since the scaffold anchor, at or above which a project
  *  that has never been played is reported.
@@ -1026,23 +1026,23 @@ function checkPlayedBeforeAuthoring(): void {
       'typecheck and unit tests cannot see: a blank canvas, an invisible mesh, a camera inside ' +
       'the geometry.',
     'Author in playable slices (AGENTS.md) — enter Play before writing the next slice: run ' +
-      '`npm run vgai -- play`, look at the game, playtest live, then continue; reading the ' +
+      '`npm run volter -- play`, look at the game, playtest live, then continue; reading the ' +
       'code again does not count.',
   );
 }
 
 // ---------------------------------------------------------------------------
 // E5 — raw Math.random()/Date.now()/performance.now() in src/scripts/**,
-// only when THIS project's own vgai.project.json declares
+// only when THIS project's own volter.project.json declares
 // determinism.seededRandom (D15, T-D15.3's third enforcer leg).
 // ---------------------------------------------------------------------------
 
-/** Reads rootDir/vgai.project.json and reports whether it declares
+/** Reads rootDir/volter.project.json and reports whether it declares
  *  `determinism.seededRandom: true`. Missing/malformed manifests read as
  *  "not declared" (silent) — validating the manifest's own shape is
  *  validate-manifest.ts's job, not this scanner's. */
 function projectDeclaresSeededRandom(): boolean {
-  const manifestPath = join(rootDir, 'vgai.project.json');
+  const manifestPath = join(rootDir, 'volter.project.json');
   if (!existsSync(manifestPath)) return false;
   try {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
@@ -1069,7 +1069,7 @@ function checkDeterminismRng(): void {
         'E5',
         'error',
         'gameplay-rng-ctx-random',
-        `raw "${m[1]}(" in src/scripts/** — this project's vgai.project.json declares ` +
+        `raw "${m[1]}(" in src/scripts/** — this project's volter.project.json declares ` +
           'determinism.seededRandom, so ALL gameplay RNG/wall-clock reads must flow through ' +
           'ctx.random, not raw Math.random()/Date.now()/performance.now().',
         'Use ctx.random() (or ctx.random.stream(name) for an independent named stream) instead.',
@@ -1239,7 +1239,7 @@ function loadR3fAnalyzer(): R3fAnalyzer | null {
  */
 interface RegionSurfaces {
   surfaces: ReadonlyMap<string, string>;
-  /** This project's `vgai.adapter.ts` declares a `regions` binding the static
+  /** This project's `volter.adapter.ts` declares a `regions` binding the static
    *  reader could not evaluate, so its `include` globs were not consulted.
    *  Carried rather than dropped: the editor's own loader EVALUATES that module
    *  and would honor those globs, so silence here means the two readers
@@ -1273,7 +1273,7 @@ function loadRegionSurfaces(): RegionSurfaces | null {
         m: string,
         a: string,
       ) => { regions: unknown[]; unreadable: boolean }
-    )(read('vgai.project.json'), read('vgai.adapter.ts'));
+    )(read('volter.project.json'), read('volter.adapter.ts'));
     const sources = srcFiles.map((file) => ({
       path: relPath(file),
       source: readFileSync(file, 'utf-8'),
@@ -1293,31 +1293,31 @@ function loadRegionSurfaces(): RegionSurfaces | null {
 function checkAuthoringWarnings(): void {
   const analyze = loadR3fAnalyzer();
   if (!analyze) {
-    // Silent for a folder that is not a vgai project at all — this scanner
+    // Silent for a folder that is not a volter project at all — this scanner
     // is pointed at scratch directories by its own tests and by curious
     // agents, and a rule about a missing tsconfig mapping is a rule about a
     // project. Inside a real project the mapping is scaffolded, so its
     // absence is worth saying out loud rather than passing quietly.
-    if (!existsSync(join(rootDir, 'vgai.project.json'))) return;
+    if (!existsSync(join(rootDir, 'volter.project.json'))) return;
     addProjectFinding(
       'E9',
       'warn',
       'authoring-warnings-zero',
       'the R3F authoring analyzer could not be loaded, so authoring warnings were NOT checked — this run says nothing about them. It resolves through this project\'s tsconfig.json "@editor/*" path mapping.',
-      'Restore the "@editor/*" mapping in tsconfig.json (it points at the engine checkout, or at node_modules/@volter/editor-core/src) and re-run. `npm run vgai -- status` reports the same counts from the live editor meanwhile.',
+      'Restore the "@editor/*" mapping in tsconfig.json (it points at the engine checkout, or at node_modules/@volter/editor-core/src) and re-run. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
     );
     return;
   }
 
   const resolved = loadRegionSurfaces();
   if (!resolved) {
-    if (!existsSync(join(rootDir, 'vgai.project.json'))) return;
+    if (!existsSync(join(rootDir, 'volter.project.json'))) return;
     addProjectFinding(
       'E9',
       'warn',
       'authoring-warnings-zero',
       "the region resolver could not be loaded, so no file could be attributed to this project's `three` region and authoring warnings were NOT checked — this run says nothing about them.",
-      'Restore the "@editor/*" mapping in tsconfig.json (it points at the engine checkout, or at node_modules/@volter/editor-core/src) and re-run. `npm run vgai -- status` reports the same counts from the live editor meanwhile.',
+      'Restore the "@editor/*" mapping in tsconfig.json (it points at the engine checkout, or at node_modules/@volter/editor-core/src) and re-run. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
     );
     return;
   }
@@ -1327,7 +1327,7 @@ function checkAuthoringWarnings(): void {
       'E9',
       'warn',
       'authoring-warnings-zero',
-      "vgai.adapter.ts declares a `regions` binding that cannot be read statically, so its `include` globs were NOT consulted — any file those globs place is missing from this run, while the editor's own loader still honors them.",
+      "volter.adapter.ts declares a `regions` binding that cannot be read statically, so its `include` globs were NOT consulted — any file those globs place is missing from this run, while the editor's own loader still honors them.",
       'Write the regions as an array of object literals passed directly to defineAdapter({…}), with literal `id` and `include` values (not a hoisted const, not a spread).',
     );
   }
@@ -1352,7 +1352,7 @@ function checkAuthoringWarnings(): void {
   if (found.length === 0) return;
 
   const fix =
-    'Fix each one at its callsite — the R3F00x codes are the named-nodes half of the required floor: a named prefab with a story (.agents/skills/vgai-3d-assets/SKILL.md). R3F004 wants an ordinary `name` prop, R3F002 wants the ThreeElements transform props forwarded to the one native root, R3F003 wants a single wrapping group, R3F005 wants runtime motion on an inner child. `idioms-ignore E9 <reason>` is the escape when a code is genuinely wrong about your source.';
+    'Fix each one at its callsite — the R3F00x codes are the named-nodes half of the required floor: a named prefab with a story (.agents/skills/volter-3d-assets/SKILL.md). R3F004 wants an ordinary `name` prop, R3F002 wants the ThreeElements transform props forwarded to the one native root, R3F003 wants a single wrapping group, R3F005 wants runtime motion on an inner child. `idioms-ignore E9 <reason>` is the escape when a code is genuinely wrong about your source.';
 
   if (floorSeverity() === 'warn') {
     const codes = [...new Set(found.map((f) => f.diagnostic.code))].sort();
@@ -1380,7 +1380,7 @@ function checkAuthoringWarnings(): void {
       'E9',
       'error',
       'authoring-warnings-zero',
-      `${diagnostic.code}: ${diagnostic.message} Authoring warnings are ZERO at handoff — the required floor: a named prefab with a story (.agents/skills/vgai-3d-assets).`,
+      `${diagnostic.code}: ${diagnostic.message} Authoring warnings are ZERO at handoff — the required floor: a named prefab with a story (.agents/skills/volter-3d-assets).`,
       fix,
     );
   }
@@ -1453,7 +1453,7 @@ function checkPrefabStories(): void {
         'E10',
         'error',
         'prefab-ships-a-story',
-        `${name} is a shipped prefab with no colocated story — the required floor: a named prefab with a story (.agents/skills/vgai-3d-assets). Without one it is invisible to the editor's Content tab, which is where a designer finds, previews and places it.`,
+        `${name} is a shipped prefab with no colocated story — the required floor: a named prefab with a story (.agents/skills/volter-3d-assets). Without one it is invisible to the editor's Content tab, which is where a designer finds, previews and places it.`,
         `Add ${relPath(file).replace(/\.[jt]sx$/, '.stories.tsx')} with \`component: ${name}\` in its \`meta\` — copy src/prefabs/HeroBox.stories.tsx and rename. If this module is not a shipped prefab, it does not belong in ${PREFAB_DIR}.`,
       );
       continue;
@@ -1552,7 +1552,7 @@ function checkSceneFolderContract(): void {
 checkPlaywrightImports();
 checkPackageJsonScripts();
 checkNoTestFurniture();
-checkWindowVgai();
+checkWindowVolter();
 checkBotParam();
 checkPollingPump();
 checkColyseusStaticImport();
@@ -1575,7 +1575,7 @@ const warnFindings = findings.filter((f) => f.severity === 'warn');
  *
  * Measured failure: a blind probe ran `typecheck` seven times and this scanner
  * once, at minute 19, which turned every open finding into an end-of-build
- * scramble. `vgai status` — the command an agent polls constantly — reads this
+ * scramble. `volter status` — the command an agent polls constantly — reads this
  * file and surfaces the open ERROR findings as an advisory count, so they are
  * visible from the first status call while THIS script stays the gate.
  *
@@ -1584,9 +1584,9 @@ const warnFindings = findings.filter((f) => f.severity === 'warn');
  */
 function writeFindingsRecord(): void {
   try {
-    mkdirSync(join(rootDir, '.vgai'), { recursive: true });
+    mkdirSync(join(rootDir, '.volter'), { recursive: true });
     writeFileSync(
-      join(rootDir, '.vgai', 'check-idioms.json'),
+      join(rootDir, '.volter', 'check-idioms.json'),
       `${JSON.stringify(
         {
           at: new Date().toISOString(),

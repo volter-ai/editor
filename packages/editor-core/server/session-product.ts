@@ -2,13 +2,13 @@
  * WHICH PRODUCT THIS SESSION IS SERVING — the session's half of the resolution
  * the CLI already did.
  *
- * `vgai edit` resolves the product from the project's own dependencies
+ * `volter edit` resolves the product from the project's own dependencies
  * (`@volter/editor-sdk/session/product-locator`) so a bad or missing declaration
  * is named before a server exists, then hands the directory over in
  * `VOLTER_PRODUCT_DIR`, beside `VOLTER_WORKBENCH_DIR`. The session reads it back
  * for the two things only it can do: SERVE the product's entry through
  * `/__editor/served-modules`, and REPORT it (`EditorState.product`, printed by
- * `vgai status` on the workbench's line) — a process reports what it is running.
+ * `volter status` on the workbench's line) — a process reports what it is running.
  *
  * A session started without the variable resolves from the project itself
  * rather than guessing, so `npx tsx packages/editor/server/dev.ts` by hand
@@ -63,7 +63,7 @@ export {
  * EVERY CONTRIBUTION MODULE THE PRODUCT COMPOSES, as absolute files — what
  * Vite's dependency crawl has to be HANDED, because it cannot walk to them.
  *
- * The product names a package as `vgai:contributions/<name>`, and that module
+ * The product names a package as `volter:contributions/<name>`, and that module
  * is synthesized (`vite-plugin-product-contributions.ts`): it hangs off no file
  * on disk, so `optimizeDeps`' esbuild scanner never reaches the `import()` rows
  * inside it. `vite-plugin-module-doorways.ts`'s header records the same failure
@@ -91,7 +91,7 @@ export function productContributionFiles(product: ProductIdentity): string[] {
     }
     let declared: unknown;
     try {
-      declared = (JSON.parse(readFileSync(manifestPath, 'utf8')) as ContributingManifest).vgai
+      declared = (JSON.parse(readFileSync(manifestPath, 'utf8')) as ContributingManifest).volter
         ?.contributions;
     } catch {
       continue;
@@ -108,7 +108,7 @@ export function productContributionFiles(product: ProductIdentity): string[] {
 }
 
 interface ContributingManifest {
-  vgai?: { contributions?: unknown; serving?: unknown };
+  volter?: { contributions?: unknown; serving?: unknown };
 }
 
 /**
@@ -133,7 +133,7 @@ export function productPackageRoots(product: ProductIdentity): string[] {
 
 /**
  * EVERY SERVING MODULE THE PRODUCT COMPOSES — each composed package's
- * `package.json#vgai.serving`, as an absolute file: the server half of an integration,
+ * `package.json#volter.serving`, as an absolute file: the server half of an integration,
  * whose Vite plugins take part in serving the project's own modules
  * (`@volter/editor-sdk/session/project-serving`). Read from the same composition
  * {@link productContributionFiles} reads, so the kit names no package.
@@ -148,15 +148,15 @@ export function productServingModules(product: ProductIdentity): string[] {
     } catch {
       continue;
     }
-    const declared = (JSON.parse(readFileSync(manifestPath, 'utf8')) as ContributingManifest).vgai
+    const declared = (JSON.parse(readFileSync(manifestPath, 'utf8')) as ContributingManifest).volter
       ?.serving;
     if (declared === undefined) continue;
     if (typeof declared !== 'string') {
-      throw new Error(`${name}'s package.json#vgai.serving must name one module file.`);
+      throw new Error(`${name}'s package.json#volter.serving must name one module file.`);
     }
     const file = join(dirname(manifestPath), declared);
     if (!existsSync(file)) {
-      throw new Error(`${name} declares vgai.serving ${declared}, and ${file} does not exist. Build the package.`);
+      throw new Error(`${name} declares volter.serving ${declared}, and ${file} does not exist. Build the package.`);
     }
     files.push(file);
   }

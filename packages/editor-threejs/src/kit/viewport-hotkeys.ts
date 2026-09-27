@@ -4,7 +4,7 @@
  * stage binds these while it is mounted (`components/stage-keyboard.tsx`). They
  * reach the keyboard through the host door (`host.keyboard`): the viewport says
  * what each action does, and the active KEYMAP decides which keys land on it —
- * W/E/R under `vgai`, G/R/S under `blender`.
+ * W/E/R under `volter`, G/R/S under `blender`.
  */
 import { editorHost } from '@volter/editor-sdk/host';
 import { getActiveScope, installHotkeys, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
@@ -91,7 +91,7 @@ export function registerViewportHotkeys(
     if (isVertexSnapKey(e) && !e.metaKey && !e.ctrlKey && !e.repeat) {
       // THE STAGE'S OWN SCOPE, which is what keeps this from being a second
       // keyboard owner: it fires only while the viewport holds the editor's
-      // scope, the same fact the frame publishes as `vgai.stage.focused`.
+      // scope, the same fact the frame publishes as `volter.stage.focused`.
       if (getActiveScope() !== 'viewport') return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       store.setVertexSnapActive(true);

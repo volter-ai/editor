@@ -368,7 +368,7 @@ export async function measureSceneGridMapProof(tools: GodotProofTools): Promise<
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_GRIDMAP_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-gridmap-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-gridmap-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

@@ -13,7 +13,7 @@
  * The decoupling is an injected RESOLVER, not a dropped default: the board
  * resolves a presentation per story, per viewport override, INSIDE its own
  * layout pass ({@link StoryBoardPresentation.resolve}), so a caller cannot
- * pre-compute the answers and hand over a table. The callers — `@vgai/dom`'s
+ * pre-compute the answers and hand over a table. The callers — `@volter/dom`'s
  * design-time mount and the canvas 2D board — each supply an
  * implementation; `stories/story-presentation.ts` is the one that exists,
  * and it implements these types rather than declaring its own, the way

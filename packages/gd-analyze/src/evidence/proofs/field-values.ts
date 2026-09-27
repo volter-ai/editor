@@ -75,7 +75,7 @@ export function measureFieldValueProof(tools: GodotProofTools): readonly GodotPr
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = packageImplementationDigest(GODOT_FIELD_VALUE_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-field-values-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-field-values-'));
   try {
     for (const [relative, source] of Object.entries(files)) {
       writeFileSync(path.join(temp, relative), source);

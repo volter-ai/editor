@@ -21,7 +21,7 @@
 
 import { isScaffoldAddition, type ScaffoldAddition } from './additions.js';
 
-/** A value the generated `vgai.adapter.ts` imports by name from a package. */
+/** A value the generated `volter.adapter.ts` imports by name from a package. */
 export interface ImportedValue {
   /** The exported binding — `GameLayout`, `blenderStyle`. */
   readonly name: string;
@@ -32,7 +32,7 @@ export interface ImportedValue {
 /**
  * HOW A PROJECT PRESENTS, as its adapter declares it (`editor: { Layout,
  * style, keymap, inspector }`). The editor reads that declaration beneath the
- * project's own `.vgai/settings.json` and above the person's cross-project one
+ * project's own `.volter/settings.json` and above the person's cross-project one
  * (`settings-store.ts`), so a scaffolded project opens in its look with no
  * settings file at all.
  */
@@ -117,7 +117,7 @@ export function assertScaffoldComposition(
     fail(
       source,
       `compose() returned editorPackages ${JSON.stringify(packages)}, which omits ${product}. ` +
-        'A scaffolded project declares the product it opens in — that declaration is how `vgai ' +
+        'A scaffolded project declares the product it opens in — that declaration is how `volter ' +
         'edit` finds the editor to run (ARCHITECTURE-CORE §The target shape, rule 4).',
     );
   const editor = composition?.editor as Partial<ScaffoldEditorDeclaration> | undefined;

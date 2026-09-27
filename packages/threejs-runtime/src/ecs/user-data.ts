@@ -78,17 +78,17 @@
  *
  * Hierarchy-presentation convention (written by GAME code, read by the editor —
  * see `../adapter/hierarchy-marks.ts`, which is the ONLY place these two are
- * read/written from; the `vgai` prefix marks them as the HOST's namespace on a
+ * read/written from; the `volter` prefix marks them as the HOST's namespace on a
  * node a game owns, unlike every other key above, which the engine/editor also
  * write):
- * - `vgaiComponentRoot`   — display name of the component instance this subtree
+ * - `volterComponentRoot`   — display name of the component instance this subtree
  *                           IS. The node renders as one collapsed, expandable
  *                           row named for it.
- * - `vgaiBuiltInternal`   — `true` on the ROOT of a subtree runtime code
+ * - `volterBuiltInternal`   — `true` on the ROOT of a subtree runtime code
  *                           CONSTRUCTED rather than authored (skeleton bones,
  *                           particle renderers). Subtree-scoped: everything
  *                           below a marked node is built-internal too.
- * - `vgaiBodyOwner`       — the rigid body that OWNS this node's pose, written
+ * - `volterBodyOwner`       — the rigid body that OWNS this node's pose, written
  *                           by the code that attaches the body (see
  *                           `../adapter/body-marks.ts`, the only reader/writer).
  *                           A transform edit on such a node must be applied to
@@ -147,7 +147,7 @@ export interface UserDataSchema extends ObjectMarkSchema {
   authoringRoot: boolean;
   authoringInstance: string;
   authoringLabel: string;
-  vgaiBodyOwner: RapierEditableBody;
+  volterBodyOwner: RapierEditableBody;
   authoringComponent: string;
   authoringDocument: {
     readonly kind: 'project-tool';
@@ -198,7 +198,7 @@ export const UserDataKeys = {
   authoringRoot: 'authoringRoot',
   authoringInstance: 'authoringInstance',
   authoringLabel: 'authoringLabel',
-  vgaiBodyOwner: 'vgaiBodyOwner',
+  volterBodyOwner: 'volterBodyOwner',
   authoringComponent: 'authoringComponent',
   authoringDocument: 'authoringDocument',
   authoringHierarchyId: 'authoringHierarchyId',

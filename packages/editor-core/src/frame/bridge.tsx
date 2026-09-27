@@ -1,5 +1,5 @@
 /**
- * THE EDITOR'S ENTRY POINT UNDER THE CODE-OSS FRAME — the vgai editor's own app
+ * THE EDITOR'S ENTRY POINT UNDER THE CODE-OSS FRAME — the volter editor's own app
  * with a VS Code-backed LAYOUT HOST.
  *
  * THIS IS THE EDITOR'S MODULE, IN THE EDITOR'S TREE — forty of its imports are
@@ -15,12 +15,12 @@
  * which portals ProjectHeader and the active document surface + hierarchy + inspector
  * into the VS Code parts the contribution hands over (title bar, editor pane, two
  * sidebar views). The FOOTER portals nothing: the status bar is the workbench's own
- * and every vgai status item is a real entry in it (see `Footer` below).
+ * and every volter status item is a real entry in it (see `Footer` below).
  *
  * IT IS THE KIT'S MOUNT, AND IT IS NOT THE SERVED MODULE. A PRODUCT is what the
  * session serves (`packages/game-editor/src/index.ts`,
  * `packages/model-editor/src/index.ts`): it composes its packages, its look and
- * its workspace in code and re-exports this function as `mountVgai`, which is
+ * its workspace in code and re-exports this function as `mountVolter`, which is
  * the name the fork's contribution reads off whatever module
  * `/__editor/served-modules` hands it. So this file is product-neutral — it
  * names no package and no product (ARCHITECTURE-CORE §The target shape, rule 1)
@@ -156,18 +156,18 @@ import { setWorkspaceViewportRect } from '../workspace-viewport-rect';
  * WHAT THE FRAME GETS OF THE KEYBOARD — the editor's own door
  * (`@volter/editor-sdk/host`'s `keyboard`) reshaped into exactly the facts the
  * contribution's context keys need, so no file under `src/vs/` imports an
- * editor module. Its counterpart is `vgaiKeyboard.ts`'s `VgaiKeyboardBridge`.
+ * editor module. Its counterpart is `volterKeyboard.ts`'s `VolterKeyboardBridge`.
  *
  * The CHORDS are deliberately not among them (U6b): they are package data
- * known at build time, generated into `extensions/vgai-keymaps`'s
+ * known at build time, generated into `extensions/volter-keymaps`'s
  * `contributes.keybindings` by `scripts/workbench/generate-keymaps.mjs` from the same
  * `keymap-presets.ts`/`*.keymap.ts` tables this door would have read. What is
  * dynamic — WHICH keymap the project chose — is `activeKeymap()` below, and
- * the frame publishes it as the `vgai.keymap` context key each generated set
+ * the frame publishes it as the `volter.keymap` context key each generated set
  * is gated on. The door's own `keymaps()`/`actions()` members stay the
  * editor's published API; the frame reads neither.
  */
-export interface VgaiKeyboardHandle {
+export interface VolterKeyboardHandle {
   activeKeymap(): string;
   invoke(id: string): boolean;
   subscribe(listener: () => void): () => void;
@@ -182,11 +182,11 @@ export interface VgaiKeyboardHandle {
 
 /**
  * WHAT THE FRAME GETS OF THE OPEN DOCUMENTS — its counterpart is the
- * contribution's own `VgaiDocumentsBridge`, declared there so that no file
+ * contribution's own `VolterDocumentsBridge`, declared there so that no file
  * under `src/vs/` imports an editor module.
  *
  * ONE fact, because one command needs it: which file on disk the active
- * document IS. `VGAI: Show Explorer and Open Model Source Beside` opens the
+ * document IS. `VOLTER: Show Explorer and Open Model Source Beside` opens the
  * active model's source beside the Model document, and before this it opened
  * the literal string `src/models/cube.ts` — a path the models template stopped
  * shipping when a model became a `.blend` plus the bpy that authored it
@@ -199,22 +199,22 @@ export interface VgaiKeyboardHandle {
  * WHAT THE FRAME GETS OF THE EDITOR'S HISTORY — the editor's own door
  * (`@volter/editor-sdk/host`'s `history`) reshaped into exactly what the
  * contribution needs, so no file under `src/vs/` imports an editor module. Its
- * counterpart is `vgaiHistory.ts`'s `VgaiHistoryBridge`.
+ * counterpart is `volterHistory.ts`'s `VolterHistoryBridge`.
  *
  * The elements carry PROJECT-RELATIVE paths and the frame resolves them
  * against the open workspace folder — that is what puts a gizmo drag on
  * `cube.ts`'s model and a keystroke in `cube.ts`'s text editor on ONE
  * resource's stack.
  */
-export interface VgaiHistoryHandle {
-  elements(): readonly VgaiHistoryElementHandle[];
-  onElement(listener: (element: VgaiHistoryElementHandle) => void): () => void;
+export interface VolterHistoryHandle {
+  elements(): readonly VolterHistoryElementHandle[];
+  onElement(listener: (element: VolterHistoryElementHandle) => void): () => void;
   onInvalidated(listener: (resources: readonly string[]) => void): () => void;
   changed(): void;
   focusedResource(): string | null;
   focusedDocument(): { id: string; label: string } | null;
   /** Hand the frame's OWN undo to the editor, so its Edit menu, palette and
-   *  `vgai eval` reach the one stack instead of a cursor nobody drives. */
+   *  `volter eval` reach the one stack instead of a cursor nobody drives. */
   setDelegate(delegate: {
     undo(): void | boolean | Promise<void | boolean>;
     redo(): void | boolean | Promise<void | boolean>;
@@ -226,7 +226,7 @@ export interface VgaiHistoryHandle {
   report(level: 'warn' | 'error', message: string): void;
 }
 
-export interface VgaiHistoryElementHandle {
+export interface VolterHistoryElementHandle {
   readonly id: string;
   readonly label: string;
   readonly resources: readonly string[];
@@ -238,10 +238,10 @@ export interface VgaiHistoryElementHandle {
 /**
  * WHAT THE FRAME GETS OF THE PROJECT'S FILES — the editor's own door
  * (`@volter/editor-sdk/host`'s `files`) in the one direction the frame drives
- * it: the frame INSTALLS a provider, and from then on every vgai read and
+ * it: the frame INSTALLS a provider, and from then on every volter read and
  * write of the project's files is the workbench's own `IFileService` /
- * `ITextFileService` call. Its counterpart is `vgaiFiles.ts`'s
- * `VgaiFilesBridge`, declared there so that no file under `src/vs/` imports an
+ * `ITextFileService` call. Its counterpart is `volterFiles.ts`'s
+ * `VolterFilesBridge`, declared there so that no file under `src/vs/` imports an
  * editor module.
  *
  * It arrives LATER than the ownership does, and that is deliberate:
@@ -251,7 +251,7 @@ export interface VgaiHistoryElementHandle {
  * door falls back to the session's transports in that window — a write there
  * is a real write with nowhere else to go.
  */
-export interface VgaiFilesHandle {
+export interface VolterFilesHandle {
   setProvider(provider: {
     read(path: string): Promise<string>;
     readBytes(path: string): Promise<Uint8Array>;
@@ -265,17 +265,17 @@ export interface VgaiFilesHandle {
  * WHAT THE FRAME GETS OF THE SETTINGS — the editor's own door
  * (`@volter/editor-sdk/host`'s `settings`) in the one direction the frame drives
  * it, plus the ONE fact only the editor knows: what the open project's
- * `vgai.adapter.ts` DECLARES. Its counterpart is `vgaiSettings.ts`'s
- * `VgaiSettingsBridge`, declared there so that no file under `src/vs/` imports
+ * `volter.adapter.ts` DECLARES. Its counterpart is `volterSettings.ts`'s
+ * `VolterSettingsBridge`, declared there so that no file under `src/vs/` imports
  * an editor module.
  *
  * The adapter's declaration is CODE — an imported `blenderStyle` object, not a
  * file the host parses (ARCHITECTURE-CORE §Adapters and contributions are
  * code) — so the frame cannot read it and must be handed it. It arrives as
- * dotted `vgai.*` keys, the same spelling the configuration service takes, and
+ * dotted `volter.*` keys, the same spelling the configuration service takes, and
  * the frame writes exactly those to its MEMORY target under the inspect gate.
  */
-export interface VgaiSettingsHandle {
+export interface VolterSettingsHandle {
   setProvider(provider: {
     get(key: string): unknown;
     inspect(key: string): {
@@ -292,11 +292,11 @@ export interface VgaiSettingsHandle {
   /** VS CODE'S OWN keys the active LOOK answers, and today that is exactly one: the top
    *  bar's height (`window.titleBarHeight`, WORK.md U9). The frame writes it on the same
    *  MEMORY layer under the same inspect gate, and its own core edit 1 reads it in
-   *  `BrowserTitlebarPart.minimumHeight`. See `vgaiTitleBar.ts` for why that edit exists and
+   *  `BrowserTitlebarPart.minimumHeight`. See `volterTitleBar.ts` for why that edit exists and
    *  for the four routes measured before it was made. */
   workbenchValues(): readonly (readonly [string, unknown])[];
   /** The ACTIVE LOOK's own id — the editor's palette id. The frame maps it to the colour
-   *  theme and product icon theme IT ships (`vgaiSettings.ts`'s `LOOK_THEMES`) and writes
+   *  theme and product icon theme IT ships (`volterSettings.ts`'s `LOOK_THEMES`) and writes
    *  them on the same MEMORY layer, under the same inspect gate, as the top bar's height.
    *  The editor hands over the look and never a theme NAME: `Blender` and `blender-icons`
    *  are artifacts of the fork, and a panel naming one would be the inversion rule 2
@@ -305,7 +305,7 @@ export interface VgaiSettingsHandle {
   subscribe(listener: () => void): () => void;
   report(level: 'warn' | 'error', message: string): void;
   /** ONE event-shaped message to the PERSON, through `EditorHost.notify` — which under this
-   *  frame is `INotificationService` (`vgaiNotifications.ts`). The frame uses it for the one
+   *  frame is `INotificationService` (`volterNotifications.ts`). The frame uses it for the one
    *  thing the Settings editor cannot draw: a user value on an adapter-declared key, visible
    *  there and ineffective in this project. */
   notify(notification: {
@@ -318,10 +318,10 @@ export interface VgaiSettingsHandle {
 
 /**
  * WHAT THE FRAME GETS OF THE OPEN DOCUMENTS — its counterpart is
- * `vgaiDocuments.ts`'s `VgaiDocumentsBridge`, declared there so that no file
+ * `volterDocuments.ts`'s `VolterDocumentsBridge`, declared there so that no file
  * under `src/vs/` imports an editor module.
  *
- * `activeSource` answers ONE fact for `VGAI: Show Explorer and Open Model
+ * `activeSource` answers ONE fact for `VOLTER: Show Explorer and Open Model
  * Source Beside`: which file on disk the active document IS.
  *
  * The other four are the open SET, and they arrived with walk 3's beat 19
@@ -333,7 +333,7 @@ export interface VgaiSettingsHandle {
  * than a second notion of "which document is in front": activating fires the
  * descriptor's `onActivate`, which is what moves the store's viewport tab.
  */
-export interface VgaiDocumentsHandle {
+export interface VolterDocumentsHandle {
   whenRestored(): Promise<void>;
   /** The active document's kind and the project-relative file it is, or null
    *  when nothing is open or the active document is not a file on disk. */
@@ -369,9 +369,9 @@ export interface VgaiDocumentsHandle {
   /**
    * CLOSE one open document — the frame's half of `View: Close Editor`.
    *
-   * A person closing a vgai editor is closing the DOCUMENT; without this the
+   * A person closing a volter editor is closing the DOCUMENT; without this the
    * registry kept reporting it open and active while the workbench had no
-   * editor for it, so `vgai status` disagreed with the screen and reopening it
+   * editor for it, so `volter status` disagreed with the screen and reopening it
    * was a no-op against a registry that never noticed (walk 4, W12). The
    * contribution calls this only for a close it did NOT make itself.
    */
@@ -382,7 +382,7 @@ export interface VgaiDocumentsHandle {
 }
 
 export interface VscodeParts {
-  /** The element that carries the vgai theme variables: `.monaco-workbench`. */
+  /** The element that carries the volter theme variables: `.monaco-workbench`. */
   chromeRoot: HTMLElement;
   header: HTMLElement;
   center: HTMLElement;
@@ -428,14 +428,14 @@ function watchPartShown(id: string, element: HTMLElement | null): void {
  *
  * The mount's parts used to be captured once, which was true for exactly as
  * long as the pane that owned the centre lived. `View: Close Editor` on the
- * only vgai document disposes that pane AND its group, and the element this
+ * only volter document disposes that pane AND its group, and the element this
  * module portals into goes with it — measured 2026-09-20 (walk 4, W12): the
  * workspace came back with the Timeline alone and reopening the document drew
  * into a detached node. So the contribution withdraws a dead part (`null`) and
  * offers the next pane's container under the same id, and the portal below
  * re-targets on the re-render that arrival causes.
  */
-export function offerVgaiPart(id: keyof VscodeParts, element: HTMLElement | null): void {
+export function offerVolterPart(id: keyof VscodeParts, element: HTMLElement | null): void {
   if (!parts) return;
   if (element === null) {
     // A WITHDRAWAL IS ONLY THE OWNER'S. Panes are built and disposed in any
@@ -477,7 +477,7 @@ export function offerVgaiPart(id: keyof VscodeParts, element: HTMLElement | null
  * exists.
  */
 function stampPart(id: keyof VscodeParts, element: HTMLElement): void {
-  element.dataset['vgaiPart'] = id;
+  element.dataset['volterPart'] = id;
 }
 
 /** Native occurrences survive pane detach/move; React keys follow their IDs. */
@@ -546,7 +546,7 @@ function PartShell({
 }) {
   return (
     <div
-      className="vgai-editor-shell vgai-part"
+      className="volter-editor-shell volter-part"
       // Code-OSS cancels wheel events at the workbench root. Our panels use
       // native overflow scrolling, so retain its default action inside this host.
       onWheel={(event) => event.stopPropagation()}
@@ -567,12 +567,12 @@ function PartShell({
         // parts we portal into are the workbench's own elements, several of
         // which declare a font of their own. Inheritance from the root loses to
         // a declaration on the part.
-        // It read `var(--vgai-typography-sans, 'Inter', system-ui, sans-serif)`
+        // It read `var(--volter-typography-sans, 'Inter', system-ui, sans-serif)`
         // while it lived in the fork: that variable is published by nothing, so
         // the frame wore the hard-coded fallback and never the look's face.
-        fontFamily: 'var(--vgai-font-sans)',
-        fontSize: 'var(--vgai-font-base)',
-        color: 'var(--vgai-content-primary)',
+        fontFamily: 'var(--volter-font-sans)',
+        fontSize: 'var(--volter-font-base)',
+        color: 'var(--volter-content-primary)',
       }}
     >
       {children}
@@ -600,13 +600,13 @@ function Header() {
  * The spike portalled `EditorBottomBar` into `.part.statusbar` and the skin hid the bar's own
  * `.items-container` to make room for it. U8 replaced that whole for-the-look arrangement with
  * the real thing: one `IStatusbarService` entry per `workspace.status` contribution, each
- * carrying our own element as its `content` (`vgaiStatus.ts`), and `StatusBar.tsx` drawing
+ * carrying our own element as its `content` (`volterStatus.ts`), and `StatusBar.tsx` drawing
  * nothing under frame ownership. The portal that stayed behind was then an EMPTY 1440x22 blob
  * covering every one of those entries — walk 2 measured them all at 0x0 with no `Hide <item>`
  * reachable, which is exactly what a second rendering of one part costs.
  *
  * WHAT THIS DROPS, named rather than silently degraded: `EditorBottomBar` is the status line
- * plus the `bottom-bar` CHROME SLOT, whose one filler is `@vgai/agents`' minimized conversation
+ * plus the `bottom-bar` CHROME SLOT, whose one filler is `@volter/agents`' minimized conversation
  * tray. That tray has no frame home yet — neither does the `panel:agent` slot beside it, because
  * the agents surface is a dock PANEL and the dock is U10's to retire. It renders nothing in a
  * scaffolded project today (measured: the hosted slot's `innerText` was empty), and the two
@@ -634,8 +634,8 @@ function OutlinerPart() {
           the view menu and Create sit at its trailing edge. */}
       <div
         ref={slot}
-        className="vgai-vscode-outliner-header"
-        style={{ padding: 'var(--vgai-space-2) var(--vgai-space-4)', ['--vgai-hierarchy-search-basis' as string]: '100%' }}
+        className="volter-vscode-outliner-header"
+        style={{ padding: 'var(--volter-space-2) var(--volter-space-4)', ['--volter-hierarchy-search-basis' as string]: '100%' }}
       />
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <GameHierarchy />
@@ -657,7 +657,7 @@ function setUtilityBody(id: string, element: HTMLElement | null): void {
   if (element) {
     if (utilityBodies.get(id) === element) return;
     // The document door's `utility` scope finds the showing body by this stamp.
-    element.dataset['vgaiUtility'] = id;
+    element.dataset['volterUtility'] = id;
     utilityBodies.set(id, element);
   } else if (!utilityBodies.delete(id)) {
     return;
@@ -765,9 +765,9 @@ function NativeDocumentPortal({
 }) {
   const [host] = useState(() => document.createElement('div'));
   useLayoutEffect(() => {
-    host.className = 'vgai-vscode-document-slot';
-    host.dataset['vgaiDocument'] = descriptor.id;
-    host.dataset['vgaiArea'] = descriptor.area ?? '';
+    host.className = 'volter-vscode-document-slot';
+    host.dataset['volterDocument'] = descriptor.id;
+    host.dataset['volterArea'] = descriptor.area ?? '';
     host.style.cssText = `display:${visible ? 'flex' : 'none'};flex-direction:column;width:100%;height:100%;min-width:0;min-height:0;position:relative;`;
   }, [host, descriptor.id, descriptor.area, visible]);
   useLayoutEffect(() => {
@@ -826,7 +826,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
   // this component first rendered, so its arrival has to be a re-render.
   useSyncExternalStore(subscribeDocumentSlots, documentSlotsSnapshot, documentSlotsSnapshot);
   // …and so does a re-offered PART: the centre's pane is disposed with its group when a person
-  // closes the last vgai editor, and the next one hands over a different element (W12).
+  // closes the last volter editor, and the next one hands over a different element (W12).
   useSyncExternalStore(subscribeParts, partsSnapshot, partsSnapshot);
   useLayoutEffect(() => {
     const stop = installLayoutPolicy({
@@ -864,7 +864,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
   const parking = parts.center;
   const docs = openWorkspaceDocuments();
   const active = activeWorkspaceDocument() ?? docs[0] ?? null;
-  (globalThis as unknown as { __vgaiBridge?: unknown }).__vgaiBridge = {
+  (globalThis as unknown as { __volterBridge?: unknown }).__volterBridge = {
     documents: docs.map((d) => d.descriptor.id),
     active: active?.descriptor.id ?? null,
     workspace: arrangement?.id ?? null,
@@ -897,7 +897,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
       {docs.length === 0 &&
         createPortal(
           <PartShell>
-            <div className="vgai-vscode-empty">No document open</div>
+            <div className="volter-vscode-empty">No document open</div>
           </PartShell>,
           parts.center,
         )}
@@ -934,11 +934,11 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
 
 /**
  * WHAT THE FRAME GETS OF OUR STATUS ITEMS (U8) — the editor's `workspace.status` registry, plus
- * the element each real status bar entry hands back. Its counterpart is `vgaiStatus.ts`'s
- * `VgaiStatusBridge`. The item's pixels never change: the same `Content` the bottom bar renders
+ * the element each real status bar entry hands back. Its counterpart is `volterStatus.ts`'s
+ * `VolterStatusBridge`. The item's pixels never change: the same `Content` the bottom bar renders
  * is portalled into the entry the workbench made for it.
  */
-export interface VgaiStatusHandle {
+export interface VolterStatusHandle {
   list(): readonly {
     readonly id: string;
     readonly title: string;
@@ -952,12 +952,12 @@ export interface VgaiStatusHandle {
 /**
  * WHAT THE FRAME GETS OF OUR DRAWER UTILITIES (U8, ruling 1's other half) — the editor's live
  * `workspace.utility` registry, plus the door the frame hands each VIEW's body back through.
- * Its counterpart is `vgaiUtilityViews.ts`'s `VgaiUtilitiesBridge`.
+ * Its counterpart is `volterUtilityViews.ts`'s `VolterUtilitiesBridge`.
  *
  * A utility's CONTENT never moves: `WorkspaceUtilitySurface` renders the same registration the
  * dock renders, portalled into the view's body. What changes is only where the body is.
  */
-export interface VgaiUtilitiesHandle {
+export interface VolterUtilitiesHandle {
   list(): readonly { readonly id: string; readonly title: string; readonly order: number }[];
   subscribe(listener: () => void): () => void;
   offerBody(utilityId: string, element: HTMLElement | null): void;
@@ -965,11 +965,11 @@ export interface VgaiUtilitiesHandle {
 
 /**
  * WHAT THE FRAME GETS OF OUR VIEWS (U8, ruling 1) — the SDK's view-verb registry, reshaped
- * into what a `vgai.<view>.<verb>` command needs. Its counterpart is `vgaiViews.ts`'s
- * `VgaiViewsBridge`. Arguments pass straight through and a refusal is the view's own thrown
+ * into what a `volter.<view>.<verb>` command needs. Its counterpart is `volterViews.ts`'s
+ * `VolterViewsBridge`. Arguments pass straight through and a refusal is the view's own thrown
  * sentence: what an argument means belongs to the view.
  */
-export interface VgaiViewsHandle {
+export interface VolterViewsHandle {
   list(): readonly {
     readonly view: string;
     readonly title: string;
@@ -982,30 +982,30 @@ export interface VgaiViewsHandle {
 /**
  * WHAT THE FRAME GETS OF NOTIFICATIONS (U8) — one installer, because a notification is a
  * one-way message and there is nothing for the frame to read back. `null` hands them back to
- * the editor's own tray. Its counterpart is `vgaiNotifications.ts`'s
- * `VgaiNotificationsBridge`.
+ * the editor's own tray. Its counterpart is `volterNotifications.ts`'s
+ * `VolterNotificationsBridge`.
  */
-export interface VgaiNotificationsHandle {
+export interface VolterNotificationsHandle {
   setDelegate(show: ((notification: EditorNotification & { readonly source: string }) => () => void) | null): void;
 }
 
 /**
  * WHAT THE FRAME GETS OF THE PALETTE (U8) — the editor's live action table, reshaped into
  * exactly the facts a `MenuId.CommandPalette` item needs, so no file under `src/vs/` imports an
- * editor module. Its counterpart is `vgaiCommands.ts`'s `VgaiCommandsBridge`.
+ * editor module. Its counterpart is `volterCommands.ts`'s `VolterCommandsBridge`.
  *
- * Deliberately NOT here: the relay's verbs. `vgai <verb>` stays the SESSION's vocabulary (the
+ * Deliberately NOT here: the relay's verbs. `volter <verb>` stays the SESSION's vocabulary (the
  * one-name table gives commands to VS Code in the same row that keeps relay verbs ours); this
  * is only the palette a PERSON opens.
  */
-export interface VgaiCommandsHandle {
+export interface VolterCommandsHandle {
   list(): readonly { readonly id: string; readonly label: string; readonly category: string }[];
   invoke(id: string): boolean;
   subscribe(listener: () => void): () => void;
   setPaletteOpener(open: () => void): void;
   /** The frame's `ICommandService`, behind `editor.command(id, args)` — the editor's one door
    *  to a command BY ID, and the only way the product can drive a drawer VIEW (U8 ruling 1).
-   *  Standalone the same door answers a `vgai.<view>.<verb>` id off the views registry, so this
+   *  Standalone the same door answers a `volter.<view>.<verb>` id off the views registry, so this
    *  is the second implementation of one table, never a second table. */
   setCommandExecutor(run: ((id: string, args?: unknown) => Promise<unknown>) | null): void;
   report(level: 'warn' | 'error', message: string): void;
@@ -1018,9 +1018,9 @@ export interface VgaiCommandsHandle {
  * Everything else of the Game layout needed nothing: `GameLayout` is the same three
  * layout-host members `ModelLayout` renders, the header carries the workspace tabs AND the
  * Play transport, and the Game document is an ordinary workspace document the active-document
- * portal already draws. Its counterpart is `vgaiGameSkew.ts`'s `VgaiGameBridge`.
+ * portal already draws. Its counterpart is `volterGameSkew.ts`'s `VolterGameBridge`.
  */
-export interface VgaiGameHandle {
+export interface VolterGameHandle {
   setActiveStaticPanel(kind: string | null): void;
   focusCompactInspector(): boolean;
   setPaneActive(active: boolean): void;
@@ -1047,20 +1047,20 @@ export interface VscodeFrameServices {
 
 export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices = {}): Promise<{
   host: HTMLElement;
-  keyboard: VgaiKeyboardHandle;
-  documents: VgaiDocumentsHandle;
-  history: VgaiHistoryHandle;
-  files: VgaiFilesHandle;
-  settings: VgaiSettingsHandle;
-  commands: VgaiCommandsHandle;
-  notifications: VgaiNotificationsHandle;
-  views: VgaiViewsHandle;
-  utilities: VgaiUtilitiesHandle;
+  keyboard: VolterKeyboardHandle;
+  documents: VolterDocumentsHandle;
+  history: VolterHistoryHandle;
+  files: VolterFilesHandle;
+  settings: VolterSettingsHandle;
+  commands: VolterCommandsHandle;
+  notifications: VolterNotificationsHandle;
+  views: VolterViewsHandle;
+  utilities: VolterUtilitiesHandle;
   output: { setProvider: typeof setOutputProvider };
-  status: VgaiStatusHandle;
-  game: VgaiGameHandle;
+  status: VolterStatusHandle;
+  game: VolterGameHandle;
   /** Re-offer or withdraw one handed-over part after the mount — see
-   *  {@link offerVgaiPart}. */
+   *  {@link offerVolterPart}. */
   offerPart(id: keyof VscodeParts, element: HTMLElement | null): void;
 }> {
   parts = next;
@@ -1094,7 +1094,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   // alone, copied out of the editor's `main.tsx` without the
   // `installConsoleSync()` line beside it — so this page's errors filled the
   // editor console and its bottom-bar counter and never reached the session
-  // ledger `vgai console` reads. U6b's walk spent 44 React duplicate-key errors
+  // ledger `volter console` reads. U6b's walk spent 44 React duplicate-key errors
   // inside that gap with a CLI calling the session clean. The editor now
   // publishes the two as one door that cannot be half-called.
   installEditorConsoleReporting();
@@ -1102,13 +1102,13 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   // invariant (Edit is static, a scene has one root, the viewport canvas is
   // revealed, a visible tab renders, play draws) is checked on a timer and
   // reported as a session warning through the ledger the line above wired — so
-  // a doctrine violation is loud on every `vgai` command instead of sitting in
+  // a doctrine violation is loud on every `volter` command instead of sitting in
   // a doc as a named, therefore licensed, "known problem".
   installSessionVitals();
   // THE NOTE THE LAST WINDOW AT THIS ADDRESS LEFT when it lost its server
   // (`session-orphan-record.ts`). Said right after the console pipe is wired,
   // because the server that would have recorded it is exactly the one that
-  // died — this boot is the first moment the fact can reach `vgai console` and
+  // died — this boot is the first moment the fact can reach `volter console` and
   // the session journal at all. Taken, not peeked: one episode, said once.
   const orphaned = takeSessionOrphanRecord();
   if (orphaned && sessionOrphanIsWorthReporting(orphaned, Date.now())) {
@@ -1139,16 +1139,16 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   installStoryLane();
   await Promise.all([preloadSettings(), preloadEditorThemeLibrary(), preloadUserLocalState()]);
   installEditorTheme(next.chromeRoot);
-  next.chromeRoot.classList.toggle('vgai-native-menus', activeProduct()?.nativeMenus === true);
+  next.chromeRoot.classList.toggle('volter-native-menus', activeProduct()?.nativeMenus === true);
   // AppRoot's own overlays (startup screens, notifications, the palette) render
   // here, over the workbench, exactly as index.html's #editor-root does.
   const host = document.createElement('div');
   host.id = 'editor-root';
-  host.className = 'vgai-part';
+  host.className = 'volter-part';
   host.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:10;';
   next.chromeRoot.appendChild(host);
   createRoot(host).render(<AppRoot />);
-  const keyboard: VgaiKeyboardHandle = {
+  const keyboard: VolterKeyboardHandle = {
     activeKeymap: () => editorHost().keyboard.activeKeymap(),
     invoke: (id) => editorHost().keyboard.invoke(id),
     subscribe: (listener) => editorHost().keyboard.subscribe(listener),
@@ -1162,8 +1162,8 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
         play: door.session.playState(),
       };
     },
-    // EVERY FRAME-SIDE REFUSAL COMES THROUGH HERE — `vgaiFiles`' dirty-model
-    // refusal, `vgaiHistory`' "Nothing to undo in …", `vgaiSettings`' unknown
+    // EVERY FRAME-SIDE REFUSAL COMES THROUGH HERE — `volterFiles`' dirty-model
+    // refusal, `volterHistory`' "Nothing to undo in …", `volterSettings`' unknown
     // key, the game skew's "undo history has no panel under the frame" — so
     // this one function IS the frame's whole refusal channel, and what it
     // calls decides whether a refusal exists for anyone but the person
@@ -1186,7 +1186,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     // editor's internals to say something.
     //
     // THE LEDGER AND NOT THE TRAY, which is this file's own standing split
-    // (`VgaiSettingsHandle.notify`: *"Not `report`: the console is the record
+    // (`VolterSettingsHandle.notify`: *"Not `report`: the console is the record
     // an agent reads back"*). A refusal reaches the person anyway — it rolls
     // the write back, and `workspace-utility-commands.ts` reveals the Console
     // with the rollback line, which now CARRIES the refusing sentence rather
@@ -1200,10 +1200,10 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
   };
   // The frame's documents contribution reports the editor its native restoration chose BEFORE it
-  // subscribes (`vgaiDocuments.ts`'s constructor). That one report is the workbench's remembered
+  // subscribes (`volterDocuments.ts`'s constructor). That one report is the workbench's remembered
   // focus, not a person's click, so a Play entered before the workbench booted keeps the game.
   let frameSubscribed = false;
-  const documents: VgaiDocumentsHandle = {
+  const documents: VolterDocumentsHandle = {
     whenRestored: waitForWorkspaceStateRestore,
     activeSource: () => {
       const active = editorHost().documents.active();
@@ -1271,7 +1271,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     setView: (view, closed) => setDocumentView(view, closed),
   };
-  const history: VgaiHistoryHandle = {
+  const history: VolterHistoryHandle = {
     elements: () => editorHost().history.elements(),
     onElement: (listener) => editorHost().history.onElement(listener),
     onInvalidated: (listener) => editorHost().history.onInvalidated(listener),
@@ -1287,11 +1287,11 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     setDelegate: (delegate) => editorHost().history.setDelegate(delegate),
     report: keyboard.report,
   };
-  const files: VgaiFilesHandle = {
+  const files: VolterFilesHandle = {
     setProvider: (provider) => editorHost().files.setProvider(provider),
     report: keyboard.report,
   };
-  const settings: VgaiSettingsHandle = {
+  const settings: VolterSettingsHandle = {
     setProvider: (provider) => editorHost().settings.setProvider(provider),
     // The DECLARATION, not the layer in force: what the frame writes to its
     // MEMORY target. Reading the layer would be circular — the layer in force
@@ -1300,11 +1300,11 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     // The ADAPTER's own stream, not the settings store's: the store notifies for
     // every layer including the memory values the frame itself just wrote, and
     // waking the frame's apply pass with its own writes is the re-entrancy
-    // `vgaiSettings.ts`'s header names. This fires when a project opens or its
+    // `volterSettings.ts`'s header names. This fires when a project opens or its
     // adapter module loads or unloads, which is the only time the declaration
     // can move.
-    // THE LOOK'S TOP BAR, resolved rather than declared (U9). `--vgai-command-bar-height` is
-    // what `.vgai-project-header`'s own `height` reads, so the title bar becomes exactly the
+    // THE LOOK'S TOP BAR, resolved rather than declared (U9). `--volter-command-bar-height` is
+    // what `.volter-project-header`'s own `height` reads, so the title bar becomes exactly the
     // band our stylesheet would have drawn: Classic's 36 (`theme.ts`'s `chromeSize.commandBar`),
     // Blender's 26 (`blender.style.ts`'s `chrome.commandBar`, traced at 1x). Reading the
     // COMPUTED property rather than the style declaration is deliberate — the value is set on
@@ -1313,7 +1313,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     workbenchValues: () => {
       const root = parts?.chromeRoot;
       if (!root) return [];
-      const raw = getComputedStyle(root).getPropertyValue('--vgai-command-bar-height').trim();
+      const raw = getComputedStyle(root).getPropertyValue('--volter-command-bar-height').trim();
       const height = Number.parseFloat(raw);
       // A property that has not been painted yet reads '' and parses NaN. Hand back NOTHING
       // rather than a guess: the frame then clears the key and the title bar keeps its own
@@ -1327,7 +1327,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     // THE LOOK ITSELF, so the frame can choose its own colour theme for it. `theme-blender`
     // used to set `workbench.colorTheme` as a blanket `configurationDefaults`, which is why
-    // Classic still carried Blender's `--vscode-vgai-*` colours (the walk's beat 6). The
+    // Classic still carried Blender's `--vscode-volter-*` colours (the walk's beat 6). The
     // palette id IS the look — `subscribe` below already watches the theme stream, so a
     // person switching style re-runs the frame's apply pass with no extra wiring.
     lookId: () => editorPaletteSnapshot(),
@@ -1350,7 +1350,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     report: keyboard.report,
   };
-  const commands: VgaiCommandsHandle = {
+  const commands: VolterCommandsHandle = {
     list: () =>
       paletteActions().map((entry) => ({
         id: entry.id,
@@ -1364,7 +1364,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     setCommandExecutor: (run) => setCommandExecutor(run),
     report: keyboard.report,
   };
-  const notifications: VgaiNotificationsHandle = {
+  const notifications: VolterNotificationsHandle = {
     // The DELEGATE arrives from the contribution, which is the only side that
     // has `INotificationService` — later than the mount, because a
     // `ServicesAccessor` is valid only for a command's synchronous part.
@@ -1377,7 +1377,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
         show ? { show: (notification) => show({ ...notification, source: productDisplayName() }) } : null,
       ),
   };
-  const views: VgaiViewsHandle = {
+  const views: VolterViewsHandle = {
     list: () =>
       viewVerbContributions().map((contribution) => ({
         view: contribution.view,
@@ -1390,7 +1390,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     invoke: (view, verb, args) => invokeViewVerb(view, verb, args),
     subscribe: (listener) => subscribeViewVerbs(listener),
   };
-  const utilities: VgaiUtilitiesHandle = {
+  const utilities: VolterUtilitiesHandle = {
     list: () =>
       availableWorkspaceUtilities().map((utility, index) => ({
         id: utility.id,
@@ -1417,7 +1417,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     offerBody: (id, element) => setUtilityBody(id, element),
   };
-  // ---- THE GAME SKEW'S THREE FRAME ANSWERS (U2). See `vgaiGameSkew.ts` for why each exists.
+  // ---- THE GAME SKEW'S THREE FRAME ANSWERS (U2). See `volterGameSkew.ts` for why each exists.
   //
   // The pane's active state is held here rather than re-asked, because the probe is read on
   // EVERY gated DOM event (`gated-globals.ts`'s `gateFor`) and must not cross the bridge to
@@ -1426,7 +1426,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   let stopImmersive: (() => void) | null = null;
   let stopDockCommands: (() => void) | null = null;
   setSurfaceKeyboardProbe(() => paneActive);
-  const game: VgaiGameHandle = {
+  const game: VolterGameHandle = {
     setActiveStaticPanel: (kind) =>
       setActiveWorkspaceStaticPanel(
         WORKSPACE_STATIC_PANELS.find((p) => p.kind === kind)?.kind ?? null,
@@ -1482,7 +1482,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
           };
         },
         // UNDO HISTORY HAS NO FRAME HOME, and saying so is the honest answer: under the frame
-        // the stack is VS Code's `IUndoRedoService` (U4), so a vgai "undo history" panel would
+        // the stack is VS Code's `IUndoRedoService` (U4), so a volter "undo history" panel would
         // be a second, partial view of a stack the workbench already owns.
         showAuxiliary: () =>
           game.report(
@@ -1493,12 +1493,12 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     report: (level, message) => keyboard.report(level, message),
   };
-  const statusItems: VgaiStatusHandle = {
+  const statusItems: VolterStatusHandle = {
     list: () =>
       (['left', 'right'] as const).flatMap((align) =>
         workspaceStatusContributions(align).map((contribution, index) => ({
           id: contribution.id,
-          // THE NAME A PERSON READS, not the id. `vgaiStatus.ts` passes it as
+          // THE NAME A PERSON READS, not the id. `volterStatus.ts` passes it as
           // the entry's `name` and `ariaLabel`, which is what the status bar's
           // own right-click menu says — `Hide Console errors`, never
           // `Hide console-counts`.
@@ -1524,6 +1524,6 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     settings,
     status: statusItems,
     game,
-    offerPart: offerVgaiPart,
+    offerPart: offerVolterPart,
   };
 }

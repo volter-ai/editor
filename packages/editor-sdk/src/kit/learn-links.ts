@@ -18,7 +18,7 @@
  */
 
 /** Learn-site origin (site/astro.config.mjs `site`). */
-export const LEARN_SITE_URL = 'https://vgai-learn.pages.dev/';
+export const LEARN_SITE_URL = 'https://volter-learn.pages.dev/';
 
 /** Quick-starts landing (site/src/content/x). */
 export const LEARN_QUICK_STARTS_URL = `${LEARN_SITE_URL}quick-starts/`;

@@ -322,7 +322,7 @@ export function ApplicationMenus() {
           data-testid="help-learn-home"
           onSelect={choose(() => openLearnLink(LEARN_SITE_URL))}
         >
-          vgai Learn
+          volter Learn
         </MenuItem>
         <MenuItem
           data-testid="help-quick-starts"
@@ -356,7 +356,7 @@ export function ApplicationMenus() {
   return (
     <div
       ref={rootRef}
-      style={{ display: 'flex', alignItems: 'stretch', marginLeft: 'var(--vgai-space-2)' }}
+      style={{ display: 'flex', alignItems: 'stretch', marginLeft: 'var(--volter-space-2)' }}
     >
       {(['edit', 'view', 'window', 'debug', 'tools', 'help'] as const).map((id) => (
         <div key={id} ref={anchorRef(id)} style={{ position: 'relative' }}>

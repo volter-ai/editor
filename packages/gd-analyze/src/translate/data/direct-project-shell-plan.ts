@@ -60,13 +60,13 @@ function capabilityRegionAdditions(
 
 function plannedAdapterModule(toolchain: GodotImportToolchainSnapshot): string {
   const merge = mergeAdapterRegionIncludes(
-    frozenTemplateText(toolchain, 'vgai.adapter.ts'),
+    frozenTemplateText(toolchain, 'volter.adapter.ts'),
     capabilityRegionAdditions(toolchain),
   );
   if (merge.kind === 'unreadable') {
-    throw new Error(`vgai.adapter.ts: capability regions cannot be planned: ${merge.reason}`);
+    throw new Error(`volter.adapter.ts: capability regions cannot be planned: ${merge.reason}`);
   }
-  return merge.kind === 'merged' ? merge.text : frozenTemplateText(toolchain, 'vgai.adapter.ts');
+  return merge.kind === 'merged' ? merge.text : frozenTemplateText(toolchain, 'volter.adapter.ts');
 }
 
 function retainedIndex(
@@ -104,7 +104,7 @@ export function planDirectGodotProjectShell(
     },
     {
       kind: 'bytes',
-      targetPath: 'vgai.adapter.ts',
+      targetPath: 'volter.adapter.ts',
       bytes: Buffer.from(plannedAdapterModule(toolchain)),
       sourcePaths: ['project.godot'],
     },

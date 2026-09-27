@@ -3,7 +3,7 @@ extends SceneTree
 # Godot 3 counterpart of snapshot-godot4.gd. The reflection calls are the engine's own Script
 # API; the filesystem spellings are versioned because Godot 3 predates DirAccess/FileAccess.
 
-const PROTOCOL = "vgai.godot-semantic-snapshot"
+const PROTOCOL = "volter.godot-semantic-snapshot"
 const PROTOCOL_VERSION = 1
 
 var _out_path = ""

@@ -41,7 +41,7 @@ interface PresentedView {
    *  `BlenderRuntimeView.blenderSelection`. The engine is the truth and this
    *  is the read; {@link blenderEngineSelection} is the door. */
   blenderSelection(): { readonly selected: readonly string[]; readonly active: string | null };
-  /** Where `vgai.stage.mode` comes from — see `BlenderRuntimeView.stageMode`. */
+  /** Where `volter.stage.mode` comes from — see `BlenderRuntimeView.stageMode`. */
   setStageMode(mode: string | null): void;
 }
 
@@ -203,7 +203,7 @@ async function read(selected: readonly string[]): Promise<void> {
     if (seq !== readSeq) return;
     // THE MODE RIDES WITH THE TREE, because the tree is what needs it (pose
     // rows exist only in pose mode) and because the read happens anyway.
-    // `vgai.stage.mode` is then the document's own published context — see
+    // `volter.stage.mode` is then the document's own published context — see
     // `BlenderRuntimeView.stageMode`.
     blenderPresentedView()?.setStageMode(tree?.mode ?? null);
     publish({ tree, ...index(tree), loading: false, error: null });

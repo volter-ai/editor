@@ -127,7 +127,7 @@ export class LiveEditor {
    * `blender-execute`, `blender-scene-info`, `blender-object-info`,
    * `blender-screenshot-view`, `blender-read-file`, `blender-write-file`,
    * `blender-list-files`, `blender-stop` and `blender-status`. They were
-   * reachable from `@volter/editor-sdk` and through `vgai blender-mcp` but from
+   * reachable from `@volter/editor-sdk` and through `volter blender-mcp` but from
    * no GENERAL door, so driving a session meant writing an MCP client script
    * per question — the same discovery failure `eval-surface.ts`'s header
    * records, in a lane that had not noticed it yet.
@@ -190,7 +190,7 @@ export class LiveEditor {
 
   /**
    * Photograph the editor PAGE — every panel, tab strip and viewport as the
-   * person sees it. `vgai screenshot editor` is this verb from the shell. The
+   * person sees it. `volter screenshot editor` is this verb from the shell. The
    * one door for judging chrome sighted: a skin, a workspace arrangement or a
    * contributed panel is looked at through this, never guessed at from DOM
    * probes. The page at its own layout, `scale` output pixels per CSS pixel
@@ -202,7 +202,7 @@ export class LiveEditor {
     return this.#client.captureEditorChrome(options);
   }
 
-  /** `'all'` -> `EditorClient.selectAll()` (mirrors `vgai select --all`); otherwise `EditorClient.select(id)` (mirrors `vgai select <entityId>`). */
+  /** `'all'` -> `EditorClient.selectAll()` (mirrors `volter select --all`); otherwise `EditorClient.select(id)` (mirrors `volter select <entityId>`). */
   async select(id: string | 'all'): Promise<void> {
     if (id === 'all') {
       await this.#client.selectAll();
@@ -211,12 +211,12 @@ export class LiveEditor {
     await this.#client.select(id);
   }
 
-  /** Mirrors `vgai deselect`. */
+  /** Mirrors `volter deselect`. */
   async deselect(): Promise<void> {
     await this.#client.select(null);
   }
 
-  /** No `id` -> focus the current selection (mirrors bare `vgai focus`); `id` given -> focus that entity. */
+  /** No `id` -> focus the current selection (mirrors bare `volter focus`); `id` given -> focus that entity. */
   async focus(id?: string): Promise<void> {
     if (id !== undefined) {
       await this.#client.focusEntity(id);
@@ -508,19 +508,19 @@ export class LiveEditor {
    * of one table is a second name for one thing, and an agent reading
    * `--list` had to choose between them with nothing to choose on. This door
    * stays because it is strictly wider: it addresses a COMMAND ID, so under
-   * the frame it reaches everything the workbench knows — a `vgai.action.<id>`
+   * the frame it reaches everything the workbench knows — a `volter.action.<id>`
    * editor action, one of VS Code's own — and not only a view. A VIEW is
    * reached by spelling its verb's command id:
    *
-   *     await editor.command('vgai.blender-uv-view.state')
-   *     await editor.command('vgai.blender-uv-view.zoom', { to: 600 })
+   *     await editor.command('volter.blender-uv-view.state')
+   *     await editor.command('volter.blender-uv-view.zoom', { to: 600 })
    *
-   *     await editor.command('vgai.blender-node-view.view-all')
-   *     await editor.command('vgai.blender-node-view.look', { node: 'Principled BSDF' })
+   *     await editor.command('volter.blender-node-view.view-all')
+   *     await editor.command('volter.blender-node-view.look', { node: 'Principled BSDF' })
    *
    * Under the Code-OSS frame this is the workbench's own command service, so
-   * any command id works — ours and VS Code's alike. Standalone `vgai edit`
-   * has no command service and answers the `vgai.<view>.<verb>` shape off the
+   * any command id works — ours and VS Code's alike. Standalone `volter edit`
+   * has no command service and answers the `volter.<view>.<verb>` shape off the
    * SAME verb table the frame's commands call, refusing any other id by name.
    * One table, two doors, exactly like the keymap's.
    *
@@ -674,7 +674,7 @@ export class LiveEditor {
     await this.#client.reloadPage();
   }
 
-  /** Mirrors `vgai status` — the full live editor state as JSON. */
+  /** Mirrors `volter status` — the full live editor state as JSON. */
   async status(): Promise<EditorState> {
     return this.#client.getState();
   }

@@ -308,7 +308,7 @@ export async function measureSceneMeshesProof(tools: GodotProofTools): Promise<r
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_MESH_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-meshes-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-meshes-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

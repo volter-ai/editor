@@ -20,7 +20,7 @@
  *    the exact resolve+mount `module-mode.ts`'s `mountModuleRootRuntime`
  *    proves out, reused via `mountModuleRootRuntime`, but with NONE of that
  *    route's global side effects (no `setActiveAuthoring`/`setActiveSystems`,
- *    no viewport-tab switch, no `__vgaiModule` hook, no play-surface writes).
+ *    no viewport-tab switch, no `__volterModule` hook, no play-surface writes).
  *    Its `SiblingMount.setPaused` (D-B1) is wired straight from the scoped
  *    `GameSession.pause()`/`.resume()` `mountModuleRootRuntime` hands back —
  *    the SAME honest, already-existing capability `play-mode.ts`'s own
@@ -159,7 +159,7 @@ async function mountDefaultReactSibling(
   const Entry = await resolveReactAdapterRootComponent(world, realm);
 
   const layer = document.createElement('div');
-  layer.dataset['vgaiRootSurface'] = 'true';
+  layer.dataset['volterRootSurface'] = 'true';
   styleSiblingLayer(layer, world, 'none');
   gameContainer.appendChild(layer);
 
@@ -241,7 +241,7 @@ async function mountDefaultReactSibling(
  * runtime `module-mode.ts`'s `mountModuleRootRuntime` provides — the exact
  * resolve+mount the primary module route performs, reused here with none
  * of that route's global side effects: no `setActiveAuthoring`/
- * `setActiveSystems`, no viewport-tab switch, no `__vgaiModule` hook, no
+ * `setActiveSystems`, no viewport-tab switch, no `__volterModule` hook, no
  * mount-failure-report clear. Mounts into its OWN layer div (never straight
  * into the shared `gameContainer` the way the primary/single-world routes
  * do) so its internal canvas/DOM stacking never collides with the ingest

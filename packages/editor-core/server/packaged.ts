@@ -1,7 +1,7 @@
 /**
- * Packaged editor server — the entry a `@vgai/editor` npm package resolves from a
+ * Packaged editor server — the entry a `@volter/editor` npm package resolves from a
  * PROJECT's own `node_modules`, with NO monorepo checkout on disk (Phase B; see
- * the phase plan's D-FORK decision + §0/§3 "the real work" for `@vgai/editor`).
+ * the phase plan's D-FORK decision + §0/§3 "the real work" for `@volter/editor`).
  *
  * Run with:
  *   VOLTER_PROJECT=<projectDir> node dist-server/packaged.mjs
@@ -18,7 +18,7 @@
  *
  * This file is the second code path: it serves the editor's OWN
  * app as a PREBUILT static SPA (`../dist/`, produced by the workspace-local
- * `npm run build -w @vgai/editor`) — no dev-mode transform of the editor's
+ * `npm run build -w @volter/editor`) — no dev-mode transform of the editor's
  * own source is needed, since a project author isn't hot-reloading the
  * editor's own UI — and boots a SEPARATE, PROJECT-ROOTED Vite instance
  * (`root: <project>`, `configFile: false`, middleware mode, HMR + watch
@@ -31,10 +31,10 @@
  * adapter conformance kit against an arbitrary external folder, adapted for
  * live editing (HMR/watch on) instead of a one-shot SSR run.
  *
- * The project's runtime packages — `@vgai/project`, `@vgai/threejs-runtime`
- * and `@vgai/game-runtime` — resolve to the PROJECT's own installed copies,
+ * The project's runtime packages — `@volter/project`, `@volter/threejs-runtime`
+ * and `@volter/game-runtime` — resolve to the PROJECT's own installed copies,
  * not copies baked into this package's tarball. A project pinning
- * `@vgai/game-runtime@0.3.0` must be served ITS 0.3.0 source, so each is
+ * `@volter/game-runtime@0.3.0` must be served ITS 0.3.0 source, so each is
  * resolved via `createRequire`, rooted at the project directory — Node's own
  * resolution algorithm, not a hardcoded path (see
  * `resolveInstalledPackageSrcDir` in `server-utils.ts`).
@@ -54,7 +54,7 @@
  * (same file, no copy) — and registered
  * with NO extra scoping beyond their own built-in `defaultProjectScopeInclude`
  * (already project-scoped — see that file's doc comment: excludes
- * `node_modules`, vendored trees, and the vgai tooling/engine source, which
+ * `node_modules`, vendored trees, and the volter tooling/engine source, which
  * this Vite instance never serves anyway since its `root` IS the project).
  *
  * `@vitejs/plugin-react` (`react()`) is DELIBERATELY NOT added here — this
@@ -81,7 +81,7 @@
  *    fast-refresh half (short of a bespoke preamble-bootstrap module the
  *    browser would need to import before any project entry, itself a new
  *    client-side subsystem) is `server.hmr: false` on the WHOLE instance,
- *    which would also kill the `vgai-script-hmr` plugin below's WebSocket
+ *    which would also kill the `volter-script-hmr` plugin below's WebSocket
  *    delivery — not an acceptable trade for this slice.
  * 2. **JSX compilation itself doesn't need it.** Vite's default esbuild JSX
  *    transform (`automatic` runtime, no config here) already compiles
@@ -98,7 +98,7 @@
  *
  * The deeper structural gap this file's two-graph design opens: the editor's
  * own `react`/`react-dom` are STATICALLY bundled into its prebuilt SPA
- * (`dist/`, built at `npm run build -w @vgai/editor` time), while this
+ * (`dist/`, built at `npm run build -w @volter/editor` time), while this
  * project-rooted Vite instance resolves bare `react` from the PROJECT's own
  * `node_modules` — two React module instances on one page, reading different
  * internal singletons. `dev.ts` has no such split (ONE Vite + repo-root
@@ -163,7 +163,7 @@
  * happens to pull in. It SCOPES the crawl instead of disabling it:
  * `optimizeDeps.entries` is set (see `projectOptimizeDepsEntries` /
  * `computeProjectOptimizeDepsEntries` in `project-optimize-deps-entries.ts`)
- * to the OPENED PROJECT's own `vgai.project.json`-declared world `entry` files
+ * to the OPENED PROJECT's own `volter.project.json`-declared world `entry` files
  * — the exact per-world mount code the editor's binding-resolver dynamically
  * imports for Play mode, never the project's `src/main.ts` bootstrap (a
  * standalone-build concern this Vite instance never serves — the editor's
@@ -268,7 +268,7 @@ import { setProductNames } from '@volter/editor-sdk/kit/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// This file lives directly under the `@vgai/editor` package root either as
+// This file lives directly under the `@volter/editor` package root either as
 // `packages/editor/server/packaged.ts` (source, run via tsx) or as the
 // esbuild-bundled `packages/editor/dist-server/packaged.mjs` (`server/` and
 // `dist-server/` are BOTH direct children of the package root) — so
@@ -303,7 +303,7 @@ if (!process.env['VOLTER_PROJECT']) {
 const projectPath = canonicalProjectRoot(process.env['VOLTER_PROJECT']);
 
 // THE PRODUCT'S BUILD is what this host serves — `npm run build -w
-// @vgai/game-editor` / `-w @vgai/model-editor`, each into its own package's
+// @volter/game-editor` / `-w @volter/model-editor`, each into its own package's
 // `dist/` (`packages/editor/vite-product-build.ts`). The kit has no browser
 // build of its own any more: `frame/bridge.tsx` is a module the product's entry
 // imports, and the ENTRY is what a build has (ARCHITECTURE-CORE §The target
@@ -341,7 +341,7 @@ const distPath = path.join(sessionProductIdentity.dir, 'dist');
 const productSourceEntry = path.join(sessionProductIdentity.dir, 'src', 'index.ts');
 const fromSource = process.env['VOLTER_EDITOR_FROM_SOURCE'] === '1' && existsSync(productSourceEntry);
 
-// WHAT THIS SESSION WAS TOLD TO FRAME — the workbench directory `vgai edit`
+// WHAT THIS SESSION WAS TOLD TO FRAME — the workbench directory `volter edit`
 // resolved and the two reserved ports. `null` when the launch named none.
 const frameLaunch = frameLaunchFromEnv();
 /** What the frame is running, once it is. Read by `/__editor/state`. */
@@ -472,7 +472,7 @@ async function main(): Promise<void> {
   }
 
   // The editor's OWN browser-side modules, folded into the boot pass. The
-  // four `/__vgai-*-runtime` plugins registered above synthesize modules that
+  // four `/__volter-*-runtime` plugins registered above synthesize modules that
   // exist only in memory, so NO crawl entry can reach them, yet they are what
   // the editor imports at the first Play mount / story preview — every
   // specifier they carry was otherwise discovered mid-session, re-optimized,
@@ -487,7 +487,7 @@ async function main(): Promise<void> {
   const editorRuntimeIncludes = computeEditorRuntimeIncludes(projectPath);
   const runtimeSourceCrawlEntries = computeRuntimeSourceCrawlEntries(runtimeSources);
   const unresolvableRuntimeImports = computeUnresolvableRuntimeImports(runtimeSources, projectPath);
-  // The skew packages the project declares (`@volter/editor-blender`, `@vgai/game`): their
+  // The skew packages the project declares (`@volter/editor-blender`, `@volter/game`): their
   // contributions are walked at boot the way the engine's source is, so the
   // dependencies they reach are prebundled instead of served raw — see
   // `computePackageContributionCrawlEntries`.
@@ -505,7 +505,7 @@ async function main(): Promise<void> {
   const sharedReact = fromSource ? null : readSharedReactManifest(distPath);
   if (!sharedReact && !fromSource) {
     console.warn(
-      `\n  \x1b[33mWarning:\x1b[0m ${distPath} carries no usable vgai-shared-react.json — this ` +
+      `\n  \x1b[33mWarning:\x1b[0m ${distPath} carries no usable volter-shared-react.json — this ` +
         'editor build predates the shared-React entry chunks, or predates one of ' +
         'them (the manifest must name every published specifier). Project tool contributions, ' +
         'Asset Lab documents and asset inspectors will crash with "Invalid hook call" ' +
@@ -519,7 +519,7 @@ async function main(): Promise<void> {
   // viewport renderer, gizmos, ~100 modules) and evaluates it at boot; this
   // project-rooted Vite would otherwise prebundle the PROJECT's own three into
   // `.vite/deps`, a SECOND instance whose module body trips three's
-  // `window.__THREE__` "Multiple instances" guard and keeps `vgai console` off
+  // `window.__THREE__` "Multiple instances" guard and keeps `volter console` off
   // exit-0. The build publishes the shell's three as a chunk;
   // `sharedThreePlugin` (below, via project-serving-plugins) redirects the
   // project graph's `three` onto its URL, and `optimizeDeps.exclude` below
@@ -529,7 +529,7 @@ async function main(): Promise<void> {
   const sharedThree = fromSource ? null : readSharedThreeManifest(distPath);
   if (!sharedThree && !fromSource) {
     console.warn(
-      `\n  \x1b[33mWarning:\x1b[0m ${distPath} carries no usable vgai-shared-three.json — this ` +
+      `\n  \x1b[33mWarning:\x1b[0m ${distPath} carries no usable volter-shared-three.json — this ` +
         'editor build predates the shared-three entry chunk. The page will load three.js twice ' +
         "(the shell's inlined copy and the project's prebundled copy), and three's own " +
         'duplicate-instance guard will warn, blocking a clean console. Rebuild the editor ' +
@@ -546,7 +546,7 @@ async function main(): Promise<void> {
   // `configFile: false` to `boolean` and `appType: 'custom'` to `string`,
   // neither of which `resolveConfig` accepts — so the literal typechecks on
   // its own and only fails at the call site far below.
-  // The server halves of the product's integrations (`package.json#vgai.serving`): their
+  // The server halves of the product's integrations (`package.json#volter.serving`): their
   // plugins serve the project's source beside the kit's own, through the kit's services.
   // The serving door is built before the editor router it writes through; bound below.
   let servingEditorRouter: EditorServerRouter | null = null;
@@ -574,14 +574,14 @@ async function main(): Promise<void> {
     // file` verdict printed for the same edit is the record that outlives it.
     clearScreen: false,
     // Registry-standalone SDK loadability (WORK.md, measured by the donut
-    // build 2026-08-28): a NON-checkout-linked project installs @vgai/* from
+    // build 2026-08-28): a NON-checkout-linked project installs @volter/* from
     // the registry as PUBLISHED TS SOURCE under node_modules. The project-
     // module loader is `vite.ssrLoadModule`, and Vite externalizes
     // node_modules in SSR — handing the .ts files to Node, whose type
     // stripping refuses anything under node_modules. So a standalone project
     // could not run its own tool contributions (`project.bake.*`,
-    // `vgai screenshot <module>`) until a checkout link existed. noExternal
-    // keeps every @vgai package inside Vite's own SSR transform, where TS
+    // `volter screenshot <module>`) until a checkout link existed. noExternal
+    // keeps every @volter package inside Vite's own SSR transform, where TS
     // source is ordinary input; a checkout link resolves outside
     // node_modules and never hit the wall, which is why only registry
     // installs were broken.
@@ -682,7 +682,7 @@ async function main(): Promise<void> {
       //
       // `react-dom` (bare, NOT just `/client`) was added for C1
       // (`phase-b/c1-react-mount`): `vite-plugin-module-doorways.ts`'s
-      // synthetic `/__vgai-react-world-runtime` module re-exports `flushSync`
+      // synthetic `/__volter-react-world-runtime` module re-exports `flushSync`
       // from bare `react-dom` (the same peer `react-dom/client`'s `createRoot`
       // comes from — `design-time-layers.ts`'s react-world layer mount needs
       // it from that SAME installed package). Confirmed live at the time:
@@ -724,7 +724,7 @@ async function main(): Promise<void> {
         // Project tool contributions load this after the shell is visible;
         // discovering it then would invalidate the already-loaded React graph.
         'zod',
-        // The story runtime (`/__vgai-story-runtime`) re-exports
+        // The story runtime (`/__volter-story-runtime`) re-exports
         // `@storybook/react`, which a project's CSF files import ONLY as
         // types (erased) — so the entries crawl never discovers it, and the
         // first story preview/capture of a session would otherwise trigger a
@@ -825,7 +825,7 @@ async function main(): Promise<void> {
         // own install. A package the PRODUCT composes is in the product's
         // built bundle, which this instance never transforms, so no
         // product-declared dependency needs an exclusion and there is no
-        // `vgai.product.optimizeDepsExclude` to declare one with. What a
+        // `volter.product.optimizeDepsExclude` to declare one with. What a
         // declared package's tree reaches that spawns a module-relative worker
         // is found on disk, not named here (`packageContributionCrawl.sourceServed`).
         ...packageContributionCrawl.sourceServed,
@@ -912,14 +912,14 @@ async function main(): Promise<void> {
       // this server's project modules load into the SAME page as the packaged
       // editor shell, so Vite's full-screen error overlay would cover the
       // editor whenever the game fails to compile. `overlay` is the CLIENT
-      // overlay only — HMR itself (and therefore `vgai-script-hmr`'s WebSocket
+      // overlay only — HMR itself (and therefore `volter-script-hmr`'s WebSocket
       // delivery, which the header note above says `hmr: false` would kill)
       // stays fully on.
       hmr: { port: HMR_PORT, clientPort: HMR_CLIENT_PORT, overlay: false },
       // OFF because the shared-React doorway makes it structurally broken in
       // THIS instance — see `vite-plugin-shared-react.ts`. Every editor-tree
       // module's `react`/`react/jsx-runtime` import is resolved to the prebuilt
-      // shell's own chunk URL (`/assets/vgai-shared-*.js`), which the BROWSER
+      // shell's own chunk URL (`/assets/volter-shared-*.js`), which the BROWSER
       // fetches from `express.static(dist)` below and this project-rooted Vite
       // deliberately cannot resolve. Import analysis then hands each of those
       // URLs to `warmupRequest`, which resolves them against the project root,
@@ -985,7 +985,7 @@ async function main(): Promise<void> {
   // entry loads against the scan's committed hash, producing two React/Fiber
   // graphs and an invalid-hook-call failure on a clean packaged install.
   if (fromSource) {
-    // The product's composition (`vgai:contributions/<package>`) and its module workers, which
+    // The product's composition (`volter:contributions/<package>`) and its module workers, which
     // its production build resolves with the same plugin and format.
     viteInlineConfig.plugins = [...(viteInlineConfig.plugins ?? []), productContributionsPlugin()];
     viteInlineConfig.worker = { ...viteInlineConfig.worker, format: 'es' };
@@ -1037,7 +1037,7 @@ async function main(): Promise<void> {
       // workbench page, and the url is arithmetic over the reserved proxy port.
       editorUrl: frameLaunch ? frameWorkbenchUrl(frameLaunch, projectPath) : `${EDITOR_ORIGIN}/`,
     },
-    // The session's children are the session's to report (`vgai status`).
+    // The session's children are the session's to report (`volter status`).
     workbench: () => frameWorkbench?.identity ?? null,
     // The serving door (routes/served-modules.ts), same contract as dev.ts:
     // where the Code-OSS frame finds the editor. Registered on BOTH bundler
@@ -1061,11 +1061,11 @@ async function main(): Promise<void> {
     }),
     loadProjectModule: freshProjectModuleLoader(vite, () => projectPath),
     // Same contract as dev.ts: a dependency installed under a live session
-    // (`vgai add <capability>`) is invisible until the SSR module graph, which
+    // (`volter add <capability>`) is invisible until the SSR module graph, which
     // caches even a REJECTED module load, is dropped.
     invalidateProjectModules() {
       vite.environments.ssr.moduleGraph.invalidateAll();
-      console.log('[vgai-editor] project dependencies changed; reloaded project modules.');
+      console.log('[volter-editor] project dependencies changed; reloaded project modules.');
     },
     onProjectOpened(newProjectPath: string) {
       // The newly opened project's OWN install roots, not just its folder —
@@ -1076,7 +1076,7 @@ async function main(): Promise<void> {
       vite.watcher.add(newProjectPath);
       currentProjectRoot = newProjectPath;
       // Session parity with dev.ts (D12): keep the registry pointing
-      // at the CURRENT project so `vgai edit`/`sessions`/cwd-resolution see
+      // at the CURRENT project so `volter edit`/`sessions`/cwd-resolution see
       // switches, not boot state — same call, same shape.
       registerSession({
         project: newProjectPath,
@@ -1153,7 +1153,7 @@ async function main(): Promise<void> {
             `editor tab and no request (${IDLE_SHUTDOWN_MINUTES_ENV}=0 disables)\n`,
         );
       }
-      // D12: announce this session so `vgai edit`/`sessions`/`play`
+      // D12: announce this session so `volter edit`/`sessions`/`play`
       // (cwd-resolution) see the packaged runtime exactly like dev.ts's.
       registerSession({
         project: projectPath,
@@ -1163,7 +1163,7 @@ async function main(): Promise<void> {
       });
       // The workbench, last and for the same reason dev.ts starts it last: it
       // is the slowest thing this boot does, and a frame that cannot start is a
-      // `vgai edit` that has failed (frame-workbench.ts states the ownership).
+      // `volter edit` that has failed (frame-workbench.ts states the ownership).
       if (frameLaunch) {
         // THE WORKBENCH DOES NOT WAIT FOR THE AGENT'S RUNTIME. The extension
         // host is spawned with the chat controls channel, whose state carries
@@ -1208,7 +1208,7 @@ async function main(): Promise<void> {
   // Self-healing registration — same rationale and cadence as dev.ts: the
   // registry's unlocked read-modify-write can lose this entry to a concurrent
   // writer's interleaved write, leaving a healthy server invisible to
-  // `vgai edit`/`sessions`/`close`; re-asserting once a minute heals it.
+  // `volter edit`/`sessions`/`close`; re-asserting once a minute heals it.
   const reregisterTimer = setInterval(() => {
     registerSession({
       project: currentProjectRoot,
@@ -1220,7 +1220,7 @@ async function main(): Promise<void> {
   reregisterTimer.unref();
 
   // Best-effort, and nothing but the HTTP server waits on it — see dev.ts's
-  // note at its own `tabNotice` for the measurement (a `vgai close` under load
+  // note at its own `tabNotice` for the measurement (a `volter close` under load
   // died inside this notify, the shutdown list never ran, and the Code-OSS
   // server outlived the session on its reserved port).
   let tabNotice: Promise<void> | null = null;
@@ -1239,7 +1239,7 @@ async function main(): Promise<void> {
         },
       },
       // THE ONE TEARDOWN for the REH and the proxy (frame-workbench.ts's
-      // ownership note) — the path `vgai close`, SIGTERM and the idle timer
+      // ownership note) — the path `volter close`, SIGTERM and the idle timer
       // all take. The detached CHILD waits on nothing; the proxy is the tab's
       // route and waits with the HTTP server.
       { name: 'Code-OSS server', run: () => frameWorkbench?.stopServer() },
@@ -1277,7 +1277,7 @@ async function main(): Promise<void> {
     // No-op after /__editor/tab/expect-restart.
     tabNotice = editorRouter.notifyTabSessionEnded().catch((error) => {
       console.error(
-        `[vgai-editor] tab-close notice failed: ${error instanceof Error ? error.message : error}`,
+        `[volter-editor] tab-close notice failed: ${error instanceof Error ? error.message : error}`,
       );
     });
     void shutdown(signal);
@@ -1286,7 +1286,7 @@ async function main(): Promise<void> {
   // honest line naming why the session ended (dev.ts prints this from its
   // shared `lastGasp`; this host has no such line, so the idle path says it).
   onIdleShutdown = (why) => {
-    console.error(`[vgai-editor] shutting down (${why}) — pid ${process.pid}, port ${PORT}`);
+    console.error(`[volter-editor] shutting down (${why}) — pid ${process.pid}, port ${PORT}`);
     unregisterAndShutdown(why);
   };
   process.on('SIGINT', () => unregisterAndShutdown('SIGINT'));

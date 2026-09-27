@@ -43,10 +43,10 @@ export interface StructuredOperationError {
 
 /**
  * A global brand keeps expected errors recognizable across separately loaded
- * copies of @vgai/sdk (for example, an editor host dispatching a standalone
+ * copies of @volter/sdk (for example, an editor host dispatching a standalone
  * project's tool). `instanceof` alone cannot cross that package boundary.
  */
-export const OPERATION_ERROR_BRAND = Symbol.for('@vgai/sdk.ToolError');
+export const OPERATION_ERROR_BRAND = Symbol.for('@volter/sdk.ToolError');
 
 /**
  * The only way an operation `impl` should signal an EXPECTED, contractual

@@ -12,8 +12,8 @@
  *    sets CSS custom properties on the game mount container
  *    (`data-testid="game-runtime-container"`), the element game canvases and
  *    react-world DOM layers mount into:
- *      --vgai-safe-area-inset-top / -right / -bottom / -left   (CSS px)
- *    Game UI reads them with `var(--vgai-safe-area-inset-top, 0px)`.
+ *      --volter-safe-area-inset-top / -right / -bottom / -left   (CSS px)
+ *    Game UI reads them with `var(--volter-safe-area-inset-top, 0px)`.
  *    Recorded choice: real `env(safe-area-inset-*)` injection is NOT
  *    possible from a same-document host (env() values come from the UA for
  *    the top-level viewport only), so the overlay + CSS vars ARE the
@@ -41,7 +41,7 @@
  *    event before the clone.
  *
  * Persistence: preset + touch override are the PROJECT settings layer's
- * `devicePreview` (`settings-store.ts` → `.vgai/settings.json`, committed):
+ * `devicePreview` (`settings-store.ts` → `.volter/settings.json`, committed):
  * the frame a game is designed for is a fact about the project, shared by
  * everyone who opens it.
  */
@@ -331,5 +331,5 @@ function _stateForE2E() {
 }
 
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>)['__vgaiDevicePreview'] = _stateForE2E;
+  (window as unknown as Record<string, unknown>)['__volterDevicePreview'] = _stateForE2E;
 }

@@ -25,11 +25,11 @@ export function StatsOverlay() {
     // same corner. Given the same border/radius treatment as its siblings so
     // the whole corner reads as one family.
     // P6-U6 (owner taste decision 3: HUD overlays → real islands): the paint
-    // moved to `.vgai-hud-overlay` so islands chrome can promote it to the
+    // moved to `.volter-hud-overlay` so islands chrome can promote it to the
     // shared glass-island material (compact tier); bars chrome paints the
     // exact pre-U6 overlay-whisper recipe from the same class.
     <div
-      className="vgai-hud-overlay vgai-chrome-island vgai-glass-island"
+      className="volter-hud-overlay volter-chrome-island volter-glass-island"
       data-island-scale="compact"
       data-hud-border="strong"
       style={{
@@ -39,11 +39,11 @@ export function StatsOverlay() {
         // floating header-island clearance, scoped in theme.css); the bare
         // fallback is the pre-glass 48px so treatment-less chrome ("bars":
         // graphite/classic/lite/reduced) stays pixel-identical to main.
-        top: 'var(--vgai-viewport-overlay-hud-top, 48px)',
+        top: 'var(--volter-viewport-overlay-hud-top, 48px)',
         right: 8,
         padding: '6px 10px',
         pointerEvents: 'auto',
-        fontSize: 'var(--vgai-font-base)',
+        fontSize: 'var(--volter-font-base)',
         color: themeVars.content.primary,
         fontFamily: themeVars.typography.mono,
         lineHeight: '16px',

@@ -52,7 +52,7 @@ export interface ReactStoryBoardStory {
    * A canvas story supplies the content-bounds frame resolved by its native
    * board — so the shared substrate uses that exact authored-space rectangle
    * rather than scaling it into a default UI viewport. See
-   * `@vgai/canvas`'s `canvas-board/CanvasBoardDocument.tsx`.
+   * `@volter/canvas`'s `canvas-board/CanvasBoardDocument.tsx`.
    */
   readonly frameSize?: { readonly width: number; readonly height: number } | undefined;
 }
@@ -365,7 +365,7 @@ export function zoomReactStoryFrameAtPoint(
  * (`design-time-layers.ts`) mount each dom story's React render into
  * `frames.get(id).content`, and Play tears that whole board down before
  * mounting the root's real manifest entry; the `2D` board
- * (`@vgai/canvas`'s `canvas-board/CanvasBoardDocument.tsx`) puts each canvas story's own mounted
+ * (`@volter/canvas`'s `canvas-board/CanvasBoardDocument.tsx`) puts each canvas story's own mounted
  * Pixi host in the same place, cropped to the mounted stage's content bounds.
  * A frame is DOM either way — a canvas story renders a `<canvas>`, which is
  * why it is an ordinary frame here and not a second board engine.
@@ -387,14 +387,14 @@ export function createReactStoryBoard(
   const container = layer.parentElement;
   if (!container) throw new Error('A React story board layer must be attached before mounting.');
 
-  layer.dataset['vgaiReactStoryBoard'] = 'true';
+  layer.dataset['volterReactStoryBoard'] = 'true';
   // The board may be larger than the visible document. Individual story
   // frames provide their own layout/paint containment for fixed-position UI.
   layer.style.contain = 'none';
 
   const boardElement = document.createElement('div');
   boardElement.dataset['testid'] = 'react-story-board';
-  boardElement.dataset['vgaiReactStoryBoardCanvas'] = 'true';
+  boardElement.dataset['volterReactStoryBoardCanvas'] = 'true';
   boardElement.style.position = 'absolute';
   boardElement.style.left = '0';
   boardElement.style.top = '0';
@@ -407,7 +407,7 @@ export function createReactStoryBoard(
   // every label click before it reaches the board.
   const chromeElement = document.createElement('div');
   chromeElement.dataset['testid'] = 'react-story-board-chrome';
-  chromeElement.dataset['vgaiStoryBoardChromeFor'] = layer.dataset['worldId'] ?? '';
+  chromeElement.dataset['volterStoryBoardChromeFor'] = layer.dataset['worldId'] ?? '';
   chromeElement.style.position = 'absolute';
   chromeElement.style.inset = '0';
   chromeElement.style.zIndex = String(zIndex.sticky);

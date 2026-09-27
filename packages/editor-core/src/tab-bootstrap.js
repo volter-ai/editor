@@ -26,7 +26,7 @@
   /* ONCE PER DOCUMENT. The mount path that loads this can be reached twice,
      and a second bootstrap would mint a second tab identity for one document:
      two tabs, to a table that exists to count one. */
-  if (globalThis.__VGAI_EDITOR_PRESENCE_BOOTSTRAP__) return;
+  if (globalThis.__VOLTER_EDITOR_PRESENCE_BOOTSTRAP__) return;
 
   /* WHERE THE SESSION IS — the base every url below is built on, and the
      reason none of them reads `location`.
@@ -34,7 +34,7 @@
      Inline in the editor's own page the two are the same thing: an inline
      script's `currentScript` has no `src`, so this falls through to
      `location.href` and nothing changes. But this same bootstrap is also
-     SERVED, as `/__editor/tab-bootstrap.js`, to a page vgai does not
+     SERVED, as `/__editor/tab-bootstrap.js`, to a page volter does not
      author — the Code-OSS workbench, which on desktop is
      `vscode-file://vscode-app` and can never be this session's origin
      (docs/CODE-OSS.md §Boot, DESKTOP; server/tab-bootstrap.ts). On that
@@ -73,7 +73,7 @@
      These go out on the control connection the bootstrap already holds,
      falling back to a POST exactly like editor-presence.ts's `sendControl`
      does for a tunnelled tab. The server journals them and serves them
-     back on `/__editor/state` — a plain GET — so `vgai status` answers with
+     back on `/__editor/state` — a plain GET — so `volter status` answers with
      no listener, no module graph, and no cooperation from the page beyond
      this handler. */
   const pendingPageErrors = [];
@@ -142,7 +142,7 @@
      thing it gets wrong is "Duplicate Tab", which COPIES it — the server
      sees two epochs beating under one tabId and tells the younger to
      re-mint, which is what `remint()` below does. */
-  const TAB_KEY = 'vgai.tab.v1';
+  const TAB_KEY = 'volter.tab.v1';
   let tabId;
   try {
     tabId = sessionStorage.getItem(TAB_KEY) || '';
@@ -161,14 +161,14 @@
   try {
     participantId = document.cookie
       .split('; ')
-      .find((entry) => entry.startsWith('vgai_share_participant='))
-      ?.slice('vgai_share_participant='.length);
-    participantId ||= localStorage.getItem('vgai.collaboration.participant.v1');
+      .find((entry) => entry.startsWith('volter_share_participant='))
+      ?.slice('volter_share_participant='.length);
+    participantId ||= localStorage.getItem('volter.collaboration.participant.v1');
     if (!participantId) {
       participantId = globalThis.crypto?.randomUUID?.() || `participant-${Date.now()}`;
-      localStorage.setItem('vgai.collaboration.participant.v1', participantId);
+      localStorage.setItem('volter.collaboration.participant.v1', participantId);
     }
-    displayName = localStorage.getItem('vgai.collaboration.display-name.v1') || displayName;
+    displayName = localStorage.getItem('volter.collaboration.display-name.v1') || displayName;
   } catch {
     participantId = globalThis.crypto?.randomUUID?.() || `participant-${Date.now()}`;
   }
@@ -180,7 +180,7 @@
     pageGeneration: epoch,
   });
   /* Only a page that is not the editor's own sends this; the tab table
-     keeps it so `vgai status` can name the page instead of guessing. */
+     keeps it so `volter status` can name the page instead of guessing. */
   if (pageSurface) query.set('surface', pageSurface);
   /* The tab's control channel. Downstream it looks exactly like an
      EventSource (same named events, same `data` strings). Upstream it
@@ -188,7 +188,7 @@
      route — so they never queue behind a module flood in the browser's
      per-origin HTTP connection pool. That queueing is what made a cold
      boot's blocked main thread indistinguishable from a dead tab on
-     2026-08-09: five `vgai play` commands were refused as "not picked
+     2026-08-09: five `volter play` commands were refused as "not picked
      up" and every one of them ran later.
 
      `duplex` is granted by the SERVER, never assumed: the share tunnel's
@@ -473,11 +473,11 @@
 
      The beat is what PROVES a tab to the server (server/tab-presence.ts),
      so a page that keeps beating after its session ended stays present,
-     stays blessed, and `vgai edit` answers "focused" instead of opening a
+     stays blessed, and `volter edit` answers "focused" instead of opening a
      real tab — a corpse holding the session's one tab slot. Measured on
      this box, 2026-08-15: a page that had painted the "session ended"
-     notice went on beating under the same tabId across a `vgai close` and
-     a fresh `vgai edit`, so the new server blessed it and every command
+     notice went on beating under the same tabId across a `volter close` and
+     a fresh `volter edit`, so the new server blessed it and every command
      had nowhere to go.
 
      Stopping the beat is the whole withdrawal: the table departs the tab
@@ -561,14 +561,14 @@
       bootstrap.controlLifecycle = null;
     }
   });
-  globalThis.__VGAI_EDITOR_PRESENCE_BOOTSTRAP__ = bootstrap;
+  globalThis.__VOLTER_EDITOR_PRESENCE_BOOTSTRAP__ = bootstrap;
   /* This EventSource connects before the module graph loads, so from here
      on the server counts this tab and will route to it. Anything it sends
      in that window reaches a page with no listener for it yet — buffered
      here, replayed by editor-presence.ts once a real consumer subscribes.
      `editor-command` belongs on this list for the same reason the tab-*
      events do, and its absence was a silent command loss: the event
-     dispatched to zero listeners and left no trace, so `vgai play` was
+     dispatched to zero listeners and left no trace, so `volter play` was
      refused for a tab that never saw the command. Capped because a tab
      whose consumer never arrives must not grow this without bound. */
   /* `tab-reload` is the ONE instruction that is not buffered, because it is
@@ -589,7 +589,7 @@
 
      Measured 2026-09-21 on a first open of an untrusted folder: the page is a
      tab from the moment it loads (the frame's activation bootstrap) while the
-     workbench is still asking whether the person trusts it, so `vgai close`
+     workbench is still asking whether the person trusts it, so `volter close`
      reached a tab whose consumer was never coming — the instruction went onto
      a queue nobody drains, the session waited out its two seconds and exited
      with "tab … did not acknowledge", and the browser was left showing a

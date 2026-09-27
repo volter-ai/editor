@@ -1,12 +1,12 @@
 {
   "mcpServers": {
-    "vgai": {
+    "volter": {
       "command": "npm",
-      "args": ["run", "--silent", "vgai", "--", "mcp", "."]
+      "args": ["run", "--silent", "volter", "--", "mcp", "."]
     },
     "blender": {
       "command": "npm",
-      "args": ["run", "--silent", "vgai", "--", "blender-mcp"]
+      "args": ["run", "--silent", "volter", "--", "blender-mcp"]
     }
   }
 }

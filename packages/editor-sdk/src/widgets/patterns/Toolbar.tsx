@@ -23,13 +23,13 @@ export const EditorToolbar = forwardRef<HTMLDivElement, EditorToolbarProps>(func
       aria-label={label}
       data-compact={compact || undefined}
       data-selection-mode={selectionMode}
-      className={classes('vgai-toolbar', className)}
+      className={classes('volter-toolbar', className)}
     />
   );
 });
 
 export function ToolbarGroup({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} role="group" className={classes('vgai-toolbar-group', className)} />;
+  return <div {...props} role="group" className={classes('volter-toolbar-group', className)} />;
 }
 
 export function ToolbarDivider(props: HTMLAttributes<HTMLSpanElement>) {
@@ -37,24 +37,24 @@ export function ToolbarDivider(props: HTMLAttributes<HTMLSpanElement>) {
     <span
       {...props}
       aria-hidden="true"
-      className={classes('vgai-toolbar-divider', props.className)}
+      className={classes('volter-toolbar-divider', props.className)}
     />
   );
 }
 
 /** Viewport-local tool cluster. Placement remains the viewport's
- * responsibility. `vgai-glass-island` opts the cluster into the refraction
+ * responsibility. `volter-glass-island` opts the cluster into the refraction
  * engine's opt-in island surface set (P6 — glass-native chrome): under a
  * glass theme on a capable GPU it carries its own url() displacement
  * chain; everywhere else the class is inert and the var-driven
- * `.vgai-floating-toolbar` paint decides (including inside floating cards,
+ * `.volter-floating-toolbar` paint decides (including inside floating cards,
  * where the engine refuses islands — one filter per card). */
 export function FloatingToolbar({ className, onPointerDownCapture, ...props }: EditorToolbarProps) {
   return (
     <EditorToolbar
       {...props}
       compact
-      className={classes('vgai-floating-toolbar vgai-glass-island', className)}
+      className={classes('volter-floating-toolbar volter-glass-island', className)}
       onPointerDownCapture={(event) => {
         onPointerDownCapture?.(event);
         // Viewport floating toolbars live inside the element owned by
@@ -68,5 +68,5 @@ export function FloatingToolbar({ className, onPointerDownCapture, ...props }: E
 }
 
 export function SplitButtonGroup({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} role="group" className={classes('vgai-split-button', className)} />;
+  return <div {...props} role="group" className={classes('volter-split-button', className)} />;
 }

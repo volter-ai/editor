@@ -70,13 +70,13 @@ function OutputPreview({
 
   if (src && output.kind === 'image') {
     const preview = (
-      <img className="vgai-generation-output-media" src={src} alt={output.name} loading="lazy" />
+      <img className="volter-generation-output-media" src={src} alt={output.name} loading="lazy" />
     );
     return onOpen ? (
       // The preview itself opens the asset — the gesture a gallery implies.
       <Button
         variant="ghost"
-        className="vgai-generation-output-open"
+        className="volter-generation-output-open"
         onClick={onOpen}
         aria-label={`Open ${output.name}`}
       >
@@ -91,7 +91,7 @@ function OutputPreview({
       // Deliberately no autoplay and no `muted` autoplay trick: a gallery that
       // starts sound is the failure this panel is replacing.
       <video
-        className="vgai-generation-output-media"
+        className="volter-generation-output-media"
         src={src}
         controls
         preload="metadata"
@@ -102,7 +102,7 @@ function OutputPreview({
   }
   if (src && output.kind === 'audio') {
     return (
-      <div className="vgai-generation-output-audio">
+      <div className="volter-generation-output-audio">
         <AudioAssetThumb url={src} name={output.name} />
         <audio src={src} controls preload="metadata" title={output.name} />
       </div>
@@ -112,7 +112,7 @@ function OutputPreview({
     return <ModelThumbnail url={output.url} />;
   }
   return (
-    <div className="vgai-generation-output-file">
+    <div className="volter-generation-output-file">
       <EditorIcon icon={output.kind === 'model' ? faFile : faFileLines} />
       <Text variant="caption" tone="muted">
         {output.name}
@@ -160,7 +160,7 @@ function StateMedia({ job, state }: { job: GenerationJob; state: GenerationCardS
   const pending = state === 'queued' || state === 'running' || state === 'saving';
   const failing = state === 'failed' || state === 'save-failed';
   return (
-    <div className="vgai-generation-state-media" data-state={state}>
+    <div className="volter-generation-state-media" data-state={state}>
       <StateSurface
         compact
         tone={STATE_TONE[state]}
@@ -172,7 +172,7 @@ function StateMedia({ job, state }: { job: GenerationJob; state: GenerationCardS
         // Determinate ONLY when the provider reported progress; otherwise the
         // native indeterminate bar, which claims nothing.
         <progress
-          className="vgai-generation-progress"
+          className="volter-generation-progress"
           aria-label={`${job.label} progress`}
           {...(state === 'running' && job.progress !== undefined
             ? { value: job.progress, max: 1 }
@@ -195,7 +195,7 @@ function CardActions({
   run: (action: () => Promise<void>) => void;
 }) {
   return (
-    <div className="vgai-generation-card-actions">
+    <div className="volter-generation-card-actions">
       {generationSaveRetryable(job, error) && (
         // There is NO add-to-project gate: the server accepts a finished
         // output on its own. This appears only once a save has actually
@@ -250,7 +250,7 @@ function GenerationCard({
 
   return (
     <article
-      className="vgai-generation-card"
+      className="volter-generation-card"
       data-state={state}
       aria-busy={generationJobIsActive(job)}
       aria-label={generationTitle(job)}
@@ -265,31 +265,31 @@ function GenerationCard({
         }
       }}
     >
-      <div className="vgai-generation-card-media" data-outputs={Math.min(outputs.length, 4)}>
+      <div className="volter-generation-card-media" data-outputs={Math.min(outputs.length, 4)}>
         {outputs.length === 0 ? (
           <StateMedia job={job} state={state} />
         ) : (
           outputs.map((output) => (
-            <div className="vgai-generation-output" key={output.path} title={output.path}>
+            <div className="volter-generation-output" key={output.path} title={output.path}>
               <OutputPreview output={output} onOpen={openOutput(output)} />
             </div>
           ))
         )}
       </div>
 
-      <div className="vgai-generation-card-body">
-        <div className="vgai-generation-card-heading">
+      <div className="volter-generation-card-body">
+        <div className="volter-generation-card-heading">
           <Text variant="label" truncate title={generationTitle(job)}>
             {generationTitle(job)}
           </Text>
-          <EditorBadge className="vgai-generation-chip" data-state={state}>
+          <EditorBadge className="volter-generation-chip" data-state={state}>
             {GENERATION_STATE_LABEL[state]}
             {state === 'running' && job.progress !== undefined
               ? ` · ${Math.round(job.progress * 100)}%`
               : ''}
           </EditorBadge>
           {unread && (
-            <EditorBadge className="vgai-generation-chip" data-state="new">
+            <EditorBadge className="volter-generation-chip" data-state="new">
               New
             </EditorBadge>
           )}
@@ -305,7 +305,7 @@ function GenerationCard({
         </Text>
 
         {prompt && (
-          <p className="vgai-generation-card-prompt" title={prompt}>
+          <p className="volter-generation-card-prompt" title={prompt}>
             {prompt}
           </p>
         )}
@@ -317,7 +317,7 @@ function GenerationCard({
           // text promises nothing and the retry button carries it instead.
           <EditorBanner
             tone={error || state === 'save-failed' ? 'error' : 'warning'}
-            className="vgai-generation-card-alert"
+            className="volter-generation-card-alert"
           >
             {error ??
               (state === 'save-failed'
@@ -363,8 +363,8 @@ export function GenerationActivity() {
   const storeError = generationJobsError();
 
   return (
-    <div className="vgai-generation-gallery">
-      <EditorToolbar label="Generations" compact className="vgai-generation-gallery-bar">
+    <div className="volter-generation-gallery">
+      <EditorToolbar label="Generations" compact className="volter-generation-gallery-bar">
         <Text variant="label">Generations</Text>
         <Text variant="caption" tone="muted">
           {jobs.length} {jobs.length === 1 ? 'generation' : 'generations'}
@@ -385,14 +385,14 @@ export function GenerationActivity() {
       </EditorToolbar>
 
       {storeError && (
-        <EditorBanner tone="error" className="vgai-generation-gallery-alert">
+        <EditorBanner tone="error" className="volter-generation-gallery-alert">
           {storeError}
         </EditorBanner>
       )}
 
       {jobs.length === 0 ? (
         <StateSurface
-          className="vgai-generation-gallery-empty"
+          className="volter-generation-gallery-empty"
           title="No generated assets yet"
           description="Preview generated images, video, audio and models here. Create an asset to get started."
           action={
@@ -402,7 +402,7 @@ export function GenerationActivity() {
           }
         />
       ) : (
-        <section className="vgai-generation-grid" aria-label="Generated assets">
+        <section className="volter-generation-grid" aria-label="Generated assets">
           {jobs.map((job) => (
             <GenerationCard
               key={job.id}

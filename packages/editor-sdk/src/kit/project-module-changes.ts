@@ -21,11 +21,11 @@
  * THE THREE EVENTS are the complete set the server sends for a project source
  * file (`handleProjectScriptHotUpdate`); a live module document takes all
  * three because its subject can be any of those classifications:
- *   - `vgai:restart-required` — a plain `.ts`, or a `.tsx` that is not a Fast
+ *   - `volter:restart-required` — a plain `.ts`, or a `.tsx` that is not a Fast
  *     Refresh boundary. THE COMMON CASE for a model module, whose export is a
  *     lowercase builder function.
- *   - `vgai:script-update` — the file is in the editor's lane (`src/contributions/`, `src/tools/`).
- *   - `vgai:r3f-entry-update` — the file is R3F-dialect.
+ *   - `volter:script-update` — the file is in the editor's lane (`src/contributions/`, `src/tools/`).
+ *   - `volter:r3f-entry-update` — the file is R3F-dialect.
  * A `.tsx` that IS a Fast Refresh boundary rides stock Vite HMR instead and
  * sends none of these, so `vite:afterUpdate` is taken as well: Vite stamped
  * the graph itself on that path, and the accepted path names the file.
@@ -161,14 +161,14 @@ export function subscribeProjectModuleChange(listener: ProjectModuleChangeListen
       if (typeof path === 'string') listener(normalize(path.split('?')[0] ?? path));
     }
   };
-  hot.on('vgai:restart-required', onFileEvent);
-  hot.on('vgai:script-update', onFileEvent);
-  hot.on('vgai:r3f-entry-update', onFileEvent);
+  hot.on('volter:restart-required', onFileEvent);
+  hot.on('volter:script-update', onFileEvent);
+  hot.on('volter:r3f-entry-update', onFileEvent);
   hot.on('vite:afterUpdate', onViteUpdate);
   return () => {
-    hot.off('vgai:restart-required', onFileEvent);
-    hot.off('vgai:script-update', onFileEvent);
-    hot.off('vgai:r3f-entry-update', onFileEvent);
+    hot.off('volter:restart-required', onFileEvent);
+    hot.off('volter:script-update', onFileEvent);
+    hot.off('volter:r3f-entry-update', onFileEvent);
     hot.off('vite:afterUpdate', onViteUpdate);
   };
 }

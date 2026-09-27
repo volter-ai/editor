@@ -2,11 +2,11 @@
  * Where `GameClient.screenshot(x)` actually writes.
  *
  * WHY THIS IS ITS OWN MODULE (measured 2026-08-02, live session):
- * `game.screenshot('.vgai/tmp/dragon/play-live.png')` — driven through
+ * `game.screenshot('.volter/tmp/dragon/play-live.png')` — driven through
  * `volter-game-editor eval`, the documented general door onto a running game — reported
  * success and left NOTHING at the path the caller named. The argument was
  * being read as a LABEL and run through `sanitizeLabel`, so the bytes landed
- * at `<project>/.vgai/last-run/001--vgai-tmp-dragon-play-live-png.png`.
+ * at `<project>/.volter/last-run/001--volter-tmp-dragon-play-live-png.png`.
  * Both artifacts are still on disk in the reproduction project. A call that
  * reports success while the file the caller asked for does not exist is
  * fabricated evidence — the exact failure mode `volter-game-editor screenshot` was built to

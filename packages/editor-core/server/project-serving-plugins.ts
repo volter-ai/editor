@@ -1,7 +1,7 @@
 /**
  * The ONE ordered plugin list every editor host serves an opened PROJECT
  * through — `dev.ts` (checkout, one shared Vite instance) and `packaged.ts`
- * (a `@vgai/editor` npm package, a second Vite instance rooted at the project).
+ * (a `@volter/editor` npm package, a second Vite instance rooted at the project).
  *
  * Both hosts answer the same question — "how does this Vite instance serve the
  * project's own code?" — and the two lists had drifted apart three separate
@@ -64,7 +64,7 @@ export interface PackagedOnlyServingOptions {
    * ONE three for the WHOLE page — the shell's. Packaged-only, same reason as
    * `sharedReactUrls`: the shell's inlined `three` and the project's prebundled
    * `three` are two module instances on one page, and three's own
-   * duplicate-instance guard warns (blocking `vgai console`). The build
+   * duplicate-instance guard warns (blocking `volter console`). The build
    * publishes the shell's three as a chunk; `sharedThreePlugin` points every
    * project-graph `three` import at its URL. `null` when this dist predates the
    * shared-three entry chunk (the host warns at boot). See
@@ -136,7 +136,7 @@ export interface ProjectServingPluginOptions {
    */
   readonly scriptHmr: ScriptHmrServingOptions | null;
   /**
-   * The plugins the product's composed packages contribute through their `vgai.serving`
+   * The plugins the product's composed packages contribute through their `volter.serving`
    * modules (`project-serving-services.ts`), in composition order: a lane's own transforms
    * and routes over project source, such as the React integration's JSX identity stamp.
    */
@@ -146,7 +146,7 @@ export interface ProjectServingPluginOptions {
 /** Byte-identical between the hosts, so it is written once. */
 function scriptHmrPlugin(options: ScriptHmrServingOptions): Plugin {
   return {
-    name: 'vgai-script-hmr',
+    name: 'volter-script-hmr',
     enforce: 'pre',
     transform(source, id) {
       const file = id.split('?')[0]!;
@@ -215,7 +215,7 @@ export function createProjectServingPlugins(options: ProjectServingPluginOptions
     ...(packagedOnly
       ? [creationSiteWritePlugin(currentProjectRoot, packagedOnly.checkoutRoot)]
       : []),
-    // The synthetic `/__vgai-*` module doorways, so a lane's React / Fiber /
+    // The synthetic `/__volter-*` module doorways, so a lane's React / Fiber /
     // `@pixi/react` / `three` / `@storybook/react` identity comes from the
     // PROJECT's graph rather than the shell's prebuilt bundle. See
     // `vite-plugin-module-doorways.ts` for the measured failure behind each.
@@ -232,7 +232,7 @@ export function createProjectServingPlugins(options: ProjectServingPluginOptions
     // gated proxies. Engine/editor code is untouched (it keeps the real
     // window). A project with no roots serves no module this touches.
     gameGlobalsShadowPlugin(projectRoots),
-    // Multi-instance isolation: propagate a root entry's `?vgai-mount=<id>`
+    // Multi-instance isolation: propagate a root entry's `?volter-mount=<id>`
     // through its project-owned import subtree, so two mounts of one project
     // hold separate module instances while still sharing every package. A
     // module served without a mount id is untouched, so single-instance play

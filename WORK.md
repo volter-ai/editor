@@ -15,15 +15,15 @@ template imported `pixi.js` and `@pixi/react` undeclared ([provenance/public-npm
 ## Game editor (branch `game-editor`)
 
 Game editing is built on the `game-editor` branch and does not join
-[release/modeling.json](release/modeling.json). Source: `volter-ai/vgai-engine`
-at `09c2749ce`. Architecture: vgai-engine's `docs/ARCHITECTURE-CORE.md`
+[release/modeling.json](release/modeling.json). Source: `volter-ai/volter-engine`
+at `09c2749ce`. Architecture: volter-engine's `docs/ARCHITECTURE-CORE.md`
 §The target shape — kit, integrations, products, shipped twins; dependencies
 point down.
 
 | Package | What it is |
 | --- | --- |
 | `@volter/game-editor` | The second product: entry composing `@volter/editor-game` and `@volter/editor-blender`, the `volter-game-editor` CLI (kit session verbs plus `play`, `stop`, `restart`, `add`/`remove`/`outdated`, `blender-mcp`), `create` with the game/prototype/full/website/empty presets, the template and capability catalog, its workbench half |
-| `@volter/editor-game` | The game side: vgai's `@vgai/game` (`src/`), `@vgai/dom` (`src/react/`), `@vgai/threejs` authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
+| `@volter/editor-game` | The game side: volter's `@volter/game` (`src/`), `@volter/dom` (`src/react/`), `@volter/threejs` authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
 | `@volter/game-live` | The game client over a session: `game`, `page`, recording; `eval` scope and tester scripts |
 | `@volter/game-runtime`, `@volter/threejs-runtime` | The Apache twins a shipped game carries |
 
@@ -52,7 +52,7 @@ Profiles work; `website` opens its page source in Design.
 
 On the runtime image: a game whose `node_modules` links the checkout's image
 plays (`screenshot` shows the rendered scene), and an Inspector edit writes
-`src/scenes/MainScene.tsx` and undo/redo round-trip it. vgai's `arena` example,
+`src/scenes/MainScene.tsx` and undo/redo round-trip it. volter's `arena` example,
 ported with registry pins and linked to the image, opened on the published
 pinned workbench (hash matched): its `.blend` model and its World (59 entities)
 render; Play runs the three.js world under its React HUD with enemies engaging;
@@ -162,7 +162,7 @@ Remaining:
    the kit's medium-neutral `contribution-surfaces`, because a project's contributions live in the
    project's graph and cannot import the editor's components. Walked: a `.blend` Model document
    mounts through the registered surface. The workbench's stage and panel chords stand down on the Game
-   document (`vgai.document.kind != 'game'`): a W held in Play had run `transform.translate`,
+   document (`volter.document.kind != 'game'`): a W held in Play had run `transform.translate`,
    which refused and warned into every Play log. The Scene's W still sets translate through the
    workbench's own keybinding (walked through the document door on the regenerated keymap: W and E
    set translate and rotate). The Game side is not walked:
@@ -255,9 +255,9 @@ export's mix at −140.1 dB over the whole piece (strips, reverb bus, master dyn
 export plays every note and controller on its exact sample (two passes of one slice null at
 −104 dB wherever the loop falls against the synth's 128-sample block).
 
-For a game, `add music` brings the packages, the `vgai-music` skill and a player;
+For a game, `add music` brings the packages, the `volter-music` skill and a player;
 the `project.music.render` tool (and the `render-piece` CLI it shares its code with) writes
-through the project-output door, so `.vgai/provenance.json` records every file a game ships,
+through the project-output door, so `.volter/provenance.json` records every file a game ships,
 with renders byte-deterministic down to the OGG and its AAC twin (`.m4a`, which the player
 loads when the browser cannot decode Vorbis); `sections` writes each marker section as its
 own seamless loop at the mix's level (lengths exact to the frame against the report's
@@ -273,10 +273,10 @@ line inside it. `check-piece` adds an analysis (keys, half-bar chords and degree
 and loop seams, voicing, line statistics, figures shared with the folder's other pieces);
 on Harbor and Tidewatch its chords match the pieces' own chord tables in every bar.
 Walked in a fresh game created from the checkout: `add music` copies the player and the render
-tool and selects the piece finder in `vgai.adapter.ts`; a worked piece from the package's
+tool and selects the piece finder in `volter.adapter.ts`; a worked piece from the package's
 `examples/` opens in the same running session; `project.music.render` with sections wrote 32
 files under `public/music/harbor` (no problems, −18 LUFS, seam 0.177) with each recorded in
-`.vgai/provenance.json`, rendering in its own process (the editor answered in about 270 ms
+`.volter/provenance.json`, rendering in its own process (the editor answered in about 270 ms
 throughout) and byte-identical to an in-process render; console silent.
 
 Bitwig's mixing, session and recording layer, each written in the piece's source and read in
@@ -323,7 +323,7 @@ Open, with what closes each:
   (CC0) is the finished palette and the General MIDI SoundFont the sketch palette, as the skill
   teaches: VSCO is recorded orchestral instruments with their own articulations and round-robin
   repetitions, which a General MIDI preset has none of; no listening test was run, and a
-  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project VGAI Hosted
+  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project VOLTER Hosted
   Editor; Harbor on each palette, loudness matched, unlabeled, one play order per job;
   volter-listening.aaron-0ed.workers.dev, `/a/` General MIDI first, `/b/` VSCO first): the one verdict in (order a)
   heard the two as "almost the same", both like real musicians, and mildly preferred General MIDI. The renders differ

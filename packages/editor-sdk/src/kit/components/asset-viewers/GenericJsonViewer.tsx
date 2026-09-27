@@ -60,7 +60,7 @@ export function GenericJsonViewer({ assetPath }: { assetPath: string }) {
       </div>
       <div
         // §2.31 P2 amendment: JSON text reads over a local frost layer.
-        className="vgai-content-frost"
+        className="volter-content-frost"
         style={{
           // §2.31: whole-body JSON well goes hairline-only — the panel
           // surface shows through.

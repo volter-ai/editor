@@ -28,8 +28,8 @@ export function ColorInput({ value, onChange, disabled = false }: ColorInputProp
 
   if (value === null) {
     return (
-      <div className="vgai-color-input">
-        <div className="vgai-color-input-mixed" />
+      <div className="volter-color-input">
+        <div className="volter-color-input-mixed" />
         <TextInput
           // Mixed-value language unified on the em-dash (I-15), matching
           // NumberInput's mixed display.
@@ -45,7 +45,7 @@ export function ColorInput({ value, onChange, disabled = false }: ColorInputProp
   }
 
   return (
-    <div className="vgai-color-input">
+    <div className="volter-color-input">
       <ColorSwatchInput
         value={value}
         disabled={disabled}

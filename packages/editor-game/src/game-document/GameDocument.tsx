@@ -60,7 +60,7 @@ function GameDebugMenu() {
         data-testid="game-debug-menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? 'vgai-game-debug-menu' : undefined}
+        aria-controls={open ? 'volter-game-debug-menu' : undefined}
         onClick={() => setOpen((value) => !value)}
       >
         <span>Debug</span>
@@ -68,7 +68,7 @@ function GameDebugMenu() {
       </Button>
       {open && (
         <AnchoredMenu
-          id="vgai-game-debug-menu"
+          id="volter-game-debug-menu"
           anchorRef={ref}
           gap={3}
           onDismiss={() => setOpen(false)}

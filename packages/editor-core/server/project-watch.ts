@@ -105,7 +105,7 @@ export interface ProjectWatch {
   readonly close: () => Promise<void>;
 }
 
-/** Does a manifest (as read, unvalidated) declare any root — anything `vgai play`
+/** Does a manifest (as read, unvalidated) declare any root — anything `volter play`
  *  could run? A models project declares `roots: []`. */
 function manifestDeclaresRoots(manifest: unknown): boolean {
   const roots = (manifest as { roots?: unknown } | null)?.roots;
@@ -119,7 +119,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   // P20 — the OTHER half of the load clock. `lastIndexRequestAt` (the server's)
   // says when the running document loaded; these say when bytes under
   // `public/` last moved. A write that POSTDATES the load is the divergence
-  // `vgai restart` used to paper over: `restart` remounts every root from
+  // `volter restart` used to paper over: `restart` remounts every root from
   // fresh SOURCE, and re-running module-scope loaders against a page-lifetime
   // asset cache (Pixi `Assets`, three's loader caches) can hand the remounted
   // world the OLD bytes with nothing reporting it. Naming the divergence is
@@ -412,9 +412,9 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   // ---- Build-discipline tripwires on the save event (P53) ----
   //
   // "This work has been uncommitted for 40 minutes" and "this session has
-  // never once played the game" used to reach an agent through `vgai status`
+  // never once played the game" used to reach an agent through `volter status`
   // and nowhere else. Measured on a blind probe: a 17-minute build ran the
-  // editor, `playtest` and `eval` and invoked `vgai status` ZERO times, so
+  // editor, `playtest` and `eval` and invoked `volter status` ZERO times, so
   // neither banner had a delivery path and the build still landed as one
   // end-of-run commit. The mechanisms were right; "a building agent polls
   // status constantly" was false.
@@ -422,7 +422,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   // This terminal is the one an agent DOES watch — it is where save-validation
   // failures appear — so the same banners ride the save event that is already
   // being handled a few lines below. Deliberately not a timer and not a new
-  // watcher: no event, no reads. `@vgai/sdk/build-discipline` owns every word
+  // watcher: no event, no reads. `@volter/sdk/build-discipline` owns every word
   // and every threshold; this is only a channel.
   let cadenceGate: TripwireGate = IDLE_TRIPWIRE_GATE;
   let unplayedGate: TripwireGate = IDLE_TRIPWIRE_GATE;
@@ -771,7 +771,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       // when. This watcher is the door rather than the project-outputs writer
       // (`project-output-writer.ts`) deliberately: the writer sees only the
       // batches that go through it, while this sees the bytes actually
-      // landing — a bake through the outputs door, a `vgai add` copy, and a
+      // landing — a bake through the outputs door, a `volter add` copy, and a
       // hand-written file all stamp the same way, because what matters
       // downstream is that the running document's caches predate them.
       publicAssetsLastChangedAt = Date.now();
@@ -849,7 +849,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // The watcher above is scoped to `host.publicRoot()` (`<project>/public`) only —
     // it never sees `src/tools/*.tool.tsx` or `src/**/*.stories.tsx`, so a
     // NEW file there never showed up without a full editor reload (spec §7
-    // W4 field note c). Vite's own HMR (`vgai-script-hmr` in dev.ts, and
+    // W4 field note c). Vite's own HMR (`volter-script-hmr` in dev.ts, and
     // `tool-loader.ts`'s listener on it) only fires on `change`, and the
     // `VOLTER_WATCH_POLL` poll-watcher (dev.ts) forwards its synthetic events
     // into VITE's chokidar watcher only — never into this one. So this
@@ -1018,7 +1018,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       referencesWatcher.on('all', onReferenceChange);
     }
 
-    // ---- Fourth watcher: <project>/vgai.project.json (#103 validate-on-change) ----
+    // ---- Fourth watcher: <project>/volter.project.json (#103 validate-on-change) ----
     //
     // The manifest lives at the PROJECT ROOT, outside both `host.publicRoot()` and
     // `src/` — neither watcher above ever sees it. It's a single fixed-name

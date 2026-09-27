@@ -2,7 +2,7 @@
  * The project's OWN FILES — reading and writing them, and serving them to the
  * running game.
  *
- * `/__editor/save-file`, `/__editor/vgai-file`, `/__editor/project-resource`,
+ * `/__editor/save-file`, `/__editor/volter-file`, `/__editor/project-resource`,
  * `/__editor/data-file(s)`, `/__editor/story-files`,
  * `/__editor/scoped-game-css`, `/__editor/source-conflict` and the `/@fs`
  * module server.
@@ -28,12 +28,12 @@ import { buildScopedGameStyles } from '@volter/editor-sdk/session/scoped-game-cs
 import {
   isCanonicalPathInside,
   isPathInside,
-  isReadableVgaiPath,
+  isReadableVolterPath,
   isServableFsExtension,
   isServableFsPath,
   isViteDepCachePath,
   isWritableProjectResourcePath,
-  isWritableVgaiEditorPath,
+  isWritableVolterEditorPath,
   projectStorySourceDirs,
 } from '../server-utils';
 import type { RouteContext } from './context';
@@ -219,22 +219,22 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
       projectMutationError(res, error);
     }
   });
-  // ---- Project-root `.vgai/` file access ----
+  // ---- Project-root `.volter/` file access ----
   //
   // The editor-state/thumbnail routes above already read/write
-  // `<projectRoot>/.vgai/...` directly via `node:fs` — but `StorageBackend`
+  // `<projectRoot>/.volter/...` directly via `node:fs` — but `StorageBackend`
   // (`HttpStorage`/`/__editor/save-file` above) is hard-rooted at
   // `<projectRoot>/public/`, so anything a client writes through that seam
-  // under a `.vgai/` path actually lands at `<projectRoot>/public/.vgai/...`
-  // (the two-`.vgai`-dirs finding recorded in T3.3's close-out).
-  // This route pair is the fix: project-root-relative, scoped to `.vgai/` only
+  // under a `.volter/` path actually lands at `<projectRoot>/public/.volter/...`
+  // (the two-`.volter`-dirs finding recorded in T3.3's close-out).
+  // This route pair is the fix: project-root-relative, scoped to `.volter/` only
   // (defense in depth — it is not a general project-file API), mirroring the
   // editor-state route's mkdir-on-write / read-or-empty shape. Today's readers
   // are the provenance ledger (`src/project-provenance.ts`) and the
-  // asset-budget optimize pass (`@vgai/game/src/asset-budget/`).
-  router.get('/__editor/vgai-file', async (req: Request, res: Response) => {
+  // asset-budget optimize pass (`@volter/game/src/asset-budget/`).
+  router.get('/__editor/volter-file', async (req: Request, res: Response) => {
     const relPath = (req.query['path'] as string) ?? '';
-    if (!isReadableVgaiPath(relPath)) {
+    if (!isReadableVolterPath(relPath)) {
       res.status(400).json({ error: 'Invalid path.' });
       return;
     }
@@ -255,10 +255,10 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
     }
   });
 
-  router.post('/__editor/vgai-file', async (req: Request, res: Response) => {
+  router.post('/__editor/volter-file', async (req: Request, res: Response) => {
     const body = req.body as { path?: string; content?: string; encoding?: string };
     const relPath = body.path ?? '';
-    if (!isWritableVgaiEditorPath(relPath)) {
+    if (!isWritableVolterEditorPath(relPath)) {
       res.status(400).json({ error: 'Invalid path.' });
       return;
     }
@@ -410,8 +410,8 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
   //
   // Why not `/__editor/save-file` + `/@fs/` reads: that seam is HARD-ROOTED at
   // `<projectRoot>/public/` (see `HttpStorage`'s doc comment and the
-  // two-`.vgai`-dirs finding above) — data assets live under the project
-  // root's `src/data/`, outside its reach. Same fix as the `vgai-file` pair:
+  // two-`.volter`-dirs finding above) — data assets live under the project
+  // root's `src/data/`, outside its reach. Same fix as the `volter-file` pair:
   // a purpose-scoped route rooted at the project root, deliberately NOT a
   // general project-file API (defense in depth — the write half accepts only
   // `src/data/**/*.data.json`).
@@ -534,7 +534,7 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
   // logged a real failed network request for every project without a
   // preview config (the common case), which is indistinguishable from a
   // genuine broken-editor error to anything watching the page's network/
-  // console (e.g. `check-vgai-generated-project-p2p.ts`'s browser-proof).
+  // console (e.g. `check-volter-generated-project-p2p.ts`'s browser-proof).
   // Reporting existence here lets the client only ever import a path that is
   // actually there.
   router.get('/__editor/story-files', async (_req: Request, res: Response) => {
@@ -584,7 +584,7 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
   // A foreign game keeps its HUD layout in a page stylesheet whose `html`/
   // `body`/`*` rules would restyle the EDITOR, so no surface could load it and
   // every surface showing that game's DOM rendered unstyled. Serve it rewritten
-  // into `@scope ([data-vgai-game-styles])` instead: the client attaches it once
+  // into `@scope ([data-volter-game-styles])` instead: the client attaches it once
   // and marks each container that owns game DOM (a story card's content, the
   // ingest surface). The transform is SERVE-TIME — the bytes under
   // `vendor/games/` are read and never written, which is what keeps
@@ -641,10 +641,10 @@ export function registerModuleTransportNotFound(
   // browser then refuses to execute a module served as HTML and reports
   //
   //   TypeError: Failed to fetch dynamically imported module:
-  //     http://…/src/world.tsx?vgai-mount=19
+  //     http://…/src/world.tsx?volter-mount=19
   //
   // which names the ENTRY (a file that exists), never the deleted file, and
-  // carries a `?vgai-mount=N` that grows per attempt. `vgai play` then refuses
+  // carries a `?volter-mount=N` that grows per attempt. `volter play` then refuses
   // four times in a row with a message that reads like the server serving a
   // stale mount graph — which is where a probe went looking, and there is no
   // such bug: the unlink watcher fires, `project-script-hmr.ts` stamps the
@@ -703,7 +703,7 @@ export function registerModuleTransportNotFound(
       .status(404)
       .type('text/plain')
       .send(
-        `vgai: ${absPath} does not exist.\n\n` +
+        `volter: ${absPath} does not exist.\n\n` +
           'A module the running game imports is missing from disk — deleted or renamed, ' +
           'and the import that names it was not updated. This is a 404 rather than the ' +
           "editor's index.html so the failure names the missing file instead of surfacing " +

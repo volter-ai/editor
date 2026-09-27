@@ -196,7 +196,7 @@ function handleAdopt(): void {
 /**
  * This tab's identity as the inline bootstrap minted it — passed in rather
  * than read here, because `editor-presence.ts` owns the one read of
- * `__VGAI_EDITOR_PRESENCE_BOOTSTRAP__` and a second reader would be a second
+ * `__VOLTER_EDITOR_PRESENCE_BOOTSTRAP__` and a second reader would be a second
  * opinion about who this tab is. Both fields are absent wherever there is no
  * inline bootstrap at all (browser-mode builds, jsdom): such a page is not in
  * the server's tab table and has nothing to acknowledge with.

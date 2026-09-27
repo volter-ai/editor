@@ -166,10 +166,10 @@ export function declaresClassicEntry(boot: DeclaredBoot | null, entryUrl: string
  */
 export async function stageDeclaredDom(boot: DeclaredBoot): Promise<void> {
   const realmDocument = ingestGameRealmWindow().document;
-  realmDocument.querySelector('[data-vgai-declared-dom]')?.remove();
+  realmDocument.querySelector('[data-volter-declared-dom]')?.remove();
   if (boot.bodyHtml.trim().length === 0 && boot.inlineCss.length === 0) return;
   const holder = realmDocument.createElement('div');
-  holder.setAttribute('data-vgai-declared-dom', '');
+  holder.setAttribute('data-volter-declared-dom', '');
   // `pointer-events:none` on the WRAPPER, restored per child: the holder is a
   // host artifact, not part of the game's page, and it blanketed the game's
   // canvas — a Babylon game whose whole UI is in-canvas (space-truckers' GUI
@@ -212,7 +212,7 @@ export async function stageDeclaredDom(boot: DeclaredBoot): Promise<void> {
   for (const staged of holder.querySelectorAll('[id]')) {
     if (surface.id === staged.id) surface.removeAttribute('id');
     for (const stub of surface.querySelectorAll(
-      `[data-vgai-dom-stub][id="${CSS.escape(staged.id)}"]`,
+      `[data-volter-dom-stub][id="${CSS.escape(staged.id)}"]`,
     )) {
       if (stub !== staged) stub.remove();
     }
@@ -278,15 +278,15 @@ export async function bootDeclaredDocument(
   // violation ("trap returned falsish for property 'window'"), so the traps
   // delegate to the captured realm window instead of proxying it.
   const scope =
-    'var __vgaiPristine = new Set(Object.getOwnPropertyNames(globalThis));\n' +
-    '__vgaiPristine.add("__vgaiPristine"); __vgaiPristine.add("__vgaiRealmGlobals");\n' +
-    'var __vgaiRealmGlobals = (function (w) {\n' +
+    'var __volterPristine = new Set(Object.getOwnPropertyNames(globalThis));\n' +
+    '__volterPristine.add("__volterPristine"); __volterPristine.add("__volterRealmGlobals");\n' +
+    'var __volterRealmGlobals = (function (w) {\n' +
     '  return new Proxy({}, {\n' +
-    '    has: function (_, k) { return typeof k === "string" && !__vgaiPristine.has(k) && k in w; },\n' +
+    '    has: function (_, k) { return typeof k === "string" && !__volterPristine.has(k) && k in w; },\n' +
     '    get: function (_, k) { return typeof k === "string" ? w[k] : undefined; },\n' +
     '    set: function (_, k, v) { w[k] = v; return true; },\n' +
     '  });\n' +
     '})(window);\n';
-  const body = `${GAME_GLOBALS_PRELUDE}\n${scope}\nreturn (function(){ with (__vgaiRealmGlobals) {\n${sources.join('\n;\n')}\n} }).call(window);`;
+  const body = `${GAME_GLOBALS_PRELUDE}\n${scope}\nreturn (function(){ with (__volterRealmGlobals) {\n${sources.join('\n;\n')}\n} }).call(window);`;
   gameRealmPage().withCurrentScript(entryUrl, () => new Function(body)());
 }

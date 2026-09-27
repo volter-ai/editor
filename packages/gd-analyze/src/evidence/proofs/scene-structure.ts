@@ -363,7 +363,7 @@ export async function measureSceneStructureProof(
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_STRUCTURE_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-structure-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-structure-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

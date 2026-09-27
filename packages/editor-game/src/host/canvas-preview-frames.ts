@@ -17,7 +17,7 @@
  * five callers never had a story in hand (`authoring/canvas-design-mount.ts`,
  * `authoring/pixi-still-presentation.ts`, `components/world-root-stage.ts`,
  * `live-canvas-frame.ts`, and the ingest lane's canvas mount); moving it out is
- * the part of the CSF estate's exit to `@vgai/game` (WORK.md §The open-source
+ * the part of the CSF estate's exit to `@volter/game` (WORK.md §The open-source
  * launch, phase 1 unit 3) that does not wait on anything else.
  */
 

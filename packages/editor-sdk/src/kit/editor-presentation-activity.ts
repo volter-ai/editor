@@ -34,7 +34,7 @@ const parentOrigin =
 function receive(event: MessageEvent): void {
   if (window.parent === window || event.source !== window.parent) return;
   if (!parentOrigin || event.origin !== parentOrigin) return;
-  if (event.data?.type !== 'vgai:embed-activity' || typeof event.data.active !== 'boolean') return;
+  if (event.data?.type !== 'volter:embed-activity' || typeof event.data.active !== 'boolean') return;
   if (activity.hostActive === event.data.active) return;
   activity.hostActive = event.data.active;
   changed();
@@ -49,7 +49,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('message', receive);
   document.addEventListener('visibilitychange', changed);
   if (window.parent !== window && parentOrigin) {
-    window.parent.postMessage({ type: 'vgai:request-embed-activity' }, parentOrigin);
+    window.parent.postMessage({ type: 'volter:request-embed-activity' }, parentOrigin);
   }
   hot?.dispose(() => {
     window.removeEventListener('message', receive);

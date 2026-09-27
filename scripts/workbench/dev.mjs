@@ -2,8 +2,8 @@
 /*---------------------------------------------------------------------------------------------
  *  A SOURCES WORKBENCH — the overlay, then the fork's own compile. Nothing else.
  *
- *  TRIGGER: a project's `.vgai/workbench.json` names a fork CHECKOUT rather than a release, and
- *  you are about to `vgai edit` it. A checkout answers as a workbench through
+ *  TRIGGER: a project's `.volter/workbench.json` names a fork CHECKOUT rather than a release, and
+ *  you are about to `volter edit` it. A checkout answers as a workbench through
  *  `scripts/code-server.sh`, which serves `out/` — so what the page runs is whatever was last
  *  compiled there, and our tier is only in it if the overlay has been applied since the last
  *  edit to a workbench half in this repository.
@@ -13,8 +13,8 @@
  *  `--look` overlays a look package's frame tier (`overlay.mjs`), e.g. `--look ../brand` for
  *  the Volter brand's Plotter look from a checkout of the private `volter-ai/brand`.
  *
- *  IT IS THE WHOLE INNER LOOP. Stop sessions serving this checkout with `vgai close`, edit
- *  `packages/editor-core/workbench/src/…` here, run this, then reopen with `vgai edit`. Compilation
+ *  IT IS THE WHOLE INNER LOOP. Stop sessions serving this checkout with `volter close`, edit
+ *  `packages/editor-core/workbench/src/…` here, run this, then reopen with `volter edit`. Compilation
  *  cleans `out/` and extension output; serving it mid-build causes missing modules. ~30 s warm: the fork's own `compile-client` (it typechecks `src/`
  *  and emits `out/`; `out/server-main.js` is part of it, so no separate server compile exists),
  *  then `compile-web` for the built-in extensions' browser entries.
@@ -23,10 +23,10 @@
  *  import resolves through an import map the server builds ONCE per process
  *  (`CSSDevelopmentService.getCssModules`, cached), so a `.css` file added since the session
  *  started is missing from it, its importer fails to evaluate and the page never boots — a blank
- *  tab with no failed request. `vgai close`, then `vgai edit`.
+ *  tab with no failed request. `volter close`, then `volter edit`.
  *
  *  IT RUNS NOTHING ELSE, deliberately: it does not start a session, open a tab or touch the
- *  project. `vgai edit` owns all three and the tab bijection is its invariant, so a second
+ *  project. `volter edit` owns all three and the tab bijection is its invariant, so a second
  *  opener here would be a duplicate tab by construction.
  *
  *  NODE. The fork's toolchain is its own `.nvmrc`, and a major that does not match is refused

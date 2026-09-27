@@ -25,7 +25,7 @@ export default function BuildHeader() {
       aria-label="Export project"
       disabled={playing}
       title={playing ? 'Stop Play mode before exporting the project' : 'Export project'}
-      className="vgai-chrome-island vgai-glass-island"
+      className="volter-chrome-island volter-glass-island"
       onClick={() => {
         openBuildProfilesDocument();
       }}

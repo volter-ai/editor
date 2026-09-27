@@ -1,5 +1,5 @@
 /**
- * `~/.vgai/editor-sessions.json` — the ONE spelling of the editor-session
+ * `~/.volter/editor-sessions.json` — the ONE spelling of the editor-session
  * registry contract, and the shared machinery every reader was hand-copying.
  *
  * The registry's WRITE half stays with its owner
@@ -7,7 +7,7 @@
  * FORMAT: the entry shape, the shape guards, the file path, the
  * liveness-filtered read, the `/__editor/project` answer parser, and the
  * pending-launch coordination. It existed as FOUR drifting copies
- * (server registry, the CLI, and both vgai-sdk transports) held together by
+ * (server registry, the CLI, and both volter-sdk transports) held together by
  * a "the CLI has no editor dependency" premise that had stopped being true —
  * and the drift was already real: one copy's `/__editor/project` parser
  * dropped `manifestError`, reporting a degraded session as belonging to no
@@ -48,7 +48,7 @@ export interface EditorSessionEntry {
   baseCommit: string | null;
 }
 
-export const EDITOR_SESSIONS_REGISTRY_FILE = join(homedir(), '.vgai', 'editor-sessions.json');
+export const EDITOR_SESSIONS_REGISTRY_FILE = join(homedir(), '.volter', 'editor-sessions.json');
 
 export function isEditorSessionEntry(v: unknown): v is EditorSessionEntry {
   if (typeof v !== 'object' || v === null) return false;
@@ -113,7 +113,7 @@ export function readLiveRegisteredSessions(): EditorSessionEntry[] {
 
 /** Announce a launch before the server can register. Each launcher owns its file. */
 export function announceEditorLaunch(project: string): () => void {
-  const directory = join(project, '.vgai', 'editor-launches');
+  const directory = join(project, '.volter', 'editor-launches');
   mkdirSync(directory, { recursive: true });
   const file = join(directory, `${process.pid}.json`);
   writeFileSync(file, JSON.stringify({ pid: process.pid }));
@@ -130,7 +130,7 @@ export function announceEditorLaunch(project: string): () => void {
 }
 
 function hasPendingEditorLaunch(project: string): boolean {
-  const directory = join(project, '.vgai', 'editor-launches');
+  const directory = join(project, '.volter', 'editor-launches');
   try {
     return readdirSync(directory).some((name) => {
       if (!/^\d+\.json$/.test(name)) return false;

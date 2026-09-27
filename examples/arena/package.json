@@ -8,7 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "vgai": "volter-game-editor",
+    "volter": "volter-game-editor",
     "dev": "volter-game-editor edit .",
     "dev:standalone": "vite",
     "bake:weapons": "node scripts/bake-arena-weapons.mjs",
@@ -19,7 +19,7 @@
     "check-idioms": "npx tsx check-idioms.ts .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json",
     "validate-assets": "npx tsx validate-assets.ts .",
-    "validate-manifest": "npx tsx validate-manifest.ts vgai.project.json"
+    "validate-manifest": "npx tsx validate-manifest.ts volter.project.json"
   },
   "dependencies": {
     "@colyseus/schema": "^4.0.14",
@@ -68,7 +68,7 @@
       "stats-gl": "4.2.3"
     }
   },
-  "vgai": {
+  "volter": {
     "tools": [
       "./src/tools/bake-module.tool.ts",
       "./src/tools/bake-preview.tool.ts"

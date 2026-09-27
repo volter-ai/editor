@@ -33,10 +33,10 @@ export interface BridgeHeartbeatState {
 }
 
 /** The liveness line this prints to stdout — greppable, and prefixed
- *  distinctly from `wait-for.ts`'s `vgai-heartbeat` so the two liveness
+ *  distinctly from `wait-for.ts`'s `volter-heartbeat` so the two liveness
  *  sources are distinguishable in a run's log. */
 export function formatBridgeHeartbeatLine(testTitle: string, method: string): string {
-  return `vgai-bridge-heartbeat ${testTitle} method=${method}`;
+  return `volter-bridge-heartbeat ${testTitle} method=${method}`;
 }
 
 /**

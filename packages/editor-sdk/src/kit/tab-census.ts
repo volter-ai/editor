@@ -63,7 +63,7 @@ export type { TabCensus };
 export interface TabCensusSources {
   /** Feature-detected JS heap (`readJsHeap`), or its unavailable-reason. */
   heap(): JsHeapReading | { readonly unavailable: string };
-  /** Distinct `?vgai-mount=<id>` generations in Resource Timing. */
+  /** Distinct `?volter-mount=<id>` generations in Resource Timing. */
   mountEpochs(): number;
   /** Every canvas in the document, in BACKING-BUFFER pixels (not CSS px). */
   canvases(): readonly { readonly width: number; readonly height: number }[];
@@ -134,7 +134,7 @@ export function countProjectMountEpochs(resources: readonly { readonly name: str
   const epochs = new Set<string>();
   for (const resource of resources) {
     try {
-      const epoch = new URL(resource.name, 'http://vgai.invalid').searchParams.get(
+      const epoch = new URL(resource.name, 'http://volter.invalid').searchParams.get(
         PROJECT_MOUNT_QUERY,
       );
       if (epoch !== null && epoch.length > 0) epochs.add(epoch);

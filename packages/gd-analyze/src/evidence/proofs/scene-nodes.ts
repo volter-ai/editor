@@ -138,7 +138,7 @@ export function measureSceneNodeProof(tools: GodotProofTools): readonly GodotPro
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = packageImplementationDigest(GODOT_SCENE_NODE_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-node-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-node-'));
   try {
     for (const [relative, source] of Object.entries(files))
       writeFileSync(path.join(temp, relative), source);

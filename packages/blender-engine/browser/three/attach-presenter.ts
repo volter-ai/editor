@@ -1,7 +1,7 @@
 /**
  * ONE PRESENTER, ATTACHED TO ONE BLENDER (WS-AC, cut 3).
  *
- * `vgai_three.py` ships inside our Blender and turns every
+ * `volter_three.py` ships inside our Blender and turns every
  * `bpy.ops.render.render` into an ASK on a directory it owns; this is the
  * other half, for a host that holds that directory as a filesystem in its own
  * realm. It is the whole of what a host must do: hand it the filesystem, the

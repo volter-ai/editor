@@ -56,7 +56,7 @@ export function AudioViewer({ assetPath }: { assetPath: string }) {
       {/* Player */}
       <div
         // §2.31 P2 amendment: player controls read over a local frost layer.
-        className="vgai-content-frost"
+        className="volter-content-frost"
         style={{
           width: '100%',
           // §2.31: hairline-only player card — no fill over the surface.
@@ -72,10 +72,10 @@ export function AudioViewer({ assetPath }: { assetPath: string }) {
       >
         {/* Audio icon */}
         <svg viewBox="0 0 24 24" width={48} height={48}>
-          <rect x="3" y="3" width="18" height="18" rx="2" fill="var(--vgai-asset-icon-audio)" />
+          <rect x="3" y="3" width="18" height="18" rx="2" fill="var(--volter-asset-icon-audio)" />
           <path
             d="M9 8l4-2v12l-4-2H7V10h2zm6 1v6m2-5v4"
-            stroke="var(--vgai-text-1)"
+            stroke="var(--volter-text-1)"
             strokeWidth="1.5"
             fill="none"
             strokeLinecap="round"
@@ -117,7 +117,7 @@ export function AudioViewer({ assetPath }: { assetPath: string }) {
               style={{
                 width: `${(currentTime / duration) * 100}%`,
                 height: '100%',
-                background: 'var(--vgai-asset-icon-audio)',
+                background: 'var(--volter-asset-icon-audio)',
                 borderRadius: themeVars.shape.small,
               }}
             />
@@ -137,7 +137,7 @@ export function AudioViewer({ assetPath }: { assetPath: string }) {
               style={{
                 flex: 1,
                 height: `${20 + ((index * 37) % 75)}%`,
-                background: 'var(--vgai-asset-icon-audio)',
+                background: 'var(--volter-asset-icon-audio)',
                 opacity: index / 48 <= currentTime / (duration || 1) ? 1 : 0.3,
               }}
             />

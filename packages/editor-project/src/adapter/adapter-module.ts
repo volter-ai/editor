@@ -1,10 +1,10 @@
 /**
- * `vgai.adapter.ts` — THE ADAPTER MODULE CONTRACT.
+ * `volter.adapter.ts` — THE ADAPTER MODULE CONTRACT.
  *
  * ARCHITECTURE-CORE §The editor protocol, "The adapter is the game's own
  * module": the editor is a universal CLIENT of a fixed protocol and every game
  * supplies a SERVER — its adapter. That adapter is the game's OWN module,
- * `vgai.adapter.ts`, sitting beside `vgai.project.json`, default-exporting
+ * `volter.adapter.ts`, sitting beside `volter.project.json`, default-exporting
  * {@link defineAdapter}'s result.
  *
  * It is CODE (bindings are expressions — a scene entry may carry a closure the
@@ -34,7 +34,7 @@
  *      sanctioned importer of the finder namespace is the editor's adapter
  *      loader;
  *   2. this module therefore imports NOTHING from `adapter/finders/`, so a
- *      game's `vgai.adapter.ts` pulls no finder implementation (and no source
+ *      game's `volter.adapter.ts` pulls no finder implementation (and no source
  *      parser) into its own bundle. The dependency runs one way: finders
  *      import their parameter types from HERE.
  *
@@ -121,7 +121,7 @@ export interface AdapterRegion {
   /**
    * This region's world basis. Omitted = {@link NATIVE_REGION_BASIS}, which is
    * a DECLARED default (the native adapter emits it outright), not a silent
-   * fallback — same shape as an absent `vgai.adapter.ts` meaning
+   * fallback — same shape as an absent `volter.adapter.ts` meaning
    * `nativeAdapter()`.
    */
   readonly basis?: AdapterRegionBasis;
@@ -802,7 +802,7 @@ export interface AdapterEditorConfiguration {
 
   /**
    * The project's LOOK, imported from the package that carries it
-   * (`@vgai/blender`'s `blenderStyle`). Palette, material, icon set and chrome
+   * (`@volter/blender`'s `blenderStyle`). Palette, material, icon set and chrome
    * regions in one object — the same `StyleContribution` the package's
    * `workspace.style` contribution registers, named here as the project's
    * choice. Beneath a person's own settings and above their cross-project
@@ -927,7 +927,7 @@ export function defineAdapter(input: AdapterDefinitionInput = {}): AdapterDefini
   const parsed = AdapterDefinitionSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error(
-      `vgai.adapter.ts: invalid adapter definition — ${parsed.error.issues
+      `volter.adapter.ts: invalid adapter definition — ${parsed.error.issues
         .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
         .join('; ')}`,
     );
@@ -964,7 +964,7 @@ export interface NativeAdapterOptions {
  * THE NATIVE DEFAULT — regions derived mechanically from the manifest's
  * `roots[]`, and a scene table produced by the two shipped finders. This is
  * what a first-party project ships (`export default nativeAdapter()`), and it
- * is also what a project with NO `vgai.adapter.ts` gets: that absence is the
+ * is also what a project with NO `volter.adapter.ts` gets: that absence is the
  * declared native default, not a silent fallback.
  */
 export function nativeAdapter(options: NativeAdapterOptions = {}): AdapterDefinition {
@@ -982,14 +982,14 @@ export function nativeAdapter(options: NativeAdapterOptions = {}): AdapterDefini
 }
 
 /**
- * Parse an untrusted default export (the loaded `vgai.adapter.ts`) into a
+ * Parse an untrusted default export (the loaded `volter.adapter.ts`) into a
  * definition. Rejects loudly — an unknown key, a bad finder name, a
  * `selection` paired with the rule form all fail by name.
  */
 export function parseAdapterDefinition(value: unknown): AdapterDefinition {
   if (value === null || typeof value !== 'object') {
     throw new Error(
-      'vgai.adapter.ts must default-export defineAdapter({…}) / nativeAdapter() — ' +
+      'volter.adapter.ts must default-export defineAdapter({…}) / nativeAdapter() — ' +
         `got ${value === null ? 'null' : typeof value}`,
     );
   }

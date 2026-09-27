@@ -4,7 +4,7 @@
  * ARCHITECTURE-CORE §Rules: "an invariant about what a running session shows or
  * does (Edit is static; a scene has one root; the viewport canvas is revealed; a
  * visible tab renders) is enforced by a STANDING SESSION WARNING through the
- * console-loudness pipeline — loud on every vgai command until the condition is
+ * console-loudness pipeline — loud on every volter command until the condition is
  * dead — never by prose alone." This module is the derivation half of that rule:
  * facts in, rows out, no globals and no I/O, so every transition is testable
  * with no browser.
@@ -49,7 +49,7 @@ export interface OntologyInvariantRow {
    * five distinct entries for one violation in twenty seconds). So the warning
    * is built from THIS, which is identical for as long as the condition holds —
    * repeats then sum into one counted row, which is the whole contract of the
-   * ledger. The live number stays in `detail`, where `vgai status` re-derives it
+   * ledger. The live number stays in `detail`, where `volter status` re-derives it
    * on every read. Present only on a violation.
    */
   readonly cause?: string;
@@ -89,7 +89,7 @@ export interface LoopFact {
  * animation/simulation transport is that press, so the invariant fires only
  * when content time advances with NO transport engaged. The code missed this
  * and stood violated for every frame of a rigged module document's playback:
- * the ▶ a human pressed reddened every `vgai` verb. The surface therefore
+ * the ▶ a human pressed reddened every `volter` verb. The surface therefore
  * publishes `transportAdvances` beside its clock, and the row reads BOTH.
  * The negative case is untouched: an ingested game whose ticker runs with no
  * transport still violates, because it publishes no transport advance to point
@@ -212,7 +212,7 @@ function editModeStatic(facts: OntologyFacts): Omit<OntologyInvariantRow, 'id'> 
   // document's animation/simulation transport IS that press, so a surface
   // whose transport counter moved over the same window is doing exactly what
   // the transport exists to do. The code did not know that and fired on every
-  // frame of a rigged module document's playback, which reddened every `vgai`
+  // frame of a rigged module document's playback, which reddened every `volter`
   // verb while a human watched the clip they had asked for. The violation is
   // content time advancing with NO transport engaged — and a surface that
   // publishes no transport counter (a preview card, a turntable) has no ▶ to

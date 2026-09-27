@@ -51,8 +51,8 @@ export function registerShareControlRoutes(router: EditorServerRouter, ctx: Rout
     const cookie = req.headers.cookie
       ?.split(';')
       .map((part) => part.trim().split('='))
-      .find(([name]) => name === 'vgai_share_control')?.[1];
-    const supplied = req.header('x-vgai-editor-control') ?? cookie;
+      .find(([name]) => name === 'volter_share_control')?.[1];
+    const supplied = req.header('x-volter-editor-control') ?? cookie;
     if (!supplied) return false;
     const actual = Buffer.from(supplied);
     return [processControlSecret(), browserShareControlSecret].some((secret) => {
@@ -82,7 +82,7 @@ export function registerShareControlRoutes(router: EditorServerRouter, ctx: Rout
     }
     res.setHeader(
       'Set-Cookie',
-      `vgai_share_control=${browserShareControlSecret}; Path=/__editor/share-control; HttpOnly; SameSite=Strict`,
+      `volter_share_control=${browserShareControlSecret}; Path=/__editor/share-control; HttpOnly; SameSite=Strict`,
     );
     res.status(204).end();
   });

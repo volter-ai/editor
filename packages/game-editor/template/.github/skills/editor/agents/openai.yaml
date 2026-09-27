@@ -1,4 +1,4 @@
 interface:
-  display_name: "Control the VGAI Editor"
-  short_description: "Operate and inspect the live VGAI editor"
-  default_prompt: "Use $editor to open, control, inspect, and verify this game in the VGAI editor."
+  display_name: "Control the VOLTER Editor"
+  short_description: "Operate and inspect the live VOLTER editor"
+  default_prompt: "Use $editor to open, control, inspect, and verify this game in the VOLTER editor."

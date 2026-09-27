@@ -10,7 +10,7 @@
  * page.
  *
  * WHAT IT IS FOR: without it a window runs the editor, answers commands and
- * NEVER BEATS — `vgai status` says "TAB PRESENCE — SOMETHING IS OFF", and it
+ * NEVER BEATS — `volter status` says "TAB PRESENCE — SOMETHING IS OFF", and it
  * is right (docs/CODE-OSS.md §The frame's page is a TAB; WORK.md U11).
  *
  * ONE AUTHOR, and it is `packages/editor/src/tab-bootstrap.js`. This route
@@ -28,7 +28,7 @@ export const TAB_BOOTSTRAP_PATH = '/__editor/tab-bootstrap.js';
 /**
  * The bootstrap's own file, resolved from THIS module rather than from an
  * engine root: the two hosts disagree about what that root is (the dev host's
- * is the checkout, the packaged host's is the installed `@vgai/editor`), while
+ * is the checkout, the packaged host's is the installed `@volter/editor`), while
  * `server/` and `dist-server/` are both direct children of the package — so
  * `../src/tab-bootstrap.js` is the same file under either.
  */

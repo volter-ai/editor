@@ -205,17 +205,17 @@ function nameOf(entity: object): string {
 // --- Protocol: the composition site's entry points.
 
 /**
- * The editor's callsite address for an element (`__vgaiOid`, which its source transform stamps on
+ * The editor's callsite address for an element (`__volterOid`, which its source transform stamps on
  * every component callsite in a served scene): set on the element's native root object, the
  * editor's convention for a component it cannot instrument (drei's cameras forward it the same
- * way), so the editor selects the element at its callsite. Its `__vgaiLabel` carries nothing a
+ * way), so the editor selects the element at its callsite. Its `__volterLabel` carries nothing a
  * Godot node holds; neither is ever a Godot property.
  *
  * @godot Node (protocol)
  * @source scene/main/node.cpp:4092
  */
 export function godot_element_callsite(object: object, callsite: unknown): void {
-  if (typeof callsite === 'string' && callsite !== '') (object as { __vgaiOid?: string }).__vgaiOid = callsite;
+  if (typeof callsite === 'string' && callsite !== '') (object as { __volterOid?: string }).__volterOid = callsite;
 }
 
 

@@ -126,7 +126,7 @@
     "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
   },
-  "vgai": {
+  "volter": {
     "contributions": [
       "./contributions/three-integration.service.ts",
       "./contributions/animation-mixers.service.ts",

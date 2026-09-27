@@ -1,5 +1,5 @@
 /**
- * The launcher's recent-projects list (`~/.vgai/recent-projects.json`) and the
+ * The launcher's recent-projects list (`~/.volter/recent-projects.json`) and the
  * slug rule every project-derived filename shares.
  *
  * User-global, not project state: a session that is nobody's launcher does not
@@ -19,7 +19,7 @@ interface RecentProject {
   thumbnail?: string;
 }
 
-export const RECENT_PROJECTS_PATH = join(homedir(), '.vgai', 'recent-projects.json');
+export const RECENT_PROJECTS_PATH = join(homedir(), '.volter', 'recent-projects.json');
 const MAX_RECENT_PROJECTS = 20;
 
 export async function loadRecentProjects(path = RECENT_PROJECTS_PATH): Promise<RecentProject[]> {
@@ -39,7 +39,7 @@ export async function loadRecentProjects(path = RECENT_PROJECTS_PATH): Promise<R
       seen.add(canonicalPath);
       // Check for thumbnail
       try {
-        await stat(join(canonicalPath, '.vgai', 'thumbnail.png'));
+        await stat(join(canonicalPath, '.volter', 'thumbnail.png'));
         p.thumbnail = `/__editor/project-thumbnail?path=${encodeURIComponent(canonicalPath)}`;
       } catch {
         delete p.thumbnail;

@@ -41,12 +41,12 @@ import type { HierarchyNodeRow } from './hierarchy-node-rows';
 
 /** What the marks say about ONE node. Both absent is the ordinary node. */
 export interface NodeMarks {
-  /** `vgaiComponentRoot` — the component name this node is one instance of. */
+  /** `volterComponentRoot` — the component name this node is one instance of. */
   readonly componentRoot?: string | undefined;
   /** A native authoring entity constructor. It stays an ordinary entity row, but like a
    *  component root it is authored content even when a host implementation node wraps it. */
   readonly authoredEntity?: boolean | undefined;
-  /** `vgaiBuiltInternal` — this node is the root of an implementation subtree. */
+  /** `volterBuiltInternal` — this node is the root of an implementation subtree. */
   readonly builtInternal?: boolean | undefined;
 }
 
@@ -65,9 +65,9 @@ export interface MarkedTreeSource {
 }
 
 export interface MarkedTreeView extends InternalsSource {
-  /** True for a node whose live object carries `vgaiComponentRoot`. */
+  /** True for a node whose live object carries `volterComponentRoot`. */
   isComponentRoot(id: string): boolean;
-  /** True for a node that is, or descends from, a `vgaiBuiltInternal` root.
+  /** True for a node that is, or descends from, a `volterBuiltInternal` root.
    *  Exposed for tests and for {@link componentMarkView}'s own reuse; the panel
    *  reads internal-ness off the reveal projection, which is the union of these
    *  and the adapter's own hidden children. */
@@ -108,8 +108,8 @@ export const NO_MARKS: NodeMarkReader = () => undefined;
  * 5. PROMOTION. A component instance does not lose its row because
  *    implementation nodes sit between it and its owner. A weapon prefab
  *    attached to a hand bone, a nameplate on a head bone: content the author
- *    placed, inside a subtree a rig builder marked. `vgaiComponentRoot` beats
- *    `vgaiBuiltInternal` (see `isBuiltInternal`'s climb), and this lists such a
+ *    placed, inside a subtree a rig builder marked. `volterComponentRoot` beats
+ *    `volterBuiltInternal` (see `isBuiltInternal`'s climb), and this lists such a
  *    row under its nearest VISIBLE ancestor — so a prefab reads as the parent
  *    of everything meaningful beneath it, however many bones the rig hangs in
  *    between. A subtree with no instance inside it still folds away whole,

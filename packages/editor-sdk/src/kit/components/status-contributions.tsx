@@ -21,7 +21,7 @@
  *    download, carrying D-AP4's Retry affordance.
  *
  * The last two used to be full-width red BANNERS across the top of the shell
- * (`DefaultEditorLayout`'s since-deleted `.vgai-shell-banners` strip). Two
+ * (`DefaultEditorLayout`'s since-deleted `.volter-shell-banners` strip). Two
  * error homes means users learn two places to look, so both now present
  * here — the editor's one error surface: console line + bottom-left status
  * item + a revealed Console utility.
@@ -85,14 +85,14 @@ export function ErrorCountStatus() {
     { id: 'error', icon: faTimesCircle, label: 'error', count: counts.error },
   ] as const;
   return (
-    <span className="vgai-console-status-counts" data-testid="status-console-counts">
+    <span className="volter-console-status-counts" data-testid="status-console-counts">
       {levels.map((level) => (
         <Button
           key={level.id}
           type="button"
           variant="ghost"
           size="compact"
-          className="vgai-status-action vgai-console-status-count"
+          className="volter-status-action volter-console-status-count"
           data-testid={`status-console-${level.id}`}
           data-console-level={level.id}
           data-has-count={level.count > 0 ? true : undefined}
@@ -126,7 +126,7 @@ export function formatMountFailureTitle(reports: readonly MountFailureReport[]):
  * mounts successfully (`clearMountFailureReport`) or the whole attempt
  * resets (`clearMountFailureReports`). Nothing to dismiss by hand: the item
  * is the shell's compact problem signal, and hiding it would also blank the
- * report `vgai status` reads.
+ * report `volter status` reads.
  */
 export function MountFailureStatus() {
   const reports = useSyncExternalStore(subscribeToMountFailures, getMountFailureReports);
@@ -136,7 +136,7 @@ export function MountFailureStatus() {
       type="button"
       variant="ghost"
       size="compact"
-      className="vgai-status-action"
+      className="volter-status-action"
       data-testid="status-mount-failure"
       data-status-tone="danger"
       onClick={() => showConsoleUtility()}
@@ -186,7 +186,7 @@ export function AssetMaterializationStatus() {
         type="button"
         variant="ghost"
         size="compact"
-        className="vgai-status-action"
+        className="volter-status-action"
         data-testid="status-asset-materialization"
         data-status-tone="danger"
         onClick={() => showConsoleUtility()}
@@ -200,7 +200,7 @@ export function AssetMaterializationStatus() {
         type="button"
         variant="ghost"
         size="compact"
-        className="vgai-status-action"
+        className="volter-status-action"
         data-testid="status-asset-materialization-retry"
         disabled={retrying}
         onClick={onRetry}
@@ -231,7 +231,7 @@ export function PlayStateStatus() {
   }[state];
   return (
     <span
-      className="vgai-status-copy"
+      className="volter-status-copy"
       data-testid="status-play-state"
       data-play-state={state}
       data-status-tone={view.tone}
@@ -264,7 +264,7 @@ export function EditorServerStatus() {
       type="button"
       variant="ghost"
       size="compact"
-      className="vgai-status-action"
+      className="volter-status-action"
       data-testid="status-editor-lease"
       data-lease-state={view.kind}
       data-tone={tone}
@@ -284,7 +284,7 @@ export function EditorServerStatus() {
 // `AssetImportStatus` stood here until phase 1 unit 21. Its ledger's only
 // writers are the online catalog's browser and its detail view, and the
 // status registry it filled is a CONTRIBUTION point — so the item registers
-// from `@vgai/asset-library` now, beside the progress-event connection that
+// from `@volter/asset-library` now, beside the progress-event connection that
 // feeds it.
 
 /**
@@ -308,7 +308,7 @@ export function ProjectUtilitiesStatus() {
           type="button"
           variant="ghost"
           size="compact"
-          className="vgai-status-action"
+          className="volter-status-action"
           data-testid={`status-project-utility-${u.id}`}
           onClick={() => showWorkspaceUtility(u.id)}
           title={`Open the ${u.title} drawer tab (this project's own face)`}

@@ -23,7 +23,7 @@
  *    mount reuses objects constructed before the capture.
  *  - THE INSTALLED GLOBAL is the ownable resource, and it has one owner:
  *    `installGatedGameGlobals` (`gated-globals.ts`) installs it alongside the
- *    other `__vgai*` game-realm globals, once, at the same point in the
+ *    other `__volter*` game-realm globals, once, at the same point in the
  *    lifecycle. {@link installCreationSiteRecorder} returns an uninstall for
  *    tests, which is the only caller that needs to take it back down.
  */
@@ -86,7 +86,7 @@ function siteKey(site: CreationSite): string {
 /** The global name the served prelude calls through (must match
  *  `CREATION_SITE_GLOBAL` in `server/creation-site-transform.ts`; the pairing is
  *  asserted by `creation-site-registry.test.ts`). */
-export const CREATION_SITE_GLOBAL = '__vgaiRecordCreationSite';
+export const CREATION_SITE_GLOBAL = '__volterRecordCreationSite';
 
 type Recorder = (o: unknown, file: string, line: number, col: number) => void;
 
@@ -127,7 +127,7 @@ export function creationSiteOf(o: unknown): CreationSite | null {
   return sites.get(o as object) ?? null;
 }
 
-/** `src/scripts/sim/city.js:59` — the text the inspector shows and `vgai eval` reads. */
+/** `src/scripts/sim/city.js:59` — the text the inspector shows and `volter eval` reads. */
 export function formatCreationSite(site: CreationSite): string {
   return `${site.file}:${site.line}`;
 }

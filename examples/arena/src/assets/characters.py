@@ -62,7 +62,7 @@ ASSETS = ('arena-vanguard', 'redline-breacher', 'redline-overwatch')
 def bake(asset, dry_run=False):
     """Open one character document and export the game's `.glb` from it.
 
-    `dry_run` writes to `.vgai/tmp/` instead, which is outside the project's
+    `dry_run` writes to `.volter/tmp/` instead, which is outside the project's
     shipped output root and therefore outside the ledger — the door records
     only what lands under `public/`.
     """
@@ -74,7 +74,7 @@ def bake(asset, dry_run=False):
     bpy.ops.wm.open_mainfile(filepath=blend)
 
     out = (
-        os.path.join(os.getcwd(), '.vgai', 'tmp', '%s.glb' % asset)
+        os.path.join(os.getcwd(), '.volter', 'tmp', '%s.glb' % asset)
         if dry_run
         else os.path.join(os.getcwd(), SHIPPED, '%s.glb' % asset)
     )

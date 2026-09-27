@@ -1,6 +1,6 @@
-# VGAI game project
+# VOLTER game project
 
-This is a standalone game project created by VGAI. Describe the game you want
+This is a standalone game project created by VOLTER. Describe the game you want
 to a coding agent, or open the shared visual editor directly:
 
 ```bash
@@ -18,7 +18,7 @@ npm run dev               # open/reuse this project's editor
 npm run check-idioms      # project architecture and completion diagnostics
 npm run typecheck         # game, editor contributions, Node config, and server
 npm run validate          # project files and React design states
-npm run validate-manifest # vgai.project.json
+npm run validate-manifest # volter.project.json
 npm run build             # production game bundle
 ```
 
@@ -50,23 +50,23 @@ example must not silently erase the architecture it demonstrates.
 Drive/read the running game through its own exported modules:
 
 ```bash
-npm run vgai -- eval 'return game.run(async ({ modules }) => { const bot = await modules("src/bot/tester-station.ts"); return bot.describeTester(); })'
+npm run volter -- eval 'return game.run(async ({ modules }) => { const bot = await modules("src/bot/tester-station.ts"); return bot.describeTester(); })'
 ```
 
 Record through the same eval door while Play is running:
 
 ```bash
-npm run vgai -- eval 'return editor.recording.start({ fps: 30 })'
+npm run volter -- eval 'return editor.recording.start({ fps: 30 })'
 # direct the resident tester and advance simulation time
-npm run vgai -- eval 'return editor.recording.stop()'
+npm run volter -- eval 'return editor.recording.stop()'
 ```
 
-Recordings are standard WebM files under `.vgai/recordings/`. Inspect and trim
+Recordings are standard WebM files under `.volter/recordings/`. Inspect and trim
 them with ordinary `ffmpeg`/`ffprobe`; promote only reviewed evidence into
 `media/`. Structured Gameplay Session logs live under `logs/play-*.jsonl` and
 remain the durable Analytics source after Stop or reload.
 
-The project manifest is `vgai.project.json`. `ROADMAP.md` owns major feature
+The project manifest is `volter.project.json`. `ROADMAP.md` owns major feature
 arcs; `DEVLOG.md` is the development journal. Coding agents begin with
 `AGENTS.md`, which routes task-specific details to `.agents/` skills and the
 project manual.
@@ -76,8 +76,8 @@ Editor runtime image for its engine version (`~/.volter/images/`), which
 carries every package the template and the catalog's capabilities use; the
 game is its own code. `package.json` still declares what the game uses, so
 replacing the link with `npm install` gives a standalone installation.
-`npm run vgai -- status` reports the product serving the active session.
+`npm run volter -- status` reports the product serving the active session.
 
-Learn and manual: https://vgai-learn.pages.dev
+Learn and manual: https://volter-learn.pages.dev
 
-Hosted editor: https://vgai-editor.pages.dev
+Hosted editor: https://volter-editor.pages.dev

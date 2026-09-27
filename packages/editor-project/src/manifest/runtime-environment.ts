@@ -43,6 +43,6 @@ export function nodeRuntimeIssue(
   if (semver.satisfies(running, range, { includePrerelease: true })) return null;
   return (
     `package.json declares engines.node "${range}" and this host runs Node ${running} — ` +
-    `run the editor and \`vgai\` on a Node that satisfies it, or change engines.node`
+    `run the editor and \`volter\` on a Node that satisfies it, or change engines.node`
   );
 }

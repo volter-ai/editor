@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 
 /**
- * THE PACKAGE THIS REPORTS ON is `@vgai/game-runtime` — the one whose dual
+ * THE PACKAGE THIS REPORTS ON is `@volter/game-runtime` — the one whose dual
  * resolution is the failure this diagnostic exists for: two copies mean two
  * debug registries, and the one the editor reads never sees a game the other
  * holds. The contract and the three.js twin carry no game-scoped registry.

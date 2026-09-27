@@ -1,5 +1,5 @@
 {
-  "repository": "https://github.com/volter-ai/vgai-engine",
+  "repository": "https://github.com/volter-ai/volter-engine",
   "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
   "files": [
     {
@@ -983,13 +983,13 @@
       "sha256": "3f9a6b7c4b8556f9b6f5d442043dd74e1736d182fe148a9b5907b7489a16b211"
     },
     {
-      "source": "packages/editor/src/components/VgaiLogo.css",
-      "path": "packages/editor-core/src/components/VgaiLogo.css",
+      "source": "packages/editor/src/components/VolterLogo.css",
+      "path": "packages/editor-core/src/components/VolterLogo.css",
       "sha256": "138e4b8f277facecc45407a77a06f9103e99b222bf50548dec0acdd2a6be800a"
     },
     {
-      "source": "packages/editor/src/components/VgaiLogo.tsx",
-      "path": "packages/editor-sdk/src/kit/components/VgaiLogo.tsx",
+      "source": "packages/editor/src/components/VolterLogo.tsx",
+      "path": "packages/editor-sdk/src/kit/components/VolterLogo.tsx",
       "sha256": "e770216dc27028b32c25ef4bce559721eeaed7085c8a900a4028a28ba006c8c1"
     },
     {
@@ -2733,7 +2733,7 @@
       "sha256": "887f5bb94db88f0a84e895840ec2b16d6565c69da3fae0e99b4e9a92bf460744"
     },
     {
-      "source": "packages/vgai-sdk/src/project/inspection.ts",
+      "source": "packages/volter-sdk/src/project/inspection.ts",
       "path": "packages/editor-project/src/inspection.ts",
       "sha256": "8dbae1524e4d368d1331cea7911074e5e1e67880360379f869b9ea9106e7b044"
     },
@@ -2786,27 +2786,27 @@
     "packages/editor-core/src/authoring/pixi-authoring-adapter.ts",
     "packages/editor-core/src/history/json-history-resource.ts",
     "packages/editor-core/src/projection/pixi.ts",
-    "packages/editor-core/src/ingest/games/bloom-composer/vgai.project.json",
+    "packages/editor-core/src/ingest/games/bloom-composer/volter.project.json",
     "packages/editor-core/src/ingest/games/bloom-composer/package.json",
-    "packages/editor-core/src/ingest/games/games-fps/vgai.project.json",
+    "packages/editor-core/src/ingest/games/games-fps/volter.project.json",
     "packages/editor-core/src/ingest/games/games-fps/package.json",
-    "packages/editor-core/src/ingest/games/tilemap-camera/vgai.project.json",
+    "packages/editor-core/src/ingest/games/tilemap-camera/volter.project.json",
     "packages/editor-core/src/ingest/games/tilemap-camera/package.json",
-    "packages/editor-core/src/ingest/games/interactive-cubes/vgai.project.json",
+    "packages/editor-core/src/ingest/games/interactive-cubes/volter.project.json",
     "packages/editor-core/src/ingest/games/interactive-cubes/package.json",
-    "packages/editor-core/src/ingest/games/react-rpg/vgai.project.json",
+    "packages/editor-core/src/ingest/games/react-rpg/volter.project.json",
     "packages/editor-core/src/ingest/games/react-rpg/package.json",
-    "packages/editor-core/src/ingest/games/bunnymark/vgai.project.json",
+    "packages/editor-core/src/ingest/games/bunnymark/volter.project.json",
     "packages/editor-core/src/ingest/games/bunnymark/package.json",
-    "packages/editor-core/src/ingest/games/pointerlock-maze/vgai.project.json",
+    "packages/editor-core/src/ingest/games/pointerlock-maze/volter.project.json",
     "packages/editor-core/src/ingest/games/pointerlock-maze/package.json",
-    "packages/editor-core/src/ingest/games/flappy/vgai.project.json",
+    "packages/editor-core/src/ingest/games/flappy/volter.project.json",
     "packages/editor-core/src/ingest/games/flappy/package.json",
-    "packages/editor-core/src/ingest/games/own-three-bundled/vgai.project.json",
+    "packages/editor-core/src/ingest/games/own-three-bundled/volter.project.json",
     "packages/editor-core/src/ingest/games/own-three-bundled/package.json",
-    "packages/editor-core/src/ingest/games/bubbo-bubbo/vgai.project.json",
+    "packages/editor-core/src/ingest/games/bubbo-bubbo/volter.project.json",
     "packages/editor-core/src/ingest/games/bubbo-bubbo/package.json",
-    "packages/editor-core/src/ingest/games/racing-game/vgai.project.json",
+    "packages/editor-core/src/ingest/games/racing-game/volter.project.json",
     "packages/editor-core/src/ingest/games/racing-game/package.json",
     "packages/editor-core/src/after-paint.ts",
     "packages/editor-core/src/document-preview-three.ts",

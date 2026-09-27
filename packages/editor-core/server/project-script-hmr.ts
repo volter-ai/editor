@@ -9,17 +9,17 @@
  * `'create'`/`'delete'` instead, so for two years every delete and every
  * create of a project file went past this seam entirely: the running game kept
  * the vanished module, nothing set `restartRequired`, nothing was printed, and
- * vite fanned a useless HMR update across every accumulated `?vgai-mount=N`
+ * vite fanned a useless HMR update across every accumulated `?volter-mount=N`
  * variant of the project's modules (measured at 7 and 14 variants; the only
  * trace was `[vite] Failed to reload` in the page console, and often not even
  * that). The modern `hotUpdate` hook receives all three types, so the editor
  * now owns the whole file-event vocabulary — see
  * {@link handleProjectScriptHotUpdate}'s create/delete branch.
  *
- * WHY THIS MODULE EXISTS AT ALL: `vgai restart` served STALE CODE
+ * WHY THIS MODULE EXISTS AT ALL: `volter restart` served STALE CODE
  * ---------------------------------------------------------------
  * Measured 2026-08-02, live: editing `src/components/Dragon.tsx` (a component
- * the R3F entry imports) and then running `vgai restart` + play left the edit
+ * the R3F entry imports) and then running `volter restart` + play left the edit
  * UNAPPLIED, while an edit to `src/world.tsx` (the entry ITSELF) applied after
  * the same restart. Only closing the session and re-running `npm run dev`
  * picked the component edit up — i.e. the documented restart contract ("so
@@ -43,7 +43,7 @@
  *     exactly that field).
  *  4. So when play remounts and the realm's entry loader
  *     (`src/realm-services.ts`) re-imports the ENTRY with
- *     its own `?vgai-play=<n>` buster, the freshly transformed entry still
+ *     its own `?volter-play=<n>` buster, the freshly transformed entry still
  *     points at the BYTE-IDENTICAL `/@fs/.../Dragon.tsx` URL the browser
  *     already has in its ES module registry. Browser module identity is
  *     per-URL, so the browser reuses the pre-edit module. The entry is fresh;
@@ -282,7 +282,7 @@ export function stampHmrInvalidation(
 export function staleModuleWarning(file: string, outcome: HmrStampOutcome): string | null {
   if (outcome.supported) return null;
   return (
-    `vgai: ${file} changed, but this dev server's module graph does not support HMR ` +
+    `volter: ${file} changed, but this dev server's module graph does not support HMR ` +
     'invalidation — a play restart will re-run setup against the STALE copy of that ' +
     'module. Reload the editor page to pick the edit up.'
   );
@@ -429,7 +429,7 @@ function appearanceIsOurs(kind: ProjectHotUpdateKind): boolean {
  * There is exactly one honest answer for a runtime module: restart. Vite's own
  * propagation is swallowed (`[]`) rather than allowed to run, because for a
  * delete it has nothing to send that any client can apply — its only effect
- * was pushing an unusable update at every `?vgai-mount=N` variant the session
+ * was pushing an unusable update at every `?volter-mount=N` variant the session
  * had accumulated, which is how this failure stayed invisible: the page logged
  * `[vite] Failed to reload` and nothing else did anything at all.
  */
@@ -513,7 +513,7 @@ function handleProjectFileAppearance(
   if (warning) (args.warn ?? console.warn)(warning);
   server.ws.send({
     type: 'custom',
-    event: kind === 'tool' ? 'vgai:script-update' : 'vgai:restart-required',
+    event: kind === 'tool' ? 'volter:script-update' : 'volter:restart-required',
     data: { file: file.replaceAll('\\', '/') },
   });
   return [];
@@ -568,7 +568,7 @@ export function handleProjectScriptHotUpdate(
     if (kind === 'r3f-refresh' && isClient) {
       server.ws.send({
         type: 'custom',
-        event: 'vgai:r3f-refresh-source',
+        event: 'volter:r3f-refresh-source',
         data: {
           file: file.replaceAll('\\', '/'),
           path: relative(projectRoot, file).replaceAll('\\', '/'),
@@ -603,14 +603,14 @@ export function handleProjectScriptHotUpdate(
   if (kind === 'r3f-entry') {
     server.ws.send({
       type: 'custom',
-      event: 'vgai:r3f-entry-update',
+      event: 'volter:r3f-entry-update',
       data: { file, affected: affectedProjectFiles(server.moduleGraph, file, projectRoot) },
     });
   }
   if (kind === 'tool') {
     server.ws.send({
       type: 'custom',
-      event: 'vgai:script-update',
+      event: 'volter:script-update',
       data: {
         file: file.replaceAll('\\', '/'),
         affected: affectedProjectFiles(server.moduleGraph, file, projectRoot),
@@ -620,7 +620,7 @@ export function handleProjectScriptHotUpdate(
   if (kind === 'restart') {
     server.ws.send({
       type: 'custom',
-      event: 'vgai:restart-required',
+      event: 'volter:restart-required',
       data: { file, affected: affectedProjectFiles(server.moduleGraph, file, projectRoot) },
     });
   }

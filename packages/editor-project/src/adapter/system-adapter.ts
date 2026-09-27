@@ -651,7 +651,7 @@ export interface AudioAdapter {
    * reports — means the export writes a video-only file and says `audio:
    * false` in its result. A live Web Audio graph cannot be re-rendered
    * offline by a bus wrapper; a world that wants export audio owns a
-   * deterministic score and binds this through `vgai.adapter.ts` (with the
+   * deterministic score and binds this through `volter.adapter.ts` (with the
    * `music` capability that is one line over `renderToneOffline`).
    */
   renderOffline?: OfflineAudioRenderer;
@@ -754,7 +754,7 @@ export interface DebugCommandInfo {
  * over whatever a game registers via `ctx.debug`
  * (`registerStateProvider`/`registerCommand`/`emit`). NOT a gameplay API —
  * this is the one seam the debug bridge, the editor's Debug Console/State
- * Watch panels, and `@vgai/live` all read/drive through.
+ * Watch panels, and `@volter/live` all read/drive through.
  */
 export interface DebugAdapter {
   providers(): { name: string; tier: 'observable' | 'assisted' }[];

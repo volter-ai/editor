@@ -3,15 +3,15 @@
  * (ARCHITECTURE-CORE §Editor chrome, "Settings have four layers with named
  * homes"):
  *
- *   ~/.vgai/settings.json     the USER layer — one person, every project
- *   <project>/.vgai/settings.json   the PROJECT layer — one project, committed,
+ *   ~/.volter/settings.json     the USER layer — one person, every project
+ *   <project>/.volter/settings.json   the PROJECT layer — one project, committed,
  *                             every person who opens it
  *
  * Both files carry the same shape; the project layer overrides the user layer
  * key by key (`mergeEditorSettings`). Neither layer holds authored content —
  * an unreadable file is reported by name and falls back to defaults, never
  * migrated. The generated JSON Schema (`npm run generate-schema` →
- * `packages/project/schemas/vgai-settings.schema.json`) is what an editor
+ * `packages/project/schemas/volter-settings.schema.json`) is what an editor
  * autocompletes against when a person edits either file by hand.
  *
  * Every field here has a runtime reader in the editor's settings store
@@ -80,7 +80,7 @@ export const EditorSettingsSchema = z
       .strict()
       .optional()
       .describe('How the editor chrome looks.'),
-    keymap: z.string().optional().describe('Active keymap preset id (`vgai`, `blender`, …).'),
+    keymap: z.string().optional().describe('Active keymap preset id (`volter`, `blender`, …).'),
     play: z
       .object({
         keepPanelsVisible: z

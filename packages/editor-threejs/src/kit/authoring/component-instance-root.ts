@@ -90,8 +90,8 @@ function instanceCallsiteOid(object: THREE.Object3D | null | undefined): string 
  * Object3D (Drei cameras are the canonical example). It is a callsite address,
  * not the object's definition-side `userData.oid`. */
 function forwardedCallsiteOid(object: THREE.Object3D | null | undefined): string | undefined {
-  const forwarded = (object as (THREE.Object3D & { __vgaiOid?: unknown }) | null | undefined)
-    ?.__vgaiOid;
+  const forwarded = (object as (THREE.Object3D & { __volterOid?: unknown }) | null | undefined)
+    ?.__volterOid;
   return typeof forwarded === 'string' && forwarded ? forwarded : undefined;
 }
 

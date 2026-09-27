@@ -450,7 +450,7 @@ export async function measureScenePhysicsProof(tools: GodotProofTools): Promise<
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_PHYSICS_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-physics-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-physics-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

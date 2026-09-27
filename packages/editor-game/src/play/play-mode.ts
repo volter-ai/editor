@@ -152,7 +152,7 @@ export interface PlayModeContext {
  *
  * ITS IDENTITY IS THE MOUNT ID, and there is only ever one id for it.
  * `resolveAllRootEntries` opens a mount epoch; every project module of this
- * instance is served under it as `?vgai-mount=<id>`; browser module identity
+ * instance is served under it as `?volter-mount=<id>`; browser module identity
  * is per-url, so that id IS the module-graph boundary; and `gated-globals.ts`
  * resolves this instance's realm and input gate by reading the same id back
  * off the url. Registering it under any second name would be two identities
@@ -165,7 +165,7 @@ export interface PlayModeContext {
  * interleaved log streams and read, later, as a game bug.
  */
 interface PlayInstance {
-  /** The mount id — see above. What `?vgai-mount=` carries, what the realm and
+  /** The mount id — see above. What `?volter-mount=` carries, what the realm and
    *  input gate are keyed by, what `setActiveSystems` registers under and what
    *  the session wire addresses. Empty until a composition has resolved. */
   /** The element this instance mounted into (the primary's is the live
@@ -365,8 +365,8 @@ export function markRestartRequired(reason: string): void {
  *
  * They are kept because the unresolved-console ledger names conditions BY
  * THEIR TEXT, and a remount is the event that resolves them: measured
- * 2026-08-29, `vgai restart` reported "↻ Restarted — session ready" while its
- * own named warning stayed in `vgai console` forever, because the ledger's
+ * 2026-08-29, `volter restart` reported "↻ Restarted — session ready" while its
+ * own named warning stayed in `volter console` forever, because the ledger's
  * automatic clearing rule is a PAGE LOAD and a remount is not one — only
  * `game.reloadPage()` could silence a warning the named verb had already
  * fixed. `clearRestartRequired` now reports them resolved (ledger clearing
@@ -428,7 +428,7 @@ let _playEpoch = 0;
 //
 // PD-1: this used to be nulled by `exitPlayMode()`, which meant the errors of
 // a run that FAILED became invisible the instant the failed run rolled back —
-// `vgai status` reported `pageErrors: []` for a play that had just thrown, the
+// `volter status` reported `pageErrors: []` for a play that had just thrown, the
 // exact "every diagnostic says healthy" symptom. The fence's job is to exclude
 // a PREVIOUS run's noise, and the next `enterPlayMode` re-stamping it does
 // that; dropping it on exit only ever hid the evidence of the last run.
@@ -438,7 +438,7 @@ let _playStartedAtMs: number | null = null;
 //
 // Why an end and not just a start: with an open-ended window every editor error
 // logged AFTER a run stopped still counted as "during the play run", so it fell
-// into the play-fenced `consoleErrors` facet — which `vgai status` renders only
+// into the play-fenced `consoleErrors` facet — which `volter status` renders only
 // while play is live. One play run, and every later editor-frame error went
 // invisible again, which is the exact defect the session-lifetime facets exist
 // to close. Stamped at the END of `exitPlayMode`, so a FAILED run's errors (all
@@ -796,14 +796,14 @@ async function installPlayRootAuthoring(
   store.shell.notifyIngestEdit();
 
   // Dev/e2e diagnostic handle — the SAME pattern `ingest/mount-ingest-root.ts`'s
-  // `window.__vgaiIngest`/`window.__vgaiIngest2D` use:
+  // `window.__volterIngest`/`window.__volterIngest2D` use:
   // `store.saveNow()` (Ctrl/Cmd+S) and `_autoSave()` are both structurally
   // guarded OFF while ANY authoring override is active (`hasAuthoringOverride()`
   // / the play-state check) — the adapter's OWN `persistence.save()` is the
   // only way an override session's edits reach disk, so tests/tooling need a
   // handle to call it directly, exactly as the ingest sessions expose.
   if (import.meta.env.DEV) {
-    (window as unknown as Record<string, unknown>)['__vgaiMultiRoot'] = {
+    (window as unknown as Record<string, unknown>)['__volterMultiRoot'] = {
       adapter: composite,
       worldIds: children.map((c) => c.worldId),
       store,
@@ -839,7 +839,7 @@ function exitPlayRootAuthoring(store: EditorShellStore): void {
     _instance.journalSession = '';
   }
   if (import.meta.env.DEV) {
-    delete (window as unknown as Record<string, unknown>)['__vgaiMultiRoot'];
+    delete (window as unknown as Record<string, unknown>)['__volterMultiRoot'];
   }
 }
 /**
@@ -924,7 +924,7 @@ if (import.meta.hot) import.meta.hot.dispose(stopAssetReload);
 
 // --- Script HMR ---
 if (import.meta.hot) {
-  import.meta.hot.on('vgai:restart-required', (data: { file: string }) => {
+  import.meta.hot.on('volter:restart-required', (data: { file: string }) => {
     if (!_instance.session) return;
     const file = data.file.split('/').pop() ?? data.file;
     markRestartRequired(`${file} changed and cannot be applied safely while the game is running.`);
@@ -938,12 +938,12 @@ if (import.meta.hot) {
   // PlayBar's Restart button lights up (variant 'primary') carrying this
   // reason, and ONE click remounts every root from fresh source and
   // re-enters play (`enterPlayMode` re-imports the entry with a
-  // cache-busting query — see `loadProjectScripts`). `vgai status` reports
+  // cache-busting query — see `loadProjectScripts`). `volter status` reports
   // the same pending-restart state via `collectState().restartRequired`, so
   // agents get the signal humans get. EDIT-mode behavior is unchanged
   // (`_instance.session` is null there; absorb-by-remount stays as landed — see
   // r3f-design-session.ts).
-  import.meta.hot.on('vgai:r3f-entry-update', (data: { file: string }) => {
+  import.meta.hot.on('volter:r3f-entry-update', (data: { file: string }) => {
     if (!_instance.session) return;
     const file = data.file.split('/').pop() ?? data.file;
     markRestartRequired(
@@ -951,7 +951,7 @@ if (import.meta.hot) {
     );
     warnRestartRequired(`Restart required: ${file} changed while playing.`);
   });
-  import.meta.hot.on('vgai:script-update', async (data: { file: string }) => {
+  import.meta.hot.on('volter:script-update', async (data: { file: string }) => {
     // Project-tool source belongs to editor chrome. The tool contribution
     // store re-imports and remounts it; no game root can become stale from an
     // editor-only document changing.
@@ -1011,7 +1011,7 @@ export function bindPlayMode(store: EditorShellStore): void {
   _ctx = { store, gameContainer: null! }; // set dynamically from the live document's container
   // THE BARE-KEY YIELD IS THE FRAME'S. While Play runs the game's keys are the
   // game's, and what decides is the workbench: our stage actions carry a
-  // `when` clause over `vgai.stage.focused`/`vgai.play`, so a bare key reaches
+  // `when` clause over `volter.stage.focused`/`volter.play`, so a bare key reaches
   // the game rather than a shell binding, and a ⌘-chord stays the workbench's.
   // The realm gate tracks the same predicate independently (`gated-globals.ts`
   // and `surface-keyboard.ts`), which is what keeps a game's raw
@@ -1032,7 +1032,7 @@ export function isPlayModeActive(): boolean {
  * Narrow relay accessor — the live play session's virtual input targets
  * and the Game root's loop, for `command-listener.ts`'s
  * `inject-input`/`set-time-scale`/`set-seed` cases. This is exactly the
- * accessor the vgai-sdk honest-gap jsdocs prescribed
+ * accessor the volter-sdk honest-gap jsdocs prescribed
  * (`play/input-operations.ts`, `play/control-operations.ts`): `_instance.session` is
  * module-private, so the relay needs this one exported read. Everything else
  * the relay reads (state providers, debug commands) flows through
@@ -1041,7 +1041,7 @@ export function isPlayModeActive(): boolean {
  * `getInputTarget(worldId?)` (D15/T-D15.5 — review objection 2's fix)
  * is one resolution for every input door: both the SAME `getDebugRegistry(game).getVirtualInputTarget(worldId)`
  * — one resolution function (`debug-registry.ts`'s `resolveInputRootId`),
- * so `inject-input` (this accessor) and `window.__vgai.input.*`
+ * so `inject-input` (this accessor) and `window.__volter.input.*`
  * (`debug-bridge.ts`) can never disagree about which world an unqualified
  * actuation targets again. `null` when nothing is registered for the
  * resolved id (or no `Game` is running at all); throws the registry's own
@@ -1049,7 +1049,7 @@ export function isPlayModeActive(): boolean {
  *
  * `runTicks` (D15/T-D15.4) is added the SAME way: reached via
  * `getDebugRegistry(game).getRunTicksTarget()` — the identical accessor
- * `runtime/debug-bridge.ts`'s `window.__vgai.runTicks` (door a) goes
+ * `runtime/debug-bridge.ts`'s `window.__volter.runTicks` (door a) goes
  * through, so the editor relay's `run-ticks` case (door b, → `play.runTicks`)
  * calls byte-identical behavior (D17). `null` only when no `Game` is running
  * at all (`_instance.session` is `null`) — a live `Game` always wires a run-ticks
@@ -1286,7 +1286,7 @@ export function resizeGame(width: number, height: number, pixelRatio?: number): 
 
 /**
  * Serializes every `enterPlayMode()` invocation (the ghost-runtime bug:
- * `vgai play` on an already-playing/still-booting session left the
+ * `volter play` on an already-playing/still-booting session left the
  * PREVIOUS runtime alive, ticking and rendering alongside the new one).
  *
  * Root cause: `enterPlayModeInner`'s own `if (_instance.session) exitPlayMode()`
@@ -1306,7 +1306,7 @@ export function resizeGame(width: number, height: number, pixelRatio?: number): 
  * size exceeded` — not a hypothetical). In the field this window is entered
  * whenever a caller re-issues `play` before the browser has acked the first
  * (a slow scene boot outliving the relay's/SDK's own `play.start` timeout is
- * the documented trigger — `packages/vgai-sdk/src/play/transport.ts`'s
+ * the documented trigger — `packages/volter-sdk/src/play/transport.ts`'s
  * `PLAY_START_TIMEOUT_MS`/`editor-server.ts`'s `PLAY_COMMAND_TIMEOUT_MS` —
  * and `play.start`'s own contract is explicitly "start (or restart)", so a
  * caller retrying after a timeout is using the API as documented, not
@@ -1404,16 +1404,16 @@ async function startAutoLaunchedAdapterPlay(store: EditorShellStore): Promise<bo
 /**
  * Enter play mode: create a game canvas, start game, disable editor controls.
  *
- * `explicitSeed` (D15/T-D15.6, objection-4 fix — `vgai play --seed <n>`)
+ * `explicitSeed` (D15/T-D15.6, objection-4 fix — `volter play --seed <n>`)
  * — the CLI's `play` command relays it through as `cmd['seed']`
  * (`command-listener.ts`'s `'play'` case); it is the "explicit config"
  * leg of `resolveDeterminismSeed`'s precedence (highest — beats
- * `manifest.determinism.defaultSeed`/`?vgai-seed=` on the editor's own
+ * `manifest.determinism.defaultSeed`/`?volter-seed=` on the editor's own
  * page URL), threaded into whichever mount path this play resolves to
  * below, exactly like `mountManifestRoots`'s own `opts.seed` already is
  * for a standalone boot.
  *
- * `runName` (optional — `vgai play --name <text>`) is FINDABILITY and nothing
+ * `runName` (optional — `volter play --name <text>`) is FINDABILITY and nothing
  * else: the server slugifies it into this run's `logs/play-*.jsonl` filename
  * and its session-journal line, so "the run where I tested the boss fight" is
  * a grep instead of timestamp archaeology. No registry, no uniqueness check —
@@ -1470,7 +1470,7 @@ async function enterPlayModeInner(
   // `enterPlayMode` owns the begin/end pair; this function owns the marks.
   // Play must never start while the boot-time project bootstrap is still in
   // flight. Resolves immediately when no bootstrap is pending; gating HERE
-  // rather than in the Play button covers every caller — UI, `vgai play` relay,
+  // rather than in the Play button covers every caller — UI, `volter play` relay,
   // SDK.
   markPlayBootPhase('waiting for the project bootstrap to settle');
   await projectBootstrapSettled();
@@ -1713,9 +1713,9 @@ async function enterPlayModeInner(
       entries,
       width: rw,
       height: rh,
-      // D15/T-D15.6 — `vgai play --seed`'s explicit config leg; `undefined`
+      // D15/T-D15.6 — `volter play --seed`'s explicit config leg; `undefined`
       // (the overwhelmingly common case) leaves `mountManifestRoots`'s own
-      // manifest/`?vgai-seed=` precedence untouched.
+      // manifest/`?volter-seed=` precedence untouched.
       seed: explicitSeed,
       playtest,
     });
@@ -1734,7 +1734,7 @@ async function enterPlayModeInner(
     // PD-3 — close the window and report LOUDLY. A split does not stop the
     // game (both copies run; they just disagree), so this is an error-level
     // report rather than a throw: the failure mode being fixed is SILENCE,
-    // not a crash. `collectState` carries the same reports to `vgai status`,
+    // not a crash. `collectState` carries the same reports to `volter status`,
     // and `editorConsole.error` reaches the editor console panel and the
     // play-log sink the CLI reads back.
     for (const split of endProjectModuleSplitWatch(project.rootPath)) {
@@ -1745,7 +1745,7 @@ async function enterPlayModeInner(
     // mount, and `mountManifestRoots` resolving IS that answer — including the
     // roots' own async setup, which it awaits. So every one of these roots
     // reports `declared`, and no measured wait stands anywhere behind them
-    // (`readiness.ts`; published as `vgai status`'s `readiness` facet).
+    // (`readiness.ts`; published as `volter status`'s `readiness` facet).
     for (const rootId of _hostMountedReadyRootIds) {
       recordRootReadiness({ rootId, mechanism: 'host-mount', source: 'declared', state: 'ready' });
     }
@@ -1929,7 +1929,7 @@ async function enterPlayModeInner(
  * cardinality half of multiplayer authoring (see the `_additional` doc).
  *
  * Valid only while the primary is playing. The returned id is the instance's
- * mount id (what `?vgai-mount=` carries and what `game.instance(id)`
+ * mount id (what `?volter-mount=` carries and what `game.instance(id)`
  * addresses). This does the INSTANCE subset of `enterPlayModeInner` and none
  * of its session/focus work: it resolves its own mount epoch, mounts the roots
  * into `container`, registers a performance source and its System adapters
@@ -2484,7 +2484,7 @@ editorHost().live.register({
 });
 
 // What only Play knows of the state report (`host.session.reportFacet`):
-// `vgai status --json` spreads these beside the host's own fields.
+// `volter status --json` spreads these beside the host's own fields.
 editorHost().session.reportFacet(() => ({
   // The live loop's time-scale, so `play.status` reports the real applied
   // value after a `set-time-scale` instead of an honest-gap null.

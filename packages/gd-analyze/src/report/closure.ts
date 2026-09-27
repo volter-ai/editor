@@ -139,7 +139,7 @@ function readGame(fixture: string, exporter: string, official: string): GameClos
   const engine = engineOf(fixtureDir);
   if (engine.major !== 4) return { fixture, engine: engine.label, read: 'unread-godot3', ...empty };
   const snapshot = captureGodotProjectSnapshot(fixtureDir);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-closure-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-closure-'));
   try {
     const projectDir = path.join(temp, 'project');
     materializeGodotProjectSnapshot(snapshot, projectDir);

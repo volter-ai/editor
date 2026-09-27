@@ -15,21 +15,21 @@
  * The ruling refused both a utility scope on the document door and a verb per
  * view: **under the Code-OSS frame every one of our views is a VS Code view
  * in a view container, and its state and verbs are reached through
- * `vgai.<view>.<verb>` commands the bridge dispatches into the view** — the
- * same one-name door as every other verb, so `vgai eval` reaches it through
+ * `volter.<view>.<verb>` commands the bridge dispatches into the view** — the
+ * same one-name door as every other verb, so `volter eval` reaches it through
  * the frame's command service.
  *
  * ## Why the registry is HERE and not in the editor
  *
  * Both sides of it are outside `packages/editor/src`: a view's verbs are
- * registered by the package that OWNS the view (`@vgai/blender`'s node
+ * registered by the package that OWNS the view (`@volter/blender`'s node
  * editor), and they are read by the fork's bridge. The editor host mediates
  * nothing, so a registry inside it would be a closure file with no reader of
  * its own — the same reasoning `registerEditorHost` follows one module over.
  *
  * ## The two doors, one table
  *
- * Standalone `vgai edit` has no VS Code command service, so the SESSION's own
+ * Standalone `volter edit` has no VS Code command service, so the SESSION's own
  * verb is how a view is driven there. That is not a second implementation:
  * the session verb calls {@link invokeViewVerb} on the same table the frame's
  * commands call, exactly as `key-actions.ts`'s action table is one
@@ -39,7 +39,7 @@
 
 export interface ViewVerb {
   /** The verb, bare: `state`, `view-all`, `zoom`. The frame publishes it as
-   *  `vgai.<view>.<verb>`; the session spells it its own way. */
+   *  `volter.<view>.<verb>`; the session spells it its own way. */
   readonly id: string;
   /** What the palette calls it, when the verb is one a PERSON would run. A
    *  verb with no title is reachable by command id and by the session, and is
@@ -53,7 +53,7 @@ export interface ViewVerb {
 
 export interface ViewVerbContribution {
   /** The view's id, and the middle segment of every command it publishes —
-   *  `blender-node-view` → `vgai.blender-node-view.view-all`. It is the same
+   *  `blender-node-view` → `volter.blender-node-view.view-all`. It is the same
    *  id the view registers under when it becomes a VS Code view. */
   readonly view: string;
   /** What the view is called, for the palette entry's category. */
@@ -61,7 +61,7 @@ export interface ViewVerbContribution {
   readonly verbs: readonly ViewVerb[];
 }
 
-const REGISTRY_KEY = Symbol.for('vgai.editor.viewVerbs');
+const REGISTRY_KEY = Symbol.for('volter.editor.viewVerbs');
 interface RegistryState {
   contributions: readonly ViewVerbContribution[];
   listeners: Set<() => void>;
@@ -97,14 +97,14 @@ function emit(): void {
  * table wins, its predecessor's disposer becoming a no-op.
  *
  * A DIFFERENT view claiming the id still THROWS: the id keys the whole
- * `vgai.<view>.<verb>` command namespace, and a second view under it would
+ * `volter.<view>.<verb>` command namespace, and a second view under it would
  * publish commands that shadow the first with no sign of it.
  */
 export function registerViewVerbs(contribution: ViewVerbContribution): () => void {
   const existing = state.contributions.find((entry) => entry.view === contribution.view);
   if (existing && existing.title !== contribution.title) {
     throw new Error(
-      `registerViewVerbs: the view "${contribution.view}" already publishes verbs as "${existing.title}"; "${contribution.title}" is a different view under the same id. A view id keys its whole \`vgai.<view>.<verb>\` command namespace, so a second view under it would shadow the first with no sign of it.`,
+      `registerViewVerbs: the view "${contribution.view}" already publishes verbs as "${existing.title}"; "${contribution.title}" is a different view under the same id. A view id keys its whole \`volter.<view>.<verb>\` command namespace, so a second view under it would shadow the first with no sign of it.`,
     );
   }
   state.contributions = [

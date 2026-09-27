@@ -1,9 +1,9 @@
 /**
  * The session verbs every product's CLI runs against its project's live
  * editor session: `sessions`, `project`, `projects`, `open`, `screenshot` and
- * `restart`. Transferred from vgai's CLI (`packages/vgai-cli/src/index.ts`'s
+ * `restart`. Transferred from volter's CLI (`packages/volter-cli/src/index.ts`'s
  * cases of the same names); each reaches the page through the same
- * `EditorClient` member vgai used. The product only says who it is
+ * `EditorClient` member volter used. The product only says who it is
  * (`command`, the name a person types).
  */
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -182,7 +182,7 @@ const TRANSIENT_RELAY_ERRORS = [
 ] as const;
 
 /** A page reload landing mid-`play` drops the command; re-issue it against the
- *  reconnected tab (vgai's `play-retry.ts`). Every other failure is final. */
+ *  reconnected tab (volter's `play-retry.ts`). Every other failure is final. */
 async function playWithRelayReloadRetry(client: EditorClient, onRetry: (attempt: number, max: number) => void): Promise<unknown> {
   const maxAttempts = 5;
   for (let attempt = 1; ; attempt++) {
@@ -272,12 +272,12 @@ function parseLookFlags(options: ScreenshotOptions): LookFlags {
   return flags;
 }
 
-/** `<project>/.vgai/screenshots/<stamp>[-<slug>]` — machine-written evidence
+/** `<project>/.volter/screenshots/<stamp>[-<slug>]` — machine-written evidence
  *  lives in one gitignored place. */
 function screenshotPath(projectRoot: string, slug?: string): string {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const safe = (slug ?? '').toLowerCase().replace(/[^a-z0-9-_]+/g, '-').replace(/^-+|-+$/g, '');
-  return join(projectRoot, '.vgai', 'screenshots', slug === undefined ? `${stamp}.png` : `${safe === '' ? 'look' : safe}-${stamp}`);
+  return join(projectRoot, '.volter', 'screenshots', slug === undefined ? `${stamp}.png` : `${safe === '' ? 'look' : safe}-${stamp}`);
 }
 
 /**
@@ -318,7 +318,7 @@ export async function screenshot(target: string | undefined, options: Screenshot
 
 /**
  * No target: what the session is showing. While play runs that is the running
- * game — the composited game stack (`bridge-screenshot`, vgai's no-target
+ * game — the composited game stack (`bridge-screenshot`, volter's no-target
  * lane); otherwise the active document as the editor presents it
  * (`capture-active-document`).
  */
@@ -440,7 +440,7 @@ async function assetLabLook(client: EditorClient, source: AssetPreviewSource, fl
  */
 async function moduleLook(client: EditorClient, projectRoot: string, modulePath: string, flags: LookFlags): Promise<void> {
   if (flags.shots !== undefined || flags.compare !== undefined) {
-    throw new Error('--shots/--compare do not apply to a module target — the module lane builds bytes that stand nowhere and writes its fixed views under .vgai/screenshots/.');
+    throw new Error('--shots/--compare do not apply to a module target — the module lane builds bytes that stand nowhere and writes its fixed views under .volter/screenshots/.');
   }
   if (flags.width !== undefined && flags.height !== undefined && flags.width !== flags.height) {
     throw new Error('a module look renders square views — use --size, not --width/--height');
@@ -454,7 +454,7 @@ async function moduleLook(client: EditorClient, projectRoot: string, modulePath:
   });
   if (!outcome.ok) {
     const missing = outcome.error?.code === 'PROJECT_TOOL_NOT_FOUND'
-      ? ` This project registers no ${toolName} tool (package.json#vgai.tools).` : '';
+      ? ` This project registers no ${toolName} tool (package.json#volter.tools).` : '';
     throw new Error(`${toolName} refused '${modulePath}' — ${outcome.error?.message ?? 'unknown error'}.${missing}`);
   }
   const result = outcome.data as {

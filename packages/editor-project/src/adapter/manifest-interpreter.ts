@@ -1,13 +1,13 @@
 /**
  * The manifest's SOLE INTERPRETER (owner ruling, 2026-08-20 — see
- * docs/ARCHITECTURE-CORE.md §adapter). `vgai.project.json` is static
+ * docs/ARCHITECTURE-CORE.md §adapter). `volter.project.json` is static
  * inventory; the adapter seam is the ONE layer that turns it into execution
  * bindings, and host code consumes the manifest through THESE derivations —
  * never by reading `manifest.roots` directly (the guard is
  * `packages/engine/test/manifest-sole-interpreter.test.ts`).
  *
  * Why a doorway and not a convention: one deriver means one direction of
- * truth (manifest → adapter → host). When the project's own `vgai.adapter.ts`
+ * truth (manifest → adapter → host). When the project's own `volter.adapter.ts`
  * later interposes on a derivation, every host path that asked the
  * interpreter gets the project's answer for free; a path that read the raw
  * field would silently keep the mechanical one.

@@ -5,7 +5,7 @@
  * scaffolded project so a multiplayer game can prove itself headlessly:
  * a test under `tests/logic/` seats two peers and drives them. Driving a
  * second peer against the
- * RUNNING game is a different job, and its door is `vgai eval`.
+ * RUNNING game is a different job, and its door is `volter eval`.
  *
  * Starts the REAL `startColyseus` bootstrap (`./colyseus-setup.js`) with the
  * shipped room registry (`./rooms.js` — `ArenaRoom` + `GameRoom`) on an

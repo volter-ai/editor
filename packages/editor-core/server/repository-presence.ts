@@ -119,7 +119,7 @@ async function readJson(
   const response = await fetchImpl(url, {
     cache: 'no-store',
     signal: AbortSignal.timeout(3_000),
-    ...(controlSecret ? { headers: { 'x-vgai-editor-control': controlSecret } } : {}),
+    ...(controlSecret ? { headers: { 'x-volter-editor-control': controlSecret } } : {}),
   });
   if (!response.ok) throw new Error(`Session presence request failed (${response.status}).`);
   return response.json();

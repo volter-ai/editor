@@ -1,6 +1,6 @@
 Blender look — theme-blender
 
-This extension is the MODEL EDITOR's, and it lives in the vgai-engine
+This extension is the MODEL EDITOR's, and it lives in the volter-engine
 repository (`packages/model-editor/workbench/extensions/theme-blender/`). It is
 copied into a Code-OSS checkout at build time by
 `scripts/workbench/overlay.mjs`, so in a built workbench it sits under
@@ -17,7 +17,7 @@ Blender's own icon artwork.
 
 WHAT THE FONT CONTAINS. `producticons/blender-product-icon-theme.json` maps 37
 product-icon ids onto 35 glyphs, and those glyphs are compiled from
-`@vgai/blender`'s `contributions/blender.icons.json` in this repository (the
+`@volter/blender`'s `contributions/blender.icons.json` in this repository (the
 theme file records the source file's sha256). That icon set is part ours and
 part Blender's: 197 of its 346 glyphs are MACHINE-TRACED, byte for byte, from
 Blender's own vector sources — `release/datafiles/icons_svg/*.svg`, 188 distinct
@@ -46,7 +46,7 @@ colours and the layout defaults in `package.json` are unaffected.
 THE UI FONT. The Blender look also loads `Inter.woff2`, which this product
 carries beside its contribution (`packages/model-editor/workbench/src/media/`)
 and the overlay copies into the workbench under
-`src/vs/workbench/contrib/vgaiProduct/browser/media/`. It is the Inter typeface,
+`src/vs/workbench/contrib/volterProduct/browser/media/`. It is the Inter typeface,
 copyright (c) 2016 The Inter Project Authors, under the SIL Open Font License
 1.1. Its notice and full licence text are in `ThirdPartyNotices.txt` at the
 Code-OSS fork's root, and its component entry is in that tree's

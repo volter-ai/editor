@@ -4,7 +4,7 @@
  *
  * A product is the last mile: thin code that stitches packages onto the kit and
  * holds only purpose-specific choices (ARCHITECTURE-CORE §The target shape).
- * `@vgai/game-editor` and `@vgai/model-editor` each have ONE source entry which
+ * `@volter/game-editor` and `@volter/model-editor` each have ONE source entry which
  * IS that product's frame entry, and the first thing it does is call
  * `product({ … })` (`frame/product.ts`), which lands here.
  *
@@ -20,8 +20,8 @@
  * the project said:
  *   - `workspace-style.ts` resolves {@link ActiveProduct.look} to a style
  *     bundle and makes its palette/material/icons the editor's DEFAULT
- *     appearance, beneath `~/.vgai/settings.json`, the project's own
- *     `.vgai/settings.json` and the adapter's declaration;
+ *     appearance, beneath `~/.volter/settings.json`, the project's own
+ *     `.volter/settings.json` and the adapter's declaration;
  *   - `workspace-presets.ts` uses {@link ActiveProduct.workspace} as the
  *     workspace a project opens in when this checkout has none recorded and the
  *     adapter declares none.
@@ -30,7 +30,7 @@
 /** What a product's entry composed, as the kit reads it. */
 export interface ActiveProduct {
   /** The product's id — `game-editor`, `model-editor`. Reported by the session
-   *  beside the workbench (`vgai status`), never read as a branch. */
+   *  beside the workbench (`volter status`), never read as a branch. */
   readonly id: string;
   /** The packages it mounts, by name, in composition order. The contributions
    *  themselves are already in the bundle (`tool-loader.ts`); this is the list

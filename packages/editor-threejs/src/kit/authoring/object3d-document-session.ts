@@ -1920,7 +1920,7 @@ class SelectionOrigins extends THREE.Points<THREE.BufferGeometry, THREE.PointsMa
         toneMapped: false,
       }),
     );
-    this.name = 'vgai:selection-origins';
+    this.name = 'volter:selection-origins';
     this.userData['editorHelper'] = true;
     this.renderOrder = 1000;
     this.frustumCulled = false;

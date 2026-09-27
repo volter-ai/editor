@@ -5,14 +5,14 @@
  * file the engine in the tab opens, edits and saves. The bpy scripts that
  * authored it are ordinary project files beside it (`src/models/<name>.py`);
  * this document does not run them, a person or an agent does, through the
- * session's Blender (`vgai blender-mcp`).
+ * session's Blender (`volter blender-mcp`).
  *
  * It replaced `modelsFromMeshModules`, which listed every module exporting
  * `build(): THREE.BufferGeometry` (owner ruling 2026-09-19, "do the delete":
  * the TypeScript mesh kit was the modeling engine while Blender could not run
  * in the tab; it now does, and a model is Blender data).
  *
- * Select it in `vgai.adapter.ts`:
+ * Select it in `volter.adapter.ts`:
  *
  *   documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**\/*.blend'] }] }
  *

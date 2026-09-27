@@ -5,11 +5,11 @@
  * A PACK is a named list of `{ key, dest }`: library asset keys and the
  * project-relative paths their bytes are copied to. It is an INPUT TO
  * MATERIALIZATION, never a runtime concept — nothing in a running game or a
- * scaffolded project resolves a pack. It is deliberately NOT a `vgai.project.json`
+ * scaffolded project resolves a pack. It is deliberately NOT a `volter.project.json`
  * field: the manifest says what a project IS, a pack says how its reference
  * material was PRODUCED.
  *
- * The file lives beside `vgai.project.json` in `packages/editor/template/` and each
+ * The file lives beside `volter.project.json` in `packages/editor/template/` and each
  * `examples/<id>/`. A scaffolded user project does not carry it; its record is
  * the ledger (`asset-ledger.ts`, D-AP3).
  *

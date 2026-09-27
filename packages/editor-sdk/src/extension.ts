@@ -5,7 +5,7 @@
  * A project extends the editor through exactly three surfaces:
  *
  * (a) **Editor panels** — registered into the workspace as documents
- *     or utilities via a tool contribution (`package.json#vgai.tools` →
+ *     or utilities via a tool contribution (`package.json#volter.tools` →
  *     `contributes: [{ point: 'workspace.document' | 'workspace.utility' | 'workspace.analytics' }]`).
  *     Types: `ToolContributionProps` in `@volter/editor-sdk/contributions`.
  *     Panels are never a parallel rail — the frame owns all layout.

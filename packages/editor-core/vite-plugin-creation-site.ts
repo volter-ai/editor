@@ -1,5 +1,5 @@
 /**
- * The `vgai-creation-site` transform — stamps every direct
+ * The `volter-creation-site` transform — stamps every direct
  * `new <Ctor>(…)` in a served PROJECT module so the editor can name the source
  * line that created a selected live object. The rewriting rules and why they
  * are semantics-preserving live in `server/creation-site-transform.ts`; this
@@ -37,7 +37,7 @@ import { shouldShadowGameGlobals } from './server/game-globals-shadow';
  *
  * Returns the ROOT and not just a boolean because the recorded path must be
  * root-relative: that string is shown in the inspector and read back through
- * `vgai eval`, and an absolute path would put the host's directory layout into
+ * `volter eval`, and an absolute path would put the host's directory layout into
  * a product surface. Longest matching root wins, so a project nested inside
  * another root is described against the nearest one.
  */
@@ -63,7 +63,7 @@ export function creationSiteScopeFor(
  */
 export function creationSitePlugin(getRoots: () => Iterable<string>): Plugin {
   return {
-    name: 'vgai-creation-site',
+    name: 'volter-creation-site',
     enforce: 'pre',
     transform(code: string, id: string) {
       const file = id.split('?')[0]!;

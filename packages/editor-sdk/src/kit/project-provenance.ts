@@ -1,4 +1,4 @@
-const PROVENANCE_PATH = '.vgai/provenance.json';
+const PROVENANCE_PATH = '.volter/provenance.json';
 
 export interface ProjectOutputProvenance {
   readonly operationId: string;
@@ -27,7 +27,7 @@ async function readProjectProvenance(): Promise<unknown> {
   // raw file bytes as `text/plain` (routes/project-source.ts), and that reader
   // asserts `application/json` — it would reject the success case.
   const response = await fetch(
-    `/__editor/vgai-file?${new URLSearchParams({ path: PROVENANCE_PATH })}`,
+    `/__editor/volter-file?${new URLSearchParams({ path: PROVENANCE_PATH })}`,
   );
   if (!response.ok) return null;
   return JSON.parse(await response.text());

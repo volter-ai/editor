@@ -115,8 +115,8 @@ export async function resolveProjectModule(
  *    from them). It is not a new convention invented here: `bakeObject3DSource`
  *    has always taken exactly `{ root, animations, dispose }` from its `build`
  *    callback, so the bake lane consumed this shape while the MODULE lane —
- *    `project.bake.module`, `project.bake.preview`, `vgai screenshot <module>`
- *    — refused it. Measured (cold fox, 2026-08-29): `vgai screenshot
+ *    `project.bake.module`, `project.bake.preview`, `volter screenshot <module>`
+ *    — refused it. Measured (cold fox, 2026-08-29): `volter screenshot
  *    src/lib/fox/generate.ts` died with "export 'createFox' must return a
  *    THREE.Object3D, got object", closing the fast look door to every
  *    parametric lib including the kit's own worked examples.
@@ -172,7 +172,7 @@ function asModuleBuild(built: unknown): ModuleBuild | undefined {
  * editor server, and it is a ONE-SHOT door: Node's ESM cache keys on the URL
  * and never invalidates, so inside a long-lived server it returned the first
  * version of `src/models/barrel.ts` for every later look until the server was
- * restarted (the blind modeling bench measured three `vgai restart`s in one
+ * restarted (the blind modeling bench measured three `volter restart`s in one
  * barrel, 2026-09-05).
  */
 export async function buildFromModule(
@@ -198,7 +198,7 @@ export async function buildFromModule(
   }
   // A MODEL MODULE's builder is `build` (`lib/mesh/geometry`'s contract), so a
   // caller asking for the default export of a module that has none but has
-  // `build` gets the model — `vgai screenshot src/models/cube.ts` needs no flag.
+  // `build` gets the model — `volter screenshot src/models/cube.ts` needs no flag.
   const exp = mod[exportName] ?? (exportName === 'default' ? mod['build'] : undefined);
   if (exp === undefined) {
     throw new ToolError(

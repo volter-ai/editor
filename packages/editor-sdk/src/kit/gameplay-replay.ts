@@ -112,7 +112,7 @@ function layoutAt(
     if (event.timestamp > epochMs) break;
     if (
       event.type === EventType.Custom &&
-      event.data.tag === 'vgai-canvas-layout' &&
+      event.data.tag === 'volter-canvas-layout' &&
       event.data.payload &&
       typeof event.data.payload === 'object' &&
       'rect' in event.data.payload &&
@@ -210,7 +210,7 @@ async function withGameplayReplay<T>(
   const host = document.createElement('div');
   // Reconstructing an older capture during Play must not record the
   // reconstruction itself into the new capture's DOM event stream.
-  host.setAttribute('data-vgai-replay-block', '');
+  host.setAttribute('data-volter-replay-block', '');
   Object.assign(host.style, {
     position: 'fixed',
     left: '-100000px',
@@ -238,7 +238,7 @@ async function withGameplayReplay<T>(
       showDebug: false,
       mouseTail: false,
       UNSAFE_replayCanvas: true,
-      insertStyleRules: ['[data-vgai-replay-video] { visibility: hidden !important; }'],
+      insertStyleRules: ['[data-volter-replay-video] { visibility: hidden !important; }'],
     });
     const replay = player;
     return await visit({
@@ -262,7 +262,7 @@ async function withGameplayReplay<T>(
         }
         const canvas = canvasNode as HTMLCanvasElement;
         const surface = surfaceNode as HTMLElement;
-        canvas.setAttribute('data-vgai-root-surface', 'true');
+        canvas.setAttribute('data-volter-root-surface', 'true');
         const layout = layoutAt(manifest, events, bounded);
         canvas.width = layout.drawingWidth;
         canvas.height = layout.drawingHeight;

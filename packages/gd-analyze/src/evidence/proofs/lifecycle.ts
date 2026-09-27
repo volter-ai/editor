@@ -217,7 +217,7 @@ function sourceSetDigest(sources: Readonly<Record<string, string>>): string {
 
 export function measureLifecycleProof(tools: GodotProofTools): readonly GodotProofMeasurement[] {
   const { exporterBinary, officialBinary } = tools;
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-direct-composition-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-direct-composition-'));
   try {
     for (const [relative, source] of Object.entries(files)) {
       writeFileSync(path.join(temp, relative), source);
@@ -424,7 +424,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     const worldSource = Buffer.from(byPath.get('src/world.tsx')?.bytes ?? []).toString('utf8');
     const mainSource = Buffer.from(byPath.get('src/main.ts')?.bytes ?? []).toString('utf8');
     const manifest = JSON.parse(
-      Buffer.from(byPath.get('vgai.project.json')?.bytes ?? []).toString('utf8'),
+      Buffer.from(byPath.get('volter.project.json')?.bytes ?? []).toString('utf8'),
     ) as { readonly name?: unknown; readonly resolution?: unknown; readonly roots?: unknown };
     const capabilityStampPlans = translation.plan.projectData.capabilityStamps;
     const capabilityStampsClosed = capabilityStampPlans.every((stamp) => {
@@ -458,14 +458,14 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
             'src/project/settings.ts',
             'src/world.tsx',
             'tsconfig.json',
-            'vgai.adapter.ts',
-            'vgai.project.json',
+            'volter.adapter.ts',
+            'volter.project.json',
             'vite.config.ts',
           ].sort(),
         ) ||
       // The template's boot: every manifest root through the entry modules its plugin generates.
-      mainSource.includes("from 'virtual:vgai-manifest-entries'") === false ||
-      mainSource.includes("import manifest from '../vgai.project.json'") === false ||
+      mainSource.includes("from 'virtual:volter-manifest-entries'") === false ||
+      mainSource.includes("import manifest from '../volter.project.json'") === false ||
       worldSource.includes('import { MainScene } from "./scenes/main";') === false ||
       worldSource.includes(
         'import { GodotProjectStartup, useGodotScriptTreeAttachment } from "./lib/godot-compat/react-lifecycle";',
@@ -501,7 +501,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     }
     for (const requiredPath of [
       'src/main.ts',
-      'vgai.adapter.ts',
+      'volter.adapter.ts',
       'tsconfig.json',
       'vite.config.ts',
       'index.html',

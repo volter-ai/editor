@@ -431,7 +431,7 @@ export async function measureSceneIdiomaticProof(tools: GodotProofTools): Promis
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_IDIOMATIC_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-idiomatic-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-idiomatic-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

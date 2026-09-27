@@ -3,7 +3,7 @@ import { PHASE_ORDER, type SystemPhaseName } from '@volter/editor-project/core/s
 /**
  * D1 — the canonical `AnimationClock` (spec §10 D1, §3.2, §4).
  *
- * VGAI owns exactly one clock per cinematic/scene context. It is the single
+ * VOLTER owns exactly one clock per cinematic/scene context. It is the single
  * source of truth for "what time is it" that registered sequences,
  * GSAP timelines, and cinematic cue evaluators are seeked against (D2/D5/D7
  * — NOT implemented here, this unit is the clock only). The render seam

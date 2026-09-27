@@ -3,7 +3,7 @@
  *
  * The report is derived in `coverage/capability-coverage.ts`; this component never
  * re-measures or reinterprets a seam. It only gives the same rows already
- * exposed by `vgai status` and the console an Inspector-shaped reading: the
+ * exposed by `volter status` and the console an Inspector-shaped reading: the
  * measured fact first, then the consequence and the concrete fix for gaps.
  */
 
@@ -74,7 +74,7 @@ function CoverageRow({ row }: { readonly row: LiveCoverageRow }) {
         gridTemplateColumns: '16px minmax(0, 1fr)',
         gap: 7,
         padding: '8px 10px',
-        borderTop: '1px solid var(--vgai-structural-divider)',
+        borderTop: '1px solid var(--volter-structural-divider)',
       }}
     >
       <span style={{ color: STATUS_COLOR[row.status], paddingTop: 1 }}>
@@ -112,7 +112,7 @@ function CoverageRow({ row }: { readonly row: LiveCoverageRow }) {
 export function CapabilityCoverageBody({ report }: { readonly report: LiveCoverageReport }) {
   const { summary } = report;
   return (
-    <div data-testid="ingest-coverage-report" style={{ fontSize: 'var(--vgai-font-base)' }}>
+    <div data-testid="ingest-coverage-report" style={{ fontSize: 'var(--volter-font-base)' }}>
       <div
         style={{
           display: 'flex',

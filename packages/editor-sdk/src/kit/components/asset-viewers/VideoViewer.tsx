@@ -54,7 +54,7 @@ export function VideoViewer({ assetPath }: { assetPath: string }) {
         )}
       </div>
       <div
-        className="vgai-asset-transparency-well"
+        className="volter-asset-transparency-well"
         style={{
           flex: 1,
           minHeight: 0,

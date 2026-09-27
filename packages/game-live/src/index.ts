@@ -60,7 +60,7 @@ export interface LiveSession {
 /** Build the game half for a resolved session. Contacts nothing until a
  *  method is awaited. */
 export function gameBindings(session: ResolvedSession): GameBindings {
-  const game = createLiveGame(session.port, join(session.projectRoot, '.vgai', 'last-run'), session.projectRoot);
+  const game = createLiveGame(session.port, join(session.projectRoot, '.volter', 'last-run'), session.projectRoot);
   const step: GameClient['page'] = (fn) => game.page(fn);
   const page: PageStep = Object.assign(step, { reload: () => game.reloadPage() });
   const recording = new LiveGameplayRecording(new EditorClient({ url: `http://127.0.0.1:${session.port}` }));

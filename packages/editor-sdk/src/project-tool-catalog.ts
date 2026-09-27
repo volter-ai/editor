@@ -11,7 +11,7 @@ export type ToolContributionPoint =
  * One contribution module, FOUND BY SCANNING — never listed anywhere.
  *
  * Nothing enumerates these. `src/tools/` in project source and `src/` in every
- * `vgai`-declaring dependency are walked for the naming convention
+ * `volter`-declaring dependency are walked for the naming convention
  * (`*.document.tsx`, `*.inspector.tsx`, `*.asset-inspector.tsx`,
  * `*.result.tsx`, `*.utility.tsx`, `*.analytics.tsx`), and the module itself declares everything
  * else: `point`, `title` (or `presentations`), and the `tool` it drives, by
@@ -21,7 +21,7 @@ export type ToolContributionPoint =
 export interface ProjectToolContribution {
   /** Project-relative or package-absolute browser module path. */
   entryPath: string;
-  /** The dependency that declared it (`package.json#vgai.contributions`),
+  /** The dependency that declared it (`package.json#volter.contributions`),
    *  absent for the project's own `src/contributions/` modules. */
   package?: string;
   /** The module's file, for a bundled package's entry (listed by specifier): what the
@@ -76,13 +76,13 @@ export interface ProjectToolLoadError {
  *    is a FACT about the project; a host that cannot ask has not learned it.
  */
 export const NO_PROJECT_MODULE_HOST_MESSAGE =
-  'This editor host cannot RUN registered project tools (package.json#vgai.tools): callables ' +
+  'This editor host cannot RUN registered project tools (package.json#volter.tools): callables ' +
   'execute on the Node side. Contribution panels still load from project source; to run the ' +
   'tools themselves, open the project in the Vite-backed dev or packaged editor.';
 
 /** The catalog row that states {@link NO_PROJECT_MODULE_HOST_MESSAGE}. */
 export function noProjectModuleHostError(): ProjectToolLoadError {
-  return { sourcePath: 'package.json#vgai.tools', message: NO_PROJECT_MODULE_HOST_MESSAGE };
+  return { sourcePath: 'package.json#volter.tools', message: NO_PROJECT_MODULE_HOST_MESSAGE };
 }
 
 /**

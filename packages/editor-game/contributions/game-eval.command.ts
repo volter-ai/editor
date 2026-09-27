@@ -1,13 +1,13 @@
 /**
  * The STEP verbs of the session wire (`@volter/editor-sdk/commands`, a
  * `workspace.command` contribution): `game-eval`, the module lane behind
- * `vgai eval`'s `game.run(...)`, and `page-script`, the in-page Playwright
+ * `volter eval`'s `game.run(...)`, and `page-script`, the in-page Playwright
  * shim behind `page(...)`. Both carry a step function's own SOURCE over the
  * wire and reconstruct it here — closures do not survive the trip — so both
  * are gated on a live game surface (a play session or an ingest mount) and
  * rooted at the game container, never editor chrome.
  *
- * The module lane's page-side door (`window.__vgaiGameEval`) and the two
+ * The module lane's page-side door (`window.__volterGameEval`) and the two
  * providers it needs are installed when this module loads, which is when the
  * verbs themselves become available: one handler, two doors, registered
  * together.
@@ -37,7 +37,7 @@ export const point = 'workspace.command';
  * source in the editor page (same wire contract as `page-script`: closures do
  * not survive) and runs it against a scope of { page, modules, instanceId } —
  * `modules(path)` importing the RUNNING mount's own module instances
- * (`game-module-access.ts`). This is what makes `vgai eval` able to touch the
+ * (`game-module-access.ts`). This is what makes `volter eval` able to touch the
  * game's exported modules directly, in the browser, with no registry: the
  * step is literal JS against the game's real functions.
  *
@@ -51,12 +51,12 @@ export const point = 'workspace.command';
  */
 declare global {
   interface Window {
-    __vgaiGameEval?: (src: string, instance?: string) => Promise<unknown>;
+    __volterGameEval?: (src: string, instance?: string) => Promise<unknown>;
   }
 }
 if (typeof window !== 'undefined') {
   setFocusedInstanceProvider(focusedInstanceId);
-  window.__vgaiGameEval = async (src: string, instance?: string) => {
+  window.__volterGameEval = async (src: string, instance?: string) => {
     const result = await handleGameEval({
       type: 'game-eval',
       src,
@@ -151,7 +151,7 @@ async function handlePageScript(cmd: EditorCommandMessage): Promise<EditorComman
   // first-party `play-mode.ts` session. Keep the Playwright-style page door on
   // the same reachability rule as bridge calls/screenshots: a real ingest
   // container is sufficient, while the genuinely-unmounted case still
-  // refuses below. Without this, `vgai play` could start an ingested game and
+  // refuses below. Without this, `volter play` could start an ingested game and
   // `game.commands()` would work, yet `page(...)` answered "not in play mode"
   // against that very same visible game.
   if (!isPlayModeActive() && !isIngestActive()) return notPlayingResult();

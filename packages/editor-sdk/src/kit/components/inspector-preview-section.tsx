@@ -64,7 +64,7 @@ export function InspectorPreviewBody({
               flexShrink: 0,
               margin: 12,
               overflow: 'hidden',
-              border: '1px solid var(--vgai-structural-divider)',
+              border: '1px solid var(--volter-structural-divider)',
               borderRadius: 'var(--dv-group-border-radius, 8px)',
             }
       }
@@ -122,7 +122,7 @@ export function InspectorComponentPreviewBody({
               flexShrink: 0,
               margin: 12,
               overflow: 'hidden',
-              border: '1px solid var(--vgai-structural-divider)',
+              border: '1px solid var(--volter-structural-divider)',
               borderRadius: 'var(--dv-group-border-radius, 8px)',
             }
       }
@@ -133,7 +133,7 @@ export function InspectorComponentPreviewBody({
             position: 'absolute',
             inset: 0,
             overflow: 'hidden',
-            background: 'var(--vgai-bg-inset)',
+            background: 'var(--volter-bg-inset)',
           }}
         >
           <source.Thumbnail
@@ -190,7 +190,7 @@ export function InspectorCanvasPreviewBody({
               flexShrink: 0,
               margin: 12,
               overflow: 'hidden',
-              border: '1px solid var(--vgai-structural-divider)',
+              border: '1px solid var(--volter-structural-divider)',
               borderRadius: 'var(--dv-group-border-radius, 8px)',
             }
       }

@@ -18,11 +18,11 @@ import {
 } from './server-utils';
 import { signedShareClaimHeaders } from './share-claims';
 
-const COOKIE = 'vgai_share';
-const AUTH_PATH = '/__vgai_share/auth';
-const CALLBACK_PATH = '/__vgai_share/callback';
-const COMPLETE_PATH = '/__vgai_share/complete';
-const HEALTH_PATH = '/__vgai_share/health';
+const COOKIE = 'volter_share';
+const AUTH_PATH = '/__volter_share/auth';
+const CALLBACK_PATH = '/__volter_share/callback';
+const COMPLETE_PATH = '/__volter_share/complete';
+const HEALTH_PATH = '/__volter_share/health';
 
 export type { ShareCapability, ShareRole } from '@volter/editor-sdk/share';
 
@@ -90,7 +90,7 @@ export interface ShareGrantRedemption {
 }
 
 /**
- * A redemption that failed because the VGAI account service could not be
+ * A redemption that failed because the VOLTER account service could not be
  * reached or answered 5xx — NOT because the grant belongs to a different
  * invitation. The gateway must keep the two apart: an unreachable service is a
  * 502 the participant can retry, while "this invitation does not own that
@@ -207,9 +207,9 @@ const NEVER_SHARE_PATHS = new Set([
   '/__editor/editor-state',
   // The host's workbench layout and open editors, in the project's own folder.
   '/__editor/workbench-storage',
-  // The USER settings layer is the host's own ~/.vgai/settings.json.
+  // The USER settings layer is the host's own ~/.volter/settings.json.
   '/__editor/settings/user',
-  // So is the host's own UI state, ~/.vgai/editor-state.json.
+  // So is the host's own UI state, ~/.volter/editor-state.json.
   '/__editor/user-state',
   '/__editor/themes/user',
   '/__editor/git/status',
@@ -265,7 +265,7 @@ const VIEW_API_PATHS = new Set([
   '/__editor/templates',
   '/__editor/tab-yielded',
   '/__editor/validation-log',
-  '/__editor/vgai-file',
+  '/__editor/volter-file',
 ]);
 
 const VIEW_MUTATION_PATHS = new Set([
@@ -307,7 +307,7 @@ const EDIT_PATHS = new Set([
   '/__editor/settings/project',
   '/__editor/themes/project',
   '/__editor/source-conflict/resolve',
-  '/__editor/vgai-file',
+  '/__editor/volter-file',
 ]);
 
 const TERMINAL_PATHS = new Set([
@@ -315,12 +315,12 @@ const TERMINAL_PATHS = new Set([
   // Reporting a command listener is what makes a tab ELIGIBLE to receive the
   // owner's commands, so it belongs with its two siblings rather than with
   // ordinary presence: a remote page that could claim eligibility could become
-  // the target of a `vgai eval` the local owner ran. (Undeclared until now —
+  // the target of a `volter eval` the local owner ran. (Undeclared until now —
   // the literal-route guard has been red on main since this route landed.)
   '/__editor/command-listener',
   '/__editor/command-received',
   // Acknowledging a console error CHANGES WHAT THE OWNER IS TOLD — it is the
-  // one door that takes something out of the set every `vgai` command shouts
+  // one door that takes something out of the set every `volter` command shouts
   // about. A guest who could reach it could silence the host's errors, so it
   // sits with the owner-only verbs and not with the reporting route above.
   '/__editor/console/ack',
@@ -334,10 +334,10 @@ const TERMINAL_PATHS = new Set([
   '/__editor/generations',
   '/__editor/project-tools',
   '/__editor/project-tools/run',
-  '/__vgai',
-  '/__vgai/screenshot',
-  '/__vgai/state',
-  '/__vgai/validation',
+  '/__volter',
+  '/__volter/screenshot',
+  '/__volter/state',
+  '/__volter/validation',
 ]);
 
 /** Types a shared browser legitimately fetches from a project that neither the
@@ -366,7 +366,7 @@ const SHARE_VIEW_DENIED_EXTENSIONS: ReadonlySet<string> = new Set(['yaml', 'yml'
 /**
  * Which raw (non-`/__`) project files a share VIEWER may fetch. This is an
  * ALLOWLIST on purpose: the reverse — "serve anything that is not `.git`,
- * `.vgai` or `.env*`" — hands the lowest remote role every `id_rsa`,
+ * `.volter` or `.env*`" — hands the lowest remote role every `id_rsa`,
  * `credentials.pem` and `backup.sqlite` that happens to sit in the project.
  *
  * Extensionless paths are the SPA root and Vite's virtual-module namespace
@@ -442,16 +442,16 @@ export function declaredShareCapability(
   }
   if (TEST_PATHS.has(path)) return 'test';
   if (TERMINAL_PATHS.has(path) || path.startsWith('/__editor/generations/')) return 'terminal';
-  if (path.startsWith('/__vgai/state/')) return 'terminal';
-  // Synthetic Vite module routes (`/__vgai-react-world-runtime`,
-  // `/__vgai-r3f-runtime`, `/__vgai-story-runtime`, …). These are read-only
+  if (path.startsWith('/__volter/state/')) return 'terminal';
+  // Synthetic Vite module routes (`/__volter-react-world-runtime`,
+  // `/__volter-r3f-runtime`, `/__volter-story-runtime`, …). These are read-only
   // JS the editor imports to MOUNT THE GAME WORLD — without them a remote
   // guest's viewport fails to mount ("world failed to mount") and they see the
   // presence overlay over a blank scene. Served like any other module a viewer
   // already receives; a mutation to this synthetic namespace has no meaning and
-  // stays refused. NOTE the HYPHEN: `/__vgai/` (slash) is the terminal/state
+  // stays refused. NOTE the HYPHEN: `/__volter/` (slash) is the terminal/state
   // surface above and is deliberately untouched.
-  if (path.startsWith('/__vgai-')) return mutation ? 'never-share' : 'view';
+  if (path.startsWith('/__volter-')) return mutation ? 'never-share' : 'view';
   if (path.startsWith('/__ui-source/')) {
     return !mutation && (path === '/__ui-source/read' || path === '/__ui-source/prepare')
       ? 'view'
@@ -472,7 +472,7 @@ export function declaredShareCapability(
 
 function decodedSharePath(rawUrl: string | undefined): string | null {
   try {
-    let path = new URL(rawUrl ?? '/', 'http://vgai.local').pathname;
+    let path = new URL(rawUrl ?? '/', 'http://volter.local').pathname;
     for (let pass = 0; pass < 4; pass += 1) {
       const decoded = decodeURIComponent(path);
       if (decoded === path) return path;
@@ -513,7 +513,7 @@ function upstreamHeaders(
   const next = { ...headers };
   delete next['cookie'];
   for (const header of Object.keys(next)) {
-    if (header.toLowerCase().startsWith('x-vgai-share-')) delete next[header];
+    if (header.toLowerCase().startsWith('x-volter-share-')) delete next[header];
   }
   next['host'] = `127.0.0.1:${targetPort}`;
   if (next['origin']) next['origin'] = `http://127.0.0.1:${targetPort}`;
@@ -530,7 +530,7 @@ function upstreamHeaders(
   return next;
 }
 
-/** The invitee's first impression of VGAI, and it must survive the gateway's
+/** The invitee's first impression of VOLTER, and it must survive the gateway's
  * `default-src 'none'` CSP: no external asset, no framework, one inline style
  * block shared by both pages. */
 const SHARE_PAGE_STYLES = `:root{color-scheme:dark}
@@ -634,7 +634,7 @@ else fetch('${COMPLETE_PATH}',{method:'POST',headers:{'Content-Type':'applicatio
   if(r.status===429){fail('Too many attempts — wait a minute.');return}
   if(!r.ok){fail('This invitation is invalid, expired, or was revoked — ask the host for a new link.');return}
   const body=await r.json();
-  try{localStorage.setItem('vgai.collaboration.participant.v1',body.participantId);localStorage.setItem('vgai.collaboration.remote-share.v1','1')}
+  try{localStorage.setItem('volter.collaboration.participant.v1',body.participantId);localStorage.setItem('volter.collaboration.remote-share.v1','1')}
   catch{fail('This browser blocks site storage; the shared editor cannot keep your identity. Enable storage/cookies for this site and reopen the link.');return}
   statusText.textContent='Loading the editor — the first load can take a while.';
   setTimeout(()=>location.replace('/'),600);
@@ -675,7 +675,7 @@ function html(response: import('node:http').ServerResponse, content: string): vo
 }
 
 function participantFromEventsUrl(rawUrl: string | undefined): string | null {
-  const url = new URL(rawUrl ?? '/', 'http://vgai.local');
+  const url = new URL(rawUrl ?? '/', 'http://volter.local');
   if (url.pathname !== '/__editor/events') return null;
   const participantId = url.searchParams.get('participantId')?.trim();
   return participantId && participantId.length <= 200 ? participantId : null;
@@ -742,7 +742,7 @@ function sameOrigin(request: import('node:http').IncomingMessage): boolean {
 
 function isViteClientRequest(method: string | undefined, rawUrl: string | undefined): boolean {
   return (
-    method === 'GET' && new URL(rawUrl ?? '/', 'http://vgai.local').pathname === '/@vite/client'
+    method === 'GET' && new URL(rawUrl ?? '/', 'http://volter.local').pathname === '/@vite/client'
   );
 }
 
@@ -868,7 +868,7 @@ export async function createSessionShareGateway(options: {
       response.writeHead(200, {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store',
-        'X-VGAI-Share-Gateway': 'ready',
+        'X-VOLTER-Share-Gateway': 'ready',
       });
       response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ ready: true }));
       return;
@@ -1055,7 +1055,7 @@ export async function createSessionShareGateway(options: {
       return;
     }
     const participantId = participantFromEventsUrl(request.url);
-    if (new URL(request.url ?? '/', 'http://vgai.local').pathname === '/__editor/events') {
+    if (new URL(request.url ?? '/', 'http://volter.local').pathname === '/__editor/events') {
       if (participantId && share.participantId !== participantId) {
         response.writeHead(403).end('This share login is already bound to another participant.');
         return;
@@ -1170,7 +1170,7 @@ export async function createSessionShareGateway(options: {
       socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
       return;
     }
-    const eventUrl = new URL(request.url ?? '/', 'http://vgai.local');
+    const eventUrl = new URL(request.url ?? '/', 'http://volter.local');
     if (eventUrl.pathname === '/__editor/events') {
       const participantId = participantFromEventsUrl(request.url);
       if (participantId && share.participantId !== participantId) {

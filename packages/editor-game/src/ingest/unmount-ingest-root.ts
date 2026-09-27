@@ -131,7 +131,7 @@ function disposeThreejsSession(s: IngestSession): void {
   }
 
   reclaimGameRealm('', 'The ingested game');
-  clearIngestHook('__vgaiIngest');
+  clearIngestHook('__volterIngest');
   editorConsole.log('Ingest root unmounted', 'ingest');
 }
 
@@ -160,7 +160,7 @@ function disposePixiSession(s: IngestSession2D): void {
     /* ignore */
   }
   reclaimGameRealm('', 'The ingested canvas game');
-  clearIngestHook('__vgaiIngest2D');
+  clearIngestHook('__volterIngest2D');
   editorConsole.log('canvas ingest root unmounted', 'ingest');
 }
 
@@ -184,7 +184,7 @@ function disposeReactSession(s: IngestSessionReact): void {
     /* ignore */
   }
   reclaimGameRealm('', 'The ingested DOM game');
-  clearIngestHook('__vgaiIngestReact');
+  clearIngestHook('__volterIngestReact');
   editorConsole.log('DOM ingest root unmounted', 'ingest');
 }
 

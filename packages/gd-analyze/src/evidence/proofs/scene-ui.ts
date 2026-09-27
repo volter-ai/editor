@@ -318,7 +318,7 @@ export async function measureSceneUiProof(tools: GodotProofTools): Promise<reado
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_UI_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-ui-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-ui-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

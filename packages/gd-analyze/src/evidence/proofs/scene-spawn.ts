@@ -267,7 +267,7 @@ function printed(stdout: string, stderr: string, what: string): unknown {
 
 export async function measureSceneSpawnProof(tools: GodotProofTools): Promise<readonly GodotProofMeasurement[]> {
   const { exporterBinary, officialBinary } = tools;
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-spawn-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-spawn-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

@@ -744,9 +744,9 @@ export interface GameInternal extends Game {
    * call the SAME per-tick pipeline `runFrame` uses, `n` times in a tight
    * loop, with `dt` fixed to the host loop's own fixed timestep
    * (`this.loop.fixedDt` — `core/game-loop.ts`). This generalizes
-   * `render-control.ts`'s proven `VgaiRenderHarness. simulateSubsteps` from
-   * the capture-only door (`?vgai-render=1`) to a Game-level primitive every
-   * door can reach (the bridge's `window.__vgai.runTicks`, the editor relay's
+   * `render-control.ts`'s proven `VolterRenderHarness. simulateSubsteps` from
+   * the capture-only door (`?volter-render=1`) to a Game-level primitive every
+   * door can reach (the bridge's `window.__volter.runTicks`, the editor relay's
    * `run-ticks` case → `play.runTicks`) — `simulateSubsteps` itself is
    * UNTOUCHED by this addition (it may later delegate to this method; not
    * this unit's job).
@@ -816,7 +816,7 @@ export function createGame(opts: {
    *  on its own terms, whether or not the project's manifest DECLARES that
    *  reproducibility as a contract). The manifest-aware boot path
    *  (`mount-manifest.ts`'s `mountManifestRoots`) is what actually resolves
-   *  `manifest.determinism.defaultSeed`/`?vgai-seed=`/explicit config and
+   *  `manifest.determinism.defaultSeed`/`?volter-seed=`/explicit config and
    *  passes the result here, BEFORE any world's `mount()`/`setup()` runs —
    *  `createGameRuntime` always constructs the Game (this call) first (see
    *  this function's own doc comment below). */
@@ -1618,7 +1618,7 @@ export function createGame(opts: {
   // D15/T-D15.4: wire the run-ticks target the instant the Game shell exists
   // (unlike `setVirtualInputTarget`, which waits for a per-world mount, a
   // Game's own `runTicks` needs nothing else) — this is what makes
-  // `window.__vgai.runTicks` (`debug-bridge.ts`) and the editor relay's
+  // `window.__volter.runTicks` (`debug-bridge.ts`) and the editor relay's
   // `run-ticks` case reach the SAME implementation `game.runTicks` above is.
   debugRegistry.setRunTicksTarget({ runTicks: gameInternal.runTicks });
   // D15 (T-D15.1/.3) — same "file after the shell exists" ordering as the

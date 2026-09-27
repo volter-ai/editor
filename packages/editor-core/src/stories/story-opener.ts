@@ -19,7 +19,7 @@
  *
  * WHICH SURFACE it lands on is still the declared medium
  * (`story-declared-medium.ts`) delegated to `story:three` / `story:isolated`,
- * and `mode: 'docs'` to `story:docs`. Those three are `@vgai/game`'s
+ * and `mode: 'docs'` to `story:docs`. Those three are `@volter/game`'s
  * documents: a build without that package has no opener for them and this one
  * answers `null`, which is the same honest answer an undeclared medium gives.
  *
@@ -227,7 +227,7 @@ export function registerStoryOpener(): () => void {
      *
      * The MEDIUM is the declaration here, not the stage's own announcement:
      * the story document constructs its viewport source asynchronously
-     * (`@vgai/game`'s `three-story-documents.tsx`), so at this instant nothing
+     * (`@volter/game`'s `three-story-documents.tsx`), so at this instant nothing
      * has rendered yet and an announcement could only read absent. A `three`
      * medium ALWAYS mounts one, which is what makes the wait unconditional and
      * the refusal honest.

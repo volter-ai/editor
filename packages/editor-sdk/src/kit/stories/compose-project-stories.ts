@@ -18,7 +18,7 @@
  * comment) — `ensureProjectAnnotations` below does that exactly once per
  * editor session, from the project's `.storybook/preview.ts(x)` if the
  * project has one, else an empty array (Storybook's own default). This is
- * the ONLY place project annotations are threaded; no VGAI-specific
+ * the ONLY place project annotations are threaded; no VOLTER-specific
  * override.
  *
  * No duplicate story format anywhere: `composeProjectStories` takes the
@@ -95,8 +95,8 @@ export interface ComposedProjectStory {
    *  tags to project one project registry into distinct design boards; the
    *  story module remains the sole source of truth. */
   tags?: readonly string[];
-  /** Fully-composed Storybook parameters. VGAI only reads the namespaced
-   * `parameters.vgai` association; every other parameter remains Storybook's. */
+  /** Fully-composed Storybook parameters. VOLTER only reads the namespaced
+   * `parameters.volter` association; every other parameter remains Storybook's. */
   parameters: Record<string, unknown>;
   /** Storybook's fully-composed globals. Viewport selection is read from
    *  here exactly as the viewport addon reads it; no editor-side story

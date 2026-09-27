@@ -154,7 +154,7 @@ export class ProjectWorkCoordinator {
             message: error instanceof Error ? error.message : String(error),
           };
       this.publish({
-        schema: 'vgai.project-work.v1',
+        schema: 'volter.project-work.v1',
         projectKey: null,
         tracker,
         associations: [],
@@ -203,7 +203,7 @@ export class ProjectWorkCoordinator {
         resolveProjectIdentity(this.options.getProjectRoot()).projectKey,
     };
     this.publish({
-      schema: 'vgai.project-work.v1',
+      schema: 'volter.project-work.v1',
       projectKey: currentPresentation.projectKey,
       tracker: { state: 'ready', payload: this.payload },
       associations,

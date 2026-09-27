@@ -266,7 +266,7 @@ export function createPerformanceProfiler(initiallyEnabled = false) {
         startMs: existing?.startMs ?? phaseStart - frameStart,
       });
       if (recording)
-        performance.measure(`vgai.phase.${name}`, { start: phaseStart, duration: elapsed });
+        performance.measure(`volter.phase.${name}`, { start: phaseStart, duration: elapsed });
     },
     systemObserver: {
       beginSystem() {
@@ -344,7 +344,7 @@ export function createPerformanceProfiler(initiallyEnabled = false) {
       frames.push(frame);
       if (frames.length > 600) frames.splice(0, frames.length - 600);
       if (recording)
-        performance.measure('vgai.frame', { start: frameStart, duration: frame.cpuMs });
+        performance.measure('volter.frame', { start: frameStart, duration: frame.cpuMs });
       publish();
     },
     subscribe(listener: () => void) {

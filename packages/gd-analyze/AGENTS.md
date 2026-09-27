@@ -1,8 +1,8 @@
 # Godot translation verification
 
 Do not add unit or end-to-end tests to this package. Translation completeness is measured by the
-lane's `report`/ladder workflow, regenerated native fixtures, and live editor evidence (`vgai
-status`, Play, deterministic `vgai eval`, and screenshots). A temporary diagnostic probe must stay
+lane's `report`/ladder workflow, regenerated native fixtures, and live editor evidence (`volter
+status`, Play, deterministic `volter eval`, and screenshots). A temporary diagnostic probe must stay
 temporary and uncommitted; once it identifies a class fix, delete the probe.
 
 Keep `test/fixtures/`, ground-truth captures, and measurement helpers. They are inputs and

@@ -4,7 +4,7 @@ import { InputMapFileSchema } from '@volter/game-runtime/input/schema';
 /**
  * Content validation for the project's structured input-map asset. Models,
  * materials, animation, images, and audio use their ecosystem-native formats
- * and are validated by their own loaders/tooling rather than vgai JSON schemas.
+ * and are validated by their own loaders/tooling rather than volter JSON schemas.
  */
 export const ASSET_CONTENT_EXTENSIONS = ['.inputmap.json'] as const;
 

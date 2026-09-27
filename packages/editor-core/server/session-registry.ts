@@ -2,7 +2,7 @@
  * Editor session registry — the file-backed ledger of live editor dev servers.
  * This module is the WRITER (dev.ts registers on listen, re-registers on
  * project switch, unregisters on shutdown). The FORMAT — entry shape, guards,
- * path, liveness-filtered read — lives once in `@vgai/sdk`'s
+ * path, liveness-filtered read — lives once in `@volter/sdk`'s
  * `session-registry-format`, imported by every reader (this file, the CLI,
  * and both SDK transports) instead of copied.
  *
@@ -76,7 +76,7 @@ export function materializeSession(
   };
 }
 
-const REGISTRY_DIR = join(homedir(), '.vgai');
+const REGISTRY_DIR = join(homedir(), '.volter');
 const REGISTRY_FILE = EDITOR_SESSIONS_REGISTRY_FILE;
 
 export function sessionRegistryPath(): string {
@@ -86,15 +86,15 @@ export function sessionRegistryPath(): string {
 /**
  * Is this dev server an EPHEMERAL PROBE rather than a session anyone owns?
  *
- * `vgai doctor` spawns a real dev server on the target folder for a few
+ * `volter doctor` spawns a real dev server on the target folder for a few
  * seconds and drives it with its own headless browser. It is not an editing
- * session: nobody should be able to reuse it, `vgai close` should not list
+ * session: nobody should be able to reuse it, `volter close` should not list
  * it, and — the defect this exists for (SimCity ingest dogfood, S-6) — it
- * must not touch the project's `.vgai/session.json`, which belongs to
- * whichever `vgai edit` session is actually serving that folder. The probe
+ * must not touch the project's `.volter/session.json`, which belongs to
+ * whichever `volter edit` session is actually serving that folder. The probe
  * used to OVERWRITE that file at boot with its own throwaway port/pid and
  * then DELETE it on exit, so a live session the user was watching became
- * undiscoverable (`cat .vgai/session.json` → ENOENT) because they ran a
+ * undiscoverable (`cat .volter/session.json` → ENOENT) because they ran a
  * read-only diagnostic against it.
  *
  * Same shape as `VOLTER_NO_OPEN`: an env flag the spawning tool sets on the
@@ -108,7 +108,7 @@ export function isEphemeralSession(env: NodeJS.ProcessEnv = process.env): boolea
 
 /**
  * Does this dev server contribute to the PERSON's launcher memory
- * (`~/.vgai/recent-projects.json`, read by the Projects hub and by the
+ * (`~/.volter/recent-projects.json`, read by the Projects hub and by the
  * opt-in "Reopen last project on launch")?
  *
  * Recents is machine-local state that belongs to a
@@ -116,7 +116,7 @@ export function isEphemeralSession(env: NodeJS.ProcessEnv = process.env): boolea
  * reaches for. Two kinds of dev server have no such human by construction and
  * must therefore stay out of it:
  *
- * - an EPHEMERAL PROBE (`isEphemeralSession`, today `vgai doctor`), which is
+ * - an EPHEMERAL PROBE (`isEphemeralSession`, today `volter doctor`), which is
  *   not an editing session at all; and
  * - a HEADLESS session (`VOLTER_NO_OPEN` — the CLI's `--no-open`), which
  *   maintains no browser tab whatsoever: CI, headless harnesses, and every
@@ -161,7 +161,7 @@ export function liveSessions(): EditorSession[] {
  * would persist that empty view and silently wipe every other live session's
  * entry. Reproduced live 2026-07-25: two concurrent restart-churn processes
  * emptied a registry seeded with three entries whose PIDs were still alive —
- * the wiped sessions kept running but became invisible to `vgai
+ * the wiped sessions kept running but became invisible to `volter
  * edit`/`sessions`/`close`, which is the "new editors starting over and over
  * while strays accumulate" failure mode.
  */

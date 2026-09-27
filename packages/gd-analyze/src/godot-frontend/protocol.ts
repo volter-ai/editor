@@ -8,7 +8,7 @@ import { godotSourceAuthority } from './source-authority';
  * first vertical slice of the same closed semantic boundary Unity's `BoundCSharpProgram` uses.
  * New resource semantics enter as explicit variants and the validator is total over every variant.
  */
-export const GODOT_FRONTEND_PROTOCOL = 'vgai.godot-frontend' as const;
+export const GODOT_FRONTEND_PROTOCOL = 'volter.godot-frontend' as const;
 export const GODOT_FRONTEND_PROTOCOL_VERSION = 5 as const;
 
 export type BoundGodotCubemapArrangement = '1x6' | '2x3' | '3x2' | '6x1';

@@ -19,7 +19,7 @@
  * ## Licence
  *
  * Blender's icon sources are GPL-2.0-or-later, like the rest of the Blender
- * tree, and a trace of one is a derivative of it. `@vgai/blender` therefore
+ * tree, and a trace of one is a derivative of it. `@volter/blender` therefore
  * carries BOTH licences — its SPDX expression is
  * `AGPL-3.0-only AND GPL-3.0-or-later` (`packages/blender/LICENSE`): our code
  * AGPL-3.0-only, Blender's traced artwork conveyed under GPL-3.0-or-later on

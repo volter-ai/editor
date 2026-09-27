@@ -2,8 +2,8 @@
  * THE TWO SHARED SETTINGS LAYERS on disk (ARCHITECTURE-CORE §Editor chrome,
  * "Settings have four layers with named homes"):
  *
- *   GET/POST /__editor/settings/user      ~/.vgai/settings.json
- *   GET/POST /__editor/settings/project   <project>/.vgai/settings.json
+ *   GET/POST /__editor/settings/user      ~/.volter/settings.json
+ *   GET/POST /__editor/settings/project   <project>/.volter/settings.json
  *
  * A read validates the file against `EditorSettingsSchema` and, when it does
  * not parse, answers `{ settings: {}, issues }` naming the file's problems so
@@ -13,13 +13,13 @@
  * client store is the one writer and merges its own patches.
  *
  * The user file's home is `VOLTER_USER_SETTINGS_PATH` when set (the same
- * override idiom as `VOLTER_ACCOUNT_PATH`), else `~/.vgai/settings.json`.
+ * override idiom as `VOLTER_ACCOUNT_PATH`), else `~/.volter/settings.json`.
  *
  * Beside it, the person's own UI STATE (`@volter/editor-sdk/kit/user-local-state`):
  *
- *   GET/POST /__editor/user-state         ~/.vgai/editor-state.json
+ *   GET/POST /__editor/user-state         ~/.volter/editor-state.json
  *
- * the per-user sibling of a project's `.vgai/editor-state.json`: what one person's editor
+ * the per-user sibling of a project's `.volter/editor-state.json`: what one person's editor
  * remembers in every project (the inspector's layout, the mute). Browser storage cannot hold
  * it: every project and worktree is served on its own port, so its own origin, and a
  * preference kept there resets in each. Not settings, so not validated as them. A POST carries
@@ -37,7 +37,7 @@ import type { RouteContext } from './context';
 
 export const USER_SETTINGS_PATH = process.env['VOLTER_USER_SETTINGS_PATH']
   ? resolve(process.env['VOLTER_USER_SETTINGS_PATH'])
-  : join(homedir(), '.vgai', 'settings.json');
+  : join(homedir(), '.volter', 'settings.json');
 
 export const USER_STATE_PATH = join(dirname(USER_SETTINGS_PATH), 'editor-state.json');
 const USER_STATE_LIMIT = 256 * 1024;
@@ -60,7 +60,7 @@ async function readUserState(): Promise<Record<string, unknown>> {
 }
 
 export function projectSettingsPath(projectRoot: string): string {
-  return join(projectRoot, '.vgai', 'settings.json');
+  return join(projectRoot, '.volter', 'settings.json');
 }
 
 export interface SettingsFileRead {

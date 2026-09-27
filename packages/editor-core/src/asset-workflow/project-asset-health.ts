@@ -66,13 +66,13 @@ export function inspectProjectAssetHealth(input: {
 
   const dependencies = externalDependencies(assetPath, asset?.text);
   if (dependencies.some((path) => !byPath.has(path))) codes.add('missing-dependency');
-  // Catalog attribution is project-authoring state in .vgai/provenance.json,
+  // Catalog attribution is project-authoring state in .volter/provenance.json,
   // outside this public/-rooted storage snapshot. Do not infer it is missing
   // from the deliberate absence of a legacy per-directory sidecar.
 
   const references: ProjectAssetReference[] = [];
   for (const file of input.files) {
-    // JSON is a common structured container, not a vgai material dialect.
+    // JSON is a common structured container, not a volter material dialect.
     // Walk any JSON document supplied by the project snapshot and report the
     // exact path of a matching asset reference.
     if (!file.text || !/\.json$/i.test(file.path)) continue;

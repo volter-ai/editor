@@ -481,7 +481,7 @@ export function ColorSwatch({
         <div
           style={{
             position: 'absolute',
-            zIndex: 'var(--vgai-z-dropdown)',
+            zIndex: 'var(--volter-z-dropdown)',
             top: '100%',
             left: 0,
             marginTop: 4,

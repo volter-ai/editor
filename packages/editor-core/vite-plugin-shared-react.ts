@@ -3,7 +3,7 @@
  *
  * ## The defect this closes
  *
- * Under the PACKAGED runtime (`server/packaged.ts`: a `@vgai/editor` npm
+ * Under the PACKAGED runtime (`server/packaged.ts`: a `@volter/editor` npm
  * package with no monorepo checkout) the page runs two module graphs at once:
  *
  *  - the editor shell, a PREBUILT production bundle (`dist/assets/index-*.js`)
@@ -37,7 +37,7 @@
  *
  * At serve time {@link sharedReactPlugin} resolves those specifiers, for
  * every module in the EDITOR TREE (see below), to the built chunk's URL
- * (`/assets/vgai-shared-react-<hash>.js`) — the SAME absolute URL the shell's
+ * (`/assets/volter-shared-react-<hash>.js`) — the SAME absolute URL the shell's
  * own bundle imports, so the browser's module map hands both sides the one
  * instance.
  *
@@ -135,12 +135,12 @@ interface DepsOptimizer {
  * dependency whose whole job IS rendering in the editor's tree.
  */
 export const SHARED_REACT_ENTRIES = {
-  react: 'vgai-shared-react',
-  'react-dom': 'vgai-shared-react-dom',
-  'react-dom/client': 'vgai-shared-react-dom-client',
-  'react/jsx-runtime': 'vgai-shared-jsx-runtime',
-  'react/jsx-dev-runtime': 'vgai-shared-jsx-dev-runtime',
-  '@fortawesome/react-fontawesome': 'vgai-shared-fontawesome',
+  react: 'volter-shared-react',
+  'react-dom': 'volter-shared-react-dom',
+  'react-dom/client': 'volter-shared-react-dom-client',
+  'react/jsx-runtime': 'volter-shared-jsx-runtime',
+  'react/jsx-dev-runtime': 'volter-shared-jsx-dev-runtime',
+  '@fortawesome/react-fontawesome': 'volter-shared-fontawesome',
 
 } as const satisfies Record<string, string>;
 
@@ -155,14 +155,14 @@ export const SHARED_REACT_SPECIFIERS = Object.keys(SHARED_REACT_ENTRIES) as Shar
  * this file is read out of an INSTALLED tarball, and a dot-directory is one
  * more thing that has to survive `npm pack`.
  */
-export const SHARED_REACT_MANIFEST_FILE = 'vgai-shared-react.json';
+export const SHARED_REACT_MANIFEST_FILE = 'volter-shared-react.json';
 
 export interface SharedReactManifest {
   /** Bare specifier → outDir-relative built chunk file (`assets/…js`). */
   files: Record<string, string>;
 }
 
-const VIRTUAL_PREFIX = '\0vgai-shared-react:';
+const VIRTUAL_PREFIX = '\0volter-shared-react:';
 /** This package's own root — the plugin runs from source here and from
  *  `dist/build/` in an install, so the shim is found from the root. */
 function editorCoreRoot(): string {
@@ -222,7 +222,7 @@ export function installedExportNames(fromDir: string, specifier: string): string
 export function sharedReactBuildPlugin(fromDir: string): Plugin {
   const referenceIds = new Map<SharedReactSpecifier, string>();
   return {
-    name: 'vgai-shared-react-build',
+    name: 'volter-shared-react-build',
     apply: 'build',
     buildStart() {
       referenceIds.clear();
@@ -304,7 +304,7 @@ export function sharedReactUrls(manifest: SharedReactManifest, base = '/'): Reco
  * Queries survive `cleanUrl`, so every other plugin's `.tsx` scope test still
  * matches a marked module.
  */
-export const EDITOR_TREE_QUERY = 'vgai-editor-react';
+export const EDITOR_TREE_QUERY = 'volter-editor-react';
 
 /** A file inside a `@volter/*` package's `contributions/` directory under any
  *  `node_modules` (a real install). A checkout-linked package resolves to its
@@ -316,7 +316,7 @@ const contributionRoots = new Map<string, string | null>();
 
 /**
  * The root of the package that owns `file`, when that package declares editor
- * contributions (`package.json#vgai.contributions`), else `null`. This is how a
+ * contributions (`package.json#volter.contributions`), else `null`. This is how a
  * DECLARED package served from a checkout — a project's `node_modules/@volter/x`
  * symlinked to `packages/x`, resolved by Vite to its realpath — is recognized as
  * the same thing an installed one is: its `contributions/` render in the editor's
@@ -338,7 +338,7 @@ function contributionPackageRoot(file: string): string | null {
     const manifest = path.join(directory, 'package.json');
     if (existsSync(manifest)) {
       try {
-        const declares = (JSON.parse(readFileSync(manifest, 'utf8')) as { vgai?: { contributions?: unknown } }).vgai?.contributions;
+        const declares = (JSON.parse(readFileSync(manifest, 'utf8')) as { volter?: { contributions?: unknown } }).volter?.contributions;
         found = Array.isArray(declares) ? directory : null;
       } catch {
         found = null;
@@ -481,7 +481,7 @@ const reportedCommonJs = new Set<string>();
 export interface SharedReactScope {
   /** Specifier → built chunk URL (see {@link sharedReactUrls}). */
   urls: Record<string, string>;
-  /** The installed `@vgai/editor` package root — its `src/` is `@editor/*`. */
+  /** The installed `@volter/editor` package root — its `src/` is `@editor/*`. */
   editorPackageRoot: string;
   /** Every open project root, live (the same getter the sibling plugins take). */
   projectRoots: () => Set<string>;
@@ -551,7 +551,7 @@ export function sharedReactPlugin({
     if (importer.includes(EDITOR_TREE_QUERY)) return true;
     const file = stripQuery(importer);
     if (isUnder(file, editorSrc) || isUnder(file, layoutSdkSrc)) return true;
-    // A skew PACKAGE's contribution (`node_modules/@vgai/<pkg>/contributions/`)
+    // A skew PACKAGE's contribution (`node_modules/@volter/<pkg>/contributions/`)
     // renders in the editor's tree exactly as a project's own contribution
     // does, so it takes the shell's React and SDK. Only the contributions
     // directory: the same package's `src/` is also game runtime (a mesh
@@ -560,7 +560,7 @@ export function sharedReactPlugin({
     const packageRoot = contributionPackageRoot(file);
     if (packageRoot !== null && isUnder(file, path.join(packageRoot, 'contributions'))) return true;
     for (const root of projectRoots()) {
-      if (file === path.join(root, 'vgai.adapter.ts')) return true;
+      if (file === path.join(root, 'volter.adapter.ts')) return true;
       if (EDITOR_LANE_DIRS.some((dir) => isUnder(file, path.join(root, dir)))) return true;
     }
     return false;
@@ -577,13 +577,13 @@ export function sharedReactPlugin({
   };
 
   return {
-    name: 'vgai-shared-react',
+    name: 'volter-shared-react',
     enforce: 'pre',
     async resolveId(source, importer, options) {
       // Never during dependency SCANNING. The scanner records whatever an id
       // resolves to as a file to prebundle, so handing it the shell's URL made
       // the boot-time optimizer die on `ENOENT: open
-      // '/assets/vgai-shared-jsx-runtime-*.js'` — measured, on the first run
+      // '/assets/volter-shared-jsx-runtime-*.js'` — measured, on the first run
       // after this scope existed. The redirect belongs to serving, where the
       // browser is the thing fetching the URL.
       // `scan` is Vite's own flag on the resolve options, not part of rollup's
@@ -591,7 +591,7 @@ export function sharedReactPlugin({
       //
       // The scan is not the only server-side pass that follows this redirect:
       // import analysis PRE-TRANSFORMS every static import it rewrites, and a
-      // warmup for `/assets/vgai-shared-*.js` resolves against the project root
+      // warmup for `/assets/volter-shared-*.js` resolves against the project root
       // and fails the same way (measured: 64 formatted `Pre-transform error`
       // lines from one `*.inspector.tsx` request). Vite has no per-request
       // opt-out there, so `packaged.ts` turns `server.preTransformRequests` off

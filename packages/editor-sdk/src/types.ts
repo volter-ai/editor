@@ -72,7 +72,7 @@ export interface HelperVisibility {
   skeletons: boolean;
   /**
    * The WEIGHT display — a mesh coloured by its active vertex group
-   * (`@vgai/blender`'s `blender-runtime-weights.ts`). Added 2026-09-19 (I4)
+   * (`@volter/blender`'s `blender-runtime-weights.ts`). Added 2026-09-19 (I4)
    * because nothing in this set stood for it: `skeletons` is the bones, and
    * Blender's own viewport overlay has a Bones checkbox but reaches weight
    * colours through Weight Paint MODE, which an inspection surface has no
@@ -176,7 +176,7 @@ export interface GameCapture {
   /** True when the host loop was starved and the runtime rendered one
    *  deterministic tick to produce this frame. */
   loopRecoveryFrame?: boolean;
-  /** Present when this frame came out of a RECORDED run (every `vgai play`
+  /** Present when this frame came out of a RECORDED run (every `volter play`
    *  records). The still is delivered either way; `notice` is the sentence
    *  naming the clip, its offset-0 wall clock, and what a still cannot answer —
    *  shown verbatim, never re-derived by the caller. */
@@ -195,7 +195,7 @@ export interface GameplayRecordingOptions {
    * records the world canvas directly and writes the HUD to a synchronized
    * replay sidecar, avoiding live DOM rasterization. */
   format?: 'composite-webm' | 'canvas-dom';
-  /** Names the file under `.vgai/recordings/`. During Play, absence names the
+  /** Names the file under `.volter/recordings/`. During Play, absence names the
    *  clip after its durable Gameplay Session. */
   name?: string | null;
 }
@@ -313,7 +313,7 @@ export type AssetPreviewSource =
 export type AssetPreviewStage = 'lab' | 'scene';
 
 /**
- * A free capture camera for the Asset Lab legs (`vgai screenshot`'s
+ * A free capture camera for the Asset Lab legs (`volter screenshot`'s
  * `--azimuth/--elevation/--distance`): ONE view from a chosen angle instead
  * of the fixed four. Angles are relative to the subject's AUTHORED front —
  * azimuth 0 photographs the declared front, 90 walks toward the side the
@@ -328,7 +328,7 @@ export interface AssetPreviewCameraChoice {
 }
 
 /**
- * Pose an animated subject before capturing (`vgai screenshot`'s
+ * Pose an animated subject before capturing (`volter screenshot`'s
  * `--clip <name> --time <t>`): the named clip is sampled at `timeSeconds`
  * on the capture's disposable snapshot — the source is never mutated. The
  * capture fails loudly (naming the clips that DO exist) when the subject
@@ -372,7 +372,7 @@ export interface AssetPreviewCapture {
 }
 
 /**
- * The STORY lane (`vgai screenshot <file>.stories.tsx`): a project CSF file's
+ * The STORY lane (`volter screenshot <file>.stories.tsx`): a project CSF file's
  * exports rendered in the live session's DOM and captured through the same
  * composite leg the game lane uses, as ONE variant sheet per file. `story`
  * narrows to a single export. See
@@ -411,7 +411,7 @@ export interface StoryVariantCapture {
 }
 
 /**
- * B8.4 — the Asset Lab compare mode (`vgai screenshot <model.glb>
+ * B8.4 — the Asset Lab compare mode (`volter screenshot <model.glb>
  * --compare <ref.glb>`): the asset and a caller-supplied reference GLB rendered with
  * matched orthographic front + side framing (equal-height bounding-box
  * normalization, both yaw-normalized to face the camera), scored by
@@ -445,7 +445,7 @@ export interface AssetCompareCapture {
 /**
  * THE shot-set contract. This block is the ONE declaration of it.
  *
- * A project-defined labeled shot set (`vgai screenshot <target> --shots <set>`).
+ * A project-defined labeled shot set (`volter screenshot <target> --shots <set>`).
  * The DEFINITION is project data: a registered project tool named
  * `project.<set>.previewShots` returns it (installed capabilities register
  * theirs — the bird, humanoid and walking-castle capabilities each contribute
@@ -595,7 +595,7 @@ export interface EditorState {
    * `kind` is how the bytes were obtained: a `release` is an extracted
    * `vscode-reh-web-*` package (its `BUILD.json` carries the commit), `sources`
    * is a fork checkout (`git rev-parse HEAD` is the commit). `dir` is what the
-   * project's `.vgai/workbench.json` — or `vgai edit --workbench` — named.
+   * project's `.volter/workbench.json` — or `volter edit --workbench` — named.
    * `product` is the product whose workbench half is overlaid on those bytes
    * (P3): a workbench is built for ONE product, and the session refuses one
    * built for another than this project's before it spawns.
@@ -608,8 +608,8 @@ export interface EditorState {
     product: string;
   } | null;
   /**
-   * The PRODUCT this session is serving — `@vgai/game-editor` or
-   * `@vgai/model-editor` — or `null` when it is serving none. SERVER-computed
+   * The PRODUCT this session is serving — `@volter/game-editor` or
+   * `@volter/model-editor` — or `null` when it is serving none. SERVER-computed
    * on every read, beside {@link workbench}, for the same reason: what a
    * session is running is its own fact, not something the page reports about
    * itself.
@@ -661,7 +661,7 @@ export interface EditorState {
    * The pending-restart reason when source changed while the game was
    * RUNNING and the running session is now stale (e.g. an R3F entry-file
    * write-back during play, a registry.ts edit). The editor's Restart button
-   * surfaces the same reason; one restart (`vgai play`, or the button)
+   * surfaces the same reason; one restart (`volter play`, or the button)
    * remounts every root from fresh source and clears it. `null` when the
    * running session is fresh; absent against an older server that predates
    * the field.
@@ -891,14 +891,14 @@ export interface EditorState {
   stateUpdatedAt?: number;
   /**
    * Validate-on-change (#103): per-file validation status for every
-   * Project `src/**` source / `vgai.project.json` the dev
+   * Project `src/**` source / `volter.project.json` the dev
    * server has seen
    * change since it booted (or since the last project switch). Server-
    * computed — unlike the rest of `EditorState`, it is NOT part of the
    * browser-POSTed snapshot, so it is always current. A file appears here
    * ONLY while it is currently failing; a clean write removes its entry
    * (absence means "not known to be invalid", not "never checked"). Always
-   * present (`{}` when nothing is failing) so `vgai status` consumers can
+   * present (`{}` when nothing is failing) so `volter status` consumers can
    * read it unconditionally.
    */
   projectValidation?: Record<string, { errors: string[]; at: number }>;
@@ -911,7 +911,7 @@ export interface EditorState {
    * path, present only while the file currently warns, `{}` when clean.
    *
    * The server has sent this since the R3F authoring diagnostics landed; it
-   * was missing from this interface, so every typed consumer — `vgai status`
+   * was missing from this interface, so every typed consumer — `volter status`
    * included — could only reach it through a cast. Declared here so a caller
    * that wants to react to authoring warnings can see they exist.
    */
@@ -937,8 +937,8 @@ export interface EditorState {
    * gate was previously reported ONLY in the browser: an editor started on an
    * incompatible project serves happily (it activates nothing), so the tab
    * showed "This project is pinned to @volter/editor-project X, but this editor is
-   * running Y" while `vgai status` reported a connected session with empty
-   * validation and `vgai play` timed out into a retry message about the tab
+   * running Y" while `volter status` reported a connected session with empty
+   * validation and `volter play` timed out into a retry message about the tab
    * reloading. An agent drives this editor through the CLI, so a gate visible
    * only in pixels is invisible by construction.
    */
@@ -951,23 +951,23 @@ export interface EditorState {
    * open — server-computed (never part of the browser-POSTed snapshot,
    * exactly like `projectValidation` above), so it is always current. Added
    * so a watcher/relay holding only a port number (e.g. an agent that
-   * printed a `vgai edit` URL earlier and lost track of which project it
+   * printed a `volter edit` URL earlier and lost track of which project it
    * belongs to) can identify which project that port serves without also
-   * reading the `~/.vgai/editor-sessions.json` registry file. `null` when no
+   * reading the `~/.volter/editor-sessions.json` registry file. `null` when no
    * project is open (the in-repo "no project selected" default server
    * state — mirrors `/__editor/project`'s own `{ project: null }` shape).
    */
   projectRoot?: string | null;
   /**
    * #124: the open project's declared name, alongside `projectRoot` above
-   * (`vgai.project.json`'s `name`). `null` when no project is open, or the open
+   * (`volter.project.json`'s `name`). `null` when no project is open, or the open
    * project has no readable manifest name.
    */
   projectName?: string | null;
   /**
    * The open project's ADAPTER, resolved (ARCHITECTURE-CORE §The editor
    * protocol). `source` names WHOSE declaration is running: `'project'` = the
-   * project's own `vgai.adapter.ts` supplied the binding table (and it always
+   * project's own `volter.adapter.ts` supplied the binding table (and it always
    * outranks the registry); `'registry'` = the HOST's in-tree ingest registry
    * supplied it, matched on this project's ingest root id, with `modulePath`
    * naming the repo file — a binding the project did not ship, stated rather
@@ -1188,7 +1188,7 @@ export interface EditorView {
    *  appearance axes match a bundle, and omits it for a custom mix. */
   style?: string;
   /**
-   * The keymap (`vgai`, `blender`, …) whose bindings the chrome is printing
+   * The keymap (`volter`, `blender`, …) whose bindings the chrome is printing
    * and dispatching — the editor's own or a package's `workspace.keymap`
    * contribution, as the project's adapter declares it or its settings
    * override it. REPORTED, never presented: `currentView` always answers it,
@@ -1439,7 +1439,7 @@ export interface InspectedSubjectLink {
 }
 
 /** The whole inspection subject, as data — what a human sees in the
- *  inspector, for an agent (`vgai eval 'editor.inspect()'`). */
+ *  inspector, for an agent (`volter eval 'editor.inspect()'`). */
 export interface InspectedSubject {
   id: string;
   title: string;

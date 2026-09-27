@@ -2,7 +2,7 @@
  * Storage-side APPLY flow for Asset Budget optimizations (W4a M3).
  *
  * One place owns "optimized bytes land in the project": write through the
- * storage seam, stamp central provenance (`.vgai/provenance.json`, the SAME
+ * storage seam, stamp central provenance (`.volter/provenance.json`, the SAME
  * document/idiom the generative-assets pipeline stamps and
  * `project-provenance.ts` projects — one operation with an `outputs` entry
  * carrying path/bytes/sha256), invalidate the engine's URL-keyed asset cache
@@ -27,7 +27,7 @@ import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conf
 import { isPublicRootedBackend, type StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import { invalidateCachedAsset } from '@volter/threejs-runtime/asset-loaders';
 
-const PROVENANCE_PATH = '.vgai/provenance.json';
+const PROVENANCE_PATH = '.volter/provenance.json';
 
 /** Serving path (`/models/x.glb`) or bare path → storage path under public/. */
 export function assetStoragePath(path: string): string {
@@ -74,10 +74,10 @@ function ledgerAssetPath(storagePath: string): string {
 
 /**
  * Ledger IO honoring the backend's reach: server-mode `HttpStorage` is
- * hard-rooted at `public/`, so writing `.vgai/provenance.json` through it
- * would land at `public/.vgai/provenance.json` — a divergent second ledger
- * (the exact T3.3 "two-`.vgai`-dirs" bug class). The dev server's
- * `.vgai/`-scoped `/__editor/vgai-file` GET/POST route pair is the recorded
+ * hard-rooted at `public/`, so writing `.volter/provenance.json` through it
+ * would land at `public/.volter/provenance.json` — a divergent second ledger
+ * (the exact T3.3 "two-`.volter`-dirs" bug class). The dev server's
+ * `.volter/`-scoped `/__editor/volter-file` GET/POST route pair is the recorded
  * fix for that class; every other
  * backend reaches the project root directly.
  */
@@ -88,7 +88,7 @@ async function readLedgerText(backend: StorageBackend): Promise<string | null> {
     // file bytes, and that reader's whole rule is "the editor server answers
     // JSON" — it would reject this route's successes.
     const res = await fetch(
-      `/__editor/vgai-file?${new URLSearchParams({ path: PROVENANCE_PATH })}`,
+      `/__editor/volter-file?${new URLSearchParams({ path: PROVENANCE_PATH })}`,
     );
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`read ${PROVENANCE_PATH}: HTTP ${res.status}`);
@@ -101,7 +101,7 @@ async function readLedgerText(backend: StorageBackend): Promise<string | null> {
 async function writeLedgerText(backend: StorageBackend, content: string): Promise<void> {
   if (isPublicRootedBackend(backend)) {
     const write = async () => {
-      const res = await fetch('/__editor/vgai-file', {
+      const res = await fetch('/__editor/volter-file', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: PROVENANCE_PATH, content, ...sourceMutationAttribution() }),

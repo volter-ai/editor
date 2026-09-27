@@ -4,7 +4,7 @@
  * ## The measurement this exists for
  *
  * 2026-08-20, `packages/editor/scripts/scale-harness` at N=20000 on the canvas
- * lane. `vgai play` burned its whole 120s budget and was refused with
+ * lane. `volter play` burned its whole 120s budget and was refused with
  *
  *     Command timed out — the tab is present (last heartbeat 0.8s ago) and
  *     did not respond.

@@ -340,7 +340,7 @@ function scaffoldArtifacts(
       topLevel === 'node_modules' ||
       topLevel === 'dist' ||
       topLevel === 'logs' ||
-      topLevel === '.vgai'
+      topLevel === '.volter'
     ) {
       continue;
     }

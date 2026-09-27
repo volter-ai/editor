@@ -16,10 +16,10 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  *   (`dev.ts` / `packaged.ts`) right after `listen`.
  * - THE ONE TEARDOWN PATH: `onIdle` hands back to the host's EXISTING shutdown
  *   function — the same one SIGINT/SIGTERM use (dereg from the session
- *   registry, remove `.vgai/session.json`, close the blessed tab, close
+ *   registry, remove `.volter/session.json`, close the blessed tab, close
  *   HTTP/router/Vite, exit). Idle shutdown adds no second path and no special
  *   case; it only supplies a different `why` string, so the server's last-gasp
- *   line names idleness as the cause and a vanished `vgai sessions` entry is
+ *   line names idleness as the cause and a vanished `volter sessions` entry is
  *   explainable from the log. (The session registry is a ledger of what IS
  *   running — a dead entry is pruned, never annotated — so there is
  *   deliberately no "close reason" recorded there.)
@@ -28,20 +28,20 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  *
  * WHAT RESETS THE TIMER — existing signals only, no new heartbeat protocol:
  * 1. A CONNECTED EDITOR CLIENT. `hasConnectedClients` is the live SSE client
- *    count (`editor-sse.ts`'s `clientCount()`), the same number `vgai status`
+ *    count (`editor-sse.ts`'s `clientCount()`), the same number `volter status`
  *    reports as `connected`. It is polled rather than evented, which makes a
  *    connected tab PERMANENTLY non-idle while it is open: every tick with a
  *    client present stamps the clock forward, so the window can only start
  *    running once the last tab is gone.
  * 2. AN HTTP REQUEST. The hosts call `noteActivity()` from one `app.use`
  *    ahead of every route, so the control API (`/__editor/command` relay,
- *    `/__editor/state`, `/__vgai/*` eval + screenshot) and ordinary page/module
+ *    `/__editor/state`, `/__volter/*` eval + screenshot) and ordinary page/module
  *    requests all count. Counting every request rather than only `/__editor/*`
  *    is deliberate and is the SAFE direction of error: a superset of "control
  *    traffic" can only delay a shutdown, and anything fetching modules from
  *    this server is something using it.
  *
- * Autosave means a shutdown loses nothing, and `vgai edit` brings the session
+ * Autosave means a shutdown loses nothing, and `volter edit` brings the session
  * back in seconds — which is what makes 45 minutes a cheap default rather than
  * a risky one.
  */
@@ -62,7 +62,7 @@ export const IDLE_SHUTDOWN_MINUTES_ENV = 'VOLTER_IDLE_SHUTDOWN_MINUTES';
  * - `VOLTER_IDLE_SHUTDOWN_MINUTES=0` — the explicit opt-out;
  * - `CI` is set — a CI runner already owns and reaps its child processes, and
  *   a lane that pauses longer than the window must not lose its server;
- * - the session is EPHEMERAL (`VOLTER_EPHEMERAL_SESSION`, today `vgai doctor`) —
+ * - the session is EPHEMERAL (`VOLTER_EPHEMERAL_SESSION`, today `volter doctor`) —
  *   a probe's whole lifetime belongs to the tool that spawned it.
  *
  * `VOLTER_NO_OPEN` deliberately does NOT disable it: a headless session is

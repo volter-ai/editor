@@ -1,7 +1,7 @@
 /**
  * The client half of `/__editor/configurations` (`server/routes/run.ts`): the project's
  * declared run configurations and their runtime status, and the start/stop
- * verbs the transport's picker and `vgai run` share.
+ * verbs the transport's picker and `volter run` share.
  */
 
 import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';

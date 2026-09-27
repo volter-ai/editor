@@ -20,7 +20,7 @@ import {
  * STORAGE DECISION (owner ruling, 2026-09-04 - ARCHITECTURE-CORE §Editor
  * chrome, "Settings have four layers with named homes"): the `workspace`
  * SECTION of the project-local document (`project-local-state.ts`), which is
- * `.vgai/editor-state.json` - git-ignored by the scaffold, written by the
+ * `.volter/editor-state.json` - git-ignored by the scaffold, written by the
  * editor server locally, keyed by the folder itself.
  *
  * DOCUMENTS: THIS MODULE NAMES NONE OF THEM. It stores, per open document, an

@@ -1,7 +1,7 @@
 /**
  * THE PROJECT'S OWN MCP SERVERS, handed to the runtime the session starts.
  *
- * Every scaffolded project ships `.mcp.json` naming its own two servers — `vgai` and
+ * Every scaffolded project ships `.mcp.json` naming its own two servers — `volter` and
  * `blender` — and that file is how a person's Claude Code, run by hand in the project,
  * reaches them. The AI IN THE TAB is the same agent (ARCHITECTURE-CORE §The core is
  * Code-OSS, rule 7) and must reach the same servers.

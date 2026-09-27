@@ -12,18 +12,18 @@
  * `packages/editor/src/tab-census.ts`.
  *
  * WHY IT LIVES HERE. This one shape crosses four compilation units — the page
- * that samples it (`@vgai/editor`'s browser bundle), the editor server that
- * files it (`@vgai/editor`'s node half), the editor-extension surface that
+ * that samples it (`@volter/editor`'s browser bundle), the editor server that
+ * files it (`@volter/editor`'s node half), the editor-extension surface that
  * describes the status response (`@volter/editor-sdk`), and the session journal
- * plus the CLI row that print it (`@vgai/sdk`, `@vgai/cli`). Each of them used
- * to spell the seven fields out again. `@vgai/sdk` is the only package all four
- * already depend on: `@volter/editor-sdk` depends on `@vgai/sdk` and `@vgai/editor`
+ * plus the CLI row that print it (`@volter/sdk`, `@volter/cli`). Each of them used
+ * to spell the seven fields out again. `@volter/sdk` is the only package all four
+ * already depend on: `@volter/editor-sdk` depends on `@volter/sdk` and `@volter/editor`
  * depends on both, so this cannot live in `@volter/editor-sdk` without a cycle —
- * and it does not belong in `@vgai/game-runtime`, whose subject is a running game,
+ * and it does not belong in `@volter/game-runtime`, whose subject is a running game,
  * not an editor session's tabs.
  *
  * Deliberately import-free so a browser bundle can take it: the census's other
- * `@vgai/sdk` home, `project/session-journal.ts`, reads `node:fs`.
+ * `@volter/sdk` home, `project/session-journal.ts`, reads `node:fs`.
  *
  * WHAT ELSE RIDES IT. The beat is the one channel that still moves when the
  * page's main thread or a lane's worker is blocked, so `workerCalls` — how long
@@ -47,7 +47,7 @@
  * timeouts that read as "tab present, did not respond". The product had no
  * number for either. Owner ruling: a tab that stops answering is the product's
  * defect regardless of what the machine is doing, and the product has to
- * surface it — so these ride the census to `vgai status`.
+ * surface it — so these ride the census to `volter status`.
  *
  * MEASURED BY THE PAGE, because neither blocked party can report on itself: the
  * worker's own loop is what is stuck, and a stalled main thread cannot send.

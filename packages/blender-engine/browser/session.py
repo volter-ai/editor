@@ -122,7 +122,7 @@ import _blender_web
 _UNKNOWN_GEOMETRY = "RUNTIME_FRAME_UNKNOWN_GEOMETRY"
 _UNKNOWN_IMAGE = "RUNTIME_FRAME_UNKNOWN_IMAGE"
 
-ROOT = os.environ.get("VOLTER_SESSION_ROOT", "/work/.vgai-session")
+ROOT = os.environ.get("VOLTER_SESSION_ROOT", "/work/.volter-session")
 IN = os.path.join(ROOT, "in")
 OUT = os.path.join(ROOT, "out")
 ASK = os.path.join(ROOT, "ask")
@@ -172,7 +172,7 @@ def _prepare_directories():
         except FileExistsError:
             pass
         except OSError as error:
-            _say("@@VGAI-ERROR cannot create %s: %r" % (directory, error))
+            _say("@@VOLTER-ERROR cannot create %s: %r" % (directory, error))
         try:
             os.chmod(directory, 0o777)
         except OSError:
@@ -215,7 +215,7 @@ def warn(what):
         return
     _WARNED.add(what)
     _WARNINGS.append(what)
-    _say("@@VGAI-WARN " + what)
+    _say("@@VOLTER-WARN " + what)
 
 
 # ---------------------------------------------------------------- the world
@@ -1820,11 +1820,11 @@ _ASK_SEQUENCE = [0]
 def _drop(path):
     """Remove one of THIS side's own channel files. A failure here means the
     ownership rule was broken by the other side, so it is named rather than
-    swallowed -- and named where `vgai console` reads it, not into a log."""
+    swallowed -- and named where `volter console` reads it, not into a log."""
     try:
         os.unlink(path)
     except OSError as error:
-        _say("@@VGAI-WARN the session could not remove its own %s: %r" % (path, error))
+        _say("@@VOLTER-WARN the session could not remove its own %s: %r" % (path, error))
 
 
 def ask(payload):
@@ -1979,7 +1979,7 @@ def _assert_photographed_from(reported, position, target, up):
             )
 
 
-class VgaiRenderEngine(bpy.types.RenderEngine):
+class VolterRenderEngine(bpy.types.RenderEngine):
     """The scene's renderer, so `write_still`, `save_render` and Render Result
     behave as Blender's own.
 
@@ -2087,7 +2087,7 @@ def _register_engine():
         ("BLENDER_WORKBENCH", "Workbench"),
     ):
         existing = _engine_class(identifier)
-        if existing is not None and issubclass(existing, VgaiRenderEngine):
+        if existing is not None and issubclass(existing, VolterRenderEngine):
             made.append(identifier)
             continue
         if existing is not None:
@@ -2098,8 +2098,8 @@ def _register_engine():
             else:
                 _release_from_owning_addon(existing)
         engine = type(
-            "Vgai" + identifier.title().replace("_", ""),
-            (VgaiRenderEngine,),
+            "Volter" + identifier.title().replace("_", ""),
+            (VolterRenderEngine,),
             {"bl_idname": identifier, "bl_label": label, "bl_use_preview": False},
         )
         try:
@@ -2119,13 +2119,13 @@ def _register_engine():
     # again after every file load (the ids have to be retaken), and Blender
     # refuses a class it already holds -- which is not a capability anyone
     # lost, so it is not a warning.
-    if _engine_class(VgaiRenderEngine.bl_idname) is None:
+    if _engine_class(VolterRenderEngine.bl_idname) is None:
         try:
-            bpy.utils.register_class(VgaiRenderEngine)
+            bpy.utils.register_class(VolterRenderEngine)
         except Exception as error:  # noqa: BLE001
             warn("could not register the three.js engine: %s" % error)
-    if _engine_class(VgaiRenderEngine.bl_idname) is not None:
-        made.append(VgaiRenderEngine.bl_idname)
+    if _engine_class(VolterRenderEngine.bl_idname) is not None:
+        made.append(VolterRenderEngine.bl_idname)
     return made, unavailable
 
 
@@ -2698,7 +2698,7 @@ def _py_row(target, name, descriptor, owner):
     from what it answers -- an ID is a POINTER, a sequence of them a
     COLLECTION with its count and names, a scalar its scalar. A value no RNA
     type covers is not invented into one: the property is dropped, and
-    nothing here is a vgai field over Blender's data."""
+    nothing here is a volter field over Blender's data."""
     row = {
         "identifier": name,
         "name": name,
@@ -3894,7 +3894,7 @@ def _node_row(node):
 
 
 def _node_tree_of(path, material):
-    """WHICH TREE. Either an explicit RNA address (so a `vgai eval` can open a
+    """WHICH TREE. Either an explicit RNA address (so a `volter eval` can open a
     world's or a group's tree with the engine's own spelling), or a material by
     name, or -- given neither -- the active object's active material, which is
     what Blender's own Shading header resolves (`space_node.py:89-93`,
@@ -4152,7 +4152,7 @@ def rna_rig(object_name=None):
     presented frame carries every object at once, and the presenter has to know
     which of its meshes are `THREE.SkinnedMesh`es before it builds them. Asking
     per object would be one round trip per mesh; asking by NAME stays available
-    for a `vgai eval` that wants to read one.
+    for a `volter eval` that wants to read one.
     """
     scene_frame = int(bpy.context.scene.frame_current)
     if object_name:
@@ -4796,7 +4796,7 @@ def dispatch(request):
                      if k in request}
             if op == "execute":
                 cause["code"] = str(request.get("code", ""))[:160]
-            _say("@@VGAI-WARN %s removed objects %s (%s); %d remain" % (
+            _say("@@VOLTER-WARN %s removed objects %s (%s); %d remain" % (
                 op, sorted(removed), json.dumps(cause), len(bpy.data.objects)))
 
 
@@ -4865,14 +4865,14 @@ def _dispatch(request):
         except Exception as thrown:  # noqa: BLE001
             # LOUD, because a present that fails leaves the Model document
             # showing the state BEFORE this call and nothing else says so.
-            # `@@VGAI-PRESENT-FAILED` was not one of the prefixes the engines
+            # `@@VOLTER-PRESENT-FAILED` was not one of the prefixes the engines
             # escalate (`blender-emscripten-engine.mts:159`,
-            # `blender-wali-engine.mts:266` raise `@@VGAI-WARN`/`@@VGAI-ERROR`
+            # `blender-wali-engine.mts:266` raise `@@VOLTER-WARN`/`@@VOLTER-ERROR`
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `vgai console` silent throughout.
-            _say("@@VGAI-ERROR the present after this call failed, so the Model document is "
+            # `blender-execute` calls with `volter console` silent throughout.
+            _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
     if op == "scene-info":
@@ -4915,14 +4915,14 @@ def _dispatch(request):
         except Exception as thrown:  # noqa: BLE001
             # LOUD, because a present that fails leaves the Model document
             # showing the state BEFORE this call and nothing else says so.
-            # `@@VGAI-PRESENT-FAILED` was not one of the prefixes the engines
+            # `@@VOLTER-PRESENT-FAILED` was not one of the prefixes the engines
             # escalate (`blender-emscripten-engine.mts:159`,
-            # `blender-wali-engine.mts:266` raise `@@VGAI-WARN`/`@@VGAI-ERROR`
+            # `blender-wali-engine.mts:266` raise `@@VOLTER-WARN`/`@@VOLTER-ERROR`
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `vgai console` silent throughout.
-            _say("@@VGAI-ERROR the present after this call failed, so the Model document is "
+            # `blender-execute` calls with `volter console` silent throughout.
+            _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
     if op == "rna-set":
@@ -4936,14 +4936,14 @@ def _dispatch(request):
         except Exception as thrown:  # noqa: BLE001
             # LOUD, because a present that fails leaves the Model document
             # showing the state BEFORE this call and nothing else says so.
-            # `@@VGAI-PRESENT-FAILED` was not one of the prefixes the engines
+            # `@@VOLTER-PRESENT-FAILED` was not one of the prefixes the engines
             # escalate (`blender-emscripten-engine.mts:159`,
-            # `blender-wali-engine.mts:266` raise `@@VGAI-WARN`/`@@VGAI-ERROR`
+            # `blender-wali-engine.mts:266` raise `@@VOLTER-WARN`/`@@VOLTER-ERROR`
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `vgai console` silent throughout.
-            _say("@@VGAI-ERROR the present after this call failed, so the Model document is "
+            # `blender-execute` calls with `volter console` silent throughout.
+            _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
     if op == "save-document":
@@ -4971,7 +4971,7 @@ bpy.app.handlers.load_post.append(_load_post)
 bpy.app.handlers.undo_post.append(_history_post)
 bpy.app.handlers.redo_post.append(_history_post)
 ENGINES, UNAVAILABLE_ENGINES = _register_engine()
-_say("@@VGAI-READY " + json.dumps({"blender": bpy.app.version_string, "engines": ENGINES,
+_say("@@VOLTER-READY " + json.dumps({"blender": bpy.app.version_string, "engines": ENGINES,
                                    "unavailableEngines": UNAVAILABLE_ENGINES}))
 
 # Markers already dispatched, and the answers whose `out/` files this loop
@@ -5054,7 +5054,7 @@ try:
 except BaseException as _thrown:  # noqa: BLE001
     # The one place a channel death can still be named. Without this the
     # program ends 0 and the page reports only that Blender is gone.
-    _say("@@VGAI-ERROR the session's channel loop raised %s: %s -- the session is over and "
+    _say("@@VOLTER-ERROR the session's channel loop raised %s: %s -- the session is over and "
          "every outstanding call will go unanswered. %s"
          % (type(_thrown).__name__, _thrown, traceback.format_exc().replace("\n", " | ")))
     raise

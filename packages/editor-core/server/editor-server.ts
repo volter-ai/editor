@@ -250,7 +250,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     const watchedPaths = [
       join(engineRoot, 'packages', 'editor', 'server'),
       join(engineRoot, 'packages', 'engine', 'src'),
-      join(engineRoot, 'packages', 'create-vgai-project', 'src'),
+      join(engineRoot, 'packages', 'create-volter-project', 'src'),
       join(engineRoot, 'vite.config.ts'),
       join(engineRoot, 'tsconfig.json'),
       join(engineRoot, 'tsconfig.server.json'),
@@ -341,7 +341,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     journal?.append(event);
   }
 
-  /** The open project's parsed `vgai.project.json`, or `null` when there is no
+  /** The open project's parsed `volter.project.json`, or `null` when there is no
    *  project (engine-repo mode) or the file is missing/unparseable. Read fresh
    *  each call and never cached: the manifest is editable while the server
    *  runs, and every caller here is answering a question about the CURRENT
@@ -630,7 +630,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       // pending job names, at the moment it runs it. See
       // `provider-credentials.ts`'s header — this five-second timer used to
       // sweep every provider's Keychain item on the first tick of every
-      // session, which is a stack of unlock prompts per `vgai edit`.
+      // session, which is a stack of unlock prompts per `volter edit`.
       await reconcileGenerationJobs(projectRoot, loadProjectModule, 3, account);
     } catch (error) {
       broadcast('server-log', {
@@ -647,7 +647,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   const compatibilityIdentity = (): EditorServerCompatibility => {
     // Unlike source bytes, project-local npm links can change without a file
     // event the engine watcher observes. Re-evaluate them on the reuse
-    // handshake so `vgai edit` restarts a server from checkout A after the
+    // handshake so `volter edit` restarts a server from checkout A after the
     // project is relinked to checkout B, instead of composing both identities.
     const workspaceIdentityError = checkoutWorkspaceIdentityError(
       engineRoot,
@@ -676,7 +676,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   // `express.static` + SPA fallback) and none of those routes
   // are owned by this file. Exposed on `/__editor/state` so the CLI's
   // verified-open polling (`waitForVerifiedEditorOpen` in
-  // packages/vgai-cli/src/editor-sessions.ts) can tell "the browser tab
+  // packages/volter-cli/src/editor-sessions.ts) can tell "the browser tab
   // arrived and is loading" apart from "the auto-open never reached a
   // browser at all" — the distinction a cold Vite dep-optimize on drvfs
   // needs, since that alone can blow past the old flat 15s timeout on a
@@ -688,7 +688,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   // prove themselves by heartbeat.
   //
   // The table exists for EVERY session, including a headless one. Presence is
-  // not a maintenance feature — it is how the relay and `vgai status` know
+  // not a maintenance feature — it is how the relay and `volter status` know
   // whether anybody is home — and a `--no-open` session that a person later
   // opens the URL on must see that tab and take its commands. What the flag
   // turns off is `maintain`: this session enforces one tab and never OPENS
@@ -742,7 +742,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   /**
    * The tab table's transport. It exists even for a `--no-open` session (no
    * bijection controller at all): presence is not a maintenance feature, it
-   * is how `vgai status` and the relay know whether anybody is home, and a
+   * is how `volter status` and the relay know whether anybody is home, and a
    * headless session that a person later opens the URL on must still see
    * that tab. Beats with no controller to feed simply have nowhere to land.
    */
@@ -788,7 +788,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       // EVERY local page shares the host's tab table. A participant id is
       // localStorage per browser PROFILE, and `open <url>` lands in whichever
       // profile window the owner last touched — so a tab opened by a later
-      // `vgai edit` routinely carries a participant id the first tab never
+      // `volter edit` routinely carries a participant id the first tab never
       // had. Giving that id its own lifecycle split one tab's facts across
       // two tables: its heartbeat reached the host table (beats carry no
       // participant), its control channel reached the new table, and the
@@ -1021,7 +1021,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
           await mkdir(dirname(resource.absolute), { recursive: true });
           const temporary = join(
             dirname(resource.absolute),
-            `.${basename(resource.absolute)}.vgai-${randomUUID()}.tmp`,
+            `.${basename(resource.absolute)}.volter-${randomUUID()}.tmp`,
           );
           try {
             await writeFile(temporary, resource.content);
@@ -1352,7 +1352,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     if (pathname.startsWith('/node_modules')) return next();
 
     // Serve the RAW manifest (no view synthesis — the browser-side adapter
-    // resolver parses it itself via the pure `@vgai/project/manifest/load` half;
+    // resolver parses it itself via the pure `@volter/project/manifest/load` half;
     // T3.3 slice 2 part C) from the project root, not public/. 404s (falls
     // through to `next()`, same as any other missing project-root file) for
     // folders without a valid manifest.
@@ -1445,7 +1445,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   router.frontendHandoff = async () => {
     const handoff = await harnessChat.frontendHandoff();
     // A Chat view with no runtime behind it is REMAINING WORK, not log noise:
-    // it rides the unresolved-console ledger, so every `vgai` command reprints
+    // it rides the unresolved-console ledger, so every `volter` command reprints
     // it and exits non-zero until the harness is signed in or the condition is
     // acked with a reason. The extension's own empty state says the same thing
     // in the panel; this is the half a terminal can read.

@@ -10,7 +10,7 @@
  * the one place the editor's bundle and the game's graph both reach (`src/live-actors.ts`).
  */
 
-export const LIVE_MODULE_ID = 'virtual:vgai-xstate-live';
+export const LIVE_MODULE_ID = 'virtual:volter-xstate-live';
 
 export const LIVE_REGISTRY_KEY = 'volter.xstate.live';
 
@@ -43,10 +43,10 @@ function track(self, key) {
     }
   });
 }
-export function __vgaiMachine(machine, key) {
+export function __volterMachine(machine, key) {
   if (!machine || typeof machine !== 'object' || typeof machine.transition !== 'function') return machine;
-  if (machine.__vgaiMachineKey) return machine;
-  Object.defineProperty(machine, '__vgaiMachineKey', { value: key });
+  if (machine.__volterMachineKey) return machine;
+  Object.defineProperty(machine, '__volterMachineKey', { value: key });
   const getInitialSnapshot = machine.getInitialSnapshot;
   machine.getInitialSnapshot = function (scope, input) {
     const snapshot = getInitialSnapshot.call(this, scope, input);
@@ -67,7 +67,7 @@ export function __vgaiMachine(machine, key) {
   const provide = machine.provide;
   if (typeof provide === 'function') {
     machine.provide = function (implementations) {
-      return __vgaiMachine(provide.call(this, implementations), key);
+      return __volterMachine(provide.call(this, implementations), key);
     };
   }
   return machine;

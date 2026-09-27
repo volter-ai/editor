@@ -1,10 +1,10 @@
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 /**
- * THE MODULE LANE of `vgai eval` — reach the RUNNING mount's own module
+ * THE MODULE LANE of `volter eval` — reach the RUNNING mount's own module
  * instances, by served path, using URLs retained by their owning realm.
  *
  * WHY THE MOUNT STAMP IS LOAD-BEARING. Project modules are served per mount
- * as `/<path>?vgai-mount=<id>` (`project-module-instance.ts` propagates the
+ * as `/<path>?volter-mount=<id>` (`project-module-instance.ts` propagates the
  * id through the whole project subtree), so browser module identity is
  * per-instance BY URL. A bare `import('/src/sim/host.ts')` therefore loads a
  * SECOND, never-ticked copy — the phantom-module trap the old string-command
@@ -25,15 +25,15 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
 // with a guard test on the one true owner.
 /** Mirrors `project-module-url.ts`'s PROJECT_MOUNT_QUERY (guarded by test —
  *  the two must never drift). */
-const PROJECT_MOUNT_QUERY = 'vgai-mount';
+const PROJECT_MOUNT_QUERY = 'volter-mount';
 
 let focusedInstanceProvider: (() => string) | null = null;
 /** The packaged shell and source-served contributions share the host realm owner. */
 function moduleUrls(instanceId: string): readonly string[] {
   const host = globalThis as typeof globalThis & {
-    __vgaiGameModuleUrls?: (id: string) => readonly string[];
+    __volterGameModuleUrls?: (id: string) => readonly string[];
   };
-  return host.__vgaiGameModuleUrls?.(instanceId) ?? [];
+  return host.__volterGameModuleUrls?.(instanceId) ?? [];
 }
 
 /** Wired once by the editor shell (`command-listener.ts`) at boot. */
@@ -76,7 +76,7 @@ export function loadedGameModulePaths(instanceId: string): string[] {
 }
 
 /**
- * The `modules` binding of `vgai eval`'s `game.run` scope and of the
+ * The `modules` binding of `volter eval`'s `game.run` scope and of the
  * `game-eval` op — a RESOLVER, `modules('src/sim/host.ts')`, that also
  * ENUMERATES what it can resolve.
  *

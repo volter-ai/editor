@@ -97,7 +97,7 @@ interface MutablePackageManifest {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   optionalDependencies?: Record<string, string>;
-  vgai?: unknown;
+  volter?: unknown;
   [key: string]: unknown;
 }
 
@@ -122,7 +122,7 @@ function slugify(name: string): string {
 
 function appId(name: string): string {
   const compact = name.toLowerCase().replace(/[^a-z0-9]/gu, '');
-  return `com.vgai.import.${compact || 'game'}`;
+  return `com.volter.import.${compact || 'game'}`;
 }
 
 function frozenTemplateText(toolchain: GodotImportToolchainSnapshot, projectPath: string): string {
@@ -191,14 +191,14 @@ function plannedPackageManifest(
     }
   }
   manifest.scripts = {
-    vgai: 'volter-game-editor',
+    volter: 'volter-game-editor',
     dev: 'volter-game-editor edit .',
     'dev:standalone': 'vite',
     build: 'vite build',
     preview: 'vite preview',
     typecheck: 'tsc --noEmit',
   };
-  delete manifest.vgai;
+  delete manifest.volter;
   const merged = planCapabilityPackageJson(
     Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`),
     toolchain.capabilities,
@@ -379,7 +379,7 @@ export function planDirectGodotProjectData(
         toolchainDigest: toolchain.digest,
         worldModule: worldModule(composition),
         manifest: {
-          $schema: './node_modules/@volter/editor-project/schemas/vgai-project.schema.json',
+          $schema: './node_modules/@volter/editor-project/schemas/volter-project.schema.json',
           manifestVersion: 2,
           name: project.projectName,
           appId: appId(project.projectName),

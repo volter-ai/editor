@@ -9,7 +9,7 @@
  * `/__editor/open-project`.
  *
  * `inspect-project` deliberately precedes open/create in this file and in the
- * user's flow: selecting an arbitrary game folder must never make it a VGAI
+ * user's flow: selecting an arbitrary game folder must never make it a VOLTER
  * project or touch its source as a side effect. Adaptation is a separate,
  * explicit action with its own consent boundary.
  */
@@ -104,7 +104,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
   });
   // ---- Read-only first-contact inspection ----
   // This route deliberately precedes open/create. Selecting an arbitrary game
-  // folder must never make it a VGAI project or touch its source as a side
+  // folder must never make it a VOLTER project or touch its source as a side
   // effect; adaptation is a separate, explicit action.
   router.post('/__editor/inspect-project', async (req: Request, res: Response) => {
     const candidate = (req.body as { path?: unknown }).path;
@@ -140,7 +140,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
     const reader = nodeProjectInspectionReader(root);
     const report = await inspectProject(reader);
     if (report.hasManifest) {
-      res.status(409).json({ error: 'This folder already has a vgai.project.json manifest.' });
+      res.status(409).json({ error: 'This folder already has a volter.project.json manifest.' });
       return;
     }
     const surface = body.surface;
@@ -169,11 +169,11 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
         ...(surface !== undefined ? { surface: surface as SuggestedAdapterSurface } : {}),
         ...(typeof entry === 'string' ? { entry } : {}),
       });
-      await writeFile(join(root, 'vgai.project.json'), `${JSON.stringify(manifest, null, 2)}\n`, {
+      await writeFile(join(root, 'volter.project.json'), `${JSON.stringify(manifest, null, 2)}\n`, {
         encoding: 'utf-8',
         flag: 'wx',
       });
-      res.json({ ok: true, path: root, manifest, writes: ['vgai.project.json'] });
+      res.json({ ok: true, path: root, manifest, writes: ['volter.project.json'] });
     } catch (error) {
       res.status(400).json({
         error: error instanceof Error ? error.message : String(error),
@@ -293,11 +293,11 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
     }
 
     try {
-      // Save thumbnail as .vgai/thumbnail.png in project root
+      // Save thumbnail as .volter/thumbnail.png in project root
       const base64Data = body.dataUrl.replace(/^data:image\/\w+;base64,/, '');
-      const vgaiDir = join(ctx.projectRoot, '.vgai');
-      await mkdir(vgaiDir, { recursive: true });
-      const thumbnailPath = join(vgaiDir, 'thumbnail.png');
+      const volterDir = join(ctx.projectRoot, '.volter');
+      await mkdir(volterDir, { recursive: true });
+      const thumbnailPath = join(volterDir, 'thumbnail.png');
       await writeFile(thumbnailPath, Buffer.from(base64Data, 'base64'));
 
       // Update recent projects entry with thumbnail path
@@ -322,7 +322,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
       return;
     }
 
-    const thumbnailPath = join(resolve(targetPath), '.vgai', 'thumbnail.png');
+    const thumbnailPath = join(resolve(targetPath), '.volter', 'thumbnail.png');
     try {
       const data = await readFile(thumbnailPath);
       res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'max-age=60' });
@@ -351,7 +351,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
     // Read the v2 game manifest and derive the editor project view.
     const config = await readProjectView(absPath);
     if (!config) {
-      res.status(400).json({ error: `No valid vgai.project.json at ${absPath}` });
+      res.status(400).json({ error: `No valid volter.project.json at ${absPath}` });
       return;
     }
 
@@ -396,8 +396,8 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
     ctx.editorStateUpdatedAt = null;
     ctx.editorStatesByClient.clear();
 
-    // Ensure .vgai/ directory exists
-    await mkdir(join(absPath, '.vgai'), { recursive: true });
+    // Ensure .volter/ directory exists
+    await mkdir(join(absPath, '.volter'), { recursive: true });
     void reconcileGenerations();
 
     // Restart file watcher on new project
@@ -408,7 +408,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
 
     // Track in recent projects (unless this session is nobody's launcher —
     // see `recordRecentProject`). This route is exactly where an agent's
-    // `vgai edit <scratchpad>` used to plant its project in the owner's
+    // `volter edit <scratchpad>` used to plant its project in the owner's
     // Recents, by retargeting the owner's idle editor.
     await recordRecentProject((config['name'] as string) ?? 'Untitled', absPath);
 

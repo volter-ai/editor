@@ -319,7 +319,7 @@ const meta = {
   // states below render its presentational body with authored props.
   component: GameUI,
   render: (args) => <ReactGamePage {...args} />,
-  parameters: { vgai: { defaultStory: 'Ready' } },
+  parameters: { volter: { defaultStory: 'Ready' } },
   args: { lastInput: 'Ready', title: 'My Game' },
 } satisfies Meta<typeof ReactGamePage>;
 
@@ -335,15 +335,15 @@ export const LongTitle: Story = {
 
 export const REACT_ONLY_MAIN_SOURCE = `/**
  * Standalone entry point: this game's own boot, in its own libraries. Every
- * \`dom\` root \`vgai.project.json\` declares renders its entry's default export
+ * \`dom\` root \`volter.project.json\` declares renders its entry's default export
  * with react-dom, in one layer of \`#game-canvas\` per root, stacked by
  * \`zOrder\`. The editor mounts the same entries itself.
  */
 
 import { type ComponentType, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { manifestEntryModules } from 'virtual:vgai-manifest-entries';
-import manifest from '../vgai.project.json';
+import { manifestEntryModules } from 'virtual:volter-manifest-entries';
+import manifest from '../volter.project.json';
 
 interface DeclaredRoot {
   readonly id: string;
@@ -399,7 +399,7 @@ export function withEditorDeclaration(
   declaration: ScaffoldEditorDeclaration,
 ): string {
   if (!source.includes('defineAdapter({'))
-    throw new Error('Starter vgai.adapter.ts must call defineAdapter({ ... }).');
+    throw new Error('Starter volter.adapter.ts must call defineAdapter({ ... }).');
   const look = [
     declaration.style ? `, style: ${declaration.style.name}` : '',
     declaration.keymap ? `, keymap: ${declaration.keymap.name}` : '',
@@ -433,9 +433,9 @@ export function withEditorDeclaration(
  * `src/models/cube.py`'s docstring; this contract routes there and to the
  * doors that show a model.
  */
-export const MODELS_AGENTS_CONTRACT = `# AGENTS.md — VGAI Models Project
+export const MODELS_AGENTS_CONTRACT = `# AGENTS.md — VOLTER Models Project
 
-A standalone modeling project built with VGAI — Blender itself, compiled to
+A standalone modeling project built with VOLTER — Blender itself, compiled to
 WebAssembly and running headless in the editor tab's worker, over this
 project's own \`.blend\` files. Work here, not in the engine repo. The editor
 is the authoring and verification surface; nothing here plays.
@@ -446,7 +446,7 @@ is the authoring and verification surface; nothing here plays.
 | --- | --- |
 | Model, revise or add a model | \`src/models/<name>.blend\` — read \`src/models/cube.py\`'s docstring first |
 | Open the editor, look, or verify | \`.agents/skills/editor/SKILL.md\` |
-| Blender-style modeling craft | \`.agents/skills/vgai-3d-models/SKILL.md\` |
+| Blender-style modeling craft | \`.agents/skills/volter-3d-models/SKILL.md\` |
 
 \`.agents/\` is canonical; \`.claude/skills/\` and \`.github/skills/\` are
 generated projections (never edit); \`CLAUDE.md\` and
@@ -462,7 +462,7 @@ opens. The document does not run the script — you do, through the session's
 Blender:
 
 \`\`\`bash
-npm run --silent vgai -- blender-mcp    # the MCP transport onto the tab's Blender
+npm run --silent volter -- blender-mcp    # the MCP transport onto the tab's Blender
 \`\`\`
 
 Every call is ordinary bpy against the open document, and the session saves it
@@ -473,33 +473,33 @@ finder lists every \`.blend\` as a document. Coordinates are metres and Z is up
 ## The editor
 
 Workspaces: \`model\`, \`sculpt\`, \`texture\`, \`animate\`, \`design\`, \`look\`
-(\`npm run --silent vgai -- eval 'editor.workspace("sculpt")'\`; a wrong id
+(\`npm run --silent volter -- eval 'editor.workspace("sculpt")'\`; a wrong id
 refuses and names the list). The look and keymap are Blender's
 (\`@volter/editor-blender\` contributes them). There is no Game workspace and
-\`vgai play\` refuses: this project declares no roots.
+\`volter play\` refuses: this project declares no roots.
 
 ## Verification contract — after every change
 
 1. \`npm run typecheck\` — the gate.
 2. Open the model's document and read the change through a door:
-   \`npm run --silent vgai -- eval 'editor.currentView()'\` names the open
-   document; \`npm run --silent vgai -- screenshot editor\` shows it; and
+   \`npm run --silent volter -- eval 'editor.currentView()'\` names the open
+   document; \`npm run --silent volter -- screenshot editor\` shows it; and
    \`get_scene_info\` over \`blender-mcp\` is what the engine itself says is in
    the file.
-3. \`npm run --silent vgai -- console\` silent — an unresolved entry is
+3. \`npm run --silent volter -- console\` silent — an unresolved entry is
    remaining work, never noise.
 
 ## Commands
 
 \\\`\\\`\\\`bash
 npm run dev                            # open/reuse this project's editor
-npm run --silent vgai -- status        # require connected: true
-npm run --silent vgai -- screenshot    # visible evidence
-npm run --silent vgai -- eval '<js>'   # THE door onto the editor
+npm run --silent volter -- status        # require connected: true
+npm run --silent volter -- screenshot    # visible evidence
+npm run --silent volter -- eval '<js>'   # THE door onto the editor
 npm run typecheck                      # THE gate
 \\\`\\\`\\\`
 
-Always \`npm run --silent vgai -- <verb>\`, never a bare \`vgai\` (a global one may
+Always \`npm run --silent volter -- <verb>\`, never a bare \`volter\` (a global one may
 belong to another checkout).
 `;
 
@@ -520,7 +520,7 @@ export function withAgentsContract(
 }
 
 /** The finder selections the additions bring, as the adapter source spells
- *  them (`vgai.adapter.ts` `documents.find`). */
+ *  them (`volter.adapter.ts` `documents.find`). */
 export const PAGES_FINDER_SELECTION =
   "{ finder: 'pagesFromUiModules', include: ['src/ui/**/*page.tsx'] }";
 export const MODELS_FINDER_SELECTION =

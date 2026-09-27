@@ -8,7 +8,7 @@
  * `page-script` relay op constructs one per call and hands it to a
  * reconstructed step function; a real `@playwright/test` `Page` drives the SAME
  * step file when the spec runs under `PageTransport`
- * (`packages/vgai-live/src/game-client/client.ts`) in CI. That duality is why
+ * (`packages/volter-live/src/game-client/client.ts`) in CI. That duality is why
  * `createPageShim`'s return value is typed `as Page` — every implemented member
  * matches Playwright's own shape closely enough that a step written against it
  * compiles against the real type too.
@@ -41,7 +41,7 @@
  * under both `PageTransport` (real Playwright, real closures) and
  * `RelayTransport` (this shim, serialized) must be written as though ALWAYS
  * serialized — inline every value the step needs; see
- * `packages/vgai-live/src/game-client/client.ts`'s `GameClient.page()` doc comment for
+ * `packages/volter-live/src/game-client/client.ts`'s `GameClient.page()` doc comment for
  * the client-facing half of this contract.
  */
 

@@ -174,8 +174,8 @@
 		"commandCenter.background": "#1c1c1c",
 		"commandCenter.border": "#3c3c3c",
 		"chat.requestBorder": "#3c3c3c",
-		"vgai.view.background": "#303030",
-		"vgai.nodeEditor.background": "#1a1a1a"
+		"volter.view.background": "#303030",
+		"volter.nodeEditor.background": "#1a1a1a"
 	},
 	"tokenColors": [
 		{

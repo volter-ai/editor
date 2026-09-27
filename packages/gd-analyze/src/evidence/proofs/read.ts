@@ -131,7 +131,7 @@ export function measureReadProof(tools: GodotProofTools): readonly GodotProofMea
   const officialBinary = tools.officialBinary;
   const actualInput = inputDigest();
   const actualImplementation = packageImplementationDigest(GODOT_READ_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-read-authority-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-read-authority-'));
   try {
     for (const [relative, source] of Object.entries(files)) {
       writeFileSync(path.join(temp, relative), source);

@@ -1,6 +1,6 @@
 /**
  * The one Godot import operation: a Godot project directory and an output directory in, a complete
- * standalone vgai app out.
+ * standalone volter app out.
  *
  * The output is built in a sibling temporary directory and promoted only after every acceptance
  * seam succeeds. A destination that already exists is user-owned and is never replaced; re-import
@@ -170,7 +170,7 @@ export function importGodotProject(
     boundExporterBinary: options.boundExporterBinary,
     officialBinary: options.officialBinary,
   });
-  const snapshotTemp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-project-snapshot-'));
+  const snapshotTemp = mkdtempSync(path.join(tmpdir(), 'volter-godot-project-snapshot-'));
   const capturedProjectDir = path.join(snapshotTemp, 'project');
   try {
     materializeGodotProjectSnapshot(snapshot, capturedProjectDir);

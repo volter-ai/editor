@@ -50,7 +50,7 @@ export function selectedChatLaunch(selection: ChatSelection, launch: { program: 
 export class FrontendControls {
   private server: Server | undefined;
   private readonly secret = randomBytes(32).toString('hex');
-  private readonly directory = join(homedir(), '.vgai', 'runtime', `chat-controls-${process.pid}-${randomBytes(6).toString('hex')}`);
+  private readonly directory = join(homedir(), '.volter', 'runtime', `chat-controls-${process.pid}-${randomBytes(6).toString('hex')}`);
   private readonly state: () => Promise<unknown>;
   private readonly select: (s: ChatSelection) => Promise<unknown>;
   constructor(state: () => Promise<unknown>, select: (s: ChatSelection) => Promise<unknown>, private readonly open?: (id: string) => Promise<unknown>, private readonly remember?: (id:string, nativeId:string) => Promise<unknown>) { this.state = state; this.select = select; }

@@ -43,7 +43,7 @@
  * implementation over {@link BlenderFiles}.
  */
 
-export const SESSION_ROOT = '/work/.vgai-session';
+export const SESSION_ROOT = '/work/.volter-session';
 export const SESSION_SCRIPT = `${SESSION_ROOT}/session.py`;
 
 /**
@@ -137,7 +137,7 @@ export interface BlenderEngine {
   readonly bootMs: number;
   /** The engine's memory in bytes, now. Linear memory on the standalone skew;
    *  null where the skew cannot see the module's memory from the host, which
-   *  is the WALI case and is why `vgai status` prints "unreported" rather than
+   *  is the WALI case and is why `volter status` prints "unreported" rather than
    *  a zero. */
   memoryBytes(): number | null;
   /** Bytes of packed `.data` payload handed back after boot, or null when the
@@ -303,7 +303,7 @@ export function openSessionChannel(
    *
    * The loop below waits for `out/<id>.done` and nothing else. When the
    * program behind the directory DIES, that file is never written, so the
-   * call waits forever: `vgai status` reports it IN FLIGHT for as long as
+   * call waits forever: `volter status` reports it IN FLIGHT for as long as
    * anyone looks, `blender-start` keeps answering from the host's cached
    * banner, and the harness has no answer to time out against. MEASURED
    * 2026-09-19 three times on the WALI skew -- 507 s, 621 s and 964 s of a

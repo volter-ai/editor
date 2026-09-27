@@ -72,7 +72,7 @@ import { collectRenderMemory } from '../runtime/dev/render-memory';
 import { createWebGLFrameCapture } from '../runtime/dev/webgl-frame-capture';
 import { pixiRenderingContext } from '../runtime/pixi/render-pass-bracket';
 import type { ObservationDeclaration } from '@volter/editor-project/adapter/adapter-module';
-import type { VgaiGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import type { RenderPassHooks } from '@volter/threejs-runtime/adapter/ingest/scene-capture';
 import type * as THREE from 'three';
@@ -223,7 +223,7 @@ export interface IngestSystemsWiring {
  * accessor-trap for three, the renderer's runners for Pixi).
  */
 export function wireIngestSystems(opts: {
-  readonly contractSystems: VgaiGameSystems | undefined;
+  readonly contractSystems: VolterGameSystems | undefined;
   /**
    * THIS MOUNT'S SURFACE, stated rather than inferred from which runtime is
    * present — the recognized-Phaser/Babylon canvas branch captures neither
@@ -271,8 +271,8 @@ export function wireIngestSystems(opts: {
     'game' in opts ? opts.game : typeof window === 'undefined' ? null : ingestGameRealmWindow(),
   );
   const { adapter: debug, collisions } = mergeDebugAdapters([
-    { label: "the game's own contract (window.vgaiGame.systems)", adapter: contractDebug },
-    { label: "its adapter's observation table (vgai.adapter.ts)", adapter: observationDebug },
+    { label: "the game's own contract (window.volterGame.systems)", adapter: contractDebug },
+    { label: "its adapter's observation table (volter.adapter.ts)", adapter: observationDebug },
   ]);
   const declared = projectContractSystemAdapters(opts.contractSystems, opts.surface);
   const renderDebug = opts.runtime
@@ -284,7 +284,7 @@ export function wireIngestSystems(opts: {
   // (last writer wins), so this is the only place that may install it, and
   // anything needing the game's render pass multiplexes here rather than
   // opening a second seam. The second consumer is the same-frame canvas
-  // snapshot (`ingest-frame-snapshot.ts`) that makes `vgai screenshot` readable
+  // snapshot (`ingest-frame-snapshot.ts`) that makes `volter screenshot` readable
   // over a game whose canvas has no `preserveDrawingBuffer`; it costs nothing
   // until armed, and `deliverArmedIngestFrame` no-ops while no source is set —
   // which is the canvas lane's state, because a Pixi ingest is already

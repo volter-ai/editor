@@ -1,15 +1,15 @@
 /**
  * WHAT THE SESSION IS DOING RIGHT NOW, and the agent-facing doors that read
  * it: `/__editor/state`, `/__editor/validation-log`, `/__editor/editor-state`
- * and the `/__vgai*` family.
+ * and the `/__volter*` family.
  *
- * `/__vgai` is the agent poke surface — one self-describing index over the
+ * `/__volter` is the agent poke surface — one self-describing index over the
  * status, validation, provider-state and screenshot reads beneath it. The
  * screenshot route is deliberately SERVER-side: the server owns the
  * filesystem, so the PNG lands under the project where an agent's file reader
  * can open it without leaving its sandbox.
  *
- * `/__editor/editor-state` is the durable half (`.vgai/editor-state.json`);
+ * `/__editor/editor-state` is the durable half (`.volter/editor-state.json`);
  * `/__editor/state` is the live half a browser tab reports and the CLI reads.
  */
 
@@ -63,7 +63,7 @@ export function registerProjectStateRoutes(
     const stateParticipantId =
       trustedShareIdentity(req)?.participantId ??
       ctx.hostParticipantId ??
-      (participantConnections.size > 0 ? '__vgai_missing_local_host__' : undefined);
+      (participantConnections.size > 0 ? '__volter_missing_local_host__' : undefined);
     const table = tabTableFor(stateParticipantId ?? null);
     // `connected`/`editorsConnected` derive from the TABLE, never from a
     // socket count: a tab mid-reload holds no socket and is still here, and a
@@ -87,7 +87,7 @@ export function registerProjectStateRoutes(
     const departedTabs = table?.departedReport() ?? [];
     // The snapshot to report is the BLESSED TAB's own — one truth, the same
     // one the relay routes to. Reading it from a separately-computed
-    // "controller" was how `vgai status` and `vgai play` could disagree about
+    // "controller" was how `volter status` and `volter play` could disagree about
     // which tab they were talking about.
     const blessed = table?.blessedTabId() ?? null;
     const controllerClientId =
@@ -116,8 +116,8 @@ export function registerProjectStateRoutes(
     // renders the refusal, and the project-switch endpoint enforces it. But an
     // editor started on an incompatible project serves happily — the server
     // never activates anything — so the refusal lived only in the tab, and
-    // every CLI surface reported a healthy session. `vgai status` said
-    // `connected: true` with empty validation, and `vgai play` timed out into
+    // every CLI surface reported a healthy session. `volter status` said
+    // `connected: true` with empty validation, and `volter play` timed out into
     // "Editor reloaded during play startup; retrying…", which reads as a flaky
     // socket and sends you bisecting the toolchain. An agent drives this editor
     // THROUGH the CLI, so a gate that reports itself only in pixels is
@@ -194,7 +194,7 @@ export function registerProjectStateRoutes(
       servedAt: Date.now(),
       // #103: server-computed (never part of the browser-POSTed snapshot
       // above), so it's always current — a file present here is currently
-      // failing validation; a clean project reports `{}`. `vgai status`
+      // failing validation; a clean project reports `{}`. `volter status`
       // prints this whole object as-is, so no CLI changes were needed to
       // surface it.
       projectValidation: Object.fromEntries(projectValidation),
@@ -229,18 +229,18 @@ export function registerProjectStateRoutes(
   // prompts). Mutations stay on POST `/__editor/command`. The index below is
   // the wire's self-discovery: arbitrary endpoint names are fine when
   // queryable, fatal when memorized.
-  router.get('/__vgai', (_req: Request, res: Response) => {
+  router.get('/__volter', (_req: Request, res: Response) => {
     res.json({
       project: ctx.projectRoot !== engineRoot ? ctx.projectRoot : null,
       connected: clientCount() > 0,
       endpoints: {
-        'GET /__vgai': 'this index',
-        'GET /__vgai/state': 'every observable game-state provider (play mode must be running)',
-        'GET /__vgai/state/:provider': 'one provider, e.g. /__vgai/state/gemGame',
-        'GET /__vgai/validation':
+        'GET /__volter': 'this index',
+        'GET /__volter/state': 'every observable game-state provider (play mode must be running)',
+        'GET /__volter/state/:provider': 'one provider, e.g. /__volter/state/gemGame',
+        'GET /__volter/validation':
           'validate-on-save results for this project (failing: {} means clean)',
-        'GET /__vgai/screenshot':
-          'capture the live game canvas to <project>/.vgai/captures/<ts>.png and return its path',
+        'GET /__volter/screenshot':
+          'capture the live game canvas to <project>/.volter/captures/<ts>.png and return its path',
         'POST /__editor/command': 'the full command relay (bridge-call, play, stop, select, …)',
       },
     });
@@ -274,7 +274,7 @@ export function registerProjectStateRoutes(
     res.json({ entries: currentValidationLogEntries() });
   });
 
-  router.get('/__vgai/validation', (_req: Request, res: Response) => {
+  router.get('/__volter/validation', (_req: Request, res: Response) => {
     res.json({
       clean: projectValidation.size === 0,
       failing: Object.fromEntries(projectValidation),
@@ -286,7 +286,7 @@ export function registerProjectStateRoutes(
     });
   });
 
-  router.get('/__vgai/state', async (_req: Request, res: Response) => {
+  router.get('/__volter/state', async (_req: Request, res: Response) => {
     const result = await relayCommandResult({
       type: 'bridge-call',
       method: 'stateAll',
@@ -296,7 +296,7 @@ export function registerProjectStateRoutes(
     res.status(status).json(body);
   });
 
-  router.get('/__vgai/state/:provider', async (req: Request, res: Response) => {
+  router.get('/__volter/state/:provider', async (req: Request, res: Response) => {
     const result = await relayCommandResult({
       type: 'bridge-call',
       method: 'state',
@@ -310,7 +310,7 @@ export function registerProjectStateRoutes(
   // (`bridge-screenshot` — a pure "hand back the pixels" primitive), and THIS
   // side owns the filesystem, so the PNG lands under the project where the
   // agent's Read tool can open it without leaving the sandbox.
-  router.get('/__vgai/screenshot', async (_req: Request, res: Response) => {
+  router.get('/__volter/screenshot', async (_req: Request, res: Response) => {
     if (ctx.projectRoot === engineRoot) {
       res.status(400).json({ ok: false, error: 'no project open' });
       return;
@@ -336,7 +336,7 @@ export function registerProjectStateRoutes(
       res.status(500).json({ ok: false, error: 'bridge-screenshot returned no image data' });
       return;
     }
-    const capturesDir = join(ctx.projectRoot, '.vgai', 'captures');
+    const capturesDir = join(ctx.projectRoot, '.volter', 'captures');
     await mkdir(capturesDir, { recursive: true });
     const file = join(capturesDir, `capture-${new Date().toISOString().replace(/[:.]/g, '-')}.png`);
     await writeFile(file, Buffer.from(base64, 'base64'));
@@ -354,14 +354,14 @@ export function registerProjectStateRoutes(
       ...(typeof flatness?.warning === 'string' ? { warning: flatness.warning } : {}),
     });
   });
-  // ---- Persistent editor state (.vgai/editor-state.json) ----
+  // ---- Persistent editor state (.volter/editor-state.json) ----
   router.get('/__editor/editor-state', async (_req: Request, res: Response) => {
     if (ctx.projectRoot === engineRoot) {
       res.json({});
       return;
     }
     try {
-      const raw = await readFile(join(ctx.projectRoot, '.vgai', 'editor-state.json'), 'utf-8');
+      const raw = await readFile(join(ctx.projectRoot, '.volter', 'editor-state.json'), 'utf-8');
       res.json(JSON.parse(raw));
     } catch {
       res.json({});
@@ -374,10 +374,10 @@ export function registerProjectStateRoutes(
       return;
     }
     try {
-      const vgaiDir = join(ctx.projectRoot, '.vgai');
-      await mkdir(vgaiDir, { recursive: true });
+      const volterDir = join(ctx.projectRoot, '.volter');
+      await mkdir(volterDir, { recursive: true });
       await writeFile(
-        join(vgaiDir, 'editor-state.json'),
+        join(volterDir, 'editor-state.json'),
         JSON.stringify(req.body, null, 2),
         'utf-8',
       );
@@ -391,8 +391,8 @@ export function registerProjectStateRoutes(
   // Code-OSS's own workspace-scoped state (its layout, open editors, views) and the editor's, in
   // the project's own folder: IndexedDB keyed by the workspace id lost it to a folder rename,
   // another browser and another checkout (measured 2026-09-04), and this file survives all three.
-  // Its own file, because `.vgai/editor-state.json` has one whole-document writer.
-  const workbenchStoragePath = (): string => join(ctx.projectRoot, '.vgai', 'workbench-storage.json');
+  // Its own file, because `.volter/editor-state.json` has one whole-document writer.
+  const workbenchStoragePath = (): string => join(ctx.projectRoot, '.volter', 'workbench-storage.json');
   const readWorkbenchStorage = async (): Promise<Record<string, string>> => {
     try {
       const parsed: unknown = JSON.parse(await readFile(workbenchStoragePath(), 'utf-8'));

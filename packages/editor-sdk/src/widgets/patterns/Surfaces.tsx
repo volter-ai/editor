@@ -26,7 +26,7 @@ export function EditorSurface({
       data-variant={variant}
       data-border={border || undefined}
       data-scroll={scroll || undefined}
-      className={classes('vgai-surface', className)}
+      className={classes('volter-surface', className)}
     />
   );
 }
@@ -50,18 +50,18 @@ export function EditorBanner({
       {...props}
       role={tone === 'error' ? 'alert' : 'status'}
       data-tone={tone}
-      className={classes('vgai-banner', className)}
+      className={classes('volter-banner', className)}
     >
-      {icon && <span className="vgai-banner-icon">{icon}</span>}
-      <div className="vgai-banner-content">{children}</div>
-      {actions && <div className="vgai-banner-actions">{actions}</div>}
+      {icon && <span className="volter-banner-icon">{icon}</span>}
+      <div className="volter-banner-content">{children}</div>
+      {actions && <div className="volter-banner-actions">{actions}</div>}
     </div>
   );
 }
 
 export const EditorPopover = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function EditorPopover({ className, ...props }, ref) {
-    return <div ref={ref} {...props} className={classes('vgai-popover', className)} />;
+    return <div ref={ref} {...props} className={classes('volter-popover', className)} />;
   },
 );
 
@@ -71,7 +71,7 @@ export interface EditorBadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 export function EditorBadge({ shape = 'label', className, ...props }: EditorBadgeProps) {
-  return <span {...props} data-shape={shape} className={classes('vgai-badge', className)} />;
+  return <span {...props} data-shape={shape} className={classes('volter-badge', className)} />;
 }
 
 export interface DropIndicatorProps extends HTMLAttributes<HTMLDivElement> {
@@ -84,7 +84,7 @@ export function DropIndicator({ position = 'inside', className, ...props }: Drop
       {...props}
       aria-hidden="true"
       data-position={position}
-      className={classes('vgai-drop-indicator', className)}
+      className={classes('volter-drop-indicator', className)}
     />
   );
 }
@@ -116,7 +116,7 @@ export function ResizeHandle({
       aria-valuemin={valueNow === undefined ? undefined : valueMin}
       aria-valuemax={valueNow === undefined ? undefined : valueMax}
       data-orientation={orientation}
-      className={classes('vgai-resize-handle', className)}
+      className={classes('volter-resize-handle', className)}
     />
   );
 }

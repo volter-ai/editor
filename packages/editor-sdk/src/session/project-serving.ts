@@ -1,12 +1,12 @@
 /**
  * THE PROJECT-SERVING DOOR — how an integration takes part in serving a project's own modules.
  *
- * A package the product composes may declare `package.json#vgai.serving`: a built Node module
+ * A package the product composes may declare `package.json#volter.serving`: a built Node module
  * (`.mjs`) whose `servingPlugins(services)` returns Vite plugins the session adds to the
- * project's module graph. The browser half of an integration stays `vgai.contributions`; this is
+ * project's module graph. The browser half of an integration stays `volter.contributions`; this is
  * its server half, for what only a transform over the project's source can do (a JSX identity
  * stamp, an authoring route over the project's files). The kit names no integration: it reads the
- * declaration from the product's composed packages, exactly as it reads `vgai.contributions`.
+ * declaration from the product's composed packages, exactly as it reads `volter.contributions`.
  *
  * `services` are the kit's own server capabilities a serving module may use, so an integration
  * never imports kit internals.
@@ -126,7 +126,7 @@ export interface ModelConverter {
   convert(primaryPath: string, format: string, settings: ModelImportSettings): Promise<Uint8Array>;
 }
 
-/** What a `vgai.serving` module exports. */
+/** What a `volter.serving` module exports. */
 export interface ProjectServingModule {
   servingPlugins(services: ProjectServingServices): readonly unknown[];
   /** What a module's own source says about its dialect: whether it imports a reconciler, and
@@ -147,4 +147,4 @@ export interface ProjectServingModule {
 
 /** The plugin name a serving module gives the plugin that serves `/__ui-source/*`, so the kit
  *  can say whether this session serves source writes without naming who does. */
-export const SOURCE_WRITE_ROUTES_PLUGIN = 'vgai-ui-oid';
+export const SOURCE_WRITE_ROUTES_PLUGIN = 'volter-ui-oid';

@@ -4,7 +4,7 @@ extends SceneTree
 # tokenizer/parser/analyzer/compiler the authority for whether the project is valid; Script's
 # reflection surface exports the declarations the TypeScript analyzer must bind against.
 
-const PROTOCOL := "vgai.godot-semantic-snapshot"
+const PROTOCOL := "volter.godot-semantic-snapshot"
 const PROTOCOL_VERSION := 1
 
 var _out_path := ""

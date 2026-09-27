@@ -103,7 +103,7 @@ function SnapButton({
   }, [popoverOpen]);
 
   return (
-    <div ref={ref} className="vgai-viewport-popover-anchor">
+    <div ref={ref} className="volter-viewport-popover-anchor">
       <SplitButtonGroup>
         {dimensions === '2d' && (
           // Godot's 2D toolbar has two snap toggles: smart snapping (alignment to the parent,
@@ -181,7 +181,7 @@ function SnapButton({
         )}
       </SplitButtonGroup>
       {popoverOpen && (
-        <EditorPopover className="vgai-snap-popover">
+        <EditorPopover className="volter-snap-popover">
           <Stack gap={2}>
             {dimensions === '2d' ? (
               // Godot's Configure Snap: the grid's step and offset, in pixels.
@@ -446,7 +446,7 @@ function TransformOptionsButton({ store }: { store: ShellStore }) {
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
   return (
-    <div ref={ref} className="vgai-viewport-popover-anchor">
+    <div ref={ref} className="volter-viewport-popover-anchor">
       <Tooltip text="Transform options">
         <IconButton
           aria-label="Transform options"
@@ -513,7 +513,7 @@ function TransformOrientationButton({ store }: { store: ShellStore }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const label = store.transformSpace === 'world' ? 'Global' : 'Local';
   return (
-    <div className="vgai-viewport-popover-anchor">
+    <div className="volter-viewport-popover-anchor">
       <Tooltip text={`Transform orientation: ${label}`}>
         <Button
           ref={triggerRef}
@@ -524,7 +524,7 @@ function TransformOrientationButton({ store }: { store: ShellStore }) {
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="vgai-transform-orientation-trigger"
+          className="volter-transform-orientation-trigger"
         >
           <EditorIcon icon={store.transformSpace === 'world' ? faGlobe : faCube} size="sm" />
           <span>{label}</span>
@@ -549,7 +549,7 @@ function TransformOrientationButton({ store }: { store: ShellStore }) {
                 setOpen(false);
               }}
             >
-              <span className="vgai-menu-check">
+              <span className="volter-menu-check">
                 {store.transformSpace === space && <EditorIcon icon={faCheck} size="xs" />}
               </span>
               {space === 'world' ? 'Global' : 'Local'}
@@ -618,13 +618,13 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
   // host decides whether these controls ride the bar (a placed stage whose look puts them there),
   // so where they are mounted is the answer, not the look alone.
   const [mark, setMark] = useState<HTMLSpanElement | null>(null);
-  const onBar = mark?.closest('.vgai-stage-bar') != null;
+  const onBar = mark?.closest('.volter-stage-bar') != null;
   return (
     <EditorToolbar
       compact
       label="Transform controls"
       data-testid="transform-header-controls"
-      className="vgai-transform-header-controls"
+      className="volter-transform-header-controls"
     >
       <span ref={setMark} hidden />
       <TransformOrientationButton store={store} />
@@ -643,7 +643,7 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
  * four header controls that used to trail it live in
  * {@link TransformHeaderControls} now; the 2D canvas surface keeps its snap
  * control inline because this strip lays out as a ROW over that stage (see
- * `.vgai-viewport-toolbar-left` in `workspace-dock.css`) and that surface has
+ * `.volter-viewport-toolbar-left` in `workspace-dock.css`) and that surface has
  * no Blender analogue to place it against.
  *
  * THESE FOUR ARE BLENDER'S OWN SECOND TOOLBAR GROUP, and the order is its
@@ -758,7 +758,7 @@ export function ToolStrip({
     <FloatingToolbar
       label="Transform tools"
       data-testid={dimensions === '2d' ? 'canvas-2d-toolstrip' : 'threejs-toolstrip'}
-      className="vgai-viewport-toolbar vgai-viewport-toolbar-left"
+      className="volter-viewport-toolbar volter-viewport-toolbar-left"
     >
       {/* SELECT BOX, first — Blender's own group 1 (see the docblock). It is
           not offered over a MODAL door: `door.begin` takes a transform kind

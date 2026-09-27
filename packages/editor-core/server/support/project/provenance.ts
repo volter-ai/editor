@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { GenerationBillingSchema } from '@volter/editor-sdk/generations';
 
-export const PROJECT_PROVENANCE_PATH = '.vgai/provenance.json';
+export const PROJECT_PROVENANCE_PATH = '.volter/provenance.json';
 
 export const ProjectProvenanceOutputSchema = z
   .object({

@@ -65,10 +65,10 @@ for (const folder of readdirSync(join(root, 'packages'))) {
       if (specifier.startsWith('.') || specifier.startsWith('/') || isBuiltin(specifier)) return;
       // Build-time virtual modules and the documented core source alias are
       // resolved by the product build, not by npm's package resolver.
-      if (specifier.startsWith('@editor/') || /^(?:vgai|virtual):/.test(specifier) || specifier.startsWith('\0')) return;
+      if (specifier.startsWith('@editor/') || /^(?:volter|virtual):/.test(specifier) || specifier.startsWith('\0')) return;
       if (/^(https?:|data:)/.test(specifier)) return;
       const name = specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
-      if (name.startsWith('@vgai/') || (name.startsWith('@volter/') && !release.has(name)))
+      if (name.startsWith('@volter/') || (name.startsWith('@volter/') && !release.has(name)))
         failures.add(`${manifest.name}/${path}: excluded package ${specifier}`);
       else if (!(project ?? declared).has(name)) failures.add(`${manifest.name}/${path}: undeclared import ${specifier}`);
     }

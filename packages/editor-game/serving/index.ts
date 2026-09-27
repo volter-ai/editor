@@ -1,5 +1,5 @@
 /**
- * `@volter/editor-game`'s server half (`package.json#vgai.serving`): the one deep specifier a
+ * `@volter/editor-game`'s server half (`package.json#volter.serving`): the one deep specifier a
  * game's own contributions name, `@editor/game-module-access` (the template's
  * `src/contributions/use-game-modules.ts`), resolved to this package's module. The page
  * bundle maps the same specifier for its own copy (`src/host/served-bundle-runtime-modules.ts`);

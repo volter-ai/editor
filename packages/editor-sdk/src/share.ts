@@ -3,12 +3,12 @@
  *
  * This route has three clients living in three different compilation units:
  * the editor SERVER that serves it (`packages/editor/server/`), the browser
- * PANEL that polls it (`packages/editor/src/`), and the `vgai share` CLI
- * (`packages/vgai-cli/src/`). Each of them used to declare its own copy of the
+ * PANEL that polls it (`packages/editor/src/`), and the `volter share` CLI
+ * (`packages/volter-cli/src/`). Each of them used to declare its own copy of the
  * payload, and the copies had already drifted — silently, in both directions,
  * because an under-declared read of a JSON superset is a type error nowhere:
  *
- *   - the CLI's invitation had no `delivery`, so `vgai share` could not report
+ *   - the CLI's invitation had no `delivery`, so `volter share` could not report
  *     that the invitation email had FAILED to send — the one state the field
  *     exists for;
  *   - the CLI's audit rows typed `type` and `capability` as bare `string`,
@@ -17,10 +17,10 @@
  *   - the browser panel had no `audit` at all, and re-declared the tunnel
  *     health shape inline instead of naming it.
  *
- * This package is the right home for all three: `@vgai/editor` and `@vgai/cli`
+ * This package is the right home for all three: `@volter/editor` and `@volter/cli`
  * both already depend on it, it depends on neither, and the CLI's esbuild
  * bundle inlines it. (The CLI's standing "no editor-package dependency" rule is
- * about `@vgai/editor` — the server+UI package whose express/vite/chokidar
+ * about `@volter/editor` — the server+UI package whose express/vite/chokidar
  * graph the standalone bundle must not drag in. This is a types-only module.)
  *
  * Two things deliberately stay OFF this wire, and stay off it structurally
@@ -68,7 +68,7 @@ export type ShareCapability =
   | 'maintain'
   | 'never-share';
 
-/** A verified VGAI account, as a share participant projects onto the wire. */
+/** A verified VOLTER account, as a share participant projects onto the wire. */
 export interface ShareAccount {
   id: string;
   email: string;

@@ -20,7 +20,7 @@ function flush(): void {
     if (available.has(id)) showWorkspaceUtility(id);
     else
       editorConsole.error(
-        `vgai.adapter.ts: editor.playUtilities names unavailable utility "${id}".`,
+        `volter.adapter.ts: editor.playUtilities names unavailable utility "${id}".`,
         'adapter',
       );
   }

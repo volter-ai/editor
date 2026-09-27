@@ -33,7 +33,7 @@
     "build:node": "node scripts/build-node.mjs",
     "typecheck": "tsc -p tsconfig.node.json"
   },
-  "vgai": {
+  "volter": {
     "product": {
       "entry": "./src/index.ts",
       "displayName": "Volter Model Editor",

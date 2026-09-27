@@ -231,7 +231,7 @@ const REORDER_MIME = 'application/x-hierarchy-reorder';
  * `chromeSize.treeRow` is the editor's OWN default (24). A material may
  * retune it — Blender's does, to the 20px its Outliner rows measure — and a
  * constant read at module load never learns that: the row was painted at the
- * inline 24 while `--vgai-tree-row-height` said 20, so the density
+ * inline 24 while `--volter-tree-row-height` said 20, so the density
  * contribution reached nothing. The spacer math, hit-testing and reveal
  * scrolling must all use the number the row is actually painted at.
  *
@@ -241,9 +241,9 @@ const REORDER_MIME = 'application/x-hierarchy-reorder';
  *
  * THE ROW HEIGHT IS NOT WHY THE MODEL OUTLINER LOOKS SHORT — do not come here
  * to fix that. Measured 2026-09-21 through the chrome door on a live model
- * session (`editor.document.query('.vgai-tree-row', { scope: 'outliner',
+ * session (`editor.document.query('.volter-tree-row', { scope: 'outliner',
  * styles: [...] })`): computed `height: 20px`, rendered rect 20, row pitch
- * exactly 20, `--vgai-tree-row-height: "20px"` — and Blender's own Outliner in
+ * exactly 20, `--volter-tree-row-height: "20px"` — and Blender's own Outliner in
  * `blender-reference/modeling-object-none.png` steps 40 device px at native 2x,
  * i.e. the same 20. The two agree exactly, and `blender.style.ts`'s
  * `treeRow: 20` is what puts them there.
@@ -260,11 +260,11 @@ const REORDER_MIME = 'application/x-hierarchy-reorder';
  * verified from this repo alone.
  */
 function treeRowHeight(container: HTMLElement | null): number {
-  const row = container?.querySelector<HTMLElement>('.vgai-tree-row');
+  const row = container?.querySelector<HTMLElement>('.volter-tree-row');
   const measured = row?.getBoundingClientRect().height ?? 0;
   if (measured > 0) return Math.round(measured);
   const declared = container
-    ? Number.parseFloat(getComputedStyle(container).getPropertyValue('--vgai-tree-row-height'))
+    ? Number.parseFloat(getComputedStyle(container).getPropertyValue('--volter-tree-row-height'))
     : Number.NaN;
   return Number.isFinite(declared) && declared > 0 ? declared : chromeSize.treeRow;
 }
@@ -277,7 +277,7 @@ function treeRowHeight(container: HTMLElement | null): number {
  * `treeRowHeight` above records — a constant read at load never learns what a
  * density contribution declares.
  */
-const INDENT = 'var(--vgai-tree-indent)';
+const INDENT = 'var(--volter-tree-indent)';
 /** `left`/`padding-left` for a row at `depth`, in the material's own step. */
 function indentPx(depth: number): string {
   return `calc(${INDENT} * ${depth})`;
@@ -287,7 +287,7 @@ function indentPx(depth: number): string {
  * block it spans. Measured on `modeling-object-none.png` (Blender 5.2, native
  * 2x, object mode): the rule runs y 143..242 over child rows 133..172,
  * 173..212 and 213..252 — 10 device px in at the top, 10 short at the bottom,
- * and unbroken in between. See `.vgai-tree-indent-guide` in `theme.css` for
+ * and unbroken in between. See `.volter-tree-indent-guide` in `theme.css` for
  * the ink, the column and where the frame stops answering.
  */
 const GUIDE_BLOCK_INSET = 5;
@@ -332,8 +332,8 @@ const DATABLOCK_SUMMARY_SCAN = 6;
 
 // Scroll-window sizing:
 // `treeRowHeight()` above is THIS panel's row height. Every rendered row
-// (Row/MoreRow) is painted by `.vgai-tree-row`'s own `height:
-// var(--vgai-tree-row-height)`, so the spacer-div trick only keeps the
+// (Row/MoreRow) is painted by `.volter-tree-row`'s own `height:
+// var(--volter-tree-row-height)`, so the spacer-div trick only keeps the
 // scrollbar honest as long as that resolved number is what the math uses —
 // which is why it is measured rather than restated. OVERSCAN keeps a small buffer
 // of already-rendered rows on each side of the visible band so a fast scroll/keyboard-nav
@@ -727,11 +727,11 @@ function mergeRevealCounts(
  *
  * THE FIELD'S PAINT, re-verified against the frame this unit: 115x20 border
  * box; fill 28/28/28 = `#1c1c1c` = the palette's `widget.field` = our
- * `--vgai-bg-inset`; one-pixel 60/60/60 = `#3c3c3c` = `boundary.default` =
- * `--vgai-border-1`; corner arc ~3 CSS px; magnifier 14x14 of 229/229/229 ink,
+ * `--volter-bg-inset`; one-pixel 60/60/60 = `#3c3c3c` = `boundary.default` =
+ * `--volter-border-1`; corner arc ~3 CSS px; magnifier 14x14 of 229/229/229 ink,
  * its left edge 5.0 CSS px inside the border box; placeholder "Search" (no
  * ellipsis — read off the frame) at 94/94/94 = `#5e5e5e`, its left edge 26.5
- * CSS px inside the border box. `.vgai-input` already paints all of that from
+ * CSS px inside the border box. `.volter-input` already paints all of that from
  * the palette, so this control adds GEOMETRY only: the leading glyph and the
  * inset that clears it.
  *
@@ -748,7 +748,7 @@ function mergeRevealCounts(
  * WHY 64 IS THE BEHIND-A-STRIP NUMBER, and the arithmetic. MEASURED
  * live on the 308 px Model-workspace Outliner under this look: 5 px of area
  * groove at x 1420..1424, then a tab strip that needs 203 px (three labels of
- * 41/54/36 px of ink inside `--vgai-space-5` padding), then the strip's drag
+ * 41/54/36 px of ink inside `--volter-space-5` padding), then the strip's drag
  * void, then the actions. The four verbs this replaced occupied exactly 90 px
  * of that row (x 1638..1728: four 20 px buttons, three 2 px gaps, 4 px of
  * right padding) with 10 px of void beside them — so 90 is the footprint that
@@ -765,7 +765,7 @@ function mergeRevealCounts(
  *
  * Our editor-type selector spends 203 px where Blender's spends 32, which is
  * the whole of the remaining distance. The one lever that would buy more is
- * `.dv-tab`'s `--vgai-space-5` padding: at Blender's own ~5.5 px a side it
+ * `.dv-tab`'s `--volter-space-5` padding: at Blender's own ~5.5 px a side it
  * would return ~24 px and put the field at 88. Declined — the rule would
  * either repaint every dock tab in the editor, or (scoped to the Outliner's
  * region) leave two tab strips in one window at two different paddings, for a
@@ -809,21 +809,21 @@ function HierarchySearch({ value, onChange }: { value: string; onChange: (next: 
           position: 'absolute',
           left: SEARCH_GLYPH_INSET,
           pointerEvents: 'none',
-          color: 'var(--vgai-text-1)',
+          color: 'var(--volter-text-1)',
           // MEASURED, not chosen: at the chrome's `sm` rung (14 under Blender)
           // this glyph inked 12x12 against the frame's 14x14, because these
           // faces ink at ~0.85 of their box. `lg` is the rung that lands on 14.
-          fontSize: 'var(--vgai-icon-lg)',
+          fontSize: 'var(--volter-icon-lg)',
         }}
       />
-      {/* L-6 — `.vgai-input` supplies a real `:focus-visible` border/outline
+      {/* L-6 — `.volter-input` supplies a real `:focus-visible` border/outline
           (this box previously did `outline:'none'` with no replacement). */}
       <TextInput
         ref={inputRef}
         type="text"
         data-testid="ingest-search"
         placeholder="Search"
-        className="vgai-input"
+        className="volter-input"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
@@ -862,7 +862,7 @@ const SEARCH_FIELD_WIDTH = 64;
  * renders). Declared here, where the constants live, so the fallback and the
  * raise are read together; nothing but that slot sets either.
  */
-const SEARCH_FIELD_BASIS_VAR = '--vgai-hierarchy-search-basis';
+const SEARCH_FIELD_BASIS_VAR = '--volter-hierarchy-search-basis';
 
 /** Below this a field stops reading as a field — there is no room for the
  *  glyph plus a syllable of the term. Our 308 px Outliner lands just above it. */
@@ -888,9 +888,9 @@ const SEARCH_TEXT_INSET = 21;
 
 /** The dock's handle on the inset — same ownership story as
  *  {@link SEARCH_FIELD_BASIS_VAR}, and set in the same declaration. */
-const SEARCH_TEXT_INSET_VAR = '--vgai-hierarchy-search-text-inset';
+const SEARCH_TEXT_INSET_VAR = '--volter-hierarchy-search-text-inset';
 
-/** The field's own right gutter. `.vgai-input`'s shared 6 px is a third of the
+/** The field's own right gutter. `.volter-input`'s shared 6 px is a third of the
  *  word's room in a field this narrow. */
 const SEARCH_FIELD_END_GUTTER = 2;
 
@@ -911,7 +911,7 @@ const SEARCH_FIELD_END_GUTTER = 2;
  * paints a `secondary` button that carries `aria-haspopup="menu"` as a menu
  * well, because a dropdown TRIGGER is what the class is for. The mark itself
  * is small — 6.5 x 4.0 CSS px of 216-ink — which is why the glyph takes the
- * icon scale's SMALLEST rung (`--vgai-icon-xs`, 12 under Blender) rather than
+ * icon scale's SMALLEST rung (`--volter-icon-xs`, 12 under Blender) rather than
  * the 14 px rung the rest of the chrome's glyphs use.
  */
 function HierarchyViewMenu({
@@ -945,7 +945,7 @@ function HierarchyViewMenu({
           // the icon scale's smallest rung (12 under Blender) rather than the
           // 14 the rest of the chrome's glyphs use; at the type scale's `xs`
           // it inked 5 x 3.
-          style={{ fontSize: 'var(--vgai-icon-xs)' }}
+          style={{ fontSize: 'var(--volter-icon-xs)' }}
         />
       </IconButton>
       {open && (
@@ -1404,7 +1404,7 @@ function ContextMenu({
         data-testid="ingest-context-menu"
         style={{
           // U6a (P6 glass-native chrome): chrome paint (fill/border/radius/
-          // shadow/frost/ink) comes from the shared `.vgai-menu` overlay
+          // shadow/frost/ink) comes from the shared `.volter-menu` overlay
           // material — the same Regular-glass vocabulary every other menu
           // consumes — so only geometry stays inline.
           position: 'fixed',
@@ -1412,7 +1412,7 @@ function ContextMenu({
           top: menuPosition.top,
           minWidth: 150,
           maxWidth: 260,
-          fontSize: 'var(--vgai-font-base)',
+          fontSize: 'var(--volter-font-base)',
         }}
       >
         {/* A4 (D8): also suppressed for a root-group MEMBER row, same as an
@@ -1573,14 +1573,14 @@ function CreateMenu({ adapter, parentId }: { adapter: AuthoringAdapter; parentId
         variant={open ? 'primary' : 'secondary'}
         size="compact"
       >
-        <EditorIcon icon={faPlus} style={{ fontSize: 'var(--vgai-font-sm)' }} />{' '}
-        <EditorIcon icon={faCaretDown} style={{ fontSize: 'var(--vgai-font-xs)' }} />
+        <EditorIcon icon={faPlus} style={{ fontSize: 'var(--volter-font-sm)' }} />{' '}
+        <EditorIcon icon={faCaretDown} style={{ fontSize: 'var(--volter-font-xs)' }} />
       </Button>
       {open && (
         <Menu
           style={{
             // U6a: same Menu-primitive rebuild as the ingest context menu
-            // above — chrome paint arrives through `.vgai-menu`'s shared
+            // above — chrome paint arrives through `.volter-menu`'s shared
             // overlay material; geometry stays inline.
             position: 'absolute',
             top: '100%',
@@ -1625,7 +1625,7 @@ function MoreRow({
     <Button
       type="button"
       variant="ghost"
-      className="vgai-hierarchy-more"
+      className="volter-hierarchy-more"
       data-testid="ingest-row-more"
       onClick={() => onReveal(row.more!.parentPathKey)}
       style={{
@@ -1987,7 +1987,7 @@ const Row = memo(function Row({
 
   return (
     <div
-      className="vgai-tree-row"
+      className="volter-tree-row"
       // R5 (P6-U7): gate on the STABLE `isStructural` (which includes the
       // `role: 'root'`/`document`/`folder`/`story`/`boundary` STRUCTURAL_ROLES),
       // not just member/organization rows. A world-root navigator row
@@ -1999,7 +1999,7 @@ const Row = memo(function Row({
       data-ingest-name={node.label}
       data-node-role={node.role}
       // THE ROW'S OWN DEPTH, as a fact and not as a padding. It is drawn as
-      // `padding-left: calc(var(--vgai-tree-indent) * depth)`, so until this
+      // `padding-left: calc(var(--volter-tree-indent) * depth)`, so until this
       // attribute existed a reader (the product's chrome door,
       // `editor-document-probe.ts` scope `'outliner'`) could only recover the
       // tree's SHAPE by dividing one measured pixel number by another — which
@@ -2019,8 +2019,8 @@ const Row = memo(function Row({
       // The alternating stripe — see `rowIndex`'s own comment.
       data-row-alt={rowIndex % 2 === 1 ? 'true' : undefined}
       // H6 — de-emphasized through the SAME muted token the panel already uses
-      // for a hidden/inactive row (`.vgai-tree-row[data-muted]` →
-      // `--vgai-content-dim`), rather than a second dimming vocabulary. The
+      // for a hidden/inactive row (`.volter-tree-row[data-muted]` →
+      // `--volter-content-dim`), rather than a second dimming vocabulary. The
       // separate `data-internal` marker is what identifies the row's KIND.
       data-internal={isInternal ? 'true' : undefined}
       // AN EXCLUDED SUBTREE IS FADED, which is Blender's own answer:
@@ -2080,8 +2080,8 @@ const Row = memo(function Row({
         onContextMenu(e, node.id);
       }}
       style={{
-        // No `height` here: `.vgai-tree-row` already paints
-        // `var(--vgai-tree-row-height)`, and an inline copy silently outranked
+        // No `height` here: `.volter-tree-row` already paints
+        // `var(--volter-tree-row-height)`, and an inline copy silently outranked
         // the active material's density.
         position: 'relative',
         paddingLeft: indentPx(depth),
@@ -2094,7 +2094,7 @@ const Row = memo(function Row({
         // The tree is body text at the material's own face size (Blender's
         // Outliner is 11px); `font-lg` made every row a size larger than the
         // material asked for.
-        fontSize: 'var(--vgai-font-base)',
+        fontSize: 'var(--volter-font-base)',
       }}
     >
       {dropZone === 'before' && (
@@ -2103,13 +2103,13 @@ const Row = memo(function Row({
       {dropZone === 'after' && <DropIndicator position="after" style={{ left: indentPx(depth) }} />}
 
       {/* One rule per ancestor column, on the caret centre of each. Always
-       *  rendered: `--vgai-tree-indent-guide` is `transparent` for every
+       *  rendered: `--volter-tree-indent-guide` is `transparent` for every
        *  palette that names no `color.boundary.indent`, so a skin without the
        *  member paints nothing and the spans cost it no pixels. */}
       {indentGuidesFor(depth, prevDepth, nextDepth).map((guide) => (
         <span
           key={guide.column}
-          className="vgai-tree-indent-guide"
+          className="volter-tree-indent-guide"
           aria-hidden="true"
           style={{
             left: `calc(${INDENT} * ${guide.column + 0.5} - 0.5px)`,
@@ -2134,7 +2134,7 @@ const Row = memo(function Row({
             onToggleOpen(row, e.altKey);
           }}
           title="Expand/collapse (Option/Alt-click applies to the branch)"
-          className="vgai-tree-caret"
+          className="volter-tree-caret"
         >
           <EditorIcon icon={isCollapsed ? faCaretRight : faCaretDown} aria-hidden="true" />
         </IconButton>
@@ -2144,14 +2144,14 @@ const Row = memo(function Row({
           aria-hidden="true"
           // The same cell the caret button occupies, so a leaf's type glyph
           // lands in the SAME column as an expandable sibling's. One indent
-          // cell, as Blender's is — see `.vgai-tree-caret` in `theme.css`.
+          // cell, as Blender's is — see `.volter-tree-caret` in `theme.css`.
           style={{ width: INDENT, flexShrink: 0 }}
         />
       )}
 
       {remoteSelectionColors.length > 0 && (
         <span
-          className="vgai-tree-remote-selection"
+          className="volter-tree-remote-selection"
           role="img"
           title={`Selected by ${remoteSelectionColors.length} collaborator${remoteSelectionColors.length === 1 ? '' : 's'}`}
           aria-label="Selected by a collaborator"
@@ -2169,7 +2169,7 @@ const Row = memo(function Row({
           data-testid="world-focus-radio"
           data-world-focused="true"
           title="Live Three world — shown in the viewport"
-          style={{ fontSize: 'var(--vgai-font-xs)', opacity: 0.8, flexShrink: 0 }}
+          style={{ fontSize: 'var(--volter-font-xs)', opacity: 0.8, flexShrink: 0 }}
         >
           <EditorIcon icon={faCircleDot} aria-hidden="true" />
         </span>
@@ -2177,7 +2177,7 @@ const Row = memo(function Row({
 
       {/* THE TYPE GLYPH, and why its opacity is a measurement. This is where
           a glyph's own category ink lands (`EditorIcon` paints a toned glyph
-          in `var(--vgai-category-…)`, and every category token is INK — see
+          in `var(--volter-category-…)`, and every category token is INK — see
           `theme.ts`'s category docblock), and the opacity is the SITE's half
           of Blender's model: the Outliner composites its glyphs at 0.80 over
           whatever the row paints. At 0.65 the Blender palette's `object`
@@ -2195,7 +2195,7 @@ const Row = memo(function Row({
         // the plate is drawn as this span's own `::before` so the glyph's box
         // — and with it every row measurement already fitted to the frame —
         // does not move.
-        className="vgai-tree-type-glyph"
+        className="volter-tree-type-glyph"
         title={node.role ? `${node.role}: ${node.kind}` : node.kind}
         style={{
           // ICONS HAVE THEIR OWN SIZE AXIS (`theme.ts`'s `iconSize`), and this
@@ -2210,10 +2210,10 @@ const Row = memo(function Row({
           // so 15 of ink is an 18px box and `icon.sm` (14) leaves ~3 px on the
           // table. That is a rung this site cannot spend without moving every
           // other skin's tree; it is a measurement, recorded, not a paint-over.
-          width: 'var(--vgai-icon-md)',
-          fontSize: 'var(--vgai-icon-sm)',
+          width: 'var(--volter-icon-md)',
+          fontSize: 'var(--volter-icon-sm)',
           // THE 0.80 MOVED TO THE GLYPH (`theme.css`'s
-          // `.vgai-tree-type-glyph > *`), for the reason its datablock sibling
+          // `.volter-tree-type-glyph > *`), for the reason its datablock sibling
           // already carries: the active row's plate is this span's own
           // `::before`, so a group opacity here multiplied the plate's
           // measured alphas by 0.8 as well — measured 0.203 against the
@@ -2302,7 +2302,7 @@ const Row = memo(function Row({
               selected row as before.
 
               The instance rule yields on a selected row — see
-              `--vgai-tree-active-name-underline` in `theme.ts` for why and for
+              `--volter-tree-active-name-underline` in `theme.ts` for why and for
               what a palette without an active ink gets; a look may also drop
               the rule outright, above. */}
           {identity.typeSuffix ? (
@@ -2323,7 +2323,7 @@ const Row = memo(function Row({
                 textDecorationLine: !instanceRuleShown
                   ? 'none'
                   : isSelected
-                    ? 'var(--vgai-tree-active-name-underline)'
+                    ? 'var(--volter-tree-active-name-underline)'
                     : 'underline',
                 textDecorationStyle: 'dotted',
                 textDecorationColor: themeVars.semantic.instance,
@@ -2374,7 +2374,7 @@ const Row = memo(function Row({
           {datablockSummary.map((child) => (
             <span
               key={child.id}
-              className="vgai-tree-datablock"
+              className="volter-tree-datablock"
               // THE PLATE FOLLOWS THE ACTIVE ROW, NOT THE SELECTION, and the
               // frames are unambiguous: in `modeling-object-selected.png` all
               // three rows are selected and NOT ONE carries a mesh-data plate,
@@ -2394,7 +2394,7 @@ const Row = memo(function Row({
               title={`Component instance of <${identity.typeSuffix}>`}
               style={{
                 marginLeft: spaceVar[2],
-                fontSize: 'var(--vgai-font-sm)',
+                fontSize: 'var(--volter-font-sm)',
                 color: themeVars.content.dim,
               }}
             >
@@ -2404,7 +2404,7 @@ const Row = memo(function Row({
           )}
           {node.secondaryLabel && (
             <span
-              style={{ marginLeft: spaceVar[3], fontSize: 'var(--vgai-font-sm)', opacity: 0.5 }}
+              style={{ marginLeft: spaceVar[3], fontSize: 'var(--volter-font-sm)', opacity: 0.5 }}
             >
               {node.secondaryLabel}
             </span>
@@ -2412,7 +2412,7 @@ const Row = memo(function Row({
           {instancedDetail && (
             <span
               data-testid="hierarchy-instanced-units"
-              style={{ marginLeft: spaceVar[3], fontSize: 'var(--vgai-font-sm)', opacity: 0.5 }}
+              style={{ marginLeft: spaceVar[3], fontSize: 'var(--volter-font-sm)', opacity: 0.5 }}
             >
               {instancedDetail}
             </span>
@@ -2420,7 +2420,7 @@ const Row = memo(function Row({
           {badge?.role === 'world' && badge.zOrder !== 0 && (
             <span
               title={`Z order: ${badge.zOrder}`}
-              style={{ marginLeft: spaceVar[3], fontSize: 'var(--vgai-font-sm)', opacity: 0.6 }}
+              style={{ marginLeft: spaceVar[3], fontSize: 'var(--volter-font-sm)', opacity: 0.6 }}
             >
               Z {badge.zOrder}
             </span>
@@ -2432,7 +2432,7 @@ const Row = memo(function Row({
               title={badge.provenance.detail}
               style={{
                 marginLeft: spaceVar[3],
-                fontSize: 'var(--vgai-font-xs)',
+                fontSize: 'var(--volter-font-xs)',
                 padding: `0 ${space[2]}px`,
                 borderRadius: themeVars.shape.small,
                 border: `1px solid ${themeVars.boundary.strong}`,
@@ -2467,7 +2467,7 @@ const Row = memo(function Row({
           title={warning.tooltip}
           aria-label={`${node.label}: ${warning.tooltip}`}
           style={{
-            fontSize: 'var(--vgai-font-sm)',
+            fontSize: 'var(--volter-font-sm)',
             color: themeVars.semantic.warning,
             flexShrink: 0,
           }}
@@ -2489,7 +2489,7 @@ const Row = memo(function Row({
           title={transformLock.reason}
           aria-label={`${node.label}: ${transformLock.reason}`}
           style={{
-            fontSize: 'var(--vgai-font-sm)',
+            fontSize: 'var(--volter-font-sm)',
             color: themeVars.content.dim,
             flexShrink: 0,
           }}
@@ -2872,7 +2872,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   const [scrollTop, setScrollTop] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  // THE OUTLINER, ONLY WHEN A LOOK PAINTS ONE. `data-vgai-region` is the
+  // THE OUTLINER, ONLY WHEN A LOOK PAINTS ONE. `data-volter-region` is the
   // host's capability attribute for "this is that editor AREA", and it is
   // published here too because a panel's body can live in a render container
   // of the host's own, where the region's copy is not an ancestor of anything
@@ -2977,7 +2977,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   // revealed, which is the overwhelmingly common case.
   //
   // HIER-COMPONENT-TREE composes IN FRONT of that: the game's own
-  // `vgaiComponentRoot`/`vgaiBuiltInternal` marks turn an instance into one
+  // `volterComponentRoot`/`volterBuiltInternal` marks turn an instance into one
   // closed row and fold its runtime-built parts (bones, particle renderers)
   // into exactly the internals reveal already knows how to show. Feeding the
   // marked view to `internalsProjection` instead of the bare adapter is the
@@ -3697,14 +3697,14 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
         data-testid="ingest-hierarchy"
         // §2.31 P2 amendment: the tree is a text-dense zone — local frost
         // layer keeps rows legible over open glass (inert elsewhere).
-        // `vgai-tree-body` carries the ZEBRA — Blender stripes the whole body
+        // `volter-tree-body` carries the ZEBRA — Blender stripes the whole body
         // including the empty rows past the last item, and the rule lives on
         // the scrolling element so its phase is the content's (see theme.css).
-        // It paints only under `data-vgai-region="outliner"` (see
+        // It paints only under `data-volter-region="outliner"` (see
         // `outlinerRegion` above), so a look that paints no editor areas gets
         // an inert element rather than another look's stripe.
-        className="vgai-content-frost vgai-tree-body"
-        data-vgai-region={outlinerRegion}
+        className="volter-content-frost volter-tree-body"
+        data-volter-region={outlinerRegion}
         style={{
           flex: 1,
           minHeight: 0,
@@ -3732,7 +3732,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
               key={hierarchyRowKey(row)}
               row={row}
               // THE STRIPE'S PHASE IS THE ROW'S ABSOLUTE INDEX, never its DOM
-              // position. `.vgai-tree-row:nth-child(even)` counted siblings,
+              // position. `.volter-tree-row:nth-child(even)` counted siblings,
               // and this list's first sibling is the virtualization SPACER —
               // so row 0 always painted the alternate fill (Blender's row 0 is
               // the base one, `outliner.png`: Scene Collection #272727, then

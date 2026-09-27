@@ -1,5 +1,5 @@
 /**
- * `@volter/editor-react`'s server half (`package.json#vgai.serving`, the project-serving door in
+ * `@volter/editor-react`'s server half (`package.json#volter.serving`, the project-serving door in
  * `@volter/editor-sdk/session/project-serving`): the JSX identity stamp and the `/__ui-source/*`
  * authoring routes over a project's React and React Three Fiber source, and the source answers
  * the kit's region decision, validation and Content index ask of a JSX lane.

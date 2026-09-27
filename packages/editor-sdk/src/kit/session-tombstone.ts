@@ -3,13 +3,13 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  * THE PAGE'S OWN DEATH CERTIFICATE — one latch, read by everything that would
  * otherwise let a dead page keep impersonating a live editor.
  *
- * A vgai editor page is a client-side SPA. When its session ends — gracefully
- * (`vgai close` pushes `tab-close`) or ungracefully (the process was killed, or
+ * A volter editor page is a client-side SPA. When its session ends — gracefully
+ * (`volter close` pushes `tab-close`) or ungracefully (the process was killed, or
  * a DIFFERENT server took the port) — the page keeps running: it keeps its
  * control channel's reconnect loop, keeps POSTing state snapshots, and keeps
  * executing relayed commands. Measured during a live debugging session: pages
  * from earlier crashed/replaced sessions ("corpse pages") kept answering
- * probes, so an attach or a `vgai status` read could land on a page whose
+ * probes, so an attach or a `volter status` read could land on a page whose
  * server was gone or replaced, and nothing on that page said so.
  *
  * Both halves of the detection ALREADY existed and neither was wired to

@@ -108,7 +108,7 @@ export type ActiveIngest = (
 ) & {
   siblings: SiblingMount[];
   /** The mounted world's id — the SAME id every log line and the
-   *  `__vgaiIngest` hook's `gameId` names. Carried on the slot (rather than
+   *  `__volterIngest` hook's `gameId` names. Carried on the slot (rather than
    *  re-derived) so the status facet can report WHICH world is live
    *  without a second source of truth (S-1). */
   worldId: string;

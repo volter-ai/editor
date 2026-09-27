@@ -1,5 +1,5 @@
 /**
- * Projects a game's DECLARED system surface (`window.vgaiGame.systems`, see
+ * Projects a game's DECLARED system surface (`window.volterGame.systems`, see
  * `game-contract.ts`) onto the host's existing {@link DebugAdapter} — the one
  * seam `game.commands()` / `game.state()` / `game.providers()` already read
  * through for first-party content (`command-listener.ts`'s
@@ -9,7 +9,7 @@
  * game must not have to learn a parallel vocabulary. A first-party game
  * registers verbs with `ctx.debug.registerCommand`; an ingested game declares
  * them in its entry shim. Both arrive at the SAME `DebugAdapter`, so every
- * consumer downstream — the CLI's `vgai eval`, `@vgai/e2e`'s `GameClient`, the
+ * consumer downstream — the CLI's `volter eval`, `@volter/e2e`'s `GameClient`, the
  * editor's Debug Console and State Watch panels — works unchanged and unaware
  * of the provenance.
  *
@@ -23,7 +23,7 @@
  *   emitted), not a stub standing in for a missing feature.
  */
 
-import type { VgaiGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
 import type {
   DebugAdapter,
   DebugCommandInfo,
@@ -39,7 +39,7 @@ import { DebugError } from '../../debug-registry';
  * when the truth is "this game declared nothing".
  */
 export function createContractDebugAdapter(
-  systems: VgaiGameSystems | undefined | null,
+  systems: VolterGameSystems | undefined | null,
 ): DebugAdapter | null {
   const commandList = systems?.commands ?? [];
   const providerList = systems?.state ?? [];

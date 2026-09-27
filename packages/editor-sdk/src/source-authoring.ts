@@ -18,7 +18,7 @@ export interface OidEntry {
    * (usually an import), so the editor must retain its conservative fallback.
    *
    * A single native root plus forwarded standard group props is ordinary R3F,
-   * not a vgai wrapper. Recording it here lets the editor safely ADD an absent
+   * not a volter wrapper. Recording it here lets the editor safely ADD an absent
    * transform prop at the callsite: the source analyser has proven where that
    * prop lands. An empty `transformProps` list is an equally useful result —
    * the local component exists, but exposes no writable spatial channel.

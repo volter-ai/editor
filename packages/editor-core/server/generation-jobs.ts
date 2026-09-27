@@ -11,7 +11,7 @@ import {
 } from '@volter/editor-sdk/generations';
 import { sanitizeRecordedValue } from './redact-secrets';
 
-export const PROJECT_GENERATIONS_PATH = '.vgai/generations.json';
+export const PROJECT_GENERATIONS_PATH = '.volter/generations.json';
 
 const projectQueues = new Map<string, Promise<unknown>>();
 function emptyDocument(): GenerationJobsDocument {

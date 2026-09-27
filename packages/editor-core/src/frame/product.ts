@@ -4,20 +4,20 @@
  *
  * A product is the last mile (ARCHITECTURE-CORE §The target shape): thin code
  * that stitches packages onto the kit and holds only purpose-specific choices.
- * `@vgai/game-editor` and `@vgai/model-editor` each have ONE source entry, and
+ * `@volter/game-editor` and `@volter/model-editor` each have ONE source entry, and
  * it IS that product's frame entry:
  *
  *   import { product } from '@editor/frame/product';
- *   import blender from 'vgai:contributions/@volter/editor-blender';
+ *   import blender from 'volter:contributions/@volter/editor-blender';
  *
- *   export const { mountVgai } = product({
+ *   export const { mountVolter } = product({
  *     id: 'model-editor',
  *     packages: { '@volter/editor-blender': blender },
  *     look: 'blender',
  *     workspace: 'model',
  *   });
  *
- * `mountVgai` is the name the fork's contribution reads off the served module
+ * `mountVolter` is the name the fork's contribution reads off the served module
  * (`server/routes/served-modules.ts`); the kit's own mount is `mountEditor` in
  * `bridge.tsx`, which names no package and no product. Composing at module
  * scope and handing back the mount is what makes the ordering unarguable:
@@ -38,11 +38,11 @@ import { mountEditor } from './bridge';
  *  can make: which packages it is, what it looks like, what it opens in. */
 export interface ProductDefinition {
   /** The product's id — `game-editor`, `model-editor`. Reported beside the
-   *  workbench by `vgai status`; never branched on. */
+   *  workbench by `volter status`; never branched on. */
   readonly id: string;
   /**
    * The packages this product mounts, keyed by package name, each value the
-   * default export of that package's `vgai:contributions/<name>` module.
+   * default export of that package's `volter:contributions/<name>` module.
    *
    * The KEY is here so the composition says what it composed in one place a
    * person can read, and so `activeProduct().packages` can answer "what is
@@ -65,7 +65,7 @@ export interface ProductDefinition {
  * Compose a product and hand back its frame entry. Called once, at the product
  * entry's module scope.
  */
-export function product(definition: ProductDefinition): { mountVgai: typeof mountEditor } {
+export function product(definition: ProductDefinition): { mountVolter: typeof mountEditor } {
   const names = Object.keys(definition.packages);
   setActiveProduct({
     id: definition.id,
@@ -76,5 +76,5 @@ export function product(definition: ProductDefinition): { mountVgai: typeof moun
     logo: definition.logo,
   });
   setBundledPackageContributions(names.flatMap((name) => definition.packages[name] ?? []));
-  return { mountVgai: mountEditor };
+  return { mountVolter: mountEditor };
 }

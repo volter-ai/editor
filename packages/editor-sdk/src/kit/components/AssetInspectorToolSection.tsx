@@ -99,7 +99,7 @@ export function AssetInspectorToolSection({
   return (
     <div
       data-testid={`asset-inspector-tool-${id}`}
-      style={{ padding: 8, borderTop: '1px solid var(--vgai-structural-divider)', marginTop: 4 }}
+      style={{ padding: 8, borderTop: '1px solid var(--volter-structural-divider)', marginTop: 4 }}
     >
       <div style={{ ...groupLabelStyle, marginBottom: 4 }}>
         <EditorIcon icon={editorIcons.tool.extension} tone="muted" style={{ marginRight: 4 }} />

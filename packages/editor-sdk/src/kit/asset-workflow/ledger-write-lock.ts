@@ -4,11 +4,11 @@
  * asset-ledger-store.ts` over `node:fs`, `./asset-ledger-backend.ts` over a
  * `StorageBackend`).
  *
- * Why the ledger needs this at all: `.vgai/assets.json` (D-AP3) is updated by
+ * Why the ledger needs this at all: `.volter/assets.json` (D-AP3) is updated by
  * READING it, adding one entry, and writing the whole object back. Two of those
  * in flight interleave — both read the old object, the later write wins, and the
  * earlier record is gone with no error anywhere. Two materializations at once is
- * ordinary, not exotic: two `vgai edit` sessions on one project, `npm run
+ * ordinary, not exotic: two `volter edit` sessions on one project, `npm run
  * asset-packs:sync` while an editor is prewarming, two tabs on one project
  * both retrying their declared packs on reopen.
  *

@@ -13,7 +13,7 @@
  *   · how do I replace a whole SOURCE file? (`ui-source/tier-source-write-backend`
  *     for the tier's recorder + `history/source-history-backend` to run it)
  *   · where does a thumbnail framing get recorded? (`asset-workflow/thumbnail-system`
- *     to read `.vgai/thumbnails.json` + `components/asset-editor-persistence`
+ *     to read `.volter/thumbnails.json` + `components/asset-editor-persistence`
  *     to write it, which reaches `editor-api.ts`)
  *
  * — and every one of those is TRANSPORT. Measured, those edges were 72 of the
@@ -55,7 +55,7 @@ export interface Object3DDocumentSourceReplacement {
   readonly label: string;
 }
 
-/** The camera framing `.vgai/thumbnails.json` records for one asset.
+/** The camera framing `.volter/thumbnails.json` records for one asset.
  *  `undefined` is the RESET — remove this asset's framing. */
 export interface Object3DDocumentThumbnailFraming {
   readonly position: [number, number, number];

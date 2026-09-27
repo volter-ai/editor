@@ -3,7 +3,7 @@
  * "Documents, not scenes"): every project module under the selection's
  * `include` globs that exports a React component is a `page` document —
  * what a website is made of, the way a game is made of scenes. Select it
- * in `vgai.adapter.ts`:
+ * in `volter.adapter.ts`:
  *
  *   documents: { find: [{ finder: 'pagesFromUiModules', include: ['src/ui/**\/*page.tsx'] }] }
  *

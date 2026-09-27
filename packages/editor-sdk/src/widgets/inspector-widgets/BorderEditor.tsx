@@ -98,7 +98,7 @@ export function BorderEditor({
           style={{ width: 64 }}
         />
         <Select
-          className="vgai-select"
+          className="volter-select"
           data-testid="border-style"
           value={value.top.style}
           disabled={disabled}
@@ -179,7 +179,7 @@ export function BorderEditor({
             style={{ width: 48 }}
           />
           <Select
-            className="vgai-select"
+            className="volter-select"
             data-testid={`border-${key}-style`}
             value={value[key].style}
             disabled={disabled}

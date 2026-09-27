@@ -4,7 +4,7 @@
  *
  * Why this exists at all (owner convention, measured failure 2026-08-14): the
  * editor console's errors and warnings must chase an agent through every
- * `vgai` invocation, so that nobody ever has to LOOK at the editor to learn a
+ * `volter` invocation, so that nobody ever has to LOOK at the editor to learn a
  * session has errors. Before this, every fact about them lived in the browser:
  * `editor-console.ts`'s ring buffer, summarized to a `{count, recent[]}` facet
  * the page POSTed with its state. That has three fatal properties for the
@@ -32,7 +32,7 @@
  *      OLDER load retires once the new load has been settled for
  *      {@link LOAD_SETTLE_MS}. If it recurs, the same fingerprint is observed
  *      again under the new load id and its count keeps climbing.
- *  (b) **Somebody acknowledges it by name**, with a reason — `vgai console ack
+ *  (b) **Somebody acknowledges it by name**, with a reason — `volter console ack
  *      <id> --reason "..."`. That still leaves the entry here (acked, with who
  *      and why) and a `console-ack` row in the session journal. An
  *      acknowledgment is an audit record, not an erasure.
@@ -41,7 +41,7 @@
  *      page-scoped conditions it is. But some conditions are resolved by an
  *      event that is not a page load, and then rule (a) can never see it:
  *      measured 2026-08-29, `[play-mode] Restart required: X changed` survived
- *      `vgai restart` forever — the remount genuinely cleared the staleness
+ *      `volter restart` forever — the remount genuinely cleared the staleness
  *      (`clearRestartRequired` runs in `enterPlayMode`), but a remount is not a
  *      page load, so the ledger had no door to learn it and only
  *      `game.reloadPage()` could silence a warning whose own named verb had
@@ -78,7 +78,7 @@ export interface ConsoleAck {
 export interface ConsoleLedgerEntry {
   /** Stable across restarts and across pages: a hash of severity+message
    *  (source is attribution, not identity — see {@link consoleEntryId}), so
-   *  `vgai console ack <id>` names the CONDITION, not a serial number. */
+   *  `volter console ack <id>` names the CONDITION, not a serial number. */
   readonly id: string;
   readonly severity: ConsoleSeverity;
   readonly message: string;
@@ -201,7 +201,7 @@ export function normalizeConsoleFingerprintText(text: string): string {
 }
 
 /** FNV-1a over normalized severity|message → 8 lowercase hex chars.
- * Short enough to type into `vgai console ack`, wide enough that a session's
+ * Short enough to type into `volter console ack`, wide enough that a session's
  * few hundred conditions never collide.
  *
  * Source is deliberately NOT part of the fingerprint. The CONDITION is what
@@ -265,7 +265,7 @@ export interface ConsoleLedger {
   ): string[];
   /** Unresolved conditions (never acked, not retired), oldest first. */
   unresolved(): ConsoleLedgerEntry[];
-  /** Everything still held, acked included — what `vgai console --all` shows. */
+  /** Everything still held, acked included — what `volter console --all` shows. */
   all(): ConsoleLedgerEntry[];
   summary(): UnresolvedConsoleSummary;
   /** The page load the ledger last heard from: the one that announced itself, or else (a page that

@@ -1,15 +1,15 @@
 /**
- * The standalone in-page debug bridge. Query-gated `window.__vgai`, the same
+ * The standalone in-page debug bridge. Query-gated `window.__volter`, the same
  * production-protection-lives-in-the-installer pattern `render-control.ts`'s
- * `installRenderControlHarness` established for `?vgai-render=1` (production
+ * `installRenderControlHarness` established for `?volter-render=1` (production
  * protection lives HERE, not just at whatever call site invokes this — a
  * caller that calls {@link maybeInstallDebugBridge} unconditionally on every
  * boot still only ever gets a handle when the gate below actually passes).
  *
  * D17: this is door (a) of the seam's three doors — the SAME `DebugAdapter`
- * names/JSON the editor relay (door b) and `@vgai/live` (door c, which
+ * names/JSON the editor relay (door b) and `@volter/live` (door c, which
  * drives door (a) itself over Playwright) all read. D18: the bridge installs
- * only when the page opts in (`?vgai-debug=1`) AND is either a dev build
+ * only when the page opts in (`?volter-debug=1`) AND is either a dev build
  * (`import.meta.env.DEV`) or the project's manifest explicitly opts a
  * production build in (`manifest.debug.allowInProduction`, the described
  * field whose runtime reader THIS module is).
@@ -23,7 +23,7 @@ import { runTicksWhenSettled } from './run-ticks-settled';
 /** Query-param name that opts a standalone page into the debug bridge (D18) —
  *  mirrors `render-seed.ts`'s `RENDER_MODE_QUERY_PARAM` naming/shape, own
  *  const because this is a different call site with a different flag. */
-export const DEBUG_MODE_QUERY_PARAM = 'vgai-debug';
+export const DEBUG_MODE_QUERY_PARAM = 'volter-debug';
 
 /** The subset of `ResolvedGameManifest` the D18 gate reads — typed narrowly
  *  (not imported from `manifest/load.ts`) so this module doesn't need the
@@ -40,7 +40,7 @@ export interface DebugBridgeManifest {
  *  resolution function, `debug-registry.ts`'s `resolveInputRootId`) — never
  *  "whichever root happened to register last". An explicit `worldId`
  *  reaches that root's door specifically. */
-export interface VgaiDebugInputHandle {
+export interface VolterDebugInputHandle {
   setVirtualAction(
     action: string,
     value: boolean | number | { x: number; y: number },
@@ -100,7 +100,7 @@ export interface VgaiDebugInputHandle {
  *  every field reflects the exact same instant (AC-B1.2's batched-read
  *  primitive: a probe polling this never sees `time` from one tick and
  *  `state` from another). */
-export interface VgaiDebugSnapshot {
+export interface VolterDebugSnapshot {
   /** `loopLiveness` (issue #175): the REAL `GameLoop.liveness` behind this
    *  session — `'loop-starved'` when no recent host rAF progress was observed,
    *  `null` only when no loop is wired at all (a bare debug-registry test
@@ -112,11 +112,11 @@ export interface VgaiDebugSnapshot {
   pageErrors: string[];
 }
 
-/** The frozen `window.__vgai` shape (D18/spec §3.4) — version it if it ever
+/** The frozen `window.__volter` shape (D18/spec §3.4) — version it if it ever
  *  needs a breaking change; `providers`/`state`/`stateAll`/`commands`/`events`
  *  are straight off the game's `DebugAdapter`, `invoke` re-checks D18 gating
  *  (belt-and-braces, AC-A1.7), and `input`/`snapshot` are bridge-only. */
-export interface VgaiDebugHandle {
+export interface VolterDebugHandle {
   readonly version: 1;
   providers: DebugAdapter['providers'];
   state: DebugAdapter['state'];
@@ -124,12 +124,12 @@ export interface VgaiDebugHandle {
   commands: DebugAdapter['commands'];
   invoke(name: string, args: unknown[]): Promise<unknown>;
   events: DebugAdapter['events'];
-  input: VgaiDebugInputHandle;
+  input: VolterDebugInputHandle;
   /** See `DebugAdapter.events`'s doc comment for `sinceSeq`'s contract
    *  (run-4 friction #5) — `snapshot`'s `events` member is filtered the exact
    *  same way, just batched with `time`/`state`/`pageErrors` into one
    *  synchronous read. */
-  snapshot(sinceSeq?: number): VgaiDebugSnapshot;
+  snapshot(sinceSeq?: number): VolterDebugSnapshot;
   /**
    * D15/T-D15.4 door (a): synchronously drive `n` fixed gameplay ticks via the
    * live `Game`'s `GameInternal.runTicks` (`runtime/game.ts`) — reached through
@@ -148,7 +148,7 @@ export interface VgaiDebugHandle {
    * (`DebugRegistry.registerWorldSettledProbe`, declared by the game's `debug.settled` entry
    * export) — so a tick never races a scene remount's async commit, and WHICH tick first runs
    * a freshly reloaded world is a function of the sim rather than wall timing. Session tick
-   * drivers (`@vgai/live`'s fastForward) prefer this door; with no probe registered it behaves
+   * drivers (`@volter/live`'s fastForward) prefer this door; with no probe registered it behaves
    * exactly like {@link runTicks}. Bounded: throws `WORLD_UNSETTLED_TIMEOUT` if a probe never
    * settles.
    */
@@ -159,7 +159,7 @@ export interface VgaiDebugHandle {
    * this is the honest human-input-path proof) → `input.clearVirtualActions()`
    * into ONE async bridge call, as a TOP-LEVEL method (not under `input`)
    * because it needs the sim clock, not just the input target. Was 15+
-   * transport round trips over the editor relay (`@vgai/live`'s old
+   * transport round trips over the editor relay (`@volter/live`'s old
    * `GameInput.hold`: set → a 150ms-interval `waitSimTime` snapshot poll loop
    * → clear); now one `page.evaluate`/relay call that runs the wait
    * in-process on the page.
@@ -185,7 +185,7 @@ export interface VgaiDebugHandle {
   /**
    * Defect 5 fix — undo everything THIS install did: remove the
    * `error`/`unhandledrejection` window listeners it added, and delete
-   * `window.__vgai` so the registry is no longer reachable from the page.
+   * `window.__volter` so the registry is no longer reachable from the page.
    * Idempotent (a second call is a harmless no-op). `mountManifestRoots`
    * wires this into its session's `stop()`; a caller mounting more
    * directly (a hand-rolled host) should call it on its own teardown path.
@@ -218,7 +218,7 @@ export interface MaybeInstallDebugBridgeOptions {
    *  its `getVirtualInputTarget()` backs `input.*`. */
   readonly registry: DebugRegistry;
   readonly manifest: DebugBridgeManifest;
-  /** Where to read `?vgai-debug=1` from. Defaults to `window.location` when a
+  /** Where to read `?volter-debug=1` from. Defaults to `window.location` when a
    *  real `window` exists; a headless caller with no `window` at all (and no
    *  override) gets no bridge — there's nowhere to read a URL from. */
   readonly url?: { readonly search: string } | undefined;
@@ -231,13 +231,13 @@ export interface MaybeInstallDebugBridgeOptions {
 const PAGE_ERROR_CAP = 100;
 
 /** `holdFor`'s in-process poll interval — this loop never leaves the page
- *  (no transport round trip per poll, unlike `@vgai/live`'s old
+ *  (no transport round trip per poll, unlike `@volter/live`'s old
  *  `waitSimTime`), so it can afford to be tighter than that loop's 150ms. */
 const HOLD_FOR_POLL_MS = 50;
 
 /** Consecutive `HOLD_FOR_POLL_MS` polls with the tick unchanged before
  *  `holdFor` gives up waiting and treats the game as stopped — mirrors
- *  `@vgai/live`'s `WAIT_FOR_STALL_POLL_LIMIT` reasoning (`wait-for.ts`:
+ *  `@volter/live`'s `WAIT_FOR_STALL_POLL_LIMIT` reasoning (`wait-for.ts`:
  *  a genuinely frozen sim clock must never poll forever), scaled to this
  *  faster in-process interval so the wall-clock grace period (~5s) lands in
  *  the same neighborhood. */
@@ -266,7 +266,7 @@ const STARVED_DRIVE_MAX_BATCHES = 2000;
  *  string. */
 export const HOLD_STARVED_NO_DRIVER_REASON =
   "the host loop reported liveness 'loop-starved' and this session has no way to drive " +
-  'ticks — no recent rAF progress was observed. Check `vgai status` for the separate ' +
+  'ticks — no recent rAF progress was observed. Check `volter status` for the separate ' +
   'visibility readings; foreground/reload the editor, or start play to wire the run-ticks ' +
   'target, then retry.';
 
@@ -394,7 +394,7 @@ function buildDebugHandle(opts: {
   registry: DebugRegistry;
   manifest: DebugBridgeManifest;
   window: DebugBridgeWindowTarget;
-}): VgaiDebugHandle {
+}): VolterDebugHandle {
   const { registry, manifest } = opts;
   const adapter = registry.adapter;
 
@@ -474,7 +474,7 @@ function buildDebugHandle(opts: {
         requireInputTarget('injectPointerPosition', worldId).injectPointerPosition(sourceId, value),
     },
     snapshot(sinceSeq) {
-      // One synchronous pass — see VgaiDebugSnapshot's doc comment.
+      // One synchronous pass — see VolterDebugSnapshot's doc comment.
       return {
         time: adapter.state('time') as {
           simSeconds: number;
@@ -528,13 +528,13 @@ function buildDebugHandle(opts: {
     uninstall() {
       opts.window.removeEventListener?.('error', onWindowError);
       opts.window.removeEventListener?.('unhandledrejection', onWindowRejection);
-      delete opts.window['__vgai'];
+      delete opts.window['__volter'];
     },
   };
 }
 
 /**
- * Install `window.__vgai` iff the page opted in (`?vgai-debug=1`) AND D18's
+ * Install `window.__volter` iff the page opted in (`?volter-debug=1`) AND D18's
  * gate passes (dev build, or manifest `debug.allowInProduction`). When the
  * param is present but the gate fails, warns once (this single call IS the
  * "once" — there is exactly one install attempt per boot) and installs
@@ -543,7 +543,7 @@ function buildDebugHandle(opts: {
  */
 export function maybeInstallDebugBridge(
   opts: MaybeInstallDebugBridgeOptions,
-): VgaiDebugHandle | undefined {
+): VolterDebugHandle | undefined {
   const url = opts.url ?? (hasRealWindow() ? window.location : undefined);
   if (!url) return undefined;
   if (!isDebugModeRequested(url)) return undefined;
@@ -555,7 +555,7 @@ export function maybeInstallDebugBridge(
   if (!isDebugAllowed(opts.manifest)) {
     // biome-ignore lint/suspicious/noConsole: structured, greppable D18 signal — mirrors debug-registry.ts's own console.warn idiom.
     console.warn(
-      '[debug] ?vgai-debug=1 ignored: production build without debug.allowInProduction (D18)',
+      '[debug] ?volter-debug=1 ignored: production build without debug.allowInProduction (D18)',
     );
     return undefined;
   }
@@ -565,6 +565,6 @@ export function maybeInstallDebugBridge(
     manifest: opts.manifest,
     window: windowTarget,
   });
-  windowTarget['__vgai'] = handle;
+  windowTarget['__volter'] = handle;
   return handle;
 }

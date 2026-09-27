@@ -1,6 +1,6 @@
 /**
  * THE STATE REPORT'S CONTRIBUTED FIELDS — what a lane adds to `collectState`
- * (`command-listener.ts`: `vgai status`, the SDK's `editor.state`). The host
+ * (`command-listener.ts`: `volter status`, the SDK's `editor.state`). The host
  * reports the session; a lane reports what only it knows (its loop's time
  * scale and liveness, its seed, whether a restart is required) through
  * `@volter/editor-sdk/host`'s `session.reportFacet`. Keys are spread in the

@@ -382,7 +382,7 @@
     "./kit/components/GameplaySessionTimeline": "./src/kit/components/GameplaySessionTimeline.tsx",
     "./kit/components/InspectorToolSection": "./src/kit/components/InspectorToolSection.tsx",
     "./kit/components/ToolHost": "./src/kit/components/ToolHost.tsx",
-    "./kit/components/VgaiLogo": "./src/kit/components/VgaiLogo.tsx",
+    "./kit/components/VolterLogo": "./src/kit/components/VolterLogo.tsx",
     "./kit/components/account-documents": "./src/kit/components/account-documents.tsx",
     "./kit/components/project-tool-documents": "./src/kit/components/project-tool-documents.tsx",
     "./kit/components/tool-documents": "./src/kit/components/tool-documents.tsx",

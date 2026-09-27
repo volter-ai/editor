@@ -74,7 +74,7 @@ export function exitModuleMode(): void {
   } catch {
     /* ignore */
   }
-  delete (window as unknown as Record<string, unknown>)['__vgaiModule'];
+  delete (window as unknown as Record<string, unknown>)['__volterModule'];
   editorConsole.log('Module adapter mode stopped', 'adapter');
 }
 
@@ -152,7 +152,7 @@ export async function enterModuleModeFromManifestRoot(
   // Measured from the mounted adapter rather than declared by the route.
   const reach = measureAdapterReach(mounted);
 
-  (window as unknown as Record<string, unknown>)['__vgaiModule'] = {
+  (window as unknown as Record<string, unknown>)['__volterModule'] = {
     worldId: world.id,
     adapterId,
     reach,

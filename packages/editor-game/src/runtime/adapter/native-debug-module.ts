@@ -5,7 +5,7 @@
  *
  *   export { debug } from './commands';
  *
- * The command module imports no vgai API. Its functions are the application's
+ * The command module imports no volter API. Its functions are the application's
  * own functions over its own stores; the native adapter merely projects that
  * existing registry onto the session debug/input doors after the root mounts.
  * Loading through the root entry is load-bearing: the functions close over the
@@ -13,7 +13,7 @@
  * copy of its stores.
  */
 
-import type { VgaiGameSystemAdapters } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameSystemAdapters } from '@volter/editor-project/adapter/ingest/game-contract';
 import type {
   NativeCommandEntry,
   NativeDebugBinding,
@@ -407,12 +407,12 @@ export function installNativeDebugBindings(
 //   export { debug, systems } from './commands';
 //
 // — whose slots are the ONE declarable carrier both realms share,
-// `VgaiGameSystemAdapters` (`ingest/game-contract.ts`; the native engine is
+// `VolterGameSystemAdapters` (`ingest/game-contract.ts`; the native engine is
 // the premade 100% implementation of that contract). Validation is the SAME
 // projection the ingest realm uses (`ingest/contract-system-adapters.ts`), so
 // there is one shape law, not two. This door is what retires
 // `ctx.registerSystemAdapter` from component code (ARCHITECTURE-CORE §System
-// adapters: "a project's `vgai.adapter.ts` binds app-owned systems through
+// adapters: "a project's `volter.adapter.ts` binds app-owned systems through
 // declared native exports … Components never call `registerSystemAdapter`").
 //
 // Native-realm difference from ingest: a malformed slot THROWS (this is our
@@ -437,7 +437,7 @@ export function nativeSystemsBindingFromEntryModule(
   }
   rejectUnknownKeys(raw, CONTRACT_SYSTEM_SLOTS, `Root "${rootId}" systems export`);
   const projection = projectContractSystemAdapters(
-    { systemAdapters: raw as VgaiGameSystemAdapters },
+    { systemAdapters: raw as VolterGameSystemAdapters },
     surface,
   );
   if (projection.malformed.length > 0) {

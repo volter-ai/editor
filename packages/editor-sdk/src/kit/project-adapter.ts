@@ -1,11 +1,11 @@
 /**
- * THE ADAPTER LOADER — the host half of `vgai.adapter.ts`.
+ * THE ADAPTER LOADER — the host half of `volter.adapter.ts`.
  *
  * ARCHITECTURE-CORE §The editor protocol: every game supplies a SERVER — its
  * adapter — and the editor is a universal CLIENT of it. This module is where a
  * project's adapter becomes a live binding table:
  *
- *   1. the project has `vgai.adapter.ts` ⇒ **the project's own file wins,
+ *   1. the project has `volter.adapter.ts` ⇒ **the project's own file wins,
  *      always**. It is imported through the SAME door every other
  *      project-owned module goes through (`project-module-url.ts`'s
  *      `fsImportPath` — the ONE owner of `/@fs/` urls for project code, PD-3)
@@ -19,7 +19,7 @@
  *      holds, and it shipped none of its own ⇒ that module is the adapter.
  *      Placement follows REALM (ARCHITECTURE-CORE §The editor protocol): a
  *      vendored game's bytes are served verbatim, so its host-realm declaration
- *      lives in `ingest/games/<id>/vgai.adapter.ts` and is imported through the
+ *      lives in `ingest/games/<id>/volter.adapter.ts` and is imported through the
  *      registry glob, never through the project's file routes. **This branch is
  *      REACHABLE only because the step-1 probe can answer "no"**: the realm
  *      rule keeps a vendored game's adapter out of its served bundle, but
@@ -31,7 +31,7 @@
  *      is exactly how every vendored game silently lost its scene table once.
  *      **A binding taken from here is NEVER silent**:
  *      the facet's `source` says `'registry'` and its `modulePath` names the
- *      repo file, so `vgai status` reports whose declaration is running. A
+ *      repo file, so `volter status` reports whose declaration is running. A
  *      project bound this way did not ship that table; the host did, and the
  *      user is entitled to read that off the same door as everything else;
  *   3. the project has NONE ⇒ it gets `nativeAdapter()`. **That absence IS the
@@ -52,7 +52,7 @@
  *
  * The resolved table is published as the `adapter` facet of `/__editor/state`
  * (`command-listener.ts`'s `collectState`), which is the minimal proof-of-load
- * client: `vgai status` / `vgai eval 'await editor.status()'` read which
+ * client: `volter status` / `volter eval 'await editor.status()'` read which
  * adapter loaded, its regions, and its scene table.
  *
  * The OBSERVATION table has one client and it is not the facet: the ingest
@@ -121,8 +121,8 @@ import {
   subscribeToolContributions,
 } from './tool-loader';
 
-/** The game's adapter module lives beside `vgai.project.json`, by contract. */
-export const ADAPTER_MODULE_FILENAME = 'vgai.adapter.ts';
+/** The game's adapter module lives beside `volter.project.json`, by contract. */
+export const ADAPTER_MODULE_FILENAME = 'volter.adapter.ts';
 
 /** The resolved scene table — the adapter's declarations plus what its own
  *  finder selections found. */
@@ -156,7 +156,7 @@ export interface ProjectAdapterFacet {
    * WHOSE declaration is running — the one field that answers it, because
    * "a module loaded" never did.
    *
-   * - `project` — the project's own `vgai.adapter.ts` supplied the table.
+   * - `project` — the project's own `volter.adapter.ts` supplied the table.
    * - `registry` — the HOST's in-tree ingest registry supplied it, matched on
    *   this project's ingest root id. The project did not ship this
    *   declaration; a reader must be able to see that without pattern-matching
@@ -169,7 +169,7 @@ export interface ProjectAdapterFacet {
   /**
    * Where the loaded module came from, or `null` for the native default:
    * project-relative for a project that owns its own file, and the REPO path
-   * (`packages/editor/src/ingest/games/<id>/vgai.adapter.ts`) for a registry
+   * (`packages/editor/src/ingest/games/<id>/volter.adapter.ts`) for a registry
    * binding, whose adapter is host-realm by the placement rule and therefore
    * has no project-relative home to name.
    */
@@ -193,7 +193,7 @@ export interface ProjectAdapterFacet {
    * means the project's OWN adapter did not load, and what stood in is
    * whatever {@link source} says: a registry binding, or the declared native
    * default. Never swallowed, because the editor still opening on a broken
-   * `vgai.adapter.ts` is only acceptable while it SAYS the file is broken.
+   * `volter.adapter.ts` is only acceptable while it SAYS the file is broken.
    */
   readonly error: string | null;
 }
@@ -319,7 +319,7 @@ export function __resetProjectAdapterForTest(): void {
 
 /**
  * Import the project's own adapter module. Cache-busted like every other
- * design-time project load, because a saved `vgai.adapter.ts` must be readable
+ * design-time project load, because a saved `volter.adapter.ts` must be readable
  * without restarting the editor.
  *
  * The url is built by `fsImportPath` (project-module-url.ts) and NOT by
@@ -539,7 +539,7 @@ export interface ResolvedAdapterChoice {
   readonly error: string | null;
 }
 
-/** The project's own `vgai.adapter.ts` probe, as data — the live loader and
+/** The project's own `volter.adapter.ts` probe, as data — the live loader and
  *  the headless run answer this the same way, from different IO. */
 export type ProjectAdapterProbe =
   | { readonly kind: 'present'; readonly module: unknown }
@@ -568,7 +568,7 @@ export type ProjectAdapterProbe =
  * `import.meta.glob` over `src/ingest/games/*` — every repo-vendored game's
  * manifest and adapter module in every editor boot, a `models` build that
  * mounts no unmodified game included. The lane that OWNS those declarations is
- * `@vgai/game`, which already imports that registry from three of its own
+ * `@volter/game`, which already imports that registry from three of its own
  * ingest modules; it registers here from `contributions/ingest.service.ts`.
  *
  * NOTHING REGISTERED IS A REAL ANSWER, AND IT IS A LOUD ONE — see
@@ -716,10 +716,10 @@ export function selectAdapterDefinition(
       source: 'native',
       modulePath: null,
       error:
-        `vgai.project.json declares the ingest root \`${registry.rootId}\`, and no registered ` +
+        `volter.project.json declares the ingest root \`${registry.rootId}\`, and no registered ` +
         `adapter-definition source holds a declaration for it ` +
         `(${registry.sources} source${registry.sources === 1 ? '' : 's'} registered). The lane ` +
-        `that owns a vendored game's declaration is \`@vgai/game\`, which registers through ` +
+        `that owns a vendored game's declaration is \`@volter/game\`, which registers through ` +
         `its \`ingest.service.ts\` contribution — so either this product does not compose that ` +
         `package, ` +
         `or its contribution pass did not load it. The declared native default is standing in, ` +
@@ -762,7 +762,7 @@ export function projectAdapterTableFrom(
         ? [
             ...notes,
             `adapter: regionIncludes names ${unmatchedRegions.map((id) => `\`${id}\``).join(', ')}, ` +
-              `which no root in vgai.project.json declares (roots: ${declaredRoots(manifest)
+              `which no root in volter.project.json declares (roots: ${declaredRoots(manifest)
                 .map((root) => `\`${root.id}\``)
                 .join(', ')}) — those globs were merged onto nothing.`,
           ]
@@ -785,7 +785,7 @@ export function projectAdapterTableFrom(
  * (the dev server's SPA fallback; `docs/DEPLOY.md` §Surface 3 for hosted).
  * Ordering a can't-say-no probe ahead of the registry made the registry branch
  * unreachable — every vendored game lost its scene table to a fabricated
- * "vgai.adapter.ts did not load". The probe now discriminates by CONTENT (an
+ * "volter.adapter.ts did not load". The probe now discriminates by CONTENT (an
  * HTML document is the fallback, not the file) and reports "could not tell" as
  * an answer of its own.
  *
@@ -855,11 +855,11 @@ async function resolveAdapterDefinition(
       sources: _adapterSources.length,
     });
     // THE FACET IS NOT A DOOR THE USER READS. `error` reaches
-    // `/__editor/state` and `vgai status` prints it, but `vgai console` stayed
+    // `/__editor/state` and `volter status` prints it, but `volter console` stayed
     // SILENT while the editor showed a vendored game the native default's
     // scene table — measured live, 2026-09-19, by removing the wait above and
     // reading both doors. "Unresolved editor console is remaining work" is the
-    // contract every `vgai` verb enforces, so a standing warning that never
+    // contract every `volter` verb enforces, so a standing warning that never
     // enters that ledger is not standing. Warning weight, not error: the
     // editor opens and is usable, and what is wrong is the BUILD's lane list.
     if (unanswered.error) editorConsole.warn(unanswered.error, 'ingest');

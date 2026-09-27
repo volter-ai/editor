@@ -31,7 +31,7 @@ export default function ConnectionStatus() {
       type="button"
       variant="ghost"
       size="compact"
-      className="vgai-status-action"
+      className="volter-status-action"
       data-testid="status-connection"
       data-connection-state={state}
       onClick={() => editorHost().workspace.showUtility(NETWORK_UTILITY_ID)}

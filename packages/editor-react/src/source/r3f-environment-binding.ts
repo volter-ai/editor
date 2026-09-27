@@ -1,6 +1,6 @@
 /** Exact source tokens for native R3F scene attachments.
  *
- * These are not a VGAI environment format. `<color attach="background">`,
+ * These are not a VOLTER environment format. `<color attach="background">`,
  * `<fog attach="fog">`, and `<fogExp2 attach="fog">` are ordinary Fiber
  * projections of THREE.Scene properties. The live Scene remains runtime truth;
  * this metadata only identifies literal constructor arguments that can be

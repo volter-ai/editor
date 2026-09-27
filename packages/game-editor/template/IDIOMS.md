@@ -11,7 +11,7 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
 
 - The source is the document. Three roots are ordinary R3F TSX, Canvas roots
   are ordinary Pixi/React source, and DOM roots are ordinary React. The world
-  node is the entity; no mirror ECS, registration layer, or vgai runtime API
+  node is the entity; no mirror ECS, registration layer, or volter runtime API
   belongs in gameplay components. **LOOK**
 - A DOM HUD is a manifest `dom` root and reads the project's own React
   context/store. A timer repeatedly copying game state into React state is a
@@ -76,7 +76,7 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
 - Playtesting is interactive: arrange, direct the tester, advance sim time,
   observe, read the log, redirect. No committed route, test file, test-runner
   dependency, or test script belongs in a game project. **ERROR E12**
-- Do not boot a private Playwright harness, reach through `window.__vgai`, or
+- Do not boot a private Playwright harness, reach through `window.__volter`, or
   add `?bot=` boot plumbing. Use the editor-owned session and the game's
   running modules. **ERROR E1–E4**
 - Gameplay source must not accumulate for many commits before the first Play

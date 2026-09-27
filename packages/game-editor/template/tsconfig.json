@@ -31,6 +31,6 @@
       "@editor/*": ["node_modules/@volter/editor-core/src/*"]
     }
   },
-  "include": ["src", "vgai.adapter.ts"],
+  "include": ["src", "volter.adapter.ts"],
   "exclude": ["src/tools", "src/contributions"]
 }

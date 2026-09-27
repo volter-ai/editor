@@ -8,8 +8,8 @@
 
 import type { AuthoringAdapter, EditorNode, HierarchyProvider } from '@volter/editor-project/adapter';
 import type {
-  VgaiGameHierarchyGroup,
-  VgaiGameHierarchyProvider,
+  VolterGameHierarchyGroup,
+  VolterGameHierarchyProvider,
 } from '@volter/editor-project/adapter/ingest/game-contract';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 
@@ -20,7 +20,7 @@ function groupNodeId(id: string): string {
   return `${GROUP_PREFIX}${encodeURIComponent(id)}`;
 }
 
-function groupNode(group: VgaiGameHierarchyGroup): EditorNode {
+function groupNode(group: VolterGameHierarchyGroup): EditorNode {
   return {
     id: groupNodeId(group.id),
     label: group.label,
@@ -32,7 +32,7 @@ function groupNode(group: VgaiGameHierarchyGroup): EditorNode {
   };
 }
 
-function assertGroups(value: unknown): VgaiGameHierarchyGroup[] {
+function assertGroups(value: unknown): VolterGameHierarchyGroup[] {
   if (!Array.isArray(value)) throw new Error('hierarchy() did not return an array');
   const ids = new Set<string>();
   for (const group of value) {
@@ -58,12 +58,12 @@ function assertGroups(value: unknown): VgaiGameHierarchyGroup[] {
 /** Identity-preserving when the game declares no hierarchy surface. */
 export function withContractHierarchy(
   base: AuthoringAdapter,
-  provider: VgaiGameHierarchyProvider | undefined,
+  provider: VolterGameHierarchyProvider | undefined,
 ): AuthoringAdapter {
   if (!provider) return base;
 
   let warned = false;
-  const groups = (): VgaiGameHierarchyGroup[] => {
+  const groups = (): VolterGameHierarchyGroup[] => {
     try {
       return assertGroups(provider());
     } catch (error) {

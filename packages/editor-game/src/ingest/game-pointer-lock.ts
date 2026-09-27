@@ -59,7 +59,7 @@ export function installGamePointerLockGate(): void {
     if (entry && !entry.gate()) {
       // A NEW native console.error site, suppressed to keep this task's diff at
       // zero new lint warnings — and native on purpose: this fires from a game's
-      // own click handler in the page, and the page console is what `vgai
+      // own click handler in the page, and the page console is what `volter
       // status` reads.
       // biome-ignore lint/suspicious/noConsole: see comment above
       console.error(

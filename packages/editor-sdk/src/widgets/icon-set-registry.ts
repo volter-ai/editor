@@ -23,7 +23,7 @@ export interface EditorIconGlyph {
   /** One `path` `d`, painted with `currentColor`. */
   readonly path: string;
   /** THE COLOUR CHANNEL — the glyph's own category (`IconCategoryTone`),
-   *  painted `var(--vgai-category-<tone>, currentColor)`. With `tonedPath`
+   *  painted `var(--volter-category-<tone>, currentColor)`. With `tonedPath`
    *  it tints only that second path; alone it tints the whole glyph. An
    *  explicit `tone` prop at the site wins over both. */
   readonly tone?: IconCategoryTone;

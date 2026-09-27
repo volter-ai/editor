@@ -7,15 +7,15 @@ import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator
  * kit's.
  *
  * The module the Code-OSS contribution imports (`/__editor/served-modules`,
- * routes/served-modules.ts) is `@vgai/game-editor`'s or `@vgai/model-editor`'s
- * ONE source entry, which composes the product and re-exports `mountVgai`
+ * routes/served-modules.ts) is `@volter/game-editor`'s or `@volter/model-editor`'s
+ * ONE source entry, which composes the product and re-exports `mountVolter`
  * (`packages/editor/src/frame/product.ts`). The kit's own mount is
  * `frame/bridge.tsx`'s `mountEditor`, which names no product and is not served
  * to anybody.
  *
  * There is no constant here to spell it, and that is the point: which file it
  * is depends on WHICH PRODUCT the project resolved, so the one source is the
- * product's own `package.json#vgai.product.entry`
+ * product's own `package.json#volter.product.entry`
  * (`@volter/editor-sdk/session/product-locator`). Three readers agree through it:
  * the dev host builds a Vite URL from it, the packaged host finds it in the
  * product's production build manifest by it, and
@@ -35,7 +35,7 @@ export { productEntryPath } from '@volter/editor-sdk/session/product-locator';
  * HTML plugin to write into — the page is the workbench's. So the packaged host
  * serves a three-line ES module that adds the entry's own stylesheets and
  * re-exports the built chunk, and the door hands back THIS url. The
- * contribution still imports one module and still reads `mountVgai` off it.
+ * contribution still imports one module and still reads `mountVolter` off it.
  */
 export const FRAME_BRIDGE_PACKAGED_PATH = '/__editor/frame-bridge.js';
 
@@ -95,7 +95,7 @@ export function readBuiltProductEntry(
 /**
  * The wrapper module the packaged host serves at
  * {@link FRAME_BRIDGE_PACKAGED_PATH}: the built entry's stylesheets, then the
- * built entry itself, re-exported whole so `mountVgai` is read off this module
+ * built entry itself, re-exported whole so `mountVolter` is read off this module
  * exactly as it is read off the dev one.
  */
 export function builtFrameBridgeModule(built: BuiltProductEntry): string {

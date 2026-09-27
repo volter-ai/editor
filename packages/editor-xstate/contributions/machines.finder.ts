@@ -2,7 +2,7 @@
  * The `machinesFromModules` FINDER: every project module under the selection's `include` globs
  * that declares an XState machine (`createMachine(...)`, `setup(...).createMachine(...)`) is a
  * `machine` document, opened in the Machine document (`machine.document.tsx`). Select it in
- * `vgai.adapter.ts`:
+ * `volter.adapter.ts`:
  *
  *   documents: { find: [{ finder: 'machinesFromModules', include: ['src/**\/*.ts'] }] }
  *

@@ -18,7 +18,7 @@ export const EditorListButton = forwardRef<HTMLButtonElement, EditorListButtonPr
         type={type}
         data-selected={selected || undefined}
         data-accent={accent}
-        className={className ? `vgai-list-button ${className}` : 'vgai-list-button'}
+        className={className ? `volter-list-button ${className}` : 'volter-list-button'}
       />
     );
   },

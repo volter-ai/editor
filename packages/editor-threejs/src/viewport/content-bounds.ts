@@ -35,7 +35,7 @@
  *
  * Editor furniture is deliberately still measured. `isEditorOwnedObject`
  * matches `userData.engineInternal`, and the splat bounds proxy
- * (`@volter/editor-threejs-runtime/asset-loaders`, `__vgai_splat_bounds`) is engine-internal
+ * (`@volter/editor-threejs-runtime/asset-loaders`, `__volter_splat_bounds`) is engine-internal
  * geometry that exists PRECISELY so generic focus/selection bounds can frame a
  * Gaussian splat — a splat renders no `BufferGeometry` of its own. Excluding
  * editor-owned nodes here would silently un-frame every splat. Consumers that

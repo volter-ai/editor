@@ -247,7 +247,7 @@ export interface PixiAuthoringOptions {
    * `pickable` at all — a stage with no mapped surface cannot answer where a
    * client point landed, and guessing one would fabricate a hit.
    *
-   * When the element carries `data-vgai-stage-width`/`-height`, those are the
+   * When the element carries `data-volter-stage-width`/`-height`, those are the
    * stage's LOGICAL size and the mapping divides the measured rect by them —
    * which is what lets a design surface presented through the shared pan/zoom
    * camera (a CSS scale) pick correctly. Without them the mapping is 1:1,

@@ -19,13 +19,13 @@
  * dev-server `fs.allow` pipeline `server/dev.ts` already builds for project scripts
  * (T3.3) — so `ReactRootAuthoringAdapter` needs those files instrumented too.
  * `defaultProjectScopeInclude` widens to PROJECT scope, not repo-global: any `.tsx`
- * file outside `node_modules`, EXCEPT the vgai tooling/engine source trees this repo
- * itself is built from (`packages/engine/src`, `packages/create-vgai-project`,
- * `packages/vgai-cli`, `packages/editor-sdk`, and `packages/editor/src` generally —
+ * file outside `node_modules`, EXCEPT the volter tooling/engine source trees this repo
+ * itself is built from (`packages/engine/src`, `packages/create-volter-project`,
+ * `packages/volter-cli`, `packages/editor-sdk`, and `packages/editor/src` generally —
  * carving OUT `ui-editor/editable-components` so the existing UI-edit-mode surface
  * keeps working unchanged). This does NOT depend on which project happens to be
  * open — `fs.allow` already bounds what Vite can even reach, and this predicate
- * additionally keeps the vgai app's OWN react source un-instrumented.
+ * additionally keeps the volter app's OWN react source un-instrumented.
  *
  * Vendored trees: a vendored GAME's source is STAMPED; every other `/vendor/`
  * tree is not. `data-oid` stamping is what makes a `.tsx` file addressable —
@@ -53,11 +53,11 @@
  * the write-back ban becomes IDENTITY-scoped, not just location-scoped: the
  * `/vendor/` regex above only protects the repo's OWN vendored trees, but
  * wave 2 lets an `ingest-react` world live in ANY external, user-owned
- * folder (`vgai edit <folder>`) — an ingested-as-is foreign game there would
+ * folder (`volter edit <folder>`) — an ingested-as-is foreign game there would
  * otherwise be silently stamped/writable, reopening the never-modify-game-
  * source rule by location rather than by identity. `nearestManifestExcludesIngestReact`
  * walks up from a candidate `.tsx`'s own directory to the NEAREST
- * `vgai.project.json`; if that manifest declares an `{ ingest }` react world,
+ * `volter.project.json`; if that manifest declares an `{ ingest }` react world,
  * the whole manifest folder's subtree is excluded — exact, not coarse:
  * `ingest-react` is single-world by construction (`binding-resolver.ts`'s
  * `MULTI_WORLD_ALLOWED_IDENTITIES` exclusion), so "the manifest folder" IS
@@ -146,7 +146,7 @@ import {
 export { applyStyleWriteRequest, oidAttributeForSurface };
 
 const NODE_MODULES_RE = /\/node_modules\//;
-const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-vgai-project|vgai-cli|editor-sdk)\//;
+const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli|editor-sdk)\//;
 const EDITOR_SRC_RE = /\/packages\/editor\/src\//;
 const EDITABLE_COMPONENTS_RE = /\/ui-editor\/editable-components\/.*\.tsx$/;
 /** Track N, D-N4 item 2 — see the module doc comment's "Vendored-tree exclusion". */
@@ -170,13 +170,13 @@ const VENDOR_RE = /\/vendor\//;
  */
 const VENDORED_GAME_SRC_RE = /\/vendor\/games\/[^/]+\//;
 
-/** True if a parsed `vgai.project.json` body declares at least one
+/** True if a parsed `volter.project.json` body declares at least one
  *  React root with an `{ ingest }` adapter — the `{ ingest }` shape alone is
  *  the answer, because every ingest-react root is D-N8 no-authoring.
  *  Defensive against
  *  any shape (never trusts the manifest is even an object) — this is a
  *  best-effort identity probe for a WRITE-BACK BAN, not manifest validation
- *  (the real Zod schema/loader is `@vgai/project/manifest/load`, not reachable
+ *  (the real Zod schema/loader is `@volter/project/manifest/load`, not reachable
  *  from this vite-config-time, dependency-light file by design). */
 function manifestDeclaresIngestReactWorld(parsed: unknown): boolean {
   if (!parsed || typeof parsed !== 'object') return false;
@@ -236,7 +236,7 @@ function nearestManifestExcludesIngestReact(dir: string): boolean {
  * Cap 2 (React visual-edit parity): the scope guard for the `/__ui-source/css` endpoint.
  * A CSS file path (from a stylesheet's `data-vite-dev-id`) is editable iff it is a
  * first-party PROJECT `.css` file — same carve-outs as `defaultProjectScopeInclude`
- * (never node_modules, vendored trees, the vgai tooling/engine source, or the editor's
+ * (never node_modules, vendored trees, the volter tooling/engine source, or the editor's
  * own source). Paths are normalized to forward slashes so a Windows dev-id matches. This
  * is the CSS analogue of the `.tsx` stamping scope: an out-of-scope path must not become
  * writable through a client-supplied `file`.
@@ -267,7 +267,7 @@ function sourceResourcePath(file: string, projectRoot: string): string {
   const path = relative(projectRoot, file).replace(/\\/g, '/');
   if (path && path !== '..' && !path.startsWith('../') && !isAbsolute(path)) return path;
   const identity = createHash('sha256').update(file).digest('hex').slice(0, 16);
-  return `.vgai/external-source/${identity}/${basename(file)}`;
+  return `.volter/external-source/${identity}/${basename(file)}`;
 }
 
 /**
@@ -312,7 +312,7 @@ function utilityClassEvidence(dir: string): Map<string, string> {
   }
   // Bounded walk for the css/html entry markers (`@tailwind`, a CDN script):
   // shallow, skipping the directories that never hold a project's own entry.
-  const skip = new Set(['node_modules', 'dist', 'build', 'coverage', '.git', '.vgai', '.claude']);
+  const skip = new Set(['node_modules', 'dist', 'build', 'coverage', '.git', '.volter', '.claude']);
   let budget = 80;
   const walk = (current: string, prefix: string, depth: number): void => {
     if (depth > 3 || budget <= 0) return;
@@ -530,7 +530,7 @@ function rejectPendingPropRequests(error: Error): void {
 
 function declaredPropWorker(): Worker {
   if (propWorker) return propWorker;
-  const worker = new Worker(componentPropWorkerUrl(), { name: 'vgai-component-props' });
+  const worker = new Worker(componentPropWorkerUrl(), { name: 'volter-component-props' });
   worker.on(
     'message',
     (message: { id?: unknown; props?: Record<string, ComponentPropSpec[]>; error?: unknown }) => {
@@ -1549,7 +1549,7 @@ export function uiOidPlugin(
     transform(code, id) {
       // A VIRTUAL MODULE IS NOT A FILE, and everything below this line treats
       // `clean` as one — `resolveOidSurface` walks up from it looking for the
-      // owning `vgai.project.json`, and `transformSource` records it as the
+      // owning `volter.project.json`, and `transformSource` records it as the
       // stamped file's path. Vite's convention is that a `\0`-prefixed id was
       // synthesized by a plugin and has no path behind it, so a path plugin
       // skips it.
@@ -1566,7 +1566,7 @@ export function uiOidPlugin(
       // W1 — R3F-dialect files get ` userData-oid` (fiber pierces it into
       // `object.userData.oid`); react-dom files keep ` data-oid` unchanged.
       // WHICH REGION owns this exact file decides: a declaration the project
-      // made (an `include` glob or a `mounts` entry in `vgai.adapter.ts`), the
+      // made (an `include` glob or a `mounts` entry in `volter.adapter.ts`), the
       // manifest root whose `entry` it is, or reach from one through the live
       // import graph. Nothing is inferred from the file's own bytes; a file
       // nothing places gets the documented `data-oid` default, said out loud.
@@ -1688,8 +1688,8 @@ export function uiOidPlugin(
         try {
           const body = await readJson(req);
           const claimedParticipantId = body['participantId'];
-          const trustedParticipantId = req.headers['x-vgai-share-participant-id'];
-          const trustedRole = req.headers['x-vgai-share-role'];
+          const trustedParticipantId = req.headers['x-volter-share-participant-id'];
+          const trustedRole = req.headers['x-volter-share-role'];
           if (
             typeof trustedParticipantId === 'string' &&
             typeof claimedParticipantId === 'string' &&
@@ -1792,10 +1792,10 @@ export function uiOidPlugin(
           const index = currentOidIndex(store, activeProjectRoot(), server);
           res.setHeader('Server-Timing', `index;dur=${Date.now() - indexStarted}`);
           res.setHeader(
-            'X-Vgai-Oid-Index-Enriched',
+            'X-Volter-Oid-Index-Enriched',
             index === lastEnrichedIndex?.index ? '1' : '0',
           );
-          if (typeof req.headers['x-vgai-share-participant-id'] !== 'string') {
+          if (typeof req.headers['x-volter-share-participant-id'] !== 'string') {
             return json(res, index);
           }
           return json(

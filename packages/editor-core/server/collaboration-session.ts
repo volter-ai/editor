@@ -280,7 +280,7 @@ export class CollaborationSession {
       this.revisions.length = 0;
       this.audit.length = 0;
       this.events.length = 0;
-      console.warn(`[vgai-editor] Quarantined corrupt collaboration state at ${quarantined}.`);
+      console.warn(`[volter-editor] Quarantined corrupt collaboration state at ${quarantined}.`);
     }
   }
 
@@ -841,7 +841,7 @@ export class CollaborationSession {
       } catch (error) {
         // biome-ignore lint/suspicious/noConsole: the dev server's terminal is its own report channel; a failed history write must not take the session down.
         console.error(
-          `[vgai-editor] Collaboration history write failed: ${error instanceof Error ? error.message : String(error)}`,
+          `[volter-editor] Collaboration history write failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }, 25);
@@ -927,7 +927,7 @@ export function collaborationSession(projectRoot: string): CollaborationSession 
   const root = canonicalProjectRoot(projectRoot);
   let session = sessions.get(root);
   if (!session) {
-    session = new CollaborationSession(join(root, '.vgai', 'collaboration.json'));
+    session = new CollaborationSession(join(root, '.volter', 'collaboration.json'));
     sessions.set(root, session);
   }
   return session;

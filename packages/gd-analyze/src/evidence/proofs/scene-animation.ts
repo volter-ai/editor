@@ -438,7 +438,7 @@ export async function measureSceneAnimationProof(tools: GodotProofTools): Promis
   const { exporterBinary, officialBinary } = tools;
   const actualInput = inputDigest();
   const actualImplementation = monorepoImplementationDigest(GODOT_SCENE_ANIMATION_IMPLEMENTATION_FILES);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-scene-animation-'));
+  const temp = mkdtempSync(path.join(tmpdir(), 'volter-godot-scene-animation-'));
   try {
     const project = path.join(temp, 'project');
     mkdirSync(project);

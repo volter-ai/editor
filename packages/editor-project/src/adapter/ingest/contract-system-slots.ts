@@ -9,10 +9,10 @@
  * runtime's (`@volter/editor-game/runtime/adapter/ingest/contract-system-adapters`).
  */
 
-import type { VgaiGameSystemAdapters } from './game-contract';
+import type { VolterGameSystemAdapters } from './game-contract';
 
 /** One system slot of the game contract, by name. */
-export type ContractSystemSlot = keyof VgaiGameSystemAdapters;
+export type ContractSystemSlot = keyof VolterGameSystemAdapters;
 
 /** One slot the game positively answered as having nothing behind it. */
 export interface ContractSystemEmptySlot {

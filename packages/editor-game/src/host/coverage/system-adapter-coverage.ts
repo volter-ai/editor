@@ -8,7 +8,7 @@
  * `editor.*` family — every mounted root, native or ingested, gets a row per
  * `AuthoringAdapter` provider. It deliberately keeps ONLY that family, on the
  * grounds that the remaining facts are "the ingested lane's own questions".
- * That is true of `contract.*` (a native game declares no `window.vgaiGame`
+ * That is true of `contract.*` (a native game declares no `window.volterGame`
  * and never will) and false of `system.*`: a `SystemAdapters` slot is read off
  * the editor's OWN live registry (`authoring/active-systems.ts`), which a
  * native game fills exactly as an ingested one does. So the slots went
@@ -31,7 +31,7 @@
  * `networking` is the exception, and it is the whole point. Nothing engine-side
  * builds it: a game registers a `NetworkingAdapter` itself. So its absence is
  * ruled out only by the PROJECT'S OWN FILE — no `server` block in
- * `vgai.project.json` means there is no room to describe. A game that DOES
+ * `volter.project.json` means there is no room to describe. A game that DOES
  * declare a room and binds nothing is `unanswered`, i.e. a standing warning.
  *
  * ## Provenance neutrality
@@ -59,7 +59,7 @@ import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evi
  *  it. Both facts are read off things that already exist; neither is a guess. */
 export interface NativeProjectFacts {
   /**
-   * `vgai.project.json` declares a `server` block (a Colyseus room) — read from
+   * `volter.project.json` declares a `server` block (a Colyseus room) — read from
    * the active project view (`project-manager.ts`'s `ActiveProject.server`).
    * The decisive project-level declaration for whether this game is networked.
    */
@@ -213,7 +213,7 @@ function reasonAcknowledges(reason: string, library: string): boolean {
 
 /** The file fact that rules `networking` out, in the file's own terms. */
 const NO_SERVER_EVIDENCE =
-  "this project's vgai.project.json declares no `server` block, so there is no room for a " +
+  "this project's volter.project.json declares no `server` block, so there is no room for a " +
   'NetworkingAdapter to describe';
 
 /**
@@ -251,7 +251,7 @@ const ENGINE_OWNED_EVIDENCE: Partial<Record<SystemAdapterSlot, string>> = {
 };
 
 /** The fix a native game's author can actually act on, per slot. Never the
- *  ingested lane's `window.vgaiGame` text, which would be false here. */
+ *  ingested lane's `window.volterGame` text, which would be false here. */
 function nativeSlotFix(slot: SystemAdapterSlot, facts: NativeProjectFacts): string {
   if (!facts.mounted) {
     return 'nothing is mounted, so the live system registry has not been asked yet — enter Play, or open a project whose roots mount, and the slot reports its real state';

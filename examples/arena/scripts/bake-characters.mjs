@@ -2,7 +2,7 @@
  * Bake this game's characters from their Blender documents.
  *
  *   npm run bake:characters                    # all three, into public/models/generated/
- *   npm run bake:characters -- --dry           # into .vgai/tmp/ instead, unrecorded
+ *   npm run bake:characters -- --dry           # into .volter/tmp/ instead, unrecorded
  *   npm run bake:characters -- arena-vanguard  # one of them
  *
  * THE SOURCE IS THE `.blend`, NOT A SPEC. `src/models/<character>.blend` holds
@@ -68,14 +68,14 @@ const shell = (command, argv, options = {}) =>
     child.stderr?.on('data', (chunk) => (out += chunk));
     child.on('exit', (code) => done({ code, out }));
   });
-const vgai = (argv, options) => shell('npm', ['run', '--silent', 'vgai', '--', ...argv], options);
+const volter = (argv, options) => shell('npm', ['run', '--silent', 'volter', '--', ...argv], options);
 
-const listed = await vgai(['sessions']);
+const listed = await volter(['sessions']);
 const alreadyLive = listed.out.includes(project);
 let started = false;
 if (!alreadyLive) {
   console.log('no live session for this project — starting one');
-  const child = spawn('npm', ['run', '--silent', 'vgai', '--', 'edit', '.'], {
+  const child = spawn('npm', ['run', '--silent', 'volter', '--', 'edit', '.'], {
     cwd: project,
     stdio: 'ignore',
     detached: true,
@@ -84,7 +84,7 @@ if (!alreadyLive) {
   started = true;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     await new Promise((done) => setTimeout(done, 1000));
-    const again = await vgai(['sessions']);
+    const again = await volter(['sessions']);
     if (again.out.includes(project)) break;
   }
 }
@@ -104,7 +104,7 @@ const openModelDocument = `
   return 'MODEL-DOCUMENT-OPEN ' + model.id;
 `;
 for (let attempt = 1; ; attempt += 1) {
-  const opened = await vgai(['eval', openModelDocument]);
+  const opened = await volter(['eval', openModelDocument]);
   if (/MODEL-DOCUMENT-OPEN/.test(opened.out)) break;
   if (attempt >= 30) {
     console.error(opened.out);
@@ -116,7 +116,7 @@ for (let attempt = 1; ; attempt += 1) {
 
 const transport = new StdioClientTransport({
   command: 'npm',
-  args: ['run', '--silent', 'vgai', '--', 'blender-mcp'],
+  args: ['run', '--silent', 'volter', '--', 'blender-mcp'],
   cwd: project,
   stderr: 'inherit',
 });
@@ -158,6 +158,6 @@ if (held !== '') console.log(await run(`restore_session_document(${JSON.stringif
 await client.close();
 if (started) {
   console.log('closing the session this bake started');
-  await vgai(['close'], { inherit: true });
+  await volter(['close'], { inherit: true });
 }
 process.exit(failed > 0 ? 1 : 0);

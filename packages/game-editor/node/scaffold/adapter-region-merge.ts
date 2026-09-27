@@ -1,7 +1,7 @@
 /**
- * Merge declared region `include` globs into a project's own `vgai.adapter.ts`.
+ * Merge declared region `include` globs into a project's own `volter.adapter.ts`.
  *
- * WHY THIS EXISTS (measured on a cold fox run, 2026-08-29). `vgai add mesh`
+ * WHY THIS EXISTS (measured on a cold fox run, 2026-08-29). `volter add mesh`
  * copies `src/lib/mesh/ground-projection.tsx` — a real R3F component — into the
  * project, and a fresh project's console then went RED at boot:
  *
@@ -10,7 +10,7 @@
  *   not optional cleanup — the running game breaks without it.
  *
  * The diagnostic is right, and the repair it names is a DECLARATION in
- * `vgai.adapter.ts`. Nothing performed that declaration: the template's adapter
+ * `volter.adapter.ts`. Nothing performed that declaration: the template's adapter
  * hand-lists `src/lib/reflections/**` and `src/lib/static-batch/**` because
  * someone typed them, and every capability added afterwards was a fresh silent
  * gap. This is the same defect `assetPacks` already closed on the binary side —
@@ -18,7 +18,7 @@
  * work cannot ride in `files` — so it gets the same answer: the catalog entry
  * declares it, `addCapabilities` merges it into the project's own file.
  *
- * WHY A TEXT SPLICE AND NOT A REWRITE. `vgai.adapter.ts` is project-owned
+ * WHY A TEXT SPLICE AND NOT A REWRITE. `volter.adapter.ts` is project-owned
  * source with the project's comments in it, and the adapter contract requires
  * its top level to stay a STATICALLY EVALUABLE binding table
  * (`@volter/editor-project/adapter/adapter-module`). So this locates the exact array with the
@@ -183,7 +183,7 @@ export function mergeAdapterRegionIncludes(
   additions: readonly RegionIncludeAddition[],
 ): RegionIncludeMerge {
   if (additions.length === 0) return { kind: 'unchanged' };
-  const parsed = typescript().createSourceFile('vgai.adapter.ts', source, typescript().ScriptTarget.Latest, true);
+  const parsed = typescript().createSourceFile('volter.adapter.ts', source, typescript().ScriptTarget.Latest, true);
   const definition = definitionObject(parsed);
   if ('reason' in definition) return { kind: 'unreadable', reason: definition.reason };
 
@@ -295,7 +295,7 @@ function finderText(addition: FinderAddition, quote: (value: string) => string):
  */
 export function mergeAdapterFinders(source: string, additions: readonly FinderAddition[]): RegionIncludeMerge {
   if (additions.length === 0) return { kind: 'unchanged' };
-  const parsed = typescript().createSourceFile('vgai.adapter.ts', source, typescript().ScriptTarget.Latest, true);
+  const parsed = typescript().createSourceFile('volter.adapter.ts', source, typescript().ScriptTarget.Latest, true);
   const definition = definitionObject(parsed);
   if ('reason' in definition) return { kind: 'unreadable', reason: definition.reason };
   const quote = quoteLike(source, undefined);
