@@ -460,6 +460,11 @@ export function godot_node_is_spatial(entity: object): boolean {
  * @source scene/main/scene_tree.cpp:590
  */
 export function godot_node_enter_root(root: object): void {
+  // A new tree starts with empty process lists.
+  for (const list of [PROCESS_LISTS.process, PROCESS_LISTS.physics]) {
+    list.nodes = [];
+    list.dirty = false;
+  }
   const state = stateOf(root);
   state.kind = 'node';
   state.insideTree = true;
@@ -519,7 +524,14 @@ export function godot_node_processing(entity: object): {
  * @source scene/main/scene_tree.cpp:1219
  */
 export function godot_node_set_internal_physics(entity: object, process: ((delta: number) => void) | undefined): void {
-  stateOf(entity).internalPhysics = process;
+  const state = stateOf(entity);
+  if ((state.internalPhysics !== undefined) === (process !== undefined)) {
+    state.internalPhysics = process;
+    return;
+  }
+  setProcessing(entity, state, () => {
+    state.internalPhysics = process;
+  });
 }
 
 /**
@@ -530,7 +542,14 @@ export function godot_node_set_internal_physics(entity: object, process: ((delta
  * @source scene/main/scene_tree.cpp:1219
  */
 export function godot_node_set_internal_process(entity: object, process: ((delta: number) => void) | undefined): void {
-  stateOf(entity).internalProcess = process;
+  const state = stateOf(entity);
+  if ((state.internalProcess !== undefined) === (process !== undefined)) {
+    state.internalProcess = process;
+    return;
+  }
+  setProcessing(entity, state, () => {
+    state.internalProcess = process;
+  });
 }
 
 /**
@@ -582,6 +601,7 @@ export function godot_node_free(entity: object): void {
     state.queued = false;
     state.freed = true;
   }
+  for (const observer of TREE_OBSERVERS) observer(entity);
 }
 
 /**
@@ -609,10 +629,122 @@ function detach(parent: object, child: object): void {
   else (parent as Object3D).remove(child as Object3D);
 }
 
+const TREE_OBSERVERS: ((entity: object) => void)[] = [];
+
+/**
+ * Registers a view of each node entering the tree, leaving it, or being freed (the
+ * `NOTIFICATION_ENTER_TREE`, `NOTIFICATION_EXIT_TREE` and `NOTIFICATION_PREDELETE` a server-facing
+ * node answers, `node.cpp:128`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:128
+ */
+export function godot_node_observe_tree(observer: (entity: object) => void): void {
+  if (!TREE_OBSERVERS.includes(observer)) TREE_OBSERVERS.push(observer);
+}
+
+/**
+ * The default process group's lists (`SceneTree::ProcessGroup`, `scene_tree.h:107`): the nodes
+ * inside the tree that process (or process internally), and those that physics-process, in the
+ * order they joined; sorted by priority then tree order only when one joined since the last sort
+ * (`_add_node_to_process_group`, `scene_tree.cpp:1415`), so moving a node in the tree keeps it
+ * where it was until then.
+ */
+const PROCESS_LISTS = {
+  process: { nodes: [] as object[], dirty: false },
+  physics: { nodes: [] as object[], dirty: false },
+};
+
+function processes(state: NodeState): boolean {
+  return state.process || state.internalProcess !== undefined;
+}
+
+function physicsProcesses(state: NodeState): boolean {
+  return state.physicsProcess || state.internalPhysics !== undefined;
+}
+
+function addToProcessLists(entity: object, state: NodeState): void {
+  if (processes(state)) {
+    PROCESS_LISTS.process.nodes.push(entity);
+    PROCESS_LISTS.process.dirty = true;
+  }
+  if (physicsProcesses(state)) {
+    PROCESS_LISTS.physics.nodes.push(entity);
+    PROCESS_LISTS.physics.dirty = true;
+  }
+}
+
+function removeFromProcessLists(entity: object, state: NodeState): void {
+  const erase = (list: object[]): void => {
+    const index = list.indexOf(entity);
+    if (index >= 0) list.splice(index, 1);
+  };
+  if (processes(state)) erase(PROCESS_LISTS.process.nodes);
+  if (physicsProcesses(state)) erase(PROCESS_LISTS.physics.nodes);
+}
+
+/**
+ * A processing flag or priority changed: inside the tree the node leaves the lists and joins them
+ * again, which marks them for sorting (`Node::set_process`, `node.cpp:1025`, and its siblings).
+ */
+function setProcessing(entity: object, state: NodeState, change: () => void): void {
+  if (!state.insideTree) {
+    change();
+    return;
+  }
+  removeFromProcessLists(entity, state);
+  change();
+  addToProcessLists(entity, state);
+}
+
+/** The node's place in the tree: each ancestor's index in its parent's children, root first. */
+function treePath(entity: object): number[] {
+  const path: number[] = [];
+  let node = entity as Object3D;
+  while (node.parent !== null) {
+    path.push(node.parent.children.indexOf(node));
+    node = node.parent;
+  }
+  return path.reverse();
+}
+
+/** `Node::is_greater_than` (`node.cpp:2164`) as a sort order: an ancestor first, then child order. */
+function treeOrder(a: readonly number[], b: readonly number[]): number {
+  for (let index = 0; index < Math.min(a.length, b.length); index += 1) {
+    if (a[index] !== b[index]) return (a[index] as number) - (b[index] as number);
+  }
+  return a.length - b.length;
+}
+
+/**
+ * The process or physics-process list for a pass (`SceneTree::_process_group`,
+ * `scene_tree.cpp:1177`): sorted by priority then tree order if a node joined since the last
+ * sort, and copied, so the pass is not disturbed by nodes joining or leaving.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1177
+ */
+export function godot_node_process_list(physics: boolean): readonly object[] {
+  const list = physics ? PROCESS_LISTS.physics : PROCESS_LISTS.process;
+  if (list.dirty) {
+    const keyed = list.nodes.map((entity) => {
+      const state = stateOf(entity);
+      return { entity, priority: physics ? state.physicsProcessPriority : state.processPriority, path: treePath(entity) };
+    });
+    keyed.sort((a, b) => (a.priority !== b.priority ? a.priority - b.priority : treeOrder(a.path, b.path)));
+    list.nodes = keyed.map((entry) => entry.entity);
+    list.dirty = false;
+  }
+  return [...list.nodes];
+}
+
 /** `_propagate_enter_tree` (`scene/main/node.cpp:341`): self, then children. */
 function propagateEnterTree(entity: object): void {
   const state = stateOf(entity);
   state.insideTree = true;
+  // `NOTIFICATION_ENTER_TREE` joins the process lists (`node.cpp:150`).
+  addToProcessLists(entity, state);
+  for (const observer of TREE_OBSERVERS) observer(entity);
   state.binding?.enterTree?.();
   state.treeEntered.emit();
   for (const child of [...childEntities(entity)]) {
@@ -631,7 +763,7 @@ function propagateReady(entity: object): void {
   for (const child of [...childEntities(entity)]) propagateReady(child);
   if (state.readyFirst) {
     state.readyFirst = false;
-    initializeProcessing(state);
+    initializeProcessing(entity, state);
     state.binding?.ready?.();
     state.ready.emit();
   }
@@ -647,17 +779,20 @@ function propagateExitTree(entity: object): void {
   const state = stateOf(entity);
   state.binding?.exitTree?.();
   state.treeExiting.emit();
+  // `NOTIFICATION_EXIT_TREE` leaves the process lists (`node.cpp:225`).
+  removeFromProcessLists(entity, state);
   state.readyNotified = false;
   state.insideTree = false;
+  for (const observer of TREE_OBSERVERS) observer(entity);
 }
 
-function initializeProcessing(state: NodeState): void {
+function initializeProcessing(entity: object, state: NodeState): void {
   if (state.methods.input === true) state.input = true;
   if (state.methods.shortcutInput === true) state.shortcutInput = true;
   if (state.methods.unhandledInput === true) state.unhandledInput = true;
   if (state.methods.unhandledKeyInput === true) state.unhandledKeyInput = true;
-  if (state.methods.process === true) state.process = true;
-  if (state.methods.physicsProcess === true) state.physicsProcess = true;
+  if (state.methods.process === true && !state.process) setProcessing(entity, state, () => (state.process = true));
+  if (state.methods.physicsProcess === true && !state.physicsProcess) setProcessing(entity, state, () => (state.physicsProcess = true));
 }
 
 /** `Node::_set_tree` entering (`scene/main/node.cpp:3354`). */
@@ -1031,7 +1166,12 @@ function processModeAllows(entity: object, state: NodeState, paused: boolean): b
  * @source scene/main/node.cpp:1025
  */
 export function set_process(self: object, enabled: boolean): void {
-  nodeState(self, 'set_process').process = Boolean(enabled);
+  const entity = native(self, 'set_process');
+  const state = stateOf(entity);
+  if (state.process === Boolean(enabled)) return;
+  setProcessing(entity, state, () => {
+    state.process = Boolean(enabled);
+  });
 }
 
 /**
@@ -1049,7 +1189,12 @@ export function is_processing(self: object): boolean {
  * @source scene/main/node.cpp:617
  */
 export function set_physics_process(self: object, enabled: boolean): void {
-  nodeState(self, 'set_physics_process').physicsProcess = Boolean(enabled);
+  const entity = native(self, 'set_physics_process');
+  const state = stateOf(entity);
+  if (state.physicsProcess === Boolean(enabled)) return;
+  setProcessing(entity, state, () => {
+    state.physicsProcess = Boolean(enabled);
+  });
 }
 
 /**
@@ -1096,7 +1241,12 @@ export function get_process_mode(self: object): number {
  * @source scene/main/node.cpp:1151
  */
 export function set_process_priority(self: object, priority: number): void {
-  nodeState(self, 'set_process_priority').processPriority = priority;
+  const entity = native(self, 'set_process_priority');
+  const state = stateOf(entity);
+  if (state.processPriority === priority) return;
+  setProcessing(entity, state, () => {
+    state.processPriority = priority;
+  });
 }
 
 /**

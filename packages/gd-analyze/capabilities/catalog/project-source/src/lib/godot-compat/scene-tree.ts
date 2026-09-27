@@ -15,7 +15,7 @@
  */
 
 import { flush_buffered_events, godot_input_frame } from './input';
-import { godot_node_enter_pending, godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_processing, godot_node_set_queued } from './node';
+import { godot_node_enter_pending, godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_process_list, godot_node_processing, godot_node_set_queued } from './node';
 import { godot_main_timer_sync_advance, godot_main_timer_sync_fixed_fps } from './main-timer-sync';
 import { godot_message_queue_flush } from './object';
 import { get_setting } from './project-settings';
@@ -134,36 +134,13 @@ function openIteration(): void {
   flush_buffered_events();
 }
 
-/** Every entity inside the tree in tree order (parent before children, children in order). */
-function treeOrder(): object[] {
-  const found: object[] = [];
-  const visit = (entity: object): void => {
-    found.push(entity);
-    for (const child of (entity as { children?: readonly object[] }).children ?? []) visit(child);
-  };
-  if (clock.root !== undefined) visit(clock.root);
-  return found;
-}
-
 /**
- * `SceneTree::_process` / `_process_group` (`scene/main/scene_tree.cpp:1177`): the processing
- * nodes sorted by priority then tree order, copied, each checked again when its turn comes.
+ * `SceneTree::_process` / `_process_group` (`scene/main/scene_tree.cpp:1177`): the process list
+ * (sorted by priority then tree order when a node joined it), copied, each node checked again when
+ * its turn comes.
  */
 function processNodes(physics: boolean): void {
-  const listed = treeOrder()
-    .map((entity, order) => ({ entity, order, info: godot_node_processing(entity) }))
-    .filter(
-      (entry) =>
-        entry.info !== undefined &&
-        entry.info.insideTree &&
-        (physics ? entry.info.physicsProcess || entry.info.internalPhysics !== undefined : entry.info.process || entry.info.internalProcess !== undefined),
-    );
-  listed.sort((a, b) => {
-    const pa = physics ? (a.info?.physicsProcessPriority ?? 0) : (a.info?.processPriority ?? 0);
-    const pb = physics ? (b.info?.physicsProcessPriority ?? 0) : (b.info?.processPriority ?? 0);
-    return pa !== pb ? pa - pb : a.order - b.order;
-  });
-  for (const { entity } of listed) {
+  for (const entity of godot_node_process_list(physics)) {
     const info = godot_node_processing(entity);
     if (info === undefined || !info.insideTree || !info.canProcess) continue;
     if (physics) {
