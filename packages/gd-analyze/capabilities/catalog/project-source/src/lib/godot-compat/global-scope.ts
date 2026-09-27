@@ -355,16 +355,14 @@ export function randi_range(from: number, to: number): number {
 }
 
 /**
- * `RandomPCG::randomize` (`core/math/random_pcg.cpp:42`): seed from
- * `(unix time + ticks usec) * state + PCG_DEFAULT_INC_64`. The host clock supplies both times.
+ * Reseeds the global generator unpredictably, as Godot's clock-derived seed does
+ * (`RandomPCG::randomize`, `core/math/random_pcg.cpp:42`): from the platform's random source.
  *
  * @godot @GlobalScope.randomize
  * @source core/variant/variant_utility.cpp:776
  */
 export function randomize(): void {
-  const unixTime = BigInt(Math.floor(Date.now() / 1000));
-  const ticksUsec = BigInt(Math.floor(globalThis.performance.now() * 1000));
-  seedPcg(((unixTime + ticksUsec) * pcg.state + PCG_DEFAULT_INC_64) & U64);
+  seedPcg(globalThis.crypto.getRandomValues(new BigUint64Array(1))[0] as bigint);
 }
 
 /**

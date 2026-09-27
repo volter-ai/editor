@@ -392,19 +392,6 @@ function moveToIndex(entity: Object3D, index: number): void {
   parent.children.splice(parent.children.indexOf(before), 0, entity);
 }
 
-const CLASS_MOUNTS = new Map<string, (entity: object) => void>();
-
-/**
- * Registers what makes a node its class when the scene's JSX declares it without recording one
- * (a drei camera is a Camera3D): run once, as the node is first met entering the tree.
- *
- * @godot Node (protocol)
- * @source scene/resources/packed_scene.cpp:400
- */
-export function godot_node_class_mount(className: string, mount: (entity: object) => void): void {
-  CLASS_MOUNTS.set(className, mount);
-}
-
 /**
  * Registers a module's reading of the Godot class (with its ancestry) of a node the scene's JSX
  * declares without recording one: the physics bodies and colliders `@react-three/rapier` mounts.
@@ -682,7 +669,6 @@ function insertionOrder(entity: object): object[] {
 function propagateEnterTree(entity: object): void {
   const state = stateOf(entity);
   state.insideTree = true;
-  // `NOTIFICATION_ENTER_TREE` joins the process lists (`node.cpp:150`).
   for (const observer of TREE_OBSERVERS) observer(entity);
   state.binding?.enterTree?.();
   state.treeEntered.emit();
@@ -1332,10 +1318,6 @@ export function seatGodotScriptForest(roots: readonly object[], bindings: readon
   const collect = (node: object): void => {
     if (visited.has(node)) throw new Error('godot-compat: a native node appears beneath two mounted roots.');
     visited.add(node);
-    if (NODE.get(node)?.classes === undefined) {
-      const mount = CLASS_MOUNTS.get(nodeClasses(node)?.[0] ?? '');
-      if (mount !== undefined) mount(node);
-    }
     seedDeclared(node);
     for (const child of childEntities(node)) collect(child);
   };

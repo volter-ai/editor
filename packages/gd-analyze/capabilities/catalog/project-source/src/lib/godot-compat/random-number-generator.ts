@@ -11,9 +11,6 @@
 
 import { godot_random_pcg_new, godot_random_pcg_rand, godot_random_pcg_rand_bounded, godot_random_pcg_randf, godot_random_pcg_seed, type RandomPCG } from './random-pcg';
 
-const U64 = (1n << 64n) - 1n;
-/** `PCG_DEFAULT_INC_64` (`thirdparty/misc/pcg.h:9`). */
-const PCG_DEFAULT_INC_64 = 1442695040888963407n;
 
 export interface RandomNumberGenerator {
   readonly pcg: RandomPCG;
@@ -21,20 +18,18 @@ export interface RandomNumberGenerator {
 }
 
 /**
- * `RandomPCG::randomize` (`core/math/random_pcg.cpp:42`): the unix time plus the ticks in
- * microseconds, times the state, plus the default increment.
+ * Reseeds the generator unpredictably, as Godot's clock-derived seed does
+ * (`RandomPCG::randomize`, `core/math/random_pcg.cpp:42`): from the platform's random source.
  *
  * @godot RandomNumberGenerator.randomize
  * @source core/math/random_pcg.cpp:42
  */
 export function randomize(self: RandomNumberGenerator): void {
-  const unixTime = BigInt(Math.floor(Date.now() / 1000));
-  const ticksUsec = BigInt(Math.floor(globalThis.performance.now() * 1000));
-  set_seed(self, ((unixTime + ticksUsec) * self.pcg.state + PCG_DEFAULT_INC_64) & U64);
+  set_seed(self, globalThis.crypto.getRandomValues(new BigUint64Array(1))[0] as bigint);
 }
 
 /**
- * A generator seeded from the clock (`RandomNumberGenerator()`, `random_number_generator.h:61`).
+ * A generator seeded unpredictably (`RandomNumberGenerator()`, `random_number_generator.h:61`).
  *
  * @godot RandomNumberGenerator.RandomNumberGenerator
  * @source core/math/random_number_generator.h:61

@@ -3,18 +3,13 @@
     "class-name-switch": 4,
     "class-name-lookup": 11,
     "class-name-literal": 149,
-    "class-mount-registry": 5,
-    "compat-owns-time": 2,
+    "class-mount-registry": 0,
+    "compat-owns-time": 0,
     "compat-scheduler-hooks": 0,
     "output-known-violations": 1,
     "world-exports": 0
   },
   "findings": [
-    "class-mount-registry | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/camera-3d.ts | godot_node_class_mount( #1",
-    "class-mount-registry | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node.ts | CLASS_MOUNTS #1",
-    "class-mount-registry | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node.ts | CLASS_MOUNTS #2",
-    "class-mount-registry | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node.ts | CLASS_MOUNTS #3",
-    "class-mount-registry | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node.ts | godot_node_class_mount( #1",
     "class-name-literal | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/animation.ts | === 'bool' #1",
     "class-name-literal | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/animation.ts | === 'bool' #2",
     "class-name-literal | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/animation.ts | === 'bool' #3",
@@ -179,8 +174,6 @@
     "class-name-switch | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | switch (shape.className) #1",
     "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (className) #1",
     "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (resource.className) #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/global-scope.ts | performance.now( #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/random-number-generator.ts | performance.now( #1",
     "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'framework-import GodotSpawnHost', #1"
   ]
 }

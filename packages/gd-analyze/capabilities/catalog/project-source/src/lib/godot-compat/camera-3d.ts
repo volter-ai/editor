@@ -32,7 +32,7 @@
 
 import { type Object3D, PerspectiveCamera } from 'three';
 import type { Environment } from './environment';
-import { godot_node_adopt, godot_node_class_mount, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_observe_tree, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { get_size } from './sub-viewport';
 import { get_size as windowSize, godot_window_has_size } from './window';
@@ -403,22 +403,15 @@ function exitWorld(camera: PerspectiveCamera): void {
   state.viewport = null;
 }
 
-/**
- * Makes `entity` a Camera3D of the tree: its class recorded and its viewport registration run as
- * it enters and leaves the tree.
- *
- * @godot Camera3D (protocol)
- * @source scene/3d/camera_3d.cpp:195
- */
-export function godot_camera_3d_mount(entity: PerspectiveCamera): void {
-  stateOf(entity);
-  godot_node_adopt(entity, { classes: ['Camera3D', 'Node3D', 'Node'] });
-  godot_node_tree_signal(entity, 'tree_entered').connect(() => enterWorld(entity));
-  godot_node_tree_signal(entity, 'tree_exiting').connect(() => exitWorld(entity));
-}
-
-// A camera the scene's JSX declares (drei's `<PerspectiveCamera>`) is a Camera3D of the tree.
-godot_node_class_mount('Camera3D', (entity) => godot_camera_3d_mount(entity as PerspectiveCamera));
+// A three camera is a Camera3D (the scene's drei `<PerspectiveCamera>`, or `Camera3D.new()`): it
+// joins its viewport's cameras as it enters the tree and leaves them as it exits
+// (`NOTIFICATION_ENTER_WORLD`/`EXIT_WORLD`, `camera_3d.cpp:195`).
+godot_node_observe_tree((entity) => {
+  if (!(entity instanceof PerspectiveCamera)) return;
+  if (is_inside_tree(entity)) {
+    if (stateOf(entity).viewport === null) enterWorld(entity);
+  } else exitWorld(entity);
+});
 
 /** `layers` of a new Camera3D: every one of the 20 render layers (`camera_3d.h:83`). */
 const DEFAULT_CULL_MASK = 0xfffff;
