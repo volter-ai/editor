@@ -379,13 +379,27 @@ function attachScriptInstances(
       byLocation.set(key, instance);
     }
   }
+  // A script attached to a node this document copied from an instanced scene, the same script
+  // the instanced scene attaches there, is that scene's component's own attachment.
+  const byDocument = new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const));
+  const representedByInstance = (instance: DirectGodotScriptInstancePlan): boolean => {
+    const node = boundNodes.get(nodeLocationKey(instance.documentPath, instance.nodePath));
+    const origin = node?.inheritedNode;
+    if (origin === undefined) return false;
+    const originNode = byDocument
+      .get(origin.documentPath)
+      ?.nodes.find((candidate) => candidate.nodePath === origin.nodePath);
+    return originNode?.scriptResPath === instance.scriptResPath;
+  };
   const consumed = new Set<string>();
   const attach = (
     scene: TargetGodotSceneDocumentPlan,
     node: TargetGodotSceneNodePlan,
   ): DirectGodotSceneNodePlan => {
     const key = nodeLocationKey(scene.sourceResPath, node.nodePath);
-    const instance = byLocation.get(key);
+    const located = byLocation.get(key);
+    // The instanced scene's component attaches its own script: this document's node carries none.
+    const instance = located !== undefined && node.scriptResPath === undefined && representedByInstance(located) ? undefined : located;
     const boundNode = boundNodes.get(key);
     if (validateAttachedScript(scene, node, instance, boundNode, diagnostics)) consumed.add(key);
     const { scriptResPath: _scriptResPath, children, placements, ...nativeNode } = node;
@@ -399,18 +413,6 @@ function attachScriptInstances(
     };
   };
   const result = scenes.map((scene) => ({ ...scene, root: attach(scene, scene.root) }));
-  // A script attached to a node this document copied from an instanced scene, the same script
-  // the instanced scene attaches there, is that scene's component's own attachment.
-  const byDocument = new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const));
-  const representedByInstance = (instance: DirectGodotScriptInstancePlan): boolean => {
-    const node = boundNodes.get(nodeLocationKey(instance.documentPath, instance.nodePath));
-    const origin = node?.inheritedNode;
-    if (origin === undefined) return false;
-    const originNode = byDocument
-      .get(origin.documentPath)
-      ?.nodes.find((candidate) => candidate.nodePath === origin.nodePath);
-    return originNode?.scriptResPath === instance.scriptResPath;
-  };
   for (const instance of instances) {
     const key = nodeLocationKey(instance.documentPath, instance.nodePath);
     if (consumed.has(key) || representedByInstance(instance)) continue;

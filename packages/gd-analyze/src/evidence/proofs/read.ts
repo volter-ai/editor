@@ -19,7 +19,6 @@ config/name="Read authority proof"
 run/main_scene="res://main.tscn"
 
 [display]
-window/size/viewport_width=960
 window/size/viewport_height=540
 
 [rendering]

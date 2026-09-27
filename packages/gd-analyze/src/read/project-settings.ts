@@ -503,8 +503,10 @@ export function readProjectSettings(file: GodotTextFile): ProjectSettings {
   const xr = section(file, 'xr');
   const display = section(file, 'display');
   const sizeKeys = windowSizeKeys(major);
-  const width = asNumber(display?.properties[sizeKeys.width]);
-  const height = asNumber(display?.properties[sizeKeys.height]);
+  // A 4.x key the project leaves out is the setting's default (`GLOBAL_DEF_BASIC` 1152 and 648,
+  // core/config/project_settings.cpp:1719-1720); 3.x's are not transcribed.
+  const width = asNumber(display?.properties[sizeKeys.width]) ?? (major === 4 ? 1152 : undefined);
+  const height = asNumber(display?.properties[sizeKeys.height]) ?? (major === 4 ? 648 : undefined);
   const physicsFps = readPhysicsFps(file);
   const physicsInterpolationValue = section(file, 'physics')?.properties[
     'common/physics_interpolation'
