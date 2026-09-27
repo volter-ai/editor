@@ -203,6 +203,19 @@ const ERROR_ATTRIBUTION_CAP = 4000;
  *  object, a revoked proxy) must not take the console down with it. */
 function safeString(value: unknown): string {
   try {
+    // An Error prints with its stack, as the browser's own console prints one: the throw that
+    // explains a failure is only useful where it says where it threw.
+    // Duck-typed: an Error from the game's own realm is not `instanceof` this one's.
+    const error = value as { stack?: unknown; message?: unknown } | null;
+    if (
+      typeof value === 'object' &&
+      error !== null &&
+      typeof error.stack === 'string' &&
+      error.stack !== '' &&
+      typeof error.message === 'string'
+    ) {
+      return error.stack.includes(error.message) ? error.stack : `${String(value)}\n${error.stack}`;
+    }
     return String(value);
   } catch {
     return Object.prototype.toString.call(value);

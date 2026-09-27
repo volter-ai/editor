@@ -107,7 +107,19 @@ export function installConsoleSync(): () => void {
   }
 
   const unsubscribe = editorConsole.subscribe(() => {
-    if (released || timer !== null) return;
+    if (released) return;
+    // A NEW error goes out before anything else runs: the error that explains a hang is followed by
+    // the hang, and a debounced report of it would wait behind the spinning main thread for good.
+    // Repeats of an error already sent keep the debounce, so a per-frame throw is not a per-frame send.
+    const entries = editorConsole.getEntries() as readonly ConsoleEntry[];
+    const last = entries[entries.length - 1];
+    if (last && last.level === 'error' && !reported.has(last.id)) {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+      queueMicrotask(flush);
+      return;
+    }
+    if (timer !== null) return;
     timer = setTimeout(flush, FLUSH_MS);
   });
 
