@@ -55,8 +55,7 @@ import {
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
-import { requestTransformMode } from '@volter/editor-sdk/kit/transform-mode-request';
-import { editorHost } from '@volter/editor-sdk/host';
+import { bindCanvasSceneKeys } from './canvas-scene-hotkeys';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 import { ViewportPickMenu } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import {
@@ -508,24 +507,14 @@ export function CanvasSceneControls({
     },
     [view],
   );
-  // The tools' keys, from the active keymap, on this 2D view while it is the active one — the
-  // three viewport binds the same actions for its own store (`viewport-hotkeys.ts`).
+  // The tools' keys and Godot's Pan and Ruler keys, on this 2D view while it is the active one.
   useEffect(() => {
     if (!active) return;
-    // The key leaves List Select, Pivot, Pan and Ruler itself, even when its tool was the one
-    // already armed under them (no mode change would say so).
-    const arm = (mode: 'select' | 'translate' | 'rotate' | 'scale') => () => {
-      setMode(null);
-      requestTransformMode(store, mode);
-    };
-    return editorHost().keyboard.bindActions([
-      { id: 'transform.select', scope: 'stage', run: arm('select') },
-      { id: 'transform.translate', scope: 'stage', run: arm('translate') },
-      { id: 'transform.rotate', scope: 'stage', run: arm('rotate') },
-      { id: 'transform.scale', scope: 'stage', run: arm('scale') },
-      { id: 'canvas.panMode', scope: 'stage', run: () => setMode(sceneModes.get(view) === 'pan' ? null : 'pan') },
-      { id: 'canvas.rulerMode', scope: 'stage', run: () => setMode(sceneModes.get(view) === 'ruler' ? null : 'ruler') },
-    ]);
+    return bindCanvasSceneKeys(
+      store,
+      () => setMode(null),
+      (mode) => setMode(sceneModes.get(view) === mode ? null : mode),
+    );
   }, [active, store, setMode, view]);
   // One radio group however a tool is picked: a transform tool chosen by its key (W, E, R, T)
   // leaves List Select, Pivot, Pan and Ruler as its button does.
