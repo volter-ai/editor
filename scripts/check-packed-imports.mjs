@@ -38,9 +38,13 @@ for (const folder of readdirSync(join(root, 'packages'))) {
       ...Object.keys(nested.peerDependencies ?? {}).filter(name => declared.has(name))]) };
   })
     .sort((a, b) => b.prefix.length - a.prefix.length);
+  const template = projects.find(project => project.prefix === 'template/');
+  // An addition's files are merged into a project begun from the template, so
+  // they also resolve through the template's declarations.
+  if (template) for (const project of projects.filter(project => project.prefix.startsWith('additions/')))
+    for (const name of template.declared) project.declared.add(name);
   const entries = new Map(paths.filter(path => /(^|\/)catalog\/entries\/[^/]+\.json$/.test(path))
     .map(path => readJson(path)).map(entry => [entry.id, entry]));
-  const template = projects.find(project => project.prefix === 'template/');
   function catalogDeclared(path) {
     const [catalog, file] = path.split('project-source/');
     if (catalog !== 'catalog/' || !file || !template) return undefined;
