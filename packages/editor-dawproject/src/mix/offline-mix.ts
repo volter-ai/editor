@@ -10,7 +10,8 @@
  */
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { convolve, prepareIr } from './convolve';
-import { type Band, Biquad, Compressor, compressorParams, dbToGain, gain, Limiter, pan, type Stereo } from './dsp';
+import { automationCurve, mixTarget, motionFor } from './automation';
+import { Biquad, Compressor, compressorParams, dbToGain, gain, gainEach, Limiter, pan, panEach, type Stereo, validBands } from './dsp';
 
 export interface ImpulseResponse {
   readonly channels: readonly Float32Array[];
@@ -22,11 +23,30 @@ export interface MixInputs {
   readonly channels: readonly Stereo[];
   /** Each soundfont track's MIDI channel. */
   readonly channelOf: ReadonlyMap<string, number>;
+  /** Each audio track's placed recordings, by track id: its strip's input. */
+  readonly audio?: ReadonlyMap<string, Stereo>;
   readonly sampleRate: number;
   /** Impulse responses by project path, loaded by the caller. */
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
   /** Render only these tracks (their buses still sound); all when absent. */
   readonly only?: ReadonlySet<string>;
+  /** Told what each compressor and limiter did: its most gain reduction, and a compressor's loudest input. */
+  readonly dynamics?: (report: DynamicsReport) => void;
+  /**
+   * Where each sample falls in the piece, for the tracks' mixer automation: sample `i` is at
+   * piece-second `startSecond + (i / sampleRate) mod loopSeconds`, and `beatAt` maps a second to
+   * the beat a lane is written in. Without it the static levels apply throughout.
+   */
+  readonly timeline?: { readonly startSecond: number; readonly loopSeconds: number; readonly beatAt: (second: number) => number };
+}
+
+export interface DynamicsReport {
+  readonly track: string;
+  readonly device: 'compressor' | 'limiter';
+  readonly maxReductionDb: number;
+  /** The loudest peak the compressor heard, dBFS (a limiter's is its ceiling's business). */
+  readonly maxInputDb?: number;
+  readonly threshold?: number;
 }
 
 function copy(signal: Stereo): Stereo {
@@ -42,16 +62,25 @@ function addInto(target: Stereo, source: Stereo, factor = 1): void {
 }
 
 /** The devices of a strip that process audio, in order. Instruments and MIDI devices are skipped. */
-function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stereo {
+function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs, keyOf: (name: string) => Stereo | undefined = () => undefined): Stereo {
   let current = signal;
   for (const device of track.channel?.devices ?? []) {
     const params = device.params as Readonly<Record<string, unknown>>;
     if (device.plugin === 'equalizer') {
-      for (const band of (Array.isArray(params['bands']) ? params['bands'] : []) as Band[]) new Biquad(band, inputs.sampleRate).process(current);
+      for (const band of validBands(params['bands'])) new Biquad(band, inputs.sampleRate).process(current);
     } else if (device.plugin === 'compressor') {
-      new Compressor(compressorParams(params), inputs.sampleRate).process(current);
+      const settings = compressorParams(params);
+      const compressor = new Compressor(settings, inputs.sampleRate);
+      // A sidechain's detector hears the named track's strip after its fader and pan; a source
+      // that sounds nothing (muted, unknown) is silence, which leaves this strip uncompressed.
+      const sidechain = typeof params['sidechain'] === 'string' ? params['sidechain'] : null;
+      const length = current[0].length;
+      compressor.process(current, sidechain ? (keyOf(sidechain) ?? [new Float32Array(length), new Float32Array(length)]) : undefined);
+      inputs.dynamics?.({ track: track.name, device: 'compressor', maxReductionDb: compressor.maxReductionDb, maxInputDb: compressor.maxInputDb, threshold: settings.threshold });
     } else if (device.plugin === 'limiter') {
-      new Limiter(params, inputs.sampleRate).process(current);
+      const limiter = new Limiter(params, inputs.sampleRate);
+      limiter.process(current);
+      inputs.dynamics?.({ track: track.name, device: 'limiter', maxReductionDb: limiter.maxReductionDb });
     } else if (device.plugin === 'convolution') {
       const path = typeof params['ir'] === 'string' ? params['ir'] : '';
       const ir = inputs.irs.get(path);
@@ -69,49 +98,186 @@ function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stere
   return current;
 }
 
+/**
+ * Whether any instrument strip is soloed. Only a `regular` channel's solo counts: a bus or the
+ * master has nothing to be soloed against, so a `solo` written there is ignored by both mixes.
+ */
+export function soloActive(piece: Piece): boolean {
+  return piece.tracks.some((track) => {
+    const role = track.channel?.role ?? 'regular';
+    return (role === 'regular' || role === 'submix') && track.channel?.solo === true;
+  });
+}
+
+/** The group tracks a track sits in, innermost first. */
+export function ancestors(piece: Piece, track: PieceTrack): PieceTrack[] {
+  const out: PieceTrack[] = [];
+  for (let parent = track.parent; parent !== null; ) {
+    const group = piece.tracks.find((candidate) => candidate.id === parent);
+    if (!group) break;
+    out.push(group);
+    parent = group.parent;
+  }
+  return out;
+}
+
+/** The tracks a strip's compressors listen to (`params.sidechain`). */
+export function sidechainsOf(track: PieceTrack): string[] {
+  return (track.channel?.devices ?? []).flatMap((device) =>
+    device.plugin === 'compressor' && typeof device.params['sidechain'] === 'string' ? [device.params['sidechain'] as string] : [],
+  );
+}
+
+/** The piece's tracks with every sidechain source ahead of the tracks that listen to it (a cycle keeps written order). */
+export function sidechainOrder(piece: Piece): PieceTrack[] {
+  const done: PieceTrack[] = [];
+  const remaining = [...piece.tracks];
+  while (remaining.length > 0) {
+    const index = remaining.findIndex((track) => sidechainsOf(track).every((name) => !remaining.some((other) => other !== track && other.name === name)));
+    done.push(...remaining.splice(index < 0 ? 0 : index, 1));
+  }
+  return done;
+}
+
+/** Where a strip's output goes: its group's input when it sits in a `submix` track, else the master sum. */
+export function destinationOf(piece: Piece, track: PieceTrack): PieceTrack | null {
+  const group = ancestors(piece, track)[0];
+  return group?.channel?.role === 'submix' ? group : null;
+}
+
+/**
+ * THE LEVELS OF A STRIP, the one statement of what mute, solo, volume, pan and send level mean,
+ * read by this mix and by the editor's graph (`live-mix.ts`) alike: whether it sounds, the fader's
+ * linear gain (0 when it does not), its pan, and each send's linear gain in `channel.sends` order. An
+ * instrument strip is silenced by its mute or by another strip's solo, and its sends with it; a bus
+ * and the master are silenced by their own mute.
+ */
+export function stripLevels(piece: Piece, track: PieceTrack, soloed = soloActive(piece)): { sounding: boolean; fader: number; pan: number; sends: number[] } {
+  const channel = track.channel;
+  if (!channel) return { sounding: false, fader: 0, pan: 0, sends: [] };
+  // A solo on a group solos everything in it; a group sounds while anything inside it is soloed.
+  const soloedHere = (): boolean =>
+    channel.solo ||
+    ancestors(piece, track).some((group) => group.channel?.solo === true) ||
+    (channel.role === 'submix' && piece.tracks.some((other) => other.channel?.solo === true && ancestors(piece, other).includes(track)));
+  const sounding = channel.role === 'regular' || channel.role === 'submix' ? !channel.mute && (!soloed || soloedHere()) : !channel.mute;
+  return {
+    sounding,
+    fader: sounding ? dbToGain(channel.volume) : 0,
+    pan: channel.pan,
+    sends: channel.sends.map((send) => (sounding ? dbToGain(send.level) : 0)),
+  };
+}
+
 export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const length = inputs.channels[0]?.[0].length ?? 0;
   const silence = (): Stereo => [new Float32Array(length), new Float32Array(length)];
+  // A strip parameter a track automates or modulates, per sample (`automation.ts`); null where it is static.
+  const envelope = (track: PieceTrack, target: string): Float32Array | null => {
+    const timeline = inputs.timeline;
+    const motion = timeline ? motionFor(track, target) : null;
+    const parsed = mixTarget(target);
+    if (!timeline || !motion || !parsed) return null;
+    const curve = automationCurve(motion, parsed, timeline.beatAt);
+    const out = new Float32Array(length);
+    for (let i = 0; i < length; i++) {
+      const offset = i / inputs.sampleRate;
+      out[i] = curve.at(timeline.startSecond + (timeline.loopSeconds > 0 ? offset % timeline.loopSeconds : offset));
+    }
+    return out;
+  };
+  const fader = (track: PieceTrack, signal: Stereo, level: number): void => {
+    const automated = envelope(track, 'volume');
+    if (automated) gainEach(signal, automated);
+    else gain(signal, level);
+  };
+  const panStage = (track: PieceTrack, signal: Stereo, position: number): void => {
+    const automated = envelope(track, 'pan');
+    if (automated) panEach(signal, automated);
+    else pan(signal, position);
+  };
   const master = silence();
   const busInput = new Map<string, Stereo>();
-  const soloed = piece.tracks.some((track) => track.channel?.solo);
-  const sendTo = (track: PieceTrack, signal: Stereo, pre: boolean): void => {
-    for (const send of track.channel?.sends ?? []) {
-      if (send.pre !== pre) continue;
+  const soloed = soloActive(piece);
+  // Each group track's input: the strips it contains sum here instead of into the master.
+  const groupInput = new Map<string, Stereo>();
+  const destination = (track: PieceTrack): Stereo => {
+    const group = destinationOf(piece, track);
+    if (!group) return master;
+    const input = groupInput.get(group.id) ?? silence();
+    groupInput.set(group.id, input);
+    return input;
+  };
+  const sendTo = (track: PieceTrack, levels: readonly number[], signal: Stereo, pre: boolean): void => {
+    (track.channel?.sends ?? []).forEach((send, index) => {
+      if (send.pre !== pre) return;
       const bus = busInput.get(send.to) ?? silence();
       busInput.set(send.to, bus);
-      addInto(bus, signal, dbToGain(send.level));
-    }
+      const automated = (levels[index] ?? 0) === 0 ? null : envelope(track, `send:${send.to}`);
+      if (automated) {
+        for (let ch = 0; ch < 2; ch++) {
+          const t = bus[ch]!;
+          const s = signal[ch]!;
+          for (let i = 0; i < t.length; i++) t[i] = t[i]! + s[i]! * automated[i]!;
+        }
+      } else addInto(bus, signal, levels[index] ?? 0);
+    });
   };
-  // Instrument tracks.
-  for (const track of piece.tracks) {
+  // Instrument tracks, each sidechain source before the strips that listen to it.
+  const stripOut = new Map<string, Stereo>();
+  const keyOf = (name: string): Stereo | undefined => stripOut.get(name);
+  for (const track of sidechainOrder(piece)) {
     const channel = inputs.channelOf.get(track.id);
-    if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
-    if (track.channel?.mute || (soloed && !track.channel?.solo)) continue;
+    const recorded = inputs.audio?.get(track.id);
+    if ((channel === undefined && !recorded) || (track.channel?.role ?? 'regular') !== 'regular') continue;
+    const levels = stripLevels(piece, track, soloed);
+    if (!levels.sounding) continue;
     if (inputs.only && !inputs.only.has(track.id)) continue;
-    const source = inputs.channels[channel];
+    const source = channel !== undefined ? inputs.channels[channel] : recorded;
     if (!source) continue;
-    const signal = runDevices(track, copy(source), inputs);
-    sendTo(track, signal, true);
-    gain(signal, dbToGain(track.channel?.volume ?? 0));
-    pan(signal, track.channel?.pan ?? 0);
-    sendTo(track, signal, false);
-    addInto(master, signal);
+    const signal = runDevices(track, copy(source), inputs, keyOf);
+    sendTo(track, levels.sends, signal, true);
+    fader(track, signal, levels.fader);
+    panStage(track, signal, levels.pan);
+    sendTo(track, levels.sends, signal, false);
+    stripOut.set(track.name, signal);
+    addInto(destination(track), signal);
+  }
+  // Group tracks, innermost first: the sum of what they contain, through their own strips, into
+  // their own group or the master.
+  const groups = piece.tracks
+    .filter((track) => track.channel?.role === 'submix')
+    .sort((a, b) => ancestors(piece, b).length - ancestors(piece, a).length);
+  for (const track of groups) {
+    const levels = stripLevels(piece, track, soloed);
+    const input = groupInput.get(track.id);
+    if (!levels.sounding || !input) continue;
+    const signal = runDevices(track, input, inputs);
+    sendTo(track, levels.sends, signal, true);
+    fader(track, signal, levels.fader);
+    panStage(track, signal, levels.pan);
+    sendTo(track, levels.sends, signal, false);
+    addInto(destination(track), signal);
   }
   // Effect buses: what was sent to them, through their own strips.
   for (const track of piece.tracks) {
-    if (track.channel?.role !== 'effect' || track.channel.mute) continue;
+    if (track.channel?.role !== 'effect') continue;
+    const levels = stripLevels(piece, track, soloed);
+    if (!levels.sounding) continue;
     const input = busInput.get(track.name);
     if (!input) continue;
     const signal = runDevices(track, input, inputs);
-    gain(signal, dbToGain(track.channel.volume));
-    pan(signal, track.channel.pan);
+    fader(track, signal, levels.fader);
+    panStage(track, signal, levels.pan);
     addInto(master, signal);
   }
-  // The master strip.
+  // The master strip: its devices, fader (silent when muted) and pan.
   const masterTrack = piece.tracks.find((track) => track.channel?.role === 'master');
   if (!masterTrack) return master;
+  const levels = stripLevels(piece, masterTrack, soloed);
+  if (!levels.sounding) return silence();
   const out = runDevices(masterTrack, master, inputs);
-  gain(out, dbToGain(masterTrack.channel?.volume ?? 0));
+  fader(masterTrack, out, levels.fader);
+  panStage(masterTrack, out, levels.pan);
   return out;
 }

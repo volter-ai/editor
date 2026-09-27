@@ -10,7 +10,7 @@
  *
  *      import { registerVgaiProduct } from '../../vgai/browser/vgaiProduct.js';
  *
- *      registerVgaiProduct({ id: 'model-editor', title: 'Model', trustSentence: …, looks: … });
+ *      registerVgaiProduct({ id: 'model-editor', title: 'Model', trustSentence: … });
  *
  *  THE SHAPE IS THE UNION OF WHAT THE FORK'S PRODUCT-SPECIFIC IDENTIFIERS PARAMETERISED, and
  *  nothing more. Measured against the tier as it stood at fork 53bf66e4205f:
@@ -24,10 +24,6 @@
  *                      a game editor has no Blender engine in the tab, so the WHOLE sentence is
  *                      the product's; the refusal beside it named the command and is the kit's
  *                      now that the command is `VGAI: Open Workspace`.
- *    `looks`         — `vgaiSettings.ts`'s `LOOK_THEMES`, whose one row mapped the `blender`
- *                      look to the `Blender` colour theme and the `blender-icons` product icon
- *                      theme. Both names are artifacts of the product's OWN theme extension, so
- *                      the row belongs to the product that ships it.
  *    `mount`         — `vgaiGameSkew.ts`, which the mount command constructed for every product
  *                      because there was only one contribution to construct it from.
  *
@@ -46,12 +42,6 @@
 
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-
-/** A colour theme and a product icon theme, as a look wears them. */
-export interface VgaiLookThemes {
-	readonly color: string;
-	readonly productIcon: string;
-}
 
 /** What the kit hands a product when the bridge has mounted. */
 export interface VgaiProductMountContext {
@@ -116,10 +106,6 @@ export interface VgaiProduct {
 	readonly layout: VgaiProductLayout;
 	/** The product's own sentence in the workbench's trust prompt. */
 	readonly trustSentence: string;
-	/** Look id → the themes this product's extensions ship for it. A look with no row wears
-	 *  the workbench's own defaults, which is the honest answer rather than a half-applied
-	 *  look. */
-	readonly looks?: ReadonlyMap<string, VgaiLookThemes>;
 	/** Anything else this product installs once the bridge has mounted. */
 	mount?(context: VgaiProductMountContext): void;
 	/**
@@ -188,27 +174,6 @@ export function registerVgaiProduct(product: VgaiProduct): void {
 /** The registered product, or `undefined` when the overlay wrote none. */
 export function vgaiProduct(): VgaiProduct | undefined {
 	return registered;
-}
-
-const tierLooks = new Map<string, VgaiLookThemes>();
-
-/**
- * A LOOK TIER'S ROW — the theme artifacts a look package's workbench tier ships
- * (`package.json#vgai.workbench`, which the overlay copies only when the build names the package
- * with `--look`). Called at module scope by that tier's contribution, which the overlay imports
- * after the product's and before the kit's. A look id registered twice is a throw, for the same
- * reason a second product is.
- */
-export function registerVgaiLook(id: string, themes: VgaiLookThemes): void {
-	if (tierLooks.has(id) || registered?.looks?.has(id)) {
-		throw new Error(`the vgai workbench already has theme artifacts for the look "${id}"; two tiers ship one look.`);
-	}
-	tierLooks.set(id, themes);
-}
-
-/** Every look this build carries theme artifacts for: the product's rows and the look tiers'. */
-export function vgaiLooks(): ReadonlyMap<string, VgaiLookThemes> {
-	return new Map([...(registered?.looks ?? []), ...tierLooks]);
 }
 
 /**

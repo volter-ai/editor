@@ -23,10 +23,10 @@ import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
  * that it now selects a page with no launcher in it.
  */
 
-import type { ServerProjectFailureReport } from '../boot-routing';
-import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '../build-identity';
+import type { ServerProjectFailureReport } from '@volter/editor-sdk/kit/boot-routing';
+import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '@volter/editor-sdk/kit/build-identity';
 import { ErrorBanner, type ScreenError } from './ErrorBanner';
-import { VgaiLogo } from './VgaiLogo';
+import { VgaiLogo } from '@volter/editor-sdk/kit/components/VgaiLogo';
 
 export interface StartupErrorScreenProps {
   error: ScreenError;
@@ -46,7 +46,7 @@ export function StartupErrorScreen({ error, report, onRetry }: StartupErrorScree
         <header className="vgai-shell-header">
           <span className="vgai-shell-brand-static">
             <span className="vgai-shell-brand-mark" aria-hidden="true">
-              <VgaiLogo size={30} animation="static" />
+              <VgaiLogo size={30} />
             </span>
             <span className="vgai-shell-wordmark">{EDITOR_BRAND.name}</span>
           </span>

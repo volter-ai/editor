@@ -29,16 +29,16 @@
  */
 
 import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { mountedRootSubjects } from '@volter/editor-core/authoring/mounted-root-subjects';
+import { mountedRootSubjects } from '@volter/editor-sdk/kit/authoring/mounted-root-subjects';
 import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,
 } from '../host/coverage/capability-coverage';
 import { measureNativeSystemAdapters } from '../host/coverage/system-adapter-coverage';
 import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
-import { toolContributionPlay } from '@volter/editor-core/tool-contribution-play';
-import type { DeclaredSystemAbsence, Game } from '@volter/game-runtime/runtime/game';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { toolContributionPlay } from '@volter/editor-sdk/kit/tool-contribution-play';
+import type { DeclaredSystemAbsence, Game } from '../runtime/game';
 import { projectDependencyNames } from './live-project-verbs';
 
 /**

@@ -18,6 +18,7 @@ import {
 } from './camera-authoring';
 import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
 import type { EditorShellStore } from './editor-shell-store';
+import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import { requestTransformMode } from '@volter/editor-sdk/kit/transform-mode-request';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
@@ -57,6 +58,19 @@ function cameraActions(): ContributedAction[] {
   ];
 }
 
+function activeObject3DDocumentSession() {
+  const documentId = activeWorkspaceDocumentId();
+  return documentId ? object3DDocumentSession(documentId) : null;
+}
+
+/** A document stage paints the mode its SESSION holds; the store's is only what the menu shows
+ *  where there is no session (`set-shading-mode` and the shading menu route the same way). */
+function setShading(store: EditorShellStore, mode: Parameters<EditorShellStore['setShadingMode']>[0]): void {
+  const session = activeObject3DDocumentSession();
+  if (session) session.setMode(mode);
+  else store.setShadingMode(mode);
+}
+
 export function registerViewportActions(store: EditorShellStore): () => void {
   const fixed: ContributedAction[] = [
     { id: 'mode.select', label: 'Select Tool (no gizmo)', shortcut: 'transform.select', execute: () => requestTransformMode(store.shell, 'select') },
@@ -79,16 +93,31 @@ export function registerViewportActions(store: EditorShellStore): () => void {
     { id: 'toggle.stats', label: 'Toggle Stats Overlay', execute: () => store.toggleStats() },
     { id: 'toggle.snap', label: 'Toggle Snap', shortcut: 'viewport.toggleSnap', execute: () => store.shell.toggleSnap() },
     { id: 'toggle.surface-snap', label: 'Toggle Surface Snap', execute: () => store.shell.toggleSnapToSurface() },
-    { id: 'shading.solid', label: 'Material Shading', execute: () => store.setShadingMode('solid') },
-    { id: 'shading.clay', label: 'Solid Shading', execute: () => store.setShadingMode('clay') },
-    { id: 'shading.wireframe', label: 'Wireframe Shading', execute: () => store.setShadingMode('wireframe') },
-    { id: 'shading.unlit', label: 'Unlit Shading', execute: () => store.setShadingMode('unlit') },
-    { id: 'shading.normals', label: 'Normal Shading', execute: () => store.setShadingMode('normals') },
-    { id: 'shading.overdraw', label: 'Overdraw Shading', execute: () => store.setShadingMode('overdraw') },
+    { id: 'shading.solid', label: 'Material Shading', execute: () => setShading(store, 'solid') },
+    { id: 'shading.clay', label: 'Solid Shading', execute: () => setShading(store, 'clay') },
+    { id: 'shading.wireframe', label: 'Wireframe Shading', execute: () => setShading(store, 'wireframe') },
+    { id: 'shading.unlit', label: 'Unlit Shading', execute: () => setShading(store, 'unlit') },
+    { id: 'shading.normals', label: 'Normal Shading', execute: () => setShading(store, 'normals') },
+    { id: 'shading.overdraw', label: 'Overdraw Shading', execute: () => setShading(store, 'overdraw') },
     { id: 'view.top', label: 'Top View', shortcut: 'view.top', execute: () => store.shell.setViewPreset('top') },
     { id: 'view.front', label: 'Front View', shortcut: 'view.front', execute: () => store.shell.setViewPreset('front') },
     { id: 'view.right', label: 'Right View', shortcut: 'view.right', execute: () => store.shell.setViewPreset('right') },
+    { id: 'view.bottom', label: 'Bottom View', shortcut: 'view.bottom', execute: () => store.shell.setViewPreset('bottom') },
+    { id: 'view.back', label: 'Back View', shortcut: 'view.back', execute: () => store.shell.setViewPreset('back') },
+    { id: 'view.left', label: 'Left View', shortcut: 'view.left', execute: () => store.shell.setViewPreset('left') },
+    { id: 'view.orbitLeft', label: 'Orbit Left', shortcut: 'view.orbitLeft', execute: () => store.shell.stepView('orbit-left') },
+    { id: 'view.orbitRight', label: 'Orbit Right', shortcut: 'view.orbitRight', execute: () => store.shell.stepView('orbit-right') },
+    { id: 'view.orbitUp', label: 'Orbit Up', shortcut: 'view.orbitUp', execute: () => store.shell.stepView('orbit-up') },
+    { id: 'view.orbitDown', label: 'Orbit Down', shortcut: 'view.orbitDown', execute: () => store.shell.stepView('orbit-down') },
+    { id: 'view.opposite', label: 'Opposite View', shortcut: 'view.opposite', execute: () => store.shell.stepView('opposite') },
+    { id: 'view.rollLeft', label: 'Roll Left', shortcut: 'view.rollLeft', execute: () => store.shell.stepView('roll-left') },
+    { id: 'view.rollRight', label: 'Roll Right', shortcut: 'view.rollRight', execute: () => store.shell.stepView('roll-right') },
+    { id: 'view.all', label: 'Frame All', shortcut: 'view.all', execute: () => store.shell.frameAll() },
+    { id: 'view.zoomIn', label: 'Zoom In', shortcut: 'view.zoomIn', execute: () => store.shell.zoomView(1) },
+    { id: 'view.zoomOut', label: 'Zoom Out', shortcut: 'view.zoomOut', execute: () => store.shell.zoomView(-1) },
     { id: 'view.perspective', label: 'Perspective View', shortcut: 'view.perspective', execute: () => store.shell.setViewPreset('perspective') },
+    { id: 'view.projection', label: 'Perspective/Orthographic', shortcut: 'view.projection', execute: () => store.shell.toggleProjection() },
+    { id: 'view.camera', label: 'Camera View', shortcut: 'view.camera', execute: () => store.shell.toggleCameraView() },
     { id: 'focus.selected', label: 'Focus Selected', shortcut: 'viewport.frameSelection', execute: () => store.shell.focusOnSelection() },
   ];
   const contribution: ActionContribution = {

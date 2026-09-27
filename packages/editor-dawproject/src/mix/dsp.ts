@@ -29,6 +29,31 @@ export interface Band {
   readonly q?: number;
 }
 
+const BAND_TYPES: ReadonlySet<string> = new Set<BandType>(['highPass', 'lowPass', 'lowShelf', 'highShelf', 'bell']);
+
+/**
+ * The bands of an equaliser's `params.bands` that can be applied, in order. A band with an unknown
+ * type, a missing or non-positive frequency, a non-positive `q` or a non-numeric gain is SKIPPED,
+ * in both mixes through this one function: a BiquadFilterNode refuses such values (the preview
+ * failed to build) while the cookbook turns them into NaN (the export rendered silence).
+ */
+export function validBands(bands: unknown): Band[] {
+  if (!Array.isArray(bands)) return [];
+  const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+  return bands.filter((candidate): candidate is Band => {
+    if (!candidate || typeof candidate !== 'object') return false;
+    const band = candidate as Record<string, unknown>;
+    return (
+      typeof band['type'] === 'string' &&
+      BAND_TYPES.has(band['type']) &&
+      finite(band['freq']) &&
+      band['freq'] > 0 &&
+      (band['q'] === undefined || (finite(band['q']) && band['q'] > 0)) &&
+      (band['gain'] === undefined || finite(band['gain']))
+    );
+  });
+}
+
 /** A band as a Web Audio BiquadFilterNode configuration: `type` and a `Q` in the node's units. */
 export function biquadNode(band: Band): { type: BiquadFilterType; frequency: number; gain: number; Q: number } {
   const q = band.q ?? 0.707;
@@ -184,6 +209,30 @@ export function pan(signal: Stereo, position: number): void {
   }
 }
 
+/** `pan` with a position per sample (a Web Audio StereoPannerNode's a-rate `pan`). */
+export function panEach(signal: Stereo, positions: Float32Array): void {
+  const [left, right] = signal;
+  for (let i = 0; i < left.length; i++) {
+    const x = Math.max(-1, Math.min(1, positions[i]!));
+    const l = left[i]!;
+    const r = right[i]!;
+    if (x <= 0) {
+      const p = ((x + 1) * Math.PI) / 2;
+      left[i] = l + r * Math.cos(p);
+      right[i] = r * Math.sin(p);
+    } else {
+      const p = (x * Math.PI) / 2;
+      left[i] = l * Math.cos(p);
+      right[i] = r + l * Math.sin(p);
+    }
+  }
+}
+
+/** `gain` with a factor per sample. */
+export function gainEach(signal: Stereo, factors: Float32Array): void {
+  for (const channel of signal) for (let i = 0; i < channel.length; i++) channel[i] = channel[i]! * factors[i]!;
+}
+
 export function gain(signal: Stereo, factor: number): void {
   for (const channel of signal) for (let i = 0; i < channel.length; i++) channel[i] = channel[i]! * factor;
 }
@@ -215,6 +264,9 @@ export function compressorParams(params: Readonly<Record<string, unknown>>): Com
  */
 export class Compressor {
   private reduction = 0;
+  /** The most gain reduction applied so far, dB, and the loudest peak heard, dBFS: what it did. */
+  maxReductionDb = 0;
+  maxInputDb = -Infinity;
   private readonly attackCoef: number;
   private readonly releaseCoef: number;
   constructor(
@@ -231,14 +283,19 @@ export class Compressor {
     if (knee > 0 && Math.abs(2 * over) <= knee) return ((1 / ratio - 1) * (over + knee / 2) ** 2) / (2 * knee);
     return (1 / ratio - 1) * over;
   }
-  process(signal: Stereo): void {
+  /** `key`, when given, is what the detector hears (a sidechain); the gain still applies to `signal`. */
+  process(signal: Stereo, key?: Stereo): void {
     const [left, right] = signal;
+    const [keyLeft, keyRight] = key ?? signal;
     const makeup = dbToGain(this.params.makeup);
     for (let i = 0; i < left.length; i++) {
-      const peak = Math.max(Math.abs(left[i]!), Math.abs(right[i]!));
-      const target = -this.gainComputer(20 * Math.log10(peak + 1e-12));
+      const peak = Math.max(Math.abs(keyLeft[i] ?? 0), Math.abs(keyRight[i] ?? 0));
+      const levelDb = 20 * Math.log10(peak + 1e-12);
+      if (levelDb > this.maxInputDb) this.maxInputDb = levelDb;
+      const target = -this.gainComputer(levelDb);
       const coef = target > this.reduction ? this.attackCoef : this.releaseCoef;
       this.reduction = coef * this.reduction + (1 - coef) * target;
+      if (this.reduction > this.maxReductionDb) this.maxReductionDb = this.reduction;
       const g = dbToGain(-this.reduction) * makeup;
       left[i] = left[i]! * g;
       right[i] = right[i]! * g;
@@ -258,6 +315,11 @@ export class Limiter {
   private readonly delay: [Float32Array, Float32Array];
   private write = 0;
   private gainNow = 1;
+  private minGain = 1;
+  /** The most gain reduction applied so far, dB. */
+  get maxReductionDb(): number {
+    return -20 * Math.log10(this.minGain);
+  }
   /** The window's minimum need, kept by a monotonic queue of (sample index, need). */
   private readonly queueIndex: Float64Array;
   private readonly queueNeed: Float32Array;
@@ -292,6 +354,7 @@ export class Limiter {
       const need = this.windowMinimum(peak > this.ceiling ? this.ceiling / peak : 1);
       // Down immediately toward what the window needs; recover smoothly.
       this.gainNow = need < this.gainNow ? need : this.releaseCoef * this.gainNow + (1 - this.releaseCoef) * need;
+      if (this.gainNow < this.minGain) this.minGain = this.gainNow;
       const delayedL = this.delay[0][this.write]!;
       const delayedR = this.delay[1][this.write]!;
       this.delay[0][this.write] = left[i]!;

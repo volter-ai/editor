@@ -6,7 +6,7 @@
  * while Play is active; on Stop, `getActiveAudio()` falls back to this graph.
  *
  * It lives in `@volter/editor-game` because it IS the engine's audio runtime — the
- * mixer, the bus graph and the pose guard behind `@volter/game-runtime/setup/setup-audio` —
+ * mixer, the bus graph and the pose guard behind `@volter/editor-game/runtime/setup/setup-audio` —
  * and the host was installing all of it at boot for every project, including a
  * models project that plays nothing and has no sound (WORK.md §The open-source
  * launch, phase 1 unit 7). The one host surface that reads it, the header
@@ -19,8 +19,8 @@ import { setEditModeAudio } from '@volter/editor-sdk/kit/authoring/active-system
 import {
   createAudioSystemAdapter,
   releaseAudioMeters,
-} from '@volter/game-runtime/adapter/first-party-audio-system';
-import { setupAudio } from '@volter/game-runtime/setup/setup-audio';
+} from '../runtime/adapter/first-party-audio-system';
+import { setupAudio } from '../runtime/setup/setup-audio';
 import * as THREE from 'three';
 
 export function installEditModeAudio(camera: THREE.Camera = new THREE.Camera()): () => void {

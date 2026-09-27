@@ -94,10 +94,10 @@
  *
  * ### `/__vgai-canvas-runtime` (`CANVAS_DOORWAY`)
  *
- * `src/authoring/canvas-design-mount.ts` and `src/binding-resolver.ts` are
- * SHELL modules. A bare `await import('@vgai/game-runtime/canvas-react')` there built the
- * adapter — and thus called `createRoot` and `extend` — with the SHELL's
- * copies, then rendered the PROJECT's world component inside it. Measured on a
+ * The editor's canvas root mount (`editor-game/src/host/roots/canvas-root.tsx`)
+ * is SHELL code. Built with the shell's own `@pixi/react`, it called
+ * `createRoot` and `extend` with the SHELL's copies, then rendered the
+ * PROJECT's world component inside it. Measured on a
  * packaged build against `examples/retro-shooter`:
  *
  *   Invalid hook call … more than one copy of React in the same app   (×12)
@@ -179,9 +179,11 @@
  * ### `/__vgai-r3f-runtime` (`R3F_DOORWAY`)
  *
  * The three lane's original doorway, and the pattern the canvas and
- * three-ingest ones were transcribed from: the R3F entry adjudicator, plus
+ * three-ingest ones were transcribed from: the React and Fiber members the
+ * editor mounts a three world with (`editor-game/src/host/roots/r3f-root.tsx`),
  * `projectThree` for the same reason `projectPixi` exists on the canvas
- * doorway.
+ * doorway, and `r3fRoots` — the project Fiber's own root registry, where the
+ * editor finds a game's `<Physics>` world (`editor-game/src/services/game-physics.ts`).
  *
  * ## Why the module BODY is exported (`doorwayModuleSource`)
  *
@@ -198,7 +200,6 @@
  */
 import {
   CANVAS_RUNTIME_PATH,
-  R3F_ENTRY_RUNTIME_PATH,
   R3F_RUNTIME_PATH,
   REACT_WORLD_RUNTIME_PATH,
   STORY_RUNTIME_PATH,
@@ -235,12 +236,11 @@ export interface ModuleDoorway {
  *  browser code that imports it reads it; this plugin owns what is served. */
 export {
   CANVAS_RUNTIME_PATH,
-  R3F_ENTRY_RUNTIME_PATH,
   R3F_RUNTIME_PATH,
   REACT_WORLD_RUNTIME_PATH,
   THREE_INGEST_RUNTIME_PATH,
 };
-/** The dynamic-import-facing URL `stories/story-dom-runtime.ts` imports. Its
+/** The dynamic-import-facing URL `@volter/editor-sdk/kit/stories/story-dom-runtime` imports. Its
  *  one spelling is `@volter/editor-sdk/host`, because a reader reaches a host
  *  fact through the published door and never through this build tier; this
  *  plugin still owns WHAT is served at that address, below. */
@@ -256,10 +256,6 @@ export const REACT_WORLD_DOORWAY: ModuleDoorway = {
     // (react-dom/client and react-dom are the same installed package's two
     // entry points).
     { from: 'react-dom', names: ['flushSync'] },
-    {
-      from: '@volter/game-runtime/react/world-state',
-      names: ['WorldProvider as EngineWorldProvider'],
-    },
   ],
 };
 
@@ -267,27 +263,27 @@ export const R3F_DOORWAY: ModuleDoorway = {
   path: R3F_RUNTIME_PATH,
   rows: [
     { from: 'three', namespace: 'projectThree' },
-    { from: 'react', names: ['createElement'] },
+    { from: 'react', names: ['createElement', 'Fragment', 'Component', 'useEffect'] },
     {
       from: '@react-three/fiber',
-      names: ['createRoot as createR3FRoot', 'extend as extendThree'],
+      names: [
+        'createRoot as createR3FRoot',
+        'extend as extendThree',
+        'advance',
+        'flushSync',
+        'events',
+        '_roots as r3fRoots',
+      ],
     },
   ],
-};
-
-/** The game runtime's R3F entry resolver, apart from {@link R3F_DOORWAY}: a
- *  story preview reaches that one in a project with no game runtime, and a
- *  doorway re-exports only what every project that asks for it has installed. */
-export const R3F_ENTRY_DOORWAY: ModuleDoorway = {
-  path: R3F_ENTRY_RUNTIME_PATH,
-  rows: [{ from: '@volter/game-runtime/world3d-react', names: ['resolveR3FEntryAdapter'] }],
 };
 
 export const CANVAS_DOORWAY: ModuleDoorway = {
   path: CANVAS_RUNTIME_PATH,
   rows: [
     { from: 'pixi.js', namespace: 'projectPixi' },
-    { from: '@volter/game-runtime/canvas-react', names: ['resolveCanvasEntryAdapter'] },
+    { from: 'react', names: ['createElement', 'Fragment', 'useEffect', 'useLayoutEffect'] },
+    { from: '@pixi/react', names: ['createRoot as createPixiRoot', 'extend as extendPixi'] },
   ],
 };
 
@@ -325,7 +321,6 @@ export const STORY_DOORWAY: ModuleDoorway = {
 export const PACKAGED_MODULE_DOORWAYS: readonly ModuleDoorway[] = [
   REACT_WORLD_DOORWAY,
   R3F_DOORWAY,
-  R3F_ENTRY_DOORWAY,
   CANVAS_DOORWAY,
   THREE_INGEST_DOORWAY,
   STORY_DOORWAY,

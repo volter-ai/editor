@@ -147,6 +147,13 @@ const OUTLINER_ICON_NAMES = [
   // under names of OURS for the same reason the render pair has them.
   ['outliner-exclude-on', 'checkbox_hlt'],
   ['outliner-exclude-off', 'checkbox_dehlt'],
+  // The navigation cluster's camera button (`view3d_gizmo_navigate.cc`): `VIEW_CAMERA_UNSELECTED`
+  // outside the camera view and `VIEW_CAMERA` in it, under names of OURS for the same reason.
+  ['viewport-camera', 'view_camera_unselected'],
+  ['viewport-camera-view', 'view_camera'],
+  // And, in a camera view, the lock to it: `VIEW_LOCKED` / `VIEW_UNLOCKED`.
+  ['viewport-camera-locked', 'view_locked'],
+  ['viewport-camera-unlocked', 'view_unlocked'],
 ];
 
 const TRACED = new URL('./blender.icons.traced.json', import.meta.url);
@@ -693,11 +700,30 @@ g('magnifying-glass', ring(7.1, 7.1, 3.7, 1.3) + cap(9.9, 9.9, 13.2, 13.2, 1.4))
 // and the round cap floated off as a separate lozenge at 16px — measured in
 // round 1's frame, where the navigation cluster showed a disc and a diamond.
 const zoomLens = (sign) => dot(7.1, 7.1, 4.25) + sign + cap(9.3, 9.3, 13.4, 13.4, 2);
-g(
-  'magnifying-glass-plus',
-  zoomLens(holeBar(7.1, 5.2, 7.1, 9, 1.1) + holeBar(5.2, 7.1, 9, 7.1, 1.1)),
-);
-g('magnifying-glass-minus', zoomLens(holeBar(5.2, 7.1, 9, 7.1, 1.1)));
+// THE PLUS IS ONE HOLE, a cross outline: two crossing hole bars wind the crossing twice, and
+// under nonzero fill that square paints lens-coloured again (the frame showed a pale centre).
+// Its arms are Blender's on `gizmo-select-box.png`'s cluster: 14 device px across a 26 px
+// lens, 2.2 px thick.
+const plusHole = (cx, cy, a, t) =>
+  poly(
+    [
+      [cx - t, cy - a],
+      [cx + t, cy - a],
+      [cx + t, cy - t],
+      [cx + a, cy - t],
+      [cx + a, cy + t],
+      [cx + t, cy + t],
+      [cx + t, cy + a],
+      [cx - t, cy + a],
+      [cx - t, cy + t],
+      [cx - a, cy + t],
+      [cx - a, cy - t],
+      [cx - t, cy - t],
+    ],
+    true,
+  );
+g('magnifying-glass-plus', zoomLens(plusHole(7.1, 7.1, 2.3, 0.36)));
+g('magnifying-glass-minus', zoomLens(holeBar(4.8, 7.1, 9.4, 7.1, 0.72)));
 g('ellipsis', dot(3.6, 8, 1.15) + dot(8, 8, 1.15) + dot(12.4, 8, 1.15));
 g('grip-lines', cap(3, 6.3, 13, 6.3, 1.2) + cap(3, 9.7, 13, 9.7, 1.2));
 g('grip-lines-vertical', cap(6.3, 3, 6.3, 13, 1.2) + cap(9.7, 3, 9.7, 13, 1.2));
@@ -1011,6 +1037,19 @@ const perspectiveGrid = () => {
   );
 };
 g('viewport-projection', perspectiveGrid());
+/*
+ * VIEW_ORTHO, the same toggle in an orthographic view: a flat square grid of three by three
+ * cells, as wide as the perspective trapezoid (32 device px on `gizmo-select-box.png`'s
+ * navigation capsule at 2x) and centred with it, its rules the trapezoid's weight.
+ */
+const orthographicGrid = () => {
+  const lo = 2.61;
+  const hi = 13.41;
+  const w = 0.74;
+  const at = [0, 1, 2, 3].map((i) => lo + ((hi - lo) * i) / 3);
+  return at.map((v) => cap(lo, v, hi, v, w) + cap(v, lo, v, hi, w)).join('');
+};
+g('viewport-orthographic', orthographicGrid());
 g(
   'list',
   dot(3.2, 4.4, 1) +
@@ -1486,6 +1525,35 @@ g(
       [11.5, 6.2],
       [9.3, 4],
     ]),
+);
+/*
+ * SELECT BOX. Measured on `gizmo-select-box.png` (the lit first button, native 2x) and mapped onto
+ * the 16-unit grid with the marquee spanning 1..15: a dashed square, 0.7 units thick, dashes about
+ * 2.3 units with 1.1-unit gaps and an L at each corner, in the selection tools' orange (the
+ * `select` tone, `tonedPath`); inside it a pointer from its tip (6.1, 4.5) down to (6.2, 11.5),
+ * notched at (8.2, 9.4), to (11.2, 9.4).
+ */
+const MARQUEE_T = 0.7;
+const marquee =
+  // corners: an L each
+  rrect(1, 1, 2.7, MARQUEE_T) + rrect(1, 1, MARQUEE_T, 2.5) +
+  rrect(12.3, 1, 2.7, MARQUEE_T) + rrect(14.3, 1, MARQUEE_T, 2.4) +
+  rrect(1, 14.3, 2.5, MARQUEE_T) + rrect(1, 12.4, MARQUEE_T, 2.6) +
+  rrect(12.3, 14.3, 2.7, MARQUEE_T) + rrect(14.3, 12.4, MARQUEE_T, 2.6) +
+  // the dashes between
+  rrect(5, 1, 2.2, MARQUEE_T) + rrect(8.4, 1, 2.3, MARQUEE_T) +
+  rrect(5.5, 14.3, 2.4, MARQUEE_T) + rrect(9, 14.3, 2.4, MARQUEE_T) +
+  rrect(1, 4.6, MARQUEE_T, 2.1) + rrect(1, 8, MARQUEE_T, 2.1) +
+  rrect(14.3, 4.6, MARQUEE_T, 2.1) + rrect(14.3, 8, MARQUEE_T, 2.1);
+g(
+  'tool-select-box',
+  poly([
+    [6.1, 4.5],
+    [11.2, 9.4],
+    [8.2, 9.4],
+    [6.2, 11.5],
+  ]),
+  { tone: 'select', tonedPath: marquee },
 );
 g(
   /**
@@ -2442,7 +2510,7 @@ g(
 /** The union `IconCategoryTone` declares (`@vgai/editor-sdk/looks`), and the
  *  reason `blender.style.ts` may narrow this JSON with an assertion: a tone
  *  outside it never reaches the artifact. */
-const TONES = ['object', 'modifier', 'material', 'tool', 'operator', 'data', 'scene', 'collection'];
+const TONES = ['object', 'modifier', 'material', 'tool', 'operator', 'data', 'scene', 'collection', 'select'];
 
 // The outliner's three names, aliased onto the drawings they share with the
 // generic glyphs. Same picture, its own name, so only the outliner is tinted.

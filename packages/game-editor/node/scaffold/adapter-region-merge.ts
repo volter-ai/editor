@@ -274,3 +274,71 @@ export function mergeAdapterRegionIncludes(
   }
   return { kind: 'merged', text, added };
 }
+
+/** A document finder a capability's documents need: the adapter's `documents.find` entry. */
+export interface FinderAddition {
+  readonly finder: string;
+  readonly include?: readonly string[];
+}
+
+/** One finder selection as source text, quoted the way the file quotes. */
+function finderText(addition: FinderAddition, quote: (value: string) => string): string {
+  const include = addition.include ? `, include: [${addition.include.map(quote).join(', ')}]` : '';
+  return `{ finder: ${quote(addition.finder)}${include} }`;
+}
+
+/**
+ * Select `additions` in the adapter's document table (`documents.find`), creating the table or
+ * its `find` list when absent. A finder the list already selects, by name, is left exactly as
+ * the project wrote it. Same contract as {@link mergeAdapterRegionIncludes}: add-only, and
+ * `unreadable` with the reason wherever the table is not the literal shape this splice edits.
+ */
+export function mergeAdapterFinders(source: string, additions: readonly FinderAddition[]): RegionIncludeMerge {
+  if (additions.length === 0) return { kind: 'unchanged' };
+  const parsed = typescript().createSourceFile('vgai.adapter.ts', source, typescript().ScriptTarget.Latest, true);
+  const definition = definitionObject(parsed);
+  if ('reason' in definition) return { kind: 'unreadable', reason: definition.reason };
+  const quote = quoteLike(source, undefined);
+  const table = propertyOf(definition.object, 'documents');
+  const added = additions.map((addition) => addition.finder);
+  if (!table) {
+    const splice = appendProperty(source, definition.object, (indent) =>
+      `${indent}documents: {\n${indent}  find: [\n${additions.map((addition) => `${indent}    ${finderText(addition, quote)},`).join('\n')}\n${indent}  ],\n${indent}},`,
+    );
+    return { kind: 'merged', text: source.slice(0, splice.start) + splice.text + source.slice(splice.end), added };
+  }
+  if (!typescript().isObjectLiteralExpression(table.initializer)) {
+    return { kind: 'unreadable', reason: '`documents` is not an object literal' };
+  }
+  const find = propertyOf(table.initializer, 'find');
+  if (!find) {
+    const splice = appendProperty(source, table.initializer, (indent) =>
+      `${indent}find: [\n${additions.map((addition) => `${indent}  ${finderText(addition, quote)},`).join('\n')}\n${indent}],`,
+    );
+    return { kind: 'merged', text: source.slice(0, splice.start) + splice.text + source.slice(splice.end), added };
+  }
+  if (!typescript().isArrayLiteralExpression(find.initializer)) {
+    return { kind: 'unreadable', reason: '`documents.find` is not an array literal' };
+  }
+  const selected = new Set<string>();
+  for (const element of find.initializer.elements) {
+    if (!typescript().isObjectLiteralExpression(element)) {
+      return { kind: 'unreadable', reason: '`documents.find` holds something other than object literals' };
+    }
+    const name = stringLiteralOf(propertyOf(element, 'finder')?.initializer);
+    if (name === undefined) return { kind: 'unreadable', reason: 'a `documents.find` entry names its finder with something other than a string literal' };
+    selected.add(name);
+  }
+  const missing = additions.filter((addition) => !selected.has(addition.finder));
+  if (missing.length === 0) return { kind: 'unchanged' };
+  const array = find.initializer;
+  const last = array.elements[array.elements.length - 1];
+  const closing = array.getEnd() - 1;
+  const inner = last ? indentAt(source, last.getStart()) : `${indentAt(source, array.getStart())}  `;
+  const lineQuote = quoteLike(source, last ? propertyOf(last as ts.ObjectLiteralExpression, 'finder')?.initializer : undefined);
+  const start = source.slice(0, closing).replace(/\s+$/, '').length;
+  const needsComma = last !== undefined && source[start - 1] !== ',';
+  const body = missing.map((addition) => `${inner}${finderText(addition, lineQuote)},`).join('\n');
+  const text = `${source.slice(0, start)}${needsComma ? ',' : ''}\n${body}\n${indentAt(source, array.getStart())}${source.slice(closing)}`;
+  return { kind: 'merged', text, added: missing.map((addition) => addition.finder) };
+}

@@ -96,7 +96,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   // world's entry executes in the editor realm and may declare the game
   // contract to defer its session until ▶. Opt-in, never demanded.
   (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
-  const { createGameRuntime } = await import('@volter/game-runtime/runtime/create-runtime');
+  const { createGameRuntime } = await import('../runtime/create-runtime');
   const specs = await resolveAllRoots(game.manifest, projectRoot);
   const w = gameContainer.clientWidth;
   const h = gameContainer.clientHeight;
@@ -216,7 +216,7 @@ export async function mountDomIngestRootFromManifest(
   // F26: same cold-mount announcement the vendored route makes — an
   // external-folder game may declare the game contract too.
   (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
-  const { createGameRuntime } = await import('@volter/game-runtime/runtime/create-runtime');
+  const { createGameRuntime } = await import('../runtime/create-runtime');
   const specs = await resolveAllRoots({ ...manifest, roots: [world] }, projectRoot);
   const w = gameContainer.clientWidth;
   const h = gameContainer.clientHeight;

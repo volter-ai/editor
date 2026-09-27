@@ -24,7 +24,7 @@ import { projectRegionEntriesFromSources } from '@volter/editor-sdk/kit/asset-wo
 import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 import { foldDataFileText } from '../data-file-serialize';
 import type { EditorServerRouter } from '../editor-server';
-import { buildScopedGameStyles } from '../scoped-game-css';
+import { buildScopedGameStyles } from '@volter/editor-sdk/session/scoped-game-css';
 import {
   isCanonicalPathInside,
   isPathInside,

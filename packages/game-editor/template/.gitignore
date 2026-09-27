@@ -21,6 +21,9 @@ dist-server/
 # never about the project. The product's `create --workbench <dir>` writes it;
 # `vgai edit --workbench <dir>` overrides it for one launch.
 .vgai/workbench.json
+# The editor's chat panel: which agent harness this machine chose and its conversations.
+.vgai/chat-selection.json
+.vgai/chat-sessions.json
 # #146 — more local-machine ephemera: the live session's discovery file
 # (written by the dev server at boot, removed on shutdown) and agent
 # screenshot captures (GET /__vgai/screenshot).

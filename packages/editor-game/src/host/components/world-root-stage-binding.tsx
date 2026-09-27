@@ -1,6 +1,6 @@
 /**
  * THE GAME'S WORLD-ROOT BINDING for the kit's stage host
- * (`@volter/editor-core/components/world-root-binding`): the world's surface,
+ * (`@volter/editor-threejs/kit/components/world-root-binding`): the world's surface,
  * its stage, and the overlays the stage shows only over a world.
  *
  * `Overlays` is the world-root half of vgai's `stage-overlay-set.tsx` — every
@@ -19,8 +19,8 @@ import {
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
-import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type {
   WorldRootOverlayProps,
   WorldRootStageBinding,

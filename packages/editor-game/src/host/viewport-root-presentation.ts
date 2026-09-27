@@ -1,11 +1,12 @@
-import type { ViewportRoot } from '@volter/editor-sdk/host';
 import { stampMountedAuthoringIds } from './authoring/mounted-authoring';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { stampThreeIdentities } from '@volter/editor-threejs/kit/projection/three';
+import { threeRoot } from '@volter/editor-threejs/adapter/three-contract';
+import type { ViewportRoot } from '@volter/editor-threejs/viewport-api';
 
 /**
  * The Three viewport's PRESENTER — what `the world root's stage` binds as
- * `host.viewport.presentRoots` (`viewport-door.ts`). The lane that mounted
+ * `presentViewportRoots` (`@volter/editor-threejs/viewport-door`). The lane that mounted
  * the roots sees only the returned presentation handle. Native Three scene
  * adoption, identity stamping, and restoration stay here, beside the
  * viewport surface that understands them. A composition with no Three root
@@ -17,7 +18,7 @@ export function presentThreeRoots(
 ): { readonly worldId: string; dispose(): void } | null {
   const world = roots.find((candidate) => candidate.mounted.kind === 'three');
   if (!world || world.mounted.kind !== 'three') return null;
-  const scene = world.mounted.scene;
+  const scene = threeRoot(world.mounted).scene;
   const mountedAuthoring = world.mounted.authoring;
   if (mountedAuthoring) stampMountedAuthoringIds(scene, mountedAuthoring);
   stampThreeIdentities(scene, liveWorldId(world.id));

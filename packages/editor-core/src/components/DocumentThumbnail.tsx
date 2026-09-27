@@ -7,7 +7,7 @@ import {
   resetProjectThumbnailManifestCache,
   THUMBNAIL_MANIFEST_PATH,
   ThumbnailJobQueue,
-} from '../asset-workflow/thumbnail-system';
+} from '@volter/editor-sdk/kit/asset-workflow/thumbnail-system';
 import {
   DOCUMENT_PREVIEW_HEIGHT,
   DOCUMENT_PREVIEW_RECIPE,
@@ -15,7 +15,7 @@ import {
   type DocumentPreviewSource,
 } from '@volter/editor-sdk/kit/document-preview-source';
 import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 
 interface CaptureJob {

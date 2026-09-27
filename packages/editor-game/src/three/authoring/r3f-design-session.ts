@@ -65,7 +65,7 @@ import { setActiveSystems, updateInstanceSystems } from '@volter/editor-sdk/kit/
 import {
   BoundaryAuthoringAdapter,
   type BoundaryRootInfo,
-} from '@volter/editor-core/authoring/boundary-authoring-adapter';
+} from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   collaborationSnapshot,
@@ -78,19 +78,22 @@ import {
   failedImportEntry,
 } from '@volter/editor-sdk/kit/module-fetch-diagnosis';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
+import { withObservedPhysics } from '../../host/adapter-runtime-bindings';
+import { whenRapierWorldMounts } from '../../services/game-physics';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
-import { onPlayTransitionSettled } from '@volter/editor-core/live-transition';
-import { fetchRawGameManifest } from '@volter/editor-core/manifest-project';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { onPlayTransitionSettled } from '@volter/editor-sdk/kit/live-transition';
+import { fetchRawGameManifest } from '@volter/editor-sdk/kit/manifest-project';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { activeRealmServices } from '../../host/realm-services';
 import { pickGameCamera } from '@volter/editor-threejs/kit/scene-framing';
-import { tierSourceWriteBackend } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import type {
   MountedThreeRoot,
   RootAdapter,
   SystemAdapters,
 } from '@volter/editor-project/adapter';
-import type { GameThreeHostContext } from '@volter/game-runtime/runtime/host-context';
+import type { GameThreeHostContext } from '../../runtime/host-context';
+import type { ThreeMountedRoot } from '@volter/editor-threejs/adapter/three-contract';
 import { nodeKeyedPhysics } from '@volter/editor-project/adapter';
 import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import {
@@ -100,11 +103,11 @@ import {
   type NativeSystemsBinding,
   nativeDebugBindingFromEntryModule,
   nativeSystemsBindingFromEntryModule,
-} from '@volter/game-runtime/adapter/native-debug-module';
+} from '../../runtime/adapter/native-debug-module';
 import { createAssetCache } from '@volter/threejs-runtime/assets';
-import { createGameLoop } from '@volter/game-runtime/core/game-loop';
-import { registerThreeRoot } from '@volter/game-runtime/runtime/create-runtime';
-import { createGame, type GameInternal } from '@volter/game-runtime/runtime/game';
+import { createGameLoop } from '../../runtime/core/game-loop';
+import { registerThreeRoot } from '../../runtime/create-runtime';
+import { createGame, type GameInternal } from '../../runtime/game';
 import {
   beginProjectMountEpoch,
   viteUpdateImportPath,
@@ -136,7 +139,7 @@ import {
   type EditModeRootSpec,
   parseEditModeManifest,
   queueEditModeRebuild,
-} from '@volter/editor-core/authoring/edit-mode-authoring';
+} from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
 import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
 import {
   addMountFailureReport,
@@ -234,7 +237,8 @@ export function registerR3FDesignRoot(
 ): void {
   registerThreeRoot(game, adapter, mounted, { id: worldId });
   installNativeDebugBindings(game, entryDebug ? [entryDebug] : []);
-  installNativeSystemsBindings(game, entrySystems ? [entrySystems] : []);
+  // The design world's own `@react-three/rapier` world is observed the way Play's is.
+  installNativeSystemsBindings(game, withObservedPhysics(game, entrySystems ? [entrySystems] : []));
 }
 
 /**
@@ -253,10 +257,6 @@ export function registerR3FDesignRoot(
  * promises. It also gets its OWN debug registry (registries are game-scoped),
  * so design-time providers can't collide with the play game's.
  *
- * Input is explicitly DISABLED: `new InputManager()` binds window-level
- * keyboard/mouse listeners in its constructor, and design time is not play
- * (T6.3's invariant). `dispose()` unbinds them — the caller must call it.
- *
  * Its renderer is `createDesignTimeRenderer`, which isolates Fiber configuration
  * and permits real offscreen work without transferring canvas ownership.
  */
@@ -269,7 +269,6 @@ function createDesignHost(renderer: THREE.WebGLRenderer): {
   const borrowedRenderer = createDesignTimeRenderer(canvas, renderer);
   const assets = createAssetCache();
   const game = createGame({ loop: createGameLoop({ update: () => {} }), assets });
-  game.input.setEnabled(false);
   return {
     game,
     host: {
@@ -479,7 +478,7 @@ export async function mountR3FDesignSession(
    * Ownership is `adoptMount`'s, and only after `disposeMounted`.
    */
   interface DesignMount {
-    root: MountedThreeRoot;
+    root: ThreeMountedRoot;
     game: GameInternal;
     disposeHost: () => void;
   }
@@ -508,7 +507,7 @@ export async function mountR3FDesignSession(
     // (Rapier, game debug providers, and future native systems) on
     // `mounted.systems` even though the component registered successfully.
     registerR3FDesignRoot(hostGame, adapterExport, result, worldId, entryDebug, entrySystems);
-    return { root: result, game: hostGame, disposeHost };
+    return { root: result as ThreeMountedRoot, game: hostGame, disposeHost };
   };
 
   /** Install a freshly-mounted design world as THE live one. The previous one
@@ -643,6 +642,11 @@ export async function mountR3FDesignSession(
       physics: () => nodeKeyedPhysics(designGame?.systemAdapters.physics),
     });
     composite.replaceChild(worldId, adapter);
+    // A body's colliders appear once the world's `<Physics>` has loaded Rapier;
+    // panels that already read it are told to read again.
+    void whenRapierWorldMounts(first.root.scene as THREE.Object3D).then((mounted) => {
+      if (mounted && !torndown) store.shell.notifyIngestEdit();
+    });
     // The hierarchy can become interactive as soon as the composite child is
     // replaced, while this async mount is still completing. Preserve a user
     // selection made in that window across enterPlayScene(), which clears the

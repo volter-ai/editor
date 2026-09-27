@@ -342,7 +342,7 @@ export function pieceToMusicXml(piece: Piece, options: MusicXmlOptions): string 
     '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">',
     '<score-partwise version="4.0">',
     `<work><work-title>${escape(options.title)}</work-title></work>`,
-    `<identification><encoding><software>${escape(options.software ?? 'Volter Editor')}</software><encoding-date>${new Date().toISOString().slice(0, 10)}</encoding-date></encoding></identification>`,
+    `<identification><encoding><software>${escape(options.software ?? 'Volter Editor')}</software></encoding></identification>`,
     `<part-list>${partList.join('')}</part-list>`,
     ...parts,
     '</score-partwise>',

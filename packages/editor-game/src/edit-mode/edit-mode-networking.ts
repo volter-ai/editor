@@ -31,7 +31,7 @@
  */
 
 import { setEditModeNetworking } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import type {
   ConnectionState,
   NetPeer,

@@ -42,7 +42,7 @@ import {
   type ProjectPreviewStory,
   pickComponentPreviewStory,
   subscribeProjectStoryModules,
-} from './story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 
 /** What this source carries on each row: the story that admitted the
  *  component, which is also its picture and its open address. */

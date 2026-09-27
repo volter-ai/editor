@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "description": "The `canvas` addition's files and the packages they import, merged into a project scaffolded with a 2D scene.",
+  "dependencies": {
+    "@pixi/react": "8.0.5",
+    "pixi.js": "^8.6.0"
+  }
+}

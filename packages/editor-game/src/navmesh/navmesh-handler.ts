@@ -11,18 +11,21 @@ import {
   navBakeBusy,
   resetNavMeshBaked,
 } from './navmesh-workflow-store';
+import { threeNavigation } from '@volter/editor-threejs/adapter/three-contract';
+import { hostHierarchyObjects } from '@volter/editor-threejs/host-hierarchy-objects';
+import { setViewportHelper, viewportRig } from '@volter/editor-threejs/viewport-door';
 
 /**
  * The game skew's side of the Navigation verbs: bake/clear and the walkable
- * overlay tint, shown through the viewport door (`host.viewport.setHelper`,
+ * overlay tint, shown through the viewport door (`viewport-door`'s `setViewportHelper`,
  * kind `navmesh` — the Helpers menu's own toggle).
  *
  * Started by `contributions/navmesh.service.ts`, so its lifetime is the
  * contribution pass; it used to be a mount effect in the editor's scene panel,
  * which made a host panel the owner of a game-skew tool.
  *
- * It reads the authoring scene through `host.hierarchy.objects()` and the
- * viewport through `host.viewport.setHelper` / `.rig()`, but keeps the
+ * It reads the authoring scene through `host-hierarchy-objects` and the
+ * viewport through `viewport-door`'s `setViewportHelper` / `.rig()`, but keeps the
  * `@editor/authoring/active-systems` import for the adapter itself: the bake
  * collects the PRIMARY AUTHORING mount's walkable meshes, so the adapter it
  * bakes into must be that same mount's — `getActiveSystems()`. The door's
@@ -63,20 +66,21 @@ export function setupNavMeshHandlers(): () => void {
    */
   function collectNavigationIds(role: 'walkable' | 'obstacle'): Set<string> {
     const ids = new Set<string>();
-    for (const [id, obj] of editorHost().hierarchy.objects()) {
+    for (const [id, obj] of (hostHierarchyObjects()?.objects() ?? new Map<string, THREE.Object3D>())) {
       if (getUserData(obj, 'navRole') === role) ids.add(id);
     }
     return ids;
   }
 
   function clearPresentation(): void {
-    editorHost().viewport.setHelper('navmesh', null);
+    setViewportHelper('navmesh', null);
   }
 
   /** Follow late registration/replacement of the primary mounted adapter. A
    * root may register navigation only after its async WASM setup completes. */
   function syncMountedNavigation(): void {
-    const nav = getActiveSystems().navigation ?? null;
+    const active = getActiveSystems().navigation;
+    const nav = active ? threeNavigation(active) : null;
     if (nav !== boundNavigation) {
       boundNavigation = nav;
       clearPresentation();
@@ -101,7 +105,7 @@ export function setupNavMeshHandlers(): () => void {
     markNavMeshBaked();
     // The adapter builds its debug mesh against the editor's scene; without
     // a mounted viewport there is nothing to show it in.
-    const scene = editorHost().viewport.rig()?.scene;
+    const scene = viewportRig()?.scene;
     if (!scene) return;
     let debugMesh: THREE.Object3D | null = null;
     try {
@@ -114,7 +118,7 @@ export function setupNavMeshHandlers(): () => void {
     }
     if (debugMesh) {
       applyWalkableTint(debugMesh);
-      editorHost().viewport.setHelper('navmesh', debugMesh);
+      setViewportHelper('navmesh', debugMesh);
     }
   }
 
@@ -124,7 +128,8 @@ export function setupNavMeshHandlers(): () => void {
     // Recast's solo bake is synchronous WASM — yield a frame so the Bake
     // button visibly paints its busy state before the build blocks the thread.
     await new Promise((r) => requestAnimationFrame(() => r(null)));
-    const nav = getActiveSystems().navigation;
+    const active = getActiveSystems().navigation;
+    const nav = active ? threeNavigation(active) : undefined;
     if (!nav) {
       const reason = 'The mounted game has no NavigationAdapter';
       editorHost().console.warn(`${reason} — nothing can be baked`, 'navigation');
@@ -141,7 +146,9 @@ export function setupNavMeshHandlers(): () => void {
     const walkableIds = collectNavigationIds('walkable');
     if (walkableIds.size === 0) {
       editorHost().console.warn(
-        'No walkable entities found — tag meshes as "walkable" in the Navigation section',
+        // The role is the object's own `userData.navRole` (see `collectNavigationIds`); a source
+        // world tags it where the mesh is written.
+        'No walkable meshes found — give the floors `userData={{ navRole: \'walkable\' }}` (and blockers `\'obstacle\'`) where they are written',
         'navigation',
       );
       endNavBake('No walkable-tagged entities in the scene');
@@ -155,7 +162,7 @@ export function setupNavMeshHandlers(): () => void {
     // the bake; obstacles alone can't produce a mesh.
     const meshes: THREE.Mesh[] = [];
     for (const id of [...walkableIds, ...collectNavigationIds('obstacle')]) {
-      const obj = editorHost().hierarchy.objects().get(id);
+      const obj = (hostHierarchyObjects()?.objects() ?? new Map<string, THREE.Object3D>()).get(id);
       if (!obj) continue;
       obj.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) meshes.push(child as THREE.Mesh);
@@ -186,11 +193,11 @@ export function setupNavMeshHandlers(): () => void {
     }
 
     boundNavigation = nav;
-    const scene = editorHost().viewport.rig()?.scene;
+    const scene = viewportRig()?.scene;
     const debugMesh = scene ? nav.debugMesh(scene) : null;
     if (debugMesh) {
       applyWalkableTint(debugMesh);
-      editorHost().viewport.setHelper('navmesh', debugMesh);
+      setViewportHelper('navmesh', debugMesh);
     }
 
     endNavBake(null);
@@ -200,7 +207,8 @@ export function setupNavMeshHandlers(): () => void {
   };
 
   const onClear = () => {
-    const nav = getActiveSystems().navigation;
+    const active = getActiveSystems().navigation;
+    const nav = active ? threeNavigation(active) : undefined;
     if (!nav) {
       editorHost().console.warn('The mounted game has no NavigationAdapter to clear', 'navigation');
       return;
@@ -213,7 +221,7 @@ export function setupNavMeshHandlers(): () => void {
       return;
     }
     try {
-      nav.clear(editorHost().viewport.rig()?.scene ?? new THREE.Scene());
+      nav.clear(viewportRig()?.scene ?? new THREE.Scene());
     } catch (error) {
       editorHost().console.error(`NavMesh clear failed: ${error}`, 'navigation');
       return;

@@ -11,6 +11,7 @@
  * an unrelated line keeps existing ids stable. The `data-oid` lives ONLY in the
  * transformed output, never on disk (the writer edits the original source instead).
  */
+import { isMemberLiteral, memberKey } from './prop-member-writer';
 import ts from 'typescript';
 import {
   environmentBindingsByElement,
@@ -44,24 +45,28 @@ export type {
 } from './r3f-particle-binding';
 export type { PhysicsChannel, R3fPhysicsBinding } from './r3f-physics-binding';
 
+/** A number as the writer reads one: `3`, `-3`, `+0.5` (the writer's `NUMBER_LITERAL_SOURCE`). */
+function signedNumericLiteral(expression: ts.Expression): boolean {
+  return (
+    ts.isNumericLiteral(expression) ||
+    (ts.isPrefixUnaryExpression(expression) &&
+      (expression.operator === ts.SyntaxKind.MinusToken || expression.operator === ts.SyntaxKind.PlusToken) &&
+      ts.isNumericLiteral(expression.operand))
+  );
+}
+
 function literalJsxExpression(expression: ts.Expression | undefined): boolean {
   if (!expression) return false;
   if (
     ts.isStringLiteral(expression) ||
-    ts.isNumericLiteral(expression) ||
+    signedNumericLiteral(expression) ||
     expression.kind === ts.SyntaxKind.TrueKeyword ||
     expression.kind === ts.SyntaxKind.FalseKeyword
   ) {
     return true;
   }
   if (!ts.isArrayLiteralExpression(expression)) return false;
-  return expression.elements.every(
-    (element) =>
-      ts.isNumericLiteral(element) ||
-      (ts.isPrefixUnaryExpression(element) &&
-        element.operator === ts.SyntaxKind.MinusToken &&
-        ts.isNumericLiteral(element.operand)),
-  );
+  return expression.elements.every(signedNumericLiteral);
 }
 
 function authoredPropsOf(
@@ -83,8 +88,47 @@ function authoredPropsOf(
         valueText: initializer.expression?.getText(sourceFile) ?? '',
         literal: literalJsxExpression(initializer.expression),
       },
+      ...(initializer.expression ? objectMembersOf(name, initializer.expression, sourceFile) : []),
     ];
   });
+}
+
+/**
+ * The members of an object-literal prop, each as its own authored prop under a dotted name
+ * (`params.threshold`, `params.bands.0.gain` through an array inside the object), with its own
+ * `literal`: `params={{ bank: BANK, program: 48 }}` is computed as a whole, and its `program` is
+ * still a literal a gesture may rewrite (`prop-member-writer.ts`). A top-level array stays one
+ * prop (a position tuple is written whole).
+ */
+function objectMembersOf(
+  prefix: string,
+  expression: ts.Expression,
+  sourceFile: ts.SourceFile,
+): NonNullable<OidEntry['authoredProps']> {
+  let node = expression;
+  while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isSatisfiesExpression(node)) node = node.expression;
+  const entries: NonNullable<OidEntry['authoredProps']> = [];
+  const visit = (name: string, value: ts.Expression): void => {
+    let inner = value;
+    while (ts.isParenthesizedExpression(inner) || ts.isAsExpression(inner) || ts.isSatisfiesExpression(inner)) inner = inner.expression;
+    if (ts.isObjectLiteralExpression(inner) || ts.isArrayLiteralExpression(inner)) {
+      walk(name, inner);
+      return;
+    }
+    entries.push({ name, valueText: value.getText(sourceFile), literal: isMemberLiteral(value) });
+  };
+  const walk = (name: string, container: ts.ObjectLiteralExpression | ts.ArrayLiteralExpression): void => {
+    if (ts.isArrayLiteralExpression(container)) {
+      container.elements.forEach((element, index) => visit(`${name}.${index}`, element));
+      return;
+    }
+    for (const property of container.properties) {
+      const key = memberKey(property);
+      if (key !== null && ts.isPropertyAssignment(property)) visit(`${name}.${key}`, property.initializer);
+    }
+  };
+  if (ts.isObjectLiteralExpression(node)) walk(prefix, node);
+  return entries;
 }
 
 /** Persistent oid store: signature -> oid (kept stable across re-transforms). */
@@ -991,8 +1035,7 @@ export function sourceDialectEvidence(code: string): SourceDialectEvidence {
   const scanned = stripCommentsForScan(code);
   return {
     reconcilerImport:
-      scanned.includes('@react-three/fiber') ||
-      scanned.includes('@vgai/game-runtime/world3d-react'),
+      scanned.includes('@react-three/fiber'),
     r3fOnlyTags: distinctTags(scanned, R3F_ONLY_INTRINSIC_RE),
     domOnlyTags: distinctTags(scanned, DOM_ONLY_INTRINSIC_RE),
   };
@@ -1013,8 +1056,8 @@ export function sourceProvesR3f(evidence: SourceDialectEvidence): boolean {
  *    reaches it. `'three'` stamps `userData-oid`; `'canvas'`/`'dom'` stamp
  *    `data-oid`. It is resolved from OUTSIDE the file, exactly where the fact
  *    lives, which is what makes it right for a world whose entry
- *    default-exports a component and imports NEITHER `@react-three/fiber` nor
- *    `@vgai/game-runtime/world3d-react` (legal: R3F's global JSX-intrinsics augmentation,
+ *    default-exports a component and does not import `@react-three/fiber`
+ *    (legal: R3F's global JSX-intrinsics augmentation,
  *    or an entry composed entirely of already-typed child components, needs no
  *    import in THIS file). Every call site threads it from a context that
  *    resolved it per file: `binding-resolver.ts`'s per-surface resolvers, the
@@ -1326,6 +1369,21 @@ function reactFragmentNames(sf: ts.SourceFile): Set<string> {
  * into game DOM. That preserves per-instance source identity without inserting
  * a wrapper into the native tree. Returns the transformed code + index entries.
  */
+/** Whether any JSX (an element, a self-closing element or a fragment) appears under `node`. */
+function containsJsx(node: ts.Node): boolean {
+  let found = false;
+  const visit = (child: ts.Node): void => {
+    if (found) return;
+    if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(child, visit);
+  };
+  ts.forEachChild(node, visit);
+  return found;
+}
+
 export function transformSource(
   code: string,
   file: string,
@@ -1420,8 +1478,14 @@ export function transformSource(
   const pushComponent = (
     name: string | undefined,
     parameters: ts.NodeArray<ts.ParameterDeclaration> | undefined,
+    body: ts.Node,
   ): boolean => {
     if (!name || !/^[A-Z]/.test(name) || !parameters) return false;
+    // A capitalised function that renders no JSX is not a component, whatever its name: a table
+    // helper like `const PATCH = (key) => ({ key, … })` had its parameter rewritten into props
+    // destructuring and received an object of its string's characters. Nothing in it is stamped,
+    // and it consumes no transport props, so it is left as written.
+    if (!containsJsx(body)) return false;
     // Component membership participates in the stable OID signature on every
     // JSX dialect. Three/Canvas callsites inject the transport props, while
     // every project component consumes them: a component declared on a DOM
@@ -1461,14 +1525,14 @@ export function transformSource(
   const visit = (node: ts.Node): void => {
     let pushed = false;
     if (ts.isFunctionDeclaration(node) && node.name)
-      pushed = pushComponent(node.name.text, node.parameters);
+      pushed = pushComponent(node.name.text, node.parameters, node);
     else if (
       ts.isVariableDeclaration(node) &&
       ts.isIdentifier(node.name) &&
       node.initializer &&
       (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))
     ) {
-      pushed = pushComponent(node.name.text, node.initializer.parameters);
+      pushed = pushComponent(node.name.text, node.initializer.parameters, node.initializer);
     }
 
     if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {

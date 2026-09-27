@@ -36,11 +36,11 @@ import {
   ProjectDetectionTimeoutError,
   ServerProjectDetectionError,
   type ServerProjectFailureReport,
-} from '../boot-routing';
+} from '@volter/editor-sdk/kit/boot-routing';
 import { EditorProvider } from '../EditorContext';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { connectTabPresence, reportTabRoute } from '@volter/editor-sdk/kit/editor-presence';
-import { type ActiveProject, detectProject } from '../project-manager';
+import { type ActiveProject, detectProject } from '@volter/editor-sdk/kit/project-manager';
 import { onTabAdopt } from '@volter/editor-sdk/kit/tab-lifecycle-client';
 import { DefaultEditorLayout } from './DefaultEditorLayout';
 import { EditorLeaseGuard } from './EditorLeaseGuard';

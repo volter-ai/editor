@@ -17,7 +17,7 @@
  *
  *    packages/editor-sdk/src/kit/keymap-presets.ts        the `vgai` table — the editor's own chords
  *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@vgai/blender`'s G/R/S)
- *    packages/editor-core/src/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
+ *    packages/editor-sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
  *  It reads them STATICALLY, with the TypeScript compiler API, rather than importing them
  *  through the SDK-facing door the bridge uses (`@vgai/editor-sdk/host`'s `keyboard`). That
@@ -212,6 +212,10 @@ function readActionScopes(ts, file) {
 		if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'bind' && node.arguments.length >= 2) {
 			const id = literalOf(ts, node.arguments[0], constants);
 			const options = node.arguments[1];
+			// The lane door binds what a lane hands it; those actions are read at their own
+			// `bindActions([...])` call (readLaneActionScopes).
+			const inLaneDoor = ts.findAncestor(node, n => ts.isFunctionDeclaration(n) && n.name?.text === 'bindKeyActions');
+			if (typeof id !== 'string' && inLaneDoor) { ts.forEachChild(node, visit); return; }
 			if (typeof id !== 'string' || !ts.isObjectLiteralExpression(options)) {
 				fail(`${file}: a bind() call this generator cannot read statically at line ${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}.`);
 			}
@@ -229,6 +233,64 @@ function readActionScopes(ts, file) {
 	visit(source);
 	if (scopes.size === 0) { fail(`${file}: found no bind() calls.`); }
 	return scopes;
+}
+
+/**
+ * The actions a LANE binds through the host door (`host.keyboard.bindActions([...])`, the
+ * three viewport's trio and views among them): each entry's literal `id` and `scope`, which
+ * `bindKeyActions` in `editor-hotkeys.ts` maps as `'stage'` to the stage and anything else to
+ * global.
+ */
+function readLaneActionScopes(ts, files, scopes) {
+	for (const file of files) {
+		const source = parseSource(ts, file);
+		const constants = fileConstants(ts, source);
+		const visit = (node) => {
+			if (
+				ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+				node.expression.name.text === 'bindActions' && node.arguments.length === 1
+			) {
+				const list = node.arguments[0];
+				if (!ts.isArrayLiteralExpression(list)) {
+					fail(`${file}: a bindActions() call this generator cannot read statically at line ${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}.`);
+				}
+				for (const entry of list.elements) {
+					const read = (key) => {
+						const prop = ts.isObjectLiteralExpression(entry)
+							? entry.properties.find(p => ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === key)
+							: undefined;
+						return prop ? literalOf(ts, prop.initializer, constants) : undefined;
+					};
+					const id = read('id');
+					const scope = read('scope');
+					if (typeof id !== 'string' || typeof scope !== 'string') {
+						fail(`${file}: a bindActions() entry without a literal id and scope at line ${source.getLineAndCharacterOfPosition(entry.getStart()).line + 1}.`);
+					}
+					scopes.set(id, scope === 'stage' ? 'stage' : 'global');
+				}
+			}
+			ts.forEachChild(node, visit);
+		};
+		visit(source);
+	}
+}
+
+/** Every package source file that calls `bindActions(`. */
+function laneActionFiles(packagesDir) {
+	const found = [];
+	const walk = (dir) => {
+		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+			if (entry.name === 'node_modules' || entry.name.startsWith('dist') || entry.name.startsWith('.')) { continue; }
+			const path = join(dir, entry.name);
+			if (entry.isDirectory()) { walk(path); }
+			else if (/\.tsx?$/.test(entry.name) && !entry.name.endsWith('.d.ts') && readFileSync(path, 'utf8').includes('.bindActions([')) { found.push(path); }
+		}
+	};
+	for (const pkg of readdirSync(packagesDir)) {
+		const src = join(packagesDir, pkg, 'src');
+		if (existsSync(src)) { walk(src); }
+	}
+	return found.sort();
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -249,6 +311,12 @@ function keyCodeFor(chord, KeyCode) {
 			case 'PageUp': return KeyCode.PageUp;
 			case 'End': return KeyCode.End;
 			case 'Home': return KeyCode.Home;
+			case 'NumpadAdd': return KeyCode.NumpadAdd;
+			case 'NumpadSubtract': return KeyCode.NumpadSubtract;
+			case 'NumpadMultiply': return KeyCode.NumpadMultiply;
+			case 'NumpadDivide': return KeyCode.NumpadDivide;
+			case 'Equal': return KeyCode.Equal;
+			case 'Minus': return KeyCode.Minus;
 		}
 		const letter = /^Key([A-Z])$/.exec(chord.code);
 		if (letter) { return KeyCode.KeyA + (letter[1].charCodeAt(0) - 'A'.charCodeAt(0)); }
@@ -292,7 +360,8 @@ function keyCodeFor(chord, KeyCode) {
 /**
  * `key` is the default (and Windows/Linux) binding; `mac` is the same chord with ⌘ where the
  * table says `mod`. That IS what `mod` means — `KeyMod.CtrlCmd`, which U6 translated the same
- * way — and it is why a chord without `mod` needs no `mac` at all.
+ * way — and it is why a chord without `mod` needs no `mac` at all. `ctrl` is the Control key
+ * itself (`KeyMod.WinCtrl`), the same on every platform.
  */
 function keybindingStrings(chord, apis) {
 	const keyCode = keyCodeFor(chord, apis.KeyCode);
@@ -302,8 +371,9 @@ function keybindingStrings(chord, apis) {
 	const tail = [];
 	if (chord.shift) { tail.push('shift'); }
 	if (chord.alt) { tail.push('alt'); }
-	const key = [...(chord.mod ? ['ctrl'] : []), ...tail, name].join('+');
-	const mac = chord.mod ? [...tail, 'cmd', name].join('+') : undefined;
+	const control = chord.mod || chord.ctrl;
+	const key = [...(control ? ['ctrl'] : []), ...tail, name].join('+');
+	const mac = chord.mod ? [...(chord.ctrl ? ['ctrl'] : []), ...tail, 'cmd', name].join('+') : undefined;
 	// PROVE the strings, with VS Code's own parser: what we wrote has to mean what the chord
 	// means, modifier for modifier and key for key. Nothing here is emitted on faith.
 	const check = (text, expectCtrl, expectMeta) => {
@@ -312,8 +382,8 @@ function keybindingStrings(chord, apis) {
 		return !!one && one.keyCode === keyCode && one.ctrlKey === expectCtrl && one.shiftKey === !!chord.shift
 			&& one.altKey === !!chord.alt && one.metaKey === expectMeta;
 	};
-	if (!check(key, !!chord.mod, false)) { return null; }
-	if (mac !== undefined && !check(mac, false, true)) { return null; }
+	if (!check(key, !!control, false)) { return null; }
+	if (mac !== undefined && !check(mac, !!chord.ctrl, true)) { return null; }
 	return mac === undefined ? { key } : { key, mac };
 }
 
@@ -327,9 +397,16 @@ function keybindingStrings(chord, apis) {
 //        Explorer, a terminal and Monaco share it, so a bare backtick must type a backtick in
 //        a text editor. Global is `vgai.focused` too.
 //
+// A RUNNING GAME'S STAGE is the game's keyboard: with the Game document active, a stage or
+// panel chord is the player's key, not an editor verb (measured on `arena`: W held in Play ran
+// `transform.translate`, which refused and warned). Global chords still reach the editor there.
 function whenFor(id, scope, keymapId) {
 	const focus = scope === 'stage' ? 'vgai.stage.focused' : 'vgai.focused';
-	return `${focus} && vgai.keymap == '${keymapId}'`;
+	const game = scope === 'global' ? '' : " && vgai.document.kind != 'game'";
+	// A `canvas.*` action has a handler only on a 2D canvas stage, which the stage context reports
+	// as `canvas` (a mounted canvas document marks itself: `markCanvasStageDocument`).
+	const surface = id.startsWith('canvas.') ? " && vgai.stage.surface == 'canvas'" : '';
+	return `${focus}${game}${surface} && vgai.keymap == '${keymapId}'`;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -360,7 +437,7 @@ async function main() {
 	const apis = await loadForkKeyApis(args.checkout);
 
 	const presetsFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/keymap-presets.ts');
-	const hotkeysFile = join(REPO_ROOT, 'packages/editor-core/src/editor-hotkeys.ts');
+	const hotkeysFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/editor-hotkeys.ts');
 	const packagesDir = join(REPO_ROOT, 'packages');
 	// Every keymap a PACKAGE of this engine contributes. A capability's copied
 	// `src/contributions/*.keymap.ts` is deliberately not here: once copied it is the
@@ -371,11 +448,13 @@ async function main() {
 		.flatMap(dir => readdirSync(dir).filter(f => f.endsWith('.keymap.ts')).map(f => join(dir, f)))
 		.sort();
 
-	const sources = [presetsFile, hotkeysFile, ...contributionFiles];
+	const laneFiles = laneActionFiles(packagesDir);
+	const sources = [presetsFile, hotkeysFile, ...laneFiles, ...contributionFiles];
 	const hashes = Object.fromEntries(sources.map(file => [relative(REPO_ROOT, file), sha256(file)]));
 
 	const vgaiTable = readVgaiTable(ts, presetsFile);
 	const scopes = readActionScopes(ts, hotkeysFile);
+	readLaneActionScopes(ts, laneFiles, scopes);
 	const keymaps = [
 		{ id: 'vgai', title: 'vgai', chords: vgaiTable },
 		...contributionFiles.map(file => {

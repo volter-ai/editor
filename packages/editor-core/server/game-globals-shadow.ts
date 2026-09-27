@@ -91,21 +91,6 @@ export function shouldShadowGameGlobals(file: string, roots: Iterable<string>): 
   return false;
 }
 
-/**
- * True if `file` is a script module under one of `runtimeRoots` — a runtime
- * package directory a game uses as its own library (`@volter/game-runtime`'s
- * `input/`). Dependency code is otherwise never shadowed (see
- * {@link isShadowableModulePath}); these roots are named one by one, and hold
- * no code that builds workers from source text.
- */
-export function isRuntimeInputModule(file: string, runtimeRoots: Iterable<string>): boolean {
-  if (!/\.(ts|tsx|js|jsx)$/.test(file)) return false;
-  for (const root of runtimeRoots) {
-    if (isPathInside(root, file)) return true;
-  }
-  return false;
-}
-
 /** A project (or ingest-fixture) stylesheet, not a dependency. */
 export function isGameCssPath(file: string): boolean {
   return file.endsWith('.css') && !file.includes('/node_modules/') && !isEditorLanePath(file);
@@ -116,7 +101,7 @@ export function isGameCssPath(file: string): boolean {
  * `html`/`body`/`*` rules cannot restyle the editor document. The sibling
  * of {@link shouldShadowGameGlobals} for stylesheets: first-party worlds
  * `import './style.css'`, which Vite injects as a page sheet unless this
- * transform contains it the same way `server/scoped-game-css.ts` contains
+ * transform contains it the same way `@volter/editor-sdk/session/scoped-game-css` contains
  * a declared ingest stylesheet.
  */
 export function shouldScopeGameCss(file: string, roots: Iterable<string>): boolean {

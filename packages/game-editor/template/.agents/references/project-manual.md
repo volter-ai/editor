@@ -54,8 +54,8 @@ journal attachment.
 Read `vgai.project.json` and `src/main.ts` first. Every manifest root has one
 adapter and lifecycle. Its entry is the source document: TSX for a Three or
 Canvas root, JSX for a DOM root. Do not call `createRoot`, `hydrateRoot`, or
-`ReactDOM.render` inside a root component; host mounting belongs to the
-adapter boundary.
+`ReactDOM.render` inside a root component: mounting belongs to `src/main.ts`
+for the standalone game and to the editor inside the editor.
 
 The neutral Three starter demonstrates the complete taxonomy:
 
@@ -208,10 +208,20 @@ scrub rail, current elapsed time, and optional video hover preview. The game's
 Session store and deliberately receives no live `play` handle, so charts
 cannot accidentally depend on ephemeral simulation state.
 
-In a React component, `useDebugEmit` from `@volter/game-runtime/react/world-state`
-returns the event callback: `const emit = useDebugEmit()`. Call
-`emit('gem-collected', { count })` in the mechanic's collection handler; the
-editor stamps and records it. Build charts from the selected log at the shared cursor.
+Events are the game's own: keep an ordinary emitter, call
+`emit('gem-collected', { count })` in the mechanic's collection handler, and
+hand its subscription to the root entry's `debug` export, which the editor
+stamps and records:
+
+```ts
+const listeners = new Set<(event: string, detail?: unknown) => void>();
+export const emit = (event: string, detail?: unknown) => listeners.forEach((l) => l(event, detail));
+export const debug = {
+  events: { subscribe: (listener: (event: string, detail?: unknown) => void) => (listeners.add(listener), () => listeners.delete(listener)) },
+};
+```
+
+Build charts from the selected log at the shared cursor.
 
 Record motion while Play runs:
 
@@ -254,9 +264,9 @@ uses normal React subscriptions. Do not mount a second React root from project
 code, and do not use Drei `Html` for a HUD—it is absent from clean composite
 captures.
 
-The host owns root mounting. `src/main.ts` registers the root adapters and the
-manifest supplies root identity/entry. The source component itself stays free
-of vgai runtime context.
+`src/main.ts` mounts the roots the manifest declares for the standalone game,
+and the editor mounts the same entries itself. The source component itself
+stays free of vgai runtime context.
 
 ## Capabilities and assets
 

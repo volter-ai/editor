@@ -1,6 +1,6 @@
 import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
-import type { AssetHealth, AssetHealthCode } from './asset-types';
+import type { AssetHealth, AssetHealthCode } from '@volter/editor-sdk/kit/asset-workflow/asset-types';
 
 export interface ProjectAssetFileSnapshot {
   readonly path: string;

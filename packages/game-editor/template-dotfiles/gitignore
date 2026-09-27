@@ -1,5 +1,5 @@
 # Dependencies
-node_modules
+node_modules/
 
 # Build output
 dist/
@@ -9,25 +9,59 @@ dist-server/
 # Vite cache
 .vite/
 
-# The editor's machine-local state. The rest of .vgai/ (overlays, thumbnail,
-# provenance, generations, assets) is project data and is committed.
+# Editor autosaved UI state (panel layout etc.) — local-machine ephemeral.
+# NOT the rest of .vgai/: .vgai/scaffold-baseline.json is committed project
+# state `vgai upgrade` diffs against (packages/create-vgai-project/src/baseline.ts),
+# and .vgai/overlays/*.json + .vgai/thumbnail.png + .vgai/provenance.json +
+# .vgai/generations.json are real project data too.
 .vgai/editor-state.json
 .vgai/workbench-storage.json
-.vgai/session.json
-.vgai/collaboration.json
+# Which Code-OSS workbench THIS machine opens the project in — an absolute path
+# to an extracted release or a fork checkout, so it is a fact about this box and
+# never about the project. The product's `create --workbench <dir>` writes it;
+# `vgai edit --workbench <dir>` overrides it for one launch.
 .vgai/workbench.json
+# The editor's chat panel: which agent harness this machine chose and its conversations.
 .vgai/chat-selection.json
 .vgai/chat-sessions.json
+# #146 — more local-machine ephemera: the live session's discovery file
+# (written by the dev server at boot, removed on shutdown) and agent
+# screenshot captures (GET /__vgai/screenshot).
+.vgai/session.json
+.vgai/collaboration.json
 .vgai/captures/
 .vgai/tmp/
 .vgai/last-run/
-.vgai/prev-run/
+# `vgai screenshot`'s default output directory — looking at the game is the
+# documented way to verify it, so an ordinary session leaves dozens of PNGs here.
 .vgai/screenshots/
+# `vgai play`'s gameplay video. EVERY play records, so this directory is
+# written on every run — and it is bounded by design, not by cleanup: the
+# unnamed clip is one rotating file (play-latest.webm) that each play
+# overwrites, and `--record <name>` keepsakes are the user's own. Never
+# committed either way: video is build-shaped output, and a repo that carries
+# one run's footage is carrying the wrong artifact.
 .vgai/recordings/
+# Run artifacts a driving script writes (screenshots a failure block points at,
+# the last run's scratch). Overwritten every run — nothing here is worth
+# committing.
+.vgai/prev-run/
+# The idiom scanner's last findings (check-idioms.ts writes it every run, and
+# `vgai status` reads it so open ERROR findings surface from the first status
+# call instead of at handoff). A cache of a fact recomputable in under a
+# second — machine-local, never project state.
 .vgai/check-idioms.json
+# Rebuildable Scene/Canvas Content preview images. Authored framing remains in
+# .vgai/thumbnails.json; only these generated pixels are machine-local.
+.vgai/cache/document-previews/
+# The build-discipline tripwires' announce gate (which step each tripwire has
+# already announced, keyed on what makes it go quiet). Persisted so a dev-server
+# restart cannot re-arm a long dirty batch at "nothing announced" — machine-local
+# by nature, and it MUST stay untracked: a tracked gate file would add itself to
+# the very dirty-file count the commit-cadence tripwire reports.
 .vgai/tripwire-gate.json
 
-# Session and Play logs
+# `vgai play`'s run logs (logs/play-*.jsonl — see packages/vgai-cli/src/index.ts)
 logs/
 *.jsonl
 

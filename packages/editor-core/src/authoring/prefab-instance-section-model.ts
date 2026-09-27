@@ -10,7 +10,7 @@
  */
 
 import type { AuthoringAdapter, EditorNode, StoryRef } from '@volter/editor-project/adapter';
-import { resolveNodeScopedStories } from '../components/inspector-stories-gating';
+import { resolveNodeScopedStories } from '@volter/editor-sdk/kit/components/inspector-stories-gating';
 
 /**
  * Whether `node` is a component instance this adapter can describe.

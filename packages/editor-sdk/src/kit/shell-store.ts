@@ -35,6 +35,35 @@ export type PlayEditRegime = 'ephemeral' | null;
 /** The authoring tool a view's gizmo arms. */
 export type TransformMode = 'select' | 'combined' | 'translate' | 'rotate' | 'scale';
 export type TransformSpace = 'world' | 'local';
+/** A 2D scene's snapping options: the grid step and offset in scene pixels; `relative` steps from
+ *  where the node started rather than from the grid; `pixel` rounds a move to whole pixels. */
+export interface Snap2D {
+  readonly step: number;
+  readonly offsetX: number;
+  readonly offsetY: number;
+  /** A primary (stronger) grid line every this many steps. */
+  readonly primaryEvery: number;
+  /** Degrees a snapped rotation is offset from multiples of the rotate step. */
+  readonly rotationOffset: number;
+  /** Degrees a snapped 2D rotation steps by (Godot's Rotation Step, 15). */
+  readonly rotationStep: number;
+  /** What a snapped 2D scale steps by (Godot's Scale Step, 0.1). */
+  readonly scaleStep: number;
+  readonly relative: boolean;
+  readonly pixel: boolean;
+}
+
+/** Smart snapping's switch and its targets: a move aligns to the parent's box, other nodes (their
+ *  sides and centres) and the view's guides; a pivot snaps to its own node's sides and centre. */
+export interface SmartSnap {
+  readonly enabled: boolean;
+  readonly parent: boolean;
+  readonly others: boolean;
+  readonly guides: boolean;
+  readonly sides: boolean;
+  readonly center: boolean;
+}
+
 export type PivotMode = 'active-element' | 'median-point' | 'individual-origins';
 
 /**
@@ -82,6 +111,9 @@ export interface HelperVisibility {
    * Cursor" operators place and snap. ON by default, as Blender draws it.
    */
   cursor: boolean;
+  /** EMPTIES — a scene's objects that are only a place (Blender's empties, drawn by its
+   *  overlay's extras as axes, arrows or a shape). ON by default, as Blender draws them. */
+  empties: boolean;
 }
 
 /**
@@ -92,14 +124,25 @@ export type ViewportAction =
   | { type: 'focus-entity'; id: string }
   | { type: 'focus-selection' }
   | { type: 'focus-scene' }
+  | { type: 'frame-all' }
+  | { type: 'zoom-view'; direction: 1 | -1 }
   | { type: 'snap-selection-to-floor' }
-  | { type: 'set-view-preset'; preset: 'top' | 'front' | 'right' | 'perspective' }
+  | { type: 'set-view-preset'; preset: ViewPreset }
+  | { type: 'step-view'; step: ViewStep }
+  | { type: 'toggle-camera-view' }
+  | { type: 'toggle-projection' }
   | {
       type: 'set-camera-pose';
       position: { x: number; y: number; z: number };
       target: { x: number; y: number; z: number };
       fov?: number;
     };
+
+/** The preset views: the six axes and the editor's perspective three-quarter view. */
+export type ViewPreset = 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left' | 'perspective';
+
+/** One step of the view (Blender's `view_orbit` and `view_roll`). */
+export type ViewStep = 'orbit-left' | 'orbit-right' | 'orbit-up' | 'orbit-down' | 'opposite' | 'roll-left' | 'roll-right';
 
 export class ShellStore implements ShellDocumentState {
   /** Selection is viewport-local. The public selection accessors always expose
@@ -229,6 +272,28 @@ export class ShellStore implements ShellDocumentState {
   protected _snapEnabled = false;
   protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
   protected _snapToSurface = false;
+  protected _rotationSnap = false;
+  protected _snap2D: Snap2D = {
+    step: 8,
+    offsetX: 0,
+    offsetY: 0,
+    primaryEvery: 8,
+    rotationOffset: 0,
+    // Godot's Configure Snap defaults for a 2D view, its own rather than the 3D view's.
+    rotationStep: 15,
+    scaleStep: 0.1,
+    relative: false,
+    pixel: true,
+  };
+  protected _scaleSnap = false;
+  protected _smartSnap: SmartSnap = {
+    enabled: false,
+    parent: true,
+    others: true,
+    guides: true,
+    sides: true,
+    center: true,
+  };
   protected _preserveChildrenTransform = false;
   protected _pivotMode: PivotMode = 'active-element';
   protected _gizmoAnchor: GizmoAnchor = 'auto';
@@ -250,6 +315,7 @@ export class ShellStore implements ShellDocumentState {
     skeletons: false,
     weights: false,
     cursor: true,
+    empties: true,
   };
 
   get transformMode(): TransformMode {
@@ -266,6 +332,37 @@ export class ShellStore implements ShellDocumentState {
   }
   get snapToSurface(): boolean {
     return this._snapToSurface;
+  }
+  /** A 2D move's alignment to other things, beside the grid's step (Godot's Smart Snap and its
+   *  Snapping Options targets; off by default there, every target on). */
+  /** A 2D rotate or scale stepping by its snap value, each its own switch (Godot's Snapping
+   *  Options: Use Rotation Snap, Use Scale Snap; both off by default). */
+  /** A 2D scene's snapping options beside the magnet (Godot's Snapping Options and Configure
+   *  Snap): the grid step a snapped move lands on and its offset (8 px, 0), Snap Relative (off) and
+   *  Use Pixel Snap (on). The drawn grid follows the step. */
+  get snap2D(): Readonly<Snap2D> {
+    return this._snap2D;
+  }
+  setSnap2D(choice: Partial<Snap2D>): void {
+    this._snap2D = { ...this._snap2D, ...choice };
+    this._notify();
+  }
+  get rotationSnap(): boolean {
+    return this._rotationSnap;
+  }
+  get scaleSnap(): boolean {
+    return this._scaleSnap;
+  }
+  setRotationSnap(on: boolean): void {
+    this._rotationSnap = on;
+    this._notify();
+  }
+  setScaleSnap(on: boolean): void {
+    this._scaleSnap = on;
+    this._notify();
+  }
+  get smartSnap(): Readonly<SmartSnap> {
+    return this._smartSnap;
   }
   get preserveChildrenTransform(): boolean {
     return this._preserveChildrenTransform;
@@ -301,6 +398,11 @@ export class ShellStore implements ShellDocumentState {
 
   setSnapValues(values: Partial<{ translate: number; rotate: number; scale: number }>): void {
     this._snapValues = { ...this._snapValues, ...values };
+    this._notify();
+  }
+
+  setSmartSnap(choice: Partial<SmartSnap>): void {
+    this._smartSnap = { ...this._smartSnap, ...choice };
     this._notify();
   }
 
@@ -359,6 +461,16 @@ export class ShellStore implements ShellDocumentState {
     this.requestViewportAction({ type: 'focus-selection' });
   }
 
+  /** Frame everything in the view, selected or not. */
+  frameAll(): void {
+    this.requestViewportAction({ type: 'frame-all' });
+  }
+
+  /** Step the view nearer (1) or farther (-1) by the keymap's zoom step. */
+  zoomView(direction: 1 | -1): void {
+    this.requestViewportAction({ type: 'zoom-view', direction });
+  }
+
   /** Frame the whole active scene. A medium may carry more with it (the Three half's game
    *  camera lookup, `EditorShellStore.focusOnScene`). */
   focusOnScene(): void {
@@ -370,9 +482,24 @@ export class ShellStore implements ShellDocumentState {
     this.requestViewportAction({ type: 'snap-selection-to-floor' });
   }
 
-  /** Switch the viewport camera to a preset view (top, front, right, perspective). */
-  setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
+  /** Switch the viewport camera to a preset view (an axis, or perspective). */
+  setViewPreset(preset: ViewPreset): void {
     this.requestViewportAction({ type: 'set-view-preset', preset });
+  }
+
+  /** Step the view: a 15° orbit or roll, or the opposite side. */
+  stepView(step: ViewStep): void {
+    this.requestViewportAction({ type: 'step-view', step });
+  }
+
+  /** Enter or leave the camera view, where the document has cameras to look through. */
+  toggleCameraView(): void {
+    this.requestViewportAction({ type: 'toggle-camera-view' });
+  }
+
+  /** Switch the view between perspective and orthographic, from where it is. */
+  toggleProjection(): void {
+    this.requestViewportAction({ type: 'toggle-projection' });
   }
 
   /** Move the viewport camera to an arbitrary position/target/fov pose. */

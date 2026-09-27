@@ -218,13 +218,13 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
     // check the "New Project" packaged-mode guard already uses server-side
     // (server-utils.ts). Client-side, `binding-resolver.ts`'s react-world
     // mount reads this to decide whether it must resolve its
-    // `react`/`react-dom/client`/`WorldProvider` wrapper from the PROJECT's
+    // `react`/`react-dom/client` from the PROJECT's
     // own module graph (packaged: the editor's prebuilt SPA bundles its OWN
     // separate react copy, so a react world would dual-instance otherwise)
     // or keep the existing static-import path (dev: one shared Vite
     // instance + root `vite.config.ts`'s `resolve.dedupe` — including
-    // `@vgai/game-runtime` itself, so `WorldProvider`/`useGame` are one context
-    // object — already collapses them, so this flag is `false` there and
+    // `@vgai/game-runtime` itself, so its registries are one module instance —
+    // already collapses them, so this flag is `false` there and
     // that path stays unchanged).
     const packaged = !isMonorepoScaffoldRoot(engineRoot);
     const enginePackage = projectEnginePackageOrigin(ctx.projectRoot);

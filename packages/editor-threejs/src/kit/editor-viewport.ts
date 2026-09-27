@@ -31,6 +31,7 @@ import {
   shouldDiscoverGaussianSplat,
 } from '@volter/editor-threejs/render/spark-renderer-lifecycle';
 import * as THREE from 'three';
+import { axisViewName, isQuarterTurnUp } from './asset-workflow/model-inspection';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -86,6 +87,7 @@ import { collectThreeSelectionOutlineTargets } from './three-viewport/selection-
 import { toneMappedSourceColor } from './three-viewport/source-color';
 import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { activeKeymapNavigation, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { ensureThreeIntegration } from './three-integration';
@@ -298,6 +300,9 @@ export interface EditorViewportOptions {
   readonly authoring?: () => AuthoringAdapter;
   /** Document-local picking when this viewport is not the project viewport. */
   readonly pick?: (clientX: number, clientY: number) => string | null;
+  /** The camera the stage draws with, when that is not the viewport's own (a document session's
+   *  orthographic or camera view): screen tests such as the box select project through it. */
+  readonly drawCamera?: () => THREE.Camera;
   /** Only the one project viewport publishes the legacy global pick context. */
   readonly publishPickContext?: boolean;
   readonly onProjectionChange?: (projection: ThreeViewportProjection) => void;
@@ -341,46 +346,29 @@ export interface EditorViewportOptions {
  * the floor occludes it, and it occludes nothing.
  */
 /**
- * THE STAGE'S LENS — Blender's, MEASURED, and the reason the viewport's field
- * of view is derived rather than stored.
- *
- * Blender holds an ANGLE on the larger of the region's two dimensions (its
- * View ▸ Focal Length), so a wider panel sees no more world sideways and a
- * shorter one sees less vertically — which is why three's vertical `fov`
- * cannot be a constant here.
- *
- * The angle is measured, not taken from the 50 mm / 36 mm arithmetic the
- * focal-length field suggests: that arithmetic gives 39.6 deg and the
- * reference disagrees with it. `modeling-far.png` is shot at a stated view
- * distance of 40 m, and at 70% of its region's height its floor grid has a
- * clean 38.0 CSS px pitch over 36 consecutive lines. The same row of our own
- * stage at 46.8 m measured 55 CSS px. Pitch scales as 1/distance for an orbit
- * that is otherwise identical, so the two normalise to 1520 against 2574 —
- * our metre is 1.69x too large on screen, i.e. our angle was 1.69x too
- * narrow. 39.6 deg widened by that factor is the number below.
- *
- * Known limit: our own two frames (far at 46.8 m, startup at 14.2 m) should
- * give an identical pitch-times-distance and differ by 20%, so the peak
- * detection this rests on is worth about that much. The DIRECTION is not in
- * doubt — at matched framing Blender's floor carries visibly more cells than
- * ours did — and the sighted far-frame comparison is what accepts the value.
+ * THE STAGE'S FIELD OF VIEW, as the view states it (`ViewportCamera.fov`): an angle held on one
+ * side of the region — vertical, horizontal, the larger or the smaller — so a panel that widens
+ * sees more or less world sideways as its target's editor does. three's `fov` is always vertical,
+ * so it is derived from the region's shape rather than stored.
  */
-const STAGE_LENS_HORIZONTAL_FOV_DEG = 62.6;
-
-/** three's fov is VERTICAL; Blender's lens angle is on the larger dimension. */
-export function stageVerticalFovDegrees(aspect: number): number {
-  const safeAspect = Number.isFinite(aspect) && aspect > 0.01 ? aspect : 1;
-  const halfLensAngle = THREE.MathUtils.degToRad(STAGE_LENS_HORIZONTAL_FOV_DEG / 2);
-  // Sensor fit AUTO: the angle belongs to the longer side.
-  const halfVertical =
-    safeAspect >= 1 ? Math.atan(Math.tan(halfLensAngle) / safeAspect) : halfLensAngle;
-  return THREE.MathUtils.radToDeg(halfVertical * 2);
+export interface StageFieldOfView {
+  readonly degrees: number;
+  readonly axis: 'vertical' | 'horizontal' | 'larger' | 'smaller';
 }
 
-/** The direction the stage opens from, Blender's default user perspective:
- *  elevation 26.5°, azimuth −23.8° about the up axis — SOLVED from the
- *  reference's two floor axes, whose projected slopes there are +1.0093 (X)
- *  and −0.1969 (Y). In three's Y-up frame that is this unit vector. */
+/** The editor's own: three's 50° vertical (the kit's presentation says the same). */
+const KIT_FIELD_OF_VIEW: StageFieldOfView = { degrees: 50, axis: 'vertical' };
+
+/** three's vertical fov for a stated field of view on a region of this shape. */
+export function stageVerticalFovDegrees(aspect: number, fov: StageFieldOfView = KIT_FIELD_OF_VIEW): number {
+  const safeAspect = Number.isFinite(aspect) && aspect > 0.01 ? aspect : 1;
+  const degrees = Number.isFinite(fov.degrees) && fov.degrees > 0 && fov.degrees < 180 ? fov.degrees : KIT_FIELD_OF_VIEW.degrees;
+  const half = THREE.MathUtils.degToRad(degrees / 2);
+  const horizontal =
+    fov.axis === 'horizontal' || (fov.axis === 'larger' && safeAspect >= 1) || (fov.axis === 'smaller' && safeAspect < 1);
+  const halfVertical = horizontal ? Math.atan(Math.tan(half) / safeAspect) : half;
+  return THREE.MathUtils.radToDeg(halfVertical * 2);
+}
 
 /** A colour's hue, saturation and value (each 0..1), in whatever channels it carries. */
 function rgbToHsv(color: THREE.Color): { h: number; s: number; v: number } {
@@ -414,15 +402,6 @@ function hsvToColor(h: number, s: number, v: number, out: THREE.Color): THREE.Co
   return out.setRGB(r!, g!, b!);
 }
 
-/** The navigation gizmo's axis colours, read off Blender's own balls in
- *  `modeling-object-none.png`: X (245,54,81), Y (111,164,27), Z (46,131,227).
- *  They are NOT the floor axes' palette hexes — the gizmo is drawn straight,
- *  without the stage's view transform, so it is sampled where it lands. */
-const COMPASS_AXIS_COLOR: readonly THREE.Color[] = [
-  new THREE.Color(0xf53651),
-  new THREE.Color(0x6fa41b),
-  new THREE.Color(0x2e83e3),
-];
 
 /**
  * One ball of the navigation gizmo: filled with its letter (a positive axis),
@@ -466,56 +445,17 @@ function compassLetterTexture(color: THREE.Color, letter: string): THREE.CanvasT
   return texture;
 }
 
-function compassBallTexture(color: THREE.Color, letter: string | null): THREE.CanvasTexture {
-  // TWO TEXELS PER SCREEN PIXEL, no mipmaps. At 64 the ball was a 4x
-  // minification: three's default trilinear then samples between the 32 and
-  // 16 mips and the LETTER dissolves — measured on the live stage, the glyph
-  // came out at ink (132,48,59) where its own colour is (83,21,28), a blurred
-  // blob rather than an X. At twice the drawn size a plain bilinear sample is
-  // crisp at DPR 1 and exact at DPR 2.
+/** The ball's parts, WHITE, for the per-frame tint (`_syncOrientationGizmoDepth`): its disc, its
+ *  ring and its letter share one outer radius, the ring's stroke laid inside it. */
+function compassCanvas(paint: (ctx: CanvasRenderingContext2D, size: number, outer: number) => void): THREE.CanvasTexture {
   const size = 32;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  if (ctx) {
-    const hex = `#${color.getHexString()}`;
-    // One pixel of texture margin for the edge's own anti-aliasing; the
-    // caller's `ballUnits` is this outer diameter, so what is asked for is
-    // what lands.
-    const outer = size / 2 - 1;
-    if (letter === null) {
-      // The measured negative ball: a full-colour ring over a faint wash of
-      // the same colour, so the stage reads through it. The stroke lies
-      // INSIDE `outer`, so the ring's edge is the disc's edge.
-      const strokeWidth = (COMPASS_STALK_WIDTH_PX / COMPASS_BALL_BACK_PX) * size;
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, outer, 0, Math.PI * 2);
-      ctx.fillStyle = hex;
-      ctx.globalAlpha = 0.35;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, outer - strokeWidth / 2, 0, Math.PI * 2);
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = hex;
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, outer, 0, Math.PI * 2);
-      ctx.fillStyle = hex;
-      ctx.fill();
-      const ink = color.clone().multiplyScalar(COMPASS_LETTER_INK);
-      ctx.fillStyle = `#${ink.getHexString()}`;
-      // A cap height is ~0.72 of a sans font's size, so the size that draws
-      // the measured cap is the cap over that.
-      const capPx = COMPASS_LETTER_CAP_FRACTION * (2 * outer);
-      ctx.font = `bold ${Math.round(capPx / 0.72)}px system-ui, -apple-system, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(letter, size / 2, size / 2 + 2);
-    }
-  }
+  // One pixel of texture margin for the edge's own anti-aliasing; the caller's `ballUnits` is this
+  // outer diameter, so what is asked for is what lands.
+  if (ctx) paint(ctx, size, size / 2 - 1);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = false;
@@ -523,7 +463,43 @@ function compassBallTexture(color: THREE.Color, letter: string | null): THREE.Ca
   return texture;
 }
 
-const STAGE_OPENING_DIRECTION = new THREE.Vector3(0.8187, 0.4458, 0.3617);
+function compassDiscTexture(): THREE.CanvasTexture {
+  return compassCanvas((ctx, size, outer) => {
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, outer, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+  });
+}
+
+function compassRingTexture(): THREE.CanvasTexture {
+  return compassCanvas((ctx, size, outer) => {
+    const strokeWidth = (COMPASS_STALK_WIDTH_PX / COMPASS_BALL_BACK_PX) * size;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, outer - strokeWidth / 2, 0, Math.PI * 2);
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+  });
+}
+
+function compassGlyphTexture(text: string): THREE.CanvasTexture {
+  return compassCanvas((ctx, size, outer) => {
+    // A cap height is ~0.72 of a sans font's size, so the size that draws the measured cap is the
+    // cap over that; a negative's `-Y` is narrowed to stay inside its ball.
+    const capPx = COMPASS_LETTER_CAP_FRACTION * (2 * outer);
+    const fontPx = Math.round(capPx / 0.72);
+    ctx.font = `bold ${fontPx}px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, size / 2, size / 2 + 2, 2 * outer * 0.86);
+  });
+}
+
+/** The direction the stage opens from before a view or document states one: the kit's own
+ *  three-quarter view (`ViewportCamera.opening`). */
+const STAGE_OPENING_DIRECTION = new THREE.Vector3(1, 0.72, 1).normalize();
 
 /**
  * THE COMPASS'S BOX, AND THE GIZMO'S OWN SIZES — re-measured 2026-09-19 from
@@ -576,6 +552,11 @@ const COMPASS_INK_WIDTH_PX = 74.5;
 const COMPASS_INK_HEIGHT_PX = 73.5;
 const COMPASS_MARGIN_RIGHT_PX = 8.5 + COMPASS_INK_WIDTH_PX / 2 - COMPASS_BOX_PX / 2;
 const COMPASS_MARGIN_TOP_PX = 38 + COMPASS_INK_HEIGHT_PX / 2 - COMPASS_BOX_PX / 2;
+/** The gizmo's centre, CSS px in from the canvas's right edge, and its ink's lower edge from
+ *  the canvas's top: where a label under the gizmo stands (Unity's "Persp", the look's
+ *  `stage.chrome.viewName` `gizmo`). */
+export const COMPASS_CENTER_RIGHT_PX = COMPASS_MARGIN_RIGHT_PX + COMPASS_BOX_PX / 2;
+export const COMPASS_INK_BOTTOM_PX = COMPASS_MARGIN_TOP_PX + COMPASS_BOX_PX / 2 + COMPASS_INK_HEIGHT_PX / 2;
 /**
  * Where the navigation cluster starts. Blender's first GLYPH sits 16 CSS
  * under the gizmo's ink; the cluster component pads 14.5 CSS above its own
@@ -602,9 +583,9 @@ export const COMPASS_CLUSTER_TOP_PX =
  * principal point at the region centre. That gives f = 1976 device px
  * (Blender's viewport lens: 50 mm on its DEFAULT_SENSOR_WIDTH of 72 mm),
  * camera 17.96 m out at elevation 26.46°, azimuth −23.82° — which reproduces
- * the elevation and azimuth `STAGE_OPENING_DIRECTION` was independently
- * solved from, so the calibration is checked against something already in
- * this repo. Sampling the X axis at thirteen known floor points, its ink over
+ * the elevation and azimuth Blender's opening direction was independently
+ * solved from (`@volter/editor-blender`'s presentation), so the calibration is
+ * checked against something already in this repo. Sampling the X axis at thirteen known floor points, its ink over
  * the `#3f3f3f` floor, IN LINEAR LIGHT (the blend happens before the sRGB
  * encode — read as sRGB levels the profile fits nothing):
  *
@@ -712,6 +693,7 @@ function applyAxisGrazingFade(
 }
 
 const _gridView = new THREE.Vector3();
+const _gridQuat = new THREE.Quaternion();
 const _gridEye = new THREE.Vector3();
 const _gridUp = new THREE.Vector3(0, 1, 0);
 
@@ -726,6 +708,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       // The look's widths (`nativeViewportGrid`), applied with its colours.
       uLineWidth: { value: 1 },
       uMajorWidth: { value: 1 },
+      uAligned: { value: 0 },
       uMajorEvery: { value: 10 },
       uFadeStart: { value: (extent / 2) * 0.55 },
       uFadeEnd: { value: extent / 2 },
@@ -760,6 +743,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uniform float uOpacity;
       uniform float uLineWidth;
       uniform float uMajorWidth;
+      uniform float uAligned;
       uniform float uMajorEvery;
       uniform float uFadeStart;
       uniform float uFadeEnd;
@@ -783,9 +767,43 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         vec2 cov = clamp(width * 0.5 - dist + 0.5, 0.0, 1.0);
         return max(cov.x, cov.y);
       }
+      // One device pixel, the one nearest the line, and no anti-aliasing: Blender's lines in an
+      // axis-aligned view (\`GRID_ALIGNED\`, which outputs no line-smoothing data for them).
+      float alignedLine(vec2 coord) {
+        vec2 dist = abs(fract(coord - 0.5) - 0.5) / max(fwidth(coord), vec2(1e-6));
+        return max(step(dist.x, 0.5), step(dist.y, 0.5));
+      }
       void main() {
         vec2 world = abs(uPlaneNormal.y) > 0.5 ? vWorld.xz : abs(uPlaneNormal.z) > 0.5 ? vWorld.xy : vWorld.zy;
         vec2 p = world / uUnit;
+        if (uAligned > 0.5) {
+          // BLENDER'S THREE LEVELS in an axis-aligned orthographic view
+          // (\`overlay_grid_vert.glsl\`, \`OVERLAY_GRID_STEPS_DRAW\` 3): the unit, the next step and
+          // the one after, with f the level's fraction (\`uMinorFade\` is 1 - f). Level 0 is the
+          // grid colour at alpha 1 - f, further faded as its cells shrink toward a pixel
+          // (\`smoothstep(step / 4, step / 64, pixel size)\`, written in increasing order); level 1 is opaque and 1 - f of the
+          // way to the emphasis colour; level 2 is the emphasis colour. A line on a higher level
+          // is that level's.
+          float top = alignedLine(p / (uMajorEvery * uMajorEvery));
+          float middle = alignedLine(p / uMajorEvery);
+          float bottom = alignedLine(p);
+          float pixel = max(fwidth(world).x, fwidth(world).y);
+          float bottomAlpha = uMinorFade * (1.0 - smoothstep(uUnit * 0.015625, uUnit * 0.25, pixel));
+          float emphasis = top > 0.5 ? 1.0 : middle > 0.5 ? uMinorFade : 0.0;
+          // The theme's grid colour carries alpha 0x80 and its emphasis colour none, and the
+          // two colours here were fitted to Blender's PERSPECTIVE frames, where four additive
+          // passes (1 + 1/2 + 1/4 + 1/8) take that alpha to about 0.94. Drawn once, as an
+          // aligned view draws it, the grid colour keeps 0.502 / 0.941 of that. (Measured: the
+          // 10 cm lines +5 over the ground at 198 px per metre, predicted +5.4; the 1 m lines
+          // 89 against 88. The 0.94 is inferred from the passes, not read off a frame.)
+          float levelAlpha = (top > 0.5 || middle > 0.5 ? 1.0 : bottom * bottomAlpha) * mix(0.533, 1.0, emphasis);
+          float edge = 1.0 - smoothstep(uFadeStart * uReach, uFadeEnd * uReach, length(world - uCenter));
+          float alignedAlpha = levelAlpha * edge * uOpacity;
+          if (alignedAlpha <= 0.002) discard;
+          gl_FragColor = vec4(mix(uColor, uMajorColor, emphasis), alignedAlpha);
+          #include <colorspace_fragment>
+          return;
+        }
         vec2 pixelsPerMetre = 1.0 / max(fwidth(p), vec2(1e-6));
         float minorVisible = smoothstep(4.0, 14.0, min(pixelsPerMetre.x, pixelsPerMetre.y)) * uMinorFade;
         // Both levels reach FULL strength in their own colour, as Blender's
@@ -926,6 +944,14 @@ export class EditorViewport {
   private _axisLines: LineSegments2 | null = null;
   /** The world's vertical axis line, a child of {@link _axisLines} (see `_rebuildAxisLines`). */
   private _verticalAxisLine: LineSegments2 | null = null;
+  /** The look's axis-line width in device pixels (null: the editor's own), which an
+   *  axis-aligned view sets aside for one pixel. */
+  private _axisLineWidth: number | null = null;
+  /** A device-pixel width as `LineMaterial` takes it: CSS pixels, three keeping its viewport in
+   *  CSS units. The editor's own is 2 CSS. */
+  private _axisLineCss(device: number | null): number {
+    return device === null ? 2 : device / (this._renderer?.getPixelRatio() ?? 1);
+  }
   private _axesWanted = false;
   private _stageAxes: ViewportOverlays['axes'] = 'floor';
   /** The look's axis colours by WORLD axis (X, Y, Z), each `null` for the gizmo's own. */
@@ -965,6 +991,7 @@ export class EditorViewport {
     ringWidth: null,
     navigationSize: null,
     navigationForm: 'balls',
+    background: null,
     navigationCorner: 'top-right',
     highlightSaturation: null,
     highlightValue: null,
@@ -998,6 +1025,13 @@ export class EditorViewport {
   private _onInteractionDblClick: ((e: MouseEvent) => void) | undefined;
   private readonly _authoring: () => AuthoringAdapter;
   private readonly _pick: ((clientX: number, clientY: number) => string | null) | undefined;
+  private readonly _drawCamera: (() => THREE.Camera) | undefined;
+  /** The camera on screen: the stage's drawing camera where it states one, else the viewport's.
+   *  Every screen test asks it (picks, the box select, vertex snap, handles, the ground plane);
+   *  fly mode and the grid's own alignment keep the viewport's cameras, which they move. */
+  private get _screenCamera(): THREE.Camera {
+    return this._drawCamera?.() ?? this.renderCamera;
+  }
   private readonly _standaloneAuthoring: boolean;
   private readonly _publishPickContext: boolean;
   private readonly _onlineAssetResolver: OnlineAssetResolver | undefined;
@@ -1020,11 +1054,21 @@ export class EditorViewport {
   /** The gizmo's six balls and three stalks, kept for the per-frame depth
    *  cue (`_syncOrientationGizmoDepth`). */
   private _vcBalls: Array<{
-    readonly sprite: THREE.Sprite;
+    readonly fill: THREE.Sprite;
+    readonly ring: THREE.Sprite;
+    readonly letter: THREE.Sprite;
     readonly direction: THREE.Vector3;
     readonly positive: boolean;
+    /** Which THREE axis (0 x, 1 y, 2 z) the ball lies on. */
+    readonly axis: number;
+    readonly color: THREE.Color;
   }> = [];
-  private _vcStalks: Array<{ readonly mesh: THREE.Mesh; readonly direction: THREE.Vector3 }> = [];
+  private _vcStalks: Array<{
+    readonly mesh: THREE.Mesh;
+    readonly direction: THREE.Vector3;
+    readonly positive: boolean;
+    readonly color: THREE.Color;
+  }> = [];
   /** The cone form's cones: drawn front to back, never dimmed (Unity's are not). */
   private _vcSolids: Array<{ readonly mesh: THREE.Mesh; readonly direction: THREE.Vector3 }> = [];
   private _vcSize = COMPASS_BOX_PX;
@@ -1048,6 +1092,8 @@ export class EditorViewport {
   private _projection: ThreeViewportProjection = 'perspective';
   private _pendingProjection: ThreeViewportProjection | null = null;
   private _viewportAspect = 1;
+  /** The view's field of view (`ViewportCamera.fov`), held on its side as the region reshapes. */
+  private _fieldOfView: StageFieldOfView = KIT_FIELD_OF_VIEW;
   private _orthographicHeight = 10;
   private _cameraViewMode: CameraViewMode | null = null;
   private _orbitEnabledBeforeCameraView = true;
@@ -1177,6 +1223,7 @@ export class EditorViewport {
     this._authoring =
       options.authoring ?? (() => viewportAuthoringPolicy().activeAuthoring(this._store.shell));
     this._pick = options.pick;
+    this._drawCamera = options.drawCamera;
     this._standaloneAuthoring = options.authoring !== undefined;
     this._publishPickContext = options.publishPickContext ?? true;
     this._chromeInsetPx = options.chromeInsetPx ?? 0;
@@ -1319,15 +1366,14 @@ export class EditorViewport {
     // held PANS in screen space, Figma-fashion.
     interactionElement.addEventListener('wheel', this._onTrackpadWheel, { passive: false });
 
-    // OrbitControls – Unity-style: right-drag = orbit, middle-drag = pan, scroll = zoom
+    // OrbitControls: the editor's own mouse is right-drag to orbit, middle-drag to pan and the
+    // wheel to zoom; a keymap may orbit on the middle button instead (`applyKeymapNavigation`).
     this.orbitControls = new OrbitControls(this.camera, interactionElement);
     this.orbitControls.enableDamping = true;
     this.orbitControls.dampingFactor = 0.1;
-    this.orbitControls.mouseButtons = {
-      LEFT: -1 as THREE.MOUSE,
-      MIDDLE: THREE.MOUSE.PAN,
-      RIGHT: THREE.MOUSE.ROTATE,
-    };
+    this.applyKeymapNavigation();
+    this._unsubscribeKeymap = subscribeEditorKeymap(() => this.applyKeymapNavigation());
+    this._installTurntable();
 
     // TransformControls — one instance per mode; 'combined' shows all three.
     // Construction order IS pointer priority (each instance registers its own
@@ -1342,6 +1388,17 @@ export class EditorViewport {
     this._auxRotateControls.setMode('rotate');
     this._activeGizmo = this.transformControls;
     const wireGizmo = (gizmoControls: TransformControls): void => {
+      // THE DRAG PLANE AS THE HOVER LEFT IT. The plane a drag intersects (`TransformControlsPlane`)
+      // turns to the hovered axis only when the helper next updates its matrices, a render away,
+      // and `pointerDown` reads it as it stands; a press within a frame of its hover (a quick
+      // flick onto an arrow, a touch, whose hover runs inside the press) started on the plane of
+      // no axis, which faces the camera, and the object moved by that plane's foreshortened
+      // offset: measured on a fresh model, 1.24 m where the cursor asked for 2.78 m.
+      const pressed = gizmoControls.pointerDown.bind(gizmoControls);
+      gizmoControls.pointerDown = (pointer) => {
+        gizmoControls.getHelper().updateMatrixWorld(true);
+        pressed(pointer);
+      };
       // Enable all layers on the internal raycaster so it can pick gizmo parts on EDITOR_LAYER
       gizmoControls.getRaycaster().layers.enableAll();
       gizmoControls.addEventListener('dragging-changed', (event) => {
@@ -1822,6 +1879,289 @@ export class EditorViewport {
     this.orthographicCamera.updateProjectionMatrix();
   }
 
+  /**
+   * THE GIZMOS' CAMERA while a stage draws through another one (a document's camera view): the
+   * handles size, face and pick against what is on screen. Null gives them back the free camera.
+   */
+  setGizmoCamera(camera: THREE.Camera | null): void {
+    const target = camera ?? this.freeCamera;
+    if (this.transformControls.camera === target) return;
+    for (const controls of this._allGizmos()) controls.camera = target;
+    this._applyGizmoSize();
+  }
+
+  /**
+   * THE MOUSE THE ACTIVE KEYMAP STATES (`KeymapContribution.navigation`): the button that orbits.
+   * Orbiting on the middle button pans with Shift on it (OrbitControls' own modifier swap), and
+   * the right button then does nothing here, as in Blender, where it is the context menu's.
+   */
+  private applyKeymapNavigation(): void {
+    const { orbit, turntable } = activeKeymapNavigation();
+    // Only a turntable keeps a roll: under any other orbit the view comes back level (a Top
+    // view's screen up, which is no roll, stands).
+    if (!turntable && this.camera.up.y < 0.9999 && Math.abs(this.camera.up.z) < 0.9999) this.camera.up.set(0, 1, 0);
+    this.orbitControls.mouseButtons = {
+      // The left button selects; only an Alt-drag in progress orbits with it (`_onAltOrbitStart`).
+      LEFT: this._altDragOrbit ? THREE.MOUSE.ROTATE : (-1 as THREE.MOUSE),
+      MIDDLE: orbit === 'middle' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
+      RIGHT: orbit === 'middle' ? (-1 as THREE.MOUSE) : THREE.MOUSE.ROTATE,
+    };
+  }
+  private _unsubscribeKeymap: () => void = () => {};
+
+  /**
+   * A KEYMAP'S TURNTABLE (`KeymapNavigation.turntable`) in place of three's spherical orbit, on
+   * OrbitControls' own rotate drag so its buttons, capture and modifiers stand. Blender's
+   * `viewrotate_apply` (`view3d_navigate_view_rotate.cc`), Turntable branch: the vertical drag
+   * pitches about the horizon, `up × view z`, blended toward the view's own X as the view nears
+   * straight up or down (`fac = (|angle(up, view z) / π − ½| · 2)²`), and the sideways drag spins
+   * about the world's up, turned the other way when the view started upside down (`reverse`);
+   * both about the orbit's pivot at its distance. The view keeps its roll and passes over the
+   * top: the roll rides on the camera's `up`, which the orbit's `lookAt` keeps.
+   */
+  private _installTurntable(): void {
+    const controls = this.orbitControls as unknown as {
+      _handleMouseDownRotate(event: PointerEvent): void;
+      _handleMouseMoveRotate(event: PointerEvent): void;
+      _handleTouchStartRotate(event: PointerEvent): void;
+      _handleMouseDownDolly(event: PointerEvent): void;
+      _handleMouseMoveDolly(event: PointerEvent): void;
+    };
+    // A KEYMAP'S DOLLY DRAG (`KeymapNavigation.zoom.drag`), Blender's `viewzoom_scale_value` in its
+    // factory Dolly style: the distance the drag began at, scaled by `2 · (len / len₀ − 1) + 1`,
+    // `len` the pointer's height below the region's top plus 5 — up closes in, down backs away.
+    // The navigation cluster's Zoom button runs the same rule.
+    const dollyDown = controls._handleMouseDownDolly.bind(this.orbitControls);
+    const dollyMove = controls._handleMouseMoveDolly.bind(this.orbitControls);
+    let dolly: { len0: number; offset: THREE.Vector3; zoom0: number } | null = null;
+    controls._handleMouseDownDolly = (event) => {
+      dollyDown(event);
+      dolly = null;
+      if (activeKeymapNavigation().zoom?.drag !== 'dolly') return;
+      const top = this._canvas.getBoundingClientRect().top;
+      const camera = this.orbitControls.object;
+      dolly = {
+        len0: Math.max(5 + event.clientY - top, 1),
+        offset: camera.position.clone().sub(this.orbitControls.target),
+        zoom0: (camera as THREE.OrthographicCamera).zoom ?? 1,
+      };
+    };
+    controls._handleMouseMoveDolly = (event) => {
+      if (activeKeymapNavigation().zoom?.drag !== 'dolly' || !dolly) {
+        dollyMove(event);
+        return;
+      }
+      const top = this._canvas.getBoundingClientRect().top;
+      const factor = Math.max(0.01, 2 * ((5 + event.clientY - top) / dolly.len0 - 1) + 1);
+      const camera = this.orbitControls.object;
+      if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
+        (camera as THREE.OrthographicCamera).zoom = dolly.zoom0 / factor;
+        (camera as THREE.OrthographicCamera).updateProjectionMatrix();
+        // The orbit reports a change of pose, not of zoom.
+        this.orbitControls.dispatchEvent({ type: 'change' });
+      } else {
+        camera.position.copy(this.orbitControls.target).addScaledVector(dolly.offset, factor);
+      }
+      this.orbitControls.update();
+    };
+    // A touch rotate is a rotate too, for whoever ensures the projection when one starts.
+    const touchDown = controls._handleTouchStartRotate.bind(this.orbitControls);
+    controls._handleTouchStartRotate = (event) => {
+      for (const listener of [...this._rotateStartListeners]) listener();
+      touchDown(event);
+    };
+    const down = controls._handleMouseDownRotate.bind(this.orbitControls);
+    const move = controls._handleMouseMoveRotate.bind(this.orbitControls);
+    let drag: { x: number; y: number; reverse: number } | null = null;
+    controls._handleMouseDownRotate = (event) => {
+      down(event);
+      drag = null;
+      for (const listener of [...this._rotateStartListeners]) listener();
+      if (!activeKeymapNavigation().turntable) return;
+      const camera = this.orbitControls.object;
+      const viewUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+      drag = { x: event.clientX, y: event.clientY, reverse: viewUp.y < 0 ? -1 : 1 };
+    };
+    controls._handleMouseMoveRotate = (event) => {
+      const turntable = activeKeymapNavigation().turntable;
+      if (!turntable || !drag) {
+        move(event);
+        return;
+      }
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      drag.x = event.clientX;
+      drag.y = event.clientY;
+      this._turntableStep(dx, dy, drag.reverse, THREE.MathUtils.degToRad(turntable.degreesPerPixel));
+    };
+  }
+
+  private readonly _rotateStartListeners = new Set<() => void>([
+    // Auto Perspective on a stage that draws with the viewport's own projection (a document's
+    // session keeps its own and answers for it).
+    () => {
+      if (!activeKeymapNavigation().autoPerspective || this._projection !== 'orthographic') return;
+      const offset = this.camera.position.clone().sub(this.orbitControls.target);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+      if (axisViewName(offset, up) !== null) this.setProjection('perspective');
+    },
+  ]);
+
+  /**
+   * Called as a click on the navigation gizmo turns the view to an axis, newest first, until one
+   * answers `true`: the owner of the view's projection (a document's session; else the
+   * viewport's own), which Blender's `view3d.view_axis` makes orthographic under Auto Perspective.
+   */
+  private readonly _axisViewListeners: (() => boolean)[] = [
+    () => {
+      if (activeKeymapNavigation().autoPerspective) this.setProjection('orthographic');
+      return true;
+    },
+  ];
+
+  onAxisView(listener: () => boolean): () => void {
+    this._axisViewListeners.push(listener);
+    return () => {
+      const at = this._axisViewListeners.indexOf(listener);
+      if (at !== -1) this._axisViewListeners.splice(at, 1);
+    };
+  }
+
+  /** Called as a person's rotate drag begins, before its first step (a pan or a zoom is not
+   *  one): where Blender's rotate operator ensures its projection. */
+  onRotateStart(listener: () => void): () => void {
+    this._rotateStartListeners.add(listener);
+    return () => this._rotateStartListeners.delete(listener);
+  }
+
+  /**
+   * ONE STEP OF THE VIEW about the orbit's pivot, as Blender's numpad makes it
+   * (`view3d_navigate_view_orbit.cc`, `view3d_navigate_view_roll.cc`): an orbit of 15°
+   * (`pad_rot_angle`) about the world's up or the view's horizon, the opposite side (π about the
+   * up), or a roll of 15° about the view's axis. `viewquat · q` on Blender's world-to-view
+   * rotation is `q⁻¹` applied to the camera's. The projection stands: neither operator ensures
+   * perspective.
+   */
+  stepView(step: 'orbit-left' | 'orbit-right' | 'orbit-up' | 'orbit-down' | 'opposite' | 'roll-left' | 'roll-right'): void {
+    const camera = this.orbitControls.object;
+    const target = this.orbitControls.target;
+    const angle = THREE.MathUtils.degToRad(15);
+    const up = new THREE.Vector3(0, 1, 0);
+    const viewX = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    const viewZ = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+    const viewUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+    // A step ends a gizmo turn and any leftover inertia, and is a whole gesture to whoever
+    // follows the view (a camera lock writes it).
+    this._snapAnimating = false;
+    const pending = this.orbitControls as unknown as { _sphericalDelta: THREE.Spherical; _panOffset: THREE.Vector3 };
+    pending._sphericalDelta.set(0, 0, 0);
+    pending._panOffset.set(0, 0, 0);
+    this.orbitControls.dispatchEvent({ type: 'start' });
+    // The opposite of an axis view is the opposite axis at the same roll
+    // (`ED_view3d_axis_view_opposite`, `view_axis_roll` carried), which a turn about the up
+    // cannot reach from Top or Bottom.
+    if (step === 'opposite' && axisViewName(viewZ, viewUp) !== null) {
+      const axisUp = (direction: THREE.Vector3): THREE.Vector3 =>
+        direction.y > 0.5 ? new THREE.Vector3(0, 0, -1) : direction.y < -0.5 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+      const from = viewZ.clone().round();
+      const to = from.clone().negate();
+      const roll = axisUp(from).angleTo(viewUp) * Math.sign(axisUp(from).cross(viewUp).dot(from) || 1);
+      const rolledUp = axisUp(to).applyAxisAngle(to, roll);
+      const rotation = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(to, new THREE.Vector3(), rolledUp));
+      const distance = camera.position.distanceTo(target);
+      camera.quaternion.copy(rotation);
+      camera.position.copy(target).addScaledVector(to, distance);
+      camera.up.copy(rolledUp);
+      this.orbitControls.update();
+      this.orbitControls.dispatchEvent({ type: 'end' });
+      return;
+    }
+    const turn = new THREE.Quaternion();
+    switch (step) {
+      case 'orbit-left':
+        turn.setFromAxisAngle(up, -angle);
+        break;
+      case 'orbit-right':
+        turn.setFromAxisAngle(up, angle);
+        break;
+      case 'orbit-up':
+        turn.setFromAxisAngle(viewX, -angle);
+        break;
+      case 'orbit-down':
+        turn.setFromAxisAngle(viewX, angle);
+        break;
+      case 'opposite':
+        turn.setFromAxisAngle(up, Math.PI);
+        break;
+      case 'roll-left':
+        turn.setFromAxisAngle(viewZ, -angle);
+        break;
+      case 'roll-right':
+        turn.setFromAxisAngle(viewZ, angle);
+        break;
+    }
+    const rotation = turn.multiply(camera.quaternion).normalize();
+    const distance = camera.position.distanceTo(target);
+    camera.quaternion.copy(rotation);
+    camera.position.copy(target).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance);
+    camera.up.set(0, 1, 0).applyQuaternion(rotation);
+    this.orbitControls.update();
+    this.orbitControls.dispatchEvent({ type: 'end' });
+  }
+
+  /**
+   * ONE ZOOM STEP nearer (1) or farther (-1): the distance divided or multiplied by the keymap's
+   * step (`KeymapNavigation.zoom.step`; Blender's `view_zoom_apply_step` is 1.2), about the
+   * orbit's pivot, as a whole gesture (a camera lock writes it).
+   */
+  zoomStep(direction: 1 | -1): void {
+    const step = activeKeymapNavigation().zoom?.step ?? 1.2;
+    const factor = direction > 0 ? 1 / step : step;
+    const camera = this.orbitControls.object;
+    this.orbitControls.dispatchEvent({ type: 'start' });
+    if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
+      (camera as THREE.OrthographicCamera).zoom /= factor;
+      (camera as THREE.OrthographicCamera).updateProjectionMatrix();
+      // The orbit reports a change of pose, not of zoom.
+      this.orbitControls.dispatchEvent({ type: 'change' });
+    } else {
+      const target = this.orbitControls.target;
+      camera.position.sub(target).multiplyScalar(factor).add(target);
+    }
+    this.orbitControls.update();
+    this.orbitControls.dispatchEvent({ type: 'end' });
+  }
+
+  /** One turntable step of `dx`, `dy` CSS pixels (right and down positive). */
+  private _turntableStep(dx: number, dy: number, reverse: number, radiansPerPixel: number): void {
+    const camera = this.orbitControls.object;
+    const target = this.orbitControls.target;
+    const up = new THREE.Vector3(0, 1, 0);
+    const viewX = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    const viewZ = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+    const axis = new THREE.Vector3();
+    if (up.distanceToSquared(viewZ) > 0.001) {
+      axis.crossVectors(up, viewZ);
+      if (axis.dot(viewX) < 0) axis.negate();
+      const fac = ((Math.abs(up.angleTo(viewZ) / Math.PI - 0.5) * 2) ** 2);
+      axis.lerp(viewX, fac);
+    } else {
+      axis.copy(viewX);
+    }
+    if (axis.lengthSq() === 0) axis.copy(viewX);
+    axis.normalize();
+    // Blender's `viewquat · q_x · q_z` on the world-to-view rotation is, on the camera's own
+    // (view to world), the inverse pair applied the other side; its y runs up the screen.
+    const pitch = new THREE.Quaternion().setFromAxisAngle(axis, -radiansPerPixel * dy);
+    const spin = new THREE.Quaternion().setFromAxisAngle(up, -radiansPerPixel * reverse * dx);
+    const rotation = spin.multiply(pitch).multiply(camera.quaternion).normalize();
+    const distance = camera.position.distanceTo(target);
+    camera.quaternion.copy(rotation);
+    camera.position.copy(target).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance);
+    camera.up.set(0, 1, 0).applyQuaternion(rotation);
+    this.orbitControls.update();
+  }
+
   get cameraViewMode(): CameraViewMode | null {
     return this._cameraViewMode;
   }
@@ -2022,6 +2362,9 @@ export class EditorViewport {
       // legacy empty-transform corner brackets over that presentation creates
       // two competing selection languages and obscures the draggable handle.
       if ([...this._constraintHelpers.values()].some((helper) => helper.presents(obj))) continue;
+      // Nor over an object whose document draws its overlay itself, selection colour included
+      // (`userData.vgaiOwnOverlay`: a Blender camera, light or empty).
+      if (obj.userData['vgaiOwnOverlay']) continue;
       add(
         `selection:${id}`,
         new SelectionBrackets(obj, {
@@ -2248,7 +2591,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this._constraintControlRaycaster.setFromCamera(pointer, this.renderCamera);
+    this._constraintControlRaycaster.setFromCamera(pointer, this._screenCamera);
     const hit = this._constraintControlRaycaster.intersectObjects(candidates, false)[0]?.object;
     if (!hit) return null;
     for (const helper of this._constraintHelpers.values()) {
@@ -2415,7 +2758,10 @@ export class EditorViewport {
     }
   }
 
+  /** A light the editor draws a helper for: not one whose document draws its own overlay
+   *  (`userData.vgaiOwnOverlay`, the way `vgaiOwnMaterial` keeps a material its owner's). */
   private _nativeLight(object: THREE.Object3D): THREE.Light | null {
+    if (object.userData['vgaiOwnOverlay']) return null;
     return (object as THREE.Light).isLight ? (object as THREE.Light) : null;
   }
 
@@ -2593,6 +2939,7 @@ export class EditorViewport {
   }
 
   private _nativeCamera(object: THREE.Object3D): THREE.Camera | null {
+    if (object.userData['vgaiOwnOverlay']) return null;
     if ((object as THREE.Camera).isCamera) return object as THREE.Camera;
     const owned = getUserData(object, '_camera');
     return owned?.isCamera ? owned : null;
@@ -2619,7 +2966,7 @@ export class EditorViewport {
       // Hidden/on-demand captures can draw before the next viewport tick, so
       // handles need their screen-constant scale at creation as well as during
       // the ordinary update loop.
-      for (const handle of visuals.handles) scaleSpatialHandle(handle, this.renderCamera);
+      for (const handle of visuals.handles) scaleSpatialHandle(handle, this._screenCamera);
       for (const root of visuals.roots) this._scene.add(root);
       this._spatialHandleRoots.push(...visuals.roots);
       this._spatialHandleMeshes.push(...visuals.handles);
@@ -2633,7 +2980,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this._spatialHandleRaycaster.setFromCamera(pointer, this.renderCamera);
+    this._spatialHandleRaycaster.setFromCamera(pointer, this._screenCamera);
     const hit = this._spatialHandleRaycaster.intersectObjects(this._spatialHandleMeshes, false)[0];
     return (hit?.object as SpatialHandleMesh | undefined) ?? null;
   }
@@ -2644,7 +2991,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this._spatialHandleRaycaster.setFromCamera(pointer, this.renderCamera);
+    this._spatialHandleRaycaster.setFromCamera(pointer, this._screenCamera);
     const point = new THREE.Vector3();
     if (!this._spatialHandleRaycaster.ray.intersectPlane(this._spatialHandleDragPlane, point)) {
       return null;
@@ -3013,14 +3360,28 @@ export class EditorViewport {
     }
   }
 
+  /** A Ctrl/Cmd+middle drag under a keymap that orbits on the middle button zooms, as
+   *  Blender's does (`km_view3d`: `view3d.zoom` on Ctrl+MIDDLEMOUSE); OrbitControls would read
+   *  the modifier as pan. The middle button dollies for that one gesture. */
+  private _modifiedZoom = false;
+
   private readonly _onAltOrbitStart = (e: PointerEvent): void => {
+    if (e.button === 1 && (e.ctrlKey || e.metaKey) && activeKeymapNavigation().orbit === 'middle') {
+      this._modifiedZoom = true;
+      this.orbitControls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+    }
     if (e.altKey && e.button === 0) {
       this._altDragOrbit = true;
       this.orbitControls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
     }
   };
 
-  private readonly _onAltOrbitRelease = (): void => {
+  private readonly _onAltOrbitRelease = (event?: PointerEvent): void => {
+    // The zoom is the middle button's gesture, and ends with that button's release.
+    if (this._modifiedZoom && (!event || event.type === 'pointercancel' || event.button === 1)) {
+      this._modifiedZoom = false;
+      this.applyKeymapNavigation();
+    }
     if (this._altDragOrbit) {
       this._altDragOrbit = false;
       this.orbitControls.mouseButtons.LEFT = -1 as THREE.MOUSE;
@@ -3350,7 +3711,7 @@ export class EditorViewport {
 
   /**
    * Show (or clear with null) the editor-only helper of `kind` —
-   * `host.viewport.setHelper`'s implementation. The object joins the editor
+   * `setViewportHelper`'s implementation. The object joins the editor
    * scene as a scene-root helper (`editorHelper`, `editorHelperType = kind`)
    * and follows the Helpers menu's toggle for its kind.
    */
@@ -3371,8 +3732,14 @@ export class EditorViewport {
     this._helpers.set(kind, object);
   }
 
+  /** The helper groups on screen now (`setHelper`), for a pick that lets a helper stand for the
+   *  object it draws (`userData.vgaiPicksAs`). */
+  visibleHelpers(): THREE.Object3D[] {
+    return [...this._helpers.values()].filter((helper) => helper.visible && helper.parent !== null);
+  }
+
   /** Snap camera to a preset view direction, preserving current zoom distance. */
-  setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
+  setViewPreset(preset: 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left' | 'perspective'): void {
     if (this._projection === 'orthographic') this.setProjection('perspective');
     const target = this.orbitControls.target.clone();
     const distance = this.camera.position.distanceTo(target);
@@ -3388,29 +3755,66 @@ export class EditorViewport {
       case 'right':
         dir.set(1, 0, 0);
         break;
+      case 'bottom':
+        dir.set(0, -1, 0);
+        break;
+      case 'back':
+        dir.set(0, 0, -1);
+        break;
+      case 'left':
+        dir.set(-1, 0, 0);
+        break;
       case 'perspective':
         dir.set(1, 1, 1).normalize();
         break;
     }
 
     this.camera.position.copy(target).add(dir.multiplyScalar(distance));
+    // A preset has no roll; Top's screen up is the world's -Z and Bottom's +Z, as the session's.
+    if (preset === 'top') this.camera.up.set(0, 0, -1);
+    else if (preset === 'bottom') this.camera.up.set(0, 0, 1);
+    else this.camera.up.set(0, 1, 0);
     this.camera.lookAt(target);
     if (preset !== 'perspective') this.setProjection('orthographic');
     this.orbitControls.update();
+  }
+
+  /** The view's field of view (`ViewportCamera.fov`): the perspective angle and, at the same
+   *  distance, the orthographic view's size. */
+  setFieldOfView(fov: StageFieldOfView): void {
+    if (!Number.isFinite(fov.degrees) || fov.degrees <= 0 || fov.degrees >= 180) return;
+    if (fov.degrees === this._fieldOfView.degrees && fov.axis === this._fieldOfView.axis) return;
+    const halfAngle = (degrees: number) => Math.tan(THREE.MathUtils.degToRad(degrees * 0.5));
+    const before = halfAngle(this.camera.fov);
+    // The region's shape as it is now: a stage may state its view before the first resize.
+    if (this._canvas.clientWidth > 0 && this._canvas.clientHeight > 0) {
+      this._viewportAspect = this._canvas.clientWidth / this._canvas.clientHeight;
+      this.camera.aspect = this._viewportAspect;
+    }
+    this._fieldOfView = fov;
+    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, fov);
+    this.camera.updateProjectionMatrix();
+    // An orthographic view at the same distance scales with the angle, as Blender's does with its lens.
+    if (this._projection === 'orthographic') this._orthographicHeight *= halfAngle(this.camera.fov) / before;
+    this._applyOrthographicFrustum();
   }
 
   /**
    * Move the camera to an arbitrary position/target/fov pose — the general
    * case `setViewPreset`/`focusOn` don't cover (an exact xyz position, not a
    * preset direction or a computed frame-to-fit). Backs the `set-camera`
-   * relay command (`editor.viewport.camera.set`'s free-pose mode).
+   * relay command (`editor.viewport.camera.set`'s free-pose mode). `up` is the screen's up; a
+   * pose that states none is level, whatever roll the view had.
    */
   setPose(
     position: { x: number; y: number; z: number },
     target: { x: number; y: number; z: number },
     fov?: number,
+    up?: { x: number; y: number; z: number },
   ): void {
     this.setProjection('perspective');
+    if (up) this.camera.up.set(up.x, up.y, up.z);
+    else this.camera.up.set(0, 1, 0);
     this.camera.position.set(position.x, position.y, position.z);
     this.orbitControls.target.set(target.x, target.y, target.z);
     this.camera.lookAt(this.orbitControls.target);
@@ -3425,9 +3829,8 @@ export class EditorViewport {
   resize(width: number, height: number): void {
     this._viewportAspect = Math.max(1, width) / Math.max(1, height);
     this.camera.aspect = this._viewportAspect;
-    // Blender holds the LENS, not the vertical angle: a wider panel sees no
-    // more world sideways, a shorter one sees less vertically.
-    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect);
+    // The view's angle stays on its own side of the region as the region reshapes.
+    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, this._fieldOfView);
     this.camera.updateProjectionMatrix();
     this._applyOrthographicFrustum();
     // A look-stated gizmo size is in PIXELS, so the conversion to three's
@@ -3472,7 +3875,9 @@ export class EditorViewport {
       this.freeCamera.position
         .copy(this.orbitControls.target)
         .add(dir.multiplyScalar(this._snapDist));
-      this.freeCamera.lookAt(this.orbitControls.target);
+      // The whole orientation turns, roll with it; the orbit's next re-aim keeps it on `up`.
+      this.freeCamera.quaternion.copy(qt);
+      this.freeCamera.up.set(0, 1, 0).applyQuaternion(qt);
 
       if (t >= 1) this._snapAnimating = false;
     }
@@ -3506,7 +3911,7 @@ export class EditorViewport {
     for (const helper of this._reflectionProbeHelpers.values()) helper.update();
     for (const helper of this._triggerVolumeHelpers.values()) helper.update();
     for (const { helper } of this._cameraHelpers.values()) helper.update();
-    for (const handle of this._spatialHandleMeshes) scaleSpatialHandle(handle, this.renderCamera);
+    for (const handle of this._spatialHandleMeshes) scaleSpatialHandle(handle, this._screenCamera);
 
     this._enforceLodForcedLevels();
     this.alignGridToView(this.renderCamera, this._renderer?.domElement.width ?? 1);
@@ -3710,11 +4115,12 @@ export class EditorViewport {
     this._paintLookGrid();
     this._lookAxisHexes = [look.axisX, look.axisY, look.axisZ];
     if (this._axisLines) {
-      (this._axisLines.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
+      (this._axisLines.material as LineMaterial).linewidth = this._axisLineCss(look.axisLineWidth);
     }
     if (this._verticalAxisLine) {
-      (this._verticalAxisLine.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
+      (this._verticalAxisLine.material as LineMaterial).linewidth = this._axisLineCss(look.axisLineWidth);
     }
+    this._axisLineWidth = look.axisLineWidth;
     this._rebuildAxisLines();
     if (look.background !== null) {
       const current = this._scene.background;
@@ -3764,6 +4170,7 @@ export class EditorViewport {
       // and it has no content bounds to stand a floor under.
       if (this._renderer) rig.apply(presentation, this._renderer, undefined, { tone: false, sky: false, floor: false });
       this.setStageFunction(presentation.world, presentation.interaction);
+      this.setFieldOfView(presentation.camera.fov);
       this.setSelectionMarks(presentation.overlays.selection);
       this.setGridMajorEvery(presentation.overlays.grid.majorEvery);
       this.setAxisLines(presentation.overlays.axes);
@@ -3817,6 +4224,9 @@ export class EditorViewport {
       camera.getWorldDirection(_gridView);
       const components = [Math.abs(_gridView.x), Math.abs(_gridView.y), Math.abs(_gridView.z)];
       axis = components.findIndex((value) => value > 1 - 1e-4);
+      // An axis view is one at a quarter-turn of roll (`RV3D_VIEW_IS_AXIS`); any other roll is a
+      // User view, which draws the floor.
+      if (axis !== -1 && !isQuarterTurnUp(_gridEye.set(0, 1, 0).applyQuaternion(camera.getWorldQuaternion(_gridQuat)))) axis = -1;
     }
     normal.set(axis === 0 ? 1 : 0, axis === -1 || axis === 1 ? 1 : 0, axis === 2 ? 1 : 0);
     this.grid.quaternion.setFromUnitVectors(_gridUp, normal);
@@ -3863,6 +4273,13 @@ export class EditorViewport {
     }
     uniforms['uUnit']!.value = unit;
     uniforms['uMinorFade']!.value = minorFade;
+    uniforms['uAligned']!.value = axis === -1 ? 0 : 1;
+    // Blender's axis lines in an aligned view are one pixel too (the same \`GRID_ALIGNED\` rule).
+    const axisWidth = this._axisLineCss(axis === -1 ? this._axisLineWidth : 1);
+    for (const line of [this._axisLines, this._verticalAxisLine]) {
+      const material = line?.material as LineMaterial | undefined;
+      if (material && material.linewidth !== axisWidth) material.linewidth = axisWidth;
+    }
   }
 
   /** Minor cells per major line (`overlays.grid.majorEvery`; Blender 10, Godot 8). */
@@ -4009,6 +4426,7 @@ export class EditorViewport {
   }
 
   dispose(): void {
+    this._unsubscribeKeymap();
     this._disposed = true;
     this._unsubscribeSelectionTheme();
     if (this._verticalAxisLine) {
@@ -4134,7 +4552,7 @@ export class EditorViewport {
 
   private _initOrientationGizmo(): void {
     const form = this._gizmoLook.navigationForm;
-    if (form !== 'balls') {
+    if (form !== 'balls' && form !== 'godot') {
       this._initNavigationForm(form);
       return;
     }
@@ -4159,36 +4577,39 @@ export class EditorViewport {
       // The look's navigation colours, else its axis colours, else the editor's own.
       const lookAxes = this._gizmoLook.navigation ?? this._gizmoLook.axes;
       const color =
-        lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
+        lookAxes === null ? new THREE.Color(...KIT_GIZMO_AXIS_RGB[sourceAxis]!) : new THREE.Color(lookAxes[sourceAxis]!);
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
 
-      // The stalk, positive side only — Blender draws no stalk behind.
-      const stalk = new THREE.Mesh(
-        new THREE.CylinderGeometry(stalkRadius, stalkRadius, stalkUnits, 8),
-        new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false }),
-      );
-      stalk.position.copy(axis).multiplyScalar(stalkUnits / 2);
-      stalk.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
-      this._vcScene.add(stalk);
-      this._vcStalks.push({ mesh: stalk, direction: axis.clone() });
-
       for (const sign of [1, -1] as const) {
         const direction = axis.clone().multiplyScalar(sign);
-        const ball = new THREE.Sprite(
-          new THREE.SpriteMaterial({
-            map: compassBallTexture(color, sign > 0 ? letter : null),
-            transparent: true,
-            depthTest: false,
-          }),
+        // The stalk to each ball: Blender draws the positive ones always and all six when the
+        // view looks straight down an axis (`_syncOrientationGizmoDepth`).
+        const stalk = new THREE.Mesh(
+          new THREE.CylinderGeometry(stalkRadius, stalkRadius, stalkUnits, 8),
+          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false, toneMapped: false }),
         );
-        ball.position.copy(direction).multiplyScalar(stalkUnits);
-        ball.scale.setScalar(ballUnits);
-        this._vcScene.add(ball);
-        this._vcBalls.push({ sprite: ball, direction: direction.clone(), positive: sign > 0 });
+        stalk.position.copy(direction).multiplyScalar(stalkUnits / 2);
+        stalk.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        this._vcScene.add(stalk);
+        this._vcStalks.push({ mesh: stalk, direction: direction.clone(), positive: sign > 0, color });
+
+        // Three sprites per ball — its fill, its ring, its letter — all white and tinted per frame,
+        // because Blender computes each colour from the ball's depth every draw.
+        const sprite = (map: THREE.Texture) => {
+          const made = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthTest: false, toneMapped: false }));
+          made.position.copy(direction).multiplyScalar(stalkUnits);
+          made.scale.setScalar(ballUnits);
+          this._vcScene.add(made);
+          return made;
+        };
+        const fill = sprite(compassDiscTexture());
+        const ring = sprite(compassRingTexture());
+        const glyph = sprite(compassGlyphTexture(sign > 0 ? letter : `-${letter}`));
+        this._vcBalls.push({ fill, ring, letter: glyph, direction: direction.clone(), positive: sign > 0, axis: i, color });
 
         const target = new THREE.Mesh(targetGeo, targetMat);
-        target.position.copy(ball.position);
+        target.position.copy(fill.position);
         // 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z — THREE's directions, because
         // what this does is point the camera down a direction in the scene,
         // which is a fact about the stage and not about what the axis is
@@ -4216,7 +4637,7 @@ export class EditorViewport {
     const lookAxes = this._gizmoLook.navigation ?? this._gizmoLook.axes;
     const letterSprite = (color: THREE.Color, letter: string, at: THREE.Vector3, px: number) => {
       const sprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({ map: compassLetterTexture(color, letter), transparent: true, depthTest: false }),
+        new THREE.SpriteMaterial({ map: compassLetterTexture(color, letter), transparent: true, depthTest: false, toneMapped: false }),
       );
       sprite.position.copy(at);
       sprite.scale.setScalar(px / perUnit);
@@ -4226,7 +4647,7 @@ export class EditorViewport {
     for (let i = 0; i < 3; i++) {
       const [sourceAxis, positive] = this._stageAxisFrame[i]!;
       const color =
-        lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
+        lookAxes === null ? new THREE.Color(...KIT_GIZMO_AXIS_RGB[sourceAxis]!) : new THREE.Color(lookAxes[sourceAxis]!);
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
       if (form === 'triad') {
@@ -4237,7 +4658,7 @@ export class EditorViewport {
         const radius = (COMPASS_STALK_WIDTH_PX * Math.sqrt(scale)) / perUnit / 2;
         const line = new THREE.Mesh(
           new THREE.CylinderGeometry(radius, radius, length, 6),
-          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false }),
+          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false, toneMapped: false }),
         );
         line.position.copy(axis).multiplyScalar(length / 2);
         line.quaternion.setFromUnitVectors(up, axis);
@@ -4254,6 +4675,7 @@ export class EditorViewport {
             color: sign > 0 ? color : new THREE.Color(0xd9d9d9),
             transparent: true,
             depthTest: false,
+            toneMapped: false,
           }),
         );
         cone.position.copy(direction).multiplyScalar(19 / perUnit);
@@ -4269,7 +4691,7 @@ export class EditorViewport {
     if (form === 'cones') {
       const cube = new THREE.Mesh(
         new THREE.BoxGeometry(11 / perUnit, 11 / perUnit, 11 / perUnit),
-        new THREE.MeshBasicMaterial({ color: 0xbdbdbd, transparent: true, depthTest: false }),
+        new THREE.MeshBasicMaterial({ color: 0xbdbdbd, transparent: true, depthTest: false, toneMapped: false }),
       );
       cube.renderOrder = 50;
       this._vcScene.add(cube);
@@ -4287,32 +4709,132 @@ export class EditorViewport {
   private _syncOrientationGizmoDepth(): void {
     const perUnit = COMPASS_BOX_PX / 3;
     const view = this._vcDir.copy(this._vcCamera.position).normalize();
-    for (const { sprite, direction, positive } of this._vcBalls) {
-      const facing = (direction.dot(view) + 1) / 2; // 0 away, 1 toward
-      const material = sprite.material as THREE.SpriteMaterial;
-      // The negative ring's strength, measured on the reference's three rings
-      // against the axis colour its positive ball is filled with: facing 0.09
-      // -> 0.56, 0.28 -> 0.72, 0.68 -> 1.29. The back ring is HALF-STRENGTH,
-      // not "barely tinted" (this line read 0.25 there). The front is 1.29,
-      // i.e. Blender's ring is drawn in a colour BRIGHTER than its ball's
-      // fill — that needs a second axis colour, so it is left at full and
-      // recorded rather than guessed.
-      material.opacity = positive ? 1 : 0.56 + facing * 0.44;
-      // And the ball's SIZE, on the same quantity: an orthographic gizmo
-      // camera gives no depth scale for free, and Blender's six balls measure
-      // a straight line in `facing` (the fit is in the box's docblock).
-      sprite.scale.setScalar(
-        (COMPASS_BALL_BACK_PX + COMPASS_BALL_DEPTH_GAIN_PX * facing) / perUnit,
-      );
-      sprite.renderOrder = 10 + Math.round(facing * 100);
+    // BLENDER'S COLOURS, computed as `view3d_gizmo_navigate_type.cc` computes them each draw:
+    // a ball's colour is its axis colour mixed with the viewport's background by its depth
+    // (`fading_color`: `(depth + 1) · 0.25 + 0.5`), a negative ball a 25% tint of it ringed in
+    // that colour, and a view looking straight down an axis (`axis_align`) hides that axis's far
+    // ball, fills its near negative one (ringed halfway to white) and letters it `-Y`. Checked
+    // against both reference frames: the default view's +X fill (245,54,81) is this mix at depth
+    // 0.82, the front view's (204,55,78) at depth 0.
+    if (this._gizmoLook.navigationForm === 'godot') {
+      this._syncGodotNavigation(view);
+      return;
     }
-    for (const { mesh, direction } of this._vcStalks) {
-      const facing = (direction.dot(view) + 1) / 2;
-      (mesh.material as THREE.MeshBasicMaterial).opacity = 0.35 + facing * 0.65;
-      mesh.renderOrder = Math.round(facing * 100);
+    const background = new THREE.Color(this._gizmoLook.background ?? 0x3d3d3d);
+    const white = new THREE.Color(1, 1, 1);
+    // Blender mixes its theme's display values, so the mix is done in sRGB, not three's linear.
+    const mix = (a: THREE.Color, b: THREE.Color, t: number, out: THREE.Color): THREE.Color => {
+      const x = a.getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+      const y = b.getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+      return out.setRGB(x.r + (y.r - x.r) * t, x.g + (y.g - x.g) * t, x.b + (y.b - x.b) * t, THREE.SRGBColorSpace);
+    };
+    let aligned = -1;
+    // Blender's test: the axis's in-plane length squared under 1e-6 (`axis_align`).
+    for (const { direction, axis } of this._vcBalls) if (1 - direction.dot(view) ** 2 < 1e-6) aligned = axis;
+    const scratch = new THREE.Color();
+    const black = new THREE.Color(0, 0, 0);
+    for (const { fill, ring, letter, direction, positive, axis, color } of this._vcBalls) {
+      const depth = direction.dot(view);
+      const facing = (depth + 1) / 2; // 0 away, 1 toward
+      const behind = depth <= 0.01 * (positive ? -1 : 1);
+      const alignedFront = axis === aligned && !behind;
+      const alignedBack = axis === aligned && behind;
+      const fading = mix(background, color, (depth + 1) * 0.25 + 0.5, new THREE.Color());
+      const fillMaterial = fill.material as THREE.SpriteMaterial;
+      const ringMaterial = ring.material as THREE.SpriteMaterial;
+      const letterMaterial = letter.material as THREE.SpriteMaterial;
+      const fade = Math.min(depth + 1, 1);
+      if (positive || alignedFront) {
+        fillMaterial.color.copy(fading);
+        fillMaterial.opacity = 1;
+      } else {
+        fillMaterial.color.copy(mix(background, color, 0.25, scratch));
+        fillMaterial.opacity = fade;
+      }
+      if (!positive && alignedFront) {
+        ringMaterial.color.copy(mix(white, color, 0.5, scratch));
+        ringMaterial.opacity = fade;
+      } else {
+        ringMaterial.color.copy(fading);
+        ringMaterial.opacity = 1;
+      }
+      // The letter's ink is the fill darkened, as measured on Blender's frames (0.356; Blender
+      // draws it black at 0.9 over a small glyph, and this is what that reads as).
+      letterMaterial.color.copy(mix(black, fillMaterial.color, COMPASS_LETTER_INK, scratch));
+      fill.visible = !alignedBack;
+      ring.visible = !alignedBack;
+      letter.visible = (positive || axis === aligned) && !alignedBack;
+      // The ball's SIZE, on the same quantity: an orthographic gizmo camera gives no depth scale
+      // for free, and Blender's six balls measure a straight line in `facing` (the fit is in the
+      // box's docblock).
+      const scale = (COMPASS_BALL_BACK_PX + COMPASS_BALL_DEPTH_GAIN_PX * facing) / perUnit;
+      const order = 10 + Math.round(facing * 100) * 3;
+      for (const [part, rank] of [[fill, 0], [ring, 1], [letter, 2]] as const) {
+        part.scale.setScalar(scale);
+        part.renderOrder = order + rank;
+      }
+    }
+    for (const { mesh, direction, positive, color } of this._vcStalks) {
+      const depth = direction.dot(view);
+      const facing = (depth + 1) / 2;
+      // Blender's line runs from `middle_color` (0.75) at the centre to `fading_color` at the
+      // ball; one colour per stalk here, their mean.
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      mix(background, color, (0.75 + (depth + 1) * 0.25 + 0.5) / 2, material.color);
+      material.opacity = 1;
+      mesh.visible = positive || aligned !== -1;
+      // On the balls' scale, just under the ball it leads to, so depth sorts stalk and ball together.
+      mesh.renderOrder = 10 + Math.round(facing * 100) * 3 - 1;
     }
     for (const { mesh, direction } of this._vcSolids) {
       mesh.renderOrder = Math.round(((direction.dot(view) + 1) / 2) * 100);
+    }
+  }
+
+  /**
+   * GODOT'S BALLS, as `ViewportRotationControl::_draw_axis` (`node_3d_editor_plugin.cpp`, 4.4)
+   * draws them: every ball in its axis colour at an opacity of `remap((z + 1) / 2, 0, 0.5, 0.35,
+   * 1)`; a positive ball filled, with its stalk and a black letter at 0.6 of that opacity; a
+   * negative one a disc whose inner 0.8 is the colour darkened by 0.4, which is the soft light
+   * rim of its frames. One size for every ball (`AXIS_CIRCLE_RADIUS` 8), and no axis-aligned
+   * rule.
+   */
+  private _syncGodotNavigation(view: THREE.Vector3): void {
+    const perUnit = COMPASS_BOX_PX / 3;
+    const scale = 16 / perUnit;
+    const dark = (color: THREE.Color): THREE.Color => {
+      const c = color.getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+      return new THREE.Color().setRGB(c.r * 0.6, c.g * 0.6, c.b * 0.6, THREE.SRGBColorSpace);
+    };
+    for (const { fill, ring, letter, direction, positive, color } of this._vcBalls) {
+      const facing = (direction.dot(view) + 1) / 2;
+      const alpha = Math.min(1, 0.35 + (facing / 0.5) * 0.65);
+      const fillMaterial = fill.material as THREE.SpriteMaterial;
+      const ringMaterial = ring.material as THREE.SpriteMaterial;
+      const letterMaterial = letter.material as THREE.SpriteMaterial;
+      fillMaterial.color.copy(positive ? color : dark(color));
+      fillMaterial.opacity = alpha;
+      ringMaterial.color.copy(color);
+      ringMaterial.opacity = alpha;
+      letterMaterial.color.setRGB(0, 0, 0);
+      letterMaterial.opacity = alpha * 0.6;
+      fill.visible = true;
+      ring.visible = true;
+      letter.visible = positive;
+      const order = 10 + Math.round(facing * 100) * 3;
+      for (const [part, rank] of [[fill, 0], [ring, 1], [letter, 2]] as const) {
+        part.scale.setScalar(scale);
+        part.renderOrder = order + rank;
+      }
+    }
+    for (const { mesh, direction, positive, color } of this._vcStalks) {
+      const facing = (direction.dot(view) + 1) / 2;
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      material.color.copy(color);
+      material.opacity = Math.min(1, 0.35 + (facing / 0.5) * 0.65);
+      mesh.visible = positive;
+      // On the balls' scale, just under the ball it leads to, so depth sorts stalk and ball together.
+      mesh.renderOrder = 10 + Math.round(facing * 100) * 3 - 1;
     }
   }
 
@@ -4392,15 +4914,21 @@ export class EditorViewport {
 
     const dirIdx = getUserData(hits[0]!.object, 'vcDirIdx') as number;
     const targetDir = VC_DIRS[dirIdx]!;
+    // Whoever owns the view's projection answers for an axis view first (Blender's
+    // `view3d.view_axis`, which the gizmo's balls run: orthographic under Auto Perspective).
+    for (const listener of [...this._axisViewListeners].reverse()) if (listener()) break;
+    // A drag's leftover inertia would carry the view off the axis once the turn ends.
+    const pending = this.orbitControls as unknown as { _sphericalDelta: THREE.Spherical; _panOffset: THREE.Vector3 };
+    pending._sphericalDelta.set(0, 0, 0);
+    pending._panOffset.set(0, 0, 0);
 
-    // Set up slerp animation
-    const startDir = new THREE.Vector3()
-      .subVectors(this.freeCamera.position, this.orbitControls.target)
-      .normalize();
-
+    // The view turns to the axis's own orientation, with no roll: Top's screen up is the world's
+    // -Z, Bottom's +Z, the rest the world's up (`ED_view3d_quat_from_axis_view`, roll 0).
+    const up =
+      targetDir.y > 0.5 ? new THREE.Vector3(0, 0, -1) : targetDir.y < -0.5 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
     this._snapDist = this.freeCamera.position.distanceTo(this.orbitControls.target);
-    this._snapQ1.setFromUnitVectors(new THREE.Vector3(0, 0, 1), startDir);
-    this._snapQ2.setFromUnitVectors(new THREE.Vector3(0, 0, 1), targetDir);
+    this._snapQ1.copy(this.freeCamera.quaternion);
+    this._snapQ2.setFromRotationMatrix(new THREE.Matrix4().lookAt(targetDir, new THREE.Vector3(), up));
     this._snapStartTime = performance.now();
     this._snapAnimating = true;
 
@@ -4709,7 +5237,7 @@ export class EditorViewport {
     targets: { obj: THREE.Object3D; startPos: THREE.Vector3 }[],
   ): void {
     const entityPos = gizmoObj.position;
-    const projected = entityPos.clone().project(this.renderCamera);
+    const projected = entityPos.clone().project(this._screenCamera);
     const rect = this._canvas.getBoundingClientRect();
     const entityScreenX = ((projected.x + 1) / 2) * rect.width;
     const entityScreenY = ((-projected.y + 1) / 2) * rect.height;
@@ -4718,7 +5246,7 @@ export class EditorViewport {
     let bestVertex: THREE.Vector3 | null = null;
 
     for (const vert of this._vertexSnapTargets) {
-      const vs = vert.clone().project(this.renderCamera);
+      const vs = vert.clone().project(this._screenCamera);
       // Skip vertices behind camera
       if (vs.z > 1) continue;
       const vertScreenX = ((vs.x + 1) / 2) * rect.width;
@@ -4741,7 +5269,7 @@ export class EditorViewport {
       this._vertexSnapIndicator.position.copy(bestVertex);
       this._vertexSnapIndicator.visible = true;
       // Constant screen size for indicator
-      const dist = bestVertex.distanceTo(this.renderCamera.position);
+      const dist = bestVertex.distanceTo(this._screenCamera.position);
       this._vertexSnapIndicator.scale.setScalar(dist * 0.008);
     } else {
       this._vertexSnapIndicator.visible = false;
@@ -4837,7 +5365,9 @@ export class EditorViewport {
     const size =
       perThreeUnit === null
         ? 1
-        : this.freeCamera instanceof THREE.OrthographicCamera
+        : // By the camera the gizmos draw with (`setGizmoCamera`), whose projection decides
+          // TransformControls' own sizing.
+          (this.transformControls.camera as THREE.OrthographicCamera).isOrthographicCamera
           ? (4 * perThreeUnit) / height
           : perThreeUnit / (0.2375 * height);
     for (const controls of this._allGizmos()) controls.size = size;
@@ -5407,7 +5937,7 @@ export class EditorViewport {
   private _projectToScreen(obj: THREE.Object3D): THREE.Vector2 {
     const pos = new THREE.Vector3();
     obj.getWorldPosition(pos);
-    pos.project(this.renderCamera);
+    pos.project(this._screenCamera);
     const rect = this._canvas.getBoundingClientRect();
     return new THREE.Vector2(
       ((pos.x + 1) / 2) * rect.width + rect.left,
@@ -5580,7 +6110,7 @@ export class EditorViewport {
         this._transformEnabledBeforeHandleDrag = this.transformControls.enabled;
         this.orbitControls.enabled = false;
         for (const controls of this._allGizmos()) controls.enabled = false;
-        const cameraDirection = this.renderCamera.getWorldDirection(new THREE.Vector3());
+        const cameraDirection = this._screenCamera.getWorldDirection(new THREE.Vector3());
         this._spatialHandleDragPlane.setFromNormalAndCoplanarPoint(cameraDirection, mesh.position);
         this._spatialHandleDragOffset.set(0, 0, 0);
         const pointerPoint = this._spatialHandleWorldPoint(e);
@@ -5748,6 +6278,9 @@ export class EditorViewport {
         // case where the two differ.
         const touch = this._stageBoxSelect === 'touch';
         const rect = this._canvas.getBoundingClientRect();
+        // Through the camera on screen: an orthographic document view or a camera view draws with
+        // its own, and a rectangle means what the person sees.
+        const screenCamera = this._screenCamera;
         let inside = true;
         let minX = Number.POSITIVE_INFINITY;
         let maxX = Number.NEGATIVE_INFINITY;
@@ -5759,7 +6292,7 @@ export class EditorViewport {
             cornerIndex & 2 ? bounds.max.y : bounds.min.y,
             cornerIndex & 4 ? bounds.max.z : bounds.min.z,
           );
-          corner.project(this.camera);
+          corner.project(screenCamera);
           if (corner.z < -1 || corner.z > 1) {
             inside = false;
             if (!touch) break;
@@ -5926,7 +6459,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this.raycaster.setFromCamera(mouse, this.renderCamera);
+    this.raycaster.setFromCamera(mouse, this._screenCamera);
     const basis = presentationRegionBasis('three');
     this._groundPlane.set(
       basis.up === 'z' ? UP_Z : UP_Y,

@@ -34,7 +34,7 @@
  * five WebGL2 draw entry points on whatever real context it is handed and knows
  * nothing about three — so it is reused verbatim over the captured Pixi
  * renderer's own `gl`. The bracket is the renderer's own published seam, its
- * `prerender`/`postrender` runners (`@volter/game-runtime/pixi/render-pass-bracket`).
+ * `prerender`/`postrender` runners (`@volter/editor-game/runtime/pixi/render-pass-bracket`).
  *
  * What is NOT there is per-draw attribution, and it is absent for a structural
  * reason rather than a missing patch point: three calls `onBeforeRender` on the
@@ -56,21 +56,21 @@
  */
 
 import { adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
-import { createContractDebugAdapter } from '@volter/game-runtime/adapter/ingest/contract-debug-adapter';
+import { createContractDebugAdapter } from '../runtime/adapter/ingest/contract-debug-adapter';
 import {
   type ContractSurface,
   projectContractSystemAdapters,
-} from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
-import { mergeDebugAdapters } from '@volter/game-runtime/adapter/ingest/merge-debug-adapters';
-import { createObservationDebugAdapter } from '@volter/game-runtime/adapter/ingest/observation-debug-adapter';
+} from '../runtime/adapter/ingest/contract-system-adapters';
+import { mergeDebugAdapters } from '../runtime/adapter/ingest/merge-debug-adapters';
+import { createObservationDebugAdapter } from '../runtime/adapter/ingest/observation-debug-adapter';
 import {
   createRenderDebugAdapter,
   frameCaptureContextFor,
   type RenderDebugWiring,
-} from '@volter/game-runtime/dev/render-debug-adapter';
-import { collectRenderMemory } from '@volter/game-runtime/dev/render-memory';
-import { createWebGLFrameCapture } from '@volter/game-runtime/dev/webgl-frame-capture';
-import { pixiRenderingContext } from '@volter/game-runtime/pixi/render-pass-bracket';
+} from '../runtime/dev/render-debug-adapter';
+import { collectRenderMemory } from '../runtime/dev/render-memory';
+import { createWebGLFrameCapture } from '../runtime/dev/webgl-frame-capture';
+import { pixiRenderingContext } from '../runtime/pixi/render-pass-bracket';
 import type { ObservationDeclaration } from '@volter/editor-project/adapter/adapter-module';
 import type { VgaiGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
@@ -197,7 +197,7 @@ export interface IngestSystemsWiring {
  * Four sources, each with a different provenance:
  *  - `debug` — projected from the contract's own `commands`/`state`;
  *  - `debug`, AGAIN — projected from the loaded ADAPTER's observation
- *    declarations (`@volter/game-runtime/adapter/ingest/observation-debug-adapter`).
+ *    declarations (`@volter/editor-game/runtime/adapter/ingest/observation-debug-adapter`).
  *    These two are peers onto ONE slot, so they are MERGED
  *    (`merge-debug-adapters.ts`) rather than layered: a name declared by both
  *    is refused by a coded error naming both sources, never shadowed;

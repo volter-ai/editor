@@ -3,9 +3,31 @@
  * viewport-presentation`): this package builds the `model` stage, so it states the stage's
  * function there, beneath every person's choice and never in the look (ARCHITECTURE.md rule 7).
  */
-import { DOCUMENT_STUDIO_PRESET, registerStartingPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import {
+  DOCUMENT_STUDIO_PRESET,
+  registerStartingPresentation,
+  type ViewportCamera,
+} from '@volter/editor-sdk/kit/viewport-presentation';
+
+/**
+ * A 3D View's field of view for its lens, as Blender computes it (`BKE_camera_params_from_view3d`,
+ * `BKE_camera_params_compute_viewplane`): the 36 mm sensor over the lens, times the viewport's
+ * `CAMERA_PARAM_ZOOM_INIT_PERSP` of 2, held on the region's LARGER side (sensor fit AUTO) — so a
+ * wider panel sees no more world sideways and a shorter one sees less vertically. The same zoom
+ * scales an orthographic view's `dist * sensor / lens`, so the two projections agree at the pivot.
+ */
+export function blenderViewFieldOfView(lens: number): ViewportCamera['fov'] {
+  const safeLens = Number.isFinite(lens) && lens > 0 ? lens : 50;
+  return { degrees: (2 * Math.atan((36 * 2) / (2 * safeLens)) * 180) / Math.PI, axis: 'larger' };
+}
 
 const release = registerStartingPresentation('model', {
+  // BLENDER'S VIEW: the factory `View3D.lens` of 50 mm (read back from Blender 5.2), a 71.5°
+  // angle on the larger side; and its default user perspective, elevation 26.5° and azimuth
+  // −23.8° about the up axis, SOLVED from the reference's two floor axes (projected slopes
+  // +1.0093 for X and −0.1969 for Y in `modeling-edit-none.png`), in three's Y-up frame. A file's
+  // own saved view and lens are its document's (`blender-runtime.document.tsx`).
+  camera: { fov: blenderViewFieldOfView(50), opening: [0.8187, 0.4458, 0.3617] },
   interaction: {
     // BLENDER'S SHELF OPENS ON SELECT BOX, so a selected object carries no transform gizmo until
     // one of the four transform tools is armed (`space_toolsystem_toolbar.py`:
@@ -23,9 +45,25 @@ const release = registerStartingPresentation('model', {
   // `studiolight_*` for Material Preview, and Rendered lights by the scene). So they are stated per
   // draw mode, and a person's Lighting choice is the current mode's (`stageLightsPerMode`).
   // SOLID (`clay`, and Wireframe with it) is lit by Blender's four studio lights, the document's
-  // view-locked studio.
-  all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } },
+  // view-locked studio, and drawn under STANDARD: Blender gives Solid the display's default view
+  // and none of the scene's settings (`draw_color_management.cc`, `ViewTransform`), and the sRGB
+  // display's default is Standard (`config.ocio`). Blender 5.2's Workbench under Standard gives
+  // the factory cube 142 / 131 / 112 in the default view and 162 on the front face, agreeing with
+  // the viewport's own frames (141 / 129 / 111, 161). The scene's AgX is the two modes' below.
+  all: {
+    lighting: {
+      source: 'studio',
+      studioPreset: DOCUMENT_STUDIO_PRESET.id,
+      auto: null,
+      tone: { mapper: 'none', exposure: 1 },
+    },
+    // X-Ray per shading type, read back from Blender 5.2's factory View3DShading: Solid's off at
+    // 0.5 (`show_xray`, `xray_alpha`), Wireframe's on at 0 (`show_xray_wireframe`,
+    // `xray_alpha_wireframe`) — a wireframe with no surface.
+    xray: { enabled: false, alpha: 0.5 },
+  },
   modes: {
+    wireframe: { xray: { enabled: true, alpha: 0 } },
     // MATERIAL PREVIEW: the scene lit by a world studio light alone, Forest at strength 1 and
     // rotation 0, fixed in the world, drawn over the viewport's own colour, in AgX. Read from
     // Blender 5.2's factory View3DShading: `studio_light` Default (forest.exr),

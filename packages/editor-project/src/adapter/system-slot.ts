@@ -78,8 +78,7 @@ import type { VgaiGameSystemEmpty } from './ingest/game-contract';
  *
  * ```ts
  * export const systems = {
- *   audio: sfxAudioSystem(),
- *   physics: rapierPhysicsSystem(),
+ *   navigation: createNavigationAdapter(navigation),
  *   networking: absent('single-player: no Colyseus client anywhere in `src/`'),
  * };
  * ```
@@ -147,7 +146,7 @@ export type SystemSlotMembers<T> = {
 export interface SystemSlotConfig<T extends object> {
   /**
    * The slot's own name, used as the prefix of every refusal so a stack-less
-   * error still names the seam (`'networkingSystem'`, `'rapierPhysicsSystem'`).
+   * error still names the seam (`'networkingSystem'`).
    */
   readonly name: string;
   /**

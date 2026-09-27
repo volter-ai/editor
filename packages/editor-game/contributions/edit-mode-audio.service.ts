@@ -10,8 +10,8 @@
  *
  * It was `components/EditModeAudioBootstrap.tsx`, a component that rendered
  * `null` so the shell's layout could run an effect, and through it the host
- * imported `@volter/game-runtime/setup/setup-audio`, `@volter/game-runtime/audio/bus-mixer` and
- * `@volter/game-runtime/audio/pose-guard` — the engine's audio RUNTIME — into every editor
+ * imported `@volter/editor-game/runtime/setup/setup-audio`, `@volter/editor-game/runtime/audio/bus-mixer` and
+ * `@volter/editor-game/runtime/audio/pose-guard` — the engine's audio RUNTIME — into every editor
  * boot (WORK.md §The open-source launch, phase 1 unit 7).
  */
 import { installEditModeAudio } from '../src/edit-mode/edit-mode-audio';

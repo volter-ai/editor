@@ -1189,6 +1189,24 @@ const NUMBER_LITERAL_RE = new RegExp(`^${NUMBER_LITERAL_SOURCE}$`);
  * plain signed number literal (`[x, 1, 0]`, `[f(), 0]`) is DYNAMIC and stays
  * behind the literal-vs-dynamic guard.
  */
+/**
+ * A NUMBER-POINT literal (`{ x: 1.2, y: 0.8 }`): an object whose properties are all plain
+ * identifiers with number values — the `PointData` a 2D scene's `scale` or `pivot` takes, and the
+ * one object shape this writer treats as a literal (a Pixi tag's non-uniform `scale`).
+ */
+export function isNumberPointLiteral(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return false;
+  const inner = trimmed.slice(1, -1).trim();
+  if (inner === '') return false;
+  const parts = inner.split(',').map((p) => p.trim());
+  if (parts.length > 1 && parts[parts.length - 1] === '') parts.pop();
+  return parts.every((part) => {
+    const match = /^([A-Za-z_$][\w$]*)\s*:\s*(.+)$/.exec(part);
+    return match !== null && NUMBER_LITERAL_RE.test(match[2]!.trim());
+  });
+}
+
 export function isNumberTupleLiteral(raw: string): boolean {
   const trimmed = raw.trim();
   if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) return false;
@@ -1294,7 +1312,10 @@ function makeAttr(
 ): JsxAttrInfo {
   const rawValue = code.slice(parsed.valueStart, parsed.valueEnd).trim();
   const isLiteral =
-    !parsed.isExpression || LITERAL_EXPR_RE.test(rawValue) || isNumberTupleLiteral(rawValue);
+    !parsed.isExpression ||
+    LITERAL_EXPR_RE.test(rawValue) ||
+    isNumberTupleLiteral(rawValue) ||
+    isNumberPointLiteral(rawValue);
   return {
     name,
     valueStart: parsed.valueStart,
@@ -1351,7 +1372,7 @@ function formatPropReplacement(
   if (!attr.isExpression) return newValue; // string attribute — content between the quotes
   const raw = attr.rawValue;
   if (NUMBER_LITERAL_RE.test(raw)) {
-    if (isNumberTupleLiteral(newValue)) {
+    if (isNumberTupleLiteral(newValue) || isNumberPointLiteral(newValue)) {
       // R2: a tuple replacing a plain number is a SHAPE CHANGE — allowed only
       // under the explicit opt-in; otherwise refused outright (never the
       // quoted-string fallback below, which would clobber `scale={1.5}` with
@@ -1369,6 +1390,12 @@ function formatPropReplacement(
   if (isNumberTupleLiteral(raw)) {
     return isNumberTupleLiteral(newValue) ? newValue.trim() : null;
   }
+  // A number-point literal is replaced by another point, or by a plain number (a scale made
+  // uniform again); anything else is a shape it cannot take.
+  if (isNumberPointLiteral(raw)) {
+    if (isNumberPointLiteral(newValue)) return newValue.trim();
+    return NUMBER_LITERAL_RE.test(newValue.trim()) ? newValue.trim() : null;
+  }
   if (/^"[^"]*"$/.test(raw)) return `"${newValue.replace(/"/g, '\\"')}"`;
   return `'${newValue.replace(/'/g, "\\'")}'`;
 }
@@ -1381,6 +1408,7 @@ function formatPropReplacement(
 function formatNewAttr(propName: string, newValue: string): string {
   if (
     isNumberTupleLiteral(newValue) ||
+    isNumberPointLiteral(newValue) ||
     NUMBER_LITERAL_RE.test(newValue) ||
     newValue === 'true' ||
     newValue === 'false'
@@ -1537,6 +1565,8 @@ export function removePropAttribute(
 export interface StructEditResult {
   code: string;
   changed: boolean;
+  /** Why an op that could not apply refused, when it can say. */
+  error?: string;
 }
 
 /** Expand a JSX element at `elementStart` to its full LINE block (leading whitespace on the
@@ -1721,13 +1751,11 @@ export function insertChildElement(
   tag = 'div',
   snippet?: string,
 ): StructEditResult {
-  const closingTagStart = closingTagStartOf(code, parentStart);
-  if (closingTagStart == null) return { code, changed: false };
+  const tagEnd = findTagEnd(code, parentStart);
+  if (tagEnd < 0) return { code, changed: false };
   let parentLineStart = parentStart;
   while (parentLineStart > 0 && code[parentLineStart - 1] !== '\n') parentLineStart--;
   const parentIndent = code.slice(parentLineStart, parentStart).match(/^(\s*)/)?.[1] ?? '';
-  let insertPos = closingTagStart;
-  while (insertPos > 0 && code[insertPos - 1] !== '\n') insertPos--;
   const childIndent = `${parentIndent}  `;
   let child: string;
   if (snippet !== undefined) {
@@ -1739,6 +1767,26 @@ export function insertChildElement(
       .join('\n')}\n`;
   } else {
     child = `${childIndent}<${tag} />\n`;
+  }
+  // A self-closing parent (`<Transport tempo={92} />`) has no children yet: it opens, takes the
+  // child, and closes on its own line. Walking back to a `<` from its end would find the parent's
+  // OWN tag and put the child beside it.
+  if (code[tagEnd - 1] === '/') {
+    const name = code.slice(parentStart + 1, tagEnd).match(/^([A-Za-z0-9_.$:-]+)/)?.[1];
+    if (!name) return { code, changed: false };
+    let open = tagEnd - 1;
+    while (open > parentStart && /\s/.test(code[open - 1] ?? '')) open--;
+    const opened = `${code.slice(0, open)}>\n${child}${parentIndent}</${name}>`;
+    return { code: opened + code.slice(tagEnd + 1), changed: true };
+  }
+  const closingTagStart = closingTagStartOf(code, parentStart);
+  if (closingTagStart == null) return { code, changed: false };
+  // The child goes on its own line before the closing tag: at that line's start when the closing
+  // tag begins its line, else (a one-line parent, `<Clip>…</Clip>`) broken onto a new line there.
+  let insertPos = closingTagStart;
+  while (insertPos > 0 && (code[insertPos - 1] === ' ' || code[insertPos - 1] === '\t')) insertPos--;
+  if (insertPos > 0 && code[insertPos - 1] !== '\n') {
+    return { code: `${code.slice(0, closingTagStart)}\n${child}${parentIndent}${code.slice(closingTagStart)}`, changed: true };
   }
   return { code: code.slice(0, insertPos) + child + code.slice(insertPos), changed: true };
 }
@@ -1763,6 +1811,19 @@ export function insertSiblingElement(
 ): StructEditResult {
   const trimmed = snippet.trim();
   if (!trimmed.startsWith('<')) return { code, changed: false };
+  // A sibling is legal only beside a JSX CHILD: an element whose text is preceded by a tag's `>`
+  // (not an arrow's `=>`) or an expression child's `}`. The lone element a component returns has no JSX parent, and a
+  // second element beside it is a syntax error, never an insert.
+  let before = elementStart - 1;
+  while (before >= 0 && /\s/.test(code[before]!)) before--;
+  const arrowBody = code[before] === '>' && code[before - 1] === '=';
+  if (before < 0 || arrowBody || (code[before] !== '>' && code[before] !== '}')) {
+    return {
+      code,
+      changed: false,
+      error: 'this element is not a JSX child (a lone returned element), so it can have no sibling.',
+    };
+  }
   const r = lineBlockRange(code, elementStart);
   if (!r) return { code, changed: false };
   const indent = code.slice(r.lineStart, elementStart).match(/^(\s*)/)?.[1] ?? '';

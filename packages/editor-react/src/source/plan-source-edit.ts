@@ -349,5 +349,8 @@ export function planSourceEdit(
           request.ensureImport.kind,
         ).code
       : result.code;
-  return planned(entry.file, src, code, { changed: result.changed });
+  return planned(entry.file, src, code, {
+    changed: result.changed,
+    ...(result.error ? { error: result.error } : {}),
+  });
 }

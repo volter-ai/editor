@@ -43,7 +43,7 @@ import {
 import type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
 import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
-import { viewportStageHelperKinds } from '@volter/editor-sdk/kit/viewport-door';
+import { viewportStageHelperKinds } from '../../viewport-door';
 import {
   type PresentationLayer,
   applyViewPreset,
@@ -95,6 +95,10 @@ const DOCUMENT_HELPER_ROWS: readonly { key: keyof HelperVisibility; label: strin
   { key: 'skeletons', label: 'Bones' },
   { key: 'weights', label: 'Weights' },
   { key: 'cursor', label: '3D Cursor' },
+  // Blender's overlay extras: the objects that have no surface.
+  { key: 'cameras', label: 'Cameras' },
+  { key: 'lights', label: 'Lights' },
+  { key: 'empties', label: 'Empties' },
 ];
 export function Object3DDocumentToolbar({
   documentId,
@@ -150,7 +154,8 @@ export function Object3DDocumentToolbar({
   // mode (Blender's Solid, Material Preview and Rendered each keep theirs), else every mode's.
   const perMode = binding ? stageLightsPerMode(binding.stageKind) : false;
   const lightingChoice = (choice: NonNullable<NonNullable<PresentationLayer['all']>['lighting']>): PresentationLayer =>
-    perMode ? { modes: { [presentation.mode]: { lighting: choice } } } : { all: { lighting: choice } };
+    // Keyed by the mode the view resolves its lighting by (UV and vertex colours draw under it).
+    perMode ? { modes: { [viewPresentation(documentId).drawMode]: { lighting: choice } } } : { all: { lighting: choice } };
   // THE MODES THE STAGE LIGHTS ITS OWN WAY, which are the cells it draws (`perModeShadingSegments`).
   const declaredModes = new Set(
     Object.entries(starting?.modes ?? {})
@@ -281,7 +286,7 @@ export function Object3DDocumentToolbar({
                 <MenuItem
                   key={preset}
                   onSelect={() => {
-                    session.setViewPreset(preset);
+                    session.setViewPreset(preset, 'view');
                     setViewOpen(false);
                   }}
                 >

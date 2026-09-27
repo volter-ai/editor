@@ -2,6 +2,7 @@ import { connect, unconnectedBindings, type LiveSession } from '@volter/editor-l
 import { EditorClient } from '@volter/editor-sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
 import { formatSurface } from './eval-surface';
+import { CONTROLLER_DISCONNECTED_MESSAGE } from '../server-utils';
 
 /** Extra `eval` bindings a product adds on the same session (the game
  *  product's `game` and `page`); a returned name replaces the kit's own. */
@@ -22,7 +23,19 @@ export async function control(command: string, verb: string, argument?: string, 
     const state = await client.getState();
     // A genuinely headless session has no document owner to flush. A present
     // but unresponsive tab is different: try its barrier and refuse on failure.
-    if (state.connected || (state.tabs?.length ?? 0) > 0) await client.prepareClose();
+    if (state.connected || (state.tabs?.length ?? 0) > 0) {
+      try {
+        await client.prepareClose();
+      } catch (error) {
+        // A tab that went away while it was asked to flush (its browser closed) has nothing
+        // left to flush, and refusing then left the session running with no tab at all, where
+        // nothing else would ever stop it. The relay's own disconnect answer says so at once
+        // (the tab list catches up seconds later); any other failure is a tab still there
+        // that could not flush, and refuses the close.
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes(CONTROLLER_DISCONNECTED_MESSAGE)) throw error;
+      }
+    }
     console.log(await terminateEditorSession({ pid: session.pid }));
     return;
   }

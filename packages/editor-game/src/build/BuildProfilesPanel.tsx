@@ -32,6 +32,7 @@ import {
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   type BuildTarget,
+  buildAndRun,
   buildSessionVersion,
   cancelBuild,
   getBuildSession,
@@ -330,6 +331,16 @@ export function BuildProfilesPanel() {
                 style={{ marginLeft: 'auto' }}
               >
                 {phase === 'done' ? 'Build Again' : 'Build'}
+              </Button>
+              <Button
+                data-testid="build-profiles-build-and-run"
+                onClick={() => {
+                  if (!selected) return;
+                  if (phase === 'done') resetBuildSession();
+                  void buildAndRun(selected);
+                }}
+              >
+                Build And Run
               </Button>
             </>
           )}

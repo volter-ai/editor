@@ -207,6 +207,12 @@ export class BlenderSkinDirector {
     };
   }
 
+  /** The frame on screen, or null before the clip door has been read (when `frame()` can only
+   *  say 1). */
+  playhead(): number | null {
+    return this.#clip ? this.frame() : null;
+  }
+
   /** The mixer's time as a Blender frame. With no clip the scene's own current
    *  frame stands, which is Blender's answer for a file with no animation. */
   frame(): number {

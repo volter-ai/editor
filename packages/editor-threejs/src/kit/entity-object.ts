@@ -41,6 +41,7 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { getUserData, setUserData } from '@volter/editor-threejs/ecs/user-data';
 import type * as THREE from 'three';
+import { threeObject } from '../adapter/three-contract';
 
 /** The live object `id` names, or `null` when nothing in this session answers to it. */
 export function entityObject3D(
@@ -48,7 +49,7 @@ export function entityObject3D(
   objectMap: ReadonlyMap<string, THREE.Object3D>,
   id: string,
 ): THREE.Object3D | null {
-  return adapter.hierarchy.object3D?.(id) ?? objectMap.get(id) ?? null;
+  return threeObject(adapter.hierarchy, id) ?? objectMap.get(id) ?? null;
 }
 
 /**

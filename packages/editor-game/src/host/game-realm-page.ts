@@ -90,7 +90,7 @@ export const SCOPED_STYLE_MARK = 'vgaiScopedCss';
 let gameCssScoper: Promise<(css: string) => string> | null = null;
 export function loadGameCssScoper(): Promise<(css: string) => string> {
   gameCssScoper ??= Promise.all([
-    import('@volter/editor-core/game-css-scope-transform'),
+    import('./game-css-scope-transform'),
     import('@volter/editor-sdk/session/game-css-scope'),
   ]).then(
     ([{ scopeGameCss }, { GAME_CSS_SCOPE_SELECTOR }]) =>

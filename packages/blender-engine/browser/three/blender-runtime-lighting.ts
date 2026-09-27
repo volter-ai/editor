@@ -214,33 +214,37 @@ export function aimLight(light: THREE.Light, node: THREE.Object3D): void {
  * parented to the camera. `smooth` is the wrap factor; see
  * {@link ViewportLighting} for how it becomes three's lambert.
  *
- * `specular_color` is deliberately NOT carried: three's own BRDF produces the
- * material's highlight from the same light colour, and a second colour for it
- * would be a second specular model beside the one already shading the model.
+ * `specular` is each light's `specular_color`, which Blender's own shading function uses
+ * (`blender-workbench-material.ts`); the three.js light rig below does not.
  */
-const SOLID_LIGHTS: readonly {
+export const SOLID_LIGHTS: readonly {
   readonly direction: readonly [number, number, number];
   readonly diffuse: readonly [number, number, number];
+  readonly specular: readonly [number, number, number];
   readonly smooth: number;
 }[] = [
   {
     direction: [-0.352546, 0.170931, -0.920051],
     diffuse: [0.033103, 0.033103, 0.033103],
+    specular: [0.266761, 0.266761, 0.266761],
     smooth: 0.52662,
   },
   {
     direction: [-0.408163, 0.346939, 0.844415],
     diffuse: [0.521083, 0.538226, 0.538226],
+    specular: [0.59903, 0.59903, 0.59903],
     smooth: 0.0,
   },
   {
     direction: [0.521739, 0.826087, 0.212999],
     diffuse: [0.038403, 0.034357, 0.04953],
+    specular: [0.106102, 0.125981, 0.158523],
     smooth: 0.478261,
   },
   {
     direction: [0.624519, -0.562067, -0.542269],
     diffuse: [0.090838, 0.08208, 0.072255],
+    specular: [0.106535, 0.084771, 0.06608],
     smooth: 0.2,
   },
 ];
@@ -281,6 +285,17 @@ const SOLID_LIGHTS: readonly {
  * (142,144,145)/(130,132,132)/(112,113,113) with it on — and three's BRDF has
  * no such coupling, nor a second colour per light to carry
  * `specular_color`. Closing that is a shader of our own, not a light rig.
+ */
+/*
+ * SURFACES NO LONGER TAKE THIS RIG IN SOLID: they are drawn by Blender's own function
+ * (`blender-workbench-material.ts`), which reproduces Blender on the faces a single gain could
+ * not (a face square to the view: 158-160 against Blender's 161, where this rig gave 143). The rig
+ * still lights what that function does not draw (volume boxes). WHAT THE MEASUREMENT SHOWED about
+ * the rounds above: the three-face reference frames match Blender's function under the STANDARD
+ * view transform (function: 147/136/116 against 144/132/113; under AgX, 151/142/126), so they were
+ * made under Standard, and the gain was absorbing a view-transform difference, not a shading one.
+ * Blender's factory transform is AgX (`--factory-startup`: `view_transform` AgX), which the stage
+ * uses.
  */
 const SOLID_STUDIO_GAIN = 0.69;
 

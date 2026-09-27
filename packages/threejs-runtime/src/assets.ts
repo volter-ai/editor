@@ -11,10 +11,21 @@
  * Cache lives for the app lifetime — no dispose needed.
  */
 
-import type { AssetCache, GLTFResult } from '@volter/editor-project/adapter/asset-cache';
+import type * as THREE from 'three';
 import { gltfLoader, resolveUrl } from './loader';
 
-export type { AssetCache, GLTFResult } from '@volter/editor-project/adapter/asset-cache';
+/** Result of loading a .glb/.gltf file. */
+export interface GLTFResult {
+  scene: THREE.Group;
+  animations: THREE.AnimationClip[];
+}
+
+export interface AssetCache {
+  /** Load an asset by URL. Returns a cached promise if already loading/loaded. */
+  load<T = unknown>(url: string): Promise<T>;
+  /** Get a previously-loaded asset synchronously. Throws if not yet loaded. */
+  get<T = unknown>(url: string): T;
+}
 
 export function createAssetCache(): AssetCache {
   const cache = new Map<string, Promise<unknown>>();

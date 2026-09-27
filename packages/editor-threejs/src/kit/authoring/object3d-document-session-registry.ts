@@ -7,7 +7,7 @@
  * diagnostic-rendering graph during a plain Scene boot. The class remains the
  * native session type; this module owns only its live identities.
  */
-import { viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
+import { startingPresentation, viewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/kit/viewport-presentation';
 import {
   type DocumentViewport,
   registerDocumentViewport,
@@ -72,6 +72,11 @@ function object3DDocumentViewport(session: Object3DDocumentSession): DocumentVie
       };
     },
     setDiagnostic: (diagnostic) => {
+      // `preview` and `rendered` are lit as the stage says; a stage that says nothing refuses them.
+      if (diagnostic === 'preview' || diagnostic === 'rendered') {
+        const stageKind = viewPresentationBinding(session.documentId)?.stageKind;
+        if (!stageKind || startingPresentation(stageKind)?.modes?.[diagnostic]?.lighting === undefined) return false;
+      }
       session.setSkeleton(diagnostic === 'skeleton');
       session.setBounds(diagnostic === 'bounds');
       session.setMode(diagnostic === 'skeleton' || diagnostic === 'bounds' ? 'solid' : (diagnostic as Mode));

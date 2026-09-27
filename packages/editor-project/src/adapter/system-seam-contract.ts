@@ -65,6 +65,22 @@ export const NETWORKING_ADAPTER_SHAPE = defineSeamShape<NetworkingAdapter>()({
   getServerConfig: { optional: true, kind: 'function', required: 'operation' },
   getPlayerIdentity: { optional: true, kind: 'function', required: 'operation' },
   setPlayerIdentity: { optional: true, kind: 'function', required: 'effect' },
+  getTrafficByType: { optional: true, kind: 'function', required: 'operation' },
+  sendMessage: { optional: true, kind: 'function', required: 'effect' },
+  getConditioningLimits: { optional: true, kind: 'function', required: 'operation' },
+  ping: { optional: true, kind: 'function', required: 'effect' },
+  inspectServer: { optional: true, kind: 'function', required: 'operation' },
+  disconnectClient: { optional: true, kind: 'function', required: 'effect' },
+  editServerState: { optional: true, kind: 'function', required: 'effect' },
+  deleteServerState: { optional: true, kind: 'function', required: 'effect' },
+  sendToClient: { optional: true, kind: 'function', required: 'effect' },
+  broadcast: { optional: true, kind: 'function', required: 'effect' },
+  disposeRoom: { optional: true, kind: 'function', required: 'effect' },
+  stateFieldType: { optional: true, kind: 'function', required: 'operation' },
+  clearTraffic: { optional: true, kind: 'function', required: 'effect' },
+  getTrafficByEntity: { optional: true, kind: 'function', required: 'operation' },
+  isRecording: { optional: true, kind: 'function', required: 'operation' },
+  setRecording: { optional: true, kind: 'function', required: 'effect' },
 });
 
 export const NAVIGATION_ADAPTER_SHAPE = defineSeamShape<NavigationAdapter>()({

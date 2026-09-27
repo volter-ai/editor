@@ -29,7 +29,7 @@
  */
 
 import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { setGameplayExportActive } from '@volter/editor-core/gameplay-export-state';
+import { setGameplayExportActive } from '@volter/editor-sdk/kit/gameplay-export-state';
 import { stopGameplayRecording } from '../src/host/gameplay-recording';
 import { liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
@@ -46,6 +46,7 @@ import {
   stepPlayMode,
 } from '../src/play/play-mode';
 import { beginPlayRecording, endPlayRecording, notePlayActivity } from '../src/play/play-recording';
+import { startSelectedRunConfiguration, stopStartedRunConfiguration } from '../src/play/run-selection';
 
 export const point = 'workspace.command';
 
@@ -134,6 +135,10 @@ export const commands: CommandContribution['commands'] = {
         // field on the relayed command, slugified server-side into this run's
         // log filename and journal line. Absent, everything is unchanged.
         const runName = cmd['name'];
+        // What Play runs beside the host starts first, exactly as the Play button starts it: a
+        // `play + server` project's room server is up before its game joins.
+        const start = await startSelectedRunConfiguration();
+        if (!start.ok) return { ok: false, error: `${start.title}: ${start.detail}` };
         await enterPlayMode(
           typeof seed === 'number' ? seed : undefined,
           undefined,
@@ -208,6 +213,7 @@ export const commands: CommandContribution['commands'] = {
       // someone stopping the run wanted to look at.
       const capture = await endPlayRecording('stop');
       exitPlayMode();
+      await stopStartedRunConfiguration();
       return { ok: true, ...(capture ? { data: { recording: capture } } : {}) };
     },
   },

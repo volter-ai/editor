@@ -1,8 +1,8 @@
 /**
  * The offline-audio seam: what a caller's renderer hands back, and the
  * function shape that produces it. The contract owns both because
- * `SystemAdapters`'s audio door names them; the harness that drives a renderer
- * is the game runtime's (`@vgai/game-runtime/runtime/render-audio-control`).
+ * `SystemAdapters`'s audio door names them; the gameplay export
+ * (`editor-game/src/host/gameplay-export.ts`) is what drives a renderer.
  */
 
 /** What a caller's renderer hands back: real PCM in a native `AudioBuffer`.

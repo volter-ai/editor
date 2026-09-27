@@ -11,7 +11,6 @@
  * edit it".
  */
 
-import type * as THREE from 'three';
 import type { FrameCapture } from './frame-capture';
 import type { PhysicsAdapter2D } from './physics-adapter-2d';
 import type { OfflineAudioRenderer } from './render-audio';
@@ -127,8 +126,9 @@ export interface PhysicsAdapter {
   commit(nodeId: string, t: Transform): void;
   /** Resume simulation of `nodeId`. */
   unfreeze(nodeId: string): void;
-  /** Optional debug-draw object (collider wireframes). */
-  debugDraw?(): THREE.Object3D | null;
+  /** Optional debug-draw object (collider wireframes), in the surface's own
+   *  medium; opaque to the neutral contract. */
+  debugDraw?(): unknown;
   /**
    * Optional: turn the engine's per-frame physics debug rendering on/off —
    * the first-party implementation drives Rapier's `debugRender()` into the
@@ -226,6 +226,57 @@ export interface NetMessageEvent {
 /** Send/receive rates for the inspector's sparklines (W3b). The byte fields
  *  are OPTIONAL capabilities-within-the-capability: an implementer omits a
  *  direction it cannot measure (never reports a fabricated 0). */
+/** One message type's traffic, both directions. */
+export interface NetTypeTraffic {
+  type: string;
+  countIn: number;
+  countOut: number;
+  bytesIn: number;
+  bytesOut: number;
+}
+
+/** One replicated entity's traffic (Godot's synchronizer table): the state patches that changed
+ *  it, the field changes they carried, and the size range of those patches, which carried other
+ *  entities too. `path` is the entity's place in the state (`players.abc`, `orbs.orb_1`). */
+export interface NetEntityTraffic {
+  path: string;
+  syncs: number;
+  changes: number;
+  patchBytesMin: number;
+  patchBytesMax: number;
+}
+
+export interface NetServerRoom {
+  roomId: string;
+  name: string;
+  clients: number;
+  /** `null` when the room admits any number. */
+  maxClients: number | null;
+  locked: boolean;
+  elapsedMs: number;
+}
+
+export interface NetServerClient {
+  sessionId: string;
+  elapsedMs: number;
+}
+
+export interface NetServerInspection {
+  rooms: NetServerRoom[];
+  connections: number;
+  /** The server machine's CPU use in percent, when it reports one. */
+  cpuPercent: number | null;
+  memory: { usedMb: number; totalMb: number } | null;
+  /** The current room's clients and its full state's size, when the room is still hosted. */
+  room: { roomId: string; clients: NetServerClient[]; stateBytes: number; state?: unknown } | null;
+}
+
+export interface NetConditioningLimits {
+  latencyMs?: string;
+  jitterMs?: string;
+  packetLoss?: string;
+}
+
 export interface NetRates {
   msgsInPerSec: number;
   msgsOutPerSec: number;
@@ -313,6 +364,46 @@ export interface NetworkingAdapter {
    *  a seat label — ONLY when a real implementer provides it, falling back to a
    *  generic label otherwise. */
   getPlayerIdentity?(): NetPlayerIdentity | undefined;
+  /** Traffic per message type since the connection opened, both directions — state and patches
+   *  included as their own rows (Godot's network profiler tables). */
+  getTrafficByType?(): NetTypeTraffic[];
+  /** Incoming state traffic per replicated entity since the connection opened (or the last
+   *  clear), ordered by syncs. */
+  getTrafficByEntity?(): NetEntityTraffic[];
+  /** Whether the traffic totals and the message log are counting (Godot's profiler Start/Stop);
+   *  stopped, frames still pass and the state still updates, but nothing is tallied. */
+  isRecording?(): boolean;
+  setRecording?(on: boolean): void;
+  /** Send `payload` to the room as this client, under message type `type` (Colyseus Monitor's
+   *  Send), so a server handler can be exercised from the inspector. */
+  sendMessage?(type: string, payload: unknown): void;
+  /** Which conditioning fields this adapter cannot apply, each with the reason (a reliable
+   *  WebSocket loses nothing, so it cannot simulate loss). Omitted means every field applies. */
+  getConditioningLimits?(): NetConditioningLimits;
+  /** Measure one round trip to the server now, in milliseconds. */
+  ping?(): Promise<number>;
+  /** The room server's own view — every room it hosts, and the current room's clients (Colyseus
+   *  Monitor's). `null` when the server serves no such view. */
+  inspectServer?(roomId?: string): Promise<NetServerInspection | null>;
+  /** Disconnect one client of the current room from the server's side (Monitor's Disconnect). */
+  disconnectClient?(sessionId: string, roomId?: string): Promise<void>;
+  /** Set one value of the room's authoritative state on the server (Monitor's State edit);
+   *  `path` is the keys from the state's root. */
+  editServerState?(path: readonly (string | number)[], value: unknown, roomId?: string): Promise<void>;
+  /** Remove one key of the room's authoritative state on the server (Monitor's State delete). */
+  deleteServerState?(path: readonly (string | number)[], roomId?: string): Promise<void>;
+  /** From the server, send `payload` under `type` to one client of the room (Monitor's Send). */
+  sendToClient?(sessionId: string, type: string, payload: unknown, roomId?: string): Promise<void>;
+  /** From the server, send `payload` under `type` to every client of the room (Monitor's
+   *  Broadcast). */
+  broadcast?(type: string, payload: unknown, roomId?: string): Promise<void>;
+  /** Dispose a room on the server (Monitor's Dispose); its clients are disconnected. */
+  disposeRoom?(roomId?: string): Promise<void>;
+  /** The replicated type of the state field at `path` (`float32`, `map<schema>`), from the
+   *  schema the server declared — what Godot's Replication panel shows of a synchronizer. */
+  stateFieldType?(path: readonly (string | number)[]): string | null;
+  /** Start the traffic totals from zero (Godot's profiler Clear resets its tables). */
+  clearTraffic?(): void;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this
@@ -384,6 +475,10 @@ export interface NavCrowdAgentState {
  * omits them. `clear` lets that same owner release its navmesh; the editor never
  * disposes implementation handles itself. `crowdAgents` feeds the play-mode
  * crowd debug draw.
+ *
+ * `debugMesh`/`bake`/`clear` trade in the surface's own scene, objects and
+ * meshes, which this neutral contract leaves opaque; `@volter/editor-threejs`
+ * names the Three-typed view (`threeNavigation`).
  */
 export interface NavigationAdapter {
   hasNavMesh(): boolean;
@@ -395,16 +490,16 @@ export interface NavigationAdapter {
    * Gate on {@link hasNavMesh} where the first case is reachable.
    */
   findPath(start: NavPoint, end: NavPoint): NavPoint[];
-  debugMesh(scene: THREE.Scene): THREE.Object3D | null;
+  debugMesh(scene: unknown): unknown;
   /** (Re)build the navmesh from source meshes. Synchronous in the blessed
    *  recast/WASM implementation; returns `false` on a failed bake. */
-  bake?(meshes: THREE.Mesh[], params?: NavBakeParams): boolean;
+  bake?(meshes: readonly unknown[], params?: NavBakeParams): boolean;
   /** Serialize the current navmesh to a binary blob (the editor persists it
    *  as the scene's `.navmesh` sidecar). Throws when nothing is built. */
   exportData?(): Uint8Array;
   /** Release the current navmesh and any debug object it attached to `scene`.
    * Optional because an external game's navigation may be inspect-only. */
-  clear?(scene: THREE.Scene): void;
+  clear?(scene: unknown): void;
   /** Live crowd-agent snapshots for debug draw. Empty when no crowd. */
   crowdAgents?(): NavCrowdAgentState[];
 }
@@ -538,8 +633,8 @@ export interface AudioAdapter {
    * a sim window instead, so identical `(start, end)` on an unchanged score
    * must return identical samples.
    *
-   * THE OFFSET TRAP (the contract `runtime/render-audio-control.ts`'s header
-   * states, quoted here because this is the other place implementers read):
+   * THE OFFSET TRAP (the gameplay export states it at its call site; quoted
+   * here because this is the other place implementers read):
    * an offline render of `[10, 10.72)` schedules its first event at LOCAL
    * time 0, not absolute 10. The caller reasons in canonical time, so the
    * implementation must subtract `start` from every scheduled event time.
@@ -726,6 +821,20 @@ export function nodeKeyedPhysics(
 ): PhysicsAdapter | null {
   if (!carrier) return null;
   return isDisplayKeyedPhysics(carrier) ? null : carrier;
+}
+
+/**
+ * Who drives `key`, asked of the game's own physics carrier by an editor surface that renders the
+ * answer. A declared system slot with nothing attached yet (a world whose `<Physics>` mounts late)
+ * refuses by name, and a refusal read from an outliner row would take the editor's chrome down with
+ * it: to the editor a carrier that cannot answer does not know the node, which `'unresolved'` says.
+ */
+export function physicsOwnerOf<K, O extends string>(carrier: { ownerOf(key: K): O }, key: K): O | 'unresolved' {
+  try {
+    return carrier.ownerOf(key);
+  } catch {
+    return 'unresolved';
+  }
 }
 
 /** The carrier a DISPLAY-keyed consumer may call, or `null`. Mirror of

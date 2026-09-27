@@ -3,7 +3,7 @@
  * packaged.ts` — a `@vgai/editor` npm package with NO monorepo checkout on
  * disk) from editor CLIENT code. Needed because a react world's mount
  * (`react-mount-runtime.ts`'s `resolveReactRootMountRuntime`) must resolve its
- * `react`/`react-dom/client`/`WorldProvider`-fallback wrapper from the
+ * `react`/`react-dom/client` from the
  * PROJECT's own module graph ONLY under this runtime — see that function's
  * doc comment, and `packaged.ts`'s header doc comment ("React-world OID
  * authoring parity"), for the dual-React-instance bug this closes. Under

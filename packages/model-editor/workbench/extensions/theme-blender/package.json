@@ -20,7 +20,7 @@
   "contributes": {
     "themes": [
       {
-        "id": "Blender",
+        "id": "blender",
         "label": "Blender",
         "uiTheme": "vs-dark",
         "path": "./themes/blender-dark.json"
@@ -28,12 +28,12 @@
     ],
     "productIconThemes": [
       {
-        "id": "blender-icons",
+        "id": "blender",
         "label": "Blender",
         "path": "./producticons/blender-product-icon-theme.json"
       }
     ],
-    "_configurationDefaultsNote": "workbench.colorTheme and workbench.productIconTheme are DELIBERATELY absent: the LOOK selects them (vgaiSettings.ts LOOK_THEMES), on the same MEMORY layer as the top bar height. A blanket default here applied Blender colours in every window the extension was installed in, which is what made Classic still carry --vscode-vgai-view-background #303030 (the frame walk beat 6, 2026-09-19) and defeated the null defaults U8 ruling (2) gave those colour ids.",
+    "_configurationDefaultsNote": "workbench.colorTheme and workbench.productIconTheme are DELIBERATELY absent: the LOOK selects them by its own id, which these themes carry (vgaiSettings.ts), on the same MEMORY layer as the top bar height. A blanket default here applied Blender colours in every window the extension was installed in, which is what made Classic still carry --vscode-vgai-view-background #303030 (the frame walk beat 6, 2026-09-19) and defeated the null defaults U8 ruling (2) gave those colour ids.",
     "configurationDefaults": {
       "workbench.activityBar.location": "hidden",
       "workbench.sideBar.location": "right",

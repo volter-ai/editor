@@ -164,6 +164,7 @@ export const RECT_PROVIDER_SHAPE = defineSeamShape<RectProvider>()({
   rect: { optional: false, kind: 'function', required: 'operation' },
   contextRects: { optional: true, kind: 'function', required: 'operation' },
   emptyContainers: { optional: true, kind: 'function', required: 'operation' },
+  frame: { optional: true, kind: 'function', required: 'operation' },
 });
 
 export const BOX_EDIT_PROVIDER_SHAPE = defineSeamShape<BoxEditProvider>()({

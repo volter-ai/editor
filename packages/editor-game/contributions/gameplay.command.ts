@@ -5,7 +5,7 @@
  *
  * All eight read/actuate the LIVE play session's game-scoped debug registry
  * (`SystemAdapters.debug`, installed by `setActiveSystems` on play enter) or
- * its InputManager/GameLoop (via `getPlayRuntimeAccess`). A stopped session
+ * its input door/GameLoop (via `getPlayRuntimeAccess`). A stopped session
  * answers with a structured failure, never a fabricated success; a running
  * game that exposes NO debug adapter (a non-first-party mount) degrades to
  * the honest empty/null shape.
@@ -111,7 +111,7 @@ export const commands: CommandContribution['commands'] = {
       if (!input) {
         return {
           ok: false,
-          error: 'this play session has no first-party InputManager to inject into',
+          error: 'this play session has no input door: no root entry exports `debug.input`',
         };
       }
       try {
@@ -122,7 +122,7 @@ export const commands: CommandContribution['commands'] = {
         // bindings, so `delivered` here means "the source was written").
         if (cmd['kind'] === 'action') {
           const atTick = cmd['atTick'];
-          // D15/T-D15.5 — `atTick` defers to InputManager.scheduleActionAtTick
+          // D15/T-D15.5 — `atTick` defers to the target's scheduleActionAtTick
           // instead of an immediate setVirtualAction. scheduleActionAtTick
           // throws InputActionError/a valueType mismatch (same as
           // setVirtualAction) or InputTickError ('TICK_ALREADY_PASSED',

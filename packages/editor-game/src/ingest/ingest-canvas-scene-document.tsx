@@ -18,18 +18,18 @@ import {
   getMountFailureReports,
   subscribeToMountFailures,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/react-canvas-navigation';
+import { installCanvasSceneNavigation } from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
 import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from '@volter/editor-core/components/CanvasSceneViewport';
-import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+} from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
-import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { projectAdapterFacet } from '@volter/editor-sdk/kit/project-adapter';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import {
@@ -148,7 +148,7 @@ export function IngestCanvasSceneContent({
       }}
     >
       <CanvasSceneBackdrop view={view} documentId={documentId} />
-      <RootSelectionOverlay adapter={adapter} view={view} transformModeAware />
+      <RootSelectionOverlay adapter={adapter} view={view} transformModeAware presentationId={documentId} />
       <SurfaceStateOverlay
         explanation={surfaceExplanation}
         testId="ingest-canvas-surface-status"

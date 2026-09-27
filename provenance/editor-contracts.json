@@ -478,11 +478,6 @@
       "sha256": "2b7c1a5735889ac1a651b74bd666e3b765d826a6ebce2ed1b45796261b50b728"
     },
     {
-      "source": "packages/project/src/adapter/asset-cache.ts",
-      "path": "packages/editor-project/src/adapter/asset-cache.ts",
-      "sha256": "4cbad29c8838f5b6ff091f3a48254c414f2d356be6dd8e99faf6da8680355efb"
-    },
-    {
       "source": "packages/project/src/adapter/authoring-seam-contract.ts",
       "path": "packages/editor-project/src/adapter/authoring-seam-contract.ts",
       "sha256": "f46b8020405c7ae7125b73bb45d77824fe48c376d418a4da28c021b0d92b8f20"

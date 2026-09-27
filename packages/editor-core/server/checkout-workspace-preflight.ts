@@ -4,10 +4,10 @@
  *
  * The checkout Vite config deliberately dedupes the runtime packages from its own
  * root. A whole-directory `node_modules` symlink (or stale individual
- * workspace links) therefore does more than use old dependencies: generated
- * project code can import `WorldProvider` from one checkout while its
- * `useDebugProvider` hook comes from another. The game renders, but all of its
- * game-scoped command/provider registrations silently see the wrong Context.
+ * workspace links) therefore does more than use old dependencies: the editor can
+ * load the debug registry from one checkout while a game's mount reaches it
+ * from another. The game renders, but all of its game-scoped command/provider
+ * registrations silently land in a registry nothing reads.
  *
  * LOCAL-DEV's worktree shim is the one repair owner. The server must not try to
  * mutate an install tree whose donor it cannot know; it fails before Vite boot
@@ -178,7 +178,7 @@ function repairMessage(engineRoot: string, detail: string): string {
   return (
     `Editor startup refused: source-checkout workspace identity is split. ${detail}\n` +
     `Vite resolves shared @vgai modules from ${engineRoot}/node_modules, so continuing could ` +
-    'render a game with a different WorldProvider/debug registry identity. Recreate this ' +
+    'render a game with a different debug registry identity. Recreate this ' +
     "checkout's node_modules with scripts/worktree-node-modules-shim.mjs as documented in " +
     'docs/LOCAL-DEV.md; never symlink the whole node_modules directory.'
   );

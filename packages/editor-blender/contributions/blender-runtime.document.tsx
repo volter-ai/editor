@@ -25,11 +25,15 @@
  */
 
 // How the `model` stage this document builds behaves (its starting presentation).
-import '../src/presentation';
+import { blenderViewFieldOfView } from '../src/presentation';
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
-import { subscribeViewportPresentation, viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import {
+  DOCUMENT_STUDIO_PRESET,
+  subscribeViewportPresentation,
+  viewPresentation,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -37,12 +41,14 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
 import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
+import { onViewportStages, viewportStages } from '@volter/editor-threejs/viewport-door';
 
 export const point = 'workspace.document';
 export const title = 'Blender Model';
@@ -88,6 +94,51 @@ export const inspectorBuiltins: readonly string[] = [];
 // Timeline binds a skeleton into the same presented graph and there is exactly
 // one set of presented objects (`blender-runtime-skin.ts`).
 const view = blenderModelView;
+/** THE SUBJECT LINE'S FRAME IS THE ONE ON SCREEN: the skin's playhead, which during playback
+ *  runs ahead of `frame_current` (written once, on pause), as Blender's own `(frame)` does. */
+const subjectOfView = () => {
+  const playhead = blenderSkin.playhead();
+  return view.subjectLine(playhead === null ? null : Math.floor(playhead));
+};
+const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel);
+/** BLENDER'S CAMERA VIEW (`blender-runtime-camera-view.ts`): which camera, and how it fits. */
+const cameraView = {
+  camera: () => view.cameraViewCamera(),
+  zoom: view.cameraViewZoom,
+  pan: view.cameraViewPan,
+  showing: (camera: string | null) => view.setCameraViewShowing(camera),
+  // A LOCKED camera view moves the camera (`ED_view3d_camera_lock_sync`: its scale kept); the
+  // navigation's end is the one step Blender's history records.
+  setPose: (
+    camera: string,
+    position: readonly [number, number, number],
+    quaternion: readonly [number, number, number, number],
+    final: boolean,
+  ) => {
+    const { location, rotation } = view.blenderPose(position, quaternion);
+    return blenderExecute(
+      'from mathutils import Matrix, Quaternion, Vector\n' +
+        `import bpy\nobject = bpy.data.objects[${JSON.stringify(camera)}]\n` +
+        `object.matrix_world = Matrix.LocRotScale(Vector((${location.join(', ')})), ` +
+        `Quaternion((${rotation.join(', ')})), object.matrix_world.to_scale())`,
+      final,
+      'Lock Camera to View',
+    ).then(
+      (answer) => {
+        if (answer.error !== null)
+          editorHost().console.error(`Blender refused the camera's pose: ${answer.error}`, 'blender-camera');
+      },
+      (error: unknown) =>
+        editorHost().console.error(`The camera's pose was not written to Blender: ${String(error)}`, 'blender-camera'),
+    );
+  },
+  view: (
+    camera: string,
+    region: { readonly width: number; readonly height: number },
+    zoom: number,
+    offset: readonly [number, number],
+  ) => view.cameraView(camera, region, zoom, offset),
+};
 
 export default function BlenderModelDocument(props: ToolContributionProps) {
   const { active, document, documentId, notify, publishContext } = props;
@@ -161,6 +212,30 @@ function BlenderModelViewport({
     [],
   );
   const blend = document?.source?.path;
+  // Re-read on the engine's frames, the skin's publications and every drawn frame of this stage
+  // (playback moves the playhead with no publication); the snapshot is a string, so only a
+  // changed line re-renders.
+  const subscribeSubject = useCallback(
+    (listener: () => void) => {
+      const stopView = view.onChange(listener);
+      const stopSkin = blenderSkin.subscribe(listener);
+      let stopFrame: (() => void) | null = null;
+      const bind = (): void => {
+        stopFrame?.();
+        stopFrame = viewportStages().find((one) => one.documentId === documentId)?.onFrame(listener) ?? null;
+      };
+      bind();
+      const stopStages = onViewportStages(bind);
+      return () => {
+        stopView();
+        stopSkin();
+        stopStages();
+        stopFrame?.();
+      };
+    },
+    [documentId],
+  );
+  const subject = useSyncExternalStore(subscribeSubject, subjectOfView);
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).
@@ -177,18 +252,17 @@ function BlenderModelViewport({
    */
   useEffect(() => {
     if (!documentId) return;
-    const { viewport } = editorHost();
     const groups = view.overlayGroups();
     const apply = (): void => {
-      const stage = viewport.stages().find((one) => one.documentId === documentId);
+      const stage = viewportStages().find((one) => one.documentId === documentId);
       if (!stage) return;
       for (const { kind, object } of groups) stage.setHelper(kind, object);
     };
     apply();
-    const stop = viewport.onStages(apply);
+    const stop = onViewportStages(apply);
     return () => {
       stop();
-      const stage = viewport.stages().find((one) => one.documentId === documentId);
+      const stage = viewportStages().find((one) => one.documentId === documentId);
       for (const { kind } of groups) stage?.setHelper(kind, null);
     };
   }, [documentId]);
@@ -222,7 +296,7 @@ function BlenderModelViewport({
   }, [documentId]);
   /**
    * BLENDER'S RENDERED SHADING IS THE SCENE'S OWN LIGHT. When this stage's view lights by the
-   * `scene` (the Lighting row's Scene, or the Rendered view), the presenter holds the viewport
+   * `scene` (the Rendered shading cell, or the Lighting row's Scene), the presenter holds the viewport
    * in the lighting its render photographs with (`BlenderRuntimeView.holdRendered`): the
    * scene's lights, its World, `hide_render` and shadows, through the camera the stage draws
    * with, re-applied from the stage's frame loop when that camera or the World changes. Any
@@ -231,8 +305,7 @@ function BlenderModelViewport({
    */
   useEffect(() => {
     if (!documentId) return;
-    const { viewport } = editorHost();
-    const stageOf = () => viewport.stages().find((one) => one.documentId === documentId);
+    const stageOf = () => viewportStages().find((one) => one.documentId === documentId);
     let framed: ReturnType<typeof stageOf> = undefined;
     let stopFrame: (() => void) | null = null;
     // One getter for the life of the effect, so holding again is not a change; the stand-in is
@@ -246,17 +319,21 @@ function BlenderModelViewport({
         stopFrame = stage ? stage.onFrame(() => view.refreshRendered()) : null;
         framed = stage;
       }
-      const lit = viewPresentation(documentId).lighting.source === 'scene';
-      view.holdRendered(lit && stage ? drawCamera : null);
+      const { lighting } = viewPresentation(documentId);
+      view.holdRendered(lighting.source === 'scene' && stage ? drawCamera : null);
+      // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
+      // presenter draws every surface by it (`blender-workbench-material.ts`).
+      view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);
     };
     apply();
     const stopPresentation = subscribeViewportPresentation(apply);
-    const stopStages = viewport.onStages(apply);
+    const stopStages = onViewportStages(apply);
     return () => {
       stopPresentation();
       stopStages();
       stopFrame?.();
       view.holdRendered(null);
+      view.setWorkbench(false);
     };
   }, [documentId]);
   /**
@@ -331,6 +408,11 @@ function BlenderModelViewport({
       documentId={documentId}
       sourcePath={blend ?? 'blender:runtime'}
       displayName={document?.label ?? 'Model'}
+      // THE OVERLAY'S SUBJECT AND GRID LINES ARE BLENDER'S: the engine composes the subject from
+      // the scene (`session.py` `_subject_line`) and names the grid's step in the scene's units.
+      {...(subject === null ? {} : { subject })}
+      gridScale={gridScale}
+      cameraView={cameraView}
       build={build}
       audit={false}
       // ON A MODEL DOCUMENT THE HIERARCHY IS BLENDER'S OUTLINER, for the same
@@ -343,12 +425,17 @@ function BlenderModelViewport({
       // "Inspection parity", I3).
       authoring={createBlenderOutlinerAuthoring}
       cameraDirection={[0.8187, 0.4458, 0.3617]}
-      // AND AS FAR BACK AS BLENDER'S STARTUP VIEW STANDS. The direction alone
-      // put the cube where Blender's is but FILLING the frame: the factory
-      // view is 18.39 units from a 2 m cube (`region_3d.view_distance` at
-      // `--factory-startup`), about a third of the size a bare fit gives, which
-      // is the number `openingFit` was written for and nothing was passing.
+      // FOR A FILE THAT SAVED NO 3D VIEW: Blender's factory Modeling direction, standing back
+      // three fits.
       openingFit={3}
+      // WHERE BLENDER OPENS THE FILE: its own saved 3D View, when it holds one; the direction and
+      // fit above are the fallback for a file that saved none.
+      openingView={view.savedView()}
+      // The file's own lens, as the document's presentation (Blender's arithmetic in degrees).
+      presentation={(() => {
+        const saved = view.savedView();
+        return saved ? { camera: { fov: blenderViewFieldOfView(saved.lens) } } : null;
+      })()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).
       stageKind={documentKind}
@@ -365,20 +452,12 @@ function BlenderModelViewport({
       // The BACKGROUND stays the dressing's, because the Blender palette
       // already paints the viewport its own flat grey.
       //
-      // AND THE VIEW TRANSFORM IS BLENDER'S. Blender's factory scene is AgX
-      // (`view_settings.view_transform`), and this document's own RENDER path
-      // already photographs through `THREE.AgXToneMapping` (`presenter.ts`),
-      // so the viewport was the one surface in the chain running a different
-      // curve from the thing it frames. MEASURED on the factory cube, our own
-      // radiance through each operator against Blender's (141,143,145)/
-      // (129,131,131)/(111,112,113): ACES lands the three faces within 6
-      // levels with a spread of 40 where Blender's is 30 — the curve, not the
-      // lights, is what was left of row 1's spread — and AgX within 3 at a
-      // spread of 26.
+      // THE VIEW TRANSFORM IS EACH SHADING MODE'S OWN (`src/presentation.ts`: Standard for Solid,
+      // AgX for Material Preview and Rendered), so the dressing states none: a document mapper
+      // would outrank every mode's.
       dressing={{
         environment: false,
         keyLight: false,
-        toneMapping: THREE.AgXToneMapping,
         viewLocked: view.studioLights(),
       }}
     />

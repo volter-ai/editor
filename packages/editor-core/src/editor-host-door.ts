@@ -21,19 +21,19 @@ import {
 import { activeDocumentSourcePath, activeSaveDestination } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
 import { setWorkerCallMeter } from '@volter/editor-sdk/kit/worker-call-metrics';
-import { beginPageWork } from './play-boot-phase';
-import { onCommandDispatched } from './command-dispatch';
-import { openToolDocument } from './components/tool-documents';
-import { onSessionSample } from './coverage/session-vitals';
+import { beginPageWork } from '@volter/editor-sdk/kit/play-boot-phase';
+import { onCommandDispatched } from '@volter/editor-sdk/kit/command-dispatch';
+import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
+import { onSessionSample } from '@volter/editor-sdk/kit/coverage/session-vitals';
 import {
   documentContextFor,
   notifyDocumentContextChanged,
   waitForDocumentContext,
-} from './document-context-registry';
+} from '@volter/editor-sdk/kit/document-context-registry';
 import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { resolvedProjectDocumentTable } from './project-adapter';
-import { notify } from './editor-notifications';
+import { resolvedProjectDocumentTable } from '@volter/editor-sdk/kit/project-adapter';
+import { notify } from '@volter/editor-sdk/kit/editor-notifications';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
 import { setFilesProvider } from '@volter/editor-sdk/kit/files/file-provider';
 import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
@@ -53,8 +53,8 @@ import {
   keyActionsVersion,
   registeredKeyActions,
   subscribeKeyActions,
-} from './key-actions';
-import { bindKeyActions } from './editor-hotkeys';
+} from '@volter/editor-sdk/kit/key-actions';
+import { bindKeyActions } from '@volter/editor-sdk/kit/editor-hotkeys';
 import {
   activeEditorKeymap,
   editorKeymaps,
@@ -96,30 +96,22 @@ import {
   notifyPlayTransitionGameReady,
   onPlayTransitionSettled,
   playTransitionPhase,
-} from './live-transition';
+} from '@volter/editor-sdk/kit/live-transition';
 import {
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
 } from '@volter/editor-sdk/kit/project-local-state';
-import { getCurrentProject } from './project-manager';
-import { onProjectReady } from './project-ready';
-import { projectMounts } from './project-shape';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
+import { onProjectReady } from '@volter/editor-sdk/kit/project-ready';
+import { projectMounts } from '@volter/editor-sdk/kit/project-shape';
 import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';
-import { onBeforeSessionClose } from './session-close';
+import { onBeforeSessionClose } from '@volter/editor-sdk/kit/session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from '@volter/editor-sdk/kit/settings/settings-provider';
 import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volter/editor-sdk/kit/settings-store';
 import { onShellStoreChange, shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
-import { captureActiveEditorDocument } from './editor-view-presentation';
+import { captureActiveEditorDocument } from '@volter/editor-sdk/kit/editor-view-presentation';
 import { focusedStageContext } from '@volter/editor-sdk/kit/stage-context';
-import {
-  onViewportFrame,
-  onViewportStages,
-  presentViewportRoots,
-  setViewportHelper,
-  viewportRig,
-  viewportStages,
-} from '@volter/editor-sdk/kit/viewport-door';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
@@ -128,8 +120,6 @@ import {
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { hostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierarchy-objects';
-import type { EditorHostHierarchy } from '@volter/editor-sdk/host';
 
 /**
  * THE ACTIVE DOCUMENT'S OWN INTERACTION MODE, if it has one.
@@ -151,7 +141,6 @@ function activeStageMode(): string | null {
   const mode: unknown = read.call(context);
   return typeof mode === 'string' ? mode : null;
 }
-const EMPTY_OBJECTS: ReturnType<EditorHostHierarchy['objects']> = new Map();
 
 let outputProvider: EditorHostOutput | null = null;
 
@@ -204,12 +193,6 @@ export function installEditorHostDoor(): void {
       coverage: liveCoverage,
     },
     viewport: {
-      rig: viewportRig,
-      presentRoots: presentViewportRoots,
-      onFrame: onViewportFrame,
-      setHelper: setViewportHelper,
-      stages: viewportStages,
-      onStages: onViewportStages,
       transition: {
         begin: beginLiveTransition,
         ready: notifyPlayTransitionGameReady,
@@ -219,8 +202,6 @@ export function installEditorHostDoor(): void {
       },
     },
     hierarchy: {
-      object: (id) => hostHierarchyObjects()?.object(id) ?? null,
-      objects: () => hostHierarchyObjects()?.objects() ?? EMPTY_OBJECTS,
       subscribe: (listener) => {
         const stopArrival = onShellStoreChange(listener);
         const stop = shellStoreForHost()?.subscribe(listener);

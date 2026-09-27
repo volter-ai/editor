@@ -5,8 +5,8 @@ import { dirname, join, resolve } from 'node:path';
 /**
  * THE PACKAGE THIS REPORTS ON is `@vgai/game-runtime` — the one whose dual
  * resolution is the failure this diagnostic exists for: two copies mean two
- * `WorldProvider` contexts and `useGame` cannot see the one wrapping the tree.
- * The contract and the three.js twin carry no React context of their own.
+ * debug registries, and the one the editor reads never sees a game the other
+ * holds. The contract and the three.js twin carry no game-scoped registry.
  */
 export const REPORTED_RUNTIME_PACKAGE = '@volter/game-runtime';
 

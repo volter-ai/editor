@@ -19,7 +19,7 @@ import {
   type IngestEntry,
   ingestEntriesOnSurface,
 } from '../host/ingest/registry';
-import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
+import type { IngestGame2D } from '../runtime/pixi/ingest';
 import { composeIngestLoad } from './entry-load';
 
 type BaseFields2D = Pick<IngestGame2D, 'id' | 'name' | 'description' | 'captureTimeoutMs'>;

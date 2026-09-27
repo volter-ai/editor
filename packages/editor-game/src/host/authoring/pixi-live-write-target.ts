@@ -30,12 +30,13 @@
  * moved, and the persistence parameter is what this unit added.
  */
 
+import { physicsOwnerOf } from '@volter/editor-project/adapter';
 import type {
   AuthoringAdapter2D,
   Overlay2D,
   Transform2DValue,
-} from '@volter/game-runtime/pixi/authoring';
-import type { PhysicsAdapter2D } from '@volter/game-runtime/pixi/system-adapters';
+} from '../../runtime/pixi/authoring';
+import type { PhysicsAdapter2D } from '../../runtime/pixi/system-adapters';
 import type {
   ComponentInstanceApplyResult,
   ComponentInstanceDescription,
@@ -48,7 +49,7 @@ import type {
   TransformEditability,
 } from '@volter/editor-project/adapter';
 import type { Container } from 'pixi.js';
-import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-core/creation-site-edit';
+import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-sdk/kit/creation-site-edit';
 import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { JsonHistoryResource } from '../history/json-history-resource';
@@ -807,7 +808,7 @@ export function createLiveCanvasWriteTarget(
     beginTransformEdit(id: string): void {
       historyResource?.assertCanMutate();
       const display = a2d.displayObject(id);
-      if (display && physics.ownerOf(display) === 'physics') physics.freeze(display);
+      if (display && physicsOwnerOf(physics, display) === 'physics') physics.freeze(display);
       editStartState = captureHistoryState();
       editBaseline = persist ? (a2d.getTransform(id) ?? undefined) : undefined;
       editMovedOrigin = false;
@@ -816,7 +817,7 @@ export function createLiveCanvasWriteTarget(
     writeTransform(id: string, next: Transform2DValue): void {
       historyResource?.assertCanMutate();
       const display = a2d.displayObject(id);
-      if (display && physics.ownerOf(display) === 'physics') {
+      if (display && physicsOwnerOf(physics, display) === 'physics') {
         physics.commit(display, next.position, next.rotation);
       }
       a2d.setTransform(id, next);
@@ -829,7 +830,7 @@ export function createLiveCanvasWriteTarget(
     // source write is attempted.
     endTransformEdit(id: string): void | Promise<WriteAck> {
       const display = a2d.displayObject(id);
-      if (display && physics.ownerOf(display) === 'physics') physics.unfreeze(display);
+      if (display && physicsOwnerOf(physics, display) === 'physics') physics.unfreeze(display);
       const label = `Transform ${labelOf(id)}`;
       const before = editStartState;
       const baseline = editBaseline;

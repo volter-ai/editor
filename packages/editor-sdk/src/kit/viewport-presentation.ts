@@ -155,10 +155,33 @@ export interface ViewportOverlays {
   /** The navigation gizmo: `interactive` (a click turns the view to that axis — Blender's,
    *  Godot's, Unity's), `indicator` (drawn, not clicked — Unreal's axis triad) or `hidden`. */
   readonly navigation: 'interactive' | 'indicator' | 'hidden';
+  /** The zoom and pan buttons under the navigation gizmo (Blender's navigation cluster; the
+   *  game engines draw none), and the camera's position and target along the bottom (the
+   *  editor's own readout; no reference draws one). Where they sit is the look's. */
+  readonly navigationControls: boolean;
+  readonly cameraReadout: boolean;
   /** A floor under what the view shows, taking the preview sun's shadow (Unreal's preview
    *  floor, a Show toggle; the others show none). It lies at the content's lowest point, as
    *  Unreal's asset editors place theirs at the bottom of the mesh's bounds. */
   readonly floor: { readonly visible: boolean; readonly color: PresentationColor };
+  /** A 2D view's drafting marks, each a switch in Godot's 2D View menu (Show Rulers, Show Guides,
+   *  Show Origin, Show Viewport; all on by default there): the rulers along the view's edges, the
+   *  guides dragged from them, the origin's axis lines, and the game's viewport rectangle (the
+   *  manifest's `resolution` from the origin). `gridWhenSnapping` is the Grid submenu's Show When
+   *  Snapping (the grid drawn only while the magnet is on); the Gizmos submenu's `position` (the
+   *  selected node's origin handle), `lock` and `group` (marks on locked and grouped nodes) and
+   *  `transformation` (the Move, Rotate and Scale tools' axis gizmo). */
+  readonly drafting: {
+    readonly rulers: boolean;
+    readonly guides: boolean;
+    readonly origin: boolean;
+    readonly viewport: boolean;
+    readonly gridWhenSnapping: boolean;
+    readonly position: boolean;
+    readonly lock: boolean;
+    readonly group: boolean;
+    readonly transformation: boolean;
+  };
 }
 
 /** How the stage's tools behave (function, ARCHITECTURE.md rule 7): the tool its shelf opens
@@ -191,10 +214,38 @@ export interface ViewportWorld {
   readonly handedness: 'right' | 'left';
 }
 
-/** One draw mode's lighting and backdrop. */
+/**
+ * THE STAGE'S CAMERA: its field of view and the direction it opens from — the view's function,
+ * never the look's. Each target holds its angle on its own side:
+ *  - `vertical`: three's own and Godot's (`editors/3d/default_fov` 70, the camera keeping height);
+ *  - `horizontal`: Unreal's (90 in its viewport settings);
+ *  - `larger`: Blender's, whose lens angle is on the region's longer side (sensor fit AUTO);
+ *  - `smaller`: Unity's (`kDefaultPerspectiveFov` 60, vertical when the view is wider than tall,
+ *    `SceneView.GetVerticalFOV`).
+ * `opening` is the direction from the pivot to the eye when a document states none, in the
+ * stage's Y-up frame; a document stage opens along it (the world stage keeps its own framing).
+ */
+export interface ViewportCamera {
+  readonly fov: { readonly degrees: number; readonly axis: 'vertical' | 'horizontal' | 'larger' | 'smaller' };
+  readonly opening: readonly [number, number, number];
+}
+
+/**
+ * X-RAY: surfaces drawn see-through at `alpha`, the edges behind them showing (Blender's shading
+ * X-Ray, kept per shading type: Solid off at 0.5, Wireframe on at 0 — no surface at all). The
+ * stage draws an enabled X-ray at alpha 0 by leaving the surfaces out of the draw; a partial
+ * alpha is drawn opaque.
+ */
+export interface ViewportXray {
+  readonly enabled: boolean;
+  readonly alpha: number;
+}
+
+/** One draw mode's lighting, backdrop and X-ray. */
 export interface ViewportModePresentation {
   readonly lighting: ViewportLighting;
   readonly backdrop: ViewportBackdrop;
+  readonly xray: ViewportXray;
 }
 
 /** A view's whole presentation, resolved. */
@@ -203,6 +254,7 @@ export interface ViewportPresentation extends ViewportModePresentation {
   readonly overlays: ViewportOverlays;
   readonly interaction: ViewportInteraction;
   readonly world: ViewportWorld;
+  readonly camera: ViewportCamera;
 }
 
 type DeepPartial<T> = { readonly [K in keyof T]?: T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K] };
@@ -214,6 +266,7 @@ export interface PresentationLayer {
   readonly overlays?: DeepPartial<ViewportOverlays>;
   readonly interaction?: DeepPartial<ViewportInteraction>;
   readonly world?: Partial<ViewportWorld>;
+  readonly camera?: DeepPartial<ViewportCamera>;
   readonly all?: DeepPartial<ViewportModePresentation>;
   readonly modes?: { readonly [M in ViewportDrawMode]?: DeepPartial<ViewportModePresentation> };
 }
@@ -260,12 +313,27 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     tone: { mapper: 'aces', exposure: 1 },
   },
   backdrop: { source: 'fill', color: '#3d3d3d', opacity: 0, blur: 0 },
+  xray: { enabled: false, alpha: 1 },
   overlays: {
     grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
     selection: { outline: true, wire: false, box: false, origins: false },
     axes: 'floor',
     navigation: 'interactive',
+    navigationControls: true,
+    cameraReadout: true,
     floor: { visible: false, color: '#2b3038' },
+    drafting: {
+      rulers: true,
+      guides: true,
+      origin: true,
+      viewport: true,
+      // Godot's 2D default (measured on 4.7.1: no grid until grid snap is on).
+      gridWhenSnapping: true,
+      position: true,
+      lock: true,
+      group: true,
+      transformation: true,
+    },
   },
   interaction: {
     bootTool: 'transform',
@@ -273,6 +341,9 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     transformHandles: { scale: true, viewRotate: true, freeMove: true },
   },
   world: { upAxis: 'y', handedness: 'right' },
+  // The editor's own camera: three's 50° vertical, opening from the editor's three-quarter view
+  // (the Isometric preset's direction, 1 : 0.72 : 1).
+  camera: { fov: { degrees: 50, axis: 'vertical' }, opening: [0.6301, 0.4537, 0.6301] },
 });
 
 // ---- Studio presets ----------------------------------------------------------------------------
@@ -329,6 +400,15 @@ export function viewGridVisible(viewId: string): boolean {
   return viewPresentation(viewId).overlays.grid.visible;
 }
 
+/** A 2D view's drafting marks (`overlays.drafting`), read and switched like its grid. */
+export function viewDrafting(viewId: string): ViewportOverlays['drafting'] {
+  return viewPresentation(viewId).overlays.drafting;
+}
+
+export function setViewDrafting(viewId: string, choice: Partial<ViewportOverlays['drafting']>): void {
+  setViewPresentation(viewId, { overlays: { drafting: choice } });
+}
+
 export function setViewGridVisible(viewId: string, visible: boolean): void {
   if (viewGridVisible(viewId) === visible) return;
   setViewPresentation(viewId, { overlays: { grid: { visible } } });
@@ -370,8 +450,12 @@ export function viewPresets(): readonly ViewPreset[] {
 export function applyViewPreset(viewId: string, presetId: string): boolean {
   const preset = viewPresetsById.get(presetId);
   if (!preset) return false;
-  resetViewPresentation(viewId);
-  setViewPresentation(viewId, preset.layer);
+  // ONE write, so no listener sees the choices emptied in between; and a view that does not choose
+  // a draw mode keeps the one being drawn, rather than falling back to the kit's.
+  const current = views.get(viewId) ?? { stageKind: '', documentLayer: null, chosen: {} };
+  const drawMode = preset.layer.drawMode ?? current.chosen.drawMode;
+  views.set(viewId, { ...current, chosen: { ...preset.layer, ...(drawMode ? { drawMode } : {}) } });
+  bump();
   return true;
 }
 
@@ -522,10 +606,15 @@ export function viewPresentation(viewId: string): ViewportPresentation {
  *  resolves without a bound view (a capture, a preview). */
 export function resolvePresentation(layers: readonly PresentationLayer[]): ViewportPresentation {
   const drawMode = layers.reduce<ViewportDrawMode>((mode, layer) => layer.drawMode ?? mode, KIT_PRESENTATION.drawMode);
-  let mode: ViewportModePresentation = { lighting: KIT_PRESENTATION.lighting, backdrop: KIT_PRESENTATION.backdrop };
+  let mode: ViewportModePresentation = {
+    lighting: KIT_PRESENTATION.lighting,
+    backdrop: KIT_PRESENTATION.backdrop,
+    xray: KIT_PRESENTATION.xray,
+  };
   let overlays: ViewportOverlays = KIT_PRESENTATION.overlays;
   let interaction: ViewportInteraction = KIT_PRESENTATION.interaction;
   let world: ViewportWorld = KIT_PRESENTATION.world;
+  let camera: ViewportCamera = KIT_PRESENTATION.camera;
   for (const layer of layers) {
     if (layer.all) mode = deepMerge(mode, layer.all);
     const forMode = layer.modes?.[drawMode];
@@ -533,8 +622,9 @@ export function resolvePresentation(layers: readonly PresentationLayer[]): Viewp
     if (layer.overlays) overlays = deepMerge(overlays, layer.overlays);
     if (layer.interaction) interaction = deepMerge(interaction, layer.interaction);
     if (layer.world) world = deepMerge(world, layer.world);
+    if (layer.camera) camera = deepMerge(camera, layer.camera);
   }
-  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, overlays, interaction, world };
+  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, xray: mode.xray, overlays, interaction, world, camera };
 }
 
 // ---- Change notification ------------------------------------------------------------------------

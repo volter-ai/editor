@@ -1,7 +1,7 @@
 /**
  * Adapter interfaces — the seams the engine host and the editor DEPEND ON.
  *
- *   host    → RootAdapter ← { r3fRootFactory-built adapters, IngestRootAdapter, … }
+ *   host    → RootAdapter ← { the editor's R3F root mounts, IngestRootAdapter, … }
  *   editor  → AuthoringAdapter ← { ThreeAuthoringAdapter, ReactRootAuthoringAdapter, … }
  *   game    → SystemAdapters (physics/networking/navigation/audio/camera/debug)
  *
@@ -47,6 +47,7 @@ export type {
   PersistenceProvider,
   PickProvider,
   PropertyDescriptor,
+  FrameCorners,
   RectProvider,
   RelatedSubjectLink,
   RelatedSubjectsProvider,
@@ -64,6 +65,7 @@ export type {
   StructuralIdWrite,
   StructuralWriteOutcome,
   StructureProvider,
+  CreatableKind,
   TextProvider,
   TransformChannel,
   TransformEditability,
@@ -112,7 +114,6 @@ export type { OfflineAudioRenderer, RenderedAudio } from './render-audio';
 export type {
   MountedCanvasRoot,
   MountedCanvasSubstrate,
-  MountedPixiRoot,
   MountedReactRoot,
   MountedRoot,
   MountedRootBase,
@@ -169,7 +170,13 @@ export type {
   NetMessageEvent,
   NetPeer,
   NetPlayerIdentity,
+  NetConditioningLimits,
   NetRates,
+  NetServerClient,
+  NetServerInspection,
+  NetServerRoom,
+  NetTypeTraffic,
+  NetEntityTraffic,
   NetServerConfig,
   NetworkingAdapter,
   PhysicsAdapter,
@@ -186,7 +193,7 @@ export type {
 } from './system-adapter';
 /** The two narrowings of the tagged `SystemAdapters['physics']` union — see
  *  `PhysicsAdapter`'s comment for why it is tagged at all. */
-export { displayKeyedPhysics, nodeKeyedPhysics } from './system-adapter';
+export { displayKeyedPhysics, nodeKeyedPhysics, physicsOwnerOf } from './system-adapter';
 export {
   AUDIO_ADAPTER_SHAPE,
   CAMERA_ADAPTER_SHAPE,

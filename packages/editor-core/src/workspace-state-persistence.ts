@@ -1,7 +1,7 @@
 import {
   openAvailableWorkspaceDocument,
   requestAvailableWorkspaceDocument,
-} from './workspace-available-documents';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * PERSISTED WORKSPACE STATE: which named workspace the project was left in,
  * which documents were open, which one was in front, and each kind's own
@@ -77,15 +77,16 @@ import {
   subscribeViewportPresentation,
   viewPresentationSnapshot,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import { projectAdapterFacet, waitForProjectAdapter } from './project-adapter';
+import { projectAdapterFacet, waitForProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
 import {
   preloadProjectLocalState,
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
 } from '@volter/editor-sdk/kit/project-local-state';
-import { getCurrentProject } from './project-manager';
-import { refreshProjectToolContributions } from './tool-loader';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
+import { refreshProjectToolContributions } from '@volter/editor-sdk/kit/tool-loader';
+import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
@@ -100,7 +101,7 @@ import {
   workspaceDocumentRestorerEntries,
   workspaceDocumentRestorers,
 } from '@volter/editor-sdk/kit/workspace-document-restore';
-import { isWorkspacePersistenceSuppressed } from './workspace-persistence-gate';
+import { isWorkspacePersistenceSuppressed } from '@volter/editor-sdk/kit/workspace-persistence-gate';
 import {
   activeEditorWorkspace,
   defaultEditorWorkspace,
@@ -109,7 +110,7 @@ import {
   isEditorWorkspaceId,
   setEditorWorkspace,
   workspaceApplies,
-} from './workspace-presets';
+} from '@volter/editor-sdk/kit/workspace-presets';
 
 interface WorkspaceRestoreEpoch {
   readonly generation: number;
@@ -318,7 +319,7 @@ async function restoreOneDocument(
       const claimed = await restorer.restore({
         id: doc.id,
         state: doc.state,
-        active: doc.id === activeId,
+        active: doc.id === activeId && !liveDocumentHeld(),
         store,
       });
       if (claimed) return true;
@@ -330,16 +331,19 @@ async function restoreOneDocument(
 }
 
 /** Restore an active id now, or hand a stable async board id to the document
- * registry so its later project-owned registration completes the request. */
+ * registry so its later project-owned registration completes the request. A
+ * Play entered before the restore lands keeps the game in front: the restored
+ * document opens behind it. */
 function restoreActiveDocument(id: string | null): boolean {
   if (!id) return false;
-  if (openAvailableWorkspaceDocument(id)) return true;
+  const activate = !liveDocumentHeld();
+  if (openAvailableWorkspaceDocument(id, activate)) return true;
   if (PINNED_ASYNC_DOCUMENT_IDS.has(id)) {
     requestAvailableWorkspaceDocument(id);
-    restorePinnedWorkspaceDocumentActivation(id);
+    if (activate) restorePinnedWorkspaceDocumentActivation(id);
     return true;
   }
-  return activateWorkspaceDocument(id);
+  return activate && activateWorkspaceDocument(id);
 }
 
 /** Tell every registered kind the session is beginning, with its own session

@@ -2385,6 +2385,12 @@ select.vgai-input {
   z-index: var(--vgai-z-sticky);
   overflow: visible;
 }
+/* Figma's zoom sits at the top right, against its properties panel: the board's does too. */
+.vgai-react-canvas-controls[data-board-zoom] {
+  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
+  right: var(--vgai-space-4);
+  bottom: auto;
+}
 .vgai-canvas-scene-navigation {
   position: absolute;
   top: calc(var(--vgai-viewport-overlay-top, var(--vgai-space-4)) + 44px);

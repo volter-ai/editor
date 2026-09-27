@@ -1,7 +1,7 @@
 {
   "name": "@volter/editor-threejs",
   "author": "Volter AI, Inc.",
-  "version": "0.5.66",
+  "version": "0.5.68",
   "publishConfig": {
     "access": "public"
   },
@@ -118,7 +118,8 @@
   "peerDependencies": {
     "three": "^0.180.0",
     "vite": "^6.4.3",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "scripts": {
     "build": "node scripts/build-serving.mjs",
@@ -134,12 +135,12 @@
     "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
-    "@volter/editor-project": "0.5.66",
+    "@volter/editor-project": "0.5.68",
     "@sparkjsdev/spark": "^2.1.0",
     "three.quarks": "^0.16.0",
     "zod": "^4.3.6",
     "typescript": "5.9.3",
-    "@volter/editor-sdk": "0.5.66",
+    "@volter/editor-sdk": "0.5.68",
     "postprocessing": "6.38.3",
     "quarks.core": "0.16.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0"

@@ -57,7 +57,7 @@ export interface RapierEditableBody {
  * mount is no longer the only Rapier in this engine: an R3F world does its
  * physics with `@react-three/rapier` inside the fiber tree, which owns its own
  * bodies and its own `Object3D` mapping, and reaches these same four verbs
- * through `world3d-react/rapier-physics-bridge.tsx`. The optional members
+ * through the editor's observer of that world (`editor-game/src/services/game-physics.ts`). The optional members
  * (`debugDraw`, `setDebugDrawEnabled`, `contactPoints`) are NOT here: each is
  * answered differently by each Rapier owner, and a caller that cannot answer
  * one honestly omits it.

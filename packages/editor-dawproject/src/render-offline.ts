@@ -9,9 +9,12 @@
  */
 
 import { perform } from '@volter/dawproject/perform';
+import { audioSegments, envelopeAt } from './comp';
 import type { Piece } from '@volter/dawproject/piece';
-import { type ImpulseResponse, mix } from './mix/offline-mix';
-import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor, SpessaSynthSequencer } from 'spessasynth_core';
+import { notePatches } from './articulations';
+import { roundRobins } from './sfz-bank';
+import { type DynamicsReport, type ImpulseResponse, mix, soloActive, stripLevels } from './mix/offline-mix';
+import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
 const PPQ = 480;
 const DRUM_CHANNEL = 9;
@@ -47,11 +50,16 @@ export function assignChannels(piece: Piece): Map<string, TrackAssignment> {
   return out;
 }
 
-/** The tracks that sound in a full render: a soundfont device, not muted, and soloed when any track is. */
+/**
+ * The tracks that sound in a full render: a soundfont device or an audio clip, not muted, and soloed when any
+ * instrument strip is (`soloActive`: a solo written on a bus or the master counts for nothing, in
+ * both mixes).
+ */
 export function audibleTracks(piece: Piece): Piece['tracks'] {
   const assignments = assignChannels(piece);
-  const soloed = piece.tracks.some((track) => track.channel?.solo);
-  return piece.tracks.filter((track) => assignments.has(track.id) && !track.channel?.mute && (!soloed || track.channel?.solo));
+  const soloed = soloActive(piece);
+  // The mixes' own rule (`stripLevels`): a solo on a group solos what it contains.
+  return piece.tracks.filter((track) => (assignments.has(track.id) || track.clips.some((clip) => clip.audio)) && stripLevels(piece, track, soloed).sounding);
 }
 
 /**
@@ -64,9 +72,12 @@ export function audibleTracks(piece: Piece): Piece['tracks'] {
  * `only` (track ids) writes a subset of the audible tracks, on the channels they have in the
  * full piece: a stem is the same performance with the other tracks left out.
  */
-export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>, forMix = false): MIDIBuilder {
+export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>): MIDIBuilder {
   const performance = perform(piece);
-  const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: piece.transport.tempo, name: 'piece', format: 1 });
+  // The tempo map as steps of a quarter beat: the file's tempo over each step is the map's average.
+  const bpmAt = (beat: number): number => (0.25 * 60) / (performance.secondsAt(beat + 0.25) - performance.secondsAt(beat));
+  // The initial tempo is the map's at beat 0, which a tempo lane point there sets, not the Transport.
+  const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: bpmAt(0), name: 'piece', format: 1 });
   const assignments = assignChannels(piece);
   const audible = new Set(audibleTracks(piece).map((track) => track.id));
   const span = Math.max(1, piece.length);
@@ -75,7 +86,7 @@ export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>
   for (let pass = 0; pass < passes; pass++) {
     let last = Number.NaN;
     for (let beat = 0; beat < span; beat += 0.25) {
-      const bpm = (0.25 * 60) / (performance.secondsAt(beat + 0.25) - performance.secondsAt(beat));
+      const bpm = bpmAt(beat);
       if (Number.isNaN(last) || Math.abs(bpm - last) > 0.05) {
         if (pass > 0 || beat > 0) midi.setTempo(Math.round((pass * span + beat) * PPQ), bpm);
         last = bpm;
@@ -94,12 +105,10 @@ export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>
       midi.controllerChange(0, trackIndex, channel, 0, assignment.bankNumber);
       midi.programChange(0, trackIndex, channel, assignment.program);
     }
-    // A file for another DAW carries the channel's level and pan as CC7/CC10. Rendered through the
-    // mix (`forMix`), the synth channel stays at unity and centre: the mix's faders and panners
-    // apply them, once, exactly as the editor does.
-    const volume = forMix ? 127 : Math.max(0, Math.min(127, Math.round(127 * 10 ** ((track.channel?.volume ?? 0) / 40))));
+    // A file for another DAW carries the channel's level and pan as CC7/CC10.
+    const volume = Math.max(0, Math.min(127, Math.round(127 * 10 ** ((track.channel?.volume ?? 0) / 40))));
     midi.controllerChange(0, trackIndex, channel, 7, volume);
-    midi.controllerChange(0, trackIndex, channel, 10, forMix ? 64 : Math.max(0, Math.min(127, Math.round(64 + (track.channel?.pan ?? 0) * 63))));
+    midi.controllerChange(0, trackIndex, channel, 10, Math.max(0, Math.min(127, Math.round(64 + (track.channel?.pan ?? 0) * 63))));
     for (let pass = 0; pass < passes; pass++) {
       for (const control of performance.controls) {
         if (control.track !== track.id) continue;
@@ -128,60 +137,305 @@ export interface RenderedLoop {
   readonly loopSeconds: number;
 }
 
-/** Every MIDI channel of the piece rendered once, dry, for two passes and a tail. */
+/** Every MIDI channel of the piece rendered once, dry, for the requested passes and a tail. */
 export interface RenderedChannels {
   readonly piece: Piece;
   readonly sampleRate: number;
   readonly loopSeconds: number;
   readonly channels: readonly [Float32Array, Float32Array][];
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
+  /** Where the render's first sample falls in the piece (a section starts at its marker). */
+  readonly startSecond: number;
+  /** Each audio track's clips placed in the same passes and tail, by track id. */
+  readonly audio: ReadonlyMap<string, [Float32Array, Float32Array]>;
+}
+
+/** A decoded recording, as `readWav` answers. */
+export interface DecodedAudio {
+  readonly channels: readonly Float32Array[];
+  readonly sampleRate: number;
 }
 
 /**
- * Run the synth once over the whole piece (two passes and a tail), each MIDI channel into its own
- * stereo buffer with the synth's own effects off. The mix and every stem are then mixed from these
- * buffers (`mixLoop`), so a stem is exactly its track's share of the mix.
+ * Every audio clip of the piece placed where it sounds in a render of `passes` passes of
+ * [fromBeat, toBeat) (the whole piece without a window) and a tail: from the clip's start (the
+ * file from `offset` seconds, or further when the window starts inside the clip) to the clip's end
+ * or the window's, at `gain` dB. A file at another sample rate is read at this one by linear
+ * interpolation.
+ */
+export function placeAudio(
+  piece: Piece,
+  files: ReadonlyMap<string, DecodedAudio>,
+  sampleRate: number,
+  total: number,
+  passes: number,
+  window?: BeatWindow,
+): Map<string, [Float32Array, Float32Array]> {
+  const performance = perform(piece);
+  const fromBeat = window ? window.fromBeat : 0;
+  const toBeat = window ? window.toBeat : Math.max(1, piece.length);
+  const from = performance.secondsAt(fromBeat);
+  // Passes of whole samples, as `synthEvents` places them.
+  const loopSamples = Math.round((performance.secondsAt(toBeat) - from) * sampleRate);
+  const loopSeconds = loopSamples / sampleRate;
+  const out = new Map<string, [Float32Array, Float32Array]>();
+  for (const track of piece.tracks) {
+    for (const clip of track.clips) {
+      // Each stretch of the clip from the take that plays there (`comp.ts`), at its envelope.
+      for (const segment of audioSegments(clip, performance.secondsAt)) {
+        const file = files.get(segment.audio.file);
+        if (!file || file.channels.length === 0) continue;
+        const segmentStart = Math.max(segment.from, from);
+        const segmentEnd = Math.min(segment.to, from + loopSeconds);
+        if (segmentEnd <= segmentStart) continue;
+        const sourceStart = segment.sourceAt + (segmentStart - segment.from);
+        const [left, right] = out.get(track.id) ?? [new Float32Array(total), new Float32Array(total)];
+        out.set(track.id, [left, right]);
+        const sourceLeft = file.channels[0]!;
+        const sourceRight = file.channels[1] ?? sourceLeft;
+        const ratio = file.sampleRate / sampleRate;
+        const frames = Math.round((segmentEnd - segmentStart) * sampleRate);
+        const steady = segment.envelope.length === 1 ? segment.envelope[0]![1] : null;
+        for (let pass = 0; pass < passes; pass++) {
+          const at = pass * loopSamples + Math.round((segmentStart - from) * sampleRate);
+          for (let i = 0; i < frames && at + i < total; i++) {
+            const position = (sourceStart * sampleRate + i) * ratio;
+            const k = Math.floor(position);
+            if (k >= sourceLeft.length) break;
+            const t = position - k;
+            // Between the last sample and the file's end the browser's source carries on along the
+            // last slope (measured: a read at 7.6 of [..., 7, 8] gives 8.6), so the export does too.
+            const nextLeft = k + 1 < sourceLeft.length ? sourceLeft[k + 1]! : 2 * sourceLeft[k]! - (sourceLeft[k - 1] ?? sourceLeft[k]!);
+            const nextRight = k + 1 < sourceRight.length ? sourceRight[k + 1]! : 2 * sourceRight[k]! - (sourceRight[k - 1] ?? sourceRight[k]!);
+            // The envelope at this output sample's own time, as the editor's gain ramps compute it.
+            const gain = steady ?? envelopeAt(segment.envelope, from + (at + i) / sampleRate - pass * loopSeconds);
+            left[at + i]! += (sourceLeft[k]! + (nextLeft - sourceLeft[k]!) * t) * gain;
+            right[at + i]! += (sourceRight[k]! + (nextRight - sourceRight[k]!) * t) * gain;
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/** One thing the synth does, at one sample: a note, a controller, a channel's setup. */
+interface SynthEvent {
+  readonly sample: number;
+  /** Among events on one sample: setup first, then controllers, note-offs, then each note (its patch, then its note-on) in performance order. */
+  readonly rank: number;
+  readonly apply: (synth: SpessaSynthProcessor) => void;
+}
+
+/** A stretch of the piece, in beats: a section from its marker to the next. */
+export interface BeatWindow {
+  readonly fromBeat: number;
+  readonly toBeat: number;
+}
+
+/**
+ * The piece's performance as synth events at exact samples, `passes` times through. Each audible
+ * track's channel is set up at sample 0 (bank, program, and unity level and centre: the mix's
+ * faders and panners apply the channel's own, once, exactly as the editor does); then every
+ * controller and note at the sample its performed second falls on.
+ *
+ * A `window` is that stretch of the SAME performance, not a performance of a shorter piece: the
+ * notes written in it, played exactly as they are in the whole piece (the humanize drift is a
+ * walk over the whole track, so a section performed on its own would drift differently; the
+ * round-robin turn is the whole piece's), and each controller's value at the window's start
+ * carried in.
+ */
+function synthEvents(
+  piece: Piece,
+  passes: number,
+  sampleRate: number,
+  window: BeatWindow | undefined,
+  bankOffset: ReadonlyMap<string, number>,
+  bankPresets: ReadonlyMap<string, readonly { readonly name: string; readonly bankMSB: number; readonly program: number }[]> = new Map(),
+): { events: SynthEvent[]; loopSeconds: number } {
+  const performance = perform(piece);
+  const assignments = assignChannels(piece);
+  const channelOf = new Map([...assignments].map(([trackId, assignment]) => [trackId, assignment.channel]));
+  const fromBeat = window ? window.fromBeat : 0;
+  const toBeat = window ? window.toBeat : Math.max(1, piece.length);
+  const from = performance.secondsAt(fromBeat);
+  const to = performance.secondsAt(toBeat);
+  // A pass is a whole number of samples (the loop file's length), so every pass places each event
+  // on the same sample as the first: a loop's second pass is its first, shifted.
+  const loopSamples = Math.round((to - from) * sampleRate);
+  const loopSeconds = loopSamples / sampleRate;
+  const inWindow = (second: number): boolean => second >= from - 1e-9 && second < to - 1e-9;
+  // Each controller's last value before the window, sounding from its first sample.
+  const carried = new Map<string, (typeof performance.controls)[number]>();
+  for (const control of performance.controls) {
+    if (control.time >= from - 1e-9) continue;
+    const key = `${control.track}:${control.controller}`;
+    const held = carried.get(key);
+    if (!held || held.time <= control.time) carried.set(key, control);
+  }
+  const controls = [...[...carried.values()].map((control) => ({ ...control, time: 0 })), ...performance.controls.filter((control) => inWindow(control.time)).map((control) => ({ ...control, time: control.time - from }))];
+  // A section holds the notes WRITTEN in it: membership is the written beat, never the humanised
+  // second (a downbeat played a few ms early still belongs to the bar it is written on).
+  const notes = performance.notes
+    .filter((note) => note.beat >= fromBeat - 1e-9 && note.beat < toBeat - 1e-9)
+    .map((note) => ({ source: note, start: note.start - from, end: note.end - from }));
+  const events: SynthEvent[] = [];
+  // Each note's bank and program where they change note by note (articulations, round robins),
+  // over the WHOLE performance, as the preview numbers them: a window never restarts a round robin.
+  const patchOf = notePatches(
+    piece,
+    performance.notes,
+    (track) => {
+      const assignment = assignments.get(track);
+      return assignment && assignment.channel !== DRUM_CHANNEL ? (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber : null;
+    },
+    (track, bankSelect, program) => {
+      const assignment = assignments.get(track)!;
+      return roundRobins(bankPresets.get(assignment.bank) ?? [], bankSelect - (bankOffset.get(assignment.bank) ?? 0), program);
+    },
+  );
+  for (const track of audibleTracks(piece)) {
+    const assignment = assignments.get(track.id);
+    // An audio track has no synth channel to set up: its strip's input is its recordings.
+    if (!assignment) continue;
+    const { channel } = assignment;
+    events.push({
+      sample: 0,
+      rank: 0,
+      apply: (synth) => {
+        // On the drum channel the program is the kit (GS numbering); bank offsets do not separate
+        // kits, so a bank's kit is chosen by its own program number.
+        if (channel !== DRUM_CHANNEL) synth.controllerChange(channel, 0 as never, (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber);
+        synth.programChange(channel, assignment.program);
+        synth.controllerChange(channel, 7 as never, 127);
+        synth.controllerChange(channel, 10 as never, 64);
+      },
+    });
+  }
+  const audible = new Set(audibleTracks(piece).map((track) => track.id));
+  for (let pass = 0; pass < passes; pass++) {
+    const at = (seconds: number): number => pass * loopSamples + Math.round(seconds * sampleRate);
+    for (const control of controls) {
+      const channel = channelOf.get(control.track);
+      if (channel === undefined || !audible.has(control.track)) continue;
+      if (control.controller === 'pitchbend') {
+        const value = Math.max(0, Math.min(16383, Math.round(8192 + control.value * 8191)));
+        events.push({ sample: at(control.time), rank: 1, apply: (synth) => synth.pitchWheel(channel, value) });
+      } else {
+        const controller = control.controller;
+        const value = Math.max(0, Math.min(127, Math.round(control.value * 127)));
+        events.push({ sample: at(control.time), rank: 1, apply: (synth) => synth.controllerChange(channel, controller as never, value) });
+      }
+    }
+    for (const { source, start, end } of notes) {
+      const channel = channelOf.get(source.track);
+      if (channel === undefined || !audible.has(source.track)) continue;
+      const velocity = Math.max(1, Math.min(127, Math.round(source.velocity * 127)));
+      const on = Math.max(0, at(start));
+      const patch = patchOf.get(source);
+      // The note's own patch, then the note, as ONE event: two notes on one sample each sound on
+      // their own patch, in performance order, as the preview schedules them.
+      events.push({
+        sample: on,
+        rank: 3,
+        apply: (synth) => {
+          if (patch) {
+            synth.controllerChange(channel, 0 as never, patch.bankSelect);
+            synth.programChange(channel, patch.program);
+          }
+          synth.noteOn(channel, source.pitch, velocity);
+        },
+      });
+      events.push({ sample: Math.max(on + 1, at(end)), rank: 2, apply: (synth) => synth.noteOff(channel, source.pitch) });
+    }
+  }
+  // Array sort is stable: notes on one sample keep performance order.
+  return { events: events.sort((a, b) => a.sample - b.sample || a.rank - b.rank), loopSeconds };
+}
+
+/**
+ * Run the synth once over the whole piece (two passes by default, plus a tail), each MIDI channel
+ * into its own stereo buffer with the synth's own effects off. The mix and every stem are then
+ * mixed from these buffers (`mixLoop`), so a stem is exactly its track's share of the mix.
+ *
+ * The synth is driven from the performance directly, every event on its exact sample: the audio
+ * is rendered up to an event, the event applied, and on. Through a MIDI file and a sequencer
+ * ticked once per 128-sample block, each note landed up to 2.7 ms late, differently for every
+ * pass and every section; measured on one slice rendered twice, the two passes nulled at +1.8 dB
+ * when the loop was not a whole number of blocks and −15.9 dB when it was.
  */
 export async function renderChannels(
   piece: Piece,
-  soundBank: ArrayBuffer,
+  /** Every sound bank the piece's soundfont devices name, by project path. */
+  soundBanks: ReadonlyMap<string, ArrayBuffer>,
   sampleRate = 48_000,
   tailSeconds = 4,
   irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
+  passes = 2,
+  window?: BeatWindow,
+  /** The recordings the piece's audio clips name, decoded, by project path. */
+  audioFiles: ReadonlyMap<string, DecodedAudio> = new Map(),
 ): Promise<RenderedChannels> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
-  synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(soundBank), 'main');
+  // Each bank at its own offset, one above the highest bank number already loaded, so a track's
+  // `params.bank` is the bank it plays: its channel selects `offset + bankNumber`.
+  const bankOffset = new Map<string, number>();
+  const bankPresets = new Map<string, readonly { name: string; bankMSB: number; program: number }[]>();
+  let next = 0;
+  for (const path of new Set([...assignChannels(piece).values()].map((assignment) => assignment.bank))) {
+    const bytes = soundBanks.get(path);
+    if (!bytes) throw new Error(`The sound bank ${path} was not loaded.`);
+    const bank = SoundBankLoader.fromArrayBuffer(bytes);
+    const highest = Math.max(0, ...bank.presets.map((preset) => preset.bankMSB).filter((msb) => msb < 128));
+    // A bank select is 0–127: a bank that would sit past it would collide with another's presets.
+    if (next + highest > 127) {
+      throw new Error(`Too many banks in one piece: ${path} would need bank selects ${next}–${next + highest}, past 127. Play fewer sound banks in this piece.`);
+    }
+    synth.soundBankManager.addSoundBank(bank, path, next);
+    bankOffset.set(path, next);
+    bankPresets.set(path, bank.presets.map((preset) => ({ name: preset.name, bankMSB: preset.bankMSB, program: preset.program })));
+    next += highest + 1;
+  }
   await synth.processorInitialized;
   synth.setSystemParameter('autoAllocateVoices', true);
   // The mix owns space and level (`mix/offline-mix.ts`): the synth's own reverb and chorus are off.
   synth.setSystemParameter('effectsEnabled', false);
-  const sequencer = new SpessaSynthSequencer(synth);
-  // The sequencer skips leading silence by default, which would slide a stem whose first note is
-  // late (and a humanised mix by its first note's drift) off the piece's own clock.
-  sequencer.skipToFirstNoteOn = false;
-  sequencer.loadNewSongList([pieceToMidi(piece, 2, undefined, true)]);
-  sequencer.play();
-  const loopSeconds = perform(piece).secondsAt(Math.max(1, piece.length));
-  const total = Math.ceil(sampleRate * (2 * loopSeconds + tailSeconds));
+  const { events, loopSeconds } = synthEvents(piece, passes, sampleRate, window, bankOffset, bankPresets);
+  const total = Math.ceil(sampleRate * (passes * loopSeconds + tailSeconds));
   const channels = Array.from({ length: 16 }, () => [new Float32Array(total), new Float32Array(total)] as [Float32Array, Float32Array]);
   const effectsLeft = new Float32Array(total);
   const effectsRight = new Float32Array(total);
   const block = 128;
-  for (let filled = 0; filled < total; filled += block) {
-    sequencer.processTick();
-    synth.processSplit(channels, effectsLeft, effectsRight, filled, Math.min(block, total - filled));
+  let filled = 0;
+  const renderTo = (sample: number): void => {
+    while (filled < sample) {
+      const count = Math.min(block, sample - filled);
+      synth.processSplit(channels, effectsLeft, effectsRight, filled, count);
+      filled += count;
+    }
+  };
+  for (const event of events) {
+    if (event.sample >= total) break;
+    renderTo(event.sample);
+    event.apply(synth);
   }
-  return { piece, sampleRate, loopSeconds, channels, irs };
+  renderTo(total);
+  return {
+    piece, sampleRate, loopSeconds, channels, irs,
+    startSecond: perform(piece).secondsAt(window?.fromBeat ?? 0),
+    audio: placeAudio(piece, audioFiles, sampleRate, total, passes, window),
+  };
 }
 
 /**
  * One seamless loop from rendered channels: the mix (strips, sends, buses, master), second pass
  * kept. `only` (track ids) mixes just those tracks, with their buses (a stem).
  */
-export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>): RenderedLoop {
+export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>, dynamics?: (report: DynamicsReport) => void): RenderedLoop {
   const { piece, sampleRate, loopSeconds, irs } = rendered;
   const channelOf = new Map([...assignChannels(piece)].map(([trackId, assignment]) => [trackId, assignment.channel]));
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}) });
+  const timeline = { startSecond: rendered.startSecond, loopSeconds, beatAt: perform(piece).beatAt };
+  const [left, right] = mix(piece, { channels: rendered.channels, audio: rendered.audio, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const loopSamples = Math.round(loopSeconds * sampleRate);
   const start = loopSamples;
   const outLeft = left.slice(start, start + loopSamples);
@@ -199,16 +453,18 @@ export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>):
   return { sampleRate, left: outLeft, right: outRight, loopSeconds };
 }
 
-/** Render one seamless loop of the piece (its channels, then the mix). */
-export async function renderLoop(
-  piece: Piece,
-  soundBank: ArrayBuffer,
-  sampleRate = 48_000,
-  tailSeconds = 4,
-  only?: ReadonlySet<string>,
-  irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
-): Promise<RenderedLoop> {
-  return mixLoop(await renderChannels(piece, soundBank, sampleRate, tailSeconds, irs), only);
+/** Mix a single pass and its entire tail, with a 10 ms fade to silence at the end. */
+export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string>, dynamics?: (report: DynamicsReport) => void): RenderedLoop {
+  const { piece, sampleRate, irs } = rendered;
+  const channelOf = new Map([...assignChannels(piece)].map(([id, assignment]) => [id, assignment.channel]));
+  // One pass and its tail run on in piece time: no fold.
+  const timeline = { startSecond: rendered.startSecond, loopSeconds: 0, beatAt: perform(piece).beatAt };
+  const [left, right] = mix(piece, { channels: rendered.channels, audio: rendered.audio, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
+  const fade = Math.min(Math.round(0.01 * sampleRate), left.length);
+  for (const channel of [left, right]) {
+    for (let i = 0; i < fade; i++) channel[channel.length - fade + i]! *= (fade - 1 - i) / Math.max(1, fade - 1);
+  }
+  return { sampleRate, left, right, loopSeconds: left.length / sampleRate };
 }
 
 /** The loop seam: the step across the wrap against the typical sample-to-sample step. Under 1 means no click. */

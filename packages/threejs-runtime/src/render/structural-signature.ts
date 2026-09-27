@@ -3,13 +3,12 @@
  * place that answers "may this draw be collapsed at all?" and "are these two
  * meshes the same thing drawn twice?".
  *
- * Three consumers, which is the whole reason it is a module rather than three
- * private helpers: `render/render-batch-system.ts` (the engine's own
- * lab-driven instancer), `dev/render-census.ts`'s structural scan (what the
- * advisor and `render.families` measure), and the `static-batch` capability's
- * `<Frozen>` (what a game actually installs). A batcher and the advisor that
- * routes people to it MUST agree about what is batchable, or the advisor
- * promises a win the wrapper then declines to take.
+ * Two consumers, which is the whole reason it is a module rather than private
+ * helpers: `dev/render-census.ts`'s structural scan (what the advisor and
+ * `render.families` measure) and the `static-batch` capability's `<Frozen>`
+ * (what a game actually installs). A batcher and the advisor that routes
+ * people to it MUST agree about what is batchable, or the advisor promises a
+ * win the wrapper then declines to take.
  *
  * ── THE UUID TRAP, WHICH IS WHY THIS MODULE EXISTS ──────────────────────────
  * The obvious key for "can these two meshes be drawn as one" is object
@@ -28,9 +27,7 @@
  * OWN `THREE.MeshStandardMaterial`. Five hundred crates are five hundred
  * distinct uuids describing one identical appearance. A uuid-keyed grouper
  * reports five hundred families of one, finds nothing to do, and is indistin-
- * guishable from a correct batcher over an unbatchable scene. The engine's own
- * scene construction has the same property, which is why
- * `render/render-batch-system.ts` has keyed on VALUE since it was written.
+ * guishable from a correct batcher over an unbatchable scene.
  *
  * So the key here is the STRUCTURE: geometry `type` + its construction
  * `parameters`, material `type` + the props that decide what the draw looks
@@ -49,14 +46,10 @@
  *   - a shader material ({@link materialMergeSignature} only): its appearance
  *     lives in shader source and uniforms that no fixed prop list can read.
  *
- * ── TWO KEYS, DELIBERATELY ──────────────────────────────────────────────────
- * {@link staticBatchSignature} is `RenderBatchSystem`'s key, extracted here
- * unchanged so there is one owner of the answer rather than two that drift.
- * {@link materialMergeSignature} is STRICTER, and it is what the `static-batch`
- * capability's `<Frozen>` groups by: that path hands ONE material instance to
- * a merged/instanced product, so its members must be interchangeable, not
- * merely similar. The looser key predates it and is kept exactly as it was —
- * see that constant's own note.
+ * ── THE KEY ─────────────────────────────────────────────────────────────────
+ * {@link materialMergeSignature} is what `<Frozen>` groups by: that path hands
+ * ONE material instance to a merged/instanced product, so its members must be
+ * interchangeable, not merely similar.
  */
 
 import type * as THREE from 'three';
@@ -144,33 +137,16 @@ export function geometrySignature(geometry: THREE.BufferGeometry): string {
 }
 
 /**
- * Material identity as `RenderBatchSystem` has always computed it: type plus
- * the standard-material props that change the draw.
- *
- * FROZEN ON PURPOSE. This is one half of {@link staticBatchSignature}, which
- * is a live batcher's grouping key; widening or narrowing it silently
- * regroups that batcher's scenes. New discrimination goes in
- * {@link materialMergeSignature}, which is free to be stricter because
- * stricter only ever means "batches less".
+ * The standard-material props that change the draw: type, colour, roughness,
+ * metalness, colour map, side, transparency and vertex colours. The base of
+ * {@link materialMergeSignature}, which adds everything else that decides the
+ * picture.
  */
 export function materialSignature(material: THREE.Material): string {
   const standard = material as THREE.MeshStandardMaterial;
   const color = standard.color?.getHexString?.() ?? '';
   const map = standard.map?.uuid ?? '';
   return `${material.type}:${color}:${standard.roughness ?? ''}:${standard.metalness ?? ''}:${map}:${material.side}:${material.transparent}:${material.vertexColors}`;
-}
-
-/**
- * One mesh's batch key: geometry, material, and the shadow flags.
- *
- * The shadow flags are part of the key because a batched product carries ONE
- * `castShadow`/`receiveShadow` pair for every member it swallowed — mixing a
- * caster and a non-caster into one draw changes the picture.
- */
-export function staticBatchSignature(mesh: THREE.Mesh): string {
-  const geometry = mesh.geometry as THREE.BufferGeometry;
-  const material = mesh.material as THREE.Material;
-  return `${geometrySignature(geometry)}|${materialSignature(material)}|${mesh.castShadow ? 1 : 0}${mesh.receiveShadow ? 1 : 0}`;
 }
 
 /**
@@ -192,9 +168,9 @@ export function geometryLayoutSignature(geometry: THREE.BufferGeometry): string 
 
 /**
  * Material identity for a path that will SHARE one material instance between
- * every member it collapses — stricter than {@link materialSignature}.
+ * every member it collapses.
  *
- * Everything the looser key reads, plus the props that decide the picture
+ * Everything {@link materialSignature} reads, plus the props that decide the picture
  * without touching colour/roughness/metalness: opacity and the depth/blend
  * state, emissive, the remaining standard maps, and the flags that change the
  * compiled program. A shader material answers with its uuid instead (see the

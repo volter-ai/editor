@@ -1,5 +1,5 @@
 import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
-import { VgaiLogo } from './VgaiLogo';
+import { VgaiLogo } from '@volter/editor-sdk/kit/components/VgaiLogo';
 
 /**
  * How long the wait has been going on, once it has stopped being instant.
@@ -36,7 +36,7 @@ export function StartupLoadingScreen({ wait }: StartupLoadingScreenProps = {}) {
         <div aria-hidden="true" className="vgai-splash-logo">
           {/* §5-R cinematic boot: the mark is the key-lit subject — hub
            * empty-state scale, blooming in the splash's key light. */}
-          <VgaiLogo size={72} animation="loading" />
+          <VgaiLogo size={72} />
         </div>
 
         <div className="vgai-splash-title">{EDITOR_BRAND.name}</div>

@@ -13,6 +13,9 @@ export const view: ViewPreset = {
   id: 'godot',
   title: 'Godot',
   layer: {
+    // Godot's editor camera: `editors/3d/default_fov` 70 (`editor_settings.cpp`), vertical — the
+    // editor's Camera3D keeps its height.
+    camera: { fov: { degrees: 70, axis: 'vertical' } },
     all: {
       lighting: {
         source: 'preview',
@@ -43,6 +46,9 @@ export const view: ViewPreset = {
       },
     },
     overlays: {
+      // No zoom and pan buttons under the gizmo and no camera readout: the engine draws neither.
+      navigationControls: false,
+      cameraReadout: false,
       grid: {
         visible: true,
         majorEvery: 8,

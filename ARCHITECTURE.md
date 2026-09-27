@@ -70,7 +70,7 @@ Rules:
 - `@volter/editor-sdk/source-authoring` and `/source-analysis`: the contract types and the
   browser-side analyzer registry shared by the kit and a source-authoring integration.
 
-## Measured state (2026-09-24)
+## Measured state (2026-09-25)
 
 - `@volter/editor-blender` and `@volter/editor-threejs` import **zero** kit internals.
   `@volter/editor-blender` is the reference integration.
@@ -81,25 +81,33 @@ Rules:
   on them. The actors are observed through a serving-side stamp on each machine the project
   declares; the game registers nothing. It replaced the inspect-only Behavior document, which
   read actors a game had to register.
-- `@volter/editor-game` imports kit internals from **122** files (156 before this work). 70
-  self-contained kit modules integrations share now live in `@volter/editor-sdk/kit/*`
-  (registries, ids, types, codecs, the console, the session's HTTP clients); the kit imports
-  them from there too. What remains is the store, the composite authoring adapter, the story
-  system and the registries whose signatures name them. It is the
-  three.js integration, React authoring and the game product's purpose code fused into one
-  package; `@volter/editor-core` exports `./*`, so nothing stops it.
-- The kit is not media-neutral. Of its 671 modules: 78 import three.js or
-  `@volter/editor-threejs`; 6 still run the TypeScript compiler over project source (the
-  JSX transform and the React Three Fiber bindings left with `@volter/editor-react`); 4 import Pixi (canvas story previews,
-  spritesheets); the Play purpose lives here too (`gameplay-*`, `play-boot-phase`,
-  `reported-play-state`, `scoped-game-css`, the game globals shadow, `play-stall`).
-- On the code side, gameplay modules import nothing of the editor. Three places do:
-  `src/main.ts` mounts the standalone game through `@volter/game-runtime`'s manifest
-  runtime; `src/lib/audio/sfx.ts` types its mute hook against `@volter/editor-project`;
-  game entry modules export `systems` and `debug` for the editor host.
-- `@volter/editor-threejs` duplicates 18 files of `@volter/threejs-runtime` byte for
-  byte. That is the modeling release boundary's cost (modeling depends on no game-runtime
-  package), not drift.
+- `@volter/editor-game` imports nothing from `@volter/editor-core` (156 files did before this
+  work) and no longer depends on it. What it reaches of the kit is the SDK's published door,
+  `@volter/editor-sdk/kit/*`, where the kit's shared modules live and the kit imports them from:
+  registries, ids, types, codecs, the console, the session's HTTP clients, the shell store,
+  history, the composite authoring adapter, the project boot and adapter, the tool loader and
+  tool host, the story registry and capture, the Inspector, the command listener. Measured per
+  import, what the game reached closed over a handful of neutral modules at a time, and the kit
+  moved in dependency order. The Play purpose (`gameplay-*`, `play-boot-phase`,
+  `composite-screenshot`, `scoped-game-css`, world adoption and routing) moved with the modules
+  that close over it and so still lives in the kit, now at the SDK: the contribution contract
+  names gameplay sessions and play, and taking the rest out is an inversion per use.
+- The Three viewport is `@volter/editor-threejs`'s (unit 3): no module in `@volter/editor-core`
+  imports three.js or `@volter/editor-threejs`, and Pixi's story and canvas captures are
+  `@volter/editor-game`'s. The kit imports no three.js: the Object3D surface props are
+  `@volter/editor-threejs/object3d-contributions`, which adds its surfaces to the contribution
+  contract, and the kit forwards surfaces by name (`kit/contribution-surfaces`). The TypeScript compiler still runs over project source in 6 kit modules,
+  and the Play purpose lives here too (`gameplay-*`, `play-boot-phase`, `reported-play-state`,
+  `scoped-game-css`, the game globals shadow, `play-stall`).
+- On the code side, gameplay modules import nothing of the editor, and the standalone boot
+  (`src/main.ts`) mounts each root in its own library. The editor hears a game's Web Audio by
+  observing it (`@volter/editor-game`'s `services/game-audio.ts`), so the one place game code
+  still faces the editor is its entry modules' `debug` export (and `systems`, where a game
+  declares one).
+- `@volter/editor-threejs` shares 17 files with `@volter/threejs-runtime`: 15 byte for byte, and
+  `ecs/user-data.ts` and `adapter/ingest/scene-capture.ts` each naming their own package's types.
+  That is the modeling release boundary's cost (modeling depends on no game-runtime package);
+  a twin changed on one side only is drift and breaks the other's callers.
 
 ## The plan (owner decision, 2026-09-24)
 

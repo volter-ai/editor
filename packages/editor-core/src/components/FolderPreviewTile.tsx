@@ -31,7 +31,7 @@ import {
   FOLDER_CELL_THUMBNAIL_PRIORITY,
   TypedAssetThumbnail,
   useModelThumbnailSource,
-} from './asset-thumbnails';
+} from '@volter/editor-sdk/kit/components/asset-thumbnails';
 
 /** Root-relative preview item path → the URL its root serves it at. */
 function folderItemUrl(root: AssetRootId, item: FolderPreviewItem): string {

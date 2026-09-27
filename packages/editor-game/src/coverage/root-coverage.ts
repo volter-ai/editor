@@ -36,7 +36,7 @@ import { measureAdapter } from '../host/adapter-reach';
 import {
   type MountedRootSubject,
   mountedRootSubjects,
-} from '@volter/editor-core/authoring/mounted-root-subjects';
+} from '@volter/editor-sdk/kit/authoring/mounted-root-subjects';
 import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,

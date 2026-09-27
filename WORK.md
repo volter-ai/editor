@@ -1,14 +1,16 @@
 # Public release status
 
-Volter Editor 0.5.66 (editor-blender 0.1.9, blender-engine 0.1.8) is public on npm from the tag
-`release-0.5.66-source`, both lists ([release/modeling.json](release/modeling.json),
-[release/game.json](release/game.json)), with `@volter/model-editor`, `@volter/editor-react` and
-`@volter/editor-xstate` published for the first time. All fifteen versions are live: every registry digest matches
-its tested archive, and every tarball downloads without credentials byte-identical to it. `npx @volter/game-editor
-create` and `npx @volter/model-editor create` each installed from an empty npm cache with no credentials and
-downloaded their pinned workbench anonymously. The model editor installs with zero vulnerabilities; the game runtime image reports
-eight low and moderate ones, all through colyseus's auth dependencies, with no upstream fix
-([provenance/public-npm-release.json](provenance/public-npm-release.json)).
+Volter Editor 0.5.68 (editor-blender 0.1.11, blender-engine 0.1.9 unchanged) is published from the tag
+`release-0.5.68-source`, both lists ([release/modeling.json](release/modeling.json),
+[release/game.json](release/game.json)), carrying the music layer (automation, LFOs, groups, sidechain, audio
+tracks, the clip launcher, recording and comping). All seventeen versions are live, each registry digest matching its tested
+archive and each tarball downloading without credentials byte-identical to it (`@volter/model-editor` sat staged
+for about an hour, then went live without approval). From the registry, with no credentials and a fresh
+home, `npx @volter/game-editor@0.5.68 create` installed the runtime image, downloaded its workbench anonymously, took
+`add music`, launched a scene of a two-scene piece (its slots playing, the scene's strips metering and the stopped
+track reading −inf), rendered it through `project.music.render` with both scene loops and provenance, and undid an
+added scene byte-identically. Packed acceptance found and fixed one defect the checkout could not show: the game
+template imported `pixi.js` and `@pixi/react` undeclared ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
 
 ## Game editor (branch `game-editor`)
 
@@ -58,6 +60,26 @@ render; Play runs the three.js world under its React HUD with enemies engaging;
 moving the Center Jump Pad wrote `src/scenes/ArenaScene.tsx:33` and undo
 restored it. The one console warning is Rapier's own initialization notice.
 
+The canvas root (Pixi) authors in Edit, held to Godot's 2D editor
+([docs/CANVAS-EDITOR.md](docs/CANVAS-EDITOR.md) maps each control to its owner there).
+Walked on a canvas root: the selection frame and its eight handles resize from the opposite
+corner; the View menu switches rulers, guides, origin and the game's viewport rectangle; Smart
+Snap aligns a move to a neighbour's edge (580 against the free 581.5); an edit made on disk
+remounts the scene. Open, from the reference: List Select, Pan and Ruler modes, a frame turned
+with a rotated node, Pivot, Lock and Group in the toolbar.
+
+Netcode: the editor observes a game's own Colyseus rooms (`services/game-network.ts`), held
+to Godot's network profiler and Colyseus Monitor ([docs/NETCODE.md](docs/NETCODE.md)). The
+`server` addition brings the `server` and `play + server` configurations and the client half
+(`src/net/`); Play starts the room server from the button and the relayed verb alike. Walked on
+a scaffold carrying the addition's output: connection, room, 10 entities, the state tree, the log
+and a Traffic table of join, state, position and patch; the room server's side through Colyseus
+Monitor (rooms, clients, Disconnect), Ping, Send, and state edited from the tree. The workbench
+focus gate keeps a view's keystrokes out of a running game (walked on a release built locally from
+this overlay at the fork pin: typing into Send left the player where it was); the product's
+declared workbench release does not carry it until the next release is cut. Not walked: the
+conditioner (scrub fields the door does not drive).
+
 Released as 0.5.65 with modeling from one revision
 ([provenance/public-npm-release.json](provenance/public-npm-release.json)):
 from an empty npm cache, `npx @volter/game-editor@0.5.65 create` installed the
@@ -79,9 +101,11 @@ Remaining:
    that name (walked on `arena`: `workerCalls.Blender` reports 512 MB engine memory beside the
    page's `stalls`). The standing `blender:runtime` Model is listed by `modelsFromBlendFiles` when
    it finds no `.blend`, not injected by the kit (walked: a project with none opens it). The kit
-   server's one remaining Blender name is `packaged.ts`'s `@volter/blender-engine` prebundle
-   exclusion, whose regression shows only in a registry
-   install, so it moves with a packed-install walk. The Edit/Play tab is derived from workspace
+   server names no Blender package: a declared package's tree that reaches a package spawning a
+   module-relative worker has that package served as source, found on disk
+   (`PackageContributionCrawl.sourceServed`; on a model project it finds exactly
+   `@volter/blender-engine`, and Vite's exclusion covers its subpaths). Its regression shows only
+   in a registry install, so the next packed private release is its walk. The Edit/Play tab is derived from workspace
    focus, and the shell store is split: `ShellStore` is its neutral half, and Three code asks for
    its half through `threeStateOf`. Walked on `arena` on a product build: Play focuses Game and a
    key moves the player; another document turns the tab to Edit; Stop restores the pre-play
@@ -117,42 +141,193 @@ Remaining:
    through `blender-execute` shows moved and its `.blend` is rewritten on disk; undo returns it;
    the Outliner eye hides and reveals it; the state survives a full editor reopen; closing the
    Model document unbinds it from the engine and returns its renderer to the pool. The game
-   editor's Scene edit and Play were walked on the same code.
-   `@volter/editor-game` imports kit internals from 80 files (their closure is 254 of the kit's 259
-   modules, so they leave by dissolving the package, unit 5, not by moving the kit). Remaining in
-   unit 3: Blender's lens,
-   opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the
-   Three- and Pixi-typed adapter contract leaves `@volter/editor-project`; the SDK's
-   `surfaces.Object3D*` and `host.viewport`/`host.hierarchy` doors still forward to what the Three
-   integration registers (project contributions mount the surfaces, so they stay on the contract
-   until those move to Three's exports); `packaged.ts`'s Blender prebundle exclusion. A W held
-   during Play reports "keyboard action transform.translate did not run" from the workbench's own
-   keybinding (`vgaiKeyboard.ts`).
+   editor's Scene edit and Play were walked on the same code. The adapter contract names no
+   medium: `@volter/editor-project` states the `three` surface's scene, camera, renderer,
+   hierarchy objects, physics debug draw and navigation mesh opaquely (generic parameters or
+   `unknown`), `@volter/editor-threejs/adapter/three-contract` names them as three.js objects for
+   the editor, and each runtime names its own (the Pixi mounted root and 2D physics key are
+   `@volter/game-runtime`'s, the asset cache `@volter/threejs-runtime`'s).
+   `@volter/editor-game` imports nothing from `@volter/editor-core`; the kit it reaches is the
+   SDK's (ARCHITECTURE.md §Measured state). Blender's lens and opening direction are
+   `@volter/editor-blender`'s specialization: the stage's field of view and opening are the view's
+   presentation (`ViewportCamera`), which each target states (Blender 71.5° on the larger side
+   and its solved direction, a `.blend`'s saved lens as its document's layer; Unity 60 on the
+   smaller side, Godot 70 vertical, Unreal 90 horizontal), and the kernel keeps the editor's own
+   (three's 50° vertical, the three-quarter view, its own axis colours for the compass); the grid's
+   and axes' colours were already the look's. Measured: the Blender stage opens unchanged, and
+   the game editor's Unity, Godot and Unreal views read 60, 70 and 72.3 (90 horizontal) degrees.
+   The Object3D contribution types are Three's own API (`@volter/editor-threejs/object3d-contributions`),
+   which adds `Object3DPreview` and `Object3DAuthoring` to `ToolContributionSurfaces`; the SDK
+   imports nothing from three. The surfaces stay on the contribution props, registered by name in
+   the kit's medium-neutral `contribution-surfaces`, because a project's contributions live in the
+   project's graph and cannot import the editor's components. Walked: a `.blend` Model document
+   mounts through the registered surface. The workbench's stage and panel chords stand down on the Game
+   document (`vgai.document.kind != 'game'`): a W held in Play had run `transform.translate`,
+   which refused and warned into every Play log. The Scene's W still sets translate through the
+   workbench's own keybinding (walked through the document door on the regenerated keymap: W and E
+   set translate and rotate). The Game side is not walked:
+   the door refuses synthetic keys on the Game document by ruling, and no other door delivers a
+   keystroke to it.
+   Unit 5 retires the runtime framework a game was written against. A game's own code imports
+   none of it: the template's `src/main.ts` mounts each declared root in its own library
+   (`<Canvas>` for `three`, react-dom for `dom`), a root's debugger is a module-level `debug`
+   export, static batching reads Vite's own dev flag, and the editor observes a game's Web Audio
+   (`services/game-audio.ts`) and its `@react-three/rapier` world (`services/game-physics.ts`,
+   through the R3F doorway) instead of taking declarations. The editor mounts `three` and
+   `canvas` entries itself (`host/roots/r3f-root.tsx`, `host/roots/canvas-root.tsx`, React and
+   the renderer's reconciler taken from the project's graph through the doorways), renders `dom`
+   entries bare, and its game host (the `Game`, loop, debug registry, manifest mount, input seams,
+   render control, instruments) lives in `editor-game/src/runtime`; `game-runtime` keeps only
+   helpers a game may call, and imports nothing of the editor. Walked under the packaged server:
+   the template's `full` and `website` projects play and build; `arena`, on the editor's local
+   `@volter` copy with its own input store (now `examples/arena` in this repository), plays with
+   no console error, moves
+   and fires through the input door, and reads "Moves the physics body that owns this node." on
+   EnemyBody; a scratch canvas project plays and animates. The observer also answers a body's
+   colliders and joints, and the design session gets it too. Not walked: a physical keystroke, a
+   drag visibly holding a body (arena's moving bodies are kinematic). A body's collider rows read
+   in Edit, from the design world's own `<Physics>`: EnemyBody shows its Capsule Collider (Half
+   height, Radius) and names why its size is read-only; the Inspector refreshing by itself once
+   Rapier loads is not walked. A canvas root mounts in Edit (see the canvas lane below).
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
-   five mixers, their clips and the characters they animate). The runtime's
-   `_animMixer`/`_availableClips` userData keys are declared and read but never set; they leave
-   with the runtime framework (§The plan, unit 5). The Animation utility (View → Animation) lists
+   five mixers, their clips and the characters they animate). A game's Web Audio is heard the
+   same way: the editor routes each context's output through its own gain and records the
+   connections (`services/game-audio.ts`), and a root that declares no audio gets that observer
+   as its `systems.audio`, so the template and its audio capability name no editor type (walked
+   on `arena` with its audio declaration removed: the Audio panel shows the game's gain graph,
+   Pause mutes it with no gate warning, resume makes it audible). The Animation utility (View → Animation) lists
    every stamped subject and its clips and scrubs it in Edit (walked on `arena`: five subjects;
    a picked clip moves between 0 s and 1 s). Open: a world's own fades run on the mixer's clock,
    which Edit never ticks, so arena's characters stand in their bind pose until the playhead
    first moves past the fade; settling the fades instead drops arena's enemies below the floor
    without their per-frame grip and IK pass (the player stands). Which pose Edit shows before
    the first scrub is undecided.
-3. **Machine documents.** Authored edits and the live overlay are walked on `arena`; the fit on
-   first size is unobserved, and an initial arrow can enter its state from below.
+3. **Machine documents.** Authored edits and the live overlay are walked on `arena`, and the
+   fit on first size too (the enemy machine opens whole). ELK breaks each cycle depth-first from
+   the initial dot, so a state in a cycle with the initial state lands after it and the dot's row
+   stays free: measured on `arena`'s two machines, all six initial arrows run level for 20px into
+   their state's left side (four climbed into it from below before).
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
-5. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
-6. **Input gating.** A game's own `InputManager` takes the realm gate (measured on `arena`: during
-   Play with a Model document active, a held W no longer reaches `gameInput`; with the Game tab
-   focused it does), and the document door refuses synthetic key, type, paste and drag while the
+5. **Unwalked instruments:** Network needs a game that joins a room: the template ships the
+   Colyseus rooms but no client (`server/main.ts`), and the netcode capability is at the
+   launch-scope tag, so no networking adapter exists to walk it through. Navmesh is walked on `arena`
+   with its level tagged `userData.navRole = 'walkable'` and a first-party navigation adapter in
+   its `systems`: Debug > Bake NavMesh draws the walkable carpet over the floor, ramps and bridge,
+   and Clear NavMesh removes it. Contributed application-menu items (`workspace.menu`) are palette
+   entries too ("Debug: Bake NavMesh"), because under the Code-OSS frame the editor draws no
+   menubar of its own; the workbench's native menubar does not carry them yet.
+6. **Input gating.** A game's own input listeners take the realm gate (measured on `arena`, then
+   on its engine input manager: during Play with a Model document active, a held W no longer
+   reached `gameInput`; with the Game tab focused it did; its own store is not re-measured), and the document door refuses synthetic key, type, paste and drag while the
    Game document is active. Virtual input through the game's own debug door
    (`native-debug-module.ts`, `game.input.*`) is delivered whatever the focus, by ruling: the gate
    keeps a person's keystrokes aimed at another document out of a running game, and a call to the
    game's own `debug.input` is an agent's explicit act on that game, the same as `game.command`,
    which also runs whatever is focused.
+7. **Source mode's `.wasm?url` imports.** With `VOLTER_EDITOR_FROM_SOURCE=1`, editor-game's
+   asset-budget contributions (`asset-budget*.ts`) fail to load: they reach
+   `draco3d/draco_{en,de}coder.wasm?import&url`, which the session answers as the raw file
+   (`application/wasm`, Express) instead of Vite's URL module, so the page refuses it as a module
+   script (measured by importing each module of the graph in the page). Packaged sessions are
+   clean. Closes when a `?url` import of a `.wasm` answers `export default "<url>"` in source mode.
+
+## Music: pieces as DAWproject components
+
+A piece is a React component of `@volter/dawproject` elements, mounted by its own
+reconciler; `@volter/editor-dawproject` is its document (a Bitwig-shaped arranger, clip
+editor and mixer) and its offline renderer. Measured in the game editor on the probe
+project's 16-bar orchestral piece: moving, transposing, adding and deleting notes, velocity,
+automation points, faders, pan, mute, send levels and device parameters (a member of
+`params={{ … }}`, added when unwritten) each write the literal in the piece's source, and
+Freeze writes a generated clip out as literals; each undoes and redoes through the workbench's
+stack byte-identically, and generated notes refuse and name their line; an undo whose element
+was changed since (a note transposed outside the editor after a drag) refuses and leaves the
+file as it is. Renders are
+byte-deterministic; stems null against the mix to −143.6 dB with the master's dynamics
+bypassed (−30.7 dB with them: nonlinear, as expected).
+A render of the probe piece takes 86 s. `freeze-clip` wrote the piece's three generated
+clips out as literals with the vertical view and `check-piece` unchanged. The editor's mix
+graph, rendered offline in the page on the export's own dry signals, nulls against the
+export's mix at −140.1 dB over the whole piece (strips, reverb bus, master dynamics). The
+export plays every note and controller on its exact sample (two passes of one slice null at
+−104 dB wherever the loop falls against the synth's 128-sample block).
+
+For a game, `add music` brings the packages, the `vgai-music` skill and a player;
+the `project.music.render` tool (and the `render-piece` CLI it shares its code with) writes
+through the project-output door, so `.vgai/provenance.json` records every file a game ships,
+with renders byte-deterministic down to the OGG and its AAC twin (`.m4a`, which the player
+loads when the browser cannot decode Vorbis); `sections` writes each marker section as its
+own seamless loop at the mix's level (lengths exact to the frame against the report's
+`barSeconds`; a render's passes are whole samples, so each section's channels are
+bit-identical to its bars in the piece wherever nothing rings in from the music before it:
+on Harbor, flute, strings and cello past A's first second, only the harp's decay out of A′
+differing) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext,
+the player switched from one section loop to the next on the bar line it computed (6.05 s,
+the report's bar 3 plus the lead), with the output equal to each loop's own samples on either
+side of the fade; a second queue before the switch replaced the waiting loop at the same
+moment (it never sounded), and a section starting mid-bar switched on the piece's next bar
+line inside it. `check-piece` adds an analysis (keys, half-bar chords and degrees, cadences
+and loop seams, voicing, line statistics, figures shared with the folder's other pieces);
+on Harbor and Tidewatch its chords match the pieces' own chord tables in every bar.
+Walked in a fresh game created from the checkout: `add music` copies the player and the render
+tool and selects the piece finder in `vgai.adapter.ts`; a worked piece from the package's
+`examples/` opens in the same running session; `project.music.render` with sections wrote 32
+files under `public/music/harbor` (no problems, −18 LUFS, seam 0.177) with each recorded in
+`.vgai/provenance.json`, rendering in its own process (the editor answered in about 270 ms
+throughout) and byte-identical to an in-process render; console silent.
+
+Bitwig's mixing, session and recording layer, each written in the piece's source and read in
+the headless, muted host (edits undone byte-identically): track automation of volume, pan and
+sends; `<Lfo>` modulators on the same targets; group tracks (`role="submix"`); sidechained
+compressors; audio tracks (`<Audio file offset gain>`); and comping of `<Audio take>`
+recordings with `<Comp take at>`. Offline in the page on the export's dry signals, the editor's
+graph nulls against the export's mix at −139.6 dB with lanes moving, −138.2 dB with groups,
+−139.9 dB sidechained, −139.7 dB with an audio track, −139 dB with four LFOs (which move the mix
+by −19.2 dB), and −140 dB across comp boundaries. The clip launcher (`<Scene>` of
+`<ClipSlot track>`) launches a scene or a slot on the next bar: a scene launched at beat 23.6
+switched at 24, the tracks it leaves out reading −inf on the strips' peak meters while its own
+metered (Drums −18.6 dBFS); `render-piece` writes each scene as a seamless loop and the game's
+player queues scenes by name. Rec records notes from Web MIDI or the computer keyboard into the
+selected track (driven by keyboard; no MIDI device in the host), and on a track without an
+instrument the audio input: on the host's fake input a take was saved, placed on its bar and
+metered at −4.7 dBFS in playback, and over a one-bar loop it cut into one take per pass. The
+DAWproject export carries scenes, audio (embedded), LFOs (as points) and comps (as segments)
+and validates against `Project.xsd`.
+
+Open, with what closes each:
+- Bitwig's editing basics, landed and each driven through its own control on Harbor (source
+  diff read, undo byte-identical, generated targets refused whole): in the piano roll,
+  selection, group move, length, grid, quantize, clipboard, duplicate and articulation; in the
+  arranger, clip move/resize/create/delete/duplicate, seek, loop region, metronome, markers,
+  tempo and meter, the tempo row, and adding tracks, devices and sends. Playing, read in a
+  headless, muted tab hosting the session (`VGAI_NO_OPEN`, Chromium with `--mute-audio` and
+  `--autoplay-policy=no-user-gesture-required`): a ruler click at bar 10 while playing moved
+  the playhead from beat 5.3 to 36.6 and on; with a loop region of beats 8–16 a play from 0
+  ran into it and wrapped from 15.6 to 9.0; the metronome scheduled a blip every 0.75 s at
+  80 BPM, the downbeat at 1760 Hz against 1320, and none once off; a paste at playhead 14.32
+  wrote the note at 4:3.25 (the 1/16 grid) and undid byte-identically.
+- [minor] Live against export, synth half: the preview only, under a quantum and below what a
+  listener hears, while the export every game ships is sample-exact. Read from `spessasynth_lib`'s processor: at the start of
+  each 128-sample render quantum it applies every queued event whose time has passed, then
+  renders the quantum, so each note the preview schedules sounds up to 2.67 ms after its
+  performed time (the export is sample-exact). Under a quantum is inaudible; matching the export
+  exactly needs the processor to split its quantum at event times, a change to that library. The
+  offline null of the two (+1.6 dB at equal level) is not yet a clean reading: in an
+  OfflineAudioContext the worklet stayed silent after the preview's channel setup, so the
+  instrument has to be settled before its number means anything.
+- Sampled instruments: decided without a listen (Aaron's rule, relayed 2026-09-26: a question
+  whose answer can be guessed is not waited on). VS Chamber Orchestra 2 Community Edition
+  (CC0) is the finished palette and the General MIDI SoundFont the sketch palette, as the skill
+  teaches: VSCO is recorded orchestral instruments with their own articulations and round-robin
+  repetitions, which a General MIDI preset has none of; no listening test was run, and a
+  listening verdict against it reopens this. The evidence a listener would use stays in the probe:
+  `music-probe/out/ab/gm/harbor.ogg` against `out/ab/orchestra/harbor-orchestra.ogg` (levels
+  matched to 0.0 dB), and Tidewatch and Victory on the orchestra. The library builds as 20 banks,
+  66 patches (`scripts/vsco2-ce`, into `~/.volter/banks/vsco2-ce`, byte-reproducible; SF3,
+  218 MB with round-robin members; an editor tab holding nine grows by about 425 MB).
 
 ## Both products in the browser substrate
 

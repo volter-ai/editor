@@ -28,12 +28,12 @@ import { pipeline } from 'node:stream/promises';
 import type { Router } from 'express';
 import express from 'express';
 import { ProjectProvenanceDocumentSchema } from './support/project/provenance';
-import { assetKey } from '../src/asset-workflow/asset-ledger';
+import { assetKey } from '@volter/editor-sdk/kit/asset-workflow/asset-ledger';
 import {
   type CloudAssetRecord,
   cloudAssetMatchesType,
   cloudAssetSlug,
-} from '../src/asset-workflow/cloud-asset-client';
+} from '@volter/editor-sdk/kit/asset-workflow/cloud-asset-client';
 import { AssetHistorySnapshots } from './asset-history-snapshots';
 import { recordAssetMaterialization } from './asset-ledger-store';
 import {
@@ -59,7 +59,7 @@ import {
   requireLocalAssetThumbnail,
   searchLocalCatalog,
 } from './local-asset-catalog';
-import { assetImportSettingsSchema } from '../src/asset-workflow/import-contract';
+import { assetImportSettingsSchema } from '@volter/editor-sdk/kit/asset-workflow/import-contract';
 import { modelConverterFor } from './model-converters';
 import { commitStagedProjectDirectory } from './project-output-writer';
 import { isAllowedAssetHost, isAllowedAssetSource, isPathInside } from './server-utils';

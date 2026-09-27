@@ -47,8 +47,7 @@
       "source": "template:website",
       "whatsInside": [
         "React DOM root",
-        "Styled shell page",
-        "react-root capability"
+        "Styled shell page"
       ]
     },
     {

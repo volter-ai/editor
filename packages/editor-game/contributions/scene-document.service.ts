@@ -7,10 +7,10 @@
  *
  * The session store arrives after the contribution pass, and a project switch
  * brings a new one, so the document binds on each store's ARRIVAL
- * (`@volter/editor-core/shell-store-door`'s `onShellStore`, as Play's
+ * (`@volter/editor-sdk/kit/shell-store-door`'s `onShellStore`, as Play's
  * autoplay entry does) and unbinds the previous store's binding first.
  */
-import { unregisterAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
+import { unregisterAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { bindSceneDocument } from '../src/host/components/scene-document';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';

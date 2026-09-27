@@ -34,8 +34,8 @@ import {
   PUBLIC_INGEST_BASE,
   publicIngestManifestUrl,
 } from '../host/staged-projects';
-import { extractUpstreamPin } from '@volter/game-runtime/adapter/ingest/upstream-pin';
-import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
+import { extractUpstreamPin } from '../runtime/adapter/ingest/upstream-pin';
+import type { IngestGame2D } from '../runtime/pixi/ingest';
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import { loadGameManifest } from '@volter/editor-project/manifest/load';
 import { composeIngestLoad, ingestDataWriter } from './entry-load';

@@ -31,6 +31,8 @@
   },
   "include": [
     "src",
-    "contributions"
+    "contributions",
+    "scripts",
+    "examples"
   ]
 }

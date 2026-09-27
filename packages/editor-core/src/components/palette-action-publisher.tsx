@@ -16,21 +16,23 @@
  * items for an unchanged list would be churn the frame can see.
  */
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
-import { buildEntityActions, buildStaticActions, type EditorAction } from '../action-registry';
+import { buildEntityActions, buildStaticActions, type EditorAction } from '@volter/editor-sdk/kit/action-registry';
 import { buildBoardOpenActions } from '../board-open-actions';
 import {
   contributedActions,
   contributedChromeVersion,
+  contributedMenuItems,
   subscribeContributedChrome,
 } from '@volter/editor-sdk/kit/chrome-registry';
-import { publishPaletteActions } from '../editor-commands';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { publishPaletteActions } from '@volter/editor-sdk/kit/editor-commands';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
-import { subscribeWorkspaceStyles, workspaceStylesVersion } from '../workspace-style';
-import { buildProjectToolActions } from './project-tool-documents';
-import { buildToolActions } from './tool-documents';
+import { subscribeWorkspaceStyles, workspaceStylesVersion } from '@volter/editor-sdk/kit/workspace-style';
+import { buildProjectToolActions } from '@volter/editor-sdk/kit/components/project-tool-documents';
+import { buildToolActions } from '@volter/editor-sdk/kit/components/tool-documents';
 
 /**
  * Every action the palette would list, in the order it groups them. Reads
@@ -61,11 +63,48 @@ export function buildPaletteActions(
     shortcut: action.shortcut ? shortcutFor(action.shortcut) : undefined,
     execute: action.execute,
   }));
-  return [...statics, ...documents, ...contributed, ...entities];
+  return [...statics, ...documents, ...contributed, ...applicationMenuActions(), ...entities];
+}
+
+const APPLICATION_MENUS = ['view', 'window', 'debug', 'tools', 'help'] as const;
+const MENU_TITLES: Record<(typeof APPLICATION_MENUS)[number], string> = {
+  view: 'View',
+  window: 'Window',
+  debug: 'Debug',
+  tools: 'Tools',
+  help: 'Help',
+};
+
+/**
+ * A package's APPLICATION MENU items (`workspace.menu`), in the palette as "Debug: Bake NavMesh".
+ * Under the Code-OSS frame the editor draws no menubar of its own (a product with `nativeMenus`),
+ * so without this an item a package put on Debug or Tools had no door at all. An item its own
+ * `disabled` refuses right now says so rather than doing nothing.
+ */
+function applicationMenuActions(): EditorAction[] {
+  return APPLICATION_MENUS.flatMap((menu) =>
+    contributedMenuItems(menu).map((item) => {
+      const itemLabel = typeof item.label === 'function' ? item.label() : item.label;
+      const label = `${MENU_TITLES[menu]}: ${itemLabel}`;
+      return {
+        id: item.id,
+        label,
+        category: 'action' as const,
+        menu: { id: menu, label: itemLabel },
+        execute: () => {
+          if (item.disabled?.({})) {
+            showTransientHint(`${label} is not available right now.`);
+            return;
+          }
+          return item.execute({});
+        },
+      };
+    }),
+  );
 }
 
 function signatureOf(actions: readonly EditorAction[]): string {
-  return actions.map((action) => `${action.id}\u0000${action.label}`).join('\u0001');
+  return actions.map((action) => `${action.id}\u0000${action.label}\u0000${action.menu?.id ?? ''}`).join('\u0001');
 }
 
 /** Renders nothing: it publishes the action table ⌘⇧P lists. Mounted by
@@ -126,6 +165,7 @@ export function PaletteActionPublisher() {
         label: action.label,
         category: action.category,
         run: action.execute,
+        ...(action.menu ? { menu: action.menu } : {}),
       })),
     );
   }, [actions]);

@@ -9,8 +9,8 @@
  * pause/filter, the sparkline sample history, and the polyline geometry —
  * lives here.
  *
- * Editor code never imports Colyseus (net-import-ban) — only the
- * `NetworkingAdapter` interface.
+ * The inspector reads only the `NetworkingAdapter` interface; decoding a
+ * game's Colyseus rooms is the observer's (`services/game-network.ts`).
  */
 
 import type {
@@ -82,6 +82,18 @@ export interface NetworkCapabilityMap {
   /** The adapter can SET the local identity (`setPlayerIdentity`) — the
    *  inspector shows an EDITABLE name field. Implies `identity`. */
   identitySettable: boolean;
+  /** Traffic per message type (`getTrafficByType`). */
+  traffic: boolean;
+  /** Sending a message into the room as this client (`sendMessage`). */
+  send: boolean;
+  /** Measuring a round trip (`ping`). */
+  ping: boolean;
+  /** The room server's own view (`inspectServer`). */
+  server: boolean;
+  /** Traffic per replicated entity (`getTrafficByEntity`). */
+  entityTraffic: boolean;
+  /** Tallying that can be started and stopped (`isRecording`/`setRecording`). */
+  recording: boolean;
 }
 
 export function deriveNetworkCapabilities(
@@ -103,6 +115,12 @@ export function deriveNetworkCapabilities(
     stats: typeof adapter.getReplicationStats === 'function',
     identity: typeof adapter.getPlayerIdentity === 'function',
     identitySettable: typeof adapter.setPlayerIdentity === 'function',
+    traffic: typeof adapter.getTrafficByType === 'function',
+    send: typeof adapter.sendMessage === 'function',
+    ping: typeof adapter.ping === 'function',
+    server: typeof adapter.inspectServer === 'function',
+    entityTraffic: typeof adapter.getTrafficByEntity === 'function',
+    recording: typeof adapter.isRecording === 'function' && typeof adapter.setRecording === 'function',
   };
 }
 

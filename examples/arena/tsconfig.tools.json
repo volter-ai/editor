@@ -1,0 +1,25 @@
+{
+  // `exclude` MUST be reset: `extends` inherits the base config's
+  // `exclude: ["src/tools", "src/contributions"]`, and exclude beats include — inheriting it makes
+  // this program compile ZERO files while still exiting 0. Tools are NODE
+  // code (see src/tools/module-source.ts), which is why the base browser
+  // program excludes them; `types` adds node back here.
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/tools",
+    "src/contributions",
+    // `scripts/play-perspective.ts` is the entry both run configurations start
+    // (`npx tsx`) — Node code like the tools, and checked here for the same
+    // reason. The other scripts beside it are `.mjs` and have no program.
+    "scripts/**/*.ts"
+  ],
+  "exclude": [],
+  "compilerOptions": {
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "incremental": true,
+    "tsBuildInfoFile": "../../.tsbuildinfo/example-arena-tools.tsbuildinfo"
+  }
+}

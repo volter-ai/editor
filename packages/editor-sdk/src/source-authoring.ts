@@ -223,7 +223,7 @@ export type DeclaredRootSurface = 'three' | 'canvas' | 'dom';
  * matches, which is deliberate — import specifiers ARE strings.
  */
 export interface SourceDialectEvidence {
-  /** Imports the R3F reconciler, or the upstreamed `@vgai/game-runtime/world3d-react` bridge. */
+  /** Imports the R3F reconciler. */
   reconcilerImport: boolean;
   /** Distinct R3F-only intrinsic tags this file renders. */
   r3fOnlyTags: string[];

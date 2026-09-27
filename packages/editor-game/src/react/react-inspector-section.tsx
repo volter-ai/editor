@@ -59,7 +59,7 @@ import { beginEyedropperSession } from '@volter/editor-sdk/kit/eyedropper-sessio
 import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
-import { groupIcon } from '@volter/editor-core/inspection/compose';
+import { groupIcon } from '@volter/editor-sdk/kit/inspection/compose';
 import {
   GROUP_SECTION_ORDER,
   groupSectionId,
@@ -68,7 +68,7 @@ import {
   PROPERTIES_SECTION_ORDER,
 } from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-core/ui-source/inspect';
+import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-sdk/kit/ui-source/inspect';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@volter/editor-project/adapter';
 import {

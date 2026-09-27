@@ -34,7 +34,7 @@ import {
   AuthoringAdapter2D,
   type CanvasIdentity,
   type Transform2DValue,
-} from '@volter/game-runtime/pixi/authoring';
+} from '../../runtime/pixi/authoring';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -70,7 +70,7 @@ import type {
 import type { Container, Graphics, Matrix, PointData, Sprite, Text, Texture } from 'pixi.js';
 import * as shellPixi from 'pixi.js';
 import type { CanvasPixiNamespace } from '../canvas-entry-runtime';
-import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
+import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import type { JournalSubject } from '../history/json-history-resource';
@@ -82,8 +82,10 @@ import {
   readContainerAuthoringLabel,
 } from './pixi-source-identity';
 import { CanvasStructureHistory } from './pixi-structure-history';
+import { PIXI_CREATABLE_KINDS } from './pixi-creatable-kinds';
 import { fromNeutralTransform, toNeutralTransform } from './pixi-transform-channels';
 import { resolvesLiveOnly, runWritePipe } from '@volter/editor-sdk/kit/write-pipe';
+import { editorHost } from '@volter/editor-sdk/host';
 
 /**
  * What a write target is handed at construction — the live view it edits
@@ -302,12 +304,19 @@ export interface PixiAuthoringOptions {
  * `Texture.WHITE` and a size; a graphics gets a drawn rect): a node the author
  * cannot see is indistinguishable from a create that silently failed.
  */
-const CANVAS_CREATABLE_KINDS: readonly { kind: string; label: string }[] = [
-  { kind: 'container', label: 'Container' },
-  { kind: 'sprite', label: 'Sprite' },
-  { kind: 'text', label: 'Text' },
-  { kind: 'graphics', label: 'Graphics' },
-];
+/** The project-local section holding each canvas world's locked and grouped label paths. */
+const EDIT_LOCKS_SECTION = 'canvasEditLocks';
+type EditLocks = Record<string, { readonly locked: readonly string[]; readonly grouped: readonly string[] }>;
+
+function readEditLocks(): EditLocks {
+  return editorHost().projectLocalState.read<EditLocks>(EDIT_LOCKS_SECTION) ?? {};
+}
+
+function writeEditLocks(world: string, locks: EditLocks[string]): void {
+  editorHost().projectLocalState.write(EDIT_LOCKS_SECTION, { ...readEditLocks(), [world]: locks });
+}
+
+const CANVAS_CREATABLE_KINDS = PIXI_CREATABLE_KINDS;
 
 /** What a canvas world can take from the asset browser: an image becomes a
  *  Sprite. A model or an audio file has no display object to become here. */
@@ -347,7 +356,7 @@ const ORIGIN_UNWRITABLE_REASON =
  * from the one this prebuilt shell bundles — so a real `Sprite` from the world
  * fails `instanceof Sprite` here and every selected sprite would silently read
  * as a pivot node. The engine's own 2D authoring walk already refuses class
- * identity for the same reason (`@volter/game-runtime/pixi/authoring`'s `kindOf` keys on the
+ * identity for the same reason (`@volter/editor-game/runtime/pixi/authoring`'s `kindOf` keys on the
  * constructor NAME); asking for the two fields the anchor question is actually
  * about is the same move without depending on a name a minifier may mangle.
  *
@@ -404,6 +413,11 @@ function defaultLabelFor(kind: string): string {
  *  `pixi` is THIS SURFACE's namespace ({@link PixiAuthoringOptions.pixi}): a
  *  node built from another graph's classes is a foreign object in the world's
  *  own display list, and the world's renderer is the one that has to draw it. */
+/** A ParticleContainer, from whichever copy of Pixi made it: it adds particles, never children. */
+function isParticleContainer(object: Container | null | undefined): boolean {
+  return !!object && typeof (object as { addParticle?: unknown }).addParticle === 'function';
+}
+
 function createDisplayObject(pixi: CanvasPixiNamespace, kind: string): Container | null {
   switch (kind) {
     case 'container':
@@ -417,6 +431,31 @@ function createDisplayObject(pixi: CanvasPixiNamespace, kind: string): Container
       return new pixi.Text({ text: 'Text', style: { fill: 0xffffff, fontSize: 24 } });
     case 'graphics':
       return new pixi.Graphics().rect(0, 0, 100, 100).fill(0xffffff);
+    case 'animatedSprite': {
+      const animated = new pixi.AnimatedSprite([pixi.Texture.WHITE]);
+      animated.setSize(64, 64);
+      return animated;
+    }
+    case 'tilingSprite':
+      return new pixi.TilingSprite({ texture: pixi.Texture.WHITE, width: 100, height: 100 });
+    case 'nineSliceSprite':
+      return new pixi.NineSliceSprite({ texture: pixi.Texture.WHITE, width: 100, height: 100 });
+    case 'bitmapText':
+      return new pixi.BitmapText({ text: 'BitmapText', style: { fill: 0xffffff, fontSize: 24 } });
+    case 'htmlText':
+      return new pixi.HTMLText({ text: 'HTMLText', style: { fill: 0xffffff, fontSize: 24 } });
+    case 'meshPlane': {
+      const plane = new pixi.MeshPlane({ texture: pixi.Texture.WHITE });
+      plane.setSize(100, 100);
+      return plane;
+    }
+    case 'perspectiveMesh': {
+      const mesh = new pixi.PerspectiveMesh({ texture: pixi.Texture.WHITE });
+      mesh.setSize(100, 100);
+      return mesh;
+    }
+    case 'particleContainer':
+      return new pixi.ParticleContainer();
     default:
       return null;
   }
@@ -490,6 +529,35 @@ interface CanvasBoxEditSession {
   readonly id: string;
   readonly transform: Transform;
   readonly rect: { x: number; y: number; width: number; height: number };
+  /** The parent's world matrix's linear part (Pixi's a, b, c, d), when the node has a parent. */
+  readonly parentLinear?: { a: number; b: number; c: number; d: number };
+}
+
+/**
+ * The local turn, in degrees, that turns the node's own x axis by `degrees` on screen. Godot measures
+ * a rotate drag in the parent's space; a turn added straight to the local rotation goes backwards
+ * under a mirrored parent and by the wrong amount under an unevenly scaled one.
+ */
+function localTurn(session: CanvasBoxEditSession, degrees: number): number {
+  const m = session.parentLinear;
+  if (!m) return degrees;
+  const det = m.a * m.d - m.b * m.c;
+  if (Math.abs(det) < 1e-9) return degrees;
+  const [, , z, w] = session.transform.rotation;
+  const r = 2 * Math.atan2(z, w);
+  // The node's x axis on screen, turned by the drag, taken back into the parent's space.
+  const vx = m.a * Math.cos(r) + m.c * Math.sin(r);
+  const vy = m.b * Math.cos(r) + m.d * Math.sin(r);
+  const t = (degrees * Math.PI) / 180;
+  const wx = vx * Math.cos(t) - vy * Math.sin(t);
+  const wy = vx * Math.sin(t) + vy * Math.cos(t);
+  const ux = (m.d * wx - m.c * wy) / det;
+  const uy = (-m.b * wx + m.a * wy) / det;
+  // A long drag passes half a turn: keep the answer beside the turn's own direction in that space.
+  const base = det < 0 ? -t : t;
+  const raw = Math.atan2(uy, ux) - r - base;
+  const wrapped = Math.atan2(Math.sin(raw), Math.cos(raw));
+  return ((base + wrapped) * 180) / Math.PI;
 }
 
 function boxPatchChannels(patch: Record<string, number>): TransformChannel[] {
@@ -538,7 +606,7 @@ function transformForBoxPatch(
     scale: [...session.transform.scale],
   };
   const rotate = patch['rotate'];
-  if (rotate !== undefined) next.rotation = rotateTransformZ(session.transform, rotate);
+  if (rotate !== undefined) next.rotation = rotateTransformZ(session.transform, localTurn(session, rotate));
   const width = patch['width'];
   if (width !== undefined && session.rect.width > 0) {
     next.scale[0] = session.transform.scale[0] * Math.max(0.0001, width / session.rect.width);
@@ -669,7 +737,17 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     | undefined;
   private listeners = new Set<() => void>();
   private boxEditSessions = new Map<string, CanvasBoxEditSession>();
-  private lockedIds = new Set<string>();
+  /**
+   * Lock (a click passes through the node) and Godot's Group (a click inside a grouped node selects
+   * the group), held by each node's label path in this world so they survive the remount a source
+   * write causes and the next session. Kept per checkout, as Unity keeps scene pickability per
+   * user; Godot writes them into the scene file instead.
+   */
+  private lockedPaths = new Set<string>();
+  private groupedPaths = new Set<string>();
+  private readonly editLockWorld: string;
+  /** Each node's label path, cleared whenever the tree is re-projected. */
+  private pathKeys = new Map<string, string>();
 
   constructor(
     private readonly root: Container,
@@ -721,13 +799,18 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     const surface = opts.surface;
     if (surface) {
       this.pickable = {
-        pick: (clientX, clientY) =>
-          this.projector.pick(clientX, clientY, (id) => this.isPickLocked(id)),
-        candidates: (clientX, clientY) =>
-          this.projector.candidates(clientX, clientY, (id) => this.isPickLocked(id)),
+        pick: (clientX, clientY) => {
+          const hit = this.projector.pick(clientX, clientY, (id) => this.isPickLocked(id));
+          return hit ? this.groupOf(hit) : hit;
+        },
+        candidates: (clientX, clientY, options) =>
+          this.projector.candidates(clientX, clientY, (id) =>
+            options?.includeLocked ? false : this.isPickLocked(id),
+          ),
       };
       this.rects = {
         rect: (id) => this.projector.rect(id),
+        frame: (id) => this.projector.frame(id),
         contextRects: (id) => this.projector.contextRects(id),
       };
     }
@@ -744,7 +827,37 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
         this.target.provenance.source === 'source-code' && this.target.persistence !== undefined,
     };
     this.target.bind({ a2d: this.a2d, store, journal: opts.journal, notify: () => this.notify() });
-    this.structure = this.target.structure ?? this.liveStructure;
+    this.editLockWorld = opts.journal.id;
+    const saved = readEditLocks()[this.editLockWorld];
+    this.lockedPaths = new Set(saved?.locked ?? []);
+    this.groupedPaths = new Set(saved?.grouped ?? []);
+    const structure = this.target.structure ?? this.liveStructure;
+    // A placed creation reaches the structure in the new node's PARENT's own space: the target
+    // writes `x`/`y` as authored, and only this adapter knows the frame `rects` answer in.
+    // A ParticleContainer holds particles its code adds, never display objects: Pixi's `addChild`
+    // on one throws, so nothing is created or moved into it.
+    const holdsNoChildren = (parentId: string | null | undefined): boolean =>
+      !!parentId && isParticleContainer(this.projector.object(parentId));
+    const noChildren = 'a ParticleContainer holds particles added with addParticle, not display objects.';
+    this.structure = {
+      ...structure,
+      create: (kind, parentId, at) =>
+        holdsNoChildren(parentId)
+          ? { id: '', ack: this.refuseStructure(noChildren) }
+          : structure.create(kind, parentId, at ? this.pointInParent(parentId ?? null, at) : undefined),
+      ...(structure.reparent
+        ? {
+            reparent: (id: string, newParentId: string | null) =>
+              holdsNoChildren(newParentId) ? this.refuseStructure(noChildren) : structure.reparent!(id, newParentId),
+          }
+        : {}),
+      ...(structure.creatableKinds
+        ? {
+            creatableKinds: (parentId: string | null) =>
+              holdsNoChildren(parentId) ? [] : structure.creatableKinds!(parentId),
+          }
+        : {}),
+    };
     this.assetDrop =
       this.target.assetDrop ??
       ({
@@ -845,6 +958,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     queueMicrotask(() => {
       this.structureNotifyQueued = false;
       this.projector.reproject();
+      this.pathKeys.clear();
       this.watchStructure(this.root);
       this.target.onReindex();
       this.notify();
@@ -945,7 +1059,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   // degrade — a half-answer would be a menu item that silently does nothing.
 
   private readonly liveStructure: StructureProvider = {
-    create: (kind, parentId) => this.createStructuralNode(kind, parentId ?? null),
+    create: (kind, parentId, at) => this.createStructuralNode(kind, parentId ?? null, at),
     remove: (id) => this.removeStructuralNodes([id]),
     removeMany: (ids) => this.removeStructuralNodes(ids),
     duplicate: (id) => this.duplicateStructuralNode(id),
@@ -961,7 +1075,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   private containerFor(parentId: string | null): Container | null {
     if (!parentId) return this.root;
     const object = this.projector.object(parentId);
-    if (!object || typeof object.addChild !== 'function') return null;
+    if (!object || typeof object.addChild !== 'function' || isParticleContainer(object)) return null;
     return object;
   }
 
@@ -1009,6 +1123,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
    */
   private afterStructuralChange(): void {
     this.projector.reproject();
+    this.pathKeys.clear();
     this.watchStructure(this.root);
     this.target.onReindex();
     this.notify();
@@ -1025,7 +1140,22 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
    * same turn. The live-only report is the other half of the answer and rides
    * back in `ack` (see `StructuralIdWrite`) instead of being fired `void`.
    */
-  private createStructuralNode(kind: string, parentId: string | null): StructuralIdWrite {
+  /** A point in the `rects` frame, in the space of the container a new child of `parentId` joins. */
+  private pointInParent(
+    parentId: string | null,
+    at: { readonly x: number; readonly y: number },
+  ): { x: number; y: number } | undefined {
+    const parent = this.containerFor(parentId);
+    if (!parent || typeof parent.updateLocalTransform !== 'function') return undefined;
+    const local = this.localToRootMatrix(parent).clone().invert().apply({ x: at.x, y: at.y });
+    return { x: local.x, y: local.y };
+  }
+
+  private createStructuralNode(
+    kind: string,
+    parentId: string | null,
+    at?: { readonly x: number; readonly y: number },
+  ): StructuralIdWrite {
     const parent = this.containerFor(parentId);
     if (!parent) {
       return {
@@ -1041,6 +1171,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
       };
     }
     node.label = defaultLabelFor(kind);
+    if (at) node.position.set(at.x, at.y);
     const label = `Create ${node.label}`;
     this.structureHistory.track(parent);
     this.structureHistory.track(node);
@@ -1274,7 +1405,13 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
         this.boxEditSessions.delete(id);
         return;
       }
-      this.boxEditSessions.set(id, { id, rect, transform: this.transforms.get(id) });
+      const parent = this.projector.object(id)?.parent?.worldTransform;
+      this.boxEditSessions.set(id, {
+        id,
+        rect,
+        transform: this.transforms.get(id),
+        ...(parent ? { parentLinear: { a: parent.a, b: parent.b, c: parent.c, d: parent.d } } : {}),
+      });
       this.transforms.beginEdit?.(id);
     },
     apply: (id, patch) => this.applyBoxEdit(id, patch),
@@ -1504,12 +1641,23 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     properties: (id) => [
       ...this.target.properties(id),
       { path: 'locked', label: 'Locked', type: 'boolean', group: 'Visibility' },
+      { path: 'grouped', label: 'Grouped', type: 'boolean', group: 'Visibility' },
     ],
-    get: (id, path) => (path === 'locked' ? this.lockedIds.has(id) : this.target.get(id, path)),
+    get: (id, path) =>
+      path === 'locked'
+        ? this.lockedPaths.has(this.pathKeyOf(id))
+        : path === 'grouped'
+          ? this.groupedPaths.has(this.pathKeyOf(id))
+          : this.target.get(id, path),
     set: (id, path, value) => {
-      if (path === 'locked') {
-        if (value === true) this.lockedIds.add(id);
-        else this.lockedIds.delete(id);
+      if (path === 'locked' || path === 'grouped') {
+        const set = path === 'locked' ? this.lockedPaths : this.groupedPaths;
+        if (value === true) set.add(this.pathKeyOf(id));
+        else set.delete(this.pathKeyOf(id));
+        writeEditLocks(this.editLockWorld, {
+          locked: [...this.lockedPaths],
+          grouped: [...this.groupedPaths],
+        });
         this.notify();
         return;
       }
@@ -1519,10 +1667,45 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     remove: (id, path) => this.target.remove?.(id, path),
   };
 
+  /** `id`'s label path from its world's root: each step the authored label and its place among
+   *  same-labelled siblings, so it holds across line edits and reloads (a rename drops it). */
+  private pathKeyOf(id: string): string {
+    const known = this.pathKeys.get(id);
+    if (known !== undefined) return known;
+    const labelOf = (nodeId: string): string => this.projector.object(nodeId)?.label ?? '';
+    const segments: string[] = [];
+    let current: string | null = id;
+    while (current) {
+      const node = this.projector.node(current);
+      if (!node) break;
+      const siblings = node.parentId
+        ? (this.projector.node(node.parentId)?.childIds ?? [])
+        : this.projector.roots().map((root) => root.id);
+      const label = labelOf(current);
+      const place = siblings.filter((sibling) => labelOf(sibling) === label).indexOf(current);
+      segments.unshift(`${label}#${Math.max(0, place)}`);
+      current = node.parentId ?? null;
+    }
+    const key = segments.join('/');
+    this.pathKeys.set(id, key);
+    return key;
+  }
+
+  /** The outermost grouped node that contains `id`, or `id` itself when none does. */
+  private groupOf(id: string): string {
+    let group = id;
+    let current: string | null = id;
+    while (current) {
+      if (this.groupedPaths.has(this.pathKeyOf(current))) group = current;
+      current = this.projector.node(current)?.parentId ?? null;
+    }
+    return group;
+  }
+
   private isPickLocked(id: string): boolean {
     let current: string | null = id;
     while (current) {
-      if (this.lockedIds.has(current)) return true;
+      if (this.lockedPaths.has(this.pathKeyOf(current))) return true;
       current = this.projector.node(current)?.parentId ?? null;
     }
     return false;
@@ -1541,7 +1724,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
 
   dispose(): void {
     this.boxEditSessions.clear();
-    this.lockedIds.clear();
+    this.pathKeys.clear();
     for (const object of this.watchedForStructure) {
       object.off('childAdded', this.onStructureChanged);
       object.off('childRemoved', this.onStructureChanged);

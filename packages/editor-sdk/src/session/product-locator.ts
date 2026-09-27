@@ -335,35 +335,32 @@ function locatePackage(projectRoot: string, name: string): string | null {
 }
 
 /**
- * THE PACKAGES A PRODUCT COMPOSES — its `dependencies` that declare
- * `package.json#vgai.contributions`, resolved from the product's own install.
+ * THE PACKAGES A PRODUCT COMPOSES — the `vgai:contributions/<name>` imports of the product's
+ * entry (`package.json#vgai.product.entry`), each resolved from the product's own install and
+ * declaring `package.json#vgai.contributions`.
  *
- * COMPOSITIONS ARE CODE (ARCHITECTURE-CORE §The target shape, rule 8): the
- * product's entry names each of them as `vgai:contributions/<name>`, and that
- * import IS the composition. This function does not read the entry — it reads
- * the MIRROR of it in the manifest, which `scripts/validate-package-estate.mjs`
- * keeps equal to the source by scanning those same specifiers and writing the
- * dependency line. Two readings of one fact, one of them checked, and neither
- * of them a second list somebody maintains: a package the entry imports and the
- * manifest omits fails the gate, and a dependency the entry does not import is
- * a library the product uses rather than a composition it mounts (that is what
- * "declares contributions" tests).
- *
- * The runtime reads the manifest rather than the source because it is the cheap
- * and exact half: a `package.json` is JSON this process already parses, and a
- * source scan in the session would be a second implementation of the gate's.
+ * COMPOSITIONS ARE CODE (ARCHITECTURE-CORE §The target shape, rule 8): that import IS the
+ * composition, so it is what is read. The product's `dependencies` are not: they also carry
+ * the packages a game's capabilities add (`add music` declares `@volter/editor-dawproject`,
+ * which the runtime image must hold), and reading every dependency that declares contributions
+ * as composed made the page load a capability's documents into every game, and from a checkout
+ * fetch them from a folder the game's server does not serve.
  */
 export function productComposedPackages(product: ProductIdentity): string[] {
-  let manifest: { dependencies?: Record<string, string> };
+  let entry: string;
   try {
-    manifest = JSON.parse(
-      readFileSync(join(product.dir, 'package.json'), 'utf8'),
-    ) as typeof manifest;
+    const manifest = JSON.parse(readFileSync(join(product.dir, 'package.json'), 'utf8')) as {
+      vgai?: { product?: { entry?: unknown } };
+    };
+    const path = manifest.vgai?.product?.entry;
+    if (typeof path !== 'string') return [];
+    entry = readFileSync(join(product.dir, path), 'utf8');
   } catch {
     return [];
   }
   const found: string[] = [];
-  for (const name of Object.keys(manifest.dependencies ?? {}).sort()) {
+  for (const [, name] of entry.matchAll(/\bfrom\s+['"]vgai:contributions\/([^'"]+)['"]/g)) {
+    if (!name || found.includes(name)) continue;
     const dir = locatePackage(product.dir, name);
     if (dir === null) continue;
     let dependency: { vgai?: { contributions?: unknown } };

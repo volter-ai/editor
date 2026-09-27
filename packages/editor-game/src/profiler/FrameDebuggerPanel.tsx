@@ -32,7 +32,7 @@ import { Button, themeVars } from '@volter/editor-sdk/widgets';
 import type {
   FrameCapture,
   FrameCaptureDrawCall,
-} from '@volter/game-runtime/dev/webgl-frame-capture';
+} from '../runtime/dev/webgl-frame-capture';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import {
   captureFrame,

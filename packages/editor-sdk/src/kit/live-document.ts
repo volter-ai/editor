@@ -49,6 +49,7 @@ import {
   closeWorkspaceDocument,
   openWorkspaceDocument,
   openWorkspaceDocuments,
+  supersedeRestoredActivation,
   type WorkspaceDocumentDescriptor,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 
@@ -68,6 +69,8 @@ let _container: HTMLElement | null = null;
 let _containerMounted = false;
 let _restoreDocumentId: string | null = null;
 let _wasLive = false;
+/** A runtime acquired the live document and has not released it. */
+let _held = false;
 const _mountWaiters = new Set<() => void>();
 
 /** Reached only when a lane acquires the document before any package
@@ -120,6 +123,15 @@ export function registerLiveDocumentContent(content: LiveDocumentContent): () =>
   };
 }
 
+/**
+ * Whether a runtime holds the live document: acquired for Play and not yet
+ * released. Documents a project installs while it is held open behind it
+ * rather than in front of it — the person asked for the game.
+ */
+export function liveDocumentHeld(): boolean {
+  return _held && liveDocumentOpen();
+}
+
 /** Whether the live document is currently open. */
 export function liveDocumentOpen(): boolean {
   return openWorkspaceDocuments().some((d) => d.descriptor.id === GAME_DOCUMENT_ID);
@@ -145,6 +157,7 @@ export function liveDocumentOpen(): boolean {
  */
 export function activateLiveDocument(): boolean {
   if (!liveDocumentOpen()) return false;
+  supersedeRestoredActivation();
   return activateWorkspaceDocument(GAME_DOCUMENT_ID);
 }
 
@@ -201,6 +214,8 @@ export async function acquireLiveDocument(
 ): Promise<boolean> {
   const next = descriptor();
   if (!next) return false;
+  supersedeRestoredActivation();
+  _held = true;
   if (!liveDocumentOpen()) {
     _restoreDocumentId = activeWorkspaceDocumentId();
     openWorkspaceDocument(next);
@@ -227,6 +242,7 @@ export async function acquireLiveDocument(
  * failed start and from an ordinary stop, both of which reach it.
  */
 export function releaseLiveDocument(): void {
+  _held = false;
   if (!_hooks || !liveDocumentOpen()) {
     _restoreDocumentId = null;
     return;
@@ -275,5 +291,6 @@ export function __resetLiveDocumentForTest(): void {
   _containerMounted = false;
   _restoreDocumentId = null;
   _wasLive = false;
+  _held = false;
   _mountWaiters.clear();
 }

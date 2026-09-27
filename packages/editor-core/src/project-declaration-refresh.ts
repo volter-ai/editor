@@ -1,5 +1,5 @@
 import { assignActiveProject, getCurrentProject, type ProjectConfig } from '@volter/editor-sdk/kit/active-project';
-import { connectProjectDeclarationEvents } from './asset-events';
+import { connectProjectDeclarationEvents } from '@volter/editor-sdk/kit/asset-events';
 import { probeCurrentServerProject } from '@volter/editor-sdk/kit/editor-api';
 
 /** Refresh declarations in the current session without reopening its project. */

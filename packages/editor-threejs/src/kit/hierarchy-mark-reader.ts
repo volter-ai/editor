@@ -18,6 +18,7 @@ import { componentRootName, isBuiltInternal } from '@volter/editor-threejs/adapt
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import { isComponentInstanceRoot } from './authoring/component-instance-root';
 import { NO_MARKS, type NodeMarkReader, type NodeMarks } from '@volter/editor-sdk/kit/hierarchy-component-marks';
+import { threeObject } from '../adapter/three-contract';
 
 /** Project-local R3F source already carries its component ownership on the
  * native node. Read that existing stamp as the automatic equivalent of an
@@ -59,7 +60,7 @@ export function markReaderFor(hierarchy: Pick<HierarchyProvider, 'object3D'>): N
   const cache = new Map<string, NodeMarks | undefined>();
   return (id) => {
     if (cache.has(id)) return cache.get(id);
-    const object = object3D.call(hierarchy, id);
+    const object = threeObject(hierarchy, id);
     const marks: NodeMarks | undefined = object
       ? {
           componentRoot: componentName(object),

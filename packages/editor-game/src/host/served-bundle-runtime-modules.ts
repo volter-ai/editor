@@ -103,8 +103,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // the editor share one live module namespace.
   '@volter/threejs-runtime/adapter/constraint': () =>
     import('@volter/threejs-runtime/adapter/constraint'),
-  '@volter/game-runtime/adapter/first-party-audio-system': () =>
-    import('@volter/game-runtime/adapter/first-party-audio-system'),
   '@volter/threejs-runtime/adapter/first-party-navigation-system': () =>
     import('@volter/threejs-runtime/adapter/first-party-navigation-system'),
   '@volter/threejs-runtime/adapter/hierarchy-marks': () =>
@@ -126,17 +124,7 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   }),
   '@volter/game-runtime/data/curve': () => import('@volter/game-runtime/data/curve'),
   '@volter/game-runtime/data/data-asset': () => import('@volter/game-runtime/data/data-asset'),
-  '@volter/game-runtime/dev/instruments': () => import('@volter/game-runtime/dev/instruments'),
   '@volter/threejs-runtime/loader': () => import('@volter/threejs-runtime/loader'),
-  '@volter/game-runtime/react/world-state': () => import('@volter/game-runtime/react/world-state'),
-  '@volter/game-runtime/runtime/debug-registry': () =>
-    import('@volter/game-runtime/runtime/debug-registry'),
-  '@volter/game-runtime/runtime/game': () => import('@volter/game-runtime/runtime/game'),
-  '@volter/game-runtime/world3d-react': () => import('@volter/game-runtime/world3d-react'),
-  '@volter/game-runtime/world3d-react/rapier-physics-bridge': () =>
-    import('@volter/game-runtime/world3d-react/rapier-physics-bridge'),
-  // …and the factory that mounts an example's default-exported world. A
-  // three root cannot mount hosted without it.
   // The mesh-kit's two library-backed modifiers. `src/lib/mesh/modifiers.ts` —
   // scaffolded into EVERY default project by the humanoid capability, and
   // present verbatim in the template and four examples — imports both at
@@ -165,17 +153,11 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   '@volter/threejs-runtime/setup/setup-renderer': () =>
     import('@volter/threejs-runtime/setup/setup-renderer'),
   // littlest-tokyo (GLTF quick-start) extras:
-  '@volter/game-runtime/input/rebind-controller': () =>
-    import('@volter/game-runtime/input/rebind-controller'),
   // The generic fetched-asset parse error — the template's and
   // top-down-strategy's `runtime/pixi-adapter.ts` raise it, so a canvas root
   // cannot mount hosted without it registered.
   '@volter/threejs-runtime/asset-parse-error': () =>
     import('@volter/threejs-runtime/asset-parse-error'),
-  // rendering-scale's render lab drives the engine's batch renderer + scoped
-  // render settings directly:
-  '@volter/threejs-runtime/render/render-batch-system': () =>
-    import('@volter/threejs-runtime/render/render-batch-system'),
   '@volter/threejs-runtime/render/render-settings': () =>
     import('@volter/threejs-runtime/render/render-settings'),
   // The bundle inlines @colyseus/schema (modular-action's rooms), and the
@@ -189,7 +171,9 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // capabilities. Each entry names its importer, so a removal is checked
   // against the same sweep.
   '@colyseus/sdk': () => import('@colyseus/sdk'), // template main.ts
-  'react-dom': () => import('react-dom'), // react-root capability's flushSync
+  'react-dom': () => import('react-dom'), // template main.ts
+  'pixi.js': () => import('pixi.js'), // template main.ts (a `canvas` root)
+  '@pixi/react': () => import('@pixi/react'), // template main.ts (a `canvas` root)
   // ---- Editor-citizen modules PROJECT TOOL CONTRIBUTIONS import. A
   // contribution is project source rendered inside the editor's own panels,
   // so these must resolve to the editor's LIVE modules — a second copy of the

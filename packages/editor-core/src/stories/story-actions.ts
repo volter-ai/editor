@@ -20,7 +20,7 @@ import {
   THREE_STORY_DOCUMENT_OPENER,
 } from '@volter/editor-sdk/kit/story-document-openers';
 import { STORY_DOCUMENT_OPENER } from './story-opener';
-import { getProjectStoryModules, subscribeProjectStoryModules } from './story-registry';
+import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 
 export const storyPaletteActions: ActionContribution = {
   actions: () => {

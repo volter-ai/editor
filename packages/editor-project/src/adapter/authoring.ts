@@ -30,7 +30,6 @@
  * false` means hidden from renders.
  */
 
-import type * as THREE from 'three';
 import type { Transform } from './transform';
 
 /**
@@ -217,17 +216,18 @@ export interface HierarchyProvider {
    */
   crossSurfaceStructureSignature?(): string | null;
   /**
-   * OPTIONAL, THREE-SPECIFIC — the live `Object3D` for raycast/gizmo binding
-   * (null for a node this adapter has no object for). A Pixi, DOM or React
-   * adapter has no `Object3D` at all: it OMITS this method rather than
+   * OPTIONAL, THREE-SURFACE — the live scene object for raycast/gizmo binding
+   * (null for a node this adapter has no object for), opaque here: its Three
+   * typing is `@volter/editor-threejs`'s `threeHierarchy`. A Pixi, DOM or React
+   * adapter has no scene object at all: it OMITS this method rather than
    * implementing a `() => null` stub that pretends the concept applies. Callers
    * already treat `null` as "no object here", so absence and `null` mean the
    * same thing to them — optional-chain it (`hierarchy.object3D?.(id) ?? null`).
    */
-  object3D?(id: string): THREE.Object3D | null;
-  /** OPTIONAL, THREE-SPECIFIC — inverse of {@link object3D}. Same rule: an
-   *  adapter with no `Object3D` tree omits it. */
-  idForObject3D?(o: THREE.Object3D): string | null;
+  object3D?(id: string): unknown;
+  /** OPTIONAL, THREE-SURFACE — inverse of {@link object3D}. Same rule: an
+   *  adapter with no scene-object tree omits it. */
+  idForObject3D?(o: unknown): string | null;
 }
 
 export interface SelectionProvider {
@@ -561,10 +561,21 @@ export interface StructuralIdsWrite {
  * destination. A bare `true` cannot prove a byte landed anywhere. */
 export type StructuralClipboardOutcome = false | WriteAck | Promise<false | WriteAck>;
 
+/** One kind `create` accepts: its label, and optionally what it is (a create dialog's Description)
+ *  and the kind it extends (the dialog's class tree, as Godot's Create New Node shows it). */
+export interface CreatableKind {
+  kind: string;
+  label: string;
+  description?: string;
+  extends?: string;
+}
+
 export interface StructureProvider {
   /** Create a `kind` under `parentId`, answering with the new id AND this
-   *  creation's own write ack (see {@link StructuralIdWrite}). */
-  create(kind: string, parentId?: string): StructuralIdWrite;
+   *  creation's own write ack (see {@link StructuralIdWrite}). `at` places it: a
+   *  point in the frame this adapter's `rects` answer in (a 2D editor's "add node
+   *  where I clicked"); absent, the kind's own default place. */
+  create(kind: string, parentId?: string, at?: { readonly x: number; readonly y: number }): StructuralIdWrite;
   /**
    * Remove `id`. May optionally return an awaitable when the
    * underlying write is asynchronous (e.g. a react-world source-file edit) —
@@ -601,7 +612,7 @@ export interface StructureProvider {
    * itself may still work when called directly (e.g. programmatically, or by
    * an adapter-specific affordance outside the generic palette).
    */
-  creatableKinds?(parentId: string | null): { kind: string; label: string }[];
+  creatableKinds?(parentId: string | null): CreatableKind[];
   /** D3 (spec 27 §6) — wrap `id` in a new container element (default tag
    *  adapter-chosen, e.g. a `div`), re-parenting `id` as that container's sole
    *  child. Absent ⇒ the shell's context menu shows no Wrap item for this
@@ -710,9 +721,10 @@ export interface PickProvider {
    * Every authorable subject below the point, frontmost first. The shell uses
    * this for the ordinary scene-editor "pick from overlap" menu; adapters
    * that cannot enumerate an overlap may omit it and still provide the
-   * single-hit floor through {@link pick}.
+   * single-hit floor through {@link pick}. `includeLocked` lists nodes the editor's lock keeps
+   * clicks away from too (Godot's Alt+RMB: "all nodes … including locked").
    */
-  candidates?(clientX: number, clientY: number): readonly string[];
+  candidates?(clientX: number, clientY: number, options?: { includeLocked?: boolean }): readonly string[];
 }
 
 /** D4 — storybook stories. */
@@ -812,6 +824,21 @@ export interface RectProvider {
    * hints are drawn for it.
    */
   emptyContainers?(): { id: string; rect: DOMRectLike; displayName: string }[];
+  /**
+   * The node's own box as its transform carries it — the four corners of its local bounds, in the
+   * frame {@link rect} answers in. A turned or skewed node's corners are not an axis-aligned
+   * rectangle, and the overlay draws its selection frame on them, as Godot's 2D editor does.
+   * Absent ⇒ the overlay frames {@link rect}.
+   */
+  frame?(id: string): FrameCorners | null;
+}
+
+/** A node box's corners: top-left, top-right, bottom-right and bottom-left of its local bounds. */
+export interface FrameCorners {
+  readonly tl: { readonly x: number; readonly y: number };
+  readonly tr: { readonly x: number; readonly y: number };
+  readonly br: { readonly x: number; readonly y: number };
+  readonly bl: { readonly x: number; readonly y: number };
 }
 
 /** One adapter-owned reference point rendered by the shared world overlay.

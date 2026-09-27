@@ -33,6 +33,15 @@ import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 import { CursorOverlay, type CursorPlacement, cursorSchema } from './blender-runtime-cursor';
+import { emptySchema, ExtrasOverlay } from './blender-runtime-extras';
+import {
+  type BlenderCameraView,
+  blenderCameraView,
+  CAMERA_ZOOM,
+  cameraDataSchema,
+  panCameraView,
+} from './blender-runtime-camera-view';
+import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
@@ -256,7 +265,11 @@ function loadPngTexture(png: Uint8Array): { texture: THREE.Texture; ready: Promi
   // `three/src/textures/Texture.js:274` (0.180.0), "this property has no
   // effect when using `ImageBitmap`. You need to configure the flip on bitmap
   // creation instead."
-  const decoding = createImageBitmap(blob, { imageOrientation: 'flipY' })
+  //
+  // Its alpha is asked for here too: the browser's `default` premultiplies (Chrome's does), and
+  // every reader of this texture takes the file's own texels, straight unless the image says it
+  // stores them premultiplied, which the reader then undoes.
+  const decoding = createImageBitmap(blob, { imageOrientation: 'flipY', premultiplyAlpha: 'none' })
     .then((bitmap) => {
       if (disposed) {
         bitmap.close();
@@ -423,6 +436,12 @@ const materialSchema = z
      *  `blender-node-graph.ts`. The constants above still apply to every
      *  input the graph does not carry. */
     graph: materialGraphSchema.optional(),
+    /** The material's VIEWPORT DISPLAY (`Material.diffuse_color`, `roughness`, `metallic`), what
+     *  Blender's Solid shading colours it by (`blender-workbench-material.ts`). */
+    viewport: z
+      .object({ color: z.tuple([scalar, scalar, scalar, scalar]), roughness: scalar, metallic: scalar })
+      .strict()
+      .optional(),
   })
   .strict();
 /** THE FRAME CONTRACT, and the reason it is exported: the C++ export door
@@ -507,9 +526,81 @@ export const frameSchema = z
     /** `Scene.cursor.matrix` (`blender-runtime-cursor.ts`); absent from an
      *  engine that does not report it. */
     cursor: cursorSchema.optional(),
+    /** What a camera view looks through (`session.py`): the scene's camera, the view layer's
+     *  cameras in order, and the render's shape with its pixel aspect. */
+    camera_view: z
+      .object({
+        scene_camera: z.string().nullable(),
+        view_layer_cameras: z.array(z.string()),
+        aspect: z.number().finite().positive(),
+      })
+      .optional(),
+    /** Each light datablock's clip start and cut-off distance (`blender-runtime-extras.ts`). */
+    light_distances: z.record(z.string(), z.tuple([z.number().finite(), z.number().finite()])).default({}),
+    /** Each empty's display type and size (`blender-runtime-extras.ts`). */
+    empties: z.record(z.string(), emptySchema).default({}),
+    /** The 3D View the file saved (`session.py` `_saved_view`), null when it holds none. */
+    view: z
+      .object({
+        location: z.tuple([z.number(), z.number(), z.number()]),
+        rotation: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+        distance: z.number().finite(),
+        perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
+        lens: z.number().finite().positive().default(50),
+      })
+      .nullable()
+      .optional(),
+    /** The viewport's subject line as Blender composes it (`draw_selected_name`), less the
+     *  frame and its marker, with the scene's markers in list order. */
+    subject: z
+      .object({
+        frame: z.number().int(),
+        body: z.string(),
+        markers: z.array(z.tuple([z.number().int(), z.string()])),
+      })
+      .optional(),
+    /** `Scene.unit_settings`: the length system and scale the grid's step is named in. */
+    units: z
+      .object({ system: z.enum(['NONE', 'METRIC', 'IMPERIAL']), scale_length: z.number().finite() })
+      .optional(),
   })
   .strict();
 type Frame = z.infer<typeof frameSchema>;
+
+/** `BKE_scene_find_marker_name`: the list walked from both ends at once, the front one asked
+ *  first, so of several markers on one frame the answer is not simply the first. */
+function markerAt(markers: readonly (readonly [number, string])[], frame: number): string | null {
+  for (let front = 0, back = markers.length - 1; front < markers.length && back >= 0; front++, back--) {
+    if (markers[front]![0] === frame) return markers[front]![1];
+    if (front === back) break;
+    if (markers[back]![0] === frame) return markers[back]![1];
+  }
+  return null;
+}
+
+/** Blender's length units, smallest first, with their display names (`unit.cc`
+ *  `buMetricLenDef`, `buImperialLenDef`; nano- and picometres are compiled out there). */
+const LENGTH_UNITS: Readonly<Record<'METRIC' | 'IMPERIAL', readonly (readonly [number, string])[]>> = {
+  METRIC: [
+    [0.000001, 'Micrometers'],
+    [0.001, 'Millimeters'],
+    [0.01, 'Centimeters'],
+    [0.1, '10 Centimeters'],
+    [1, 'Meters'],
+    [10, '10 Meters'],
+    [100, '100 Meters'],
+    [1000, 'Kilometers'],
+  ],
+  IMPERIAL: [
+    [0.0000254, 'Thou'],
+    [0.0254, 'Inches'],
+    [0.3048, 'Feet'],
+    [0.9144, 'Yards'],
+    [20.1168, 'Chains'],
+    [201.168, 'Furlongs'],
+    [1609.344, 'Miles'],
+  ],
+};
 /** One render's two poses, in Blender's own (Z-up) frame. */
 export interface PhotographRecord {
   /** `scene.camera.matrix_world`, as `session.py::_photograph` sent it. */
@@ -555,6 +646,8 @@ export class BlenderRuntimeView {
   private readonly armatureOverlay = new ArmatureOverlay();
   private readonly weightOverlay = new WeightOverlay();
   private readonly cursorOverlay = new CursorOverlay();
+  /** Blender's overlay extras: cameras, lights and empties (`blender-runtime-extras.ts`). */
+  private readonly extrasOverlay = new ExtrasOverlay();
   /** The two groups the stage is handed: the Helpers menu owns THEIR
    *  `visible`, and the inner group is what a RENDER stands down (an overlay
    *  is modeling chrome and never appears in a photograph — the same
@@ -562,6 +655,9 @@ export class BlenderRuntimeView {
   private readonly armatureRoot = new THREE.Group();
   private readonly weightRoot = new THREE.Group();
   private readonly cursorRoot = new THREE.Group();
+  private readonly cameraExtrasRoot = new THREE.Group();
+  private readonly lightExtrasRoot = new THREE.Group();
+  private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
@@ -573,6 +669,10 @@ export class BlenderRuntimeView {
   private worldKey = 'null';
   /** A render photograph is being taken: the one state in which overlays stand down. */
   private capturing = false;
+  /** The stage draws Blender's Solid: surfaces wear Blender's own shading function
+   *  (`blender-workbench-material.ts`) over their viewport display. */
+  private workbench = false;
+  private readonly workbenchMaterials = new Map<string, THREE.Material>();
   private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72 });
   /** Base Color images, by image name -- ONE texture per image however many
    *  materials read it, and the cache OWNS it: a material points at one and
@@ -692,6 +792,114 @@ export class BlenderRuntimeView {
    * allows an active object that is not selected, and the Properties editor
    * follows the ACTIVE one while the outline follows the selected set.
    */
+  /**
+   * WHERE BLENDER OPENS THIS FILE: its saved 3D View in the stage's frame — the pivot, the
+   * direction from the pivot to the eye (the view's +Z, `view_rotation` turning view space into
+   * the world: RNA's inverse of `viewquat`), the screen's up (the view's +Y), the distance and
+   * the projection. A view saved through the scene camera opens in perspective along the same
+   * axis: looking through a camera is not a view this stage has. Null before a frame or when
+   * the file saved no 3D View.
+   */
+  savedView(): {
+    readonly target: readonly [number, number, number];
+    readonly direction: readonly [number, number, number];
+    readonly up: readonly [number, number, number];
+    readonly distance: number;
+    readonly projection: 'perspective' | 'orthographic';
+    readonly lens: number;
+  } | null {
+    const saved = this.frame?.view;
+    if (!saved) return null;
+    const [w, x, y, z] = saved.rotation;
+    const rotation = new THREE.Quaternion(x, y, z, w);
+    const target = new THREE.Vector3(...saved.location).applyMatrix4(this.root.matrix);
+    const axis = (v: THREE.Vector3) => v.applyQuaternion(rotation).applyMatrix4(this.root.matrix).normalize();
+    return {
+      target: target.toArray(),
+      direction: axis(new THREE.Vector3(0, 0, 1)).toArray(),
+      up: axis(new THREE.Vector3(0, 1, 0)).toArray(),
+      distance: saved.distance,
+      projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
+      lens: saved.lens,
+    };
+  }
+
+  /**
+   * THE CAMERA A CAMERA VIEW ENTERED NOW WOULD LOOK THROUGH, as `view_camera_exec` picks it:
+   * the scene's camera, else the active object when it is a camera, else the view layer's first
+   * camera; null when there is none (Blender's operator then does nothing).
+   */
+  cameraViewCamera(): string | null {
+    const frame = this.frame;
+    const view = frame?.camera_view;
+    if (!frame || !view) return null;
+    if (view.scene_camera !== null && frame.cameras[view.scene_camera]) return view.scene_camera;
+    if (frame.active !== null && frame.cameras[frame.active]) return frame.active;
+    return view.view_layer_cameras.find((name) => frame.cameras[name]) ?? null;
+  }
+
+  /** A pose in the stage's frame back in Blender's: the location and the rotation `(w, x, y, z)`. */
+  blenderPose(
+    position: readonly [number, number, number],
+    quaternion: readonly [number, number, number, number],
+  ): { readonly location: [number, number, number]; readonly rotation: [number, number, number, number] } {
+    const toBlender = new THREE.Matrix4().copy(this.root.matrix).invert();
+    const pose = new THREE.Matrix4()
+      .compose(new THREE.Vector3(...position), new THREE.Quaternion(...quaternion), new THREE.Vector3(1, 1, 1))
+      .premultiply(toBlender);
+    const location = new THREE.Vector3();
+    const rotation = new THREE.Quaternion();
+    pose.decompose(location, rotation, new THREE.Vector3());
+    return { location: location.toArray(), rotation: [rotation.w, rotation.x, rotation.y, rotation.z] };
+  }
+
+  /** The zoom a camera view opens at and keeps within (`blender-runtime-camera-view.ts`). */
+  readonly cameraViewZoom = CAMERA_ZOOM;
+  /** `view_move` in a camera view (`panCameraView`). */
+  readonly cameraViewPan = panCameraView;
+
+  /** `camera`'s view on a region (`blenderCameraView`), or null when it is not in the frame. */
+  cameraView(
+    camera: string,
+    region: { readonly width: number; readonly height: number },
+    zoom: number,
+    offset: readonly [number, number],
+  ): BlenderCameraView | null {
+    const frame = this.frame;
+    const data = cameraDataSchema.safeParse(frame?.cameras[camera]);
+    if (!frame?.camera_view || !data.success) return null;
+    return blenderCameraView(data.data, this.root.matrix, region, zoom, offset, frame.camera_view.aspect);
+  }
+
+  /** The viewport's subject line at `frame`, `(1) Collection | Cube`: the engine's body with
+   *  the frame before it and that frame's marker after it; `frame` null is the scene's own
+   *  `frame_current`. Null before a frame or from an engine that does not report it. */
+  subjectLine(playhead: number | null): string | null {
+    const subject = this.frame?.subject;
+    if (subject === undefined) return null;
+    const frame = playhead ?? subject.frame;
+    const marker = markerAt(subject.markers, frame);
+    return `(${frame})${subject.body}${marker === null ? '' : ` <${marker}>`}`;
+  }
+
+  /**
+   * THE GRID STEP'S NAME for an axis-aligned orthographic view drawn at `worldPerDevicePixel`,
+   * as `ED_view3d_grid_view_scale` picks it (`view3d_draw.cc`): the scene's length units from
+   * the smallest up, each scaled by `1 / scale_length`, and the first longer than six device
+   * pixels (`12 / (sizex * winmat[0][0])`) is named by its display name. A scene with no unit
+   * system names none. The overlay's grid Scale (`View3DOverlay.grid_scale`, `× 0.5`) has no
+   * home here and is taken as 1.
+   */
+  gridUnitName(worldPerDevicePixel: number): string | null {
+    const units = this.frame?.units;
+    if (units === undefined || units.system === 'NONE') return null;
+    const steps = LENGTH_UNITS[units.system];
+    const reach = 6 * worldPerDevicePixel;
+    const scale = 1 / (units.scale_length || 1);
+    const step = steps.find(([size]) => size * scale > reach) ?? steps[steps.length - 1]!;
+    return step[1];
+  }
+
   blenderSelection(): { readonly selected: readonly string[]; readonly active: string | null } {
     const frame = this.frame;
     if (frame === null) return { selected: [], active: null };
@@ -784,6 +992,9 @@ export class BlenderRuntimeView {
       [this.armatureRoot, this.armatureOverlay.group],
       [this.weightRoot, this.weightOverlay.group],
       [this.cursorRoot, this.cursorOverlay.group],
+      [this.cameraExtrasRoot, this.extrasOverlay.cameras],
+      [this.lightExtrasRoot, this.extrasOverlay.lights],
+      [this.emptyExtrasRoot, this.extrasOverlay.empties],
     ] as const) {
       group.matrixAutoUpdate = false;
       group.matrix.copy(this.root.matrix);
@@ -793,6 +1004,12 @@ export class BlenderRuntimeView {
     this.armatureRoot.name = 'BlenderBones';
     this.weightRoot.name = 'BlenderWeights';
     this.cursorRoot.name = 'Blender3DCursor';
+    this.cameraExtrasRoot.name = 'BlenderCameraExtras';
+    // The extras are picked as the objects they draw (`userData.vgaiPicksAs` on each part).
+    for (const root of [this.cameraExtrasRoot, this.lightExtrasRoot, this.emptyExtrasRoot])
+      root.userData['vgaiPickable'] = true;
+    this.lightExtrasRoot.name = 'BlenderLightExtras';
+    this.emptyExtrasRoot.name = 'BlenderEmptyExtras';
   }
 
   /**
@@ -826,6 +1043,10 @@ export class BlenderRuntimeView {
       { kind: 'weights', object: this.weightRoot },
       // Blender's overlay popover's "3D Cursor" (`View3DOverlay.show_cursor`).
       { kind: 'cursor', object: this.cursorRoot },
+      // The overlay's extras, under the Helpers menu's own kinds (Blender's "Extras").
+      { kind: 'cameras', object: this.cameraExtrasRoot },
+      { kind: 'lights', object: this.lightExtrasRoot },
+      { kind: 'empties', object: this.emptyExtrasRoot },
     ];
   }
 
@@ -891,6 +1112,54 @@ export class BlenderRuntimeView {
     );
   }
 
+  /**
+   * BLENDER'S SOLID SHADING ON OR OFF: while on, every presented surface is drawn by Blender's
+   * Solid function over its material's viewport display; a render photograph, Material Preview
+   * and Rendered draw the authored materials.
+   */
+  setWorkbench(on: boolean): void {
+    if (on === this.workbench) return;
+    this.workbench = on;
+    this.applyWorkbench();
+    presenterChanged();
+  }
+
+  /** Each surface's material for the state: authored, or Solid's, derived from the frame every
+   *  time so a replaced node (the skin's) is never left wearing the other. */
+  private applyWorkbench(): void {
+    const solid = this.workbench && !this.rendered;
+    const used = new Set<string>();
+    for (const obj of this.frame?.objects ?? []) {
+      if (obj.mesh === null || obj.volume) continue;
+      const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
+      if (!mesh?.isMesh) continue;
+      const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
+      const shown = slots.map((id) => {
+        const authored = id === null ? this.fallback : (this.materials.get(id) ?? this.fallback);
+        return solid ? this.workbenchFor(id, authored.side, used) : authored;
+      });
+      mesh.material = obj.materials.length ? shown : shown[0]!;
+    }
+    // Released as soon as no surface wears it: a dragged viewport colour makes one per value.
+    for (const [key, material] of this.workbenchMaterials) {
+      if (used.has(key)) continue;
+      material.dispose();
+      this.workbenchMaterials.delete(key);
+    }
+  }
+
+  private workbenchFor(id: string | null, side: THREE.Side, used: Set<string>): THREE.Material {
+    const display = (id !== null ? this.frame?.materials[id]?.viewport : undefined) ?? DEFAULT_VIEWPORT_DISPLAY;
+    const key = `${display.color.join(',')}|${display.roughness}|${display.metallic}|${side}`;
+    used.add(key);
+    let material = this.workbenchMaterials.get(key);
+    if (!material) {
+      material = workbenchMaterial(display, side);
+      this.workbenchMaterials.set(key, material);
+    }
+    return material;
+  }
+
   /** Whether the viewport is held in render lighting (Blender's Rendered shading). */
   renderedHeld(): boolean {
     return this.heldRendered !== null;
@@ -928,6 +1197,7 @@ export class BlenderRuntimeView {
     else if (this.capturing || worldKey !== this.worldApplied) this.world.apply(this.root, this.frame?.world ?? null, camera);
     this.worldApplied = this.capturing ? null : worldKey;
     this.applyVisibility();
+    this.applyWorkbench();
     this.applyShadows(rendered, camera);
     // AFTER the applies, because they are what REGISTERS the work. Awaiting
     // first made every one of these a no-op on the first render: `apply` had
@@ -1024,7 +1294,65 @@ export class BlenderRuntimeView {
     );
     if (weightWarning !== null) warnings.push(weightWarning);
     this.cursorOverlay.apply(next.cursor);
+    this.applyExtras(next);
     return warnings;
+  }
+
+  /** Pictures the extras asked for before they had decoded. */
+  private readonly awaitedImages = new Set<string>();
+  /** The camera a camera view is looking through, which the extras do not draw. */
+  private lookingThrough: string | null = null;
+
+  /** Told by the document which camera its stage's camera view is looking through. */
+  setCameraViewShowing(camera: string | null): void {
+    if (this.lookingThrough === camera) return;
+    this.lookingThrough = camera;
+    if (this.frame) this.applyExtras(this.frame);
+    presenterChanged();
+  }
+
+  private applyExtras(next: Frame): void {
+    const cameras: Record<string, z.infer<typeof cameraDataSchema>> = {};
+    for (const [name, data] of Object.entries(next.cameras)) {
+      const parsed = cameraDataSchema.safeParse(data);
+      if (parsed.success) cameras[name] = parsed.data;
+    }
+    this.extrasOverlay.apply({
+      lookingThrough: this.lookingThrough,
+      lightDistances: next.light_distances,
+      objects: next.objects.filter((object) => object.visible),
+      active: next.active,
+      cameras,
+      lights: next.lights,
+      empties: next.empties,
+      sceneCamera: next.camera_view?.scene_camera ?? null,
+      renderAspect: next.camera_view?.aspect ?? 1,
+      presented: (name) => {
+        const row = next.objects.find((object) => object.name === name);
+        return row ? (this.objects.get(row.id) ?? null) : null;
+      },
+      image: (name) => {
+        const held = this.textures.get(name);
+        if (!held) return null;
+        const bitmap = held.texture.image as { width?: number; height?: number } | null;
+        const width = held.width || bitmap?.width || 0;
+        const height = held.height || bitmap?.height || 0;
+        // A picture still decoding is drawn again when it has decoded.
+        if ((width === 0 || height === 0) && held.ready && !this.awaitedImages.has(name)) {
+          this.awaitedImages.add(name);
+          // A failed decode leaves the frame alone; the next frame asks again.
+          held.ready.then(
+            () => {
+              this.awaitedImages.delete(name);
+              if (this.frame) this.applyExtras(this.frame);
+              presenterChanged();
+            },
+            () => this.awaitedImages.delete(name),
+          );
+        }
+        return { texture: held.texture, width, height };
+      },
+    });
   }
 
   private applyVisibility(): void {
@@ -1045,6 +1373,8 @@ export class BlenderRuntimeView {
     this.armatureOverlay.group.visible = !this.capturing;
     this.weightOverlay.group.visible = !this.capturing;
     this.cursorOverlay.group.visible = !this.capturing;
+    for (const group of [this.extrasOverlay.cameras, this.extrasOverlay.lights, this.extrasOverlay.empties])
+      group.visible = !this.capturing;
   }
 
   applyFrame(input: unknown) {
@@ -1436,6 +1766,10 @@ export class BlenderRuntimeView {
         this.objects.set(obj.id, object);
       }
       object.name = obj.name;
+      // A camera, a light and an empty are drawn by the overlay's extras, selection colour and
+      // all (`blender-runtime-extras.ts`); the editor's own marks for them stand down.
+      if (obj.type === 'CAMERA' || obj.type === 'LIGHT' || obj.type === 'EMPTY') object.userData['vgaiOwnOverlay'] = true;
+      else delete object.userData['vgaiOwnOverlay'];
       object.matrixAutoUpdate = false;
       object.matrix.set(...(obj.matrix.flat() as Parameters<THREE.Matrix4['set']>));
       if (obj.parent) {
@@ -1468,6 +1802,9 @@ export class BlenderRuntimeView {
           previous.dispose();
         }
         if (light.parent !== object) object.add(light);
+        // Blender's overlay draws this light (`blender-runtime-extras.ts`); the editor's own
+        // light helper stands down for it.
+        light.userData['vgaiOwnOverlay'] = true;
         aimLight(light, object);
         this.lights.set(obj.light, light);
       }
@@ -1523,6 +1860,7 @@ export class BlenderRuntimeView {
       this.frame = { ...this.frame, warnings: [...this.frame.warnings, ...overlayWarnings] };
     // Visibility is read off the frame, so it is applied once the frame stands.
     this.applyVisibility();
+    this.applyWorkbench();
     // Rendered shading follows the scene: the frame's new materials, lights and shadows, and its
     // World when that changed.
     if (this.heldRendered !== null && !this.capturing) this.report(this.applyRendered(true, this.heldRendered()));
@@ -1753,6 +2091,9 @@ export class BlenderRuntimeView {
     this.armatureOverlay.dispose();
     this.weightOverlay.dispose();
     this.cursorOverlay.dispose();
+    this.extrasOverlay.dispose();
+    for (const material of this.workbenchMaterials.values()) material.dispose();
+    this.workbenchMaterials.clear();
     this.frame = null;
     this.retiredSessions.clear();
     this.submittedMeshes.clear();

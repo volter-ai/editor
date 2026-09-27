@@ -48,14 +48,10 @@
  * `creationSiteWritePlugin()` (the `/__ingest-source/*` ownership +
  * read/plan/apply routes an INGEST root's edits are written through — absent
  * here until 2026-08-20, which made ingest-lane source writes unreachable
- * under a registry install no matter what the client asked) and
- * `reactRootProviderPlugin()` (resolves the synthetic
- * `/__vgai-game-provider` module `binding-resolver.ts`'s
- * `loadProjectWorldProvider` imports — WITHOUT it, every `kind: 'dom'`
- * world 404s on mount, not just "authors without OID"). All are carried
+ * under a registry install no matter what the client asked). Both are carried
  * over here — the source-authoring integration's serving plugin through the project-serving
- * door, and this package's own `vite-plugin-creation-site-write` / `vite-plugin-react-world-provider`
- * (same files, no copy) and registered
+ * door, and this package's own `vite-plugin-creation-site-write`
+ * (same file, no copy) — and registered
  * with NO extra scoping beyond their own built-in `defaultProjectScopeInclude`
  * (already project-scoped — see that file's doc comment: excludes
  * `node_modules`, vendored trees, and the vgai tooling/engine source, which
@@ -93,8 +89,8 @@
  *    default (threejs-only) template authoring fine today, and unaffected
  *    by this file's plugin list either way.
  *
- * So: OID stamping (source-write authoring) and the `WorldProvider` identity
- * fix are real, working parity gained by this change. React Fast Refresh
+ * So: OID stamping (source-write authoring) is real, working parity gained by
+ * this change. React Fast Refresh
  * for a project's own components remains NOT at `dev.ts` parity under the
  * packaged runtime — a documented, structural gap, not a hidden one.
  *
@@ -112,7 +108,7 @@
  * It surfaced twice, both confirmed live against a tarball-installed,
  * checkout-absent packaged editor:
  *
- *  1. a `dom` root's `useWorldState` threw `TypeError: Cannot read properties
+ *  1. a `dom` root's first hook threw `TypeError: Cannot read properties
  *     of null (reading 'useContext')` at mount, because the editor's bundled
  *     `createRoot` reconciled a component whose hooks came from the project's
  *     react; and
@@ -267,7 +263,7 @@ import {
   resolveInstalledPackageSrcDir,
 } from './server-utils';
 import { createProjectServingServices, loadServingPlugins } from './project-serving-services';
-import { productServingModules, resolveProductForProject, sessionProduct } from './session-product';
+import { productPackageRoots, productServingModules, resolveProductForProject, sessionProduct } from './session-product';
 import { setProductNames } from '@volter/editor-sdk/kit/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
@@ -302,8 +298,8 @@ if (!process.env['VGAI_PROJECT']) {
   process.exit(1);
 }
 // Canonicalized (symlink-resolved) — see canonical-path.ts's doc comment
-// (dev.ts's identical fix: a react world's `WorldProvider` colocation breaks
-// if this path and Vite's own resolver disagree on a symlinked segment).
+// (dev.ts's identical fix: one project module loads twice if this path and
+// Vite's own resolver disagree on a symlinked segment).
 const projectPath = canonicalProjectRoot(process.env['VGAI_PROJECT']);
 
 // THE PRODUCT'S BUILD is what this host serves — `npm run build -w
@@ -607,12 +603,6 @@ async function main(): Promise<void> {
     // prebuilt bundle to this separate, project-rooted graph.
     plugins: createProjectServingPlugins({
       projectRoots: () => projectRoots,
-      // A game's own InputManager (`@volter/game-runtime`'s input) listens on the
-      // window; its listeners take the realm gate like the game's own code.
-      runtimeInputRoots: () => {
-        const src = runtimeSources.get('@volter/game-runtime');
-        return src ? [path.join(src, 'input')] : [];
-      },
       // A THUNK, like every other project-scoped plugin: `onProjectOpened`
       // below moves `currentProjectRoot` when a session switches project, and a
       // boot-time snapshot would keep resolving an INGEST root's
@@ -702,6 +692,9 @@ async function main(): Promise<void> {
       // provide an export named 'flushSync'` at Play-mode mount before this
       // entry was added.
       include: [
+        // CommonJS-only packages a contribution package imports, which the scanner cannot reach
+        // from an installed package (`PackageContributionCrawl.commonJs`).
+        ...packageContributionCrawl.commonJs,
         'react',
         'react-dom',
         'react-dom/client',
@@ -725,7 +718,7 @@ async function main(): Promise<void> {
         // subpaths these modules import are handled a third way — as crawl
         // `entries` (see `LAZY_ENGINE_CRAWL_SUBPATHS`), because `include`-ing an
         // engine module prebundles a second copy of everything it reaches,
-        // which is exactly the split WorldProvider identity the `exclude`
+        // which is exactly the split registry identity the `exclude`
         // below exists to prevent.
         //
         // Project tool contributions load this after the shell is visible;
@@ -825,27 +818,17 @@ async function main(): Promise<void> {
         // SDK's other doors below for the same reason; the name is here
         // because the kit is the one a PROJECT's own contributions import.)
         '@volter/editor-sdk/widgets',
-        // The Blender engine spawns its worker as
-        // `new Worker(new URL('./worker.ts', import.meta.url))`. Prebundled,
-        // that URL is rewritten against a `.vite/deps` chunk that has no
-        // worker beside it, and the request 404s — measured 2026-09-20 from a
-        // REGISTRY install (invisible from a checkout, where the package is a
-        // symlink Vite serves as source): every Model document died with
-        // "Blender worker failed: the worker script did not load". Served as
-        // source, the URL resolves to the package's own file.
-        //
         // THIS LIST IS THE KIT'S, AND A PRODUCT ADDS NOTHING TO IT (measured
         // 2026-09-21, WORK.md step 3 P1). This instance is rooted at the
         // PROJECT and prebundles what the PROJECT's graph reaches: a package
         // the project DECLARES, whose contributions are served `/@fs/` from its
-        // own install — which is how `@volter/editor-blender` gets here, and why the
-        // name below is a fact about a project's dependency rather than about
-        // any composition. A package the PRODUCT composes is in the product's
+        // own install. A package the PRODUCT composes is in the product's
         // built bundle, which this instance never transforms, so no
         // product-declared dependency needs an exclusion and there is no
-        // `vgai.product.optimizeDepsExclude` to declare one with.
-        '@volter/blender-engine',
-        '@volter/blender-engine/browser',
+        // `vgai.product.optimizeDepsExclude` to declare one with. What a
+        // declared package's tree reaches that spawns a module-relative worker
+        // is found on disk, not named here (`packageContributionCrawl.sourceServed`).
+        ...packageContributionCrawl.sourceServed,
         '@volter/editor-sdk/layouts',
         '@volter/editor-sdk/layout-arrangements',
         // The SDK's OTHER doors, same rule: each holds module state or calls
@@ -870,14 +853,15 @@ async function main(): Promise<void> {
         ...packageContributionCrawl.unresolvable,
         // The project's runtime-package source is the document-side module
         // graph. Keep every subpath source-served so an arbitrary project
-        // import cannot create a second prebundled WorldProvider identity.
+        // import cannot create a second prebundled copy of a module-scoped
+        // registry.
         // React/Fiber themselves remain prebundled and deduped above.
         //
         // The scanner matches the RAW specifier before any alias runs, so a
         // package left out here is prebundlable — which is how eight runtime
-        // modules (`world3d-react`, `runtime/mount-game`, …) once sat in
+        // modules (`runtime/mount-game`, …) once sat in
         // `.vite/deps` beside their source-served twins, each chunk carrying
-        // its own bundled `react/world-state` `GameContext`.
+        // its own bundled registries.
         ...RUNTIME_PACKAGE_NAMES,
       ],
     },
@@ -885,8 +869,8 @@ async function main(): Promise<void> {
       // `configFile: false` deliberately ignores the project's Vite config,
       // so reconstruct the template's renderer identity contract here. Fiber,
       // Drei, the installed engine and the world must share these instances.
-      // The runtime packages are in the list for the same
-      // WorldProvider/`useGame` singleton the checkout-rooted `dev.ts` path
+      // The runtime packages are in the list for the same one-registry
+      // identity the checkout-rooted `dev.ts` path
       // gets from repo-root `vite.config.ts` (see that file's dedupe comment).
       // The alias below already points each specifier at the project's own
       // installed source when it resolves; dedupe is the remaining collapse
@@ -979,6 +963,8 @@ async function main(): Promise<void> {
       fs: {
         allow: [
           ...projectFsRoots,
+          // What the product composes, which the page imports by path (`productPackageRoots`).
+          ...productPackageRoots(sessionProductIdentity),
           // The `@editor/*` deep specifiers above are source-served, so this
           // package's own `src/` must be readable even when it does not sit
           // under the project's own resolved `node_modules`.
@@ -1015,6 +1001,15 @@ async function main(): Promise<void> {
     process.exit(0);
   }
   const vite = await createViteServer(resolvedViteConfig);
+  /** Let the dev server serve every root a project's packages resolve to: on opening a project,
+   *  and before a `/@fs/` request outside every allowed root (below). Add-only, like the boot
+   *  set. */
+  const allowServingRoots = (projectRoot: string): void => {
+    const allowed = vite.config.server.fs.allow;
+    for (const root of projectServingRoots(projectRoot)) {
+      if (!allowed.includes(root)) allowed.push(root);
+    }
+  };
 
   // 2. Mount editor API routes (/__editor/*). `engineRoot` identifies the
   //    running packaged editor for runtime capability checks.
@@ -1073,13 +1068,10 @@ async function main(): Promise<void> {
       console.log('[vgai-editor] project dependencies changed; reloaded project modules.');
     },
     onProjectOpened(newProjectPath: string) {
-      const allowed = vite.config.server.fs.allow;
       // The newly opened project's OWN install roots, not just its folder —
       // a project switched into at runtime has exactly the hoisting/symlink
       // shapes the boot-time set above exists for.
-      for (const root of projectServingRoots(newProjectPath)) {
-        if (!allowed.includes(root)) allowed.push(root);
-      }
+      allowServingRoots(newProjectPath);
       projectRoots.add(newProjectPath);
       vite.watcher.add(newProjectPath);
       currentProjectRoot = newProjectPath;
@@ -1103,6 +1095,20 @@ async function main(): Promise<void> {
   //    node_modules). `appType: 'custom'` means it calls `next()` instead of
   //    synthesizing an HTML/404 response for anything else, so requests for
   //    the editor's OWN app (`/`, `/assets/*`) fall through to step 4.
+  // A capability added under a live session (`add music`) declares a package whose root, in a
+  // checkout-linked game its `file:` folder, sits outside every root allowed at boot: its
+  // contributions answered 403 until the session restarted. The page asks for them as soon as
+  // package.json names them, ahead of any file watcher, so the roots are re-read from the
+  // project's package.json on the request itself, before Vite checks it.
+  app.use((req, _res, next) => {
+    const url = req.url ?? '';
+    if (url.startsWith('/@fs/')) {
+      const file = path.resolve(decodeURIComponent(url.slice('/@fs'.length).split('?')[0] ?? ''));
+      const allowed = vite.config.server.fs.allow;
+      if (!allowed.some((root) => file === root || file.startsWith(`${root}${path.sep}`))) allowServingRoots(currentProjectRoot);
+    }
+    next();
+  });
   app.use(vite.middlewares);
 
   // 3b. The Code-OSS frame's entry into this build (routes/served-modules.ts

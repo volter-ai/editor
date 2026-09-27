@@ -14,14 +14,14 @@ import {
   InstanceResolutionError,
   systemsForInstance,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { collectPlayRunPageErrors } from '@volter/editor-core/command-listener';
+import { collectPlayRunPageErrors } from '@volter/editor-sdk/kit/command-listener';
 import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
 import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 import { systemAdapterEpoch } from '@volter/editor-sdk/kit/system-seam-evidence';
 import {
   HOLD_STARVED_NO_DRIVER_REASON,
   waitForHoldBudget,
-} from '@volter/game-runtime/runtime/debug-bridge';
+} from '../runtime/debug-bridge';
 import type { SystemAdapters } from '@volter/editor-project/adapter';
 import { activeIngestContract } from '../ingest/ingest-play-control';
 import { getPlayRuntimeAccess } from '../play/play-mode';
@@ -39,7 +39,7 @@ import { getPlayRuntimeAccess } from '../play/play-mode';
  *  game, so it never creates a play session at all, and what it publishes
  *  through `setActiveSystems` is the debug adapter projected from its own
  *  declared contract (`ingest-root-adapter.ts` →
- *  `@volter/game-runtime/adapter/ingest/contract-debug-adapter`). The question asked here is
+ *  `@volter/editor-game/runtime/adapter/ingest/contract-debug-adapter`). The question asked here is
  *  only ever "has a live mount published a plane", never who mounted it.
  *  `notPlayingResult()` stays the answer for the genuinely-no-world case. */
 export const hasLiveDebugPlane = (): boolean => getActiveSystems().debug != null;
@@ -48,7 +48,7 @@ export const hasLiveDebugPlane = (): boolean => getActiveSystems().debug != null
  *  `Error` carrying a machine-readable `code` (and optional `data`), the same
  *  shape `DebugError`/`InputActionError` already throw. Used by
  *  `dispatchBridgeMethod` below for its OWN precondition failures (no debug
- *  adapter installed, no InputManager wired) so they survive
+ *  adapter installed, no input door wired) so they survive
  *  `structuredErrorResult` exactly like an engine-thrown error would. */
 export function bridgeError(code: string, message: string, data?: Record<string, unknown>): Error {
   const err = new Error(message) as Error & { code: string; data?: unknown };
@@ -109,7 +109,7 @@ function recordContractSystemUse(member: string, value: unknown, name?: string):
 
 /**
  * #140 — the generic session-wire dispatch table: the SAME method-name
- * surface `window.__vgai` exposes (`@volter/game-runtime/runtime/debug-bridge`'s
+ * surface `window.__vgai` exposes (`@volter/editor-game/runtime/debug-bridge`'s
  * `VgaiDebugHandle` — `state`/`stateAll`/`providers`/`commands`/`events`/
  * `snapshot`/`invoke`/`runTicks`/`input.*`), built from the SAME
  * registry-backed accessors the sibling
@@ -337,8 +337,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          `session wire: ${method}() has no virtual-input target wired — no default three ` +
-            "world has mounted yet, or this project's mount path never wired one",
+          `session wire: ${method}() has no virtual-input target wired — no root ` +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       if (method === 'input.setVirtualAction') {
@@ -382,8 +382,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          'session wire: input.scheduleActionAtTick() has no virtual-input target wired — no ' +
-            "default three world has mounted yet, or this project's mount path never wired one",
+          'session wire: input.scheduleActionAtTick() has no virtual-input target wired — no root ' +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       return inputTarget.scheduleActionAtTick(tick, action, value);
@@ -405,8 +405,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          `session wire: ${method}() has no virtual-input target wired — no default three ` +
-            "world has mounted yet, or this project's mount path never wired one",
+          `session wire: ${method}() has no virtual-input target wired — no root ` +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       if (method === 'input.injectPointerDelta') {
@@ -430,8 +430,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          'session wire: holdFor() has no virtual-input target wired — no default three ' +
-            "world has mounted yet, or this project's mount path never wired one",
+          'session wire: holdFor() has no virtual-input target wired — no root ' +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       const action = callArgs[0] as string;

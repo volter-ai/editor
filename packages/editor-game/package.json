@@ -2,7 +2,7 @@
   "name": "@volter/editor-game",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only",
-  "version": "0.5.66",
+  "version": "0.5.68",
   "publishConfig": {
     "access": "public"
   },
@@ -24,7 +24,11 @@
   "exports": {
     "./contributions/*": "./contributions/*",
     "./*": "./src/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./host/canvas-preview-frames": "./src/host/canvas-preview-frames.ts",
+    "./host/stories/pixi-story-model": "./src/host/stories/pixi-story-model.ts",
+    "./host/stories/story-pixi-preview": "./src/host/stories/story-pixi-preview.ts",
+    "./host/stories/story-media-captures": "./src/host/stories/story-media-captures.ts"
   },
   "vgai": {
     "contributions": [
@@ -33,10 +37,12 @@
       "./contributions/asset-budget.document.tsx",
       "./contributions/asset-budget.menu.ts",
       "./contributions/audio-unlock.service.ts",
+      "./contributions/network-observer.service.ts",
       "./contributions/audio.utility.tsx",
       "./contributions/autoplay.service.ts",
       "./contributions/bridge.command.ts",
       "./contributions/build-profiles.document.tsx",
+      "./contributions/build-player.document.tsx",
       "./contributions/build-progress.status.tsx",
       "./contributions/build.action.ts",
       "./contributions/build.command.ts",
@@ -74,6 +80,8 @@
       "./contributions/unity.view.ts",
       "./contributions/unreal.style.ts",
       "./contributions/unreal.view.ts",
+      "./contributions/canvas/component-board.service.ts",
+      "./contributions/canvas/design-time-mount.service.ts",
       "./contributions/react/component-board.service.ts",
       "./contributions/react/design-time-mount.service.ts",
       "./contributions/react/react-inspector.service.ts",
@@ -87,17 +95,18 @@
       "./contributions/three/reflection-probe-capture.inspector.tsx",
       "./contributions/three/story-documents.service.ts",
       "./contributions/three/three-authoring.service.ts",
-      "./contributions/three-story-capture.service.ts"
+      "./contributions/three-story-capture.service.ts",
+      "./contributions/canvas-story-capture.service.ts"
     ],
     "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.66",
-    "@volter/editor-sdk": "0.5.66",
-    "@volter/editor-project": "0.5.66",
-    "@volter/editor-threejs": "0.5.66",
-    "@volter/threejs-runtime": "0.5.66",
-    "@volter/game-runtime": "0.5.66",
+    "@volter/editor-sdk": "0.5.68",
+    "@volter/editor-project": "0.5.68",
+    "@volter/editor-threejs": "0.5.68",
+    "@volter/threejs-runtime": "0.5.68",
+    "@volter/game-runtime": "0.5.68",
+    "@colyseus/msgpackr": "^1.11.3",
     "@colyseus/schema": "^4.0.14",
     "@colyseus/sdk": "^0.17.34",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
@@ -111,6 +120,7 @@
     "draco3d": "^1.5.7",
     "esbuild-wasm": "0.25.12",
     "fastnoise-lite": "^1.1.1",
+    "loglayer": "^9.1.0",
     "mediabunny": "1.56.2",
     "meshoptimizer": "^1.2.0",
     "three": "^0.180.0",
@@ -128,7 +138,7 @@
     "xstate": "^5.32.4",
     "zod": "^4.3.6",
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
-    "@volter/editor-react": "0.5.66"
+    "@volter/editor-react": "0.5.68"
   },
   "peerDependencies": {
     "@sparkjsdev/spark": "^2.1.0",

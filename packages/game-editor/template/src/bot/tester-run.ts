@@ -26,8 +26,8 @@ export type TesterDirective = 'run' | 'pause' | 'abort' | 'handoff';
 export type TesterRunStatus = 'running' | 'done' | 'failed' | 'stopped';
 
 /**
- * The three `InputManager` methods the tester's hands need — the game's REAL
- * input store satisfies this structurally, and a disposable REPL probe may
+ * The methods the tester's hands need — `tester-station.ts` builds them over
+ * the game's real input store (`src/input.ts`), and a disposable REPL probe may
  * pass a recorder. Typed narrowly here so this module never imports the engine, and
  * so the surface a tester can reach is visible in one glance: virtual input,
  * and nothing else.

@@ -523,6 +523,10 @@ def draw_camera(obj):
         "shift_x": float(camera.shift_x),
         "shift_y": float(camera.shift_y),
         "matrix": [[float(v) for v in row] for row in obj.matrix_world],
+        # What the 3D View's camera view darkens outside the frame (`drawviewborder`).
+        "passepartout": float(camera.passepartout_alpha) if camera.show_passepartout else 0.0,
+        # The size the overlay draws the camera at (`Camera.display_size`, `cam->drawsize`).
+        "display_size": float(camera.display_size),
     }
 
 
@@ -730,6 +734,107 @@ def _refusal(node):
     if kind == "ShaderNodeTexCoord" and node.object is not None:
         return "%s reads object coordinates of %s" % (node.name, node.object.name)
     return None
+
+
+
+def _empty_display(obj):
+    """An empty's display (`overlay_empty.hh`): its type and size, and for an image empty the
+    picture, where it sits on the object (`empty_image_offset`), how it meets depth, which side
+    shows, in which projections, its opacity when it blends, the object colour the picture is
+    multiplied by (`ucolor`) and whether the image stores premultiplied alpha."""
+    display = {"display": obj.empty_display_type, "size": float(obj.empty_display_size)}
+    if obj.empty_display_type == "IMAGE":
+        display["image"] = {
+            "name": obj.data.name if obj.data is not None else None,
+            "offset": [float(v) for v in obj.empty_image_offset],
+            "depth": obj.empty_image_depth,
+            "side": obj.empty_image_side,
+            "perspective": bool(obj.show_empty_image_perspective),
+            "orthographic": bool(obj.show_empty_image_orthographic),
+            "axis_aligned": bool(obj.show_empty_image_only_axis_aligned),
+            "opacity": float(obj.color[3]) if obj.use_empty_image_alpha else None,
+            "tint": [float(v) for v in obj.color[:3]],
+            "premultiplied": obj.data is not None and obj.data.alpha_mode == "PREMUL",
+        }
+    return display
+
+
+def _saved_view():
+    """The 3D View the file saved, which is where Blender opens it: the `Modeling` workspace's
+    (this editor's Model workspace is Blender's Modeling), else the first 3D View any screen
+    holds. `RegionView3D`'s pivot, rotation (view to world, `(w, x, y, z)`), distance and
+    projection (`PERSP`, `ORTHO`, or `CAMERA` for a view through the scene camera), and the
+    `View3D`'s lens."""
+    workspace = bpy.data.workspaces.get("Modeling")
+    screens = list(workspace.screens) if workspace is not None else []
+    screens.extend(bpy.data.screens)
+    for screen in screens:
+        for area in screen.areas:
+            if area.type != "VIEW_3D":
+                continue
+            space = area.spaces[0]
+            region = space.region_3d
+            return {
+                "lens": float(space.lens),
+                "location": [float(v) for v in region.view_location],
+                "rotation": [float(v) for v in region.view_rotation],
+                "distance": float(region.view_distance),
+                "perspective": region.view_perspective,
+            }
+    return None
+
+
+def _subject_line(scene, view_layer):
+    """The 3D Viewport's second overlay line, as `draw_selected_name` (`view3d_draw.cc`) writes it,
+    less the two parts that follow the playhead: the tab draws `(frame)` and the marker on it
+    from the frame it is showing, which during playback is not `frame_current` (written once, on
+    pause). Here: in Object Mode (or with nothing active) the active collection and a bar, then
+    the active object; outside Object Mode its data's name; the active edit or pose bone, or the
+    active shape key (` (Soloed)` when pinned). The scene's markers go with it, in list order,
+    for `BKE_scene_find_marker_name`. Blender tints the line on a keyframe; that colour is not
+    carried, and the ` (Viewer)` suffix belongs to a viewer path this tab does not show."""
+    parts = []
+    ob = view_layer.objects.active
+    if ob is None or ob.mode == "OBJECT":
+        # `BKE_collection_ui_name_get`: the master collection reads "Scene Collection", which is
+        # also what its RNA name returns.
+        parts.append(" " + view_layer.active_layer_collection.collection.name)
+        if ob is not None:
+            parts.append(" |")
+    if ob is not None:
+        parts.append(" " + ob.name)
+        if ob.mode != "OBJECT" and ob.data is not None:
+            parts.append(" | " + ob.data.name)
+        if ob.type == "ARMATURE":
+            arm = ob.data
+            if ob.mode == "EDIT":
+                if arm.edit_bones.active is not None:
+                    parts.append(" : " + arm.edit_bones.active.name)
+            elif ob.mode == "POSE" and arm.bones.active is not None and _bone_shown(arm.bones.active):
+                parts.append(" : " + arm.bones.active.name)
+        elif ob.type in ("MESH", "LATTICE", "CURVE"):
+            if ob.type == "MESH" and ob.mode == "WEIGHT_PAINT":
+                rig = ob.find_armature()
+                if rig is not None and rig.mode == "POSE":
+                    bone = rig.data.bones.active
+                    if bone is not None and _bone_shown(bone):
+                        parts.append(" : " + bone.name)
+            key = ob.active_shape_key if getattr(ob.data, "shape_keys", None) is not None else None
+            if key is not None:
+                parts.append(" : " + key.name)
+                if ob.show_only_shape_key:
+                    parts.append(" (Soloed)")
+    return {
+        "frame": int(scene.frame_current),
+        "body": "".join(parts),
+        "markers": [[int(m.frame), m.name] for m in scene.timeline_markers],
+    }
+
+
+def _bone_shown(bone):
+    """`ANIM_bonecoll_is_visible_actbone`: a bone in no collection, or in a visible one."""
+    collections = getattr(bone, "collections", None)
+    return not collections or any(c.is_visible for c in collections)
 
 
 class _GraphRefusal(Exception):
@@ -1231,9 +1336,13 @@ class Session:
         """
         scene = bpy.context.scene
         graphs = material_graphs(scene)
+        # An IMAGE EMPTY's picture travels with the graphs' images: the overlay draws it
+        # (`overlay_empty.hh` `image_sync`).
+        empty_images = {obj.data.name for obj in scene.objects
+                        if obj.type == "EMPTY" and obj.empty_display_type == "IMAGE" and obj.data is not None}
         options = {"session": self.session, "evaluate": True, "known": self._known,
                    "graph_materials": sorted(graphs),
-                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]}),
+                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]} | empty_images),
                    "graph_generated": sorted(n for n, g in graphs.items() if g["generated"])}
         # THE ARENA IS WRITTEN BEFORE THE ASK, and on a skew whose channel is
         # an ordered stream of filesystem patches that is the whole
@@ -1288,11 +1397,31 @@ class Session:
                 default_color = getattr(getattr(data, "color_attributes", None), "default_color_name", "")
                 if default_color:
                     row["default_color"] = default_color
+        # THE VIEWPORT DISPLAY of each material -- what Blender's Solid shading colours a surface
+        # by (`View3DShading.color_type` MATERIAL reads `Material.diffuse_color`, `roughness`,
+        # `metallic`; `workbench_world_light_lib.glsl`), not its node graph.
+        for entry in frame["materials"].values():
+            material = bpy.data.materials.get(entry.get("name", ""))
+            if material is not None:
+                entry["viewport"] = {
+                    "color": [float(v) for v in material.diffuse_color],
+                    "roughness": float(material.roughness),
+                    "metallic": float(material.metallic),
+                }
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"
         }
         frame["volumes"] = {}
+        # THE CAMERA A CAMERA VIEW LOOKS THROUGH (`view3d.view_camera`: the scene's, else a
+        # camera that is active, else the view layer's first) and the frame it draws, the
+        # render's shape with its pixel aspect.
+        render = scene.render
+        frame["camera_view"] = {
+            "scene_camera": scene.camera.name if scene.camera is not None else None,
+            "view_layer_cameras": [o.name for o in bpy.context.view_layer.objects if o.type == "CAMERA"],
+            "aspect": (render.resolution_x * render.pixel_aspect_x) / max(render.resolution_y * render.pixel_aspect_y, 1e-6),
+        }
         # THE 3D CURSOR, `Scene.cursor`: where Blender's own "to 3D Cursor"
         # operators place and snap, drawn by the tab as Blender's overlay does
         # (`overlay_cursor.hh`). Its MATRIX, because the overlay's axis lines
@@ -1301,6 +1430,22 @@ class Session:
         # THE OVERLAYS, after the door's frame stands: `_weights` reads the
         # mesh's own revision out of it (see there), so it cannot run before.
         view_layer = bpy.context.view_layer
+        # THE VIEWPORT'S SUBJECT LINE and the units its grid step is named in: Blender composes
+        # both from the scene, so they come from here (`_subject_line`).
+        frame["subject"] = _subject_line(scene, view_layer)
+        # A LIGHT'S DISTANCES, for the overlay's direction line (`overlay_light.hh`: from
+        # `clipsta` to `att_dist` down the light's -Z, for a spot or an area light).
+        frame["light_distances"] = {
+            light.name: [float(light.shadow_buffer_clip_start), float(light.cutoff_distance)]
+            for light in bpy.data.lights
+        }
+        # WHAT THE OVERLAY DRAWS FOR AN EMPTY (`overlay_empty.hh`): its display type and size.
+        frame["empties"] = {obj.name: _empty_display(obj) for obj in scene.objects if obj.type == "EMPTY"}
+        frame["view"] = _saved_view()
+        frame["units"] = {
+            "system": scene.unit_settings.system,
+            "scale_length": float(scene.unit_settings.scale_length),
+        }
         frame["armatures"] = _armatures(view_layer)
         frame["weights"] = _weights(scene, view_layer, frame, self._known)
         warnings = list(frame.get("warnings", ()))
@@ -4630,7 +4775,32 @@ def outliner_set(path, column, value):
         % (column, target.bl_rna.identifier, path))
 
 
+# REQUESTS THAT CAN REMOVE OBJECTS, watched: a removal is reported with its cause, because an
+# object that disappears without a named act is the loss this session must never hide. A scene
+# was once found emptied and saved over its file by a burst of three edits at boot, with nothing
+# recording which requests they were.
+_WATCHED_OPS = ("execute", "rna-set", "outliner-set", "history-step")
+
+
 def dispatch(request):
+    op = request.get("op")
+    if op not in _WATCHED_OPS:
+        return _dispatch_request(request)
+    before = {o.name for o in bpy.data.objects}
+    try:
+        return _dispatch_request(request)
+    finally:
+        removed = before - {o.name for o in bpy.data.objects}
+        if removed:
+            cause = {k: request[k] for k in ("label", "property", "column", "direction", "token", "path")
+                     if k in request}
+            if op == "execute":
+                cause["code"] = str(request.get("code", ""))[:160]
+            _say("@@VGAI-WARN %s removed objects %s (%s); %d remain" % (
+                op, sorted(removed), json.dumps(cause), len(bpy.data.objects)))
+
+
+def _dispatch_request(request):
     op = request.get("op")
     if op == "history-begin":
         HISTORY.begin()

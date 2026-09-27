@@ -6,7 +6,7 @@ import {
   AssetFileSchema,
   type AssetVariant,
   parseAssetCatalog,
-} from '../src/asset-workflow/asset-types';
+} from '@volter/editor-sdk/kit/asset-workflow/asset-types';
 
 /**
  * ONE catalog record — the generator's intermediate representation, produced

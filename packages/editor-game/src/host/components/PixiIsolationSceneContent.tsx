@@ -6,8 +6,8 @@
 
 import { isolationImportUrl } from '@volter/editor-sdk/session/project-module-url';
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
-import { createPhysicsAdapter2D } from '@volter/game-runtime/pixi/system-adapters';
+import { createPhysics2DRegistry } from '../../runtime/pixi/physics-registry';
+import { createPhysicsAdapter2D } from '../../runtime/pixi/system-adapters';
 import { useEffect, useRef, useState } from 'react';
 import {
   type IsolatedPixiScreenCtor,
@@ -16,21 +16,21 @@ import {
 } from '../authoring/mount-isolated-pixi-screen';
 import { PixiAuthoringAdapter } from '../authoring/pixi-authoring-adapter';
 import { createCreationSiteCanvasWriteTarget } from '../authoring/pixi-creation-site-write-target';
-import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/react-canvas-navigation';
+import { installCanvasSceneNavigation } from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
 import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
-import { capturePixiDisplayObjectThumbnail } from '@volter/editor-core/canvas-preview-frames';
+import { capturePixiDisplayObjectThumbnail } from '../canvas-preview-frames';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
 import { authoringJournal } from '../history/json-history-resource';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { takeNamedExport } from '../take-named-export';
 import { registerWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from '@volter/editor-core/components/CanvasSceneViewport';
-import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
+} from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
+import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 
 export interface PixiIsolationSceneContentProps {
@@ -197,7 +197,7 @@ export function PixiIsolationSceneContent({
       }}
     >
       <CanvasSceneBackdrop view={view} documentId={documentId} />
-      {adapter ? <RootSelectionOverlay adapter={adapter} view={view} transformModeAware /> : null}
+      {adapter ? <RootSelectionOverlay adapter={adapter} view={view} transformModeAware presentationId={documentId} /> : null}
       <CanvasSceneControls
         active={active}
         {...(adapter ? { adapter } : {})}

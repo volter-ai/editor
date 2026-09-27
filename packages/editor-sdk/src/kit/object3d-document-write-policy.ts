@@ -69,9 +69,9 @@ export interface Object3DDocumentWritePolicy {
    * The session owns transaction ordering, checksum preflight and canonical
    * undo/redo; the document only calls `commit`.
    */
-  openPersistence(
-    options: OpenObject3DDocumentPersistenceOptions,
-  ): Promise<Object3DDocumentPersistenceSession>;
+  openPersistence<TDocument>(
+    options: OpenObject3DDocumentPersistenceOptions<TDocument>,
+  ): Promise<Object3DDocumentPersistenceSession<TDocument>>;
   /**
    * Replace a whole source file through the tier's recorder, in `history`.
    * Resolves to whether a byte actually moved. The HISTORY lookup stays with

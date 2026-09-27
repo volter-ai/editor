@@ -42,7 +42,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
-import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
@@ -441,7 +441,7 @@ if (product) {
 // sides have always been mirrors, because nothing under `src/vs/` can import React TSX.
 interface BridgeMount { output?: VgaiOutputBridge; host: HTMLElement; keyboard: VgaiKeyboardBridge; offerPart?(id: 'center' | 'outliner' | 'properties' | 'content', element: HTMLElement | null): void; documents?: VgaiDocumentsBridge; history?: VgaiHistoryBridge; files?: VgaiFilesBridge; settings?: VgaiSettingsBridge; commands?: VgaiCommandsBridge; notifications?: VgaiNotificationsBridge; views?: VgaiViewsBridge; utilities?: VgaiUtilitiesBridge; status?: VgaiStatusBridge }
 interface BridgeModule {
-	mountVgai(parts: { chromeRoot: HTMLElement; header: HTMLElement; center: HTMLElement; outliner?: HTMLElement; properties?: HTMLElement; content?: HTMLElement }, frame?: { workspaceStorage?: { get(key: string): string | undefined; store(key: string, value: string | undefined): void } }): Promise<BridgeMount>;
+	mountVgai(parts: { chromeRoot: HTMLElement; header: HTMLElement; center: HTMLElement; outliner?: HTMLElement; properties?: HTMLElement; content?: HTMLElement }, frame?: { workspaceStorage?: { get(key: string): string | undefined; store(key: string, value: string | undefined): void; flush(): Promise<void> } }): Promise<BridgeMount>;
 }
 let mounted: Promise<BridgeMount> | undefined;
 const keyboardStore = new DisposableStore();
@@ -634,6 +634,8 @@ registerAction2(class extends Action2 {
 								store: (key, value) => value === undefined
 									? storage.remove(key, StorageScope.WORKSPACE)
 									: storage.store(key, value, StorageScope.WORKSPACE, StorageTarget.MACHINE),
+								// The session's end: every service saves its state, then the writes land.
+								flush: () => storage.flush(WillSaveStateReason.SHUTDOWN),
 							},
 						},
 					);

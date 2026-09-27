@@ -1,6 +1,6 @@
 import {
   EDITOR_BRAND,
-  editorAppIconSvg,
+  editorMarkImg,
   editorDocumentTitle,
 } from '@volter/editor-sdk/session/editor-brand';
 
@@ -35,7 +35,6 @@ export interface EditorBrandPageOptions {
  */
 export function renderEditorBrandPage(options: EditorBrandPageOptions): string {
   const title = editorDocumentTitle(options.subject);
-  const favicon = `data:image/svg+xml,${encodeURIComponent(editorAppIconSvg())}`;
   const social = options.socialPreview
     ? `<meta property="og:type" content="website">
 <meta property="og:site_name" content="${escapeHtml(EDITOR_BRAND.name)}">
@@ -56,17 +55,17 @@ export function renderEditorBrandPage(options: EditorBrandPageOptions): string {
 <meta name="theme-color" content="${EDITOR_BRAND.themeColor}">
 <meta name="robots" content="noindex,nofollow">
 <meta name="description" content="${escapeHtml(options.description)}">
-<link rel="icon" href="${favicon}" type="image/svg+xml">
+<link rel="icon" href="${EDITOR_BRAND.logo}" type="image/svg+xml">
 <title>${escapeHtml(title)}</title>
 ${social}
 <style>
 :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:${EDITOR_BRAND.themeColor};color:#e8edf3}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 30%,#1c2a3a 0,${EDITOR_BRAND.themeColor} 52%,#0b0e13 100%)}
 .brand-card{width:min(440px,100%);padding:34px;text-align:center;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:rgba(23,28,35,.92);box-shadow:0 22px 60px rgba(0,0,0,.38)}
-.brand-mark{width:68px;height:68px;margin:0 auto 20px}.brand-mark svg{display:block;width:100%;height:100%}h1{margin:0 0 10px;font-size:22px;line-height:1.25;color:#f4f6f8}p{margin:0;color:#aeb9c6;font-size:14px;line-height:1.6}
+.brand-mark{width:68px;height:68px;margin:0 auto 20px}.brand-mark img{display:block;width:100%;height:100%}h1{margin:0 0 10px;font-size:22px;line-height:1.25;color:#f4f6f8}p{margin:0;color:#aeb9c6;font-size:14px;line-height:1.6}
 button,a.brand-action{display:inline-block;margin-top:20px;padding:9px 17px;border:1px solid #3a526c;border-radius:8px;background:#20354c;color:#eaf3ff;font:600 14px inherit;text-decoration:none;cursor:pointer}button:hover,a.brand-action:hover{background:#294561;border-color:${EDITOR_BRAND.accentColor}}
 </style>
 </head>
-<body><main class="brand-card"><div class="brand-mark">${editorAppIconSvg()}</div>${options.contentHtml}</main>${script}</body>
+<body><main class="brand-card"><div class="brand-mark">${editorMarkImg()}</div>${options.contentHtml}</main>${script}</body>
 </html>`;
 }

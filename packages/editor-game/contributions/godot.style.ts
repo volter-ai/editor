@@ -31,12 +31,29 @@ export const style: StyleContribution = {
       large: '0 6px 18px rgba(0,0,0,0.5)',
     },
     stage: {
-      // Godot's `manipulator_gizmo_size` is 80, but its unit is not ours: the stage's px per
-      // gizmo unit is fitted, not transcribed. At 128 the rotation rings measure ~80 px in
-      // radius on a 1x capture, against ~85 px in `engine-reference/godot/tuto_3d5.png`.
-      gizmoSize: 128,
-      // The move arrows reach 1.6 ring radii with a head about half again three's
-      // (`tuto_3d5.png`: a 142 px tip against a 90 px ring, a 25 px head).
+      // THE VIEWPORT'S OWN CHROME (`tuto_3d3.png`): the 3D editor's toolbar is a flush band
+      // over the view, the tools at its start and the view's controls after them; inside the
+      // view only the "⋮ Perspective" pill at the top-left, which opens the view menu.
+      // The transform controls (local space, snap) follow the tools on the band, as Godot's do.
+      chrome: { bar: 'strip', viewName: 'menu', tools: 'bar-start', display: 'bar-end', transformControls: 'bar' },
+      // Godot's display modes and its View menu, where the gizmos are switched.
+      words: {
+        shading: {
+          solid: 'Display Normal',
+          wireframe: 'Display Wireframe',
+          overdraw: 'Display Overdraw',
+          unlit: 'Display Unshaded',
+        },
+        helpers: 'View',
+      },
+      // The stage's ring radius in CSS px. Godot's gizmo unit is `manipulator_gizmo_size` (80)
+      // px on screen (`gizmo_scale = gizmo_size / dd`, `node_3d_editor_plugin.cpp`, at EDSCALE 1
+      // in a viewport at least 400 px tall) and its ring stands at `GIZMO_CIRCLE_SIZE` 1.1 of
+      // it: 88 px, as `engine-reference/godot/tuto_3d5.png`'s ~90 px ring.
+      gizmoSize: 88,
+      // The move arrows' tips stand at `GIZMO_ARROW_OFFSET` + `GIZMO_ARROW_SIZE` (1.4 + 0.35)
+      // units, 1.6 ring radii, with a head about half again three's (`tuto_3d5.png`: a 142 px
+      // tip against a 90 px ring, a 25 px head).
       gizmoArrowLength: 1.6,
       gizmoArrowHead: 1.5,
       // Its rotation rings are about twice three's thickness (`tuto_3d5.png`).
@@ -44,6 +61,9 @@ export const style: StyleContribution = {
       // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
       // saturation and full value (`node_3d_editor_plugin.cpp`).
       gizmoOpacity: 0.9,
+      // Its orientation gizmo is its own (`ViewportRotationControl::_draw_axis`): opacity by
+      // depth, darkened negatives, no mix toward the viewport (the editor's `godot` form).
+      navigationGizmo: 'godot',
       gizmoHighlightSaturation: 0.25,
       gizmoHighlightValue: 1,
       // Godot's grid lines are hairlines at both levels.

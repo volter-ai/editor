@@ -7,8 +7,6 @@
  * root.
  */
 
-import type { Container } from 'pixi.js';
-import type * as THREE from 'three';
 import type { AdapterSurface } from './adapter-surface';
 import type { AuthoringAdapter } from './authoring';
 import type { HostContextFor } from './host-context';
@@ -88,6 +86,10 @@ export interface MountedRootBase {
   step?(): void;
 
   resize?(width: number, height: number): void;
+  /** Does this world claim a pointer at (x, y), in CSS pixels from its surface's top-left? The input
+   *  router asks it of a world stacked above the bottom one (a 2D layer's interactive Pixi objects).
+   *  Absent: such a world claims no point, and input falls through to the bottom world. */
+  hitTest?(x: number, y: number): boolean;
   dispose(): void;
   /** Resolves after an asynchronous native reconciler has run every component
    * cleanup started by {@link dispose}. Omitted by synchronously-disposing
@@ -101,19 +103,19 @@ export interface MountedRootBase {
   readonly systemScope?: object;
   /** Optional state-observation capability (T7.4 slice 2, §4) — absent means
    *  "no state bridge"; `Game.registerRoot` reports this loudly, once, for
-   *  any non-first-party mount. First-party mounts are exempt — their state
-   *  is observed through `Game.state`/`useWorldState` instead (§3), not this
-   *  field. */
+   *  self-driven mount. A host-driven mount ticks inside the game's frame,
+   *  where the editor reads it directly, so it needs none. */
   readonly observe?: RootStateObserver;
 }
 
 /** A live, mounted Three world. The host obtains `scene`/`camera` to render
- * and author it. */
-export interface MountedThreeRoot extends MountedRootBase {
+ * and author it; they are opaque here, and `@volter/editor-threejs` names the
+ * Three-typed root. */
+export interface MountedThreeRoot<Scene = unknown, Camera = unknown> extends MountedRootBase {
   readonly kind: 'three';
   /** The live scene + camera the editor inspects/renders for authoring. */
-  readonly scene: THREE.Scene;
-  readonly camera: THREE.Camera;
+  readonly scene: Scene;
+  readonly camera: Camera;
   /**
    * The colour pipeline this world was authored for, REPORTED rather than
    * applied — the adapter has already applied it to the renderer its own host
@@ -157,12 +159,6 @@ export interface MountedCanvasRoot extends MountedRootBase {
   /** The same host-owned canvas passed to `mount`. */
   readonly canvas: HTMLCanvasElement;
   readonly substrate: MountedCanvasSubstrate;
-}
-
-/** Pixi's substrate-narrowed mounted shape. This is an implementer type, not
- * the host contract: generic canvas hosts depend on {@link MountedCanvasRoot}. */
-export interface MountedPixiRoot extends MountedCanvasRoot {
-  readonly substrate: MountedCanvasSubstrate<Container> & { readonly name: 'pixi' };
 }
 
 /** A live, mounted react world (T6.2) — the react analog of

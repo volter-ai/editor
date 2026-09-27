@@ -6,7 +6,7 @@
  * They are the contract's because the entry-module surface names them
  * (`./native-entry-surface.ts`'s `NativeSystemsBinding.absent`) and the
  * coverage report reads them; the projection that produces them is the game
- * runtime's (`@vgai/game-runtime/adapter/ingest/contract-system-adapters`).
+ * runtime's (`@volter/editor-game/runtime/adapter/ingest/contract-system-adapters`).
  */
 
 import type { VgaiGameSystemAdapters } from './game-contract';

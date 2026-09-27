@@ -212,9 +212,8 @@ const SESSION_PACKAGES: readonly string[] = [];
  *
  * 1. THE PRODUCT'S COMPOSITION. `@vgai/game-editor`'s and
  *    `@vgai/model-editor`'s entries name the packages they mount in code, and
- *    those names are the product's own dependencies (the estate gate is what
- *    keeps the manifest equal to the composition —
- *    `scripts/validate-package-estate.mjs`, `productComposedPackages`). They
+ *    `productComposedPackages` reads those imports (never the product's
+ *    dependencies, which also carry what a game's capabilities add). They
  *    resolve from the PRODUCT's install, so a project declaring none of them
  *    still opens in a whole editor. This is what the manifest-implied lanes
  *    used to do badly: they guessed five packages from a project's ROOTS and

@@ -42,7 +42,7 @@ import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
 // estate into this package's program.
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { type Resolution, ResolutionPicker } from '../../host/components/ResolutionPicker';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
@@ -51,9 +51,9 @@ import {
   STORY_ARGS_SECTION_TITLE,
 } from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
+import type { ComposedProjectStory } from '@volter/editor-sdk/kit/stories/compose-project-stories';
 import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
-import { mountIsolatedStory, runStoryPlay } from '@volter/editor-core/stories/StoryPreviewMount';
+import { mountIsolatedStory, runStoryPlay } from '@volter/editor-sdk/kit/stories/StoryPreviewMount';
 import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
@@ -65,7 +65,7 @@ import {
   refreshProjectStories,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import { domHasRenderableContent } from '../../host/surface-content';
 import { explainSurface, type SurfaceContentState } from '@volter/editor-sdk/kit/surface-state';
 import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
@@ -76,7 +76,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
-import { fitPresentation } from '@volter/game-runtime/runtime/presentation';
+import { fitPresentation } from '../../runtime/presentation';
 import { Button, fontMono, fontSizeVar, spaceVar } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { STORY_ARGS_SECTION_ICON } from './story-args-section';

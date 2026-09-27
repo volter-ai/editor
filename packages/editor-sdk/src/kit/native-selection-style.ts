@@ -4,7 +4,8 @@
  * module resolves the inherited token to the integer both renderers speak.
  */
 
-import { EDITOR_THEME_CLASS, graphiteDarkEditorTheme } from '@volter/editor-sdk/widgets';
+import { useMemo, useSyncExternalStore } from 'react';
+import { EDITOR_THEME_CLASS, graphiteDarkEditorTheme, STAGE_WORD_MODES } from '@volter/editor-sdk/widgets';
 
 /** Import/SSR fallback: Graphite Dark's canonical blue accent. */
 export const DEFAULT_NATIVE_SELECTION_COLOR = 0x579eff;
@@ -208,7 +209,9 @@ export interface NativeGizmoLook {
   readonly arrowLength: number | null;
   readonly arrowHead: number | null;
   readonly ringWidth: number | null;
-  readonly navigationForm: 'balls' | 'cones' | 'triad';
+  readonly navigationForm: 'balls' | 'godot' | 'cones' | 'triad';
+  /** The viewport's background, which the ball form mixes its colours toward by depth. */
+  readonly background: number | null;
   readonly navigationSize: number | null;
   readonly navigationCorner: 'top-right' | 'bottom-left';
   readonly highlightSaturation: number | null;
@@ -243,7 +246,8 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     arrowHead: number('--vgai-viewport-gizmo-arrow-head'),
     ringWidth: number('--vgai-viewport-gizmo-ring-width'),
     navigationSize: number('--vgai-viewport-navigation-size'),
-    navigationForm: ((form) => (form === 'cones' || form === 'triad' ? form : 'balls'))(
+    background: color('--vgai-viewport-background'),
+    navigationForm: ((form) => (form === 'cones' || form === 'triad' || form === 'godot' ? form : 'balls'))(
       themeToken(root, '--vgai-viewport-navigation-gizmo'),
     ),
     navigationCorner:
@@ -322,6 +326,108 @@ export function nativeViewportSelectionBox(element?: Element | null): {
     frame: themeToken(root, '--vgai-viewport-selection-box-frame') === 'object' ? 'object' : 'world',
     lineWidth: Number.isFinite(width) && width > 0 ? width : null,
   };
+}
+
+/** THE STAGE'S OWN CHROME as the look places it (`StageContribution.chrome`), each member
+ *  resolved to the editor's own arrangement where the look states none. */
+export interface NativeViewportChrome {
+  readonly bar: 'none' | 'strip' | 'pills';
+  readonly viewName: 'text' | 'menu' | 'gizmo' | 'bar';
+  readonly tools: 'shelf' | 'bar-start' | 'bar-end';
+  readonly display: 'corner' | 'bar-start' | 'bar-end';
+  readonly transformControls: 'header' | 'bar';
+}
+
+/** The chrome's members as one string, a stable snapshot for `useSyncExternalStore`
+ *  ({@link viewportChromeFromKey} reads it back). */
+export function nativeViewportChromeKey(element?: Element | null): string {
+  const root = themeRoot(element);
+  return [
+    '--vgai-viewport-chrome-bar',
+    '--vgai-viewport-chrome-view-name',
+    '--vgai-viewport-chrome-tools',
+    '--vgai-viewport-chrome-display',
+    '--vgai-viewport-chrome-transform-controls',
+  ]
+    .map((name) => themeToken(root, name))
+    .join('|');
+}
+
+export function viewportChromeFromKey(key: string): NativeViewportChrome {
+  const [bar, viewName, tools, display, transformControls] = key.split('|');
+  const bars = ['strip', 'pills'] as const;
+  const names = ['menu', 'gizmo', 'bar'] as const;
+  const places = ['bar-start', 'bar-end'] as const;
+  const pick = <T extends string>(value: string | undefined, members: readonly T[], fallback: T): T =>
+    members.includes(value as T) ? (value as T) : fallback;
+  return {
+    bar: pick(bar, bars, 'none'),
+    viewName: pick(viewName, names, 'text'),
+    tools: pick(tools, places, 'shelf'),
+    display: pick(display, places, 'corner'),
+    transformControls: transformControls === 'bar' ? 'bar' : 'header',
+  };
+}
+
+export function nativeViewportChrome(element?: Element | null): NativeViewportChrome {
+  return viewportChromeFromKey(nativeViewportChromeKey(element));
+}
+
+/** The key, read from the theme only when the theme changes: a stage's furniture re-renders on
+ *  every camera move, and the tokens are computed style. */
+let chromeKey: string | null = null;
+function subscribeViewportChrome(listener: () => void): () => void {
+  return subscribeNativeSelectionTheme(null, () => {
+    chromeKey = nativeViewportChromeKey();
+    listener();
+  });
+}
+function viewportChromeSnapshot(): string {
+  chromeKey ??= nativeViewportChromeKey();
+  return chromeKey;
+}
+
+/** THE STAGE'S CONTROLS IN THE TARGET'S WORDS (`StageContribution.words`): a mode's name, or
+ *  the helpers menu's, where the look names it; `undefined` keeps the editor's own. */
+export interface NativeViewportWords {
+  readonly shading: Readonly<Partial<Record<string, string>>>;
+  readonly helpers: string | undefined;
+}
+let wordsKey: string | null = null;
+function viewportWordsKeyNow(): string {
+  const root = themeRoot();
+  return JSON.stringify([
+    STAGE_WORD_MODES.map((mode) => themeToken(root, `--vgai-viewport-word-${mode}`)),
+    themeToken(root, '--vgai-viewport-word-helpers'),
+  ]);
+}
+function subscribeViewportWords(listener: () => void): () => void {
+  return subscribeNativeSelectionTheme(null, () => {
+    wordsKey = viewportWordsKeyNow();
+    listener();
+  });
+}
+function viewportWordsSnapshot(): string {
+  wordsKey ??= viewportWordsKeyNow();
+  return wordsKey;
+}
+/** The look's words for the stage's controls, following a change of look. */
+export function useViewportWords(): NativeViewportWords {
+  const key = useSyncExternalStore(subscribeViewportWords, viewportWordsSnapshot, viewportWordsSnapshot);
+  return useMemo(() => {
+    const [modes, helpers] = JSON.parse(key) as [string[], string];
+    const shading: Record<string, string> = {};
+    STAGE_WORD_MODES.forEach((mode, index) => {
+      if (modes[index]) shading[mode] = modes[index];
+    });
+    return { shading, helpers: helpers || undefined };
+  }, [key]);
+}
+
+/** The look's stage chrome, following a change of look. */
+export function useViewportChrome(): NativeViewportChrome {
+  const key = useSyncExternalStore(subscribeViewportChrome, viewportChromeSnapshot, viewportChromeSnapshot);
+  return useMemo(() => viewportChromeFromKey(key), [key]);
 }
 
 /**

@@ -1,3 +1,4 @@
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import { type ReflectionProbeSnapshot, reflectionProbeOf } from '@volter/threejs-runtime/adapter/reflection-probe';
@@ -22,7 +23,7 @@ const EMPTY_SNAPSHOT: ReflectionProbeSnapshot = { status: 'idle', lastCapturedAt
 export function ReflectionProbeCaptureSection({ adapter, nodeId }: InspectorSectionProps) {
   const store = useThreeEditorStore();
   const object = nodeId
-    ? (store.objectMap.get(nodeId) ?? adapter.hierarchy.object3D?.(nodeId))
+    ? (store.objectMap.get(nodeId) ?? threeObject(adapter.hierarchy, nodeId))
     : null;
   const probe = reflectionProbeOf(object);
   const snapshot = useSyncExternalStore(

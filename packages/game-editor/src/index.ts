@@ -40,5 +40,6 @@ export const { mountVgai } = product({
   },
   look: 'classic',
   workspace: 'game',
+  logo: 'https://brand.volter.ai/logo/volter-game-editor/svg',
   nativeMenus: true,
 });

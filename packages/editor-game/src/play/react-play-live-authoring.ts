@@ -45,7 +45,7 @@
  */
 
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import {
   type OidElementLike,
   ReactRootAuthoringAdapter,

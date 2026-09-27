@@ -49,14 +49,11 @@
  * `/@fs//abs/olute/path/...` — cosmetically harmless on its own (Vite's
  * `/@fs/` middleware tolerates it), UNTIL the SAME file is also reached via
  * a DIFFERENT route: a react world's entry module's own STATIC relative
- * import (e.g. `import { useWorldState } from './src/ui/game-
- * state'`) is rewritten by Vite's normal resolver into a SINGLE-slash,
+ * import is rewritten by Vite's normal resolver into a SINGLE-slash,
  * symlink-canonicalized `/@fs/` URL — a textually different string than
  * this file's hand-built double-slash one. Browser ES module identity is
  * per-URL, so the two builds of `/@fs/` string for the SAME file produced
- * TWO SEPARATE module instances (two `createContext()` calls for
- * `game-state.tsx`), and `useWorldState`'s `useGame()` threw "no Game in
- * context" even though `<WorldProvider>` genuinely wrapped the entry — this
+ * TWO SEPARATE module instances, each with its own module-level state — this
  * is what `resolveDefaultReactAdapter`'s AC e2e (T6.2 slice 3) caught. The
  * server-side half of this fix is `canonical-path.ts` (canonicalizes
  * `projectRoot` itself so it agrees with Vite's own symlink-resolved form);

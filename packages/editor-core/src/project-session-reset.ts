@@ -1,4 +1,4 @@
-import { resetAvailableWorkspaceDocuments } from './workspace-available-documents';
+import { resetAvailableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * What must NOT survive a project switch.
  *
@@ -28,12 +28,12 @@ import { resetAvailableWorkspaceDocuments } from './workspace-available-document
  * round trip.
  */
 
-import { clearSelectedAsset } from './asset-selection';
+import { clearSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { resetActiveSystemsForNewProject } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { resetSessionVitalsForNewProject } from './coverage/session-vitals';
+import { resetSessionVitalsForNewProject } from '@volter/editor-sdk/kit/coverage/session-vitals';
 import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
-import { onProjectSessionEnd } from './project-manager';
+import { onProjectSessionEnd } from '@volter/editor-sdk/kit/project-manager';
 import { resetViewportActivationTimingsForNewProject } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 

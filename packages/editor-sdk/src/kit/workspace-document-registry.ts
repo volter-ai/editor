@@ -402,6 +402,18 @@ export function activateWorkspaceDocument(id: string): boolean {
 }
 
 /**
+ * Drop a restored activation still waiting for its document to register. A
+ * deliberate act that brings another document forward (entering Play brings
+ * the Game) is newer than the session's remembered focus, which must not land
+ * on top of it when the remembered document registers (measured on `arena`: a
+ * session reopened on the Scene and played at once kept the Scene in front,
+ * because the Scene registered after Play had activated the Game).
+ */
+export function supersedeRestoredActivation(): void {
+  _pendingRestoredActiveId = null;
+}
+
+/**
  * Restore activation for a stable pinned document that project discovery may
  * register later. Unlike {@link activateWorkspaceDocument}, this intentionally
  * remembers an unknown id; callers must restrict it to identities the editor

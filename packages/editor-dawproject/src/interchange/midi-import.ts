@@ -12,7 +12,10 @@
  *   - the first time signature → `meter`; the first key signature decides sharps or flats;
  *   - CC1, CC11, CC64 and pitch bend → `<Points>` lanes in the clip (every point holds, repeats thinned);
  *   - marker meta events → `<Marker>`s.
- * What it does not carry is named in the generated file's header, never dropped silently.
+ * A note with no length plays as a 64th; a note never released ends where its key is struck
+ * next in the track, else at the track's last event; a channel with lanes and no notes keeps
+ * its lanes on an empty clip. What it does not carry is named and counted in the generated
+ * file's header, never dropped silently.
  *
  * Positions are MIDI ticks over the file's own ticks-per-quarter, so a performed (humanised) file
  * imports as exactly what it plays, off the grid where it was played off the grid.
@@ -106,9 +109,15 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
   let meter: { numerator: number; denominator: number; tick: number } | null = null;
   let meterChanges = 0;
   let flats: boolean | null = null;
+  /** The first key signature's sharps/flats byte. */
+  let firstKey: number | null = null;
   const decoder = new TextDecoder();
   const tracks: ImportedTrack[] = [];
-  const dropped = new Set<string>();
+  /** What the file carries that the piece does not, with how many of each. */
+  const dropped = new Map<string, number>();
+  const drop = (what: string): void => {
+    dropped.set(what, (dropped.get(what) ?? 0) + 1);
+  };
 
   midi.tracks.forEach((midiTrack) => {
     const byChannel = new Map<number, ImportedTrack>();
@@ -120,8 +129,16 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
       }
       return track;
     };
-    const open = new Map<number, { tick: number; velocity: number }[]>();
+    /** Each channel-and-key's note-ons (a velocity) and note-offs (`null`), in file order. */
+    const keyEvents = new Map<number, { tick: number; velocity: number | null }[]>();
+    const keyEvent = (key: number, tick: number, velocity: number | null): void => {
+      const list = keyEvents.get(key) ?? [];
+      list.push({ tick, velocity });
+      keyEvents.set(key, list);
+    };
+    let lastTick = 0;
     for (const event of midiTrack.events) {
+      lastTick = Math.max(lastTick, event.ticks);
       const status = event.statusByte;
       const data = event.data;
       if (status < 0x80) {
@@ -133,26 +150,33 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
           const next = { numerator: data[0] ?? 4, denominator: 2 ** (data[1] ?? 2), tick: event.ticks };
           if (!meter || next.tick < meter.tick) meter = next;
           meterChanges++;
-        } else if (status === 0x59 && data.length >= 1 && flats === null) {
+        } else if (status === 0x59 && data.length >= 1 && firstKey === null) {
+          firstKey = data[0] ?? 0;
           flats = ((data[0] ?? 0) << 24) >> 24 < 0;
         } else if (status === 0x06) {
           markers.push({ tick: event.ticks, name: decoder.decode(data).trim() });
+        } else if (status === 0x01 || status === 0x02 || status === 0x05 || status === 0x07) {
+          drop(({ 1: 'text events', 2: 'copyright notices', 5: 'lyrics', 7: 'cue points' } as Record<number, string>)[status]!);
+        } else if (status === 0x59 && data.length >= 1 && data[0] !== firstKey) {
+          drop('key-signature changes after the first (the first decides sharps or flats)');
         }
         continue;
       }
-      if (status >= 0xf0) continue;
+      if (status >= 0xf0) {
+        if (status === 0xf0) drop('system-exclusive messages');
+        continue;
+      }
       const kind = status & 0xf0;
       const channel = status & 0x0f;
       if (kind === 0x90 && (data[1] ?? 0) > 0) {
-        const stack = open.get(channel * 128 + (data[0] ?? 0)) ?? [];
-        stack.push({ tick: event.ticks, velocity: data[1] ?? 0 });
-        open.set(channel * 128 + (data[0] ?? 0), stack);
+        trackFor(channel);
+        keyEvent(channel * 128 + (data[0] ?? 0), event.ticks, data[1] ?? 0);
       } else if (kind === 0x80 || kind === 0x90) {
-        const start = open.get(channel * 128 + (data[0] ?? 0))?.shift();
-        if (start) trackFor(channel).notes.push({ tick: start.tick, end: event.ticks, key: data[0] ?? 0, velocity: start.velocity });
+        keyEvent(channel * 128 + (data[0] ?? 0), event.ticks, null);
       } else if (kind === 0xc0) {
         const track = trackFor(channel);
         if (track.program === null) track.program = data[0] ?? 0;
+        else if (track.program !== (data[0] ?? 0)) drop('program changes after the first (a track plays one program)');
       } else if (kind === 0xb0) {
         const controller = data[0] ?? 0;
         const value = data[1] ?? 0;
@@ -165,8 +189,9 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
         } else if (controller === 0 && track.bankNumber === null) track.bankNumber = value;
         else if (controller === 7 && track.volume === null) track.volume = value <= 0 ? -60 : round(40 * Math.log10(value / 127), 2);
         else if (controller === 10 && track.pan === null) track.pan = round(Math.max(-1, Math.min(1, (value - 64) / 63)), 2);
-        else if (controller === 7 || controller === 10) dropped.add(`CC${controller} changes after the first (the channel's ${controller === 7 ? 'volume' : 'pan'} is one value)`);
-        else if (controller !== 0 && controller !== 32) dropped.add(`CC${controller}`);
+        else if (controller === 7 || controller === 10) drop(`CC${controller} changes after the first (the channel's ${controller === 7 ? 'volume' : 'pan'} is one value)`);
+        else if (controller === 0 && value !== track.bankNumber) drop('bank selects after the first');
+        else if (controller !== 0 && controller !== 32) drop(`CC${controller}`);
       } else if (kind === 0xe0) {
         const value = ((data[1] ?? 0) << 7) | (data[0] ?? 0);
         const track = trackFor(channel);
@@ -174,12 +199,40 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
         points.push({ tick: event.ticks, value: round(Math.max(-1, Math.min(1, (value - 8192) / 8191)), 4) });
         track.lanes.set('pitchbend', points);
       } else if (kind === 0xa0 || kind === 0xd0) {
-        dropped.add(kind === 0xa0 ? 'polyphonic aftertouch' : 'channel pressure');
+        drop(kind === 0xa0 ? 'polyphonic aftertouch' : 'channel pressure');
       }
     }
-    const withNotes = [...byChannel.values()].filter((track) => track.notes.length > 0);
-    for (const track of withNotes) {
-      if (withNotes.length > 1) track.name = `${track.name || 'Track'} (channel ${track.channel + 1})`;
+    // Notes, per key: each note-off releases the earliest held strike. A strike that the rest of
+    // the track has too few note-offs to release is never released: it ends where its key is
+    // struck next, and the last one at the track's last event. (Overlapping strikes that are all
+    // released keep their own note-offs.)
+    for (const [key, list] of keyEvents) {
+      const notes = trackFor(Math.floor(key / 128)).notes;
+      const pitch = key % 128;
+      let offsAfter = list.filter((event) => event.velocity === null).length;
+      const held: { tick: number; velocity: number }[] = [];
+      for (const event of list) {
+        if (event.velocity === null) {
+          offsAfter--;
+          const start = held.shift();
+          if (start) notes.push({ tick: start.tick, end: event.tick, key: pitch, velocity: start.velocity });
+          continue;
+        }
+        if (held.length + 1 > offsAfter && held.length > 0) {
+          const start = held.shift()!;
+          notes.push({ tick: start.tick, end: event.tick, key: pitch, velocity: start.velocity });
+        }
+        held.push({ tick: event.tick, velocity: event.velocity });
+      }
+      for (const start of held) notes.push({ tick: start.tick, end: Math.max(start.tick, lastTick), key: pitch, velocity: start.velocity });
+    }
+    // A channel with notes, or with controller lanes alone (they land on an empty clip).
+    const kept = [...byChannel.values()].filter((track) => track.notes.length > 0 || [...track.lanes.values()].some((points) => points.length > 0));
+    for (const track of byChannel.values()) {
+      if (!kept.includes(track)) drop('channels with no notes and no lanes (their program, volume and pan)');
+    }
+    for (const track of kept) {
+      if (kept.length > 1) track.name = `${track.name || 'Track'} (channel ${track.channel + 1})`;
       tracks.push(track);
     }
   });
@@ -249,7 +302,8 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
       out(4, '</Points>');
     }
     for (const note of notes) {
-      const beats = (note.end - note.tick) / ppq;
+      // A note with no length (on and off on one tick) plays as a 64th, the shortest a piece reads as a strike.
+      const beats = note.end > note.tick ? (note.end - note.tick) / ppq : 1 / 16;
       const value = formatDuration(beats);
       const isValue = /^(w|h|q|8|16|32)t?\.*$/.test(value) && Math.abs(beatsOf(value) - beats) < 1e-9;
       const durProp = isValue ? `"${value}"` : `{${round(beats, 6)}}`;
@@ -268,7 +322,7 @@ export function importMidi(bytes: ArrayBuffer, options: MidiImportOptions): stri
   ];
   const notCarried: string[] = [];
   if (meterChanges > 1) notCarried.push(`${meterChanges - 1} later time-signature change${meterChanges > 2 ? 's' : ''} (a piece has one meter)`);
-  if (dropped.size > 0) notCarried.push([...dropped].sort().join(', '));
+  if (dropped.size > 0) notCarried.push([...dropped].sort(([a], [b]) => a.localeCompare(b)).map(([what, count]) => `${what} (${count})`).join(', '));
   if (notCarried.length > 0) header.push(' *', ` * Not carried: ${notCarried.join('; ')}.`);
   header.push(' */');
 

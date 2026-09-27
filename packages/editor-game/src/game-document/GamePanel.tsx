@@ -14,10 +14,10 @@ import {
   getMountFailureReports,
   subscribeToMountFailures,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
+import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { domHasRenderableContent } from '../host/surface-content';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
@@ -27,7 +27,7 @@ import {
   fitPresentation,
   type PresentedSize,
   resolvePresentedSize,
-} from '@volter/game-runtime/runtime/presentation';
+} from '../runtime/presentation';
 import {
   type ReactNode,
   useCallback,

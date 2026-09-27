@@ -1,4 +1,5 @@
-import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
+import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
+import { registerAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * The 3D COMPONENTS board — a generated, never-persisted 3D scene laying out
  * every qualifying `three` story's mounted `Object3D` at TRUE SCALE, so a
@@ -74,7 +75,7 @@ import {
   type ProjectStoryModule,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   beginViewportBreakdown,
@@ -737,7 +738,7 @@ export function BoardExhibitSection({ adapter, nodeId }: InspectorSectionProps) 
   useSyncExternalStore(subscribeThreeBoard, threeBoardVersion);
   const candidateIds = [...(nodeId ? [nodeId] : []), ...(adapter.selection?.get() ?? [])];
   const exhibit = candidateIds.reduce<BoardExhibit | null>(
-    (found, id) => found ?? findExhibitIn(_scene, adapter.hierarchy.object3D?.(id) ?? null),
+    (found, id) => found ?? findExhibitIn(_scene, threeObject(adapter.hierarchy, id)),
     null,
   );
   return (

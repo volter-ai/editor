@@ -4,9 +4,8 @@
  * The SHAPE is the project contract's (`@volter/editor-project/adapter/renderer-config`,
  * whose header states the rule and the three load-bearing properties); this
  * file is what writes it onto a live `WebGLRenderer` and hands back the
- * restore. `world3d-react/r3f-root-factory.tsx` is the declarer,
- * `runtime/create-runtime.ts` the host, the editor's world-root stage the
- * applier.
+ * restore. A mounted three root declares it (`MountedThreeRoot.rendererConfig`)
+ * and the editor's world-root stage applies it.
  */
 
 import type {
@@ -28,7 +27,7 @@ export type {
  * Apply `config` to `renderer`, returning the restore function that puts back what was there.
  *
  * `three` is passed in rather than imported for values so the enum constants come from the HOST's
- * three instance — the same identity rule `r3f-root-factory.tsx` follows for the scene and camera.
+ * three instance — the same identity rule `r3f-root.tsx` follows for the scene and camera.
  */
 export function applyWorldRendererConfig(
   three: typeof THREE,

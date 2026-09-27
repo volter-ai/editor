@@ -225,7 +225,7 @@ export interface EditorStage {
     readonly gizmoArrowLength?: number;
     readonly gizmoArrowHead?: number;
     readonly gizmoRingWidth?: number;
-    readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+    readonly navigationGizmo?: 'balls' | 'godot' | 'cones' | 'triad';
     readonly navigationCorner?: 'top-right' | 'bottom-left';
     readonly navigationSize?: number;
     readonly gizmoOpacity?: number;
@@ -242,7 +242,32 @@ export interface EditorStage {
     readonly outlineHidden?: boolean;
     readonly wireOpacity?: number;
     readonly selectionBoxWidth?: number;
+    /** `StageContribution.chrome`: which overlay controls the stage carries and where. */
+    readonly chrome?: {
+      readonly bar?: 'strip' | 'pills';
+      readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
+      readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
+      readonly display?: 'corner' | 'bar-start' | 'bar-end';
+      readonly transformControls?: 'header' | 'bar';
+    };
+    /** `StageContribution.words`: the stage's controls in the target's own words. */
+    readonly words?: {
+      readonly shading?: Readonly<Partial<Record<string, string>>>;
+      readonly helpers?: string;
+    };
 }
+/** The shading modes a look may name (`StageContribution.words.shading`). */
+export const STAGE_WORD_MODES = [
+  'solid',
+  'clay',
+  'unlit',
+  'wireframe',
+  'matcap',
+  'normals',
+  'overdraw',
+  'preview',
+  'rendered',
+] as const;
 function numberToken(value: number | undefined): string {
   return value === undefined ? '' : `${value}`;
 }
@@ -443,6 +468,25 @@ export const focusRing = 'var(--vgai-focus-ring)';
  */
 export const EDITOR_REGION_NAMES = ['outliner', 'properties'] as const;
 export type EditorRegionName = (typeof EDITOR_REGION_NAMES)[number];
+
+/** The glyph inks a palette may name (`EditorTheme.color.category`). */
+export type EditorCategoryName = keyof NonNullable<EditorTheme['color']['category']>;
+/**
+ * Every member of `EditorTheme.color.category`, for code that walks the group. Spelled as a
+ * record so the compiler refuses a list that misses a member: a palette arriving as a document
+ * is rebuilt member by member, and a name left off the walk is dropped without a sound.
+ */
+export const EDITOR_CATEGORY_NAMES = Object.keys({
+  object: true,
+  modifier: true,
+  material: true,
+  tool: true,
+  operator: true,
+  data: true,
+  scene: true,
+  collection: true,
+  select: true,
+} satisfies Record<EditorCategoryName, true>) as readonly EditorCategoryName[];
 
 /**
  * Runtime editor-theme contract. The compatibility exports above are CSS
@@ -969,6 +1013,9 @@ export interface EditorTheme {
        *  (`userdef_default_theme.c:273`). White rather than the scene grey,
        *  which is why it is its own name. */
       readonly collection?: string;
+      /** The selection tools' marquee (Blender's Select Box icon: an orange dashed box, baked
+       *  into the icon's geometry, not a theme member). */
+      readonly select?: string;
     };
     /**
      * REGION FILLS — one colour per EDITOR AREA, the way Blender's theme
@@ -2620,6 +2667,18 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-outline-hidden':
       theme.stage?.outlineHidden === undefined ? '' : `${theme.stage.outlineHidden}`,
     '--vgai-viewport-selection-box-width': numberToken(theme.stage?.selectionBoxWidth),
+    // THE STAGE'S OWN CHROME (`StageContribution.chrome`), empty when the look places nothing:
+    // the stage keeps the editor's own arrangement then (`nativeViewportChrome`).
+    '--vgai-viewport-chrome-bar': theme.stage?.chrome?.bar ?? '',
+    '--vgai-viewport-chrome-view-name': theme.stage?.chrome?.viewName ?? '',
+    '--vgai-viewport-chrome-tools': theme.stage?.chrome?.tools ?? '',
+    '--vgai-viewport-chrome-display': theme.stage?.chrome?.display ?? '',
+    '--vgai-viewport-chrome-transform-controls': theme.stage?.chrome?.transformControls ?? '',
+    // THE STAGE'S WORDS (`StageContribution.words`), each empty where the look names none.
+    ...Object.fromEntries(
+      STAGE_WORD_MODES.map((mode) => [`--vgai-viewport-word-${mode}`, theme.stage?.words?.shading?.[mode] ?? '']),
+    ),
+    '--vgai-viewport-word-helpers': theme.stage?.words?.helpers ?? '',
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.
@@ -2636,14 +2695,9 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // The literal is used rather than an empty string (the `viewport` group's
     // answer) because these tokens are read by a `fill`, where empty is not
     // a colour and the fallback must therefore be a real one.
-    '--vgai-category-object': theme.color.category?.object ?? 'currentColor',
-    '--vgai-category-modifier': theme.color.category?.modifier ?? 'currentColor',
-    '--vgai-category-material': theme.color.category?.material ?? 'currentColor',
-    '--vgai-category-tool': theme.color.category?.tool ?? 'currentColor',
-    '--vgai-category-operator': theme.color.category?.operator ?? 'currentColor',
-    '--vgai-category-data': theme.color.category?.data ?? 'currentColor',
-    '--vgai-category-scene': theme.color.category?.scene ?? 'currentColor',
-    '--vgai-category-collection': theme.color.category?.collection ?? 'currentColor',
+    ...Object.fromEntries(
+      EDITOR_CATEGORY_NAMES.map((name) => [`--vgai-category-${name}`, theme.color.category?.[name] ?? 'currentColor']),
+    ),
     // The REGION fills, a pair per area. Never emitted empty (the `widget`
     // group's answer, not the `viewport` group's): each falls back to the
     // surface its call site already reads, so the dock can point a group at

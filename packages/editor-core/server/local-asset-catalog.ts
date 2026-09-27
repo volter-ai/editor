@@ -10,7 +10,7 @@ import {
   type AssetFile,
   type AssetVariant,
   parseAssetCatalog,
-} from '../src/asset-workflow/asset-types';
+} from '@volter/editor-sdk/kit/asset-workflow/asset-types';
 import { assertNoRemovedAssetCatalogV1 } from './asset-catalog-v2';
 import { isPathInside } from './server-utils';
 

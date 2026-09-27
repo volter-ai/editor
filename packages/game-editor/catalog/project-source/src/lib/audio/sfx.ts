@@ -1,32 +1,15 @@
 /**
- * The game's own SFX voice: a small Web Audio graph this project owns, and the
- * `SystemAdapters.audio` registration that lets the host silence it.
+ * The game's own SFX voice: a small Web Audio graph this project owns.
  *
- * ## Why the game owns the context
- *
- * This world is an R3F root. An R3F root renders through react-three-fiber
- * against the HOST's renderer, and the host supplies no mixer of its own —
- * audio is the game's, built with Web Audio directly inside the tree. That is
- * the seam doctrine working as designed: an absent capability is absent, not
- * faked by the host.
- *
- * ## Why it is still mutable from the editor
- *
- * A game-owned context is only orphaned if nothing can see it. `SystemAdapters`
- * is the seam for exactly this: the game DECLARES what it implements through
- * its entry's `systems` export (`export const systems = { audio:
- * sfxAudioSystem() }` in `src/systems.ts`), and from the moment the host
- * installs it the editor's mute button, the Audio debugger tab and
- * `Game.play.pause()`'s silence-on-pause all reach this graph — without the
- * host fabricating a mixer it does not have, and without a component calling
- * a host registration.
+ * This world is an R3F root, and its audio is the game's, built with Web Audio
+ * directly: the host supplies no mixer. The editor still hears it the way it
+ * hears any game's Web Audio — its observer routes the context's output through
+ * an editor-owned gain — so the mute button, the Audio panel's graph and
+ * silence-on-pause reach this graph with nothing here that knows the editor.
  *
  * The graph is deliberately tiny: one gain node (the game's whole "sfx bus")
- * into the destination. Mute rides that node, so muting composes with the
- * per-voice envelopes below instead of fighting them.
+ * into the destination, with each one-shot voice's envelope feeding it.
  */
-
-import type { AudioAdapter, AudioGraphNode } from '@volter/editor-project/adapter';
 
 /** A one-shot blip: a falling/rising saw with an exponential decay. Frequencies
  *  in Hz, `duration` in seconds, `volume` linear (0–1), `end` the frequency to
@@ -78,25 +61,18 @@ export function createGainDucker(
   };
 }
 
-/** What {@link createGameSfx} hands back: the voice, the adapter to register,
- *  and the teardown the mounting component owns. */
+/** What {@link createGameSfx} hands back: the voice and the teardown the
+ *  mounting component owns. */
 export interface GameSfx {
   readonly tone: PlayTone;
-  /** Expose this through the root entry's `systems.audio` so
-   *  host mute/pause reach the graph. `null` when there is no real context to
-   *  silence — registering a no-op adapter would tell the host this world's
-   *  audio is under control when there is no audio at all. */
-  readonly adapter: AudioAdapter | null;
   /** Close the context. Nothing else owns it. */
   dispose(): void;
 }
 
 /** The silent stand-in for an environment with no Web Audio (jsdom, a headless
- *  bot run). It reports no adapter, so `Game.play.pause()` says out loud that
- *  this world has no audio seam rather than pretending it silenced one. */
+ *  bot run): nothing to play, nothing to close. */
 const SILENT: GameSfx = {
   tone: () => {},
-  adapter: null,
   dispose: () => {},
 };
 
@@ -110,8 +86,6 @@ export function createGameSfx({ maxVoices = 24 }: { maxVoices?: number } = {}): 
   bus.gain.value = 1;
   bus.connect(context.destination);
 
-  let muted = false;
-  let priorGain = bus.gain.value;
   let voiceSequence = 0;
   const voiceLimit = Math.max(1, Math.floor(maxVoices));
   const voices: Array<{
@@ -137,44 +111,6 @@ export function createGameSfx({ maxVoices = 24 }: { maxVoices?: number } = {}): 
     releaseVoice(voice);
   };
 
-  const adapter: AudioAdapter = {
-    resume: () => {
-      if (context.state === 'suspended') void context.resume();
-    },
-    setMuted(next: boolean): void {
-      if (next === muted) return;
-      muted = next;
-      // Restore to whatever the bus held before muting, never a hardcoded 1 —
-      // so a pause taken while already user-muted resumes muted.
-      if (next) {
-        priorGain = bus.gain.value;
-        bus.gain.value = 0;
-      } else {
-        bus.gain.value = priorGain;
-      }
-    },
-    isMuted: () => muted,
-    graphSnapshot(): AudioGraphNode[] {
-      return [
-        {
-          id: 'destination',
-          type: 'AudioDestinationNode',
-          label: 'Output',
-          outputs: [],
-          state: context.state,
-        },
-        { id: 'sfx', type: 'GainNode', label: 'Game SFX', outputs: ['destination'] },
-        ...voices.map((voice) => ({
-          id: `voice-${voice.id}`,
-          type: 'OscillatorNode',
-          label: `One-shot voice ${voice.id} (${voices.length}/${voiceLimit})`,
-          outputs: ['sfx'],
-          state: 'started',
-        })),
-      ];
-    },
-  };
-
   return {
     tone(frequency, duration, volume, end = frequency): void {
       // Autoplay policy starts every context suspended; the page has had user
@@ -196,7 +132,6 @@ export function createGameSfx({ maxVoices = 24 }: { maxVoices?: number } = {}): 
       oscillator.start(now);
       oscillator.stop(now + duration);
     },
-    adapter,
     dispose(): void {
       for (const voice of [...voices]) stopVoice(voice);
       bus.disconnect();
@@ -208,9 +143,7 @@ export function createGameSfx({ maxVoices = 24 }: { maxVoices?: number } = {}): 
 // --- The one voice, module-owned ---------------------------------------------
 //
 // Created on first use, kept for the page's lifetime: browsers cap live
-// AudioContexts, an Edit→Play remount reuses the same graph, and the entry's
-// `systems` export needs the adapter to exist when the host installs it —
-// which is right after mount, long before the first gunshot.
+// AudioContexts, and an Edit→Play remount reuses the same graph.
 
 let active: GameSfx | null = null;
 
@@ -224,32 +157,3 @@ export function gameSfx(): GameSfx {
 export const gameTone: PlayTone = (frequency, duration, volume, end) => {
   gameSfx().tone(frequency, duration, volume, end);
 };
-
-/**
- * The entry `systems` export's audio slot: a LAZY forwarding adapter over the
- * voice (constructed on first actual call, so importing the entry in Edit
- * mode builds no AudioContext), or the positive absence for an environment
- * with no Web Audio at all (jsdom, a headless bot run) — decided without
- * constructing anything, stated, never simulated.
- */
-export function sfxAudioSystem(): AudioAdapter | { present: false; evidence: string } {
-  if (typeof AudioContext === 'undefined') {
-    return {
-      present: false,
-      evidence:
-        'no Web Audio in this environment — `typeof AudioContext === "undefined"` ' +
-        '(src/lib/audio/sfx.ts)',
-    };
-  }
-  const live = (): AudioAdapter => {
-    const adapter = gameSfx().adapter;
-    if (!adapter) throw new Error('sfx: the Web Audio voice failed to construct.');
-    return adapter;
-  };
-  return {
-    resume: () => live().resume?.(),
-    setMuted: (next) => live().setMuted(next),
-    isMuted: () => live().isMuted(),
-    graphSnapshot: () => live().graphSnapshot?.() ?? [],
-  };
-}

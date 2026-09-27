@@ -482,7 +482,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
       worldSource.includes('"main": MainScene') === false ||
       worldSource.includes('const Scene = scenes[activeScene];') === false ||
       worldSource.includes('<Scene name=') === false ||
-      worldSource.includes('"physics": rapierPhysicsSystem()') === false ||
+      worldSource.includes('export const systems') ||
       manifest.name !== 'Direct composition proof' ||
       JSON.stringify(manifest.resolution) !== JSON.stringify({ width: 960, height: 540 }) ||
       JSON.stringify(manifest.roots) !==

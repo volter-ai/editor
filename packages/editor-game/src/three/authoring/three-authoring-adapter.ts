@@ -77,12 +77,12 @@ import {
   type WriteAck,
   type WriteResolution,
 } from '@volter/editor-sdk/kit/write-pipe';
-import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
+import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
 import {
   type ChannelValue,
   type CreationSiteLiteralReport,
   channelFor,
-} from '@volter/editor-core/creation-site-edit';
+} from '@volter/editor-sdk/kit/creation-site-edit';
 import {
   creationSiteAnchor,
   instancesAtSite,
@@ -101,7 +101,7 @@ import {
   ThreeProjector,
   type ThreeWalkStats,
 } from '@volter/editor-threejs/kit/projection/three';
-import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import type {
   AuthoringAdapter,
   AuthoringCapabilities,
@@ -129,7 +129,7 @@ import type {
   TruthProvider,
   WriteAnchorKind,
 } from '@volter/editor-project/adapter';
-import { emptyWriteAnchorKindCounts } from '@volter/editor-project/adapter';
+import { emptyWriteAnchorKindCounts, physicsOwnerOf } from '@volter/editor-project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { bodyOwningNode } from '@volter/threejs-runtime/adapter/body-marks';
 import { colorMaterialOf } from '@volter/threejs-runtime/adapter/ingest/structural-ids';
@@ -388,7 +388,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
    */
   private physicsFor(id: string): PhysicsAdapter | null {
     const physics = getActivePhysics();
-    return physics && physics.ownerOf(id) !== 'unresolved' ? physics : null;
+    return physics && physicsOwnerOf(physics, id) !== 'unresolved' ? physics : null;
   }
 
   /** This session's edits, keyed by node id. In-memory only. */
@@ -801,7 +801,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       return node ? this.toEditorNode(node) : null;
     },
     object3D: (id) => this.objectOf(id),
-    idForObject3D: (object) => this.projector.idOf(object),
+    idForObject3D: (object: THREE.Object3D) => this.projector.idOf(object),
   };
 
   readonly selection: SelectionProvider = {
@@ -1078,7 +1078,8 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
     const cached = this.bodyOwnershipByObject.get(object);
     if (cached !== undefined) return cached;
 
-    const owner = getActivePhysics()?.ownerOf(id);
+    const physics = getActivePhysics();
+    const owner = physics ? physicsOwnerOf(physics, id) : undefined;
     if (owner === 'physics') {
       this.bodyOwnershipByObject.set(object, true);
       return true;

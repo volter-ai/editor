@@ -64,12 +64,36 @@ export type EditorKeyActionId =
   | 'viewport.toggleSnap'
   | 'viewport.frameSelection'
   | 'viewport.cyclePivot'
+  | 'canvas.panMode'
+  | 'canvas.rulerMode'
+  | 'canvas.toggleGrid'
   | 'viewport.vertexSnapHold'
   | 'viewport.snapToFloor'
   | 'view.top'
   | 'view.front'
   | 'view.right'
-  | 'view.perspective';
+  | 'view.bottom'
+  | 'view.back'
+  | 'view.left'
+  /** Step the view: orbit 15° about the world's up or the view's horizon, turn to the opposite
+   *  side, or roll 15° (Blender's `view3d.view_orbit` and `view3d.view_roll` on the numpad). */
+  | 'view.orbitLeft'
+  | 'view.orbitRight'
+  | 'view.orbitUp'
+  | 'view.orbitDown'
+  | 'view.opposite'
+  | 'view.rollLeft'
+  | 'view.rollRight'
+  /** Frame everything in the view, selected or not (Blender's `view3d.view_all`, Home). */
+  | 'view.all'
+  /** Step the view nearer or farther by the keymap's zoom step (`view3d.zoom`, numpad +/-). */
+  | 'view.zoomIn'
+  | 'view.zoomOut'
+  | 'view.perspective'
+  /** Switch the view between perspective and orthographic, keeping where it looks from
+   *  (Blender's `view3d.view_persportho`, numpad 5). */
+  | 'view.projection'
+  | 'view.camera';
 
 /**
  * One chord. `key` is matched case-insensitively against `KeyboardEvent.key`;
@@ -81,6 +105,9 @@ export interface KeyChord {
   readonly key: string;
   readonly code?: string;
   readonly mod?: boolean;
+  /** The Control key itself on every platform, macOS included (Blender's Ctrl), where `mod`
+   *  would be ⌘. */
+  readonly ctrl?: boolean;
   readonly shift?: boolean;
   readonly alt?: boolean;
 }
@@ -95,6 +122,36 @@ export interface KeymapContribution {
   readonly title: string;
   readonly description: string;
   readonly bindings: KeymapBindings;
+  /** Which mouse button orbits the viewport. Absent: the editor's own. */
+  readonly navigation?: KeymapNavigation;
+}
+
+/**
+ * THE VIEWPORT'S MOUSE, as a keymap states it: the button that orbits. The editor's own orbits
+ * with the right button and pans with the middle; a keymap that orbits with the middle (Blender's
+ * `view3d.rotate` on MIDDLEMOUSE) pans with Shift and the same button, as that keymap does.
+ */
+export interface KeymapNavigation {
+  readonly orbit: 'middle' | 'right';
+  /**
+   * The orbit as a TURNTABLE that keeps the view's roll and may pass over the top (Blender's
+   * `view3d.rotate` in Turntable mode): a sideways drag spins the view about the world's up, a
+   * vertical one pitches it about the horizon, each at this angle per CSS pixel. Absent: the
+   * editor's own orbit, which holds the view level and stops at the poles.
+   */
+  readonly turntable?: { readonly degreesPerPixel: number };
+  /**
+   * An orthographic view still down an axis turns perspective when a rotate starts, as Blender's
+   * Auto Perspective does (`ED_view3d_persp_ensure`); the axis views themselves are orthographic.
+   */
+  readonly autoPerspective?: boolean;
+  /**
+   * ZOOM: `step` is the distance factor one zoom key moves by (Blender's `view_zoom_apply_step`,
+   * 1.2); `drag: 'dolly'` makes a zoom drag Blender's Dolly style (`viewzoom_scale_value`: the
+   * distance scales by `2 · (len / len₀ − 1) + 1`, `len` the pointer's height below the region's
+   * top plus 5). Absent: the editor's own.
+   */
+  readonly zoom?: { readonly step: number; readonly drag?: 'dolly' };
 }
 
 export type WorkspaceLayoutRegions = NonNullable<WorkspaceArrangement['regions']>;
@@ -256,7 +313,7 @@ export interface StageContribution {
    * (Unreal's); `top-right` (the editor's own) or `bottom-left` (Unreal's). Whether a click on
    * it turns the view is the view's (`overlays.navigation`).
    */
-  readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+  readonly navigationGizmo?: 'balls' | 'godot' | 'cones' | 'triad';
   readonly navigationCorner?: 'top-right' | 'bottom-left';
   /** The triad's size, a multiple of its own 24 px; line and letter stay inside the gizmo's
    *  90 px box up to about 1.3 (Unreal's triad, letters included, is about 40 px). */
@@ -301,7 +358,66 @@ export interface StageContribution {
    *  `SceneVisExVisible.png`). Its colour is the palette's `color.viewport.wire`. */
   readonly wireOpacity?: number;
   readonly selectionBoxWidth?: number;
+  /** THE STAGE'S OWN CHROME: which overlay controls the viewport carries and where. See
+   *  {@link StageChromeContribution}; absent keeps the editor's own set. */
+  readonly chrome?: StageChromeContribution;
+  /** The stage's controls in the target's words. See {@link StageWordsContribution}. */
+  readonly words?: StageWordsContribution;
 }
+
+/**
+ * THE VIEWPORT'S OWN CHROME, as each target's viewport arranges it (read from the reference
+ * frames, `docs/VIEWPORT-STAGE.md`): a look places the stage's controls, it never adds one.
+ * Each member is independently optional; absent keeps the editor's own arrangement (Blender's:
+ * the view text top-left, the tool shelf, the display controls in the top-right corner).
+ *
+ * - `bar`: a row across the stage's top. `strip` is a flush panel band (Godot's 3D toolbar,
+ *   Unity's Scene view toolbar); `pills` is a row of rounded pills floating over the view
+ *   (Unreal's level viewport toolbar). Absent, there is no bar.
+ * - `viewName`: where the view's name is. `text` is Blender's lines at the top-left; `menu`
+ *   a pill at the top-left that opens the view menu (Godot's "⋮ Perspective"); `gizmo` a label
+ *   under the navigation gizmo that toggles the projection (Unity's "Persp"); `bar` the first
+ *   pill of the bar, opening the view menu (Unreal's "Perspective").
+ * - `tools`: the transform tools on the `shelf` (Blender's, Unity's Tools overlay) or at the
+ *   bar's `bar-start` (Godot) or `bar-end` (Unreal).
+ * - `display`: the display controls (shading, grid, helpers, lights) in the top-right
+ *   `corner` or at the bar's `bar-start` (Unity, Unreal) or `bar-end` (Godot).
+ * - `transformControls`: the stage's transform controls (orientation, pivot, snap and its
+ *   values) in the document's `header` (the editor's own, Blender's) or on the `bar` after the
+ *   tools (Unreal's row: world/local, the snap values; Godot's: local space, snap).
+ *
+ * Whether the zoom and pan cluster and the camera readout are drawn at all is the view's
+ * (`overlays.navigationControls`, `overlays.cameraReadout`), not the look's.
+ */
+export interface StageChromeContribution {
+  readonly bar?: 'strip' | 'pills';
+  readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
+  readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
+  readonly display?: 'corner' | 'bar-start' | 'bar-end';
+  readonly transformControls?: 'header' | 'bar';
+}
+
+/**
+ * THE STAGE'S CONTROLS IN THE TARGET'S OWN WORDS: what the shading menu calls each mode
+ * (Unreal's `Lit`, Unity's `Shaded`, Godot's `Display Normal` for the editor's `solid`) and
+ * what the helpers menu is called, drawn as a word where named (Unreal's `Show`, Unity's
+ * `Gizmos`). A mode or menu the look does not name keeps the editor's own word and mark.
+ */
+export interface StageWordsContribution {
+  readonly shading?: Readonly<Partial<Record<StageShadingModeId, string>>>;
+  readonly helpers?: string;
+}
+/** The stage's shading modes, by id (`@volter/editor-threejs` `viewport-shading`). */
+export type StageShadingModeId =
+  | 'solid'
+  | 'clay'
+  | 'unlit'
+  | 'wireframe'
+  | 'matcap'
+  | 'normals'
+  | 'overdraw'
+  | 'preview'
+  | 'rendered';
 
 /**
  * A glyph's CATEGORY — the colour channel a set may carry per glyph, painted
@@ -333,7 +449,10 @@ export type IconCategoryTone =
   // and Scene tabs are `DEF_ICON_SCENE`; the Collection tab is
   // `DEF_ICON_COLLECTION(GROUP)` (`UI_icons.hh:248`).
   | 'scene'
-  | 'collection';
+  | 'collection'
+  // The SELECTION TOOLS' marquee, which Blender bakes into their tool icons' geometry
+  // (`ops.generic.select_box`) rather than reading from a theme member.
+  | 'select';
 
 /**
  * An ICON SET a style bundle carries: glyphs keyed by the Font Awesome icon

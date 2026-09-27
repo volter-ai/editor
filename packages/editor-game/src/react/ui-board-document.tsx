@@ -1,4 +1,4 @@
-import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
+import { registerAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 /**
  * THE `UI` BOARD's DOCUMENT — what `ui-component-board.ts` installs, kept in
  * its own module so the registration's eager closure is the verdict and
@@ -29,15 +29,15 @@ import {
   designTimeRootDescriptors,
   projectStoryBoardDescriptor,
   rememberedPortableStory,
-} from '@volter/editor-core/authoring/design-time-layers';
-import type { ComponentBoardContext } from '@volter/editor-core/component-board-registry';
-import { RootDocumentContent } from '@volter/editor-core/components/world-documents';
+} from '@volter/editor-sdk/kit/authoring/design-time-layers';
+import type { ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
+import { RootDocumentContent } from '@volter/editor-sdk/kit/components/world-documents';
 import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   getProjectPreviewStories,
   subscribeProjectStoryModules,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import type { WorkspaceDocumentContentProps } from '@volter/editor-sdk/kit/workspace-document-registry';
 
@@ -48,7 +48,7 @@ const uiCanvasPreview: DocumentPreviewSource = {
     JSON.stringify(getProjectPreviewStories().map(({ id, modulePath }) => [id, modulePath])),
   subscribe: subscribeProjectStoryModules,
   capture: async ({ width, height }) => {
-    const { captureDomStoryBoardPreview } = await import('@volter/editor-core/stories/story-capture');
+    const { captureDomStoryBoardPreview } = await import('@volter/editor-sdk/kit/stories/story-capture');
     return captureDomStoryBoardPreview(width, height);
   },
 };

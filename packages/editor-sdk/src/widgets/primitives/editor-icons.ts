@@ -60,6 +60,7 @@ import {
   faUpDownLeftRight,
   faUpRightAndDownLeftFromCenter,
   faUsers,
+  faVideo,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -142,6 +143,15 @@ export const editorIcons = {
      * stays as the drawing, so a set without this key paints what it painted.
      */
     projection: meshGlyph('viewport-projection', faBorderAll),
+    /** The same toggle in an orthographic view: Blender's flat grid (`VIEW_ORTHO`). */
+    projectionOrthographic: meshGlyph('viewport-orthographic', faBorderAll),
+    /** Look through the document's camera (Blender's `VIEW_CAMERA_UNSELECTED`)… */
+    camera: meshGlyph('viewport-camera', faVideo),
+    /** …and the same button while looking through it (`VIEW_CAMERA`). */
+    cameraView: meshGlyph('viewport-camera-view', faVideo),
+    /** A camera view locked to its camera (`VIEW_LOCKED`), and not (`VIEW_UNLOCKED`). */
+    cameraLocked: meshGlyph('viewport-camera-locked', faLock),
+    cameraUnlocked: meshGlyph('viewport-camera-unlocked', faLockOpen),
   },
   /**
    * Mesh-modeling operators — the shelf glyphs a modeling document shows
@@ -190,14 +200,10 @@ export const editorIcons = {
      * a broken ring of arrows — are not those meanings. Same rule as
      * `modeling` above: a glyph that IS an operation owns its own name.
      */
-    /** Blender's group 1, Select Box — the tool that arms no gizmo. It shares
-     *  `arrow-pointer` with the action set's `select` above, because the two
-     *  mean the same thing and the Blender set already carries one drawing of
-     *  it in Blender's idiom (`blender-icons.source.mjs`, under `-- tools --`).
-     *  Blender's own mark is that pointer inside a dashed marquee; the marquee
-     *  is what this glyph does not carry, and that is the one difference
-     *  between the two shelves' first button. */
-    select: faArrowPointer,
+    /** Blender's group 1, Select Box — the tool that arms no gizmo. Its Blender mark is a pointer
+     *  inside a dashed marquee, which is the tool and not the action set's `select` above, so it
+     *  owns `tool-select-box`; a set without it draws the pointer (`arrow-pointer`). */
+    select: meshGlyph('tool-select-box', faArrowPointer),
     move: faUpDownLeftRight,
     rotate: faRotate,
     scale: meshGlyph('tool-scale', faMaximize),

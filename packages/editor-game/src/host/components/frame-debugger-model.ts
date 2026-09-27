@@ -16,11 +16,11 @@
  * and the plain capture/frame shapes — never the WebGL2 instrument itself.
  */
 
-import type { PerformanceFrame } from '@volter/game-runtime/dev/performance-profiler';
+import type { PerformanceFrame } from '../../runtime/dev/performance-profiler';
 import type {
   FrameCapture,
   FrameCaptureDrawCall,
-} from '@volter/game-runtime/dev/webgl-frame-capture';
+} from '../../runtime/dev/webgl-frame-capture';
 import type { RenderDebugAdapter } from '@volter/editor-project/adapter';
 
 /** Which optional render-debug capabilities the active adapter provides — the

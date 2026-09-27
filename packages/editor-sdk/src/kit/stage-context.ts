@@ -31,6 +31,20 @@ import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 export type StageSurface = 'three' | 'canvas' | 'dom';
 
+/** The documents painting a 2D canvas stage right now, as each says while it is mounted. */
+const canvasStageDocuments = new Map<string, number>();
+
+/** A document's canvas stage is mounted: its stage context reports the `canvas` surface (what a
+ *  2D view's keys key on) until the returned release runs. */
+export function markCanvasStageDocument(documentId: string): () => void {
+  canvasStageDocuments.set(documentId, (canvasStageDocuments.get(documentId) ?? 0) + 1);
+  return () => {
+    const left = (canvasStageDocuments.get(documentId) ?? 1) - 1;
+    if (left > 0) canvasStageDocuments.set(documentId, left);
+    else canvasStageDocuments.delete(documentId);
+  };
+}
+
 /** What the stage's document IS — the document's own `presentation()` kind
  *  (`WorkspaceDocumentDescriptor.presentation`), folded to the subjects a
  *  stage distinguishes. `unknown` when the descriptor declares none. */
@@ -167,6 +181,12 @@ export function documentStageContext(
   chrome: StageChrome = 'document',
 ): StageContext {
   const subject = subjectOf(documentId);
+  // A canvas document paints the 2D stage whatever else the world holds (a 3D game with a 2D
+  // root included); its keys follow this.
+  if (canvasStageDocuments.has(documentId)) {
+    const world = worldStageContext(store, documentId, subject, chrome);
+    return { ...world, surface: 'canvas' };
+  }
   const session = documentStageSession(documentId);
   if (session === null) {
     // A RESOURCE document with no stage session of its own (a table, a

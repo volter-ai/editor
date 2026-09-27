@@ -4,10 +4,13 @@
  * the piece's project, so its JSX compiles.
  */
 
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { pieceToDawproject } from '../src/interchange/dawproject-export';
 import { componentNameOf } from '../src/interchange/midi-import';
+import { everyClip } from '../src/launches';
+import type { DecodedAudio } from '../src/render-offline';
+import { readWav } from '../src/wav';
 import { loadPiece } from './load-piece';
 
 const [input, output] = process.argv.slice(2);
@@ -17,5 +20,15 @@ if (!input || !output) {
 }
 const piece = await loadPiece(resolve(input));
 const title = componentNameOf(basename(input)).replace(/([a-z])([A-Z])/g, '$1 $2');
-writeFileSync(resolve(output), pieceToDawproject(piece, { title }));
+// A clip's recording is a path from the project root, where this runs.
+const project = process.cwd();
+const audio = new Map<string, DecodedAudio>();
+for (const clip of piece.tracks.flatMap((track) => everyClip(piece, track))) {
+  for (const take of clip.takes) {
+    if (audio.has(take.file)) continue;
+    const wav = readWav(new Uint8Array(readFileSync(resolve(project, take.file))));
+    audio.set(take.file, { channels: wav.channels, sampleRate: wav.sampleRate });
+  }
+}
+writeFileSync(resolve(output), pieceToDawproject(piece, { title, audio }));
 console.log(`Wrote ${resolve(output)}`);

@@ -23,17 +23,17 @@ import {
   resetProjectThumbnailManifestCache,
   THUMBNAIL_MANIFEST_PATH,
   THUMBNAIL_PROFILE,
-} from '../asset-workflow/thumbnail-system';
+} from '@volter/editor-sdk/kit/asset-workflow/thumbnail-system';
 import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
 import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
 import { getProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import { getProjectResourceHistoryBackend } from '@volter/editor-sdk/kit/history/project-root-history-backends';
-import { replaceProjectSource } from '../history/source-history-backend';
+import { replaceProjectSource } from '@volter/editor-sdk/kit/history/source-history-backend';
 import type {
   Object3DDocumentThumbnailFraming,
   Object3DDocumentWritePolicy,
 } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { sourceWriteBackendIfPrimed } from '../ui-source/tier-source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { openObject3DDocumentPersistence } from '@volter/editor-sdk/kit/authoring/object3d-document-persistence';
 
 async function persistThumbnailFraming(

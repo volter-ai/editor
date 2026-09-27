@@ -134,7 +134,7 @@ async function importLiveRuntimeDoor(engineRoot: string): Promise<LiveRuntimeDoo
     }
   }
   throw new Error(
-    `The supercode live-runtime door could not be loaded, so the Chat view has no runtime to attach to. Tried:\n  ${failures.join('\n  ')}`,
+    `The Volter Harness live-runtime door could not be loaded, so the Chat view has no runtime to attach to. Tried:\n  ${failures.join('\n  ')}`,
   );
 }
 
@@ -155,7 +155,7 @@ export async function mintFrontendHandoff(options: {
   const receipt = door.findLiveReceipt(options.runtimeSessionId);
   if (!receipt) {
     throw new Error(
-      `Supercode registered no live receipt for runtime ${options.runtimeSessionId}, so there is nothing for the Chat view to attach to.`,
+      `Volter Harness registered no live receipt for runtime ${options.runtimeSessionId}, so there is nothing for the Chat view to attach to.`,
     );
   }
   const clientId = `vgai-editor-${process.pid}-${randomUUID().slice(0, 8)}`;

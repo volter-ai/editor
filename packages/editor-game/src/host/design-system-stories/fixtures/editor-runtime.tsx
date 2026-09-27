@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from 'react';
-import { resetProjectThumbnailManifestCache } from '@volter/editor-core/asset-workflow/thumbnail-system';
+import { resetProjectThumbnailManifestCache } from '@volter/editor-sdk/kit/asset-workflow/thumbnail-system';
 import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
 import { type EditorShellStore, threeStateOf } from '@volter/editor-threejs/kit/editor-shell-store';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';

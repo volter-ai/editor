@@ -9,13 +9,22 @@ const BYTES_PER_SAMPLE = 3;
 const FULL_SCALE = 8_388_607;
 
 export function loopWav24(left: Float32Array, right: Float32Array, sampleRate: number): Uint8Array {
+  return writeWav24(left, right, sampleRate, true);
+}
+
+/** Plain 24-bit stereo PCM, without sampler loop metadata. */
+export function wav24(left: Float32Array, right: Float32Array, sampleRate: number): Uint8Array {
+  return writeWav24(left, right, sampleRate, false);
+}
+
+function writeWav24(left: Float32Array, right: Float32Array, sampleRate: number, loop: boolean): Uint8Array {
   const frames = Math.min(left.length, right.length);
   const channels = 2;
   const blockAlign = channels * BYTES_PER_SAMPLE;
   const dataBytes = frames * blockAlign;
   const pad = dataBytes % 2; // RIFF chunks are word-aligned
   const smplBytes = 36 + 24;
-  const size = 12 + (8 + 16) + (8 + dataBytes + pad) + (8 + smplBytes);
+  const size = 12 + (8 + 16) + (8 + dataBytes + pad) + (loop ? 8 + smplBytes : 0);
   const bytes = new Uint8Array(size);
   const view = new DataView(bytes.buffer);
   let at = 0;
@@ -58,6 +67,8 @@ export function loopWav24(left: Float32Array, right: Float32Array, sampleRate: n
     }
   }
   at += pad;
+
+  if (!loop) return bytes;
 
   tag('smpl');
   u32(smplBytes);

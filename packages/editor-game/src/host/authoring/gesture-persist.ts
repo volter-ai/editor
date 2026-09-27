@@ -29,7 +29,7 @@
  */
 
 import type { WriteAck, WriteAnchorKind } from '@volter/editor-project/adapter';
-import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
+import type { ChannelValue } from '@volter/editor-sdk/kit/creation-site-edit';
 import type { SourcePersistenceBackend, SourceWriteSubject } from './source-persistence-backend';
 import { resolvesLiveOnly, runWritePipe, type WriteResolution } from '@volter/editor-sdk/kit/write-pipe';
 

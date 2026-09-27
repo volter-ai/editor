@@ -5,11 +5,9 @@
  * external game can supply its own equivalent.
  *
  * Its AUDIO sibling (`createAudioSystemAdapter`, `releaseAudioMeters`) is the
- * game runtime's — `@volter/game-runtime/adapter/first-party-audio-system` — for
+ * game runtime's — `@volter/editor-game/runtime/adapter/first-party-audio-system` — for
  * the same reason this one is three.js's: each lives with the subsystem it
- * wraps. (The former `AnimationAdapter` over the `AnimGraph` map was removed
- * by E5; `createInputManagerAdapter`/`createVgaiAssetAdapter` went with
- * `SystemAdapters.input`/`.assets`, registered and never read.)
+ * wraps.
  */
 
 import type {
@@ -40,7 +38,7 @@ export function createNavigationAdapter(
     hasNavMesh: () => nav.hasNavMesh(),
     findPath: (start: NavPoint, end: NavPoint) => nav.findPath(start, end) as NavPoint[],
     debugMesh: (scene: THREE.Scene) => nav.getDebugMesh(scene) as unknown as THREE.Object3D | null,
-    bake: ownerCapabilities.bake ?? ((meshes, params) => nav.buildFromMeshes(meshes, params)),
+    bake: ownerCapabilities.bake ?? ((meshes: THREE.Mesh[], params?: NavBakeParams) => nav.buildFromMeshes(meshes, params)),
     exportData: () => nav.exportData(),
     ...(ownerCapabilities.clear ? { clear: ownerCapabilities.clear } : {}),
     crowdAgents: () => nav.getCrowdAgents(),

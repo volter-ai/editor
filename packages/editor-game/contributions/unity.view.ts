@@ -12,6 +12,9 @@ export const view: ViewPreset = {
   id: 'unity',
   title: 'Unity',
   layer: {
+    // Unity's Scene camera: `kDefaultPerspectiveFov` 60, vertical when the view is wider than tall
+    // and horizontal otherwise (`SceneView.GetVerticalFOV`) — on its smaller side.
+    camera: { fov: { degrees: 60, axis: 'smaller' } },
     all: {
       lighting: {
         source: 'preview',
@@ -49,6 +52,9 @@ export const view: ViewPreset = {
       },
     },
     overlays: {
+      // No zoom and pan buttons under the gizmo and no camera readout: the engine draws neither.
+      navigationControls: false,
+      cameraReadout: false,
       grid: {
         visible: true,
         majorEvery: 10,

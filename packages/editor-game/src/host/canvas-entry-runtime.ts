@@ -1,28 +1,26 @@
 /**
- * Resolve the canvas entry adapter from the same module graph as project
- * worlds — the `@pixi/react` sibling of `r3f-entry-runtime.ts`.
+ * The React, `@pixi/react` and `pixi.js` a project's canvas world is mounted
+ * with — the sibling of `r3f-entry-runtime.ts`.
  *
  * The packaged editor's UI is prebuilt with its own React, `@pixi/react` and
  * `pixi.js`, while project modules are transformed by a separate,
- * project-rooted Vite server. Building a project component's adapter with the
- * UI bundle's factory crosses those graphs: the reconciler's hooks and the
- * component's hooks come from two Reacts, the tree never commits, and
- * the canvas mount fails its own first-commit ceiling ten seconds
- * later. See `../vite-plugin-module-doorways.ts` for the measured failure.
+ * project-rooted Vite server. Mounting a project component with the UI
+ * bundle's reconciler crosses those graphs: the reconciler's hooks and the
+ * component's hooks come from two Reacts, the tree never commits, and the
+ * canvas mount fails its own first-commit ceiling ten seconds later. See
+ * `vite-plugin-module-doorways.ts` for the measured failure.
  *
- * `@volter/game-runtime/canvas-react` is dynamic-imported on BOTH branches, deliberately: a
- * static import would put `pixi.js` and the Pixi reconciler in every editor
- * bundle, including one opening a three-only project — the same reason the
- * call sites this replaces were already dynamic.
+ * `pixi.js` and `@pixi/react` are dynamic-imported on the checkout branch,
+ * deliberately: a static import would put the Pixi renderer and reconciler in
+ * every editor bundle, including one opening a three-only project.
  */
 
-import type { resolveCanvasEntryAdapter } from '@volter/game-runtime/canvas-react';
 import type { RootAdapter } from '@volter/editor-project/adapter';
-import type * as PIXI from 'pixi.js';
 import { CANVAS_RUNTIME_PATH } from '@volter/editor-sdk/host';
 import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
-
-type CanvasEntryResolver = typeof resolveCanvasEntryAdapter;
+import type * as PIXI from 'pixi.js';
+import { createElement, Fragment, useEffect, useLayoutEffect } from 'react';
+import { type CanvasRuntime, resolveCanvasEntryAdapter } from './roots/canvas-root';
 
 /**
  * The `pixi.js` module namespace a canvas surface constructs and class-checks
@@ -32,34 +30,55 @@ type CanvasEntryResolver = typeof resolveCanvasEntryAdapter;
  */
 export type CanvasPixiNamespace = typeof PIXI;
 
-interface PackagedCanvasRuntime {
-  readonly resolve: CanvasEntryResolver;
-  readonly projectPixi: CanvasPixiNamespace;
-}
+let cachedRuntime: Promise<CanvasRuntime> | null = null;
 
-let cachedPackagedRuntime: Promise<PackagedCanvasRuntime> | null = null;
+const DOORWAY_MEMBERS = [
+  'createElement',
+  'Fragment',
+  'useEffect',
+  'useLayoutEffect',
+  'createPixiRoot',
+  'extendPixi',
+  'projectPixi',
+] as const;
 
-async function packagedRuntime(): Promise<PackagedCanvasRuntime> {
-  const mod = (await import(/* @vite-ignore */ CANVAS_RUNTIME_PATH)) as {
-    resolveCanvasEntryAdapter?: unknown;
-    projectPixi?: unknown;
-  };
-  if (typeof mod.resolveCanvasEntryAdapter !== 'function') {
+async function packagedRuntime(): Promise<CanvasRuntime> {
+  const mod = (await import(/* @vite-ignore */ CANVAS_RUNTIME_PATH)) as Record<string, unknown>;
+  const missing = DOORWAY_MEMBERS.filter((name) => mod[name] === undefined || mod[name] === null);
+  if (missing.length > 0) {
     throw new Error(
-      "The packaged runtime's synthetic canvas module did not export " +
-        '`resolveCanvasEntryAdapter` — see vite-plugin-module-doorways.ts.',
-    );
-  }
-  if (typeof mod.projectPixi !== 'object' || mod.projectPixi === null) {
-    throw new Error(
-      "The packaged runtime's synthetic canvas module did not export " +
-        '`projectPixi` — see vite-plugin-module-doorways.ts.',
+      `The packaged runtime's synthetic canvas module did not export ${missing.join(', ')} — ` +
+        'see CANVAS_DOORWAY in vite-plugin-module-doorways.ts.',
     );
   }
   return {
-    resolve: mod.resolveCanvasEntryAdapter as CanvasEntryResolver,
-    projectPixi: mod.projectPixi as CanvasPixiNamespace,
+    createElement: mod['createElement'] as CanvasRuntime['createElement'],
+    Fragment: mod['Fragment'] as CanvasRuntime['Fragment'],
+    useEffect: mod['useEffect'] as CanvasRuntime['useEffect'],
+    useLayoutEffect: mod['useLayoutEffect'] as CanvasRuntime['useLayoutEffect'],
+    createRoot: mod['createPixiRoot'] as CanvasRuntime['createRoot'],
+    extend: mod['extendPixi'] as CanvasRuntime['extend'],
+    pixi: mod['projectPixi'] as CanvasPixiNamespace,
   };
+}
+
+async function checkoutRuntime(): Promise<CanvasRuntime> {
+  const [pixiReact, pixi] = await Promise.all([import('@pixi/react'), import('pixi.js')]);
+  return {
+    createElement,
+    Fragment,
+    useEffect,
+    useLayoutEffect,
+    createRoot: pixiReact.createRoot,
+    extend: pixiReact.extend,
+    pixi,
+  };
+}
+
+/** The canvas runtime of the graph a canvas world mounts in, loaded once per session. */
+async function canvasRuntime(): Promise<CanvasRuntime> {
+  cachedRuntime ??= (async () => ((await isPackagedRuntime()) ? packagedRuntime() : checkoutRuntime()))();
+  return cachedRuntime;
 }
 
 /**
@@ -75,21 +94,13 @@ async function packagedRuntime(): Promise<PackagedCanvasRuntime> {
  * between two collaborators of the same surface is the bug, not the seam.
  */
 export async function resolveCanvasPixiForEditor(): Promise<CanvasPixiNamespace> {
-  if (!(await isPackagedRuntime())) return import('pixi.js');
-  if (!cachedPackagedRuntime) cachedPackagedRuntime = packagedRuntime();
-  return (await cachedPackagedRuntime).projectPixi;
+  return (await canvasRuntime()).pixi;
 }
 
-/** The adjudicator `resolveCanvasEntryAdapter` — from the PROJECT's graph
- *  under the packaged runtime, from this bundle's own engine copy otherwise. */
+/** The canvas entry adjudicator, handed the runtime of the graph the world mounts in. */
 export async function resolveCanvasEntryAdapterForEditor(
   entryModule: unknown,
   rootId: string,
 ): Promise<RootAdapter<'canvas'> | null> {
-  if (!(await isPackagedRuntime())) {
-    const { resolveCanvasEntryAdapter } = await import('@volter/game-runtime/canvas-react');
-    return resolveCanvasEntryAdapter(entryModule, rootId);
-  }
-  if (!cachedPackagedRuntime) cachedPackagedRuntime = packagedRuntime();
-  return (await cachedPackagedRuntime).resolve(entryModule, rootId);
+  return resolveCanvasEntryAdapter(entryModule, rootId, await canvasRuntime());
 }

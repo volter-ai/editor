@@ -1,11 +1,6 @@
 import { optionalThreeStateOf, threeStateOf } from '../three-state';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import type {
-  ToolObject3DAuthoringProps,
-  ToolObject3DDocumentAuthoring,
-  ToolObject3DPreviewSource,
-  ToolViewportDressing,
-} from '@volter/editor-sdk/contributions';
+import type { ToolObject3DAuthoringProps, ToolObject3DDocumentAuthoring, ToolObject3DPreviewSource, ToolViewportDressing } from '../../object3d-contributions';
 import { invalidateStages, stageGeneration } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
 import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
@@ -39,7 +34,7 @@ import {
 import {
   registerObject3DDocumentSession,
 } from '../authoring/object3d-document-session-registry';
-import { Object3DGestureController } from '@volter/editor-sdk/kit/authoring/object3d-gesture-controller';
+import { Object3DGestureController } from '../authoring/object3d-gesture-controller';
 import { SourceObject3DAuthoringAdapter } from '../authoring/source-object3d-authoring-adapter';
 import { registerDesignTimeSurface } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
 import { DocumentRendererSession } from '@volter/editor-sdk/kit/document-renderer-session';
@@ -84,7 +79,7 @@ import {
   markViewportSegment,
   recordViewportFirstFrame,
 } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { bindViewportRig, runViewportFrame } from '@volter/editor-sdk/kit/viewport-door';
+import { bindViewportRig, runViewportFrame } from '../../viewport-door';
 import {
   notifyWorkspaceDocumentSelectionChanged,
   openWorkspaceDocuments,
@@ -116,17 +111,21 @@ import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/works
 import {
   bindViewPresentation,
   DOCUMENT_STUDIO_PRESET,
+  mergeLayers,
+  type PresentationLayer,
   reportViewDraw,
   setViewPresentation,
   stageLightsPerMode,
   startingPresentation,
   subscribeViewportPresentation,
   viewPresentation,
+  viewPresentationSnapshot,
   type ViewportDrawMode,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { subscribeEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
 import { StagePresentationRig } from './standard-viewport-dressing';
 import { threeStoreForHost } from '../three-state';
+import { threeObject } from '../../adapter/three-contract';
 
 /** The kind of stage a document's view is, for its starting presentation: the document's own
  *  kind, its id's prefix inside the workspace's `document:` wrapper
@@ -457,6 +456,9 @@ class Object3DDocumentHost {
   defaultEnvironment: THREE.Texture | null = null;
   defaultBackground: THREE.Color | THREE.Texture | null = null;
   adapter: AuthoringAdapter | null = null;
+  /** The adapter a project authoring is built over, whose ids the object index and selection
+   *  use (`presentationAdapter` at bind); null where the project's adapter is the only space. */
+  presentationAdapter: AuthoringAdapter | null = null;
   content: DocumentContentBinding | null = null;
   frame: ((time: number, resumed: boolean) => void) | null = null;
   /** Mirrors the document scene's world dressing onto the rendered scene. The
@@ -595,8 +597,13 @@ export function Object3DDocumentViewport({
   frameBounds,
   openingFrameBounds,
   openingFit,
+  openingView,
+  presentation: documentPresentation,
+  cameraView,
   stageKind,
   statistics,
+  subject,
+  gridScale,
   content,
 }: Object3DDocumentViewportProps) {
   const viewStageKind = stageKind ?? stageKindOf(documentId);
@@ -769,6 +776,12 @@ export function Object3DDocumentViewport({
   frameBoundsRef.current = frameBounds;
   const openingFrameBoundsRef = useRef(openingFrameBounds);
   openingFrameBoundsRef.current = openingFrameBounds;
+  const openingViewRef = useRef(openingView);
+  openingViewRef.current = openingView;
+  const documentPresentationRef = useRef(documentPresentation);
+  documentPresentationRef.current = documentPresentation;
+  const cameraViewRef = useRef(cameraView);
+  cameraViewRef.current = cameraView;
   // The current prop is still read by asynchronous installation. Attachment
   // lifetime is controlled separately by `surfaceAttached` above.
   const activeRef = useRef(active);
@@ -1149,6 +1162,9 @@ export function Object3DDocumentViewport({
           commit: commitProjectDocument,
         };
         projectAuthoring = authoring?.(authoringContext) ?? null;
+        // A document's own authoring is built over the default adapter (it is in the context), and
+        // publishes selection in its ids; a source authoring replaces it outright.
+        const presentationAdapter = projectAuthoring ? defaultAdapter : null;
         if (!projectAuthoring && sourceAuthoring) {
           projectAuthoring = sourceAuthoring({
             store,
@@ -1234,15 +1250,22 @@ export function Object3DDocumentViewport({
               // The view's overlays: its selection marks and its grid's major step. The native
               // outline is also the stage's own switch (a shared preview draws none).
               host.viewport?.setStageFunction(presentation.world, presentation.interaction);
+              host.viewport?.setFieldOfView(presentation.camera.fov);
               host.viewport?.setSelectionMarks(presentation.overlays.selection);
               host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
               host.viewport?.setAxisLines(presentation.overlays.axes);
               host.viewport?.setNavigation(presentation.overlays.navigation);
               host.viewport?.setGridVisible(presentation.overlays.grid.visible);
               if (host.session) {
+                // An X-ray with no surface draws no outline: the selection is its wires' colour.
+                const surfaceless =
+                  host.session.presentation().mode === 'wireframe' &&
+                  presentation.xray.enabled &&
+                  presentation.xray.alpha <= 0;
                 host.session.selectionOutlineEnabled =
-                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline;
+                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline && !surfaceless;
                 host.session.selectionOriginsEnabled = !shared && presentation.overlays.selection.origins;
+                host.session.setXray(presentation.xray);
               }
               invalidateStages();
             };
@@ -1280,23 +1303,57 @@ export function Object3DDocumentViewport({
           );
           const raycaster = new THREE.Raycaster();
           raycaster.layers.enableAll();
+          // A drawn line is hit within a few pixels of it (`LineSegments2`'s own test).
+          (raycaster.params as { Line2?: { threshold: number } }).Line2 = { threshold: 4 };
           raycaster.setFromCamera(pointer, host.session?.camera() ?? viewport.camera);
+          // In the index's space: the presentation adapter's ids first, as the bind writes them.
+          const presentation = host.presentationAdapter;
+          const idOf = (start: THREE.Object3D | null): string | null => {
+            for (let object = start; object; object = object.parent) {
+              const id =
+                presentation?.hierarchy.idForObject3D?.(object) ?? current.hierarchy.idForObject3D?.(object);
+              if (id) return id;
+            }
+            return null;
+          };
+          let nearest: { distance: number; id: string } | null = null;
           for (const hit of raycaster.intersectObjects([...store.objectMap.values()], true)) {
             if (isInEditorOwnedSubtree(hit.object)) continue;
-            let object: THREE.Object3D | null = hit.object;
-            while (object) {
-              const id = current.hierarchy.idForObject3D?.(object);
-              if (id) return id;
-              object = object.parent;
+            const id = idOf(hit.object);
+            if (id) {
+              nearest = { distance: hit.distance, id };
+              break;
             }
           }
-          return null;
+          // AN OBJECT DRAWN BY A HELPER is picked through it: a document that draws an object's
+          // overlay itself (a Blender camera's wire, a light's icon) marks each part with the
+          // object it stands for (`userData.vgaiPicksAs`), and the nearer hit wins, as Blender's
+          // pick over its whole drawing does.
+          // Only helpers that say they can be picked (`userData.vgaiPickable`) are asked, and a
+          // part is hit only where it is shown (three's raycast reads layers, not `visible`).
+          const pickable = viewport.visibleHelpers().filter((helper) => helper.userData['vgaiPickable'] === true);
+          for (const hit of raycaster.intersectObjects(pickable, true)) {
+            let proxy: THREE.Object3D | null = null;
+            let shown = true;
+            for (let object: THREE.Object3D | null = hit.object; object; object = object.parent) {
+              if (!object.visible) shown = false;
+              proxy ??= (object.userData['vgaiPicksAs'] as THREE.Object3D | undefined) ?? null;
+            }
+            if (!shown) continue;
+            const id = proxy ? idOf(proxy) : null;
+            if (!id) continue;
+            if (!nearest || hit.distance < nearest.distance) nearest = { distance: hit.distance, id };
+            break;
+          }
+          return nearest?.id ?? null;
         };
         if (!host.viewport) {
           host.viewport = new EditorViewport(canvas, host.scene, store, container, {
             renderer,
             authoring: () => host.adapter ?? adapter,
             pick,
+            // Asked only once the viewport stands (a box select), so `host.viewport` is set.
+            drawCamera: (): THREE.Camera => host.session?.camera() ?? host.viewport!.camera,
             publishPickContext: false,
             onProjectionChange: setProjection,
             // The same expression that places the DOM furniture, for the one
@@ -1316,7 +1373,7 @@ export function Object3DDocumentViewport({
           if (dressingGrid === true) host.viewport.grid.removeFromParent();
           const open = (event: MouseEvent) => {
             const id = pick(event.clientX, event.clientY);
-            const object = id ? host.adapter?.hierarchy.object3D?.(id) : null;
+            const object = id && host.adapter ? threeObject(host.adapter.hierarchy, id) : null;
             if (object) onOpenNodeRef.current?.(object);
           };
           container.addEventListener('dblclick', open);
@@ -1475,6 +1532,7 @@ export function Object3DDocumentViewport({
         const previous = host.content;
         const selected = [...store.shell.selectedEntityIds];
         const previousAdapter = host.adapter;
+        const previousPresentationAdapter = host.presentationAdapter;
         const previousObjects = new Map(store.objectMap);
         const previousRoot = host.session?.root;
         const previousFrame = host.frame;
@@ -1491,6 +1549,7 @@ export function Object3DDocumentViewport({
           if (sourceParent) sourceParent.add(source.root);
           if (previous) host.scene.add(previous.scene);
           host.adapter = previousAdapter;
+          host.presentationAdapter = previousPresentationAdapter;
           host.content = previous;
           host.frame = previousFrame;
           host.syncHostScene = previousSyncHostScene;
@@ -1526,19 +1585,49 @@ export function Object3DDocumentViewport({
         previous?.scene.removeFromParent();
         host.scene.add(scene);
         host.adapter = adapter;
+        host.presentationAdapter = presentationAdapter;
         host.content = binding;
         store.bindScene(scene, renderer, viewport.batchedRenderer, viewport.camera);
         store.setOrbitTarget(viewport.orbitControls.target);
         store.objectMap.clear();
         scene.traverse((object) => {
-          const id = adapter.hierarchy.idForObject3D?.(object);
+          // ONE SPACE FOR THE INDEX: a project authoring built over the default adapter publishes
+          // selection in that adapter's ids, and the default adapter re-indexes the map in them on
+          // every structural change (`SourceObject3DAuthoringAdapter`), so the bind writes them
+          // too. A Blender document names its objects only once the engine's outliner rows
+          // arrive, often after this bind; the presentation ids exist from the first frame.
+          const id =
+            presentationAdapter?.hierarchy.idForObject3D?.(object) ?? adapter.hierarchy.idForObject3D?.(object);
           if (id) store.objectMap.set(id, object);
         });
         if (!host.session) {
           const overviewFrame = boxFromFrameBounds(frameBoundsRef.current);
           const openingFrame = boxFromFrameBounds(openingFrameBoundsRef.current) ?? overviewFrame;
+          // The view's camera (`ViewportCamera`): its field of view, and the direction it opens
+          // from when the document states none.
+          const viewCamera = viewPresentation(documentId).camera;
+          viewport.setFieldOfView(viewCamera.fov);
+          const stated = openingViewRef.current;
+          const statedDirection = cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined;
+          if (!stated && !statedDirection) {
+            // Along the view's own opening direction, at the distance the camera stands.
+            const target = viewport.orbitControls.target;
+            const distance = viewport.camera.position.distanceTo(target);
+            viewport.camera.position
+              .copy(target)
+              .addScaledVector(new THREE.Vector3(...viewCamera.opening).normalize(), distance);
+          }
           if (!openingFrame) viewport.focusOn(source.root);
-          if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
+          if (stated) {
+            const target = new THREE.Vector3(...stated.target);
+            const direction = new THREE.Vector3(...stated.direction).normalize();
+            viewport.camera.position.copy(target).addScaledVector(direction, stated.distance);
+            // The screen's up is the view's own, so a rolled view opens rolled (a turntable
+            // orbit keeps it); without one, the world's.
+            viewport.camera.up.set(0, 1, 0);
+            if (stated.up) viewport.camera.up.set(...stated.up);
+            viewport.orbitControls.target.copy(target);
+          } else if (statedDirection) {
             const box = openingFrame ?? contentWorldBounds(source.root);
             const center = box.getCenter(new THREE.Vector3());
             const direction = new THREE.Vector3(cameraX, cameraY, cameraZ).normalize();
@@ -1563,8 +1652,11 @@ export function Object3DDocumentViewport({
             overviewFrame,
           );
           host.session.selectionOutlineEnabled = !shared && selectionOutlineRef.current;
+          host.session.setCameraViewSource(cameraViewRef.current ?? null);
           // The view's presentation, now that the viewport and session exist to take it.
           host.applyPresentation?.();
+          // A saved view's projection is part of where the file opens.
+          if (openingViewRef.current?.projection === 'orthographic') host.session.setProjection('orthographic');
           if (!studioStage && background === undefined && host.dressing.backgroundTexture) {
             const session = host.session;
             host.cleanups.push(
@@ -1593,15 +1685,16 @@ export function Object3DDocumentViewport({
         } else host.session.replaceContent(source.root, adapter);
         const retainedCamera = retainedState.camera;
         if (retainedCamera) {
-          // Top views and rolled cameras have their own up direction. Restore
-          // it before setPose derives the orientation with lookAt.
-          viewport.camera.up.copy(retainedCamera.up);
-          viewport.setProjection(projection);
+          // Top views and rolled views have their own up direction, which setPose's lookAt
+          // derives the orientation with.
           viewport.setPose(
             retainedCamera.position,
             retainedCamera.target,
             retainedCamera.fov || undefined,
+            retainedCamera.up,
           );
+          // After the pose, which draws in perspective: an orthographic view comes back as one.
+          viewport.setProjection(projection);
           retainedState.camera = null;
         }
         const documentSession = host.session;
@@ -1619,30 +1712,46 @@ export function Object3DDocumentViewport({
         // it; the document's layer would override every mode's with one.
         const startingLights =
           startingPresentation(viewStageKind)?.all?.lighting !== undefined || stageLightsPerMode(viewStageKind);
+        const dressingLayer: PresentationLayer | null = startingLights
+          ? null
+          : dressingViewLocked
+            ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
+            : dressingKeyLight === false
+              ? { all: { lighting: { source: 'scene' } } }
+              : null;
+        // What the document's file says about how it is seen (`ToolObject3DDocument.presentation`)
+        // over what its dressing implies.
+        const ownLayer = documentPresentationRef.current ?? null;
         bindViewPresentation(
           documentId,
           viewStageKind,
-          startingLights
-            ? null
-            : dressingViewLocked
-              ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
-              : dressingKeyLight === false
-                ? { all: { lighting: { source: 'scene' } } }
-                : null,
+          dressingLayer && ownLayer ? mergeLayers(dressingLayer, ownLayer) : (ownLayer ?? dressingLayer),
         );
-        // THE DRAW MODE IS ONE FACT IN TWO PLACES, kept equal: the session draws it and keeps it,
-        // and the view's presentation resolves its per-mode lighting by it. The session's is written
-        // first, so binding never changes what is drawn; a shading cell changes the session and the
-        // view follows; a named view changes the view and the session follows. Modes the view does
+        // THE DRAW MODE IS ONE FACT IN TWO PLACES, kept equal: the session draws it, and the view's
+        // presentation resolves its per-mode lighting by it and persists it. A shading cell changes
+        // the session and the view follows; a named view or a restored view changes the view and
+        // the session follows. Modes the view does
         // not carry (UV, vertex colours) change only the session.
         const viewModes = new Set<string>(VIEW_DRAW_MODES);
+        let drawnMode: string | undefined;
         const sessionToView = (): void => {
           const mode = host.session?.presentation().mode;
+          // What the presentation applies can depend on the mode drawn, the view's or not (an
+          // X-ray's outline): a change of it applies the presentation again.
+          if (mode !== drawnMode) {
+            drawnMode = mode;
+            host.applyPresentation?.();
+          }
           if (mode === undefined || !viewModes.has(mode)) return;
           if (viewPresentation(documentId).drawMode !== mode)
             setViewPresentation(documentId, { drawMode: mode as ViewportDrawMode });
         };
-        sessionToView();
+        // A draw mode the person chose and the view restored is theirs: the session takes it. Only
+        // a view with no such choice is given the session's.
+        const restoredMode = viewPresentationSnapshot(documentId).drawMode;
+        if (restoredMode !== undefined && viewModes.has(restoredMode) && host.session)
+          host.session.setMode(restoredMode);
+        else sessionToView();
         const stopSessionMode = host.session?.subscribe(sessionToView);
         const stopViewMode = subscribeViewportPresentation(() => {
           const session = host.session;
@@ -1675,7 +1784,7 @@ export function Object3DDocumentViewport({
         const kept = new Set<THREE.Object3D | string>();
         store.shell.selectMultiple(
           selected.filter((id) => {
-            const object = store.objectMap.get(id) ?? adapter.hierarchy.object3D?.(id) ?? null;
+            const object = store.objectMap.get(id) ?? threeObject(adapter.hierarchy, id);
             if (object === null && !store.objectMap.has(id)) return false;
             const key = object ?? id;
             if (kept.has(key)) return false;
@@ -1972,7 +2081,7 @@ export function Object3DDocumentViewport({
             // This host is ONE STAGE among the mounted 3D documents
             // (ARCHITECTURE-CORE §One stage), and it binds under the id of the
             // document it draws, so an SDK reader reaches THIS stage's rig,
-            // helper sink and frame loop through `host.viewport.stages()`.
+            // helper sink and frame loop through the viewport door's `viewportStages()`.
             // It presents no live roots yet — Play's adoption is the world
             // root's, and moves onto this host in unit 3 — so the presenter
             // declines every root rather than pretending to a subject.
@@ -2084,7 +2193,7 @@ export function Object3DDocumentViewport({
                     viewport.focusOn(host.session.root);
                   break;
                 case 'focus-entity': {
-                  const object = host.adapter?.hierarchy.object3D?.(action.id) ?? null;
+                  const object = host.adapter ? threeObject(host.adapter.hierarchy, action.id) : null;
                   if (object) viewport.focusOn(object);
                   break;
                 }
@@ -2092,8 +2201,42 @@ export function Object3DDocumentViewport({
                   viewport.snapSelectionToFloor();
                   break;
                 case 'set-view-preset':
-                  viewport.setViewPreset(action.preset);
+                  // A mounted document draws with its own camera pair, so the preset is its
+                  // (the relay's `view-preset` routes the same way); the viewport's own
+                  // projection would change a camera nobody draws with.
+                  if (host.session)
+                    host.session.setViewPreset(action.preset === 'perspective' ? 'isometric' : action.preset, 'view');
+                  else viewport.setViewPreset(action.preset);
                   break;
+                case 'toggle-camera-view':
+                  host.session?.toggleCameraView();
+                  break;
+                case 'frame-all':
+                  if (!host.session?.frame(1, 'all') && host.session?.root) viewport.focusOn(host.session.root);
+                  else if (!host.session) viewport.focusOnScene();
+                  break;
+                case 'zoom-view':
+                  // In a camera view a zoom zooms the camera's frame (`view_zoom_to_window_xy_camera`).
+                  if (host.session?.cameraView() && !host.session.cameraViewLocked())
+                    host.session.zoomCameraView(action.direction > 0 ? 1.2 : 1 / 1.2);
+                  else viewport.zoomStep(action.direction);
+                  break;
+                case 'step-view':
+                  // In a camera view only the lock orbits, moving the camera (Blender cancels
+                  // it otherwise).
+                  if (host.session?.cameraView() && !host.session.cameraViewLocked()) break;
+                  viewport.stepView(action.step);
+                  break;
+                case 'toggle-projection': {
+                  // A camera view has its camera's projection, as the cluster's toggle does.
+                  const session = host.session;
+                  if (session?.cameraView()) break;
+                  const drawn = session ? session.projection() : viewport.projection;
+                  const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
+                  if (session) session.setProjection(next);
+                  else viewport.setProjection(next);
+                  break;
+                }
                 case 'set-camera-pose':
                   viewport.setPose(action.position, action.target, action.fov);
                   break;
@@ -2356,13 +2499,16 @@ export function Object3DDocumentViewport({
           {!chromeless && surfaceStatus === 'ready' && documentHostRef.current && (
             <ViewportFurniture
               viewport={documentHostRef.current.viewport}
+              documentId={documentId}
               session={documentHostRef.current.session}
               store={documentHostRef.current.store.shell}
               projection={projection}
               displayName={displayName}
               {...(statistics ? { statistics } : {})}
+              {...(subject !== undefined ? { subject } : {})}
+              {...(gridScale ? { gridScale } : {})}
               objectName={(id) =>
-                documentHostRef.current?.adapter?.hierarchy.object3D?.(id)?.name ??
+                ((adapter) => (adapter ? threeObject(adapter.hierarchy, id)?.name : undefined))(documentHostRef.current?.adapter) ??
                 // Document builders may supply names through their store index.
                 documentHostRef.current?.store.objectMap.get(id)?.name ??
                 null

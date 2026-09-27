@@ -3,24 +3,17 @@
  * slice-3 "Report back").
  *
  * Vite's own module resolver calls `fs.realpathSync` when resolving a
- * STATIC relative import — e.g. a react world's entry module's own
- * `import { useWorldState } from '@vgai/game-runtime/react/world-state'` — which
- * collapses a symlinked path segment (macOS's `/var` -> `/private/var`,
- * hit by every project scaffolded under `os.tmpdir()`, as every e2e spec
- * that calls `scaffoldProject()` does) to its real form.
- * `binding-resolver.ts`'s hand-built `/@fs/${projectRoot}/...` dynamic-import
- * strings (which must bypass Vite's static analysis via `@vite-ignore` — the
- * path is only known at runtime) do NOT go through that same resolution. So
- * if `projectRoot` itself isn't already canonical, two DIFFERENT `/@fs/`
- * URLs get produced for the exact same file: Vite's realpath'd rewrite of
- * the entry module's own relative import vs. our raw, non-realpath'd string
- * used to import `WorldProvider` for the `<WorldProvider>` wrap. Browser ES
- * module identity is per-URL, so the SAME `game-state.tsx` loads as TWO
- * separate module instances with TWO separate top-level `createContext()`
- * calls — `useWorldState`'s `useGame()` then throws "no Game in context"
- * even though `<WorldProvider>` genuinely wraps the entry (this is exactly
- * what the T6.2 slice-3 AC e2e's first real-browser run of a react world
- * caught).
+ * STATIC relative import in a project module, which collapses a symlinked
+ * path segment (macOS's `/var` -> `/private/var`, hit by every project
+ * scaffolded under `os.tmpdir()`) to its real form. The editor's hand-built
+ * `/@fs/${projectRoot}/...` dynamic-import strings (which must bypass Vite's
+ * static analysis via `@vite-ignore` — the path is only known at runtime) do
+ * NOT go through that same resolution. So if `projectRoot` itself isn't
+ * already canonical, two DIFFERENT `/@fs/` URLs get produced for the exact
+ * same file, and because browser ES module identity is per-URL, the SAME
+ * project module loads as TWO separate instances with two copies of its
+ * module-level state (this is what the T6.2 slice-3 AC e2e's first
+ * real-browser run of a react world caught).
  *
  * The fix is upstream of any one `/@fs/` string: canonicalize the project
  * root ONCE, at the points a project path enters server state (dev/prod

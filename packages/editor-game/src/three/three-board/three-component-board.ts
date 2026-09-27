@@ -10,13 +10,13 @@
  */
 
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
+import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
 } from '../../host/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 
 /** The tab reads `3D`, the peer of `Scene` and `UI` in the center strip. */

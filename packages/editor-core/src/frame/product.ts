@@ -30,8 +30,8 @@
  * not reach past this door into the kit's registries — that would be a product
  * doing a package's job (rule 3).
  */
-import { setActiveProduct } from '../active-product';
-import { type BundledPackageContribution, setBundledPackageContributions } from '../tool-loader';
+import { setActiveProduct } from '@volter/editor-sdk/kit/active-product';
+import { type BundledPackageContribution, setBundledPackageContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { mountEditor } from './bridge';
 
 /** What a product's entry declares. Every field is a decision only a product
@@ -57,6 +57,8 @@ export interface ProductDefinition {
    *  declares none (`workspace-presets.ts`). */
   readonly workspace: string;
   readonly nativeMenus?: boolean;
+  /** The product's own logo, a brand.volter.ai URL (the repository bundles no brand art). */
+  readonly logo?: string;
 }
 
 /**
@@ -71,6 +73,7 @@ export function product(definition: ProductDefinition): { mountVgai: typeof moun
     look: definition.look,
     workspace: definition.workspace,
     nativeMenus: definition.nativeMenus,
+    logo: definition.logo,
   });
   setBundledPackageContributions(names.flatMap((name) => definition.packages[name] ?? []));
   return { mountVgai: mountEditor };

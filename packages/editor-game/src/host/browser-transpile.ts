@@ -30,7 +30,7 @@ import { init as esModuleLexerInit, parse as parseEsModule } from 'es-module-lex
 import * as esbuild from 'esbuild-wasm';
 // Vite serves the wasm binary as a static asset URL — fully local, no CDN.
 import esbuildWasmUrl from 'esbuild-wasm/esbuild.wasm?url';
-import { GAME_GLOBALS_PRELUDE } from '@volter/editor-core/game-globals-prelude';
+import { GAME_GLOBALS_PRELUDE } from '@volter/editor-sdk/kit/game-globals-prelude';
 
 /** Live runtime modules, keyed by the bare specifier used to import them. */
 type ModuleNamespace = Record<string, unknown>;

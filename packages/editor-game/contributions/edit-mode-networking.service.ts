@@ -12,7 +12,7 @@
  * that always was, and the shell no longer names it (WORK.md §The workbench,
  * P3b).
  */
-import { onProjectChange } from '@volter/editor-core/project-manager';
+import { onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { installEditModeNetworking } from '../src/edit-mode/edit-mode-networking';
 
 export const point = 'workspace.service';

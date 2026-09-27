@@ -43,7 +43,7 @@ import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
 import {
   capturePixiDisplayObjectThumbnail,
   registerPresentedPixiApps,
-} from '@volter/editor-core/canvas-preview-frames';
+} from '../host/canvas-preview-frames';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
@@ -55,20 +55,20 @@ import {
 } from '../host/gated-globals';
 import { authoringJournal } from '../host/history/json-history-resource';
 import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
-import { projectContractSystemAdapters } from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
-import type { RenderDebugWiring } from '@volter/game-runtime/dev/render-debug-adapter';
-import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
-import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '@volter/game-runtime/pixi/ingest';
-import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
-import { installPixiRenderPassBracket } from '@volter/game-runtime/pixi/render-pass-bracket';
+import { projectContractSystemAdapters } from '../runtime/adapter/ingest/contract-system-adapters';
+import type { RenderDebugWiring } from '../runtime/dev/render-debug-adapter';
+import type { IngestGame2D } from '../runtime/pixi/ingest';
+import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '../runtime/pixi/ingest';
+import { createPhysics2DRegistry } from '../runtime/pixi/physics-registry';
+import { installPixiRenderPassBracket } from '../runtime/pixi/render-pass-bracket';
 import {
   composePhysicsAdapters2D,
   createPhysicsAdapter2D,
   type PhysicsAdapter2D,
-} from '@volter/game-runtime/pixi/system-adapters';
+} from '../runtime/pixi/system-adapters';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
 import { readGameReady } from '@volter/editor-project/adapter/ingest/game-contract';
 import { displayKeyedPhysics } from '@volter/editor-project/adapter/system-adapter';
@@ -214,7 +214,7 @@ function rendererCanvasBelongsToHost(renderer: unknown, hostEl: HTMLElement): bo
  * The projection is the ONE validator: presence + typeof for the four members,
  * plus the keying check that makes a node-id-keyed declaration on this surface
  * `malformed` by name instead of a bound shape nothing here can call
- * (`@volter/game-runtime/adapter/ingest/contract-system-adapters`). Both verdicts reach
+ * (`@volter/editor-game/runtime/adapter/ingest/contract-system-adapters`). Both verdicts reach
  * the reader through the coverage row for `system.physics`, so a refusal here
  * is never silent.
  */
@@ -473,7 +473,7 @@ async function mountCanvasIngestRootInner(
     markGameCssScope(hostEl);
     const scopedCssProject = getCurrentProject();
     if (scopedCssProject) {
-      const { ensureScopedGameStyles } = await import('@volter/editor-core/scoped-game-css');
+      const { ensureScopedGameStyles } = await import('@volter/editor-sdk/kit/scoped-game-css');
       await ensureScopedGameStyles(scopedCssProject.rootPath);
     }
   }
@@ -587,7 +587,7 @@ async function mountCanvasIngestRootInner(
   }
 
   // The captured `Application` — the game's own, trapped on its first render
-  // (`@volter/game-runtime/pixi/scene-capture`). Two things hang off it, and neither is
+  // (`@volter/editor-game/runtime/pixi/scene-capture`). Two things hang off it, and neither is
   // available anywhere else.
   const app = mount.capture.captured?.app as Application | undefined;
 

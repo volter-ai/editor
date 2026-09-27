@@ -26,7 +26,7 @@
  *  Defined in a DOM-free module so the Node-side Vite plugin can import the same
  *  constant — see `game-globals-prelude.ts`. Re-exported here for the browser
  *  callers that already reach for it alongside the proxies. */
-export { GAME_GLOBALS_PRELUDE } from '@volter/editor-core/game-globals-prelude';
+export { GAME_GLOBALS_PRELUDE } from '@volter/editor-sdk/kit/game-globals-prelude';
 
 import { installCreationSiteRecorder } from '@volter/editor-sdk/kit/creation-site-registry';
 import { setConsoleRealmAttribution } from '@volter/editor-sdk/kit/editor-console';
@@ -93,7 +93,7 @@ const INPUT_EVENT_TYPES = new Set<string>([
  * the keyboard and pointer, and it stopped keyup/mouseup/pointerup the same
  * way — so a key pressed while the gate was open and released after it closed
  * (Stop with W still held) left the game's OWN input manager holding KeyW for
- * good: the editor flushes only the session's InputManager, never a
+ * good: the editor flushes only the session's own input state, never a
  * project-owned one. With both vertical keys stuck the hero
  * could not move up or down while A/D worked (runhuman pass 129; Opus
  * reproduction 2026-09-03 — forcing KeyW+KeyS into `keysDown` reproduced the

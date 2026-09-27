@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 // checklist shipped alongside this file as IDIOMS.md — read that first, it's
 // the one-page human-readable version of every rule below (⚙ = checked here,
 // 👁 = review-only, not machine-checkable). Shipped IN the project template,
-// mirroring validate-assets.ts/validate-manifest.ts's shape (same
+// mirroring validate-manifest.ts's shape (same
 // project-root-arg convention, same fs-walk-and-report style, zero deps
 // beyond node:fs/node:path — plus node:child_process for the git history
 // queries of W7 and W9, the only rules here asking a question the file tree

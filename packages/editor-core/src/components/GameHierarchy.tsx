@@ -10,7 +10,7 @@ import {
   themeVars,
   zIndex,
 } from '@volter/editor-sdk/widgets';
-import { authoringAdapterKey } from '../authoring/adapter-key';
+import { authoringAdapterKey } from '@volter/editor-sdk/kit/authoring/adapter-key';
 
 /**
  * GameHierarchy — the ONE hierarchy panel (A2). Replaces the former pair of
@@ -124,13 +124,13 @@ import {
   unwrapAuthoringNode,
   wrapAuthoringNode,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { enterInstanceRow } from '../authoring/instance-source-menu';
+import { enterInstanceRow } from '@volter/editor-sdk/kit/authoring/instance-source-menu';
 import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import {
   authoringDestination,
   provenanceForNode,
   unavailableReason,
-} from '../authoring/provenance';
+} from '@volter/editor-sdk/kit/authoring/provenance';
 import {
   selectionScopeStack,
   selectionScopeVersion,
@@ -148,7 +148,7 @@ import {
 } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import { collaborationSnapshot, connectCollaboration } from '@volter/editor-sdk/kit/collaboration-client';
 import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import { deleteSelection, duplicateSelection } from '../editor-hotkeys';
+import { deleteSelection, duplicateSelection } from '@volter/editor-sdk/kit/editor-hotkeys';
 import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import {
@@ -172,8 +172,8 @@ import {
   OUTLINER_EXCLUDE_ON,
   OUTLINER_RENDER_OFF,
   OUTLINER_RENDER_ON,
-} from '../hierarchy-kind-icon';
-import { getHierarchyMenuItems } from '../hierarchy-menu-registry';
+} from '@volter/editor-sdk/kit/hierarchy-kind-icon';
+import { getHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
 import {
   flattenHierarchyRows,
   type HierarchyNodeRow,
@@ -185,7 +185,7 @@ import {
   clearHierarchyPanelSnapshot,
   type HierarchyPanelSnapshot,
   publishHierarchyPanelSnapshot,
-} from '../hierarchy-panel-view';
+} from '@volter/editor-sdk/kit/hierarchy-panel-view';
 import {
   ancestorPathKeys,
   HierarchyRowCache,
@@ -205,9 +205,9 @@ import {
 } from '@volter/editor-sdk/kit/hierarchy-row-model';
 import { CHILD_CAP } from '@volter/editor-sdk/kit/hierarchy-rows';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
-import { editorPaintedRegions, subscribeEditorTheme } from '../theme-preference';
+import { editorPaintedRegions, subscribeEditorTheme } from '@volter/editor-sdk/kit/theme-preference';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   subscribeWorkspaceDocuments,
@@ -218,8 +218,8 @@ import {
   type ChromeRegions,
   chromeRegionsKey,
   subscribeChromeRegions,
-} from '../workspace-regions';
-import { activateRootDocument } from '../world-document-routing';
+} from '@volter/editor-sdk/kit/workspace-regions';
+import { activateRootDocument } from '@volter/editor-sdk/kit/world-document-routing';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { hierarchyRowMedia, subscribeHierarchyRowMedia } from '@volter/editor-sdk/kit/hierarchy-row-media';
 

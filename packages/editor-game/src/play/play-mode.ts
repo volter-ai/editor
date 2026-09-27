@@ -23,7 +23,7 @@ import {
   setInspectedInstance,
   updateInstanceSystems,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { BoundaryAuthoringAdapter } from '@volter/editor-core/authoring/boundary-authoring-adapter';
+import { BoundaryAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
@@ -53,7 +53,7 @@ import {
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import { reclaimGameRealm } from '../host/game-realm-reclaim';
-import { toolContributionRecording } from '@volter/editor-core/gameplay-sessions';
+import { toolContributionRecording } from '@volter/editor-sdk/kit/gameplay-sessions';
 import {
   clearGameSurface,
   currentGameRealmMountId,
@@ -64,18 +64,18 @@ import {
 import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { type JournalSubject, playJournal } from '../host/history/json-history-resource';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { projectBootstrapSettled } from '@volter/editor-core/initial-project';
-import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
-import { fetchGameManifest } from '@volter/editor-core/manifest-project';
+import { projectBootstrapSettled } from '@volter/editor-sdk/kit/initial-project';
+import { registerGameNullSubject } from '@volter/editor-sdk/kit/inspection/game-subject';
+import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import {
   beginPlayBoot,
   endPlayBoot,
   markPlayBootPhase,
   type PlayBootPhase,
-} from '@volter/editor-core/play-boot-phase';
+} from '@volter/editor-sdk/kit/play-boot-phase';
 import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
-import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   beginProjectModuleSplitWatch,
   clearProjectModuleSplitReports,
@@ -83,41 +83,43 @@ import {
   formatProjectModuleSplitMessage,
 } from '@volter/editor-sdk/kit/project-module-split';
 import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-story-model';
+import { mountedStoryHasPixiContent } from '../host/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
-import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
-import { publishToolContributionPlay } from '@volter/editor-core/tool-contribution-play';
+import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
+import { publishToolContributionPlay } from '@volter/editor-sdk/kit/tool-contribution-play';
 import { liveWorldId, presentThreeRoots } from '../host/viewport-root-presentation';
 import {
   cancelPendingWorkspacePlayUtilities,
   revealWorkspacePlayUtilities,
-} from '@volter/editor-core/workspace-play-utilities';
+} from '@volter/editor-sdk/kit/workspace-play-utilities';
 import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
 import type { EntrypointSelectionOverride } from '@volter/editor-sdk/session/project-module-url';
 import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
-import { getSeededRandom, type SeededRandom } from '@volter/game-runtime/core/seeded-random';
-import { _engineLogActive } from '@volter/game-runtime/dev/logger';
-import type { PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
-import type { GameSession } from '@volter/game-runtime/runtime/create-runtime';
+import { getSeededRandom, type SeededRandom } from '../runtime/core/seeded-random';
+import { _engineLogActive } from '../runtime/dev/logger';
+import type { PerformanceProfiler } from '../runtime/dev/performance-profiler';
+import type { GameSession } from '../runtime/create-runtime';
 import {
   type DebugVirtualInputTarget,
   getDebugRegistry,
   type RunTicksOptions,
-} from '@volter/game-runtime/runtime/debug-registry';
-import type { GameLoop, RootInstance } from '@volter/game-runtime/runtime/game';
-import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
-import { runTicksWhenSettled } from '@volter/game-runtime/runtime/run-ticks-settled';
+} from '../runtime/debug-registry';
+import type { GameLoop, RootInstance } from '../runtime/game';
+import type { PlaytestContext } from '../runtime/playtest';
+import { runTicksWhenSettled } from '../runtime/run-ticks-settled';
 import {
   type AuthoringAdapter,
   type InspectorProvider,
   nodeKeyedPhysics,
   type TransformProvider,
 } from '@volter/editor-project/adapter';
+import { physicsOwnerOf } from '@volter/editor-project/adapter';
 import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
 import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import { readOidSourceAnchors } from '../three/authoring/oid-source-persistence';
 import { oidThree, structuralThree } from '../three/authoring/three-authoring-adapter';
 import type * as THREE from 'three';
+import { threeRoot } from '@volter/editor-threejs/adapter/three-contract';
 import { deviceEmulatedPixelRatio } from '../game-document/device-preview';
 import { exitDeferredIngestPlay, mountDeferredIngestForPlay } from '../ingest/deferred-ingest-play';
 import { getIngestPlayControl } from '../ingest/ingest-play-control';
@@ -126,6 +128,7 @@ import { debugEventsToLogEntries } from './play-log-events';
 import { bindPlayRecordingStop, endPlayRecording } from './play-recording';
 import { createReactPlayAuthoringAdapter } from './react-play-live-authoring';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
+import { presentViewportRoots } from '@volter/editor-threejs/viewport-door';
 
 /** Context needed by the orchestrator (passed from the world root's stage). */
 export interface PlayModeContext {
@@ -251,8 +254,8 @@ let _hostMountedReadyRootIds: readonly string[] = [];
 // id) resolves to the primary, so the default — and the single-instance case —
 // is "the primary has the keyboard", exactly as before split screen existed.
 // A click on an instance's viewport routes the keyboard to it
-// (`setFocusedInstance`); the input gate + InputManager for every instance read
-// this, so exactly the focused one is live and the rest are inert.
+// (`setFocusedInstance`); every instance's input gate reads this, so exactly
+// the focused one is live and the rest are inert.
 let _focusedInstanceId: string | null = null;
 const focusListeners = new Set<() => void>();
 
@@ -293,7 +296,6 @@ export function setFocusedInstance(id: string): void {
   setInspectedInstance(id);
   if (focusedInstanceId() === id) return;
   _focusedInstanceId = id;
-  resyncInstanceInputs();
   notifyFocusedInstance();
 }
 
@@ -301,15 +303,12 @@ export function setFocusedInstance(id: string): void {
  *  Game tab is active, this instance holds keyboard focus, AND our surface
  *  holds the keyboard.
  *
- *  The fourth term is U2's, and it exists for the engine's `InputManager`
- *  specifically. `gated-globals.ts` already ANDs the same predicate into every
- *  raw `window`/`document` listener a PROJECT module registers, but
- *  `InputManager` is `@volter/game-runtime`'s — a dependency, not a project module, so
- *  the dev server's lexical shadow never covers it and it attaches to the real
- *  `window`. Under the Code-OSS frame that window also carries Monaco, so
- *  without this a keystroke meant for the source file beside the running game
- *  moves the game too. Standalone it is a constant true and nothing changes.
- *  See `@editor/surface-keyboard`. */
+ *  The fourth term is U2's: `gated-globals.ts` ANDs this predicate into every
+ *  raw `window`/`document` listener a project module registers, and under the
+ *  Code-OSS frame that window also carries Monaco, so without it a keystroke
+ *  meant for the source file beside the running game moves the game too.
+ *  Standalone it is a constant true and nothing changes. See
+ *  `@editor/surface-keyboard`. */
 function instanceInputActive(id: string): boolean {
   if (!_ctx) return false;
   const { store } = _ctx;
@@ -320,39 +319,6 @@ function instanceInputActive(id: string): boolean {
     surfaceHoldsKeyboard()
   );
 }
-
-/** The first-party `InputManager` for an instance, or `undefined` — a session's
- *  game handle may lack one (an ingest mount, a partial double), so resolve it
- *  defensively. */
-function instanceInput(inst: PlayInstance): { setEnabled(on: boolean): void } | undefined {
-  try {
-    return inst.session?.game?.input;
-  } catch {
-    return undefined;
-  }
-}
-
-/** Re-apply the enabled/disabled state of every live instance's InputManager
- *  from the current play/tab/focus predicate. Called whenever any of those
- *  change (store subscription, focus switch, an instance mounting). The raw
- *  window/document gates are closures over `instanceInputActive`, so they need
- *  no re-registration — they re-read focus on every event. */
-function resyncInstanceInputs(): void {
-  if (_instance.id) instanceInput(_instance)?.setEnabled(instanceInputActive(_instance.id));
-  for (const inst of _additional) instanceInput(inst)?.setEnabled(instanceInputActive(inst.id));
-}
-
-/**
- * THE SURFACE TERM'S OWN EDGE. The store subscription re-gates on play/tab
- * changes and `setFocusedInstance` on focus changes, but the fourth term above
- * moves on neither: a person clicks into Monaco and nothing in the editor's own
- * state has changed. `InputManager` is a LATCHED `setEnabled`, so unlike the
- * raw gates (closures re-read per event) it has to be told. Module scope and
- * never unsubscribed on purpose — the notification is a no-op with no instances
- * mounted, and a lane-scoped subscription would have to be rebuilt on every
- * mount for a predicate that is process-wide.
- */
-subscribeSurfaceKeyboard(resyncInstanceInputs);
 
 let _ctx: PlayModeContext | null = null;
 const playModeBindingWaiters = new Set<() => void>();
@@ -513,7 +479,6 @@ export async function runWarmRestartPauseBracket(
     if (!wasPaused) session.resume();
   }
 }
-let _unsubStore: (() => void) | null = null;
 /** Browser-mode component-source watch (Phase A2); null in server mode / stopped. */
 /**
  * The authoring override that was active before THIS play session installed its
@@ -672,24 +637,25 @@ async function installPlayRootAuthoring(
     }
     const mounted = world.mounted;
     if (mounted.kind === 'three') {
+      const scene = threeRoot(mounted).scene;
       // The presented subject uses OID identity so Edit→Play selection stays
       // continuous. A headless or non-Three host can omit presentation; its
       // mounted tree still gets an honest structural live projection.
       // `frameControl: 'host'` on the structural branch follows from the same
       // tick-ownership fact: play's own loop drives the root and this adapter
       // holds no handle that can stop it for a gesture.
-      const isPresentedSubject = world.id === presentedWorldId && mounted.scene === store.scene;
+      const isPresentedSubject = world.id === presentedWorldId && scene === store.scene;
       const sourceAnchor = isPresentedSubject ? await readOidSourceAnchors() : undefined;
       if (!isCurrentGeneration()) {
         abandon();
         return;
       }
       const adapter = isPresentedSubject
-        ? oidThree(store, mounted.scene, liveWorldId(world.id), playRunJournal(world.id), {
+        ? oidThree(store, scene, liveWorldId(world.id), playRunJournal(world.id), {
             explicitSourceCommit: true,
             sourceAnchor,
           })
-        : structuralThree(store, mounted.scene, {
+        : structuralThree(store, scene, {
             frameControl: 'host',
             journal: playRunJournal(world.id),
           });
@@ -752,8 +718,8 @@ async function installPlayRootAuthoring(
       const stage = mounted.substrate.root as import('pixi.js').Container;
       const [physicsRegistry, physicsAdapters, pixiAuthoring, pixiWriteTarget, canvasRuntime] =
         await Promise.all([
-          import('@volter/game-runtime/pixi/physics-registry'),
-          import('@volter/game-runtime/pixi/system-adapters'),
+          import('../runtime/pixi/physics-registry'),
+          import('../runtime/pixi/system-adapters'),
           import('../host/authoring/pixi-authoring-adapter'),
           import('../host/authoring/pixi-live-write-target'),
           import('../host/canvas-entry-runtime'),
@@ -1047,9 +1013,9 @@ export function bindPlayMode(store: EditorShellStore): void {
   // game's, and what decides is the workbench: our stage actions carry a
   // `when` clause over `vgai.stage.focused`/`vgai.play`, so a bare key reaches
   // the game rather than a shell binding, and a ⌘-chord stays the workbench's.
-  // The engine's own `InputManager` gate tracks the same predicate
-  // independently (`gated-globals.ts` and `surface-keyboard.ts`), which is what
-  // keeps a game's raw `window.addEventListener('keydown')` gated too.
+  // The realm gate tracks the same predicate independently (`gated-globals.ts`
+  // and `surface-keyboard.ts`), which is what keeps a game's raw
+  // `window.addEventListener('keydown')` gated too.
   // The idle auto-stop needs a way to end play without `play-recording.ts`
   // importing the play lifecycle it is driven BY. Handed over here rather than
   // at module scope so the two directions of the edge stay one-way.
@@ -1063,7 +1029,7 @@ export function isPlayModeActive(): boolean {
 }
 
 /**
- * Narrow relay accessor — the live play session's `InputManager`(s)
+ * Narrow relay accessor — the live play session's virtual input targets
  * and the Game root's loop, for `command-listener.ts`'s
  * `inject-input`/`set-time-scale`/`set-seed` cases. This is exactly the
  * accessor the vgai-sdk honest-gap jsdocs prescribed
@@ -1073,13 +1039,7 @@ export function isPlayModeActive(): boolean {
  * `setActiveSystems`/`getActiveSystems` instead.
  *
  * `getInputTarget(worldId?)` (D15/T-D15.5 — review objection 2's fix)
- * REPLACES what used to be a plain `input: Game['input'] | null` field —
- * `Game.input` always resolves to the DEFAULT world's `InputManager` only,
- * while the debug bridge's `window.__vgai.input.*` reached whichever world's
- * `InputManager` last called `DebugRegistry.setVirtualInputTarget` (a
- * SEPARATE, last-writer-wins slot). In a multi-world project those two could
- * name DIFFERENT roots — the exact closed-PR review objection. Now both
- * doors call the SAME `getDebugRegistry(game).getVirtualInputTarget(worldId)`
+ * is one resolution for every input door: both the SAME `getDebugRegistry(game).getVirtualInputTarget(worldId)`
  * — one resolution function (`debug-registry.ts`'s `resolveInputRootId`),
  * so `inject-input` (this accessor) and `window.__vgai.input.*`
  * (`debug-bridge.ts`) can never disagree about which world an unqualified
@@ -1135,7 +1095,7 @@ export function getPlayRuntimeAccess(): {
 /** Get the running game's scene (for editor Scene tab rendering). */
 export function getGameScene(): THREE.Scene | null {
   const mounted = _instance.session?.game.defaultRoot.mounted;
-  return mounted?.kind === 'three' ? mounted.scene : null;
+  return mounted?.kind === 'three' ? threeRoot(mounted).scene : null;
 }
 
 export interface GameRootSurfaceFact {
@@ -1152,7 +1112,7 @@ export function gameRootSurfaceFacts(): readonly GameRootSurfaceFact[] {
     const mounted = root.mounted;
     let hasRenderableContent = false;
     if (mounted.kind === 'three') {
-      hasRenderableContent = threeSceneHasRenderableContent(mounted.scene);
+      hasRenderableContent = threeSceneHasRenderableContent(threeRoot(mounted).scene);
     } else if (mounted.kind === 'canvas') {
       try {
         hasRenderableContent =
@@ -1746,7 +1706,7 @@ async function enterPlayModeInner(
     // MEASURED at N=20000: the block that ate three command budgets started
     // here and ran for 199.5s with nothing anywhere able to name it.
     markPlayBootPhase('mounting the runtime roots');
-    const { mountManifestRoots } = await import('@volter/game-runtime/runtime/mount-manifest');
+    const { mountManifestRoots } = await import('../runtime/mount-manifest');
     session = await mountManifestRoots({
       manifest,
       container: gameContainer,
@@ -1828,7 +1788,7 @@ async function enterPlayModeInner(
     // are the whole layout), Play still adopts its roots, so the hierarchy door and every
     // inspector reach the live objects exactly as they do beside a Scene tab.
     _instance.presentation =
-      editorHost().viewport.presentRoots(session.game.roots) ??
+      presentViewportRoots(session.game.roots) ??
       presentThreeRoots(store, session.game.roots);
     markPlayBootPhase('installing play authoring for each root');
     await installPlayRootAuthoring(
@@ -1878,8 +1838,7 @@ async function enterPlayModeInner(
       }) ?? null;
 
     // T6.3: gate game input (raw `window`/`document` listeners in game code via
-    // gated-globals, AND the default world's first-party InputManager) to only
-    // fire while play is actually running AND the Game tab is the focused
+    // gated-globals) to only fire while play is actually running AND the Game tab is the focused
     // viewport — so keystrokes typed into the editor (Scene tab, inspector
     // fields) don't leak into the running game.
     // The gate is FOCUS-AWARE (`instanceInputActive`): input flows only while
@@ -1892,19 +1851,10 @@ async function enterPlayModeInner(
     // the modules find the default realm's gate instead of their own.
     setGameInputGate(() => instanceInputActive(mountId), mountId);
     // THE DEFAULT REALM follows the focused instance too. Module-lifetime code
-    // that no mount id reaches lives there — a game's own `InputManager`
-    // (`@volter/game-runtime`'s input, served through the realm shadow) — and
-    // the stop path leaves it open, so a key aimed at a Model document while
-    // the game played still reached it.
+    // that no mount id reaches lives there — a game's own input store,
+    // attached at module load — and the stop path leaves it open, so a key
+    // aimed at a Model document while the game played still reached it.
     setGameInputGate(() => instanceInputActive(focusedInstanceId()));
-    // Sync EVERY live instance's first-party InputManager from the play/tab/
-    // focus predicate whenever the store changes (a tab switch flips the active
-    // viewport for all of them). `resyncInstanceInputs` resolves each
-    // instance's `game.input` defensively — a session whose game handle has no
-    // first-party InputManager (an ingest mount, a partial double) has only the
-    // raw window/document gate above.
-    resyncInstanceInputs();
-    _unsubStore = store.shell.subscribe(resyncInstanceInputs);
 
     // Node-id keyed only: `setEcsSyncTransform` hands this an editor node id
     // and a THREE `Transform`, which a display-keyed carrier has no values for.
@@ -1912,7 +1862,7 @@ async function enterPlayModeInner(
     store.setEcsSyncTransform((id, obj) => {
       // `commit` refuses an id this adapter cannot resolve rather than
       // returning as if the write landed — so ask before driving it.
-      if (!physics || physics.ownerOf(id) === 'unresolved') return;
+      if (!physics || physicsOwnerOf(physics, id) === 'unresolved') return;
       physics.commit(id, {
         position: obj.position.toArray() as [number, number, number],
         rotation: obj.quaternion.toArray() as [number, number, number, number],
@@ -2019,7 +1969,7 @@ export async function mountAdditionalInstance(
   }
   markGameCssScope(container);
   setGameSurface(container, mountId);
-  const { mountManifestRoots } = await import('@volter/game-runtime/runtime/mount-manifest');
+  const { mountManifestRoots } = await import('../runtime/mount-manifest');
   const session = await mountManifestRoots({
     manifest,
     container,
@@ -2070,15 +2020,12 @@ export async function mountAdditionalInstance(
     }) ?? null;
   // FOCUS-AWARE input, exactly like the primary: this instance takes the shared
   // keyboard only while it holds focus. It mounts UNFOCUSED (the primary keeps
-  // focus), so its gate is closed and its InputManager is disabled until a click
+  // focus), so its gate is closed until a click
   // on its viewport routes focus here (`setFocusedInstance`). This is what stops
   // the pre-focus bug where every seat took the same keystroke, AND what lets
   // you drive a chosen seat manually rather than only via autoplay.
   setGameInputGate(() => instanceInputActive(mountId), mountId);
   _additional.push(inst);
-  // Now that it is in `_additional`, sync its (and every) InputManager to the
-  // current focus — disabled here, since the primary is focused.
-  resyncInstanceInputs();
 
   // `setActiveSystems` moved editor focus (`getActiveSystems`) onto the newer
   // mount. The user is still authoring the PRIMARY, so restore its focus
@@ -2153,11 +2100,10 @@ export function unmountAdditionalInstance(id: string): void {
   inst.container = null;
   inst.session = null;
   // If the removed instance held keyboard focus, focus falls back to the primary
-  // (`focusedInstanceId` already resolves a stale id to it); re-sync so the
-  // primary's InputManager re-enables, and notify the viewport highlight.
+  // (`focusedInstanceId` already resolves a stale id to it); notify the
+  // viewport highlight.
   if (_focusedInstanceId === id) {
     _focusedInstanceId = null;
-    resyncInstanceInputs();
     notifyFocusedInstance();
   }
   notifySessionListeners();
@@ -2339,11 +2285,9 @@ export function exitPlayMode(): void {
   _hostMountedReadyRootIds = [];
 
   // Cleanup subscriptions
-  _unsubStore?.();
-  _unsubStore = null;
 
-  // T6.3: no game running — game input (raw window/document listeners AND the
-  // InputManager sync above) should never be suppressed again until the next
+  // T6.3: no game running — game input (raw window/document listeners) should
+  // never be suppressed again until the next
   // play session re-gates it. The mount's own gate is DROPPED rather than set
   // to always-true: its id is never reused, so overwriting would retain one
   // dead closure per play run.

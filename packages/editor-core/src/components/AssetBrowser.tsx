@@ -36,16 +36,16 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { clearSelectedAsset, getSelectedAsset, setSelectedAsset } from '../asset-selection';
+import { clearSelectedAsset, getSelectedAsset, setSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import {
   type AssetCapabilityKind,
   assetCapabilities,
   assetDocumentKind,
 } from '@volter/editor-sdk/kit/asset-capabilities';
 import { confirmAssetAction } from '../asset-workflow/asset-workflow-quality';
-import { previewAssetAudio, stopAssetAudioPreview } from '../asset-workflow/audio-preview-player';
+import { previewAssetAudio, stopAssetAudioPreview } from '@volter/editor-sdk/kit/asset-workflow/audio-preview-player';
 import { invalidateFolderPreviews } from '../asset-workflow/folder-preview';
-import { PROJECT_ASSET_COMMANDS } from '../asset-workflow/project-asset-commands';
+import { PROJECT_ASSET_COMMANDS } from '@volter/editor-sdk/kit/asset-workflow/project-asset-commands';
 import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
 
 /** The browser's view state is the project's own (`kit/project-local-state`), like its layout. */
@@ -84,41 +84,41 @@ import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-reg
 import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore, useHistoryService } from '@volter/editor-sdk/kit/editor-runtime';
-import type { AssetKind as DocumentAssetKind } from '../asset-selection';
+import type { AssetKind as DocumentAssetKind } from '@volter/editor-sdk/kit/asset-selection';
 import { hierarchyNodesBreadthFirst } from '@volter/editor-sdk/kit/hierarchy-walk';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
 import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
-import { getGlobalToolContributions, subscribeToolContributions } from '../tool-loader';
+import { getGlobalToolContributions, subscribeToolContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   type AvailableWorkspaceDocument,
   availableWorkspaceDocuments,
   openAvailableWorkspaceDocument,
   subscribeAvailableWorkspaceDocuments,
-} from '../workspace-available-documents';
-import { planSceneDocument } from '../scene-document-plan';
+} from '@volter/editor-sdk/kit/workspace-available-documents';
+import { planSceneDocument } from '@volter/editor-sdk/kit/scene-document-plan';
 import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { openAssetDocument, openAuthoringAssetDocument } from './asset-documents';
+import { openAssetDocument, openAuthoringAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
 import {
   type AssetGlyphKind,
   AssetIcon,
   AudioAssetThumb,
   ModelThumbnail,
   TypedAssetThumbnail,
-} from './asset-thumbnails';
-import { SpritesheetSpriteView } from './asset-viewers/SpritesheetSpriteView';
+} from '@volter/editor-sdk/kit/components/asset-thumbnails';
+import { SpritesheetSpriteView } from '@volter/editor-sdk/kit/components/asset-viewers/SpritesheetSpriteView';
 import { DocumentThumbnail } from './DocumentThumbnail';
 import { FolderPreviewTile } from './FolderPreviewTile';
-import { openKindDocument, uneditedKindAssetKind } from './kind-documents';
-import { openSceneTableEntry } from './scene-documents';
+import { openKindDocument, uneditedKindAssetKind } from '@volter/editor-sdk/kit/components/kind-documents';
+import { openSceneTableEntry } from '@volter/editor-sdk/kit/components/scene-documents';
 
 // --- Helpers ---
 

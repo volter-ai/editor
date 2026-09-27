@@ -61,15 +61,32 @@ export interface TrackProps {
 /**
  * DAWproject `Channel`: the mixer strip. `volume` is in decibels, `pan` in −1…1. `role` is the
  * schema's: `regular` (a track's own strip, the default), `effect` (a bus other channels send to,
- * such as a reverb), or `master` (the one strip everything ends in).
+ * such as a reverb), `submix` (a group track's strip: the tracks inside that `<Track>` sum into
+ * it), or `master` (the one strip everything ends in).
  */
 export interface ChannelProps {
-  readonly role?: 'regular' | 'effect' | 'master';
+  readonly role?: 'regular' | 'effect' | 'master' | 'submix';
   readonly volume?: number;
   readonly pan?: number;
   readonly mute?: boolean;
   readonly solo?: boolean;
   readonly children?: ReactNode;
+}
+
+/**
+ * A modulator on a `<Channel>`, as Bitwig's LFO: a wave added to one of the channel's own
+ * parameters, `target` `volume` or `send:<bus>` (±`depth` dB) or `pan` (±`depth`, the sum
+ * clamped to −1…1). One cycle lasts `period` (a note value or a number of beats, so it follows
+ * the tempo), counted from the piece's first beat and offset by `phase` (0–1 of a cycle). It adds
+ * to the parameter's written value, or to its automation lane where it has one. DAWproject has no
+ * modulators: its export writes the moving parameter as automation points.
+ */
+export interface LfoProps {
+  readonly target: string;
+  readonly shape?: 'sine' | 'triangle' | 'square' | 'saw';
+  readonly period: Length;
+  readonly depth: number;
+  readonly phase?: number;
 }
 
 /** DAWproject `Send`: this channel feeds the `effect` channel of the track named `to`, at `level` dB. */
@@ -81,7 +98,12 @@ export interface SendProps {
 }
 
 /** A device parameter: a number, a string, a switch, or a list of them (an equaliser's bands). */
-export type DeviceParam = number | string | boolean | readonly Readonly<Record<string, number | string | boolean>>[];
+export type DeviceParam =
+  | number
+  | string
+  | boolean
+  | readonly Readonly<Record<string, number | string | boolean>>[]
+  | Readonly<Record<string, number>>;
 
 /**
  * DAWproject `Device`: an instrument or effect on a channel, named by its plugin. The built-in
@@ -89,6 +111,11 @@ export type DeviceParam = number | string | boolean | readonly Readonly<Record<s
  * | 'lowShelf' | 'highShelf' | 'bell', freq, gain?, q? }`), `compressor` (`threshold`, `ratio`,
  * `attack`, `release`, `knee`, `makeup`), `limiter` (`ceiling`, `release`), and `convolution`
  * (`ir`: a project path to an impulse response WAV, `predelay` ms, `wet` 0–1).
+ *
+ * The instrument is `soundfont` (`bank`: a project path to an .sf2/.sf3, `program`, `bankNumber`,
+ * `drums`). Its `articulations` maps a note's `artic` to the program in the same bank that plays
+ * it, where the bank records that articulation apart (`{ staccato: 101, pizzicato: 102 }`): a
+ * note with a mapped `artic` sounds on that patch, every other note on `program`.
  */
 export interface DeviceProps {
   readonly plugin: string;
@@ -97,9 +124,13 @@ export interface DeviceProps {
   readonly params?: Readonly<Record<string, DeviceParam>>;
 }
 
-/** DAWproject `Clip`: a region of a track's timeline, from bar `at` for `bars` bars. */
+/**
+ * DAWproject `Clip`: a region of a track's timeline, from bar `at` for `bars` bars. In a
+ * `<ClipSlot>` a clip has no `at`: it is a loop of its own, and its notes' positions count from
+ * its start as bar 1.
+ */
 export interface ClipProps {
-  readonly at: Position;
+  readonly at?: Position;
   readonly bars: number;
   readonly name?: string;
   readonly children?: ReactNode;
@@ -107,7 +138,9 @@ export interface ClipProps {
 
 /**
  * DAWproject `Note`: a note name at a position for a length. `vel` and `rel` are 0…1. `artic` is
- * how it is played: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato` or `legato`.
+ * how it is played: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato` or `legato`, or a
+ * technique a sampled instrument records apart, `pizzicato` or `tremolo`. A soundfont device's
+ * `articulations` names the patch that plays each (see `DeviceProps`).
  */
 export interface NoteProps {
   readonly at: Position;
@@ -115,7 +148,34 @@ export interface NoteProps {
   readonly dur: Length;
   readonly vel?: number;
   readonly rel?: number;
-  readonly artic?: 'staccato' | 'staccatissimo' | 'tenuto' | 'accent' | 'marcato' | 'legato';
+  readonly artic?: 'staccato' | 'staccatissimo' | 'tenuto' | 'accent' | 'marcato' | 'legato' | 'pizzicato' | 'tremolo';
+}
+
+/**
+ * DAWproject `Audio`: a recorded file a `<Clip>` plays, instead of notes. `file` is a WAV at a
+ * project path; it plays from the clip's start (or from `offset` seconds into the file) for the
+ * clip's length, at `gain` dB. A track whose clips hold audio is an audio track: its strip's input
+ * is the files, not an instrument.
+ */
+export interface AudioProps {
+  readonly file: string;
+  readonly offset?: number;
+  readonly gain?: number;
+  /**
+   * The take's name, when a clip holds several recordings of one part (one per pass of a loop):
+   * the newest (last) plays unless `<Comp>`s pick others.
+   */
+  readonly take?: string;
+}
+
+/**
+ * A comp choice in a clip of several takes: from `at` (a position of the piece, inside the clip)
+ * the take named `take` plays, until the next `<Comp>`. Before the first, the newest take plays.
+ * Where the take changes, the two cross in 5 ms.
+ */
+export interface CompProps {
+  readonly take: string;
+  readonly at: Position;
 }
 
 /**
@@ -133,6 +193,22 @@ export interface PointProps {
   readonly at: Position;
   readonly value: number;
   readonly hold?: boolean;
+}
+
+/**
+ * DAWproject `Scene`: a row of the clip launcher, a child of `<Project>`. Launching it plays each
+ * of its `<ClipSlot>`s on that slot's track, looping, from the next bar, and stops the tracks it
+ * has no slot for: one scene is one state of the music (a game's explore, combat, calm).
+ */
+export interface SceneProps {
+  readonly name: string;
+  readonly children?: ReactNode;
+}
+
+/** DAWproject `ClipSlot`: the launcher cell of the track named `track` in a scene, holding one `<Clip>`. */
+export interface ClipSlotProps {
+  readonly track: string;
+  readonly children?: ReactNode;
 }
 
 /** DAWproject `Marker`: a named point on the arrangement's timeline. */
@@ -155,7 +231,12 @@ export const Clip = element<ClipProps>('dawproject.Clip');
 export const Note = element<NoteProps>('dawproject.Note');
 export const Marker = element<MarkerProps>('dawproject.Marker');
 export const Points = element<PointsProps>('dawproject.Points');
+export const Audio = element<AudioProps>('dawproject.Audio');
 export const Point = element<PointProps>('dawproject.Point');
+export const Lfo = element<LfoProps>('dawproject.Lfo');
+export const Comp = element<CompProps>('dawproject.Comp');
+export const Scene = element<SceneProps>('dawproject.Scene');
+export const ClipSlot = element<ClipSlotProps>('dawproject.ClipSlot');
 
 /** Every element this package names, keyed by its short name. */
 export const ELEMENT_TYPES = {
@@ -170,6 +251,11 @@ export const ELEMENT_TYPES = {
   Marker: 'dawproject.Marker',
   Points: 'dawproject.Points',
   Point: 'dawproject.Point',
+  Audio: 'dawproject.Audio',
+  Lfo: 'dawproject.Lfo',
+  Comp: 'dawproject.Comp',
+  Scene: 'dawproject.Scene',
+  ClipSlot: 'dawproject.ClipSlot',
 } as const;
 
 export type ElementName = keyof typeof ELEMENT_TYPES;

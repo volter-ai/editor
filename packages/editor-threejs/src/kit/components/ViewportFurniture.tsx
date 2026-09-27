@@ -18,7 +18,7 @@
  * comment below for the measurement, and do not route a new control to
  * `viewport.*` without checking which side of that line it falls on.
  */
-import type { ToolViewportStatistic } from '@volter/editor-sdk/contributions';
+import type { ToolCameraView, ToolViewportStatistic } from '../../object3d-contributions';
 import {
   EditorIcon,
   editorIcons,
@@ -27,16 +27,30 @@ import {
   Tooltip,
   themeVars,
 } from '@volter/editor-sdk/widgets';
-import { Fragment, type PointerEvent as ReactPointerEvent, useSyncExternalStore } from 'react';
+import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { COMPASS_CLUSTER_TOP_PX, type EditorViewport } from '../editor-viewport';
+import {
+  COMPASS_CENTER_RIGHT_PX,
+  COMPASS_CLUSTER_TOP_PX,
+  COMPASS_INK_BOTTOM_PX,
+  type EditorViewport,
+} from '../editor-viewport';
+import { faBars, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { stageViewName } from './stage-view-name';
+import {
+  subscribeViewportPresentation,
+  viewPresentation,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
+import { ViewportViewMenu } from './ViewportViewMenu';
 import {
   lookDeclaresViewportColors,
   lookPaintsLightViewport,
   subscribeNativeSelectionTheme,
+  useViewportChrome,
 } from '@volter/editor-sdk/kit/native-selection-style';
 import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 
@@ -83,8 +97,38 @@ const STATISTICS_BLOCK_OFFSET = 5 as const;
  *  the overlay block's left edge. */
 const STATISTICS_LABEL_COLUMN_PX = 58;
 
+/** What the overlay lines read off the camera, so a move that changes one re-renders them. */
+function cameraSignature(viewport: EditorViewport, session: Object3DDocumentSession | null): string {
+  const camera = session?.camera() ?? viewport.renderCamera;
+  const position = viewport.camera.position;
+  const target = viewport.orbitControls.target;
+  const zoom = (camera as THREE.OrthographicCamera).isOrthographicCamera
+    ? orthographicWorldPerDevicePixel(camera as THREE.OrthographicCamera, viewport, session)
+    : 0;
+  return [position.x, position.y, position.z, target.x, target.y, target.z, zoom].map((n) => n.toPrecision(6)).join(',');
+}
+
+/** World units across one device pixel of an orthographic view: its height over the drawing
+ *  buffer's (the session's canvas, in device pixels), else the controls' element at the
+ *  display's ratio. */
+function orthographicWorldPerDevicePixel(
+  camera: THREE.OrthographicCamera,
+  viewport: EditorViewport,
+  session: Object3DDocumentSession | null,
+): number {
+  const element = viewport.orbitControls.domElement;
+  const height = Math.max(
+    1,
+    session?.renderer.domElement.height ??
+      (element?.clientHeight ?? 1) * (element?.ownerDocument.defaultView?.devicePixelRatio ?? 1),
+  );
+  return (camera.top - camera.bottom) / camera.zoom / height;
+}
+
 export interface ViewportFurnitureProps {
   readonly viewport: EditorViewport | null;
+  /** The stage's document, whose view menu the look's view-name pill opens. */
+  readonly documentId: string;
   readonly session: Object3DDocumentSession | null;
   readonly store: ShellStore;
   readonly projection: ThreeViewportProjection;
@@ -92,18 +136,38 @@ export interface ViewportFurnitureProps {
   readonly objectName: (id: string) => string | null;
   /** The active document's own counts. See `ToolObject3DAuthoringProps.statistics`. */
   readonly statistics?: readonly ToolViewportStatistic[];
+  /** The document's own subject line. See `ToolObject3DAuthoringProps.subject`. */
+  readonly subject?: string;
+  /** The document's grid-step name. See `ToolObject3DAuthoringProps.gridScale`. */
+  readonly gridScale?: (worldPerDevicePixel: number) => string | null;
 }
 
 export function ViewportFurniture({
   viewport,
+  documentId,
   session,
   store,
   projection,
   displayName,
   objectName,
   statistics,
+  subject: documentSubject,
+  gridScale,
 }: ViewportFurnitureProps) {
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  // THE LINES FOLLOW THE CAMERA: the view text names the axis the view looks down and the grid
+  // line names the step at the current zoom, and neither is a store or session change.
+  useSyncExternalStore(
+    useCallback(
+      (listener: () => void) => {
+        const controls = viewport?.orbitControls;
+        controls?.addEventListener('change', listener);
+        return () => controls?.removeEventListener('change', listener);
+      },
+      [viewport],
+    ),
+    () => (viewport ? cameraSignature(viewport, session) : ''),
+  );
   // The VIEW TEXT must follow the projection the stage is actually drawing
   // with. A document session carries its own (`session.camera()` returns its
   // orthographic camera off it), and the viewport's flag says nothing about
@@ -143,15 +207,30 @@ export function ViewportFurniture({
   // there it is the ground's own colour, so the ordinary ink reads instead.
   const lookPaintsLight = useSyncExternalStore(subscribeThemeViewportGroup, lookPaintsLightViewport);
   const overlayInk = lookPaintsViewport && !lookPaintsLight ? themeVars.content.onAccent : themeVars.content.primary;
+  // WHICH OF THIS FURNITURE THE TARGET DRAWS is the look's (`stage.chrome`): the view text is
+  // Blender's, the zoom and pan cluster Blender's alone; Godot names the view in a pill that
+  // opens the view menu, Unity under its scene gizmo.
+  const chrome = useViewportChrome();
+  // Whether the zoom and pan buttons are drawn at all is the VIEW's (`overlays.navigationControls`).
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
+  const navigationControls = viewPresentation(documentId).overlays.navigationControls;
   if (!viewport) return null;
   // Blender's view text names the DIRECTION as well as the projection —
   // "Front Orthographic" on numpad 1 (`modeling-front-ortho.png`), "User
   // Perspective" the moment the view is orbited off that axis. Derived from
   // the live camera, so it reverts on the first drag the way Blender's does.
   const axis =
-    axisViewName(viewport.camera.position.clone().sub(viewport.orbitControls.target)) ?? 'User';
+    axisViewName(
+      viewport.camera.position.clone().sub(viewport.orbitControls.target),
+      new THREE.Vector3(0, 1, 0).applyQuaternion(viewport.camera.quaternion),
+    ) ?? 'User';
   const drawn = session?.projection() ?? projection;
-  const viewText = `${axis} ${drawn === 'perspective' ? 'Perspective' : 'Orthographic'}`;
+  // A CAMERA VIEW names itself as Blender's does: "Camera Perspective" / "Camera Orthographic",
+  // after the camera's own projection.
+  const through = session?.cameraView() ?? null;
+  const viewText = through
+    ? `Camera ${through.projection === 'perspective' ? 'Perspective' : 'Orthographic'}`
+    : `${axis} ${drawn === 'perspective' ? 'Perspective' : 'Orthographic'}`;
   // THE SUBJECT LINE. Blender's is `(frame) <active collection> | <active
   // object>` — THREE parts, and which part is which was settled by CONTRAST
   // across the frames, never from one of them. `modeling-object-none.png`,
@@ -188,20 +267,55 @@ export function ViewportFurniture({
   const activeId = store.selectedEntityId;
   const activeName = (activeId === null ? null : objectName(activeId)) || null;
   const subject =
-    activeName === null || activeName === displayName
-      ? displayName
-      : `${displayName} | ${activeName}`;
+    documentSubject ??
+    (activeName === null || activeName === displayName ? displayName : `${displayName} | ${activeName}`);
+  // THE GRID'S STEP, where Blender names it: an orthographic view down an axis
+  // (`draw_grid_unit_name`, `!rv3d->is_persp && RV3D_VIEW_IS_AXIS`). What the step is called
+  // is the document's; the host hands it the world units one device pixel spans.
+  const drawnCamera = session?.camera() ?? viewport.renderCamera;
+  const gridLine =
+    gridScale && !through && axis !== 'User' && (drawnCamera as THREE.OrthographicCamera).isOrthographicCamera
+      ? gridScale(orthographicWorldPerDevicePixel(drawnCamera as THREE.OrthographicCamera, viewport, session))
+      : null;
 
-  const dolly = (factor: number): void => {
-    const camera = viewport.renderCamera;
-    if (camera instanceof THREE.OrthographicCamera) {
-      camera.zoom = Math.max(0.01, camera.zoom / factor);
-      camera.updateProjectionMatrix();
-      return;
-    }
+  // BLENDER'S MAGNIFIER IS A DRAG (`view3d.zoom` from the navigation gizmo, the factory
+  // `USER_ZOOM_DOLLY` style, `viewzoom_scale_value`): with `len` the pointer's height below the
+  // region's top plus 5, the distance is the one the drag started at times
+  // `2 * (len / len0 - 1) + 1` — down backs away, up closes in.
+  const startZoom = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+    const element = event.currentTarget;
+    element.setPointerCapture(event.pointerId);
+    const regionTop = viewport.orbitControls.domElement?.getBoundingClientRect().top ?? 0;
+    const lenOld = Math.max(5 + event.clientY - regionTop, 1);
+    const camera = viewport.camera;
     const target = viewport.orbitControls.target;
-    viewport.camera.position.sub(target).multiplyScalar(factor).add(target);
-    viewport.orbitControls.update();
+    const offset = camera.position.clone().sub(target);
+    const ortho = !session && viewport.renderCamera instanceof THREE.OrthographicCamera ? viewport.renderCamera : null;
+    const zoom0 = ortho?.zoom ?? 1;
+    // In a camera view the same drag zooms the camera's frame (`view_zoom_to_window_xy_camera`).
+    const frameZoom0 = session?.cameraViewZoom() ?? null;
+    const move = (moveEvent: PointerEvent): void => {
+      const lenNew = 5 + moveEvent.clientY - regionTop;
+      const factor = Math.max(0.01, 2 * (lenNew / lenOld - 1) + 1);
+      if (frameZoom0 !== null && session?.cameraView()) {
+        session.setCameraViewZoom(frameZoom0 / factor);
+      } else if (ortho) {
+        ortho.zoom = zoom0 / factor;
+        ortho.updateProjectionMatrix();
+      } else camera.position.copy(target).addScaledVector(offset, factor);
+      viewport.orbitControls.update();
+    };
+    const end = (): void => {
+      element.removeEventListener('pointermove', move);
+      element.removeEventListener('pointerup', end);
+      element.removeEventListener('pointercancel', end);
+      element.removeEventListener('lostpointercapture', end);
+    };
+    element.addEventListener('pointermove', move);
+    element.addEventListener('pointerup', end);
+    element.addEventListener('pointercancel', end);
+    element.addEventListener('lostpointercapture', end);
   };
 
   const startPan = (event: ReactPointerEvent<HTMLButtonElement>): void => {
@@ -217,6 +331,12 @@ export function ViewportFurniture({
       const dy = moveEvent.clientY - lastY;
       lastX = moveEvent.clientX;
       lastY = moveEvent.clientY;
+      // In a camera view a pan moves the camera's frame with the pointer (`view_move`).
+      if (session?.cameraView()) {
+        const region = session.renderer.domElement;
+        session.panCameraView(dx / Math.max(region.clientWidth, 1), dy / Math.max(region.clientHeight, 1));
+        return;
+      }
       const camera = viewport.camera;
       const target = viewport.orbitControls.target;
       const distance = camera.position.distanceTo(target);
@@ -233,14 +353,17 @@ export function ViewportFurniture({
       element.removeEventListener('pointermove', move);
       element.removeEventListener('pointerup', end);
       element.removeEventListener('pointercancel', end);
+      element.removeEventListener('lostpointercapture', end);
     };
     element.addEventListener('pointermove', move);
     element.addEventListener('pointerup', end);
     element.addEventListener('pointercancel', end);
+    element.addEventListener('lostpointercapture', end);
   };
 
   return (
     <>
+      {chrome.viewName === 'text' ? (
       <div
         data-testid="viewport-view-text"
         aria-hidden="true"
@@ -263,6 +386,7 @@ export function ViewportFurniture({
       >
         <span>{viewText}</span>
         <span>{subject}</span>
+        {gridLine ? <span data-testid="viewport-grid-scale">{gridLine}</span> : null}
         {statistics && statistics.length > 0 ? (
           <div
             data-testid="viewport-statistics"
@@ -285,32 +409,67 @@ export function ViewportFurniture({
           </div>
         ) : null}
       </div>
-      {/* FIVE BUTTONS AGAINST BLENDER'S FOUR, and the count is decided, not
-          drifted (2026-09-19, measured against `modeling-edit-none.png`).
-          Blender draws zoom, hand, camera, grid in a 28 CSS capsule: glyph
-          boxes 16 CSS, pitch 30, ink 203. Our cell, gap, pitch and capsule
-          width are already those numbers exactly.
-
-          BLENDER'S CAMERA HAS NO ANALOGUE HERE and none is invented: a Model
-          document has no scene camera for it to toggle to.
-
-          BLENDER'S ONE MAGNIFIER IS A DRAG; OURS ARE TWO CLICKS, and two is
-          the honest shape for a click-only cluster. A drag carries the sign
-          in its axis, so one control can do both directions; a click has no
-          axis, so a single magnifier here could only ever zoom one way —
-          half a control. Driven through the camera's own state rather than
-          a DOM signature (the instrument that reported this pair dead once):
-          distance 11.459238 -> 9.167390 on Zoom in and exactly back to
-          11.459238 on Zoom out, so the two factors are exact reciprocals
-          (0.8, 1.25) and the pair round-trips to the float.
-
-          FRAME ALL IS A CONTROL BLENDER LACKS AND IT STAYS. Its home is the
-          document header's own view control (`Object3DDocumentToolbar`,
-          where the label even follows the selection), so on a Model document
-          this is a shortcut — but `StageHost` mounts this cluster on every
-          ready document host, including stages that carry no such header,
-          and there it is the only door onto framing. Deleting it to match a
-          picture would take the operation away from those. */}
+      ) : null}
+      {chrome.viewName === 'menu' ? (
+        <div
+          className="vgai-viewport-view-pill"
+          style={{
+            position: 'absolute',
+            top: 'var(--vgai-viewport-overlay-top, var(--vgai-space-4))',
+            // Past the shelf rail when it draws anything, as the view text is; at the edge when
+            // it is empty (`data-vgai-stage-rail`, `workspace-surfaces.css`).
+            left:
+              'var(--vgai-stage-name-left, calc(var(--vgai-space-4) + var(--vgai-control-comfortable-height) * 2 + var(--vgai-space-4)))',
+            zIndex: 'calc(var(--vgai-z-dropdown, 1000) - 1)',
+            pointerEvents: 'auto',
+          }}
+        >
+          <ViewportViewMenu shell={store} documentId={documentId} label={stageViewName(viewport, drawn, 'long')} kebab />
+        </div>
+      ) : null}
+      {chrome.viewName === 'gizmo' ? (
+        // UNITY'S LABEL UNDER THE SCENE GIZMO (`Editor-SceneGizmo.png`): the projection's mark and
+        // its name, and a click toggles the projection, as Unity's does.
+        <button
+          type="button"
+          data-testid="viewport-view-name"
+          className="vgai-viewport-gizmo-label"
+          aria-label={drawn === 'perspective' ? 'Switch to orthographic' : 'Switch to perspective'}
+          onClick={() => {
+            const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
+            if (session) session.setProjection(next);
+            else viewport.setProjection(next);
+          }}
+          style={{
+            position: 'absolute',
+            top: COMPASS_INK_BOTTOM_PX + 4,
+            right: COMPASS_CENTER_RIGHT_PX,
+            transform: 'translateX(50%)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--vgai-space-1)',
+            padding: 0,
+            border: 0,
+            background: 'none',
+            fontSize: 'var(--vgai-font-sm)',
+            color: overlayInk,
+            textShadow: 'var(--vgai-content-text-shadow, none)',
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+          }}
+        >
+          <EditorIcon size="xs" icon={drawn === 'perspective' ? faChevronLeft : faBars} />
+          {stageViewName(viewport, drawn, 'short')}
+        </button>
+      ) : null}
+      {/* BLENDER'S NAVIGATION CLUSTER (`view3d_gizmo_navigate.cc`): Zoom and Pan, each a drag;
+          Camera; and the projection toggle, whose mark is the projection the view has. Cell,
+          gap, pitch and capsule width are Blender's (`modeling-edit-none.png`: glyph boxes 16
+          CSS, pitch 30, a 28 CSS capsule). Framing is not here: its home is the document
+          header's view control and the Home and numpad-period keys, as Blender's is its View
+          menu. The Camera button is not drawn yet: looking through a scene camera is not a
+          view this stage has. */}
+      {navigationControls ? (
       <div
         data-testid="viewport-navigation"
         role="toolbar"
@@ -342,30 +501,14 @@ export function ViewportFurniture({
           pointerEvents: 'auto',
         }}
       >
-        <Tooltip text="Zoom in">
-          <IconButton size="comfortable" aria-label="Zoom in" onClick={() => dolly(0.8)}>
+        <Tooltip text="Zoom (drag)">
+          <IconButton size="comfortable" aria-label="Zoom the view" onPointerDown={startZoom}>
             <EditorIcon size="2xl" icon={editorIcons.viewport.zoomIn} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Zoom out">
-          <IconButton size="comfortable" aria-label="Zoom out" onClick={() => dolly(1.25)}>
-            <EditorIcon size="2xl" icon={editorIcons.viewport.zoomOut} />
           </IconButton>
         </Tooltip>
         <Tooltip text="Pan (drag)">
           <IconButton size="comfortable" aria-label="Pan the view" onPointerDown={startPan}>
             <EditorIcon size="2xl" icon={editorIcons.viewport.pan} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Frame all">
-          <IconButton
-            size="comfortable"
-            aria-label="Frame all"
-            onClick={() => {
-              if (!session?.frame()) viewport.focusOn(viewport.orbitControls.object);
-            }}
-          >
-            <EditorIcon size="2xl" icon={editorIcons.viewport.frame} />
           </IconButton>
         </Tooltip>
         {/* THE PROJECTION THIS BUTTON MEANS IS THE STAGE'S, NOT THE
@@ -385,21 +528,128 @@ export function ViewportFurniture({
             copied the phantom pose home. Transcribed from the sibling door
             (`Object3DDocumentToolbar`), with the viewport kept as the answer
             for a stage that has no session. */}
+        {session?.hasCameraView() ? (
+          <Tooltip text={through ? 'Leave the camera view' : 'Look through the camera'}>
+            <IconButton size="comfortable" aria-label="Toggle the camera view" onClick={() => session.toggleCameraView()}>
+              {/* Blender's `VIEW_CAMERA_UNSELECTED` out of the camera view, `VIEW_CAMERA` in it. */}
+              <EditorIcon size="2xl" icon={through ? editorIcons.viewport.cameraView : editorIcons.viewport.camera} />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {/* In a camera view, the lock that makes navigating it move the camera
+            (`View3D.lock_camera`): `VIEW_LOCKED` while it holds, `VIEW_UNLOCKED` otherwise. */}
+        {through && session?.cameraViewLocked() !== null ? (
+          <Tooltip text={session?.cameraViewLocked() ? 'Unlock the camera from the view' : 'Lock the camera to the view'}>
+            <IconButton size="comfortable" aria-label="Lock the camera to the view" onClick={() => session?.toggleCameraViewLock()}>
+              <EditorIcon
+                size="2xl"
+                icon={session?.cameraViewLocked() ? editorIcons.viewport.cameraLocked : editorIcons.viewport.cameraUnlocked}
+              />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {/* A camera view has its camera's projection, so the toggle stands down in it; and where
+            the look puts the view's name under the gizmo, that label is the toggle. */}
+        {through || chrome.viewName === 'gizmo' ? null : (
         <Tooltip text={drawn === 'perspective' ? 'Orthographic' : 'Perspective'}>
           <IconButton
             size="comfortable"
             aria-label="Toggle perspective and orthographic"
-            aria-pressed={drawn === 'orthographic'}
             onClick={() => {
               const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
               if (session) session.setProjection(next);
               else viewport.setProjection(next);
             }}
           >
-            <EditorIcon size="2xl" icon={editorIcons.viewport.projection} />
+            {/* The mark names the projection the view HAS, as Blender's `VIEW_PERSPECTIVE` /
+                `VIEW_ORTHO` do; the button is never shown pressed. */}
+            <EditorIcon
+              size="2xl"
+              icon={drawn === 'orthographic' ? editorIcons.viewport.projectionOrthographic : editorIcons.viewport.projection}
+            />
           </IconButton>
         </Tooltip>
+        )}
       </div>
+      ) : null}
+      {through && session ? (
+        <CameraFrame view={through} canvas={session.renderer.domElement} locked={session.cameraViewLocked() === true} />
+      ) : null}
     </>
+  );
+}
+
+/**
+ * THE CAMERA'S FRAME over the region, as Blender's `drawviewborder` draws it: the passepartout
+ * outside it at the camera's opacity, and one device pixel outside the frame a solid box (only
+ * with a passepartout) under a dashed one (`dash_width` 6 at half, in device pixels).
+ */
+function CameraFrame({ view, canvas, locked }: { view: ToolCameraView; canvas: HTMLCanvasElement; locked: boolean }) {
+  const [host, setHost] = useState<HTMLDivElement | null>(null);
+  // Positions are read from the layout, so a panel resize has to draw the frame again.
+  const [, setLayout] = useState(0);
+  useEffect(() => {
+    const observer = new ResizeObserver(() => setLayout((tick) => tick + 1));
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [canvas]);
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const ratio = canvas.ownerDocument.defaultView?.devicePixelRatio ?? 1;
+  const canvasRect = canvas.getBoundingClientRect();
+  const hostRect = host?.getBoundingClientRect();
+  const px = 1 / ratio;
+  const x = view.frame.left * width - px;
+  const y = view.frame.top * height - px;
+  const w = view.frame.width * width + 2 * px;
+  const h = view.frame.height * height + 2 * px;
+  return (
+    <div ref={setHost} aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      {hostRect ? (
+        <svg
+          data-testid="viewport-camera-frame"
+          width={width}
+          height={height}
+          style={{ position: 'absolute', left: canvasRect.left - hostRect.left, top: canvasRect.top - hostRect.top }}
+        >
+          {view.passepartout.opacity > 0 ? (
+            <path
+              d={`M0 0H${width}V${height}H0Z M${x} ${y}V${y + h}H${x + w}V${y}Z`}
+              fill={view.passepartout.color}
+              fillOpacity={view.passepartout.opacity}
+              fillRule="evenodd"
+            />
+          ) : null}
+          {view.passepartout.opacity > 0 ? (
+            <rect x={x} y={y} width={w} height={h} fill="none" stroke={view.border.solid} strokeWidth={px} shapeRendering="crispEdges" />
+          ) : null}
+          <rect
+            x={x}
+            y={y}
+            width={w}
+            height={h}
+            fill="none"
+            stroke={view.border.dashed}
+            strokeWidth={px}
+            strokeDasharray={`${3 * px} ${3 * px}`}
+            shapeRendering="crispEdges"
+          />
+          {/* A locked view's outer box, one pixel outside ("not to confuse with object selection"). */}
+          {locked ? (
+            <rect
+              x={x - px}
+              y={y - px}
+              width={w + 2 * px}
+              height={h + 2 * px}
+              fill="none"
+              stroke={view.border.locked}
+              strokeWidth={px}
+              strokeDasharray={`${3 * px} ${3 * px}`}
+              shapeRendering="crispEdges"
+            />
+          ) : null}
+        </svg>
+      ) : null}
+    </div>
   );
 }

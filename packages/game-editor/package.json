@@ -1,7 +1,7 @@
 {
   "name": "@volter/game-editor",
   "author": "Volter AI, Inc.",
-  "version": "0.5.66",
+  "version": "0.5.68",
   "publishConfig": {
     "access": "public"
   },
@@ -28,6 +28,7 @@
     "workbench",
     "template",
     "template-dotfiles",
+    "additions",
     "catalog",
     "starter",
     "BUNDLED_NOTICES"
@@ -43,26 +44,28 @@
       "displayName": "Volter Game Editor",
       "colorTheme": "dark",
       "workbench": {
-        "release": "game-editor-9ef15b1f345b-e22708e88dca-darwin-arm64",
-        "tarballSha256": "ffa4556a84b2744c966d3461d022ccf27c5123bcb48025628f3a0129779e9b17"
+        "release": "game-editor-53c70370c14c-d9c0c8f0d344-darwin-arm64",
+        "tarballSha256": "db26cbe669909e5dab61536a01f08d95b7de4b037f6607f40b52bea100194093"
       }
     }
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.66",
-    "@volter/editor-game": "0.5.66",
-    "@volter/editor-react": "0.5.66",
-    "@volter/editor-threejs": "0.5.66",
-    "@volter/editor-xstate": "0.5.66",
-    "@volter/editor-blender": "0.1.9",
-    "@volter/blender-engine": "0.1.8",
-    "@volter/editor-project": "0.5.66",
-    "@volter/editor-sdk": "0.5.66",
-    "@volter/editor-live": "0.5.66",
-    "@volter/game-live": "0.5.66",
+    "@volter/editor-core": "0.5.68",
+    "@volter/editor-game": "0.5.68",
+    "@volter/editor-react": "0.5.68",
+    "@volter/editor-threejs": "0.5.68",
+    "@volter/editor-xstate": "0.5.68",
+    "@volter/editor-blender": "0.1.11",
+    "@volter/dawproject": "0.5.68",
+    "@volter/editor-dawproject": "0.5.68",
+    "@volter/blender-engine": "0.1.9",
+    "@volter/editor-project": "0.5.68",
+    "@volter/editor-sdk": "0.5.68",
+    "@volter/editor-live": "0.5.68",
+    "@volter/game-live": "0.5.68",
     "@modelcontextprotocol/sdk": "1.30.0",
-    "@volter/game-runtime": "0.5.66",
-    "@volter/threejs-runtime": "0.5.66",
+    "@volter/game-runtime": "0.5.68",
+    "@volter/threejs-runtime": "0.5.68",
     "undici": "7.29.1",
     "typescript": "5.9.3",
     "@colyseus/schema": "^4.0.14",
@@ -86,7 +89,9 @@
     "vite": "^6.4.3",
     "ztrack": "^1.5.5",
     "three-bvh-csg": "^0.0.18",
-    "three-mesh-bvh": "^0.9.12"
+    "three-mesh-bvh": "^0.9.12",
+    "@pixi/react": "8.0.5",
+    "pixi.js": "^8.6.0"
   },
   "bin": {
     "volter-game-editor": "./dist-node/cli.js"

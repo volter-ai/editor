@@ -343,11 +343,6 @@ export function emitDirectGodotWorldSyntax(
     },
     {
       kind: 'import-statement',
-      module: '@volter/game-runtime/world3d-react/rapier-physics-bridge',
-      namedBindings: [{ imported: 'rapierPhysicsSystem', local: 'rapierPhysicsSystem' }],
-    },
-    {
-      kind: 'import-statement',
       module: './lib/godot-compat/react-lifecycle',
       namedBindings: [
         { imported: 'GodotProjectStartup', local: 'GodotProjectStartup' },
@@ -535,17 +530,6 @@ export function emitDirectGodotWorldSyntax(
           { kind: 'return-statement', expression: worldExpression },
         ],
         modifiers: ['export', 'default'],
-      },
-      // Godot's physics server as the editor's physics system (`<RapierPhysicsBridge>` in GodotMain).
-      {
-        kind: 'variable-statement',
-        declaration: 'const',
-        name: 'systems',
-        initializer: {
-          kind: 'object-expression',
-          properties: [{ key: 'physics', value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'rapierPhysicsSystem' }, arguments: [] } }],
-        },
-        modifiers: ['export'],
       },
     ],
   };

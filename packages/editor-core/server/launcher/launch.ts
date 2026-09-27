@@ -116,5 +116,34 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   if (result === 'disabled') throw new Error('This session was started with automatic tab opening disabled; open its printed URL.');
   const outcome = await waitForVerifiedEditorOpen(serverUrl, { openAttemptAt,
     onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) });
-  if (outcome.status !== 'connected') throw new Error(`Editor page ${outcome.status === 'never-arrived' ? 'did not arrive' : 'arrived but did not become ready'}; open the printed workbench URL and inspect the session log.`);
+  if (outcome.status !== 'connected') {
+    // A page that arrived and refused to start says why in the session's console ledger (a pinned
+    // engine version, a failed startup): print that, not only where to look.
+    const said = outcome.status === 'never-arrived' ? [] : await currentPageErrors(serverUrl);
+    throw new Error(
+      `Editor page ${outcome.status === 'never-arrived' ? 'did not arrive' : 'arrived but did not become ready'}` +
+        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : '; open the printed workbench URL and inspect the session log.'),
+    );
+  }
+}
+
+/** The console errors the page now open recorded (acknowledged or not: an error seen before and
+ *  acknowledged is still this page's answer), newest last; `[]` when the ledger cannot be read. */
+async function currentPageErrors(serverUrl: string): Promise<string[]> {
+  try {
+    const response = await fetch(new URL('/__editor/console?all=1', serverUrl), { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return [];
+    const body = (await response.json()) as {
+      currentLoadId?: string | null;
+      entries?: { severity?: string; message?: string; lastLoadId?: string }[];
+    };
+    if (!body.currentLoadId) return [];
+    return (body.entries ?? [])
+      .filter(
+        (entry) => entry.severity === 'error' && typeof entry.message === 'string' && entry.lastLoadId === body.currentLoadId,
+      )
+      .map((entry) => entry.message!.split('\n')[0]!);
+  } catch {
+    return [];
+  }
 }

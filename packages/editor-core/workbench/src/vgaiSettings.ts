@@ -69,9 +69,8 @@ import { ConfigurationTarget, IConfigurationService } from '../../../../platform
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions as ConfigurationExtensions, IConfigurationDefaults, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { VGAI_CONFIGURATION_NODE, VGAI_SETTING_KEYS } from './vgaiGeneratedSettings.js';
-import { ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
+import { IWorkbenchThemeService, ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
 import { TITLE_BAR_HEIGHT_KEY } from './vgaiTitleBar.js';
-import { type VgaiLookThemes, vgaiLooks } from './vgaiProduct.js';
 
 // EVERY vgai SETTING, DECLARED AT LOAD. This is the `configuration` contribution point — the
 // same door every core contribution under `src/vs/workbench/contrib/**` declares its own
@@ -140,18 +139,13 @@ const WORKBENCH_ADAPTER_VALUES: readonly (readonly [string, unknown])[] = [
  * surface colour is a theme colour with a NULL default so **Classic paints nothing** — and a
  * colour theme that is always on is precisely what defeats a null default.
  *
- * So the extension declares the themes and the LOOK chooses one: Blender wears `theme-blender`,
- * a look tier's look wears its tier's theme, every other look wears the workbench's own defaults, which is what "Classic's reference frame
- * is our panels with no look declared" means. The mapping is the WORKBENCH side's, not the
- * editor's, and that is deliberate — `Blender` and `blender-icons` are names of artifacts in a
- * built workbench, and an editor package naming them would be the panel-knows-the-frame
- * inversion rule 2 forbids. The bridge hands over the LOOK's own id and nothing else.
- *
- * THE ROWS ARE THE PRODUCT'S (P3, 2026-09-21): a product declares, through
- * `registerVgaiProduct({ looks })`, the theme artifacts its build carries
- * (`packages/model-editor/workbench/extensions/theme-blender`). A look package's
- * workbench tier adds its own row (`registerVgaiLook`) when the build names it (`--look`). A look with no
- * row wears the workbench's own.
+ * So the extension declares the themes and the LOOK chooses one. A THEME IS FOUND BY THE LOOK'S
+ * OWN ID: whatever ships a look's theme (a product's theme extension, a look package's workbench
+ * tier) gives its colour theme and product icon theme that id — `theme-blender` ships `blender`
+ * for the `blender` look — so no table maps one name to another and nothing registers a row.
+ * A look no shipped theme carries wears the workbench's own defaults, which is what "Classic's
+ * reference frame is our panels with no look declared" means. The bridge hands over the LOOK's
+ * own id and nothing else; the editor never names a frame artifact.
  */
 const COLOR_THEME_KEY = 'workbench.colorTheme';
 const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';
@@ -168,11 +162,6 @@ const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';
  * the memory layer is the top one, and writing the look's map alone would hide theirs.
  */
 const COLOR_CUSTOMIZATIONS_KEY = 'workbench.colorCustomizations';
-
-/** Look id (the editor's palette id) → the product's theme artifacts. A row is a reviewable
- *  claim that this build SHIPS a theme for that look; a look with no row wears the workbench's
- *  own, which is the honest answer rather than a half-applied Blender. */
-const LOOK_THEMES: ReadonlyMap<string, VgaiLookThemes> = vgaiLooks();
 
 const WORKBENCH_LOOK_THEME = {
 	color: ThemeSettingDefaults.COLOR_THEME_DARK,
@@ -199,8 +188,8 @@ export interface VgaiSettingsBridge {
 	 *  `subscribe` below fires for these too. */
 	workbenchValues?(): readonly (readonly [string, unknown])[];
 	/** The ACTIVE LOOK's own id — the editor's palette id (`blender`, `graphite-dark`, …).
-	 *  The frame maps it to the colour and product icon themes THIS FORK ships
-	 *  ({@link LOOK_THEMES}); the editor never names a frame artifact. Optional so a bridge
+	 *  The frame applies the colour and product icon themes carrying that same id, when this
+	 *  build ships them; the editor never names a frame artifact. Optional so a bridge
 	 *  older than this member is a missing door rather than a crash — absent, both theme keys
 	 *  are cleared and the workbench keeps whatever a person or a `.vscode/settings.json`
 	 *  chose. `subscribe` below fires for this too. */
@@ -270,6 +259,7 @@ export class VgaiSettings extends Disposable {
 	constructor(
 		private readonly bridge: VgaiSettingsBridge,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IWorkbenchThemeService private readonly themeService: IWorkbenchThemeService,
 	) {
 		super();
 		this.bridge.setProvider({
@@ -383,17 +373,18 @@ export class VgaiSettings extends Disposable {
 				if (!LOOK_KEYS.includes(key)) { continue; }
 				if (value !== undefined) { declared.set(key, value); }
 			}
-			// AND THE LOOK'S THEMES. A look with no row wears the workbench's own defaults
-			// rather than nothing: clearing the keys would hand the window back to whatever a
-			// person last picked, which is not "Classic" — it is "whatever was there".
+			// AND THE LOOK'S THEMES, found by the look's own id. A look no shipped theme carries
+			// wears the workbench's own defaults rather than nothing: clearing the keys would hand
+			// the window back to whatever a person last picked, which is not "Classic" — it is
+			// "whatever was there".
 			const look = this.bridge.lookId?.();
 			if (look !== undefined) {
-				const row = LOOK_THEMES.get(look);
-				const themes = row ?? WORKBENCH_LOOK_THEME;
-				declared.set(COLOR_THEME_KEY, themes.color);
-				declared.set(PRODUCT_ICON_THEME_KEY, themes.productIcon);
+				const [colorThemes, iconThemes] = await Promise.all([this.themeService.getColorThemes(), this.themeService.getProductIconThemes()]);
+				const shipped = colorThemes.some(theme => theme.settingsId === look);
+				declared.set(COLOR_THEME_KEY, shipped ? look : WORKBENCH_LOOK_THEME.color);
+				declared.set(PRODUCT_ICON_THEME_KEY, iconThemes.some(theme => theme.settingsId === look) ? look : WORKBENCH_LOOK_THEME.productIcon);
 				const colors = declared.get(COLOR_CUSTOMIZATIONS_KEY) as Record<string, string> | undefined;
-				if (row && colors) {
+				if (shipped && colors) {
 					// The STAGE's ids only: `vgai.view.background` is chrome, and the theme keeps it.
 					declared.set(COLOR_CUSTOMIZATIONS_KEY, Object.fromEntries(Object.entries(colors).filter(([id]) => id.startsWith('vgai.viewport.') || id.startsWith('vgai.gizmo.'))));
 				}

@@ -453,9 +453,9 @@ export class GameInput {
    * FIXED TICK, then released, as a single bridge call.
    *
    * The contract is deliberately "a tick services it", not "the bridge
-   * accepted it", because the raw primitive underneath (`InputManager.
-   * tapVirtualAction`) only QUEUES: `poll()` promotes the queue to that tick's
-   * just-pressed set, and nothing else ever does. On a visible tab a tick
+   * accepted it", because the raw primitive underneath (a game's
+   * `debug.input.tap`) may only QUEUE: the game's own frame promotes the queue to
+   * that tick's just-pressed set, and nothing else ever does. On a visible tab a tick
    * lands ~16ms later so the difference is invisible; on a HIDDEN tab the host
    * loop is stopped outright, so a queue-only tap sat unserviced and then died
    * — silently, having already reported `delivered: true` (measured:

@@ -92,7 +92,7 @@ export interface RealmServices {
   readonly entryReach: 'full';
   /** The canvas doorway: turn a canvas entry namespace into its adapter. */
   readonly pixiRuntime: typeof resolveCanvasEntryAdapterForEditor;
-  /** The react-world mount's own react/react-dom/WorldProvider. */
+  /** The react-world mount's own react/react-dom. */
   readonly reactDomRuntime: () => Promise<ReactRootMountRuntime>;
   /** The three-ingest doorway: the namespace an ingested three game captures
    *  against. */

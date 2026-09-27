@@ -26,10 +26,9 @@ import {
   registerStudioPreset,
   type StudioPreset,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import type { ViewportPresentation, ViewportRoot } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { createPerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
-import { createWebGLGpuTimer } from '@volter/game-runtime/dev/webgl-gpu-timer';
+import { createPerformanceProfiler } from '../../runtime/dev/performance-profiler';
+import { createWebGLGpuTimer } from '../../runtime/dev/webgl-gpu-timer';
 import type { AuthoringAdapter, Transform } from '@volter/editor-project/adapter';
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { applyWorldRendererConfig } from '@volter/threejs-runtime/adapter/renderer-config';
@@ -58,8 +57,8 @@ import {
   beginAuthoringTransformEdit,
   endAuthoringTransformEdit,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { designTimeMountFor } from '@volter/editor-core/authoring/design-time-mount-registry';
-import { attachProjectAuthoringStage } from '@volter/editor-core/authoring/project-authoring-session';
+import { designTimeMountFor } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
+import { attachProjectAuthoringStage } from '@volter/editor-sdk/kit/authoring/project-authoring-session';
 import {
   isThreejsSurfaceVisible,
   resolveThreeViewportRootId,
@@ -71,8 +70,8 @@ import {
   cameraAuthoringPresentation,
   installCameraAuthoringHost,
 } from '@volter/editor-threejs/kit/camera-authoring';
-import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
-import { collectState } from '@volter/editor-core/command-listener';
+import { registerPresentedCanvasFrame } from '../canvas-preview-frames';
+import { collectState } from '@volter/editor-sdk/kit/command-listener';
 import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';
@@ -107,6 +106,7 @@ import { presentThreeRoots } from '../viewport-root-presentation';
 import { isEditorViewportShadingTarget } from '@volter/editor-threejs/kit/viewport-shading-boundary';
 import { downloadOnlineAssetWithHistory } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 import { bindStagePresenceMarkers } from '@volter/editor-threejs/kit/components/stage-presence-markers';
+import type { ViewportPresentation, ViewportRoot } from '@volter/editor-threejs/viewport-api';
 
 /** Everything the world root's stage hands its medium's design session: the stage's own three
  *  handles. The stage and the medium that registered for `three` agree on it; the kit's mount
@@ -815,6 +815,15 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
         break;
       case 'set-view-preset':
         viewport.setViewPreset(action.preset);
+        break;
+      case 'step-view':
+        viewport.stepView(action.step);
+        break;
+      case 'frame-all':
+        viewport.focusOnScene();
+        break;
+      case 'zoom-view':
+        viewport.zoomStep(action.direction);
         break;
       case 'set-camera-pose':
         viewport.setPose(action.position, action.target, action.fov);

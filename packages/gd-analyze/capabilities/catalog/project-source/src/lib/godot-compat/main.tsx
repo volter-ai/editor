@@ -17,7 +17,6 @@
 import type { Collider, RigidBody } from '@dimforge/rapier3d-compat';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Physics, useRapier } from '@react-three/rapier';
-import { RapierPhysicsBridge } from '@volter/game-runtime/world3d-react/rapier-physics-bridge';
 import { createElement, Fragment, type PropsWithChildren, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { godot_camera_3d_draw } from './camera-3d';
 import { godot_canvas_draw } from './canvas-item';
@@ -115,7 +114,6 @@ function GodotMainLoop() {
 export function GodotMain({ children }: PropsWithChildren) {
   const [ready, setReady] = useState(false);
   // The editor's collider instrument flips `<Physics debug>` through the bridge.
-  const [physicsDebug, setPhysicsDebug] = useState(false);
   useEffect(() => {
     let live = true;
     // The font file is measured by compat's text server and registered with the page as the
@@ -152,12 +150,10 @@ export function GodotMain({ children }: PropsWithChildren) {
       interpolate: false,
       gravity: [0, 0, 0],
       colliders: false,
-      debug: physicsDebug,
-      // The world's physics as the editor's physics system (`rapierPhysicsSystem` in world.tsx).
+      // The editor reads this `<Physics>` itself (it walks the root's fiber tree to the provider).
       children: createElement(
         Fragment,
         null,
-        createElement(RapierPhysicsBridge, { onDebugChange: setPhysicsDebug }),
         createElement(GodotMainLoop),
         children,
         createElement(GodotSpawnHost),

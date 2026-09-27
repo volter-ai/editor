@@ -1,0 +1,77 @@
+{
+  "name": "arena",
+  "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "vgai": "volter-game-editor",
+    "dev": "volter-game-editor edit .",
+    "dev:standalone": "vite",
+    "bake:weapons": "node scripts/bake-arena-weapons.mjs",
+    "bake:characters": "node scripts/bake-characters.mjs",
+    "preview": "vite preview",
+    "build": "tsc --noEmit && vite build",
+    "postinstall": "node scripts/patch-drei-stats-gl.mjs",
+    "check-idioms": "npx tsx check-idioms.ts .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json",
+    "validate-assets": "npx tsx validate-assets.ts .",
+    "validate-manifest": "npx tsx validate-manifest.ts vgai.project.json"
+  },
+  "dependencies": {
+    "@colyseus/schema": "^4.0.14",
+    "@colyseus/sdk": "^0.17.34",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@volter/blender-engine": "^0.1.7",
+    "@volter/editor-blender": "^0.1.8",
+    "@volter/editor-project": "^0.5.65",
+    "@volter/game-runtime": "^0.5.65",
+    "@volter/threejs-runtime": "^0.5.65",
+    "react": "~19.2.4",
+    "react-dom": "~19.2.4",
+    "three": "0.180.0",
+    "three-bvh-csg": "^0.0.18",
+    "three-mesh-bvh": "^0.9.12",
+    "zod": "4.3.6",
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "@react-three/rapier": "^2.2.0",
+    "meshoptimizer": "^1.2.0",
+    "xstate": "^5.32.4"
+  },
+  "devDependencies": {
+    "@colyseus/ws-transport": "^0.17.9",
+    "@storybook/react": "10.6.0",
+    "@types/node": "^25.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.180.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@volter/editor-core": "^0.5.65",
+    "@volter/editor-game": "^0.5.65",
+    "@volter/editor-live": "^0.5.65",
+    "@volter/editor-sdk": "^0.5.65",
+    "@volter/game-editor": "^0.5.65",
+    "colyseus": "^0.17.8",
+    "storybook": "10.6.0",
+    "tsx": "^4.23.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "ztrack": "1.5.5",
+    "@volter/game-live": "^0.5.65"
+  },
+  "overrides": {
+    "@react-three/drei": {
+      "stats-gl": "4.2.3"
+    }
+  },
+  "vgai": {
+    "tools": [
+      "./src/tools/bake-module.tool.ts",
+      "./src/tools/bake-preview.tool.ts"
+    ]
+  }
+}

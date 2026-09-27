@@ -346,6 +346,110 @@
   position: static;
 }
 
+/* THE STAGE'S BAR — the look's `stage.chrome` (`StageChromeContribution` in `editor-looks.ts`),
+   drawn by `WorkspaceDocumentSurface` as one row across the stage's top: a group at its start
+   and one at its end, each holding in order the display controls (portalled into their slot by
+   `ViewportOverlay`), the transform tools and the stage's transform controls, as the look
+   places them. `strip` is a flush panel band (Godot's 3D toolbar, Unity's Scene toolbar);
+   `pills` a row of rounded pills over the view (Unreal's viewport toolbar). Controls left off
+   the bar (the shelf, a corner toolbar, the view-name pill) start under it through
+   `--vgai-viewport-overlay-top`. */
+.vgai-dock-document-content[data-vgai-stage-bar] {
+  --vgai-stage-bar-control: var(--vgai-control-comfortable-height, 28px);
+  --vgai-stage-bar-inset: var(--vgai-space-1);
+  --vgai-stage-bar-height: calc(var(--vgai-stage-bar-control) + 2 * var(--vgai-stage-bar-inset));
+  --vgai-viewport-overlay-top: calc(var(--vgai-stage-bar-height) + var(--vgai-space-2));
+}
+.vgai-dock-document-content[data-vgai-stage-bar="pills"] {
+  --vgai-stage-bar-inset: var(--vgai-space-2);
+}
+.vgai-stage-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--vgai-stage-bar-height);
+  padding-inline: var(--vgai-space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vgai-space-2);
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  pointer-events: none;
+}
+/* A flush band is a toolbar, not a see-through overlay: nothing under it is picked through it.
+   Pills leave the view between them to the stage. */
+.vgai-stage-bar[data-form="strip"] {
+  pointer-events: auto;
+  background: var(--vgai-surface-header);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+.vgai-stage-bar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  min-width: 0;
+  pointer-events: auto;
+}
+.vgai-stage-bar-slot {
+  display: contents;
+}
+/* Every control the bar carries sits in its row, at the bar's control height. */
+.vgai-stage-bar .vgai-viewport-toolbar {
+  position: static;
+}
+.vgai-stage-bar :is(.vgai-floating-toolbar, .vgai-toolbar) {
+  height: var(--vgai-stage-bar-control);
+  align-items: center;
+}
+
+/* On a STRIP the controls are flat on the band, as Godot's and Unity's toolbar buttons are. */
+.vgai-stage-bar[data-form="strip"] :is(.vgai-floating-toolbar, .vgai-toolbar) {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* On PILLS each control, and each group of tools, is its own rounded pill (`level-editor.png`). */
+.vgai-stage-bar[data-form="pills"] :is(.vgai-floating-toolbar, .vgai-toolbar) {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  gap: var(--vgai-space-2);
+}
+.vgai-stage-bar[data-form="pills"] .vgai-stage-display > *,
+.vgai-stage-bar[data-form="pills"] .vgai-transform-header-controls > * {
+  display: inline-flex;
+  align-items: center;
+  height: var(--vgai-stage-bar-control);
+  padding-inline: var(--vgai-space-1);
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-island-surface, var(--vgai-surface-overlay));
+}
+.vgai-stage-bar[data-form="pills"] .vgai-viewport-toolbar-left {
+  display: inline-flex;
+  align-items: center;
+  height: var(--vgai-stage-bar-control);
+  padding-inline: var(--vgai-space-1);
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-island-surface, var(--vgai-surface-overlay));
+}
+
+/* An empty rail leaves the stage's left edge to the controls the look puts there. */
+.vgai-dock-document-content[data-vgai-stage-rail="empty"] {
+  --vgai-stage-name-left: var(--vgai-space-2);
+}
+
+/* THE VIEW'S NAME AS A PILL (`stage.chrome.viewName` `menu`, Godot's "⋮ Perspective"): the
+   pill is the button, so the menu it opens does not widen it. */
+.vgai-viewport-view-pill .vgai-btn[data-testid="viewport-view-name"] {
+  border-radius: var(--vgai-radius-sm);
+  background: var(--vgai-island-surface, var(--vgai-surface-overlay));
+}
+
 /* The document's OWN header keeps the leading, full-width part of the row,
    so a header that right-aligns its controls (the Game document's) still
    reaches the trailing edge when it is alone; the host's 3D controls, when

@@ -3,44 +3,156 @@
  *
  *   synth channel n ─▶ strip head ─▶ [devices] ─▶ fader ─▶ panner ─▶ master sum
  *                                   └▶ pre sends     └▶ post sends ─▶ bus head ─▶ [devices] ─▶ fader ─▶ panner ─▶ master sum
- *   master sum ─▶ [master devices] ─▶ master fader ─▶ destination
+ *   master sum ─▶ [master devices] ─▶ master fader ─▶ master panner ─▶ destination
  *
  * Linear devices are native nodes configured by `dsp.ts`'s specification-exact mapping; the
  * compressor and limiter are `dynamics.worklet.ts`, the same code the export runs; a convolution
- * device is a ConvolverNode with `normalize = false` holding the IR `prepareIr` made.
+ * device is a ConvolverNode with `normalize = false` holding the IR `prepareIr` made. Every level
+ * (fader, pan, send, mute, solo) is `offline-mix.ts`'s `stripLevels`, so both mixes silence and
+ * weigh the same strips.
+ *
+ * A build is STAGED: the new graph is made beside the one sounding and swapped in only when it is
+ * complete and still wanted, so a build that fails or is superseded leaves the old graph playing
+ * and disconnects only its own nodes. A change that is only a level is applied to the sounding
+ * graph in place (`apply`): rebuilding would cut the reverb's tail and reset the dynamics.
  */
+import { projectModuleUrl } from '@volter/editor-sdk/contributions';
+import { audioSegments, envelopeAt } from '../comp';
+import { everyClip } from '../launches';
+import { readWav } from '../wav';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { prepareIr } from './convolve';
-import { type Band, biquadNode, dbToGain } from './dsp';
+import { AUTOMATION_GRID, automationCurve, mixTarget, motionFor } from './automation';
+import { biquadNode, validBands } from './dsp';
+import { destinationOf, soloActive, stripLevels } from './offline-mix';
 import workletUrl from './dynamics.worklet.ts?worker&url';
 
 export type IrLoader = (path: string) => Promise<AudioBuffer>;
 
-/** The part of a piece the mix graph depends on; the graph is rebuilt only when it changes. */
-export function mixSignature(piece: Piece): string {
-  return JSON.stringify(piece.tracks.map((track) => [track.id, track.name, track.channel]));
+/**
+ * The preview's IR loader: the project file fetched from its served address and read as the
+ * export reads it (`readWav`), at the file's own rate, so `prepareIr` resamples it on both sides.
+ * Decoded by the browser instead, the IR arrived resampled by a different filter and the reverb
+ * bus nulled against the export at only −37 dB; read this way it nulls at −141 dB, like every
+ * other stage of the mix.
+ */
+export function servedIrLoader(context: BaseAudioContext): IrLoader {
+  return async (path) => {
+    const url = projectModuleUrl(path);
+    if (!url) throw new Error(`No served address for ${path}.`);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${path}: ${response.status} ${response.statusText}`);
+    const wav = readWav(new Uint8Array(await response.arrayBuffer()));
+    const buffer = context.createBuffer(wav.channels.length, wav.channels[0]?.length ?? 1, wav.sampleRate);
+    wav.channels.forEach((channel, index) => buffer.copyToChannel(new Float32Array(channel), index));
+    return buffer;
+  };
 }
 
+/**
+ * The part of a piece the graph's SHAPE depends on: when it changes the graph must be rebuilt.
+ * Levels (volume, pan, mute, solo, send level) are left out; `LiveMix.apply` sets them in place.
+ */
+export function mixSignature(piece: Piece): string {
+  return JSON.stringify(
+    piece.tracks.map((track) => [
+      track.id,
+      track.name,
+      track.channel && [track.channel.role, track.channel.devices, track.channel.sends.map((send) => [send.to, send.pre])],
+      // The recordings its clips play, arranged or in launcher slots: each is loaded as the graph is built.
+      everyClip(piece, track).flatMap((clip) => clip.takes.map((take) => take.file)),
+    ]),
+  );
+}
+
+/** What feeds the mix: the synth's sixteen individual channel outputs. */
+export interface MixSource {
+  connectIndividualOutputs(inputs: AudioNode[]): void;
+  disconnectIndividualOutputs(inputs: AudioNode[]): void;
+}
+
+/** One strip's level nodes, kept so a level change is set in place. */
+interface StripNodes {
+  readonly fader: GainNode;
+  readonly panner: StereoPannerNode;
+  /** By index in `channel.sends`; `null` where the send names no bus. */
+  readonly sends: readonly (GainNode | null)[];
+  /** The strip's output (after fader and pan), left and right, for its meter (`levels`). */
+  readonly meter: readonly [AnalyserNode, AnalyserNode];
+}
+
+/** A built graph: its nodes, the sixteen channel inputs, each strip's level nodes, and its output. */
+interface Graph {
+  readonly nodes: AudioNode[];
+  readonly heads: AudioNode[];
+  /** Each audio track's strip input, by track id: where its clips' sources connect. */
+  readonly audioHeads: Map<string, AudioNode>;
+  readonly strips: Map<string, StripNodes>;
+  output: AudioNode | null;
+}
+
+/** Samples a meter reads: the last ~43 ms at 48 kHz, about one screen frame and a half. */
+const METER_WINDOW = 2048;
+
+/** How quickly an in-place level change settles: a ~10 ms glide, so a fader move does not click. */
+const LEVEL_TIME_CONSTANT = 0.01;
+
 export class LiveMix {
-  private nodes: AudioNode[] = [];
-  /** The node each synth channel's output feeds (index = MIDI channel). */
-  private heads: AudioNode[] = [];
+  private graph: Graph | null = null;
+  private source: MixSource | null = null;
+  /** The inputs the source is connected to NOW: exactly these are disconnected, never a guess. */
+  private connectedTo: AudioNode[] = [];
   private workletReady: Promise<void> | null = null;
   private readonly irCache = new Map<string, AudioBuffer>();
+  /** Compressors built with a sidechain, waiting for their source strip to exist (`build`). */
+  private pendingSidechains: { node: AudioNode; source: string }[] = [];
+  /** Decoded recordings by project path, and the sources playing them now. */
+  private readonly recordings = new Map<string, AudioBuffer>();
+  private readonly playing = new Set<AudioBufferSourceNode>();
+  /** The automated parameters of the sounding graph, for the piece they were read from. */
+  private curves: { piece: Piece; beatAt: (second: number) => number; params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] } | null = null;
 
   constructor(
-    private readonly context: AudioContext,
+    private readonly context: BaseAudioContext,
     private readonly loadIr: IrLoader,
   ) {}
 
   /** The 16 inputs a synth's individual outputs connect to (silent sinks for unused channels). */
   get channelInputs(): AudioNode[] {
-    return this.heads;
+    return this.graph?.heads ?? [];
+  }
+
+  /** Whether the source is connected to the graph now built (what the engine's state reports). */
+  get connected(): boolean {
+    return this.connectedTo.length > 0 && this.connectedTo === this.graph?.heads;
+  }
+
+  /** Feed the mix from `source`: connected to the graph now, and to each graph swapped in later. */
+  attach(source: MixSource): void {
+    this.detach();
+    this.source = source;
+    if (this.graph) this.connectSource(this.graph.heads);
+  }
+
+  private connectSource(heads: AudioNode[]): void {
+    if (!this.source) return;
+    this.source.connectIndividualOutputs(heads);
+    this.connectedTo = heads;
+  }
+
+  private detach(): void {
+    if (this.source && this.connectedTo.length > 0) this.source.disconnectIndividualOutputs(this.connectedTo);
+    this.connectedTo = [];
   }
 
   private async ensureWorklet(): Promise<void> {
     this.workletReady ??= this.context.audioWorklet.addModule(workletUrl);
-    await this.workletReady;
+    try {
+      await this.workletReady;
+    } catch (error) {
+      this.workletReady = null;
+      throw error;
+    }
   }
 
   private async ir(path: string, predelay: number): Promise<AudioBuffer> {
@@ -57,124 +169,357 @@ export class LiveMix {
     return buffer;
   }
 
-  /** The device chain of a strip as connected nodes: returns its [input, output]. */
-  private async chain(track: PieceTrack): Promise<[AudioNode, AudioNode]> {
+  /** The device chain of a strip as connected nodes, recorded in `nodes`: returns its [input, output]. */
+  private async chain(track: PieceTrack, nodes: AudioNode[]): Promise<[AudioNode, AudioNode]> {
     const input = this.context.createGain();
-    this.nodes.push(input);
+    nodes.push(input);
     let tail: AudioNode = input;
     for (const device of track.channel?.devices ?? []) {
       const params = device.params as Readonly<Record<string, unknown>>;
       if (device.plugin === 'equalizer') {
-        for (const band of (Array.isArray(params['bands']) ? params['bands'] : []) as Band[]) {
+        for (const band of validBands(params['bands'])) {
           const node = this.context.createBiquadFilter();
           const config = biquadNode(band);
           node.type = config.type;
           node.frequency.value = config.frequency;
           node.gain.value = config.gain;
           node.Q.value = config.Q;
+          nodes.push(node);
           tail.connect(node);
           tail = node;
-          this.nodes.push(node);
         }
       } else if (device.plugin === 'compressor' || device.plugin === 'limiter') {
         await this.ensureWorklet();
+        const sidechain = device.plugin === 'compressor' && typeof params['sidechain'] === 'string' ? params['sidechain'] : null;
         const node = new AudioWorkletNode(this.context, 'volter-dynamics', {
-          numberOfInputs: 1,
+          numberOfInputs: sidechain ? 2 : 1,
           numberOfOutputs: 1,
           outputChannelCount: [2],
           processorOptions: { kind: device.plugin, params },
         });
+        nodes.push(node);
         tail.connect(node);
         tail = node;
-        this.nodes.push(node);
+        if (sidechain) this.pendingSidechains.push({ node, source: sidechain });
       } else if (device.plugin === 'convolution') {
         const path = typeof params['ir'] === 'string' ? params['ir'] : '';
         const node = this.context.createConvolver();
+        nodes.push(node);
         node.normalize = false;
         node.buffer = await this.ir(path, typeof params['predelay'] === 'number' ? params['predelay'] : 0);
         const wet = typeof params['wet'] === 'number' ? params['wet'] : 1;
         if (wet >= 1) {
           tail.connect(node);
           tail = node;
-          this.nodes.push(node);
         } else {
           const sum = this.context.createGain();
           const dry = this.context.createGain();
           const wetGain = this.context.createGain();
+          nodes.push(sum, dry, wetGain);
           dry.gain.value = 1 - wet;
           wetGain.gain.value = wet;
           tail.connect(dry).connect(sum);
           tail.connect(node).connect(wetGain).connect(sum);
           tail = sum;
-          this.nodes.push(node, sum, dry, wetGain);
         }
       }
     }
     return [input, tail];
   }
 
-  /** Build the graph for this piece; `channelOf` maps soundfont tracks to their MIDI channel. */
-  async build(piece: Piece, channelOf: ReadonlyMap<string, number>): Promise<void> {
-    this.dispose();
+  /** A strip's fader and panner after `output`, set to the strip's levels, recorded in `graph`. */
+  private strip(graph: Graph, piece: Piece, track: PieceTrack, soloed: boolean, output: AudioNode, sends: (GainNode | null)[] = []): StereoPannerNode {
+    const levels = stripLevels(piece, track, soloed);
+    const fader = this.context.createGain();
+    fader.gain.value = levels.fader;
+    const panner = this.context.createStereoPanner();
+    panner.pan.value = levels.pan;
+    const split = this.context.createChannelSplitter(2);
+    const meter: [AnalyserNode, AnalyserNode] = [this.context.createAnalyser(), this.context.createAnalyser()];
+    for (const [channel, analyser] of meter.entries()) {
+      analyser.fftSize = METER_WINDOW;
+      split.connect(analyser, channel);
+    }
+    graph.nodes.push(fader, panner, split, ...meter);
+    output.connect(fader).connect(panner);
+    panner.connect(split);
+    graph.strips.set(track.id, { fader, panner, sends, meter });
+    return panner;
+  }
+
+  /**
+   * Build the graph for this piece; `channelOf` maps soundfont tracks to their MIDI channel. The
+   * new graph replaces the sounding one only when complete and `current()` still says it is
+   * wanted; otherwise its own nodes are disconnected and it answers `false`. A build that throws
+   * also disconnects only its own nodes: the graph that was sounding keeps sounding.
+   */
+  async build(piece: Piece, channelOf: ReadonlyMap<string, number>, current: () => boolean = () => true): Promise<boolean> {
     const context = this.context;
-    const masterSum = context.createGain();
-    this.nodes.push(masterSum);
-    const busHeads = new Map<string, AudioNode>();
-    const soloed = piece.tracks.some((track) => track.channel?.solo);
-    this.heads = Array.from({ length: 16 }, () => {
-      const sink = context.createGain();
-      this.nodes.push(sink);
-      return sink;
-    });
-    // Buses first, so sends have somewhere to go.
-    for (const track of piece.tracks) {
-      if (track.channel?.role !== 'effect') continue;
-      const [input, output] = await this.chain(track);
-      const fader = context.createGain();
-      fader.gain.value = track.channel.mute ? 0 : dbToGain(track.channel.volume);
-      const panner = context.createStereoPanner();
-      panner.pan.value = track.channel.pan;
-      output.connect(fader).connect(panner).connect(masterSum);
-      this.nodes.push(fader, panner);
-      busHeads.set(track.name, input);
-    }
-    for (const track of piece.tracks) {
-      const channel = channelOf.get(track.id);
-      if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
-      const audible = !track.channel?.mute && (!soloed || track.channel?.solo === true);
-      const [input, output] = await this.chain(track);
-      this.heads[channel]?.connect(input);
-      const fader = context.createGain();
-      fader.gain.value = audible ? dbToGain(track.channel?.volume ?? 0) : 0;
-      const panner = context.createStereoPanner();
-      panner.pan.value = track.channel?.pan ?? 0;
-      output.connect(fader).connect(panner).connect(masterSum);
-      this.nodes.push(fader, panner);
-      for (const send of track.channel?.sends ?? []) {
-        const bus = busHeads.get(send.to);
-        if (!bus) continue;
-        const level = context.createGain();
-        level.gain.value = audible ? dbToGain(send.level) : 0;
-        (send.pre ? output : panner).connect(level).connect(bus);
-        this.nodes.push(level);
+    const graph: Graph = { nodes: [], heads: [], audioHeads: new Map(), strips: new Map(), output: null };
+    this.pendingSidechains = [];
+    const discard = (): void => {
+      for (const node of graph.nodes) node.disconnect();
+    };
+    try {
+      const masterSum = context.createGain();
+      graph.nodes.push(masterSum);
+      const busHeads = new Map<string, AudioNode>();
+      const soloed = soloActive(piece);
+      for (let i = 0; i < 16; i++) {
+        const sink = context.createGain();
+        graph.nodes.push(sink);
+        graph.heads.push(sink);
       }
+      // Buses first, so sends have somewhere to go.
+      for (const track of piece.tracks) {
+        if (track.channel?.role !== 'effect') continue;
+        const [input, output] = await this.chain(track, graph.nodes);
+        this.strip(graph, piece, track, soloed, output).connect(masterSum);
+        busHeads.set(track.name, input);
+      }
+      // A strip's sends, pre-fader from its chain's output, post-fader from its panner.
+      const wireSends = (track: PieceTrack, output: AudioNode, panner: AudioNode, sends: (GainNode | null)[]): void => {
+        const levels = stripLevels(piece, track, soloed);
+        (track.channel?.sends ?? []).forEach((send, index) => {
+          const bus = busHeads.get(send.to);
+          if (!bus) {
+            sends.push(null);
+            return;
+          }
+          const level = context.createGain();
+          level.gain.value = levels.sends[index] ?? 0;
+          graph.nodes.push(level);
+          (send.pre ? output : panner).connect(level).connect(bus);
+          sends.push(level);
+        });
+      };
+      // Group tracks' chains first, so the strips they contain have their inputs to go to.
+      const groupChains = new Map<string, [AudioNode, AudioNode]>();
+      for (const track of piece.tracks) {
+        if (track.channel?.role === 'submix') groupChains.set(track.id, await this.chain(track, graph.nodes));
+      }
+      const destination = (track: PieceTrack): AudioNode => {
+        const group = destinationOf(piece, track);
+        return (group && groupChains.get(group.id)?.[0]) ?? masterSum;
+      };
+      for (const track of piece.tracks) {
+        const chain = groupChains.get(track.id);
+        if (!chain) continue;
+        const sends: (GainNode | null)[] = [];
+        const panner = this.strip(graph, piece, track, soloed, chain[1], sends);
+        panner.connect(destination(track));
+        wireSends(track, chain[1], panner, sends);
+      }
+      for (const track of piece.tracks) {
+        const channel = channelOf.get(track.id);
+        if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
+        const [input, output] = await this.chain(track, graph.nodes);
+        graph.heads[channel]?.connect(input);
+        const sends: (GainNode | null)[] = [];
+        const panner = this.strip(graph, piece, track, soloed, output, sends);
+        panner.connect(destination(track));
+        wireSends(track, output, panner, sends);
+      }
+      // Audio tracks: their strips take the clips' recordings (`scheduleAudio`), loaded now so a
+      // play never waits on a file.
+      for (const track of piece.tracks) {
+        if (channelOf.has(track.id) || (track.channel?.role ?? 'regular') !== 'regular' || !everyClip(piece, track).some((clip) => clip.audio)) continue;
+        const [input, output] = await this.chain(track, graph.nodes);
+        graph.audioHeads.set(track.id, input);
+        const sends: (GainNode | null)[] = [];
+        const panner = this.strip(graph, piece, track, soloed, output, sends);
+        panner.connect(destination(track));
+        wireSends(track, output, panner, sends);
+        for (const clip of everyClip(piece, track)) for (const take of clip.takes) await this.recording(take.file);
+      }
+      // Each sidechained compressor hears its source track's strip after its fader and pan.
+      for (const { node, source } of this.pendingSidechains) {
+        const track = piece.tracks.find((candidate) => candidate.name === source);
+        const strip = track ? graph.strips.get(track.id) : undefined;
+        strip?.panner.connect(node, 0, 1);
+      }
+      const masterTrack = piece.tracks.find((track) => track.channel?.role === 'master');
+      if (masterTrack) {
+        const [input, output] = await this.chain(masterTrack, graph.nodes);
+        masterSum.connect(input);
+        graph.output = this.strip(graph, piece, masterTrack, soloed, output);
+      } else {
+        graph.output = masterSum;
+      }
+    } catch (error) {
+      discard();
+      throw error;
     }
-    const masterTrack = piece.tracks.find((track) => track.channel?.role === 'master');
-    if (masterTrack) {
-      const [input, output] = await this.chain(masterTrack);
-      const fader = context.createGain();
-      fader.gain.value = dbToGain(masterTrack.channel?.volume ?? 0);
-      masterSum.connect(input);
-      output.connect(fader).connect(context.destination);
-      this.nodes.push(fader);
-    } else {
-      masterSum.connect(context.destination);
+    if (!current()) {
+      discard();
+      return false;
+    }
+    // Swap: the source leaves the old graph's inputs (exactly those it was connected to), the old
+    // graph is taken down, the new one reaches the destination and the source feeds it.
+    this.detach();
+    this.takeDown();
+    this.curves = null;
+    this.graph = graph;
+    graph.output?.connect(context.destination);
+    this.connectSource(graph.heads);
+    return true;
+  }
+
+  /**
+   * Set every strip's levels from `piece` on the sounding graph, gliding over ~10 ms: what a fader,
+   * pan, mute, solo or send-level change needs, without a rebuild. A strip the graph does not have
+   * (the shape changed; a rebuild is coming) is left alone.
+   */
+  apply(piece: Piece): void {
+    const graph = this.graph;
+    if (!graph) return;
+    const now = this.context.currentTime;
+    const set = (param: AudioParam, value: number): void => {
+      param.cancelScheduledValues(now);
+      param.setTargetAtTime(value, now, LEVEL_TIME_CONSTANT);
+    };
+    const soloed = soloActive(piece);
+    for (const track of piece.tracks) {
+      const nodes = graph.strips.get(track.id);
+      if (!nodes || !track.channel) continue;
+      const levels = stripLevels(piece, track, soloed);
+      // A moving parameter (a lane, an LFO) follows its curve (`automate`); a silenced strip is silenced anyway.
+      const automated = (target: string, level: number): boolean => level !== 0 && levels.sounding && motionFor(track, target) !== null;
+      if (!automated('volume', levels.fader)) set(nodes.fader.gain, levels.fader);
+      if (!automated('pan', 1)) set(nodes.panner.pan, levels.pan);
+      nodes.sends.forEach((send, index) => {
+        const to = track.channel?.sends[index]?.to ?? '';
+        if (send && !automated(`send:${to}`, levels.sends[index] ?? 0)) set(send.gain, levels.sends[index] ?? 0);
+      });
     }
   }
 
+  /** The automated strip parameters of the sounding graph for `piece`, each with its lane's curve. */
+  private automatedParams(piece: Piece, beatAt: (second: number) => number): { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] {
+    const graph = this.graph;
+    if (!graph) return [];
+    if (this.curves?.piece === piece && this.curves.beatAt === beatAt) return this.curves.params;
+    const soloed = soloActive(piece);
+    const params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] = [];
+    for (const track of piece.tracks) {
+      const nodes = graph.strips.get(track.id);
+      if (!nodes || !track.channel || (track.lanes.length === 0 && track.channel.lfos.length === 0)) continue;
+      const levels = stripLevels(piece, track, soloed);
+      if (!levels.sounding) continue;
+      const add = (param: AudioParam | undefined, target: string): void => {
+        const motion = motionFor(track, target);
+        const parsed = mixTarget(target);
+        if (param && motion && parsed) params.push({ param, curve: automationCurve(motion, parsed, beatAt) });
+      };
+      add(levels.fader !== 0 ? nodes.fader.gain : undefined, 'volume');
+      add(nodes.panner.pan, 'pan');
+      track.channel.sends.forEach((send, index) => {
+        if ((levels.sends[index] ?? 0) !== 0) add(nodes.sends[index]?.gain, `send:${send.to}`);
+      });
+    }
+    this.curves = { piece, beatAt, params };
+    return params;
+  }
+
+  /**
+   * Schedule the tracks' mixer automation for one pass of playing time (`preview-engine`'s
+   * `passes`): each automated parameter set to its value where the pass begins, then a straight
+   * line to every grid value in it, exactly the lines the offline mix applies per sample.
+   */
+  automate(piece: Piece, beatAt: (second: number) => number, pass: { readonly offset: number; readonly from: number; readonly to: number }, at: (second: number) => number): void {
+    for (const { param, curve } of this.automatedParams(piece, beatAt)) {
+      param.setValueAtTime(curve.at(pass.from), at(pass.offset + pass.from));
+      for (let k = Math.floor(pass.from / AUTOMATION_GRID) + 1; k * AUTOMATION_GRID <= pass.to; k++) {
+        param.linearRampToValueAtTime(curve.grid(k), at(pass.offset + k * AUTOMATION_GRID));
+      }
+    }
+  }
+
+  /** A recording an audio clip names, decoded as the export decodes it (`readWav`), cached. */
+  private async recording(path: string): Promise<AudioBuffer> {
+    let buffer = this.recordings.get(path);
+    if (!buffer) {
+      buffer = await this.loadIr(path);
+      this.recordings.set(path, buffer);
+    }
+    return buffer;
+  }
+
+  /**
+   * Start the audio clips' recordings for one pass of playing time (`preview-engine`'s `passes`):
+   * each clip's stretch inside the pass, from the file position it has reached there, at its gain,
+   * into its track's strip; the same placement the export's `placeAudio` makes.
+   */
+  scheduleAudio(piece: Piece, secondsAt: (beat: number) => number, pass: { readonly offset: number; readonly from: number; readonly to: number }, at: (second: number) => number): void {
+    const graph = this.graph;
+    if (!graph) return;
+    for (const track of piece.tracks) {
+      const head = graph.audioHeads.get(track.id);
+      if (!head) continue;
+      for (const clip of track.clips) {
+        for (const segment of audioSegments(clip, secondsAt)) {
+          const buffer = this.recordings.get(segment.audio.file);
+          if (!buffer) continue;
+          const start = Math.max(segment.from, pass.from);
+          const end = Math.min(segment.to, pass.to);
+          if (end <= start) continue;
+          const source = this.context.createBufferSource();
+          source.buffer = buffer;
+          const gain = this.context.createGain();
+          // The segment's envelope from where this pass meets it: its value there, then a line to each point after.
+          gain.gain.setValueAtTime(envelopeAt(segment.envelope, start), at(pass.offset + start));
+          for (const [second, value] of segment.envelope) if (second > start) gain.gain.linearRampToValueAtTime(value, at(pass.offset + second));
+          source.connect(gain).connect(head);
+          source.start(at(pass.offset + start), segment.sourceAt + (start - segment.from), end - start);
+          source.onended = () => {
+            source.disconnect();
+            gain.disconnect();
+            this.playing.delete(source);
+          };
+          this.playing.add(source);
+        }
+      }
+    }
+  }
+
+  /** Stop every recording started (the transport stopped or starts somewhere else). */
+  stopAudio(): void {
+    for (const source of this.playing) source.stop();
+    this.playing.clear();
+  }
+
+  /** Drop every scheduled automation value (the transport stopped or starts somewhere else). */
+  cancelAutomation(): void {
+    for (const { param } of this.curves?.params ?? []) param.cancelScheduledValues(0);
+    this.curves = null;
+  }
+
+  private takeDown(): void {
+    for (const node of this.graph?.nodes ?? []) node.disconnect();
+    this.graph = null;
+  }
+
+  /** Disconnect the source and every node of the sounding graph. */
+  /**
+   * Each strip's peak level now, left and right, in dBFS (−Infinity for silence), by track id:
+   * the largest sample of the last {@link METER_WINDOW} samples out of its fader and pan.
+   */
+  levels(): Map<string, readonly [number, number]> {
+    const levels = new Map<string, readonly [number, number]>();
+    const samples = new Float32Array(METER_WINDOW);
+    const peakDb = (analyser: AnalyserNode): number => {
+      analyser.getFloatTimeDomainData(samples);
+      let peak = 0;
+      for (const sample of samples) peak = Math.max(peak, Math.abs(sample));
+      return 20 * Math.log10(peak);
+    };
+    for (const [trackId, strip] of this.graph?.strips ?? []) levels.set(trackId, [peakDb(strip.meter[0]), peakDb(strip.meter[1])]);
+    return levels;
+  }
+
   dispose(): void {
-    for (const node of this.nodes) node.disconnect();
-    this.nodes = [];
-    this.heads = [];
+    this.detach();
+    this.takeDown();
+    this.source = null;
   }
 }

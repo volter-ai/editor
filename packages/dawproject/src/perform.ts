@@ -5,7 +5,8 @@
  *   - the TEMPO MAP (`<Points target="tempo">` in `<Transport>`): beats to seconds, linear ramps
  *     between points unless a point holds;
  *   - ARTICULATIONS (`artic` on a note): staccato, staccatissimo, tenuto, accent, marcato and
- *     legato shape length and velocity;
+ *     legato shape length and velocity; every note keeps its `artic`, so an instrument that
+ *     records one apart (`articulations` on its device) plays it on that patch;
  *   - CONTROLLER LANES (`<Points target="cc11">` in a clip): sampled into controller events;
  *   - HUMANISING (`<Device plugin="humanize">` on a channel): seeded, so every render is the same,
  *     and CORRELATED (a slow random walk, not independent jitter per note), because a player who is
@@ -20,10 +21,14 @@ import type { Piece, PiecePoints } from './piece';
 
 export interface PerformedNote {
   readonly track: string;
+  /** The written start, in beats: which section a note belongs to (`start` may drift across it). */
+  readonly beat: number;
   readonly start: number;
   readonly end: number;
   readonly pitch: number;
   readonly velocity: number;
+  /** How it is played (`staccato`, `pizzicato`, …), or `null`. */
+  readonly artic: string | null;
 }
 
 export interface PerformedControl {
@@ -128,6 +133,9 @@ const ARTICULATION: Record<string, { length: number; velocity: number; overlap?:
   accent: { length: 0.9, velocity: 0.15 },
   marcato: { length: 0.75, velocity: 0.22 },
   legato: { length: 1, velocity: 0, overlap: 0.06 },
+  // Techniques, not shapes: written length and velocity; the patch plays them.
+  pizzicato: { length: 1, velocity: 0 },
+  tremolo: { length: 1, velocity: 0 },
 };
 
 /** Where every written note and lane of the piece sounds, in seconds. */
@@ -150,10 +158,12 @@ export function perform(piece: Piece): Performance {
       const length = (writtenEnd - secondsAt(note.start)) * (shape?.length ?? 1) + (shape?.overlap ?? 0);
       return {
         track: track.id,
+        beat: note.start,
         start: Math.max(0, start),
         end: Math.max(0, start) + Math.max(0.02, length),
         pitch: note.pitch,
         velocity: Math.max(0.01, Math.min(1, note.vel + (shape?.velocity ?? 0) + (velocityDrift[index] ?? 0))),
+        artic: note.artic,
       };
     });
     // A pitch struck again while it sounds: end the earlier note 12 ms before the new one.

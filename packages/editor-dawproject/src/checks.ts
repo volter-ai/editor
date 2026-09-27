@@ -10,11 +10,26 @@
  *     half-beat; against a single-line bass track the pair is already the top-line pair, so it
  *     is not counted twice
  *   - the same pitch struck again in a track while it is still sounding
+ *   - a technique (`pizzicato`, `tremolo`) on a track whose instrument names no patch for it in
+ *     `articulations`: nothing else can play it, so it would sound as a sustained note
+ *   - with the piece's banks: a note no sample of its patch plays, a program a bank lacks
+ *   - more melodic tracks than the synthesizer has channels (15, channel 10 being the drums'), or
+ *     two drum tracks: tracks past that share a channel, and each hears the other's program
+ *   - a send to anything but an effect bus (it is dropped), a solo on a bus or the master (only
+ *     a regular track's solo counts), a marker at or past the end or sharing another's beat (it
+ *     makes no section)
  *
  * It cannot tell whether the music is good; it tells where it is certainly careless.
  */
 
 import type { Piece } from '@volter/dawproject/piece';
+import type { BasicSoundBank } from 'spessasynth_core';
+import { articulationPrograms } from './articulations';
+import { soundingKeys } from './bank-coverage';
+import { validBands } from './mix/dsp';
+import { mixTarget } from './mix/automation';
+import { sidechainsOf } from './mix/offline-mix';
+import { formatPitch } from '@volter/dawproject/notation';
 
 /** Practical ranges (MIDI), by General MIDI program. Unlisted programs are not range-checked. */
 const RANGES: Record<number, readonly [number, number, string]> = {
@@ -48,7 +63,11 @@ export interface PieceChecks {
   readonly parallels: number;
 }
 
-export function checkPiece(piece: Piece): PieceChecks {
+/**
+ * `banks` (by the project path a device's `params.bank` names), when given, adds the check that
+ * matters most for a sampled instrument: every note has a sample in the patch that plays it.
+ */
+export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundBank>): PieceChecks {
   const { beatsPerBar } = piece.transport;
   const problems: string[] = [];
   const barBeat = (beat: number): string =>
@@ -68,6 +87,16 @@ export function checkPiece(piece: Piece): PieceChecks {
     const program = typeof device?.params['program'] === 'number' ? device.params['program'] : null;
     const range = program === null || device?.params['drums'] === true ? undefined : RANGES[program];
     for (const clip of track.clips) {
+      const takeNames = clip.takes.map((take) => take.take);
+      const doubled = takeNames.find((name, i) => takeNames.indexOf(name) !== i);
+      if (doubled) problems.push(`${track.name}: clip "${clip.name ?? 'clip'}" has two takes named "${doubled}", so a <Comp> naming it plays the first`);
+      for (const comp of clip.comps) {
+        if (!takeNames.includes(comp.take)) {
+          problems.push(`${track.name}: a <Comp> at ${barBeat(comp.time)} picks take "${comp.take}", which clip "${clip.name ?? 'clip'}" does not have (${takeNames.join(', ') || 'no takes'}), so it is ignored`);
+        } else if (comp.time < clip.time - EPSILON || comp.time >= clip.time + clip.duration - EPSILON) {
+          problems.push(`${track.name}: a <Comp> at ${barBeat(comp.time)} is outside its clip "${clip.name ?? 'clip'}"${comp.time < clip.time ? ', so it picks from the clip\'s start' : ', so it picks nothing'}`);
+        }
+      }
       for (const note of clip.notes) {
         if (note.time < -EPSILON || note.time + note.duration > clip.duration + EPSILON) {
           problems.push(`${track.name}: note at ${barBeat(note.start)} runs outside its clip "${clip.name ?? 'clip'}" (${clip.duration} beats)`);
@@ -76,6 +105,144 @@ export function checkPiece(piece: Piece): PieceChecks {
           problems.push(`${track.name} (${range[2]}): pitch ${note.pitch} at ${barBeat(note.start)} is outside ${range[0]}–${range[1]}`);
         }
       }
+    }
+  }
+
+  // A technique only a separate patch plays, on an instrument that names none.
+  const TECHNIQUES = new Set(['pizzicato', 'tremolo']);
+  for (const track of piece.tracks) {
+    const device = track.channel?.devices.find((candidate) => candidate.plugin === 'soundfont');
+    const map = device?.params['articulations'];
+    const mapped = map && typeof map === 'object' && !Array.isArray(map) ? (map as Readonly<Record<string, number>>) : {};
+    const reported = new Set<string>();
+    for (const clip of track.clips) {
+      for (const note of clip.notes) {
+        if (!note.artic || !TECHNIQUES.has(note.artic) || typeof mapped[note.artic] === 'number' || reported.has(note.artic)) continue;
+        reported.add(note.artic);
+        problems.push(`${track.name}: ${note.artic} at ${barBeat(note.start)} has no patch (its device's params.articulations names none), so it plays as a sustained note`);
+      }
+    }
+  }
+
+  // Every note sounds: its pitch is covered by the patch it plays on (its articulation's, or the
+  // device's program), in the bank the device names.
+  if (banks) {
+    const patchOf = articulationPrograms(piece);
+    for (const track of piece.tracks) {
+      const device = track.channel?.devices.find((candidate) => candidate.plugin === 'soundfont');
+      const path = device?.params['bank'];
+      if (!device || typeof path !== 'string') continue;
+      const bank = banks.get(path);
+      if (!bank) continue;
+      const drums = device.params['drums'] === true;
+      const bankNumber = typeof device.params['bankNumber'] === 'number' ? device.params['bankNumber'] : 0;
+      const baseProgram = typeof device.params['program'] === 'number' ? device.params['program'] : 0;
+      const cache = new Map<number, Set<number> | null>();
+      const missing = new Map<number, { pitches: Set<number>; first: number }>();
+      for (const clip of track.clips) {
+        for (const note of clip.notes) {
+          const program = drums ? baseProgram : (patchOf.get(track.id)?.(note.artic) ?? baseProgram);
+          if (!cache.has(program)) cache.set(program, soundingKeys(bank, bankNumber, program, drums));
+          const keys = cache.get(program);
+          if (keys === null) {
+            if (!missing.has(-1 - program)) missing.set(-1 - program, { pitches: new Set(), first: note.start });
+            continue;
+          }
+          if (keys && !keys.has(note.pitch)) {
+            const entry = missing.get(program) ?? { pitches: new Set<number>(), first: note.start };
+            entry.pitches.add(note.pitch);
+            missing.set(program, entry);
+          }
+        }
+      }
+      for (const [program, { pitches, first }] of missing) {
+        if (program < 0) {
+          problems.push(`${track.name}: ${path} has no ${drums ? 'drum kit' : 'preset'} at ${drums ? '' : `bank ${bankNumber} `}program ${-1 - program}, so its notes (from ${barBeat(first)}) play whatever the synthesizer falls back to`);
+          continue;
+        }
+        const keys = [...(cache.get(program) ?? [])].sort((a, b) => a - b);
+        problems.push(
+          `${track.name}: no sample plays ${[...pitches].sort((a, b) => a - b).map((pitch) => formatPitch(pitch)).join(', ')} on program ${program} of ${path} (it sounds ${formatPitch(keys[0]!)}–${formatPitch(keys[keys.length - 1]!)}${keys.length !== keys[keys.length - 1]! - keys[0]! + 1 ? ', with gaps' : ''}); those notes are silent, first at ${barBeat(first)}`,
+        );
+      }
+    }
+  }
+
+  // Channels: 15 melodic tracks and one drum track fit the synthesizer's 16 channels.
+  const instruments = piece.tracks.filter((track) => {
+    const device = track.channel?.devices.find((candidate) => candidate.plugin === 'soundfont');
+    return device && typeof device.params['bank'] === 'string';
+  });
+  const drumTracks = instruments.filter((track) => track.channel?.devices.find((device) => device.plugin === 'soundfont')?.params['drums'] === true);
+  const melodic = instruments.filter((track) => !drumTracks.includes(track));
+  if (melodic.length > 15) {
+    problems.push(`${melodic.length} melodic tracks, and the synthesizer has 15 channels for them: ${melodic.slice(15).map((track) => track.name).join(', ')} ${melodic.length === 16 ? 'shares' : 'share'} a channel with an earlier track and ${melodic.length === 16 ? 'hears' : 'hear'} its program. Combine parts onto fewer tracks.`);
+  }
+  if (drumTracks.length > 1) {
+    problems.push(`${drumTracks.length} drum tracks share the one drum channel (${drumTracks.map((track) => track.name).join(', ')}): the last kit selected plays for all. Put the kits' notes on one track.`);
+  }
+  // Sends, solos, markers.
+  const buses = new Set(piece.tracks.filter((track) => track.channel?.role === 'effect').map((track) => track.name));
+  for (const track of piece.tracks) {
+    for (const send of track.channel?.sends ?? []) {
+      if (!buses.has(send.to)) {
+        const target = piece.tracks.find((candidate) => candidate.name === send.to);
+        problems.push(`${track.name}: its send to "${send.to}" goes nowhere (${target ? `"${send.to}" is a ${target.channel?.role ?? 'regular'} channel, not an effect bus` : 'no track has that name'}), so nothing of it is heard`);
+      }
+    }
+    for (const device of track.channel?.devices ?? []) {
+      if (device.plugin !== 'equalizer') continue;
+      const bands = device.params['bands'];
+      const count = Array.isArray(bands) ? bands.length : 0;
+      const skipped = count - validBands(bands).length;
+      if (skipped > 0) {
+        problems.push(`${track.name}: ${skipped} of the equalizer's ${count} bands ${skipped === 1 ? 'is' : 'are'} not played (each needs a type of highPass, lowPass, lowShelf, highShelf or bell, a freq above 0, and a q above 0 if it has one)`);
+      }
+    }
+    for (const source of sidechainsOf(track)) {
+      const target = piece.tracks.find((other) => other.name === source);
+      if (!target) problems.push(`${track.name}: its compressor listens to "${source}", which no track is called, so it hears silence and never compresses`);
+      else if (target === track) problems.push(`${track.name}: its compressor's sidechain is its own track; leave sidechain off to compress on its own signal`);
+      else if ((target.channel?.role ?? 'regular') !== 'regular') problems.push(`${track.name}: its compressor listens to "${source}", a ${target.channel?.role} channel; a sidechain source is an instrument track`);
+    }
+    const children = piece.tracks.filter((other) => other.parent === track.id);
+    if (track.channel?.role === 'submix' && children.length === 0) {
+      problems.push(`${track.name}: a group channel (role="submix") with no tracks inside its <Track>, so nothing sums into it`);
+    }
+    if (children.length > 0 && track.channel?.role !== 'submix') {
+      problems.push(`${track.name}: holds ${children.map((child) => child.name).join(', ')}, but its channel is not role="submix", so they play straight to the master and its strip passes nothing`);
+    }
+    for (const lane of track.lanes) {
+      const target = mixTarget(lane.target);
+      if (!target) {
+        problems.push(`${track.name}: a track lane's target "${lane.target}" is none of volume, pan or send:<bus>, so it moves nothing (a controller lane belongs inside a clip)`);
+      } else if (target.kind === 'send' && !(track.channel?.sends ?? []).some((send) => send.to === target.to)) {
+        problems.push(`${track.name}: its "${lane.target}" lane automates a send the track does not have; add <Send to="${target.to}"> to its channel`);
+      } else if (target.kind === 'pan' && lane.points.some((point) => point.value < -1 || point.value > 1)) {
+        problems.push(`${track.name}: its pan lane has values outside −1…1; they are clamped`);
+      }
+    }
+    for (const lfo of track.channel?.lfos ?? []) {
+      const target = mixTarget(lfo.target);
+      if (!target) {
+        problems.push(`${track.name}: its <Lfo>'s target "${lfo.target}" is none of volume, pan or send:<bus>, so it moves nothing`);
+      } else if (target.kind === 'send' && !(track.channel?.sends ?? []).some((send) => send.to === target.to)) {
+        problems.push(`${track.name}: its <Lfo> moves a send the track does not have; add <Send to="${target.to}"> to its channel`);
+      } else if (lfo.depth === 0) {
+        problems.push(`${track.name}: its <Lfo> on ${lfo.target} has depth 0, so it moves nothing`);
+      }
+    }
+    if (track.channel?.solo && track.channel.role !== 'regular') {
+      problems.push(`${track.name}: a solo on the ${track.channel.role === 'master' ? 'master' : 'effect bus'} channel does nothing; solo the regular tracks that feed it`);
+    }
+  }
+  const markers = [...piece.markers].sort((a, b) => a.time - b.time);
+  for (let i = 0; i < markers.length; i++) {
+    const marker = markers[i]!;
+    if (marker.time >= piece.length - EPSILON) {
+      problems.push(`The marker "${marker.name}" is at or past the piece's end (${barBeat(marker.time)}), so it makes no section`);
+    } else if (i + 1 < markers.length && Math.abs(markers[i + 1]!.time - marker.time) < EPSILON) {
+      problems.push(`The markers "${marker.name}" and "${markers[i + 1]!.name}" share ${barBeat(marker.time)}, so "${marker.name}" makes no section`);
     }
   }
 

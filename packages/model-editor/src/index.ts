@@ -7,4 +7,5 @@ export const { mountVgai } = product({
   packages: { '@volter/editor-blender': blender, '@volter/editor-threejs': threejs },
   look: 'blender',
   workspace: 'model',
+  logo: 'https://brand.volter.ai/logo/volter-model-editor/svg',
 });

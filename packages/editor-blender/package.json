@@ -2,7 +2,7 @@
   "name": "@volter/editor-blender",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only AND GPL-3.0-or-later",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "publishConfig": {
     "access": "public"
   },
@@ -42,7 +42,6 @@
       "./contributions/blender.keymap.ts",
       "./contributions/blender.status.tsx",
       "./contributions/blender.style.ts",
-      "./contributions/material-preview.view.ts",
       "./contributions/model.layout.ts",
       "./contributions/models.finder.ts",
       "./contributions/properties-bone-constraints.inspector.tsx",
@@ -61,7 +60,6 @@
       "./contributions/properties-texture.inspector.tsx",
       "./contributions/properties-view-layer.inspector.tsx",
       "./contributions/properties-world.inspector.tsx",
-      "./contributions/rendered.view.ts",
       "./contributions/sculpt.layout.ts",
       "./contributions/shading.layout.ts",
       "./contributions/uv-editing.layout.ts",
@@ -71,14 +69,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
-    "@volter/blender-engine": "0.1.8",
-    "@volter/editor-threejs": "0.5.66",
+    "@volter/blender-engine": "0.1.9",
+    "@volter/editor-threejs": "0.5.68",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@volter/editor-sdk": "0.5.66",
-    "@volter/editor-live": "0.5.66",
-    "@volter/editor-project": "0.5.66",
+    "@volter/editor-sdk": "0.5.68",
+    "@volter/editor-live": "0.5.68",
+    "@volter/editor-project": "0.5.68",
     "react": "^19.0.0",
     "three": "^0.180.0",
     "vite": "^6.4.3"

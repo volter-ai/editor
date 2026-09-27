@@ -1,0 +1,55 @@
+{
+  "$schema": "../../node_modules/@volter/editor-project/schemas/vgai-project.schema.json",
+  "manifestVersion": 2,
+  "name": "Arena",
+  "appId": "com.vgai.arena",
+  "version": "0.1.0",
+  "engine": {
+    "version": "0.5.66"
+  },
+  "resolution": {
+    "width": 1280,
+    "height": 720
+  },
+  "learn": {
+    "kind": "starter",
+    "title": "Arena",
+    "summary": "A bright multi-level arena shooter \u2014 the same hostiles, weapons and map in two perspectives, switched with V.",
+    "difficulty": "beginner",
+    "features": [
+      "first-person",
+      "third-person",
+      "arena-shooter",
+      "construction-materials",
+      "derived-characters"
+    ],
+    "thumbnail": "learn/thumbnail.png"
+  },
+  "roots": [
+    {
+      "id": "world",
+      "adapter": "three",
+      "entry": "src/world.tsx"
+    },
+    {
+      "id": "ui",
+      "adapter": "dom",
+      "entry": "src/ui/arena-hud-world.tsx",
+      "zOrder": 100
+    }
+  ],
+  "configurations": [
+    {
+      "id": "first-person",
+      "kind": "process",
+      "entry": "scripts/play-perspective.ts",
+      "command": "npx tsx scripts/play-perspective.ts first"
+    },
+    {
+      "id": "third-person",
+      "kind": "process",
+      "entry": "scripts/play-perspective.ts",
+      "command": "npx tsx scripts/play-perspective.ts third"
+    }
+  ]
+}

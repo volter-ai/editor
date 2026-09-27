@@ -28,7 +28,7 @@
  */
 
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import { resolvesLiveOnly, runWritePipe, type WriteAck, type WriteResolution } from '@volter/editor-sdk/kit/write-pipe';
 
 /** The `writeStruct` options bag, spelled once (the backend's own shape). */

@@ -1,4 +1,4 @@
-import type { EditorKeyActionId, KeyChord, KeymapContribution } from '@volter/editor-sdk/looks';
+import type { EditorKeyActionId, KeyChord, KeymapContribution, KeymapNavigation } from '@volter/editor-sdk/looks';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   adapterSettings,
@@ -39,7 +39,7 @@ export type { EditorKeyActionId, KeyChord } from '@volter/editor-sdk/looks';
  * EDITOR's own chrome bindings, consumed by `hotkeys.ts`'s single `keydown`
  * dispatcher on the editor's window. Play-mode input isolation is a different
  * mechanism entirely and is untouched by a keymap switch: the engine's
- * `InputManager.setEnabled` gate plus `gated-globals.ts`'s lexical
+ * realm gate, `gated-globals.ts`'s lexical
  * `window`/`document` shadow over project modules decide whether GAME code
  * hears a key. A game never reads this table, and no keymap entry can widen or
  * narrow what a running game receives.
@@ -68,6 +68,7 @@ const BUILT_IN_KEYMAPS: readonly EditorKeymapDescriptor[] = Object.freeze([
 interface ContributedKeymap {
   readonly descriptor: EditorKeymapDescriptor;
   readonly table: EditorKeymapTable;
+  readonly navigation: KeymapNavigation | null;
 }
 const contributedKeymaps = new Map<string, ContributedKeymap>();
 let registryVersion = 0;
@@ -106,6 +107,7 @@ export function registerContributedKeymap(contribution: KeymapContribution): () 
       description: contribution.description,
     },
     table: Object.freeze({ ...VGAI_KEYMAP, ...contribution.bindings }) as EditorKeymapTable,
+    navigation: contribution.navigation ?? null,
   };
   contributedKeymaps.set(contribution.id, entry);
   registryVersion++;
@@ -174,12 +176,9 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   // Blender's own workspace cycle keys, and free in this registry.
   'workspace.cycleNext': [{ key: 'pagedown', mod: true }],
   'workspace.cyclePrevious': [{ key: 'pageup', mod: true }],
-  // UNBOUND HERE, DELIBERATELY: this editor's own four transform tools already
-  // hold T/W/E/R, and the Select tool arrived with the Blender look (whose
-  // keymap puts it on Blender's own `W`). An empty list is the table's way of
-  // saying a keymap binds nothing to an action, and the strip's button is the
-  // tool's other door.
-  'transform.select': [],
+  // Q, beside W/E/R: Godot's 2D Select (its 4.7.1 shortcut `canvas_item_editor/select_mode`)
+  // and Unreal's Select both sit there. The Blender look keeps Select on Blender's own `W`.
+  'transform.select': [{ key: 'q' }],
   'transform.combined': [{ key: 't' }],
   'transform.translate': [{ key: 'w' }],
   'transform.rotate': [{ key: 'e' }],
@@ -187,12 +186,33 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   'viewport.toggleSnap': [{ key: 's', shift: true }],
   'viewport.frameSelection': [{ key: 'f' }],
   'viewport.cyclePivot': [{ key: '.' }],
+  // A 2D view's Pan and Ruler modes, on Godot's own keys (its 4.7.1 shortcuts
+  // `canvas_item_editor/pan_mode` G and `ruler_mode` M).
+  'canvas.panMode': [{ key: 'g' }],
+  'canvas.rulerMode': [{ key: 'm' }],
+  // Godot's View › Grid › Toggle Grid, Command+' (its 4.7.1 menu shortcut).
+  'canvas.toggleGrid': [{ key: "'", mod: true }],
   'viewport.vertexSnapHold': [{ key: 'v' }],
   'viewport.snapToFloor': [{ key: '', code: 'PageDown' }],
   'view.top': [{ key: '', code: 'Numpad7' }],
   'view.front': [{ key: '', code: 'Numpad1' }],
   'view.right': [{ key: '', code: 'Numpad3' }],
+  'view.bottom': [],
+  'view.back': [],
+  'view.left': [],
+  'view.orbitLeft': [],
+  'view.orbitRight': [],
+  'view.orbitUp': [],
+  'view.orbitDown': [],
+  'view.opposite': [],
+  'view.rollLeft': [],
+  'view.rollRight': [],
+  'view.all': [],
+  'view.zoomIn': [],
+  'view.zoomOut': [],
   'view.perspective': [{ key: '', code: 'Numpad5' }],
+  'view.projection': [],
+  'view.camera': [{ key: '', code: 'Numpad0' }],
 } satisfies EditorKeymapTable);
 
 // ---------------------------------------------------------------------------
@@ -313,6 +333,12 @@ export function keyChordsFor(action: EditorKeyActionId): readonly KeyChord[] {
   return keymapTable(activeEditorKeymap())[action];
 }
 
+/** The active keymap's viewport mouse (`KeymapContribution.navigation`), the editor's own when
+ *  it states none: orbit on the right button. */
+export function activeKeymapNavigation(): KeymapNavigation {
+  return contributedKeymaps.get(activeEditorKeymap())?.navigation ?? { orbit: 'right' };
+}
+
 /** A named table, for a surface that must show a keymap it is not running.
  *  An unregistered id answers the editor's own table. */
 export function keymapTable(id: EditorKeymapId): EditorKeymapTable {
@@ -380,9 +406,10 @@ export function formatChord(chord: KeyChord): string {
   const label = keyLabel(chord);
   if (chord.mod) {
     const mod = isMacPlatform() ? '⌘' : 'Ctrl+';
-    return `${mod}${chord.alt ? '⌥' : ''}${chord.shift ? '⇧' : ''}${label}`;
+    return `${chord.ctrl && isMacPlatform() ? '⌃' : ''}${mod}${chord.alt ? '⌥' : ''}${chord.shift ? '⇧' : ''}${label}`;
   }
   const parts: string[] = [];
+  if (chord.ctrl) parts.push('Ctrl');
   if (chord.alt) parts.push('Alt');
   if (chord.shift) parts.push('Shift');
   parts.push(label);

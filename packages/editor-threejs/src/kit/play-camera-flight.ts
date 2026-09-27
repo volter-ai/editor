@@ -8,7 +8,7 @@
  * flight pacing rides the editor's own frame clock.
  */
 import { registerPlayCameraFlight, type LiveCameraLookup } from '@volter/editor-sdk/kit/play-camera-flight';
-import { onViewportFrame, viewportRig } from '@volter/editor-sdk/kit/viewport-door';
+import { onViewportFrame, viewportRig } from '../viewport-door';
 import * as THREE from 'three';
 import { threeStoreForHost } from './three-state';
 
@@ -150,7 +150,7 @@ function rebuildCurve(flight: FlightRuntime): void {
 
 interface ActiveFlight {
   readonly runtime: FlightRuntime;
-  readonly snapshot: { position: THREE.Vector3; target: THREE.Vector3; fov: number };
+  readonly snapshot: { position: THREE.Vector3; target: THREE.Vector3; up: THREE.Vector3; fov: number };
   readonly onLanded: () => void;
   /** Live game camera, registered at game-ready — the flight retargets to it
    *  each frame so the hand-off converges on whatever the game actually does
@@ -185,6 +185,7 @@ function begin(onLanded: () => void): boolean {
     snapshot: {
       position: viewport.camera.position.clone(),
       target: viewport.orbit.target.clone(),
+      up: viewport.camera.up.clone(),
       fov: viewport.camera.fov,
     },
     onLanded,
@@ -207,6 +208,8 @@ function settle(): void {
   const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const distance = Math.max(1, active.snapshot.position.distanceTo(active.snapshot.target));
   viewport.orbit.target.copy(camera.position).addScaledVector(forward, distance);
+  // The orbit re-aims with the camera's up: the landed pose's own, so its roll stands.
+  camera.up.set(0, 1, 0).applyQuaternion(camera.quaternion);
   viewport.orbit.enabled = true;
 }
 
@@ -220,6 +223,7 @@ function end(): void {
   const snap = active.snapshot;
   viewport.camera.position.copy(snap.position);
   viewport.orbit.target.copy(snap.target);
+  viewport.camera.up.copy(snap.up);
   viewport.camera.lookAt(snap.target);
   if (viewport.camera.fov !== snap.fov) {
     viewport.camera.fov = snap.fov;
@@ -245,7 +249,9 @@ function playTransitionFrame(): void {
   const flight = active.runtime;
 
   // Retarget to the live game camera once it exists (`track`).
-  const liveCamera = active.getLiveCamera?.() ?? null;
+  // The kit hands the lane's lookup over unread; only an `Object3D` is a camera to converge on.
+  const found = active.getLiveCamera?.() ?? null;
+  const liveCamera = (found as Partial<THREE.Object3D> | null)?.isObject3D ? (found as THREE.Object3D) : null;
   if (liveCamera) {
     liveCamera.getWorldPosition(_liveCamPos);
     liveCamera.getWorldQuaternion(_liveCamQuat);

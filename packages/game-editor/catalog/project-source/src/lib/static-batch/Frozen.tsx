@@ -38,7 +38,6 @@
  */
 
 import type { ThreeElements } from '@react-three/fiber';
-import { devBuildEnabled } from '@volter/game-runtime/runtime/dev-build';
 import { type ReactNode, useLayoutEffect, useRef } from 'react';
 import type * as THREE from 'three';
 import { activateFrozenBatch, describeFrozenSkips, freezeSubtree, restoreFrozen } from './freeze';
@@ -68,7 +67,7 @@ export function Frozen({ name = 'Frozen', children, ...props }: FrozenProps) {
     // an authoring signal (`vgai status` reports console warnings, which is
     // where the building agent already looks), and a player's console is not
     // where it belongs.
-    if (devBuildEnabled()) {
+    if (import.meta.env.DEV) {
       const skips = describeFrozenSkips(batch);
       // biome-ignore lint/suspicious/noConsole: see above — this is the channel.
       if (skips) console.warn(skips);

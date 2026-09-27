@@ -1,6 +1,6 @@
 /**
  * The frozen shape of `window.__vgai`, the in-page debug bridge installed by
- * the engine (`packages/game-runtime/src/runtime/debug-bridge.ts`, Task 2.1 —
+ * the engine (`packages/editor-game/src/runtime/debug-bridge.ts`, Task 2.1 —
  * landing concurrently with this package). This module declares that shape
  * independently; it never imports the engine package, so this package can be
  * built and tested independently of the bridge's landing.

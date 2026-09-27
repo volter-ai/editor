@@ -268,6 +268,9 @@ export interface ConsoleLedger {
   /** Everything still held, acked included — what `vgai console --all` shows. */
   all(): ConsoleLedgerEntry[];
   summary(): UnresolvedConsoleSummary;
+  /** The page load the ledger last heard from: the one that announced itself, or else (a page that
+   *  never started announces nothing) the load its newest entry came from; `null` before any. */
+  currentLoadId(): string | null;
 }
 
 export function createConsoleLedger(options?: {
@@ -445,6 +448,13 @@ export function createConsoleLedger(options?: {
     all(): ConsoleLedgerEntry[] {
       sweep();
       return [...entries.values()].sort((a, b) => a.firstAt - b.firstAt).map(snapshot);
+    },
+
+    currentLoadId(): string | null {
+      if (currentLoadId) return currentLoadId;
+      let newest: MutableEntry | null = null;
+      for (const entry of entries.values()) if (!newest || entry.lastAt > newest.lastAt) newest = entry;
+      return newest?.lastLoadId ?? null;
     },
 
     summary(): UnresolvedConsoleSummary {

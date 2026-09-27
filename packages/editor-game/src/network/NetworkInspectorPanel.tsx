@@ -14,8 +14,9 @@
  * Degradation ladder rendered honestly (W3a contract, first system-adapter
  * consumer): no adapter → the register-an-adapter notice; an adapter missing
  * an optional capability → that section says "not provided by this adapter";
- * nothing is ever fabricated. Editor code never imports Colyseus here — only
- * the `NetworkingAdapter` interface (net-import-ban).
+ * nothing is ever fabricated. The panel reads only the `NetworkingAdapter`
+ * interface: the game's own, or the editor's observer of its Colyseus rooms
+ * (`services/game-network.ts`).
  *
  * Mounted as the `network` workspace utility (drawer tab beside
  * Console/Profiler, `core-utilities.tsx`), available only while a
@@ -24,8 +25,11 @@
  */
 
 import { editorHost } from '@volter/editor-sdk/host';
+import { NETWORK_AUTOSTART_SECTION } from '../services/game-network';
 import {
   Button,
+  Checkbox,
+  TextArea,
   DisclosureIcon,
   fontSizeVar,
   NumberInput,
@@ -36,7 +40,10 @@ import {
 import type {
   ConnectionState,
   NetConditioning,
+  NetEntityTraffic,
   NetMessageEvent,
+  NetServerInspection,
+  NetTypeTraffic,
   NetworkingAdapter,
 } from '@volter/editor-project/adapter';
 import { memo, useEffect, useReducer, useRef, useState } from 'react';
@@ -100,8 +107,43 @@ function formatLeaf(value: unknown): string {
  * are NOT mounted: a fresh snapshot every poll re-renders only the visible
  * rows, never a collapsed subtree.
  */
-function StateTreeNode({ name, value, depth }: { name: string; value: unknown; depth: number }) {
+type StateEdit = (path: readonly (string | number)[], value: unknown) => Promise<void>;
+type StateDelete = (path: readonly (string | number)[]) => Promise<void>;
+type StateType = (path: readonly (string | number)[]) => string | null;
+
+/** A field's replicated type beside its name, dim (Godot's Replication panel's column). */
+function TypeTag({ type }: { type: string | null | undefined }) {
+  if (!type) return null;
+  return (
+    <span data-testid="net-tree-type" style={{ color: themeVars.content.dim, marginLeft: 6 }}>
+      {type}
+    </span>
+  );
+}
+
+function StateTreeNode({
+  name,
+  value,
+  depth,
+  path = [],
+  edit,
+  remove,
+  typeOf,
+}: {
+  name: string;
+  value: unknown;
+  depth: number;
+  path?: readonly string[];
+  /** The server's state edit (Monitor's), when the adapter offers one: leaves become editable. */
+  edit?: StateEdit | undefined;
+  /** The server's state delete (Monitor's), when offered: each key gets a remove control. */
+  remove?: StateDelete | undefined;
+  /** The schema's declared type for a path, when the adapter reads one. */
+  typeOf?: StateType | undefined;
+}) {
   const [expanded, setExpanded] = useState(depth === 0);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
   const rowStyle: React.CSSProperties = {
     ...MONO,
     paddingLeft: 8 + depth * 14,
@@ -110,11 +152,71 @@ function StateTreeNode({ name, value, depth }: { name: string; value: unknown; d
   };
 
   if (!isBranch(value)) {
+    const editable = edit && (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean');
+    const commit = (next: unknown) => {
+      setDraft(null);
+      edit?.(path, next).then(
+        () => setFailed(null),
+        (caught: unknown) => setFailed(caught instanceof Error ? caught.message : String(caught)),
+      );
+    };
+    const parse = (text: string): unknown => {
+      if (typeof value === 'number') {
+        const number = Number(text);
+        return Number.isFinite(number) ? number : value;
+      }
+      return text;
+    };
     return (
-      <div style={rowStyle} data-testid="net-tree-leaf">
+      <div style={rowStyle} data-testid="net-tree-leaf" data-path={path.join('.')}>
         <span style={{ color: themeVars.content.primary }}>{name}</span>
         <span style={{ color: themeVars.content.muted }}>: </span>
-        <span style={{ color: themeVars.content.primary }}>{formatLeaf(value)}</span>
+        {draft !== null ? (
+          <TextInput
+            data-testid="net-tree-edit"
+            autoFocus
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') commit(parse(draft));
+              if (event.key === 'Escape') setDraft(null);
+            }}
+            onBlur={() => setDraft(null)}
+            style={{ width: 120 }}
+          />
+        ) : (
+          <span
+            data-testid={editable ? 'net-tree-value' : undefined}
+            title={editable ? (typeof value === 'boolean' ? 'Click to toggle on the server' : 'Click to edit on the server') : undefined}
+            style={{ color: themeVars.content.primary, cursor: editable ? 'text' : undefined }}
+            onClick={
+              editable
+                ? () => (typeof value === 'boolean' ? commit(!value) : setDraft(String(value)))
+                : undefined
+            }
+          >
+            {formatLeaf(value)}
+          </span>
+        )}
+        <TypeTag type={path.length > 0 ? typeOf?.(path) : null} />
+        {remove && path.length > 0 ? (
+          <button
+            type="button"
+            data-testid="net-tree-delete"
+            title="Delete this key on the server"
+            aria-label={`Delete ${path.join('.')} on the server`}
+            onClick={() =>
+              remove(path).then(
+                () => setFailed(null),
+                (caught: unknown) => setFailed(caught instanceof Error ? caught.message : String(caught)),
+              )
+            }
+            style={{ marginLeft: 8, border: 0, background: 'transparent', color: themeVars.content.muted, cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        ) : null}
+        {failed ? <span style={{ color: themeVars.semantic.danger }}> {failed}</span> : null}
       </div>
     );
   }
@@ -136,10 +238,39 @@ function StateTreeNode({ name, value, depth }: { name: string; value: unknown; d
           {' '}
           {Array.isArray(value) ? `[${entries.length}]` : `{${entries.length}}`}
         </span>
+        <TypeTag type={path.length > 0 ? typeOf?.(path) : null} />
+        {failed ? <span style={{ color: themeVars.semantic.danger }}> {failed}</span> : null}
+        {remove && path.length > 0 ? (
+          <button
+            type="button"
+            data-testid="net-tree-delete"
+            title="Delete this key on the server"
+            aria-label={`Delete ${path.join('.')} on the server`}
+            onClick={(event) => {
+              event.stopPropagation();
+              remove(path).then(
+                () => setFailed(null),
+                (caught: unknown) => setFailed(caught instanceof Error ? caught.message : String(caught)),
+              );
+            }}
+            style={{ marginLeft: 8, border: 0, background: 'transparent', color: themeVars.content.muted, cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        ) : null}
       </div>
       {expanded &&
         entries.map(([key, child]) => (
-          <StateTreeNode key={key} name={key} value={child} depth={depth + 1} />
+          <StateTreeNode
+            key={key}
+            name={key}
+            value={child}
+            depth={depth + 1}
+            path={depth === 0 ? [key] : [...path, key]}
+            edit={edit}
+            remove={remove}
+            typeOf={typeOf}
+          />
         ))}
     </div>
   );
@@ -252,6 +383,7 @@ function ConditionerControls({ adapter }: { adapter: NetworkingAdapter }) {
   const [cond, setCond] = useState<NetConditioning>(
     () => adapter.getConditioning?.() ?? { latencyMs: 0, jitterMs: 0, packetLoss: 0 },
   );
+  const limits = adapter.getConditioningLimits?.() ?? {};
   const apply = (next: NetConditioning) => {
     setCond(next);
     adapter.setConditioning?.(next);
@@ -281,13 +413,23 @@ function ConditionerControls({ adapter }: { adapter: NetworkingAdapter }) {
         testId="net-cond-jitter"
         onChange={(v) => apply({ ...cond, jitterMs: Math.max(0, v) })}
       />
-      <NumberInput
-        label="loss %"
-        value={cond.packetLoss * 100}
-        step={5}
-        testId="net-cond-loss"
-        onChange={(v) => apply({ ...cond, packetLoss: Math.min(1, Math.max(0, v / 100)) })}
-      />
+      {limits.packetLoss ? (
+        <span
+          data-testid="net-cond-loss-absent"
+          title={limits.packetLoss}
+          style={{ fontSize: fontSizeVar.sm, color: themeVars.content.muted }}
+        >
+          loss: not simulated
+        </span>
+      ) : (
+        <NumberInput
+          label="loss %"
+          value={cond.packetLoss * 100}
+          step={5}
+          testId="net-cond-loss"
+          onChange={(v) => apply({ ...cond, packetLoss: Math.min(1, Math.max(0, v / 100)) })}
+        />
+      )}
     </div>
   );
 }
@@ -436,6 +578,9 @@ function NetworkHeader({
   );
 }
 
+const AUTOSTART_SECTION = NETWORK_AUTOSTART_SECTION;
+const DRAFT_SECTION = 'networkMessageDraft';
+
 // --- The panel ------------------------------------------------------------
 
 export function NetworkInspectorPanel() {
@@ -445,6 +590,21 @@ export function NetworkInspectorPanel() {
   const adapterRef = useRef<NetworkingAdapter | null>(null);
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState('');
+  // Godot's Autostart: whether a game that starts running starts recording (kept per checkout).
+  const [autostart, setAutostart] = useState(
+    // Off unless chosen, as Godot's is: a run records once Start is pressed.
+    () => editorHost().projectLocalState.read<boolean>(AUTOSTART_SECTION) ?? false,
+  );
+  // The one message draft: sent as this client, or from the server to one client or all.
+  // Kept per checkout, as Monitor keeps its Send draft in its browser storage.
+  const [draft, setDraftState] = useState<MessageDraft>(
+    // Monitor's own first draft: `message_type` and an empty object.
+    () => editorHost().projectLocalState.read<MessageDraft>(DRAFT_SECTION) ?? { type: 'message_type', payload: '{}' },
+  );
+  const setDraft = (next: MessageDraft): void => {
+    editorHost().projectLocalState.write(DRAFT_SECTION, next);
+    setDraftState(next);
+  };
 
   useEffect(() => {
     const syncAdapter = () => {
@@ -550,6 +710,76 @@ export function NetworkInspectorPanel() {
         </AbsentNote>
       )}
 
+      {caps.server ? (
+        <ServerView
+          adapter={adapter}
+          ownSession={view.roomInfo?.sessionId ?? null}
+          ownRoom={view.roomInfo?.roomId ?? null}
+          draft={draft}
+          setDraft={setDraft}
+        />
+      ) : null}
+      {caps.recording || caps.traffic ? (
+        // Godot's profiler bar, above the tables it governs: Start/Stop, Clear, Autostart.
+        <div
+          data-testid="net-profiler-bar"
+          style={{
+            display: 'flex',
+            gap: spaceVar[3],
+            alignItems: 'center',
+            padding: spaceVar[2],
+            borderBottom: `1px solid ${themeVars.boundary.default}`,
+          }}
+        >
+          {caps.recording ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                data-testid="net-recording"
+                aria-pressed={adapter.isRecording?.() === true}
+                onClick={() => {
+                  adapter.setRecording?.(!adapter.isRecording?.());
+                  force();
+                }}
+              >
+                {adapter.isRecording?.() ? 'Stop' : 'Start'}
+              </Button>
+            </>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            data-testid="net-log-clear"
+            onClick={() => {
+              // Godot's Clear resets its tables; the log clears with them.
+              logRef.current.clear();
+              adapter.clearTraffic?.();
+              force();
+            }}
+          >
+            Clear
+          </Button>
+          {caps.recording ? (
+            <label style={{ display: 'flex', gap: spaceVar[1], alignItems: 'center', whiteSpace: 'nowrap' }}>
+              <Checkbox
+                data-testid="net-autostart"
+                checked={autostart}
+                onChange={(event) => {
+                  const on = event.currentTarget.checked;
+                  editorHost().projectLocalState.write(AUTOSTART_SECTION, on);
+                  setAutostart(on);
+                }}
+              />
+              Autostart
+            </label>
+          ) : null}
+        </div>
+      ) : null}
+      {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
+      {caps.entityTraffic ? <EntityTrafficTable rows={adapter.getTrafficByEntity?.() ?? []} /> : null}
+      {caps.send ? <SendControls adapter={adapter} ping={caps.ping} draft={draft} setDraft={setDraft} /> : null}
+
       {/* Body: state tree | message log */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <div
@@ -564,7 +794,14 @@ export function NetworkInspectorPanel() {
         >
           {caps.stateTree ? (
             snapshot != null ? (
-              <StateTreeNode name="state" value={snapshot} depth={0} />
+              <StateTreeNode
+                name="state"
+                value={snapshot}
+                depth={0}
+                edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next) : undefined}
+                remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path) : undefined}
+                typeOf={adapter.stateFieldType ? (path) => adapter.stateFieldType!(path) : undefined}
+              />
             ) : (
               <AbsentNote>Not connected — no replicated state to show.</AbsentNote>
             )
@@ -589,29 +826,20 @@ export function NetworkInspectorPanel() {
                   padding: spaceVar[2],
                 }}
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-testid="net-log-pause"
-                  onClick={() => {
-                    const next = !paused;
-                    logRef.current.paused = next;
-                    setPaused(next);
-                  }}
-                >
-                  {paused ? 'Resume' : 'Pause'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-testid="net-log-clear"
-                  onClick={() => {
-                    logRef.current.clear();
-                    force();
-                  }}
-                >
-                  Clear
-                </Button>
+                {caps.recording ? null : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    data-testid="net-log-pause"
+                    onClick={() => {
+                      const next = !paused;
+                      logRef.current.paused = next;
+                      setPaused(next);
+                    }}
+                  >
+                    {paused ? 'Resume' : 'Pause'}
+                  </Button>
+                )}
                 <TextInput
                   data-testid="net-log-filter"
                   placeholder="Filter by type"
@@ -639,6 +867,680 @@ export function NetworkInspectorPanel() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Traffic per message type, both directions — Godot's network profiler reads a game's RPCs and
+ * its synchronizers as two tables of counts and sizes; a Colyseus room's are its messages and its
+ * state sync, which arrive here as rows of one table (`state`, `patch`, and each message type).
+ */
+/** Godot's synchronizer table, for a Colyseus room: each replicated entity's incoming syncs (the
+ *  patches that changed it), the field changes they carried, and the size range of those patches. */
+function EntityTrafficTable({ rows }: { rows: readonly NetEntityTraffic[] }) {
+  const cell = { padding: `0 ${spaceVar[3]}`, textAlign: 'right' as const, whiteSpace: 'nowrap' as const };
+  return (
+    <div
+      data-testid="net-entity-traffic"
+      style={{ maxHeight: 132, overflow: 'auto', borderBottom: `1px solid ${themeVars.boundary.default}` }}
+    >
+      {rows.length === 0 ? (
+        <AbsentNote>No state patches yet.</AbsentNote>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fontSizeVar.sm, ...MONO }}>
+          <thead>
+            <tr style={{ color: themeVars.content.muted }}>
+              <th style={{ ...cell, textAlign: 'left' }}>Entity</th>
+              <th
+                style={cell}
+                title="Syncs in - out, as Godot pairs them: the state patches that changed it, and none out, because a Colyseus client sends no state"
+              >
+                Count
+              </th>
+              <th style={cell} title="Field changes those patches carried">Changes</th>
+              <th
+                style={cell}
+                title="Size in - out: the size range of the patches that carried it (they carried other entities too), and none out"
+              >
+                Size
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.path} data-testid="net-entity-traffic-row">
+                <td style={{ ...cell, textAlign: 'left' }}>{row.path}</td>
+                <td style={cell}>{`${row.syncs} - 0`}</td>
+                <td style={cell}>{row.changes}</td>
+                <td style={cell}>
+                  {`${row.patchBytesMin === row.patchBytesMax ? `${row.patchBytesMin} B` : `${row.patchBytesMin}…${row.patchBytesMax} B`} - 0 B`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
+/** A leaf's text as typed: a JSON literal when it reads as one (5, true, null, {}), else a string. */
+function readLiteral(text: string): Json {
+  try {
+    return JSON.parse(text) as Json;
+  } catch {
+    return text;
+  }
+}
+
+/**
+ * Colyseus Monitor's payload editor: the message's JSON as a tree whose values are edited in
+ * place, keys and items added and removed; the Text view is the same payload as raw JSON.
+ */
+function PayloadEditor({ text, onChange }: { text: string; onChange: (text: string) => void }) {
+  const [view, setView] = useState<'tree' | 'text'>('tree');
+  let parsed: Json | undefined;
+  try {
+    parsed = text.trim() === '' ? {} : (JSON.parse(text) as Json);
+  } catch {
+    parsed = undefined;
+  }
+  const write = (next: Json) => onChange(JSON.stringify(next));
+  return (
+    <div data-testid="net-payload-editor" style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
+      <div style={{ display: 'flex', gap: spaceVar[1] }}>
+        {(['tree', 'text'] as const).map((key) => (
+          <Button
+            key={key}
+            type="button"
+            variant="ghost"
+            aria-pressed={view === key}
+            data-testid={`net-payload-view-${key}`}
+            onClick={() => setView(key)}
+          >
+            {key === 'tree' ? 'Tree' : 'Text'}
+          </Button>
+        ))}
+      </div>
+      {view === 'text' || parsed === undefined ? (
+        <>
+          <TextArea
+            data-testid="net-send-dialog-payload"
+            rows={6}
+            value={text}
+            onChange={(event) => onChange(event.target.value)}
+            style={MONO}
+          />
+          {parsed === undefined ? (
+            <span style={{ color: themeVars.content.muted }}>Not JSON yet, so the tree cannot show it.</span>
+          ) : null}
+        </>
+      ) : (
+        <div style={{ ...MONO, fontSize: fontSizeVar.sm }}>
+          <PayloadNode value={parsed} onChange={write} depth={0} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PayloadNode({ value, onChange, depth }: { value: Json; onChange: (next: Json) => void; depth: number }) {
+  const [newKey, setNewKey] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const pad = { paddingLeft: depth * 12 };
+  if (value !== null && typeof value === 'object') {
+    const isArray = Array.isArray(value);
+    const entries: [string, Json][] = isArray ? value.map((item, index) => [String(index), item]) : Object.entries(value);
+    const set = (key: string, next: Json) => {
+      if (isArray) onChange(value.map((item, index) => (String(index) === key ? next : item)));
+      else onChange({ ...value, [key]: next });
+    };
+    const remove = (key: string) => {
+      if (isArray) onChange(value.filter((_, index) => String(index) !== key));
+      else onChange(Object.fromEntries(Object.entries(value).filter(([entry]) => entry !== key)));
+    };
+    return (
+      <div data-testid="net-payload-branch">
+        {entries.map(([key, child]) => (
+          <div key={key} style={pad}>
+            <span style={{ color: themeVars.content.muted }}>{key}: </span>
+            {child !== null && typeof child === 'object' ? (
+              <span style={{ color: themeVars.content.muted }}>{Array.isArray(child) ? '[' : '{'}</span>
+            ) : null}
+            <button
+              type="button"
+              data-testid="net-payload-remove"
+              title={`Remove ${key}`}
+              onClick={() => remove(key)}
+              style={{ background: 'none', border: 0, color: themeVars.content.muted, cursor: 'pointer' }}
+            >
+              ×
+            </button>
+            {child !== null && typeof child === 'object' ? (
+              <PayloadNode value={child} onChange={(next) => set(key, next)} depth={depth + 1} />
+            ) : (
+              <PayloadLeaf value={child} onChange={(next) => set(key, next)} />
+            )}
+          </div>
+        ))}
+        <div style={{ ...pad, display: 'flex', gap: spaceVar[1] }}>
+          {isArray ? null : (
+            <TextInput
+              data-testid="net-payload-new-key"
+              placeholder="key"
+              value={newKey}
+              onChange={(event) => setNewKey(event.target.value)}
+              style={{ width: 90 }}
+            />
+          )}
+          <TextInput
+            data-testid="net-payload-new-value"
+            placeholder="value"
+            value={newValue}
+            onChange={(event) => setNewValue(event.target.value)}
+            style={{ width: 110 }}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            data-testid="net-payload-add"
+            disabled={!isArray && newKey.trim() === ''}
+            onClick={() => {
+              const next = readLiteral(newValue);
+              if (isArray) onChange([...value, next]);
+              else onChange({ ...value, [newKey.trim()]: next });
+              setNewKey('');
+              setNewValue('');
+            }}
+          >
+            Add
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  return <PayloadLeaf value={value} onChange={onChange} />;
+}
+
+type LeafType = 'string' | 'number' | 'boolean' | 'null';
+
+/** A leaf keeps its type, as Monitor's editor does, until its type picker changes it. */
+function PayloadLeaf({ value, onChange }: { value: Json; onChange: (next: Json) => void }) {
+  const type: LeafType =
+    value === null ? 'null' : typeof value === 'number' ? 'number' : typeof value === 'boolean' ? 'boolean' : 'string';
+  const shown = type === 'string' ? String(value) : JSON.stringify(value);
+  const [text, setText] = useState(shown);
+  useEffect(() => setText(shown), [shown]);
+  const as = (to: LeafType, raw: string): Json => {
+    if (to === 'null') return null;
+    if (to === 'boolean') return raw.trim() === 'true';
+    if (to === 'number') {
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return raw;
+  };
+  return (
+    <span style={{ display: 'inline-flex', gap: 4 }}>
+      {type === 'boolean' ? (
+        <input
+          type="checkbox"
+          data-testid="net-payload-leaf-boolean"
+          checked={value === true}
+          onChange={(event) => onChange(event.currentTarget.checked)}
+        />
+      ) : type === 'null' ? (
+        <span style={{ color: themeVars.content.muted }}>null</span>
+      ) : (
+        <TextInput
+          data-testid="net-payload-leaf"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onBlur={() => onChange(as(type, text))}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') onChange(as(type, text));
+          }}
+          style={{ width: 120 }}
+        />
+      )}
+      <select
+        data-testid="net-payload-leaf-type"
+        aria-label="Value type"
+        value={type}
+        onChange={(event) => onChange(as(event.currentTarget.value as LeafType, text))}
+      >
+        {(['string', 'number', 'boolean', 'null'] as const).map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </span>
+  );
+}
+
+type RoomSortKey = 'name' | 'roomId' | 'clients' | 'locked' | 'elapsedMs';
+const ROOM_COLUMNS: readonly (readonly [RoomSortKey, string])[] = [
+  ['name', 'Name'],
+  ['roomId', 'Room'],
+  ['clients', 'Clients'],
+  ['locked', 'Locked'],
+  ['elapsedMs', 'Elapsed'],
+];
+
+function sortRooms<Room extends Record<RoomSortKey, unknown>>(
+  rooms: readonly Room[],
+  sort: { key: RoomSortKey; descending: boolean },
+): Room[] {
+  const value = (room: Room): number | string => {
+    const field = room[sort.key];
+    return typeof field === 'number' ? field : typeof field === 'boolean' ? Number(field) : String(field);
+  };
+  return [...rooms].sort((a, b) => {
+    const left = value(a);
+    const right = value(b);
+    const order = left < right ? -1 : left > right ? 1 : 0;
+    return sort.descending ? -order : order;
+  });
+}
+
+function TrafficTable({ rows }: { rows: readonly NetTypeTraffic[] }) {
+  const cell = { padding: `0 ${spaceVar[3]}`, textAlign: 'right' as const, whiteSpace: 'nowrap' as const };
+  const bytes = (value: number) => (value >= 1024 ? `${(value / 1024).toFixed(1)} KiB` : `${value} B`);
+  return (
+    <div
+      data-testid="net-traffic"
+      style={{ maxHeight: 132, overflow: 'auto', borderBottom: `1px solid ${themeVars.boundary.default}` }}
+    >
+      {rows.length === 0 ? (
+        <AbsentNote>No traffic yet.</AbsentNote>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fontSizeVar.sm, ...MONO }}>
+          <thead>
+            <tr style={{ color: themeVars.content.muted }}>
+              <th style={{ ...cell, textAlign: 'left' }}>Type</th>
+              <th style={cell}>In</th>
+              <th style={cell}>Bytes in</th>
+              <th style={cell}>Out</th>
+              <th style={cell}>Bytes out</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.type} data-testid="net-traffic-row">
+                <td style={{ ...cell, textAlign: 'left' }}>{row.type}</td>
+                <td style={cell}>{row.countIn || '-'}</td>
+                <td style={cell}>{row.countIn ? bytes(row.bytesIn) : '-'}</td>
+                <td style={cell}>{row.countOut || '-'}</td>
+                <td style={cell}>{row.countOut ? bytes(row.bytesOut) : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+interface MessageDraft {
+  readonly type: string;
+  readonly payload: string;
+}
+
+/** The draft as a message: its type and its parsed JSON payload (none when empty). */
+function draftMessage(draft: MessageDraft): { type: string; payload: unknown } {
+  if (draft.type.trim() === '') throw new Error('Name the message type first.');
+  return { type: draft.type, payload: draft.payload.trim() === '' ? undefined : (JSON.parse(draft.payload) as unknown) };
+}
+
+/**
+ * A message type and a JSON payload (Colyseus Monitor's Send dialog), sent into the room as this
+ * client so a server handler can be exercised without writing game code for it; the Server section
+ * sends the same draft from the server.
+ */
+function SendControls({
+  adapter,
+  ping,
+  draft,
+  setDraft,
+}: {
+  adapter: NetworkingAdapter;
+  ping: boolean;
+  draft: MessageDraft;
+  setDraft: (next: MessageDraft) => void;
+}) {
+  const [rtt, setRtt] = useState<string | null>(null);
+  const measure = () => {
+    setRtt('…');
+    adapter.ping?.().then(
+      (ms) => setRtt(`${ms} ms`),
+      (caught: unknown) => setRtt(caught instanceof Error ? caught.message : String(caught)),
+    );
+  };
+  const [error, setError] = useState<string | null>(null);
+  const send = () => {
+    try {
+      const message = draftMessage(draft);
+      adapter.sendMessage?.(message.type, message.payload);
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    }
+  };
+  return (
+    <div
+      data-testid="net-send"
+      style={{ display: 'flex', gap: spaceVar[2], alignItems: 'center', padding: spaceVar[2] }}
+    >
+      <TextInput
+        data-testid="net-send-type"
+        placeholder="Message type"
+        value={draft.type}
+        onChange={(event) => setDraft({ ...draft, type: event.target.value })}
+        style={{ width: 140 }}
+      />
+      <TextInput
+        data-testid="net-send-payload"
+        placeholder='Payload (JSON), e.g. {"x": 1}'
+        value={draft.payload}
+        onChange={(event) => setDraft({ ...draft, payload: event.target.value })}
+        style={{ flex: 1, minWidth: 80 }}
+      />
+      <Button type="button" variant="ghost" data-testid="net-send-button" disabled={draft.type.trim() === ''} onClick={send}>
+        Send as this client
+      </Button>
+      {ping ? (
+        <>
+          <Button type="button" variant="ghost" data-testid="net-ping" onClick={measure}>
+            Ping
+          </Button>
+          {rtt ? (
+            <span data-testid="net-rtt" style={{ fontSize: fontSizeVar.sm, ...MONO }}>
+              {rtt}
+            </span>
+          ) : null}
+        </>
+      ) : null}
+      {error ? (
+        <span data-testid="net-send-error" style={{ color: themeVars.semantic.danger, fontSize: fontSizeVar.sm }}>
+          {error}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The room server's side — Colyseus Monitor's room list and room view, read from Monitor's own API
+ * on the server: every room (Inspect one), the machine's CPU and memory, and the inspected room's
+ * clients. Its acts are Monitor's: Broadcast and Dispose for the room, Send and Disconnect for a
+ * client, the message being the Send row's draft.
+ */
+function ServerView({
+  adapter,
+  ownSession,
+  ownRoom,
+  draft,
+  setDraft,
+}: {
+  adapter: NetworkingAdapter;
+  ownSession: string | null;
+  ownRoom: string | null;
+  draft: MessageDraft;
+  setDraft: (draft: MessageDraft) => void;
+}) {
+  // Monitor's Send dialog: opened from a client's Send or from Broadcast, titled by its target,
+  // editing the one message draft (which Monitor keeps too, in its browser storage).
+  const [sendTarget, setSendTarget] = useState<{ sessionId: string | null } | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [roomTab, setRoomTab] = useState<'clients' | 'state'>('clients');
+  const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
+  const [inspected, setInspected] = useState<string | undefined>(undefined);
+  // Monitor's room grid sorts by any column.
+  const [sort, setSort] = useState<{ key: RoomSortKey; descending: boolean }>({ key: 'elapsedMs', descending: true });
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    const read = () => {
+      void adapter.inspectServer?.(inspected).then(
+        (next) => {
+          if (live) setInspection(next);
+        },
+        (caught: unknown) => {
+          if (live) setError(caught instanceof Error ? caught.message : String(caught));
+        },
+      );
+    };
+    read();
+    // Monitor refreshes its room view every 5 s; this reads the server every 2.
+    const id = setInterval(read, 2000);
+    return () => {
+      live = false;
+      clearInterval(id);
+    };
+  }, [adapter, inspected]);
+  const act = (run: () => Promise<void> | undefined) => {
+    try {
+      run()?.then(
+        () => setError(null),
+        (caught: unknown) => setError(caught instanceof Error ? caught.message : String(caught)),
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    }
+  };
+  const seconds = (ms: number) => `${Math.round(ms / 1000)} s`;
+  const cell = { padding: `0 ${spaceVar[3]}`, whiteSpace: 'nowrap' as const };
+  if (inspection === undefined) return null;
+  if (inspection === null) {
+    return (
+      <AbsentNote testId="net-server-absent">
+        The room server serves no Monitor view (its `server` configuration sets VGAI_ROOM_MONITOR=1).
+      </AbsentNote>
+    );
+  }
+  const roomId = inspection.room?.roomId;
+  const actButton = (testId: string, label: string, run: () => Promise<void> | undefined) => (
+    <Button type="button" variant="ghost" data-testid={testId} onClick={() => act(run)}>
+      {label}
+    </Button>
+  );
+  return (
+    <div
+      data-testid="net-server"
+      style={{ padding: `${spaceVar[2]} 0`, borderBottom: `1px solid ${themeVars.boundary.default}`, fontSize: fontSizeVar.sm }}
+    >
+      <div data-testid="net-server-summary" style={{ padding: `0 ${spaceVar[3]}`, color: themeVars.content.muted }}>
+        Server · {inspection.rooms.length} room{inspection.rooms.length === 1 ? '' : 's'} · {inspection.connections}{' '}
+        connection{inspection.connections === 1 ? '' : 's'}
+        {inspection.cpuPercent !== null ? ` · CPU ${inspection.cpuPercent.toFixed(0)}%` : ''}
+        {inspection.memory ? ` · memory ${Math.round(inspection.memory.usedMb)} / ${Math.round(inspection.memory.totalMb)} MB` : ''}
+        {inspection.room ? ` · state ${inspection.room.stateBytes} B` : ''}
+      </div>
+      <table style={{ borderCollapse: 'collapse', ...MONO }}>
+        <thead>
+          <tr style={{ color: themeVars.content.muted }}>
+            {ROOM_COLUMNS.map(([key, label]) => (
+              <th
+                key={key}
+                data-testid={`net-server-sort-${key}`}
+                aria-sort={sort.key === key ? (sort.descending ? 'descending' : 'ascending') : 'none'}
+                style={{ ...cell, textAlign: 'left', cursor: 'pointer', fontWeight: 'normal' }}
+                onClick={() => setSort({ key, descending: sort.key === key ? !sort.descending : false })}
+              >
+                {label}
+                {sort.key === key ? (sort.descending ? ' ▾' : ' ▴') : ''}
+              </th>
+            ))}
+            <th style={cell} />
+          </tr>
+        </thead>
+        <tbody>
+          {sortRooms(inspection.rooms, sort).map((room) => (
+            <tr key={room.roomId} data-testid="net-server-room" data-inspected={room.roomId === roomId || undefined}>
+              <td style={cell}>{room.name}</td>
+              <td style={cell}>{room.roomId}</td>
+              <td style={cell}>
+                {room.clients}
+                {room.maxClients !== null ? ` / ${room.maxClients}` : ''} clients
+              </td>
+              <td style={cell}>{room.locked ? 'locked' : 'open'}</td>
+              <td style={cell}>{seconds(room.elapsedMs)}</td>
+              <td style={cell}>
+                {room.roomId === roomId ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    data-testid="net-server-broadcast"
+                    onClick={() => {
+                      setSendError(null);
+                      setSendTarget({ sessionId: null });
+                    }}
+                  >
+                    Broadcast
+                  </Button>
+                ) : (
+                  <Button type="button" variant="ghost" data-testid="net-server-inspect" onClick={() => setInspected(room.roomId)}>
+                    Inspect
+                  </Button>
+                )}
+                {/* Monitor offers Dispose on every room of its list. */}
+                {actButton('net-server-dispose', 'Dispose', () => adapter.disposeRoom?.(room.roomId))}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {sendTarget ? (
+        // Monitor's dialog, drawn in the panel rather than over the editor: during Play a field
+        // over the editor would hand the game every key typed into it.
+        <div
+          data-testid="net-send-dialog"
+          role="group"
+          aria-labelledby="net-send-dialog-title"
+          style={{ margin: spaceVar[2], padding: spaceVar[3], border: `1px solid ${themeVars.boundary.default}`, borderRadius: 4 }}
+        >
+          <div id="net-send-dialog-title" style={{ color: themeVars.content.primary, marginBottom: spaceVar[2] }}>
+            {sendTarget.sessionId
+              ? `Send message to client (${sendTarget.sessionId})`
+              : 'Broadcast message to all clients'}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[2] }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
+              <span style={{ color: themeVars.content.muted }}>Message type</span>
+              <TextInput
+                data-testid="net-send-dialog-type"
+                value={draft.type}
+                onChange={(event) => setDraft({ ...draft, type: event.target.value })}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
+              <span style={{ color: themeVars.content.muted }}>Message payload (JSON)</span>
+              <PayloadEditor text={draft.payload} onChange={(payload) => setDraft({ ...draft, payload })} />
+            </label>
+            {sendError ? <span data-testid="net-send-dialog-error">{sendError}</span> : null}
+          </div>
+          <div style={{ display: 'flex', gap: spaceVar[2], justifyContent: 'flex-end', marginTop: spaceVar[2] }}>
+            <Button type="button" variant="ghost" onClick={() => setSendTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              data-testid="net-send-dialog-send"
+              onClick={() => {
+                const target = sendTarget;
+                void (async () => {
+                  try {
+                    const message = draftMessage(draft);
+                    await (target.sessionId
+                      ? adapter.sendToClient?.(target.sessionId, message.type, message.payload, roomId)
+                      : adapter.broadcast?.(message.type, message.payload, roomId));
+                    setSendError(null);
+                    setSendTarget(null);
+                  } catch (caught) {
+                    setSendError(caught instanceof Error ? caught.message : String(caught));
+                  }
+                })();
+              }}
+            >
+              Send
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {inspection.room ? (
+        // Monitor's room view: a Clients tab and a State tab. The State tab is the SERVER's state
+        // of the inspected room, edited and deleted there; the tree below this section stays this
+        // client's replicated copy of its own room.
+        <div data-testid="net-server-room-view" style={{ padding: `${spaceVar[2]} 0` }}>
+          <div role="tablist" style={{ display: 'flex', gap: spaceVar[2], padding: `0 ${spaceVar[3]}` }}>
+            {(
+              [
+                ['clients', `Clients (${inspection.room.clients.length})`],
+                ['state', 'State'],
+              ] as const
+            ).map(([key, label]) => (
+              <Button
+                key={key}
+                type="button"
+                variant="ghost"
+                role="tab"
+                aria-selected={roomTab === key}
+                data-testid={`net-server-tab-${key}`}
+                onClick={() => setRoomTab(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          {roomTab === 'clients' ? (
+            <table style={{ borderCollapse: 'collapse', ...MONO }}>
+              <tbody>
+              {inspection.room.clients.map((client) => (
+            <tr key={client.sessionId} data-testid="net-server-client">
+              <td style={cell}>client</td>
+              <td style={cell}>
+                {client.sessionId}
+                {client.sessionId === ownSession ? ' (this client)' : ''}
+              </td>
+              <td style={cell}>{seconds(client.elapsedMs)}</td>
+              <td style={cell} colSpan={3}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  data-testid="net-server-send"
+                  onClick={() => {
+                    setSendError(null);
+                    setSendTarget({ sessionId: client.sessionId });
+                  }}
+                >
+                  Send
+                </Button>
+                {actButton('net-server-disconnect', 'Disconnect', () => adapter.disconnectClient?.(client.sessionId, roomId))}
+              </td>
+            </tr>
+          ))}
+              </tbody>
+            </table>
+          ) : inspection.room.state !== undefined ? (
+            <div data-testid="net-server-room-state">
+              <StateTreeNode
+                name={`room ${inspection.room.roomId}${inspection.room.roomId === ownRoom ? ' (this client’s room)' : ''}`}
+                value={inspection.room.state}
+                depth={0}
+                edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next, roomId) : undefined}
+                remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path, roomId) : undefined}
+              />
+            </div>
+          ) : (
+            <AbsentNote>The server sent no state for this room.</AbsentNote>
+          )}
+        </div>
+      ) : null}
+      {error ? <AbsentNote>{error}</AbsentNote> : null}
     </div>
   );
 }

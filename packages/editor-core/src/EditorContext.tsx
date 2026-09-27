@@ -1,21 +1,20 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY } from './authoring/shell-object3d-document-write-policy';
 
-import { connectCommandListener } from './command-listener';
-import { registerStoryMediaCaptures } from './stories/story-media-captures';
-import { startSceneDocuments } from './components/scene-documents';
+import { connectCommandListener } from '@volter/editor-sdk/kit/command-listener';
+import { startSceneDocuments } from '@volter/editor-sdk/kit/components/scene-documents';
 import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
-import { bootstrapProject } from './initial-project';
+import { bootstrapProject } from '@volter/editor-sdk/kit/initial-project';
 import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { startProjectAdapterLoad } from './project-adapter';
+import { startProjectAdapterLoad } from '@volter/editor-sdk/kit/project-adapter';
 import { startProjectDeclarationRefresh } from './project-declaration-refresh';
-import { getCurrentProject } from './project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { startProjectSessionReset } from './project-session-reset';
 import { startProjectToolContributionDiscovery } from './project-tool-discovery';
-import { startProjectToolCatalog } from './project-tools';
+import { startProjectToolCatalog } from '@volter/editor-sdk/kit/project-tools';
 import { registerShellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { startTabCensus } from '@volter/editor-sdk/kit/tab-census';
 
@@ -63,8 +62,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return connectCommandListener(storeRef.current!, sessionRef.current!.historyCommands);
   }, []);
-  useEffect(() => registerStoryMediaCaptures(), []);
-
   // Project-tool discovery is EDITOR-INIT lifecycle, not a side effect of any
   // one surface — it runs (and keeps re-running on project change / tool-file
   // add/unlink) whether or not a workspace is mounted.

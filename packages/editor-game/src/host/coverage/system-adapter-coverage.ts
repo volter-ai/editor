@@ -46,7 +46,7 @@
  * no live session.
  */
 
-import type { DeclaredSystemAbsence } from '@volter/game-runtime/runtime/game';
+import type { DeclaredSystemAbsence } from '../../runtime/game';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import {
   SYSTEM_ADAPTER_SLOTS,
@@ -118,7 +118,7 @@ export interface NativeProjectFacts {
  */
 const SLOT_LIBRARIES: Partial<Record<SystemAdapterSlot, readonly string[]>> = {
   physics: ['@react-three/rapier', '@dimforge/rapier3d-compat', '@dimforge/rapier2d-compat'],
-  networking: ['colyseus.js'],
+  networking: ['@colyseus/sdk', 'colyseus.js'],
   navigation: ['recast-navigation', '@recast-navigation/core'],
   audio: ['tone', 'howler'],
 };
@@ -139,9 +139,8 @@ function shippedLibraries(slot: SystemAdapterSlot, facts: NativeProjectFacts): r
 function contradictionFix(slot: SystemAdapterSlot, libraries: readonly string[]): string {
   return (
     `this project depends on ${libraries.join(' + ')}, so "nothing built a ${slot} world" is not ` +
-    `a settled answer. Reach a terminal state either way: BIND it — declare a ${slot} adapter in ` +
-    `the root entry's \`systems\` table (the engine ships \`rapierPhysicsSystem()\` for the R3F ` +
-    `Rapier bridge; other slots take the game's own adapter) — or DECLARE the absence with ` +
+    `a settled answer. Reach a terminal state either way: BIND it — declare the game's own ${slot} ` +
+    `adapter in the root entry's \`systems\` table — or DECLARE the absence with ` +
     `\`absent(reason)\` in that same table. The reason must NAME the dependency and say why it ` +
     `is there while the subsystem is not (a transitive pull, a leftover, a build-only use); a ` +
     `declared absence blind to the shipped dependency grades malformed, not terminal.`
@@ -348,6 +347,19 @@ export function measureNativeSystemAdapters(
             ? `declared absent by root "${absence.rootId}": ${absence.reason} ` +
               `(the project does depend on ${libraries.join(' + ')}; the reason engages with that)${lastMountNote}`
             : `declared absent by root "${absence.rootId}": ${absence.reason}${lastMountNote}`,
+      };
+    }
+    // A Colyseus client is the editor's to observe: Play binds its observer of the game's room
+    // sockets (`adapter-runtime-bindings.ts`'s `withObservedNetworking`), so an unbound slot while
+    // nothing plays is that observer not yet attached, not an adapter the game owes.
+    if (slot === 'networking' && libraries.length > 0) {
+      return {
+        slot,
+        state: 'empty',
+        attestedBy: 'host',
+        evidence:
+          `this project ships ${libraries.join(' + ')}; the editor observes its room sockets from ` +
+          'Play, and nothing is connected while editing',
       };
     }
     // Nothing declared, and the library IS here: the host's inference below

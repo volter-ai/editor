@@ -23,9 +23,9 @@
  * `vgai:script-update` listener.
  */
 
-import { connectToolFileEvents } from './asset-events';
-import { onProjectChange } from './project-manager';
-import { refreshProjectToolContributions } from './tool-loader';
+import { connectToolFileEvents } from '@volter/editor-sdk/kit/asset-events';
+import { onProjectChange } from '@volter/editor-sdk/kit/project-manager';
+import { refreshProjectToolContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 
 async function refreshAfterOpeningViewport(): Promise<void> {

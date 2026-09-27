@@ -4,10 +4,12 @@
  * nouns, so the export is a transcription: `project.xml` and `metadata.xml` in a zip.
  *
  *   - `Transport`: `Tempo` (bpm) and `TimeSignature`;
- *   - `Structure`: a `Track` per track (content `notes`) with its `Channel` (role `regular`,
- *     volume as linear gain, pan normalized 0…1, mute, solo) routed to one master channel; its
- *     devices as generic `Device`s with their parameters (the soundfont's bank as the device's
- *     external `State` file, since no DAW has a SpessaSynth plugin to load);
+ *   - `Structure`: a `Track` per track with its `Channel` (its role: `regular`, an `effect` bus or
+ *     the `master`; volume as linear gain, pan normalized 0…1, mute, solo, its sends as `Sends` to
+ *     the bus channels they feed) routed to the master channel (the piece's own, else one made
+ *     for it); its devices as generic `Device`s with their parameters, the soundfont as the
+ *     instrument (its bank the device's external `State` file, since no DAW has a SpessaSynth
+ *     plugin to load), humanize as a note effect and every other device as an audio effect;
  *   - `Arrangement`: `Lanes` in beats, per track `Lanes` > `Clips` > `Clip` > `Lanes` holding the
  *     clip's `Notes` (times from the clip's start) and its controller lanes as `Points`
  *     (`channelController` / `pitchBend`); the tempo lane as `TempoAutomation`; markers.
@@ -18,12 +20,46 @@
 
 import { strToU8, zipSync } from 'fflate';
 import packageJson from '../../package.json';
-import { assignChannels } from '../render-offline';
-import type { Piece, PiecePoints } from '@volter/dawproject/piece';
+import { assignChannels, type DecodedAudio } from '../render-offline';
+import { everyClip } from '../launches';
+import { wav24 } from '../wav';
+import type { Piece, PieceClip, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
+import { motionFor, motionValueAtBeat } from '../mix/automation';
+import { audioSegments, COMP_FADE } from '../comp';
+import { perform } from '@volter/dawproject/perform';
+import { destinationOf } from '../mix/offline-mix';
 
 export interface DawprojectOptions {
   readonly title: string;
   readonly application?: { readonly name: string; readonly version: string };
+  /** The recordings the piece's `<Audio>` clips play, by project path; each clip's is embedded. */
+  readonly audio?: ReadonlyMap<string, DecodedAudio>;
+}
+
+/**
+ * The recordings a piece's audio clips embed in the container, one per file and gain: DAWproject
+ * has no clip gain, so a clip's `gain` is applied to the samples it carries.
+ */
+function embeddedAudio(piece: Piece, audio: ReadonlyMap<string, DecodedAudio> | undefined): Map<string, { path: string; wav: Uint8Array; seconds: number; channels: number; sampleRate: number }> {
+  const embedded = new Map<string, { path: string; wav: Uint8Array; seconds: number; channels: number; sampleRate: number }>();
+  const used = new Set<string>();
+  for (const track of piece.tracks) {
+    for (const take of everyClip(piece, track).flatMap((clip) => clip.takes)) {
+      const key = `${take.file}|${take.gain}`;
+      if (embedded.has(key)) continue;
+      const decoded = audio?.get(take.file);
+      if (!decoded) throw new Error(`The recording ${take.file} was not loaded; the export embeds every clip's recording.`);
+      const scale = 10 ** (take.gain / 20);
+      const left = decoded.channels[0]!.map((sample) => sample * scale);
+      const right = (decoded.channels[1] ?? decoded.channels[0]!).map((sample) => sample * scale);
+      const stem = take.file.replace(/^.*\//, '').replace(/\.wav$/i, '');
+      let path = `audio/${stem}${take.gain === 0 ? '' : ` ${take.gain}dB`}.wav`;
+      for (let n = 2; used.has(path); n++) path = `audio/${stem} ${n}.wav`;
+      used.add(path);
+      embedded.set(key, { path, wav: wav24(left, right, decoded.sampleRate), seconds: left.length / decoded.sampleRate, channels: 2, sampleRate: decoded.sampleRate });
+    }
+  }
+  return embedded;
 }
 
 function escape(text: string): string {
@@ -52,6 +88,8 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     lines.push(`${'  '.repeat(depth)}${text}`);
   };
   const application = options.application ?? { name: 'Volter Editor', version: packageJson.version };
+  const recordings = embeddedAudio(piece, options.audio);
+  const performance = perform(piece);
 
   out(0, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
   out(0, '<Project version="1.0">');
@@ -64,18 +102,35 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
 
   out(1, '<Structure>');
   const trackIds = new Map<string, string>();
-  const masterId = 'master';
+  /** Each track's mixer parameters by lane target (`volume`, `pan`, `send:<bus>`): what a lane's Target names. */
+  const paramIds = new Map<string, Map<string, string>>();
+  // Every channel's id first, so a send can name the bus it feeds wherever that bus is listed.
+  const channelIds = new Map<string, string>();
   for (const track of piece.tracks) {
-    const trackId = id();
-    trackIds.set(track.id, trackId);
+    trackIds.set(track.id, id());
+    channelIds.set(track.id, id());
+  }
+  const pieceMaster = piece.tracks.find((track) => track.channel?.role === 'master');
+  const masterId = pieceMaster ? channelIds.get(pieceMaster.id)! : 'master';
+  const busIds = new Map(piece.tracks.filter((track) => track.channel?.role === 'effect').map((track) => [track.name, channelIds.get(track.id)!]));
+  // A group track (`submix`) holds the tracks it sums, as DAWproject nests them; each of those
+  // routes to the group's channel.
+  const emitTrack = (track: PieceTrack): void => {
+    const trackId = trackIds.get(track.id)!;
     const channel = track.channel;
-    out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType: 'notes', loaded: true })}>`);
-    out(3, `<Channel${attrs({ id: id(), role: 'regular', audioChannels: 2, destination: masterId, solo: channel?.solo ?? false })}>`);
+    const role = channel?.role ?? 'regular';
+    const group = destinationOf(piece, track);
+    const recorded = everyClip(piece, track).some((clip) => clip.audio);
+    const played = everyClip(piece, track).some((clip) => !clip.audio);
+    const regular = recorded && played ? 'audio notes' : recorded ? 'audio' : 'notes';
+    const contentType = role === 'regular' ? regular : role === 'submix' ? 'tracks' : 'audio';
+    out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType, loaded: true })}>`);
+    out(3, `<Channel${attrs({ id: channelIds.get(track.id), role, audioChannels: 2, destination: role === 'master' ? null : group ? channelIds.get(group.id) : masterId, solo: channel?.solo ?? false })}>`);
     if (channel && channel.devices.length > 0) {
       out(4, '<Devices>');
       for (const device of channel.devices) {
-        const role = device.plugin === 'soundfont' ? 'instrument' : 'noteFX';
-        out(5, `<Device${attrs({ id: id(), name: device.name ?? device.plugin, deviceName: device.plugin, deviceRole: role, deviceVendor: 'Volter', loaded: false })}>`);
+        const deviceRole = device.plugin === 'soundfont' ? 'instrument' : device.plugin === 'humanize' ? 'noteFX' : 'audioFX';
+        out(5, `<Device${attrs({ id: id(), name: device.name ?? device.plugin, deviceName: device.plugin, deviceRole, deviceVendor: 'Volter', loaded: false })}>`);
         // Single numbers and switches are parameters; a list (an equaliser's bands) has no
         // generic-parameter form and is left to the device-specific elements.
         const numeric = Object.entries(device.params).filter(
@@ -97,18 +152,40 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
       out(4, '</Devices>');
     }
     out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: channel?.mute ?? false })}/>`);
-    out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: beats(((channel?.pan ?? 0) + 1) / 2), min: 0, max: 1 })}/>`);
-    out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: beats(10 ** ((channel?.volume ?? 0) / 20)), min: 0, max: 2 })}/>`);
+    const params = new Map<string, string>();
+    paramIds.set(track.id, params);
+    const panId = id();
+    params.set('pan', panId);
+    out(4, `<Pan${attrs({ id: panId, name: 'Pan', unit: 'normalized', value: beats(((channel?.pan ?? 0) + 1) / 2), min: 0, max: 1 })}/>`);
+    const sends = (channel?.sends ?? []).filter((send) => busIds.has(send.to));
+    if (sends.length > 0) {
+      out(4, '<Sends>');
+      for (const send of sends) {
+        out(5, `<Send${attrs({ id: id(), name: `Send to ${send.to}`, destination: busIds.get(send.to), type: send.pre ? 'pre' : 'post' })}>`);
+        const sendVolumeId = id();
+        params.set(`send:${send.to}`, sendVolumeId);
+        out(6, `<Volume${attrs({ id: sendVolumeId, name: 'Volume', unit: 'linear', value: beats(10 ** (send.level / 20)), min: 0, max: 2 })}/>`);
+        out(5, '</Send>');
+      }
+      out(4, '</Sends>');
+    }
+    const volumeId = id();
+    params.set('volume', volumeId);
+    out(4, `<Volume${attrs({ id: volumeId, name: 'Volume', unit: 'linear', value: beats(10 ** ((channel?.volume ?? 0) / 20)), min: 0, max: 2 })}/>`);
+    out(3, '</Channel>');
+    for (const child of piece.tracks.filter((candidate) => candidate.parent === track.id)) emitTrack(child);
+    out(2, '</Track>');
+  };
+  for (const track of piece.tracks.filter((candidate) => candidate.parent === null)) emitTrack(track);
+  if (!pieceMaster) {
+    out(2, `<Track${attrs({ id: id(), name: 'Master', contentType: 'audio notes', loaded: true })}>`);
+    out(3, `<Channel${attrs({ id: masterId, role: 'master', audioChannels: 2 })}>`);
+    out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: false })}/>`);
+    out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: 0.5, min: 0, max: 1 })}/>`);
+    out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: 1, min: 0, max: 2 })}/>`);
     out(3, '</Channel>');
     out(2, '</Track>');
   }
-  out(2, `<Track${attrs({ id: id(), name: 'Master', contentType: 'audio notes', loaded: true })}>`);
-  out(3, `<Channel${attrs({ id: masterId, role: 'master', audioChannels: 2 })}>`);
-  out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: false })}/>`);
-  out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: 0.5, min: 0, max: 1 })}/>`);
-  out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: 1, min: 0, max: 2 })}/>`);
-  out(3, '</Channel>');
-  out(2, '</Track>');
   out(1, '</Structure>');
 
   const lane = (depth: number, points: PiecePoints, midiChannel: number, origin: number): void => {
@@ -125,25 +202,69 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     out(depth, '</Points>');
   };
 
+  /** A clip at `depth`: its notes and controller lanes, or the recording it plays. */
+  const emitClip = (depth: number, clip: PieceClip, midiChannel: number): void => {
+    if (clip.audio) {
+      // A recording: its content is in seconds, and where the clip starts in the file is its
+      // `playStart`. A comped clip is written as its segments, one clip each, crossing in fades.
+      for (const segment of audioSegments(clip, performance.secondsAt)) {
+        const recording = recordings.get(`${segment.audio.file}|${segment.audio.gain}`)!;
+        const time = performance.beatAt(segment.from);
+        const fadeIn = segment.envelope[0]?.[1] === 0 ? COMP_FADE : null;
+        const fadeOut = segment.envelope.at(-1)?.[1] === 0 && segment.envelope.length > 1 ? COMP_FADE : null;
+        out(depth, `<Clip${attrs({ name: clip.name, time: beats(time), duration: beats(performance.beatAt(segment.to) - time), contentTimeUnit: 'seconds', playStart: segment.sourceAt, fadeTimeUnit: fadeIn || fadeOut ? 'seconds' : null, fadeInTime: fadeIn, fadeOutTime: fadeOut })}>`);
+        out(depth + 1, `<Audio${attrs({ id: id(), timeUnit: 'seconds', duration: recording.seconds, channels: recording.channels, sampleRate: recording.sampleRate, algorithm: 'raw' })}>`);
+        out(depth + 2, `<File${attrs({ path: recording.path })}/>`);
+        out(depth + 1, '</Audio>');
+        out(depth, '</Clip>');
+      }
+      return;
+    }
+    out(depth, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), playStart: 0 })}>`);
+    out(depth + 1, `<Lanes${attrs({ id: id() })}>`);
+    out(depth + 2, `<Notes${attrs({ id: id() })}>`);
+    for (const note of [...clip.notes].sort((x, y) => x.start - y.start || x.pitch - y.pitch)) {
+      out(depth + 3, `<Note${attrs({ time: beats(note.time), duration: beats(note.duration), channel: midiChannel, key: note.pitch, vel: beats(note.vel) })}/>`);
+    }
+    out(depth + 2, '</Notes>');
+    for (const points of clip.lanes) lane(depth + 2, points, midiChannel, clip.time);
+    out(depth + 1, '</Lanes>');
+    out(depth, '</Clip>');
+  };
+
   out(1, `<Arrangement${attrs({ id: id() })}>`);
   out(2, `<Lanes${attrs({ id: id(), timeUnit: 'beats' })}>`);
   for (const track of piece.tracks) {
     const midiChannel = assignments.get(track.id)?.channel ?? 0;
     out(3, `<Lanes${attrs({ id: id(), track: trackIds.get(track.id) })}>`);
     out(4, `<Clips${attrs({ id: id() })}>`);
-    for (const clip of track.clips) {
-      out(5, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), playStart: 0 })}>`);
-      out(6, `<Lanes${attrs({ id: id() })}>`);
-      out(7, `<Notes${attrs({ id: id() })}>`);
-      for (const note of [...clip.notes].sort((a, b) => a.start - b.start || a.pitch - b.pitch)) {
-        out(8, `<Note${attrs({ time: beats(note.time), duration: beats(note.duration), channel: midiChannel, key: note.pitch, vel: beats(note.vel) })}/>`);
-      }
-      out(7, '</Notes>');
-      for (const points of clip.lanes) lane(7, points, midiChannel, clip.time);
-      out(6, '</Lanes>');
-      out(5, '</Clip>');
-    }
+    for (const clip of track.clips) emitClip(5, clip, midiChannel);
     out(4, '</Clips>');
+    // The track's mixer automation, each lane on the parameter it moves (`<Target parameter>`).
+    // An LFO has no DAWproject form: a parameter it moves is written as points, 32 per cycle of its
+    // fastest LFO across the arrangement, of the value the mixes apply (lane plus waves).
+    const targets = [...new Set([...track.lanes.map((points) => points.target), ...(track.channel?.lfos ?? []).map((lfo) => lfo.target)])];
+    for (const target of targets) {
+      const parameter = paramIds.get(track.id)?.get(target);
+      const motion = motionFor(track, target);
+      if (!parameter || !motion) continue;
+      const pan = target === 'pan';
+      const written = (value: number): number => (pan ? (Math.max(-1, Math.min(1, value)) + 1) / 2 : 10 ** (value / 20));
+      out(4, `<Points${attrs({ id: id(), unit: pan ? 'normalized' : 'linear' })}>`);
+      out(5, `<Target${attrs({ parameter })}/>`);
+      if (motion.lfos.length === 0 && motion.lane) {
+        for (const point of [...motion.lane.points].sort((a, b) => a.time - b.time)) {
+          out(5, `<RealPoint${attrs({ time: beats(point.time), value: beats(written(point.value)), interpolation: point.hold ? 'hold' : 'linear' })}/>`);
+        }
+      } else {
+        const step = Math.min(...motion.lfos.map((lfo) => lfo.period)) / 32;
+        const valueAt = motionValueAtBeat(motion);
+        for (let k = 0; k * step <= piece.length + 1e-9; k++) {
+          out(5, `<RealPoint${attrs({ time: beats(k * step), value: beats(written(valueAt(k * step))), interpolation: 'linear' })}/>`);
+        }
+      }
+      out(4, '</Points>');
+    }
     out(3, '</Lanes>');
   }
   out(2, '</Lanes>');
@@ -163,6 +284,24 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     out(2, '</TempoAutomation>');
   }
   out(1, '</Arrangement>');
+  // The clip launcher: a scene's slots, each on its track (`hasStop`: an empty launch stops it).
+  if (piece.scenes.length > 0) {
+    out(1, '<Scenes>');
+    for (const scene of piece.scenes) {
+      out(2, `<Scene${attrs({ id: id(), name: scene.name })}>`);
+      out(3, `<Lanes${attrs({ id: id(), timeUnit: 'beats' })}>`);
+      for (const track of piece.tracks) {
+        const slot = scene.slots.find((candidate) => candidate.track === track.name);
+        if (!slot) continue;
+        out(4, `<ClipSlot${attrs({ id: id(), track: trackIds.get(track.id), hasStop: true })}>`);
+        if (slot.clip) emitClip(5, slot.clip, assignments.get(track.id)?.channel ?? 0);
+        out(4, '</ClipSlot>');
+      }
+      out(3, '</Lanes>');
+      out(2, '</Scene>');
+    }
+    out(1, '</Scenes>');
+  }
   out(0, '</Project>');
   return `${lines.join('\n')}\n`;
 }
@@ -180,8 +319,15 @@ export function metadataXml(options: DawprojectOptions): string {
 
 /** The `.dawproject` file: a zip of `project.xml` and `metadata.xml`. */
 export function pieceToDawproject(piece: Piece, options: DawprojectOptions): Uint8Array {
-  return zipSync({
+  // A fixed timestamp: the zip otherwise stamps each entry with the time of export, so the same
+  // piece gave a different file every time.
+  const files: Record<string, Uint8Array> = {
     'project.xml': strToU8(pieceToProjectXml(piece, options)),
     'metadata.xml': strToU8(metadataXml(options)),
-  });
+  };
+  for (const recording of embeddedAudio(piece, options.audio).values()) files[recording.path] = recording.wav;
+  return zipSync(
+    files,
+    { mtime: new Date(1980, 0, 1) },
+  );
 }

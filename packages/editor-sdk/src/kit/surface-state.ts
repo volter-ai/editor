@@ -24,6 +24,9 @@ export interface ExplainSurfaceInput {
   readonly content: SurfaceContentState;
   readonly readiness?: readonly RootReadiness[];
   readonly failures?: readonly MountFailureReport[];
+  /** Why this surface has no editor for its root, when the editor has said so
+   *  (a Boundary's disclosure): the answer, not a wait. */
+  readonly disclosure?: string | null;
 }
 
 function quoted(ids: readonly string[]): string {
@@ -112,6 +115,14 @@ export function explainSurface(input: ExplainSurfaceInput): SurfaceExplanation |
   const owned = new Set(input.rootIds);
   const scopedFailures = (input.failures ?? []).filter((failure) => owned.has(failure.worldId));
   if (scopedFailures.length > 0) return failureExplanation(input.surface, scopedFailures);
+
+  if (input.disclosure) {
+    return {
+      tone: 'neutral',
+      title: `No ${input.surface} editor for ${quoted(input.rootIds)}`,
+      description: input.disclosure,
+    };
+  }
 
   const waitingIds = (input.readiness ?? [])
     .filter((entry) => entry.state === 'waiting' && owned.has(entry.rootId))

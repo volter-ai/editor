@@ -397,6 +397,17 @@ export function registerConfigurationRoutes(router: EditorServerRouter, ctx: Rou
     });
   });
 
+  // The last build's own output, served as a player runs it: Build Profiles'
+  // Build And Run opens it (Unity's Build And Run, Godot's Run in Browser).
+  // `root` confines the path to dist/; nothing is cached, so a rebuild runs fresh.
+  router.get(/^\/__editor\/build\/web(\/.*)?$/, (req: Request, res: Response) => {
+    const file = (req.params[0] ?? '/').replace(/^\/+/, '') || 'index.html';
+    res.setHeader('Cache-Control', 'no-store');
+    res.sendFile(file, { root: join(ctx.projectRoot, 'dist'), dotfiles: 'deny' }, (error) => {
+      if (error && !res.headersSent) res.status(404).json({ error: `No built file ${file} (build the project first).` });
+    });
+  });
+
   router.post('/__editor/configurations/:id/stop', async (req: Request, res: Response) => {
     const id = String(req.params['id']);
     let declared: readonly DeclaredConfiguration[] = [];

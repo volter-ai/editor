@@ -30,13 +30,13 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
-import { setFramePartShown } from './frame-parts';
+import { setFramePartShown } from '@volter/editor-sdk/kit/frame/frame-parts';
 import { setWorkspaceStorageProvider, type WorkspaceStorageProvider } from '@volter/editor-sdk/kit/workspace-storage';
 import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
-import { activeProduct } from '../active-product';
+import { activeProduct } from '@volter/editor-sdk/kit/active-product';
 import '../authoring/prefab-instance-inspector-section';
 import '../authoring/null-inspection-subjects';
 import { editorHost } from '@volter/editor-sdk/host';
@@ -61,35 +61,35 @@ import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adap
 import { AppRoot } from '../components/AppRoot';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
-import { Inspector, InspectorShownAsCard } from '../components/Inspector';
-import { ProjectHeader } from '../components/ProjectHeader';
+import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
+import { ProjectHeader } from '@volter/editor-sdk/kit/components/ProjectHeader';
 import { DocumentView } from '../components/ProjectLayout';
 import { WorkspaceDocumentSurface } from '../components/WorkspaceDocumentSurface';
 import { WorkspaceUtilitySurface } from '../components/WorkspaceUtilitySurface';
 import { WorkspaceStaticPanelSurface } from '../components/workspace-static-panel-registry';
 import { installEditorConsoleReporting } from '../console-sync';
-import { installSessionVitals } from '../coverage/session-vitals';
+import { installSessionVitals } from '@volter/editor-sdk/kit/coverage/session-vitals';
 import {
   invokePaletteAction,
   paletteActions,
   setCommandExecutor,
   setPaletteOpener,
   subscribePaletteActions,
-} from '../editor-commands';
+} from '@volter/editor-sdk/kit/editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
-import { type EditorNotification, setNotificationDelegate } from '../editor-notifications';
+import { type EditorNotification, setNotificationDelegate } from '@volter/editor-sdk/kit/editor-notifications';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
-import { useActiveInspection } from '../inspection/use-active-inspection';
-import { installLayoutPolicy } from '../layout-policy';
+import { useActiveInspection } from '@volter/editor-sdk/kit/inspection/use-active-inspection';
+import { installLayoutPolicy } from '@volter/editor-sdk/kit/layout-policy';
 import {
   installPlayTransitionDock,
   reconcilePlayPresentationPolicy,
   usesImmersivePlayPresentation,
-} from '../live-transition';
-import { getCurrentProject } from '../project-manager';
+} from '@volter/editor-sdk/kit/live-transition';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import {
   describeSessionOrphan,
   sessionOrphanIsWorthReporting,
@@ -104,17 +104,17 @@ import {
 import { useSharedViewRestore } from '../shared-view-restore';
 import { installStaleChunkRecovery } from '../stale-chunk-recovery';
 import { installStoryLane } from '../stories/story-lane';
-import { notifySurfaceKeyboard, setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
-import { preloadEditorThemeLibrary } from '../theme-library';
+import { setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
+import { preloadEditorThemeLibrary } from '@volter/editor-sdk/kit/theme-library';
 import {
   editorPaletteSnapshot,
   installEditorTheme,
   subscribeEditorTheme,
-} from '../theme-preference';
+} from '@volter/editor-sdk/kit/theme-preference';
 import { lookColorCustomizations } from './look-colors';
-import { primeSourceWriteRuntime } from '../ui-source/tier-source-write-backend';
+import { primeSourceWriteRuntime } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { installViteErrorSurface } from '../vite-error-surface';
-import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '../workspace-areas';
+import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '@volter/editor-sdk/kit/workspace-areas';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocument,
@@ -126,13 +126,14 @@ import {
   type WorkspaceDocumentDescriptor,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { reopenKindDocument } from '../components/kind-documents';
-import { requestAvailableWorkspaceDocument } from '../workspace-available-documents';
+import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
+import { reopenKindDocument } from '@volter/editor-sdk/kit/components/kind-documents';
+import { requestAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,
 } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '../workspace-presets';
+import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '@volter/editor-sdk/kit/workspace-presets';
 import {
   installWorkspaceStatePersistence,
   waitForWorkspaceStateRestore,
@@ -1198,6 +1199,10 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
       else door.console.warn(message, 'editor');
     },
   };
+  // The frame's documents contribution reports the editor its native restoration chose BEFORE it
+  // subscribes (`vgaiDocuments.ts`'s constructor). That one report is the workbench's remembered
+  // focus, not a person's click, so a Play entered before the workbench booted keeps the game.
+  let frameSubscribed = false;
   const documents: VgaiDocumentsHandle = {
     whenRestored: waitForWorkspaceStateRestore,
     activeSource: () => {
@@ -1231,6 +1236,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
       }),
     activeId: () => activeWorkspaceDocument()?.descriptor.id ?? null,
     subscribe: (listener) => {
+      frameSubscribed = true;
       const registry = subscribeWorkspaceDocuments(listener);
       // The AREAS move on a workspace switch, and the registry is silent about that: the
       // documents it holds are the same objects, only the list that gives them a place and a
@@ -1242,6 +1248,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
       };
     },
     activate: (id, viewId) => {
+      if (!frameSubscribed && liveDocumentHeld()) return;
       if (viewId) setActiveWorkspaceDocumentView(id, viewId);
       else activateWorkspaceDocument(id);
     },
@@ -1349,6 +1356,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
         id: entry.id,
         label: entry.label,
         category: entry.category,
+        ...(entry.menu ? { menu: entry.menu } : {}),
       })),
     invoke: (id) => invokePaletteAction(id),
     subscribe: (listener) => subscribePaletteActions(listener),
@@ -1413,7 +1421,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   //
   // The pane's active state is held here rather than re-asked, because the probe is read on
   // EVERY gated DOM event (`gated-globals.ts`'s `gateFor`) and must not cross the bridge to
-  // answer. `notifySurfaceKeyboard()` is the edge the engine's latched `InputManager` needs.
+  // answer.
   let paneActive = true;
   let stopImmersive: (() => void) | null = null;
   let stopDockCommands: (() => void) | null = null;
@@ -1437,7 +1445,6 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     setPaneActive: (active) => {
       if (paneActive === active) return;
       paneActive = active;
-      notifySurfaceKeyboard();
     },
     // IMMERSIVE PLAY RIDES THE EDITOR'S EXISTING SEAM. `live-transition.ts` owns the timing and
     // the camera flight and never touches a dock; what the dock registered here as a chrome

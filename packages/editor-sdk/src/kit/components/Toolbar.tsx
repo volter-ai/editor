@@ -1,5 +1,6 @@
 import {
   faArrowDown,
+  faArrowsToDot,
   type faArrowsUpDownLeftRight,
   faBullseye,
   faCaretDown,
@@ -79,11 +80,15 @@ function SnapButton({
   dimensions = '3d',
   size = 'comfortable',
   variant = 'ghost',
+  showValues = false,
 }: {
   store: ShellStore;
   dimensions?: '2d' | '3d';
   size?: 'compact' | 'default' | 'comfortable';
   variant?: 'ghost' | 'secondary';
+  /** Draw the three steps themselves as the settings' trigger (Unreal's viewport row: the grid
+   *  step, the angle and the scale step), each opening the same settings. */
+  showValues?: boolean;
 }) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -100,7 +105,25 @@ function SnapButton({
   return (
     <div ref={ref} className="vgai-viewport-popover-anchor">
       <SplitButtonGroup>
-        <Tooltip text="Toggle Snap" hotkey={shortcutFor('viewport.toggleSnap')}>
+        {dimensions === '2d' && (
+          // Godot's 2D toolbar has two snap toggles: smart snapping (alignment to the parent,
+          // other nodes and guides) and grid snapping (the step). This is the first.
+          <Tooltip text="Smart Snap">
+            <IconButton
+              aria-label="Toggle smart snap"
+              aria-pressed={store.smartSnap.enabled}
+              variant={variant}
+              size={size}
+              onClick={() => store.setSmartSnap({ enabled: !store.smartSnap.enabled })}
+            >
+              <EditorIcon icon={faArrowsToDot} size="md" />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Tooltip
+          text={dimensions === '2d' ? 'Grid Snap' : 'Toggle Snap'}
+          hotkey={shortcutFor('viewport.toggleSnap')}
+        >
           <IconButton
             aria-label="Toggle snap"
             aria-pressed={store.snapEnabled}
@@ -111,6 +134,30 @@ function SnapButton({
             <EditorIcon icon={faMagnet} size="md" />
           </IconButton>
         </Tooltip>
+        {showValues ? (
+          (
+            [
+              ['translate', editorIcons.tool.move, `${store.snapValues.translate}`],
+              ['rotate', editorIcons.tool.rotate, `${store.snapValues.rotate}°`],
+              ['scale', editorIcons.tool.scale, `${store.snapValues.scale}`],
+            ] as const
+          ).map(([channel, icon, value]) => (
+            <Tooltip key={channel} text="Snap Settings">
+              <Button
+                aria-label={`${channel} snap step`}
+                aria-haspopup="dialog"
+                aria-expanded={popoverOpen}
+                variant={variant}
+                size={size}
+                data-snap-step={channel}
+                onClick={() => setPopoverOpen(!popoverOpen)}
+              >
+                <EditorIcon icon={icon} size="xs" />
+                {value}
+              </Button>
+            </Tooltip>
+          ))
+        ) : (
         <Tooltip text="Snap Settings">
           <IconButton
             aria-label="Snap settings"
@@ -131,46 +178,177 @@ function SnapButton({
             <EditorIcon icon={faCaretDown} size="xs" />
           </IconButton>
         </Tooltip>
+        )}
       </SplitButtonGroup>
       {popoverOpen && (
         <EditorPopover className="vgai-snap-popover">
           <Stack gap={2}>
-            <Text variant="caption" tone="muted">
-              Translate
-            </Text>
-            <TextInput
-              type="number"
-              value={store.snapValues.translate}
-              step={0.25}
-              min={0.01}
-              onChange={(event) =>
-                store.setSnapValues({ translate: Number(event.target.value) || 1 })
-              }
-            />
-            <Text variant="caption" tone="muted">
-              Rotate (deg)
-            </Text>
-            <TextInput
-              type="number"
-              value={store.snapValues.rotate}
-              step={5}
-              min={1}
-              onChange={(event) =>
-                store.setSnapValues({ rotate: Number(event.target.value) || 15 })
-              }
-            />
-            <Text variant="caption" tone="muted">
-              Scale
-            </Text>
-            <TextInput
-              type="number"
-              value={store.snapValues.scale}
-              step={0.05}
-              min={0.01}
-              onChange={(event) =>
-                store.setSnapValues({ scale: Number(event.target.value) || 0.25 })
-              }
-            />
+            {dimensions === '2d' ? (
+              // Godot's Configure Snap: the grid's step and offset, in pixels.
+              <>
+                <Text variant="caption" tone="muted">
+                  Grid Step (px)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Grid step"
+                  value={store.snap2D.step}
+                  step={1}
+                  min={1}
+                  onChange={(event) => store.setSnap2D({ step: Number(event.target.value) || 8 })}
+                />
+                <Text variant="caption" tone="muted">
+                  Grid Offset (px)
+                </Text>
+                <Inline gap={1}>
+                  <TextInput
+                    type="number"
+                    aria-label="Grid offset x"
+                    value={store.snap2D.offsetX}
+                    step={1}
+                    onChange={(event) => store.setSnap2D({ offsetX: Number(event.target.value) || 0 })}
+                  />
+                  <TextInput
+                    type="number"
+                    aria-label="Grid offset y"
+                    value={store.snap2D.offsetY}
+                    step={1}
+                    onChange={(event) => store.setSnap2D({ offsetY: Number(event.target.value) || 0 })}
+                  />
+                </Inline>
+                <Text variant="caption" tone="muted">
+                  Primary Line Every (steps)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Primary line every"
+                  value={store.snap2D.primaryEvery}
+                  step={1}
+                  min={1}
+                  onChange={(event) => store.setSnap2D({ primaryEvery: Number(event.target.value) || 8 })}
+                />
+              </>
+            ) : (
+              <>
+                <Text variant="caption" tone="muted">
+                  Translate
+                </Text>
+                <TextInput
+                  type="number"
+                  value={store.snapValues.translate}
+                  step={0.25}
+                  min={0.01}
+                  onChange={(event) =>
+                    store.setSnapValues({ translate: Number(event.target.value) || 1 })
+                  }
+                />
+              </>
+            )}
+            {dimensions === '2d' ? (
+              // Godot's Configure Snap for a 2D view: its own rotation offset and step, and scale step.
+              <>
+                <Text variant="caption" tone="muted">
+                  Rotation Offset (deg)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Rotation offset"
+                  value={store.snap2D.rotationOffset}
+                  step={1}
+                  onChange={(event) => store.setSnap2D({ rotationOffset: Number(event.target.value) || 0 })}
+                />
+                <Text variant="caption" tone="muted">
+                  Rotation Step (deg)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Rotation step"
+                  value={store.snap2D.rotationStep}
+                  step={1}
+                  min={1}
+                  onChange={(event) => store.setSnap2D({ rotationStep: Number(event.target.value) || 15 })}
+                />
+                <Text variant="caption" tone="muted">
+                  Scale Step
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Scale step"
+                  value={store.snap2D.scaleStep}
+                  step={0.05}
+                  min={0.01}
+                  onChange={(event) => store.setSnap2D({ scaleStep: Number(event.target.value) || 0.1 })}
+                />
+              </>
+            ) : (
+              <>
+                <Text variant="caption" tone="muted">
+                  Rotate (deg)
+              </Text>
+              <TextInput
+                type="number"
+                value={store.snapValues.rotate}
+                step={5}
+                min={1}
+                onChange={(event) =>
+                  store.setSnapValues({ rotate: Number(event.target.value) || 15 })
+                }
+              />
+              <Text variant="caption" tone="muted">
+                Scale
+              </Text>
+              <TextInput
+                type="number"
+                value={store.snapValues.scale}
+                step={0.05}
+                min={0.01}
+                onChange={(event) =>
+                  store.setSnapValues({ scale: Number(event.target.value) || 0.25 })
+                }
+              />
+              </>
+            )}
+            {dimensions === '2d' && (
+              <>
+                {(
+                  [
+                    ['Use Rotation Snap', store.rotationSnap, () => store.setRotationSnap(!store.rotationSnap)],
+                    ['Use Scale Snap', store.scaleSnap, () => store.setScaleSnap(!store.scaleSnap)],
+                    ['Snap Relative', store.snap2D.relative, () => store.setSnap2D({ relative: !store.snap2D.relative })],
+                    ['Use Pixel Snap', store.snap2D.pixel, () => store.setSnap2D({ pixel: !store.snap2D.pixel })],
+                  ] as const
+                ).map(([label, on, toggle]) => (
+                  <Inline key={label} gap={2} align="center" role="menuitemcheckbox" aria-checked={on} onClick={toggle}>
+                    <Checkbox checked={on} readOnly />
+                    <Text>{label}</Text>
+                  </Inline>
+                ))}
+                <Text variant="caption" tone="muted">
+                  Smart Snapping
+                </Text>
+                {(
+                  [
+                    ['parent', 'Snap to Parent'],
+                    ['others', 'Snap to Other Nodes'],
+                    ['sides', 'Snap to Node Sides'],
+                    ['center', 'Snap to Node Center'],
+                    ['guides', 'Snap to Guides'],
+                  ] as const
+                ).map(([target, label]) => (
+                  <Inline
+                    key={target}
+                    gap={2}
+                    align="center"
+                    role="menuitemcheckbox"
+                    aria-checked={store.smartSnap[target]}
+                    onClick={() => store.setSmartSnap({ [target]: !store.smartSnap[target] })}
+                  >
+                    <Checkbox checked={store.smartSnap[target]} readOnly />
+                    <Text>{label}</Text>
+                  </Inline>
+                ))}
+              </>
+            )}
             {dimensions === '3d' && (
               <>
                 <Inline gap={2} align="center" onClick={() => store.toggleSnapToSurface()}>
@@ -436,6 +614,11 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
   const store = stage ?? shell;
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);
+  // ON THE STAGE'S BAR (Unreal's row) the snap steps are shown, as Unreal's row shows them. The
+  // host decides whether these controls ride the bar (a placed stage whose look puts them there),
+  // so where they are mounted is the answer, not the look alone.
+  const [mark, setMark] = useState<HTMLSpanElement | null>(null);
+  const onBar = mark?.closest('.vgai-stage-bar') != null;
   return (
     <EditorToolbar
       compact
@@ -443,12 +626,13 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
       data-testid="transform-header-controls"
       className="vgai-transform-header-controls"
     >
+      <span ref={setMark} hidden />
       <TransformOrientationButton store={store} />
       <SplitButtonGroup>
         <PivotButton store={store} />
         <AnchorButton store={store} />
       </SplitButtonGroup>
-      <SnapButton store={store} size="default" variant="secondary" />
+      <SnapButton store={store} size="default" variant="secondary" showValues={onBar} />
       <TransformOptionsButton store={store} />
     </EditorToolbar>
   );
@@ -515,10 +699,25 @@ export function ToolStrip({
   dimensions = '3d',
   door,
   store: stage,
+  otherToolActive = false,
+  onToolArmed,
+  viewTools,
+  trailingTools,
 }: {
   dimensions?: '2d' | '3d';
   door?: StageTransformDoor;
   store?: ShellStore;
+  /** Another tool of the same exclusive group is on (a 2D view's List Select, Pivot, Pan or
+   *  Ruler, which Godot keeps in one radio group with these), so none of these is lit. */
+  otherToolActive?: boolean;
+  /** Called when one of these is armed, so the group's other tools can let go. */
+  onToolArmed?: () => void;
+  /** A view's own tools in the same group, drawn after these (a 2D view's List Select, Pivot,
+   *  Pan and Ruler, in Godot's order). */
+  viewTools?: React.ReactNode;
+  /** A view's controls after snapping in the same row (a 2D view's Lock, Group and View menu, where
+   *  Godot's 2D toolbar keeps them). */
+  trailingTools?: React.ReactNode;
 } = {}) {
   const shell = useEditorStore();
   const store = stage ?? shell;
@@ -570,8 +769,15 @@ export function ToolStrip({
           faIcon={editorIcons.tool.select}
           action="transform.select"
           label="Select"
-          active={store.transformMode === 'select'}
-          onArm={() => requestTransformMode(store, 'select')}
+          // On a 2D surface Select is the handle mode, which the store names `combined`.
+          active={
+            !otherToolActive &&
+            (store.transformMode === 'select' || (dimensions === '2d' && store.transformMode === 'combined'))
+          }
+          onArm={() => {
+            onToolArmed?.();
+            requestTransformMode(store, 'select');
+          }}
         />
       )}
       {single.map((tool) => (
@@ -580,11 +786,15 @@ export function ToolStrip({
           faIcon={tool.faIcon}
           action={tool.action}
           label={tool.label}
-          active={door ? armed === tool.mode : store.transformMode === tool.mode}
-          onArm={() => (door ? door.begin(tool.mode) : requestTransformMode(store, tool.mode))}
+          active={!otherToolActive && (door ? armed === tool.mode : store.transformMode === tool.mode)}
+          onArm={() => {
+            onToolArmed?.();
+            if (door) door.begin(tool.mode);
+            else requestTransformMode(store, tool.mode);
+          }}
         />
       ))}
-      {door ? null : (
+      {door || dimensions === '2d' ? null : (
         <ModeButton
           faIcon={editorIcons.tool.transform}
           action="transform.combined"
@@ -593,7 +803,9 @@ export function ToolStrip({
           onArm={() => requestTransformMode(store, 'combined')}
         />
       )}
+      {viewTools}
       {dimensions === '2d' ? <SnapButton store={store} dimensions="2d" /> : null}
+      {trailingTools}
     </FloatingToolbar>
   );
 }

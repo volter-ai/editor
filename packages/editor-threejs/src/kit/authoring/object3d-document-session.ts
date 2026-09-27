@@ -1,5 +1,5 @@
 import { createPerformanceProfiler } from '@volter/editor-sdk/kit/performance-profiler';
-import { resetViewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import { resetViewPresentation, type ViewportXray } from '@volter/editor-sdk/kit/viewport-presentation';
 import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
@@ -11,7 +11,9 @@ import {
 } from '@volter/editor-threejs/render/viewport-shading';
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
-import { cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
+import { threeObject } from '../../adapter/three-contract';
+import { axisViewName, cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
+import { activeKeymapNavigation } from '@volter/editor-sdk/kit/keymap-presets';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { type EditorViewport } from '../editor-viewport';
 import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/editor-sdk/kit/native-selection-style';
@@ -26,6 +28,7 @@ import {
 import { styleEditorSkeletonHelper } from '../three-viewport/skeleton-helper';
 import { isEditorViewportShadingTarget } from '../viewport-shading-boundary';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
+import type { ToolCameraView, ToolCameraViewSource } from '../../object3d-contributions';
 
 export type Object3DDocumentViewMode = ViewportShadingMode | 'uv' | 'vertex-colors';
 
@@ -109,6 +112,9 @@ const INITIAL_PRESENTATION: Object3DDocumentPresentationState = {
  * Live presentation controls for one native Object3D document. The model
  * graph remains truth; this session owns only editor chrome and diagnostics.
  */
+/** The wire of an unselected object in the wireframe overlay: dark on the light clay body. */
+const TOPOLOGY_WIRE_COLOR = 0x11161d;
+
 export class Object3DDocumentSession {
   readonly profiler = createPerformanceProfiler();
   private readonly shading = new ViewportShadingRenderer();
@@ -143,6 +149,29 @@ export class Object3DDocumentSession {
    *  only way to photograph from another camera was to move the viewport onto
    *  it and move it back, which is why that code had a restore dance at all. */
   private cameraOverride: THREE.Camera | null = null;
+  /** The document's cameras a camera view can look through (`ToolObject3DAuthoringProps.cameraView`). */
+  private cameraViewSource: ToolCameraViewSource | null = null;
+  /** A camera view in progress: the camera, the frame's zoom and offset, the view it left, and
+   *  how to put its input back. */
+  private through: {
+    readonly camera: string;
+    zoom: number;
+    offset: [number, number];
+    readonly left: {
+      readonly position: THREE.Vector3;
+      readonly target: THREE.Vector3;
+      readonly up: THREE.Vector3;
+      readonly projection: 'perspective' | 'orthographic';
+    };
+    /** Undo the input the view holds: its own capture, or the lock's hand-over. */
+    release: () => void;
+    locked: boolean;
+  } | null = null;
+  private leaving = false;
+  /** The view computed for one synchronous burst of readers (a frame asks a dozen times). */
+  private viewMemo: { key: string; view: ToolCameraView | null } | null = null;
+  private readonly throughPerspective = new THREE.PerspectiveCamera();
+  private readonly throughOrthographic = new THREE.OrthographicCamera();
   /** The host's mirror of the document scene onto the rendered scene — see
    *  {@link Object3DDocumentSession.setBeforeRender}. */
   private beforeRender: (() => void) | null = null;
@@ -185,7 +214,32 @@ export class Object3DDocumentSession {
     // this view". An agent flight yields at that instant, leaving the camera
     // exactly where it is: no snap-back, no two writers fighting for the pose.
     viewport.orbitControls.addEventListener('start', this.cancelLookForHuman);
+    this.unsubscribeRotateStart = viewport.onRotateStart(this.autoPerspective);
+    this.unsubscribeAxisView = viewport.onAxisView(this.axisView);
   }
+
+  private readonly unsubscribeRotateStart: () => void;
+  private readonly unsubscribeAxisView: () => void;
+
+  /** The navigation gizmo turning the view to an axis: out of a camera view at the camera's pose
+   *  (Blender's `view_axis` leaves it), and orthographic under Auto Perspective. */
+  private readonly axisView = (): boolean => {
+    this.leaveCameraView(false);
+    this.settleFlight('superseded');
+    if (activeKeymapNavigation().autoPerspective) this.setProjection('orthographic');
+    return true;
+  };
+
+  /** Auto Perspective, where the keymap states it (`KeymapNavigation.autoPerspective`): a rotate
+   *  that starts from an orthographic view still down an axis draws in perspective. */
+  private readonly autoPerspective = (): void => {
+    if (!activeKeymapNavigation().autoPerspective || this.cameraView() !== null) return;
+    if (this.state.projection !== 'orthographic') return;
+    const camera = this.viewport.camera;
+    const offset = camera.position.clone().sub(this.viewport.orbitControls.target);
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+    if (axisViewName(offset, up) !== null) this.setProjection('perspective');
+  };
 
   /** Replace authored content without replacing the editor session or camera. */
   replaceContent(root: THREE.Object3D, authoring: AuthoringAdapter): void {
@@ -213,8 +267,13 @@ export class Object3DDocumentSession {
     this.settleFlight('human');
   };
 
+  /** The look's selection colours, read when the theme changes (not per frame: the read resolves
+   *  computed styles). */
+  private selectionColors: ReturnType<typeof nativeSelectionColors> | null = null;
+
   private readonly syncSelectionTheme = (): void => {
-    const color = nativeSelectionColors(this.renderer.domElement).visible;
+    this.selectionColors = nativeSelectionColors(this.renderer.domElement);
+    const color = this.selectionColors.visible;
     if (this.selectionOutline) {
       setThreeSelectionOutlineColors(
         this.selectionOutline,
@@ -235,13 +294,13 @@ export class Object3DDocumentSession {
     return this.state;
   }
 
-  private resolveFrameBounds(): THREE.Box3 {
-    const selection = this.authoring?.selection?.get() ?? [];
+  private resolveFrameBounds(subject: 'selection' | 'all' = 'selection'): THREE.Box3 {
+    const selection = subject === 'all' ? [] : (this.authoring?.selection?.get() ?? []);
     if (selection.length > 0) {
       const selected = new THREE.Box3();
       let found = false;
       for (const id of selection) {
-        const object = this.authoring?.hierarchy.object3D?.(id);
+        const object = this.authoring ? threeObject(this.authoring.hierarchy, id) : null;
         if (!object) continue;
         const bounds = contentWorldBounds(object);
         if (bounds.isEmpty()) continue;
@@ -256,11 +315,13 @@ export class Object3DDocumentSession {
 
   /**
    * Frame the subject: the selection if there is one, else this document's
-   * frame box, else the whole root. `fit` scales the fitted distance — 1 is
+   * frame box, else the whole root; `subject: 'all'` passes over the
+   * selection (Blender's View All). `fit` scales the fitted distance — 1 is
    * the tight fit the toolbar's Frame button has always used, >1 pulls back.
    */
-  frame(fit = 1): boolean {
-    const bounds = this.resolveFrameBounds();
+  frame(fit = 1, subject: 'selection' | 'all' = 'selection'): boolean {
+    this.leaveCameraView(false);
+    const bounds = this.resolveFrameBounds(subject);
     if (bounds.isEmpty()) {
       // A Frame that does nothing must say why — a model document whose
       // mesh measures as nothing is a defect, never a quiet no-op.
@@ -464,7 +525,7 @@ export class Object3DDocumentSession {
   syncSelectionPresentation(): void {
     invalidateStages();
     const selected = (this.authoring?.selection?.get() ?? [])
-      .map((id) => this.authoring?.hierarchy.object3D?.(id) ?? null)
+      .map((id) => (this.authoring ? threeObject(this.authoring.hierarchy, id) : null))
       .filter((object): object is THREE.Object3D => object !== null);
     this.selectedObjects = selected;
     if (this.selectionOutline) {
@@ -500,9 +561,10 @@ export class Object3DDocumentSession {
   }
 
   frameIds(ids: readonly string[]): boolean {
+    this.leaveCameraView(false);
     this.settleFlight('superseded');
     const objects = ids
-      .map((id) => this.authoring?.hierarchy.object3D?.(id) ?? null)
+      .map((id) => (this.authoring ? threeObject(this.authoring.hierarchy, id) : null))
       .filter((object): object is THREE.Object3D => object !== null);
     if (objects.length === 0) return false;
     if (objects.every((object) => (object as THREE.Bone).isBone)) {
@@ -529,18 +591,32 @@ export class Object3DDocumentSession {
    * The pose is still solved against the PERSPECTIVE camera, because the
    * session's orthographic camera is derived from that pose every frame
    * (`syncOrthographicCamera`) rather than posed independently.
+   *
+   * `around` says what the view turns about. `bounds`, the document's opening camera, frames the
+   * content from that side. `view` is a person's numpad: Blender's `view3d.view_axis` turns about
+   * the view's own pivot at its own distance, so the zoom holds.
    */
-  setViewPreset(preset: ModelCameraPreset): void {
+  setViewPreset(preset: ModelCameraPreset, around: 'bounds' | 'view' = 'bounds'): void {
     invalidateStages();
+    this.leaveCameraView(false);
     this.settleFlight('superseded');
-    const bounds = this.resolveFrameBounds();
-    if (bounds.isEmpty()) return;
-    const center = bounds.getCenter(new THREE.Vector3());
     const direction = cameraPresetDirection(preset);
-    const distance = perspectiveDistanceToFitBox(bounds, this.viewport.camera, direction);
+    let center: THREE.Vector3;
+    let distance: number;
+    if (around === 'view') {
+      center = this.viewport.orbitControls.target.clone();
+      distance = this.viewport.camera.position.distanceTo(center);
+    } else {
+      const bounds = this.resolveFrameBounds();
+      if (bounds.isEmpty()) return;
+      center = bounds.getCenter(new THREE.Vector3());
+      distance = perspectiveDistanceToFitBox(bounds, this.viewport.camera, direction);
+    }
     const position = center.clone().addScaledVector(direction, distance);
-    this.viewport.camera.up.set(0, preset === 'top' ? 0 : 1, preset === 'top' ? -1 : 0);
-    this.viewport.setPose(position, center);
+    // A preset has no roll. Top's screen up is the world's -Z and Bottom's +Z (Blender's +Y and
+    // -Y); the others' is the world's up.
+    const up = preset === 'top' ? { x: 0, y: 0, z: -1 } : preset === 'bottom' ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 };
+    this.viewport.setPose(position, center, undefined, up);
     this.setProjection(preset === 'isometric' ? 'perspective' : 'orthographic');
   }
 
@@ -550,6 +626,7 @@ export class Object3DDocumentSession {
     fov?: number,
   ): void {
     invalidateStages();
+    this.leaveCameraView(false);
     this.settleFlight('superseded');
     this.viewport.setPose(position, target, fov);
   }
@@ -568,9 +645,404 @@ export class Object3DDocumentSession {
 
   camera(): THREE.Camera {
     if (this.cameraOverride) return this.cameraOverride;
+    const drawn = this.drawnCamera();
+    // The gizmos size, face and pick against the camera on screen: this session's orthographic
+    // camera or its camera view, else the viewport's own.
+    this.viewport.setGizmoCamera(drawn === this.viewport.camera ? null : drawn);
+    return drawn;
+  }
+
+  private drawnCamera(): THREE.Camera {
+    const through = this.through ? this.cameraView() : null;
+    if (through) return this.throughCamera(through);
+    // The camera went (deleted, renamed): the view leaves rather than hold the input on a frame
+    // no one can see. After this call, never inside it — a read must not notify.
+    if (this.through && !this.leaving) {
+      this.leaving = true;
+      queueMicrotask(() => {
+        this.leaving = false;
+        if (this.through && !this.cameraView()) this.leaveCameraView(false);
+      });
+    }
     if (this.state.projection === 'perspective') return this.viewport.camera;
     this.syncOrthographicCamera();
     return this.orthographicCamera;
+  }
+
+  /**
+   * THE CAMERA VIEW (Blender's `view3d.view_camera`): the stage draws through one of the
+   * document's own cameras, with that camera's frame on the region. Entering remembers the view
+   * it leaves; the toggle puts that view back. Any other navigation leaves it where it is —
+   * a preset, a Frame, a set pose — and ROTATING leaves it at the camera's own pose, as Blender
+   * switches a rotated camera view to a user view from the camera (`ED_view3d_persp_switch_
+   * from_camera`). While it lasts the wheel zooms the frame, a pan moves it and a dolly drag
+   * zooms it, each by Blender's rule (`view_zoomstep_apply_ex`'s 1.2 a step, `view_move`,
+   * `viewzoom_scale_value`), and the orbit controls stand down.
+   */
+  setCameraViewSource(source: ToolCameraViewSource | null): void {
+    if (this.cameraViewSource === source) return;
+    this.cameraViewSource = source;
+    if (!source) this.leaveCameraView(false);
+    this.notify();
+  }
+
+  /** Whether the document has cameras to look through at all. */
+  hasCameraView(): boolean {
+    return this.cameraViewSource !== null;
+  }
+
+  /** The camera view in progress on the current region, or null. */
+  cameraView(): ToolCameraView | null {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source) return null;
+    // A photograph renders into its own buffer shape (`captureImage`), as the other cameras do.
+    const canvas = this.renderer.domElement;
+    const region = this.captureAspect
+      ? { width: this.captureAspect, height: 1 }
+      : { width: canvas.clientWidth, height: canvas.clientHeight };
+    // A LOCKED view is drawn from the free camera the navigation moves, ahead of the camera's
+    // own pose, which the engine confirms at the end of each gesture.
+    const free = this.viewport.camera;
+    const pose = through.locked
+      ? `${free.position.toArray().join(',')}|${free.quaternion.toArray().join(',')}`
+      : '';
+    const key = `${through.camera}|${region.width}|${region.height}|${through.zoom}|${through.offset.join(',')}|${pose}`;
+    if (this.viewMemo?.key === key) return this.viewMemo.view;
+    const seen = source.view(through.camera, region, through.zoom, through.offset);
+    const view =
+      seen && through.locked
+        ? {
+            ...seen,
+            position: free.position.toArray() as [number, number, number],
+            quaternion: free.quaternion.toArray() as [number, number, number, number],
+          }
+        : seen;
+    this.viewMemo = { key, view };
+    queueMicrotask(() => {
+      this.viewMemo = null;
+    });
+    return view;
+  }
+
+  /** Enter or leave the camera view; false when there is no camera to look through. */
+  toggleCameraView(): boolean {
+    if (this.through) {
+      this.leaveCameraView(true);
+      return true;
+    }
+    const source = this.cameraViewSource;
+    const camera = source?.camera() ?? null;
+    if (!source) return false;
+    if (camera === null) {
+      // A view that does not change says why, as Blender's `view_camera_exec` reports.
+      editorConsole.warn('camera view: No active camera — the scene has no camera to look through', 'document');
+      return false;
+    }
+    invalidateStages();
+    this.settleFlight('superseded');
+    const viewport = this.viewport;
+    // The orbit's damping would go on moving the free camera behind the view: spend it now, so
+    // the view it leaves is the one on screen.
+    const controls = viewport.orbitControls;
+    const damping = controls.enableDamping;
+    controls.enableDamping = false;
+    controls.update();
+    controls.enableDamping = damping;
+    this.through = {
+      camera,
+      zoom: source.zoom.opening,
+      offset: [0, 0],
+      left: {
+        position: viewport.camera.position.clone(),
+        target: viewport.orbitControls.target.clone(),
+        up: viewport.camera.up.clone(),
+        projection: this.state.projection,
+      },
+      release: this.captureCameraViewInput(),
+      locked: false,
+    };
+    source.showing?.(camera);
+    this.notify();
+    return true;
+  }
+
+  /** Whether the camera view is locked to its camera; null outside one, or where the document
+   *  cannot move its camera. */
+  cameraViewLocked(): boolean | null {
+    if (!this.through || !this.cameraViewSource?.setPose) return null;
+    return this.through.locked;
+  }
+
+  /**
+   * LOCK THE CAMERA TO THE VIEW (Blender's `View3D.lock_camera`, the navigation cluster's lock):
+   * navigating a locked camera view moves the camera. The orbit controls take the view from the
+   * camera's own pose about a pivot as far ahead as the view it left stood from its pivot; the
+   * view draws from where they put it, and the camera follows as they move — one write in
+   * flight at a time, the latest pose after it (`ED_view3d_camera_lock_sync`, which keeps the
+   * camera's scale). Unlocked, the view's own input comes back.
+   */
+  toggleCameraViewLock(): void {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source?.setPose) return;
+    through.release();
+    through.locked = !through.locked;
+    if (!through.locked) {
+      through.release = this.captureCameraViewInput();
+    } else {
+      const view = this.cameraView();
+      const controls = this.viewport.orbitControls;
+      const camera = this.viewport.camera;
+      if (view) {
+        const eye = new THREE.Vector3(...view.position);
+        const rotation = new THREE.Quaternion(...view.quaternion);
+        const distance = through.left.position.distanceTo(through.left.target);
+        // The camera's own up, so a rolled camera keeps its roll (the controls re-aim by it).
+        camera.up.set(0, 1, 0).applyQuaternion(rotation);
+        camera.position.copy(eye);
+        camera.quaternion.copy(rotation);
+        controls.target.copy(eye).addScaledVector(new THREE.Vector3(0, 0, -1).applyQuaternion(rotation), distance);
+        controls.update();
+      }
+      const enabled = controls.enabled;
+      controls.enabled = true;
+      // No inertia: Blender's navigation stops where the gesture does, and so does the camera
+      // it moves — the gesture's end is the pose the history records.
+      const damping = controls.enableDamping;
+      controls.enableDamping = false;
+      const name = through.camera;
+      // One write in flight; the latest pose after it, and the gesture's end as its own final
+      // write. A failed write is the source's to report (the session only keeps the chain going).
+      type Pose = { position: [number, number, number]; quaternion: [number, number, number, number]; final: boolean };
+      const snapshot = (final: boolean): Pose => ({
+        position: camera.position.toArray(),
+        quaternion: camera.quaternion.toArray() as [number, number, number, number],
+        final,
+      });
+      let writing = false;
+      let pending: Pose | null = null;
+      let moving = false;
+      const send = (pose: Pose): void => {
+        if (writing) {
+          // The latest pose waits, and a final one stays final.
+          pending = { ...pose, final: pose.final || (pending?.final ?? false) };
+          return;
+        }
+        writing = true;
+        pending = null;
+        void Promise.resolve(source.setPose!(name, pose.position, pose.quaternion, pose.final))
+          .catch(() => undefined)
+          .finally(() => {
+            writing = false;
+            if (pending) send(pending);
+          });
+      };
+      const moved = (): void => {
+        moving = true;
+        invalidateStages();
+        this.notify();
+        send(snapshot(false));
+      };
+      const ended = (): void => {
+        if (!moving) return;
+        moving = false;
+        send(snapshot(true));
+      };
+      controls.addEventListener('change', moved);
+      controls.addEventListener('end', ended);
+      through.release = () => {
+        // A gesture cut short by leaving or unlocking still lands, as its last pose.
+        ended();
+        controls.removeEventListener('change', moved);
+        controls.removeEventListener('end', ended);
+        controls.enabled = enabled;
+        controls.enableDamping = damping;
+      };
+    }
+    this.viewMemo = null;
+    invalidateStages();
+    this.notify();
+  }
+
+  /** The camera view's frame zoom, or null outside one. */
+  cameraViewZoom(): number | null {
+    return this.through?.zoom ?? null;
+  }
+
+  /** Set the camera view's frame zoom, within the source's range. */
+  setCameraViewZoom(zoom: number): void {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source || !Number.isFinite(zoom) || zoom <= 0) return;
+    through.zoom = Math.min(source.zoom.max, Math.max(source.zoom.min, zoom));
+    invalidateStages();
+    this.notify();
+  }
+
+  /** Zoom the camera view's frame by `factor` (the wheel's step). */
+  zoomCameraView(factor: number): void {
+    if (this.through) this.setCameraViewZoom(this.through.zoom * factor);
+  }
+
+  /** Pan the camera view by a pointer move, in fractions of the region (the source's rule). */
+  panCameraView(dx: number, dy: number): void {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source) return;
+    const [x, y] = source.pan(through.offset, through.zoom, dx, dy);
+    through.offset = [x, y];
+    invalidateStages();
+    this.notify();
+  }
+
+  /**
+   * Leave the camera view: back to the view it left (`restore`), or, when navigation moves on
+   * from it, with the view standing at the camera's pose at the distance it had.
+   */
+  private leaveCameraView(restore: boolean): void {
+    const through = this.through;
+    if (!through) return;
+    const view = this.cameraView();
+    through.release();
+    this.through = null;
+    this.viewMemo = null;
+    this.cameraViewSource?.showing?.(null);
+    this.viewport.setGizmoCamera(null);
+    const viewport = this.viewport;
+    if (restore) {
+      viewport.camera.position.copy(through.left.position);
+      viewport.camera.up.copy(through.left.up);
+      viewport.orbitControls.target.copy(through.left.target);
+      this.state = { ...this.state, projection: through.left.projection };
+    } else if (view) {
+      const distance = through.left.position.distanceTo(through.left.target);
+      const eye = new THREE.Vector3(...view.position);
+      const rotation = new THREE.Quaternion(...view.quaternion);
+      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(rotation);
+      // The camera's rotation, roll included (`ED_view3d_persp_switch_from_camera`), in the
+      // projection the view had before it went through (`lpersp`), or perspective where Auto
+      // Perspective holds and that view was down an axis (`ED_view3d_persp_ensure`).
+      viewport.camera.up.set(0, 1, 0).applyQuaternion(rotation);
+      viewport.camera.position.copy(eye);
+      viewport.orbitControls.target.copy(eye).addScaledVector(forward, distance);
+      const leftAxis =
+        axisViewName(through.left.position.clone().sub(through.left.target), through.left.up) !== null;
+      const projection =
+        activeKeymapNavigation().autoPerspective && leftAxis ? 'perspective' : through.left.projection;
+      this.state = { ...this.state, projection };
+    }
+    viewport.camera.lookAt(viewport.orbitControls.target);
+    viewport.orbitControls.update();
+    invalidateStages();
+    this.notify();
+  }
+
+  /** The stage's drawing camera for `view`: its pose, and its window as the projection. */
+  private throughCamera(view: ToolCameraView): THREE.Camera {
+    const { left, right, top, bottom } = view.window;
+    const layers = this.viewport.camera.layers.mask;
+    if (view.projection === 'orthographic') {
+      const camera = this.throughOrthographic;
+      Object.assign(camera, { left, right, top, bottom, near: view.near, far: view.far, zoom: 1 });
+      camera.position.set(...view.position);
+      camera.quaternion.set(...view.quaternion);
+      camera.layers.mask = layers;
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld(true);
+      return camera;
+    }
+    const camera = this.throughPerspective;
+    camera.near = view.near;
+    camera.far = view.far;
+    // Readers of the angle (the 3D cursor's size) see the window's; the matrix is the window.
+    camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan((top - bottom) / 2));
+    camera.aspect = (right - left) / (top - bottom);
+    camera.zoom = 1;
+    camera.position.set(...view.position);
+    camera.quaternion.set(...view.quaternion);
+    camera.layers.mask = layers;
+    camera.projectionMatrix.makePerspective(
+      left * view.near,
+      right * view.near,
+      top * view.near,
+      bottom * view.near,
+      view.near,
+      view.far,
+    );
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    camera.updateMatrixWorld(true);
+    return camera;
+  }
+
+  /**
+   * The pointer while a camera view lasts, read ahead of the orbit controls (a capturing
+   * listener on the canvas's parent), which stand down. A gesture the controls would read as
+   * ROTATE leaves the view at the camera and hands the same press back to them; PAN moves the
+   * frame and DOLLY zooms it. Returns the undo.
+   */
+  private captureCameraViewInput(): () => void {
+    const controls = this.viewport.orbitControls;
+    const canvas = this.renderer.domElement;
+    const host = canvas.parentElement ?? canvas;
+    const enabled = controls.enabled;
+    controls.enabled = false;
+    const onWheel = (event: WheelEvent): void => {
+      if (event.target !== canvas || event.deltaY === 0) return;
+      event.preventDefault();
+      this.zoomCameraView(event.deltaY < 0 ? 1.2 : 1 / 1.2);
+    };
+    const onPointerDown = (event: PointerEvent): void => {
+      if (event.target !== canvas) return;
+      const buttons = controls.mouseButtons as Record<string, THREE.MOUSE | null | undefined>;
+      let action = [buttons['LEFT'], buttons['MIDDLE'], buttons['RIGHT']][event.button] ?? null;
+      const modified = event.ctrlKey || event.metaKey || event.shiftKey;
+      // Ctrl/Cmd on an orbiting middle button zooms (the viewport's own rule, Blender's
+      // Ctrl+MIDDLEMOUSE); Shift and the rest swap orbit and pan, as OrbitControls does.
+      if (event.button === 1 && (event.ctrlKey || event.metaKey) && action === THREE.MOUSE.ROTATE)
+        action = THREE.MOUSE.DOLLY;
+      else if (modified && action === THREE.MOUSE.ROTATE) action = THREE.MOUSE.PAN;
+      else if (modified && action === THREE.MOUSE.PAN) action = THREE.MOUSE.ROTATE;
+      if (action === THREE.MOUSE.ROTATE) {
+        this.leaveCameraView(false);
+        return;
+      }
+      if (action !== THREE.MOUSE.PAN && action !== THREE.MOUSE.DOLLY) return;
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      let lastX = event.clientX;
+      let lastY = event.clientY;
+      const zoom0 = this.through?.zoom ?? 1;
+      const lenOld = Math.max(5 + event.clientY - rect.top, 1);
+      const move = (moveEvent: PointerEvent): void => {
+        if (action === THREE.MOUSE.PAN) {
+          this.panCameraView(
+            (moveEvent.clientX - lastX) / Math.max(rect.width, 1),
+            (moveEvent.clientY - lastY) / Math.max(rect.height, 1),
+          );
+          lastX = moveEvent.clientX;
+          lastY = moveEvent.clientY;
+          return;
+        }
+        const factor = Math.max(0.01, 2 * ((5 + moveEvent.clientY - rect.top) / lenOld - 1) + 1);
+        this.setCameraViewZoom(zoom0 / factor);
+      };
+      const end = (): void => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', end);
+        window.removeEventListener('pointercancel', end);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end);
+      window.addEventListener('pointercancel', end);
+    };
+    host.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    host.addEventListener('pointerdown', onPointerDown, { capture: true });
+    return () => {
+      host.removeEventListener('wheel', onWheel, { capture: true });
+      host.removeEventListener('pointerdown', onPointerDown, { capture: true });
+      controls.enabled = enabled;
+    };
   }
 
   /** Which projection the session is drawing with. Public because a caller
@@ -638,7 +1110,7 @@ export class Object3DDocumentSession {
         // written. Off is also the truer read: Blender's wireframe shading
         // shows the far side too, and the far side is half the topology.
         new THREE.LineBasicMaterial({
-          color: 0x11161d,
+          color: TOPOLOGY_WIRE_COLOR,
           toneMapped: false,
           transparent: true,
           opacity: 0.85,
@@ -668,9 +1140,25 @@ export class Object3DDocumentSession {
       this.clearTopologyOverlay();
       this.buildTopologyOverlay();
     }
+    // A selected object's wires wear the selection's colour, the active one the active colour, as
+    // Blender's wireframe overlay does; the rest the wire's own. The active object is the
+    // selection's last, the shell's own rule (`EditorShellStore.selectedEntityId`), which a
+    // Blender document keeps by publishing its active object last.
+    this.selectionColors ??= nativeSelectionColors(this.renderer.domElement);
+    const colors = this.selectionColors;
+    const active = this.selectedObjects.at(-1) ?? null;
+    const within = (object: THREE.Object3D, owner: THREE.Object3D): boolean => {
+      for (let at: THREE.Object3D | null = object; at; at = at.parent) if (at === owner) return true;
+      return false;
+    };
     for (const { line, source } of this.topologyFollowers) {
       line.matrixWorld.copy(source.matrixWorld);
       line.visible = source.visible;
+      const material = line.material as THREE.LineBasicMaterial;
+      const isActive = active !== null && within(source, active);
+      const isSelected = isActive || this.selectedObjects.some((owner) => within(source, owner));
+      const color = isActive ? (colors.active?.visible ?? colors.visible) : isSelected ? colors.visible : null;
+      material.color.setHex(color ?? TOPOLOGY_WIRE_COLOR);
     }
   }
 
@@ -863,6 +1351,28 @@ export class Object3DDocumentSession {
     }
     if (mode === 'wireframe' && this.topologyOverlay) {
       this.syncTopologyOverlay();
+      if (this.xray.enabled && this.xray.alpha <= 0) {
+        // X-RAY AT NO ALPHA: the wires alone, every surface left out of the draw. The surfaces'
+        // MATERIALS stand down, not the meshes, whose children (lines, points, other objects)
+        // still draw, as every wire does in Blender's.
+        const hidden = new Set<THREE.Material>();
+        this.root.traverse((object) => {
+          const mesh = object as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+            if (material?.visible) {
+              material.visible = false;
+              hidden.add(material);
+            }
+          }
+        });
+        try {
+          renderSolid(camera);
+        } finally {
+          for (const material of hidden) material.visible = true;
+        }
+        return;
+      }
       // Clay bodies, not the triangle-wireframe swap: the overlay IS the wire,
       // and the solid form behind it is what occludes the far side.
       this.shading.render(
@@ -1021,6 +1531,13 @@ export class Object3DDocumentSession {
       perspective.updateProjectionMatrix();
       this.renderer.setRenderTarget(previousTarget);
       this.renderer.setPixelRatio(previousPixelRatio);
+      // THE COMPOSER IS SIZED AGAIN AT THE DISPLAY'S RATIO. The capture's own draw restores the
+      // composer's size while the ratio is still 1 (`renderSolidForCapture`), and the composer
+      // sizes its buffers from the renderer's drawing buffer: every capture (a selection's
+      // preview takes one) left the view and its outline mask at CSS resolution until the next
+      // resize. Measured on the stage: a crisp outline stating 4 device px drew 10 right after a
+      // selection and 4 after a repaint that resized.
+      this.composer?.setSize(this.renderWidth, this.renderHeight, false);
       target.dispose();
       sceneTarget.dispose();
     }
@@ -1028,10 +1545,13 @@ export class Object3DDocumentSession {
 
   dispose(): void {
     this.disposed = true;
+    this.leaveCameraView(false);
     this.selectionOrigins?.dispose();
     this.selectionOrigins = null;
     this.settleFlight('closed');
     this.viewport.orbitControls.removeEventListener('start', this.cancelLookForHuman);
+    this.unsubscribeRotateStart();
+    this.unsubscribeAxisView();
     this.unsubscribeSelectionTheme();
     this.clearDiagnosticPresentation();
     this.clearBoneSelectionHighlight();
@@ -1100,6 +1620,15 @@ export class Object3DDocumentSession {
   private selectionOutlineWanted = true;
 
   /** Whether the view draws its selected objects' origins (`overlays.selection.origins`). */
+  /** The view's X-ray for its current draw mode (`ViewportModePresentation.xray`). */
+  private xray: ViewportXray = { enabled: false, alpha: 1 };
+
+  setXray(xray: ViewportXray): void {
+    if (this.xray.enabled === xray.enabled && this.xray.alpha === xray.alpha) return;
+    this.xray = xray;
+    invalidateStages();
+  }
+
   set selectionOriginsEnabled(value: boolean) {
     if (value === (this.selectionOrigins !== null)) return;
     if (value) {

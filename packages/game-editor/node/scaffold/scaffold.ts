@@ -47,6 +47,9 @@ import {
   type ScaffoldAddition,
   STUDIO_OWNED_PATHS,
   THREE_OWNED_PATHS,
+  NETWORKED_INPUT_LINES,
+  NETWORKED_WORLD_LINES,
+  SERVER_CLIENT_PATHS,
   withAgentsContract,
   withEditorDeclaration,
 } from './additions';
@@ -76,7 +79,6 @@ import {
 } from './baseline.js';
 import {
   addCapabilities,
-  DEFAULT_REACT_CAPABILITIES,
   initializeProjectCatalog,
 } from './catalog.js';
 import { satisfiesRange } from './engine-version.js';
@@ -677,7 +679,6 @@ function writeExampleReadme(
       'npm run vgai -- play        # verify Play mode\n' +
       'npm run typecheck\n' +
       'npm run validate-manifest\n' +
-      'npm run validate-assets\n' +
       '```\n\n' +
       'Coding agents start with `AGENTS.md`; MCP-compatible hosts discover the project-scoped server through `.mcp.json`.\n',
     'utf-8',
@@ -729,13 +730,18 @@ function rewritePackageJson(
   pkg.dependencies = pkg.dependencies ?? {};
   for (const runtime of RUNTIME_PACKAGES)
     pkg.dependencies[runtime.name] = engineDependencySpec(monoRoot, runtime.name);
-  // `@volter/editor-live`, `@volter/game-live` and `@volter/editor-sdk`:
-  // devDependencies the template declares at a range. Rewritten to this
-  // distribution's own version like every runtime package: both live clients
-  // depend on `@volter/editor-sdk`, and capability source
+  // `@volter/editor-live`, `@volter/game-live`, `@volter/editor-sdk` and
+  // `@volter/editor-threejs`: devDependencies the template declares at a range.
+  // Rewritten to this distribution's own version like every runtime package:
+  // both live clients depend on `@volter/editor-sdk`, and capability source
   // (`src/tools/*.tool.ts`, editor contributions) imports `@volter/editor-sdk`
-  // directly, so they are declared together.
-  for (const name of ['@volter/editor-live', '@volter/game-live', '@volter/editor-sdk'] as const) {
+  // and Three's contribution types directly, so they are declared together.
+  for (const name of [
+    '@volter/editor-live',
+    '@volter/game-live',
+    '@volter/editor-sdk',
+    '@volter/editor-threejs',
+  ] as const) {
     if (pkg.devDependencies?.[name] !== undefined) {
       pkg.devDependencies[name] = engineDependencySpec(monoRoot, name);
     }
@@ -878,6 +884,8 @@ function rewriteGameManifest(
     const roots: JsonRecord[] = [];
     if (additions.has('three'))
       roots.push({ id: 'world', adapter: 'three', entry: 'src/world.tsx' });
+    if (additions.has('canvas'))
+      roots.push({ id: 'scene2d', adapter: 'canvas', entry: 'src/scene2d.tsx' });
     if (additions.has('ui'))
       roots.push({ id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 0 });
     manifest['roots'] = roots;
@@ -1376,6 +1384,39 @@ function writeEditorPackages(targetDir: string, wanted: readonly string[]): void
 /**
  * A React-only scaffold must be genuinely React-only.
  */
+/** The multiplayer client's control scheme into the template's empty input store
+ *  ({@link NETWORKED_INPUT_LINES}): every scaffold that keeps the client (the server and a world) —
+ *  the full template, which ships both, and a composition that chose them. */
+function writeNetworkedInput(targetDir: string): void {
+  const inputPath = join(targetDir, 'src', 'input.ts');
+  let input = readFileSync(inputPath, 'utf-8');
+  for (const [line, replacement] of NETWORKED_INPUT_LINES) {
+    if (!input.includes(line)) {
+      throw new Error(`The template input store no longer declares its actions as expected: ${line}`);
+    }
+    input = input.replace(line, replacement);
+  }
+  writeFileSync(inputPath, input, 'utf-8');
+}
+
+/**
+ * The `canvas` addition: its own tree (`additions/canvas/`, a packed project tree whose
+ * `package.json` declares what its files import) lands in the project, and its packages join the
+ * project's. The base template carries no Pixi: a game without a 2D scene imports none.
+ */
+function applyCanvasAddition(targetDir: string, productDir: string): void {
+  const additionDir = join(productDir, 'additions', 'canvas');
+  cpSync(join(additionDir, 'src'), join(targetDir, 'src'), { recursive: true });
+  const own = JSON.parse(readFileSync(join(additionDir, 'package.json'), 'utf-8')) as {
+    dependencies?: Record<string, string>;
+  };
+  const pkgPath = join(targetDir, 'package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { dependencies?: Record<string, string> };
+  pkg.dependencies = { ...pkg.dependencies };
+  for (const [name, spec] of Object.entries(own.dependencies ?? {})) pkg.dependencies[name] ??= spec;
+  writeJson(pkgPath, pkg);
+}
+
 function rewriteTemplateVariantFiles(
   targetDir: string,
   composition: ScaffoldComposition,
@@ -1395,6 +1436,24 @@ function rewriteTemplateVariantFiles(
   // (ARCHITECTURE-CORE §The target shape, rule 4), and the name came from the
   // product, never from this library.
   writeEditorPackages(targetDir, composition.editorPackages);
+  if (additions.has('server') && additions.has('three')) {
+    writeNetworkedInput(targetDir);
+  } else {
+    for (const relative of SERVER_CLIENT_PATHS) {
+      rmSync(join(targetDir, relative), { recursive: true, force: true });
+    }
+    const worldPath = join(targetDir, 'src', 'world.tsx');
+    if (existsSync(worldPath)) {
+      let world = readFileSync(worldPath, 'utf-8');
+      for (const line of NETWORKED_WORLD_LINES) {
+        if (!world.includes(line)) {
+          throw new Error(`The template world no longer mounts the multiplayer client as expected: ${line.trim()}`);
+        }
+        world = world.replace(line, '');
+      }
+      writeFileSync(worldPath, world, 'utf-8');
+    }
+  }
   if (!additions.has('three')) {
     // No 3D world: the template's composition goes, and the adapter declares
     // no region of its own (the additions that stay declare theirs).
@@ -1441,7 +1500,7 @@ function rewriteTemplateVariantFiles(
     // Composed with a 3D world the React root is an ADDITION: its own files
     // land beside the world and nothing of the world is removed
     // (`compositionKeepsPath` states the same rule for the browser seed).
-    // The template's `main.ts` already registers both adapters.
+    // The template's `main.ts` already mounts both kinds of root.
     // Over a world, the page is its HUD: the world stays visible and keeps its input.
     for (const [relative, source] of Object.entries(REACT_ONLY_FILES)) {
       if (relative === 'src/main.ts') continue;
@@ -1690,6 +1749,7 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
       additions,
       resolveScaffoldStarterDir(productDir),
     );
+    if (additions.has('canvas')) applyCanvasAddition(targetDir, productDir);
     const adapterPath = join(targetDir, 'vgai.adapter.ts');
     writeFileSync(
       adapterPath,
@@ -1702,6 +1762,10 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
       withAgentsContract(readFileSync(agentsPath, 'utf-8'), additions),
       'utf-8',
     );
+  } else if (exampleId === undefined && existsSync(join(targetDir, 'src', 'net'))) {
+    // The full template is its own composition: it ships the server and the world, so it keeps
+    // the multiplayer client and needs that client's controls as a composition that chose them does.
+    writeNetworkedInput(targetDir);
   }
   rewriteTsconfig(targetDir, engineRelPath, editorRelPath);
   rewriteViteConfig(targetDir);
@@ -1710,7 +1774,6 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
   if (hasCapabilityDistribution) initializeProjectCatalog(targetDir, catalogDir);
   if (hasCapabilityDistribution && additions) {
     const ids = [
-      ...(additions.has('ui') ? DEFAULT_REACT_CAPABILITIES : []),
       ...(additions.has('blender') ? (['blender'] as const) : []),
     ];
     if (ids.length > 0)

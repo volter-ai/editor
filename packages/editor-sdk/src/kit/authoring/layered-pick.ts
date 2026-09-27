@@ -69,8 +69,9 @@ function resolveAdapterCandidates(
   clientX: number,
   clientY: number,
   intent: 'normal' | 'deep',
+  includeLocked = false,
 ): string[] {
-  const raw = adapter.pickable?.candidates?.(clientX, clientY) ?? [];
+  const raw = adapter.pickable?.candidates?.(clientX, clientY, includeLocked ? { includeLocked } : undefined) ?? [];
   const resolved: string[] = [];
   const seen = new Set<string>();
   for (const id of raw) {
@@ -143,12 +144,13 @@ export function pickCandidates(
   store: ShellStore,
   clientX: number,
   clientY: number,
-  options: { intent?: 'normal' | 'deep'; adapter?: AuthoringAdapter } = {},
+  options: { intent?: 'normal' | 'deep'; adapter?: AuthoringAdapter; includeLocked?: boolean } = {},
 ): string[] {
   const intent = options.intent ?? 'normal';
+  const includeLocked = options.includeLocked === true;
   const active = options.adapter ?? getActiveAuthoring(store);
   if (!(active instanceof CompositeAuthoringAdapter)) {
-    const candidates = resolveAdapterCandidates(active, clientX, clientY, intent);
+    const candidates = resolveAdapterCandidates(active, clientX, clientY, intent, includeLocked);
     const fallback = resolveAdapterPick(active, clientX, clientY, intent);
     return candidates.length > 0 ? candidates : fallback ? [fallback] : [];
   }
@@ -171,7 +173,7 @@ export function pickCandidates(
   const seen = new Set<string>();
   for (const { worldId, adapter } of order) {
     if (isRootHidden(worldId) || isRootPickLocked(worldId)) continue;
-    const candidates = resolveAdapterCandidates(adapter, clientX, clientY, intent);
+    const candidates = resolveAdapterCandidates(adapter, clientX, clientY, intent, includeLocked);
     const fallback = resolveAdapterPick(adapter, clientX, clientY, intent);
     for (const id of candidates.length > 0 ? candidates : fallback ? [fallback] : []) {
       if (seen.has(id)) continue;

@@ -4,7 +4,7 @@ import {
   subscribeDocumentViewports,
 } from '@volter/editor-sdk/kit/document-viewports';
 import { type ReactNode, Suspense, useSyncExternalStore } from 'react';
-import { chromeRegionsKey, subscribeChromeRegions } from '../workspace-regions';
+import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
 
 /**
  * THE DOCUMENT HEADER STRIP — the one region every document's header lives

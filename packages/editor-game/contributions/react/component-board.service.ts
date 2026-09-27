@@ -11,7 +11,7 @@
  * candidate appears: a promise cannot answer a verdict thunk.
  */
 
-import { registerComponentBoard } from '@volter/editor-core/component-board-registry';
+import { registerComponentBoard } from '@volter/editor-sdk/kit/component-board-registry';
 import { uiComponentBoard } from '../../src/react/ui-component-board';
 
 export const point = 'workspace.service';

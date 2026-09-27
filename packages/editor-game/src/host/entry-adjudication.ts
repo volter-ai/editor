@@ -1,9 +1,9 @@
 /**
  * WHAT DOES THIS ENTRY MODULE MEAN? — the ONE editor-side answer.
  *
- * The engine owns the answer itself (`resolveR3FEntryAdapter`, and the
- * packaged-aware `resolveR3FEntryAdapterForEditor` delegate that routes it
- * through the project's own module graph). The editor's job is to ASK, once.
+ * `roots/r3f-root.tsx` owns the answer itself (`resolveR3FEntryAdapter`), and
+ * `resolveR3FEntryAdapterForEditor` hands it the React and Fiber of the
+ * project's own module graph. The rest of the editor's job is to ASK, once.
  * Before this module there were three askers, and they had already drifted:
  *
  *  - the dev-server lane called the packaged-aware `…ForEditor`;
@@ -20,9 +20,9 @@
  * told which lane and which file, and that is the caller's knowledge, not
  * this function's.
  *
- * `entry-adjudication-single-owner.test.ts` is the tripwire; the canvas lane
- * has its own single owner in the engine (`resolveCanvasEntryAdapter`, reached
- * through `canvas-entry-runtime.ts`) and is not adjudicated here.
+ * The canvas lane has its own single owner (`roots/canvas-root.tsx`'s
+ * `resolveCanvasEntryAdapter`, reached through `canvas-entry-runtime.ts`) and
+ * is not adjudicated here.
  */
 
 import type { RootAdapter } from '@volter/editor-project/adapter';

@@ -116,14 +116,31 @@ export class LiveEditorDocument {
    *  — not `element.click()`, which a `pointerdown` listener never sees. */
   async click(
     selector: string,
-    options?: DocumentGestureOptions & { clicks?: number },
+    options?: DocumentGestureOptions & {
+      clicks?: number;
+      at?: [number, number];
+      altKey?: boolean;
+      ctrlKey?: boolean;
+      metaKey?: boolean;
+      shiftKey?: boolean;
+    },
   ): Promise<DocumentProbeResult> {
+    // An option this door does not know is refused, never dropped: a dropped `position` clicked
+    // the element's centre and answered as if it had clicked where it was asked.
+    const known = ['scope', 'index', 'clicks', 'at', 'altKey', 'ctrlKey', 'metaKey', 'shiftKey'];
+    const unknown = Object.keys(options ?? {}).filter((key) => !known.includes(key));
+    if (unknown.length > 0) throw new Error(`click has no option ${unknown.map((key) => `\`${key}\``).join(', ')}; its options are scope, index, clicks, at ([x, y] fractions of the element's box) and the modifier keys altKey, ctrlKey, metaKey and shiftKey.`);
     return this.#probe({
       action: 'click',
       selector,
       ...(options?.scope === undefined ? {} : { scope: options.scope }),
       ...(options?.index === undefined ? {} : { index: options.index }),
       ...(options?.clicks === undefined ? {} : { clicks: options.clicks }),
+      ...(options?.at === undefined ? {} : { at: options.at }),
+      ...(options?.altKey ? { altKey: true } : {}),
+      ...(options?.ctrlKey ? { ctrlKey: true } : {}),
+      ...(options?.metaKey ? { metaKey: true } : {}),
+      ...(options?.shiftKey ? { shiftKey: true } : {}),
     });
   }
 
@@ -167,6 +184,8 @@ export class LiveEditorDocument {
       shiftKey?: boolean;
       /** 0 primary (default), 1 middle, 2 secondary. */
       button?: 0 | 1 | 2;
+      /** `via`/`to` may leave the element's box after the press (a handle drag). */
+      leave?: boolean;
     },
   ): Promise<DocumentProbeResult> {
     return this.#probe({
@@ -183,6 +202,7 @@ export class LiveEditorDocument {
       ...(options.metaKey === undefined ? {} : { metaKey: options.metaKey }),
       ...(options.shiftKey === undefined ? {} : { shiftKey: options.shiftKey }),
       ...(options.button === undefined ? {} : { button: options.button }),
+      ...(options.leave === undefined ? {} : { leave: options.leave }),
     });
   }
 

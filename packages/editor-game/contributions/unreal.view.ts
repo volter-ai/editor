@@ -15,6 +15,8 @@ export const view: ViewPreset = {
   id: 'unreal',
   title: 'Unreal',
   layer: {
+    // Unreal's level viewport: a 90° horizontal field of view, its viewport setting's default.
+    camera: { fov: { degrees: 90, axis: 'horizontal' } },
     all: {
       lighting: {
         source: 'preview',
@@ -53,6 +55,9 @@ export const view: ViewPreset = {
       },
     },
     overlays: {
+      // No zoom and pan buttons under the gizmo and no camera readout: the engine draws neither.
+      navigationControls: false,
+      cameraReadout: false,
       navigation: 'indicator',
       grid: {
         visible: false,

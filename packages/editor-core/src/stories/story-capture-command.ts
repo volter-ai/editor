@@ -28,7 +28,7 @@ import type {
 } from '@volter/editor-sdk/commands';
 import { parseCameraChoice, parsePoseChoice } from '@volter/editor-sdk/kit/capture-camera-pose';
 import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
-import { getCurrentProject } from '../project-manager';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 
 /** What the registry reports a duplicate against. */
 export const STORY_CAPTURE_COMMAND_SOURCE = 'packages/editor/src/stories/story-capture-command.ts';
@@ -104,7 +104,7 @@ async function handle(cmd: EditorCommandMessage): Promise<EditorCommandResult> {
     if (typeof cameraChoice === 'string') return { ok: false, error: cameraChoice };
     const posedClip = parsePoseChoice(VERB, cmd['pose']);
     if (typeof posedClip === 'string') return { ok: false, error: posedClip };
-    const { captureProjectStoryVariants } = await import('./story-capture');
+    const { captureProjectStoryVariants } = await import('@volter/editor-sdk/kit/stories/story-capture');
     const capture = await captureProjectStoryVariants(getCurrentProject(), {
       modulePath,
       ...(story === undefined ? {} : { story }),

@@ -60,9 +60,9 @@
  */
 
 import { editorHost } from '@volter/editor-sdk/host';
-import { installAudioPoseGuard as installSharedAudioPoseGuard } from '@volter/game-runtime/audio/pose-guard';
+import { installAudioPoseGuard as installSharedAudioPoseGuard } from '../runtime/audio/pose-guard';
 
-export { audioPoseUpdatesDropped } from '@volter/game-runtime/audio/pose-guard';
+export { audioPoseUpdatesDropped } from '../runtime/audio/pose-guard';
 
 let reported = false;
 
