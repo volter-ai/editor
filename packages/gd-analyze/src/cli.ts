@@ -28,6 +28,10 @@ const USAGE = `usage: gd-analyze <command> [options]
            proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
            is named and nothing is written for it.
 
+  liveness
+           Check every claim the import's authorities carry against the working tree, as the
+           import checks each before use; list the stale ones (no Godot binary needed).
+
   evidence ... --godot 4.6 [--pipeline-official-binary <4.7 editor>]
            The same cases and proofs with the official 4.6 binary as the native side, against
            the same target (compat, and the 4.7 pipeline through the 4.7 exporter and, for the
@@ -108,6 +112,10 @@ export async function runCli(argv: readonly string[]): Promise<number> {
       requiredOfficial(rest),
       optionValue(rest, '--out'),
     );
+  }
+  if (command === 'liveness') {
+    const { runLiveness } = await import('./report/liveness');
+    return runLiveness();
   }
   if (command === 'evidence') {
     (await import('./evidence/node-assets')).registerNodeAssetImports();
