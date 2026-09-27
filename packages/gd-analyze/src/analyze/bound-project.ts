@@ -1327,9 +1327,22 @@ export function bindGodotProject(
     for (let current = apiClasses.get(name); current !== undefined; current = current.base_class === '' ? undefined : apiClasses.get(current.base_class)) out.push(current.name);
     return out;
   };
+  // Every untyped member's datatype from what the project stores in it (`member-types.ts`).
+  const memberTypes = typeMembers({
+    programs: code.scripts,
+    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
+    apiDump: apiDump.parsed,
+  });
   const numericParameters = new Set<string>();
   const parameterTypes = typeFunctionParameters({
     numeric: numericParameters,
+    memberType: (resPath, name) => {
+      for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+        const found = memberTypes.get(memberKey(scriptPath, name));
+        if (found !== undefined) return found;
+      }
+      return undefined;
+    },
     programs: code.scripts,
     apiDump: apiDump.parsed,
     nativeBase: (resPath) => inheritance.get(resPath)?.engineBase,
@@ -1340,12 +1353,6 @@ export function bindGodotProject(
       .entries()
       .filter((entry) => entry.entryType === 'file' && entry.digest !== undefined && /\.(tscn|tres|escn)$/u.test(entry.relativePath))
       .map((entry) => new TextDecoder().decode(snapshot.bytesByDigest(entry.digest as string))),
-  });
-  // Every untyped member's datatype from what the project stores in it (`member-types.ts`).
-  const memberTypes = typeMembers({
-    programs: code.scripts,
-    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
-    apiDump: apiDump.parsed,
   });
   // Every untyped variable holding an int at some times and a float at others (`numeric-variants.ts`).
   // The rule's claim is asked only when some variable is one, so a project without any records none.

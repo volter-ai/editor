@@ -108,6 +108,8 @@ const REFINED = [
   'target.level',
   'exported_lamp',
   'exported_lamp.omni_range',
+  // An instance of an inherited scene (its root instances another scene): the class it inherits.
+  '$Wrapped',
 ] as const;
 
 /** The keys of \`intersect_ray\`'s result the analysis types. */
@@ -206,6 +208,13 @@ func shout() -> int:
 
 [node name="Lamp" type="OmniLight3D" parent="."]
 `,
+  // An inherited scene: its root instances the imported model and declares no class of its own.
+  'wrapper.tscn': `[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="1_model"]
+
+[node name="Wrapper" instance=ExtResource("1_model")]
+`,
   'level.tscn': `[gd_scene load_steps=2 format=3]
 
 [ext_resource type="PackedScene" path="res://inner.tscn" id="1_inner"]
@@ -228,12 +237,13 @@ func shout() -> int:
 [node name="Main" parent="." instance=ExtResource("1_main")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
 `,
-  'main.tscn': `[gd_scene load_steps=5 format=3]
+  'main.tscn': `[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="2_model"]
 [ext_resource type="PackedScene" path="res://level.tscn" id="3_level"]
 [ext_resource type="Script" path="res://scripted.gd" id="4_scripted"]
+[ext_resource type="PackedScene" path="res://wrapper.tscn" id="5_wrapper"]
 
 [sub_resource type="BoxShape3D" id="GroundBox"]
 size = Vector3(4, 1, 4)
@@ -257,6 +267,8 @@ script = ExtResource("4_scripted")
 
 [node name="Marker" type="Marker3D" parent="Level"]
 unique_name_in_owner = true
+
+[node name="Wrapped" parent="." instance=ExtResource("5_wrapper")]
 
 [node name="Ground" type="StaticBody3D" parent="."]
 

@@ -104,7 +104,8 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
     const family = inputs.programs.filter((other) => other.resPath === program.resPath || inputs.scriptAncestors(other.resPath).includes(program.resPath));
     for (const memberId of root.members) {
       const member = program.nodes[memberId];
-      if (member?.kind !== 'VARIABLE' || member.static || member.exported || member.setter >= 0 || member.datatypeSpecifier >= 0 || member.initializer < 0) continue;
+      // Untyped only: `var x: T` and `var x := v` hold their one type (the compiler converts).
+      if (member?.kind !== 'VARIABLE' || member.static || member.exported || member.setter >= 0 || member.datatypeSpecifier >= 0 || member.inferDatatype || member.initializer < 0) continue;
       const name = identifierName(program, member.identifier);
       if (name === undefined || spelled.has(name) || attributeStored.has(name)) continue;
       members.push({ key: memberKey(program.resPath, name), program, declaration: member, name, family });

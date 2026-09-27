@@ -99,6 +99,7 @@ func _ready() -> void:
 \thits += 1
 \thits = hits + 2
 \trecord("member-int", hits)
+\tpassed(hits)
 \trecord("member-mixed", speed)
 \tspeed = 3
 \trecord("member-mixed", speed)
@@ -110,6 +111,10 @@ func _ready() -> void:
 \tmixed_signal.emit(1)
 \tmixed_signal.emit("one")
 \t$Emitter.add_child(Node.new())
+
+# Passed an untyped member every store gives an int: the member's stored type (\`member-types.ts\`).
+func passed(n) -> void:
+\trecord("member-argument", n)
 
 func helper(x) -> void:
 \trecord("from-calls", x)

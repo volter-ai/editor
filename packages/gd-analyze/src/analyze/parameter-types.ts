@@ -50,6 +50,8 @@ export interface ParameterTypeInputs {
    * float and both occurring (`numeric-variants.ts`).
    */
   readonly numeric?: Set<string>;
+  /** An untyped member's one stored type (`member-types.ts`), for a member passed as an argument. */
+  readonly memberType?: (resPath: string, name: string) => GodotBoundDatatype | undefined;
 }
 
 /** The key of a function's parameter: `resPath`, function name, parameter name. */
@@ -139,8 +141,8 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
       ids.map((id) => {
         const node = program.nodes[id];
         const datatype = node?.datatype;
-        // An untyped member's weak datatype is not what it holds.
-        if (node?.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && datatype?.typeSource === 'INFERRED') return undefined;
+        // An untyped member's weak datatype is not what it holds; the one type its stores give is.
+        if (node?.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && datatype?.typeSource === 'INFERRED') return inputs.memberType?.(program.resPath, node.name);
         return datatype !== undefined && known(datatype) && !datatype.metaType ? datatype : undefined;
       });
     const record = (name: string, ids: readonly number[]) => {
@@ -261,8 +263,9 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
       const found = fn === undefined ? undefined : resolvedTypes.get(parameterKey(program.resPath, fn, node.name));
       if (found !== undefined) return found.datatype;
     }
-    // An untyped member's datatype is only its initializer's (a weak type): what it holds is not.
-    if (node.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && node.datatype.typeSource === 'INFERRED') return undefined;
+    // An untyped member's datatype is only its initializer's (a weak type): what it holds is the
+    // one type every store gives it (`member-types.ts`), else unknown.
+    if (node.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && node.datatype.typeSource === 'INFERRED') return inputs.memberType?.(program.resPath, node.name);
     return known(node.datatype) && !node.datatype.metaType ? node.datatype : undefined;
   };
 

@@ -267,12 +267,26 @@ export function resolveScenePath(
   const leaf = stack[stack.length - 1] as Frame;
   let className = leaf.node.type;
   let instanceOf = leaf.node.instanceOf;
+  // A node an expanded scene stamped from the scene it instanced (`inheritedNode`): its class is
+  // that source node's, followed the same way.
+  let inherited = leaf.node.inheritedNode;
   const seen = new Set<string>();
-  while (className === undefined && instanceOf !== undefined && !seen.has(instanceOf)) {
-    seen.add(instanceOf);
-    const root = scenes.get(instanceOf)?.root;
-    className = root?.type;
-    instanceOf = root?.instanceOf;
+  while (className === undefined && (instanceOf !== undefined || inherited !== undefined)) {
+    let next: SceneNode | undefined;
+    if (instanceOf !== undefined) {
+      if (seen.has(instanceOf)) break;
+      seen.add(instanceOf);
+      next = scenes.get(instanceOf)?.root;
+    } else if (inherited !== undefined) {
+      const key = `${inherited.documentPath}#${inherited.nodePath}`;
+      if (seen.has(key)) break;
+      seen.add(key);
+      const root = scenes.get(inherited.documentPath)?.root;
+      next = root === undefined ? undefined : locate(root, inherited.nodePath);
+    }
+    className = next?.type;
+    instanceOf = next?.instanceOf;
+    inherited = next?.inheritedNode;
   }
   if (className === undefined) return `node ${path} declares no class`;
   return { className, documentPath: leaf.documentPath, pathInDocument: leaf.pathInDocument };
