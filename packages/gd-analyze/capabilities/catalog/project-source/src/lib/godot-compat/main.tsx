@@ -22,6 +22,7 @@ import { godot_camera_3d_draw } from './camera-3d';
 import { godot_canvas_draw } from './canvas-item';
 import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
 import { godot_main_timer_sync_init } from './main-timer-sync';
+import { GodotSpawnHost } from './packed-scene-instance';
 import { godot_resource_loader_settled } from './resource-loader';
 import { godot_main_iteration, godot_tree_set_root } from './scene-tree';
 import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
@@ -103,7 +104,8 @@ function GodotMainLoop() {
  * `<Physics>` world (no gravity or damping of its own: the space's are compat's, from the
  * project's `physics/3d/default_*` settings; paused, because compat's clock steps it once per
  * Godot physics step), the root window takes the canvas, and `children` (the autoloads and the
- * main scene) mount after the loop has registered the tree root.
+ * main scene) mount after the loop has registered the tree root; the SceneTree enters them at its
+ * first iteration. The spawn host beside them mounts the scenes scripts instantiate.
  *
  * @godot Main (protocol)
  * @source main/main.cpp:4495
@@ -146,7 +148,7 @@ export function GodotMain({ children }: PropsWithChildren) {
       interpolate: false,
       gravity: [0, 0, 0],
       colliders: false,
-      children: createElement(Fragment, null, createElement(GodotMainLoop), children),
+      children: createElement(Fragment, null, createElement(GodotMainLoop), children, createElement(GodotSpawnHost)),
     }),
   );
 }

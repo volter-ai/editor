@@ -18,6 +18,7 @@ import { type Collider, EventQueue, type RigidBody, SolverFlags, type World } fr
 import {
   godot_collision_objects_collide,
   godot_collision_objects_declare,
+  godot_collision_objects_hold_detached,
   godot_collision_objects_integrate,
   godot_collision_objects_read_rigid,
   godot_collision_objects_step,
@@ -112,6 +113,19 @@ export function godot_world_3d_physics_callbacks(
   }
   if (step !== undefined && !stepHandlers.includes(step)) stepHandlers.push(step);
   if (stepped !== undefined && !steppedHandlers.includes(stepped)) steppedHandlers.push(stepped);
+}
+
+/**
+ * Declares the host's bodies now and holds those outside the tree: an instantiated scene's bodies,
+ * which React mounted outside the tree, never join the space before their node enters it.
+ *
+ * @godot World3D (protocol)
+ * @source scene/3d/physics/collision_object_3d.cpp:96
+ */
+export function godot_world_3d_declare_detached(): void {
+  if (current === undefined) return;
+  godot_collision_objects_declare(current.host.bodies());
+  godot_collision_objects_hold_detached();
 }
 
 /** The collision objects brought up to the tree, the host's declared bodies among them. */

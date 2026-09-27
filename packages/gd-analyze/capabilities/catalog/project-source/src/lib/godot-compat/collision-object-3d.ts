@@ -559,6 +559,7 @@ export function godot_collision_object_material(entity: object, material: Physic
  * @source scene/3d/physics/collision_object_3d.cpp:96
  */
 export function godot_collision_objects_sync(world: World): void {
+  godot_collision_objects_hold_detached();
   for (const [entity, state] of OBJECT) {
     if (godot_node_is_freed(entity) || !is_inside_tree(entity)) {
       removeBody(world, entity, state);
@@ -568,8 +569,11 @@ export function godot_collision_objects_sync(world: World): void {
     const entering = state.body === undefined;
     if (entering) {
       // Entering the world sends the transform at once (`_notification`, ENTER_WORLD), and the
-      // space registers every shape (`GodotCollisionObject3D::_set_space`).
-      state.body = DECLARED.get(entity)?.body ?? world.createRigidBody(bodyDesc(state.kind));
+      // space registers every shape (`GodotCollisionObject3D::_set_space`). A declared body,
+      // which Rapier holds from the moment React mounts it, is switched on.
+      const declared = DECLARED.get(entity)?.body;
+      if (declared !== undefined && !declared.isEnabled()) declared.setEnabled(true);
+      state.body = declared ?? world.createRigidBody(bodyDesc(state.kind));
       godot_collision_object_place(entity);
       state.moved = true;
     }
@@ -577,6 +581,22 @@ export function godot_collision_objects_sync(world: World): void {
     if (entering) updateShapes(state);
   }
   world.propagateModifiedBodyPositionsToColliders();
+}
+
+/**
+ * A body the scene's JSX declares exists in Rapier from the moment React mounts it; Godot's has no
+ * space until its node enters the tree (`CollisionObject3D::_notification` ENTER_WORLD,
+ * `collision_object_3d.cpp:96`) and leaves it on exit (EXIT_WORLD). Every declared body whose node
+ * is outside the tree (instantiated and not yet added, removed, or freed) is disabled, so it neither
+ * moves nor collides nor answers queries; `godot_collision_objects_sync` enables it on entry.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/collision_object_3d.cpp:96
+ */
+export function godot_collision_objects_hold_detached(): void {
+  for (const [entity, declared] of DECLARED) {
+    if ((godot_node_is_freed(entity) || !is_inside_tree(entity)) && declared.body.isEnabled()) declared.body.setEnabled(false);
+  }
 }
 
 /**
