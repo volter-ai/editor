@@ -436,6 +436,13 @@ rule('assign-convert-int-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion',
 // holding a float or an int is that number in JS. (A Variant of another type is a Godot runtime
 // error the target does not raise.)
 // A built-in value into a Variant place is stored as it is (`write_assign`, no conversion).
+// An enum value into a Variant place (an AnimationTree parameter) is its int (`write_assign`; an
+// enum's values are ints, `GDScriptAnalyzer::reduce_identifier` enum branch).
+rule('assign-enum-into-variant', 'ASSIGNMENT', 'operator:OP_NONE:25', ['VARIANT:*', 'ENUM:*'], 'ENUM:*', { kind: 'assignment', operator: '=' }, {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression ASSIGNMENT',
+  line: 982,
+});
 rule('assign-builtin-into-variant', 'ASSIGNMENT', 'operator:OP_NONE:25', ['VARIANT:*', B], B, { kind: 'assignment', operator: '=' }, {
   file: COMPILER,
   symbol: 'GDScriptCompiler::_parse_expression ASSIGNMENT',
@@ -1238,6 +1245,8 @@ script = ExtResource("1_cases")
 const TREE_SOURCE = `class_name TreeCases
 extends Node
 
+enum Mode { FIRST, SECOND }
+
 @onready var _tree := $Tree as AnimationTree
 
 
@@ -1250,6 +1259,9 @@ func parameters() -> Array:
 \tbefore.append(_tree[&"parameters/mix/blend_amount"])
 \tbefore.append(_tree["parameters/slow/scale"])
 \tbefore.append(_tree[&"parameters/x/current_delta"])
+\tvar mode := Mode.SECOND
+\t_tree[&"parameters/mix/blend_amount"] = mode
+\tbefore.append(_tree[&"parameters/mix/blend_amount"])
 \treturn before
 `;
 
