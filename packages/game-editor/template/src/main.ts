@@ -49,6 +49,30 @@ const roots = [...(manifest.roots as readonly DeclaredRoot[])].sort(
 // The bottom world (the lowest `three` or `canvas` root) takes pointer input and clears opaque;
 // a world stacked above it lets input fall through and clears transparent, as the editor stacks them.
 const bottomWorld = roots.find((root) => root.adapter === 'three' || root.adapter === 'canvas');
+
+// A `canvas` world above the bottom one claims the points where Pixi finds an interactive object (a
+// HUD's button), as the editor's input router does: the press goes to that world alone, and every
+// other point falls through to the world beneath. Topmost first.
+const claims: { readonly zOrder: number; readonly canvas: HTMLCanvasElement; readonly hit: (x: number, y: number) => boolean }[] = [];
+const forwarded = new WeakSet<Event>();
+for (const type of ['pointerdown', 'pointerup', 'pointermove', 'click', 'wheel'] as const) {
+  container.addEventListener(
+    type,
+    (event) => {
+      if (forwarded.has(event) || claims.length === 0) return;
+      const box = container.getBoundingClientRect();
+      const { clientX, clientY } = event as MouseEvent;
+      const claim = claims.find((entry) => entry.hit(clientX - box.left, clientY - box.top));
+      if (!claim) return;
+      event.stopPropagation();
+      // A copy that bubbles: Pixi hears pointermove on the document and pointerup on the window.
+      const copy = new (event.constructor as typeof PointerEvent)(event.type, event as PointerEventInit);
+      forwarded.add(copy);
+      claim.canvas.dispatchEvent(copy);
+    },
+    true,
+  );
+}
 for (const root of roots) {
   const layer = document.createElement('div');
   layer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
@@ -82,6 +106,21 @@ for (const root of roots) {
           resolution: globalThis.devicePixelRatio ?? 1,
           autoDensity: true,
           backgroundAlpha: root === bottomWorld ? 1 : 0,
+          onInit: (app) => {
+            if (root === bottomWorld) return;
+            claims.push({
+              zOrder: root.zOrder ?? 0,
+              canvas: app.canvas,
+              // Pixi points its boundary at the last rendered scene inside its own pointer handlers.
+              hit: (x, y) => {
+                const rendered = app.renderer.lastObjectRendered;
+                if (!rendered) return false;
+                app.renderer.events.rootBoundary.rootTarget = rendered;
+                return app.renderer.events.rootBoundary.hitTest(x, y) !== null;
+              },
+            });
+            claims.sort((a, b) => b.zOrder - a.zOrder);
+          },
         },
         createElement(Entry),
       ),

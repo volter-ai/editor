@@ -598,7 +598,7 @@ async function mountOneCanvasRoot(
       id: spec.id,
       zOrder: spec.zOrder ?? 0,
       canvas,
-      hitTest: spec.hitTest,
+      hitTest: spec.hitTest ?? (mounted.hitTest ? (x, y) => mounted.hitTest!(x, y) : undefined),
     },
   };
 }

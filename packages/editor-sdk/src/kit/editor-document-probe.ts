@@ -676,12 +676,14 @@ function typeInto(element: HTMLElement, text: string, replace: boolean, enter: b
  * harmless for exactly the dispatch and restored after; a real pointer is
  * never affected.
  */
-function withoutPointerCapture(_element: HTMLElement, dispatch: () => void): void {
+function withoutPointerCapture(element: HTMLElement, dispatch: () => void): void {
   // On the PROTOTYPE, not the target: the viewport's controls listen on the
   // canvas's container and capture THERE, so the event's whole bubble path
   // has to be covered. Synchronous, restored in `finally`, and a real pointer
-  // (which never dispatches through here) is untouched.
-  const proto = Element.prototype;
+  // (which never dispatches through here) is untouched. The element's own
+  // realm's prototype: a framed page (the Build Player) has its own.
+  const realm = element.ownerDocument.defaultView as (Window & typeof globalThis) | null;
+  const proto = (realm ?? window).Element.prototype;
   const set = proto.setPointerCapture;
   const release = proto.releasePointerCapture;
   proto.setPointerCapture = () => {};

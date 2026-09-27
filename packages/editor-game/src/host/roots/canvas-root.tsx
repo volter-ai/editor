@@ -307,6 +307,18 @@ function canvasWorldAdapter(
           // the host only gates/advances it.
           mountedApp.ticker.update(elapsedMs);
         },
+        // Pixi's own hit test finds only interactive objects (`eventMode` static or dynamic), so a
+        // HUD claims its buttons and lets every other point fall through to the world beneath.
+        hitTest(x: number, y: number): boolean {
+          if (disposed) return false;
+          // Pixi points its boundary at the last rendered scene inside each of its own pointer
+          // handlers; a hit test asked from outside them does the same, or finds no root.
+          const boundary = mountedApp.renderer.events.rootBoundary;
+          const rendered = mountedApp.renderer.lastObjectRendered;
+          if (!rendered) return false;
+          boundary.rootTarget = rendered;
+          return boundary.hitTest(x, y) !== null;
+        },
         resize(width: number, height: number): void {
           if (disposed) return;
           // `autoDensity: true` makes Pixi re-stamp `canvas.style.width`/

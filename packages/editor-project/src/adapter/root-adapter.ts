@@ -86,6 +86,10 @@ export interface MountedRootBase {
   step?(): void;
 
   resize?(width: number, height: number): void;
+  /** Does this world claim a pointer at (x, y), in CSS pixels from its surface's top-left? The input
+   *  router asks it of a world stacked above the bottom one (a Pixi HUD's interactive objects).
+   *  Absent: such a world claims no point, and input falls through to the bottom world. */
+  hitTest?(x: number, y: number): boolean;
   dispose(): void;
   /** Resolves after an asynchronous native reconciler has run every component
    * cleanup started by {@link dispose}. Omitted by synchronously-disposing

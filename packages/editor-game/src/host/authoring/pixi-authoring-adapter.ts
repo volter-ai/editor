@@ -512,6 +512,35 @@ interface CanvasBoxEditSession {
   readonly id: string;
   readonly transform: Transform;
   readonly rect: { x: number; y: number; width: number; height: number };
+  /** The parent's world matrix's linear part (Pixi's a, b, c, d), when the node has a parent. */
+  readonly parentLinear?: { a: number; b: number; c: number; d: number };
+}
+
+/**
+ * The local turn, in degrees, that turns the node's own x axis by `degrees` on screen. Godot measures
+ * a rotate drag in the parent's space; a turn added straight to the local rotation goes backwards
+ * under a mirrored parent and by the wrong amount under an unevenly scaled one.
+ */
+function localTurn(session: CanvasBoxEditSession, degrees: number): number {
+  const m = session.parentLinear;
+  if (!m) return degrees;
+  const det = m.a * m.d - m.b * m.c;
+  if (Math.abs(det) < 1e-9) return degrees;
+  const [, , z, w] = session.transform.rotation;
+  const r = 2 * Math.atan2(z, w);
+  // The node's x axis on screen, turned by the drag, taken back into the parent's space.
+  const vx = m.a * Math.cos(r) + m.c * Math.sin(r);
+  const vy = m.b * Math.cos(r) + m.d * Math.sin(r);
+  const t = (degrees * Math.PI) / 180;
+  const wx = vx * Math.cos(t) - vy * Math.sin(t);
+  const wy = vx * Math.sin(t) + vy * Math.cos(t);
+  const ux = (m.d * wx - m.c * wy) / det;
+  const uy = (-m.b * wx + m.a * wy) / det;
+  // A long drag passes half a turn: keep the answer beside the turn's own direction in that space.
+  const base = det < 0 ? -t : t;
+  const raw = Math.atan2(uy, ux) - r - base;
+  const wrapped = Math.atan2(Math.sin(raw), Math.cos(raw));
+  return ((base + wrapped) * 180) / Math.PI;
 }
 
 function boxPatchChannels(patch: Record<string, number>): TransformChannel[] {
@@ -560,7 +589,7 @@ function transformForBoxPatch(
     scale: [...session.transform.scale],
   };
   const rotate = patch['rotate'];
-  if (rotate !== undefined) next.rotation = rotateTransformZ(session.transform, rotate);
+  if (rotate !== undefined) next.rotation = rotateTransformZ(session.transform, localTurn(session, rotate));
   const width = patch['width'];
   if (width !== undefined && session.rect.width > 0) {
     next.scale[0] = session.transform.scale[0] * Math.max(0.0001, width / session.rect.width);
@@ -1340,7 +1369,13 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
         this.boxEditSessions.delete(id);
         return;
       }
-      this.boxEditSessions.set(id, { id, rect, transform: this.transforms.get(id) });
+      const parent = this.projector.object(id)?.parent?.worldTransform;
+      this.boxEditSessions.set(id, {
+        id,
+        rect,
+        transform: this.transforms.get(id),
+        ...(parent ? { parentLinear: { a: parent.a, b: parent.b, c: parent.c, d: parent.d } } : {}),
+      });
       this.transforms.beginEdit?.(id);
     },
     apply: (id, patch) => this.applyBoxEdit(id, patch),

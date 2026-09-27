@@ -76,26 +76,32 @@ function pickEventInit(original: Event): Record<string, unknown> {
     'deltaZ',
     'deltaMode',
   ];
-  const init: Record<string, unknown> = { bubbles: false, cancelable: true, composed: true };
+  const init: Record<string, unknown> = { bubbles: true, cancelable: true, composed: true };
   for (const key of keys) if (key in src) init[key] = src[key];
   return init;
 }
 
 /**
- * Forward `original` onto `canvas` as a NEW, non-bubbling event of the same
- * event-type family — so a canvas with `pointer-events:none` (never a
- * native DOM hit-test target) still receives the interaction its own event
- * pipeline (Pixi's `EventSystem`, a raycast-driven three controller, …)
- * listens for on ITS canvas. `bubbles:false` is deliberate: it stops the
- * clone from re-triggering the container's own capture listener (an
- * infinite loop) — re-dispatching the SAME event object is not an option
- * either (the DOM forbids re-dispatching an event still being dispatched).
+ * Forward `original` onto `canvas` as a NEW event of the same event-type
+ * family — so a canvas with `pointer-events:none` (never a native DOM
+ * hit-test target) still receives the interaction its own event pipeline
+ * (Pixi's `EventSystem`, a raycast-driven three controller, …) listens for.
+ * The clone BUBBLES, because Pixi hears `pointermove` on the document and
+ * `pointerup` on the window, not on its canvas; the container's capture
+ * listener sees every clone on the way down (capture runs whether or not an
+ * event bubbles), and {@link forwarded} is what lets it pass rather than be
+ * routed again. Re-dispatching the SAME event object is not an option (the
+ * DOM forbids re-dispatching an event still being dispatched).
  *
  * Best-effort: environments with no `PointerEvent`/`MouseEvent`/
  * `WheelEvent` global (Node unit tests) skip forwarding silently — those
  * tests exercise the pure claim-resolution logic above instead, which needs
  * no real `Event` objects at all.
  */
+/** The clones this router dispatched: they bubble through the container's capture listener, which
+ *  lets them pass instead of routing them again. */
+const forwarded = new WeakSet<Event>();
+
 function forwardEvent(canvas: HTMLCanvasElement, original: Event): void {
   const g = globalThis as unknown as {
     PointerEvent?: new (type: string, init?: unknown) => Event;
@@ -110,7 +116,9 @@ function forwardEvent(canvas: HTMLCanvasElement, original: Event): void {
         : (g.MouseEvent ?? g.PointerEvent);
   if (!Ctor || typeof canvas.dispatchEvent !== 'function') return;
   try {
-    canvas.dispatchEvent(new Ctor(original.type, pickEventInit(original)));
+    const clone = new Ctor(original.type, pickEventInit(original));
+    forwarded.add(clone);
+    canvas.dispatchEvent(clone);
   } catch {
     // Best-effort forwarding — a construction failure here must never break
     // the (already-delivered) original event's own handling.
@@ -142,6 +150,7 @@ export function createInputRouter(
   const bottomId = stackOrder(entries)[0]?.id;
 
   const handler = (evt: Event) => {
+    if (forwarded.has(evt)) return;
     const rect = container.getBoundingClientRect?.() ?? { left: 0, top: 0 };
     const clientX = (evt as unknown as { clientX?: number }).clientX ?? 0;
     const clientY = (evt as unknown as { clientY?: number }).clientY ?? 0;
@@ -150,7 +159,11 @@ export function createInputRouter(
     const claimant = resolveClaimingRoot(entries, x, y);
     if (claimant && claimant !== bottomId) {
       const entry = byId.get(claimant);
-      if (entry) forwardEvent(entry.canvas, evt);
+      if (entry) {
+        // The claim is exclusive: the world beneath never hears a press its HUD took.
+        evt.stopPropagation();
+        forwardEvent(entry.canvas, evt);
+      }
     }
   };
 
