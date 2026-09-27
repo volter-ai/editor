@@ -519,7 +519,8 @@ the output is plain library code (ARCHITECTURE.md rule 4):
 | `AudioStreamPlayer`, `AudioStreamPlayer3D` | Web Audio through three's `Audio`/`PositionalAudio` |
 | `CanvasLayer`, `Control`, `Label`, `TextureRect`, `HBoxContainer`, `Node2D`, `Sprite2D`, `TouchScreenButton` | non-spatial Groups laid out by Godot's own layout code and drawn into a DOM root (§The canvas). Landed: exact against official Godot, proven from a scene file by the `scene-ui` proof. Layout-mode and anchor setters, which have no hash in the API dump, are resolved from the scene file by name. |
 | Imported textures (PNG, lossless WebP), `ArrayMesh`, `Label3D`, `AudioStreamPlayer`/`AudioStreamPlayer3D` with WAV streams and randomizers | Landed in the pre-ruling output shape (proofs `scene-textures`, `scene-meshes`, `scene-audio`); their Godot-semantics modules carry over, their scene emission is redone in the idiomatic shape. Named deviations: `audio-compression`, `web-audio-attenuation`. Not yet: audio buses, sequential randomizer playback. GridMap waits on a ruling for static collision that is not a node. |
-| `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
+| `Sprite3D`, `AnimatedSprite3D` + `SpriteFrames`, `AtlasTexture` | compat elements on a three `Mesh` (`<GodotSprite3D>`, `<GodotAnimatedSprite3D>`): the quad `draw_texture_rect` writes and the Compatibility renderer's 2D material, the animation stepped in the node's internal process. Landed with evidence (516 cases, the `scene-sprites` proof). Bound only what the corpus reaches; the sheet, region, offset, flip, modulate, billboard and alpha-cut properties keep Godot's defaults |
+| `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `ReflectionProbe`, `CSGBox3D`, `Label3D` | later units, in closure order |
 
 ## Where it stands (2026-09-27)
 
