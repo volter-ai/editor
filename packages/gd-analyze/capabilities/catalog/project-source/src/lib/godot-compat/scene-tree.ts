@@ -17,7 +17,6 @@
 import { flush_buffered_events, godot_input_frame } from './input';
 import { godot_node_enter_pending, godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_process_list, godot_node_processing, godot_node_set_queued } from './node';
 import { godot_main_timer_sync_advance, godot_main_timer_sync_fixed_fps } from './main-timer-sync';
-import { godot_message_queue_flush } from './object';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
@@ -226,14 +225,11 @@ export function godot_tree_physics_step(delta: number): void {
   clock.physicsTime = delta;
   physicsFrame.emit();
   processNodes(true);
-  godot_message_queue_flush();
   processTimers(delta, true);
   processTweens(delta, true);
   physicsServer?.transforms();
   flushDeleteQueue();
-  godot_message_queue_flush();
   physicsServer?.step(delta);
-  godot_message_queue_flush();
   clock.inPhysics = false;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
   physicsObserver?.('end');
@@ -252,10 +248,8 @@ export function godot_tree_frame(delta: number): void {
   openIteration();
   clock.processTime = delta;
   processFrame.emit();
-  godot_message_queue_flush();
   physicsServer?.transforms();
   processNodes(false);
-  godot_message_queue_flush();
   physicsServer?.transforms();
   if (clock.reloadPending) {
     clock.reloadPending = false;
@@ -265,7 +259,6 @@ export function godot_tree_frame(delta: number): void {
   processTweens(delta, false);
   physicsServer?.transforms();
   flushDeleteQueue();
-  godot_message_queue_flush();
   clock.processFrames += 1;
   // Input reads the Engine counters between iterations too: events the page delivers before the
   // next iteration stamp this frame's count (`Engine::_process_frames`, `main/main.cpp:5115`).

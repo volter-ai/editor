@@ -2,10 +2,10 @@
  * @godot-class Object
  * @role PROTOCOL
  *
- * Godot 4.7's deferred calls and metadata: `Object.call_deferred`, `Object.set_deferred` and the main
- * `MessageQueue` they push to, transcribed from `core/object/object.cpp` and
- * `core/object/message_queue.cpp` at revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`. The queue
- * is module state; SceneTree flushes it where Godot does (`scene-tree.ts`).
+ * Godot 4.7's deferred calls and metadata (`core/object/object.cpp`, revision
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`). A deferred call runs "later, after the current
+ * work", which on the page is a microtask: it runs once the current frame's callbacks return, in
+ * the order the calls were made. There is no queue of compat's own to flush.
  *
  * The receiver is a Godot object as compat represents it (a script instance, or a native entity).
  * A method or property named by string is the receiver's own JS member of that name: a script
@@ -15,13 +15,12 @@
 
 import { godot_node_entity, godot_node_is_freed, godot_node_is_queued } from './node';
 
-interface Message {
-  readonly target: object;
-  readonly run: () => void;
+/** Runs `run` after the current work, unless its target has been freed by then. */
+function defer(target: object, run: () => void): void {
+  queueMicrotask(() => {
+    if (!godot_node_is_freed(target)) run();
+  });
 }
-
-const queue: Message[] = [];
-let flushing = false;
 
 /**
  * Queues `self.method(...args)` for the next flush.
@@ -30,12 +29,9 @@ let flushing = false;
  * @source core/object/object.cpp:632
  */
 export function call_deferred(self: object, method: string, ...args: readonly unknown[]): void {
-  queue.push({
-    target: self,
-    run: () => {
-      const fn = (self as Record<string, unknown>)[method];
-      if (typeof fn === 'function') (fn as (...values: unknown[]) => unknown).apply(self, [...args]);
-    },
+  defer(self, () => {
+    const fn = (self as Record<string, unknown>)[method];
+    if (typeof fn === 'function') (fn as (...values: unknown[]) => unknown).apply(self, [...args]);
   });
 }
 
@@ -46,43 +42,20 @@ export function call_deferred(self: object, method: string, ...args: readonly un
  * @source core/object/object.cpp:2002
  */
 export function set_deferred(self: object, property: string, value: unknown): void {
-  queue.push({
-    target: self,
-    run: () => {
-      (self as Record<string, unknown>)[property] = value;
-    },
+  defer(self, () => {
+    (self as Record<string, unknown>)[property] = value;
   });
 }
 
 /**
- * Queues a bound native call for the next flush (`callable_mp(object, &Class::method).call_deferred()`,
- * `core/object/callable_mp.h`), as an engine class queues its own deferred updates.
+ * A bound native call run later (`callable_mp(object, &Class::method).call_deferred()`,
+ * `core/object/callable_mp.h`), as an engine class defers its own updates.
  *
  * @godot Object (protocol)
  * @source core/variant/callable.cpp:40
  */
 export function godot_message_queue_push(target: object, run: () => void): void {
-  queue.push({ target, run });
-}
-
-/**
- * `CallQueue::flush` (`core/object/message_queue.cpp:224`): runs messages in order, including those
- * queued while flushing; a message whose target was freed is dropped; a nested flush does nothing.
- *
- * @godot Object (protocol)
- * @source core/object/message_queue.cpp:224
- */
-export function godot_message_queue_flush(): void {
-  if (flushing) return;
-  flushing = true;
-  try {
-    while (queue.length > 0) {
-      const message = queue.shift() as Message;
-      if (!godot_node_is_freed(message.target)) message.run();
-    }
-  } finally {
-    flushing = false;
-  }
+  defer(target, run);
 }
 
 /**
