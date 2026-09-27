@@ -49,7 +49,7 @@
         "observedOutputSha256": "6b9c6b84ac8f8aa15fbe485569352907038152a3c49502811e7f8648e74264ac"
       },
       "target": {
-        "implementationSha256": "6d1153a8340d39ee2cd4808add00f51fe9f4bf154d394b165e7a2f74fe092797",
+        "implementationSha256": "649f968ec9d0430cc253176976fde6908ecb12565e8a33fff2a222edae03e2ea",
         "callsite": "lib/godot-compat/callable.ts bind",
         "observedOutputSha256": "6b9c6b84ac8f8aa15fbe485569352907038152a3c49502811e7f8648e74264ac"
       },
@@ -76,7 +76,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2e3f461c2a99d244b6f392c8326b36e6ad7debda293d04be43cb664c5793fb60",
-      "implementationSha256": "6d1153a8340d39ee2cd4808add00f51fe9f4bf154d394b165e7a2f74fe092797"
+      "implementationSha256": "649f968ec9d0430cc253176976fde6908ecb12565e8a33fff2a222edae03e2ea"
     }
   ]
 }
