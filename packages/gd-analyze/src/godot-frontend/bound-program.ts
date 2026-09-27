@@ -1,12 +1,8 @@
 import { decodeGodotBoundShader, type GodotBoundShader } from './bound-shader';
-import { godotSourceAuthority } from './source-authority';
+import { GODOT_4_SOURCE_AUTHORITIES } from './source-authority';
 
 export const GODOT_BOUND_PROGRAM_PROTOCOL = 'vgai.godot-bound-program' as const;
 export const GODOT_BOUND_PROGRAM_VERSION = 11 as const;
-export const GODOT_4_7_SOURCE_TREE_SHA256 =
-  'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec' as const;
-export const GODOT_4_7_SOURCE_ARCHIVE_SHA256 =
-  'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6' as const;
 
 export interface GodotBoundProgramIdentity {
   readonly sourceRevision: string;
@@ -1436,12 +1432,12 @@ export function decodeGodotBoundProgram(
     executableSha256: sha256(authority['executableSha256'], 'authority.executableSha256'),
     buildOptions: string(authority['buildOptions'], 'authority.buildOptions'),
   };
-  const source = godotSourceAuthority(4);
+  // The pinned release whose revision the exporter was built from (`GODOT_4_SOURCE_AUTHORITIES`).
+  const pinned = Object.values(GODOT_4_SOURCE_AUTHORITIES).find((entry) => entry.revision === identity.sourceRevision)?.boundExporter;
   const mismatches: string[] = [];
-  if (identity.sourceRevision !== source.revision) mismatches.push('source revision');
-  if (identity.sourceTreeSha256 !== GODOT_4_7_SOURCE_TREE_SHA256) mismatches.push('source tree');
-  if (identity.sourceArchiveSha256 !== GODOT_4_7_SOURCE_ARCHIVE_SHA256)
-    mismatches.push('source archive');
+  if (pinned === undefined) mismatches.push('source revision');
+  if (identity.sourceTreeSha256 !== pinned?.sourceTreeSha256) mismatches.push('source tree');
+  if (identity.sourceArchiveSha256 !== pinned?.sourceArchiveSha256) mismatches.push('source archive');
   if (identity.exporterSourceSha256 !== expected.exporterSourceSha256)
     mismatches.push('exporter source');
   if (identity.executableSha256 !== expected.executableSha256) mismatches.push('executable');

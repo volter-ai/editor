@@ -31,6 +31,8 @@ export interface GodotSourceAuthority {
     readonly executableSha256: string;
     readonly exporterSourceSha256: string;
     readonly sourceTreeSha256: string;
+    /** The official source archive of `revision` the build extracted. */
+    readonly sourceArchiveSha256: string;
     readonly buildOptions: string;
   };
   /**
@@ -94,6 +96,7 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
       executableSha256: '814bf8e8d50fce2ea30f26c01ef5a00fc21ba0f0b378695592ecbbbc134cd928',
       exporterSourceSha256: '93cdaf5c41786b0a0c0bea17a6f7650ace1c624d5d613e78f86bb2fdb6e46694',
       sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
+      sourceArchiveSha256: 'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6',
       buildOptions:
         'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
     },
@@ -122,6 +125,7 @@ export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSou
       executableSha256: '28e6c8de18fd232cd6993015ae3d1ee52d9f762399429a632d02e9f0bf077173',
       exporterSourceSha256: '50b326ccadb7419df14075bb9d3e00e1213d4e4a06ba6a999cab71120e8597b0',
       sourceTreeSha256: '0bbc5b19dc29cfd69b020f58691dd710539c5e8717dc14082aa963a1be9f57f3',
+      sourceArchiveSha256: '4387f22b1ef3ad9efd34ba0cd8075b0c3f192ddb3fc2ad7e400c9c44145900ad',
       buildOptions:
         'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
     },
