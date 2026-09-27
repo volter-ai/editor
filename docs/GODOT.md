@@ -14,10 +14,8 @@ the code as it stands, and which the conformance work changes, carry a banner sa
 member, node or system really does. It is never the thing the lane ports. The output, and the
 body of every compat member, is what a three.js, R3F, Rapier or DOM developer would write to get
 that behaviour. Scripts still call Godot's API by name, so compat still exports Godot's members
-under Godot's names; their bodies are ordinary library code.
-
-The author's reading of ruling 1, pending the owner's confirmation (§Proposals): the host owns the
-frame and physics (R3F's frame, @react-three/rapier's fixed step and its hooks), React owns
+under Godot's names; their bodies are ordinary library code. The host owns the frame and physics
+(R3F's frame, @react-three/rapier's fixed step and its hooks) and all time in the game, React owns
 mounting, and these are never ported:
 
 - Godot's main loop and timing (`Main::iteration`, `MainTimerSync`);
@@ -59,8 +57,8 @@ the code, including an emitted game:
 4. Compat is bindings onto libraries: no main loop, clock, physics stepping, scheduler, spawn host,
    mirrored tree or server of its own (ruling 1).
 5. The output is plain library code a three.js or R3F developer would recognize: no runtime
-   framework the game is written against, no generated shared helper or dispatcher. (No exports
-   for the editor: the author's reading, pending the owner, §Proposals.)
+   framework the game is written against, no generated shared helper or dispatcher, no exports
+   for the editor.
 6. Every emitted file and dependency is reachable from the game's entry; nothing is emitted for
    the editor or for debugging.
 
@@ -82,37 +80,10 @@ same commit that removes a pattern. The reviewer judges; the ratchet stops the s
 reviewer run only at milestones misses: the 09-26 regrowth was about 300 commits, each locally
 reasonable.
 
-**Rulings wait for the owner.** A design decision that changes what compat or the output owns is
-written as a proposal in §Proposals and is not built on until the owner approves it. The
-composition-site design below was an unreviewed author's ruling that two days of work stacked on.
-
-**Proposals.**
-
-- *Never ported, and no exports for the editor* (the author, 2026-09-27): the list under ruling 1
-  and row 5's clause, the author's reading of the owner's rulings. Open until the owner confirms.
-- *The host owns time and mounting* (the author, 2026-09-27; unit 3, open until the owner
-  approves). What an R3F developer would write, with compat left as bindings:
-  - **Scripts run from their scene component's own hooks.** The emitted component creates its
-    script instance and calls it: `_ready` from a `useEffect` (React runs children's effects
-    first, as Godot readies children first), `_process(delta)` from `useFrame`,
-    `_physics_process` from @react-three/rapier's `useBeforePhysicsStep` under
-    `<Physics timeStep={1 / 60}>`, `_exit_tree` from the effect's cleanup, `_input` from a DOM
-    listener the component adds. The order between nodes is R3F's and Rapier's, not Godot's tree
-    order; the walk judges whether that matters.
-  - **The world is a plain component**: `<Physics>` with the project's gravity and tick rate as
-    props, the main scene inside it, project settings and the input map as constant data. No
-    `GodotMain`, `GodotProjectStartup`, `MainTimerSync` or `godot_main_iteration`.
-  - **Spawning is React state.** A script that instantiates and adds scenes gets a spawn function
-    from its component, and adding a child is a state update the component renders
-    (`{spawned.map(...)}`); freeing is removing it. No spawn host, no portal into a detached group.
-  - **Timers and tweens use browser and library time.** `create_timer(t).timeout` resolves after
-    `t` seconds of `setTimeout`; a Tween is a GSAP timeline (Godot's sequential and parallel steps,
-    easing names and callbacks map onto it). Neither follows Godot's pause or time scale unless a
-    game needs it.
-  - **Class-name registries go**: a node's class is known where its component is emitted, so
-    nothing registers per-class mount callbacks.
-  - **The editor reads input the way a player gives it**: DOM keyboard, mouse and touch events,
-    so `world.tsx` exports no `debug` door; the walk drives the game the same way.
+**Decide from the law.** A design question the law answers is decided by whoever meets it,
+without asking: the answer is what the rulings and rows imply. Only a genuine conflict between
+them goes to the owner. The composition-site design below was built on an author's ruling that
+contradicted ruling 1; the law, not a new ruling, is what settles such a case.
 
 **Ledger.**
 
@@ -127,8 +98,18 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 
 1. Retire the evidence gate from the import: bindings are what compat implements, and the plan
    stops reading claims. The claim records, the refresh, liveness and the case files go with it.
-2. Conform to rows 3 to 5: the host owns frame and physics, React owns mounting and instancing,
-   class-name dispatch leaves emit and compat, `world.tsx` becomes plain.
+2. Conform to rows 3 to 5 (unit 3 onward):
+   - scripts run from their scene component's own hooks: `_ready` from a `useEffect` (React runs
+     children's effects first, as Godot readies children first), `_process(delta)` from
+     `useFrame`, `_physics_process` from `useBeforePhysicsStep` under `<Physics timeStep={1 / 60}>`,
+     `_exit_tree` from the effect's cleanup, `_input` from a DOM listener the component adds;
+   - the world is a plain component: `<Physics>` with the project's gravity and tick rate, the main
+     scene inside it, settings and the input map as constant data;
+   - spawning is React state: adding an instantiated scene is a state update its parent renders;
+   - timers and tweens advance from the host's frame, in the hooks of the component that owns
+     them; no library clock and no `setTimeout`;
+   - class-name registries go, class-name dispatch leaves emit and compat, and `world.tsx` exports
+     only its component; the editor and the walk drive a game with DOM input, as a player does.
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 

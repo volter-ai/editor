@@ -15,11 +15,11 @@ The owner's law for this lane (2026-09-27, `docs/GODOT.md` §The lane's law) gov
    walk, recorded in the ledger; the pre-push hook refuses a push to `godot` past 30 unreviewed
    lane commits. The pre-commit ratchet
    (`scripts/check-godot-architecture.mjs`) refuses new instances of the patterns reviews find.
-5. **A design ruling that changes what compat or the output owns is a proposal** in
-   `docs/GODOT.md` §Proposals until the owner approves it. Do not build on it before then.
+5. **Decide from the law.** When a design question comes up, the answer is what the rulings and
+   rows imply; decide it and build. Only a genuine conflict between them goes to the owner.
 
-If a family seems to need something these rules forbid, stop and write a proposal; never work
-around a check.
+If a family seems to need something these rules forbid, find the idiomatic way the law implies;
+never work around a check.
 
 # Godot translation verification
 
