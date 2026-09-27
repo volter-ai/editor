@@ -1401,10 +1401,11 @@ export function bindGodotProject(
           return undefined;
         },
       });
-    // The parameter reads the refinement typed from their callers, for receiver typing.
+    // The parameter and member reads the refinement typed (from their callers, their stores, or the
+    // scene node an `@onready` member holds), for receiver typing.
     const parameterReads = new Map(
       refinedTypes
-        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type')
+        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type' || entry.rule === 'scene-node-receiver')
         .map((entry) => [entry.nodeId, { datatype: entry.datatype, claims: entry.evidenceClaimIds }] as const),
     );
     const callReceiverFacts = (

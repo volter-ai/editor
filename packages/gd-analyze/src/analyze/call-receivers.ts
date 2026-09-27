@@ -384,6 +384,26 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       // A built-in's member (`transform.basis`) or index (`basis[2]`) has the type the API dump
       // states for it (`builtin_classes[].members`, `indexing_return_type`).
       const base = typeOf(node.base);
+      if (base.kind === 'native' && node.isAttribute) {
+        // A native object's property (`camera.position`) reads through its getter, which returns
+        // the type the API dump states (`ClassDB::get_property`).
+        const attribute = nodes.get(node.attribute);
+        const name = attribute?.kind === 'IDENTIFIER' ? attribute.name : undefined;
+        const selection = inputs.claim('classdb-method-selection');
+        for (let current = classes.get(base.name); current !== undefined && name !== undefined && selection !== undefined; ) {
+          const property = current.properties.find((entry) => entry.name === name);
+          if (property !== undefined) {
+            const getter = property.getter;
+            for (let owner: typeof current | undefined = current; owner !== undefined && getter !== undefined; ) {
+              const method = owner.methods.find((entry) => entry.name === getter);
+              if (method !== undefined) return typeOfName(method.return_type, [...base.claims, selection]);
+              owner = owner.base_class === '' ? undefined : classes.get(owner.base_class);
+            }
+            break;
+          }
+          current = current.base_class === '' ? undefined : classes.get(current.base_class);
+        }
+      }
       if (base.kind === 'builtin') {
         const builtin = builtins.get(base.name);
         if (node.isAttribute) {
