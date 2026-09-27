@@ -63,10 +63,13 @@ const RULES = [
       /\bgodot_main_iteration\b|\bMainTimerSync\b|\bgodot_viewport_frame_work\(|\bgodot_tree_physics_step\b|\brequestAnimationFrame\(|\bsetInterval\(|\bsetTimeout\(|\bperformance\.now\(|\bworld\.step\(/g,
   },
   {
-    // The host's frame and physics hooks, which only the emitted game's components may use.
-    id: 'compat-frame-hooks',
+    // The host's frame and physics hooks in compat anywhere but `advance.tsx`, where a node advances
+    // itself from its own component (as a drei component does). Anywhere else a frame hook in
+    // compat drives other nodes' work: a scheduler.
+    id: 'compat-scheduler-hooks',
     row: 4,
     dirs: [COMPAT],
+    exclude: [`${COMPAT}/advance.tsx`],
     pattern: /\buse(?:Frame|BeforePhysicsStep|AfterPhysicsStep)\b/g,
   },
   {
@@ -102,7 +105,7 @@ const withoutComments = (code) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(
 /** Every finding as `rule | file | matched text #n`, n counting repeats of the same text in a file. */
 const findings = [];
 for (const rule of RULES) {
-  const files = rule.files ?? rule.dirs.flatMap((dir) => walk(join(root, dir)).map((file) => relative(root, file)));
+  const files = (rule.files ?? rule.dirs.flatMap((dir) => walk(join(root, dir)).map((file) => relative(root, file)))).filter((file) => !(rule.exclude ?? []).includes(file));
   for (const rel of files) {
     const seen = new Map();
     for (const match of withoutComments(readFileSync(join(root, rel), 'utf8')).matchAll(rule.pattern)) {

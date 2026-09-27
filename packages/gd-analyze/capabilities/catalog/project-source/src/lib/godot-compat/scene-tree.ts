@@ -145,10 +145,8 @@ function processNodes(physics: boolean): void {
     const info = godot_node_processing(entity);
     if (info === undefined || !info.insideTree || !info.canProcess) continue;
     if (physics) {
-      info.internalPhysics?.(clock.physicsTime);
       if (info.physicsProcess) info.binding?.physicsProcess?.(clock.physicsTime);
     } else {
-      info.internalProcess?.(clock.processTime);
       if (info.process) info.binding?.process?.(clock.processTime);
     }
   }

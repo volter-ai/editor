@@ -649,6 +649,7 @@ const PROPS = new Map<string, GodotElementProp<Object3D>>([
 ]);
 
 const ANIMATION_TREE = {
+  advances: true,
   create: () => new Group(),
   classes: ['AnimationTree', 'AnimationMixer', 'Node', 'Object'],
   spatial: false,

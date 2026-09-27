@@ -35,6 +35,7 @@ import {
   godot_node_register_forest,
   godot_node_scene_root,
 } from './node';
+import { useGodotAdvance } from './advance';
 import { set_visible } from './node-3d';
 import { set_meta } from './object';
 import { godot_tree_root } from './scene-tree';
@@ -343,7 +344,10 @@ export interface GodotElementClass<Entity extends Object3D> {
   readonly mount: (entity: Entity) => void;
   /** The class's properties, by the camel-case prop that states each. */
   readonly props: ReadonlyMap<string, GodotElementProp<Entity>>;
+  /** The class advances itself each frame or physics step (an animation, a particle system). */
+  readonly advances?: boolean;
 }
+
 
 /** Three's own transform props, which a spatial element hands its object. */
 const THREE_TRANSFORM = new Set(['position', 'rotation', 'scale', 'quaternion', 'matrix', 'matrixAutoUpdate']);
@@ -387,6 +391,8 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     }
     return made;
   });
+  // A class's `advances` is fixed, so each element calls the same hooks every render.
+  if (element.advances === true) useGodotAdvance(entity);
   const transform = Object.fromEntries(
     Object.entries(properties).filter(([property]) => isUserData(property) || (element.spatial && THREE_TRANSFORM.has(property))),
   );

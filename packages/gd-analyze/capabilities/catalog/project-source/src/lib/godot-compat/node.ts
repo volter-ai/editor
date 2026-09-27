@@ -542,40 +542,40 @@ export function godot_node_processing(entity: object): {
 }
 
 /**
- * Sets (or clears) a node class's internal physics processing, which runs before the node's own
- * `_physics_process` in the same pass (`NOTIFICATION_INTERNAL_PHYSICS_PROCESS`,
- * `scene/main/scene_tree.cpp:1219`).
+ * Sets (or clears) a node class's internal physics processing (`NOTIFICATION_INTERNAL_PHYSICS_PROCESS`,
+ * `scene/main/scene_tree.cpp:1219`), which the node's own component runs from the host's physics
+ * step (`useGodotAdvance`).
  *
  * @godot Node (protocol)
  * @source scene/main/scene_tree.cpp:1219
  */
 export function godot_node_set_internal_physics(entity: object, process: ((delta: number) => void) | undefined): void {
-  const state = stateOf(entity);
-  if ((state.internalPhysics !== undefined) === (process !== undefined)) {
-    state.internalPhysics = process;
-    return;
-  }
-  setProcessing(entity, state, () => {
-    state.internalPhysics = process;
-  });
+  stateOf(entity).internalPhysics = process;
 }
 
 /**
- * Sets (or clears) a node class's internal processing, which runs before the node's own `_process`
- * in the same pass (`NOTIFICATION_INTERNAL_PROCESS`, `scene/main/scene_tree.cpp:1219`).
+ * Sets (or clears) a node class's internal processing (`NOTIFICATION_INTERNAL_PROCESS`,
+ * `scene/main/scene_tree.cpp:1219`), which the node's own component runs from the host's frame
+ * (`useGodotAdvance`).
  *
  * @godot Node (protocol)
  * @source scene/main/scene_tree.cpp:1219
  */
 export function godot_node_set_internal_process(entity: object, process: ((delta: number) => void) | undefined): void {
-  const state = stateOf(entity);
-  if ((state.internalProcess !== undefined) === (process !== undefined)) {
-    state.internalProcess = process;
-    return;
-  }
-  setProcessing(entity, state, () => {
-    state.internalProcess = process;
-  });
+  stateOf(entity).internalProcess = process;
+}
+
+/**
+ * Runs a node's own internal processing for one host frame or physics step, when it is inside the
+ * tree and its process mode lets it run. Called by the node's component, never by a list.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1219
+ */
+export function godot_node_advance(entity: object, physics: boolean, delta: number): void {
+  const state = NODE.get(entity);
+  if (state === undefined || !state.insideTree || !processModeAllows(entity, state, false)) return;
+  (physics ? state.internalPhysics : state.internalProcess)?.(delta);
 }
 
 /**
@@ -682,11 +682,11 @@ const PROCESS_LISTS = {
 };
 
 function processes(state: NodeState): boolean {
-  return state.process || state.internalProcess !== undefined;
+  return state.process;
 }
 
 function physicsProcesses(state: NodeState): boolean {
-  return state.physicsProcess || state.internalPhysics !== undefined;
+  return state.physicsProcess;
 }
 
 function addToProcessLists(entity: object, state: NodeState): void {

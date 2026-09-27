@@ -1260,6 +1260,7 @@ const param = (index: number): [GodotElementProp<Group>, GodotElementProp<Group>
 
 /** The props a scene states on `<GodotCPUParticles3D>`, by the setter each calls. */
 const CPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
+  advances: true,
   create: () => new Group(),
   classes: CPU_PARTICLES_3D,
   spatial: true,

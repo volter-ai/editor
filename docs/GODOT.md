@@ -55,7 +55,9 @@ the code, including an emitted game:
    Emit, lowering and compat never branch on, compare with or index by a Godot class name, and
    compat keeps no registry keyed by one.
 4. Compat is bindings onto libraries: no main loop, clock, physics stepping, scheduler, spawn host,
-   mirrored tree or server of its own (ruling 1).
+   mirrored tree or server of its own (ruling 1). A node that advances itself (an animation, a
+   particle system) may do so from its own component's `useFrame` or `useBeforePhysicsStep`, as a
+   drei component does; compat never drives other nodes' work from the frame.
 5. The output is plain library code a three.js or R3F developer would recognize: no runtime
    framework the game is written against, no generated shared helper or dispatcher, no exports
    for the editor.

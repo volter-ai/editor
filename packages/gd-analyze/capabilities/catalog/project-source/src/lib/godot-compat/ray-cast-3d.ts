@@ -14,7 +14,7 @@ import type { ThreeElements } from '@react-three/fiber';
 import { createElement, type Ref, useLayoutEffect, useRef } from 'react';
 import type { Group, Object3D } from 'three';
 import { godot_collision_object_state } from './collision-object-3d';
-import { godot_node_class_reader, godot_node_entity, godot_node_set_internal_physics, is_inside_tree } from './node';
+import { godot_node_class_reader, godot_node_entity, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
 import { godot_ray_query_new } from './physics-ray-query-parameters-3d';
@@ -111,9 +111,18 @@ export function godot_ray_cast_3d_adopt(entity: object): void {
     face: -1,
   };
   RAY.set(entity, state);
-  godot_node_set_internal_physics(entity, () => {
-    if (state.enabled) update(entity, state);
-  });
+}
+
+/**
+ * The ray's result, queried from the world when a script asks for it: Godot refreshes it each
+ * physics step (`ray_cast_3d.cpp:231`), the idiomatic form casts when read. A disabled ray keeps
+ * its last result, as Godot's does.
+ */
+function current(self: object): RayState {
+  const entity = godot_node_entity(self);
+  const state = stateOf(self);
+  if (state.enabled && is_inside_tree(entity)) update(entity, state);
+  return state;
 }
 
 /**
@@ -121,7 +130,7 @@ export function godot_ray_cast_3d_adopt(entity: object): void {
  * @source scene/3d/physics/ray_cast_3d.cpp:83
  */
 export function is_colliding(self: object): boolean {
-  return stateOf(self).collided;
+  return current(self).collided;
 }
 
 /**
@@ -129,7 +138,7 @@ export function is_colliding(self: object): boolean {
  * @source scene/3d/physics/ray_cast_3d.cpp:87
  */
 export function get_collider(self: object): object | null {
-  return stateOf(self).against;
+  return current(self).against;
 }
 
 /**
@@ -137,7 +146,7 @@ export function get_collider(self: object): object | null {
  * @source scene/3d/physics/ray_cast_3d.cpp:99
  */
 export function get_collider_shape(self: object): number {
-  return stateOf(self).shape;
+  return current(self).shape;
 }
 
 /**
@@ -145,7 +154,7 @@ export function get_collider_shape(self: object): number {
  * @source scene/3d/physics/ray_cast_3d.cpp:103
  */
 export function get_collision_point(self: object): Vector3 {
-  return stateOf(self).point;
+  return current(self).point;
 }
 
 /**
@@ -153,7 +162,7 @@ export function get_collision_point(self: object): Vector3 {
  * @source scene/3d/physics/ray_cast_3d.cpp:107
  */
 export function get_collision_normal(self: object): Vector3 {
-  return stateOf(self).normal;
+  return current(self).normal;
 }
 
 /**

@@ -904,6 +904,7 @@ export function godot_animation_player_set_prop(entity: Object3D, prop: string, 
 }
 
 const ANIMATION_PLAYER = {
+  advances: true,
   create: () => new Group(),
   classes: ['AnimationPlayer', 'AnimationMixer', 'Node', 'Object'],
   spatial: false,
