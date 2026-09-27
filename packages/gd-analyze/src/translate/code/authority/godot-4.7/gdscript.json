@@ -3703,7 +3703,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3744,7 +3744,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3785,7 +3785,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3826,7 +3826,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3867,7 +3867,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3908,7 +3908,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3949,7 +3949,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -3990,7 +3990,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4031,7 +4031,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4072,7 +4072,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4113,7 +4113,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4154,7 +4154,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4195,7 +4195,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4236,7 +4236,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4277,7 +4277,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4318,7 +4318,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4359,7 +4359,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4400,7 +4400,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4441,7 +4441,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4482,7 +4482,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4523,7 +4523,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4564,7 +4564,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4605,7 +4605,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4646,7 +4646,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4687,7 +4687,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4728,7 +4728,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4769,7 +4769,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4810,7 +4810,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4851,7 +4851,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4892,7 +4892,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4933,7 +4933,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -4974,7 +4974,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5015,7 +5015,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5056,7 +5056,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5097,7 +5097,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5138,7 +5138,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5179,7 +5179,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5220,7 +5220,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5261,7 +5261,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5302,7 +5302,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5343,7 +5343,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5384,7 +5384,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5425,7 +5425,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5466,7 +5466,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5507,7 +5507,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5548,7 +5548,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5589,7 +5589,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5630,7 +5630,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5671,7 +5671,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5712,7 +5712,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5753,7 +5753,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5794,7 +5794,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5835,7 +5835,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5876,7 +5876,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5917,7 +5917,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5958,7 +5958,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -5999,7 +5999,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6040,7 +6040,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6081,7 +6081,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6122,7 +6122,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6163,7 +6163,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6204,7 +6204,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6245,7 +6245,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6286,7 +6286,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6327,7 +6327,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6368,7 +6368,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6409,7 +6409,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6450,7 +6450,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6491,7 +6491,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6532,7 +6532,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6573,7 +6573,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6614,7 +6614,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6655,7 +6655,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6696,7 +6696,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6737,7 +6737,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6778,7 +6778,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6819,7 +6819,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6860,7 +6860,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6901,7 +6901,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6942,7 +6942,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -6983,7 +6983,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7024,7 +7024,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7065,7 +7065,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7106,7 +7106,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7147,7 +7147,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7188,7 +7188,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7229,7 +7229,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7270,7 +7270,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7311,7 +7311,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7352,7 +7352,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7393,7 +7393,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7434,7 +7434,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7475,7 +7475,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7516,7 +7516,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7557,7 +7557,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7598,7 +7598,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7639,7 +7639,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7680,7 +7680,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7721,7 +7721,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7762,7 +7762,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7803,7 +7803,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7844,7 +7844,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7885,7 +7885,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7926,7 +7926,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -7967,7 +7967,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8008,7 +8008,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8049,7 +8049,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8090,7 +8090,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8131,7 +8131,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8172,7 +8172,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8213,7 +8213,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8254,7 +8254,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8295,7 +8295,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8336,7 +8336,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8377,7 +8377,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8418,7 +8418,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8459,7 +8459,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8500,7 +8500,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8541,7 +8541,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8582,7 +8582,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8623,7 +8623,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8664,7 +8664,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8705,7 +8705,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8746,7 +8746,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8787,7 +8787,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8828,7 +8828,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8869,7 +8869,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8910,7 +8910,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8951,7 +8951,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -8992,7 +8992,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9033,7 +9033,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9074,7 +9074,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9115,7 +9115,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9156,7 +9156,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9197,7 +9197,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9238,7 +9238,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9279,7 +9279,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9320,7 +9320,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9361,7 +9361,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9402,7 +9402,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9443,7 +9443,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9484,7 +9484,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9525,7 +9525,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9566,7 +9566,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9607,7 +9607,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9648,7 +9648,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9689,7 +9689,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9730,7 +9730,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9771,7 +9771,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9812,7 +9812,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9853,7 +9853,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9894,7 +9894,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9935,7 +9935,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -9976,7 +9976,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10017,7 +10017,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10058,7 +10058,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10099,7 +10099,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10140,7 +10140,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10181,7 +10181,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10222,7 +10222,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10263,7 +10263,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10304,7 +10304,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10345,7 +10345,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10386,7 +10386,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10427,7 +10427,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10468,7 +10468,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10509,7 +10509,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10550,7 +10550,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10591,7 +10591,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10632,7 +10632,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10673,7 +10673,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10714,7 +10714,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10755,7 +10755,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10796,7 +10796,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10837,7 +10837,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10878,7 +10878,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10919,7 +10919,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -10960,7 +10960,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11001,7 +11001,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11042,7 +11042,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11083,7 +11083,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11124,7 +11124,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11165,7 +11165,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11206,7 +11206,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11247,7 +11247,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11288,7 +11288,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11329,7 +11329,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11370,7 +11370,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11411,7 +11411,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11452,7 +11452,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11493,7 +11493,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11534,7 +11534,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11575,7 +11575,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11616,7 +11616,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11657,7 +11657,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11698,7 +11698,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11739,7 +11739,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11780,7 +11780,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11821,7 +11821,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11862,7 +11862,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11903,7 +11903,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11944,7 +11944,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -11985,7 +11985,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12026,7 +12026,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12067,7 +12067,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12108,7 +12108,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12149,7 +12149,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12190,7 +12190,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12231,7 +12231,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12272,7 +12272,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12313,7 +12313,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12354,7 +12354,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12395,7 +12395,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12436,7 +12436,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12477,7 +12477,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12518,7 +12518,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12559,7 +12559,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12600,7 +12600,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12641,7 +12641,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12682,7 +12682,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12723,7 +12723,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12764,7 +12764,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12805,7 +12805,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12846,7 +12846,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12887,7 +12887,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12928,7 +12928,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -12969,7 +12969,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     },
     {
@@ -13010,7 +13010,7 @@
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot",
         "--bound-exporter-binary",
-        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-shader/godot-4.7-bound-exporter-arm64"
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-engine-shader/godot-4.7-bound-exporter-arm64"
       ]
     }
   ],

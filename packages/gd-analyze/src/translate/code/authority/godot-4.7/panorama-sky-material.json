@@ -1,0 +1,422 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/panorama-sky-material"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PanoramaSkyMaterial",
+        "member": "get_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/panorama-sky-material",
+        "exportName": "get_energy_multiplier",
+        "localName": "PanoramaSkyMaterial_get_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PanoramaSkyMaterial.get_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PanoramaSkyMaterial",
+        "member": "set_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/panorama-sky-material",
+        "exportName": "set_energy_multiplier",
+        "localName": "PanoramaSkyMaterial_set_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PanoramaSkyMaterial.set_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PanoramaSkyMaterial",
+        "member": "is_filtering_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/panorama-sky-material",
+        "exportName": "is_filtering_enabled",
+        "localName": "PanoramaSkyMaterial_is_filtering_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PanoramaSkyMaterial.is_filtering_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PanoramaSkyMaterial",
+        "member": "set_filtering_enabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/panorama-sky-material",
+        "exportName": "set_filtering_enabled",
+        "localName": "PanoramaSkyMaterial_set_filtering_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PanoramaSkyMaterial.set_filtering_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PanoramaSkyMaterial",
+        "member": "get_panorama",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/panorama-sky-material",
+        "exportName": "get_panorama",
+        "localName": "PanoramaSkyMaterial_get_panorama",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PanoramaSkyMaterial.get_panorama"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PanoramaSkyMaterial",
+        "member": "set_panorama",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/panorama-sky-material",
+        "exportName": "set_panorama",
+        "localName": "PanoramaSkyMaterial_set_panorama",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PanoramaSkyMaterial.set_panorama"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.get_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PanoramaSkyMaterial\u0000get_energy_multiplier\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PanoramaSkyMaterial.get_energy_multiplier",
+        "sourceLine": 442
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aeaa4d6e72467278ba5d0e1a41b101751096a0f956f3c94ac7bf8969b2daa1b9",
+        "callsite": "res://probe.gd _init() get_energy_multiplier-default",
+        "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
+      },
+      "target": {
+        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "callsite": "lib/godot-compat/panorama-sky-material.ts get_energy_multiplier",
+        "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8748716c18f62d0e1e25640362b9076dacdcb91dc068b92975f2ce69d32db288"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "panorama-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PanoramaSkyMaterial\u0000set_energy_multiplier\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PanoramaSkyMaterial.set_energy_multiplier",
+        "sourceLine": 437
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "197452bcc465206a285b2da7e1d6806c9b272d490c5495f576df114cb56e3b6d",
+        "callsite": "res://probe.gd _init() set_energy_multiplier-0.5 set_energy_multiplier-0.3 set_energy_multiplier-2 set_energy_multiplier-128",
+        "observedOutputSha256": "a1c9209528694215f8b57cb7546ad70539f55eb41ab41e5dde7cec6627257a51"
+      },
+      "target": {
+        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "callsite": "lib/godot-compat/panorama-sky-material.ts set_energy_multiplier",
+        "observedOutputSha256": "a1c9209528694215f8b57cb7546ad70539f55eb41ab41e5dde7cec6627257a51"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b711cd41386fe780a46d651019388d95c31567bad7ca302b28aa488ac06dea2d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "panorama-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.is_filtering_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PanoramaSkyMaterial\u0000is_filtering_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PanoramaSkyMaterial.is_filtering_enabled",
+        "sourceLine": 433
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c24a78d50528a806c23c94784429adb9c3df5c7c35e855ded00c071b5055eb3f",
+        "callsite": "res://probe.gd _init() is_filtering_enabled-default",
+        "observedOutputSha256": "ec1592d018fddce075951ec8bd4b32dff168af0cf5a36e983870e4ac041fe93c"
+      },
+      "target": {
+        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "callsite": "lib/godot-compat/panorama-sky-material.ts is_filtering_enabled",
+        "observedOutputSha256": "ec1592d018fddce075951ec8bd4b32dff168af0cf5a36e983870e4ac041fe93c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8c300a031712625471ead0b320706dc7676933393b42eb0534ab9897cd3017fd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "panorama-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_filtering_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PanoramaSkyMaterial\u0000set_filtering_enabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PanoramaSkyMaterial.set_filtering_enabled",
+        "sourceLine": 423
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3db2a1bd99a0342db1e79ecb8e9255a33840bf3171add341106ab2bee30cdbd9",
+        "callsite": "res://probe.gd _init() set_filtering_enabled-false set_filtering_enabled-true",
+        "observedOutputSha256": "681f82b937073aa7d5199058960739a15c2dd948f5ff37858346147c076a806d"
+      },
+      "target": {
+        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "callsite": "lib/godot-compat/panorama-sky-material.ts set_filtering_enabled",
+        "observedOutputSha256": "681f82b937073aa7d5199058960739a15c2dd948f5ff37858346147c076a806d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "91cee2d6c7eb708b74cfad1d631258e20f844f0e6565a94c03a10cbb9c81adf1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "panorama-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.get_panorama",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PanoramaSkyMaterial\u0000get_panorama\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PanoramaSkyMaterial.get_panorama",
+        "sourceLine": 419
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "96b10b116d184dec3fda205cbcf680b5ae419b35cd06c111755ee1c8e46e9e3d",
+        "callsite": "res://probe.gd _init() get_panorama-default",
+        "observedOutputSha256": "3ef7e8825ec1f84ec888883f95b2bc2c177ae37dc6e18b74798108b07b2d3885"
+      },
+      "target": {
+        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "callsite": "lib/godot-compat/panorama-sky-material.ts get_panorama",
+        "observedOutputSha256": "3ef7e8825ec1f84ec888883f95b2bc2c177ae37dc6e18b74798108b07b2d3885"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5dd7ec05e8c4251b534a7168894399f2bfb37f46ea918b97b18414b10aeb0801"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "panorama-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_panorama",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PanoramaSkyMaterial\u0000set_panorama\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PanoramaSkyMaterial.set_panorama",
+        "sourceLine": 410
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "23f83d5174095d8d320999ecf57034f190f0a721aafa40f7ff3b8c8b0f947b9c",
+        "callsite": "res://probe.gd _init() set_panorama set_panorama-null",
+        "observedOutputSha256": "503a484384573aa0c2c2d52db57a779c865d9caaad03537b9abfd602fb142105"
+      },
+      "target": {
+        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "callsite": "lib/godot-compat/panorama-sky-material.ts set_panorama",
+        "observedOutputSha256": "503a484384573aa0c2c2d52db57a779c865d9caaad03537b9abfd602fb142105"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ee631cc1fb2ff7d21f9a76c8eaeb1519abf8d540c9a68ea44037a2e90b6ae0e5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "panorama-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.get_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aeaa4d6e72467278ba5d0e1a41b101751096a0f956f3c94ac7bf8969b2daa1b9",
+      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "197452bcc465206a285b2da7e1d6806c9b272d490c5495f576df114cb56e3b6d",
+      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.is_filtering_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c24a78d50528a806c23c94784429adb9c3df5c7c35e855ded00c071b5055eb3f",
+      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_filtering_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3db2a1bd99a0342db1e79ecb8e9255a33840bf3171add341106ab2bee30cdbd9",
+      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.get_panorama",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "96b10b116d184dec3fda205cbcf680b5ae419b35cd06c111755ee1c8e46e9e3d",
+      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_panorama",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "23f83d5174095d8d320999ecf57034f190f0a721aafa40f7ff3b8c8b0f947b9c",
+      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+    }
+  ]
+}
