@@ -1,3 +1,4 @@
+import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
   GodotBoundFunctionNode,
@@ -690,6 +691,13 @@ export function convertedValue(
   valueNode: GodotBoundNode,
   value: LoweredExpression,
 ): LoweredExpression {
+  const objectKind = (datatype: GodotBoundNode['datatype']) => !datatype.metaType && (datatype.kind === 'NATIVE' || datatype.kind === 'CLASS');
+  if (objectKind(target.datatype) && objectKind(valueNode.datatype) && target.datatype.display !== valueNode.datatype.display && context.hasTargetType(target)) {
+    // An object into a place typed as a subclass (`var l: DirectionalLight3D = $L.duplicate()`):
+    // the value is that class, which Godot's typed assignment checks.
+    const type = context.targetType(target);
+    return { ...value, value: { kind: 'as-expression', expression: value.value, type: type.type }, requirements: [...value.requirements, ...type.requirements] };
+  }
   if (valueNode.datatype.kind !== 'VARIANT' || target.datatype.kind !== 'BUILTIN') return value;
   const owner = target.datatype.builtinType;
   const use = context.bindingUse(
@@ -1130,6 +1138,19 @@ function objectTypeTest(
   return context.refuse(node, `${operation} ${datatype.display} is not an object type test`);
 }
 
+/**
+ * Whether a lowered call's compat export returns less than the analysis knows: `unknown`, `object`,
+ * a union (an overload family's) or a type it leaves unstated. A call that is not a binding's is
+ * the project's own and already typed.
+ */
+function wideBindingResult(context: LoweringContext, call: TargetTsExpression): boolean {
+  if (call.kind !== 'call-expression' || call.callee.kind !== 'identifier-expression') return false;
+  const target = context.bindings.targetByLocalName(call.callee.name);
+  if (target === undefined || target.kind !== 'compat-binding') return false;
+  const returned = godotCompatReturnType(target.module, target.exportName);
+  return returned === undefined || returned === 'unknown' || returned === 'object' || returned.includes('|') || returned === 'Variant';
+}
+
 export function lowerOfficialExpression(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -1138,8 +1159,36 @@ export function lowerOfficialExpression(
 ): LoweredExpression {
   return lowerExpression(context, node);
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: exhaustive official expression union
+  /**
+   * A value whose datatype the analysis knows exactly is stated as that type: a binding returns
+   * what its compat export declares (`get_node` any node, `get_setting` any Variant), a `$Path`
+   * and an `as` cast are the class the analysis resolved, and a local narrowed by `is T` is a T.
+   */
   function lowerExpression(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
+    const lowered = lowerExpressionKind(context, node);
+    const datatype = node.datatype;
+    const typedValue =
+      node.kind === 'GET_NODE' ||
+      node.kind === 'CAST' ||
+      (context.narrowed(node) && node.kind === 'IDENTIFIER') ||
+      // A binding's result (a call, an operator or a read through a binding) is what it returns;
+      // the analysis may know it more exactly (`get_setting` of a known setting, a ray's `position`).
+      (lowered.value.kind === 'call-expression' &&
+        (node.kind === 'CALL' || node.kind === 'SUBSCRIPT' || node.kind === 'BINARY_OPERATOR') &&
+        wideBindingResult(context, lowered.value));
+    const known = datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil');
+    // (A built-in with no datatype rule of its own keeps the binding's type.)
+    if (!typedValue || datatype.metaType || !known || !context.hasTargetType(node)) return lowered;
+    const type = context.targetType(node);
+    return {
+      ...lowered,
+      value: { kind: 'as-expression', expression: lowered.value, type: type.type },
+      requirements: [...lowered.requirements, ...type.requirements],
+    };
+  }
+
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: exhaustive official expression union
+  function lowerExpressionKind(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
     switch (node.kind) {
       case 'LITERAL': {
         const value = node.reduced ? node.reducedValue : node.value;

@@ -16,6 +16,7 @@ import {
 import {
   type LoweringContext,
   type OfficialBoundLoweringRequirement,
+  type OfficialBoundTypeUse,
   officialBoundIdentifier,
   officialBoundPropertyName,
   officialBoundSpan,
@@ -255,7 +256,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
               context,
               convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode)),
             );
-      const targetType = context.targetType(node);
+      const targetType = nullableWhenDefaulted(context.targetType(node), node, initializerNode === undefined);
       return {
         statements: [
           ...(initializer?.before ?? []),
@@ -503,6 +504,17 @@ export function lowerOfficialParameters(
   };
 }
 
+/**
+ * An object-typed variable Godot clears to null (no initializer, or an `@onready` one before
+ * ready) holds `T | null`; a use that calls on it goes through `godot_node_entity`, which raises
+ * Godot's null-instance error.
+ */
+function nullableWhenDefaulted(type: OfficialBoundTypeUse, node: GodotBoundNode, defaulted: boolean): OfficialBoundTypeUse {
+  const datatype = node.datatype;
+  if (!defaulted || datatype.metaType || (datatype.kind !== 'NATIVE' && datatype.kind !== 'CLASS')) return type;
+  return { ...type, type: { kind: 'union-type', members: [type.type, { kind: 'type-reference', name: 'null', arguments: [] }] } };
+}
+
 function classFieldScope(
   node: Extract<GodotBoundNode, { kind: 'VARIABLE' | 'CONSTANT' }>,
 ): 'class-static' | 'instance' | 'static' {
@@ -534,7 +546,7 @@ function lowerField(
       node.inferDatatype ? 'inferred' : 'declared'
     }:${classFieldScope(node)}${conversion ? ':conversion' : ''}`,
   );
-  const targetType = context.targetType(node);
+  const targetType = nullableWhenDefaulted(context.targetType(node), node, initializerNode === undefined || onready);
   const name = officialBoundPropertyName(context, node.identifier, node);
   const isStatic = node.kind === 'CONSTANT' || node.static;
   assertDirectClassElementName(context, context.node(node.identifier, node), name, isStatic);

@@ -9,7 +9,7 @@
 import type { InputEventRecord } from './input-event';
 import type { Vector2 } from './vector2';
 
-type ScreenDrag = Extract<InputEventRecord, { readonly type: 'screen_drag' }>;
+export type ScreenDrag = Extract<InputEventRecord, { readonly type: 'screen_drag' }>;
 
 /**
  * @godot InputEventScreenDrag.get_index

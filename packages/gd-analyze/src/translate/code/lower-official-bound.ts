@@ -1,3 +1,4 @@
+import { type GodotNativeTypePart, godotNativeTypeParts } from './native-types';
 import * as path from 'node:path';
 import type {
   BoundGodotLifecycleEntry,
@@ -560,6 +561,7 @@ function lowerScript(
   nativeProperties: NativePropertyLookup | undefined,
   nativeConstants: NativeConstantLookup | undefined,
   nativeMethods: NativeMethodLookup | undefined,
+  nativeType: ((className: string) => readonly GodotNativeTypePart[]) | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -602,6 +604,8 @@ function lowerScript(
       if (!module.startsWith('.')) module = `./${module}`;
       return { name: godotSceneExportName(resPath), module };
     },
+    nativeType,
+    new Set(source.refinedTypes.filter((entry) => entry.rule === 'type-test-narrowing').map((entry) => entry.nodeId)),
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -804,6 +808,7 @@ export function lowerOfficialBoundProgram(
   const nativeProperties = apiDump === undefined ? undefined : nativePropertyLookup(apiDump);
   const nativeConstants = apiDump === undefined ? undefined : nativeConstantLookup(apiDump);
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
+  const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -826,6 +831,7 @@ export function lowerOfficialBoundProgram(
         nativeProperties,
         nativeConstants,
         nativeMethods,
+        nativeType,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

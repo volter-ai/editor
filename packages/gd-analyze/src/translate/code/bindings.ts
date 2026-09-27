@@ -138,6 +138,12 @@ export class GodotBindingResolver {
     return this.#targetLocalNames;
   }
 
+  /** The target a lowered call's local name belongs to, when it is a binding's. */
+  targetByLocalName(localName: string): GodotTargetBinding | undefined {
+    for (const target of this.#entries.values()) if (target.kind !== 'refusal-binding' && target.localName === localName) return target;
+    return undefined;
+  }
+
   resolve(symbol: GodotOfficialSymbolIdentity): GodotTargetBinding {
     if (this.sourceRevision !== symbol.sourceRevision) {
       throw new Error(

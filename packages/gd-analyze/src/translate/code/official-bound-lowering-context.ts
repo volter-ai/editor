@@ -1,3 +1,4 @@
+import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
 import type { SemanticClaimLayer } from '../../godot-frontend/semantic-claims';
@@ -176,6 +177,9 @@ export type NativeConstantLookup = (className: string, name: string) => number |
 /** A datatype rule's target naming "the class generated for this script datatype". */
 export const SCRIPT_CLASS_TYPE = '$ScriptClass';
 
+/** A datatype rule's target naming "the type compat's modules take for this engine class" (`native-types.ts`). */
+export const NATIVE_CLASS_TYPE = '$NativeClass';
+
 export class LoweringContext {
   #temporaryIndex = 0;
   #instanceAutoloadAccess = 0;
@@ -209,6 +213,10 @@ export class LoweringContext {
     readonly treeParameters?: (nodeId: number) => readonly { readonly at: string; readonly parameters: ReadonlySet<string> }[],
     /** The scene component a project scene's resource path is written as, and where to import it from. */
     readonly packedScene?: (resPath: string) => { readonly name: string; readonly module: string } | undefined,
+    /** The parts of an engine class's TS type (`native-types.ts`), most derived first. */
+    readonly nativeType?: (className: string) => readonly GodotNativeTypePart[],
+    /** The nodes whose datatype `is T` narrowing gave (`type-test-narrowing`). */
+    readonly narrowedNodes: ReadonlySet<number> = new Set(),
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();
@@ -531,6 +539,47 @@ export class LoweringContext {
         ],
       };
     }
+    if (entry.targetType.kind === 'type-reference' && entry.targetType.name === NATIVE_CLASS_TYPE) {
+      // An engine-class datatype is the type compat's modules take for that class and its ancestors.
+      const evidence: OfficialBoundLoweringRequirement = {
+        kind: 'evidence-requirement',
+        layer: 'language',
+        claimId: entry.evidenceClaimId,
+        canonicalIdentity: godotDatatypeRuleKey(entry),
+      };
+      if (node.datatype.kind !== 'NATIVE' || node.datatype.nativeType === '' || this.nativeType === undefined) {
+        this.refuse(node, `datatype ${node.datatype.display} names no engine class type`);
+      }
+      const parts = this.nativeType(node.datatype.nativeType);
+      if (parts.length === 0) return { type: { kind: 'keyword-type', keyword: 'object' }, requirements: [evidence] };
+      const local = (part: GodotNativeTypePart) => `$Native_${part.exportName}`;
+      const references: TargetTsType[] = parts.map((part) => ({ kind: 'type-reference', name: local(part), arguments: [] }));
+      return {
+        type: references.length === 1 ? (references[0] as TargetTsType) : { kind: 'intersection-type', members: references },
+        requirements: [
+          evidence,
+          ...parts.map((part): OfficialBoundLoweringRequirement =>
+            part.compat
+              ? { kind: 'compat-import-requirement', module: part.module, imported: part.exportName, local: local(part), typeOnly: true }
+              : { kind: 'project-import-requirement', module: part.module, imported: part.exportName, local: local(part), typeOnly: true },
+          ),
+        ],
+      };
+    }
+    if (entry.sourceDatatype === 'BUILTIN:Array[*]' && node.datatype.containerTypes.length === 1) {
+      // A typed array is an array of its element type, where a rule states that type.
+      const element = { ...node, datatype: node.datatype.containerTypes[0] as GodotBoundNode['datatype'] } as GodotBoundNode;
+      if (this.hasTargetType(element)) {
+        const inner = this.targetType(element);
+        return {
+          type: { kind: 'array-type', element: inner.type },
+          requirements: [
+            { kind: 'evidence-requirement', layer: 'language', claimId: entry.evidenceClaimId, canonicalIdentity: godotDatatypeRuleKey(entry) },
+            ...inner.requirements,
+          ],
+        };
+      }
+    }
     if (entry.typeImport !== undefined && entry.targetType.kind !== 'type-reference') {
       this.refuse(node, `datatype rule ${entry.sourceDatatype} imports a type it does not name`);
     }
@@ -558,7 +607,17 @@ export class LoweringContext {
     };
   }
 
-  temporary(): string {
+  /** Whether a datatype rule states the node's datatype as a TS type. */
+  hasTargetType(node: GodotBoundNode): boolean {
+    return this.rules.datatype(node.datatype) !== undefined;
+  }
+
+    /** Whether the node's datatype is one an `is T` test narrowed it to. */
+  narrowed(node: GodotBoundNode): boolean {
+    return this.narrowedNodes.has(node.id);
+  }
+
+    temporary(): string {
     while (true) {
       const name = `__godot_value_${String(this.#temporaryIndex)}`;
       this.#temporaryIndex += 1;

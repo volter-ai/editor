@@ -266,7 +266,7 @@ function testedObject(value: unknown, test: string): object | null {
  * @godot Node (protocol)
  * @source modules/gdscript/gdscript_vm.cpp:954
  */
-export function godot_is_script(value: unknown, script: abstract new (...args: never[]) => unknown): boolean {
+export function godot_is_script<Script>(value: unknown, script: abstract new (...args: never[]) => Script): value is Script {
   const object = testedObject(value, 'is');
   return object !== null && objectOf(object) instanceof script;
 }
@@ -278,9 +278,9 @@ export function godot_is_script(value: unknown, script: abstract new (...args: n
  * @godot Node (protocol)
  * @source modules/gdscript/gdscript_vm.cpp:1687
  */
-export function godot_as_script(value: unknown, script: abstract new (...args: never[]) => unknown): unknown {
+export function godot_as_script<Script>(value: unknown, script: abstract new (...args: never[]) => Script): Script | null {
   const object = testedObject(value, 'as');
-  return object !== null && objectOf(object) instanceof script ? value : null;
+  return object !== null && objectOf(object) instanceof script ? (value as Script) : null;
 }
 
 const CLASS_READERS: ((entity: object) => readonly string[] | undefined)[] = [];
@@ -507,17 +507,21 @@ export function godot_node_object(entity: object): object {
   return objectOf(entity);
 }
 
+/** A Godot object's native entity type: a script instance's `$native`, else the value itself. */
+export type GodotNativeOf<Value> = Value extends { readonly $native: infer Native } ? Native : Exclude<Value, null | undefined>;
+
 /**
  * The native entity of a Godot object (a script instance or the entity itself).
  *
  * @godot Node (protocol)
  * @source core/object/object.h:813
  */
-export function godot_node_entity(object: unknown): object {
+
+export function godot_node_entity<Value>(object: Value): GodotNativeOf<Value> {
   // A node a script reached through an untyped path (`get_node` returns Variant): a null one is
   // Godot's call on a null instance.
   if (object === null || typeof object !== 'object') throw new TypeError('godot-compat: a node method was called on a null instance.');
-  return NATIVE_OF_OWNER.get(object) ?? object;
+  return (NATIVE_OF_OWNER.get(object) ?? object) as GodotNativeOf<Value>;
 }
 
 /**

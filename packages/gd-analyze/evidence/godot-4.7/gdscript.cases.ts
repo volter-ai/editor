@@ -666,7 +666,9 @@ const datatypes: GodotLanguageDatatypeDefinition[] = [
   { id: 'datatype-typed-dictionary', sourceDatatype: 'BUILTIN:Dictionary[*]', targetType: { kind: 'type-reference', name: 'Map', arguments: [{ kind: 'keyword-type', keyword: 'unknown' }, { kind: 'keyword-type', keyword: 'unknown' }] }, source: { file: 'core/variant/typed_dictionary.h', symbol: 'TypedDictionary', line: 39 } },
   { id: 'datatype-string', sourceDatatype: 'BUILTIN:String', targetType: { kind: 'keyword-type', keyword: 'string' }, source: { file: 'core/string/ustring.h', symbol: 'String', line: 247 } },
   { id: 'datatype-string-name', sourceDatatype: 'BUILTIN:StringName', targetType: { kind: 'keyword-type', keyword: 'string' }, source: { file: 'core/string/string_name.h', symbol: 'StringName', line: 42 } },
-  { id: 'datatype-native', sourceDatatype: NATIVE, targetType: { kind: 'keyword-type', keyword: 'object' }, source: { file: 'core/object/object.h', symbol: 'Object', line: 590 } },
+  // A RID is the entity it names (compat's servers key their objects by entity).
+  { id: 'datatype-rid', sourceDatatype: 'BUILTIN:RID', targetType: { kind: 'keyword-type', keyword: 'object' }, source: { file: 'core/templates/rid.h', symbol: 'RID', line: 38 } },
+  { id: 'datatype-native', sourceDatatype: NATIVE, targetType: { kind: 'type-reference', name: '$NativeClass', arguments: [] }, source: { file: 'core/object/object.h', symbol: 'Object', line: 590 } },
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -1339,6 +1341,10 @@ func narrowed_members() -> Array:
 \t\tout.append(t.level + 1)
 \treturn out
 
+func rid_values() -> Array:
+\tvar rids: Array[RID] = []
+\treturn [rids.size()]
+
 func narrowed_compound() -> Array:
 \tvar t: Node = $Tagged
 \tvar out := []
@@ -1709,7 +1715,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'narrowed_compound', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
