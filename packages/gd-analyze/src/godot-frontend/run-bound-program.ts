@@ -118,11 +118,17 @@ function godotExit(
   reportsBefore: ReadonlySet<string>,
 ): string {
   const ended = result.status !== null ? `exited ${String(result.status)}` : `was killed by ${result.signal ?? 'an unknown signal'}`;
-  const fresh = [...godotCrashReports()].filter((name) => !reportsBefore.has(name));
+  let fresh = [...godotCrashReports()].filter((name) => !reportsBefore.has(name));
+  // macOS writes a crash report a few seconds after the process dies: wait up to 10 s for one.
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  for (let waited = 0; result.signal !== null && fresh.length === 0 && waited < 20; waited += 1) {
+    Atomics.wait(pause, 0, 0, 500);
+    fresh = [...godotCrashReports()].filter((name) => !reportsBefore.has(name));
+  }
   const report =
     fresh.length > 0
       ? `crash report: ${fresh.map((name) => path.join(CRASH_REPORTS, name)).join(', ')}`
-      : 'no new Godot crash report at exit';
+      : 'no new Godot crash report within 10 s of exit';
   return `${what} ${ended} (${report}).\n${result.stdout}\n${result.stderr}`.trim();
 }
 
