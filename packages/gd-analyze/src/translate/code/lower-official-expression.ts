@@ -1326,7 +1326,7 @@ export function numericTag(context: LoweringContext, site: GodotBoundNode, value
   return {
     ...value,
     value: numericCall(name, value.value),
-    requirements: [...value.requirements, ...context.structural(site, 'numeric-tag', [valueNode], 'numeric-tag'), numericImport(name), context.numericRequirement()],
+    requirements: [...value.requirements, ...context.structural(site, 'numeric-tag', [valueNode], 'numeric-tag'), numericImport(name)],
   };
 }
 
@@ -1424,7 +1424,6 @@ export function lowerOfficialExpression(
       ...context.structural(node, 'numeric-switch', [], 'numeric-switch'),
       numericImport('godot_numeric_is_int'),
       numericImport('godot_numeric_value'),
-      context.numericRequirement(),
     ];
     type Branch = { readonly type: string; readonly value: TargetTsExpression };
     const branch = (choice: readonly string[]): Branch => {
@@ -1579,10 +1578,7 @@ export function lowerOfficialExpression(
             local
               ? { kind: 'identifier-expression', name: context.lexicalName(node.name), span: span(context.script, node) }
               : { kind: 'property-expression', object: { kind: 'this-expression' }, property: node.name, span: span(context.script, node) },
-            [
-              ...context.structural(node, local ? 'local-identifier' : 'member-identifier', [], local ? 'local-identifier:numeric' : 'member-identifier:numeric'),
-              context.numericRequirement(),
-            ],
+            context.structural(node, local ? 'local-identifier' : 'member-identifier', [], local ? 'local-identifier:numeric' : 'member-identifier:numeric'),
           );
         }
         if (

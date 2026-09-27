@@ -25,7 +25,6 @@ export interface ScriptFieldValuePlan {
   readonly fieldName: string;
   readonly application: 'script-property-set';
   readonly value: TargetPrimitiveValue;
-  readonly evidenceClaimId: string;
 }
 
 export interface ScriptAttachmentFieldInitializationPlan {
@@ -40,8 +39,6 @@ export interface ScriptFieldInitializationPlan {
   readonly snapshotDigest: string;
   readonly sourceRevision: string;
   readonly attachments: readonly ScriptAttachmentFieldInitializationPlan[];
-  readonly evidenceClaimIds: readonly string[];
-  readonly semanticClaimRegistryDigest: string;
 }
 
 export interface ScriptFieldInitializationDiagnostic {
@@ -86,7 +83,6 @@ function targetValue(value: GodotValue, targetKind: TargetPrimitiveKind): Target
 interface FieldPlanState {
   readonly attachments: Map<string, ScriptAttachmentFieldInitializationPlan>;
   readonly diagnostics: ScriptFieldInitializationDiagnostic[];
-  readonly evidence: Set<string>;
 }
 
 function planAuthoredValue(
@@ -121,7 +117,7 @@ function planAuthoredValue(
       state.diagnostics.push({ ...at, message: `no live field-value evidence for ${datatype} receiving a node path` });
       return;
     }
-    addField(state, scriptResPath, attachment, { fieldName: field.name, application: 'script-property-set', value: { kind: 'node-reference', value: path }, evidenceClaimId: rule.evidenceClaimId });
+    addField(state, scriptResPath, attachment, { fieldName: field.name, application: 'script-property-set', value: { kind: 'node-reference', value: path } });
     return;
   }
   const serialized = serializedIdentity(value);
@@ -145,7 +141,6 @@ function planAuthoredValue(
     fieldName: field.name,
     application: 'script-property-set',
     value: targetValue(value, rule.targetKind),
-    evidenceClaimId: rule.evidenceClaimId,
   });
 }
 
@@ -163,12 +158,11 @@ function addField(
     fields: [],
   };
   state.attachments.set(key, { ...current, fields: [...current.fields, field] });
-  state.evidence.add(field.evidenceClaimId);
 }
 
 /**
  * Plan attachment-authored script values without reading source, emitting code, or constructing a
- * runtime object. Missing semantic evidence is a refusal, never a guessed conversion.
+ * runtime object. A value no rule converts is a refusal, never a guessed conversion.
  */
 export function planScriptFieldInitializations(
   project: BoundGodotProject,
@@ -181,7 +175,6 @@ export function planScriptFieldInitializations(
   const state: FieldPlanState = {
     diagnostics: [],
     attachments: new Map(),
-    evidence: new Set(),
   };
   for (const script of project.scripts) {
     for (const field of script.fields) {
@@ -201,8 +194,6 @@ export function planScriptFieldInitializations(
       snapshotDigest: project.snapshotDigest,
       sourceRevision: project.authority.revision,
       attachments: [...state.attachments.values()],
-      evidenceClaimIds: [...state.evidence].sort(),
-      semanticClaimRegistryDigest: resolved.registryDigest,
     },
   };
 }

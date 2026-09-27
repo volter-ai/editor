@@ -1,9 +1,3 @@
-import {
-  type SemanticClaimLiveness,
-  type SemanticClaimRecord,
-  SemanticClaimRegistry,
-} from '../../godot-frontend/semantic-claims';
-
 export const GODOT_SCENE_NODE_AUTHORITY_VERSION = 1 as const;
 
 /**
@@ -29,7 +23,6 @@ export interface GodotSceneNodeRule {
   readonly sourceRevision: string;
   readonly nativeCanonicalIdentity: string;
   readonly targetKind: TargetSceneNodeKind;
-  readonly evidenceClaimId: string;
 }
 
 /** A resource class the composition constructs (`construct`), then sets authored properties on. */
@@ -37,10 +30,9 @@ export interface GodotSceneResourceRule {
   readonly sourceRevision: string;
   readonly className: string;
   readonly construct: GodotCompatExport;
-  readonly evidenceClaimId: string;
 }
 
-export function godotSceneResourceRuleKey(sourceRevision: string, className: string): string {
+function godotSceneResourceRuleKey(sourceRevision: string, className: string): string {
   return [sourceRevision, 'scene-resource', className].join('\0');
 }
 
@@ -50,7 +42,6 @@ export interface GodotScenePlacementRule {
   readonly sourceRevision: string;
   readonly placement: GodotScenePlacementKind;
   readonly targetOperation: 'native-child';
-  readonly evidenceClaimId: string;
 }
 
 export type SerializedScenePropertyIdentity =
@@ -93,10 +84,9 @@ export type GodotSceneStructureRuleId =
 export interface GodotSceneStructureRule {
   readonly sourceRevision: string;
   readonly id: GodotSceneStructureRuleId;
-  readonly evidenceClaimId: string;
 }
 
-export function godotSceneStructureRuleKey(
+function godotSceneStructureRuleKey(
   sourceRevision: string,
   id: GodotSceneStructureRuleId,
 ): string {
@@ -116,10 +106,9 @@ export interface GodotSceneSignalRule {
   readonly accessor: { readonly module: string; readonly exportName: string; readonly named: boolean };
   /** The signal's declared argument count (the API dump's), passed on to the method. */
   readonly arguments: number;
-  readonly evidenceClaimId: string;
 }
 
-export function godotSceneSignalRuleKey(sourceRevision: string, ownerClass: string, signal: string): string {
+function godotSceneSignalRuleKey(sourceRevision: string, ownerClass: string, signal: string): string {
   return [sourceRevision, 'scene-connection', ownerClass, signal].join('\0');
 }
 
@@ -129,11 +118,6 @@ export interface GodotScenePropertyRule {
   readonly propertyName: string;
   readonly serializedValue: SerializedScenePropertyIdentity;
   readonly targetKind: TargetScenePropertyKind;
-  readonly evidenceClaimId: string;
-}
-
-export interface GodotSceneNodeClaimLiveness extends SemanticClaimLiveness {
-  readonly claimId: string;
 }
 
 export interface GodotSceneNodeAuthority {
@@ -146,25 +130,23 @@ export interface GodotSceneNodeAuthority {
   readonly structureRules: readonly GodotSceneStructureRule[];
   readonly signalRules: readonly GodotSceneSignalRule[];
   readonly resourceRules: readonly GodotSceneResourceRule[];
-  readonly claims: readonly SemanticClaimRecord[];
-  readonly liveness: readonly GodotSceneNodeClaimLiveness[];
 }
 
-export function godotScenePlacementRuleKey(
+function godotScenePlacementRuleKey(
   sourceRevision: string,
   placement: GodotScenePlacementKind,
 ): string {
   return [sourceRevision, 'scene-node-placement', placement].join('\0');
 }
 
-export function godotSceneNodeRuleKey(
+function godotSceneNodeRuleKey(
   sourceRevision: string,
   nativeCanonicalIdentity: string,
 ): string {
   return [sourceRevision, 'scene-node-target', nativeCanonicalIdentity].join('\0');
 }
 
-export function godotScenePropertyRuleKey(
+function godotScenePropertyRuleKey(
   sourceRevision: string,
   nativeCanonicalIdentity: string,
   propertyName: string,
@@ -179,32 +161,13 @@ export function godotScenePropertyRuleKey(
   ].join('\0');
 }
 
-function indexLiveness(
-  authority: GodotSceneNodeAuthority,
-): ReadonlyMap<string, GodotSceneNodeClaimLiveness> {
-  const result = new Map<string, GodotSceneNodeClaimLiveness>();
-  for (const entry of authority.liveness) {
-    if (result.has(entry.claimId)) {
-      throw new Error(`duplicate Godot scene-node liveness: ${entry.claimId}`);
-    }
-    if (
-      entry.sourceRevision !== authority.sourceRevision ||
-      entry.apiDumpSha256 !== authority.apiDumpSha256
-    ) {
-      throw new Error(`Godot scene-node liveness has a different source: ${entry.claimId}`);
-    }
-    result.set(entry.claimId, entry);
-  }
-  return result;
-}
-
 function indexNodeRules(
   authority: GodotSceneNodeAuthority,
 ): ReadonlyMap<string, GodotSceneNodeRule> {
   const result = new Map<string, GodotSceneNodeRule>();
   for (const rule of authority.rules) {
     if (rule.sourceRevision !== authority.sourceRevision) {
-      throw new Error(`Godot scene-node rule has a different source: ${rule.evidenceClaimId}`);
+      throw new Error(`Godot scene-node rule has a different source: ${rule.nativeCanonicalIdentity}`);
     }
     const key = godotSceneNodeRuleKey(rule.sourceRevision, rule.nativeCanonicalIdentity);
     if (result.has(key)) throw new Error(`duplicate Godot scene-node rule: ${key}`);
@@ -219,7 +182,7 @@ function indexPlacementRules(
   const result = new Map<string, GodotScenePlacementRule>();
   for (const rule of authority.placementRules) {
     if (rule.sourceRevision !== authority.sourceRevision) {
-      throw new Error(`Godot scene placement has a different source: ${rule.evidenceClaimId}`);
+      throw new Error(`Godot scene placement has a different source: ${rule.placement}`);
     }
     const key = godotScenePlacementRuleKey(rule.sourceRevision, rule.placement);
     if (result.has(key)) throw new Error(`duplicate Godot scene placement rule: ${key}`);
@@ -234,7 +197,7 @@ function indexPropertyRules(
   const result = new Map<string, GodotScenePropertyRule>();
   for (const rule of authority.propertyRules) {
     if (rule.sourceRevision !== authority.sourceRevision) {
-      throw new Error(`Godot scene property has a different source: ${rule.evidenceClaimId}`);
+      throw new Error(`Godot scene property has a different source: ${rule.propertyName}`);
     }
     const key = godotScenePropertyRuleKey(
       rule.sourceRevision,
@@ -248,9 +211,8 @@ function indexPropertyRules(
   return result;
 }
 
-/** Exact-evidence lookup from an already-bound native ClassDB identity to one target node kind. */
+/** Lookup from an already-bound native ClassDB identity to one target node kind. */
 export class GodotSceneNodeAuthorityResolver {
-  readonly registryDigest: string;
   readonly sourceRevision: string;
   readonly #rules: ReadonlyMap<string, GodotSceneNodeRule>;
   readonly #placementRules: ReadonlyMap<string, GodotScenePlacementRule>;
@@ -258,17 +220,12 @@ export class GodotSceneNodeAuthorityResolver {
   readonly #structureRules: ReadonlyMap<string, GodotSceneStructureRule>;
   readonly #signalRules: ReadonlyMap<string, GodotSceneSignalRule>;
   readonly #resourceRules: ReadonlyMap<string, GodotSceneResourceRule>;
-  readonly #registry: SemanticClaimRegistry;
-  readonly #liveness: ReadonlyMap<string, GodotSceneNodeClaimLiveness>;
 
   constructor(authority: GodotSceneNodeAuthority) {
     if (authority.version !== GODOT_SCENE_NODE_AUTHORITY_VERSION) {
       throw new Error(`unsupported Godot scene-node authority: ${String(authority.version)}`);
     }
     this.sourceRevision = authority.sourceRevision;
-    this.#registry = new SemanticClaimRegistry(authority.claims);
-    this.registryDigest = this.#registry.digest;
-    this.#liveness = indexLiveness(authority);
     this.#rules = indexNodeRules(authority);
     this.#placementRules = indexPlacementRules(authority);
     this.#propertyRules = indexPropertyRules(authority);
@@ -295,90 +252,34 @@ export class GodotSceneNodeAuthorityResolver {
     this.#resourceRules = resources;
   }
 
-  /** The live rule that constructs a resource class, or undefined. */
+  /** The rule that constructs a resource class, or undefined. */
   resourceRule(className: string): GodotSceneResourceRule | undefined {
-    const key = godotSceneResourceRuleKey(this.sourceRevision, className);
-    const rule = this.#resourceRules.get(key);
-    if (rule === undefined) return undefined;
-    const liveness = this.#liveness.get(rule.evidenceClaimId);
-    if (liveness === undefined) {
-      throw new Error(`Godot scene resource claim has no liveness: ${rule.evidenceClaimId}`);
-    }
-    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
-    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
-      throw new Error(`Godot scene resource claim does not prove its rule: ${rule.evidenceClaimId}`);
-    }
-    return rule;
+    return this.#resourceRules.get(godotSceneResourceRuleKey(this.sourceRevision, className));
   }
 
   /**
-   * The live connection rule for a signal of a node whose native ancestry (nearest first) is
-   * given: the rule of the nearest class that has one; undefined when none has live evidence.
+   * The connection rule for a signal of a node whose native ancestry (nearest first) is given: the
+   * rule of the nearest class that has one; undefined when none has.
    */
   signalRule(ancestry: readonly string[], signal: string): GodotSceneSignalRule | undefined {
     for (const ownerClass of ancestry) {
-      const key = godotSceneSignalRuleKey(this.sourceRevision, ownerClass, signal);
-      const rule = this.#signalRules.get(key);
-      if (rule === undefined) continue;
-      const liveness = this.#liveness.get(rule.evidenceClaimId);
-      if (liveness === undefined) {
-        throw new Error(`Godot scene connection claim has no liveness: ${rule.evidenceClaimId}`);
-      }
-      const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
-      if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
-        throw new Error(`Godot scene connection claim does not prove its rule: ${rule.evidenceClaimId}`);
-      }
-      return rule;
+      const rule = this.#signalRules.get(godotSceneSignalRuleKey(this.sourceRevision, ownerClass, signal));
+      if (rule !== undefined) return rule;
     }
     return undefined;
   }
 
-  /** A live structure rule, or undefined when the rule has no live evidence. */
+  /** A structure rule, or undefined. */
   structureRule(id: GodotSceneStructureRuleId): GodotSceneStructureRule | undefined {
-    const key = godotSceneStructureRuleKey(this.sourceRevision, id);
-    const rule = this.#structureRules.get(key);
-    if (rule === undefined) return undefined;
-    const liveness = this.#liveness.get(rule.evidenceClaimId);
-    if (liveness === undefined) {
-      throw new Error(`Godot scene structure claim has no liveness: ${rule.evidenceClaimId}`);
-    }
-    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
-    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
-      throw new Error(`Godot scene structure claim does not prove its rule: ${rule.evidenceClaimId}`);
-    }
-    return rule;
+    return this.#structureRules.get(godotSceneStructureRuleKey(this.sourceRevision, id));
   }
 
   rule(nativeCanonicalIdentity: string): GodotSceneNodeRule | undefined {
-    const key = godotSceneNodeRuleKey(this.sourceRevision, nativeCanonicalIdentity);
-    const rule = this.#rules.get(key);
-    if (rule === undefined) return undefined;
-    const liveness = this.#liveness.get(rule.evidenceClaimId);
-    if (liveness === undefined) {
-      throw new Error(`Godot scene-node claim has no liveness: ${rule.evidenceClaimId}`);
-    }
-    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
-    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
-      throw new Error(`Godot scene-node claim does not prove its rule: ${rule.evidenceClaimId}`);
-    }
-    return rule;
+    return this.#rules.get(godotSceneNodeRuleKey(this.sourceRevision, nativeCanonicalIdentity));
   }
 
   placementRule(placement: GodotScenePlacementKind): GodotScenePlacementRule | undefined {
-    const key = godotScenePlacementRuleKey(this.sourceRevision, placement);
-    const rule = this.#placementRules.get(key);
-    if (rule === undefined) return undefined;
-    const liveness = this.#liveness.get(rule.evidenceClaimId);
-    if (liveness === undefined) {
-      throw new Error(`Godot scene placement claim has no liveness: ${rule.evidenceClaimId}`);
-    }
-    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
-    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
-      throw new Error(
-        `Godot scene placement claim does not prove its rule: ${rule.evidenceClaimId}`,
-      );
-    }
-    return rule;
+    return this.#placementRules.get(godotScenePlacementRuleKey(this.sourceRevision, placement));
   }
 
   propertyRule(
@@ -386,24 +287,8 @@ export class GodotSceneNodeAuthorityResolver {
     propertyName: string,
     serializedValue: SerializedScenePropertyIdentity,
   ): GodotScenePropertyRule | undefined {
-    const key = godotScenePropertyRuleKey(
-      this.sourceRevision,
-      nativeCanonicalIdentity,
-      propertyName,
-      serializedValue,
+    return this.#propertyRules.get(
+      godotScenePropertyRuleKey(this.sourceRevision, nativeCanonicalIdentity, propertyName, serializedValue),
     );
-    const rule = this.#propertyRules.get(key);
-    if (rule === undefined) return undefined;
-    const liveness = this.#liveness.get(rule.evidenceClaimId);
-    if (liveness === undefined) {
-      throw new Error(`Godot scene property claim has no liveness: ${rule.evidenceClaimId}`);
-    }
-    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
-    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
-      throw new Error(
-        `Godot scene property claim does not prove its rule: ${rule.evidenceClaimId}`,
-      );
-    }
-    return rule;
   }
 }

@@ -15,7 +15,6 @@ import type { GodotValue } from '../../read/godot-value';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
 import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
-import type { GodotCodeEvidenceResolver } from './authority';
 import {
   type GodotCodeTranslationAuthority,
   GodotCodeTranslationAuthorityResolver,
@@ -54,11 +53,7 @@ export interface OfficialBoundCodePlan {
   readonly sourceRevision: string;
   readonly sourceFiles: readonly TargetTsSourceFile[];
   readonly scriptModules: readonly OfficialBoundScriptModulePlan[];
-  readonly analysisEvidenceClaimIds: readonly string[];
-  readonly languageEvidenceClaimIds: readonly string[];
-  readonly bindingEvidenceClaimIds: readonly string[];
   readonly requiredCompatSymbols: readonly string[];
-  readonly semanticClaimRegistryDigest: string;
 }
 
 /** Composition-facing identity for one generated class; bodies remain TargetTsSyntax only. */
@@ -95,9 +90,6 @@ interface ClosedOfficialBoundRequirements {
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
   readonly imports: readonly ImportDemand[];
   readonly autoloadReferences: readonly OfficialBoundAutoloadReference[];
-  readonly analysisEvidenceClaimIds: readonly string[];
-  readonly languageEvidenceClaimIds: readonly string[];
-  readonly bindingEvidenceClaimIds: readonly string[];
   readonly requiredCompatSymbols: readonly string[];
 }
 
@@ -117,10 +109,6 @@ function mergeOfficialBoundRequirements(
     string,
     Extract<OfficialBoundLoweringRequirement, { kind: 'binding-requirement' }>
   >();
-  const evidence = new Map<
-    string,
-    Extract<OfficialBoundLoweringRequirement, { kind: 'evidence-requirement' }>
-  >();
   const autoloads = new Map<string, OfficialBoundAutoloadReference>();
   const projectImports = new Map<
     string,
@@ -131,7 +119,6 @@ function mergeOfficialBoundRequirements(
     Extract<OfficialBoundLoweringRequirement, { kind: 'compat-import-requirement' }>
   >();
   const importsByLocal = new Map<string, ImportDemand>();
-  const bindingEvidence = new Set<string>();
   const compatSymbols = new Set<string>();
 
   const addImport = (demand: ImportDemand): void => {
@@ -176,20 +163,9 @@ function mergeOfficialBoundRequirements(
           local: requirement.target.localName,
           typeOnly: false,
         });
-        bindingEvidence.add(requirement.target.evidenceClaimId);
         if (requirement.target.kind === 'compat-binding') {
           compatSymbols.add(requirement.target.exportName);
         }
-        break;
-      }
-      case 'evidence-requirement': {
-        // Rules derived from compat and the language data carry no claim (no evidence gate).
-        if (requirement.claimId === '') break;
-        const prior = evidence.get(requirement.claimId);
-        if (prior !== undefined && !sameValue(prior, requirement)) {
-          context.refuse(owner, `${requirement.claimId}: semantic claim has conflicting uses`);
-        }
-        evidence.set(requirement.claimId, requirement);
         break;
       }
       case 'autoload-reference-requirement': {
@@ -236,7 +212,6 @@ function mergeOfficialBoundRequirements(
   return {
     requirements: [
       ...sorted(bindings.values(), (entry) => godotOfficialSymbolKey(entry.symbol)),
-      ...sorted(evidence.values(), (entry) => entry.claimId),
       ...sorted(autoloads.values(), (entry) => entry.name).map(
         (reference): OfficialBoundLoweringRequirement => ({
           kind: 'autoload-reference-requirement',
@@ -248,19 +223,6 @@ function mergeOfficialBoundRequirements(
     ],
     imports: sorted(importsByLocal.values(), (entry) => `${entry.module}\0${entry.local}`),
     autoloadReferences: sorted(autoloads.values(), (entry) => entry.name),
-    analysisEvidenceClaimIds: sorted(
-      [...evidence.values()]
-        .filter((entry) => entry.layer === 'analysis')
-        .map((entry) => entry.claimId),
-      (entry) => entry,
-    ),
-    languageEvidenceClaimIds: sorted(
-      [...evidence.values()]
-        .filter((entry) => entry.layer === 'language')
-        .map((entry) => entry.claimId),
-      (entry) => entry,
-    ),
-    bindingEvidenceClaimIds: sorted(bindingEvidence, (entry) => entry),
     requiredCompatSymbols: sorted(compatSymbols, (entry) => entry),
   };
 }
@@ -418,8 +380,6 @@ function autoloadCandidates(
       sourceClassName: reference.className,
       targetClassName: className(target),
       module: scriptModule(source.resPath, target.resPath),
-      evidenceClaimId: reference.evidenceClaimId,
-      canonicalIdentity: reference.canonicalIdentity,
     });
   }
   return result;
@@ -561,7 +521,6 @@ function lowerScript(
   source: BoundGodotSourceScript,
   bindings: GodotBindingResolver,
   rules: GodotCodeRuleResolver,
-  evidence: GodotCodeEvidenceResolver,
   nativeProperties: NativePropertyLookup | undefined,
   nativeConstants: NativeConstantLookup | undefined,
   nativeMethods: NativeMethodLookup | undefined,
@@ -584,7 +543,6 @@ function lowerScript(
     script,
     bindings,
     rules,
-    evidence,
     className(source),
     autoloadCandidates(project, source),
     new Map(source.callReceivers.map((entry) => [entry.nodeId, entry] as const)),
@@ -628,33 +586,7 @@ function lowerScript(
     // Everything below resolves the base the refusal names; it may not exist.
     throw new BoundLoweringRefusals(context.refusals);
   }
-  const classRequirements = [
-    ...context.recover([], () => context.structural(root, 'class', [], 'class:concrete')),
-    // The claims that typed Variant values from project facts (refinedProgram).
-    ...[...new Set(source.settingTypes.flatMap((entry) => entry.evidenceClaimIds))].map(
-      (claimId): OfficialBoundLoweringRequirement => ({
-        kind: 'evidence-requirement',
-        layer: 'analysis',
-        claimId,
-        canonicalIdentity: `${project.authority.revision}\0analyze\0project-setting-type`,
-      }),
-    ),
-    // The claims that fixed datatypes the analyzer left open (refinedProgram).
-    ...[
-      ...new Map([
-        ...source.refinedTypes.flatMap((entry) => entry.evidenceClaimIds.map((claimId, index) => [claimId, entry.rules[index] ?? entry.rule] as const)),
-        // Dynamic calls dispatched to a script function (`script-method-dispatch`).
-        ...source.scriptCalls.flatMap((entry) => entry.evidenceClaimIds.map((claimId) => [claimId, 'script-method-dispatch'] as const)),
-      ]),
-    ].map(
-      ([claimId, rule]): OfficialBoundLoweringRequirement => ({
-        kind: 'evidence-requirement',
-        layer: 'analysis',
-        claimId,
-        canonicalIdentity: `${project.authority.revision}\0analyze\0${rule}`,
-      }),
-    ),
-  ];
+  const classRequirements = context.recover([], () => context.structural(root, 'class', [], 'class:concrete'));
   const base = source.inheritance.immediate;
   const carrierRoot = nativeCarrierRoot(project, source);
   const baseRequirements: readonly OfficialBoundLoweringRequirement[] =
@@ -731,14 +663,8 @@ function lowerScript(
 
 function collectRequirements(
   requirements: ClosedOfficialBoundRequirements,
-  analysisEvidence: Set<string>,
-  languageEvidence: Set<string>,
-  bindingEvidence: Set<string>,
   compatSymbols: Set<string>,
 ): void {
-  for (const id of requirements.analysisEvidenceClaimIds) analysisEvidence.add(id);
-  for (const id of requirements.languageEvidenceClaimIds) languageEvidence.add(id);
-  for (const id of requirements.bindingEvidenceClaimIds) bindingEvidence.add(id);
   for (const symbol of requirements.requiredCompatSymbols) compatSymbols.add(symbol);
 }
 
@@ -873,9 +799,6 @@ export function lowerOfficialBoundProgram(
   const sourceFiles: TargetTsSourceFile[] = [];
   const scriptModules: OfficialBoundScriptModulePlan[] = [];
   const diagnostics: OfficialBoundLoweringDiagnostic[] = [];
-  const analysisEvidence = new Set<string>();
-  const languageEvidence = new Set<string>();
-  const bindingEvidence = new Set<string>();
   const compatSymbols = new Set<string>();
   for (const script of project.scripts) {
     try {
@@ -884,7 +807,6 @@ export function lowerOfficialBoundProgram(
         script,
         resolved.bindings,
         resolved.rules,
-        resolved.evidence,
         nativeProperties,
         nativeConstants,
         nativeMethods,
@@ -894,13 +816,7 @@ export function lowerOfficialBoundProgram(
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);
-      collectRequirements(
-        requirements,
-        analysisEvidence,
-        languageEvidence,
-        bindingEvidence,
-        compatSymbols,
-      );
+      collectRequirements(requirements, compatSymbols);
     } catch (error) {
       if (error instanceof BoundLoweringRefusals) diagnostics.push(...error.refusals.map(officialBoundDiagnostic));
       else if (error instanceof BoundLoweringRefusal) diagnostics.push(officialBoundDiagnostic(error));
@@ -916,11 +832,7 @@ export function lowerOfficialBoundProgram(
       sourceRevision: project.authority.revision,
       sourceFiles,
       scriptModules,
-      analysisEvidenceClaimIds: [...analysisEvidence].sort(),
-      languageEvidenceClaimIds: [...languageEvidence].sort(),
-      bindingEvidenceClaimIds: [...bindingEvidence].sort(),
       requiredCompatSymbols: [...compatSymbols].sort(),
-      semanticClaimRegistryDigest: resolved.evidence.registryDigest,
     },
   };
 }

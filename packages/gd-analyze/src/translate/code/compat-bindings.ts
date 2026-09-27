@@ -107,7 +107,6 @@ export function godotCompatBindings(
           // A lexical name: `@GlobalScope` contributes `GlobalScope`.
           localName: `${owner.replace(/[^$\w]/gu, '')}_${entry.exportName}`,
           use,
-          evidenceClaimId: '',
         },
       });
     const builtin = builtins.get(owner);
@@ -178,7 +177,6 @@ export function godotCompatDatatypes(sourceRevision: string, apiDump: ApiDump): 
       sourceDatatype: `BUILTIN:${className}`,
       targetType: { kind: 'type-reference', name: className, arguments: [] },
       typeImport: { module: `lib/godot-compat/${file.replace(/\.tsx?$/u, '')}`, exportName: className },
-      evidenceClaimId: '',
     });
   }
   return found;

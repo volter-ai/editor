@@ -87,8 +87,6 @@ export interface TargetGodotSceneNodePlan {
   /** An AnimationPlayer's tracks resolved against the scene: the bindings its mixer receives. */
   readonly animation?: TargetGodotAnimationBindingsPlan;
   readonly children: readonly TargetGodotSceneNodePlan[];
-  readonly evidenceClaimId: string;
-  readonly placementEvidenceClaimId?: string;
 }
 
 /** One node of an imported model's tree (`GodotImportedSceneNode` in compat's packed-scene). */
@@ -132,7 +130,6 @@ export interface TargetGodotSceneSetterPlan {
   readonly setter: { readonly module: string; readonly exportName: string; readonly localName: string };
   readonly index?: number | string;
   readonly value: TargetGodotSceneValue;
-  readonly evidenceClaimId: string;
 }
 
 /** A resource the scene constructs once, then sets its authored properties on. */
@@ -159,7 +156,6 @@ export interface TargetGodotSceneResourcePlan {
    */
   readonly engineShaders?: Readonly<Record<string, string>>;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
-  readonly evidenceClaimId: string;
 }
 
 /** A MeshLibrary's items by id, each mesh and shape a planned resource's key. */
@@ -315,7 +311,6 @@ export interface TargetGodotScenePropertyPlan {
   readonly propertyName: string;
   readonly targetKind: TargetScenePropertyKind;
   readonly value: readonly number[];
-  readonly evidenceClaimId: string;
 }
 
 /**
@@ -330,7 +325,6 @@ export interface TargetGodotSceneConnectionPlan {
   readonly accessor: { readonly module: string; readonly exportName: string; readonly named: boolean };
   /** The signal's argument count, each passed on to the method. */
   readonly arguments: number;
-  readonly evidenceClaimId: string;
 }
 
 export interface TargetGodotSceneDocumentPlan {
@@ -350,10 +344,6 @@ export interface GodotSceneDocumentPlan {
   readonly snapshotDigest: string;
   readonly sourceRevision: string;
   readonly scenes: readonly TargetGodotSceneDocumentPlan[];
-  readonly evidenceClaimIds: readonly string[];
-  /** Setter binding claims the scenes use: code-layer claims, joined with the code plan's. */
-  readonly bindingEvidenceClaimIds: readonly string[];
-  readonly semanticClaimRegistryDigest: string;
 }
 
 /**
@@ -500,8 +490,6 @@ interface PlanContext {
   readonly setters?: SceneSetterLookup;
   readonly project?: BoundGodotProject;
   document?: DocumentResources;
-  /** Setter binding claims the scenes use (code-layer claims, joined with the code plan's). */
-  readonly bindingEvidence: Set<string>;
   /** Exported fields a script (and its script ancestors) declares: set by the field plan. */
   readonly scriptFields: (resPath: string) => ReadonlySet<string>;
   /** Functions a script (and its script ancestors) declares. */
@@ -509,7 +497,6 @@ interface PlanContext {
   readonly authority: GodotSceneNodeAuthorityResolver;
   readonly scenes: ReadonlyMap<string, BoundGodotSceneDocument>;
   readonly diagnostics: GodotSceneDocumentDiagnostic[];
-  readonly evidence: Set<string>;
 }
 
 function refuse(
@@ -532,7 +519,6 @@ function structure(
     refuse(context, at, `no live scene-structure evidence for ${id}`, 'structure');
     return false;
   }
-  context.evidence.add(rule.evidenceClaimId);
   return true;
 }
 
@@ -622,8 +608,7 @@ function planResource(
       refuse(context, at, typeof lowered === 'string' ? `${key}: ${lowered}` : 'no live resource rule constructs Shader', 'resource', 'Shader');
       return undefined;
     }
-    context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className: 'Shader', construct: rule.construct, shader: lowered, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className: 'Shader', construct: rule.construct, shader: lowered, setters: [] };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;
@@ -635,8 +620,7 @@ function planResource(
       refuse(context, at, typeof load === 'string' ? `${key}: ${load}` : `no live resource rule constructs ${className}`, 'resource', className);
       return undefined;
     }
-    context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className, construct: rule.construct, load, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className, construct: rule.construct, load, setters: [] };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;
@@ -662,11 +646,10 @@ function planResource(
       refuse(context, `${at}(${key})`, select === undefined ? `no binding selects ${data.type}'s generated shaders` : 'no live resource rule constructs Shader', 'resource', data.type);
       return undefined;
     }
-    context.evidence.add(shaderRule.evidenceClaimId);
     engineShaders = {};
     for (const { shader, lowered } of lowerings) {
       const shaderKey = `${key}#${shader.path}`;
-      const planned = { key: shaderKey, className: 'Shader', construct: shaderRule.construct, shader: lowered as TargetGodotLoweredShader, setters: [], evidenceClaimId: shaderRule.evidenceClaimId };
+      const planned = { key: shaderKey, className: 'Shader', construct: shaderRule.construct, shader: lowered as TargetGodotLoweredShader, setters: [] };
       document.planned.set(shaderKey, planned);
       document.order.push(planned);
       engineShaders[select(shader.variant)] = shaderKey;
@@ -685,8 +668,7 @@ function planResource(
       refuse(context, `${at}(${key})`, `${unjoined} has no three geometry`, 'resource', 'ArrayMesh');
       return undefined;
     }
-    context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [] };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;
@@ -701,8 +683,7 @@ function planResource(
       refuse(context, `${at}(${key})`, graph, 'resource', 'AnimationNodeBlendTree');
       return undefined;
     }
-    context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className: data.type, construct: rule.construct, animationTree: graph, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className: data.type, construct: rule.construct, animationTree: graph, setters: [] };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;
@@ -710,8 +691,7 @@ function planResource(
   if (data.type === 'AnimationLibrary') {
     const animations = animationLibraryPlan(context, `${at}(${key})`, data, nestedScope);
     if (animations === undefined) return undefined;
-    context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className: data.type, construct: rule.construct, animations, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className: data.type, construct: rule.construct, animations, setters: [] };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;
@@ -724,8 +704,7 @@ function planResource(
       refuse(context, `${at}(${key})`, `a ${unshaped} item shape has no collider`, 'resource', unshaped);
       return undefined;
     }
-    context.evidence.add(rule.evidenceClaimId);
-    const planned = { key, className: data.type, construct: rule.construct, library, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    const planned = { key, className: data.type, construct: rule.construct, library, setters: [] };
     document.planned.set(key, planned);
     document.order.push(planned);
     return key;
@@ -745,8 +724,7 @@ function planResource(
     refuse(context, `${at}(${key})`, unstated, 'property', `${data.type}.${unstated.split(' ')[0] ?? ''}`);
     return undefined;
   }
-  context.evidence.add(rule.evidenceClaimId);
-  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), setters, evidenceClaimId: rule.evidenceClaimId };
+  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), setters };
   document.planned.set(key, planned);
   document.order.push(planned);
   return key;
@@ -877,7 +855,6 @@ function animationBindings(
             fail(where, found, `${className}.${property}`);
             continue;
           }
-          context.bindingEvidence.add(found.evidenceClaimId);
           values.set(track.path, {
             setter: { module: found.module, exportName: found.exportName, localName: found.localName },
             ...(found.index === undefined ? {} : { index: found.index }),
@@ -898,7 +875,6 @@ function animationBindings(
               fail(where, found, `${className}.${method}`);
               continue;
             }
-            context.bindingEvidence.add(found.evidenceClaimId);
             methods.set(id, { path: track.path, method, binding: { module: found.module, exportName: found.exportName, localName: found.localName } });
           }
         } else if (!target.ancestry.includes('Node3D')) {
@@ -943,7 +919,6 @@ function treeProperty(context: PlanContext, at: string, propertyName: string, va
       setter: { module: 'lib/godot-compat/animation-tree', exportName: 'godot_animation_tree_set', localName: 'godot_animation_tree_set' },
       index: parameter[1] as string,
       value: value.kind === 'number' ? { kind: 'number', value: value.value } : { kind: 'bool', value: value.value },
-      evidenceClaimId: rule.evidenceClaimId,
     };
   }
   const text = value.kind === 'ctor' && value.name === 'NodePath' && value.args[0]?.kind === 'string' ? value.args[0].value : value.kind === 'string' ? value.value : undefined;
@@ -955,7 +930,6 @@ function treeProperty(context: PlanContext, at: string, propertyName: string, va
     propertyName,
     setter: { module: path.module, exportName: path.exportName, localName: path.exportName },
     value: { kind: 'string', value: text },
-    evidenceClaimId: rule.evidenceClaimId,
   };
 }
 
@@ -980,7 +954,6 @@ function mixerLibrary(context: PlanContext, at: string, name: string, value: God
     setter: { module: 'lib/godot-compat/animation-mixer', exportName: 'godot_animation_mixer_set_library', localName: 'godot_animation_mixer_set_library' },
     index: name,
     value: target,
-    evidenceClaimId: rule.evidenceClaimId,
   };
 }
 
@@ -1167,13 +1140,11 @@ function setterPlan(
   if (!structure(context, at, 'property-setter')) return undefined;
   const target = setterValue(context, at, subject, value, scope);
   if (target === undefined) return undefined;
-  context.bindingEvidence.add(found.evidenceClaimId);
   return {
     propertyName,
     setter: { module: found.module, exportName: found.exportName, localName: found.localName },
     ...(found.index === undefined ? {} : { index: found.index }),
     value: target,
-    evidenceClaimId: found.evidenceClaimId,
   };
 }
 
@@ -1250,12 +1221,10 @@ function planProperties(
       refused = true;
       continue;
     }
-    context.evidence.add(rule.evidenceClaimId);
     result.push({
       propertyName,
       targetKind: rule.targetKind,
       value: serialized.value,
-      evidenceClaimId: rule.evidenceClaimId,
     });
   }
   return refused ? undefined : result;
@@ -1264,15 +1233,14 @@ function planProperties(
 function placement(
   context: PlanContext,
   node: BoundGodotSceneNode,
-): { readonly parentNodePath?: string; readonly evidenceClaimId?: string } | undefined {
+): { readonly parentNodePath?: string } | undefined {
   if (node.placement.kind !== 'child') return {};
   const rule = context.authority.placementRule('child');
   if (rule === undefined) {
     refuse(context, `${node.documentPath}#${node.nodePath}`, 'no live scene placement evidence for a child node', 'structure');
     return undefined;
   }
-  context.evidence.add(rule.evidenceClaimId);
-  return { parentNodePath: node.placement.parentNodePath, evidenceClaimId: rule.evidenceClaimId };
+  return { parentNodePath: node.placement.parentNodePath };
 }
 
 function groupsOf(context: PlanContext, node: BoundGodotSceneNode): readonly string[] | undefined {
@@ -1302,7 +1270,6 @@ function gridMapData(context: PlanContext, at: string, value: GodotValue): Targe
     propertyName: 'data',
     setter: { module: 'lib/godot-compat/grid-map', exportName: 'godot_grid_map_set_data', localName: 'godot_grid_map_set_data' },
     value: { kind: 'PackedInt32Array', components: ints },
-    evidenceClaimId: rule.evidenceClaimId,
   };
 }
 
@@ -1327,7 +1294,6 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     refuse(context, at, `no live scene-node evidence for ${node.class.nativeName}`, 'node-family', node.class.nativeName);
     ok = false;
   } else {
-    context.evidence.add(rule.evidenceClaimId);
   }
   const fields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
   const setters: TargetGodotSceneSetterPlan[] = [];
@@ -1368,8 +1334,6 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     setters,
     ...(animation === undefined ? {} : { animation }),
     children: [],
-    evidenceClaimId: rule.evidenceClaimId,
-    ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
   };
 }
 
@@ -1488,8 +1452,6 @@ function planImportedInstance(
     classes: [],
     setters: [],
     children: [],
-    evidenceClaimId: context.authority.structureRule('imported-scene')?.evidenceClaimId ?? '',
-    ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
   };
 }
 
@@ -1553,8 +1515,6 @@ function planInstanceRoot(
     classes: [],
     setters,
     children: [],
-    evidenceClaimId: context.authority.structureRule('scene-instance')?.evidenceClaimId ?? '',
-    ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
   };
 }
 
@@ -2103,7 +2063,6 @@ function planConnections(
       ok = false;
       continue;
     }
-    context.evidence.add(rule.evidenceClaimId);
     result.push({
       signal: connection.signal,
       fromNodePath: connection.from,
@@ -2111,7 +2070,6 @@ function planConnections(
       method: connection.method,
       accessor: rule.accessor,
       arguments: rule.arguments,
-      evidenceClaimId: rule.evidenceClaimId,
     });
   }
   return ok ? result : undefined;
@@ -2179,7 +2137,6 @@ export function planGodotSceneDocuments(
   const context: PlanContext = {
     ...(setters === undefined ? {} : { setters }),
     project,
-    bindingEvidence: new Set<string>(),
     scriptFields: (resPath) => {
       const script = byScript.get(resPath);
       const names = new Set<string>();
@@ -2199,7 +2156,6 @@ export function planGodotSceneDocuments(
     authority,
     scenes: new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const)),
     diagnostics: [],
-    evidence: new Set<string>(),
   };
   const scenes = project.documents.scenes.flatMap((scene) => {
     const planned = planScene(context, scene);
@@ -2236,9 +2192,6 @@ export function planGodotSceneDocuments(
       snapshotDigest: project.snapshotDigest,
       sourceRevision: project.authority.revision,
       scenes,
-      evidenceClaimIds: [...context.evidence].sort(),
-      bindingEvidenceClaimIds: [...context.bindingEvidence].sort(),
-      semanticClaimRegistryDigest: authority.registryDigest,
     },
   };
 }

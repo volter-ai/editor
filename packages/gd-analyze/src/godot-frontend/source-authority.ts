@@ -36,8 +36,7 @@ export interface GodotSourceAuthority {
     readonly buildOptions: string;
   };
   /**
-   * The official release editor of this revision: the native oracle evidence records cite, and
-   * the importer. Before the exporter runs, it performs Godot's own `--headless --import` on the
+   * The official release editor of this revision: the importer. Before the exporter runs, it performs Godot's own `--headless --import` on the
    * snapshot copy, so a `preload` of a scene holding imported assets resolves as it does in
    * Godot's editor. It is optimized, where a dev-build exporter imports too slowly to use.
    */
@@ -106,7 +105,7 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
 /**
  * Every pinned Godot 4 release. `GODOT_SOURCE_AUTHORITIES[4]` is the 4.7 row, the one every 4.x
  * project imports under (`selectGodotFrontendAuthority`). The 4.6 row pins the official 4.6 editor
- * and exporter that measure the 4.6-to-4.7 deltas (`evidence --godot 4.6`, `authority/godot-4.6/`).
+ * and exporter builds (`run-bound-program.ts` recognizes an exporter by its digest).
  */
 export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSourceAuthority>> = {
   '4.6': {

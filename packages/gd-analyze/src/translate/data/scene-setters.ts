@@ -2,14 +2,13 @@
  * An authored property as its setter's call. Godot applies a scene's authored properties by
  * `Object::set`, which calls the property's ClassDB setter (`SceneState::instantiate`,
  * packed_scene.cpp:400); the translated scene calls the same setter's compat binding on the mounted
- * entity, or on a constructed resource. The binding and its live claim come from the code
- * authority, as a script's call to that setter would.
+ * entity, or on a constructed resource. The binding comes from the code authority, as a script's
+ * call to that setter would.
  */
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotValue } from '../../read/godot-value';
 import type { GodotCodeTranslationAuthority } from '../code/authority';
 import { GodotCodeTranslationAuthorityResolver } from '../code/authority';
-import { godotOfficialSymbolKey } from '../code/bindings';
 import { GODOT_FORWARDED_SETTERS } from '../code/lower-official-bound';
 
 /** A setter's compat binding: `exportName` from `module`, imported as `localName`. */
@@ -19,7 +18,6 @@ export interface SceneSetterBinding {
   readonly localName: string;
   /** An indexed property's index, passed before the value (`ADD_PROPERTYI`); a metadata entry's name. */
   readonly index?: number | string;
-  readonly evidenceClaimId: string;
 }
 
 /**
@@ -112,12 +110,7 @@ export function sceneSetterLookup(
     if (target.kind !== 'compat-binding' || target.use.kind !== 'call' || target.use.sourceReceiver !== 'first-argument') {
       return `${owner}.${member} is not a compat call on its receiver`;
     }
-    try {
-      resolver.evidence.claim(target.evidenceClaimId, 'binding', godotOfficialSymbolKey(symbol));
-    } catch (error) {
-      return error instanceof Error ? error.message : String(error);
-    }
-    return { module: target.module, exportName: target.exportName, localName: target.localName, evidenceClaimId: target.evidenceClaimId };
+    return { module: target.module, exportName: target.exportName, localName: target.localName };
   };
   const lookupMethod = (className: string, name: string): SceneSetterBinding | string => {
     const selected = method(className, name);
@@ -189,7 +182,7 @@ export function sceneSetterLookup(
     if (selected === undefined) return `${owner} has no method ${setter}`;
     const bound = bind(selected.owner, setter, selected.hash);
     if (typeof bound === 'string') return bound;
-    return { module: bound.module, exportName: bound.exportName, localName: bound.localName, ...(index === undefined ? {} : { index }), evidenceClaimId: bound.evidenceClaimId };
+    return { module: bound.module, exportName: bound.exportName, localName: bound.localName, ...(index === undefined ? {} : { index }) };
   };
   return Object.assign(lookup, { method: lookupMethod });
 }

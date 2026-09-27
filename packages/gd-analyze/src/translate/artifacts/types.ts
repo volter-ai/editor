@@ -124,7 +124,3 @@ export interface GodotEmittedArtifact {
   readonly planIdentity: string;
 }
 
-export type GodotEmittedSourceTranslationArtifact = GodotEmittedArtifact & {
-  readonly kind: 'source-translation';
-  readonly origin: GodotSourceTranslationOrigin;
-};

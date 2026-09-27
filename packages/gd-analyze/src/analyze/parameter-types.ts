@@ -23,7 +23,7 @@
 import type { GodotBoundDatatype, GodotBoundNode, GodotBoundScript } from '../godot-frontend/bound-program';
 import type { SceneDocument } from '../read/godot-types';
 import type { GodotApiDump } from './api-dump';
-import type { GodotAnalysisRuleId } from './authority';
+import type { GodotAnalysisRuleId } from './refined-types';
 import { resolveScenePath } from './call-receivers';
 import { apiTypeDatatype } from './refined-types';
 

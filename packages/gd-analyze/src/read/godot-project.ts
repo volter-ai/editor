@@ -33,8 +33,6 @@
  */
 import * as path from 'node:path';
 import type { GodotProjectSnapshot } from '../snapshot/project-snapshot';
-import type { GodotReadAuthority } from './authority';
-import { GodotReadAuthorityResolver } from './authority';
 import { readBinaryDocument } from './binary-document';
 import { GodotBinaryParseError, parseGodotBinaryResource } from './binary-format';
 import { GltfParseError } from './glb-container';
@@ -598,11 +596,7 @@ function reconcileConnectionEndpointDiagnostics(
 
 export function readGodotProjectDocuments(
   source: GodotProjectFileSource,
-  readAuthority: GodotReadAuthority,
 ): GodotProject {
-  const authority = new GodotReadAuthorityResolver(readAuthority);
-  const projectSettingsClaim = authority.require('project-settings');
-  const textResourceClaim = authority.require('text-resource');
   const projectPath = `res://${PROJECT_FILE}`;
   if (!source.has(projectPath)) {
     throw new GodotReadError(
@@ -984,10 +978,6 @@ export function readGodotProjectDocuments(
 
   return {
     projectDir: source.label,
-    readEvidence: {
-      claimIds: [projectSettingsClaim.claimId, textResourceClaim.claimId],
-      registryDigest: authority.registryDigest,
-    },
     sourceFiles: projectFiles,
     projectName: settings.projectName ?? source.fallbackProjectName ?? 'Imported Godot Project',
     engine: settings.engine,
@@ -1022,9 +1012,6 @@ export function readGodotProjectDocuments(
 }
 
 /** Production reader: all bytes come from the verified content-addressed snapshot. */
-export function readGodotProjectSnapshot(
-  snapshot: GodotProjectSnapshot,
-  authority: GodotReadAuthority,
-): GodotProject {
-  return readGodotProjectDocuments(projectFileSourceFromSnapshot(snapshot), authority);
+export function readGodotProjectSnapshot(snapshot: GodotProjectSnapshot): GodotProject {
+  return readGodotProjectDocuments(projectFileSourceFromSnapshot(snapshot));
 }

@@ -7,8 +7,6 @@ import {
   GODOT_FRONTEND_PROTOCOL_VERSION,
 } from '../godot-frontend/protocol';
 import { godotSourceAuthority } from '../godot-frontend/source-authority';
-import type { GodotReadAuthority } from './authority';
-import { GodotReadAuthorityResolver } from './authority';
 import type { GodotProject } from './godot-types';
 import type { ImportSidecar } from './import-sidecar';
 
@@ -163,40 +161,16 @@ function bindSidecar(engineMajor: 3 | 4, sidecar: ImportSidecar): BoundGodotAsse
 }
 
 /** Decode serialized resource/import meaning once in the read layer. */
-export function bindGodotResources(
-  project: GodotProject,
-  readAuthority: GodotReadAuthority,
-): BoundGodotResourceProgram {
+export function bindGodotResources(project: GodotProject): BoundGodotResourceProgram {
   const engineMajor = project.engine.major;
   assertSupportedMajor(engineMajor);
   const authority = godotSourceAuthority(engineMajor);
-  const resolver = new GodotReadAuthorityResolver(readAuthority);
-  if (
-    resolver.sourceRevision !== authority.revision ||
-    project.readEvidence.registryDigest !== resolver.registryDigest
-  ) {
-    throw new GodotResourceBindingError(
-      'project.godot',
-      'resource binding authority differs from the authority that decoded the project',
-    );
-  }
-  const evidenceClaimIds = new Set(project.readEvidence.claimIds);
-  if (project.imports.some((sidecar) => sidecar.importer === 'wavefront_obj')) {
-    evidenceClaimIds.add(resolver.require('obj-import-options').claimId);
-  }
-  if (project.imports.some((sidecar) => sidecar.importer === 'cubemap_texture')) {
-    evidenceClaimIds.add(resolver.require('cubemap-import-options').claimId);
-  }
   const program: BoundGodotResourceProgram = {
     protocol: GODOT_FRONTEND_PROTOCOL,
     protocolVersion: GODOT_FRONTEND_PROTOCOL_VERSION,
     engineMajor,
     sourceRevision: authority.revision,
     apiDumpSha256: authority.apiDumpSha256,
-    evidence: {
-      claimIds: [...evidenceClaimIds],
-      registryDigest: resolver.registryDigest,
-    },
     imports: project.imports.map((sidecar) => bindSidecar(engineMajor, sidecar)),
   };
   assertBoundGodotResourceProgram(program);

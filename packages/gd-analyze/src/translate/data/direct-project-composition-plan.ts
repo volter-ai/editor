@@ -108,20 +108,6 @@ export interface DirectGodotProjectCompositionPlan {
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
   readonly requiredCompatSymbols: readonly string[];
-  readonly evidence: {
-    readonly readClaimIds: readonly string[];
-    readonly analysisClaimIds: readonly string[];
-    readonly codeAnalysisClaimIds: readonly string[];
-    readonly languageClaimIds: readonly string[];
-    readonly bindingClaimIds: readonly string[];
-    readonly fieldValueClaimIds: readonly string[];
-    readonly sceneClaimIds: readonly string[];
-    readonly readRegistryDigest: string;
-    readonly analysisRegistryDigest: string;
-    readonly codeRegistryDigest: string;
-    readonly fieldValueRegistryDigest: string;
-    readonly sceneRegistryDigest: string;
-  };
 }
 
 export interface DirectGodotCompositionDiagnostic {
@@ -554,7 +540,7 @@ function validateAutoloadReferences(
 }
 
 /** A setting value as the compat value it builds; undefined for a type not translated. */
-export function directGodotSettingValue(value: GodotValue): DirectGodotSettingValue | undefined {
+function directGodotSettingValue(value: GodotValue): DirectGodotSettingValue | undefined {
   switch (value.kind) {
     case 'number':
       return { kind: 'number', value: value.value };
@@ -731,20 +717,6 @@ export function planDirectGodotProjectComposition(
       scenes: composedScenes,
       scriptAutoloads: autoloads,
       requiredCompatSymbols: requiredCompatSymbols(code, instances, autoloads),
-      evidence: {
-        readClaimIds: project.resourceProgram.evidence.claimIds,
-        analysisClaimIds: project.analysisEvidence.claimIds,
-        codeAnalysisClaimIds: code.analysisEvidenceClaimIds,
-        languageClaimIds: code.languageEvidenceClaimIds,
-        bindingClaimIds: [...new Set([...code.bindingEvidenceClaimIds, ...scenes.bindingEvidenceClaimIds])].sort(),
-        fieldValueClaimIds: fields.evidenceClaimIds,
-        sceneClaimIds: scenes.evidenceClaimIds,
-        readRegistryDigest: project.resourceProgram.evidence.registryDigest,
-        analysisRegistryDigest: project.analysisEvidence.registryDigest,
-        codeRegistryDigest: code.semanticClaimRegistryDigest,
-        fieldValueRegistryDigest: fields.semanticClaimRegistryDigest,
-        sceneRegistryDigest: scenes.semanticClaimRegistryDigest,
-      },
     },
   };
 }

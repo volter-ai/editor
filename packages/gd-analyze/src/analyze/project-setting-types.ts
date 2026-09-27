@@ -22,7 +22,6 @@ export interface BoundGodotTypedValue {
   readonly builtinType: string;
   /** For a `get_setting` call itself: the setting and the value project facts fix for it. */
   readonly setting?: { readonly key: string; readonly value: GodotValue };
-  readonly evidenceClaimIds: readonly string[];
 }
 
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..');
@@ -46,12 +45,12 @@ export function registeredSettingValue(key: string): GodotValue | undefined {
 }
 
 /** A setting value written in `project.godot`'s text syntax, read as the project reader reads it. */
-export function parseSettingValueText(text: string): GodotValue | undefined {
+function parseSettingValueText(text: string): GodotValue | undefined {
   return parseGodotTextFile(`[setting]\nvalue = ${text}\n`, 'res://project.godot').sections[0]?.properties['value'];
 }
 
 /** The value project facts fix for a setting: the declared one, else the registered default. */
-export function projectSettingValue(
+function projectSettingValue(
   projectSettings: ReadonlyMap<string, GodotValue>,
   key: string,
 ): GodotValue | undefined {
@@ -109,8 +108,6 @@ export function typeProjectSettingValues(inputs: {
   /** The settings `project.godot` authors; every other key takes its registered default. */
   readonly projectSettings: ReadonlyMap<string, GodotValue>;
   readonly apiDump: GodotApiDump;
-  /** The rule's live claim; asked only when a value is typed, so an unused rule is not recorded. */
-  readonly claim: () => string | undefined;
 }): readonly BoundGodotTypedValue[] {
   const nodes = inputs.program.nodes;
   const builtins = new Map((inputs.apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
@@ -157,12 +154,10 @@ export function typeProjectSettingValues(inputs: {
     if (node.kind === 'CALL' || node.kind === 'BINARY_OPERATOR') typeOf(node.id);
   }
   if (typed.size === 0) return [];
-  const claim = inputs.claim();
-  if (claim === undefined) return [];
   return [...typed.entries()]
     .sort(([left], [right]) => left - right)
     .map(([nodeId, builtinType]) => {
       const setting = settings.get(nodeId);
-      return { nodeId, builtinType, ...(setting === undefined ? {} : { setting }), evidenceClaimIds: [claim] };
+      return { nodeId, builtinType, ...(setting === undefined ? {} : { setting }) };
     });
 }

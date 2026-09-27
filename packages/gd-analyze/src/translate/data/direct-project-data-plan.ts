@@ -61,10 +61,6 @@ export interface DirectGodotProjectDataPlan {
   readonly packageLock: DirectJsonValue;
   readonly shellFiles: readonly DirectGodotProjectShellFilePlan[];
   readonly capabilityStamps: readonly DirectGodotCapabilityStampPlan[];
-  readonly evidence: {
-    readonly projectStartupClaimIds: readonly string[];
-    readonly lifecycleRegistryDigest: string;
-  };
   readonly requirements: {
     readonly engine: {
       readonly packageName: '@volter/game-runtime';
@@ -330,10 +326,11 @@ function projectDataDiagnostics(
   return diagnostics;
 }
 
-function projectStartupEvidence(
+/** The lifecycle rules every project's startup rests on: autoloads before main, inside `Main`'s loop. */
+function checkProjectStartup(
   composition: DirectGodotProjectCompositionPlan,
   toolchain: GodotImportToolchainSnapshot,
-): DirectGodotProjectDataPlan['evidence'] {
+): void {
   const lifecycle = new GodotLifecycleAuthorityResolver(toolchain.frontend.lifecycleAuthority);
   if (composition.sourceRevision !== lifecycle.sourceRevision) {
     throw new Error('composition and project-startup lifecycle authority differ');
@@ -344,12 +341,7 @@ function projectStartupEvidence(
     throw new Error('autoload-before-main project startup has no live evidence rule');
   }
   // Every project runs inside `Main`'s loop (`compat/main.tsx`).
-  const mainLoopRule = lifecycle.mainLoopRule();
-  if (mainLoopRule === undefined) throw new Error("Main's loop has no live evidence rule");
-  return {
-    projectStartupClaimIds: [...(startupRule === undefined ? [] : [startupRule.evidenceClaimId]), mainLoopRule.evidenceClaimId],
-    lifecycleRegistryDigest: lifecycle.registryDigest,
-  };
+  if (lifecycle.mainLoopRule() === undefined) throw new Error("Main's loop has no live evidence rule");
 }
 
 /** Plan native project wiring and frozen requirements without reading source or writing output. */
@@ -363,7 +355,7 @@ export function planDirectGodotProjectData(
     return { kind: 'refused-project-data', diagnostics };
   }
   try {
-    const evidence = projectStartupEvidence(composition, toolchain);
+    checkProjectStartup(composition, toolchain);
     const packageManifest = plannedPackageManifest(project, toolchain);
     const packageLockText = planFrozenPackageLock(
       `${JSON.stringify(packageManifest, null, 2)}\n`,
@@ -392,7 +384,6 @@ export function planDirectGodotProjectData(
         packageLock: packageLock as DirectJsonValue,
         shellFiles: planDirectGodotProjectShell(project.projectName, toolchain),
         capabilityStamps: capabilityStampPlans(toolchain),
-        evidence,
         requirements: {
           engine: {
             packageName: '@volter/game-runtime',

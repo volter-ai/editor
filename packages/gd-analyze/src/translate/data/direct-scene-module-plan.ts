@@ -19,8 +19,6 @@ export interface DirectGodotSceneModule {
 export interface DirectGodotSceneModulePlan {
   readonly version: typeof DIRECT_GODOT_SCENE_MODULE_PLAN_VERSION;
   readonly modules: readonly DirectGodotSceneModule[];
-  readonly evidenceClaimIds: readonly string[];
-  readonly semanticClaimRegistryDigest: string;
 }
 
 export interface DirectGodotSceneModuleDiagnostic {
@@ -78,7 +76,7 @@ function hasLoopLifecycle(node: DirectGodotSceneNodePlan): boolean {
   );
 }
 
-/** Select scene-module outputs and lifecycle evidence without constructing target syntax. */
+/** Select scene-module outputs and check their lifecycle rules without constructing target syntax. */
 export function planDirectGodotSceneModules(
   project: DirectGodotProjectCompositionPlan,
   authority: GodotLifecycleAuthority,
@@ -118,11 +116,6 @@ export function planDirectGodotSceneModules(
         sourceDigest: scene.sourceDigest,
         targetPath: scene.targetPath,
       })),
-      evidenceClaimIds: [
-        ...(lifecycleRule === undefined ? [] : [lifecycleRule.evidenceClaimId]),
-        ...(loopRule === undefined ? [] : [loopRule.evidenceClaimId]),
-      ],
-      semanticClaimRegistryDigest: resolver.registryDigest,
     },
   };
 }

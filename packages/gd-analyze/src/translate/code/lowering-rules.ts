@@ -22,7 +22,7 @@ export interface GodotCodeRuleIdentity {
 
 /**
  * Closed direct-JavaScript-equivalence recipes. A recipe is data, never executable lowering or
- * emitted source. Constructs without a live evidenced recipe refuse at their official span.
+ * emitted source. Constructs without a recipe refuse at their official span.
  */
 export type GodotCodeRuleRecipe =
   | { readonly kind: 'structural'; readonly construct: GodotStructuralConstruct }
@@ -92,7 +92,6 @@ export type GodotStructuralConstruct =
 export interface GodotCodeRuleEntry {
   readonly source: GodotCodeRuleIdentity;
   readonly target: GodotCodeRuleRecipe;
-  readonly evidenceClaimId: string;
 }
 
 export interface GodotDatatypeRuleEntry {
@@ -102,7 +101,6 @@ export interface GodotDatatypeRuleEntry {
   readonly targetType: TargetTsType;
   /** The compat module (relative to the project's `src/`) that exports the named target type. */
   readonly typeImport?: { readonly module: string; readonly exportName: string };
-  readonly evidenceClaimId: string;
 }
 
 export interface GodotCodeRuleTable {
@@ -193,7 +191,7 @@ export function godotDatatypeTypeKey(datatype: GodotBoundDatatype): string | und
   return type.includes('|') ? undefined : type;
 }
 
-export function godotCodeRuleKey(identity: GodotCodeRuleIdentity): string {
+function godotCodeRuleKey(identity: GodotCodeRuleIdentity): string {
   return [
     identity.sourceRevision,
     identity.nodeKind,
@@ -201,10 +199,6 @@ export function godotCodeRuleKey(identity: GodotCodeRuleIdentity): string {
     identity.inputDatatypes.join('\u001f'),
     identity.resultDatatype,
   ].join('\0');
-}
-
-export function godotDatatypeRuleKey(entry: GodotDatatypeRuleEntry): string {
-  return [entry.sourceRevision, 'datatype', entry.sourceDatatype].join('\0');
 }
 
 export class GodotCodeRuleResolver {

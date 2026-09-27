@@ -1,8 +1,7 @@
 /**
  * `gd-analyze run <imported-project> --frames N`: an imported project's world, mounted headlessly
- * through the harness the project-world and lifecycle proofs use (R3F's root on a stub canvas, the
- * Rapier build compat uses, the `?url` asset and callsite hooks), stepped N display frames at 60 Hz
- * with no input. Each frame's thrown error is printed with its full stack. The world runs in a
+ * (R3F's root on a stub canvas, the Rapier build compat uses, the `?url` asset and callsite hooks),
+ * stepped N display frames at 60 Hz with no input. Each frame's thrown error is printed with its full stack. The world runs in a
  * worker thread under a per-frame watchdog: a frame that exceeds its budget pauses the worker
  * through the inspector (`Debugger.pause`) and the paused call stack is printed, so a hang reports
  * where it spins, before the worker is terminated.
@@ -13,8 +12,8 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Worker } from 'node:worker_threads';
-import { NODE_MOUNT_IMPORTS } from '../evidence/node-assets';
-import { EMITTED_RESOLVE_HOOK, linkEmittedNodeModules } from '../evidence/proofs/emitted-node-modules';
+import { NODE_MOUNT_IMPORTS } from './node-assets';
+import { EMITTED_RESOLVE_HOOK, linkEmittedNodeModules } from './emitted-node-modules';
 
 export interface RunWorldOptions {
   readonly frames: number;
@@ -264,7 +263,7 @@ export async function runImportedWorld(projectDir: string, options: RunWorldOpti
     });
     linkEmittedNodeModules(out);
     writeFileSync(path.join(out, 'gd-analyze-run-world.mts'), DRIVER);
-    // The copied project is the working directory, as a proof's mount runs in it: its tsconfig
+    // The copied project is the working directory: its tsconfig
     // governs the TypeScript loader, and its public/ is what the page serves.
     process.chdir(out);
     const worker = new Worker(pathToFileURL(path.join(out, 'gd-analyze-run-world.mts')), {
@@ -403,103 +402,6 @@ export async function runImportedWorld(projectDir: string, options: RunWorldOpti
     return code;
   } finally {
     process.chdir(cwd);
-    rmSync(temp, { recursive: true, force: true });
-  }
-}
-
-/** A world whose script spins in `_process`: the planted hang the self-check must locate. */
-const SPIN_FILES: Readonly<Record<string, string>> = {
-  'project.godot': `config_version=5
-
-[application]
-config/name="Run spin check"
-config/features=PackedStringArray("4.7")
-run/main_scene="res://main.tscn"
-
-[display]
-window/size/viewport_width=960
-window/size/viewport_height=540
-
-[rendering]
-renderer/rendering_method="gl_compatibility"
-`,
-  'main.gd': `extends Node3D
-
-var spins: int = 0
-
-func _process(_delta: float) -> void:
-\twhile true:
-\t\tspins += 1
-`,
-  'main.tscn': `[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://main.gd" id="1"]
-
-[node name="Main" type="Node3D"]
-script = ExtResource("1")
-`,
-};
-
-/**
- * `gd-analyze run --self-check`: imports the spinning world through the production pipeline and
- * runs it; the check holds when the hang is reported with a paused frame in the spinning script's
- * module, at the loop's line.
- */
-export async function runSpinSelfCheck(tools: { readonly exporterBinary: string; readonly officialBinary: string }): Promise<number> {
-  const { captureGodotProjectSnapshot } = await import('../snapshot/project-snapshot');
-  const { captureGodotImportToolchainSnapshot } = await import('../snapshot/toolchain-snapshot');
-  const { readGodotProjectSnapshot } = await import('../read/godot-project');
-  const { bindGodotResources } = await import('../read/resource-program');
-  const { bindGodotProject } = await import('../analyze/bound-project');
-  const { captureGodotBoundProgram } = await import('../godot-frontend/run-bound-program');
-  const { planGodotTranslation } = await import('../translate/plan');
-  const { emitGodotTranslation } = await import('../translate/emit');
-  const { writeGodotTranslationArtifacts } = await import('../materialize');
-  const { mkdirSync, readFileSync } = await import('node:fs');
-  const { spawnSync } = await import('node:child_process');
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-run-check-'));
-  try {
-    const project = path.join(temp, 'godot');
-    mkdirSync(project);
-    for (const [relative, text] of Object.entries(SPIN_FILES)) writeFileSync(path.join(project, relative), text);
-    const snapshot = captureGodotProjectSnapshot(project);
-    const toolchain = captureGodotImportToolchainSnapshot({ projectEngine: snapshot.engine, boundExporterBinary: tools.exporterBinary, officialBinary: tools.officialBinary });
-    const read = () => readGodotProjectSnapshot(snapshot, toolchain.frontend.readAuthority);
-    const bound = bindGodotProject(
-      snapshot,
-      captureGodotBoundProgram({ godotBinary: tools.exporterBinary, projectDir: project }),
-      bindGodotResources(read(), toolchain.frontend.readAuthority),
-      toolchain.frontend.analysisAuthority,
-      toolchain.frontend.authority,
-      toolchain.frontend.apiDump,
-      read(),
-    );
-    const translation = planGodotTranslation(bound, toolchain);
-    if (translation.kind !== 'accepted-translation') {
-      process.stdout.write(`self-check: the spinning world did not plan:\n${translation.diagnostics.map((entry) => `${entry.at}: ${entry.message}`).join('\n')}\n`);
-      return 1;
-    }
-    const out = path.join(temp, 'imported');
-    mkdirSync(out);
-    writeGodotTranslationArtifacts(emitGodotTranslation(translation), out);
-    // The loop's line in the emitted script module.
-    const lines = readFileSync(path.join(out, 'src', 'scripts', 'main.ts'), 'utf8').split('\n');
-    const loopLine = lines.findIndex((line) => line.includes('while (true)')) + 1;
-    if (loopLine === 0) {
-      process.stdout.write('self-check: the emitted main.ts has no while (true) loop\n');
-      return 1;
-    }
-    // The run in its own process (it ends the process when it reports a hang).
-    const run = spawnSync(process.execPath, [...process.execArgv, process.argv[1] as string, 'run', out, '--frames', '10', '--budget-ms', '2000'], { encoding: 'utf8', timeout: 180_000 });
-    process.stdout.write(run.stdout);
-    const hang = run.stdout.split('\n').find((line) => line.startsWith('hang:'));
-    const located = run.stdout
-      .split('\n')
-      .some((line) => new RegExp(`src/scripts/main\\.ts:(${String(loopLine)}|${String(loopLine + 1)}|${String(loopLine + 2)}):`, 'u').test(line));
-    const verdict = hang !== undefined && located;
-    process.stdout.write(`self-check: ${verdict ? 'the hang is reported at' : 'the hang is NOT reported at'} src/scripts/main.ts:${String(loopLine)} (the _process loop)\n`);
-    return verdict ? 0 : 1;
-  } finally {
     rmSync(temp, { recursive: true, force: true });
   }
 }
