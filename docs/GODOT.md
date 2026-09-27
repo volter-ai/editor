@@ -124,6 +124,24 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
      Rapier's 16, and a contact filter only where they do not;
    - class-name registries go, class-name dispatch leaves emit and compat, and `world.tsx` exports
      only its component; the editor and the walk drive a game with DOM input, as a player does.
+
+   Landed (2026-09-27, `30c10e09` to `aad36aae`): scripts' frame and input callbacks are their
+   component's hooks, gated by `godot_node_processes` so `set_process` and `set_physics_process`
+   still stop them; a scene component attaches its scripts, connects its signals and enters the
+   tree in its last effect, once React's commit is done, readying children first; the SceneTree's
+   frames, timers, tweens and deletion queue run on the host's clock from the world's component
+   (`useGodotTree`), and `Main::iteration`, `MainTimerSync` and the process lists are deleted;
+   physics is Rapier's (the kinematic character controller, dynamics with a body-state binding,
+   sensor events, ray and shape queries, collision groups, a contact filter for exceptions);
+   `instantiate()` makes the root's script instance over a stand-in and `add_child` is a state
+   update of the owning scene component, rendered as a portal and flushed at once, so the spawn
+   host is gone and the output check allows no framework import; the class-mount registry is gone
+   (a three camera is a Camera3D by type). Open: class-name dispatch in emit and lowering (the
+   ratchet's `class-name-*` rows), and compat elements must be idempotent under a re-render of
+   their scene (`GodotImportedScene` re-applied its overrides on every render until `aad36aae`).
+   The headless runner (`gd-analyze run`, `src/run/`) loads R3F's CommonJS build beside the
+   module build of three, so a colour prop reaches a light as a string there; the browser does
+   not, and a look in the browser is the check until the runner loads module builds throughout.
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 
