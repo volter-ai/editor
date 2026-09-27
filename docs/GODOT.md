@@ -90,6 +90,29 @@ composition-site design below was an unreviewed author's ruling that two days of
 
 - *Never ported, and no exports for the editor* (the author, 2026-09-27): the list under ruling 1
   and row 5's clause, the author's reading of the owner's rulings. Open until the owner confirms.
+- *The host owns time and mounting* (the author, 2026-09-27; unit 3, open until the owner
+  approves). What an R3F developer would write, with compat left as bindings:
+  - **Scripts run from their scene component's own hooks.** The emitted component creates its
+    script instance and calls it: `_ready` from a `useEffect` (React runs children's effects
+    first, as Godot readies children first), `_process(delta)` from `useFrame`,
+    `_physics_process` from @react-three/rapier's `useBeforePhysicsStep` under
+    `<Physics timeStep={1 / 60}>`, `_exit_tree` from the effect's cleanup, `_input` from a DOM
+    listener the component adds. The order between nodes is R3F's and Rapier's, not Godot's tree
+    order; the walk judges whether that matters.
+  - **The world is a plain component**: `<Physics>` with the project's gravity and tick rate as
+    props, the main scene inside it, project settings and the input map as constant data. No
+    `GodotMain`, `GodotProjectStartup`, `MainTimerSync` or `godot_main_iteration`.
+  - **Spawning is React state.** A script that instantiates and adds scenes gets a spawn function
+    from its component, and adding a child is a state update the component renders
+    (`{spawned.map(...)}`); freeing is removing it. No spawn host, no portal into a detached group.
+  - **Timers and tweens use browser and library time.** `create_timer(t).timeout` resolves after
+    `t` seconds of `setTimeout`; a Tween is a GSAP timeline (Godot's sequential and parallel steps,
+    easing names and callbacks map onto it). Neither follows Godot's pause or time scale unless a
+    game needs it.
+  - **Class-name registries go**: a node's class is known where its component is emitted, so
+    nothing registers per-class mount callbacks.
+  - **The editor reads input the way a player gives it**: DOM keyboard, mouse and touch events,
+    so `world.tsx` exports no `debug` door; the walk drives the game the same way.
 
 **Ledger.**
 
