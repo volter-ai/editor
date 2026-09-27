@@ -1482,6 +1482,10 @@ func narrowed_compound() -> Array:
 \tif t is Tagged:
 \t\tt.level += 1
 \t\tout.append(t.level)
+\t# A negated narrowed member over an int (\`-event.relative.x / 10\`).
+\tvar n: Node = $Lamp
+\tif n is OmniLight3D:
+\t\tout.append(-n.light_energy / 10)
 \treturn out
 
 func scene_members() -> Array:

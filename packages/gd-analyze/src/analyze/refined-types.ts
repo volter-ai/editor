@@ -555,6 +555,20 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       if (operand?.kind === 'BUILTIN' && operand.builtinType === 'bool') {
         result = { datatype: builtinDatatype('bool'), rule: 'type-test-narrowing' };
       }
+    } else if (node?.kind === 'UNARY_OPERATOR' && node.datatype.kind === 'VARIANT') {
+      // A negation (`-event.relative.x`) of a value the refinement typed has the result type
+      // Godot's operator table states for it (`unary-`, no right operand).
+      const operand = datatypeOf(node.operand);
+      const spelling = OPERATOR_SPELLING[node.variantOperatorId];
+      const returnType =
+        operand?.kind === 'BUILTIN' && !operand.metaType && spelling?.startsWith('unary') === true
+          ? (inputs.apiDump.builtinClasses ?? [])
+              .find((entry) => entry.name === operand.builtinType)
+              ?.operatorSignatures?.find((entry) => entry.name === spelling && entry.rightType === undefined)?.returnType
+          : undefined;
+      if (returnType !== undefined && returnType !== 'Variant') {
+        result = { datatype: builtinDatatype(returnType), rule: 'type-test-narrowing' };
+      }
     }
     if (result === undefined) return undefined;
     const claims = [result.rule, ...(result.also ?? [])].map((rule) => inputs.claim(rule));
