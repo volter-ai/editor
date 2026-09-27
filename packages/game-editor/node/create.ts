@@ -45,7 +45,7 @@ export const presets: ScaffoldPresets = {
     // EVERY addition in one project — the composition acceptance made
     // permanent. Check it against `SCAFFOLD_ADDITIONS` (./scaffold/additions.ts)
     // when the scaffolder grows one.
-    full: { additions: ['three', 'ui', 'server', 'blender', 'studio'] },
+    full: { additions: ['three', 'canvas', 'ui', 'server', 'blender', 'studio'] },
     /** The design skew: a React root and no 3D world. */
     website: { additions: ['ui'] },
     /** Nothing but the project — the shape an author adds to. */
@@ -59,17 +59,19 @@ export const presets: ScaffoldPresets = {
 
   compose(additions) {
     const three = additions.has('three');
+    // A game world: a 3D root, or a 2D scene (a Pixi `canvas` root).
+    const world = three || additions.has('canvas');
     const studio = additions.has('studio');
     // The editor's own layouts come from the SDK; a package's layout would
     // come from that package.
     const layouts = '@volter/editor-sdk/layouts';
-    const design = additions.has('ui') && !three;
+    const design = additions.has('ui') && !world;
     return {
-      // THE PRODUCT THIS PROJECT OPENS IN, and the 3D lane beside it:
-      // `@volter/editor-game` is the 3D world's lane, and a project with no 3D
-      // root has nothing for Play, the Game workspace or the instruments over
-      // a running game to run.
-      editorPackages: [PRODUCT, ...(three ? ['@volter/editor-game'] : [])],
+      // THE PRODUCT THIS PROJECT OPENS IN, and the game lane beside it:
+      // `@volter/editor-game` is the lane of a game world (3D, or a 2D scene), and
+      // a project with no world has nothing for Play, the Game workspace or the
+      // instruments over a running game to run.
+      editorPackages: [PRODUCT, ...(world ? ['@volter/editor-game'] : [])],
       editor: {
         layout: { name: design ? 'DesignLayout' : studio ? 'StudioLayout' : 'GameLayout', from: layouts },
         inspector: studio ? 'column' : 'card',

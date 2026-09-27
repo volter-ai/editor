@@ -31,13 +31,26 @@ function collectManifestEntries(manifest: unknown): string[] {
  * Render imports for the manifest's exact `roots[].entry` declarations.
  * The manifest—not a filename convention—is the only discovery source.
  */
+function declaresCanvasRoot(manifest: unknown): boolean {
+  const roots = manifest && typeof manifest === 'object' ? (manifest as { roots?: unknown }).roots : undefined;
+  return (
+    Array.isArray(roots) &&
+    roots.some((root) => root && typeof root === 'object' && (root as { adapter?: unknown }).adapter === 'canvas')
+  );
+}
+
 export function renderManifestEntryModule(manifest: unknown): string {
   const entries = collectManifestEntries(manifest);
   const imports = entries.map(
     (entry, index) => `import * as entry${index} from ${JSON.stringify(`/${entry}`)};`,
   );
   const members = entries.map((entry, index) => `${JSON.stringify(entry)}: entry${index}`);
-  return `${imports.join('\n')}\nexport const manifestEntryModules = {${members.join(',')}};\n`;
+  // Pixi rides only with a declared `canvas` root: its mount (and the two packages it imports)
+  // is `src/canvas-mount.ts`, which only such a project carries.
+  const canvas = declaresCanvasRoot(manifest)
+    ? `export { mountCanvasRoot } from "/src/canvas-mount.ts";`
+    : 'export const mountCanvasRoot = undefined;';
+  return `${imports.join('\n')}\nexport const manifestEntryModules = {${members.join(',')}};\n${canvas}\n`;
 }
 
 export function manifestEntryModulesPlugin(manifest: unknown): Plugin {

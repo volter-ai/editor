@@ -1,6 +1,6 @@
 // The served-bundle runtime table answers the bare imports of a game served as
-// a bundle. It is DERIVED: the packages the game template and the catalog's
-// capabilities import, plus the runtime packages it resolves by glob. This
+// a bundle. It is DERIVED: the packages the game template, its additions and
+// the catalog's capabilities import, plus the runtime packages it resolves by glob. This
 // check fails naming each package the table is missing or no longer needs.
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -34,6 +34,12 @@ const walk = (dir) => {
 };
 walk(join(product, 'template'));
 walk(join(product, 'catalog/project-source'));
+// A scaffold addition's own tree (`additions/<id>/`) lands in a project beside the template's.
+for (const addition of readdirSync(join(product, 'additions'))) {
+  walk(join(product, 'additions', addition));
+  const own = JSON.parse(readFileSync(join(product, 'additions', addition, 'package.json'), 'utf8'));
+  for (const name of Object.keys(own.dependencies ?? {})) imported.add(name);
+}
 // The template's and each capability's declared runtime dependencies are imports a project may make.
 for (const name of Object.keys(JSON.parse(readFileSync(join(product, 'template/package.json'), 'utf8')).dependencies ?? {})) {
   imported.add(name);
@@ -70,11 +76,11 @@ if (missing.length || unused.length) {
   if (unused.length) console.error(`served-bundle table serves what no project imports: ${unused.sort().join(', ')}`);
   process.exit(1);
 }
-console.log(`served-bundle table matches the template and catalog (${loaded.size} packages).`);
+console.log(`served-bundle table matches the template, additions and catalog (${loaded.size} packages).`);
 
 // THE RUNTIME IMAGE carries a game's full runtime set: a game links the
 // product's install as its node_modules (packages/game-editor/node/runtime-image.ts),
-// so the product must depend on everything the template and the catalog declare.
+// so the product must depend on everything the template, its additions and the catalog declare.
 const productManifest = JSON.parse(readFileSync(join(product, 'package.json'), 'utf8'));
 const templateManifest = JSON.parse(readFileSync(join(product, 'template/package.json'), 'utf8'));
 const declared = new Set([
@@ -85,6 +91,10 @@ for (const file of readdirSync(join(product, 'catalog/entries'))) {
   const entry = JSON.parse(readFileSync(join(product, 'catalog/entries', file), 'utf8'));
   for (const name of Object.keys(entry.packageJson?.dependencies ?? {})) declared.add(name);
 }
+for (const addition of readdirSync(join(product, 'additions'))) {
+  const own = JSON.parse(readFileSync(join(product, 'additions', addition, 'package.json'), 'utf8'));
+  for (const name of Object.keys(own.dependencies ?? {})) declared.add(name);
+}
 declared.delete(productManifest.name);
 const carried = new Set(Object.keys(productManifest.dependencies ?? {}));
 const absent = [...declared].filter((name) => !carried.has(name));
@@ -92,4 +102,4 @@ if (absent.length) {
   console.error(`the runtime image (the product's dependencies) lacks what games declare: ${absent.sort().join(', ')}`);
   process.exit(1);
 }
-console.log(`runtime image carries every template and catalog dependency (${declared.size}).`);
+console.log(`runtime image carries every template, addition and catalog dependency (${declared.size}).`);

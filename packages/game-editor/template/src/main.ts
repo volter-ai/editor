@@ -6,11 +6,10 @@
  * Fiber component and renders inside `<Canvas>`; a `dom` root's entry
  * default-exports a React component and renders with react-dom, in a layer
  * that lets pointer events fall through to the world except where its own
- * elements claim them (`pointer-events: auto`); a `canvas` root's entry default-exports a
- * `@pixi/react` component and renders inside `<Application>`, with every `pixi.js` class
- * registered first, as the editor's own canvas mount registers them (so a node the editor created,
- * a TilingSprite or a BitmapText, mounts here too). The editor mounts the same entries itself;
- * nothing here runs inside it.
+ * elements claim them (`pointer-events: auto`): a game's UI is that `dom` root.
+ * A `canvas` root (2D game rendering) mounts through `src/canvas-mount.ts`, which
+ * only a project with a canvas root carries, so a game without one imports no Pixi.
+ * The editor mounts the same entries itself; nothing here runs inside it.
  *
  * `manifestEntryModules` is generated from the manifest's `entry` paths
  * (`manifest-entry-modules-plugin.ts`), so the manifest stays the one list of
@@ -20,7 +19,7 @@
 import { Canvas } from '@react-three/fiber';
 import { type ComponentType, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { manifestEntryModules } from 'virtual:vgai-manifest-entries';
+import { manifestEntryModules, mountCanvasRoot } from 'virtual:vgai-manifest-entries';
 import manifest from '../vgai.project.json';
 
 interface DeclaredRoot {
@@ -95,36 +94,18 @@ for (const root of roots) {
     layer.style.pointerEvents = 'none';
     createRoot(layer).render(createElement(Entry));
   } else if (root.adapter === 'canvas') {
-    const [{ Application, extend }, PIXI] = await Promise.all([import('@pixi/react'), import('pixi.js')]);
-    extend(PIXI as unknown as Parameters<typeof extend>[0]);
-    createRoot(layer).render(
-      createElement(
-        Application,
-        {
-          resizeTo: layer,
-          antialias: true,
-          resolution: globalThis.devicePixelRatio ?? 1,
-          autoDensity: true,
-          backgroundAlpha: root === bottomWorld ? 1 : 0,
-          onInit: (app) => {
-            if (root === bottomWorld) return;
-            claims.push({
-              zOrder: root.zOrder ?? 0,
-              canvas: app.canvas,
-              // Pixi points its boundary at the last rendered scene inside its own pointer handlers.
-              hit: (x, y) => {
-                const rendered = app.renderer.lastObjectRendered;
-                if (!rendered) return false;
-                app.renderer.events.rootBoundary.rootTarget = rendered;
-                return app.renderer.events.rootBoundary.hitTest(x, y) !== null;
-              },
-            });
-            claims.sort((a, b) => b.zOrder - a.zOrder);
-          },
+    if (!mountCanvasRoot) {
+      throw new Error(`main.ts: root "${root.id}" is a canvas root, and this project carries no src/canvas-mount.ts.`);
+    }
+    if (root === bottomWorld) mountCanvasRoot(layer, Entry, { bottom: true, onHitTest: () => {} });
+    else
+      mountCanvasRoot(layer, Entry, {
+        bottom: false,
+        onHitTest: (canvas, hit) => {
+          claims.push({ zOrder: root.zOrder ?? 0, canvas, hit });
+          claims.sort((a, b) => b.zOrder - a.zOrder);
         },
-        createElement(Entry),
-      ),
-    );
+      });
   } else {
     throw new Error(
       `main.ts: root "${root.id}" declares adapter ${JSON.stringify(root.adapter)}, which this boot does not mount.`,

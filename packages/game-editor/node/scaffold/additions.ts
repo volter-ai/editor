@@ -12,7 +12,7 @@
 
 import type { ScaffoldEditorDeclaration } from './product.js';
 
-export const SCAFFOLD_ADDITIONS = ['three', 'ui', 'server', 'blender', 'studio'] as const;
+export const SCAFFOLD_ADDITIONS = ['three', 'canvas', 'ui', 'server', 'blender', 'studio'] as const;
 export type ScaffoldAddition = (typeof SCAFFOLD_ADDITIONS)[number];
 
 export const ADDITION_INFO: Readonly<
@@ -22,6 +22,12 @@ export const ADDITION_INFO: Readonly<
     title: '3D world',
     description:
       'A Three.js root (`src/world.tsx`) with the neutral daylight scene, source-owned prefabs and the scene/prefab finders.',
+  },
+  canvas: {
+    title: '2D scene',
+    description:
+      'A Pixi root (`src/scene2d.tsx`, through `@pixi/react`): 2D game rendering, sprites and tilemaps. ' +
+      'Not the UI, which is the `ui` root. Brings `pixi.js` and `@pixi/react` and the standalone mount.',
   },
   ui: {
     title: 'UI / website',

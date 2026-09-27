@@ -884,6 +884,8 @@ function rewriteGameManifest(
     const roots: JsonRecord[] = [];
     if (additions.has('three'))
       roots.push({ id: 'world', adapter: 'three', entry: 'src/world.tsx' });
+    if (additions.has('canvas'))
+      roots.push({ id: 'scene2d', adapter: 'canvas', entry: 'src/scene2d.tsx' });
     if (additions.has('ui'))
       roots.push({ id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 0 });
     manifest['roots'] = roots;
@@ -1397,6 +1399,24 @@ function writeNetworkedInput(targetDir: string): void {
   writeFileSync(inputPath, input, 'utf-8');
 }
 
+/**
+ * The `canvas` addition: its own tree (`additions/canvas/`, a packed project tree whose
+ * `package.json` declares what its files import) lands in the project, and its packages join the
+ * project's. The base template carries no Pixi: a game without a 2D scene imports none.
+ */
+function applyCanvasAddition(targetDir: string, productDir: string): void {
+  const additionDir = join(productDir, 'additions', 'canvas');
+  cpSync(join(additionDir, 'src'), join(targetDir, 'src'), { recursive: true });
+  const own = JSON.parse(readFileSync(join(additionDir, 'package.json'), 'utf-8')) as {
+    dependencies?: Record<string, string>;
+  };
+  const pkgPath = join(targetDir, 'package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { dependencies?: Record<string, string> };
+  pkg.dependencies = { ...pkg.dependencies };
+  for (const [name, spec] of Object.entries(own.dependencies ?? {})) pkg.dependencies[name] ??= spec;
+  writeJson(pkgPath, pkg);
+}
+
 function rewriteTemplateVariantFiles(
   targetDir: string,
   composition: ScaffoldComposition,
@@ -1729,6 +1749,7 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
       additions,
       resolveScaffoldStarterDir(productDir),
     );
+    if (additions.has('canvas')) applyCanvasAddition(targetDir, productDir);
     const adapterPath = join(targetDir, 'vgai.adapter.ts');
     writeFileSync(
       adapterPath,
