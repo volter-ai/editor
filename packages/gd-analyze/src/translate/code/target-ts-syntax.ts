@@ -136,6 +136,13 @@ export type TargetTsStatement =
       readonly namedBindings: readonly TargetTsImportBinding[];
       readonly typeOnly?: true;
     })
+  /** `const { a, b, ...rest } = value`. */
+  | (TargetTsStatementBase & {
+      readonly kind: 'destructure-statement';
+      readonly names: readonly string[];
+      readonly rest?: string;
+      readonly initializer: TargetTsExpression;
+    })
   | (TargetTsStatementBase & {
       readonly kind: 'variable-statement';
       readonly declaration: 'const' | 'let';

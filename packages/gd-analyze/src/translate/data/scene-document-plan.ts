@@ -1436,12 +1436,10 @@ function planInstanceRoot(
       ([name, value]) => !sameValue(value, origin.authoredProperties[name]),
     ),
   );
+  // The root script's fields the instance overrides are the field plan's (its component's
+  // `exports`); the rest are the root node's own properties.
   const fields = origin.scriptResPath === undefined ? new Set<string>() : context.scriptFields(origin.scriptResPath);
-  const fieldOverrides = Object.keys(overrides).filter((name) => fields.has(name));
-  if (fieldOverrides.length > 0) {
-    refuse(context, at, `script field overrides on an instance (${fieldOverrides.join(', ')}) are not planned`, 'structure');
-    ok = false;
-  }
+  for (const name of Object.keys(overrides)) if (fields.has(name)) delete overrides[name];
   if (Object.keys(overrides).length > 0 && !structure(context, at, 'instance-root-override')) ok = false;
   // A script on an instance whose root has none attaches to the component's root (its ref); one
   // replacing the root's own script is not planned.
@@ -1453,7 +1451,7 @@ function planInstanceRoot(
     refuse(context, at, 'groups authored on an instance root are not planned', 'structure');
     ok = false;
   }
-  if (node.nodePathProperties.length > origin.nodePathProperties.length) {
+  if (node.nodePathProperties.some((name) => !origin.nodePathProperties.includes(name) && !fields.has(name))) {
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
   }

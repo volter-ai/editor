@@ -440,6 +440,24 @@ function statement(value: TargetTsStatement): ts.Statement {
         undefined,
       );
     }
+    case 'destructure-statement':
+      return ts.factory.createVariableStatement(
+        undefined,
+        ts.factory.createVariableDeclarationList(
+          [
+            ts.factory.createVariableDeclaration(
+              ts.factory.createObjectBindingPattern([
+                ...value.names.map((name) => ts.factory.createBindingElement(undefined, undefined, name)),
+                ...(value.rest === undefined ? [] : [ts.factory.createBindingElement(ts.factory.createToken(ts.SyntaxKind.DotDotDotToken), undefined, value.rest)]),
+              ]),
+              undefined,
+              undefined,
+              expression(value.initializer),
+            ),
+          ],
+          ts.NodeFlags.Const,
+        ),
+      );
     case 'variable-statement':
       return ts.factory.createVariableStatement(
         modifiers(value.modifiers),

@@ -129,6 +129,8 @@ interface Emission {
   readonly models: Map<string, string>;
   /** The scene's autoload context (`<Scene>Autoloads`), when its scripts read autoloads. */
   readonly autoloads: string | undefined;
+  /** Whether a scene instancing this one overrides its root script's fields (its `exports` prop). */
+  readonly rootExports: boolean;
 }
 
 function useCompat(emission: Emission, module: string, name: string): string {
@@ -191,17 +193,17 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
         arguments: [
           { kind: 'identifier-expression', name: refName },
           { kind: 'identifier-expression', name: local },
-          ...(script.fields.length === 0 && script.autoloadReferences.length === 0
-            ? []
-            : [
-                {
-                  kind: 'object-expression' as const,
-                  properties: script.fields.map((field) => ({
-                    key: field.fieldName,
-                    value: fieldValue(emission, node, field.value),
-                  })),
-                },
-              ]),
+          ...((): TargetTsExpression[] => {
+            const own: TargetTsExpression = {
+              kind: 'object-expression',
+              properties: script.fields.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+            };
+            // A scene root whose instancers override its script's fields: theirs over its own.
+            if (node.nodePath === emission.scene.root.nodePath && emission.rootExports) {
+              return [{ kind: 'call-expression', callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'assign' }, arguments: [own, { kind: 'identifier-expression', name: 'exports' }] }];
+            }
+            return script.fields.length === 0 && script.autoloadReferences.length === 0 ? [] : [own];
+          })(),
           // The autoloads the script reads, each its field and the ref the world mounts it into.
           ...(script.autoloadReferences.length === 0 || emission.autoloads === undefined
             ? []
@@ -503,6 +505,15 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     if (stated.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
   }
+  // Its overrides of the instanced scene root script's fields, which that component's script takes.
+  if (node.instanceExports !== undefined) {
+    overrides.push(
+      attribute('exports', {
+        kind: 'object-expression',
+        properties: node.instanceExports.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+      }),
+    );
+  }
   const children = node.children.map((child) => nodeElement(emission, child));
   const ref = BODY_TYPES[rootClass] !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, familyThreeType(rootClass) ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
@@ -695,7 +706,7 @@ function refTargets(scene: DirectGodotSceneDocumentPlan): ReadonlySet<string> {
   for (const connection of scene.connections) targets.add(connection.fromNodePath).add(connection.toNodePath);
   // A script field's referenced node (`fieldValue`).
   const referenced = (node: DirectGodotSceneNodePlan): void => {
-    for (const field of node.scriptInstance?.fields ?? []) {
+    for (const field of [...(node.scriptInstance?.fields ?? []), ...(node.instanceExports ?? [])]) {
       const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
       if (target !== undefined) targets.add(target);
     }
@@ -779,6 +790,13 @@ export function idiomaticSceneSourceFile(
     instances: new Map(),
     models: new Map(),
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
+    rootExports:
+      scene.root.scriptInstance !== undefined &&
+      project.scenes.some((other) =>
+        (function overrides(entry: DirectGodotSceneNodePlan): boolean {
+          return (entry.instance?.sourceResPath === scene.sourceResPath && (entry.instanceExports?.length ?? 0) > 0) || godotSceneSubnodes(entry).some(overrides);
+        })(other.root),
+      ),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   emission.hooks.push(...emission.scriptHooks.map((hook) => hook()));
@@ -822,7 +840,8 @@ export function idiomaticSceneSourceFile(
   const props = rootPropsType(node.tag, scene.targetPath, rootThree, scene.root);
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
-    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: 'props' } }],
+    // Its instancers' overrides of its script's fields are the `exports` prop, not the root's.
+    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: emission.rootExports ? 'rest' : 'props' } }],
     children: props.children
       ? [...node.children, { kind: 'jsx-expression-child', value: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'props' }, property: 'children' } }]
       : node.children,
@@ -971,8 +990,20 @@ export function idiomaticSceneSourceFile(
         kind: 'function-statement',
         name: scene.exportName,
         modifiers: ['export'],
-        parameters: [{ name: 'props', type: props.type }],
-        body: [...family.hooks, ...emission.hooks, { kind: 'return-statement', expression: { ...root, kind: 'jsx-element-expression' } }],
+        parameters: [
+          {
+            name: 'props',
+            type: emission.rootExports
+              ? { kind: 'intersection-type', members: [props.type, { kind: 'object-type', properties: [{ name: 'exports', type: { kind: 'type-reference', name: 'Record', arguments: [{ kind: 'keyword-type', keyword: 'string' }, { kind: 'keyword-type', keyword: 'unknown' }] }, readonly: true, optional: true }] }] }
+              : props.type,
+          },
+        ],
+        body: [
+          ...(emission.rootExports ? [{ kind: 'destructure-statement' as const, names: ['exports'], rest: 'rest', initializer: { kind: 'identifier-expression' as const, name: 'props' } }] : []),
+          ...family.hooks,
+          ...emission.hooks,
+          { kind: 'return-statement', expression: { ...root, kind: 'jsx-element-expression' } },
+        ],
       },
     ],
   };

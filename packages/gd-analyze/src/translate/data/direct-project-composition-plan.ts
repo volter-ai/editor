@@ -63,6 +63,11 @@ export type DirectGodotSceneNodePlan = Omit<
   'children' | 'scriptResPath' | 'placements'
 > & {
   readonly scriptInstance?: DirectGodotScriptInstancePlan;
+  /**
+   * An instance's overrides of its scene root script's fields: the values this document authors
+   * on the instance, which the instanced component's script takes over its own (`exports`).
+   */
+  readonly instanceExports?: readonly ScriptFieldValuePlan[];
   readonly children: readonly DirectGodotSceneNodePlan[];
   readonly placements?: readonly { readonly at: string; readonly node: DirectGodotSceneNodePlan }[];
 };
@@ -371,7 +376,7 @@ function validateNodeReferences(scene: DirectGodotSceneDocumentPlan, diagnostics
   };
   collect(scene.root);
   const check = (node: DirectGodotSceneNodePlan): void => {
-    for (const field of node.scriptInstance?.fields ?? []) {
+    for (const field of [...(node.scriptInstance?.fields ?? []), ...(node.instanceExports ?? [])]) {
       if (field.value.kind !== 'node-reference') continue;
       const path = field.value.value;
       const at = `${scene.sourceResPath}#${node.nodePath}.${field.fieldName}`;
@@ -431,13 +436,16 @@ function attachScriptInstances(
     const key = nodeLocationKey(scene.sourceResPath, node.nodePath);
     const located = byLocation.get(key);
     // The instanced scene's component attaches its own script: this document's node carries none.
-    const instance = located !== undefined && node.scriptResPath === undefined && representedByInstance(located) ? undefined : located;
+    const represented = located !== undefined && node.scriptResPath === undefined && representedByInstance(located);
+    const instance = represented ? undefined : located;
+    const exports = represented ? located.fields : [];
     const boundNode = boundNodes.get(key);
     if (validateAttachedScript(scene, node, instance, boundNode, diagnostics)) consumed.add(key);
     const { scriptResPath: _scriptResPath, children, placements, ...nativeNode } = node;
     return {
       ...nativeNode,
       ...(instance === undefined ? {} : { scriptInstance: instance }),
+      ...(exports.length === 0 ? {} : { instanceExports: exports }),
       children: children.map((child) => attach(scene, child)),
       ...(placements === undefined
         ? {}

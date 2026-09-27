@@ -14,7 +14,8 @@
  * before the instance's own children, one whose index is past the end and stays) are in the order
  * the tree walk reads. An inherited scene (its root an instance of prop.tscn, overridden, with a
  * child added, and a script of its own the base's root lacks) is instanced; its script's `_ready`
- * reads its name and children.
+ * reads its name and children. Two instances of a scripted scene, one overriding its root script's
+ * fields (a float and a node reference), as their scripts read them.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -71,6 +72,26 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.3, 0)
 [node name="Leaf" parent="Arm" instance=ExtResource("1_leaf")]
 `,
   // A scene inheriting prop.tscn: its root overridden, a child added under the base's root.
+  // A scripted scene whose instance overrides its root script's fields (a value, a node reference).
+  'tuned.gd': `extends Node3D
+
+@export var speed: float = 1.0
+@export var target: Node3D
+var unset := false
+var target_name := ""
+
+func _ready() -> void:
+\tunset = target == null
+\tif not unset:
+\t\ttarget_name = str(target.name)
+`,
+  'tuned.tscn': `[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tuned.gd" id="1_tuned"]
+
+[node name="Tuned" type="Node3D"]
+script = ExtResource("1_tuned")
+`,
   'derived.gd': `extends Node3D
 
 var greeting := ""
@@ -112,6 +133,7 @@ func _ready() -> void:
 \tevents.append(%Cam.name)
 \tevents.append([sibling.name, later.name, added.name, own == self, outside == null])
 \tevents.append([$Derived.greeting, $Derived.count])
+\tevents.append([$Tuned.speed, $Tuned.target_name, $Tuned.unset, $Untuned.speed, $Untuned.unset])
 
 func _on_placed_ready() -> void:
 \tevents.append("placed_ready")
@@ -122,11 +144,12 @@ func _on_cam_entered() -> void:
 func _on_main_ready() -> void:
 \tevents.append("main_ready_signal")
 `,
-  'main.tscn': `[gd_scene load_steps=4 format=3]
+  'main.tscn': `[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://prop.tscn" id="1_prop"]
 [ext_resource type="Script" path="res://main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://derived.tscn" id="3_derived"]
+[ext_resource type="PackedScene" path="res://tuned.tscn" id="4_tuned"]
 
 [node name="Main" type="Node3D" node_paths=PackedStringArray("sibling", "later", "added", "own", "outside")]
 script = ExtResource("2_main")
@@ -165,6 +188,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.75)
 [node name="DefaultCam" type="Camera3D" parent="."]
 
 [node name="Derived" parent="." instance=ExtResource("3_derived")]
+
+[node name="Tuned" parent="." node_paths=PackedStringArray("target") instance=ExtResource("4_tuned")]
+speed = 2.5
+target = NodePath("../Placed")
+
+[node name="Untuned" parent="." instance=ExtResource("4_tuned")]
 
 [connection signal="ready" from="Placed" to="." method="_on_placed_ready"]
 [connection signal="tree_entered" from="Placed/Cam" to="." method="_on_cam_entered"]
