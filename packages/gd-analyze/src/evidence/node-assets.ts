@@ -15,7 +15,15 @@ import { resolve } from './node-asset-loader.mjs';
  * The `node` arguments that load TypeScript and then this hook in a spawned process: the hook must
  * be registered after tsx's, so it sees the `?url` specifier first.
  */
-export const NODE_MOUNT_IMPORTS: readonly string[] = ['--import', 'tsx', '--import', pathToFileURL(path.join(import.meta.dirname, 'node-asset-hook.mjs')).href];
+export const NODE_MOUNT_IMPORTS: readonly string[] = [
+  '--import',
+  'tsx',
+  '--import',
+  pathToFileURL(path.join(import.meta.dirname, 'node-asset-hook.mjs')).href,
+  // The editor's callsite props on every compat component a mount renders (node-callsite-stamp.mjs).
+  '--import',
+  pathToFileURL(path.join(import.meta.dirname, 'node-callsite-stamp.mjs')).href,
+];
 
 let registered = false;
 

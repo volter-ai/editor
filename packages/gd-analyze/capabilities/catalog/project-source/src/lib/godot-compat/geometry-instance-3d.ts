@@ -17,6 +17,7 @@
  * updates for each camera before drawing.
  */
 
+import { godot_element_callsite } from './node';
 import { type ReactElement, type ReactNode, createElement, useLayoutEffect, useState } from 'react';
 import { Box3, type Camera, LOD, type Object3D, Vector3 } from 'three';
 
@@ -245,8 +246,9 @@ class VisibilityRangeLOD extends LOD {
  * @godot GeometryInstance3D (protocol)
  * @source scene/3d/visual_instance_3d.cpp:252
  */
-export function GodotVisibilityRange({ children, begin, beginMargin, end, endMargin, fadeMode }: GodotVisibilityRangeProps): ReactElement {
+export function GodotVisibilityRange({ children, begin, beginMargin, end, endMargin, fadeMode, __vgaiOid }: GodotVisibilityRangeProps): ReactElement {
   const [lod] = useState(() => new VisibilityRangeLOD());
+  godot_element_callsite(lod, __vgaiOid);
   // The node's element is the child R3F attached before this effect: its range set as it mounts.
   useLayoutEffect(() => {
     for (const child of lod.children) {
@@ -268,4 +270,7 @@ export interface GodotVisibilityRangeProps {
   readonly endMargin?: number;
   readonly fadeMode?: number;
   readonly children?: ReactNode;
+  /** The editor's callsite address (`godot_element_callsite`); its label is dropped. */
+  readonly __vgaiOid?: string;
+  readonly __vgaiLabel?: string;
 }

@@ -27,6 +27,7 @@ import {
 import { Group, type Object3D } from 'three';
 import {
   type GodotScriptLifecycleBinding,
+  godot_element_callsite,
   godot_node_adopt,
   godot_node_pending_children,
   godot_node_register_forest,
@@ -323,10 +324,11 @@ const THREE_TRANSFORM = new Set(['position', 'rotation', 'scale', 'quaternion', 
  * @source scene/resources/packed_scene.cpp:400
  */
 export function useGodotElement<Entity extends Object3D>(element: GodotElementClass<Entity>, props: GodotElementProps<Entity>): ReactElement {
-  const { name, ref, children, ...properties } = props;
+  const { name, ref, children, __vgaiOid: callsite, __vgaiLabel: _label, ...properties } = props;
   const [entity] = useState(() => {
     const made = element.create();
     if (name !== undefined) made.name = name;
+    godot_element_callsite(made, callsite);
     godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', classes: element.classes });
     element.mount(made);
     for (const [property, value] of Object.entries(properties)) {
