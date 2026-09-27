@@ -435,15 +435,6 @@ for (const [op, id, js] of [
   });
 }
 
-// A compound assignment to a member of a narrowed untyped receiver (`body.coins += 1` after
-// `body is Player`) is typed Variant by the analyzer; the operation is still int addition, and the
-// JS `+=` on the compat property is that addition.
-rule('assign-OP_ADDITION-ii-variant', 'ASSIGNMENT', 'operator:OP_ADDITION:6', [INT, INT], 'VARIANT:Variant', { kind: 'assignment', operator: '+=' }, {
-  file: COMPILER,
-  symbol: 'GDScriptCompiler::_parse_expression compound ASSIGNMENT OP_ADDITION',
-  line: 1033,
-});
-
 // A `str()` argument is its `Variant::stringify` form (`variant-stringify.ts`), by its analysed type.
 for (const type of ['int', 'float', 'bool', 'String', 'StringName', 'Vector2', 'Vector2i', 'Vector3', 'Vector3i', 'Color']) {
   rule(`str-argument-${type}`, 'CALL', 'str-argument', [`BUILTIN:${type}`], 'BUILTIN:String', structural('stringify'), {
