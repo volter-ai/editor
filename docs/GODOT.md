@@ -104,6 +104,9 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 
 1. Retire the evidence gate from the import: bindings are what compat implements, and the plan
    stops reading claims. The claim records, the refresh, liveness and the case files go with it.
+   Done: unit 1 (`b11f661e`) derived the bindings from compat; unit 2 deleted the claims and the
+   evidence tooling (`src/evidence/`, `evidence/`, the measured records, the `evidence` and
+   `liveness` commands).
 2. Conform to rows 3 to 5: the host owns frame and physics, React owns mounting and instancing,
    class-name dispatch leaves emit and compat, `world.tsx` becomes plain.
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
@@ -119,7 +122,7 @@ its members carry over, its emitter wiring waits for step 2), and `evidence --re
 
 | Path | What it is |
 | --- | --- |
-| `packages/gd-analyze` | `@volter/gd-analyze`, the compiler: snapshot, official frontend, read, analyze, translate, emit, materialize. One CLI, `src/cli.ts` (`import`, `sweep`). |
+| `packages/gd-analyze` | `@volter/gd-analyze`, the compiler: snapshot, official frontend, read, analyze, translate, emit, materialize. One CLI, `src/cli.ts` (`import`, `sweep`, `closure`, `refusals`, `run`). |
 | `packages/gd-analyze/test/fixtures` | The pinned upstream corpus, each game unmodified under its `<id>.UPSTREAM.lock`. |
 | `packages/gd-analyze/capabilities` | The lane's own catalog (`catalog/`, `template/.agents/skills`), shaped like the product's. It holds `godot-compat`, `godot-runtime`, `character`, `sprite` and the `fastlz` codec. The compiler copies from here. |
 | `packages/gd-analyze/godot-frontend` | The exporter module compiled into Godot, its official-source patch, and the capture script. |
@@ -394,7 +397,8 @@ runs a module's cases in two places and compares them. Each case sits in
 the same inputs run through the compat export in Node. The command writes the
 `SemanticClaimRecord`s and the binding rows to `src/translate/code/authority/godot-4.7/<class>.json`.
 A node-level case builds its scene in both places and steps physics frames in both. The binding
-table loads those files; a row whose claim is not live refuses, as before.
+table loads those files; a row whose claim is not live refuses, as before. (Deleted in unit 2 with
+the rest of the evidence machinery: the binding table now comes from compat's exports.)
 
 **Allowed imports** are npm packages (three, Rapier, pixi.js…), `@volter/threejs-runtime` and
 `@volter/game-runtime`, and other `godot-compat` modules. The check refuses every other
