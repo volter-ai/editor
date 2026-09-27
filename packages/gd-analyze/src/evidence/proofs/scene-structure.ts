@@ -6,7 +6,7 @@
  *
  * The project covers instanced scenes as components (nested, with a root override and a child the
  * instancing scene adds), a plain Node between Node3Ds, groups, authored order, Node3D transforms,
- * Camera3D with defaults and authored values, the class each node records, and authored
+ * Camera3D with defaults and authored values (its cull mask among them), the class each node records, and authored
  * `[connection]`s (Node `ready` and `tree_entered`), compared by the order the root's script sees
  * its own callbacks and the connected calls, and the root script's authored node references (to a
  * node before it, one after it, one placed under an instance, itself, and a path leaving the scene)
@@ -171,6 +171,7 @@ transform = Transform3D(0.36, 0.48, -0.8, -0.8, 0.6, 0, 0.48, 0.64, 0.6, 3.3, -2
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 5)
 fov = 60.0
+cull_mask = 5
 near = 0.1
 
 [node name="Prop1" parent="." instance=ExtResource("1_prop")]
@@ -223,7 +224,7 @@ func _walk(main: Node, node: Node, rows: Array) -> void:
 \t\t\tgroups.append(group)
 \trow["groups"] = groups
 \tif node is Camera3D:
-\t\trow["camera"] = [_bits(node.fov), _bits(node.near), _bits(node.far)]
+\t\trow["camera"] = [_bits(node.fov), _bits(node.near), _bits(node.far), node.cull_mask]
 \trows.append(row)
 \tfor child in node.get_children():
 \t\t_walk(main, child, rows)
@@ -264,7 +265,7 @@ import { MainScene } from './src/scenes/main';
 import { GodotProjectStartup } from './src/lib/godot-compat/react-lifecycle';
 import { get_children, get_name, is_in_group, godot_is_native, godot_node_enter_pending, godot_node_entity, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
-import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
+import { get_cull_mask, get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
 
 const GROUPS = ${JSON.stringify(GROUPS)};
 const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
@@ -302,7 +303,7 @@ const walk = (path, object) => {
     row.global = [v(t.basis.x), v(t.basis.y), v(t.basis.z), v(t.origin)];
   }
   row.groups = GROUPS.filter((group) => is_in_group(object, group));
-  if (className === 'Camera3D') row.camera = [bits(get_fov(object)), bits(get_near(object)), bits(get_far(object))];
+  if (className === 'Camera3D') row.camera = [bits(get_fov(object)), bits(get_near(object)), bits(get_far(object)), get_cull_mask(object)];
   rows.push(row);
   // The Node protocol's children: a container the JSX did not author as a node (drei's camera
   // renders one) is not one.

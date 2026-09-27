@@ -1127,6 +1127,9 @@ export function familyElement(
           attribute('fov', literal(property('fov', 75))),
           attribute('near', literal(property('near', 0.05))),
           attribute('far', literal(property('far', 4000))),
+          // Its cull mask is three's camera layers (`camera-3d.ts`); three's default is layer 0
+          // alone, Godot's all 20 (`camera_3d.h:83`), so the mask is always stated.
+          attribute('layers-mask', literal(numberValue(setterValue(node.setters, 'set_cull_mask')) ?? 0xfffff)),
           // Its own environment, drawn in place of the world's while the viewport draws with it.
           ...(setterValue(node.setters, 'set_environment') === undefined
             ? []

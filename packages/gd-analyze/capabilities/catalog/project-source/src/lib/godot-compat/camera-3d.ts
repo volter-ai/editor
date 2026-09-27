@@ -14,6 +14,11 @@
  * starts from its native `fov` (as `KEEP_HEIGHT`), `near` and `far`; the scene mounts a Camera3D
  * with Godot's values (defaults 75, 0.05, 4000, `scene/3d/camera_3d.h:68`).
  *
+ * The cull mask is three's `camera.layers.mask`: three draws an object whose `layers` share a bit
+ * with the camera's, as `RendererSceneCull` draws an instance whose layer mask shares one with the
+ * camera's cull mask (Godot's 20 render layers are three's layers 0 to 19). A new Camera3D culls
+ * with all 20 (`0xfffff`, `camera_3d.h:83`); a scene's camera states its mask.
+ *
  * The camera's viewport is its topmost three ancestor: the root window (whose size `window.ts`
  * holds) or a SubViewport (`sub-viewport.ts`). Orthogonal and frustum projections are not
  * transcribed.
@@ -25,7 +30,7 @@
  * slot taken by the last one (`core/templates/hash_set.h:263`).
  */
 
-import type { Object3D, PerspectiveCamera } from 'three';
+import { type Object3D, PerspectiveCamera } from 'three';
 import type { Environment } from './environment';
 import { godot_node_adopt, godot_node_class_mount, godot_node_tree_signal, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
@@ -414,6 +419,60 @@ export function godot_camera_3d_mount(entity: PerspectiveCamera): void {
 
 // A camera the scene's JSX declares (drei's `<PerspectiveCamera>`) is a Camera3D of the tree.
 godot_node_class_mount('Camera3D', (entity) => godot_camera_3d_mount(entity as PerspectiveCamera));
+
+/** `layers` of a new Camera3D: every one of the 20 render layers (`camera_3d.h:83`). */
+const DEFAULT_CULL_MASK = 0xfffff;
+
+/**
+ * A new Camera3D (`Camera3D.new()`): Godot's lens (75, 0.05, 4000) and cull mask.
+ *
+ * @godot Camera3D (protocol)
+ * @source scene/3d/camera_3d.cpp:871
+ */
+export function construct(): PerspectiveCamera {
+  const camera = new PerspectiveCamera(75, 1, 0.05, 4000);
+  camera.layers.mask = DEFAULT_CULL_MASK;
+  return camera;
+}
+
+/**
+ * @godot Camera3D.set_cull_mask
+ * @source scene/3d/camera_3d.cpp:764
+ */
+export function set_cull_mask(self: PerspectiveCamera, p_layers: number): void {
+  self.layers.mask = p_layers >>> 0;
+}
+
+/**
+ * @godot Camera3D.get_cull_mask
+ * @source scene/3d/camera_3d.cpp:770
+ */
+export function get_cull_mask(self: PerspectiveCamera): number {
+  return self.layers.mask >>> 0;
+}
+
+/**
+ * A layer outside `1..20` fails and changes nothing.
+ *
+ * @godot Camera3D.set_cull_mask_value
+ * @source scene/3d/camera_3d.cpp:774
+ */
+export function set_cull_mask_value(self: PerspectiveCamera, p_layer_number: number, p_value: boolean): void {
+  if (p_layer_number < 1 || p_layer_number > 20) return;
+  const bit = 1 << (p_layer_number - 1);
+  set_cull_mask(self, p_value ? get_cull_mask(self) | bit : get_cull_mask(self) & ~bit);
+}
+
+/**
+ * A layer outside `1..20` fails and reads false.
+ *
+ * @godot Camera3D.get_cull_mask_value
+ * @source scene/3d/camera_3d.cpp:786
+ */
+export function get_cull_mask_value(self: PerspectiveCamera, p_layer_number: number): boolean {
+  if (p_layer_number < 1 || p_layer_number > 20) return false;
+  return (get_cull_mask(self) & (1 << (p_layer_number - 1))) !== 0;
+}
 
 /**
  * @godot Camera3D.make_current

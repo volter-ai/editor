@@ -2,12 +2,13 @@
  * Node cases describe a small scene as steps, printed as GDScript for the official binary and run
  * against three objects through compat exports for the target: the same tree, the same calls.
  */
-import { Group, Object3D, PerspectiveCamera, Scene } from 'three';
+import { Group, Object3D, Scene } from 'three';
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as B from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
 import * as T from '../../capabilities/catalog/project-source/src/lib/godot-compat/transform-3d';
 import * as V2 from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector2';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
+import { construct as newCamera } from '../../capabilities/catalog/project-source/src/lib/godot-compat/camera-3d';
 import { gd } from './literals';
 
 export type Triple = readonly [number, number, number];
@@ -98,7 +99,7 @@ export function scene(
         if (step.camera !== undefined) {
           const viewport = new Scene();
           setSize(viewport, { x: step.camera[0], y: step.camera[1] });
-          const camera = new PerspectiveCamera(75, 1, 0.05, 4000);
+          const camera = newCamera();
           viewport.add(camera);
           nodes.set(step.node, camera);
         } else {

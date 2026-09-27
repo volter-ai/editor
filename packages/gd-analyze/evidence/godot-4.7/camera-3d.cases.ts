@@ -1,4 +1,4 @@
-import { Group, PerspectiveCamera, Scene } from 'three';
+import { Group, Mesh, PerspectiveCamera, Scene } from 'three';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/camera-3d';
 import * as ENV from '../../capabilities/catalog/project-source/src/lib/godot-compat/environment';
 import * as NODE from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
@@ -158,6 +158,46 @@ const CURRENT: readonly (readonly [string, string, readonly CurrentOp[]])[] = [
   ['readd-outside-current', 'is_current', [['add', 'a'], ['make', 'b'], ['add', 'b'], ['remove', 'b'], ['add', 'c'], ['add', 'b']]],
 ];
 for (const [name, member, ops] of CURRENT) currentCase(`current-${name}`, member, ops);
+
+// The cull mask: a new camera's, set and read back, and by layer number.
+add('get_cull_mask-default', 'get_cull_mask', [cam(640, 480)], 'get_cull_mask');
+for (const mask of [1, 2, 0, 0xfffff, 0x80001]) {
+  add(`set_cull_mask-${String(mask)}`, 'set_cull_mask', [cam(640, 480), { call: 'set_cull_mask', on: 'c', args: [int(mask)] }], 'get_cull_mask');
+}
+for (const [layer, value] of [[1, false], [2, true], [20, false], [0, false], [21, true]] as const) {
+  add(`set_cull_mask_value-${String(layer)}-${String(value)}`, 'set_cull_mask_value', [cam(640, 480), { call: 'set_cull_mask', on: 'c', args: [int(1)] }, { call: 'set_cull_mask_value', on: 'c', args: [int(layer), value] }], 'get_cull_mask');
+}
+for (const layer of [1, 2, 20, 0, 21]) {
+  add(`get_cull_mask_value-${String(layer)}`, 'get_cull_mask_value', [cam(640, 480), { call: 'set_cull_mask', on: 'c', args: [int(0x80001)] }], 'get_cull_mask_value', [int(layer)]);
+}
+// Which camera draws a mesh on render layer 2 (`LAYER_CHECK`, renderer_scene_cull.cpp:2922: the
+// camera's cull mask and the instance's layer mask share a bit), against three's `layers.test`
+// between the mesh's layers (as its element states them) and the camera's: a new camera draws it,
+// a cull mask of 1 hides it.
+cases.push({
+  id: 'cull-mask-draws-layer-2',
+  symbol: { kind: 'native-member', owner: 'Camera3D', member: 'set_cull_mask' },
+  gdscript: [
+    'var c := Camera3D.new()',
+    'var m := MeshInstance3D.new()',
+    'm.layers = 2',
+    'var drawn := (c.cull_mask & m.layers) != 0',
+    'c.cull_mask = 1',
+    'var hidden := (c.cull_mask & m.layers) == 0',
+    'c.free()',
+    'm.free()',
+    'return [drawn, hidden]',
+  ].join('\n'),
+  target: () => {
+    const camera = C.construct();
+    const mesh = new Mesh();
+    mesh.layers.mask = 2;
+    const drawn = mesh.layers.test(camera.layers);
+    C.set_cull_mask(camera, 1);
+    return [drawn, !mesh.layers.test(camera.layers)];
+  },
+  comparator: 'exact',
+});
 
 const CAMERA3D_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',
