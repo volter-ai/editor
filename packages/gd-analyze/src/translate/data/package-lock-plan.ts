@@ -62,13 +62,23 @@ function hasInstallScript(scripts: ProjectPackageJson['scripts']): boolean {
   );
 }
 
+/**
+ * A git row pinned to a full commit: exact because the commit names its content. npm fetches a
+ * hosted one as the host's https tarball of that commit, with no git credentials. `colyseus`
+ * (under `@volter/game-editor`) has one required peer published only this way,
+ * `uWebSockets.js`, and the monorepo's own lock resolves it the same way.
+ */
+const COMMIT_PINNED_GIT =
+  /^git\+(?:ssh:\/\/git@|https:\/\/)(?:github\.com|gitlab\.com|bitbucket\.org)\/[\w.-]+\/[\w.-]+#[0-9a-f]{40}$/u;
+
 function assertStandalonePackageRows(packages: Record<string, Record<string, unknown>>): void {
   for (const [path, row] of Object.entries(packages)) {
     if (path === '') continue;
+    const resolved = row['resolved'];
     const exact =
       typeof row['version'] === 'string' &&
-      typeof row['resolved'] === 'string' &&
-      typeof row['integrity'] === 'string';
+      typeof resolved === 'string' &&
+      (typeof row['integrity'] === 'string' || COMMIT_PINNED_GIT.test(resolved));
     const standalone = row['link'] !== true && !String(row['resolved'] ?? '').startsWith('file:');
     if (!exact || !standalone) {
       throw new Error(`${path}: frozen package row is not exact, integral, and standalone`);
