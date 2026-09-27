@@ -12,6 +12,7 @@
  * name); a BoxShape3D is a cuboid collider of half its size.
  */
 import * as path from 'node:path';
+import { Euler, Quaternion } from 'three';
 import type {
   TargetTsExpression,
   TargetTsJsxAttribute,
@@ -101,13 +102,51 @@ function transformAttributes(at: string, matrix: readonly number[] | undefined):
   if (position.some((value) => value !== 0)) result.push(attribute('position', numbers(position)));
   if ([x, y, z].some((value) => float32Literal(value) !== 0)) result.push(attribute('rotation', numbers([x, y, z])));
   if (scale.some((value) => float32Literal(value) !== 1)) result.push(attribute('scale', numbers(scale)));
-  // three's Euler props carry a rotation only to within float32 ulps of the authored basis: the
-  // authored Transform3D itself (basis rows, origin) is what compat's Node3D holds (`node-3d.ts`).
-  if (result.some((entry) => entry.kind === 'jsx-expression-attribute' && (entry.name === 'rotation' || entry.name === 'scale'))) {
-    const rows = [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => e[c * 4 + r] as number));
-    result.push(attribute('userData-godotLocal', numbers([...rows, ...position])));
-  }
   return result;
+}
+
+const f32 = Math.fround;
+
+/** The literal numbers an array prop states, or undefined for another expression. */
+function propNumbers(attributes: readonly TargetTsJsxAttribute[], name: string): readonly number[] | undefined {
+  const found = attributes.find((entry) => entry.kind === 'jsx-expression-attribute' && entry.name === name);
+  if (found?.kind !== 'jsx-expression-attribute' || found.value.kind !== 'array-expression') return undefined;
+  const values = found.value.elements.map((element) => (element.kind === 'literal-expression' && typeof element.value === 'number' ? element.value : undefined));
+  return values.every((value) => value !== undefined) ? (values as number[]) : undefined;
+}
+
+/**
+ * `userData-godotLocal` (the authored Transform3D's basis rows and origin) for a node whose
+ * `position`, `rotation` and `scale` props do not reproduce it bit for bit through three's
+ * Object3D (`Quaternion.setFromEuler`) and compat's float32 read of it (`fromThree`, node-3d.ts:
+ * `Basis::set_quaternion_scale`); compat's Node3D then holds the authored one (`node-3d.ts`). A
+ * node whose props reproduce it carries none.
+ */
+export function authoredLocalAttributes(matrix: readonly number[] | undefined, attributes: readonly TargetTsJsxAttribute[]): TargetTsJsxAttribute[] {
+  if (matrix === undefined) return [];
+  const e = matrix;
+  const authoredRows = [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => f32(e[c * 4 + r] as number)));
+  const authoredOrigin = [f32(e[12] as number), f32(e[13] as number), f32(e[14] as number)];
+  const position = propNumbers(attributes, 'position') ?? [0, 0, 0];
+  const rotation = propNumbers(attributes, 'rotation') ?? [0, 0, 0];
+  const scale = propNumbers(attributes, 'scale') ?? [1, 1, 1];
+  const q = new Quaternion().setFromEuler(new Euler(rotation[0], rotation[1], rotation[2], 'XYZ'));
+  // compat's `fromThree` (node-3d.ts), which this must equal.
+  const [x, y, z, w] = [f32(q.x), f32(q.y), f32(q.z), f32(q.w)];
+  const d = f32(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z)) + f32(w * w));
+  const s2 = f32(2 / d);
+  const [xs, ys, zs] = [f32(x * s2), f32(y * s2), f32(z * s2)];
+  const [wx, wy, wz] = [f32(w * xs), f32(w * ys), f32(w * zs)];
+  const [xx, xy, xz, yy, yz, zz] = [f32(x * xs), f32(x * ys), f32(x * zs), f32(y * ys), f32(y * zs), f32(z * zs)];
+  const rows = [
+    f32(1 - f32(yy + zz)), f32(xy - wz), f32(xz + wy),
+    f32(xy + wz), f32(1 - f32(xx + zz)), f32(yz - wx),
+    f32(xz - wy), f32(yz + wx), f32(1 - f32(xx + yy)),
+  ].map((value, index) => f32(value * f32(scale[index % 3] as number)));
+  const origin = position.map((value) => f32(value));
+  const reproduced = rows.every((value, index) => Object.is(value, authoredRows[index])) && origin.every((value, index) => Object.is(value, authoredOrigin[index]));
+  if (reproduced) return [];
+  return [attribute('userData-godotLocal', numbers([...[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => e[c * 4 + r] as number)), e[12] as number, e[13] as number, e[14] as number]))];
 }
 
 interface Emission {
@@ -632,6 +671,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   if (className === 'DirectionalLight3D' && !transform.some((entry) => entry.kind !== 'jsx-spread-attribute' && entry.name === 'position')) {
     transform.push(attribute('position', numbers([0, 0, 0])));
   }
+  transform.push(...authoredLocalAttributes(matrix as readonly number[] | undefined, transform));
   const children = () => node.children.map((child) => nodeElement(emission, child));
   if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);
