@@ -12,7 +12,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodeGodotBoundProgram, type GodotBoundProgram } from './bound-program';
@@ -97,6 +97,35 @@ function assertExporterSnapshot(snapshot: GodotBoundExporterSnapshot): void {
 }
 
 /** Execute only the exact frontend bytes already owned by the immutable toolchain snapshot. */
+/** Where macOS writes a crashed process's report (`<process>-<date>.ips`). */
+const CRASH_REPORTS = path.join(homedir(), 'Library', 'Logs', 'DiagnosticReports');
+
+function godotCrashReports(): ReadonlySet<string> {
+  try {
+    return new Set(readdirSync(CRASH_REPORTS).filter((name) => /^godot/iu.test(name) && name.endsWith('.ips')));
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * How a Godot process ended when it did not exit 0: its exit code, else the signal that killed it,
+ * and any Godot crash report that appeared while it ran. Not retried: a crash stays recorded.
+ */
+function godotExit(
+  what: string,
+  result: { readonly status: number | null; readonly signal: NodeJS.Signals | null; readonly stdout: string; readonly stderr: string },
+  reportsBefore: ReadonlySet<string>,
+): string {
+  const ended = result.status !== null ? `exited ${String(result.status)}` : `was killed by ${result.signal ?? 'an unknown signal'}`;
+  const fresh = [...godotCrashReports()].filter((name) => !reportsBefore.has(name));
+  const report =
+    fresh.length > 0
+      ? `crash report: ${fresh.map((name) => path.join(CRASH_REPORTS, name)).join(', ')}`
+      : 'no new Godot crash report at exit';
+  return `${what} ${ended} (${report}).\n${result.stdout}\n${result.stderr}`.trim();
+}
+
 /** The official release editor that performs Godot's own import before the exporter runs. */
 export interface GodotOfficialImporter {
   readonly binary: string;
@@ -111,6 +140,7 @@ function runOfficialImport(importer: GodotOfficialImporter, project: string): vo
       `${importer.binary}: executable ${actual} is not the pinned official editor ${importer.executableSha256}`,
     );
   }
+  const reportsBefore = godotCrashReports();
   const result = spawnSync(importer.binary, ['--headless', '--path', project, '--import'], {
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
@@ -120,9 +150,7 @@ function runOfficialImport(importer: GodotOfficialImporter, project: string): vo
     throw new Error(`Could not run the official Godot import: ${result.error.message}`);
   }
   if (result.status !== 0) {
-    throw new Error(
-      `Official Godot import exited ${String(result.status)}.\n${result.stdout}\n${result.stderr}`.trim(),
-    );
+    throw new Error(godotExit('Official Godot import', result, reportsBefore));
   }
 }
 
@@ -154,6 +182,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
     }
     const projectCaptureScript = path.join(project, '.vgai-bound-capture.gd');
     writeFileSync(projectCaptureScript, options.exporter.captureScriptBytes);
+    const reportsBefore = godotCrashReports();
     const result = spawnSync(
       binary,
       [
@@ -174,9 +203,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
       throw new Error(`Could not run Godot bound exporter: ${result.error.message}`);
     }
     if (result.status !== 0) {
-      throw new Error(
-        `Godot bound exporter exited ${String(result.status)}.\n${result.stdout}\n${result.stderr}`.trim(),
-      );
+      throw new Error(godotExit('Godot bound exporter', result, reportsBefore));
     }
     if (!existsSync(output)) {
       throw new Error(
