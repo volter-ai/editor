@@ -1,51 +1,36 @@
 import type { GodotProjectSnapshot } from '../snapshot/project-snapshot';
 import { GODOT_4_SOURCE_AUTHORITIES, type GodotSourceAuthority } from './source-authority';
 
+/** The one pinned Godot 4 release every 4.x project runs under. */
+const PINNED_MINOR = 7;
+
 /**
- * The complete feature vocabulary accepted by each pinned Godot 4 frontend build.
+ * A project's feature vocabulary for its authored release `4.<minor>`.
  *
  * Godot owns this vocabulary in `ProjectSettings::_get_supported_features` (4.6:
  * `core/config/project_settings.cpp:86-111`; 4.7: `:91-116`, the same code): the required
  * `GODOT_VERSION_BRANCH` plus `Double Precision` under `REAL_T_IS_DOUBLE`, `LibGodot`, `C#`,
  * `<branch>.<patch>`, `GODOT_VERSION_FULL_CONFIG`, `GODOT_VERSION_FULL_BUILD` and the renderer tags.
- * The importer accepts only tags whose effect on source binding is represented by the selected
- * pin. Renderer tags do not select a different GDScript frontend. Build modes that change the
- * available language or numeric ABI deliberately refuse until this lane has a matching official
- * exporter and target contract.
+ * Measured on 4.6 and 4.7; for an older minor the same shape is assumed, and a tag outside it
+ * refuses by name. Renderer tags do not select a different GDScript frontend. Build modes that
+ * change the available language or numeric ABI deliberately refuse until this lane has a matching
+ * official exporter and target contract.
  */
-const GODOT_4_FEATURES = {
-  '4.6': {
-    '4.6': 'source-version',
-    '4.6.0': 'source-patch',
-    '4.6.stable': 'source-build',
-    '4.6.stable.official': 'source-build',
-    '4.6.stable.custom_build': 'source-build',
+function featureVocabulary(minor: number): Readonly<Record<string, string>> {
+  const branch = `4.${String(minor)}`;
+  return {
+    [branch]: 'source-version',
+    [`${branch}.0`]: 'source-patch',
+    [`${branch}.stable`]: 'source-build',
+    [`${branch}.stable.official`]: 'source-build',
+    [`${branch}.stable.custom_build`]: 'source-build',
     'Forward Plus': 'renderer',
     Mobile: 'renderer',
     'GL Compatibility': 'renderer',
     'C#': 'unsupported-language-module',
     'Double Precision': 'unsupported-numeric-abi',
     LibGodot: 'unsupported-host-mode',
-  },
-  '4.7': {
-    '4.7': 'source-version',
-    '4.7.0': 'source-patch',
-    '4.7.stable': 'source-build',
-    '4.7.stable.official': 'source-build',
-    '4.7.stable.custom_build': 'source-build',
-    'Forward Plus': 'renderer',
-    Mobile: 'renderer',
-    'GL Compatibility': 'renderer',
-    'C#': 'unsupported-language-module',
-    'Double Precision': 'unsupported-numeric-abi',
-    LibGodot: 'unsupported-host-mode',
-  },
-} as const;
-
-type Godot4SourceVersion = keyof typeof GODOT_4_FEATURES;
-
-function isGodot4SourceVersion(feature: string): feature is Godot4SourceVersion {
-  return Object.hasOwn(GODOT_4_FEATURES, feature);
+  };
 }
 
 function refuse(engine: GodotProjectSnapshot['engine'], reason: string): never {
@@ -55,33 +40,25 @@ function refuse(engine: GodotProjectSnapshot['engine'], reason: string): never {
   );
 }
 
-/** The one source-version feature the project declares; none or several refuse. */
-function declaredSourceVersion(engine: GodotProjectSnapshot['engine']): Godot4SourceVersion {
-  const versions = engine.features.filter(isGodot4SourceVersion);
-  if (versions.length === 0) {
-    refuse(
-      engine,
-      `missing a pinned source-version feature (${Object.keys(GODOT_4_FEATURES).join(' or ')})`,
-    );
-  }
+/** The minor of the one `4.<minor>` source-version feature the project declares; none or several refuse. */
+function declaredMinor(engine: GodotProjectSnapshot['engine']): number {
+  const versions = engine.features.filter((feature) => /^4\.\d+$/u.test(feature));
+  if (versions.length === 0) refuse(engine, 'missing a 4.<minor> source-version feature');
   if (new Set(versions).size > 1) {
     refuse(engine, `declares more than one source-version feature (${versions.join(', ')})`);
   }
-  return versions[0]!;
+  return Number((versions[0] as string).slice(2));
 }
 
-function validateGodot4Features(
-  engine: GodotProjectSnapshot['engine'],
-  version: Godot4SourceVersion,
-): void {
-  const vocabulary: Readonly<Record<string, string>> = GODOT_4_FEATURES[version];
+function validateGodot4Features(engine: GodotProjectSnapshot['engine'], minor: number): void {
+  const vocabulary = featureVocabulary(minor);
   const seen = new Set<string>();
   for (const feature of engine.features) {
     if (seen.has(feature)) refuse(engine, `duplicate feature ${JSON.stringify(feature)}`);
     seen.add(feature);
     const meaning = vocabulary[feature];
     if (meaning === undefined) {
-      refuse(engine, `unrecognized feature ${JSON.stringify(feature)} for Godot ${version}`);
+      refuse(engine, `unrecognized feature ${JSON.stringify(feature)} for Godot 4.${String(minor)}`);
     }
     if (meaning.startsWith('unsupported-')) {
       refuse(engine, `${JSON.stringify(feature)} requires ${meaning.slice('unsupported-'.length)}`);
@@ -89,12 +66,25 @@ function validateGodot4Features(
   }
 }
 
-/** Total declared feature-set mapping. Unsupported pins refuse instead of taking a nearby engine. */
-export function selectGodotFrontendAuthority(
-  engine: GodotProjectSnapshot['engine'],
-): GodotSourceAuthority {
+/** The pinned authority a project runs under, and the release it was authored in. */
+export interface GodotSelectedFrontend {
+  readonly authority: GodotSourceAuthority;
+  /** The project's own `4.<minor>` source-version feature. */
+  readonly projectVersion: string;
+}
+
+/**
+ * Godot 4 minor releases are forward-compatible: a 4.x project opens in the pinned 4.7 editor, which
+ * upgrades it in place. So a project authored in 4.x with x at most 7 runs under the 4.7 authority
+ * (its exporter, its editor's `--headless --import`, every table); one authored in a newer release
+ * refuses by name. The measured 4.6-to-4.7 deltas are `authority/godot-4.6/`'s disagreeing cases.
+ */
+export function selectGodotFrontendAuthority(engine: GodotProjectSnapshot['engine']): GodotSelectedFrontend {
   if (engine.major !== 4) refuse(engine, 'the selected pin requires config_version=5');
-  const version = declaredSourceVersion(engine);
-  validateGodot4Features(engine, version);
-  return GODOT_4_SOURCE_AUTHORITIES[version];
+  const minor = declaredMinor(engine);
+  if (minor > PINNED_MINOR) {
+    refuse(engine, `the project is authored in Godot 4.${String(minor)}, newer than the pinned 4.${String(PINNED_MINOR)}`);
+  }
+  validateGodot4Features(engine, minor);
+  return { authority: GODOT_4_SOURCE_AUTHORITIES['4.7'], projectVersion: `4.${String(minor)}` };
 }

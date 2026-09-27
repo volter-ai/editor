@@ -104,9 +104,9 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
 };
 
 /**
- * Every pinned Godot 4 release, keyed by the source-version feature a project declares
- * (`config/features`). `GODOT_SOURCE_AUTHORITIES[4]` is the 4.7 row of this table.
- * 4.6 has no `boundExporter` pin until its exporter is built, so a 4.6 import refuses by name.
+ * Every pinned Godot 4 release. `GODOT_SOURCE_AUTHORITIES[4]` is the 4.7 row, the one every 4.x
+ * project imports under (`selectGodotFrontendAuthority`). The 4.6 row pins the official 4.6 editor
+ * and exporter that measure the 4.6-to-4.7 deltas (`evidence --godot 4.6`, `authority/godot-4.6/`).
  */
 export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSourceAuthority>> = {
   '4.6': {

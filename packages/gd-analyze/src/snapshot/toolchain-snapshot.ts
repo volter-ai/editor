@@ -89,7 +89,10 @@ export interface GodotToolchainFileArtifact {
 }
 
 export interface GodotToolchainFrontendSnapshot {
+  /** The pinned release the import ran under (`selectGodotFrontendAuthority`). */
   readonly authority: GodotSourceAuthority;
+  /** The release the project was authored in (`config/features`), at most the pinned one. */
+  readonly projectVersion: string;
   readonly analysisAuthority: GodotAnalysisAuthority;
   readonly analysisAuthorityDigest: string;
   readonly readAuthority: GodotReadAuthority;
@@ -576,7 +579,8 @@ export function captureGodotToolchainSnapshot(
 export function captureGodotImportToolchainSnapshot(
   options: CaptureGodotImportToolchainOptions,
 ): GodotImportToolchainSnapshot {
-  const authority = selectGodotFrontendAuthority(options.projectEngine);
+  const selected = selectGodotFrontendAuthority(options.projectEngine);
+  const authority = selected.authority;
   const analysisAuthority = godotAnalysisAuthority(authority);
   const codeAuthority = godotCodeTranslationAuthority(authority);
   const readAuthority = godotReadAuthority(authority);
@@ -616,6 +620,7 @@ export function captureGodotImportToolchainSnapshot(
   }
   const frontend: GodotToolchainFrontendSnapshot = {
     authority,
+    projectVersion: selected.projectVersion,
     analysisAuthority,
     analysisAuthorityDigest: sha256(JSON.stringify(analysisAuthority)),
     readAuthority,
