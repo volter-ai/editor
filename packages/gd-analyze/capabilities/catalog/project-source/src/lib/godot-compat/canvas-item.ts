@@ -19,7 +19,7 @@
 
 import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
-import { godot_node_entity, is_inside_tree } from './node';
+import { godot_node_entity, godot_node_observe_tree, is_inside_tree } from './node';
 import { construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
 import type { GodotElementProp } from './react-lifecycle';
@@ -36,6 +36,12 @@ export interface CanvasItemClass {
   readonly visibilityChanged?: (entity: Object3D) => void;
   /** `NOTIFICATION_DRAW`: the item's own drawing, into its element. */
   readonly draw?: (entity: Object3D, element: HTMLElement) => void;
+  /**
+   * The state `draw` reads, as a key: the item is drawn again only when it changes (the redraw its
+   * setters queue, `CanvasItem::queue_redraw`, `canvas_item.cpp:469`). Without one, the item is
+   * drawn every frame.
+   */
+  readonly drawKey?: (entity: Object3D, element: HTMLElement) => string;
 }
 
 interface CanvasItemState {
@@ -477,73 +483,137 @@ export function godot_canvas_item_self_filter(entity: Object3D, element: HTMLEle
   return root === null ? '' : colorFilter(root, (ITEMS.get(entity) as CanvasItemState).selfModulate);
 }
 
+/** The last value compat wrote to each of an element's style properties. */
+const STYLES = new WeakMap<HTMLElement, Map<string, string>>();
+
+/** Writes a style property only when its value changed (`canvas_item_set_*` sends a change). */
+function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter', value: string): void {
+  let written = STYLES.get(element);
+  if (written === undefined) {
+    written = new Map();
+    STYLES.set(element, written);
+  }
+  if (written.get(property) === value) return;
+  written.set(property, value);
+  element.style[property] = value;
+}
+
+/** Each drawn item's last draw key. */
+const DRAWN = new WeakMap<Object3D, string>();
+
+/** Bumped whenever a node enters or leaves the tree: the canvas's items are listed again. */
+let treeGeneration = 0;
+godot_node_observe_tree(() => {
+  treeGeneration += 1;
+});
+
+interface CanvasEntry {
+  readonly entity: Object3D;
+  readonly layer: boolean;
+  /** The element the entry's element goes in. */
+  readonly container: HTMLElement;
+  /** The canvas a top-level item goes in. */
+  readonly canvas: HTMLElement;
+}
+
+/** Each page root's items and layers in tree order, with the tree generation they were listed at. */
+const LISTED = new WeakMap<HTMLElement, { readonly viewport: Object3D; readonly generation: number; readonly entries: readonly CanvasEntry[] }>();
+
+/**
+ * The viewport's canvas items and layers in tree order (the canvas's item tree), each with the
+ * element it goes in: a layer's in the root, an item's in its parent item's (or its canvas's).
+ * Only canvas-bearing subtrees below the viewport are entered: a subtree holding none is skipped
+ * whole the next time, until the tree changes.
+ */
+function listCanvas(viewport: Object3D, root: HTMLElement, own: HTMLElement): readonly CanvasEntry[] {
+  const document = root.ownerDocument;
+  const entries: CanvasEntry[] = [];
+  const visit = (node: Object3D, container: HTMLElement, canvas: HTMLElement): void => {
+    for (const child of node.children) {
+      if ((child as { readonly isScene?: boolean }).isScene === true) continue;
+      if (LAYERS.has(child)) {
+        const element = elementOf(child, document);
+        entries.push({ entity: child, layer: true, container: root, canvas: element });
+        visit(child, element, element);
+        continue;
+      }
+      if (!ITEMS.has(child)) {
+        visit(child, container, canvas);
+        continue;
+      }
+      const element = elementOf(child, document);
+      entries.push({ entity: child, layer: false, container, canvas });
+      visit(child, element, canvas);
+    }
+  };
+  visit(viewport, own, own);
+  return entries;
+}
+
 /**
  * Draws a viewport's canvas items onto the page, under `root`: the viewport's own canvas and each
  * canvas layer as a full-size element stacked by its layer (`z-index`) with the layer's final
  * transform, each canvas item as an element in its parent item's (or its canvas's), placed by the
  * transform it draws with (`transform-origin` at its top-left), sized as its box, hidden when not
  * visible (with its children, as Godot hides them), its `modulate` a filter on it and its children,
- * its `z_index` its stacking among its siblings, and its own drawing inside. Elements of nodes no
- * longer in the viewport are removed. The host calls it each frame it renders.
+ * its `z_index` its stacking among its siblings, and its own drawing inside. As the rendering
+ * server keeps what it was sent, only what changed is written: the items are listed again (and
+ * elements of nodes no longer in the viewport removed) when the tree changed, a style when its
+ * value did, and an item's drawing when its draw key did. The host calls it each frame it renders.
  *
  * @godot CanvasItem (protocol)
  * @source servers/rendering/renderer_canvas_cull.cpp:304
  */
 export function godot_canvas_draw(viewport: Object3D, root: HTMLElement): void {
-  const document = root.ownerDocument;
   root.dataset['godotRoot'] = '';
-  const touched = new Set<HTMLElement>();
   const own = viewportCanvas(root);
-  own.style.transform = '';
-  root.appendChild(own);
-  touched.add(own);
-  const visit = (node: Object3D, container: HTMLElement, canvas: HTMLElement): void => {
-    for (const child of node.children) {
-      if ((child as { readonly isScene?: boolean }).isScene === true) continue;
-      const layer = LAYERS.get(child);
-      if (layer !== undefined) {
-        const element = elementOf(child, document);
-        element.style.position = 'absolute';
-        element.style.left = '0px';
-        element.style.top = '0px';
-        element.style.width = '100%';
-        element.style.height = '100%';
-        element.style.pointerEvents = 'none';
-        element.style.zIndex = String(layer.layer(child));
-        element.style.transformOrigin = '0px 0px';
-        element.style.transform = matrix(layer.finalTransform(child));
-        element.style.display = layer.visible(child) ? '' : 'none';
-        root.appendChild(element);
-        touched.add(element);
-        visit(child, element, element);
-        continue;
-      }
-      const state = ITEMS.get(child);
-      if (state === undefined) {
-        visit(child, canvas, canvas);
-        continue;
-      }
-      const element = elementOf(child, document);
-      const size = state.class.size?.(child);
-      element.style.position = 'absolute';
-      element.style.left = '0px';
-      element.style.top = '0px';
-      element.style.width = `${String(size?.x ?? 0)}px`;
-      element.style.height = `${String(size?.y ?? 0)}px`;
-      element.style.transformOrigin = '0px 0px';
-      element.style.transform = matrix((state.class.drawTransform ?? state.class.transform)(child));
-      element.style.display = state.visible ? '' : 'none';
-      element.style.zIndex = String(state.zIndex);
-      element.style.filter = colorFilter(root, state.modulate);
-      (state.topLevel ? canvas : container).appendChild(element);
-      touched.add(element);
-      state.class.draw?.(child, element);
-      visit(child, element, canvas);
+  const listed = LISTED.get(root);
+  const relist = listed === undefined || listed.viewport !== viewport || listed.generation !== treeGeneration;
+  const entries = relist ? listCanvas(viewport, root, own) : listed.entries;
+  if (relist) LISTED.set(root, { viewport, generation: treeGeneration, entries });
+  put(own, 'transform', '');
+  if (relist) root.appendChild(own);
+  for (const { entity, layer, container, canvas } of entries) {
+    const element = elementOf(entity, root.ownerDocument);
+    if (layer) {
+      const link = LAYERS.get(entity) as CanvasLayerLink;
+      put(element, 'position', 'absolute');
+      put(element, 'left', '0px');
+      put(element, 'top', '0px');
+      put(element, 'width', '100%');
+      put(element, 'height', '100%');
+      put(element, 'pointerEvents', 'none');
+      put(element, 'zIndex', String(link.layer(entity)));
+      put(element, 'transformOrigin', '0px 0px');
+      put(element, 'transform', matrix(link.finalTransform(entity)));
+      put(element, 'display', link.visible(entity) ? '' : 'none');
+      if (relist) container.appendChild(element);
+      continue;
     }
-  };
-  visit(viewport, own, own);
+    const state = ITEMS.get(entity) as CanvasItemState;
+    const size = state.class.size?.(entity);
+    put(element, 'position', 'absolute');
+    put(element, 'left', '0px');
+    put(element, 'top', '0px');
+    put(element, 'width', `${String(size?.x ?? 0)}px`);
+    put(element, 'height', `${String(size?.y ?? 0)}px`);
+    put(element, 'transformOrigin', '0px 0px');
+    put(element, 'transform', matrix((state.class.drawTransform ?? state.class.transform)(entity)));
+    put(element, 'display', state.visible ? '' : 'none');
+    put(element, 'zIndex', String(state.zIndex));
+    put(element, 'filter', colorFilter(root, state.modulate));
+    const parent = state.topLevel ? canvas : container;
+    if (relist || element.parentElement !== parent) parent.appendChild(element);
+    if (state.class.draw === undefined) continue;
+    const key = state.class.drawKey?.(entity, element);
+    if (key !== undefined && DRAWN.get(entity) === key) continue;
+    state.class.draw(entity, element);
+    if (key !== undefined) DRAWN.set(entity, key);
+  }
+  if (!relist) return;
+  const kept = new Set<HTMLElement>([own, ...entries.map(({ entity }) => elementOf(entity, root.ownerDocument))]);
   for (const element of [...root.querySelectorAll<HTMLElement>('[data-godot]')]) {
-    if (!touched.has(element) && element.parentElement !== null && !element.hasAttribute('data-godot-content')) element.remove();
+    if (!kept.has(element) && element.parentElement !== null && !element.hasAttribute('data-godot-content')) element.remove();
   }
 }
 

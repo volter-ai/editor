@@ -115,6 +115,8 @@ export interface ControlVirtuals {
   readonly themeConstants?: Readonly<Record<string, number>>;
   /** `NOTIFICATION_DRAW`: the class's own drawing into its element. */
   readonly draw?: (entity: Object3D, element: HTMLElement) => void;
+  /** The state `draw` reads, as a key (`CanvasItemClass.drawKey`). */
+  readonly drawKey?: (entity: Object3D, element: HTMLElement) => string;
 }
 
 interface ControlState {
@@ -180,6 +182,7 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
     size: (node) => (CONTROLS.get(node) as ControlState).sizeCache,
     visibilityChanged,
     ...(virtuals.draw === undefined ? {} : { draw: virtuals.draw }),
+    ...(virtuals.drawKey === undefined ? {} : { drawKey: virtuals.drawKey }),
   });
   CONTROLS.set(entity, {
     anchor: [0, 0, 0, 0],

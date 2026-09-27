@@ -119,6 +119,32 @@ function input(entity: Object3D, state: ButtonState, event: InputEventRecord): v
 const CONTENTS = new WeakMap<Object3D, HTMLElement>();
 
 /** `NOTIFICATION_DRAW` (`touch_screen_button.cpp:141`): the pressed or normal texture at the origin. */
+/** What `draw` reads: the texture shown (by identity, image and size), whether it is hidden, the tint. */
+function drawKey(entity: Object3D, element: HTMLElement): string {
+  const state = BUTTONS.get(entity) as ButtonState;
+  const texture = state.finger !== -1 && state.texturePressed !== null ? state.texturePressed : state.textureNormal;
+  const image = texture?.image as { readonly src?: unknown } | null | undefined;
+  return JSON.stringify([
+    texture === null ? 0 : identity(texture),
+    typeof image?.src === 'string' ? image.src : '',
+    texture === null ? 0 : get_width(texture),
+    texture === null ? 0 : get_height(texture),
+    touchHidden(state),
+    godot_canvas_item_self_filter(entity, element),
+  ]);
+}
+
+const IDENTITIES = new WeakMap<object, number>();
+let identities = 0;
+function identity(object: object): number {
+  let id = IDENTITIES.get(object);
+  if (id === undefined) {
+    id = identities += 1;
+    IDENTITIES.set(object, id);
+  }
+  return id;
+}
+
 function draw(entity: Object3D, element: HTMLElement): void {
   const state = BUTTONS.get(entity) as ButtonState;
   let content = CONTENTS.get(entity);
@@ -169,6 +195,7 @@ export function godot_touch_screen_button_mount(entity: Object3D): void {
   BUTTONS.set(entity, state);
   godot_node_2d_mount(entity, ['TouchScreenButton', 'Node2D', 'CanvasItem', 'Node'], {
     draw,
+    drawKey,
     visibilityChanged: (node) => {
       if (is_visible_in_tree(node)) set_process_input(node, true);
       else {

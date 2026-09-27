@@ -74,6 +74,33 @@ function imageSource(texture: Texture): string {
  * `NOTIFICATION_DRAW` on the page: the frame of the texture's image at the destination rectangle,
  * mirrored in place when flipped, tinted by `self_modulate`.
  */
+/** What `draw` reads: the texture and its image (by identity, source and size), the frame and its placement, the tint. */
+function drawKey(entity: Object3D, element: HTMLElement): string {
+  const state = SPRITES.get(entity) as SpriteState;
+  const texture = state.texture;
+  const image = texture?.image as { readonly src?: unknown } | null | undefined;
+  return JSON.stringify([
+    texture === null ? 0 : identity(texture),
+    image === null || image === undefined ? 0 : identity(image),
+    typeof image?.src === 'string' ? image.src : '',
+    texture === null ? 0 : get_width(texture),
+    texture === null ? 0 : get_height(texture),
+    state.frame, state.hframes, state.vframes, state.centered, state.offset, state.flipH, state.flipV,
+    godot_canvas_item_self_filter(entity, element),
+  ]);
+}
+
+const IDENTITIES = new WeakMap<object, number>();
+let identities = 0;
+function identity(object: object): number {
+  let id = IDENTITIES.get(object);
+  if (id === undefined) {
+    id = identities += 1;
+    IDENTITIES.set(object, id);
+  }
+  return id;
+}
+
 function draw(entity: Object3D, element: HTMLElement): void {
   const state = SPRITES.get(entity) as SpriteState;
   let content = CONTENTS.get(entity);
@@ -114,7 +141,7 @@ function draw(entity: Object3D, element: HTMLElement): void {
  */
 export function godot_sprite_2d_mount(entity: Object3D): void {
   SPRITES.set(entity, { texture: null, centered: true, offset: vector2(), flipH: false, flipV: false, hframes: 1, vframes: 1, frame: 0 });
-  godot_node_2d_mount(entity, ['Sprite2D', 'Node2D', 'CanvasItem', 'Node'], { draw });
+  godot_node_2d_mount(entity, ['Sprite2D', 'Node2D', 'CanvasItem', 'Node'], { draw, drawKey });
 }
 
 /**

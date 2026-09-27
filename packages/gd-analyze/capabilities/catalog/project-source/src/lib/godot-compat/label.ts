@@ -178,6 +178,11 @@ export function godot_label_mount(entity: Object3D): void {
   godot_control_mount(entity, ['Label', 'Control', 'CanvasItem', 'Node'], {
     minimumSize,
     draw,
+    drawKey: (node, element) => {
+      const label = LABELS.get(node) as LabelState;
+      const size = get_size(node);
+      return JSON.stringify([label.text, label.settings, label.horizontalAlignment, label.verticalAlignment, label.autowrapMode, size.x, size.y, godot_canvas_item_self_filter(node, element)]);
+    },
     themeConstants: { line_spacing: 3, paragraph_spacing: 0 },
   });
   // `set_mouse_filter(MOUSE_FILTER_IGNORE)` (`label.cpp:1529`).
