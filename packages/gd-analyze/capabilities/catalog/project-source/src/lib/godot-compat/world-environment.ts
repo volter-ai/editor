@@ -34,7 +34,9 @@
  */
 
 import { useThree } from '@react-three/fiber';
-import { type ReactElement, useLayoutEffect } from 'react';
+import { EffectComposer } from '@react-three/postprocessing';
+import { createElement, Fragment, type ReactElement, useLayoutEffect, useMemo } from 'react';
+import { GodotPostEffect, godot_environment_post_enabled } from './environment-post';
 import {
   AmbientLight,
   BoxGeometry,
@@ -121,7 +123,7 @@ function glsl(value: number): string {
  * @godot Environment (protocol)
  * @source drivers/gles3/shaders/tonemap_inc.glsl:176
  */
-export function godot_environment_tonemapping_glsl(env: Environment): string {
+export function godot_environment_tonemapping_glsl(env: Environment, post = false): string {
   const { params } = godot_environment_tonemap_parameters(env);
   const p = `vec4(${params.map(glsl).join(', ')})`;
   const mapper = env.tone_mapper;
@@ -187,8 +189,9 @@ export function godot_environment_tonemapping_glsl(env: Environment): string {
   };
   const mapped = body[mapper];
   if (mapped === undefined) throw new Error(`godot-compat: tone mapper ${String(mapper)} is not bound.`);
-  return `vec3 CustomToneMapping( vec3 color ) {
-	color *= toneMappingExposure;
+  // The post pass's (`post.glsl`): the scene shader already scaled by the exposure.
+  return `vec3 ${post ? 'apply_tonemapping' : 'CustomToneMapping'}( vec3 color ) {
+	${post ? '' : 'color *= toneMappingExposure;'}
 	${mapper === 0 ? '' : 'color = max(vec3(0.0), color);'}
 	${mapped}
 }`;
@@ -347,7 +350,16 @@ export function GodotWorldEnvironment(props: GodotElementProps<Group>): ReactEle
     if (node === undefined) return undefined;
     return godot_world_environment_register(scene, node);
   }, [element, scene]);
-  return element;
+  // Glow, SSAO or the adjustments: the renderer's post pass (`environment-post.ts`), which
+  // `postprocessing`'s composer renders in place of R3F's own frame, without MSAA as Godot's 3D
+  // (`rendering/anti_aliasing/quality/msaa_3d`, 0).
+  const env = (props['environment'] ?? null) as Environment | null;
+  const post = useMemo(
+    () => (env !== null && godot_environment_post_enabled(env) ? new GodotPostEffect(env, godot_environment_tonemapping_glsl(env, true), godot_environment_tonemap_parameters(env).white) : null),
+    [env],
+  );
+  if (post === null) return element;
+  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, children: createElement('primitive', { object: post }) }));
 }
 
 /** What a viewport's scene draws its environment from, and the environment it drew last. */

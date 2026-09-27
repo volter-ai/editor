@@ -8,8 +8,9 @@
  * them. How the Compatibility renderer draws them on three is `world-environment.ts`'s; the tone
  * mapper's parameters are computed here as the renderer computes them
  * (`RendererEnvironmentStorage::environment_get_tonemap_parameters`,
- * `servers/rendering/storage/environment_storage.cpp:276`). Screen-space effects, glow, SDFGI and
- * volumetric fog are not transcribed (the translation refuses a scene that sets them).
+ * `servers/rendering/storage/environment_storage.cpp:276`). Glow, SSAO and the adjustments are the
+ * renderer's post pass (`environment-post.ts`); the parameters that renderer never reads are stored
+ * and read back only.
  */
 
 import { construct as color, type Color } from './color';
@@ -41,6 +42,20 @@ export interface Environment {
   fog_height_density: number;
   fog_sky_affect: number;
   fog_mode: number;
+  /** The post pass's parameters (`post-effects.ts`): glow, SSAO and the adjustments. */
+  glow_enabled: boolean;
+  glow_intensity: number;
+  glow_bloom: number;
+  glow_hdr_bleed_threshold: number;
+  glow_hdr_bleed_scale: number;
+  glow_hdr_luminance_cap: number;
+  ssao_enabled: boolean;
+  ssao_radius: number;
+  ssao_intensity: number;
+  adjustment_enabled: boolean;
+  adjustment_brightness: number;
+  adjustment_contrast: number;
+  adjustment_saturation: number;
   /** Stored and read back; the Compatibility renderer never reads them (`godot_environment_set_unread`). */
   ssao_power: number;
   ssao_horizon: number;
@@ -80,6 +95,19 @@ export function construct(): Environment {
     fog_height_density: 0,
     fog_sky_affect: 1,
     fog_mode: 0,
+    glow_enabled: false,
+    glow_intensity: f32(0.3),
+    glow_bloom: 0,
+    glow_hdr_bleed_threshold: 1,
+    glow_hdr_bleed_scale: 2,
+    glow_hdr_luminance_cap: 12,
+    ssao_enabled: false,
+    ssao_radius: 1,
+    ssao_intensity: 2,
+    adjustment_enabled: false,
+    adjustment_brightness: 1,
+    adjustment_contrast: 1,
+    adjustment_saturation: 1,
     ssao_power: 1.5,
     ssao_horizon: f32(0.06),
     glow_levels: [0, f32(0.8), f32(0.4), f32(0.1), 0, 0, 0],
@@ -488,6 +516,19 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   ['fogHeightDensity', (self, value: number) => set_fog_height_density(self, value)],
   ['fogSkyAffect', (self, value: number) => set_fog_sky_affect(self, value)],
   ['fogMode', (self, value: number) => set_fog_mode(self, value)],
+  ['glowEnabled', (self, value: boolean) => set_glow_enabled(self, value)],
+  ['glowIntensity', (self, value: number) => set_glow_intensity(self, value)],
+  ['glowBloom', (self, value: number) => set_glow_bloom(self, value)],
+  ['glowHdrThreshold', (self, value: number) => set_glow_hdr_bleed_threshold(self, value)],
+  ['glowHdrScale', (self, value: number) => set_glow_hdr_bleed_scale(self, value)],
+  ['glowHdrLuminanceCap', (self, value: number) => set_glow_hdr_luminance_cap(self, value)],
+  ['ssaoEnabled', (self, value: boolean) => set_ssao_enabled(self, value)],
+  ['ssaoRadius', (self, value: number) => set_ssao_radius(self, value)],
+  ['ssaoIntensity', (self, value: number) => set_ssao_intensity(self, value)],
+  ['adjustmentEnabled', (self, value: boolean) => set_adjustment_enabled(self, value)],
+  ['adjustmentBrightness', (self, value: number) => set_adjustment_brightness(self, value)],
+  ['adjustmentContrast', (self, value: number) => set_adjustment_contrast(self, value)],
+  ['adjustmentSaturation', (self, value: number) => set_adjustment_saturation(self, value)],
   ['ssaoPower', (self, value: number) => set_ssao_power(self, value)],
   ['ssaoHorizon', (self, value: number) => set_ssao_horizon(self, value)],
   ['sdfgiCascades', (self, value: number) => set_sdfgi_cascades(self, value)],
@@ -495,6 +536,217 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   // `glow_levels/N` is the level N - 1 (`environment.cpp:1464`).
   ...[1, 2, 3, 4, 5, 6, 7].map((n): [string, (self: Environment, value: never) => void] => [`glowLevels${String(n)}`, (self, value: number) => set_glow_level(self, n - 1, value)]),
 ]);
+
+
+// --- The post pass's parameters: drawn by `post-effects.ts` as the Compatibility renderer's post pass.
+
+/**
+ * @godot Environment.set_glow_enabled
+ * @source scene/resources/environment.cpp:608
+ */
+export function set_glow_enabled(self: Environment, value: boolean): void {
+  self.glow_enabled = Boolean(value);
+}
+
+/**
+ * @godot Environment.is_glow_enabled
+ * @source scene/resources/environment.cpp:613
+ */
+export function is_glow_enabled(self: Environment): boolean {
+  return self.glow_enabled;
+}
+
+/**
+ * @godot Environment.set_glow_intensity
+ * @source scene/resources/environment.cpp:641
+ */
+export function set_glow_intensity(self: Environment, value: number): void {
+  self.glow_intensity = f32(value);
+}
+
+/**
+ * @godot Environment.get_glow_intensity
+ * @source scene/resources/environment.cpp:646
+ */
+export function get_glow_intensity(self: Environment): number {
+  return self.glow_intensity;
+}
+
+/**
+ * @godot Environment.set_glow_bloom
+ * @source scene/resources/environment.cpp:668
+ */
+export function set_glow_bloom(self: Environment, value: number): void {
+  self.glow_bloom = f32(value);
+}
+
+/**
+ * @godot Environment.get_glow_bloom
+ * @source scene/resources/environment.cpp:673
+ */
+export function get_glow_bloom(self: Environment): number {
+  return self.glow_bloom;
+}
+
+/**
+ * @godot Environment.set_glow_hdr_bleed_threshold
+ * @source scene/resources/environment.cpp:687
+ */
+export function set_glow_hdr_bleed_threshold(self: Environment, value: number): void {
+  self.glow_hdr_bleed_threshold = f32(value);
+}
+
+/**
+ * @godot Environment.get_glow_hdr_bleed_threshold
+ * @source scene/resources/environment.cpp:692
+ */
+export function get_glow_hdr_bleed_threshold(self: Environment): number {
+  return self.glow_hdr_bleed_threshold;
+}
+
+/**
+ * @godot Environment.set_glow_hdr_bleed_scale
+ * @source scene/resources/environment.cpp:696
+ */
+export function set_glow_hdr_bleed_scale(self: Environment, value: number): void {
+  self.glow_hdr_bleed_scale = f32(value);
+}
+
+/**
+ * @godot Environment.get_glow_hdr_bleed_scale
+ * @source scene/resources/environment.cpp:701
+ */
+export function get_glow_hdr_bleed_scale(self: Environment): number {
+  return self.glow_hdr_bleed_scale;
+}
+
+/**
+ * @godot Environment.set_glow_hdr_luminance_cap
+ * @source scene/resources/environment.cpp:705
+ */
+export function set_glow_hdr_luminance_cap(self: Environment, value: number): void {
+  self.glow_hdr_luminance_cap = f32(value);
+}
+
+/**
+ * @godot Environment.get_glow_hdr_luminance_cap
+ * @source scene/resources/environment.cpp:710
+ */
+export function get_glow_hdr_luminance_cap(self: Environment): number {
+  return self.glow_hdr_luminance_cap;
+}
+
+/**
+ * @godot Environment.set_ssao_enabled
+ * @source scene/resources/environment.cpp:320
+ */
+export function set_ssao_enabled(self: Environment, value: boolean): void {
+  self.ssao_enabled = Boolean(value);
+}
+
+/**
+ * @godot Environment.is_ssao_enabled
+ * @source scene/resources/environment.cpp:325
+ */
+export function is_ssao_enabled(self: Environment): boolean {
+  return self.ssao_enabled;
+}
+
+/**
+ * @godot Environment.set_ssao_radius
+ * @source scene/resources/environment.cpp:329
+ */
+export function set_ssao_radius(self: Environment, value: number): void {
+  self.ssao_radius = f32(value);
+}
+
+/**
+ * @godot Environment.get_ssao_radius
+ * @source scene/resources/environment.cpp:334
+ */
+export function get_ssao_radius(self: Environment): number {
+  return self.ssao_radius;
+}
+
+/**
+ * @godot Environment.set_ssao_intensity
+ * @source scene/resources/environment.cpp:338
+ */
+export function set_ssao_intensity(self: Environment, value: number): void {
+  self.ssao_intensity = f32(value);
+}
+
+/**
+ * @godot Environment.get_ssao_intensity
+ * @source scene/resources/environment.cpp:343
+ */
+export function get_ssao_intensity(self: Environment): number {
+  return self.ssao_intensity;
+}
+
+/**
+ * @godot Environment.set_adjustment_enabled
+ * @source scene/resources/environment.cpp:1037
+ */
+export function set_adjustment_enabled(self: Environment, value: boolean): void {
+  self.adjustment_enabled = Boolean(value);
+}
+
+/**
+ * @godot Environment.is_adjustment_enabled
+ * @source scene/resources/environment.cpp:1042
+ */
+export function is_adjustment_enabled(self: Environment): boolean {
+  return self.adjustment_enabled;
+}
+
+/**
+ * @godot Environment.set_adjustment_brightness
+ * @source scene/resources/environment.cpp:1046
+ */
+export function set_adjustment_brightness(self: Environment, value: number): void {
+  self.adjustment_brightness = f32(value);
+}
+
+/**
+ * @godot Environment.get_adjustment_brightness
+ * @source scene/resources/environment.cpp:1051
+ */
+export function get_adjustment_brightness(self: Environment): number {
+  return self.adjustment_brightness;
+}
+
+/**
+ * @godot Environment.set_adjustment_contrast
+ * @source scene/resources/environment.cpp:1055
+ */
+export function set_adjustment_contrast(self: Environment, value: number): void {
+  self.adjustment_contrast = f32(value);
+}
+
+/**
+ * @godot Environment.get_adjustment_contrast
+ * @source scene/resources/environment.cpp:1060
+ */
+export function get_adjustment_contrast(self: Environment): number {
+  return self.adjustment_contrast;
+}
+
+/**
+ * @godot Environment.set_adjustment_saturation
+ * @source scene/resources/environment.cpp:1064
+ */
+export function set_adjustment_saturation(self: Environment, value: number): void {
+  self.adjustment_saturation = f32(value);
+}
+
+/**
+ * @godot Environment.get_adjustment_saturation
+ * @source scene/resources/environment.cpp:1069
+ */
+export function get_adjustment_saturation(self: Environment): number {
+  return self.adjustment_saturation;
+}
 
 // --- Parameters the Compatibility renderer (the web's) never reads: stored and read back, drawing
 // nothing. Its SSAO pass reads only the intensity and radius (`rasterizer_scene_gles3.cpp:2996`);

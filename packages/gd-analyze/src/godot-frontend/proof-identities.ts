@@ -39,6 +39,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-particles',
   'scene-environment',
   'shader-lowering',
+  'post-effects',
   'scene-animation',
   'scene-imported',
   'scene-physics',

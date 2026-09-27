@@ -75,12 +75,31 @@ function builtin(name: string, args: readonly ShaderValue[], samplers: ReadonlyM
   const b = args[1] as ShaderValue;
   const c = args[2] as ShaderValue;
   switch (name) {
-    case 'texture': {
+    case 'texture':
+    case 'textureLod': {
       void samplers;
       const sampler = samplerOf(a);
-      if (sampler === undefined) throw new Error('texture() of an unknown sampler');
+      if (sampler === undefined) throw new Error(`${name}() of an unknown sampler`);
       return sampler(components(b)).map(f32);
     }
+    case 'smoothstep': {
+      // `t = clamp((x - edge0) / (edge1 - edge0), 0, 1); t * t * (3 - 2t)`, in binary32.
+      const e0 = components(a);
+      const e1 = components(b);
+      const at = (i: number): number => {
+        const x = components(c)[i] as number;
+        const lo = (e0.length === 1 ? e0[0] : e0[i]) as number;
+        const hi = (e1.length === 1 ? e1[0] : e1[i]) as number;
+        const t = f32(Math.min(Math.max(f32(f32(x - lo) / f32(hi - lo)), 0), 1));
+        return f32(f32(t * t) * f32(3 - f32(2 * t)));
+      };
+      const out = components(c).map((_, i) => at(i));
+      return typeof c === 'number' ? (out[0] as number) : out;
+    }
+    case 'lessThanEqual':
+      return components(a).map((x, i) => (x <= (components(b)[i] as number) ? 1 : 0));
+    case 'lessThan':
+      return components(a).map((x, i) => (x < (components(b)[i] as number) ? 1 : 0));
     case 'abs':
       return map(a, Math.abs);
     case 'sqrt':
@@ -167,6 +186,8 @@ function binary(op: string, a: ShaderValue, b: ShaderValue): ShaderValue {
       return !components(a).every((value, i) => value === components(b)[i]);
     case '&&':
       return Boolean(a) && Boolean(b);
+    case '&':
+      return (a as number) & (b as number);
     case '||':
       return Boolean(a) || Boolean(b);
     default:
@@ -314,9 +335,11 @@ export function evaluateGodotShaderTree(
 
 type Token = { readonly kind: 'number' | 'name' | 'symbol'; readonly text: string };
 
-function tokenize(source: string): Token[] {
+function tokenize(text: string): Token[] {
   const tokens: Token[] = [];
-  const pattern = /\s*(?:(\d+\.\d*(?:[eE][-+]?\d+)?|\d+[eE][-+]?\d+|\d+u?|\.\d+(?:[eE][-+]?\d+)?)|([A-Za-z_][A-Za-z0-9_]*)|(\+=|-=|\*=|\/=|==|!=|<=|>=|&&|\|\||\+\+|--|[-+*/%<>=!?:;,.(){}[\]]))/y;
+  // Comments are not code; a float literal's `f` suffix is its type only.
+  const source = text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  const pattern = /\s*(?:(\d+\.\d*(?:[eE][-+]?\d+)?f?|\d+[eE][-+]?\d+f?|\d+u?|\.\d+(?:[eE][-+]?\d+)?f?)|([A-Za-z_][A-Za-z0-9_]*)|(\+=|-=|\*=|\/=|==|!=|<=|>=|&&|\|\||\+\+|--|[-+*/%<>=!?:;,.(){}[\]&]))/y;
   let at = 0;
   while (at < source.length) {
     if (/^\s*$/.test(source.slice(at))) break;
@@ -324,7 +347,7 @@ function tokenize(source: string): Token[] {
     const match = pattern.exec(source);
     if (match === null) throw new Error(`GLSL text not evaluated at ${source.slice(at, at + 20)}`);
     at = pattern.lastIndex;
-    if (match[1] !== undefined) tokens.push({ kind: 'number', text: match[1] });
+    if (match[1] !== undefined) tokens.push({ kind: 'number', text: match[1].replace(/f$/, '') });
     else if (match[2] !== undefined) tokens.push({ kind: 'name', text: match[2] });
     else tokens.push({ kind: 'symbol', text: match[3] as string });
   }
@@ -332,7 +355,9 @@ function tokenize(source: string): Token[] {
 }
 
 const TYPES = new Set(['float', 'vec2', 'vec3', 'vec4', 'int', 'bool']);
-const PRECEDENCE: Readonly<Record<string, number>> = { '||': 1, '&&': 2, '==': 3, '!=': 3, '<': 4, '<=': 4, '>': 4, '>=': 4, '+': 5, '-': 5, '*': 6, '/': 6 };
+const PRECEDENCE: Readonly<Record<string, number>> = { '||': 1, '&&': 2, '&': 3, '==': 4, '!=': 4, '<': 5, '<=': 5, '>': 5, '>=': 5, '+': 6, '-': 6, '*': 7, '/': 7 };
+/** Precision qualifiers, which change nothing the evaluator computes (binary32 throughout). */
+const QUALIFIERS = new Set(['highp', 'mediump', 'lowp']);
 
 /**
  * The statements of a lowered function body run once, reading and writing `variables` (the mapped
@@ -375,6 +400,29 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
         take(')');
         place = inner;
       }
+    } else if (token.text === '++' || token.text === '--') {
+      // A prefix increment: the place changed, its new value read.
+      const operand = primary();
+      const step = token.text === '++' ? 1 : -1;
+      place = {
+        read: () => {
+          const value = binary('+', operand.read(), step);
+          operand.write?.(value);
+          return value;
+        },
+      };
+    } else if (token.kind === 'name' && TYPES.has(token.text) && peek()?.text === '[') {
+      // An array constructor, `int[](24, 18, 12, 6)`.
+      take('[');
+      take(']');
+      take('(');
+      const items: Place[] = [];
+      while (peek()?.text !== ')') {
+        items.push(expression());
+        if (peek()?.text === ',') take(',');
+      }
+      take(')');
+      place = { read: () => items.map((item) => item.read() as number) };
     } else if (token.text === '-' || token.text === '!') {
       const operand = unary();
       place = token.text === '-' ? { read: () => map(operand.read(), (x) => -x) } : { read: () => !operand.read() };
@@ -394,7 +442,10 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
         ? { read: () => construct(name, args.map((arg) => arg.read())) }
         : functions.has(name)
           ? { read: () => callFunction(name, args.map((arg) => arg.read())) }
-          : { read: () => builtin(name, args.map((arg) => arg.read()), new Map(), samplerOf) };
+          : typeof variables.get(name) === 'function' && !BUILTINS.has(name)
+            ? // A function the caller supplies (`readDepth`), called with the arguments' values.
+              { read: () => (variables.get(name) as unknown as (...values: ShaderValue[]) => ShaderValue)(...args.map((arg) => arg.read())) }
+            : { read: () => builtin(name, args.map((arg) => arg.read()), new Map(), samplerOf) };
     } else if (token.kind === 'name') {
       const name = token.text;
       place = {
@@ -409,14 +460,24 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
     } else {
       throw new Error(`GLSL: ${token.text} is not an expression`);
     }
-    while (peek()?.text === '.') {
-      take('.');
-      const name = take().text;
-      const owner = place;
-      place = {
-        read: () => swizzle(owner.read(), name),
-        write: owner.write === undefined ? undefined : (value) => owner.write?.(assignSwizzle(owner.read(), name, value)),
-      };
+    for (;;) {
+      if (peek()?.text === '.') {
+        take('.');
+        const name = take().text;
+        const owner = place;
+        place = {
+          read: () => swizzle(owner.read(), name),
+          write: owner.write === undefined ? undefined : (value) => owner.write?.(assignSwizzle(owner.read(), name, value)),
+        };
+      } else if (peek()?.text === '[') {
+        take('[');
+        const index = expression();
+        take(']');
+        const owner = place;
+        place = { read: () => components(owner.read())[index.read() as number] as number };
+      } else {
+        break;
+      }
     }
     return place;
   };
@@ -449,9 +510,15 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
       return;
     }
     if (token.text === 'const') take('const');
-    if (token.kind === 'name' && TYPES.has(token.text) && tokens[at + 1]?.kind === 'name') {
+    while (QUALIFIERS.has(peek()?.text ?? '')) take();
+    if (peek()?.kind === 'name' && TYPES.has(peek()?.text ?? '') && tokens[at + 1]?.kind === 'name') {
       take();
       const name = take().text;
+      // An array declaration, `samps[]`: its initializer is the array.
+      if (peek()?.text === '[') {
+        take('[');
+        take(']');
+      }
       if (peek()?.text === '=') {
         take('=');
         variables.set(name, expression().read());
@@ -459,6 +526,52 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
         variables.set(name, 0);
       }
       take(';');
+      return;
+    }
+    if (token.text === 'for') {
+      take('for');
+      take('(');
+      if (peek()?.text !== ';') statement();
+      else take(';');
+      const condition = at;
+      // The condition, update and body run from their positions, the body skipped to find the end.
+      const skipTo = (text: string): void => {
+        let depth = 0;
+        while (!(depth === 0 && peek()?.text === text)) {
+          const next = take().text;
+          if (next === '(') depth += 1;
+          if (next === ')') depth -= 1;
+        }
+      };
+      skipTo(';');
+      take(';');
+      const update = at;
+      skipTo(')');
+      take(')');
+      const body = at;
+      if (peek()?.text === '{') {
+        take('{');
+        let depth = 1;
+        while (depth > 0) {
+          const next = take().text;
+          if (next === '{') depth += 1;
+          if (next === '}') depth -= 1;
+        }
+      } else {
+        while (take().text !== ';');
+      }
+      const after = at;
+      for (let guard = 0; ; guard += 1) {
+        if (guard > 100000) throw new Error('GLSL: a loop did not end');
+        at = condition;
+        const holds = peek()?.text === ';' ? true : expression().read();
+        if (!holds) break;
+        at = body;
+        statement();
+        at = update;
+        if (peek()?.text !== ')') expression().read();
+      }
+      at = after;
       return;
     }
     if (token.text === 'if') {
@@ -519,12 +632,18 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
       throw error;
     } finally {
       at = resume;
-      variables.clear();
-      for (const [key, value] of saved) variables.set(key, value);
+      // The function's parameters and locals end with it; what it wrote to a global stays.
+      for (const key of [...variables.keys()]) if (!saved.has(key)) variables.delete(key);
+      for (const parameter of fn.parameters) {
+        if (saved.has(parameter)) variables.set(parameter, saved.get(parameter) as ShaderValue);
+      }
     }
   };
-  // Helper function definitions (`float godot_f_band(float godot_l_v, …) { … }`) come first.
-  while (tokens[at]?.kind === 'name' && TYPES_AND_VOID.has(tokens[at]?.text ?? '') && tokens[at + 1]?.kind === 'name' && tokens[at + 2]?.text === '(') {
+  // Helper function definitions (`float godot_f_band(float godot_l_v, …) { … }`), among the
+  // program's declarations and statements; an interface declaration (`uniform`, `in`, `out`,
+  // `layout(…)`, `precision`) states nothing the caller has not set.
+  const INTERFACE = new Set(['uniform', 'in', 'out', 'layout', 'precision']);
+  const defineFunction = (): void => {
     take();
     const name = take().text;
     take('(');
@@ -544,12 +663,34 @@ export function evaluateGlsl(body: string, variables: Map<string, ShaderValue | 
       if (next === '}') depth -= 1;
     }
     functions.set(name, { parameters, start, end: at - 1 });
-  }
+  };
+  const topLevel = (): void => {
+    while (at < tokens.length) {
+      if (INTERFACE.has(tokens[at]?.text ?? '')) {
+        let depth = 0;
+        for (;;) {
+          const next = take().text;
+          if (next === '{' || next === '(') depth += 1;
+          if (next === '}' || next === ')') depth -= 1;
+          if (next === ';' && depth === 0) break;
+        }
+        continue;
+      }
+      if (tokens[at]?.kind === 'name' && TYPES_AND_VOID.has(tokens[at]?.text ?? '') && tokens[at + 1]?.kind === 'name' && tokens[at + 2]?.text === '(') {
+        defineFunction();
+        continue;
+      }
+      statement();
+    }
+  };
   try {
-    while (at < tokens.length) statement();
+    topLevel();
   } catch (error) {
     if (!(error instanceof Returned)) throw error;
   }
 }
+
+/** The names `builtin` evaluates (a caller-supplied function never shadows one). */
+const BUILTINS = new Set(['texture', 'textureLod', 'smoothstep', 'lessThanEqual', 'lessThan', 'abs', 'sqrt', 'sin', 'cos', 'exp', 'floor', 'fract', 'pow', 'min', 'max', 'clamp', 'mix', 'step', 'dot', 'length', 'normalize', 'cross']);
 
 const TYPES_AND_VOID = new Set(['void', 'float', 'vec2', 'vec3', 'vec4', 'int', 'bool']);

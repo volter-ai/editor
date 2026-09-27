@@ -590,6 +590,8 @@ const ENGINE_SETTINGS = [
   'physics/common/max_physics_steps_per_frame',
   'physics/common/physics_jitter_fix',
   'physics/common/physics_ticks_per_second',
+  // The post pass's S4AO variant (`environment-post.ts`).
+  'rendering/environment/ssao/quality',
 ] as const;
 
 /** The settings scripts read by literal key (`project-setting-type`), each once, and the engine's. */

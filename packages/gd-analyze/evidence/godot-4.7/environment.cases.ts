@@ -32,7 +32,30 @@ const FLOATS: readonly (readonly [string, string, readonly number[]])[] = [
   ['set_ssao_power', 'get_ssao_power', [2.25]],
   ['set_ssao_horizon', 'get_ssao_horizon', [0.12]],
   ['set_sdfgi_energy', 'get_sdfgi_energy', [0.7]],
+  ['set_glow_intensity', 'get_glow_intensity', [0.8]],
+  ['set_glow_bloom', 'get_glow_bloom', [0.15]],
+  ['set_glow_hdr_bleed_threshold', 'get_glow_hdr_bleed_threshold', [0.9]],
+  ['set_glow_hdr_bleed_scale', 'get_glow_hdr_bleed_scale', [1.5]],
+  ['set_glow_hdr_luminance_cap', 'get_glow_hdr_luminance_cap', [6]],
+  ['set_ssao_radius', 'get_ssao_radius', [0.3]],
+  ['set_ssao_intensity', 'get_ssao_intensity', [1.2]],
+  ['set_adjustment_brightness', 'get_adjustment_brightness', [1.1]],
+  ['set_adjustment_contrast', 'get_adjustment_contrast', [1.3]],
+  ['set_adjustment_saturation', 'get_adjustment_saturation', [0.6]],
 ];
+const BOOLS: readonly (readonly [string, string])[] = [
+  ['set_glow_enabled', 'is_glow_enabled'],
+  ['set_ssao_enabled', 'is_ssao_enabled'],
+  ['set_adjustment_enabled', 'is_adjustment_enabled'],
+];
+for (const [setter, getter] of BOOLS) {
+  c.add(setter, setter, ['var e := Environment.new()', `e.${setter}(true)`, `return e.${getter}()`], () => {
+    const e = E.construct();
+    call(setter)(e, true);
+    return call(getter)(e);
+  });
+  c.add(`${getter}-default`, getter, [`return Environment.new().${getter}()`], () => call(getter)(E.construct()));
+}
 const INTS: readonly (readonly [string, string, readonly number[]])[] = [
   ['set_background', 'get_background', [2, 1]],
   ['set_ambient_source', 'get_ambient_source', [2]],
