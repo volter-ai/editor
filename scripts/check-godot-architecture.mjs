@@ -20,9 +20,12 @@ const EMIT = `${LANE}/src/translate/emit`;
 const LOWERING = `${LANE}/src/translate/code`;
 const API_DUMP = `${LANE}/vendor/extension-api/godot-4.7-extension_api.json`;
 
-/** Godot's class and built-in type names, from the pinned API dump. */
+/**
+ * Godot's class names (nodes, resources, servers), from the pinned API dump. Built-in value types
+ * (`bool`, `float`, `Vector3`) are not classes: a Variant's kind is data, not a node's class.
+ */
 const dump = JSON.parse(readFileSync(join(root, API_DUMP), 'utf8'));
-const CLASSES = [...dump.classes.map((entry) => entry.name), ...dump.builtin_classes.map((entry) => entry.name)];
+const CLASSES = dump.classes.map((entry) => entry.name);
 const NAMES = CLASSES.map((name) => name.replace(/[$^.*+?()[\]{}|\\]/g, '\\$&')).join('|');
 
 /** Each rule: the row it guards, where it looks, and the code it finds. */
