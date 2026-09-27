@@ -4,7 +4,7 @@ extends SceneTree
 # pinned Godot frontend and supplies every token, node, binding, type, and compiler outcome.
 
 const PROTOCOL := "vgai.godot-bound-program"
-const PROTOCOL_VERSION := 11
+const PROTOCOL_VERSION := 12
 
 var _out_path := ""
 var _binary_sha256 := ""
@@ -52,6 +52,25 @@ func _init() -> void:
 		var shader_row: Dictionary = exporter.export_shader(FileAccess.get_file_as_string(path), path)
 		shader_row["sourceSha256"] = FileAccess.get_sha256(path)
 		shaders.append(shader_row)
+	# Every variant each engine sky material class generates (sky_material.cpp `_update_shader`),
+	# as its own shader text through the same frontend. Translation selects the variant a resource
+	# names from its properties.
+	var engine_shaders: Array = []
+	var cover := PlaceholderTexture2D.new()
+	for filter in [false, true]:
+		var panorama := PanoramaSkyMaterial.new()
+		panorama.filter = filter
+		engine_shaders.append(_engine_shader(exporter, panorama, "PanoramaSkyMaterial", {"filter": filter}))
+	for debanding in [false, true]:
+		for covered in [false, true]:
+			var procedural := ProceduralSkyMaterial.new()
+			procedural.use_debanding = debanding
+			procedural.sky_cover = cover if covered else null
+			engine_shaders.append(_engine_shader(exporter, procedural, "ProceduralSkyMaterial", {"use_debanding": debanding, "sky_cover": covered}))
+			var physical := PhysicalSkyMaterial.new()
+			physical.use_debanding = debanding
+			physical.night_sky = cover if covered else null
+			engine_shaders.append(_engine_shader(exporter, physical, "PhysicalSkyMaterial", {"use_debanding": debanding, "night_sky": covered}))
 
 	var version := Engine.get_version_info()
 	var output := {
@@ -76,6 +95,7 @@ func _init() -> void:
 		},
 		"scripts": scripts,
 		"shaders": shaders,
+		"engineShaders": engine_shaders,
 	}
 	var file := FileAccess.open(_out_path, FileAccess.WRITE)
 	if file == null:
@@ -107,3 +127,16 @@ func _collect_scripts(root: String, paths: Array[String], shader_paths: Array[St
 		elif name.ends_with(".gdshader"):
 			shader_paths.append(path)
 	directory.list_dir_end()
+
+func _engine_shader(exporter: GDScriptFrontendExporter, material: Material, material_class: String, variant: Dictionary) -> Dictionary:
+	var keys := variant.keys()
+	keys.sort()
+	var query: Array[String] = []
+	for key in keys:
+		query.append("%s=%s" % [key, "true" if variant[key] else "false"])
+	var row: Dictionary = exporter.export_engine_shader(material, "engine://%s?%s" % [material_class, "&".join(query)])
+	row["materialClass"] = material_class
+	row["variant"] = variant
+	if row.has("source"):
+		row["sourceSha256"] = (row["source"] as String).sha256_text()
+	return row

@@ -5,6 +5,7 @@
 #include "core/templates/hash_set.h"
 #include "modules/gdscript/gdscript.h"
 #include "modules/gdscript/gdscript_cache.h"
+#include "scene/resources/material.h"
 
 class GDScriptFrontendExporter : public RefCounted {
 	GDCLASS(GDScriptFrontendExporter, RefCounted);
@@ -28,4 +29,5 @@ public:
 	void seal_sources_for_compilation();
 	Dictionary export_source(const String &p_source, const String &p_script_path);
 	Dictionary export_shader(const String &p_source, const String &p_shader_path);
+	Dictionary export_engine_shader(const Ref<Material> &p_material, const String &p_shader_path);
 };

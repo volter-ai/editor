@@ -340,3 +340,30 @@ Dictionary GDScriptFrontendExporter::export_shader(const String &p_source, const
 	result["tree"] = shader_tree(parser.get_shader());
 	return result;
 }
+
+// An engine material (PanoramaSkyMaterial, ProceduralSkyMaterial, PhysicalSkyMaterial) has no
+// `.gdshader`: its class generates the shader text itself and hands it to the RenderingServer
+// (`sky_material.cpp` `_update_shader`). The material's own shader RID and the server's
+// `shader_get_code` return exactly that text, which then goes through the same frontend as a
+// project shader. The pinned official-source patch makes the headless (dummy) server keep the
+// code it is given, which it otherwise discards.
+Dictionary GDScriptFrontendExporter::export_engine_shader(const Ref<Material> &p_material, const String &p_shader_path) {
+	Dictionary result;
+	result["path"] = p_shader_path;
+	if (p_material.is_null()) {
+		result["ok"] = false;
+		result["stage"] = "material";
+		result["message"] = "no material";
+		return result;
+	}
+	const String code = RS::get_singleton()->shader_get_code(p_material->get_shader_rid());
+	if (code.is_empty()) {
+		result["ok"] = false;
+		result["stage"] = "generate";
+		result["message"] = p_material->get_class() + " produced no shader text";
+		return result;
+	}
+	Dictionary exported = export_shader(code, p_shader_path);
+	exported["source"] = code;
+	return exported;
+}
