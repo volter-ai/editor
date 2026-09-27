@@ -84,11 +84,21 @@ function AddNodeHereMenu({
         data-testid="viewport-add-menu"
         style={{ position: 'fixed', left: state.x, top: state.y, minWidth: 190, zIndex: zIndex.dropdown }}
       >
-        <MenuItem data-testid="viewport-add-menu-item" onSelect={() => onPick('create')}>
+        <MenuItem
+          data-testid="viewport-add-menu-item"
+          disabled={state.kinds.length === 0}
+          title={state.kinds.length === 0 ? 'Nothing can be added under the selected node.' : undefined}
+          onSelect={() => onPick('create')}
+        >
           Add 2D Node Here…
         </MenuItem>
         {state.adapter.assetDrop ? (
-          <MenuItem data-testid="viewport-add-menu-item" onSelect={() => onPick('instantiate')}>
+          <MenuItem
+            data-testid="viewport-add-menu-item"
+            disabled={state.kinds.length === 0}
+            title={state.kinds.length === 0 ? 'Nothing can be added under the selected node.' : undefined}
+            onSelect={() => onPick('instantiate')}
+          >
             Instantiate Scene Here…
           </MenuItem>
         ) : null}

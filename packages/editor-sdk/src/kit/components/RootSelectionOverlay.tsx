@@ -859,11 +859,29 @@ function nativeScalePatch(
   } else if (axis === 'y') {
     scaleXFactor = 1;
     scaleYFactor = 1 + dy / span;
+  } else if (along !== null) {
+    scaleXFactor = 1 + along / span;
+    scaleYFactor = scaleXFactor;
+  } else if (gesture.center) {
+    // Godot's free scale: each axis scales by the ratio of where the pointer is to where it
+    // pressed, both measured from the pivot (the temporary pivot, else the node's origin) along the
+    // node's own axes; Shift takes their mean.
+    const a = ((gesture.startAngleDeg ?? 0) * Math.PI) / 180;
+    const fx = gesture.startLocal.x - gesture.center.x;
+    const fy = gesture.startLocal.y - gesture.center.y;
+    const fu = fx * Math.cos(a) + fy * Math.sin(a);
+    const fv = -fx * Math.sin(a) + fy * Math.cos(a);
+    const tu = (fx + dx) * Math.cos(a) + (fy + dy) * Math.sin(a);
+    const tv = -(fx + dx) * Math.sin(a) + (fy + dy) * Math.cos(a);
+    scaleXFactor = Math.abs(fu) > 1e-6 ? tu / fu : 1;
+    scaleYFactor = Math.abs(fv) > 1e-6 ? tv / fv : 1;
+    if (proportional) {
+      const mean = (scaleXFactor + scaleYFactor) / 2;
+      scaleXFactor = mean;
+      scaleYFactor = mean;
+    }
   } else {
-    // The uniform handle sits one `span` from the origin on a 45-degree
-    // axis. Project the drag onto that axis so moving the handle one
-    // handle-length doubles the scale, just like either axis handle.
-    const factor = along !== null ? 1 + along / span : 1 + (dx + dy) / (Math.SQRT2 * span);
+    const factor = 1 + (dx + dy) / (Math.SQRT2 * span);
     scaleXFactor = factor;
     scaleYFactor = factor;
   }
@@ -1630,7 +1648,8 @@ export function RootSelectionOverlay({
       selected.size === 1 ? [...selected][0]! : roots.length === 1 ? roots[0]!.id : null;
     const structure = parentId ? structureForId(adapter, parentId) : (adapter.structure ?? null);
     const kinds = structure?.creatableKinds?.(parentId) ?? [];
-    if (!structure || kinds.length === 0) {
+    // With nothing that can go under the node, the menu still opens, its items saying so.
+    if (!structure) {
       setAddMenu(null);
       return;
     }
@@ -1746,12 +1765,15 @@ export function RootSelectionOverlay({
     [adapter, store, toHostLocal],
   );
 
-  /** A native 2D multi-selection as one group (Godot's): its first node leads the gesture, the rest
-   *  follow as peers, about the temporary pivot or the centre of their bounds. */
+  /** A native 2D multi-selection as one gesture (Godot's `canvas_item_editor_plugin.cpp`): its
+   *  first node leads, the rest follow as peers. The turn and the scale are measured about the
+   *  temporary pivot, else the first node's origin; only about a temporary pivot do the nodes'
+   *  positions move with them, and otherwise each turns or scales in place. */
   const nativeGroup = useCallback((): {
     primary: MovePeer & { nativeOrigin: { x: number; y: number } };
     peers: MovePeer[];
     center: { x: number; y: number };
+    pivot: { x: number; y: number } | null;
   } | null => {
     if (!transformModeAware || store.selectedEntityIds.size < 2) return null;
     const members = [...store.selectedEntityIds].flatMap((id) => {
@@ -1761,18 +1783,15 @@ export function RootSelectionOverlay({
       return owner && rect && origin ? [{ id, ownerBoxEdit: owner, origRect: rect, nativeOrigin: origin }] : [];
     });
     if (members.length < 2) return null;
-    const minX = Math.min(...members.map((m) => m.origRect.x));
-    const minY = Math.min(...members.map((m) => m.origRect.y));
-    const maxX = Math.max(...members.map((m) => m.origRect.x + m.origRect.width));
-    const maxY = Math.max(...members.map((m) => m.origRect.y + m.origRect.height));
-    const center = temporaryPivot(view) ?? { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
-    return { primary: members[0]!, peers: members.slice(1), center };
+    const pivot = temporaryPivot(view);
+    return { primary: members[0]!, peers: members.slice(1), center: pivot ?? members[0]!.nativeOrigin, pivot };
   }, [adapter, store, transformModeAware, view]);
 
   const startGroupGesture = useCallback(
     (kind: 'rotate' | 'native-scale', e: ReactPointerEvent): boolean => {
       const group = nativeGroup();
       if (!group) return false;
+      const frame = frameForId(adapter, group.primary.id);
       capturePointer(e);
       group.primary.ownerBoxEdit.begin(group.primary.id);
       for (const peer of group.peers) peer.ownerBoxEdit.begin(peer.id);
@@ -1785,14 +1804,15 @@ export function RootSelectionOverlay({
         center: group.center,
         nativeOrigin: group.primary.nativeOrigin,
         movePeers: group.peers,
-        groupCenter: group.center,
+        ...(group.pivot ? { groupCenter: group.pivot } : {}),
+        ...(frame ? { startAngleDeg: (frameAngle(frame) * 180) / Math.PI } : {}),
         ...(kind === 'native-scale'
           ? { nativeScaleAxis: 'both' as const, nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom }
           : {}),
       };
       return true;
     },
-    [nativeGroup, toHostLocal, pan.zoom],
+    [adapter, nativeGroup, toHostLocal, pan.zoom],
   );
 
   const startRotateGesture = useCallback(
@@ -1883,6 +1903,7 @@ export function RootSelectionOverlay({
       gestureRef.current = {
         ...(frame ? { startAngleDeg: (frameAngle(frame) * 180) / Math.PI } : {}),
         kind: 'native-scale',
+        center: temporaryPivot(view) ?? nativeOrigin,
         id,
         ownerBoxEdit: owner,
         startLocal: toHostLocal(e.clientX, e.clientY),
@@ -1892,7 +1913,7 @@ export function RootSelectionOverlay({
         nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom,
       };
     },
-    [adapter, pan.zoom, store, toHostLocal, startGroupGesture],
+    [adapter, pan.zoom, store, toHostLocal, startGroupGesture, view],
   );
 
   const startReferenceGesture = useCallback(
@@ -2168,8 +2189,8 @@ export function RootSelectionOverlay({
       } else {
         patch = computeSpacingPatch(gesture.side!, dx, dy, gesture.origValue ?? 0);
       }
-      // A 2D group scale (Godot's): every node scales by the same factors, and its origin moves
-      // away from the group's centre by them.
+      // A 2D group scale about a temporary pivot (Godot's): every node scales by the same factors,
+      // and its origin moves away from the pivot by them.
       if (gesture.kind === 'native-scale' && gesture.groupCenter && gesture.nativeOrigin) {
         const c = gesture.groupCenter;
         const fx = patch['scaleXFactor'] ?? 1;
@@ -2181,45 +2202,44 @@ export function RootSelectionOverlay({
         };
       }
       // One node scales about Godot's temporary pivot when one is set: its origin's offset from the
-      // pivot scales along the node's own axes, by the factors its scale takes.
+      // pivot scales per component by the factors its scale takes, as Godot moves it.
       const scalePivot =
         gesture.kind === 'native-scale' && !gesture.groupCenter && gesture.nativeOrigin ? temporaryPivot(view) : null;
       if (scalePivot && gesture.nativeOrigin) {
-        const a = ((gesture.startAngleDeg ?? 0) * Math.PI) / 180;
-        const dx = gesture.nativeOrigin.x - scalePivot.x;
-        const dy = gesture.nativeOrigin.y - scalePivot.y;
-        const u = (dx * Math.cos(a) + dy * Math.sin(a)) * (patch['scaleXFactor'] ?? 1);
-        const v = (-dx * Math.sin(a) + dy * Math.cos(a)) * (patch['scaleYFactor'] ?? 1);
         patch = {
           ...patch,
-          originX: scalePivot.x + u * Math.cos(a) - v * Math.sin(a),
-          originY: scalePivot.y + u * Math.sin(a) + v * Math.cos(a),
+          originX: scalePivot.x + (gesture.nativeOrigin.x - scalePivot.x) * (patch['scaleXFactor'] ?? 1),
+          originY: scalePivot.y + (gesture.nativeOrigin.y - scalePivot.y) * (patch['scaleYFactor'] ?? 1),
         };
       }
       gesture.ownerBoxEdit.apply(gesture.id, patch);
-      if (gesture.groupCenter && gesture.movePeers && (gesture.kind === 'rotate' || gesture.kind === 'native-scale')) {
+      if (gesture.movePeers && (gesture.kind === 'rotate' || gesture.kind === 'native-scale')) {
+        // About a temporary pivot each peer's origin orbits or scales with it; without one it stays.
         const c = gesture.groupCenter;
         const turn = ((patch['rotate'] ?? 0) * Math.PI) / 180;
         const fx = patch['scaleXFactor'] ?? 1;
         const fy = patch['scaleYFactor'] ?? 1;
         for (const peer of gesture.movePeers) {
           if (!peer.nativeOrigin) continue;
-          const ox = peer.nativeOrigin.x - c.x;
-          const oy = peer.nativeOrigin.y - c.y;
+          const ox = c ? peer.nativeOrigin.x - c.x : 0;
+          const oy = c ? peer.nativeOrigin.y - c.y : 0;
           peer.ownerBoxEdit.apply(
             peer.id,
             gesture.kind === 'rotate'
               ? {
                   rotate: patch['rotate'] ?? 0,
-                  originX: c.x + ox * Math.cos(turn) - oy * Math.sin(turn),
-                  originY: c.y + ox * Math.sin(turn) + oy * Math.cos(turn),
+                  ...(c
+                    ? {
+                        originX: c.x + ox * Math.cos(turn) - oy * Math.sin(turn),
+                        originY: c.y + ox * Math.sin(turn) + oy * Math.cos(turn),
+                      }
+                    : {}),
                 }
               : {
                   ...(patch['scaleXFactor'] !== undefined ? { scaleXFactor: fx } : {}),
                   ...(patch['scaleYFactor'] !== undefined ? { scaleYFactor: fy } : {}),
                   ...(patch['scaleStep'] !== undefined ? { scaleStep: patch['scaleStep'] } : {}),
-                  originX: c.x + ox * fx,
-                  originY: c.y + oy * fy,
+                  ...(c ? { originX: c.x + ox * fx, originY: c.y + oy * fy } : {}),
                 },
           );
         }

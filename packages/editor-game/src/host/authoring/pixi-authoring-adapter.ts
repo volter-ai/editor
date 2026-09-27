@@ -413,6 +413,11 @@ function defaultLabelFor(kind: string): string {
  *  `pixi` is THIS SURFACE's namespace ({@link PixiAuthoringOptions.pixi}): a
  *  node built from another graph's classes is a foreign object in the world's
  *  own display list, and the world's renderer is the one that has to draw it. */
+/** A ParticleContainer, from whichever copy of Pixi made it: it adds particles, never children. */
+function isParticleContainer(object: Container | null | undefined): boolean {
+  return !!object && typeof (object as { addParticle?: unknown }).addParticle === 'function';
+}
+
 function createDisplayObject(pixi: CanvasPixiNamespace, kind: string): Container | null {
   switch (kind) {
     case 'container':
@@ -829,10 +834,29 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     const structure = this.target.structure ?? this.liveStructure;
     // A placed creation reaches the structure in the new node's PARENT's own space: the target
     // writes `x`/`y` as authored, and only this adapter knows the frame `rects` answer in.
+    // A ParticleContainer holds particles its code adds, never display objects: Pixi's `addChild`
+    // on one throws, so nothing is created or moved into it.
+    const holdsNoChildren = (parentId: string | null | undefined): boolean =>
+      !!parentId && isParticleContainer(this.projector.object(parentId));
+    const noChildren = 'a ParticleContainer holds particles added with addParticle, not display objects.';
     this.structure = {
       ...structure,
       create: (kind, parentId, at) =>
-        structure.create(kind, parentId, at ? this.pointInParent(parentId ?? null, at) : undefined),
+        holdsNoChildren(parentId)
+          ? { id: '', ack: this.refuseStructure(noChildren) }
+          : structure.create(kind, parentId, at ? this.pointInParent(parentId ?? null, at) : undefined),
+      ...(structure.reparent
+        ? {
+            reparent: (id: string, newParentId: string | null) =>
+              holdsNoChildren(newParentId) ? this.refuseStructure(noChildren) : structure.reparent!(id, newParentId),
+          }
+        : {}),
+      ...(structure.creatableKinds
+        ? {
+            creatableKinds: (parentId: string | null) =>
+              holdsNoChildren(parentId) ? [] : structure.creatableKinds!(parentId),
+          }
+        : {}),
     };
     this.assetDrop =
       this.target.assetDrop ??
@@ -1051,7 +1075,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   private containerFor(parentId: string | null): Container | null {
     if (!parentId) return this.root;
     const object = this.projector.object(parentId);
-    if (!object || typeof object.addChild !== 'function') return null;
+    if (!object || typeof object.addChild !== 'function' || isParticleContainer(object)) return null;
     return object;
   }
 
