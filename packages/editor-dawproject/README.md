@@ -31,7 +31,9 @@ scene leaves out stop), with scenes and slots added, renamed and deleted in plac
 `render-piece` renders each scene as a seamless loop for the game's music player, and the
 DAWproject export carries them as its `Scenes`. Rec records what a person plays
 (a MIDI controller, or the computer keyboard laid out as Bitwig's) into the selected track, heard
-as it is played: on Stop the take is one edit, into the clip that holds it or a new "take" clip.
+as it is played: on Stop the take is one edit, into the clip that holds it or a new "take" clip. On a track
+with no instrument Rec records the audio input instead: the take is saved as
+`audio/take-N.wav` (padded back to the bar it began in) and placed as an `<Audio>` clip.
 In the piano
 roll, notes are selected (click, Shift-click, marquee, Cmd+A), moved and
 resized together, snapped to a chosen grid, quantized, copied, cut, pasted,

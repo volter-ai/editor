@@ -29,6 +29,9 @@ import { PianoRoll } from './PianoRoll';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
 import { applySource, readSource, readSourceIndex, recordStructWrite, type SourceIndex } from './source-index';
 import { KEY_SEMITONES, type TakeNote, writeTake } from './recorder';
+import { type AudioCapture, captureInput, takeWav, writeAudioTake } from './audio-take';
+import { perform } from '@volter/dawproject/perform';
+import { editorHost } from '@volter/editor-sdk/host';
 
 const small: CSSProperties = { fontSize: 11, color: themeVars.content.muted };
 const button: CSSProperties = {
@@ -115,6 +118,8 @@ export function PieceEditor({
   // and whether the transport has started playing it.
   const [recording, setRecording] = useState(false);
   const take = useRef<{ trackId: string; notes: TakeNote[]; held: Map<number, { start: number; vel: number }>; octave: number; started: boolean; lastBeat: number } | null>(null);
+  // An audio take: the input being captured for a track that has no instrument.
+  const audioTake = useRef<{ trackId: string; capture: Promise<AudioCapture | null>; started: boolean } | null>(null);
   useEffect(() => engine.setMetronome(metronome), [engine, metronome]);
 
   useEffect(() => {
@@ -246,13 +251,50 @@ export function PieceEditor({
     })().catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)));
   }, [engine, file, index, documentId, setMessage]);
 
-  // The take starts with the transport and ends when it stops, however it is stopped.
+  const finishAudioTake = useCallback(() => {
+    const current = audioTake.current;
+    audioTake.current = null;
+    setRecording(false);
+    if (!current) return;
+    void (async () => {
+      const heard = (await current.capture)?.stop() ?? null;
+      const latest = liveRef.current.live.piece;
+      const track = latest?.tracks.find((candidate) => candidate.id === current.trackId);
+      if (!latest || !track) return;
+      if (!heard) {
+        setMessage('No audio came in from the input, so nothing was recorded.', 'info');
+        return;
+      }
+      // Placed where it began: from the bar line before it, the file padded back to that line.
+      const beatsPerBar = latest.transport.beatsPerBar;
+      const performance = perform(latest);
+      const startBeat = engine.beatAtTime(heard.startTime) ?? 0;
+      const firstBar = Math.floor(startBeat / beatsPerBar + 1e-9);
+      const pad = performance.secondsAt(startBeat) - performance.secondsAt(firstBar * beatsPerBar);
+      const endBeat = performance.beatAt(performance.secondsAt(startBeat) + heard.left.length / heard.sampleRate);
+      const bars = Math.max(1, Math.ceil(endBeat / beatsPerBar - 1e-9) - firstBar);
+      const files = editorHost().files;
+      let number = 1;
+      while (await files.exists(`audio/take-${number}.wav`)) number++;
+      const path = `audio/take-${number}.wav`;
+      await files.write(path, takeWav(heard, pad));
+      const prevSource = await readSource(file);
+      const newSource = writeAudioTake(prevSource, file, latest, track, index, path, firstBar, bars);
+      if (!(await applySource(file, newSource, prevSource))) throw new Error(`${file} changed while the take was written; ${path} holds the recording.`);
+      recordStructWrite('Record Audio Take', { file, prevSource, newSource }, { index, pieceFile: file, documentId }, setMessage);
+    })().catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)));
+  }, [engine, file, index, documentId, setMessage]);
+
+  // A take starts with the transport and ends when it stops, however it is stopped.
   useEffect(() => {
-    const current = take.current;
+    const current = take.current ?? audioTake.current;
     if (!current) return;
     if (engineState.kind === 'playing') current.started = true;
-    else if (current.started || engineState.kind === 'error') finishTake();
-  }, [engineState.kind, finishTake]);
+    else if (current.started || engineState.kind === 'error') {
+      if (take.current) finishTake();
+      else finishAudioTake();
+    }
+  }, [engineState.kind, finishTake, finishAudioTake]);
 
   // Keep the last beat the playhead reached, where held notes end if the transport stops first.
   useEffect(() => {
@@ -260,15 +302,30 @@ export function PieceEditor({
   }, [playhead]);
 
   const toggleRecord = useCallback(() => {
-    if (take.current) {
+    if (take.current || audioTake.current) {
       engine.stop();
       return;
     }
     const current = liveRef.current.live.piece;
     const trackId = selectedTrackRef.current;
     const track = current?.tracks.find((candidate) => candidate.id === trackId);
-    if (!track || (track.channel?.role ?? 'regular') !== 'regular' || !trackVoices(current!).get(track.id)) {
-      setMessage('Select an instrument track (a clip on it, or its header) to record into.');
+    if (!current || !track || (track.channel?.role ?? 'regular') !== 'regular') {
+      setMessage('Select a track (a clip on it, or its header) to record into: an instrument track records notes, one without an instrument records audio.');
+      return;
+    }
+    if (!trackVoices(current).get(track.id)) {
+      // No instrument: the track records the audio input.
+      setRecording(true);
+      const capture = engine.play(startRef.current).then(async () => {
+        const context = engine.audioContext;
+        if (!context || engine.current.kind !== 'playing') return null;
+        return captureInput(context);
+      });
+      audioTake.current = { trackId: track.id, capture, started: false };
+      capture.catch((error: unknown) => {
+        setMessage(`The audio input could not be opened: ${error instanceof Error ? error.message : String(error)}`);
+        engine.stop();
+      });
       return;
     }
     take.current = { trackId: track.id, notes: [], held: new Map(), octave: 0, started: false, lastBeat: startRef.current };

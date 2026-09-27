@@ -478,6 +478,23 @@ export class PreviewEngine {
     this.setState({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
   }
 
+  /** The audio context the engine plays on, once Play has made it (an input is captured on the same clock). */
+  get audioContext(): AudioContext | null {
+    return this.context;
+  }
+
+  /**
+   * The beat of the arrangement that sounded at context time `time` in the last play (folded into
+   * its loop as the playhead is), or `null` when nothing has played. Readable after Stop, so a take
+   * captured during the play can be placed when it ends.
+   */
+  beatAtTime(time: number): number | null {
+    const performance = this.performance;
+    if (!performance || performance.seconds <= 0 || this.launches) return null;
+    const elapsed = this.originSecond + (time - this.originTime);
+    return performance.beatAt(foldSecond(Math.max(0, elapsed), this.region(performance, this.originSecond)));
+  }
+
   /** The beat under the playhead, or `null` when stopped. */
   playhead(): number | null {
     const performance = this.performance;
