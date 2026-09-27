@@ -561,6 +561,7 @@ export function registerRelayRoutes(
     const all = req.query['all'] === '1' || req.query['all'] === 'true';
     res.json({
       unresolvedConsole: consoleLedger.summary(),
+      currentLoadId: consoleLedger.currentLoadId(),
       entries: all ? consoleLedger.all() : consoleLedger.unresolved(),
     });
   });
