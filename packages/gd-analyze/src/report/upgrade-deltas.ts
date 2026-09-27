@@ -8,7 +8,8 @@
  * Reach is read from the bound project: a call's official target (or the analysis's typed receiver),
  * a native or built-in property read or written in code (its getter and setter, up the API dump's
  * class chain), and a scene node's authored properties (their setters, up its native ancestry).
- * A delta whose member is not reached but whose class is used is listed as class-level.
+ * A delta whose member is not reached but whose own class is used (as the class itself, not as an
+ * ancestor) is listed as class-level.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
@@ -68,9 +69,11 @@ export function godotUpgradeDeltasReached(
   const members = new Map<string, string[]>();
   const classes = new Map<string, string[]>();
   const note = (map: Map<string, string[]>, key: string, at: string) => map.set(key, [...(map.get(key) ?? []), at]);
+  // A member is reached on the class or any ancestor that declares it; a class is used only as
+  // itself (every node is a Node, which says nothing about Node's deltas).
   const noteMember = (className: string, member: string, at: string) => {
     for (const owner of ancestry(apiDump, className)) note(members, `${owner}.${member}`, at);
-    for (const owner of ancestry(apiDump, className)) note(classes, owner, at);
+    note(classes, className, at);
   };
   for (const script of project.scripts) {
     const receivers = new Map(script.callReceivers.map((entry) => [entry.nodeId, entry] as const));
@@ -96,7 +99,7 @@ export function godotUpgradeDeltasReached(
     for (const node of scene.nodes) {
       const className = node.class.nativeName;
       const at = `${scene.resPath}#${node.nodePath}`;
-      for (const owner of node.class.nativeAncestry) note(classes, owner, at);
+      note(classes, className, at);
       for (const property of Object.keys(node.authoredProperties)) {
         for (const accessor of accessors(apiDump, className, property)) {
           const [owner, member] = accessor.split('.') as [string, string];
