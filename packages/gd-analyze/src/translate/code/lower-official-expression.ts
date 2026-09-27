@@ -621,6 +621,30 @@ function assignablePlace(
     };
   }
   const { baseNode, attribute } = attributeTarget;
+  // An engine singleton's property (`Input.mouse_mode = m`): its accessors on the one object,
+  // bound without a receiver (`Engine::get_singleton_object`).
+  if (baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS') {
+    const found = context.nativeProperty(baseNode.name, attribute);
+    const accessor = (method: { readonly owner: string; readonly name: string; readonly hash: number } | undefined) => {
+      if (method === undefined) return undefined;
+      const use = context.bindingUse(
+        { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
+        node,
+      );
+      return use.target.use.kind === 'call' && use.target.use.sourceReceiver === 'absent' ? use : context.refuse(node, `${method.owner}.${method.name} is not bound on the singleton`);
+    };
+    const getter = accessor(found?.getter);
+    const setter = accessor(found?.setter);
+    if (getter === undefined || setter === undefined) return context.refuse(node, `${baseNode.name}.${attribute} is not a singleton property the API dump declares`);
+    const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
+    const read = materialize(context, expression(bindingCall(context, node, getter, [])));
+    return {
+      before: read.before,
+      read: read.value,
+      write: (value) => bindingCall(context, node, setter, [value]),
+      requirements: [...rule.requirements, ...getter.requirements, ...setter.requirements],
+    };
+  }
   if (nativeMemberReceiver(context, baseNode, attribute)) {
     const getter = nativeAccessorUse(context, node, baseNode, attribute, 'getter');
     const setter = nativeAccessorUse(context, node, baseNode, attribute, 'setter');

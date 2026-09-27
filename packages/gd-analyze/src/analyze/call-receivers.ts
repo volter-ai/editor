@@ -413,6 +413,11 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     if (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil') {
       return typeOfName(datatype.builtinType, []);
     }
+    // A value the compiler holds to a native class (`var t: Node3D`, `body: Node3D`): Godot's typed
+    // assignment guarantees an object of that class or a descendant.
+    if (datatype.kind === 'NATIVE' && !datatype.metaType && (datatype.typeSource === 'ANNOTATED_EXPLICIT' || datatype.typeSource === 'ANNOTATED_INFERRED')) {
+      return typeOfName(datatype.nativeType, []);
+    }
     return {
       kind: 'unknown',
       reason: `${node.kind} base has no receiver class fixed by the project (${datatype.display})`,

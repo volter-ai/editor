@@ -19,7 +19,7 @@
 
 import type { Object3D } from 'three';
 import { godot_audio_resume } from './audio-stream';
-import { flush_buffered_events, parse_input_event } from './input';
+import { flush_buffered_events, godot_input_attach_canvas, parse_input_event } from './input';
 import type { InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector2i, type Vector2i } from './vector2i';
@@ -195,6 +195,7 @@ function canvasPoint(canvas: HTMLCanvasElement, event: { readonly clientX: numbe
  * @source platform/web/display_server_web.cpp:187
  */
 export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void {
+  godot_input_attach_canvas(canvas);
   const page = canvas.ownerDocument.defaultView as Window;
   const listeners: (readonly [EventTarget, string, EventListener])[] = [];
   const on = (target: EventTarget, name: string, handler: EventListener): void => {
@@ -271,6 +272,7 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
   on(canvas, 'touchmove', touch(2));
   on(canvas, 'contextmenu', (event) => event.preventDefault());
   return () => {
+    godot_input_attach_canvas(null);
     for (const [target, name, handler] of listeners) target.removeEventListener(name, handler);
   };
 }

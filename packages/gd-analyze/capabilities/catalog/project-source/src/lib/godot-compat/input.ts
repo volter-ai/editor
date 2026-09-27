@@ -656,3 +656,74 @@ export function set_custom_mouse_cursor(cursor: unknown, shape = 0, hotspot: Vec
   if (!Number.isInteger(shape) || shape < 0 || shape >= CURSOR_MAX) return;
   customCursors.set(shape, { cursor, hotspot });
 }
+
+/**
+ * `Input::set_mouse_mode` (`core/input/input.cpp:101`): the web display server's mouse mode
+ * (`DisplayServerWeb::mouse_set_mode`, below).
+ *
+ * @godot Input.set_mouse_mode
+ * @source core/input/input.cpp:101
+ */
+export function set_mouse_mode(mode: number): void {
+  setDisplayMouseMode(mode);
+}
+
+/**
+ * @godot Input.get_mouse_mode
+ * @source core/input/input.cpp:106
+ */
+export function get_mouse_mode(): number {
+  return displayMouseMode();
+}
+
+/** The canvas the page draws the game in, which pointer lock locks to (`GodotConfig.canvas`). */
+let displayCanvas: HTMLCanvasElement | null = null;
+/** `GodotDisplayCursor.visible` (`library_godot_display.js`). */
+let cursorVisible = true;
+
+/**
+ * Records the game's canvas (`GodotConfig.canvas`), as the window attaches its input to it.
+ *
+ * @godot Input (protocol)
+ * @source platform/web/js/libs/library_godot_display.js:214
+ */
+export function godot_input_attach_canvas(canvas: HTMLCanvasElement | null): void {
+  displayCanvas = canvas;
+  cursorVisible = true;
+}
+
+/** `MouseMode` (`display_server_enums.h`): visible, hidden, captured, confined, confined hidden. */
+const MOUSE_MODE_VISIBLE = 0;
+const MOUSE_MODE_HIDDEN = 1;
+const MOUSE_MODE_CAPTURED = 2;
+const MOUSE_MODE_MAX = 5;
+
+/**
+ * `DisplayServerWeb::mouse_get_mode` (`display_server_web.cpp:596`): hidden when the cursor is
+ * hidden, captured while the pointer is locked to the canvas, else visible. Without a page (the
+ * headless server) it is visible.
+ */
+function displayMouseMode(): number {
+  if (displayCanvas === null) return MOUSE_MODE_VISIBLE;
+  if (!cursorVisible) return MOUSE_MODE_HIDDEN;
+  return displayCanvas.ownerDocument.pointerLockElement === displayCanvas ? MOUSE_MODE_CAPTURED : MOUSE_MODE_VISIBLE;
+}
+
+/**
+ * `DisplayServerWeb::mouse_set_mode` / `_mouse_update_mode` (`display_server_web.cpp:555`): the
+ * cursor shown or hidden (`cursor: none`) and the pointer locked to the canvas or released; the
+ * confined modes fail (not supported on the web). Without a page nothing happens.
+ */
+function setDisplayMouseMode(mode: number): void {
+  if (!Number.isInteger(mode) || mode < 0 || mode >= MOUSE_MODE_MAX) return;
+  if (displayCanvas === null || mode > MOUSE_MODE_CAPTURED) return;
+  if (mode === displayMouseMode()) return;
+  const canvas = displayCanvas;
+  const visible = mode !== MOUSE_MODE_HIDDEN;
+  if (visible !== cursorVisible) {
+    cursorVisible = visible;
+    canvas.style.cursor = visible ? '' : 'none';
+  }
+  if (mode === MOUSE_MODE_CAPTURED) void canvas.requestPointerLock?.();
+  else if (canvas.ownerDocument.pointerLockElement === canvas) canvas.ownerDocument.exitPointerLock();
+}

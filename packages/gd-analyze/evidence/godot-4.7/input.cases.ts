@@ -1,3 +1,4 @@
+import * as I from '../../capabilities/catalog/project-source/src/lib/godot-compat/input';
 import type { InputEventRecord } from '../../capabilities/catalog/project-source/src/lib/godot-compat/input-event';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { type ActionSpec, type Query, type Step, timeline, vec } from './input-timeline';
@@ -287,6 +288,24 @@ add('mouse-button', 'is_action_pressed', [{ name: 'click', events: [{ type: 'mou
   PROC,
   ...STATE('click'),
 ]);
+
+// The mouse mode is the display server's: the headless one reports visible whatever is set, as
+// compat does with no page canvas attached (a browser's pointer lock is not measured here).
+for (const [id, member, body, target] of [
+  ['get_mouse_mode-default', 'get_mouse_mode', 'return Input.get_mouse_mode()', () => I.get_mouse_mode()],
+  ['set_mouse_mode-captured', 'set_mouse_mode', 'Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)\nvar m := Input.get_mouse_mode()\nInput.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)\nreturn m', () => {
+    I.set_mouse_mode(2);
+    const m = I.get_mouse_mode();
+    I.set_mouse_mode(0);
+    return m;
+  }],
+  ['set_mouse_mode-out-of-range', 'set_mouse_mode', 'Input.set_mouse_mode(9)\nreturn Input.get_mouse_mode()', () => {
+    I.set_mouse_mode(9);
+    return I.get_mouse_mode();
+  }],
+] as const) {
+  cases.push({ id, symbol: { kind: 'singleton-member', owner: 'Input', member }, gdscript: body, target, comparator: 'exact' });
+}
 
 const INPUT_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',
