@@ -136,9 +136,14 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    `instantiate()` makes the root's script instance over a stand-in and `add_child` is a state
    update of the owning scene component, rendered as a portal and flushed at once, so the spawn
    host is gone and the output check allows no framework import; the class-mount registry is gone
-   (a three camera is a Camera3D by type). Open: class-name dispatch in emit and lowering (the
-   ratchet's `class-name-*` rows), and compat elements must be idempotent under a re-render of
-   their scene (`GodotImportedScene` re-applied its overrides on every render until `aad36aae`).
+   (a three camera is a Camera3D by type). Class-name dispatch left emit, lowering and compat
+   (`b47fdc1c`): `translate/data/scene-node-idioms.ts`, `scene-resource-idioms.ts` and
+   `lowering-shapes.ts` are the tables, the planner stamps each node and resource with its idiom,
+   and emit, lowering and compat read the idiom; the ratchet's remaining findings read the API
+   dump by class name (`lower-official-bound.ts`, `native-types.ts`) or name a keyboard code
+   (`Control`). An emitted game carries the compat modules it reaches (`0d628816`). Open: compat
+   elements must be idempotent under a re-render of their scene (`GodotImportedScene` re-applied
+   its overrides on every render until `aad36aae`).
    The headless runner (`gd-analyze run`, `src/run/`) loads one three, as the bundler does
    (`tsx/esm`, and `three` resolved to its module build for `require` too), so it plays what the
    browser plays.
