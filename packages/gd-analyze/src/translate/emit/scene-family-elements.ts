@@ -218,7 +218,20 @@ function textureHook(
 ): string {
   const load = texture.load;
   if (load === undefined) throw new Error(`${texture.key}: a texture that is not an imported image`);
-  const key = `${texture.key}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}`}`;
+  return importedTextureHook(emission, texture.key, load, sampler);
+}
+
+/**
+ * An imported image (`load`, keyed as its resource is) loaded once in the component: the same local
+ * wherever the component uses that texture.
+ */
+export function importedTextureHook(
+  emission: FamilyEmission,
+  resourceKey: string,
+  load: NonNullable<TargetGodotSceneResourcePlan['load']>,
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean },
+): string {
+  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}`}`;
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));

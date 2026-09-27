@@ -7,7 +7,9 @@
  * component mounted in Node by @react-three/fiber: three's glTF loader loads the copied `.glb` and
  * compat's packed scene makes Godot's importer tree of it, its skeletons' bones the loader's joints,
  * read through compat. A scene inheriting enemy.glb (a bone scale override and a node placed into
- * its skeleton) is instanced too.
+ * its skeleton) is instanced too. Two starter-kit models referencing one image outside their files
+ * (`Textures/colormap.png`) read back each mesh's albedo texture path, filter and repeat, and
+ * whether the two models sample one texture.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -31,6 +33,9 @@ const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 const MONOREPO_ROOT = path.resolve(PACKAGE_ROOT, '..', '..');
 const FIXTURE = path.join(PACKAGE_ROOT, 'test/fixtures/platformer-3d-godot4');
 const MODELS = ['enemy/enemy.glb', 'player/player.glb'] as const;
+/** Kit models whose images are outside their files, with the image they share. */
+const KIT = path.join(PACKAGE_ROOT, 'test/fixtures/starter-kit-3d-platformer');
+const KIT_FILES = ['models/block-coin.glb', 'models/brick.glb', 'models/Textures/colormap.png'] as const;
 
 const files: Readonly<Record<string, string>> = {
   'project.godot': `config_version=5
@@ -76,6 +81,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 [ext_resource type="PackedScene" path="res://enemy_edit.tscn" id="4_edit"]
 
 [ext_resource type="Script" path="res://main.gd" id="3_main"]
+[ext_resource type="PackedScene" path="res://models/block-coin.glb" id="5_block"]
+[ext_resource type="PackedScene" path="res://models/brick.glb" id="6_brick"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("3_main")
@@ -108,6 +115,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.1, 0)
 [node name="Edited" parent="." instance=ExtResource("4_edit")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
 
+[node name="BlockA" parent="." instance=ExtResource("5_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="BlockB" parent="." instance=ExtResource("6_brick")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
+
 [editable path="Enemy"]
 `,
 };
@@ -134,6 +147,14 @@ func _walk(main: Node, node: Node, rows: Array) -> void:
 \t\trow["global"] = [_v(t.basis.x), _v(t.basis.y), _v(t.basis.z), _v(t.origin)]
 \tif node is VisualInstance3D:
 \t\trow["layers"] = node.layers
+# A kit model's material: its albedo texture's path, filter and repeat.
+\tif node is MeshInstance3D and str(main.get_path_to(node)).begins_with("Block"):
+\t\tvar albedo := []
+\t\tfor i in node.mesh.get_surface_count():
+\t\t\tvar m: BaseMaterial3D = node.get_active_material(i)
+\t\t\talbedo.append([m.albedo_texture.resource_path, m.texture_filter, m.get_flag(BaseMaterial3D.FLAG_USE_TEXTURE_REPEAT)])
+\t\t\ttextures.append(m.albedo_texture)
+\t\trow["albedo"] = albedo
 \tif node is Skeleton3D:
 \t\tvar bones := []
 \t\tfor i in node.get_bone_count():
@@ -155,6 +176,7 @@ func _walk(main: Node, node: Node, rows: Array) -> void:
 \t\t_walk(main, child, rows)
 
 var main: Node
+var textures := []
 
 func _initialize() -> void:
 \tmain = load("res://main.tscn").instantiate()
@@ -164,6 +186,7 @@ func _process(_delta: float) -> bool:
 \tvar rows := []
 \t_walk(main, main, rows)
 \trows.append(["hand", main.hand])
+\trows.append(["shared", textures.size() > 1 and textures.all(func(t): return t == textures[0])])
 \tprint("TREE " + JSON.stringify(rows))
 \treturn true
 `;
@@ -174,6 +197,9 @@ function inputDigest(): string {
       ...Object.entries({ ...files, 'observe.gd': OBSERVE }).map(([relative, source]) => `${relative}\0${sha256(source)}`),
       ...MODELS.flatMap((model) =>
         [model, `${model}.import`].map((relative) => `${relative}\0${sha256(readFileSync(path.join(FIXTURE, relative)))}`),
+      ),
+      ...KIT_FILES.flatMap((file) =>
+        [file, `${file}.import`].map((relative) => `kit/${relative}\0${sha256(readFileSync(path.join(KIT, relative)))}`),
       ),
     ]
       .sort()
@@ -196,15 +222,27 @@ import { get_children, get_name, godot_is_native, godot_node_enter_pending, godo
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import * as SK from './src/lib/godot-compat/skeleton-3d';
 import { get_layer_mask } from './src/lib/godot-compat/visual-instance-3d';
+import { godot_base_material_3d_map_texture } from './src/lib/godot-compat/base-material-3d';
+import { godot_compressed_texture_2d_source } from './src/lib/godot-compat/compressed-texture-2d';
 
 // Embedded images decode through createImageBitmap, which Node lacks: the tree does not read pixels.
 globalThis.createImageBitmap = async () => ({ width: 1, height: 1, close() {} });
+// three's loader names the worker global when it decodes an image itself (a revert of external images).
+globalThis.self ??= globalThis;
 // three's FileLoader reports progress with the browser's ProgressEvent, which Node lacks.
 globalThis.ProgressEvent ??= class extends Event {
   constructor(type, init = {}) { super(type); Object.assign(this, init); }
 };
 THREE.DefaultLoadingManager.setURLModifier((url) =>
   url.startsWith('/godot/') ? 'data:model/gltf-binary;base64,' + readFileSync('public' + url).toString('base64') : url);
+// compat fetches an imported image's copied file.
+const nativeFetch = globalThis.fetch;
+globalThis.fetch = async (url, init) =>
+  typeof url === 'string' && url.startsWith('/godot/') ? new Response(readFileSync('public' + url)) : nativeFetch(url, init);
+// The texture filter a three map samples with, as Godot's BaseMaterial3D::TextureFilter.
+const FILTER = (map) =>
+  map.magFilter === THREE.NearestFilter ? (map.minFilter === THREE.NearestFilter ? 0 : 2) : map.minFilter === THREE.LinearFilter ? 1 : 3;
+const textures = [];
 // drei's loader loads through three's CommonJS build in Node (the project's bundle has one three):
 // it serves the project's copied asset the same way.
 const { createRequire } = await import('node:module');
@@ -264,6 +302,22 @@ const walk = (path, object) => {
     };
     surfaces(object);
     row.layers = drawn.length > 0 && drawn.every((entry) => entry === mask) ? mask : ['drawn', drawn];
+    // A kit model's material: its albedo texture's path, filter and repeat.
+    if (path.startsWith('Block')) {
+      const maps = [];
+      const materials = (o) => {
+        if (o.isMesh) maps.push(o.material.map);
+        const nodes = new Set(get_children(o));
+        for (const child of o.children) if (!nodes.has(child)) materials(child);
+      };
+      materials(object);
+      row.albedo = maps.map((map) => {
+        const texture = godot_base_material_3d_map_texture(map);
+        textures.push(texture);
+        const source = godot_compressed_texture_2d_source(texture) ?? '';
+        return [source.startsWith('/godot/') ? 'res://' + source.slice('/godot/'.length) : source, FILTER(map), map.wrapS === THREE.RepeatWrapping];
+      });
+    }
   }
   if (className === 'Skeleton3D') {
     const bones = [];
@@ -289,6 +343,7 @@ const walk = (path, object) => {
 };
 walk('.', holder.current.children[0]);
 rows.push(['hand', godot_node_object(holder.current.children[0]).hand]);
+rows.push(['shared', textures.length > 1 && textures.every((texture) => texture === textures[0])]);
 await act(async () => { root.unmount(); });
 console.log('TREE ' + JSON.stringify(rows));
 `;
@@ -322,6 +377,10 @@ export async function measureSceneImportedProof(tools: GodotProofTools): Promise
       for (const relative of [model, `${model}.import`]) {
         copyFileSync(path.join(FIXTURE, relative), path.join(project, relative));
       }
+    }
+    for (const file of KIT_FILES) {
+      mkdirSync(path.join(project, path.dirname(file)), { recursive: true });
+      for (const relative of [file, `${file}.import`]) copyFileSync(path.join(KIT, relative), path.join(project, relative));
     }
     const snapshot = captureGodotProjectSnapshot(project);
     const toolchain = captureGodotImportToolchainSnapshot({

@@ -32,7 +32,7 @@
  * — see `gltf-godot-scene.ts`) and a clip's length by its greatest key time.
  *
  * Images. Pixel bytes are unread (they do not change the node tree). File-path `images[i].uri`
- * values ARE collected — see {@link externalImageUrisFromGlb} — because the port copies the
+ * values ARE collected — see {@link externalImagesFromGlb} — because the port copies the
  * `.glb` as opaque bytes and three's `GLTFLoader` then fetches each URI against the model's
  * served directory. Leaving those URIs uncollected shipped Kenney models untextured:
  * `starter-kit-fps` / `starter-kit-city-builder` every `models/*.glb` names
@@ -377,10 +377,10 @@ export interface GltfDocument {
   /** `node index -> parent index`, built the way glTF states it: from each node's `children`. */
   readonly parents: readonly number[];
   /**
-   * File-path `images[].uri` values (not `data:` URIs, not `bufferView` embeddings). The shipping
-   * half of this document: three's loader fetches each against the model's served directory.
+   * File-path `images[].uri` values (not `data:` URIs, not `bufferView` embeddings), with their
+   * `images[]` index: Godot's importer loads each as the project resource at that path.
    */
-  readonly externalImageUris: readonly string[];
+  readonly externalImages: readonly GltfExternalImage[];
 }
 
 /**
@@ -391,30 +391,34 @@ export interface GltfDocument {
  *  - `data:` URI — pixels are already inside the JSON;
  *  - a URI with a scheme (`http:`, `blob:`, …) — not a project file.
  *
- * The remaining strings are relative paths (`Textures/colormap.png`). The emitted
- * `src/world.tsx` hands three `gltfLoader.parseAsync(buf, '/models/')` (`world3d.ts`
- * `urlBaseOf`); `LoaderUtils.resolveURL` concatenates that base with the URI, so the
- * served file is `/models/Textures/colormap.png`.
+ * The remaining strings are relative paths (`Textures/colormap.png`), resolved against the
+ * document's directory as `GLTFDocument::_parse_images` resolves them (`gltf_document.cpp:2360`).
  */
-export function externalImageUrisOfGltfJson(json: unknown): string[] {
+export function externalImagesOfGltfJson(json: unknown): GltfExternalImage[] {
   if (typeof json !== 'object' || json === null || Array.isArray(json)) return [];
   const images = (json as Record<string, unknown>)['images'];
   if (!Array.isArray(images)) return [];
-  const out: string[] = [];
-  for (const entry of images) {
-    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) continue;
+  const out: GltfExternalImage[] = [];
+  images.forEach((entry: unknown, index) => {
+    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) return;
     const uri = (entry as Record<string, unknown>)['uri'];
-    if (typeof uri !== 'string' || uri.length === 0) continue;
-    if (uri.startsWith('data:')) continue;
-    if (/^[a-zA-Z][a-zA-Z+\-.]*:/.test(uri)) continue;
-    out.push(uri);
-  }
+    if (typeof uri !== 'string' || uri.length === 0) return;
+    if (uri.startsWith('data:')) return;
+    if (/^[a-zA-Z][a-zA-Z+\-.]*:/.test(uri)) return;
+    out.push({ index, uri });
+  });
   return out;
 }
 
+/** A glTF `images[index].uri` naming a file beside the document. */
+export interface GltfExternalImage {
+  readonly index: number;
+  readonly uri: string;
+}
+
 /** JSON-chunk `images[].uri` file paths from a `.glb` container. */
-export function externalImageUrisFromGlb(bytes: Uint8Array, at: string): string[] {
-  return externalImageUrisOfGltfJson(readGlbContainer(bytes, at).json);
+export function externalImagesFromGlb(bytes: Uint8Array, at: string): GltfExternalImage[] {
+  return externalImagesOfGltfJson(readGlbContainer(bytes, at).json);
 }
 
 type Json = Record<string, unknown>;
@@ -742,7 +746,7 @@ export function readGltfDocument(
 
   // §5.19 images — file-path URIs only. Pixel data (BIN / data:) does not change the tree;
   // the URIs are the shipping fact `requiredAssets` was missing.
-  const externalImageUris = externalImageUrisOfGltfJson(root);
+  const externalImages = externalImagesOfGltfJson(root);
 
   // §3.10 cameras. The importer class (Camera3D/Camera) is the tree fact consumed downstream;
   // projection values stay in the original model and are applied by the native GLTFLoader.
@@ -949,6 +953,6 @@ export function readGltfDocument(
     cameras,
     punctualLights,
     parents,
-    externalImageUris,
+    externalImages,
   };
 }

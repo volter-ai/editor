@@ -173,6 +173,41 @@ export function godot_base_material_3d_scene_map(texture: Texture, filter: numbe
   return sampledMap(texture, filter, repeat, true, srgb);
 }
 
+/**
+ * A texture sampled as an imported model's material samples it (the `texture_filter` and
+ * `FLAG_USE_TEXTURE_REPEAT` the importer set from the glTF sampler), for the model's own geometry,
+ * whose UVs put their origin at the image's top row as Godot's do.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source modules/gltf/gltf_document.cpp:3056
+ */
+export function godot_base_material_3d_model_map(texture: Texture, filter: number, repeat: boolean, srgb = true, view?: Texture): Texture {
+  const map = sampledMap(texture, filter, repeat, false, srgb);
+  // A second UV set or a texture transform is the slot's own: its own view of the same image.
+  if (view === undefined || (view.channel === 0 && view.offset.x === 0 && view.offset.y === 0 && view.rotation === 0 && view.repeat.x === 1 && view.repeat.y === 1)) return map;
+  const own = map.clone();
+  own.source = map.source;
+  own.channel = view.channel;
+  own.offset.copy(view.offset);
+  own.repeat.copy(view.repeat);
+  own.rotation = view.rotation;
+  own.center.copy(view.center);
+  VARIANT_OF.set(own, texture);
+  godot_texture_2d_image(own, () => get_image(texture));
+  return own;
+}
+
+/**
+ * The texture resource a material's three map samples (the map itself when it is not a sampled
+ * variant).
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source scene/resources/material.cpp:2523
+ */
+export function godot_base_material_3d_map_texture(map: Texture): Texture {
+  return VARIANT_OF.get(map) ?? map;
+}
+
 /** The parameters onto a three material of the class the shading mode selects. */
 function apply(self: BaseMaterial3D, target: Material): void {
   const shaded = target as MeshStandardMaterial;

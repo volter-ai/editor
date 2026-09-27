@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type {
   BoundGodotProject,
   BoundGodotResourceData,
@@ -107,6 +108,8 @@ export interface TargetGodotImportedModelPlan {
   readonly sourceResPath: string;
   readonly rootClasses: readonly string[];
   readonly nodes: readonly TargetGodotImportedModelNode[];
+  /** The file's external images (`images[index].uri`): each the project's imported texture. */
+  readonly images?: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[];
   /** The importer's AnimationPlayer library (its clips as the importer keys them), with its RESET. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
@@ -274,6 +277,20 @@ function cubemapLoad(cubemap: BoundGodotCubemapDocument): TargetGodotImportedLoa
   if (params.compressMode !== 0) return `compress/mode=${String(params.compressMode)} is not lossless`;
   if (params.mipmaps) return 'cubemap mipmaps are not generated';
   return { sourceResPath: cubemap.resPath, options: { arrangement: params.arrangement } };
+}
+
+/**
+ * An external image's project path as Godot's importer resolves it: the URI file-decoded
+ * (`String::uri_file_decode`, `%XX` only), joined to the model's directory and simplified; one
+ * outside the project is none.
+ */
+function externalImagePath(modelResPath: string, uri: string): string | undefined {
+  const decoded = uri.replace(/(?:%[0-9a-fA-F]{2})+/gu, (run) =>
+    new TextDecoder().decode(Uint8Array.from(run.slice(1).split('%'), (hex) => Number.parseInt(hex, 16))),
+  );
+  const relative = path.posix.normalize(path.posix.join(path.posix.dirname(modelResPath.slice('res://'.length)), decoded.replace(/\\/gu, '/')));
+  if (relative === '..' || relative.startsWith('../') || path.posix.isAbsolute(relative)) return undefined;
+  return `res://${relative}`;
 }
 
 function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
@@ -1400,10 +1417,23 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath} has no imported model source`, 'node-family', 'imported .glb');
     return undefined;
   }
-  if (model.externalImageUris.length > 0) {
-    // The copied model is the `.glb` alone; its images outside the file are not copied beside it.
-    refuse(context, at, `${imported.resPath} references images outside the file`, 'resource', 'imported .glb');
-    return undefined;
+  // An image outside the file is the project's imported texture at its path
+  // (`GLTFDocument::_parse_images`, `gltf_document.cpp:2362`); one the project does not import as a
+  // texture Godot reads as bytes instead, which is not transcribed.
+  const images: { readonly index: number; readonly load: TargetGodotImportedLoad }[] = [];
+  for (const image of model.externalImages) {
+    const resolved = externalImagePath(imported.resPath, image.uri);
+    const texture = resolved === undefined ? undefined : context.project?.documents.textures.find((entry) => entry.resPath === resolved);
+    if (texture === undefined) {
+      refuse(context, at, `${imported.resPath}: images[${String(image.index)}] (${image.uri}) is not a texture the project imports`, 'resource', 'imported .glb');
+      return undefined;
+    }
+    const load = textureLoad(texture);
+    if (typeof load === 'string') {
+      refuse(context, at, `${texture.resPath}: ${load}`, 'resource', 'CompressedTexture2D');
+      return undefined;
+    }
+    images.push({ index: image.index, load });
   }
   const nodes: TargetGodotImportedModelNode[] = [];
   for (const member of imported.nodes) {
@@ -1449,6 +1479,7 @@ function planImportedInstance(
       sourceResPath: imported.resPath,
       rootClasses: root.class.nativeAncestry,
       nodes,
+      ...(images.length === 0 ? {} : { images }),
       ...(animations === undefined ? {} : { animations }),
       overrides: [],
     },
