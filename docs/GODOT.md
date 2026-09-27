@@ -141,9 +141,9 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    `lowering-shapes.ts` are the tables, the planner stamps each node and resource with its idiom,
    and emit, lowering and compat read the idiom; the ratchet's remaining findings read the API
    dump by class name (`lower-official-bound.ts`, `native-types.ts`) or name a keyboard code
-   (`Control`). An emitted game carries the compat modules it reaches (`0d628816`). Open: compat
-   elements must be idempotent under a re-render of their scene (`GodotImportedScene` re-applied
-   its overrides on every render until `aad36aae`).
+   (`Control`). An emitted game carries the compat modules it reaches (`0d628816`). Compat's elements are
+   idempotent under a re-render of their scene: each is made once and sets its authored values
+   once (`GodotImportedScene`'s overrides, `aad36aae`; `GodotWorldEnvironment`'s registration).
    The headless runner (`gd-analyze run`, `src/run/`) loads one three, as the bundler does
    (`tsx/esm`, and `three` resolved to its module build for `require` too), so it plays what the
    browser plays.

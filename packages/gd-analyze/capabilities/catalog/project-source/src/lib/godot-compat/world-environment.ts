@@ -436,11 +436,12 @@ const WORLD_ENVIRONMENT: GodotElementClass<Group> = {
 export function GodotWorldEnvironment(props: GodotElementProps<Group>): ReactElement {
   const element = useGodotElement(WORLD_ENVIRONMENT, props);
   const scene = useThree((state) => state.scene);
+  // The node is made once (`useGodotElement`): a render of the scene registers nothing again.
+  const node = (element.props as { object?: Group }).object;
   useLayoutEffect(() => {
-    const node = (element.props as { object?: Group }).object;
     if (node === undefined) return undefined;
     return godot_world_environment_register(scene, node);
-  }, [element, scene]);
+  }, [node, scene]);
   // Glow, SSAO or the adjustments: the renderer's post pass (`environment-post.ts`), which
   // `postprocessing`'s composer renders in place of R3F's own frame, without MSAA as Godot's 3D
   // (`rendering/anti_aliasing/quality/msaa_3d`, 0).
