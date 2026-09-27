@@ -1922,11 +1922,36 @@ export function lowerOfficialExpression(
           [...requirements, ...use.requirements],
         );
       }
-      case 'PRELOAD':
-        return context.refuse(
-          node,
-          'preload lowers only after BoundGodotProject joins resource identity',
+      case 'PRELOAD': {
+        // `preload("res://x.tscn")` is the project scene's resource, made once per path
+        // (`ResourceLoader::load`'s cache): the scene component the translation writes for it.
+        const scene = context.packedScene?.(node.resolvedPath);
+        if (scene === undefined) return context.refuse(node, `preload of ${node.resolvedPath} names no project scene`);
+        const requirements = context.structural(node, 'preload', [], 'preload:packed-scene');
+        const local = `$Scene_${scene.name}`;
+        return expression(
+          {
+            kind: 'call-expression',
+            callee: { kind: 'identifier-expression', name: 'godot_packed_scene_preload' },
+            arguments: [
+              { kind: 'literal-expression', value: node.resolvedPath },
+              { kind: 'identifier-expression', name: local },
+            ],
+            span: span(context.script, node),
+          },
+          [
+            ...requirements,
+            {
+              kind: 'compat-import-requirement',
+              module: 'lib/godot-compat/packed-scene-instance',
+              imported: 'godot_packed_scene_preload',
+              local: 'godot_packed_scene_preload',
+              typeOnly: false,
+            },
+            { kind: 'project-import-requirement', module: scene.module, imported: scene.name, local, typeOnly: false },
+          ],
         );
+      }
       default:
         return context.refuse(node, `${node.kind} is not an expression lowering`);
     }

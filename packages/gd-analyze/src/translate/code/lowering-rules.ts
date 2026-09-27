@@ -63,6 +63,7 @@ export type GodotStructuralConstruct =
   | 'member-identifier'
   | 'parameter'
   | 'pass'
+  | 'preload'
   | 'return'
   | 'self'
   | 'singleton'

@@ -128,6 +128,7 @@ const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new S
   'lambda',
   'literal',
   'local-identifier',
+  'preload',
   'member-identifier',
   'self',
   'subscript-attribute',
@@ -206,6 +207,8 @@ export class LoweringContext {
     readonly scriptMembers?: (resPath: string) => ReadonlySet<string> | undefined,
     /** The AnimationTree a scene node expression holds in each scene, with its parameters, where its graph is known. */
     readonly treeParameters?: (nodeId: number) => readonly { readonly at: string; readonly parameters: ReadonlySet<string> }[],
+    /** The scene component a project scene's resource path is written as, and where to import it from. */
+    readonly packedScene?: (resPath: string) => { readonly name: string; readonly module: string } | undefined,
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();

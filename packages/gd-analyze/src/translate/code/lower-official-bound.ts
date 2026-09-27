@@ -11,6 +11,7 @@ import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
 import type { GodotValue } from '../../read/godot-value';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
+import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
 import type { GodotCodeEvidenceResolver } from './authority';
 import {
@@ -594,6 +595,13 @@ function lowerScript(
     nativeMethods,
     (resPath) => scriptMemberNames(project, resPath),
     (nodeId) => treeParametersOf(project, sceneNodes.get(nodeId) ?? []),
+    (resPath) => {
+      if (!/\.t?scn$/u.test(resPath) || !project.documents.scenes.some((scene) => scene.resPath === resPath && scene.sourceKind === 'packed-scene')) return undefined;
+      const from = path.posix.dirname(`src/scripts/${fileName(source.resPath)}`);
+      let module = path.posix.relative(from, godotSceneTargetPath(resPath).replace(/\.tsx$/u, ''));
+      if (!module.startsWith('.')) module = `./${module}`;
+      return { name: godotSceneExportName(resPath), module };
+    },
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
