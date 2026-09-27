@@ -159,6 +159,14 @@ function applyFrozenDependencyDeclarations(
         `frozen package-lock.json ${field} names do not match planned capability requirements: planned-only [${plannedNames.filter((name) => !frozenNames.includes(name)).join(', ')}], frozen-only [${frozenNames.filter((name) => !plannedNames.includes(name)).join(', ')}]`,
       );
     }
+    // The lock resolved the ranges its root row names; a range the merge planned differently (the
+    // project's `react: ~19.2.4` against a capability's caret) is a stale lock, not a choice.
+    const drifted = plannedNames.filter((name) => planned[field]?.[name] !== frozenRoot[field]?.[name]);
+    if (drifted.length > 0) {
+      throw new Error(
+        `frozen package-lock.json ${field} ranges differ from the planned merge: ${drifted.map((name) => `${name} planned ${planned[field]?.[name]}, frozen ${frozenRoot[field]?.[name]}`).join('; ')}`,
+      );
+    }
     if (frozenRoot[field] === undefined) delete planned[field];
     else planned[field] = { ...frozenRoot[field] };
   }
