@@ -80,6 +80,12 @@ import {
   GODOT_4_7_PARTICLE_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-particles';
 import {
+  GODOT_4_7_GPU_PARTICLE_CLAIMS,
+  GODOT_4_7_GPU_PARTICLE_LIVENESS,
+  GODOT_4_7_GPU_PARTICLE_NODE_RULES,
+  GODOT_4_7_GPU_PARTICLE_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-gpu-particles';
+import {
   GODOT_4_7_PHYSICS_CLAIMS,
   GODOT_4_7_PHYSICS_LIVENESS,
   GODOT_4_7_PHYSICS_NODE_RULES,
@@ -337,6 +343,26 @@ export const GODOT_SHADER_LOWERING_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/evidence/shader-evaluation.ts',
 ] as const;
 
+/** What the scene-gpu-particles proof runs: planning, shader lowering, emission, the GPU particle pass and its resources. */
+export const GODOT_SCENE_GPU_PARTICLES_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/godot-frontend/bound-shader.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/data/scene-families.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',
+  'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/shader-glsl.ts',
+  'packages/gd-analyze/src/translate/emit/particles-shader.ts',
+  'packages/gd-analyze/src/translate/artifacts/plan.ts',
+  'packages/gd-analyze/src/snapshot/toolchain-snapshot.ts',
+  'packages/gd-analyze/src/evidence/browser-harness.ts',
+  ...['gpu-particles-3d.ts', 'particle-process-material.ts', 'particles-shader-gles3.ts', 'curve-texture.ts', 'curve.ts', 'gradient.ts', 'gradient-texture-1d.ts', 'quad-mesh.ts', 'primitive-mesh.ts', 'shader.ts', 'viewport.ts', 'main.tsx', 'main-timer-sync.ts', 'react-lifecycle.tsx', 'node.ts', 'node-3d.ts', 'scene-tree.ts', 'base-material-3d.ts'].map(
+    (file) => `${COMPAT}/${file}`,
+  ),
+] as const;
+
 /** What the scene-particles proof runs: planning, emission, the particle, curve and gradient compat. */
 export const GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/analyze/bound-project.ts',
@@ -451,6 +477,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_AUDIO_NODE_RULES,
           ...GODOT_4_7_GRIDMAP_NODE_RULES,
           ...GODOT_4_7_PARTICLE_NODE_RULES,
+          ...GODOT_4_7_GPU_PARTICLE_NODE_RULES,
           ...GODOT_4_7_ENVIRONMENT_NODE_RULES,
           ...GODOT_4_7_ANIMATION_NODE_RULES,
         ]
@@ -469,7 +496,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       : [],
     signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
-      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES, ...GODOT_4_7_GRIDMAP_RESOURCE_RULES, ...GODOT_4_7_PARTICLE_RESOURCE_RULES, ...GODOT_4_7_ENVIRONMENT_RESOURCE_RULES, ...GODOT_4_7_ANIMATION_RESOURCE_RULES]
+      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES, ...GODOT_4_7_GRIDMAP_RESOURCE_RULES, ...GODOT_4_7_PARTICLE_RESOURCE_RULES, ...GODOT_4_7_GPU_PARTICLE_RESOURCE_RULES, ...GODOT_4_7_ENVIRONMENT_RESOURCE_RULES, ...GODOT_4_7_ANIMATION_RESOURCE_RULES]
       : [],
     claims: supported
       ? [
@@ -484,6 +511,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_AUDIO_CLAIMS,
           ...GODOT_4_7_GRIDMAP_CLAIMS,
           ...GODOT_4_7_PARTICLE_CLAIMS,
+          ...GODOT_4_7_GPU_PARTICLE_CLAIMS,
           ...GODOT_4_7_ENVIRONMENT_CLAIMS,
           ...GODOT_4_7_ANIMATION_CLAIMS,
           ...GODOT_4_7_IDIOMATIC_CLAIMS,
@@ -538,6 +566,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_PARTICLE_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_GPU_PARTICLE_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_GPU_PARTICLES_IMPLEMENTATION_FILES),
           ),
           ...withLiveImplementation(
             GODOT_4_7_ENVIRONMENT_LIVENESS,

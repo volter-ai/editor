@@ -17,7 +17,7 @@
  * not bound.
  */
 
-import { BasicShadowMap, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
+import { BasicShadowMap, type Camera, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
 import { get_global_transform_with_canvas, godot_canvas_item_is } from './canvas-item';
 import { godot_control_call_gui_input, godot_control_find } from './control';
 import { godot_input_set_dispatch } from './input';
@@ -68,6 +68,30 @@ export function godot_viewport_attach_renderer(renderer: WebGLRenderer): () => v
   return () => {
     renderers.delete(renderer);
   };
+}
+
+/** Work the rendering server does each drawn frame before the viewports draw (`RenderingServerDefault::draw`). */
+const FRAME_WORK = new Set<(renderer: WebGLRenderer, camera: Camera | null, frame_step: number) => void>();
+
+/**
+ * Registers work the server does each drawn frame (`update_particles`, `rendering_server_default.cpp:103`).
+ *
+ * @godot Viewport (protocol)
+ * @source servers/rendering/rendering_server_default.cpp:103
+ */
+export function godot_viewport_frame_work(work: (renderer: WebGLRenderer, camera: Camera | null, frame_step: number) => void): void {
+  FRAME_WORK.add(work);
+}
+
+/**
+ * The server's frame on the attached renderer, with the camera the root viewport draws with and the
+ * frame's step, before three draws it.
+ *
+ * @godot Viewport (protocol)
+ * @source servers/rendering/rendering_server_default.cpp:76
+ */
+export function godot_viewport_draw_frame(renderer: WebGLRenderer, camera: Camera | null, frame_step: number): void {
+  for (const work of FRAME_WORK) work(renderer, camera, frame_step);
 }
 
 /**

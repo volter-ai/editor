@@ -28,6 +28,10 @@ export interface GodotLoweredShader {
   readonly uniforms: readonly GodotShaderUniform[];
   readonly functions: string;
   readonly entry: string;
+  /** A particles shader's `start()` and `process()` bodies. */
+  readonly entries?: Readonly<Record<string, string>>;
+  /** The defines a particles shader's render modes and `USERDATAn` use set. */
+  readonly defines?: readonly string[];
 }
 
 export interface Shader {

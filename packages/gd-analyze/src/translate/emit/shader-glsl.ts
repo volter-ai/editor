@@ -133,10 +133,12 @@ export type GodotShaderBuiltins = Readonly<Record<string, string>>;
 export interface LoweredGodotShader {
   /** `uniform <type> godot_u_<name>;` for each uniform, in Godot's order. */
   readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly declaration: string; readonly uniform: GodotShaderUniform }[];
-  /** The shader's own functions other than the entry, in declaration order. */
+  /** The shader's structs (`struct godot_s_<name>`), constants and own functions other than the entries, in declaration order. */
   readonly functions: string;
-  /** The entry function's body statements. */
+  /** The (first) entry function's body statements. */
   readonly entry: string;
+  /** Each entry function's body statements, by name. */
+  readonly entries: Readonly<Record<string, string>>;
   /** The built-ins the shader reads or writes. */
   readonly builtins: ReadonlySet<string>;
 }
@@ -167,24 +169,28 @@ function scalarText(value: GodotShaderScalar): string {
  * The shader lowered with `builtins` naming its mode's built-ins and `entry` naming the function
  * the mode runs (`sky`, `fragment`), or the construct it does not carry.
  */
-export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShaderBuiltins, entry: string): LoweredGodotShader | string {
+export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShaderBuiltins, entry: string | readonly string[]): LoweredGodotShader | string {
   if (!shader.ok) return `${shader.path}: the official shader frontend refused it (${shader.stage}: ${shader.message})`;
   const tree = shader.tree;
-  if (tree.structs.length > 0) return `${shader.path}: shader structs are not lowered`;
   if (tree.varyings.length > 0) return `${shader.path}: varyings are not lowered`;
+  const entryNames: readonly string[] = typeof entry === 'string' ? [entry] : entry;
+  const structNames = new Set(tree.structs.map((struct) => struct.name));
   const used = new Set<string>();
   const uniformNames = new Set(tree.uniforms.map((uniform) => uniform.name));
   const constantNames = new Set(tree.constants.map((constant) => constant.name));
   const functionNames = new Set(tree.functions.map((entry2) => entry2.name));
-  const type = (name: string): string => {
+  const type = (name: string, struct = ''): string => {
+    // A struct type is the shader's own struct (`struct godot_s_<name>`).
+    if (struct !== '' && structNames.has(struct)) return `godot_s_${struct}`;
     if (!GLSL_TYPES.has(name)) throw new Refused(`the ${name} type is not lowered`);
     return name;
   };
+  const typeOf = (datatype: { readonly name: string; readonly struct: string }): string => type(datatype.name, datatype.struct);
   const expression = (node: GodotShaderNode): string => {
     switch (node.kind) {
       case 'CONSTANT': {
         if (node.values.length === 1) return scalarText(node.values[0] as GodotShaderScalar);
-        return `${type(node.datatype.name)}(${node.values.map(scalarText).join(', ')})`;
+        return `${typeOf(node.datatype)}(${node.values.map(scalarText).join(', ')})`;
       }
       case 'VARIABLE': {
         if (node.local) return `godot_l_${node.name}`;
@@ -250,7 +256,7 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
           .map((declaration) => {
             if (declaration.size > 0 || declaration.sizeExpression !== null) throw new Refused('local arrays are not lowered');
             const initializer = declaration.initializer[0];
-            return `${indent}${node.const ? 'const ' : ''}${type(node.declared.name)} godot_l_${declaration.name}${initializer === undefined ? '' : ` = ${expression(initializer)}`};`;
+            return `${indent}${node.const ? 'const ' : ''}${typeOf(node.declared)} godot_l_${declaration.name}${initializer === undefined ? '' : ` = ${expression(initializer)}`};`;
           })
           .join('\n');
       case 'BLOCK':
@@ -294,28 +300,45 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       if (uniform.scope !== 0) throw new Refused(`the ${uniform.name} uniform's scope is not lowered`);
       if (uniform.type.arraySize > 0) throw new Refused(`the ${uniform.name} uniform array is not lowered`);
       const glsl = `godot_u_${uniform.name}`;
-      return { name: uniform.name, glsl, declaration: `uniform ${type(uniform.type.name)} ${glsl};`, uniform };
+      return { name: uniform.name, glsl, declaration: `uniform ${typeOf(uniform.type)} ${glsl};`, uniform };
     });
-    let entryBody: string | undefined;
-    // The global constants first, in declaration order: `const <type> godot_c_<name> = <value>;`.
-    const functions: string[] = tree.constants.map((constant) => {
-      if (constant.type.arraySize > 0 || constant.initializer === null) throw new Refused(`the ${constant.name} constant is not lowered`);
-      return `const ${type(constant.type.name)} godot_c_${constant.name} = ${expression(constant.initializer)};`;
+    const entryBodies: Record<string, string> = {};
+    // The structs first (`struct godot_s_<name> { <type> <member>; };`), then the global constants
+    // (`const <type> godot_c_<name> = <value>;`), in declaration order.
+    const functions: string[] = tree.structs.map(({ name, struct }) => {
+      if (struct === null || struct.kind !== 'STRUCT') throw new Refused(`the ${name} struct has no members`);
+      // Each member is the parser's `MemberNode` (`shader_language.cpp` struct parsing): its type and name.
+      const members = struct.members.map((member) => {
+        if (member.kind !== 'MEMBER') throw new Refused(`the ${name} struct holds a ${member.kind}`);
+        if (member.datatype.arraySize > 0) throw new Refused(`the ${name} struct's array member is not lowered`);
+        return `\t${typeOf(member.datatype)} ${member.name};`;
+      });
+      return `struct godot_s_${name} {\n${members.join('\n')}\n};`;
     });
+    functions.push(
+      ...tree.constants.map((constant) => {
+        if (constant.type.arraySize > 0 || constant.initializer === null) throw new Refused(`the ${constant.name} constant is not lowered`);
+        return `const ${typeOf(constant.type)} godot_c_${constant.name} = ${expression(constant.initializer)};`;
+      }),
+    );
+    // `ShaderLanguage::ArgumentQualifier` (`shader_language.h:323`): in, out, inout.
+    const QUALIFIER = ['', 'out ', 'inout '] as const;
     for (const { name, function: fn } of tree.functions) {
       if (fn === null || fn.kind !== 'FUNCTION' || fn.body === null || fn.body.kind !== 'BLOCK') throw new Refused(`the ${name} function has no body`);
-      if (name === entry) {
-        entryBody = block(fn.body, '\t');
+      if (entryNames.includes(name)) {
+        entryBodies[name] = block(fn.body, '\t');
         continue;
       }
       const parameters = fn.arguments.map((argument) => {
-        if (argument.qualifier !== 0) throw new Refused(`the ${name} function's out/inout parameters are not lowered`);
-        return `${type(argument.type.name)} godot_l_${argument.name}`;
+        const qualifier = QUALIFIER[argument.qualifier];
+        if (qualifier === undefined) throw new Refused(`the ${name} function's parameter qualifier ${String(argument.qualifier)} is not lowered`);
+        return `${argument.const ? 'const ' : ''}${qualifier}${typeOf(argument.type)} godot_l_${argument.name}`;
       });
-      functions.push(`${type(fn.returnType.name)} godot_f_${name}(${parameters.join(', ')}) {\n${block(fn.body, '\t')}\n}`);
+      functions.push(`${typeOf(fn.returnType)} godot_f_${name}(${parameters.join(', ')}) {\n${block(fn.body, '\t')}\n}`);
     }
-    if (entryBody === undefined) return `${shader.path}: the shader has no ${entry}() function`;
-    return { uniforms, functions: functions.join('\n\n'), entry: entryBody, builtins: used };
+    const missing = entryNames.find((name) => entryBodies[name] === undefined);
+    if (missing !== undefined) return `${shader.path}: the shader has no ${missing}() function`;
+    return { uniforms, functions: functions.join('\n\n'), entry: entryBodies[entryNames[0] as string] as string, entries: entryBodies, builtins: used };
   } catch (error) {
     if (error instanceof Refused) return `${shader.path}: ${error.message}`;
     throw error;

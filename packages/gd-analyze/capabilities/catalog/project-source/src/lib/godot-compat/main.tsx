@@ -25,7 +25,7 @@ import { godot_main_timer_sync_init } from './main-timer-sync';
 import { GodotSpawnHost } from './packed-scene-instance';
 import { godot_resource_loader_settled } from './resource-loader';
 import { godot_main_iteration, godot_tree_set_root } from './scene-tree';
-import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
+import { godot_viewport_attach_input, godot_viewport_attach_renderer, godot_viewport_draw_frame } from './viewport';
 import {
   godot_window_attach_input,
   godot_window_canvas_layer,
@@ -97,9 +97,10 @@ function GodotMainLoop() {
   }, [scene, gl, size]);
   useFrame(() => {
     godot_window_process_events();
-    godot_main_iteration(ticksUsec());
+    const frameStep = godot_main_iteration(ticksUsec());
     const camera = godot_camera_3d_draw(scene);
     if (camera !== null && get().camera !== camera) set({ camera });
+    godot_viewport_draw_frame(gl, camera, frameStep);
     godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement));
   });
   return null;

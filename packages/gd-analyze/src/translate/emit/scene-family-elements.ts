@@ -478,6 +478,7 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   AudioStreamPlayer: ['audio-stream-player', 'Group'],
   AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
   GridMap: ['grid-map', 'Group'],
+  GPUParticles3D: ['gpu-particles-3d', 'Group'],
   CPUParticles3D: ['cpu-particles-3d', 'Group'],
   Decal: ['decal', 'Group'],
   WorldEnvironment: ['world-environment', 'Group'],
