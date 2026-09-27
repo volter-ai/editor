@@ -65,19 +65,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "9f365456ff2da3a88ea0c487799ebf8c539c0377bc786d5034fba6d8c07a1fad",
-        "callsite": "res://probe.gd _init() set_environment ambient-stage fog-stage",
-        "observedOutputSha256": "2b0f62a37e116268ed33c187fed03cd49b72aad7c5e9e68f6dd4259fec91ff99"
+        "inputSha256": "548ad1157f359d20c720d257ed4095b2103623379de77fff001fc57606c88107",
+        "callsite": "res://probe.gd _init() set_environment ambient-stage fog-stage camera-environment-resolution",
+        "observedOutputSha256": "89afbebf9aace17a7794d39fe214080ec90a9f4b2336a776110f887788796441"
       },
       "target": {
-        "implementationSha256": "32c9f8637acf9369832235c6aace66645d38f18f957b3ab5f8afbab31cdc958b",
+        "implementationSha256": "c03cca7d4a5b47cecc3ccc48a50bcba74a7259a54f93a521909aee49a619713c",
         "callsite": "lib/godot-compat/world-environment.ts set_environment",
-        "observedOutputSha256": "2b0f62a37e116268ed33c187fed03cd49b72aad7c5e9e68f6dd4259fec91ff99"
+        "observedOutputSha256": "89afbebf9aace17a7794d39fe214080ec90a9f4b2336a776110f887788796441"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: exact, render-mapping",
         "tolerance": "exact",
-        "resultSha256": "f7141d8b29cdecf28715a1570fddce8d4667d91e4e4368bb00988c0e33dcd158"
+        "resultSha256": "bf4fe396454be42df56f7a02f844979b1be9c200c97cc81402e0e92d135ce572"
       },
       "reproductionCommand": [
         "npx",
@@ -109,7 +109,7 @@
         "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
       },
       "target": {
-        "implementationSha256": "32c9f8637acf9369832235c6aace66645d38f18f957b3ab5f8afbab31cdc958b",
+        "implementationSha256": "c03cca7d4a5b47cecc3ccc48a50bcba74a7259a54f93a521909aee49a619713c",
         "callsite": "lib/godot-compat/world-environment.ts get_environment",
         "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
       },
@@ -135,8 +135,8 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "9f365456ff2da3a88ea0c487799ebf8c539c0377bc786d5034fba6d8c07a1fad",
-      "implementationSha256": "32c9f8637acf9369832235c6aace66645d38f18f957b3ab5f8afbab31cdc958b"
+      "inputSha256": "548ad1157f359d20c720d257ed4095b2103623379de77fff001fc57606c88107",
+      "implementationSha256": "c03cca7d4a5b47cecc3ccc48a50bcba74a7259a54f93a521909aee49a619713c"
     },
     {
       "claimId": "godot-4.7-binding-WorldEnvironment.get_environment",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "dc956df2f03c3109ad478c9a4a0359b42136270fff4636ca67e546d055c10070",
-      "implementationSha256": "32c9f8637acf9369832235c6aace66645d38f18f957b3ab5f8afbab31cdc958b"
+      "implementationSha256": "c03cca7d4a5b47cecc3ccc48a50bcba74a7259a54f93a521909aee49a619713c"
     }
   ]
 }

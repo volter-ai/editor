@@ -1098,6 +1098,16 @@ export function familyElement(
           attribute('fov', literal(property('fov', 75))),
           attribute('near', literal(property('near', 0.05))),
           attribute('far', literal(property('far', 4000))),
+          // Its own environment, drawn in place of the world's while the viewport draws with it.
+          ...(setterValue(node.setters, 'set_environment') === undefined
+            ? []
+            : [
+                attribute('onUpdate', {
+                  kind: 'call-expression',
+                  callee: identifier(useCompat(emission, 'camera-3d', 'godot_camera_3d_environment_prop')),
+                  arguments: [propValue(emission, setterValue(node.setters, 'set_environment') as TargetGodotSceneValue)],
+                }),
+              ]),
         ],
         children: [],
       };

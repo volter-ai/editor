@@ -56,7 +56,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:17', 'set_param:18', 'set_shadow_mode'],
   OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
-  Camera3D: [...NODE_3D, 'set_current'],
+  Camera3D: [...NODE_3D, 'set_current', 'set_environment'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,

@@ -21,6 +21,10 @@
  *   `CustomToneMapping`, which every tone-mapped three material runs before its output conversion;
  * - fog is three's `FogExp2` of the fog colour (linear, times its energy) and density.
  *
+ * The environment drawn is resolved each time a viewport's scene renders, as the renderer resolves
+ * it per camera (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722): the
+ * drawing camera's own (`Camera3D.environment`), else the world's.
+ *
  * Named deviations: `fog-model` (Godot fogs by `1 - exp(-distance * density)` per vertex, three's
  * `FogExp2` by `1 - exp(-(depth * density)^2)` per fragment; height fog and sun scatter are not
  * drawn, nor fog on the sky); `sky-radiance` (the sky's radiance, which Godot's materials reflect and
@@ -34,19 +38,25 @@ import { type ReactElement, useLayoutEffect } from 'react';
 import {
   AmbientLight,
   BoxGeometry,
+  type Camera,
   BackSide,
   Color as ThreeColor,
   type CubeTexture,
   CustomToneMapping,
   FogExp2,
   Group,
+  type Material,
   Mesh,
+  type PerspectiveCamera,
+  type Scene,
   ShaderChunk,
   ShaderMaterial as ThreeShaderMaterial,
   type Texture,
+  type WebGLRenderer,
 } from 'three';
 import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
+import { get_environment as get_camera_environment, godot_camera_3d_world_listener } from './camera-3d';
 import { godot_node_foreign } from './node';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
@@ -332,70 +342,147 @@ const WORLD_ENVIRONMENT: GodotElementClass<Group> = {
 export function GodotWorldEnvironment(props: GodotElementProps<Group>): ReactElement {
   const element = useGodotElement(WORLD_ENVIRONMENT, props);
   const scene = useThree((state) => state.scene);
-  const gl = useThree((state) => state.gl);
   useLayoutEffect(() => {
     const node = (element.props as { object?: Group }).object;
-    const env = node === undefined ? null : get_environment(node);
-    if (env === null) return undefined;
-    const undo: (() => void)[] = [];
-    // The background.
-    if (env.bg_mode === 2) {
-      const sky = env.sky?.sky_material ?? null;
-      if (sky !== null) {
-        const box = new Mesh(new BoxGeometry(1, 1, 1), godot_sky_material_three(sky, env.bg_energy_multiplier));
-        box.frustumCulled = false;
-        box.renderOrder = -Number.MAX_SAFE_INTEGER;
-        box.onBeforeRender = (_renderer, _scene, camera) => {
-          box.position.setFromMatrixPosition(camera.matrixWorld);
-          box.updateMatrixWorld();
-        };
-        godot_node_foreign(box);
-        scene.add(box);
-        undo.push(() => {
-          scene.remove(box);
-          box.geometry.dispose();
-          (box.material as ThreeShaderMaterial).dispose();
+    if (node === undefined) return undefined;
+    return godot_world_environment_register(scene, node);
+  }, [element, scene]);
+  return element;
+}
+
+/** What a viewport's scene draws its environment from, and the environment it drew last. */
+interface Drawn {
+  /** The WorldEnvironments drawing on this scene, in mount order: the first one's is the world's. */
+  readonly worlds: Group[];
+  environment: Environment | null;
+  undo: () => void;
+  compiled: boolean;
+}
+
+const DRAWN = new WeakMap<Scene, Drawn>();
+
+/**
+ * The environment a viewport draws with a camera (`RendererSceneCull::_render_get_environment`,
+ * renderer_scene_cull.cpp:3722): the camera's own, else the world's (its first WorldEnvironment's).
+ * Resolved each time the scene renders, as the renderer resolves it per camera; a change redraws
+ * it, and recompiles the scene's materials for the tone mapping they run.
+ */
+function drawnOf(scene: Scene): Drawn {
+  let drawn = DRAWN.get(scene);
+  if (drawn === undefined) {
+    const state: Drawn = { worlds: [], environment: null, undo: () => undefined, compiled: false };
+    drawn = state;
+    DRAWN.set(scene, state);
+    const previous = scene.onBeforeRender;
+    scene.onBeforeRender = (renderer, drawnScene, camera, target, material, group) => {
+      previous.call(scene, renderer, drawnScene, camera, target, material, group);
+      const env = godot_world_environment_resolve(scene, camera);
+      if (env === state.environment && state.compiled) return;
+      state.undo();
+      state.undo = env === null ? () => undefined : drawEnvironment(scene, renderer, env);
+      if (state.compiled) {
+        scene.traverse((object) => {
+          const materials = (object as { material?: Material | Material[] }).material;
+          for (const entry of Array.isArray(materials) ? materials : materials === undefined ? [] : [materials]) entry.needsUpdate = true;
         });
       }
-    } else if (env.bg_mode === 1) {
-      const c = env.bg_color;
-      const previous = scene.background;
-      scene.background = new ThreeColor(srgbToLinear(c.r) * env.bg_energy_multiplier, srgbToLinear(c.g) * env.bg_energy_multiplier, srgbToLinear(c.b) * env.bg_energy_multiplier);
-      undo.push(() => {
-        scene.background = previous;
-      });
-    }
-    // The ambient light.
-    const ambient = godot_world_environment_ambient(env);
-    if (ambient !== null) {
-      const light = new AmbientLight(new ThreeColor(...ambient.color), ambient.intensity);
-      godot_node_foreign(light);
-      scene.add(light);
-      undo.push(() => scene.remove(light));
-    }
-    // The fog.
-    const fog = godot_world_environment_fog(env);
-    if (fog !== null) {
-      const previous = scene.fog;
-      scene.fog = new FogExp2(new ThreeColor(...fog.color).getHex(), fog.density);
-      undo.push(() => {
-        scene.fog = previous;
-      });
-    }
-    // The tone mapping, before the materials that run it compile.
-    ShaderChunk.tonemapping_pars_fragment = TONEMAPPING_CHUNK.replace(CUSTOM_STUB, godot_environment_tonemapping_glsl(env));
-    const previousMapping = gl.toneMapping;
-    const previousExposure = gl.toneMappingExposure;
-    gl.toneMapping = CustomToneMapping;
-    gl.toneMappingExposure = env.tonemap_exposure;
-    undo.push(() => {
-      ShaderChunk.tonemapping_pars_fragment = TONEMAPPING_CHUNK;
-      gl.toneMapping = previousMapping;
-      gl.toneMappingExposure = previousExposure;
-    });
-    return () => {
-      for (const step of undo.reverse()) step();
+      state.environment = env;
+      state.compiled = true;
     };
-  }, [element, scene, gl]);
-  return element;
+  }
+  return drawn;
+}
+
+/**
+ * A WorldEnvironment drawing on `scene`, in mount order; the returned function withdraws it.
+ *
+ * @godot WorldEnvironment (protocol)
+ * @source scene/3d/world_environment.cpp:78
+ */
+export function godot_world_environment_register(scene: Scene, node: Group): () => void {
+  const drawn = drawnOf(scene);
+  drawn.worlds.push(node);
+  return () => {
+    drawn.worlds.splice(drawn.worlds.indexOf(node), 1);
+  };
+}
+
+/**
+ * The environment `scene` draws with `camera`: the camera's own, else the world's, the first
+ * WorldEnvironment's (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722).
+ *
+ * @godot WorldEnvironment (protocol)
+ * @source servers/rendering/renderer_scene_cull.cpp:3722
+ */
+export function godot_world_environment_resolve(scene: Scene, camera: Camera): Environment | null {
+  const own = (camera as { readonly isPerspectiveCamera?: boolean }).isPerspectiveCamera === true ? get_camera_environment(camera as PerspectiveCamera) : null;
+  return own ?? drawnOf(scene).worlds.map((node) => get_environment(node)).find((env) => env !== null) ?? null;
+}
+
+// A camera with its own environment draws on its viewport's scene.
+godot_camera_3d_world_listener((camera, viewport) => {
+  if (get_camera_environment(camera) !== null && (viewport as { readonly isScene?: boolean }).isScene === true) drawnOf(viewport as Scene);
+});
+
+/** Draws `env` on `scene` with `gl`; the returned function undoes it. */
+function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () => void {
+  const undo: (() => void)[] = [];
+  // The background.
+  if (env.bg_mode === 2) {
+    const sky = env.sky?.sky_material ?? null;
+    if (sky !== null) {
+      const box = new Mesh(new BoxGeometry(1, 1, 1), godot_sky_material_three(sky, env.bg_energy_multiplier));
+      box.frustumCulled = false;
+      box.renderOrder = -Number.MAX_SAFE_INTEGER;
+      box.onBeforeRender = (_renderer, _scene, camera) => {
+        box.position.setFromMatrixPosition(camera.matrixWorld);
+        box.updateMatrixWorld();
+      };
+      godot_node_foreign(box);
+      scene.add(box);
+      undo.push(() => {
+        scene.remove(box);
+        box.geometry.dispose();
+        (box.material as ThreeShaderMaterial).dispose();
+      });
+    }
+  } else if (env.bg_mode === 1) {
+    const c = env.bg_color;
+    const previous = scene.background;
+    scene.background = new ThreeColor(srgbToLinear(c.r) * env.bg_energy_multiplier, srgbToLinear(c.g) * env.bg_energy_multiplier, srgbToLinear(c.b) * env.bg_energy_multiplier);
+    undo.push(() => {
+      scene.background = previous;
+    });
+  }
+  // The ambient light.
+  const ambient = godot_world_environment_ambient(env);
+  if (ambient !== null) {
+    const light = new AmbientLight(new ThreeColor(...ambient.color), ambient.intensity);
+    godot_node_foreign(light);
+    scene.add(light);
+    undo.push(() => scene.remove(light));
+  }
+  // The fog.
+  const fog = godot_world_environment_fog(env);
+  if (fog !== null) {
+    const previous = scene.fog;
+    scene.fog = new FogExp2(new ThreeColor(...fog.color).getHex(), fog.density);
+    undo.push(() => {
+      scene.fog = previous;
+    });
+  }
+  // The tone mapping, before the materials that run it compile.
+  ShaderChunk.tonemapping_pars_fragment = TONEMAPPING_CHUNK.replace(CUSTOM_STUB, godot_environment_tonemapping_glsl(env));
+  const previousMapping = gl.toneMapping;
+  const previousExposure = gl.toneMappingExposure;
+  gl.toneMapping = CustomToneMapping;
+  gl.toneMappingExposure = env.tonemap_exposure;
+  undo.push(() => {
+    ShaderChunk.tonemapping_pars_fragment = TONEMAPPING_CHUNK;
+    gl.toneMapping = previousMapping;
+    gl.toneMappingExposure = previousExposure;
+  });
+  return () => {
+    for (const step of undo.reverse()) step();
+  };
 }

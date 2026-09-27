@@ -26,6 +26,7 @@
  */
 
 import type { Object3D, PerspectiveCamera } from 'three';
+import type { Environment } from './environment';
 import { godot_node_adopt, godot_node_class_mount, godot_node_tree_signal, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { get_size } from './sub-viewport';
@@ -323,6 +324,57 @@ function enterWorld(camera: PerspectiveCamera): void {
   const cameras = camerasOf(viewport);
   if (!cameras.set.includes(camera)) cameras.set.push(camera);
   if (state.current || cameras.set.length === 1) cameraSet(viewport, camera);
+  for (const listener of WORLD_LISTENERS) listener(camera, viewport);
+}
+
+/** Who draws a viewport's environment, told when a camera joins a viewport or changes environment. */
+const WORLD_LISTENERS: ((camera: PerspectiveCamera, viewport: Object3D) => void)[] = [];
+
+/**
+ * Registers what the renderer does for a camera in a viewport (its environment drawn when the
+ * viewport renders with it, `world-environment.ts`).
+ *
+ * @godot Camera3D (protocol)
+ * @source servers/rendering/renderer_scene_cull.cpp:3722
+ */
+export function godot_camera_3d_world_listener(listener: (camera: PerspectiveCamera, viewport: Object3D) => void): void {
+  if (!WORLD_LISTENERS.includes(listener)) WORLD_LISTENERS.push(listener);
+}
+
+const ENVIRONMENTS = new WeakMap<object, Environment | null>();
+
+/**
+ * The camera's own environment, which the renderer draws in place of the world's while it draws
+ * with this camera (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722).
+ *
+ * @godot Camera3D.set_environment
+ * @source scene/3d/camera_3d.cpp:531
+ */
+export function set_environment(self: PerspectiveCamera, p_environment: Environment | null): void {
+  ENVIRONMENTS.set(self, p_environment);
+  const viewport = stateOf(self).viewport;
+  if (viewport !== null) for (const listener of WORLD_LISTENERS) listener(self, viewport);
+}
+
+/**
+ * @godot Camera3D.get_environment
+ * @source scene/3d/camera_3d.cpp:541
+ */
+export function get_environment(self: PerspectiveCamera): Environment | null {
+  return ENVIRONMENTS.get(self) ?? null;
+}
+
+/**
+ * A scene's Camera3D element states its environment through R3F's `onUpdate` (the drei camera
+ * has no Godot props): `onUpdate={godot_camera_3d_environment_prop(env)}`.
+ *
+ * @godot Camera3D (protocol)
+ * @source scene/3d/camera_3d.cpp:687
+ */
+export function godot_camera_3d_environment_prop(environment: Environment | null): (self: PerspectiveCamera) => void {
+  return (self) => {
+    if (ENVIRONMENTS.get(self) !== environment) set_environment(self, environment);
+  };
 }
 
 /** `NOTIFICATION_EXIT_WORLD` (`scene/3d/camera_3d.cpp:228`) with `Viewport::_camera_3d_remove` (`:4787`). */

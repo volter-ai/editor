@@ -1,5 +1,6 @@
 import { Group, PerspectiveCamera, Scene } from 'three';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/camera-3d';
+import * as ENV from '../../capabilities/catalog/project-source/src/lib/godot-compat/environment';
 import * as NODE from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
@@ -112,6 +113,31 @@ function currentCase(id: string, member: string, ops: readonly CurrentOp[]): voi
   };
   cases.push({ id, symbol: { kind: 'native-member', owner: 'Camera3D', member }, gdscript: lines.join('\n'), target, comparator: 'exact' });
 }
+
+// The camera's own environment, set and read back.
+cases.push(
+  {
+    id: 'set_environment',
+    symbol: { kind: 'native-member', owner: 'Camera3D', member: 'set_environment' },
+    gdscript: ['var c := Camera3D.new()', 'var e := Environment.new()', 'c.set_environment(e)', 'var same := c.get_environment() == e', 'c.set_environment(null)', 'var cleared := c.get_environment() == null', 'c.free()', 'return [same, cleared]'].join('\n'),
+    target: () => {
+      const c = new PerspectiveCamera();
+      const e = ENV.construct();
+      C.set_environment(c, e);
+      const same = C.get_environment(c) === e;
+      C.set_environment(c, null);
+      return [same, C.get_environment(c) === null];
+    },
+    comparator: 'exact',
+  },
+  {
+    id: 'get_environment-default',
+    symbol: { kind: 'native-member', owner: 'Camera3D', member: 'get_environment' },
+    gdscript: ['var c := Camera3D.new()', 'var none := c.get_environment() == null', 'c.free()', 'return none'].join('\n'),
+    target: () => C.get_environment(new PerspectiveCamera()) === null,
+    comparator: 'exact',
+  },
+);
 
 const CURRENT: readonly (readonly [string, string, readonly CurrentOp[]])[] = [
   ['outside', 'is_current', []],

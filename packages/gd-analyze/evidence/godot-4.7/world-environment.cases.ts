@@ -5,7 +5,8 @@
  * `rasterizer_scene_gles3.cpp:1618`, `scene.glsl:2580`) and the fog (the linear fog colour times its
  * energy, the density, `rasterizer_scene_gles3.cpp:1646`).
  */
-import { Group } from 'three';
+import { Group, PerspectiveCamera, Scene } from 'three';
+import * as CAM from '../../capabilities/catalog/project-source/src/lib/godot-compat/camera-3d';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/color';
 import * as E from '../../capabilities/catalog/project-source/src/lib/godot-compat/environment';
 import * as W from '../../capabilities/catalog/project-source/src/lib/godot-compat/world-environment';
@@ -54,6 +55,30 @@ c.cases.push(
     },
   },
 );
+// Which environment a viewport draws with a camera: the camera's own, else the world's.
+c.cases.push({
+  id: 'camera-environment-resolution',
+  symbol: { kind: 'native-member', owner: 'WorldEnvironment', member: 'set_environment' },
+  gdscript: '',
+  target: () => {
+    const scene = new Scene();
+    const world = new Group();
+    const worldEnv = E.construct();
+    const ownEnv = E.construct();
+    W.set_environment(world, worldEnv);
+    const withdraw = W.godot_world_environment_register(scene, world);
+    const own = new PerspectiveCamera();
+    CAM.set_environment(own, ownEnv);
+    const plain = new PerspectiveCamera();
+    const name = (env: E.Environment | null) => (env === ownEnv ? 'camera' : env === worldEnv ? 'world' : 'none');
+    const out = [name(W.godot_world_environment_resolve(scene, own)), name(W.godot_world_environment_resolve(scene, plain))];
+    withdraw();
+    out.push(name(W.godot_world_environment_resolve(scene, plain)));
+    return out.join(',');
+  },
+  comparator: 'render-mapping',
+  fact: { value: 'camera,world,none', source: { file: 'servers/rendering/renderer_scene_cull.cpp', symbol: 'RendererSceneCull::_render_get_environment', line: 3722 } },
+});
 void C;
 
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'WorldEnvironment', compatModule: 'lib/godot-compat/world-environment', cases: c.cases };
