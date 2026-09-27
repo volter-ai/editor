@@ -1,0 +1,626 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/animated-sprite-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "play",
+        "kind": "native-member",
+        "signature": "hash:3269405555"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "play",
+        "localName": "AnimatedSprite3D_play",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.play"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "is_playing",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "is_playing",
+        "localName": "AnimatedSprite3D_is_playing",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.is_playing"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "set_sprite_frames",
+        "kind": "native-member",
+        "signature": "hash:905781144"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "set_sprite_frames",
+        "localName": "AnimatedSprite3D_set_sprite_frames",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.set_sprite_frames"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "get_sprite_frames",
+        "kind": "native-member",
+        "signature": "hash:3804851214"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "get_sprite_frames",
+        "localName": "AnimatedSprite3D_get_sprite_frames",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.get_sprite_frames"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "set_animation",
+        "kind": "native-member",
+        "signature": "hash:3304788590"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "set_animation",
+        "localName": "AnimatedSprite3D_set_animation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.set_animation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "get_animation",
+        "kind": "native-member",
+        "signature": "hash:2002593661"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "get_animation",
+        "localName": "AnimatedSprite3D_get_animation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.get_animation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "set_frame",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "set_frame",
+        "localName": "AnimatedSprite3D_set_frame",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.set_frame"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "get_frame",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "get_frame",
+        "localName": "AnimatedSprite3D_get_frame",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.get_frame"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimatedSprite3D",
+        "member": "get_frame_progress",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animated-sprite-3d",
+        "exportName": "get_frame_progress",
+        "localName": "AnimatedSprite3D_get_frame_progress",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimatedSprite3D.get_frame_progress"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.play",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000play\u0000hash:3269405555",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.play",
+        "sourceLine": 1371
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5a10728c2247b794885ec34fba0098208f03d4a335cf5784629f895f8cca25d5",
+        "callsite": "res://probe.gd _init() play-burst play-burst-replay play-impact play-loop-uneven play-pingpong play-backwards play-current",
+        "observedOutputSha256": "882fdf491fbac67b2ae14c5e57b4e9d4af283b43c53c922d2d71754a7e2309ab"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts play",
+        "observedOutputSha256": "882fdf491fbac67b2ae14c5e57b4e9d4af283b43c53c922d2d71754a7e2309ab"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6d75cb311687a1e627fbddce73b99bbc2cc9b07f6b3c80792dc4294d1a7ce419"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.is_playing",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000is_playing\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.is_playing",
+        "sourceLine": 1355
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "04f8cfe8992e9d1b140e87f5cfd46798e20b9504a7bd8de147acdcd5f275db09",
+        "callsite": "res://probe.gd _init() is_playing",
+        "observedOutputSha256": "321edf90e8090c61abc38747b2704a53d2674a918eea74716223dbd97758b3e2"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts is_playing",
+        "observedOutputSha256": "321edf90e8090c61abc38747b2704a53d2674a918eea74716223dbd97758b3e2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5974a9ec480191f5454e3f7a8a487617a8e2adcf95aef98ff4f0e3ddca71ad72"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.set_sprite_frames",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000set_sprite_frames\u0000hash:905781144",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.set_sprite_frames",
+        "sourceLine": 1224
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5352ba9776af37439d6361b1aaf537af41c3475e9739d0cd69e0ae0e6df46146",
+        "callsite": "res://probe.gd _init() set_sprite_frames",
+        "observedOutputSha256": "2c8ebfc1d89993cfa9891fd07d306077fbf6a9d3e4d91d0755bc0f9fe311a9f2"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts set_sprite_frames",
+        "observedOutputSha256": "2c8ebfc1d89993cfa9891fd07d306077fbf6a9d3e4d91d0755bc0f9fe311a9f2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ee8ee71206498b33ed655d51158e225ed180ba3ad8faa2598ea599aa0ca3fd79"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_sprite_frames",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000get_sprite_frames\u0000hash:3804851214",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.get_sprite_frames",
+        "sourceLine": 1258
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "639813a13248b0b33843c9026ea938dce998ef7d15301d63e76a765f2a347e4b",
+        "callsite": "res://probe.gd _init() get_sprite_frames",
+        "observedOutputSha256": "5c467c6dd43640d7f478aa7dd56ecf71575e674acadf2aed00c74578d3d199df"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts get_sprite_frames",
+        "observedOutputSha256": "5c467c6dd43640d7f478aa7dd56ecf71575e674acadf2aed00c74578d3d199df"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "018eae1db9d022f45c4b5a8c59a30b9674d578becce4dd4b34912abca4ff6eb9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.set_animation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000set_animation\u0000hash:3304788590",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.set_animation",
+        "sourceLine": 1447
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ea3e61f3774cdb21530b03ca5edbd20cf2235f77bc6aea2e09fc0289661beef0",
+        "callsite": "res://probe.gd _init() set_animation",
+        "observedOutputSha256": "2e9e84253d7ebbbca0227fd72c7b9449db2ed30ba2a96185482cceb70fcaf181"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts set_animation",
+        "observedOutputSha256": "2e9e84253d7ebbbca0227fd72c7b9449db2ed30ba2a96185482cceb70fcaf181"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "87aa9bb75001eba5e3daf3366112a04df951ec031072f197f6cd90d8bbfbe2fb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_animation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000get_animation\u0000hash:2002593661",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.get_animation",
+        "sourceLine": 1481
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7178d470db99d2f525b8f9b40cadbe9b50d8da12f1370ae6448d20a4b3c5a723",
+        "callsite": "res://probe.gd _init() get_animation",
+        "observedOutputSha256": "a7c293dc8e7dd018970423595f7c6937982eecc9b8d42d2b5b1ed0883b966b53"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts get_animation",
+        "observedOutputSha256": "a7c293dc8e7dd018970423595f7c6937982eecc9b8d42d2b5b1ed0883b966b53"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2e8dce86ff501444a6f50fc41d6a5525b5217676d7b456b6169384ac14c8daab"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.set_frame",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000set_frame\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.set_frame",
+        "sourceLine": 1262
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1ca32c18e70556315886661fb7688f867bd835568c696b69d4c6f820bd55b58a",
+        "callsite": "res://probe.gd _init() set_frame",
+        "observedOutputSha256": "eed32035457b09068a7b4dc9db35e4e0648fa8b0f92e9b4c730da8d7f24efe14"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts set_frame",
+        "observedOutputSha256": "eed32035457b09068a7b4dc9db35e4e0648fa8b0f92e9b4c730da8d7f24efe14"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5685cb949e30c1b98284177040418daf4d691d9aa0e319575211b3839396491c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_frame",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000get_frame\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.get_frame",
+        "sourceLine": 1266
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "759d07cc002a0e38aa73ff56527414be275e56628e4669c521af8781904b8203",
+        "callsite": "res://probe.gd _init() get_frame",
+        "observedOutputSha256": "66e0707fbc3b18477e5430718d20cea7424bfac9c98c1521825553b8470a3ed4"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts get_frame",
+        "observedOutputSha256": "66e0707fbc3b18477e5430718d20cea7424bfac9c98c1521825553b8470a3ed4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e59f747cee91c1a9b9e47717852c1efd5410053da7fe6347ca7b340bb0ee25e2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_frame_progress",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimatedSprite3D\u0000get_frame_progress\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "AnimatedSprite3D.get_frame_progress",
+        "sourceLine": 1274
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5a9a8ddd2a46f59edcf76878fae8f9b9e47ce1cb21572d361700012b3a7c9ae2",
+        "callsite": "res://probe.gd _init() get_frame_progress",
+        "observedOutputSha256": "c6133be49fd869dbd128f3bb96664531ca037d3cb8ba68ab1fc7f1aa09d6e3fb"
+      },
+      "target": {
+        "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3",
+        "callsite": "lib/godot-compat/animated-sprite-3d.ts get_frame_progress",
+        "observedOutputSha256": "c6133be49fd869dbd128f3bb96664531ca037d3cb8ba68ab1fc7f1aa09d6e3fb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9800113b21cff1fc2c43d2291796b1c3cd60bbd2ff417071c87cc0cdf50c8c06"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animated-sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.play",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5a10728c2247b794885ec34fba0098208f03d4a335cf5784629f895f8cca25d5",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.is_playing",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "04f8cfe8992e9d1b140e87f5cfd46798e20b9504a7bd8de147acdcd5f275db09",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.set_sprite_frames",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5352ba9776af37439d6361b1aaf537af41c3475e9739d0cd69e0ae0e6df46146",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_sprite_frames",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "639813a13248b0b33843c9026ea938dce998ef7d15301d63e76a765f2a347e4b",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.set_animation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ea3e61f3774cdb21530b03ca5edbd20cf2235f77bc6aea2e09fc0289661beef0",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_animation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7178d470db99d2f525b8f9b40cadbe9b50d8da12f1370ae6448d20a4b3c5a723",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.set_frame",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1ca32c18e70556315886661fb7688f867bd835568c696b69d4c6f820bd55b58a",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_frame",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "759d07cc002a0e38aa73ff56527414be275e56628e4669c521af8781904b8203",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimatedSprite3D.get_frame_progress",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5a9a8ddd2a46f59edcf76878fae8f9b9e47ce1cb21572d361700012b3a7c9ae2",
+      "implementationSha256": "9e1d902b5a61a5ce9407fab3682c1e423015b996ed62bb23b3030d793cb600c3"
+    }
+  ]
+}

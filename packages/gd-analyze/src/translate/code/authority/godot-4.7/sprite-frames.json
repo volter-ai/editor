@@ -1,0 +1,490 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/sprite-frames"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "get_animation_names",
+        "kind": "native-member",
+        "signature": "hash:1139954409"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "get_animation_names",
+        "localName": "SpriteFrames_get_animation_names",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.get_animation_names"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "has_animation",
+        "kind": "native-member",
+        "signature": "hash:2619796661"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "has_animation",
+        "localName": "SpriteFrames_has_animation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.has_animation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "get_animation_speed",
+        "kind": "native-member",
+        "signature": "hash:2349060816"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "get_animation_speed",
+        "localName": "SpriteFrames_get_animation_speed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.get_animation_speed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "get_animation_loop_mode",
+        "kind": "native-member",
+        "signature": "hash:3606360228"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "get_animation_loop_mode",
+        "localName": "SpriteFrames_get_animation_loop_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.get_animation_loop_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "get_frame_count",
+        "kind": "native-member",
+        "signature": "hash:2458036349"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "get_frame_count",
+        "localName": "SpriteFrames_get_frame_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.get_frame_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "get_frame_duration",
+        "kind": "native-member",
+        "signature": "hash:1129309260"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "get_frame_duration",
+        "localName": "SpriteFrames_get_frame_duration",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.get_frame_duration"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SpriteFrames",
+        "member": "get_frame_texture",
+        "kind": "native-member",
+        "signature": "hash:2900517879"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-frames",
+        "exportName": "get_frame_texture",
+        "localName": "SpriteFrames_get_frame_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SpriteFrames.get_frame_texture"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.get_animation_names",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000get_animation_names\u0000hash:1139954409",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.cpp",
+        "sourceSymbol": "SpriteFrames.get_animation_names",
+        "sourceLine": 135
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ef387ca0f0db2a6ff625f796032b2881584ef109c9683871564594830dcec27c",
+        "callsite": "res://probe.gd _init() get_animation_names-new get_animation_names-burst get_animation_names-impact get_animation_names-mixed",
+        "observedOutputSha256": "9db44ae83d39b32892d739369e685a0a54916f0b7fe0be8e88a2454c9a5750f5"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts get_animation_names",
+        "observedOutputSha256": "9db44ae83d39b32892d739369e685a0a54916f0b7fe0be8e88a2454c9a5750f5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "733d1f2cf36ae85bae88a25538d8c321dcea2629b573e82d168c5cdb4bb98f0c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.has_animation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000has_animation\u0000hash:2619796661",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.cpp",
+        "sourceSymbol": "SpriteFrames.has_animation",
+        "sourceLine": 106
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "35db2efde2c085ca5c78662e4e6bf025c69a8f6b4ca3095f0d18d72302d25cf6",
+        "callsite": "res://probe.gd _init() has_animation-new-default has_animation-new-shot has_animation-new-walk has_animation-new-idle has_animation-new-Attack has_animation-new-missing has_animation-new- has_animation-burst-default has_animation-burst-shot has_animation-burst-walk has_animation-burst-idle has_animation-burst-Attack has_animation-burst-missing has_animation-burst- has_animation-impact-default has_animation-impact-shot has_animation-impact-walk has_animation-impact-idle has_animation-impact-Attack has_animation-impact-missing has_animation-impact- has_animation-mixed-default has_animation-mixed-shot has_animation-mixed-walk has_animation-mixed-idle has_animation-mixed-Attack has_animation-mixed-missing has_animation-mixed-",
+        "observedOutputSha256": "b328f7e2bb2f40e2720980cfdae4c0dd7c18da28db0454d86023d85ebab43018"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts has_animation",
+        "observedOutputSha256": "b328f7e2bb2f40e2720980cfdae4c0dd7c18da28db0454d86023d85ebab43018"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8fcc098ef2dbf6317d56cf2f84d46c8812452a51f5d25fd66221bb9e82249254"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.get_animation_speed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000get_animation_speed\u0000hash:2349060816",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.cpp",
+        "sourceSymbol": "SpriteFrames.get_animation_speed",
+        "sourceLine": 151
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cfa27e2478b8f261212c3f149e3f19cd2275464db91d8821671c308c80b10190",
+        "callsite": "res://probe.gd _init() get_animation_speed-new-default get_animation_speed-new-shot get_animation_speed-new-walk get_animation_speed-new-idle get_animation_speed-new-Attack get_animation_speed-new-missing get_animation_speed-new- get_animation_speed-burst-default get_animation_speed-burst-shot get_animation_speed-burst-walk get_animation_speed-burst-idle get_animation_speed-burst-Attack get_animation_speed-burst-missing get_animation_speed-burst- get_animation_speed-impact-default get_animation_speed-impact-shot get_animation_speed-impact-walk get_animation_speed-impact-idle get_animation_speed-impact-Attack get_animation_speed-impact-missing get_animation_speed-impact- get_animation_speed-mixed-default get_animation_speed-mixed-shot get_animation_speed-mixed-walk get_animation_speed-mixed-idle get_animation_speed-mixed-Attack get_animation_speed-mixed-missing get_animation_speed-mixed-",
+        "observedOutputSha256": "f349018883a9702767150f714d744e2b21c0829545ac86946477384c5545edee"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts get_animation_speed",
+        "observedOutputSha256": "f349018883a9702767150f714d744e2b21c0829545ac86946477384c5545edee"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "06ac78edb7fddb8a84b361f776b93d24e891536c540f7c0f9bb52432e1f1590b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.get_animation_loop_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000get_animation_loop_mode\u0000hash:3606360228",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.cpp",
+        "sourceSymbol": "SpriteFrames.get_animation_loop_mode",
+        "sourceLine": 173
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a51caa83032ee8aff63cfaa6a7058415e21822f6d583c8d3ac59cb3d6bd8fcbe",
+        "callsite": "res://probe.gd _init() get_animation_loop_mode-new-default get_animation_loop_mode-new-shot get_animation_loop_mode-new-walk get_animation_loop_mode-new-idle get_animation_loop_mode-new-Attack get_animation_loop_mode-new-missing get_animation_loop_mode-new- get_animation_loop_mode-burst-default get_animation_loop_mode-burst-shot get_animation_loop_mode-burst-walk get_animation_loop_mode-burst-idle get_animation_loop_mode-burst-Attack get_animation_loop_mode-burst-missing get_animation_loop_mode-burst- get_animation_loop_mode-impact-default get_animation_loop_mode-impact-shot get_animation_loop_mode-impact-walk get_animation_loop_mode-impact-idle get_animation_loop_mode-impact-Attack get_animation_loop_mode-impact-missing get_animation_loop_mode-impact- get_animation_loop_mode-mixed-default get_animation_loop_mode-mixed-shot get_animation_loop_mode-mixed-walk get_animation_loop_mode-mixed-idle get_animation_loop_mode-mixed-Attack get_animation_loop_mode-mixed-missing get_animation_loop_mode-mixed-",
+        "observedOutputSha256": "3ad6a033a6f7d3a580818de510e0489c51097c6465a4affbc5ae94f592d99d6d"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts get_animation_loop_mode",
+        "observedOutputSha256": "3ad6a033a6f7d3a580818de510e0489c51097c6465a4affbc5ae94f592d99d6d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "86067af206dfa9547c1e96bc1463006b0d03e7b70e98fdefe90719459abc8272"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.get_frame_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000get_frame_count\u0000hash:2458036349",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.cpp",
+        "sourceSymbol": "SpriteFrames.get_frame_count",
+        "sourceLine": 70
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "60ebbe888c4972e23c069e2235f2593778cba2c0e14a036c04b099f0f6b4ae89",
+        "callsite": "res://probe.gd _init() get_frame_count-new-default get_frame_count-new-shot get_frame_count-new-walk get_frame_count-new-idle get_frame_count-new-Attack get_frame_count-new-missing get_frame_count-new- get_frame_count-burst-default get_frame_count-burst-shot get_frame_count-burst-walk get_frame_count-burst-idle get_frame_count-burst-Attack get_frame_count-burst-missing get_frame_count-burst- get_frame_count-impact-default get_frame_count-impact-shot get_frame_count-impact-walk get_frame_count-impact-idle get_frame_count-impact-Attack get_frame_count-impact-missing get_frame_count-impact- get_frame_count-mixed-default get_frame_count-mixed-shot get_frame_count-mixed-walk get_frame_count-mixed-idle get_frame_count-mixed-Attack get_frame_count-mixed-missing get_frame_count-mixed-",
+        "observedOutputSha256": "2b8839e7838e2e995cf868ac123c6abd4998c42657a1eb2d3c69500e553f9d42"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts get_frame_count",
+        "observedOutputSha256": "2b8839e7838e2e995cf868ac123c6abd4998c42657a1eb2d3c69500e553f9d42"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bc2b1bdc7f693f25886541f2e4dfa885ab0851e5d8f936695833ab179c133313"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.get_frame_duration",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000get_frame_duration\u0000hash:1129309260",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.h",
+        "sourceSymbol": "SpriteFrames.get_frame_duration",
+        "sourceLine": 105
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "daa23be712da417cdb101ab24045a506112418d71ad240d080e6107cf60db0b5",
+        "callsite": "res://probe.gd _init() get_frame_duration-new-default--1 get_frame_duration-new-default-0 get_frame_duration-new-default-1 get_frame_duration-new-default-2 get_frame_duration-new-default-3 get_frame_duration-new-default-4 get_frame_duration-new-shot--1 get_frame_duration-new-shot-0 get_frame_duration-new-shot-1 get_frame_duration-new-shot-2 get_frame_duration-new-shot-3 get_frame_duration-new-shot-4 get_frame_duration-new-walk--1 get_frame_duration-new-walk-0 get_frame_duration-new-walk-1 get_frame_duration-new-walk-2 get_frame_duration-new-walk-3 get_frame_duration-new-walk-4 get_frame_duration-new-idle--1 get_frame_duration-new-idle-0 get_frame_duration-new-idle-1 get_frame_duration-new-idle-2 get_frame_duration-new-idle-3 get_frame_duration-new-idle-4 get_frame_duration-new-Attack--1 get_frame_duration-new-Attack-0 get_frame_duration-new-Attack-1 get_frame_duration-new-Attack-2 get_frame_duration-new-Attack-3 get_frame_duration-new-Attack-4 get_frame_duration-new-missing--1 get_frame_duration-new-missing-0 get_frame_duration-new-missing-1 get_frame_duration-new-missing-2 get_frame_duration-new-missing-3 get_frame_duration-new-missing-4 get_frame_duration-new---1 get_frame_duration-new--0 get_frame_duration-new--1 get_frame_duration-new--2 get_frame_duration-new--3 get_frame_duration-new--4 get_frame_duration-burst-default--1 get_frame_duration-burst-default-0 get_frame_duration-burst-default-1 get_frame_duration-burst-default-2 get_frame_duration-burst-default-3 get_frame_duration-burst-default-4 get_frame_duration-burst-shot--1 get_frame_duration-burst-shot-0 get_frame_duration-burst-shot-1 get_frame_duration-burst-shot-2 get_frame_duration-burst-shot-3 get_frame_duration-burst-shot-4 get_frame_duration-burst-walk--1 get_frame_duration-burst-walk-0 get_frame_duration-burst-walk-1 get_frame_duration-burst-walk-2 get_frame_duration-burst-walk-3 get_frame_duration-burst-walk-4 get_frame_duration-burst-idle--1 get_frame_duration-burst-idle-0 get_frame_duration-burst-idle-1 get_frame_duration-burst-idle-2 get_frame_duration-burst-idle-3 get_frame_duration-burst-idle-4 get_frame_duration-burst-Attack--1 get_frame_duration-burst-Attack-0 get_frame_duration-burst-Attack-1 get_frame_duration-burst-Attack-2 get_frame_duration-burst-Attack-3 get_frame_duration-burst-Attack-4 get_frame_duration-burst-missing--1 get_frame_duration-burst-missing-0 get_frame_duration-burst-missing-1 get_frame_duration-burst-missing-2 get_frame_duration-burst-missing-3 get_frame_duration-burst-missing-4 get_frame_duration-burst---1 get_frame_duration-burst--0 get_frame_duration-burst--1 get_frame_duration-burst--2 get_frame_duration-burst--3 get_frame_duration-burst--4 get_frame_duration-impact-default--1 get_frame_duration-impact-default-0 get_frame_duration-impact-default-1 get_frame_duration-impact-default-2 get_frame_duration-impact-default-3 get_frame_duration-impact-default-4 get_frame_duration-impact-shot--1 get_frame_duration-impact-shot-0 get_frame_duration-impact-shot-1 get_frame_duration-impact-shot-2 get_frame_duration-impact-shot-3 get_frame_duration-impact-shot-4 get_frame_duration-impact-walk--1 get_frame_duration-impact-walk-0 get_frame_duration-impact-walk-1 get_frame_duration-impact-walk-2 get_frame_duration-impact-walk-3 get_frame_duration-impact-walk-4 get_frame_duration-impact-idle--1 get_frame_duration-impact-idle-0 get_frame_duration-impact-idle-1 get_frame_duration-impact-idle-2 get_frame_duration-impact-idle-3 get_frame_duration-impact-idle-4 get_frame_duration-impact-Attack--1 get_frame_duration-impact-Attack-0 get_frame_duration-impact-Attack-1 get_frame_duration-impact-Attack-2 get_frame_duration-impact-Attack-3 get_frame_duration-impact-Attack-4 get_frame_duration-impact-missing--1 get_frame_duration-impact-missing-0 get_frame_duration-impact-missing-1 get_frame_duration-impact-missing-2 get_frame_duration-impact-missing-3 get_frame_duration-impact-missing-4 get_frame_duration-impact---1 get_frame_duration-impact--0 get_frame_duration-impact--1 get_frame_duration-impact--2 get_frame_duration-impact--3 get_frame_duration-impact--4 get_frame_duration-mixed-default--1 get_frame_duration-mixed-default-0 get_frame_duration-mixed-default-1 get_frame_duration-mixed-default-2 get_frame_duration-mixed-default-3 get_frame_duration-mixed-default-4 get_frame_duration-mixed-shot--1 get_frame_duration-mixed-shot-0 get_frame_duration-mixed-shot-1 get_frame_duration-mixed-shot-2 get_frame_duration-mixed-shot-3 get_frame_duration-mixed-shot-4 get_frame_duration-mixed-walk--1 get_frame_duration-mixed-walk-0 get_frame_duration-mixed-walk-1 get_frame_duration-mixed-walk-2 get_frame_duration-mixed-walk-3 get_frame_duration-mixed-walk-4 get_frame_duration-mixed-idle--1 get_frame_duration-mixed-idle-0 get_frame_duration-mixed-idle-1 get_frame_duration-mixed-idle-2 get_frame_duration-mixed-idle-3 get_frame_duration-mixed-idle-4 get_frame_duration-mixed-Attack--1 get_frame_duration-mixed-Attack-0 get_frame_duration-mixed-Attack-1 get_frame_duration-mixed-Attack-2 get_frame_duration-mixed-Attack-3 get_frame_duration-mixed-Attack-4 get_frame_duration-mixed-missing--1 get_frame_duration-mixed-missing-0 get_frame_duration-mixed-missing-1 get_frame_duration-mixed-missing-2 get_frame_duration-mixed-missing-3 get_frame_duration-mixed-missing-4 get_frame_duration-mixed---1 get_frame_duration-mixed--0 get_frame_duration-mixed--1 get_frame_duration-mixed--2 get_frame_duration-mixed--3 get_frame_duration-mixed--4",
+        "observedOutputSha256": "8fcda3d372c5810546132f421d9d529f921af38feaaf5c1421a23f1836b492c4"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts get_frame_duration",
+        "observedOutputSha256": "8fcda3d372c5810546132f421d9d529f921af38feaaf5c1421a23f1836b492c4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "203d41a9a8609b00cbe6cad345be6ff267e7eee11e51fbf67199f86e2f9442dd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SpriteFrames.get_frame_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SpriteFrames\u0000get_frame_texture\u0000hash:2900517879",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/sprite_frames.h",
+        "sourceSymbol": "SpriteFrames.get_frame_texture",
+        "sourceLine": 94
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6f02032ecf503c200002fd55156f85cce29faa94a6523ce1e6550a043a1ce6be",
+        "callsite": "res://probe.gd _init() get_frame_texture-new-default--1 get_frame_texture-new-default-0 get_frame_texture-new-default-1 get_frame_texture-new-default-2 get_frame_texture-new-default-3 get_frame_texture-new-default-4 get_frame_texture-new-shot--1 get_frame_texture-new-shot-0 get_frame_texture-new-shot-1 get_frame_texture-new-shot-2 get_frame_texture-new-shot-3 get_frame_texture-new-shot-4 get_frame_texture-new-walk--1 get_frame_texture-new-walk-0 get_frame_texture-new-walk-1 get_frame_texture-new-walk-2 get_frame_texture-new-walk-3 get_frame_texture-new-walk-4 get_frame_texture-new-idle--1 get_frame_texture-new-idle-0 get_frame_texture-new-idle-1 get_frame_texture-new-idle-2 get_frame_texture-new-idle-3 get_frame_texture-new-idle-4 get_frame_texture-new-Attack--1 get_frame_texture-new-Attack-0 get_frame_texture-new-Attack-1 get_frame_texture-new-Attack-2 get_frame_texture-new-Attack-3 get_frame_texture-new-Attack-4 get_frame_texture-new-missing--1 get_frame_texture-new-missing-0 get_frame_texture-new-missing-1 get_frame_texture-new-missing-2 get_frame_texture-new-missing-3 get_frame_texture-new-missing-4 get_frame_texture-new---1 get_frame_texture-new--0 get_frame_texture-new--1 get_frame_texture-new--2 get_frame_texture-new--3 get_frame_texture-new--4 get_frame_texture-burst-default--1 get_frame_texture-burst-default-0 get_frame_texture-burst-default-1 get_frame_texture-burst-default-2 get_frame_texture-burst-default-3 get_frame_texture-burst-default-4 get_frame_texture-burst-shot--1 get_frame_texture-burst-shot-0 get_frame_texture-burst-shot-1 get_frame_texture-burst-shot-2 get_frame_texture-burst-shot-3 get_frame_texture-burst-shot-4 get_frame_texture-burst-walk--1 get_frame_texture-burst-walk-0 get_frame_texture-burst-walk-1 get_frame_texture-burst-walk-2 get_frame_texture-burst-walk-3 get_frame_texture-burst-walk-4 get_frame_texture-burst-idle--1 get_frame_texture-burst-idle-0 get_frame_texture-burst-idle-1 get_frame_texture-burst-idle-2 get_frame_texture-burst-idle-3 get_frame_texture-burst-idle-4 get_frame_texture-burst-Attack--1 get_frame_texture-burst-Attack-0 get_frame_texture-burst-Attack-1 get_frame_texture-burst-Attack-2 get_frame_texture-burst-Attack-3 get_frame_texture-burst-Attack-4 get_frame_texture-burst-missing--1 get_frame_texture-burst-missing-0 get_frame_texture-burst-missing-1 get_frame_texture-burst-missing-2 get_frame_texture-burst-missing-3 get_frame_texture-burst-missing-4 get_frame_texture-burst---1 get_frame_texture-burst--0 get_frame_texture-burst--1 get_frame_texture-burst--2 get_frame_texture-burst--3 get_frame_texture-burst--4 get_frame_texture-impact-default--1 get_frame_texture-impact-default-0 get_frame_texture-impact-default-1 get_frame_texture-impact-default-2 get_frame_texture-impact-default-3 get_frame_texture-impact-default-4 get_frame_texture-impact-shot--1 get_frame_texture-impact-shot-0 get_frame_texture-impact-shot-1 get_frame_texture-impact-shot-2 get_frame_texture-impact-shot-3 get_frame_texture-impact-shot-4 get_frame_texture-impact-walk--1 get_frame_texture-impact-walk-0 get_frame_texture-impact-walk-1 get_frame_texture-impact-walk-2 get_frame_texture-impact-walk-3 get_frame_texture-impact-walk-4 get_frame_texture-impact-idle--1 get_frame_texture-impact-idle-0 get_frame_texture-impact-idle-1 get_frame_texture-impact-idle-2 get_frame_texture-impact-idle-3 get_frame_texture-impact-idle-4 get_frame_texture-impact-Attack--1 get_frame_texture-impact-Attack-0 get_frame_texture-impact-Attack-1 get_frame_texture-impact-Attack-2 get_frame_texture-impact-Attack-3 get_frame_texture-impact-Attack-4 get_frame_texture-impact-missing--1 get_frame_texture-impact-missing-0 get_frame_texture-impact-missing-1 get_frame_texture-impact-missing-2 get_frame_texture-impact-missing-3 get_frame_texture-impact-missing-4 get_frame_texture-impact---1 get_frame_texture-impact--0 get_frame_texture-impact--1 get_frame_texture-impact--2 get_frame_texture-impact--3 get_frame_texture-impact--4 get_frame_texture-mixed-default--1 get_frame_texture-mixed-default-0 get_frame_texture-mixed-default-1 get_frame_texture-mixed-default-2 get_frame_texture-mixed-default-3 get_frame_texture-mixed-default-4 get_frame_texture-mixed-shot--1 get_frame_texture-mixed-shot-0 get_frame_texture-mixed-shot-1 get_frame_texture-mixed-shot-2 get_frame_texture-mixed-shot-3 get_frame_texture-mixed-shot-4 get_frame_texture-mixed-walk--1 get_frame_texture-mixed-walk-0 get_frame_texture-mixed-walk-1 get_frame_texture-mixed-walk-2 get_frame_texture-mixed-walk-3 get_frame_texture-mixed-walk-4 get_frame_texture-mixed-idle--1 get_frame_texture-mixed-idle-0 get_frame_texture-mixed-idle-1 get_frame_texture-mixed-idle-2 get_frame_texture-mixed-idle-3 get_frame_texture-mixed-idle-4 get_frame_texture-mixed-Attack--1 get_frame_texture-mixed-Attack-0 get_frame_texture-mixed-Attack-1 get_frame_texture-mixed-Attack-2 get_frame_texture-mixed-Attack-3 get_frame_texture-mixed-Attack-4 get_frame_texture-mixed-missing--1 get_frame_texture-mixed-missing-0 get_frame_texture-mixed-missing-1 get_frame_texture-mixed-missing-2 get_frame_texture-mixed-missing-3 get_frame_texture-mixed-missing-4 get_frame_texture-mixed---1 get_frame_texture-mixed--0 get_frame_texture-mixed--1 get_frame_texture-mixed--2 get_frame_texture-mixed--3 get_frame_texture-mixed--4",
+        "observedOutputSha256": "4686de1afdd49e297adf111a23bd830c7e0c0f391eb599f9830c5d926c46ed01"
+      },
+      "target": {
+        "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987",
+        "callsite": "lib/godot-compat/sprite-frames.ts get_frame_texture",
+        "observedOutputSha256": "4686de1afdd49e297adf111a23bd830c7e0c0f391eb599f9830c5d926c46ed01"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "40bd5e584770002d6ecc128160eab834bcf526008b12df55b95118793688dd62"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-frames",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.get_animation_names",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ef387ca0f0db2a6ff625f796032b2881584ef109c9683871564594830dcec27c",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    },
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.has_animation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "35db2efde2c085ca5c78662e4e6bf025c69a8f6b4ca3095f0d18d72302d25cf6",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    },
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.get_animation_speed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cfa27e2478b8f261212c3f149e3f19cd2275464db91d8821671c308c80b10190",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    },
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.get_animation_loop_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a51caa83032ee8aff63cfaa6a7058415e21822f6d583c8d3ac59cb3d6bd8fcbe",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    },
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.get_frame_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "60ebbe888c4972e23c069e2235f2593778cba2c0e14a036c04b099f0f6b4ae89",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    },
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.get_frame_duration",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "daa23be712da417cdb101ab24045a506112418d71ad240d080e6107cf60db0b5",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    },
+    {
+      "claimId": "godot-4.7-binding-SpriteFrames.get_frame_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6f02032ecf503c200002fd55156f85cce29faa94a6523ce1e6550a043a1ce6be",
+      "implementationSha256": "7ac045cfc3700ccf9c96bb9adf1cbca1a2834051e425e347562af6d6afa44987"
+    }
+  ]
+}

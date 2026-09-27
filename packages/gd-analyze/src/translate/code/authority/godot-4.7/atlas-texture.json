@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/atlas-texture"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AtlasTexture",
+        "member": "set_region",
+        "kind": "native-member",
+        "signature": "hash:2046264180"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/atlas-texture",
+        "exportName": "set_region",
+        "localName": "AtlasTexture_set_region",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AtlasTexture.set_region"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AtlasTexture",
+        "member": "get_region",
+        "kind": "native-member",
+        "signature": "hash:1639390495"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/atlas-texture",
+        "exportName": "get_region",
+        "localName": "AtlasTexture_get_region",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AtlasTexture.get_region"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AtlasTexture",
+        "member": "set_atlas",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/atlas-texture",
+        "exportName": "set_atlas",
+        "localName": "AtlasTexture_set_atlas",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AtlasTexture.set_atlas"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AtlasTexture",
+        "member": "get_atlas",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/atlas-texture",
+        "exportName": "get_atlas",
+        "localName": "AtlasTexture_get_atlas",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AtlasTexture.get_atlas"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AtlasTexture.set_region",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AtlasTexture\u0000set_region\u0000hash:2046264180",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/atlas_texture.cpp",
+        "sourceSymbol": "AtlasTexture.set_region",
+        "sourceLine": 95
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0c29c93f9c3889daae2b6aa7a3219483d6676f7914e012449772035eab68e1a5",
+        "callsite": "res://probe.gd _init() set_region-0 set_region-0-no-atlas set_region-1 set_region-1-no-atlas set_region-2 set_region-2-no-atlas set_region-3 set_region-3-no-atlas set_region-4 set_region-4-no-atlas set_region-5 set_region-5-no-atlas",
+        "observedOutputSha256": "65891508d711ab7cfd8a344f8674676e319b5970a5055d0a74b762721a2b664e"
+      },
+      "target": {
+        "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb",
+        "callsite": "lib/godot-compat/atlas-texture.ts set_region",
+        "observedOutputSha256": "74d19b23b9681073eaf628b3da0a85008b233a0008c5754646270b6617b81492"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "23b6cc35e55790db28eda774cdd65401a5692a6c12344c3641486c8437d2587d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "atlas-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AtlasTexture.get_region",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AtlasTexture\u0000get_region\u0000hash:1639390495",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/atlas_texture.cpp",
+        "sourceSymbol": "AtlasTexture.get_region",
+        "sourceLine": 104
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2ffc579a5c27f6a3dc29eb0ca1d84d78794602c6d91c77eef02920c6d5276129",
+        "callsite": "res://probe.gd _init() get_region-default",
+        "observedOutputSha256": "ce4c7fac4db5ae12c07ec57da9898680d44b2c007fff922ca68fb0eead1e10c1"
+      },
+      "target": {
+        "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb",
+        "callsite": "lib/godot-compat/atlas-texture.ts get_region",
+        "observedOutputSha256": "df998ff6daf29000345ebdbff0a488e2c253978434bcb081af6482fdaf535119"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "892c7044718e7a84b8ca6ed74f8bcf4526f3862e43626c787d553ad56b5c57ea"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "atlas-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AtlasTexture.set_atlas",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AtlasTexture\u0000set_atlas\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/atlas_texture.cpp",
+        "sourceSymbol": "AtlasTexture.set_atlas",
+        "sourceLine": 74
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a609735c712a568f0d2ad0b506eb00e5e50d149b60fd1752007f2fbefa1aa55e",
+        "callsite": "res://probe.gd _init() set_atlas set_atlas-self set_atlas-nested",
+        "observedOutputSha256": "c8171ab19c7d6b26ce4731e72b8021fb42827e217f36b87f539c29fe68c5add8"
+      },
+      "target": {
+        "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb",
+        "callsite": "lib/godot-compat/atlas-texture.ts set_atlas",
+        "observedOutputSha256": "c8171ab19c7d6b26ce4731e72b8021fb42827e217f36b87f539c29fe68c5add8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cf79f0df068980a24af1d4a4cdf4714a95131092278073eb84de5448cb77e4a8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "atlas-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AtlasTexture.get_atlas",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AtlasTexture\u0000get_atlas\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/atlas_texture.cpp",
+        "sourceSymbol": "AtlasTexture.get_atlas",
+        "sourceLine": 91
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "35f0f0b8b7b7928d57a57e140163b7417bba69078b0c8962e133d4650cdde6de",
+        "callsite": "res://probe.gd _init() get_atlas-default",
+        "observedOutputSha256": "8f6d235ee7d9b5aea16cfdc23ed65caddac89b339873fa6c5036f2ef6c5ca218"
+      },
+      "target": {
+        "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb",
+        "callsite": "lib/godot-compat/atlas-texture.ts get_atlas",
+        "observedOutputSha256": "8f6d235ee7d9b5aea16cfdc23ed65caddac89b339873fa6c5036f2ef6c5ca218"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "84bf8ffd16610f3a1421568f95786858f57ed1af7112c0a2d8b319c44dbfdb98"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "atlas-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-AtlasTexture.set_region",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0c29c93f9c3889daae2b6aa7a3219483d6676f7914e012449772035eab68e1a5",
+      "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb"
+    },
+    {
+      "claimId": "godot-4.7-binding-AtlasTexture.get_region",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2ffc579a5c27f6a3dc29eb0ca1d84d78794602c6d91c77eef02920c6d5276129",
+      "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb"
+    },
+    {
+      "claimId": "godot-4.7-binding-AtlasTexture.set_atlas",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a609735c712a568f0d2ad0b506eb00e5e50d149b60fd1752007f2fbefa1aa55e",
+      "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb"
+    },
+    {
+      "claimId": "godot-4.7-binding-AtlasTexture.get_atlas",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "35f0f0b8b7b7928d57a57e140163b7417bba69078b0c8962e133d4650cdde6de",
+      "implementationSha256": "e24600fd958dc24c55dbd5fb2fd30d97b365681bc43b7bebe6a30ada7b1827bb"
+    }
+  ]
+}

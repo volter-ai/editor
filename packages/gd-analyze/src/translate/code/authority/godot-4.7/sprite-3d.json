@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/sprite-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Sprite3D",
+        "member": "set_texture",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-3d",
+        "exportName": "set_texture",
+        "localName": "Sprite3D_set_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Sprite3D.set_texture"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Sprite3D",
+        "member": "get_texture",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sprite-3d",
+        "exportName": "get_texture",
+        "localName": "Sprite3D_get_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Sprite3D.get_texture"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Sprite3D.set_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Sprite3D\u0000set_texture\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "Sprite3D.set_texture",
+        "sourceLine": 832
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9ec9b48d59f33f4183f0ee6180bb2a2910542277313a65825ff6661ddab7b811",
+        "callsite": "res://probe.gd _init() set_texture-before-tree set_texture-in-tree set_texture-atlas",
+        "observedOutputSha256": "1ef538a2f0fd4de720f525fe1f11f9be7e32b34487cd0ca706575b14f4f98b4c"
+      },
+      "target": {
+        "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976",
+        "callsite": "lib/godot-compat/sprite-3d.ts set_texture",
+        "observedOutputSha256": "1ef538a2f0fd4de720f525fe1f11f9be7e32b34487cd0ca706575b14f4f98b4c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "07214c93c6a03d013d9789ab68ba9cb079d99696d3b246a2cca3130a9c8ed493"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Sprite3D.get_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Sprite3D\u0000get_texture\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/sprite_3d.cpp",
+        "sourceSymbol": "Sprite3D.get_texture",
+        "sourceLine": 848
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3481c515d550fdd3429700c739a0e40646cfa63a372c7f8e4c58118c10f5545d",
+        "callsite": "res://probe.gd _init() get_texture-default",
+        "observedOutputSha256": "284e3a42f2d3e31b08e5b85bb54338423f9f84297b99928d1f1edeba767c361b"
+      },
+      "target": {
+        "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976",
+        "callsite": "lib/godot-compat/sprite-3d.ts get_texture",
+        "observedOutputSha256": "284e3a42f2d3e31b08e5b85bb54338423f9f84297b99928d1f1edeba767c361b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "984cd4d9fe4d442e00eb5c21680048df050ecea858f73b4c690da34b6da3bb87"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sprite-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Sprite3D.set_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9ec9b48d59f33f4183f0ee6180bb2a2910542277313a65825ff6661ddab7b811",
+      "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976"
+    },
+    {
+      "claimId": "godot-4.7-binding-Sprite3D.get_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3481c515d550fdd3429700c739a0e40646cfa63a372c7f8e4c58118c10f5545d",
+      "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976"
+    }
+  ]
+}
