@@ -83,7 +83,7 @@ const NODE3D = new WeakMap<Object3D, Node3DState>();
 const WRITE_MATRIX = new Matrix4();
 
 // `duplicate` copies the stored transform properties: the matrix comes with the entity's copy.
-godot_node_duplicate_state('Node3D', (from, to) => {
+godot_node_duplicate_state((from, to) => {
   const state = NODE3D.get(from as Object3D);
   if (state !== undefined) NODE3D.set(to as Object3D, { ...state });
 });

@@ -1,4 +1,5 @@
 import { builtinDatatype } from '../../analyze/refined-types';
+import { godotCallShape, godotSubscriptsParameters } from '../data/lowering-shapes';
 import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
@@ -436,7 +437,7 @@ function treeParameter(
 ): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
   if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
   const baseNode = context.node(node.base, node);
-  if (baseNode.datatype.kind !== 'NATIVE' || baseNode.datatype.metaType || baseNode.datatype.nativeType !== 'AnimationTree') return undefined;
+  if (baseNode.datatype.kind !== 'NATIVE' || baseNode.datatype.metaType || !godotSubscriptsParameters(baseNode.datatype.nativeType)) return undefined;
   const indexNode = context.node(node.index, node);
   const value = indexNode.kind === 'LITERAL' ? indexNode.value : undefined;
   const path = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
@@ -2147,13 +2148,14 @@ export function lowerOfficialExpression(
         // the script chain (`object.ts`); a name some engine class declares, or one only known at run
         // time, would need ClassDB at run time and is refused by name.
         const selected = node.compilerTarget.kind === 'native-method' ? node.compilerTarget : context.callReceivers.get(node.id)?.target;
+        const shape = selected === undefined ? undefined : godotCallShape(selected.owner, selected.member);
         // A tweened property's object is its native entity, and the property's accessors follow the
         // call's own arguments (`tweenedProperty`).
         const args =
-          selected?.owner === 'Tween' && selected.member === 'tween_property' && lowered[0] !== undefined
+          shape === 'tweened-property' && lowered[0] !== undefined
             ? [nativeEntity(lowered[0]), ...lowered.slice(1), tweenedProperty(context, node, argumentNodes)]
             : lowered;
-        if (selected?.owner === 'Object' && selected.member === 'has_method') {
+        if (shape === 'script-chain-method') {
           const argument = argumentNodes[0];
           const name = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;
           if (name === undefined) return context.refuse(node, 'has_method of a name only known at run time needs ClassDB at run time');

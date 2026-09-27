@@ -147,7 +147,7 @@ export function useGodotConnection<Name extends string, Args extends unknown[]>(
  */
 export function useGodotScript<Instance extends object>(
   ref: RefObject<object | null>,
-  Script: new (native: object) => Instance,
+  ScriptClass: new (native: object) => Instance,
   exported?: Partial<Instance>,
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
 ): RefObject<Instance | null> {
@@ -158,8 +158,8 @@ export function useGodotScript<Instance extends object>(
     if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
     // An instantiated scene's root keeps the instance its instancer holds, now over the mounted node.
     const made = pending?.instance;
-    const adopted = made instanceof Script && pending !== undefined && pending.mounted === undefined && (native as Object3D).parent === pending.container;
-    const instance = adopted ? (made as Instance) : new Script(native);
+    const adopted = made instanceof ScriptClass && pending !== undefined && pending.mounted === undefined && (native as Object3D).parent === pending.container;
+    const instance = adopted ? (made as Instance) : new ScriptClass(native);
     if (adopted && '$native' in instance) (instance as { $native: object }).$native = native;
     SCRIPT_OF.set(native, instance);
     for (const [field, value] of Object.entries(exported ?? {})) {

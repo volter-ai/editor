@@ -33,7 +33,8 @@ import type {
 import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-lifecycle-hooks';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
-import { godotImportedModelDataPath, godotSceneRootClass, godotSceneSubnodes } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneRootClass, godotSceneRootIdiom, godotSceneSubnodes } from '../data/scene-document-plan';
+import type { GodotSceneNodeIdiom } from '../data/scene-node-idioms';
 import { godotResolveNodePath } from '../data/scene-animation';
 import {
   attribute,
@@ -47,7 +48,6 @@ import {
   familyEmission,
   familyImports,
   familyInstanceProps,
-  familyThreeType,
   flag,
   float32Literal,
   importedTextureHook,
@@ -421,7 +421,7 @@ function bodyProps(
 function shapeData(emission: Emission, node: DirectGodotSceneNodePlan): Record<string, Record<string, unknown>> {
   const shapes: Record<string, Record<string, unknown>> = {};
   for (const child of node.children) {
-    if (child.classes[0] !== 'CollisionShape3D') continue;
+    if (child.idiom?.form.kind !== 'collider') continue;
     const entry: Record<string, unknown> = {};
     if (setterValue(child.setters, 'set_disabled')?.kind === 'bool' && (setterValue(child.setters, 'set_disabled') as { value: boolean }).value) entry['disabled'] = true;
     const shape = resourceOf(emission, setterValue(child.setters, 'set_shape'));
@@ -432,13 +432,6 @@ function shapeData(emission: Emission, node: DirectGodotSceneNodePlan): Record<s
   return shapes;
 }
 
-/** Each body class's Rapier body type, and whether its colliders are sensors (an area's are). */
-const BODY_TYPES: Readonly<Record<string, { readonly type: string; readonly sensor: boolean }>> = {
-  StaticBody3D: { type: 'fixed', sensor: false },
-  Area3D: { type: 'fixed', sensor: true },
-  RigidBody3D: { type: 'dynamic', sensor: false },
-  CharacterBody3D: { type: 'kinematicPosition', sensor: false },
-};
 
 /**
  * A body's children, its colliders told whether they are an area's sensors: a sensor also reports
@@ -492,26 +485,26 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
     }
     return element(component, [name, attribute('args', args), ...sensorTypes, ...transform]);
   };
-  switch (shape.className) {
-    case 'BoxShape3D':
+  const idiom = shape.idiom;
+  if (idiom?.kind !== 'collider') throw new Error(`${at}: ${shape.className} has no idiomatic collider`);
+  switch (idiom.collider) {
+    case 'CuboidCollider':
       return tag('CuboidCollider', numbers((componentsValue(setterValue(set, 'set_size')) ?? [1, 1, 1]).map((value) => value / 2)));
-    case 'SphereShape3D':
+    case 'BallCollider':
       return tag('BallCollider', numbers([numberValue(setterValue(set, 'set_radius')) ?? 0.5]));
-    case 'CapsuleShape3D': {
+    case 'CapsuleCollider': {
       // Godot's height spans the caps (`capsule_shape_3d.cpp:100`); Rapier's half height does not.
       const radius = numberValue(setterValue(set, 'set_radius')) ?? 0.5;
       const height = numberValue(setterValue(set, 'set_height')) ?? 2;
       return tag('CapsuleCollider', numbers([height / 2 - radius, radius]));
     }
-    case 'ConvexPolygonShape3D':
+    case 'ConvexHullCollider':
       return tag('ConvexHullCollider', { kind: 'array-expression', elements: [numbers(componentsValue(setterValue(set, 'set_points')) ?? [])] });
-    case 'ConcavePolygonShape3D': {
+    case 'TrimeshCollider': {
       const faces = componentsValue(setterValue(set, 'set_faces')) ?? [];
       const indices = Array.from({ length: faces.length / 3 }, (_, index) => index);
       return tag('TrimeshCollider', { kind: 'array-expression', elements: [numbers(faces), { kind: 'array-expression', elements: indices.map((index) => ({ kind: 'literal-expression' as const, value: index })) }] });
     }
-    default:
-      throw new Error(`${at}: ${shape.className} has no idiomatic collider`);
   }
 }
 
@@ -573,6 +566,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   const local = instanced.exportName;
   emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
   const rootClass = godotSceneRootClass(emission.scenes, instanced.sourceResPath) as string;
+  const rootIdiom = godotSceneRootIdiom(emission.scenes, instanced.sourceResPath);
   const overrides: TargetTsJsxAttribute[] = [];
   // The instance's groups join its scene root's (`SceneState::instantiate`, packed_scene.cpp:511).
   const rootData = nodeData(instanced.root);
@@ -585,8 +579,8 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // `visible` is the root element's three prop; `transparency` its `userData`'s.
   const stated = withoutSpatial(node);
   overrides.push(...visibleProp(node.setters));
-  const rootBody = BODY_TYPES[rootClass];
-  const familyProps = stated.setters.length > 0 ? familyInstanceProps(emission.family, rootClass, stated, instanced.root.setters) : undefined;
+  const rootBody = rootIdiom?.form.kind === 'body' ? rootIdiom.form : undefined;
+  const familyProps = stated.setters.length > 0 && rootIdiom?.form.kind === 'element' ? familyInstanceProps(emission.family, stated, instanced.root.setters) : undefined;
   if (familyProps !== undefined) {
     overrides.push(...familyProps);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
@@ -614,7 +608,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     );
   }
   const children = node.children.map((child) => nodeElement(emission, child));
-  const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, familyThreeType(rootClass) ?? 'Group');
+  const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
 }
 
@@ -710,8 +704,15 @@ const VISIBILITY_RANGE_PROPS: Readonly<Record<string, string>> = {
 /** The transform components a node authored as properties, which three's own props state. */
 const SPATIAL_COMPONENTS = new Set(['position', 'rotation', 'scale']);
 
+/** The three object a family element (a compat element, mesh, light, camera or probe) mounts. */
+function familyThree(idiom: GodotSceneNodeIdiom | undefined): string | undefined {
+  const kind = idiom?.form.kind;
+  return kind === 'element' || kind === 'mesh' || kind === 'light' || kind === 'camera' || kind === 'reflection-probe' ? idiom?.three : undefined;
+}
+
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
+  const idiom = node.idiom;
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
   const matrix = node.properties.find((entry) => entry.propertyName === 'transform')?.value;
   const name: TargetTsJsxAttribute = { kind: 'jsx-string-attribute', name: 'name', value: node.name };
@@ -719,10 +720,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   // node_3d.cpp:655; set by Camera3D, Light3D and ReflectionProbe): with no children and no script
   // to read it back, its authored scale (the rounding a `.tscn` rotation carries) changes nothing,
   // and the element states none.
-  const scaleless =
-    (className === 'Camera3D' || className === 'DirectionalLight3D' || className === 'OmniLight3D' || className === 'ReflectionProbe') &&
-    node.children.length === 0 &&
-    node.scriptInstance === undefined;
+  const scaleless = idiom?.scaleless === true && node.children.length === 0 && node.scriptInstance === undefined;
   // A node authored with position, rotation and scale (Godot's YXZ Euler) states them as they are.
   // (A class's own properties, a camera's lens, are its element's.)
   const components = node.properties.filter((entry) => SPATIAL_COMPONENTS.has(entry.propertyName)).flatMap((entry): TargetTsJsxAttribute[] => {
@@ -734,15 +732,17 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     (entry) => !scaleless || entry.kind === 'jsx-spread-attribute' || entry.name !== 'scale',
   );
   // three's `DirectionalLight` starts at (0, 1, 0) (`Object3D.DEFAULT_UP`); Godot's at the origin.
-  if (className === 'DirectionalLight3D' && !transform.some((entry) => entry.kind !== 'jsx-spread-attribute' && entry.name === 'position')) {
+  if (idiom?.origin === true && !transform.some((entry) => entry.kind !== 'jsx-spread-attribute' && entry.name === 'position')) {
     transform.push(attribute('position', numbers([0, 0, 0])));
   }
   transform.push(...authoredLocalAttributes(matrix as readonly number[] | undefined, transform));
   const children = () => node.children.map((child) => nodeElement(emission, child));
   if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);
-  const body = BODY_TYPES[className];
-  if (body !== undefined) {
+  if (idiom === undefined) throw new Error(`${at}: ${className} has no idiomatic element`);
+  const form = idiom.form;
+  if (form.kind === 'body') {
+    const body = form;
     emission.rapier.add('RigidBody');
     const props = bodyProps(emission, className, body.sensor, node.setters, emission.resources, shapeData(emission, node), nodeData(node));
     return element('RigidBody', [
@@ -759,9 +759,9 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const own = withoutSpatial(node);
   // A carried family's element (`scene-family-elements.ts`), inside its visibility range when it has one.
   const range = own.setters.filter((entry) => VISIBILITY_RANGE_PROPS[entry.setter.exportName] !== undefined);
-  const family = familyElement(emission.family, range.length === 0 ? own : { ...own, setters: own.setters.filter((entry) => !range.includes(entry)) });
+  const family = familyElement(emission.family, form, range.length === 0 ? own : { ...own, setters: own.setters.filter((entry) => !range.includes(entry)) });
   if (family !== undefined) {
-    const drawn = element(family.tag, [name, ...nodeRef(emission, node, familyThreeType(className) as string), ...transform, ...visible, ...family.attributes, ...nodeDataAttribute(node)], [
+    const drawn = element(family.tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...family.attributes, ...nodeDataAttribute(node)], [
       ...family.children,
       ...children(),
     ]);
@@ -772,20 +772,19 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       [drawn],
     );
   }
-  switch (className) {
-    case 'Node':
-      useCompat(emission, 'react-lifecycle', 'GodotNode');
-      return element('GodotNode', [name, ...nodeRef(emission, node, 'Group'), ...nodeDataAttribute(node)], children());
-    case 'Node3D':
-      return element('group', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...visible, ...nodeDataAttribute(node)], children());
-    case 'CollisionShape3D':
+  switch (form.kind) {
+    case 'plain-node': {
+      const tag = useCompat(emission, form.module, form.exportName);
+      return element(tag, [name, ...nodeRef(emission, node, idiom.three), ...nodeDataAttribute(node)], children());
+    }
+    case 'group':
+      return element('group', [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...nodeDataAttribute(node)], children());
+    case 'collider':
       return collider(emission, node, name, transform, at);
-    case 'RayCast3D':
-      useCompat(emission, 'ray-cast-3d', 'GodotRayCast3D');
-      return element('GodotRayCast3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...visible, ...own.setters.map(componentProp), ...nodeDataAttribute(node)], children());
-    case 'Marker3D':
-      useCompat(emission, 'marker-3d', 'GodotMarker3D');
-      return element('GodotMarker3D', [name, ...nodeRef(emission, node, 'Group'), ...transform, ...visible, ...own.setters.map(componentProp), ...nodeDataAttribute(node)], children());
+    case 'component': {
+      const tag = useCompat(emission, form.module, form.exportName);
+      return element(tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...own.setters.map(componentProp), ...nodeDataAttribute(node)], children());
+    }
     default:
       throw new Error(`${at}: ${className} has no idiomatic element`);
   }
@@ -796,7 +795,7 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
   let first: string | undefined;
   let authored: string | undefined;
   const walk = (entry: DirectGodotSceneNodePlan) => {
-    if (entry.classes[0] === 'Camera3D') {
+    if (entry.idiom?.form.kind === 'camera') {
       first ??= entry.nodePath;
       const current = setterValue(entry.setters, 'set_current');
       if (current?.kind === 'bool' && current.value) authored ??= entry.nodePath;
@@ -957,7 +956,7 @@ export function idiomaticSceneSourceFile(
   });
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
   // the scene's own: the prefab form.
-  const rootThree = scene.root.instance === undefined && scene.root.model === undefined ? familyThreeType(scene.root.classes[0] ?? '') : undefined;
+  const rootThree = scene.root.instance === undefined && scene.root.model === undefined ? familyThree(scene.root.idiom) : undefined;
   if (node.tag.startsWith('Godot') && rootThree !== undefined) emission.three.add(rootThree);
   const props = rootPropsType(node.tag, scene.targetPath, rootThree, scene.root);
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {

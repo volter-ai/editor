@@ -17,7 +17,7 @@ import { construct as vector3, type Vector3 } from './vector3';
 const LAYERS = new WeakMap<Object3D, number>();
 
 // `duplicate` copies `layers` (the three copy carries the mask).
-godot_node_duplicate_state('VisualInstance3D', (from, to) => {
+godot_node_duplicate_state((from, to) => {
   const mask = LAYERS.get(from as Object3D);
   if (mask !== undefined) LAYERS.set(to as Object3D, mask);
 });

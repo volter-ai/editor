@@ -35,6 +35,7 @@ import type {
   TargetTsStatement,
 } from '../code/target-ts-syntax';
 import type { DirectGodotSceneNodePlan } from '../data/direct-project-composition-plan';
+import type { GodotSceneNodeIdiomForm } from '../data/scene-node-idioms';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
@@ -282,14 +283,13 @@ function arrayMeshData(emission: FamilyEmission, resource: TargetGodotSceneResou
 function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): TargetTsJsxChild {
   const set = resource.setters;
   const num = (name: string, initial: number) => numberValue(setterValue(set, name)) ?? initial;
-  switch (resource.className) {
-    case 'PlaneMesh':
-    case 'QuadMesh': {
-      const quad = resource.className === 'QuadMesh';
-      const size = componentsValue(setterValue(set, 'set_size')) ?? (quad ? [1, 1] : [2, 2]);
+  const idiom = resource.idiom;
+  switch (idiom?.kind) {
+    case 'plane': {
+      const size = componentsValue(setterValue(set, 'set_size')) ?? idiom.size;
       const segments = [num('set_subdivide_width', 0) + 1, num('set_subdivide_depth', 0) + 1];
       // `Orientation` (`primitive_meshes.h:240`): FACE_X 0, FACE_Y 1 (PlaneMesh's), FACE_Z 2 (QuadMesh's, three's own).
-      const orientation = num('set_orientation', quad ? 2 : 1);
+      const orientation = num('set_orientation', idiom.orientation);
       const turn =
         orientation === 1
           ? useCompat(emission, 'plane-mesh', 'godot_plane_mesh_face_y')
@@ -299,7 +299,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
       const args = segments.some((value) => value !== 1) ? [size[0] as number, size[1] as number, ...segments] : [size[0] as number, size[1] as number];
       return element('planeGeometry', [attribute('args', numbers(args)), ...(turn === undefined ? [] : [attribute('onUpdate', identifier(turn))])]);
     }
-    case 'SphereMesh':
+    case 'sphere':
       // Godot's column `u` lies at (sin 2πu, cos 2πu) in XZ, three's at (-cos φ, sin φ): three's
       // sphere starts a quarter turn on (`phiStart` π/2) for its columns and UVs to be Godot's.
       return element('sphereGeometry', [
@@ -311,7 +311,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
           ],
         }),
       ]);
-    case 'CylinderMesh': {
+    case 'cylinder': {
       const open = boolValue(setterValue(set, 'set_cap_top')) === false;
       return element('cylinderGeometry', [
         attribute(
@@ -326,7 +326,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
         ),
       ]);
     }
-    case 'ArrayMesh': {
+    case 'array-mesh': {
       const mesh = resource.mesh;
       if (mesh === undefined) throw new Error(`${resource.key}: an ArrayMesh without surfaces`);
       const data = arrayMeshData(emission, resource);
@@ -379,7 +379,7 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
       attribute('metalness', literal(0.2)),
     ]);
   }
-  if (resource.className !== 'StandardMaterial3D') throw new Error(`${resource.key}: ${resource.className} has no three material`);
+  if (resource.idiom?.kind !== 'standard-material') throw new Error(`${resource.key}: ${resource.className} has no three material`);
   const set = resource.setters;
   const albedo = componentsValue(setterValue(set, 'set_albedo'));
   const transparency = numberValue(setterValue(set, 'set_transparency')) ?? 0;
@@ -397,7 +397,7 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
   const filter = numberValue(setterValue(set, 'set_texture_filter')) ?? 3;
   const repeat = boolValue(setterValue(set, 'set_flag', 16)) ?? true;
   if (texture !== undefined) {
-    const map = texture.className === 'GradientTexture2D' ? gradientMap(emission, texture, filter, repeat) : textureHook(emission, texture, { filter, repeat, srgb: true });
+    const map = texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, filter, repeat) : textureHook(emission, texture, { filter, repeat, srgb: true });
     props.push(attribute('map', identifier(map)));
   }
   // Proximity fade draws through the alpha pass (`material.cpp:1807`); its fade is not drawn
@@ -461,29 +461,6 @@ function godotAnisotropy(ratio: number): { readonly anisotropy: number; readonly
   return { anisotropy: Math.abs(value), rotation: value < 0 ? Math.PI / 2 : 0 };
 }
 
-/**
- * The Godot classes written as compat elements (`useGodotElement`): their component, its module, and
- * the three object it mounts (for a script's ref).
- */
-const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: string]>> = {
-  CanvasLayer: ['canvas-layer', 'Group'],
-  Control: ['control', 'Group'],
-  HBoxContainer: ['h-box-container', 'Group'],
-  Label: ['label', 'Group'],
-  TextureRect: ['texture-rect', 'Group'],
-  Node2D: ['node-2d', 'Group'],
-  Sprite2D: ['sprite-2d', 'Group'],
-  TouchScreenButton: ['touch-screen-button', 'Group'],
-  Label3D: ['label-3d', 'Mesh'],
-  AudioStreamPlayer: ['audio-stream-player', 'Group'],
-  AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
-  GridMap: ['grid-map', 'Group'],
-  CPUParticles3D: ['cpu-particles-3d', 'Group'],
-  Decal: ['decal', 'Group'],
-  WorldEnvironment: ['world-environment', 'Group'],
-  AnimationPlayer: ['animation-player', 'Group'],
-  AnimationTree: ['animation-tree', 'Group'],
-};
 
 /** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
 export function godotPropName(property: string): string {
@@ -525,15 +502,17 @@ function propValue(emission: FamilyEmission, value: TargetGodotSceneValue): Targ
 function resourceLocal(emission: FamilyEmission, key: string): string {
   const resource = emission.resources.get(key);
   if (resource === undefined) throw new Error(`${key}: a resource the scene does not plan`);
-  if (resource.className === 'CompressedTexture2D') return textureHook(emission, resource);
-  if (resource.className === 'MeshLibrary') return libraryLocal(emission, resource);
-  if (resource.className === 'AnimationLibrary') return animationLibraryLocal(emission, resource);
-  if (resource.className === 'AnimationNodeBlendTree') return animationTreeLocal(emission, resource);
+  const idiom = resource.idiom;
+  if (idiom?.kind === 'texture') return textureHook(emission, resource);
+  if (idiom?.kind === 'mesh-library') return libraryLocal(emission, resource);
+  if (idiom?.kind === 'animation-library') return animationLibraryLocal(emission, resource);
+  if (idiom?.kind === 'animation-tree') return animationTreeLocal(emission, resource);
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
-  if (resource.className === 'CompressedCubemap') {
+  // An imported file compat's hook loads (a cubemap, a sound).
+  if (idiom?.kind === 'loaded') {
     const load = resource.load;
-    if (load === undefined) throw new Error(`${key}: a cubemap that is not an imported file`);
+    if (load === undefined) throw new Error(`${key}: a ${resource.className} that is not an imported file`);
     const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
     emission.hookLocals.set(key, local);
     emission.loaded.add(local);
@@ -543,7 +522,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
       name: local,
       initializer: {
         kind: 'call-expression',
-        callee: identifier(useCompat(emission, 'compressed-cubemap', 'useGodotCubemap')),
+        callee: identifier(useCompat(emission, idiom.module, idiom.exportName)),
         arguments: [
           literal(assetUrl(load.sourceResPath)),
           { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) },
@@ -552,7 +531,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     });
     return local;
   }
-  if (resource.className === 'Shader') {
+  if (idiom?.kind === 'shader') {
     const lowered = resource.shader;
     if (lowered === undefined) throw new Error(`${key}: a shader without its lowered code`);
     const local = freshLocal(emission, `${stemOf(key)} shader`);
@@ -565,7 +544,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     });
     return local;
   }
-  if (resource.className === 'ShaderMaterial') {
+  if (idiom?.kind === 'shader-material') {
     const shaderValue = resource.setters.find((setter) => setter.setter.exportName === 'set_shader')?.value;
     const shader: TargetTsExpression = shaderValue === undefined ? literal(null) : propValue(emission, shaderValue);
     const parameters = resource.setters
@@ -590,27 +569,6 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
       declaration: 'const',
       name: local,
       initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
-    });
-    return local;
-  }
-  if (resource.className === 'AudioStreamWAV') {
-    const load = resource.load;
-    if (load === undefined) throw new Error(`${key}: a sound that is not an imported file`);
-    const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
-    emission.hookLocals.set(key, local);
-    emission.loaded.add(local);
-    emission.hooks.push({
-      kind: 'variable-statement',
-      declaration: 'const',
-      name: local,
-      initializer: {
-        kind: 'call-expression',
-        callee: identifier(useCompat(emission, 'audio-stream-wav', 'useGodotAudioStreamWav')),
-        arguments: [
-          literal(assetUrl(load.sourceResPath)),
-          { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) },
-        ],
-      },
     });
     return local;
   }
@@ -713,7 +671,7 @@ function meshSurfaces(emission: FamilyEmission, node: DirectGodotSceneNodePlan):
  */
 export function familyCountUses(emission: FamilyEmission, root: DirectGodotSceneNodePlan): void {
   const walk = (node: DirectGodotSceneNodePlan): void => {
-    if (node.classes[0] === 'MeshInstance3D') {
+    if (node.idiom?.form.kind === 'mesh') {
       const { mesh, materials } = meshSurfaces(emission, node);
       for (const resource of [mesh, ...materials]) {
         if (resource !== undefined) emission.uses.set(resource.key, (emission.uses.get(resource.key) ?? 0) + 1);
@@ -764,7 +722,7 @@ function stemOf(key: string): string {
 /** A shared mesh resource: three's geometry made once with the element's own arguments. */
 function sharedGeometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
   const made = ((): TargetTsExpression => {
-    if (resource.className === 'ArrayMesh') {
+    if (resource.idiom?.kind === 'array-mesh') {
       const data = arrayMeshData(emission, resource);
       return { kind: 'call-expression', callee: identifier(useCompat(emission, 'array-mesh', 'godot_array_mesh_geometry')), arguments: [identifier(data)] };
     }
@@ -982,11 +940,9 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
  */
 export function familyInstanceProps(
   emission: FamilyEmission,
-  rootClass: string,
   node: DirectGodotSceneNodePlan,
   own: readonly TargetGodotSceneSetterPlan[],
 ): TargetTsJsxAttribute[] | undefined {
-  if (GODOT_ELEMENTS[rootClass] === undefined) return undefined;
   // A value the instanced scene's root already holds (the same resource file, the same literal) is its own.
   const same = (entry: TargetGodotSceneSetterPlan) =>
     own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
@@ -1025,20 +981,19 @@ function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePl
 /** A carried node's element (tag, family props and resource children), or undefined for another class. */
 export function familyElement(
   emission: FamilyEmission,
+  form: GodotSceneNodeIdiomForm,
   node: DirectGodotSceneNodePlan,
 ): { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[]; readonly children: readonly TargetTsJsxChild[] } | undefined {
-  const className = node.classes[0];
-  const godot = className === undefined ? undefined : GODOT_ELEMENTS[className];
-  if (godot !== undefined && className !== undefined) {
+  if (form.kind === 'element') {
     // Godot's layout and drawing are compat's: the element states the node's properties as props, in
     // the scene's order.
-    const tag = useCompat(emission, godot[0], `Godot${className}`);
+    const tag = useCompat(emission, form.module, form.exportName);
     // A mixer's track bindings come first: its libraries and autoplay are set after them.
     const bindings = animationBindingsLocal(emission, node);
     return { tag, attributes: [...(bindings === undefined ? [] : [attribute('bindings', identifier(bindings))]), ...elementProps(emission, node.nodePath, node.setters)], children: [] };
   }
-  switch (className) {
-    case 'ReflectionProbe': {
+  switch (form.kind) {
+    case 'reflection-probe': {
       // The game editor's reflections capability captures the probe (`reflection-probe.ts` maps its
       // properties, by Godot name, to the capture's props).
       const tag = useCompat(emission, 'lib:reflections/index', 'ReflectionProbe');
@@ -1049,7 +1004,7 @@ export function familyElement(
       };
       return { tag, attributes: [{ kind: 'jsx-spread-attribute', value: { kind: 'call-expression', callee: identifier(props), arguments: [authored] } }], children: [] };
     }
-    case 'MeshInstance3D': {
+    case 'mesh': {
       const set = node.setters;
       const layers = numberValue(setterValue(set, 'set_layer_mask')) ?? 1;
       // Any setting but `SHADOW_CASTING_SETTING_OFF` casts (`geometry-instance-3d.ts`).
@@ -1077,15 +1032,14 @@ export function familyElement(
       });
       return { tag: 'mesh', attributes, children };
     }
-    case 'DirectionalLight3D':
-    case 'OmniLight3D': {
+    case 'light': {
       const set = node.setters;
       const param = (index: number, initial: number) => numberValue(setterValue(set, 'set_param', index)) ?? initial;
       const color = componentsValue(setterValue(set, 'set_color'));
       const shadow = boolValue(setterValue(set, 'set_shadow')) === true;
       // `SKY_MODE_SKY_ONLY` lights nothing in the scene (`rasterizer_scene_gles3.cpp:1724`).
       const energy = (numberValue(setterValue(set, 'set_sky_mode')) ?? 0) === 2 ? 0 : param(0, 1);
-      const directional = className === 'DirectionalLight3D';
+      const directional = form.directional;
       return {
         tag: directional ? 'directionalLight' : 'pointLight',
         attributes: [
@@ -1129,7 +1083,7 @@ export function familyElement(
         children: [],
       };
     }
-    case 'Camera3D': {
+    case 'camera': {
       emission.drei.add('PerspectiveCamera');
       // Godot's lens (`camera_3d.h:68`): three's own defaults differ, so every value is stated.
       const property = (name: string, initial: number) => node.properties.find((entry) => entry.propertyName === name)?.value[0] ?? initial;
@@ -1162,14 +1116,6 @@ export function familyElement(
   }
 }
 
-/** The three object a carried node's element mounts, for a script's ref. */
-export function familyThreeType(className: string): string | undefined {
-  const godot = GODOT_ELEMENTS[className];
-  if (godot !== undefined) return godot[1];
-  return (
-    { MeshInstance3D: 'Mesh', DirectionalLight3D: 'DirectionalLight', OmniLight3D: 'PointLight', Camera3D: 'PerspectiveCamera', ReflectionProbe: 'Group' } as Readonly<Record<string, string>>
-  )[className];
-}
 
 /** The imports a scene's family elements need: compat, three constants and data files. */
 export function familyImports(emission: FamilyEmission): TargetTsStatement[] {

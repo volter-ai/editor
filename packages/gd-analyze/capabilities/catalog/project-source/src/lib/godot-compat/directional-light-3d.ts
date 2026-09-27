@@ -8,7 +8,7 @@
  * from the light toward its target, so the light's target is a child one unit down its -Z.
  */
 
-import { type DirectionalLight, Object3D } from 'three';
+import { DirectionalLight, Object3D } from 'three';
 import { type GodotLight3DAuthored, godot_light_3d_authored, godot_light_3d_mount, godot_light_3d_sky_mode } from './light-3d';
 import { godot_node_duplicate_state } from './node';
 
@@ -65,8 +65,9 @@ const AUTHORED = new WeakSet<DirectionalLight>();
 const SHADOW_MODE = new WeakMap<DirectionalLight, number>();
 
 // `duplicate` copies the shadow mode; the copy is aimed through a target of its own.
-godot_node_duplicate_state('DirectionalLight3D', (from, to) => {
-  const copy = to as DirectionalLight;
+godot_node_duplicate_state((from, to) => {
+  if (!(to instanceof DirectionalLight)) return;
+  const copy = to;
   const mode = SHADOW_MODE.get(from as DirectionalLight);
   if (mode !== undefined) SHADOW_MODE.set(copy, mode);
   godot_directional_light_3d_aim(copy);

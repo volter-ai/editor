@@ -20,7 +20,7 @@ const MARKERS = new WeakSet<object>();
 const MARKER_3D = Object.freeze(['Marker3D', 'Node3D', 'Node', 'Object']);
 godot_node_class_reader((entity) => (MARKERS.has(entity) ? MARKER_3D : undefined));
 
-godot_node_duplicate_state('Marker3D', (from, to) => {
+godot_node_duplicate_state((from, to) => {
   const extents = EXTENTS.get(from as Object3D);
   if (extents !== undefined) EXTENTS.set(to as Object3D, extents);
 });

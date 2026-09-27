@@ -42,7 +42,7 @@ interface LightState {
 const STATE = new WeakMap<Light, LightState>();
 
 // `duplicate` copies the stored light properties; the three copy carries their three-side values.
-godot_node_duplicate_state('Light3D', (from, to) => {
+godot_node_duplicate_state((from, to) => {
   const state = STATE.get(from as Light);
   if (state !== undefined) STATE.set(to as Light, { ...state, params: [...state.params] });
 });

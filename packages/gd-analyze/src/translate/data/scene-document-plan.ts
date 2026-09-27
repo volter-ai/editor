@@ -44,6 +44,8 @@ import {
   type TargetSceneNodeKind,
   type TargetScenePropertyKind,
 } from './scene-node-authority';
+import { type GodotSceneNodeIdiom, godotSceneNodeIdiom } from './scene-node-idioms';
+import { type GodotSceneResourceIdiom, godotSceneResourceIdiom } from './scene-resource-idioms';
 
 export const GODOT_SCENE_DOCUMENT_PLAN_VERSION = 2 as const;
 
@@ -57,6 +59,8 @@ export interface TargetGodotSceneNodePlan {
    * `imported-scene` an imported model's tree (`model`).
    */
   readonly targetKind: TargetSceneNodeKind | 'scene-instance' | 'imported-scene';
+  /** A native node's library idiom (`scene-node-idioms.ts`), which emit writes. */
+  readonly idiom?: GodotSceneNodeIdiom;
   /** For `imported-scene`: the importer's tree over the model file, and this scene's edits in it. */
   readonly model?: TargetGodotImportedModelPlan;
   /** A node this scene places under a node of an imported model: that instance and the path. */
@@ -95,6 +99,8 @@ export interface TargetGodotImportedModelNode {
   readonly name: string;
   readonly classes: readonly string[];
   readonly nonSpatial?: true;
+  /** The importer's AnimationPlayer, which plays the model's clips. */
+  readonly animationPlayer?: true;
   readonly gltfNode?: number;
   readonly matrix: readonly number[];
   /** A Skeleton3D's bones in Godot's order: names, the glTF joints they bind to, imported poses. */
@@ -137,6 +143,8 @@ export interface TargetGodotSceneResourcePlan {
   /** Document-unique: `sub:<id>`, or `ext:<res path>` and its own `ext:<res path>#sub:<id>`. */
   readonly key: string;
   readonly className: string;
+  /** The library idiom it is written as (`scene-resource-idioms.ts`), unless it is constructed. */
+  readonly idiom?: GodotSceneResourceIdiom;
   readonly construct: GodotCompatExport;
   /** An imported file the constructor loads: its copied URL and the importer options it applies. */
   readonly load?: TargetGodotImportedLoad;
@@ -609,8 +617,7 @@ function planResource(
       return undefined;
     }
     const planned = { key, className: 'Shader', construct: rule.construct, shader: lowered, setters: [] };
-    document.planned.set(key, planned);
-    document.order.push(planned);
+    recordResource(document, key, planned);
     return key;
   }
   if (imported !== undefined) {
@@ -621,8 +628,7 @@ function planResource(
       return undefined;
     }
     const planned = { key, className, construct: rule.construct, load, setters: [] };
-    document.planned.set(key, planned);
-    document.order.push(planned);
+    recordResource(document, key, planned);
     return key;
   }
   if (data === undefined) {
@@ -650,8 +656,7 @@ function planResource(
     for (const { shader, lowered } of lowerings) {
       const shaderKey = `${key}#${shader.path}`;
       const planned = { key: shaderKey, className: 'Shader', construct: shaderRule.construct, shader: lowered as TargetGodotLoweredShader, setters: [] };
-      document.planned.set(shaderKey, planned);
-      document.order.push(planned);
+      recordResource(document, shaderKey, planned);
       engineShaders[select(shader.variant)] = shaderKey;
     }
   }
@@ -669,8 +674,7 @@ function planResource(
       return undefined;
     }
     const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [] };
-    document.planned.set(key, planned);
-    document.order.push(planned);
+    recordResource(document, key, planned);
     return key;
   }
   if (data.type === 'AnimationNodeBlendTree') {
@@ -684,16 +688,14 @@ function planResource(
       return undefined;
     }
     const planned = { key, className: data.type, construct: rule.construct, animationTree: graph, setters: [] };
-    document.planned.set(key, planned);
-    document.order.push(planned);
+    recordResource(document, key, planned);
     return key;
   }
   if (data.type === 'AnimationLibrary') {
     const animations = animationLibraryPlan(context, `${at}(${key})`, data, nestedScope);
     if (animations === undefined) return undefined;
     const planned = { key, className: data.type, construct: rule.construct, animations, setters: [] };
-    document.planned.set(key, planned);
-    document.order.push(planned);
+    recordResource(document, key, planned);
     return key;
   }
   if (data.type === 'MeshLibrary') {
@@ -705,8 +707,7 @@ function planResource(
       return undefined;
     }
     const planned = { key, className: data.type, construct: rule.construct, library, setters: [] };
-    document.planned.set(key, planned);
-    document.order.push(planned);
+    recordResource(document, key, planned);
     return key;
   }
   const setters: TargetGodotSceneSetterPlan[] = [];
@@ -725,8 +726,7 @@ function planResource(
     return undefined;
   }
   const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), setters };
-  document.planned.set(key, planned);
-  document.order.push(planned);
+  recordResource(document, key, planned);
   return key;
 }
 
@@ -1321,11 +1321,13 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   }
   const animation = node.class.nativeAncestry.includes('AnimationMixer') ? animationBindings(context, at, node.nodePath, setters) : undefined;
   if (animation === null) return undefined;
+  const idiom = godotSceneNodeIdiom(node.class.nativeName);
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
     targetKind: rule.targetKind,
+    ...(idiom === undefined ? {} : { idiom }),
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     properties,
     groups,
@@ -1416,6 +1418,7 @@ function planImportedInstance(
       name: member.name,
       classes: member.class.nativeAncestry,
       ...(member.class.nativeAncestry.includes('Node3D') ? {} : { nonSpatial: true as const }),
+      ...(member.class.nativeAncestry.includes('AnimationPlayer') ? { animationPlayer: true as const } : {}),
       ...(gltfNode === undefined ? {} : { gltfNode }),
       matrix: matrix ?? IDENTITY_MATRIX,
       ...(bones === undefined ? {} : { bones }),
@@ -1891,6 +1894,30 @@ export function godotSceneRootClass(
   if (root.instance !== undefined) return godotSceneRootClass(scenes, root.instance.sourceResPath);
   if (root.model !== undefined) return root.model.rootClasses[0];
   return root.classes[0];
+}
+
+/** Records a planned resource with its library idiom. */
+function recordResource(
+  document: DocumentResources,
+  key: string,
+  resource: TargetGodotSceneResourcePlan,
+): void {
+  const idiom = godotSceneResourceIdiom(resource.className);
+  const planned = idiom === undefined ? resource : { ...resource, idiom };
+  document.planned.set(key, planned);
+  document.order.push(planned);
+}
+
+/** The idiom of a scene's root node, through inherited scenes to the root they instance (or its model's root). */
+export function godotSceneRootIdiom(
+  scenes: ReadonlyMap<string, { readonly root: Pick<TargetGodotSceneNodePlan, 'idiom' | 'instance' | 'model'> }>,
+  resPath: string,
+): GodotSceneNodeIdiom | undefined {
+  const root = scenes.get(resPath)?.root;
+  if (root === undefined) return undefined;
+  if (root.instance !== undefined) return godotSceneRootIdiom(scenes, root.instance.sourceResPath);
+  if (root.model !== undefined) return godotSceneNodeIdiom(root.model.rootClasses[0] ?? '');
+  return root.idiom;
 }
 
 /** A setter as the idiomatic tables name it: `set_axis_lock:8` for an indexed one. */

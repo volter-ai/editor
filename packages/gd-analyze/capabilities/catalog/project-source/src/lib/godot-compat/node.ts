@@ -773,20 +773,18 @@ const DUPLICATE_SCRIPTS = 4;
  * class's `PROPERTY_USAGE_STORAGE` properties): a module holding a class's per-node state registers
  * how that state is copied. Object and Node keep theirs here.
  */
-const DUPLICATE_STATE = new Map<string, (from: object, to: object) => void>([
-  ['Object', () => {}],
-  ['Node', () => {}],
-]);
+const DUPLICATE_COPIERS: ((from: object, to: object) => void)[] = [];
 
 /**
- * Registers how `duplicate` copies a class's per-node state from the original to the copy (the
- * class's stored properties, `node.cpp:3071`).
+ * Registers how `duplicate` copies a module's per-node state from the original to the copy (the
+ * class's stored properties, `node.cpp:3071`): the module copies whatever it holds for the
+ * original, which is what its class stores.
  *
  * @godot Node (protocol)
  * @source scene/main/node.cpp:3071
  */
-export function godot_node_duplicate_state(className: string, copy: (from: object, to: object) => void): void {
-  DUPLICATE_STATE.set(className, copy);
+export function godot_node_duplicate_state(copy: (from: object, to: object) => void): void {
+  if (!DUPLICATE_COPIERS.includes(copy)) DUPLICATE_COPIERS.push(copy);
 }
 
 /**
@@ -804,10 +802,6 @@ function duplicateEntity(source: object, flags: number): object {
   if (state.binding !== undefined && (flags & DUPLICATE_SCRIPTS) !== 0) {
     throw new Error('godot-compat: Node.duplicate of a node with a script is not transcribed.');
   }
-  const untranscribed = classes.find((name) => !DUPLICATE_STATE.has(name));
-  if (untranscribed !== undefined) {
-    throw new Error(`godot-compat: Node.duplicate does not copy ${untranscribed}'s state.`);
-  }
   // Some three classes' `copy` recurses whatever it is asked (a light's): the copy's children are
   // rebuilt here.
   const copy = (source as Object3D).clone(false).clear();
@@ -821,7 +815,7 @@ function duplicateEntity(source: object, flags: number): object {
   copied.processPriority = state.processPriority;
   copied.physicsProcessPriority = state.physicsProcessPriority;
   if ((flags & DUPLICATE_GROUPS) !== 0) copied.groups = [...state.groups];
-  for (const name of classes) (DUPLICATE_STATE.get(name) as (from: object, to: object) => void)(source, copy);
+  for (const copier of DUPLICATE_COPIERS) copier(source, copy);
   for (const child of childEntities(source)) {
     if (NODE.has(child)) add_child(copy, duplicateEntity(child, flags));
   }

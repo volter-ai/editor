@@ -57,6 +57,8 @@ export interface GodotImportedSceneNode {
   /** The glTF `nodes[]` index the importer made this node from; absent for a synthesized node. */
   readonly gltfNode?: number;
   /** Godot's local transform, column-major (the Object3D matrix). */
+  /** The importer's AnimationPlayer, which plays the model's clips. */
+  readonly animationPlayer?: true;
   readonly matrix: readonly number[];
   /** A Skeleton3D's bones in Godot's bone order: name, glTF joint node and the imported pose. */
   readonly bones?: readonly {
@@ -322,7 +324,7 @@ export function GodotImportedScene({
         ...(node.nonSpatial === true ? { kind: 'node' as const } : {}),
       });
       // The importer's AnimationPlayer is the class's node, which the instancing scene may set up.
-      if (node.classes[0] === 'AnimationPlayer' && !ANIMATION_PLAYERS.has(member)) {
+      if (node.animationPlayer === true && !ANIMATION_PLAYERS.has(member)) {
         godot_animation_player_mount(member);
         ANIMATION_PLAYERS.add(member);
         const library = libraryOf(model);
