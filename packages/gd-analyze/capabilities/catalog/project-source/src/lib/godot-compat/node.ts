@@ -25,7 +25,7 @@
 import { godot_input_event_classes } from './input-event';
 import type { Object3D } from 'three';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
-import { create_tween as treeCreateTween, get_root, godot_tree, godot_tree_process_delta, queue_delete, type SceneTree } from './scene-tree';
+import { create_tween as treeCreateTween, get_root, godot_tree, godot_tree_process_delta, godot_tree_set_root, queue_delete, type SceneTree } from './scene-tree';
 import { bind_node, type Tween } from './tween';
 
 /** The native entity's hierarchy operations for nodes the composition site renders. */
@@ -252,15 +252,20 @@ export function godot_node_adopt(
   if (options.binding !== undefined) {
     const binding = { ...options.binding, native: entity };
     state.binding = binding;
+    // The virtuals the script defines, its own or a base script's (`GDVIRTUAL_IS_OVERRIDDEN`).
+    const defines = (callback: unknown, method: string): boolean =>
+      callback !== undefined || typeof (binding.owner as Record<string, unknown>)[method] === 'function';
     state.methods = Object.freeze({
-      process: binding.process !== undefined,
-      physicsProcess: binding.physicsProcess !== undefined,
-      input: binding.input !== undefined,
-      shortcutInput: binding.shortcutInput !== undefined,
-      unhandledInput: binding.unhandledInput !== undefined,
-      unhandledKeyInput: binding.unhandledKeyInput !== undefined,
+      process: defines(binding.process, '_process'),
+      physicsProcess: defines(binding.physicsProcess, '_physics_process'),
+      input: defines(binding.input, '_input'),
+      shortcutInput: defines(binding.shortcutInput, '_shortcut_input'),
+      unhandledInput: defines(binding.unhandledInput, '_unhandled_input'),
+      unhandledKeyInput: defines(binding.unhandledKeyInput, '_unhandled_key_input'),
     });
     NATIVE_OF_OWNER.set(binding.owner, entity);
+    // A script attached after its node readied still turns on what it defines.
+    if (state.readyNotified) initializeProcessing(entity, state);
   }
   return objectOf(entity);
 }
@@ -487,27 +492,11 @@ export function godot_node_is_spatial(entity: object): boolean {
  * @source scene/main/scene_tree.cpp:590
  */
 export function godot_node_enter_root(root: object): void {
-  // A new tree starts with empty process lists.
-  for (const list of [PROCESS_LISTS.process, PROCESS_LISTS.physics]) {
-    list.nodes = [];
-    list.dirty = false;
-  }
   const state = stateOf(root);
   state.kind = 'node';
   state.insideTree = true;
   state.readyNotified = true;
   state.readyFirst = false;
-}
-
-/**
- * The nodes mounted under `parent` that have not entered the tree, in child order: the scenes
- * `Main::start` adds to the root (autoloads, then the main scene, `main/main.cpp:4495`, `:4764`).
- *
- * @godot Node (protocol)
- * @source main/main.cpp:4764
- */
-export function godot_node_pending_children(parent: object): readonly object[] {
-  return childEntities(parent).filter((child) => NODE.get(child)?.insideTree !== true);
 }
 
 /**
@@ -671,101 +660,6 @@ export function godot_node_observe_tree(observer: (entity: object) => void): voi
 }
 
 /**
- * The default process group's lists (`SceneTree::ProcessGroup`, `scene_tree.h:107`): the nodes
- * inside the tree that process (or process internally), and those that physics-process, in the
- * order they joined; sorted by priority then tree order only when one joined since the last sort
- * (`_add_node_to_process_group`, `scene_tree.cpp:1415`), so moving a node in the tree keeps it
- * where it was until then.
- */
-const PROCESS_LISTS = {
-  process: { nodes: [] as object[], dirty: false },
-  physics: { nodes: [] as object[], dirty: false },
-};
-
-function processes(state: NodeState): boolean {
-  return state.process;
-}
-
-function physicsProcesses(state: NodeState): boolean {
-  return state.physicsProcess;
-}
-
-function addToProcessLists(entity: object, state: NodeState): void {
-  if (processes(state)) {
-    PROCESS_LISTS.process.nodes.push(entity);
-    PROCESS_LISTS.process.dirty = true;
-  }
-  if (physicsProcesses(state)) {
-    PROCESS_LISTS.physics.nodes.push(entity);
-    PROCESS_LISTS.physics.dirty = true;
-  }
-}
-
-function removeFromProcessLists(entity: object, state: NodeState): void {
-  const erase = (list: object[]): void => {
-    const index = list.indexOf(entity);
-    if (index >= 0) list.splice(index, 1);
-  };
-  if (processes(state)) erase(PROCESS_LISTS.process.nodes);
-  if (physicsProcesses(state)) erase(PROCESS_LISTS.physics.nodes);
-}
-
-/**
- * A processing flag or priority changed: inside the tree the node leaves the lists and joins them
- * again, which marks them for sorting (`Node::set_process`, `node.cpp:1025`, and its siblings).
- */
-function setProcessing(entity: object, state: NodeState, change: () => void): void {
-  if (!state.insideTree) {
-    change();
-    return;
-  }
-  removeFromProcessLists(entity, state);
-  change();
-  addToProcessLists(entity, state);
-}
-
-/** The node's place in the tree: each ancestor's index in its parent's children, root first. */
-function treePath(entity: object): number[] {
-  const path: number[] = [];
-  let node = entity as Object3D;
-  for (let parent = node.parent ?? null; parent !== null; parent = node.parent ?? null) {
-    path.push(parent.children.indexOf(node));
-    node = parent;
-  }
-  return path.reverse();
-}
-
-/** `Node::is_greater_than` (`node.cpp:2164`) as a sort order: an ancestor first, then child order. */
-function treeOrder(a: readonly number[], b: readonly number[]): number {
-  for (let index = 0; index < Math.min(a.length, b.length); index += 1) {
-    if (a[index] !== b[index]) return (a[index] as number) - (b[index] as number);
-  }
-  return a.length - b.length;
-}
-
-/**
- * The process or physics-process list for a pass (`SceneTree::_process_group`,
- * `scene_tree.cpp:1177`): sorted by priority then tree order if a node joined since the last
- * sort, and copied, so the pass is not disturbed by nodes joining or leaving.
- *
- * @godot Node (protocol)
- * @source scene/main/scene_tree.cpp:1177
- */
-export function godot_node_process_list(physics: boolean): readonly object[] {
-  const list = physics ? PROCESS_LISTS.physics : PROCESS_LISTS.process;
-  if (list.dirty) {
-    const keyed = list.nodes.map((entity) => {
-      const state = stateOf(entity);
-      return { entity, priority: physics ? state.physicsProcessPriority : state.processPriority, path: treePath(entity) };
-    });
-    keyed.sort((a, b) => (a.priority !== b.priority ? a.priority - b.priority : treeOrder(a.path, b.path)));
-    list.nodes = keyed.map((entry) => entry.entity);
-    list.dirty = false;
-  }
-  return [...list.nodes];
-}
-
-/**
  * The order children were added in, where `move_child` made it differ from their order: Godot keeps
  * children in a HashMap by insertion, which entering, readying and exiting walk
  * (`_propagate_enter_tree`, `node.cpp:370`), and a separate cache in child order.
@@ -789,7 +683,6 @@ function propagateEnterTree(entity: object): void {
   const state = stateOf(entity);
   state.insideTree = true;
   // `NOTIFICATION_ENTER_TREE` joins the process lists (`node.cpp:150`).
-  addToProcessLists(entity, state);
   for (const observer of TREE_OBSERVERS) observer(entity);
   state.binding?.enterTree?.();
   state.treeEntered.emit();
@@ -825,8 +718,6 @@ function propagateExitTree(entity: object): void {
   const state = stateOf(entity);
   state.binding?.exitTree?.();
   state.treeExiting.emit();
-  // `NOTIFICATION_EXIT_TREE` leaves the process lists (`node.cpp:225`).
-  removeFromProcessLists(entity, state);
   state.readyNotified = false;
   state.insideTree = false;
   for (const observer of TREE_OBSERVERS) observer(entity);
@@ -837,8 +728,8 @@ function initializeProcessing(entity: object, state: NodeState): void {
   if (state.methods.shortcutInput === true) state.shortcutInput = true;
   if (state.methods.unhandledInput === true) state.unhandledInput = true;
   if (state.methods.unhandledKeyInput === true) state.unhandledKeyInput = true;
-  if (state.methods.process === true && !state.process) setProcessing(entity, state, () => (state.process = true));
-  if (state.methods.physicsProcess === true && !state.physicsProcess) setProcessing(entity, state, () => (state.physicsProcess = true));
+  if (state.methods.process === true) state.process = true;
+  if (state.methods.physicsProcess === true) state.physicsProcess = true;
 }
 
 /** `Node::_set_tree` entering (`scene/main/node.cpp:3354`). */
@@ -1280,9 +1171,7 @@ export function set_process(self: object, enabled: boolean): void {
   const entity = native(self, 'set_process');
   const state = stateOf(entity);
   if (state.process === Boolean(enabled)) return;
-  setProcessing(entity, state, () => {
-    state.process = Boolean(enabled);
-  });
+  state.process = Boolean(enabled);
 }
 
 /**
@@ -1303,9 +1192,7 @@ export function set_physics_process(self: object, enabled: boolean): void {
   const entity = native(self, 'set_physics_process');
   const state = stateOf(entity);
   if (state.physicsProcess === Boolean(enabled)) return;
-  setProcessing(entity, state, () => {
-    state.physicsProcess = Boolean(enabled);
-  });
+  state.physicsProcess = Boolean(enabled);
 }
 
 /**
@@ -1326,6 +1213,22 @@ export function can_process(self: object): boolean {
   const entity = native(self, 'can_process');
   const state = stateOf(entity);
   return state.insideTree && processModeAllows(entity, state, false);
+}
+
+/**
+ * Whether a script's node runs its `_process` (`process`) or `_physics_process` (`physics`) this frame: it is
+ * inside the tree, processing (`set_process`, on at ready when the script defines the callback) and
+ * its process mode allows it, as `SceneTree::_process_group` asks each node
+ * (`scene/main/scene_tree.cpp:1177`). The script component's frame hooks ask it.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1177
+ */
+export function godot_node_processes(script: object | null, kind: 'process' | 'physics'): boolean {
+  const entity = script === null ? undefined : NATIVE_OF_OWNER.get(script);
+  const state = entity === undefined ? undefined : NODE.get(entity);
+  if (entity === undefined || state === undefined || !state.insideTree) return false;
+  return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state, false);
 }
 
 /**
@@ -1355,9 +1258,7 @@ export function set_process_priority(self: object, priority: number): void {
   const entity = native(self, 'set_process_priority');
   const state = stateOf(entity);
   if (state.processPriority === priority) return;
-  setProcessing(entity, state, () => {
-    state.processPriority = priority;
-  });
+  state.processPriority = priority;
 }
 
 /**
@@ -1456,35 +1357,6 @@ function exitRoots(roots: readonly object[]): void {
   }
 }
 
-/**
- * Seats generated script attachments on a mounted native tree and enters it at once: every root and
- * its subtree enter parent-first, then every root readies children-first, in the order given. The
- * release exits them in reverse.
- *
- * @godot Node (protocol)
- * @source main/main.cpp:4495
- */
-export function mountGodotScriptForest(
-  roots: readonly object[],
-  bindings: readonly GodotScriptLifecycleBinding[],
-): () => void {
-  seatGodotScriptForest(roots, bindings);
-  for (const root of roots) propagateEnterTree(root);
-  for (const root of roots) propagateReady(root);
-  let mounted = true;
-  return () => {
-    if (!mounted) return;
-    mounted = false;
-    exitRoots(roots);
-  };
-}
-
-/**
- * What React registered and the SceneTree has not yet entered: the project's startup forest (its
- * roots enter as given, autoloads then the main scene) and scenes React mounted later.
- */
-const PENDING: { readonly roots: readonly object[]; readonly startup: boolean }[] = [];
-
 /** Each instantiated scene's deferred node-path properties, set once its nodes all exist. */
 const DEFERRED_NODE_PATHS: (() => void)[] = [];
 
@@ -1492,40 +1364,13 @@ const DEFERRED_NODE_PATHS: (() => void)[] = [];
  * Defers setting a node-path property until the scenes React mounted in this commit all exist
  * (their scripts attached): `SceneState::instantiate` sets a property stored as a NodePath to the
  * node at that path once every node of the scene is made (`packed_scene.cpp:597`). They are set
- * before those scenes enter the tree (`godot_node_enter_pending`).
+ * before those scenes enter the tree (`godot_node_mount`).
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:597
  */
 export function godot_node_defer_node_path(set: () => void): void {
   DEFERRED_NODE_PATHS.push(set);
-}
-
-/**
- * Registers a mounted native forest (React's part: its nodes and script bindings are seated now);
- * the SceneTree enters it at the start of its next iteration (`godot_node_enter_pending`). A
- * `startup` forest is the project's (`Main::start` adds the autoloads, then the main scene, to the
- * root, `main/main.cpp:4495-4764`): each root enters, then each readies. Any other forest enters
- * where React placed it, below a node inside the tree; one React holds outside the tree (an
- * instantiated scene) enters when a script adds it (`add_child`). The release exits what is still
- * inside the tree, as the tree's teardown does (`SceneTree::finalize`, `scene_tree.cpp:629`).
- *
- * @godot Node (protocol)
- * @source main/main.cpp:4764
- */
-export function godot_node_register_forest(
-  roots: readonly object[],
-  bindings: readonly GodotScriptLifecycleBinding[],
-  startup: boolean,
-): () => void {
-  seatGodotScriptForest(roots, bindings);
-  const entry = { roots, startup };
-  PENDING.push(entry);
-  return () => {
-    const index = PENDING.indexOf(entry);
-    if (index >= 0) PENDING.splice(index, 1);
-    exitRoots(roots);
-  };
 }
 
 /**
@@ -1540,32 +1385,6 @@ function enteringTop(root: object): { readonly top: object; readonly parent: obj
     if (!FOREIGN.has(parent) && (NODE.has(parent) || nameOf(parent) !== '')) top = parent;
   }
   return undefined;
-}
-
-/**
- * Enters what React registered since the last iteration: the startup forest's roots enter, then
- * ready; a later scene enters (and readies under a ready parent) from its top node below the tree,
- * as `add_child` enters a child (`scene/main/node.cpp:341-362`). The SceneTree runs it before an
- * iteration's first step.
- *
- * @godot Node (protocol)
- * @source scene/main/node.cpp:341
- */
-export function godot_node_enter_pending(): void {
-  for (const set of DEFERRED_NODE_PATHS.splice(0)) set();
-  while (PENDING.length > 0) {
-    const { roots, startup } = PENDING.shift() as { readonly roots: readonly object[]; readonly startup: boolean };
-    if (startup) {
-      const entering = roots.filter((root) => NODE.get(root)?.insideTree !== true);
-      for (const root of entering) propagateEnterTree(root);
-      for (const root of entering) propagateReady(root);
-      continue;
-    }
-    for (const root of roots) {
-      const entering = enteringTop(root);
-      if (entering !== undefined) enterTree(entering.top, entering.parent);
-    }
-  }
 }
 
 /**
@@ -1585,20 +1404,10 @@ export function godot_node_mount(root: object): () => void {
   for (const set of DEFERRED_NODE_PATHS.splice(0)) set();
   let top = root as { readonly parent?: object | null; readonly isScene?: boolean };
   while (top.parent !== undefined && top.parent !== null) top = top.parent as typeof top;
-  if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_node_enter_root(top);
+  if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_tree_set_root(top);
   const entering = enteringTop(root);
   if (entering !== undefined) enterTree(entering.top, entering.parent);
   return () => exitRoots([root]);
-}
-
-/**
- * One mounted scene root and its attachments: `mountGodotScriptForest` of one root.
- *
- * @godot Node (protocol)
- * @source scene/main/node.cpp:3354
- */
-export function mountGodotScriptTree(root: object, bindings: readonly GodotScriptLifecycleBinding[]): () => void {
-  return mountGodotScriptForest([root], bindings);
 }
 
 // --- Input processing.
@@ -1709,11 +1518,9 @@ export function godot_node_input_receivers(root: object, kind: GodotInputKind): 
 export function godot_node_listen_input(entity: object, kind: GodotInputKind, listener: (event: unknown) => void): () => void {
   const state = stateOf(entity);
   state.binding = { ...(state.binding ?? { owner: entity }), [kind]: listener } as GodotScriptLifecycleBinding;
-  state[kind] = true;
   return () => {
     if (state.binding?.[kind] !== listener) return;
     state.binding = { ...state.binding, [kind]: undefined } as GodotScriptLifecycleBinding;
-    state[kind] = false;
   };
 }
 

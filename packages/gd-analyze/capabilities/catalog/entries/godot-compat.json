@@ -69,7 +69,6 @@
     "src/lib/godot-compat/label-settings.ts",
     "src/lib/godot-compat/label.ts",
     "src/lib/godot-compat/light-3d.ts",
-    "src/lib/godot-compat/main-timer-sync.ts",
     "src/lib/godot-compat/main.tsx",
     "src/lib/godot-compat/marker-3d.ts",
     "src/lib/godot-compat/mesh-instance-3d.ts",

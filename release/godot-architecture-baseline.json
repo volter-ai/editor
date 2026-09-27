@@ -4,7 +4,7 @@
     "class-name-lookup": 11,
     "class-name-literal": 149,
     "class-mount-registry": 5,
-    "compat-owns-time": 5,
+    "compat-owns-time": 2,
     "compat-scheduler-hooks": 0,
     "output-known-violations": 1,
     "world-exports": 0
@@ -181,9 +181,6 @@
     "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (resource.className) #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/global-scope.ts | performance.now( #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/random-number-generator.ts | performance.now( #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts | godot_main_iteration #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts | godot_tree_physics_step #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts | godot_tree_physics_step #2",
     "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'framework-import GodotSpawnHost', #1"
   ]
 }

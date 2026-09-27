@@ -2,22 +2,21 @@
  * @godot-class SceneTree
  * @role PROTOCOL
  *
- * Godot 4.7's `SceneTree` main loop, transcribed from `scene/main/scene_tree.cpp` and the order
- * `Main::iteration` (`main/main.cpp`) runs it in, at revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`. Compat has no loop of its own: the composition site
- * calls `godot_tree_physics_step(delta)` for each fixed physics step and `godot_tree_frame(delta)`
- * once per rendered frame, from R3F's frame and its fixed step. An iteration begins with the first
- * of those calls after a frame: Input's buffered events are flushed first (`OS_MacOS::run`).
+ * Godot 4.7's `SceneTree` (`scene/main/scene_tree.cpp`, revision
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) without its main loop: the host's clock runs it.
+ * Each Rapier step begins and ends the tree's physics frame and each R3F frame begins and ends its
+ * process frame (`useGodotTree`, `advance.tsx`); scripts' own `_process` and `_physics_process`
+ * run in between, from their components' hooks. What the tree does around them is what
+ * `SceneTree::physics_process` and `SceneTree::process` do: count the frame, emit
+ * `physics_frame`/`process_frame`, then run timers, tweens and the deletion queue.
  *
  * The tree is a record holding its `process_frame` and `physics_frame` signals; its root is the
- * native entity the composition site registers (the R3F scene), named `root` as Godot's root
- * Window is. Pause is not transcribed (the tree never pauses).
+ * three scene the main scene mounts into, named `root` as Godot's root Window is. Pause is not
+ * transcribed (the tree never pauses).
  */
 
-import { flush_buffered_events, godot_input_frame } from './input';
-import { godot_node_enter_pending, godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_process_list, godot_node_processing, godot_node_set_queued } from './node';
-import { godot_main_timer_sync_advance, godot_main_timer_sync_fixed_fps } from './main-timer-sync';
-import { get_setting } from './project-settings';
+import { godot_input_frame } from './input';
+import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_set_queued } from './node';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -37,7 +36,6 @@ const clock = {
   processFrames: 0,
   currentFrame: 0,
   inPhysics: false,
-  iterationOpen: false,
   processTime: 0,
   physicsTime: 0,
   reloadPending: false,
@@ -45,21 +43,6 @@ const clock = {
 };
 let timers: SceneTreeTimer[] = [];
 let tweens: Tween[] = [];
-let physicsServer: { readonly flush: () => void; readonly step: (delta: number) => void; readonly transforms: () => void } | undefined;
-
-/**
- * The physics server's two calls in each physics step, which the world binding registers:
- * `sync` + `flush_queries` before `SceneTree::physics_process`, and `step` after it
- * (`main/main.cpp:4986`, `:5031`); and `transforms`, called where the SceneTree delivers the
- * deferred `NOTIFICATION_TRANSFORM_CHANGED` that sends collision objects' transforms to the server
- * (`flush_transform_notifications`, `scene/main/scene_tree.cpp:200`).
- *
- * @godot SceneTree (protocol)
- * @source main/main.cpp:4986
- */
-export function godot_tree_physics_server(server: { readonly flush: () => void; readonly step: (delta: number) => void; readonly transforms: () => void } | undefined): void {
-  physicsServer = server;
-}
 const deleteQueue: object[] = [];
 
 /**
@@ -73,7 +56,8 @@ export function godot_tree(): SceneTree {
 }
 
 /**
- * Registers the tree's root entity (the R3F scene): named `root`, inside the tree and ready.
+ * Registers the tree's root entity (the three scene the main scene mounts into): named `root`,
+ * inside the tree and ready.
  *
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:586
@@ -85,7 +69,7 @@ export function godot_tree_set_root(root: object): void {
 }
 
 /**
- * The registered root entity, or undefined before the host registers one.
+ * The registered root entity, or undefined before the main scene mounts.
  *
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:357
@@ -100,7 +84,7 @@ export function godot_tree_root(): object | undefined {
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:1673
  */
-export function godot_tree_on_reload(handler: () => void): void {
+export function godot_tree_on_reload(handler: (() => void) | undefined): void {
   clock.reload = handler;
 }
 
@@ -122,34 +106,6 @@ export function godot_tree_process_delta(physics: boolean): number {
  */
 export function godot_tree_frames(): { readonly physics: number; readonly process: number; readonly inPhysics: boolean } {
   return { physics: clock.physicsFrames, process: clock.processFrames, inPhysics: clock.inPhysics };
-}
-
-function openIteration(): void {
-  if (clock.iterationOpen) return;
-  // What React mounted since the last iteration enters first: the project's startup forest
-  // (`Main::start` readies the main scene before the first iteration, `main/main.cpp:4764`), then
-  // scenes React placed below the tree.
-  godot_node_enter_pending();
-  clock.iterationOpen = true;
-  godot_input_frame(clock.physicsFrames, clock.processFrames, false);
-  flush_buffered_events();
-}
-
-/**
- * `SceneTree::_process` / `_process_group` (`scene/main/scene_tree.cpp:1177`): the process list
- * (sorted by priority then tree order when a node joined it), copied, each node checked again when
- * its turn comes.
- */
-function processNodes(physics: boolean): void {
-  for (const entity of godot_node_process_list(physics)) {
-    const info = godot_node_processing(entity);
-    if (info === undefined || !info.insideTree || !info.canProcess) continue;
-    if (physics) {
-      if (info.physicsProcess) info.binding?.physicsProcess?.(clock.physicsTime);
-    } else {
-      if (info.process) info.binding?.process?.(clock.processTime);
-    }
-  }
 }
 
 /** `SceneTree::process_timers` (`scene/main/scene_tree.cpp:793`); timers added during the pass wait. */
@@ -188,108 +144,67 @@ function flushDeleteQueue(): void {
   }
 }
 
-let physicsObserver: ((phase: 'begin' | 'end') => void) | undefined;
-
 /**
- * An instrument's view of the physics steps: called as each step begins and ends (the headless
- * `gd-analyze run` times physics apart from drawing with it).
+ * A physics step begins: `Engine` counts it and is in physics (`main/main.cpp:4973`), then
+ * `SceneTree::physics_process` emits `physics_frame` before the nodes' `_physics_process`
+ * (`scene/main/scene_tree.cpp:639`).
  *
  * @godot SceneTree (protocol)
- * @source main/main.cpp:4973
+ * @source scene/main/scene_tree.cpp:639
  */
-export function godot_tree_observe_physics(observer: ((phase: 'begin' | 'end') => void) | undefined): void {
-  physicsObserver = observer;
-}
-
-/**
- * One physics step: `Engine` counts it, then `SceneTree::physics_process`
- * (`scene/main/scene_tree.cpp:639`): `physics_frame`, the physics-processing nodes, deferred calls,
- * physics timers and tweens, the deletion queue; `Main::iteration` then flushes deferred calls again
- * (`main/main.cpp:5025`).
- *
- * @godot SceneTree (protocol)
- * @source main/main.cpp:4973
- */
-export function godot_tree_physics_step(delta: number): void {
-  openIteration();
-  // (What entering the tree runs at the iteration's start is the SceneTree's, not the step's.)
-  physicsObserver?.('begin');
+export function godot_tree_physics_begin(delta: number): void {
   clock.inPhysics = true;
   clock.physicsFrames += 1;
-  godot_input_frame(clock.physicsFrames, clock.processFrames, true);
-  physicsServer?.flush();
   clock.currentFrame += 1;
-  physicsServer?.transforms();
   clock.physicsTime = delta;
+  godot_input_frame(clock.physicsFrames, clock.processFrames, true);
   physicsFrame.emit();
-  processNodes(true);
-  processTimers(delta, true);
-  processTweens(delta, true);
-  physicsServer?.transforms();
-  flushDeleteQueue();
-  physicsServer?.step(delta);
-  clock.inPhysics = false;
-  godot_input_frame(clock.physicsFrames, clock.processFrames, false);
-  physicsObserver?.('end');
 }
 
 /**
- * One process frame, `SceneTree::process` (`scene/main/scene_tree.cpp:695`): `process_frame`,
- * deferred calls, the processing nodes, deferred calls, a pending scene change, process timers and
- * tweens, the deletion queue; `Main::iteration` then flushes deferred calls and counts the frame
- * (`main/main.cpp:5115`).
+ * A physics step ends: after the nodes, physics timers and tweens, then the deletion queue
+ * (`scene/main/scene_tree.cpp:660`); `Engine` leaves physics.
  *
  * @godot SceneTree (protocol)
- * @source scene/main/scene_tree.cpp:695
+ * @source scene/main/scene_tree.cpp:660
  */
-export function godot_tree_frame(delta: number): void {
-  openIteration();
+export function godot_tree_physics_end(): void {
+  processTimers(clock.physicsTime, true);
+  processTweens(clock.physicsTime, true);
+  flushDeleteQueue();
+  clock.inPhysics = false;
+  godot_input_frame(clock.physicsFrames, clock.processFrames, false);
+}
+
+/**
+ * A process frame begins: `SceneTree::process` emits `process_frame` before the nodes' `_process`
+ * (`scene/main/scene_tree.cpp:688`).
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:688
+ */
+export function godot_tree_process_begin(delta: number): void {
   clock.processTime = delta;
   processFrame.emit();
-  physicsServer?.transforms();
-  processNodes(false);
-  physicsServer?.transforms();
+}
+
+/**
+ * A process frame ends: a pending scene change, process timers and tweens, the deletion queue
+ * (`scene/main/scene_tree.cpp:725`), then `Engine` counts the frame (`main/main.cpp:5115`).
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:725
+ */
+export function godot_tree_process_end(): void {
   if (clock.reloadPending) {
     clock.reloadPending = false;
     clock.reload?.();
   }
-  processTimers(delta, false);
-  processTweens(delta, false);
-  physicsServer?.transforms();
+  processTimers(clock.processTime, false);
+  processTweens(clock.processTime, false);
   flushDeleteQueue();
   clock.processFrames += 1;
-  // Input reads the Engine counters between iterations too: events the page delivers before the
-  // next iteration stamp this frame's count (`Engine::_process_frames`, `main/main.cpp:5115`).
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
-  clock.iterationOpen = false;
-}
-
-/**
- * One `Main::iteration` at the wall clock `p_ticks_usec` (`main/main.cpp:4917`): `MainTimerSync`
- * turns the time since the last iteration into a process step and a count of physics steps at
- * `physics/common/physics_ticks_per_second` (default 60), at most
- * `physics/common/max_physics_steps_per_frame` (default 8) of them unless `--fixed-fps` is set,
- * the process step shortened by the steps dropped; then each physics step, then the process
- * frame. The host calls it once per rendered frame.
- *
- * @godot SceneTree (protocol)
- * @source main/main.cpp:4917
- */
-export function godot_main_iteration(p_ticks_usec: number): void {
-  // `Engine::set_physics_ticks_per_second` and friends at `Main::setup2` (`main/main.cpp:2247`).
-  const ticksPerSecond = Math.max(1, Math.trunc(Number(get_setting('physics/common/physics_ticks_per_second', 60))));
-  const maxSteps = Math.trunc(Number(get_setting('physics/common/max_physics_steps_per_frame', 8)));
-  const jitterFix = Math.max(0, Number(get_setting('physics/common/physics_jitter_fix', 0.5)));
-  const physicsStep = 1.0 / ticksPerSecond;
-  const advance = godot_main_timer_sync_advance(p_ticks_usec, physicsStep, ticksPerSecond, jitterFix);
-  let processStep = advance.process_step;
-  let steps = advance.physics_steps;
-  if (godot_main_timer_sync_fixed_fps() === -1 && steps > maxSteps) {
-    processStep -= (steps - maxSteps) * physicsStep;
-    steps = maxSteps;
-  }
-  for (let step = 0; step < steps; step += 1) godot_tree_physics_step(physicsStep);
-  godot_tree_frame(processStep);
 }
 
 /**

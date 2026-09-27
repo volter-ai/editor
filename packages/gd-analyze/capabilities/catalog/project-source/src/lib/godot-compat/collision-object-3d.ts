@@ -112,6 +112,29 @@ export function godot_collision_object_of_collider(collider: Collider): object |
   return context?.colliderStates.get(collider.handle)?.worldParent;
 }
 
+/** Each collider element's node and the collider it rendered, rebuilt when colliders come or go. */
+let colliderOfNode = new WeakMap<object, Collider>();
+let indexed: { readonly states: GodotPhysicsContext['colliderStates']; readonly size: number } | undefined;
+
+/**
+ * The Rapier collider a collider element (`<CuboidCollider>`) rendered as the node, a
+ * CollisionShape3D; undefined for any other node, or before the collider is created.
+ *
+ * @godot CollisionShape3D (protocol)
+ * @source scene/3d/physics/collision_shape_3d.cpp:46
+ */
+export function godot_collision_object_collider_of_node(entity: object): Collider | undefined {
+  if (context === undefined) return undefined;
+  const states = context.colliderStates;
+  if (indexed?.states !== states || indexed.size !== states.size) {
+    colliderOfNode = new WeakMap();
+    for (const state of states.values()) colliderOfNode.set(state.object, state.collider);
+    indexed = { states, size: states.size };
+  }
+  const known = colliderOfNode.get(entity);
+  return known !== undefined && states.get(known.handle)?.object === entity ? known : undefined;
+}
+
 /**
  * Makes the node the one a body its JSX declares stands for (a GridMap's cells); the returned call
  * ends it, as the body unmounts.

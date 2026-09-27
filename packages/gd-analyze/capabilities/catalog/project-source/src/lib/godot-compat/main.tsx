@@ -13,11 +13,12 @@
 
 import { useThree } from '@react-three/fiber';
 import { useRapier } from '@react-three/rapier';
-import { use, useLayoutEffect } from 'react';
+import { use, useEffect, useLayoutEffect, useReducer } from 'react';
 import { godot_collision_object_of_collider, godot_physics_attach } from './collision-object-3d';
 import { godot_physics_body_3d_collides } from './physics-body-3d';
 import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
 import { godot_resource_loader_settled } from './resource-loader';
+import { godot_tree_on_reload } from './scene-tree';
 import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
 import { godot_window_attach_input, godot_window_canvas_size, godot_window_set_size } from './window';
 // The body classes' modules register their `is` classes and signals as they load.
@@ -91,4 +92,21 @@ export function useGodotWorld(): void {
   useLayoutEffect(() => {
     godot_window_set_size(scene, godot_window_canvas_size(gl.domElement));
   }, [scene, gl, size]);
+}
+
+/**
+ * The main scene's generation, which `reload_current_scene` advances: the world keys the main
+ * scene by it, so React unmounts it and mounts it anew, as `SceneTree::_flush_scene_change`
+ * frees the current scene and adds a new instance of it.
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:1673
+ */
+export function useGodotSceneReload(): number {
+  const [generation, reload] = useReducer((count: number) => count + 1, 0);
+  useEffect(() => {
+    godot_tree_on_reload(reload);
+    return () => godot_tree_on_reload(undefined);
+  }, []);
+  return generation;
 }

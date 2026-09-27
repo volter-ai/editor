@@ -279,7 +279,8 @@ export function emitDirectGodotWorldSyntax(
     body: [
       statement(call('useGodotResources')),
       statement(call('useGodotWorld')),
-      statement(call('useGodotInputFrames')),
+      statement(call('useGodotTree')),
+      { kind: 'variable-statement', declaration: 'const', name: 'generation', initializer: call('useGodotSceneReload') },
       useThree('scene'),
       useThree('gl'),
       useThree('get'),
@@ -291,7 +292,6 @@ export function emitDirectGodotWorldSyntax(
             parameters: [],
             body: [
               statement(call('godot_window_process_events')),
-              statement(call('godot_input_advance', [{ kind: 'literal-expression', value: 'process' }])),
               { kind: 'variable-statement', declaration: 'const', name: 'camera', initializer: call('godot_camera_3d_draw', [id('scene')]) },
               {
                 kind: 'if-statement',
@@ -314,7 +314,13 @@ export function emitDirectGodotWorldSyntax(
         expression: {
           kind: 'jsx-fragment-expression',
           children: [
-            { kind: 'jsx-expression-child', value: { kind: 'property-expression', object: id('props'), property: 'children' } },
+            // `reload_current_scene` mounts the main scene anew (`useGodotSceneReload`).
+            {
+              kind: 'jsx-element-child',
+              tag: 'Fragment',
+              attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }],
+              children: [{ kind: 'jsx-expression-child', value: { kind: 'property-expression', object: id('props'), property: 'children' } }],
+            },
             { kind: 'jsx-element-child', tag: 'GodotSpawnHost', attributes: [], children: [] },
           ],
         },
@@ -322,7 +328,7 @@ export function emitDirectGodotWorldSyntax(
     ],
   };
   const imports: TargetTsStatement[] = [
-    named('react', ['Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
+    named('react', ['Fragment', 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
     named('react', ['PropsWithChildren', ...(hasAutoloads ? ['RefObject'] : [])], true),
     named('@react-three/fiber', ['useFrame', 'useThree', ...hooks.fiber]),
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
@@ -333,8 +339,8 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(candidate.targetPath),
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
-    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotWorld']),
-    named('./lib/godot-compat/advance', ['useGodotInputFrames']),
+    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneReload', 'useGodotWorld']),
+    named('./lib/godot-compat/advance', ['useGodotTree']),
     named('./lib/godot-compat/window', ['godot_window_canvas_layer', 'godot_window_process_events']),
     named('./lib/godot-compat/camera-3d', ['godot_camera_3d_draw']),
     named('./lib/godot-compat/canvas-item', ['godot_canvas_draw']),
@@ -356,8 +362,6 @@ export function emitDirectGodotWorldSyntax(
     statements: [
       ...imports,
       ...data.imports,
-      // The input map is Input's, next to the frame counter the world advances.
-      named('./lib/godot-compat/input', ['godot_input_advance']),
       ...data.statements,
       ...autoloadComponents,
       gameComponent,

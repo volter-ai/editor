@@ -9,11 +9,10 @@
  * The module owns Godot's state as module state: the InputMap (actions, deadzones, their events),
  * each action's per-device pressed/strength slots and cache, the just-pressed/released frame
  * stamps, the event buffer, and the Engine frame counters the stamps compare against. It never
- * listens to the DOM. The generated composition site turns native events into InputEvent records
- * and hands them to `parse_input_event`, calls `flush_buffered_events` at the start of every main
- * loop iteration (as `OS_MacOS::run` does, `platform/macos/os_macos.mm:1254`), stamps each physics
- * step and process frame through `godot_input_frame`, and loads the project's `[input]` actions
- * through `godot_input_map_load`.
+ * listens to the DOM. The window turns native events into InputEvent records and hands them to
+ * `parse_input_event` and `flush_buffered_events`, the SceneTree stamps each physics step and
+ * process frame through `godot_input_frame`, and the world loads the project's `[input]` actions
+ * through `godot_input_map_load_json`.
  *
  * Events are the records `input-event.ts` describes. Every event is buffered: Godot's
  * `use_accumulated_input` is on, so a mouse motion or screen drag folds into the buffered event
@@ -409,25 +408,6 @@ export function godot_input_map_load_json(actions: readonly GodotInputMapActionJ
       }),
     })),
   );
-}
-
-/**
- * Input's own frame counters, which `is_action_just_pressed` and its siblings compare against: a
- * physics step begins (`physics`, true) or ends (false), or a process frame begins. The world's
- * hooks call it (`useGodotInputFrames`, the world's `useFrame`).
- *
- * @godot Input (protocol)
- * @source core/input/input.cpp:1568
- */
-export function godot_input_advance(phase: 'physics' | 'physics-end' | 'process'): void {
-  if (phase === 'physics') {
-    engine.physicsFrames += 1;
-    engine.inPhysics = true;
-    return;
-  }
-  if (phase === 'process') engine.processFrames += 1;
-  engine.inPhysics = false;
-  godot_input_frame(engine.physicsFrames, engine.processFrames, false);
 }
 
 /**

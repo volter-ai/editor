@@ -4,7 +4,10 @@
  * readies run children first, as Godot readies them; `_exit_tree` from its cleanup; `_process`
  * from `useFrame`; `_physics_process` and a RigidBody3D's `_integrate_forces` from
  * `useBeforePhysicsStep` (the step's own `timestep` is the delta); input callbacks from
- * `useGodotInput`. Only the hooks the script defines are written.
+ * `useGodotInput`. `_process` and `_physics_process` run while the node processes
+ * (`godot_node_processes`: inside the tree, not turned off by `set_process`, its process mode
+ * allowing), as `SceneTree::_process_group` asks each node. Only the hooks the script defines are
+ * written.
  */
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
 import type { TargetTsExpression, TargetTsStatement } from '../code/target-ts-syntax';
@@ -26,6 +29,22 @@ function call(script: string, method: string, args: readonly TargetTsExpression[
     callee: { kind: 'property-expression', object: { kind: 'property-expression', object: id(script), property: 'current' }, property: method, optional: true },
     arguments: args,
   };
+}
+
+/** `if (godot_node_processes(script.current, kind)) script.current?.method(delta);` */
+function whileProcessing(kind: string, script: string, method: string, delta: TargetTsExpression, imports: ScriptLifecycleImports): TargetTsStatement[] {
+  imports.compat.set('godot_node_processes', 'node');
+  return [
+    {
+      kind: 'if-statement',
+      condition: {
+        kind: 'call-expression',
+        callee: id('godot_node_processes'),
+        arguments: [{ kind: 'property-expression', object: id(script), property: 'current' }, { kind: 'literal-expression', value: kind }],
+      },
+      then: [{ kind: 'expression-statement', expression: call(script, method, [delta]) }],
+    },
+  ];
 }
 
 function hook(name: string, args: readonly TargetTsExpression[]): TargetTsStatement {
@@ -77,7 +96,9 @@ export function scriptLifecycleHooks(
   if (process !== undefined) {
     imports.fiber.add('useFrame');
     statements.push(
-      hook('useFrame', [{ kind: 'arrow-expression', parameters: [{ name: '_' }, { name: 'delta' }], body: call(script, process, [id('delta')]) }]),
+      hook('useFrame', [
+        { kind: 'arrow-expression', parameters: [{ name: '_' }, { name: 'delta' }], body: whileProcessing('process', script, process, id('delta'), imports) },
+      ]),
     );
   }
   const physics = method('physics-process');
@@ -88,7 +109,7 @@ export function scriptLifecycleHooks(
         {
           kind: 'arrow-expression',
           parameters: [{ name: 'world' }],
-          body: call(script, physics, [{ kind: 'property-expression', object: id('world'), property: 'timestep' }]),
+          body: whileProcessing('physics', script, physics, { kind: 'property-expression', object: id('world'), property: 'timestep' }, imports),
         },
       ]),
     );
