@@ -51,9 +51,10 @@ const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_sc
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
-  // Shadow max distance (9), fade start (13), normal bias (14), bias (15), blur (18): `shadow-mapping`.
-  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:18', 'set_shadow_mode'],
-  OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:18'],
+  // Shadow max distance (9), fade start (13), normal bias (14), bias (15), opacity (17), blur (18):
+  // `shadow-mapping`.
+  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:17', 'set_param:18', 'set_shadow_mode'],
+  OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   Camera3D: [...NODE_3D, 'set_current'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.

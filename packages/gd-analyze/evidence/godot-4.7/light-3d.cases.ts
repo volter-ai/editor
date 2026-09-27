@@ -47,6 +47,13 @@ c.add('set_shadow', 'set_shadow', ['var l := DirectionalLight3D.new()', 'l.set_s
   return L.has_shadow(l);
 });
 
+// A scene's light: its shadow opacity stated as three's shadow intensity, read back by get_param.
+c.add('scene-shadow-opacity', 'get_param', ['var l := DirectionalLight3D.new()', 'l.shadow_opacity = 0.35', 'return l.get_param(17)'], () => {
+  const l = new DirectionalLight();
+  l.shadow.intensity = Math.fround(0.35);
+  return L.get_param(l, 17);
+});
+
 // What three draws from the parameters: the Compatibility renderer's light data (cited).
 const f32 = Math.fround;
 const LIGHTS = { file: 'drivers/gles3/rasterizer_scene_gles3.cpp', symbol: 'RasterizerSceneGLES3::_setup_lights', line: 1970 };
@@ -77,6 +84,14 @@ c.cases.push(
     L.set_color(l, C.construct(1, 0.9, 0.7, 1));
     return [l.color.r, l.color.g, l.color.b].join(',');
   }),
+  // Both draw the light times mix(1.0, shadow, opacity): Godot's scene shader and three's getShadow.
+  { ...mapping('shadow-opacity-intensity', 'set_param', [f32(0.35), f32(0.35)].join(','), () => {
+    const d = directional();
+    const o = omni();
+    L.set_param(d, 17, 0.35);
+    L.set_param(o, 17, 0.35);
+    return [d.shadow.intensity, o.shadow.intensity].join(',');
+  }), fact: { value: [f32(0.35), f32(0.35)].join(','), source: { file: 'drivers/gles3/shaders/scene.glsl', symbol: 'directional_shadow = mix(1.0, directional_shadow, shadow_opacity)', line: 2957 } } },
   mapping('shadow-cast', 'set_shadow', true, () => {
     const l = directional();
     L.set_shadow(l, true);

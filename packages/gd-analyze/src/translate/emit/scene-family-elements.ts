@@ -650,6 +650,8 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
  * `SHADOW_BLUR` is not read by the Compatibility renderer; the fade start has no three form.
  */
 function shadowMapping(directional: boolean, param: (index: number, initial: number) => number, mode: number): TargetTsJsxAttribute[] {
+  // The shadow's opacity is three's shadow intensity (`light-3d.ts`).
+  const opacity = param(17, 1) === 1 ? [] : [attribute('shadow-intensity', literal(Math.fround(param(17, 1))))];
   if (directional) {
     const distance = param(9, 100);
     const size = mode === 0 ? 4096 : 2048;
@@ -663,10 +665,11 @@ function shadowMapping(directional: boolean, param: (index: number, initial: num
       attribute('shadow-camera-top', literal(distance)),
       attribute('shadow-camera-near', literal(-distance)),
       attribute('shadow-camera-far', literal(distance)),
+      ...opacity,
     ];
   }
   const range = Math.max(0.001, param(4, 5));
-  return [attribute('shadow-bias', literal(-param(15, 0.1) / (range - 0.5))), attribute('shadow-mapSize', numbers([1024, 1024]))];
+  return [attribute('shadow-bias', literal(-param(15, 0.1) / (range - 0.5))), attribute('shadow-mapSize', numbers([1024, 1024])), ...opacity];
 }
 
 /** A MeshInstance3D's mesh and, per surface, the material it draws (its override, else the mesh's own). */

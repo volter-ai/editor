@@ -27,6 +27,7 @@ const PARAM_RANGE = 4;
 const PARAM_ATTENUATION = 6;
 const PARAM_SHADOW_MAX_DISTANCE = 9;
 const PARAM_SHADOW_NORMAL_BIAS = 14;
+const PARAM_SHADOW_OPACITY = 17;
 const PARAM_SHADOW_BIAS = 15;
 const PARAM_MAX = 21;
 
@@ -103,6 +104,8 @@ function stateOf(self: Light): LightState {
     }
     // A shadow the scene states, read back through the same conversion.
     const shadow = (self as unknown as { readonly shadow?: ThreeLightShadow }).shadow;
+    // A scene's shadow opacity is three's shadow intensity (`shadowOf`).
+    if (shadow !== undefined) params[PARAM_SHADOW_OPACITY] = f32(shadow.intensity);
     if (shadow !== undefined && self.castShadow) {
       if ((self as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
         const distance = shadow.camera.right ?? 100;
@@ -157,6 +160,7 @@ function apply(self: Light, state: LightState): void {
 /** The part of a three light shadow the shadow parameters set. */
 interface ThreeLightShadow {
   bias: number;
+  intensity: number;
   normalBias: number;
   readonly mapSize: { readonly x: number };
   readonly camera: { left?: number; right?: number; top?: number; bottom?: number; near: number; far: number };
@@ -168,16 +172,18 @@ interface ThreeLightShadow {
  * directional light's bias `SHADOW_BIAS / 100` of its depth range (`rasterizer_scene_gles3.cpp:2256`)
  * and normal bias in texels of a camera box `SHADOW_MAX_DISTANCE` around the light
  * (`rasterizer_scene_gles3.cpp:1809`); an omni light's bias in world distance over its range
- * (`scene.glsl:2751`).
+ * (`scene.glsl:2751`). Its opacity is three's shadow intensity: both draw the light times
+ * `mix(1.0, shadow, opacity)` (`scene.glsl:2957`, `:2996`; three's `shadowmap_pars_fragment`).
  */
-function shadowOf(self: Light, params: readonly number[], size: number): { bias: number; normalBias?: number } {
+function shadowOf(self: Light, params: readonly number[], size: number): { bias: number; normalBias?: number; intensity: number } {
+  const intensity = params[PARAM_SHADOW_OPACITY] as number;
   if ((self as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
     const distance = params[PARAM_SHADOW_MAX_DISTANCE] as number;
     const camera = (self as unknown as { readonly shadow: ThreeLightShadow }).shadow.camera;
     Object.assign(camera, { left: -distance, right: distance, bottom: -distance, top: distance, near: -distance, far: distance });
-    return { bias: -(params[PARAM_SHADOW_BIAS] as number) / 100, normalBias: ((params[PARAM_SHADOW_NORMAL_BIAS] as number) * 2 * distance) / size };
+    return { bias: -(params[PARAM_SHADOW_BIAS] as number) / 100, normalBias: ((params[PARAM_SHADOW_NORMAL_BIAS] as number) * 2 * distance) / size, intensity };
   }
-  return { bias: -(params[PARAM_SHADOW_BIAS] as number) / (Math.max(0.001, params[PARAM_RANGE] as number) - 0.5) };
+  return { bias: -(params[PARAM_SHADOW_BIAS] as number) / (Math.max(0.001, params[PARAM_RANGE] as number) - 0.5), intensity };
 }
 
 /**
