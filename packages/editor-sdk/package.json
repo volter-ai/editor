@@ -210,6 +210,7 @@
     "./kit/keymap-presets": "./src/kit/keymap-presets.ts",
     "./kit/light-explorer-model": "./src/kit/light-explorer-model.ts",
     "./kit/live-canvas-frame": "./src/kit/live-canvas-frame.ts",
+    "./kit/framed-document-capture": "./src/kit/framed-document-capture.ts",
     "./kit/object3d-document-write-policy": "./src/kit/object3d-document-write-policy.ts",
     "./kit/performance-profiler": "./src/kit/performance-profiler.ts",
     "./kit/performance-sources": "./src/kit/performance-sources.ts",

@@ -120,16 +120,22 @@ the isolation and ingest surfaces are not walked: a project reaches an isolation
 its entrypoint's scene table, which the probes lack, and none is an ingested game.
 
 A game's own standalone boot (`src/main.ts`, the template's) mounts a `canvas` root, which it used to
-refuse: every `pixi.js` class is registered and the entry renders inside `<Application>`, as the
-editor mounts it (walked: a fresh game with a `canvas` root holding a TilingSprite and a BitmapText
-built through Build Profiles, and the bundle carries the canvas branch and those classes).
+refuse: every `pixi.js` class is registered and the entry renders inside `<Application>`, stacked as
+the editor's runtime stacks worlds: the bottom `three` or `canvas` world takes pointer input and
+clears opaque, a world above it lets input fall through and clears transparent, and Pixi renders at
+the device pixel ratio with `autoDensity` and antialiasing, as the editor's canvas root does. The
+editor's router forwards a point to an upper world only when that world declares a `hitTest`, and no
+root declares one, so both hand every pointer event to the bottom world.
 
 Build Profiles' Build And Run (Unity's; Godot's Web export runs in a browser) builds, then opens the
 Build Player document on the build's own `dist/`, which the editor server serves; what the running
 build prints, and its uncaught errors, reach the editor's console prefixed `[Build Player]`, as a
-Godot export run with remote debug reports into the editor (walked: the exported game's `canvas` root
-mounted its TilingSprite and BitmapText in the player, read from the console, with no errors). The
-editor's screenshot composite does not draw the player's frame.
+Godot export run with remote debug reports into the editor, and the screenshot door photographs the
+build inside the player, its canvases copied in the player's own frame (walked: a fresh game with a
+3D `world` and a `canvas` HUD above it built and ran; the screenshot showed the world with the HUD's
+TilingSprite and BitmapText over it, and the console read no errors). Build And Run always runs
+`dist/` and starts no `server` configuration [minor]; the pointer fall-through is read from the code,
+not walked, since no door reaches into the player's input.
 
 Remaining partials, tagged: all [minor] — a single node's scale about the temporary pivot, a group's
 shared frame and handles, single-axis group scale, rotated members under unequal group scale, a turn

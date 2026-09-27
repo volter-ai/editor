@@ -46,10 +46,14 @@ const container = document.getElementById('game-canvas') as HTMLElement;
 const roots = [...(manifest.roots as readonly DeclaredRoot[])].sort(
   (a, b) => (a.zOrder ?? 0) - (b.zOrder ?? 0),
 );
+// The bottom world (the lowest `three` or `canvas` root) takes pointer input and clears opaque;
+// a world stacked above it lets input fall through and clears transparent, as the editor stacks them.
+const bottomWorld = roots.find((root) => root.adapter === 'three' || root.adapter === 'canvas');
 for (const root of roots) {
   const layer = document.createElement('div');
   layer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
   layer.style.zIndex = String(root.zOrder ?? 0);
+  if (root.adapter !== 'dom' && root !== bottomWorld) layer.style.pointerEvents = 'none';
   container.appendChild(layer);
   const Entry = entryComponent(root);
   if (root.adapter === 'three') {
@@ -61,7 +65,17 @@ for (const root of roots) {
     const [{ Application, extend }, PIXI] = await Promise.all([import('@pixi/react'), import('pixi.js')]);
     extend(PIXI as unknown as Parameters<typeof extend>[0]);
     createRoot(layer).render(
-      createElement(Application, { resizeTo: layer, backgroundAlpha: 0 }, createElement(Entry)),
+      createElement(
+        Application,
+        {
+          resizeTo: layer,
+          antialias: true,
+          resolution: globalThis.devicePixelRatio ?? 1,
+          autoDensity: true,
+          backgroundAlpha: root === bottomWorld ? 1 : 0,
+        },
+        createElement(Entry),
+      ),
     );
   } else {
     throw new Error(

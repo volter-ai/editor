@@ -16,6 +16,7 @@ import { setViewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/
 import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from '@volter/editor-sdk/kit/document-open-registry';
 import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
+import { framedCapture } from '@volter/editor-sdk/kit/framed-document-capture';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { activeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { liveFrameCanvas, liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
@@ -565,6 +566,9 @@ export async function captureActiveEditorDocument(
       ? (liveInstanceContainer() ?? activeDocumentContent(descriptor.id))
       : activeDocumentContent(descriptor.id);
   if (!content) throw new Error(`Active document surface is not mounted: ${descriptor.id}`);
+  // A document whose subject runs in its own frame (the Build Player) is
+  // photographed inside that frame, with the frame's own same-frame pixels.
+  const framed = framedCapture(content);
   // `liveCanvasFrame` answers only for a canvas some live surface owns — a
   // registered Pixi `Application` (the `2D` board's exhibits, the first-party
   // canvas root, a canvas ingest) or the three ingest mount's own canvas;
@@ -575,12 +579,13 @@ export async function captureActiveEditorDocument(
   // the SAME seam `bridge-screenshot` passes, deliberately: two doors onto the
   // same pixels that disagree about which lane they can see is exactly the
   // defect (`live-canvas-frame.ts`).
-  const composite = await captureComposite(content, {
-    canvasFrame: captureLiveCanvasFrame,
+  const composite = await captureComposite(framed?.container ?? content, {
+    canvasFrame: framed?.canvasFrame ?? captureLiveCanvasFrame,
     // The Game document's subject is the game stack and must never inherit
-    // editor CSS. Every other composite subject is an editor-owned document;
-    // its design-system classes are part of what the user is looking at.
-    includeDocumentStyles: descriptor.id !== GAME_DOCUMENT_ID,
+    // editor CSS, nor may a framed game. Every other composite subject is an
+    // editor-owned document; its design-system classes are part of what the
+    // user is looking at.
+    includeDocumentStyles: descriptor.id !== GAME_DOCUMENT_ID && !framed,
   });
   // A blank frame over a live three ingest is REFUSED with its mechanism named
   // rather than handed back as a photograph — see `ingestBlankFrameRefusal`.
