@@ -1788,7 +1788,7 @@ export function RootSelectionOverlay({
   }, [adapter, store, transformModeAware, view]);
 
   const startGroupGesture = useCallback(
-    (kind: 'rotate' | 'native-scale', e: ReactPointerEvent): boolean => {
+    (kind: 'rotate' | 'native-scale', e: ReactPointerEvent, axis: 'x' | 'y' | 'both' = 'both'): boolean => {
       const group = nativeGroup();
       if (!group) return false;
       const frame = frameForId(adapter, group.primary.id);
@@ -1807,7 +1807,7 @@ export function RootSelectionOverlay({
         ...(group.pivot ? { groupCenter: group.pivot } : {}),
         ...(frame ? { startAngleDeg: (frameAngle(frame) * 180) / Math.PI } : {}),
         ...(kind === 'native-scale'
-          ? { nativeScaleAxis: 'both' as const, nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom }
+          ? { nativeScaleAxis: axis, nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom }
           : {}),
       };
       return true;
@@ -1885,7 +1885,7 @@ export function RootSelectionOverlay({
       if (e.button !== 0) return;
       const selected = store.selectedEntityIds;
       if (selected.size > 1) {
-        startGroupGesture('native-scale', e);
+        startGroupGesture('native-scale', e, axis);
         return;
       }
       if (selected.size !== 1) return;
@@ -2867,6 +2867,10 @@ export function RootSelectionOverlay({
         })
       : null;
   const nativeGizmoSpan = NATIVE_GIZMO_LENGTH_PX / pan.zoom;
+  // Godot draws a multi-selection's x and y scale handles at its first node; each scales the whole
+  // selection along its axis.
+  const groupFirstId = transformModeAware && selectedIds.size > 1 ? [...selectedIds][0]! : null;
+  const groupGizmoOrigin = groupFirstId ? (boxEditForId(adapter, groupFirstId)?.gizmoOrigin?.(groupFirstId) ?? null) : null;
   const referencePoint = single ? single.ownerBoxEdit.referencePoint?.(single.id) : null;
   const spacingBands = single?.spacingBands ?? [];
 
@@ -3093,6 +3097,30 @@ export function RootSelectionOverlay({
             }}
           />
         ) : null}
+        {groupGizmoOrigin &&
+          transformArms(transformModeAware, store.transformMode, 'scale') &&
+          showAxisGizmo &&
+          axisGizmos &&
+          (['x', 'y'] as const).map((axis) => (
+            <div
+              key={axis}
+              data-testid={`world-2d-group-scale-${axis}`}
+              title={axis === 'x' ? 'Scale the selection on X' : 'Scale the selection on Y'}
+              style={{
+                ...handleStyle(
+                  nativeScaleHandlePoint(axis, groupGizmoOrigin, nativeGizmoSpan),
+                  axis === 'x' ? 'ew-resize' : 'ns-resize',
+                ),
+                transform: `scale(${chromeScale})`,
+                transformOrigin: 'center',
+                background: axis === 'x' ? '#ef5350' : '#66bb6a',
+              }}
+              onPointerDown={(event) => startNativeScaleGesture(axis, event)}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerCancel}
+            />
+          ))}
         {singleRect && singleOwnerBoxEdit && (
           <>
             {/* B-fix (D1-visual + D4 review): the B3 spacing bands render
