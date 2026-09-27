@@ -734,23 +734,23 @@ export function snapPointToFrame(
  * Where a node's pivot lands, as Godot's pivot drag snaps it (`_gui_input_pivot` names the node to
  * `snap_point`): Node Sides and Node Center pull it onto the node's own sides and centre lines, else
  * the grid takes it when grid snap is on, and Use Pixel Snap rounds it; the grid and pixel snap skip
- * a node turned on screen, as Godot's do. `free` (Alt) leaves it where it is.
+ * a node turned on screen, as Godot's do. `invert` (Cmd) inverts smart snapping, as Godot's
+ * `snap_point` reads `smart_snap_active ^ Cmd`.
  */
 export function snapPivotPoint(
   point: { x: number; y: number },
   frame: FrameCorners | null,
   options: {
-    readonly free: boolean;
+    readonly invert: boolean;
     readonly smart: { readonly enabled: boolean; readonly sides: boolean; readonly center: boolean };
     readonly gridOn: boolean;
     readonly grid: { readonly step: number; readonly offsetX: number; readonly offsetY: number; readonly pixel: boolean };
     readonly threshold: number;
   },
 ): { x: number; y: number } {
-  if (options.free) return point;
   const { smart, grid } = options;
   let out = point;
-  if (frame && smart.enabled && (smart.sides || smart.center)) {
+  if (frame && smart.enabled !== options.invert && (smart.sides || smart.center)) {
     out = snapPointToFrame(point, frame, smart.sides, smart.center, options.threshold);
   }
   if (frame && Math.abs(frameAngle(frame)) > 1e-6) return out;

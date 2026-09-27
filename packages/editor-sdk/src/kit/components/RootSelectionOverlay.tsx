@@ -1960,10 +1960,10 @@ export function RootSelectionOverlay({
 
   /** Where a pivot lands: `snapPivotPoint`, Godot's pivot drag. */
   const snapPivot = useCallback(
-    (id: string, local: { x: number; y: number }, free: boolean): { x: number; y: number } => {
+    (id: string, local: { x: number; y: number }, invert: boolean): { x: number; y: number } => {
       const rect = rectForId(adapter, id);
       return snapPivotPoint(local, frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null), {
-        free,
+        invert,
         smart: store.smartSnap,
         gridOn: store.snapEnabled,
         grid: store.snap2D,
@@ -1996,7 +1996,7 @@ export function RootSelectionOverlay({
       const drag = spatialDragRef.current;
       if (!drag) return;
       const pointer = toHostLocal(e.clientX, e.clientY);
-      const local = drag.pivot ? snapPivot(drag.id, pointer, e.altKey) : pointer;
+      const local = drag.pivot ? snapPivot(drag.id, pointer, e.metaKey || e.ctrlKey) : pointer;
       drag.provider.preview(drag.id, drag.handleId, [local.x, local.y, 0]);
       bumpGesture();
     },
@@ -2010,7 +2010,7 @@ export function RootSelectionOverlay({
       if (!drag) return;
       releaseCapturedPointer(e);
       const pointer = toHostLocal(e.clientX, e.clientY);
-      const local = drag.pivot ? snapPivot(drag.id, pointer, e.altKey) : pointer;
+      const local = drag.pivot ? snapPivot(drag.id, pointer, e.metaKey || e.ctrlKey) : pointer;
       void drag.provider.commit(drag.id, drag.handleId, [local.x, local.y, 0]);
       bumpGesture();
     },
@@ -2120,8 +2120,9 @@ export function RootSelectionOverlay({
             gesture.origRect,
             gesture.context,
             gesture.moveAxis,
-            // Alignment is smart snapping's, beside the grid's step (Godot's two toggles).
-            !store.smartSnap.enabled,
+            // Alignment is smart snapping's, beside the grid's step (Godot's two toggles); Cmd
+            // inverts it, as Godot's `snap_point` reads `smart_snap_active ^ Cmd`.
+            store.smartSnap.enabled === (e.metaKey || e.ctrlKey),
             EDGE_SNAP_THRESHOLD_PX / Math.max(pan.zoom, 0.01),
             {
               x: nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),

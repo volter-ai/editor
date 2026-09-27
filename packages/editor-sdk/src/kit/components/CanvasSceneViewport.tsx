@@ -1051,11 +1051,11 @@ function CanvasSceneModeLayer({
     return grid.pixel ? { x: Math.round(snapped.x), y: Math.round(snapped.y) } : snapped;
   };
   /** Where the pivot goes for a point: snapped to its node's sides and centre as a dragged pivot is. */
-  const pivotPoint = (id: string, point: { x: number; y: number }, free: boolean) => {
+  const pivotPoint = (id: string, point: { x: number; y: number }, invert: boolean) => {
     if (!adapter) return point;
     const rect = rectForId(adapter, id);
     return snapPivotPoint(point, frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null), {
-      free,
+      invert,
       smart: store.smartSnap,
       gridOn: store.snapEnabled,
       grid: store.snap2D,
@@ -1089,8 +1089,8 @@ function CanvasSceneModeLayer({
         : undefined;
       if (!id || !provider || !handle) return;
       event.currentTarget.setPointerCapture(event.pointerId);
-      const at = (next: { clientX: number; clientY: number; altKey: boolean }) => {
-        const point = pivotPoint(id, worldAt(next.clientX, next.clientY), next.altKey);
+      const at = (next: { clientX: number; clientY: number; metaKey: boolean; ctrlKey: boolean }) => {
+        const point = pivotPoint(id, worldAt(next.clientX, next.clientY), next.metaKey || next.ctrlKey);
         return [point.x, point.y, 0] as const;
       };
       provider.preview(id, handle.id, at(event));
