@@ -18,6 +18,13 @@
  * Objects Godot has no node for (a skeleton's bones, a multi-surface mesh's
  * per-surface meshes) stay where the loader put them, unadopted, so `get_node` never sees them.
  *
+ * An image the file references outside itself (`images[i].uri`) is the project's imported texture,
+ * as `GLTFDocument::_parse_images` loads it (`gltf_document.cpp:2362`): the scene passes that
+ * texture (the one `load()` of its path gives, shared by every model that references it) as
+ * `images[i]`; the loader does not decode the file, and each material slot that samples it
+ * samples the shared texture with the filter and repeat the glTF sampler gives the material
+ * (`gltf_texture_sampler.h:87`, `:131`).
+ *
  * Not yet transcribed: the importer applies a model's `RESET` animation before saving the scene
  * (`resource_importer_scene.cpp:3400`), which re-poses its bones; here each bone keeps the pose the
  * importer's skeleton gives it (`skin_tool.cpp:636`), which the RESET keys can differ from.
@@ -26,11 +33,12 @@
 import { useGLTF } from '@react-three/drei';
 import { createPortal, type ThreeElements } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, useContext, useLayoutEffect, useMemo, useRef } from 'react';
-import { Group, type Object3D } from 'three';
+import { Group, type Material, type Mesh, type Object3D, Texture } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
 import { godot_animation_mixer_set_library } from './animation-mixer';
 import { godot_animation_player_apply_reset, godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
+import { godot_base_material_3d_model_map } from './base-material-3d';
 import { godot_node_adopt, godot_node_foreign } from './node';
 import { construct as quaternion } from './quaternion';
 import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
@@ -185,6 +193,77 @@ function buildTree(scene: Object3D, associations: ReadonlyMap<Object3D, { readon
   return { loaded, byPath, byIndex, depthOne };
 }
 
+/** What the loader's parser gives a texture plugin. */
+interface GltfParser {
+  readonly json: {
+    readonly textures?: readonly { readonly source?: number; readonly sampler?: number }[];
+    readonly samplers?: readonly { readonly minFilter?: number; readonly wrapS?: number; readonly wrapT?: number }[];
+  };
+}
+
+/**
+ * The loader's texture for an external image the scene gave: a stand-in with no image to decode,
+ * naming its `images[]` index (it survives the loader's `texCoord` and `KHR_texture_transform`
+ * clones), swapped for the shared texture once the model has loaded.
+ */
+function externalImages(parser: GltfParser, images: Readonly<Record<number, Texture>>) {
+  return {
+    name: 'godot_external_images',
+    loadTexture: (index: number): Promise<Texture> | null => {
+      const texture = parser.json.textures?.[index];
+      if (texture?.source === undefined || images[texture.source] === undefined) return null;
+      const standIn = new Texture();
+      standIn.userData = { godotImage: texture.source, godotTexture: index };
+      return Promise.resolve(standIn);
+    },
+  };
+}
+
+/** The material slots a glTF texture fills, and whether the slot is a colour (sRGB) one. */
+const SLOTS: readonly (readonly [string, boolean])[] = [
+  ['map', true],
+  ['emissiveMap', true],
+  ['normalMap', false],
+  ['roughnessMap', false],
+  ['metalnessMap', false],
+  ['aoMap', false],
+];
+
+/** `GLTFTextureSampler::get_filter_mode` (`gltf_texture_sampler.h:87`): the material's `texture_filter`. */
+function samplerFilter(minFilter: number | undefined): number {
+  if (minFilter === 9728) return 0;
+  if (minFilter === 9729) return 1;
+  if (minFilter === 9984 || minFilter === 9986) return 2;
+  return 3;
+}
+
+/** Each loaded model's materials are given the shared textures once. */
+const SAMPLED = new WeakSet<object>();
+
+/** Swaps each stand-in for the shared texture as the material samples it. */
+function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser: unknown }, images: Readonly<Record<number, Texture>>): void {
+  if (SAMPLED.has(gltf.scene)) return;
+  SAMPLED.add(gltf.scene);
+  const json = (gltf.parser as GltfParser).json;
+  gltf.scene.traverse((object) => {
+    const materials = (object as Mesh).material;
+    if (materials === undefined) return;
+    for (const material of Array.isArray(materials) ? materials : [materials]) {
+      const slots = material as Material & Record<string, Texture | null | undefined>;
+      for (const [slot, srgb] of SLOTS) {
+        const standIn = slots[slot];
+        const image = standIn?.userData['godotImage'] as number | undefined;
+        if (standIn === null || standIn === undefined || image === undefined) continue;
+        const shared = images[image] as Texture;
+        const sampler = json.samplers?.[json.textures?.[standIn.userData['godotTexture'] as number]?.sampler ?? -1];
+        const repeat = (sampler?.wrapS ?? 10497) === 10497 && (sampler?.wrapT ?? 10497) === 10497;
+        slots[slot] = godot_base_material_3d_model_map(shared, samplerFilter(sampler?.minFilter), repeat, srgb, standIn);
+        material.needsUpdate = true;
+      }
+    }
+  });
+}
+
 /**
  * An instanced imported model: its root (this group, the instancing scene's node) and Godot's
  * imported tree under it, with the instancing scene's placements portalled into its nodes.
@@ -196,6 +275,7 @@ export function GodotImportedScene({
   src,
   tree: model,
   overrides = {},
+  images,
   children,
   ...props
 }: GroupProps & {
@@ -203,9 +283,14 @@ export function GodotImportedScene({
   readonly tree: GodotImportedSceneTree;
   /** The instancing scene's properties on the model's nodes: by node path, by Godot name. */
   readonly overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  /** The project's imported textures for the file's external images, by `images[]` index. */
+  readonly images?: Readonly<Record<number, Texture>>;
   readonly children?: ReactNode;
 }) {
-  const gltf = useGLTF(src);
+  const gltf = useGLTF(src, undefined, undefined, images === undefined ? undefined : (loader) => loader.register((parser) => externalImages(parser, images)));
+  useMemo(() => {
+    if (images !== undefined) sampleExternalImages(gltf, images);
+  }, [gltf, images]);
   const { rootClasses, nodes } = model;
   const tree = useMemo(
     () => buildTree(gltf.scene, gltf.parser.associations as ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes),

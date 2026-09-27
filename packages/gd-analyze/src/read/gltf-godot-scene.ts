@@ -70,7 +70,7 @@
  *    per-import random sub-resource id. It is an identity, not information.
  */
 import { GltfParseError, readGlbContainer } from './glb-container';
-import type { GltfDocument, GltfNode, Transform3D } from './gltf-document';
+import type { GltfDocument, GltfExternalImage, GltfNode, Transform3D } from './gltf-document';
 import {
   basisRotationQuaternion,
   basisScale,
@@ -198,7 +198,7 @@ export interface GlbScene {
    */
   readonly sceneRootPaths: readonly string[];
   /** File-backed images the native glTF loader resolves beside this model. */
-  readonly externalImageUris: readonly string[];
+  readonly externalImages: readonly GltfExternalImage[];
   /** The AnimationPlayer's clips as the importer keys them, or why they are not modelled. */
   readonly animationKeys?: readonly ImportedClip[] | string;
   /** Exact source material identities and alpha modes needed by renderer planning. */
@@ -297,7 +297,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       boneNamesByPath,
       bonesByPath,
       sceneRootPaths: scene.sceneRootPaths,
-      externalImageUris: scene.externalImageUris,
+      externalImages: scene.externalImages,
       sourceMaterials: scene.sourceMaterials,
       ...(animationPlayer === undefined ? {} : { animationPlayer }),
       ...(scene.animationKeys === undefined ? {} : { animationKeys: scene.animationKeys }),
@@ -951,7 +951,7 @@ export function readGltfAsGodotScene(
     resPath,
     nodes,
     sceneRootPaths,
-    externalImageUris: doc.externalImageUris,
+    externalImages: doc.externalImages,
     sourceMaterials: doc.materials.map((material) => ({
       ...(material.sourceName === undefined ? {} : { name: material.sourceName }),
       ...(material.alphaMode === undefined ? {} : { alphaMode: material.alphaMode }),

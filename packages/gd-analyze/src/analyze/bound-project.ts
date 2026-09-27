@@ -3,6 +3,7 @@ import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-s
 import type { ImportedClip } from '../read/gltf-animation-import';
 import { memberKey, typeMembers } from './member-types';
 import { numericVariants, type ScriptNumericVariants } from './numeric-variants';
+import type { GltfExternalImage } from '../read/gltf-document';
 import { parameterKey, typeFunctionParameters } from './parameter-types';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
@@ -187,7 +188,7 @@ export interface BoundGodotSceneDocument {
     readonly nodeIndexByPath: Readonly<Record<string, number>>;
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
-    readonly externalImageUris: readonly string[];
+    readonly externalImages: readonly GltfExternalImage[];
     /** The importer's AnimationPlayer clips, keyed as it leaves them, or why they are not modelled. */
     readonly animationKeys?: readonly ImportedClip[] | string;
   };
@@ -655,7 +656,7 @@ function boundDocuments(
                   bytes: snapshot.bytesByResPath(document.resPath),
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
-                  externalImageUris: document.gltfOrigin.externalImageUris,
+                  externalImages: document.gltfOrigin.externalImages,
                   ...(document.gltfOrigin.animationKeys === undefined ? {} : { animationKeys: document.gltfOrigin.animationKeys }),
                 },
               }),
