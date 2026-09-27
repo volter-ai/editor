@@ -21,36 +21,11 @@ const USAGE = `usage: gd-analyze <command> [options]
            Plan (read-only) the import of each pinned fixture and report every refusal the
            plan holds, per kit and grouped by family across kits. Nothing is emitted or built.
 
-  evidence <name> --official-binary <path> [--bound-exporter-binary <path>]
-           Run evidence/godot-4.7/<name>.cases.ts in the official Godot 4.7 binary (headless)
-           and in Node: a compat case file through its compat module, a language case file
-           through production code lowering (which needs the bound exporter). On full agreement
-           write what it proves to src/translate/code/authority/godot-4.7/<name>.json.
-
-  evidence --refresh --official-binary <path> --bound-exporter-binary <path>
-           Run every authority's native/target proof; where they agree, rewrite that
-           proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
-           is named and nothing is written for it.
-
   run <imported-project-dir> [--frames <n>] [--budget-ms <ms>] [--profile [--profile-after <frames>]]
-           Mount an imported project's world headlessly (the proofs' harness) and step it n
+           Mount an imported project's world headlessly and step it n
            display frames at 60 Hz with no input (default 300): each frame's thrown error is
            printed with its stack, and a frame over its budget (default 2000 ms) is paused
            through the inspector and its call stack printed.
-
-  run --self-check --bound-exporter-binary <path> --official-binary <path>
-           Import a world whose script spins in _process and check that run reports the hang
-           with a paused frame at that script's loop line.
-
-  liveness
-           Check every claim the import's authorities carry against the working tree, as the
-           import checks each before use; list the stale ones (no Godot binary needed).
-
-  evidence ... --godot 4.6 [--pipeline-official-binary <4.7 editor>]
-           The same cases and proofs with the official 4.6 binary as the native side, against
-           the same target (compat, and the 4.7 pipeline through the 4.7 exporter and, for the
-           refresh's proofs, the 4.7 editor as its importer); written to
-           src/translate/code/authority/godot-4.6/.
 `;
 
 function fail(message: string): never {
@@ -101,16 +76,11 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     process.stdout.write(USAGE);
     return command === undefined ? 2 : 0;
   }
-  if (command === 'run' && rest.includes('--self-check')) {
-    const { runSpinSelfCheck } = await import('./run/run-world');
-    (await import('./evidence/node-assets')).registerNodeAssetImports();
-    process.exit(await runSpinSelfCheck({ exporterBinary: requiredExporter(rest), officialBinary: requiredOfficial(rest) }));
-  }
   if (command === 'run') {
     const positional = positionals(rest, ['--frames', '--budget-ms', '--profile-after']);
     if (positional.length !== 1) fail('run needs exactly one imported project directory');
     const { runImportedWorld } = await import('./run/run-world');
-    (await import('./evidence/node-assets')).registerNodeAssetImports();
+    (await import('./run/node-assets')).registerNodeAssetImports();
     const code = await runImportedWorld(positional[0] as string, {
       frames: Number(optionValue(rest, '--frames') ?? 300),
       budgetMs: Number(optionValue(rest, '--budget-ms') ?? 2000),
@@ -153,36 +123,6 @@ export async function runCli(argv: readonly string[]): Promise<number> {
       requiredExporter(rest),
       requiredOfficial(rest),
       optionValue(rest, '--out'),
-    );
-  }
-  if (command === 'liveness') {
-    const { runLiveness } = await import('./report/liveness');
-    return runLiveness();
-  }
-  if (command === 'evidence') {
-    (await import('./evidence/node-assets')).registerNodeAssetImports();
-    const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary', '--godot', '--pipeline-official-binary']);
-    const version = optionValue(rest, '--godot') ?? '4.7';
-    if (version !== '4.6' && version !== '4.7') fail('evidence --godot takes 4.6 or 4.7');
-    const binary = optionValue(rest, '--official-binary');
-    if (binary === undefined) fail('evidence needs --official-binary <path>');
-    if (rest.includes('--refresh')) {
-      if (positional.length !== 0) fail('evidence --refresh takes no class');
-      const { refreshEvidence } = await import('./evidence/refresh');
-      const pipeline = optionValue(rest, '--pipeline-official-binary');
-      if (version !== '4.7' && pipeline === undefined) fail('evidence --refresh --godot 4.6 needs --pipeline-official-binary <the 4.7 editor>');
-      return await refreshEvidence(
-        { officialBinary: binary, exporterBinary: requiredExporter(rest), ...(pipeline === undefined ? {} : { pipelineOfficialBinary: pipeline }) },
-        version,
-      );
-    }
-    if (positional.length !== 1) fail('evidence needs exactly one Godot class');
-    const { runEvidence } = await import('./evidence/run-evidence');
-    return runEvidence(
-      positional[0] as string,
-      binary,
-      optionValue(rest, '--bound-exporter-binary'),
-      version,
     );
   }
   fail(`unknown command "${command}"`);

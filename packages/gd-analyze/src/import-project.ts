@@ -6,7 +6,6 @@
  * seam succeeds. A destination that already exists is user-owned and is never replaced; re-import
  * chooses a new destination. There are no per-game file lists and no hand-completion files.
  */
-import { godotUpgradeDeltaReport, godotUpgradeDeltasReached } from './report/upgrade-deltas';
 import { spawnSync } from 'node:child_process';
 import {
   chmodSync,
@@ -215,13 +214,6 @@ export function withBoundGodotProject<T>(
       toolchain.frontend.authority,
       toolchain.frontend.apiDump,
       decodedProject,
-    );
-    // An older project's measured upgrade deltas it reaches: reported, never a gate.
-    process.stdout.write(
-      godotUpgradeDeltaReport(
-        toolchain.frontend.projectVersion,
-        godotUpgradeDeltasReached(boundProject, toolchain.frontend.projectVersion, toolchain.frontend.apiDump.parsed),
-      ),
     );
     return use(boundProject, toolchain);
   } finally {
