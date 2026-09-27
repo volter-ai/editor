@@ -346,6 +346,11 @@ export class PreviewEngine {
     return end > start && origin < end ? { start, end } : whole;
   }
 
+  /** Each strip's peak level now, left and right, in dBFS, by track id (`LiveMix.levels`); empty before a graph exists. */
+  levels(): Map<string, readonly [number, number]> {
+    return this.mix?.levels() ?? new Map();
+  }
+
   /** The engine's state now (a subscriber hears each change; this answers a read). */
   get current(): EngineState {
     return this.state;

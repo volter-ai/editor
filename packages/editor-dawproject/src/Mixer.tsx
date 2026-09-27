@@ -9,6 +9,10 @@
  * it lands, reverb tails and all. A channel or send that the source generates, or whose value is
  * computed, refuses with the reason. "+ Send" on an instrument strip adds a send at −12 dB to an
  * effect bus it does not feed yet.
+ *
+ * Beside each fader a stereo peak meter shows what the strip puts out while the preview plays
+ * (`PreviewEngine.levels`, read each frame): the level after its fader and pan, on the fader's own
+ * scale, so a meter at the 0 dB tick is at full scale.
  */
 
 import type { Piece, PieceChannel, PieceSend, PieceTrack } from '@volter/dawproject/piece';
@@ -97,21 +101,44 @@ function useDragValue(
   };
 }
 
+/** Each strip's peak level, left and right, dBFS, by track id: polled each frame while `playing`. */
+function useLevels(read: (() => ReadonlyMap<string, readonly [number, number]>) | undefined, playing: boolean): ReadonlyMap<string, readonly [number, number]> {
+  const [levels, setLevels] = useState<ReadonlyMap<string, readonly [number, number]>>(new Map());
+  useEffect(() => {
+    if (!playing || !read) {
+      setLevels(new Map());
+      return;
+    }
+    let frame = 0;
+    const loop = (): void => {
+      setLevels(read());
+      frame = requestAnimationFrame(loop);
+    };
+    frame = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frame);
+  }, [read, playing]);
+  return levels;
+}
+
 export function Mixer(props: {
   readonly piece: Piece;
   readonly index: SourceIndex;
   readonly colorOf: (track: PieceTrack) => string;
   readonly resource: Resource;
   readonly onMessage: (message: string | null) => void;
+  /** The preview's strip levels (`PreviewEngine.levels`), and whether it is playing. */
+  readonly levels?: () => ReadonlyMap<string, readonly [number, number]>;
+  readonly playing?: boolean;
 }) {
   const { piece } = props;
+  const levels = useLevels(props.levels, props.playing === true);
   // A group's strip stands after the tracks it sums, as a console's group faders do.
   const order = (track: PieceTrack): number => ({ regular: 0, submix: 1, effect: 2, master: 3 })[track.channel?.role ?? 'regular'];
   const strips = piece.tracks.filter((track) => track.channel).sort((a, b) => order(a) - order(b));
   return (
     <div tabIndex={-1} style={{ outline: 'none', display: 'flex', height: '100%', overflowX: 'auto', background: themeVars.surface.panel }}>
       {strips.map((track) => (
-        <Strip key={track.id} track={track} channel={track.channel!} {...props} />
+        <Strip key={track.id} track={track} channel={track.channel!} {...props} level={levels.get(track.id) ?? null} />
       ))}
     </div>
   );
@@ -120,6 +147,8 @@ export function Mixer(props: {
 function Strip(props: {
   readonly piece: Piece;
   readonly track: PieceTrack;
+  /** Its peak level now, left and right, dBFS; `null` while nothing plays. */
+  readonly level: readonly [number, number] | null;
   readonly channel: PieceChannel;
   readonly index: SourceIndex;
   readonly colorOf: (track: PieceTrack) => string;
@@ -243,6 +272,7 @@ function Strip(props: {
           <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: travelOf(fader.shown) * FADER_H, background: color, opacity: volumeRefusal ? 0.4 : 0.8, borderRadius: 2 }} />
           <span style={{ position: 'absolute', left: -2, right: -2, bottom: travelOf(0) * FADER_H, height: 1, background: themeVars.content.muted }} />
         </div>
+        <Meter level={props.level} />
         <div style={{ ...small, ...mono, color: themeVars.content.primary }}>{formatDb(fader.shown)}</div>
       </div>
       <div style={{ display: 'flex', gap: 3 }}>
@@ -258,6 +288,24 @@ function Strip(props: {
       <div style={{ ...small, overflow: 'hidden' }} title={channel.devices.map((device) => device.name ?? device.plugin).join(' → ')}>
         {channel.devices.map((device) => device.name ?? device.plugin).join(' → ')}
       </div>
+    </div>
+  );
+}
+
+/** A stereo peak meter on the fader's scale: green, amber from −6 dBFS, red above full scale. */
+function Meter(props: { readonly level: readonly [number, number] | null }) {
+  const shown = (db: number): string => (Number.isFinite(db) ? db.toFixed(1) : '-inf');
+  return (
+    <div data-meter={props.level ? props.level.map(shown).join(',') : ''} style={{ display: 'flex', gap: 1, height: FADER_H }}>
+      {[0, 1].map((side) => {
+        const db = props.level?.[side] ?? Number.NEGATIVE_INFINITY;
+        const tone = db > 0 ? themeVars.semantic.danger : db > -6 ? themeVars.semantic.warning : themeVars.semantic.success;
+        return (
+          <div key={side} style={{ position: 'relative', width: 4, height: '100%', background: themeVars.surface.inset, borderRadius: 1 }}>
+            <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: travelOf(db) * FADER_H, background: tone }} />
+          </div>
+        );
+      })}
     </div>
   );
 }

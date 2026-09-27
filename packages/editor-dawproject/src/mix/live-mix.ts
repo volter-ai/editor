@@ -76,6 +76,8 @@ interface StripNodes {
   readonly panner: StereoPannerNode;
   /** By index in `channel.sends`; `null` where the send names no bus. */
   readonly sends: readonly (GainNode | null)[];
+  /** The strip's output (after fader and pan), left and right, for its meter (`levels`). */
+  readonly meter: readonly [AnalyserNode, AnalyserNode];
 }
 
 /** A built graph: its nodes, the sixteen channel inputs, each strip's level nodes, and its output. */
@@ -87,6 +89,9 @@ interface Graph {
   readonly strips: Map<string, StripNodes>;
   output: AudioNode | null;
 }
+
+/** Samples a meter reads: the last ~43 ms at 48 kHz, about one screen frame and a half. */
+const METER_WINDOW = 2048;
 
 /** How quickly an in-place level change settles: a ~10 ms glide, so a fader move does not click. */
 const LEVEL_TIME_CONSTANT = 0.01;
@@ -228,9 +233,16 @@ export class LiveMix {
     fader.gain.value = levels.fader;
     const panner = this.context.createStereoPanner();
     panner.pan.value = levels.pan;
-    graph.nodes.push(fader, panner);
+    const split = this.context.createChannelSplitter(2);
+    const meter: [AnalyserNode, AnalyserNode] = [this.context.createAnalyser(), this.context.createAnalyser()];
+    for (const [channel, analyser] of meter.entries()) {
+      analyser.fftSize = METER_WINDOW;
+      split.connect(analyser, channel);
+    }
+    graph.nodes.push(fader, panner, split, ...meter);
     output.connect(fader).connect(panner);
-    graph.strips.set(track.id, { fader, panner, sends });
+    panner.connect(split);
+    graph.strips.set(track.id, { fader, panner, sends, meter });
     return panner;
   }
 
@@ -485,6 +497,23 @@ export class LiveMix {
   }
 
   /** Disconnect the source and every node of the sounding graph. */
+  /**
+   * Each strip's peak level now, left and right, in dBFS (−Infinity for silence), by track id:
+   * the largest sample of the last {@link METER_WINDOW} samples out of its fader and pan.
+   */
+  levels(): Map<string, readonly [number, number]> {
+    const levels = new Map<string, readonly [number, number]>();
+    const samples = new Float32Array(METER_WINDOW);
+    const peakDb = (analyser: AnalyserNode): number => {
+      analyser.getFloatTimeDomainData(samples);
+      let peak = 0;
+      for (const sample of samples) peak = Math.max(peak, Math.abs(sample));
+      return 20 * Math.log10(peak);
+    };
+    for (const [trackId, strip] of this.graph?.strips ?? []) levels.set(trackId, [peakDb(strip.meter[0]), peakDb(strip.meter[1])]);
+    return levels;
+  }
+
   dispose(): void {
     this.detach();
     this.takeDown();

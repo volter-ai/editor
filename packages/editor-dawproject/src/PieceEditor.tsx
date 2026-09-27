@@ -56,6 +56,8 @@ export interface PieceDocumentContext {
   readonly loop: { readonly from: number; readonly to: number } | null;
   /** Whether the engine clicks the beat while playing. */
   readonly metronome: boolean;
+  /** Each strip's peak level now, left and right, dBFS, by track name: what the Mix meters show. */
+  readonly levels: Readonly<Record<string, readonly [number, number]>>;
   /** The clip launcher while it is what plays: each track's launches and its timeline's beat now. */
   readonly launcher: { readonly launches: Launches; readonly beat: number } | null;
   play(fromBeat?: number): Promise<void>;
@@ -136,6 +138,10 @@ export function PieceEditor({
       get launcher() {
         return engine.launcher;
       },
+      get levels() {
+        const names = new Map(liveRef.current.live.piece?.tracks.map((track) => [track.id, track.name]) ?? []);
+        return Object.fromEntries([...engine.levels()].map(([id, level]) => [names.get(id) ?? id, level]));
+      },
       play: (fromBeat = startRef.current) => engine.play(fromBeat),
       stop: () => engine.stop(),
     };
@@ -184,6 +190,7 @@ export function PieceEditor({
   }, [engine, engineState.kind]);
 
   const readLauncher = useCallback(() => engine.launcher, [engine]);
+  const readLevels = useCallback(() => engine.levels(), [engine]);
   const launcher = useLauncherReading(readLauncher, engineState.kind === 'playing');
   // While the launcher plays, its timeline is not the arrangement's: the arranger shows no playhead.
   const arrangePlayhead = launcher ? null : playhead;
@@ -352,6 +359,8 @@ export function PieceEditor({
             colorOf={(track) => trackColor(track, piece.tracks.indexOf(track))}
             resource={{ file, documentId }}
             onMessage={setMessage}
+            levels={readLevels}
+            playing={engineState.kind === 'playing'}
           />
         ) : clip?.clip.audio ? (
           <AudioClip key={clip.clip.id} clip={clip.clip} piece={piece} index={index} file={file} documentId={documentId} onMessage={setMessage} />
