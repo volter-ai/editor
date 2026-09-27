@@ -606,6 +606,7 @@ function lowerScript(
     },
     nativeType,
     new Set(source.refinedTypes.filter((entry) => entry.rule === 'type-test-narrowing').map((entry) => entry.nodeId)),
+    new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');

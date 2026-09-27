@@ -1390,6 +1390,13 @@ func nulls() -> Array:
 \tvar nothing: Node = null
 \treturn [nothing is Node, nothing is Tagged]
 
+# A script function called on a receiver typed only as a native class that declares no such
+# method: the project scripts that declare it (Tagged, DerivedTagged) are tried in turn.
+func switched() -> Array:
+\tvar t: Node3D = $Tagged
+\tvar d: Node3D = $Derived
+\treturn [t.describe(), d.describe()]
+
 # A script function called through a receiver declared as the base script: the instance's own
 # (most derived) function runs (\`script-method-dispatch\`).
 func dispatched() -> Array:
@@ -1825,7 +1832,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'switched', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);

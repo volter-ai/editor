@@ -218,6 +218,8 @@ export class LoweringContext {
     readonly nativeType?: (className: string) => readonly GodotNativeTypePart[],
     /** The nodes whose datatype `is T` narrowing gave (`type-test-narrowing`). */
     readonly narrowedNodes: ReadonlySet<number> = new Set(),
+    /** Calls lowered to a switch over the project scripts that declare the method (`call-receivers.ts`). */
+    readonly scriptSwitches: ReadonlyMap<number, readonly string[]> = new Map(),
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();

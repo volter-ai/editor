@@ -18,6 +18,7 @@ export const GODOT_RECEIVER_IMPLEMENTATION_FILES = [
   'src/analyze/api-dump.ts',
   'src/analyze/bound-project.ts',
   'src/analyze/call-receivers.ts',
+  'src/analyze/member-types.ts',
   'src/analyze/parameter-types.ts',
   'src/analyze/refined-types.ts',
   'src/read/scene-attachment-index.ts',

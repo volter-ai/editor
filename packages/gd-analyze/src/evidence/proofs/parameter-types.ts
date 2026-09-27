@@ -5,7 +5,8 @@
  * script signal and a native signal through scene connections, a script's own calls) and of what a
  * script function returns when called through a receiver declared as its base script class,
  * against the datatypes the analysis gave the same parameter reads and call (`bindGodotProject`),
- * and whether it classified the call as a script dispatch; a call on such a parameter is typed by
+ * and whether it classified the call as a script dispatch; an untyped member takes the one type
+ * every value stored in it has (`member-assignment-type`), a call on it typed by that class; a call on such a parameter is typed by
  * its class's ClassDB method; a compound assignment of a typed member
  * with such a parameter has the operator's result type (the member's own). A parameter whose callers disagree (the
  * recorder's own `value`, the handler of a signal emitted with an int and a String) or that a `Callable` reaches (`escaped`) must stay untyped; the native
@@ -48,6 +49,11 @@ signal mixed_signal
 var rows := {}
 var frames := 0
 var accumulated := 0.0
+# Untyped members: one stores ints only (\`+=\` an int), one a float then an int (untyped), one a
+# RandomNumberGenerator a call is made on.
+var hits = 0
+var speed = 1.5
+var rng = RandomNumberGenerator.new()
 
 # The type each label's value had, or "untyped" when its values had more than one.
 func record(label, value) -> void:
@@ -64,6 +70,14 @@ func _ready() -> void:
 \tescaped(1.5)
 \thit.connect(escaped)
 \thit.emit(3)
+\thits += 1
+\thits = hits + 2
+\trecord("member-int", hits)
+\trecord("member-mixed", speed)
+\tspeed = 3
+\trecord("member-mixed", speed)
+\trng.seed = 4
+\trecord("member-receiver", rng.randf_range(0.0, 1.0))
 \tvar score: int = 7
 \tcounted.emit(score)
 \temit_signal("counted", 8)

@@ -20,7 +20,8 @@ export type GodotAnalysisRuleId =
   | 'engine-virtual-parameter'
   | 'signal-handler-parameter'
   | 'call-site-parameter'
-  | 'script-method-dispatch';
+  | 'script-method-dispatch'
+  | 'member-assignment-type';
 
 export interface GodotAnalysisRule {
   readonly id: GodotAnalysisRuleId;

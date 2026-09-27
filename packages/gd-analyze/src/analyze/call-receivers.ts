@@ -52,6 +52,12 @@ export interface BoundGodotCallReceiver {
 export interface BoundGodotScriptCall {
   readonly nodeId: number;
   readonly evidenceClaimIds: readonly string[];
+  /**
+   * When the receiver's class is only known as a native class that declares no such method: the
+   * finite set of project scripts (extending that class) whose chain declares it. The call lowers
+   * to a switch over them, with Godot's own error for any other receiver.
+   */
+  readonly scripts?: readonly string[];
 }
 
 export interface BoundGodotUntypedCall {
@@ -77,6 +83,8 @@ export interface CallReceiverInputs {
   readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
   /** The function names a script's chain declares (the script and its script ancestors). */
   readonly scriptChainMethods?: (resPath: string) => ReadonlySet<string> | undefined;
+  /** The project scripts extending a native class whose chain declares a method, sorted. */
+  readonly scriptsDeclaring?: (method: string, nativeClass: string) => readonly string[];
   /**
    * An untyped parameter read's datatype from its function's callers (`parameter-types.ts`), with
    * the claims of the rules that found it.
@@ -359,7 +367,7 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       }
       return typeOfName((agreed as ResolvedSceneNode).className, [rule]);
     }
-    if (node.kind === 'IDENTIFIER' && node.source === 'FUNCTION_PARAMETER' && node.datatype.kind === 'VARIANT') {
+    if (node.kind === 'IDENTIFIER' && (node.source === 'FUNCTION_PARAMETER' || node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && inputs.parameterType?.(id) !== undefined) {
       // A parameter every caller passes one type to (`parameter-types.ts`).
       const parameter = inputs.parameterType?.(id);
       if (parameter !== undefined) {
@@ -514,7 +522,7 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     // A function of the script the receiver is declared as, or of the script on the scene node a
     // `$Path` names: Godot calls the script's function (`script-method-dispatch`).
     const baseDatatype =
-      baseNode?.kind === 'IDENTIFIER' && baseNode.source === 'FUNCTION_PARAMETER' && baseNode.datatype.kind === 'VARIANT'
+      baseNode?.kind === 'IDENTIFIER' && (baseNode.source === 'FUNCTION_PARAMETER' || baseNode.source === 'MEMBER_VARIABLE' || baseNode.source === 'INHERITED_VARIABLE') && baseNode.datatype.kind === 'VARIANT'
         ? (inputs.parameterType?.(baseNode.id)?.datatype ?? baseNode.datatype)
         : baseNode?.datatype;
     const scriptMembers =
@@ -537,7 +545,19 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       return undefined;
     }
     const narrowed = narrowedSelection(callee.base, call.functionName);
-    const selected = narrowed ?? select(typeOf(callee.base), call.functionName);
+    const receiver = typeOf(callee.base);
+    const selected = narrowed ?? select(receiver, call.functionName);
+    if (typeof selected === 'string' && narrowed === undefined && receiver.kind === 'native') {
+      // No engine class selects it, but the receiver's class is known: the project scripts of that
+      // class that declare it are every object the call can succeed on (`script-method-dispatch`).
+      const scripts = inputs.scriptsDeclaring?.(call.functionName, receiver.name) ?? [];
+      const claim = inputs.claim('script-method-dispatch');
+      if (scripts.length > 0 && claim !== undefined) {
+        untypedReasons.delete(call.id);
+        scriptCalls.push({ nodeId: call.id, evidenceClaimIds: [...receiver.claims, claim], scripts });
+        return undefined;
+      }
+    }
     if (typeof selected === 'string') {
       untypedReasons.set(call.id, selected);
       return undefined;

@@ -1,6 +1,7 @@
 import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
+import { memberKey, typeMembers } from './member-types';
 import { parameterKey, typeFunctionParameters } from './parameter-types';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
@@ -1289,7 +1290,13 @@ export function bindGodotProject(
             const member = program.nodes[memberId];
             if (member?.kind !== 'VARIABLE') continue;
             const identifier = program.nodes[member.identifier];
-            if (identifier?.kind === 'IDENTIFIER' && identifier.name === name) return member.datatype;
+            if (identifier?.kind === 'IDENTIFIER' && identifier.name === name) {
+              // An untyped member the project stores one type in (`member-types.ts`).
+              if (member.datatype.kind === 'VARIANT' && analysisEvidence.liveClaim('member-assignment-type') !== undefined) {
+                return storedMemberType(scriptPath, name) ?? member.datatype;
+              }
+              return member.datatype;
+            }
           }
         }
         return undefined;
@@ -1311,6 +1318,12 @@ export function bindGodotProject(
     }
   }
   // Every untyped parameter's datatype from the callers the project has (`parameter-types.ts`).
+  const apiClasses = new Map(apiDump.parsed.classes.map((entry) => [entry.name, entry] as const));
+  const nativeAncestryOf = (name: string): string[] => {
+    const out: string[] = [];
+    for (let current = apiClasses.get(name); current !== undefined; current = current.base_class === '' ? undefined : apiClasses.get(current.base_class)) out.push(current.name);
+    return out;
+  };
   const parameterTypes = typeFunctionParameters({
     programs: code.scripts,
     apiDump: apiDump.parsed,
@@ -1323,6 +1336,19 @@ export function bindGodotProject(
       .filter((entry) => entry.entryType === 'file' && entry.digest !== undefined && /\.(tscn|tres|escn)$/u.test(entry.relativePath))
       .map((entry) => new TextDecoder().decode(snapshot.bytesByDigest(entry.digest as string))),
   });
+  // Every untyped member's datatype from what the project stores in it (`member-types.ts`).
+  const memberTypes = typeMembers({
+    programs: code.scripts,
+    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
+    apiDump: apiDump.parsed,
+  });
+  const storedMemberType = (resPath: string, name: string): GodotBoundDatatype | undefined => {
+    for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+      const found = memberTypes.get(memberKey(scriptPath, name));
+      if (found !== undefined) return found;
+    }
+    return undefined;
+  };
   const onreadyField = (resPath: string): number | undefined => {
     const program = programsByPath.get(resPath);
     return program === undefined ? undefined : firstOnreadyField(program);
@@ -1358,6 +1384,7 @@ export function bindGodotProject(
         claim: (rule) => analysisEvidence.liveClaim(rule),
         assignedElsewhere: (member) => assignedElsewhere.has(member),
         parameterType: (fn, parameter) => parameterTypes.get(parameterKey(program.resPath, fn, parameter)),
+        memberType: (name) => (analysisEvidence.liveClaim('member-assignment-type') === undefined ? undefined : storedMemberType(program.resPath, name)),
         scriptFunctionReturn: (resPath, fn) => {
           for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
             const chain = programsByPath.get(scriptPath);
@@ -1377,7 +1404,7 @@ export function bindGodotProject(
     // The parameter reads the refinement typed from their callers, for receiver typing.
     const parameterReads = new Map(
       refinedTypes
-        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter')
+        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type')
         .map((entry) => [entry.nodeId, { datatype: entry.datatype, claims: entry.evidenceClaimIds }] as const),
     );
     const callReceiverFacts = (
@@ -1395,6 +1422,14 @@ export function bindGodotProject(
         ...(selfOf === undefined ? {} : { self: selfOf }),
         claim: (rule) => analysisEvidence.liveClaim(rule),
         parameterType: (nodeId) => parameterReads.get(nodeId),
+        scriptsDeclaring: (method, nativeClass) =>
+          [...classes.keys()]
+            .filter((scriptPath) => {
+              const base = inheritance.get(scriptPath)?.engineBase;
+              if (base === undefined || !nativeAncestryOf(base).includes(nativeClass)) return false;
+              return [scriptPath, ...(inheritance.get(scriptPath)?.scriptAncestors ?? [])].some((path) => classes.get(path)?.methods.some((entry) => entry.name === method) === true);
+            })
+            .sort(),
         scriptChainMethods: (resPath) => {
           if (!classes.has(resPath)) return undefined;
           const names = new Set<string>();

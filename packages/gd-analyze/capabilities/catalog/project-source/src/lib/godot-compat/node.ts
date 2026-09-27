@@ -287,6 +287,31 @@ export function godot_is_script<Script>(value: unknown, script: abstract new (..
 }
 
 /**
+ * A call the analysis could only narrow to the project scripts that declare the method: the first
+ * of them the object's script is (or derives from) runs it, as `Object::callp` runs the script's
+ * function; any other object is Godot's error (`Invalid call. Nonexistent function … in base
+ * '<class>'`, `gdscript_vm.cpp:2108`; for an object with another script Godot adds the script's
+ * name, which this does not), and null or a freed object the null-instance error (`:184`).
+ *
+ * @godot Node (protocol)
+ * @source core/object/object.cpp:768
+ */
+export function godot_script_call(value: unknown, method: string, scripts: readonly (abstract new (...args: never[]) => unknown)[], args: readonly unknown[]): unknown {
+  if (value === null || value === undefined) {
+    throw new Error(`Attempt to call function '${method}' in base 'null instance' on a null instance.`);
+  }
+  if (typeof value === 'object' && NODE.get(NATIVE_OF_OWNER.get(value) ?? value)?.freed === true) {
+    throw new Error(`Attempt to call function '${method}' in base 'previously freed' on a null instance.`);
+  }
+  const owner = objectOf(value as object);
+  for (const script of scripts) {
+    if (owner instanceof script) return (Reflect.get(owner, method) as (...values: unknown[]) => unknown).apply(owner, [...args]);
+  }
+  const classes = nodeClasses(NATIVE_OF_OWNER.get(value as object) ?? (value as object));
+  throw new Error(`Invalid call. Nonexistent function '${method}' in base '${classes?.[0] ?? 'Object'}'.`);
+}
+
+/**
  * `value as ScriptClass`: the object when its script is the script or derives from it, else null
  * (`OPCODE_CAST_TO_SCRIPT`).
  *

@@ -1910,6 +1910,37 @@ export function lowerOfficialExpression(
             requirements,
           );
         }
+        const switched = context.scriptSwitches.get(node.id);
+        if (switched !== undefined && calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
+          // The project scripts that declare the method, tried in turn; any other receiver is
+          // Godot's "Nonexistent function" error (`godot_script_call`).
+          const classes = switched.map((resPath) => {
+            const found = context.scriptClass?.(resPath);
+            if (found === undefined) return context.refuse(node, `${resPath} names no generated script class`);
+            return found;
+          });
+          const receiver = lowerExpression(context, context.node(calleeNode.base, calleeNode));
+          return compose(
+            context,
+            [receiver, ...args],
+            ([receiverValue, ...argumentValues]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_script_call' },
+              arguments: [
+                receiverValue as TargetTsExpression,
+                { kind: 'literal-expression', value: node.functionName },
+                { kind: 'array-expression', elements: classes.map((found) => ({ kind: 'identifier-expression' as const, name: found.name })) },
+                { kind: 'array-expression', elements: argumentValues as TargetTsExpression[] },
+              ],
+              span: span(context.script, node),
+            }),
+            [
+              ...requirements,
+              { kind: 'compat-import-requirement', module: 'lib/godot-compat/node', imported: 'godot_script_call', local: 'godot_script_call', typeOnly: false },
+              ...classes.flatMap((found) => (found.module === undefined ? [] : [{ kind: 'project-import-requirement' as const, module: found.module, imported: found.name, local: found.name, typeOnly: false }])),
+            ],
+          );
+        }
         const callee = lowerExpression(context, calleeNode);
         return dynamicCall(context, node, callee, args, requirements);
       }

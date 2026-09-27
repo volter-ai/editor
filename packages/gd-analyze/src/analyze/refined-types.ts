@@ -67,6 +67,8 @@ export interface RefineInputs {
   readonly assignedElsewhere: (member: string) => boolean;
   /** An untyped parameter's datatype from every caller the project has (`parameter-types.ts`). */
   readonly parameterType?: (fn: string, parameter: string) => ParameterType | undefined;
+  /** An untyped member's datatype from every value the project stores in it (`member-types.ts`). */
+  readonly memberType?: (name: string) => GodotBoundDatatype | undefined;
   /** What a function of a script's chain returns (its declared or inferred datatype). */
   readonly scriptFunctionReturn?: (resPath: string, fn: string) => GodotBoundDatatype | undefined;
 }
@@ -418,8 +420,14 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         }
       | undefined;
     const parameter = node?.kind === 'IDENTIFIER' && node.source === 'FUNCTION_PARAMETER' && node.datatype.kind === 'VARIANT' ? parameterTypeOf(node) : undefined;
+    const stored =
+      node?.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && (node.datatype.kind === 'VARIANT' || node.datatype.typeSource === 'INFERRED') && onreadyPath(node.name) === undefined
+        ? inputs.memberType?.(node.name)
+        : undefined;
     if (parameter !== undefined) {
       result = { datatype: parameter.datatype, rule: parameter.rules[0] as GodotAnalysisRuleId, also: parameter.rules.slice(1) };
+    } else if (stored !== undefined) {
+      result = { datatype: stored, rule: 'member-assignment-type' };
     } else if (node?.kind === 'GET_NODE') {
       const own = node.datatype;
       const type = sceneNode(node.fullPath);
