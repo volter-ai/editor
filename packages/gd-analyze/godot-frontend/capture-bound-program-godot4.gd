@@ -4,7 +4,7 @@ extends SceneTree
 # pinned Godot frontend and supplies every token, node, binding, type, and compiler outcome.
 
 const PROTOCOL := "vgai.godot-bound-program"
-const PROTOCOL_VERSION := 12
+const PROTOCOL_VERSION := 13
 
 var _out_path := ""
 var _binary_sha256 := ""
@@ -72,6 +72,29 @@ func _init() -> void:
 			physical.night_sky = cover if covered else null
 			engine_shaders.append(_engine_shader(exporter, physical, "PhysicalSkyMaterial", {"use_debanding": debanding, "night_sky": covered}))
 
+	# Every ParticleProcessMaterial a project scene or resource holds (particle_process_material.cpp
+	# `_update_shader`): its generated shader, keyed by the material's resource path (a scene's
+	# built-in resource is `res://scene.tscn::id`). Needs the official import's cache to load.
+	var documents: Array[String] = []
+	_collect_documents("res://", documents)
+	documents.sort()
+	var particle_materials: Dictionary = {}
+	for document in documents:
+		var loaded = ResourceLoader.load(document)
+		if loaded is PackedScene:
+			var state: SceneState = (loaded as PackedScene).get_state()
+			for node in state.get_node_count():
+				for property in state.get_node_property_count(node):
+					var value = state.get_node_property_value(node, property)
+					if value is ParticleProcessMaterial and value.resource_path != "":
+						particle_materials[value.resource_path] = value
+		elif loaded is ParticleProcessMaterial and loaded.resource_path != "":
+			particle_materials[loaded.resource_path] = loaded
+	var particle_paths: Array = particle_materials.keys()
+	particle_paths.sort()
+	for resource_path in particle_paths:
+		engine_shaders.append(_engine_shader(exporter, particle_materials[resource_path], "ParticleProcessMaterial", {"resource": resource_path}))
+
 	var version := Engine.get_version_info()
 	var output := {
 		"protocol": PROTOCOL,
@@ -128,12 +151,31 @@ func _collect_scripts(root: String, paths: Array[String], shader_paths: Array[St
 			shader_paths.append(path)
 	directory.list_dir_end()
 
+func _collect_documents(root: String, documents: Array[String]) -> void:
+	var directory := DirAccess.open(root)
+	if directory == null:
+		return
+	directory.list_dir_begin()
+	while true:
+		var name := directory.get_next()
+		if name == "":
+			break
+		if name.begins_with("."):
+			continue
+		var path := root.path_join(name)
+		if directory.current_is_dir():
+			_collect_documents(path, documents)
+		elif name.ends_with(".tscn") or name.ends_with(".scn") or name.ends_with(".tres") or name.ends_with(".res"):
+			documents.append(path)
+	directory.list_dir_end()
+
 func _engine_shader(exporter: GDScriptFrontendExporter, material: Material, material_class: String, variant: Dictionary) -> Dictionary:
 	var keys := variant.keys()
 	keys.sort()
 	var query: Array[String] = []
 	for key in keys:
-		query.append("%s=%s" % [key, "true" if variant[key] else "false"])
+		var value = variant[key]
+		query.append("%s=%s" % [key, ("true" if value else "false") if value is bool else str(value)])
 	var path := "engine://%s?%s" % [material_class, "&".join(query)]
 	var row: Dictionary = {"path": path, "ok": false, "stage": "exporter", "message": "this exporter build exports no engine shader"}
 	if exporter.has_method("export_engine_shader"):

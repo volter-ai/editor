@@ -11,6 +11,7 @@ import type {
 import type { GodotValue } from '../../read/godot-value';
 import type { GodotBoundShader } from '../../godot-frontend/bound-shader';
 import { lowerGodotShader } from '../emit/shader-glsl';
+import { GODOT_PARTICLES_RENDER_MODE_DEFINES, GODOT_PARTICLES_SHADER_BUILTINS } from '../emit/particles-shader';
 import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
@@ -228,6 +229,10 @@ export interface TargetGodotLoweredShader {
   readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null }[];
   readonly functions: string;
   readonly entry: string;
+  /** A particles shader's `start()` and `process()` bodies (`#CODE : START`, `#CODE : PROCESS`). */
+  readonly entries?: Readonly<Record<string, string>>;
+  /** The defines its render modes and built-in usage set (`DISABLE_VELOCITY`, `USERDATA1_USED`). */
+  readonly defines?: readonly string[];
 }
 
 /**
@@ -236,6 +241,7 @@ export interface TargetGodotLoweredShader {
  */
 function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string {
   if (!shader.ok) return `the official shader frontend refused it (${shader.stage}: ${shader.message})`;
+  if (shader.shaderType === 'particles') return particlesShaderPlan(shader);
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
@@ -259,13 +265,45 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
 }
 
 /**
+ * A particles shader (`particle_process_material.cpp` `_update_shader`) lowered into the
+ * Compatibility renderer's particle pass (`particles.glsl`, `gpu-particles-3d.ts`): its helper
+ * functions, `start()` and `process()`, and the defines its render modes
+ * (`material_storage.cpp:1506`) and its `USERDATAn` use (`:1470`) set.
+ */
+function particlesShaderPlan(shader: Extract<GodotBoundShader, { ok: true }>): TargetGodotLoweredShader | string {
+  const lowered = lowerGodotShader(shader, GODOT_PARTICLES_SHADER_BUILTINS, ['start', 'process']);
+  if (typeof lowered === 'string') return lowered;
+  const unknown = shader.tree.renderModes.find((mode) => GODOT_PARTICLES_RENDER_MODE_DEFINES[mode] === undefined);
+  if (unknown !== undefined) return `render_mode ${unknown} is not carried`;
+  if (shader.tree.renderModes.includes('keep_data') || shader.tree.renderModes.includes('collision_use_scale')) return 'the keep_data and collision_use_scale render modes are not carried';
+  const defines = [
+    ...shader.tree.renderModes.map((mode) => GODOT_PARTICLES_RENDER_MODE_DEFINES[mode] as string),
+    ...[1, 2, 3, 4, 5, 6].filter((n) => lowered.builtins.has(`USERDATA${String(n)}`)).map((n) => `USERDATA${String(n)}_USED`),
+  ];
+  return {
+    mode: 'particles',
+    renderModes: shader.tree.renderModes,
+    uniforms: lowered.uniforms.map(({ name, glsl, uniform }) => {
+      const values = uniform.default.map((value) => ('float' in value ? value.float : 'int' in value ? value.int : 'uint' in value ? value.uint : value.bool ? 1 : 0));
+      return { name, glsl, type: uniform.type.name, default: values.length === 0 ? null : values };
+    }),
+    functions: lowered.functions,
+    entry: lowered.entry,
+    entries: lowered.entries,
+    defines,
+  };
+}
+
+/**
  * How each engine material binding names the shader a variant's properties select
  * (`panorama-sky-material.ts`); a class with no entry has no binding.
  */
-const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record<string, boolean>>) => string>> = {
+const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record<string, boolean | string>>) => string>> = {
   PanoramaSkyMaterial: (variant) => (variant['filter'] === true ? 'filterOn' : 'filterOff'),
   ProceduralSkyMaterial: (variant) => `debanding${variant['use_debanding'] === true ? 1 : 0}Cover${variant['sky_cover'] === true ? 1 : 0}`,
   PhysicalSkyMaterial: (variant) => `debanding${variant['use_debanding'] === true ? 1 : 0}Night${variant['night_sky'] === true ? 1 : 0}`,
+  // One shader per material, the one Godot generated for it (keyed by the material's resource path).
+  ParticleProcessMaterial: () => 'generated',
 };
 
 /** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */
@@ -630,7 +668,11 @@ function planResource(
   }
   // An engine material: every shader its class generates, captured from the pinned Godot and
   // lowered as a `.gdshader` is, each planned as a `Shader` its binding selects between.
-  const generated = (context.project?.documents.engineShaders ?? []).filter((entry) => entry.materialClass === data.type);
+  // Godot's path of the resource: a document's own, or its sub-resource's `<document>::<id>`.
+  const resourcePath = reference === 'sub' ? `${scope === '' ? document.scene.resPath : scope}::${id}` : key.startsWith('ext:') ? key.slice('ext:'.length) : undefined;
+  const generated = (context.project?.documents.engineShaders ?? []).filter(
+    (entry) => entry.materialClass === data.type && (entry.variant['resource'] === undefined || entry.variant['resource'] === resourcePath),
+  );
   let engineShaders: Record<string, string> | undefined;
   if (generated.length > 0) {
     const lowerings = generated.map((shader) => ({ shader, lowered: shaderPlan(shader) }));

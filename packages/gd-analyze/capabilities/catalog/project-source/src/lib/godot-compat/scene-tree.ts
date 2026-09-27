@@ -257,12 +257,13 @@ export function godot_tree_frame(delta: number): void {
  * `physics/common/physics_ticks_per_second` (default 60), at most
  * `physics/common/max_physics_steps_per_frame` (default 8) of them unless `--fixed-fps` is set,
  * the process step shortened by the steps dropped; then each physics step, then the process
- * frame. The host calls it once per rendered frame.
+ * frame. The host calls it once per rendered frame; it returns the step the frame is drawn with
+ * (`RenderingServer::draw(…, scaled_step)`, `main.cpp:5085`: the process step, the time scale 1).
  *
  * @godot SceneTree (protocol)
  * @source main/main.cpp:4917
  */
-export function godot_main_iteration(p_ticks_usec: number): void {
+export function godot_main_iteration(p_ticks_usec: number): number {
   // `Engine::set_physics_ticks_per_second` and friends at `Main::setup2` (`main/main.cpp:2247`).
   const ticksPerSecond = Math.max(1, Math.trunc(Number(get_setting('physics/common/physics_ticks_per_second', 60))));
   const maxSteps = Math.trunc(Number(get_setting('physics/common/max_physics_steps_per_frame', 8)));
@@ -277,6 +278,7 @@ export function godot_main_iteration(p_ticks_usec: number): void {
   }
   for (let step = 0; step < steps; step += 1) godot_tree_physics_step(physicsStep);
   godot_tree_frame(processStep);
+  return processStep;
 }
 
 /**

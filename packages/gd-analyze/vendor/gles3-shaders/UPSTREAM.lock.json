@@ -4,11 +4,19 @@
   "version": "4.7-stable",
   "license": "MIT",
   "license_file": "LICENSE.txt",
-  "note": "The Compatibility renderer's post-pass shaders, byte-for-byte: the reference the transcribed post effects (godot-compat environment-post.ts) are evaluated against.",
+  "note": "The Compatibility renderer's shaders, byte-for-byte: the post-pass shaders the transcribed post effects (godot-compat environment-post.ts) are evaluated against, and the particle process and copy shaders the GPU particles (godot-compat gpu-particles-3d.ts) run.",
   "files": {
     "glow.glsl": {
       "upstream_path": "drivers/gles3/shaders/effects/glow.glsl",
       "sha256": "a4bdb55aa0d76f08059db685a0cbe02d2697f42fd2904f2b7012eb1dbf108fba"
+    },
+    "particles.glsl": {
+      "upstream_path": "drivers/gles3/shaders/particles.glsl",
+      "sha256": "da21898a7f16c9156f55c8a3f8022af68dd0cee219248da839e383b2d56f37f0"
+    },
+    "particles_copy.glsl": {
+      "upstream_path": "drivers/gles3/shaders/particles_copy.glsl",
+      "sha256": "82a6b51736a640178c5ff0f4192f2bd3f37974f95d29ad8ababe4859d51d35cb"
     },
     "post.glsl": {
       "upstream_path": "drivers/gles3/shaders/effects/post.glsl",
@@ -25,6 +33,10 @@
     "s4ao_micro_inc.glsl": {
       "upstream_path": "drivers/gles3/shaders/s4ao_micro_inc.glsl",
       "sha256": "4005eb481adf46976242a838aeb706bb1a3546988f09ad280a21acc010b01efb"
+    },
+    "stdlib_inc.glsl": {
+      "upstream_path": "drivers/gles3/shaders/stdlib_inc.glsl",
+      "sha256": "386e3ebb0dba8bcf2da4bcb5d9de12619e485871600aab6b6938ce6efe4bce76"
     },
     "tonemap_inc.glsl": {
       "upstream_path": "drivers/gles3/shaders/tonemap_inc.glsl",
