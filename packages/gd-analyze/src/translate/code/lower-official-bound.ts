@@ -814,6 +814,7 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
           ...(getter === undefined ? {} : { getter }),
           ...(setter === undefined ? {} : { setter }),
           ...(found.index === undefined ? {} : { index: found.index }),
+          ...(found.type === undefined ? {} : { type: found.type }),
         };
       }
       current = current.base_class === '' ? undefined : classes.get(current.base_class);

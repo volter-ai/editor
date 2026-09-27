@@ -24,7 +24,8 @@
 
 import type { Object3D } from 'three';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
-import { get_root, godot_tree, godot_tree_process_delta, queue_delete, type SceneTree } from './scene-tree';
+import { create_tween as treeCreateTween, get_root, godot_tree, godot_tree_process_delta, queue_delete, type SceneTree } from './scene-tree';
+import { bind_node, type Tween } from './tween';
 
 /** The native entity's hierarchy operations for nodes the composition site renders. */
 export interface NativeHierarchyAuthority {
@@ -1188,6 +1189,17 @@ export function godot_node_is_queued(object: object): boolean {
  */
 export function get_tree(self: object): SceneTree | null {
   return nodeState(self, 'get_tree').insideTree ? godot_tree() : null;
+}
+
+/**
+ * A tween from the tree (the node's, or the one tree when the node is outside it), bound to the
+ * node: it runs while the node is inside the tree and can process, and dies when the node is freed.
+ *
+ * @godot Node.create_tween
+ * @source scene/main/node.cpp:2619
+ */
+export function create_tween(self: object): Tween {
+  return bind_node(treeCreateTween(godot_tree()), native(self, 'create_tween'));
 }
 
 /**
