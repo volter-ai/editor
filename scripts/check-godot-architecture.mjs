@@ -63,6 +63,20 @@ const RULES = [
       /\bgodot_main_iteration\b|\bMainTimerSync\b|\bgodot_viewport_frame_work\(|\bgodot_tree_physics_step\b|\brequestAnimationFrame\(|\bsetInterval\(|\bsetTimeout\(|\bperformance\.now\(|\bworld\.step\(/g,
   },
   {
+    // The host's frame and physics hooks, which only the emitted game's components may use.
+    id: 'compat-frame-hooks',
+    row: 4,
+    dirs: [COMPAT],
+    pattern: /\buse(?:Frame|BeforePhysicsStep|AfterPhysicsStep)\b/g,
+  },
+  {
+    // The violations the import's output check still lets the emitted game carry.
+    id: 'output-known-violations',
+    row: 5,
+    files: [`${LANE}/src/translate/output-conformance.ts`],
+    pattern: /^\s+'(?:framework-import|world-export) [^']+',/gm,
+  },
+  {
     // What the emitted world exports besides its component (`export default`).
     id: 'world-exports',
     row: 5,
@@ -110,44 +124,57 @@ const countByRule = (list) => {
   return counts;
 };
 
+/**
+ * A baseline: each rule's count (zeros included, so a rule the baseline knows is told from one it
+ * does not) and the findings. A rule the reference does not know is new and starts from its count
+ * now; an older baseline, a bare list of findings, knows the rules it has findings for.
+ */
+const read = (json) => {
+  const value = JSON.parse(json);
+  if (Array.isArray(value)) {
+    const counts = countByRule(value);
+    return { counts: new Map([...counts].filter(([id]) => value.some((finding) => finding.startsWith(`${id} |`)))), findings: value };
+  }
+  return { counts: new Map(Object.entries(value.counts)), findings: value.findings };
+};
+
 /** HEAD's committed baseline: the reference, whatever the working copy says. */
-let committed;
+let reference;
 try {
-  committed = JSON.parse(execFileSync('git', ['show', `HEAD:${BASELINE}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+  reference = read(execFileSync('git', ['show', `HEAD:${BASELINE}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 } catch {
-  committed = undefined;
+  reference = existsSync(BASELINE) ? read(readFileSync(BASELINE, 'utf8')) : undefined;
 }
-const reference = committed ?? (existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, 'utf8')) : undefined);
 
 const now = countByRule(findings);
-const grown = reference === undefined ? [] : RULES.filter((rule) => (now.get(rule.id) ?? 0) > (countByRule(reference).get(rule.id) ?? 0));
+const grown = reference === undefined ? [] : RULES.filter((rule) => reference.counts.has(rule.id) && (now.get(rule.id) ?? 0) > (reference.counts.get(rule.id) ?? 0));
 if (grown.length > 0) {
-  const before = new Set(reference);
+  const before = new Set(reference.findings);
   console.error(
     `New architecture findings (docs/GODOT.md §The lane's law; each rule's count only shrinks):\n${grown
       .map((rule) => {
         const added = findings.filter((finding) => finding.startsWith(`${rule.id} |`) && !before.has(finding));
-        return `  row ${String(rule.row)} ${rule.id}: ${String(countByRule(reference).get(rule.id))} -> ${String(now.get(rule.id))}\n    ${added.join('\n    ')}`;
+        return `  row ${String(rule.row)} ${rule.id}: ${String(reference.counts.get(rule.id))} -> ${String(now.get(rule.id))}\n    ${added.join('\n    ')}`;
       })
       .join('\n')}`,
   );
   process.exit(1);
 }
 
-const text = `${JSON.stringify(findings, null, 2)}\n`;
+const text = `${JSON.stringify({ counts: Object.fromEntries(now), findings }, null, 2)}\n`;
 if (process.argv.includes('--init') || reference === undefined) {
   writeFileSync(BASELINE, text);
   console.log(`godot architecture baseline written: ${findings.length} findings.`);
   process.exit(0);
 }
-if (text !== `${JSON.stringify(reference, null, 2)}\n`) {
+if (!existsSync(BASELINE) || text !== readFileSync(BASELINE, 'utf8')) {
   writeFileSync(BASELINE, text);
   try {
     execFileSync('git', ['add', BASELINE], { stdio: 'ignore' });
   } catch {
     // Outside a commit the rewritten baseline is left for the author to stage.
   }
-  console.log(`godot architecture baseline rewritten: ${findings.length} findings (was ${reference.length}).`);
+  console.log(`godot architecture baseline rewritten: ${findings.length} findings (was ${reference.findings.length}).`);
 } else {
   console.log(`godot architecture baseline holds (${findings.length} findings).`);
 }

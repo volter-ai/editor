@@ -36,6 +36,7 @@ import {
   type GodotImportToolchainSnapshot,
 } from './snapshot/toolchain-snapshot';
 import { emitGodotTranslation } from './translate/emit';
+import { assertGodotOutputConformance } from './translate/output-conformance';
 import { planGodotTranslation } from './translate/plan';
 
 /** The emitted project's own acceptance: its install, its typecheck and its `vite build`. */
@@ -126,6 +127,8 @@ function importCapturedGodotProject(
     );
   }
   const emitted = emitGodotTranslation(translation);
+  // The game itself may not be written against compat's framework (row 5).
+  assertGodotOutputConformance(emitted.artifacts);
   const parentDir = path.dirname(targetDir);
   mkdirSync(parentDir, { recursive: true });
   // This invocation creates and therefore owns the complete candidate, named after the target;
