@@ -59,6 +59,9 @@ server-side acts, the Replication types, a Clear that resets Traffic, the entity
 profiler bar with Start/Stop and Autostart (off by default), a Ping that counts both legs of the
 conditioner, and the sortable room list with Dispose on every row are now present:
 
-1. The entity table sizes whole patches, where Godot's size is one synchronizer's.
+Both remaining partials are [minor]:
+
+1. The entity table sizes whole patches, where Godot's size is one synchronizer's: a patch's bytes
+   cannot be split between the entities it carried.
 2. The Remote tree is this client's replicated copy, not the server's scene.
 
