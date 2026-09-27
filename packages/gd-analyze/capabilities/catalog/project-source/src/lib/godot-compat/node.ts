@@ -1203,6 +1203,22 @@ export function mountGodotScriptForest(
  */
 const PENDING: { readonly roots: readonly object[]; readonly startup: boolean }[] = [];
 
+/** Each instantiated scene's deferred node-path properties, set once its nodes all exist. */
+const DEFERRED_NODE_PATHS: (() => void)[] = [];
+
+/**
+ * Defers setting a node-path property until the scenes React mounted in this commit all exist
+ * (their scripts attached): `SceneState::instantiate` sets a property stored as a NodePath to the
+ * node at that path once every node of the scene is made (`packed_scene.cpp:597`). They are set
+ * before those scenes enter the tree (`godot_node_enter_pending`).
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:597
+ */
+export function godot_node_defer_node_path(set: () => void): void {
+  DEFERRED_NODE_PATHS.push(set);
+}
+
 /**
  * Registers a mounted native forest (React's part: its nodes and script bindings are seated now);
  * the SceneTree enters it at the start of its next iteration (`godot_node_enter_pending`). A
@@ -1254,6 +1270,7 @@ function enteringTop(root: object): { readonly top: object; readonly parent: obj
  * @source scene/main/node.cpp:341
  */
 export function godot_node_enter_pending(): void {
+  for (const set of DEFERRED_NODE_PATHS.splice(0)) set();
   while (PENDING.length > 0) {
     const { roots, startup } = PENDING.shift() as { readonly roots: readonly object[]; readonly startup: boolean };
     if (startup) {

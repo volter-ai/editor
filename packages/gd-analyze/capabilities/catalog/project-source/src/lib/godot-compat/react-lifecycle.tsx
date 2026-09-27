@@ -29,6 +29,8 @@ import {
   type GodotScriptLifecycleBinding,
   godot_element_callsite,
   godot_node_adopt,
+  godot_node_defer_node_path,
+  godot_node_object,
   godot_node_pending_children,
   godot_node_register_forest,
   godot_node_scene_root,
@@ -255,7 +257,17 @@ export function useGodotScript<Instance extends object>(
     if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
     const instance = new Script(native);
     SCRIPT_OF.set(native, instance);
-    if (exported !== undefined) Object.assign(instance, exported);
+    for (const [field, value] of Object.entries(exported ?? {})) {
+      // An authored node reference is set once the scene's nodes all exist (`godot_node_reference`).
+      if (value instanceof GodotNodeReference) {
+        godot_node_defer_node_path(() => {
+          const node = nodeOf(value.ref.current);
+          (instance as Record<string, unknown>)[field] = node === null ? null : godot_node_object(node);
+        });
+      } else {
+        (instance as Record<string, unknown>)[field] = value;
+      }
+    }
     for (const [field, singleton] of Object.entries(autoloads ?? {})) {
       const value = singleton?.current;
       if (value === null || value === undefined) throw new Error(`godot-compat: the autoload ${field} reads was not mounted.`);
@@ -272,6 +284,29 @@ export function useGodotScript<Instance extends object>(
     if (startup !== null) return startup.register(attachment);
     return godot_node_register_forest([native], [binding], false);
   }, []);
+}
+
+/**
+ * A script field's authored node reference, as the scene states it: the referenced node's ref.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:390
+ */
+export class GodotNodeReference {
+  constructor(readonly ref: RefObject<object | null>) {}
+}
+
+/**
+ * A script field authored as a node path to a node of the same scene (`@export var target: Node`,
+ * `node_paths`): set to that node, or its script instance, once the scene's nodes all exist
+ * (`SceneState::instantiate`, packed_scene.cpp:597). A path the scene cannot resolve is null, which
+ * the scene states as `null`.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:597
+ */
+export function godot_node_reference(ref: RefObject<object | null>): GodotNodeReference {
+  return new GodotNodeReference(ref);
 }
 
 /**
