@@ -414,6 +414,61 @@ export class LoweringContext {
    * The first semantic key, in order, that has an evidenced rule (exact datatypes first, then the
    * datatype classes the resolver generalizes to), whose recipe is one of `expected`.
    */
+  /**
+   * Why an operand is untyped, when the cause is an untyped local its function assigns values of
+   * more than one type (`var d = sign(x)` then `d = ... else 1`): no single type fixes it, so no
+   * rule for one type applies. Looks through the operands and their own operands.
+   */
+  untypedLocalCause(inputNodes: readonly GodotBoundNode[]): string | undefined {
+    const nodes = this.script.nodes;
+    const typeName = (datatype: GodotBoundNode['datatype']): string | undefined =>
+      datatype.kind === 'BUILTIN' ? datatype.builtinType : datatype.kind === 'NATIVE' ? datatype.nativeType : datatype.kind === 'ENUM' ? 'int' : undefined;
+    // The types a value may have: a ternary's two branches, else its own datatype.
+    const valueTypes = (id: number): (string | undefined)[] => {
+      const value = nodes[id];
+      if (value === undefined) return [undefined];
+      if (value.kind === 'TERNARY_OPERATOR') return [...valueTypes(value.trueExpression), ...valueTypes(value.falseExpression)];
+      return [typeName(value.datatype)];
+    };
+    const within = (inner: GodotBoundNode, outer: GodotBoundNode) => inner.startLine >= outer.startLine && inner.endLine <= outer.endLine;
+    const visit = (node: GodotBoundNode, depth: number): string | undefined => {
+      if (node.kind === 'IDENTIFIER' && node.source === 'LOCAL_VARIABLE' && node.datatype.kind === 'VARIANT') {
+        const scope = nodes.find((candidate) => candidate.kind === 'FUNCTION' && within(node, candidate));
+        if (scope === undefined) return undefined;
+        const types: (string | undefined)[] = [];
+        for (const candidate of nodes) {
+          if (!within(candidate, scope)) continue;
+          if (candidate.kind === 'VARIABLE') {
+            const identifier = nodes[candidate.identifier];
+            if (identifier?.kind === 'IDENTIFIER' && identifier.name === node.name && candidate.initializer >= 0) types.push(...valueTypes(candidate.initializer));
+          } else if (candidate.kind === 'ASSIGNMENT') {
+            const assignee = nodes[candidate.assignee];
+            if (assignee?.kind === 'IDENTIFIER' && assignee.name === node.name) types.push(...valueTypes(candidate.assignedValue));
+          }
+        }
+        const distinct = [...new Set(types.filter((type): type is string => type !== undefined))].sort();
+        if (distinct.length > 1) {
+          return `the untyped local \`${node.name}\` is assigned ${distinct.join(' and ')} values, so no one type fixes it and no rule for one type applies`;
+        }
+        return undefined;
+      }
+      if (depth === 0) return undefined;
+      const children =
+        node.kind === 'BINARY_OPERATOR' ? [node.leftOperand, node.rightOperand] : node.kind === 'UNARY_OPERATOR' ? [node.operand] : [];
+      for (const child of children) {
+        const found = nodes[child];
+        const cause = found === undefined ? undefined : visit(found, depth - 1);
+        if (cause !== undefined) return cause;
+      }
+      return undefined;
+    };
+    for (const input of inputNodes) {
+      const cause = visit(input, 2);
+      if (cause !== undefined) return cause;
+    }
+    return undefined;
+  }
+
   selectRule(
     node: GodotBoundNode,
     semanticKeys: readonly string[],
@@ -455,9 +510,10 @@ export class LoweringContext {
       if (entry !== undefined) break;
     }
     if (entry === undefined) {
+      const cause = this.untypedLocalCause(inputNodes);
       this.refuse(
         node,
-        `no evidenced code rule for ${node.kind}:${semanticKey}; identity=${JSON.stringify(identity)}`,
+        cause ?? `no evidenced code rule for ${node.kind}:${semanticKey}; identity=${JSON.stringify(identity)}`,
       );
     }
     if (entry.target.kind === 'refusal') this.refuse(node, entry.target.reason);

@@ -7,8 +7,10 @@
  *   script's native class (`_physics_process(delta)`) with the virtual's declared arguments
  *   (`ClassDB` virtual methods, the API dump's `is_virtual` rows, `GDVIRTUAL_CALL`);
  * - `signal-handler-parameter`: a scene `[connection]` calls its method with the signal's declared
- *   arguments (a native signal's from the API dump, a script signal's typed parameters), when the
- *   connection binds and unbinds nothing (`Object::emit_signalp`, core/object/object.cpp:1197);
+ *   arguments (a native signal's from the API dump, a script signal's typed parameters, and for an
+ *   untyped one the one type every `.emit()` / `emit_signal()` in the project passes, none of them
+ *   dynamic), when the connection binds and unbinds nothing (`Object::emit_signalp`,
+ *   core/object/object.cpp:1197);
  * - `call-site-parameter`: a script call by name passes its arguments' datatypes (an argument that
  *   is itself such a parameter carries the type found for it). A call on any receiver counts, since
  *   the method a name selects may be any script's function of that name.
@@ -119,7 +121,57 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
     return undefined;
   };
 
-  // The declared argument types of a signal on the node at `from` in `scene`.
+  // Every emission of a script signal in the project, by signal name: `sig.emit(...)`,
+  // `obj.sig.emit(...)` and `emit_signal("sig", ...)`, each its arguments' datatypes. An emission
+  // this cannot name (`emit_signal(name_var)`, a Signal held in a variable) makes every script
+  // signal's emitted types unknown.
+  const emitted = new Map<string, (GodotBoundDatatype | undefined)[][]>();
+  let dynamicEmit = false;
+  for (const program of inputs.programs) {
+    const argumentTypes = (ids: readonly number[]) =>
+      ids.map((id) => {
+        const datatype = program.nodes[id]?.datatype;
+        return datatype !== undefined && known(datatype) && !datatype.metaType ? datatype : undefined;
+      });
+    const record = (name: string, ids: readonly number[]) => {
+      const rows = emitted.get(name) ?? [];
+      rows.push(argumentTypes(ids));
+      emitted.set(name, rows);
+    };
+    for (const node of program.nodes) {
+      if (node.kind !== 'CALL') continue;
+      if (node.functionName === 'emit_signal') {
+        const first = program.nodes[node.arguments[0] ?? -1];
+        if (first?.kind === 'LITERAL' && (first.value.kind === 'string' || first.value.kind === 'string-name')) record(first.value.value, node.arguments.slice(1));
+        else dynamicEmit = true;
+        continue;
+      }
+      if (node.functionName !== 'emit') continue;
+      const callee = program.nodes[node.callee];
+      if (callee?.kind !== 'SUBSCRIPT' || !callee.isAttribute) continue;
+      const base = program.nodes[callee.base];
+      if (base?.datatype.kind !== 'BUILTIN' || base.datatype.builtinType !== 'Signal') continue;
+      const name =
+        base.kind === 'IDENTIFIER' && base.source === 'MEMBER_SIGNAL'
+          ? base.name
+          : base.kind === 'SUBSCRIPT' && base.isAttribute
+            ? identifierName(program, base.attribute)
+            : undefined;
+      if (name === undefined) dynamicEmit = true;
+      else record(name, node.arguments);
+    }
+  }
+  /** The one datatype every emission of `signal` passes at `index`, else undefined. */
+  const emittedType = (signal: string, index: number): GodotBoundDatatype | undefined => {
+    const rows = emitted.get(signal);
+    if (dynamicEmit || rows === undefined || rows.length === 0) return undefined;
+    const types = rows.map((row) => row[index]);
+    const first = types[0];
+    return first !== undefined && types.every((type) => type !== undefined && sameType(type, first)) ? first : undefined;
+  };
+
+  // The declared argument types of a signal on the node at `from` in `scene`: a script signal's
+  // typed parameters, an untyped one (or one past its declaration) the type every emission passes.
   const signalArguments = (scene: SceneDocument, from: string, signal: string): readonly (GodotBoundDatatype | undefined)[] | undefined => {
     const resolved = resolveScenePath(new Map(inputs.scenes.map((entry) => [entry.resPath, entry] as const)), { documentPath: scene.resPath, nodePath: '.' }, from);
     if (typeof resolved === 'string') return undefined;
@@ -128,10 +180,12 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
       const program = inputs.programs.find((entry) => entry.resPath === resPath);
       const declaration = program?.nodes.find((node) => node.kind === 'SIGNAL' && identifierName(program, node.identifier) === signal);
       if (program !== undefined && declaration?.kind === 'SIGNAL') {
-        return declaration.parameters.map((id) => {
+        const declared = declaration.parameters.map((id) => {
           const parameter = program.nodes[id];
           return parameter !== undefined && known(parameter.datatype) && parameter.datatype.typeSource !== 'UNDETECTED' ? parameter.datatype : undefined;
         });
+        const width = Math.max(declared.length, ...(emitted.get(signal) ?? []).map((row) => row.length));
+        return Array.from({ length: width }, (_, index) => declared[index] ?? emittedType(signal, index));
       }
     }
     for (let current = classes.get(resolved.className); current !== undefined; ) {

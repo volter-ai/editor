@@ -8,7 +8,7 @@
  * and whether it classified the call as a script dispatch; a call on such a parameter is typed by
  * its class's ClassDB method; a compound assignment of a typed member
  * with such a parameter has the operator's result type (the member's own). A parameter whose callers disagree (the
- * recorder's own `value`) or that a `Callable` reaches (`escaped`) must stay untyped; the native
+ * recorder's own `value`, the handler of a signal emitted with an int and a String) or that a `Callable` reaches (`escaped`) must stay untyped; the native
  * side records such a parameter as untyped when its values had more than one type.
  */
 import { spawnSync } from 'node:child_process';
@@ -42,6 +42,8 @@ renderer/rendering_method="gl_compatibility"
   'main.gd': `extends Node3D
 
 signal hit(amount: int)
+signal counted
+signal mixed_signal
 
 var rows := {}
 var frames := 0
@@ -62,6 +64,11 @@ func _ready() -> void:
 \tescaped(1.5)
 \thit.connect(escaped)
 \thit.emit(3)
+\tvar score: int = 7
+\tcounted.emit(score)
+\temit_signal("counted", 8)
+\tmixed_signal.emit(1)
+\tmixed_signal.emit("one")
 \t$Emitter.add_child(Node.new())
 
 func helper(x) -> void:
@@ -71,6 +78,14 @@ func helper(x) -> void:
 # with an int: it must stay untyped.
 func escaped(v) -> void:
 \trecord("escaped", v)
+
+# An untyped signal every emission passes an int: its handler's parameter is an int.
+func _on_counted(value) -> void:
+\trecord("emitted-signal", value)
+
+# Emissions that disagree (int, then String): the handler stays untyped.
+func _on_mixed(value) -> void:
+\trecord("mixed-signal", value)
 
 func _on_hit(amount) -> void:
 \trecord("script-signal", amount)
@@ -121,6 +136,8 @@ script = ExtResource("2_derived")
 [node name="Emitter" type="Node" parent="."]
 
 [connection signal="hit" from="." to="." method="_on_hit"]
+[connection signal="counted" from="." to="." method="_on_counted"]
+[connection signal="mixed_signal" from="." to="." method="_on_mixed"]
 [connection signal="child_entered_tree" from="Emitter" to="." method="_on_child"]
 `,
 };
