@@ -18,3 +18,9 @@ is synced between the two, so a fix lands here.
 Volter Editor names this whole stack. Its products are named for their purpose:
 `@volter/model-editor` and `@volter/game-editor` (owner ruling 2026-09-24).
 [ARCHITECTURE.md](ARCHITECTURE.md) states the rows and rules every package follows.
+
+The Godot lane (`packages/gd-analyze`) is under the owner's 2026-09-27 law
+([docs/GODOT.md](docs/GODOT.md) §The lane's law): read Godot, translate idiomatically,
+never transcribe; no formal accuracy standard; mechanical architecture checks on every commit
+and a periodic context-free review ([docs/GODOT-REVIEW.md](docs/GODOT-REVIEW.md)) of its compat,
+planner, lowering and emit. Read the law before changing anything there.

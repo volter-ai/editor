@@ -1,0 +1,9 @@
+#!/bin/sh
+# The Godot lane's periodic architecture review (docs/GODOT.md §The lane's law): a push to
+# `godot` past 30 unreviewed lane commits is refused.
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/godot" ] && [ "$local_sha" != "0000000000000000000000000000000000000000" ]; then
+    node scripts/check-godot-review.mjs "$local_sha" || exit 1
+  fi
+done
+exit 0

@@ -64,10 +64,13 @@ the code, including an emitted game:
 6. Every emitted file and dependency is reachable from the game's entry; nothing is emitted for
    the editor or for debugging.
 
-The review runs before any merge into `godot` that touches compat, the planner, lowering or emit,
-including every builder's branch, and its verdict is appended to the ledger below. Until every row
-passes, a merge may not add a finding to those the ledger's latest entry lists; after that, every
-row must pass.
+The review is periodic, not per change: the mechanical checks run on every commit, and the review
+is there to catch the shapes they cannot see before they pile up. It runs, by the procedure and
+the fixed brief in `docs/GODOT-REVIEW.md` (one context-free reviewer), when 30 commits touching
+compat, the planner, lowering or emit have landed since the ledger's latest reviewed commit, and
+before a game's acceptance walk; its verdict is appended to the ledger below. The pre-push hook
+refuses a push to `godot` past that count without a review. Until every row passes, a review may
+not find anything beyond the ledger's latest entry; after that, every row must pass.
 
 **The ratchet.** `scripts/check-godot-architecture.mjs`, run by the pre-commit hook, counts the
 patterns the review keeps finding against the baseline committed at `HEAD`, rule by rule, and fails
@@ -90,9 +93,12 @@ composition-site design below was an unreviewed author's ruling that two days of
 
 **Ledger.**
 
+The pre-push hook reads this table: the Commit column's first backquoted hash is the reviewed
+commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regressed`.
+
 | Date | Commit | Reviewed against | Verdict |
 | --- | --- | --- | --- |
-| 2026-09-27 | `godot` `69edd5ae` | vgai-engine's ten rows (before these rulings) | All ten fail. Compat owns the main loop and physics stepping (`scene-tree.ts` `godot_main_iteration`, the paused `<Physics>` in `main.tsx`), class-name registries (`CLASS_MOUNTS`, `godot_node_class_mount`), a spawn host and a mirrored canvas tree; emit dispatches on class names (`switch (className)` in `idiomatic-scene-syntax.ts`, `GODOT_ELEMENTS[className]`); lowering special-cases `AnimationTree`; the emitted `world.tsx` exports `debug`; claim records store one digest as both sides. The baseline the conformance work starts from. |
+| 2026-09-27 | `69edd5ae` | vgai-engine's ten rows (before these rulings) | baseline: all ten fail. Compat owns the main loop and physics stepping (`scene-tree.ts` `godot_main_iteration`, the paused `<Physics>` in `main.tsx`), class-name registries (`CLASS_MOUNTS`, `godot_node_class_mount`), a spawn host and a mirrored canvas tree; emit dispatches on class names (`switch (className)` in `idiomatic-scene-syntax.ts`, `GODOT_ELEMENTS[className]`); lowering special-cases `AnimationTree`; the emitted `world.tsx` exports `debug`; claim records store one digest as both sides. The baseline the conformance work starts from. |
 
 **Order of work.**
 
