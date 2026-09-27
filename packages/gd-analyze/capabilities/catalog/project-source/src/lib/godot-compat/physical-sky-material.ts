@@ -278,21 +278,21 @@ export function construct(shaders: GodotPhysicalSkyShaders): PhysicalSkyMaterial
 
 const SETTERS: Readonly<Record<string, (self: PhysicalSkyMaterial, value: never) => void>> = {
   rayleighCoefficient: set_rayleigh_coefficient,
-  rayleighColor: set_rayleigh_color,
+  rayleighColor: (self, value: readonly [number, number, number, number]) => set_rayleigh_color(self, color(...value)),
   mieCoefficient: set_mie_coefficient,
   mieEccentricity: set_mie_eccentricity,
-  mieColor: set_mie_color,
+  mieColor: (self, value: readonly [number, number, number, number]) => set_mie_color(self, color(...value)),
   turbidity: set_turbidity,
   sunDiskScale: set_sun_disk_scale,
-  groundColor: set_ground_color,
+  groundColor: (self, value: readonly [number, number, number, number]) => set_ground_color(self, color(...value)),
   energyMultiplier: set_energy_multiplier,
   useDebanding: set_use_debanding,
   nightSky: set_night_sky,
 };
 
 /**
- * A PhysicalSkyMaterial of its four generated shaders and the properties a scene states, set in
- * the order given; an unknown one fails by name.
+ * A PhysicalSkyMaterial of its four generated shaders and the properties a scene states (a colour as
+ * its components), set in the order given; an unknown one fails by name.
  *
  * @godot PhysicalSkyMaterial (protocol)
  * @source scene/resources/3d/sky_material.cpp:827

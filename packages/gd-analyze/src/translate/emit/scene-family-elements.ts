@@ -1076,8 +1076,35 @@ export function familyElement(
       return {
         tag: directional ? 'directionalLight' : 'pointLight',
         attributes: [
-          // Godot's directional light shines along its -Z; three's toward its target, which this aims.
-          ...(directional ? [attribute('onUpdate', identifier(useCompat(emission, 'directional-light-3d', 'godot_directional_light_3d_aim')))] : []),
+          // Godot's directional light shines along its -Z; three's toward its target, which this
+          // aims; its Godot state is the values the scene authors (the sky pass reads them).
+          ...(directional
+            ? [
+                attribute('onUpdate', {
+                  kind: 'call-expression',
+                  callee: identifier(useCompat(emission, 'directional-light-3d', 'godot_directional_light_3d_authored_prop')),
+                  arguments: [
+                    {
+                      kind: 'object-expression',
+                      properties: [
+                        ...(color === undefined ? [] : [{ key: 'color', value: numbers(color) }]),
+                        {
+                          key: 'params',
+                          value: {
+                            kind: 'object-expression',
+                            properties: set
+                              .filter((setter) => setter.setter.exportName === 'set_param' && setter.index !== undefined)
+                              .map((setter) => ({ key: String(setter.index), value: literal(numberValue(setter.value) ?? 0) })),
+                          },
+                        },
+                        { key: 'shadow', value: literal(shadow) },
+                        { key: 'skyMode', value: literal(numberValue(setterValue(set, 'set_sky_mode')) ?? 0) },
+                      ],
+                    },
+                  ],
+                }),
+              ]
+            : []),
           // Godot's shader divides the Lambert term by pi as three's does (`light-3d.ts`).
           attribute('intensity', literal(f32(energy) * Math.PI)),
           ...(color === undefined || color.slice(0, 3).every((value) => value === 1) ? [] : [attribute('color', literal(hexColor(color)))]),

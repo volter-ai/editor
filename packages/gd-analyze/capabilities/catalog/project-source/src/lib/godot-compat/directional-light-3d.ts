@@ -9,7 +9,7 @@
  */
 
 import { type DirectionalLight, Object3D } from 'three';
-import { godot_light_3d_mount, godot_light_3d_sky_mode } from './light-3d';
+import { type GodotLight3DAuthored, godot_light_3d_authored, godot_light_3d_mount, godot_light_3d_sky_mode } from './light-3d';
 import { godot_node_duplicate_state } from './node';
 
 /**
@@ -42,6 +42,25 @@ export function godot_directional_light_3d_aim(self: DirectionalLight): void {
   self.add(target);
   self.target = target;
 }
+
+/**
+ * A scene's directional light as it mounts: aimed along -Z, and its Godot state the values the
+ * scene authors (`godot_light_3d_authored`).
+ *
+ * @godot DirectionalLight3D (protocol)
+ * @source scene/3d/light_3d.cpp:612
+ */
+export function godot_directional_light_3d_authored_prop(authored: GodotLight3DAuthored): (self: DirectionalLight) => void {
+  return (self) => {
+    godot_directional_light_3d_aim(self);
+    if (!AUTHORED.has(self)) {
+      AUTHORED.add(self);
+      godot_light_3d_authored(self, authored);
+    }
+  };
+}
+
+const AUTHORED = new WeakSet<DirectionalLight>();
 
 const SHADOW_MODE = new WeakMap<DirectionalLight, number>();
 

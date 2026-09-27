@@ -359,14 +359,14 @@ export function construct(shaders: GodotProceduralSkyShaders): ProceduralSkyMate
 }
 
 const SETTERS: Readonly<Record<string, (self: ProceduralSkyMaterial, value: never) => void>> = {
-  skyTopColor: set_sky_top_color,
-  skyHorizonColor: set_sky_horizon_color,
+  skyTopColor: (self, value: readonly [number, number, number, number]) => set_sky_top_color(self, color(...value)),
+  skyHorizonColor: (self, value: readonly [number, number, number, number]) => set_sky_horizon_color(self, color(...value)),
   skyCurve: set_sky_curve,
   skyEnergyMultiplier: set_sky_energy_multiplier,
   skyCover: set_sky_cover,
-  skyCoverModulate: set_sky_cover_modulate,
-  groundBottomColor: set_ground_bottom_color,
-  groundHorizonColor: set_ground_horizon_color,
+  skyCoverModulate: (self, value: readonly [number, number, number, number]) => set_sky_cover_modulate(self, color(...value)),
+  groundBottomColor: (self, value: readonly [number, number, number, number]) => set_ground_bottom_color(self, color(...value)),
+  groundHorizonColor: (self, value: readonly [number, number, number, number]) => set_ground_horizon_color(self, color(...value)),
   groundCurve: set_ground_curve,
   groundEnergyMultiplier: set_ground_energy_multiplier,
   sunAngleMax: set_sun_angle_max,
@@ -376,8 +376,8 @@ const SETTERS: Readonly<Record<string, (self: ProceduralSkyMaterial, value: neve
 };
 
 /**
- * A ProceduralSkyMaterial of its four generated shaders and the properties a scene states, set in
- * the order given; an unknown one fails by name.
+ * A ProceduralSkyMaterial of its four generated shaders and the properties a scene states (a colour as
+ * its components), set in the order given; an unknown one fails by name.
  *
  * @godot ProceduralSkyMaterial (protocol)
  * @source scene/resources/3d/sky_material.cpp:385

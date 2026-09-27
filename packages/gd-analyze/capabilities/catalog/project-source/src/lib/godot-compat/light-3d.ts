@@ -199,6 +199,34 @@ export function godot_light_3d_mount(self: Light): void {
   apply(self, state);
 }
 
+/** What a scene authors on a light, by Godot's own values (`Light3D::set_param` indices). */
+export interface GodotLight3DAuthored {
+  readonly color?: readonly [number, number, number, number];
+  readonly params?: Readonly<Record<number, number>>;
+  readonly shadow?: boolean;
+  readonly skyMode?: number;
+}
+
+/**
+ * A scene light's Godot state from the values it authors, over its class's (`light_3d.cpp:463`,
+ * `:612`), set as the scene sets them; its three light is already stated from the same values by
+ * the element, so nothing is re-applied.
+ *
+ * @godot Light3D (protocol)
+ * @source scene/3d/light_3d.cpp:463
+ */
+export function godot_light_3d_authored(self: Light, authored: GodotLight3DAuthored): void {
+  const params = classParams(self);
+  for (const [index, value] of Object.entries(authored.params ?? {})) params[Number(index)] = f32(value);
+  const c = authored.color;
+  STATE.set(self, {
+    color: c === undefined ? color(1, 1, 1, 1) : color(c[0], c[1], c[2], c[3]),
+    params,
+    shadow: authored.shadow ?? false,
+    skyMode: authored.skyMode ?? 0,
+  });
+}
+
 /**
  * A directional light's sky mode (`DirectionalLight3D::set_sky_mode`, `light_3d.cpp:550`).
  *

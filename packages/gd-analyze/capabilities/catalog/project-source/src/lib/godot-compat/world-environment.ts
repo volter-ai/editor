@@ -70,6 +70,7 @@ import { type Environment, godot_environment_tonemap_parameters } from './enviro
 import { get_environment as get_camera_environment, godot_camera_3d_world_listener } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
 import { godot_node_foreign } from './node';
+import { get_global_basis } from './node-3d';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
 import type { ShaderMaterial } from './shader-material';
@@ -304,10 +305,10 @@ export function godot_world_environment_sky_lights(scene: Object3D): GodotWorldS
     if ((object as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
       const sky = godot_light_3d_sky_light(object as DirectionalLight);
       if (sky !== null) {
-        object.updateWorldMatrix(true, false);
-        const e = object.matrixWorld.elements;
-        // `Vector3::normalize` (`vector3.h:548`) in float.
-        const [x, y, z] = [f32(e[8] as number), f32(e[9] as number), f32(e[10] as number)];
+        // `basis.xform(Vector3(0, 0, 1))` is the global basis's z column; `Vector3::normalize`
+        // (`vector3.h:548`) in float.
+        const column = get_global_basis(object).z;
+        const [x, y, z] = [f32(column.x), f32(column.y), f32(column.z)];
         const length = f32(Math.sqrt(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z))));
         const direction: [number, number, number] = length === 0 ? [0, 0, 0] : [f32(x / length), f32(y / length), f32(z / length)];
         lights.push({ ...sky, direction });
