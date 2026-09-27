@@ -28,6 +28,7 @@ import { articulationPrograms } from './articulations';
 import { soundingKeys } from './bank-coverage';
 import { validBands } from './mix/dsp';
 import { mixTarget } from './mix/automation';
+import { sidechainsOf } from './mix/offline-mix';
 import { formatPitch } from '@volter/dawproject/notation';
 
 /** Practical ranges (MIDI), by General MIDI program. Unlisted programs are not range-checked. */
@@ -187,6 +188,12 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
       if (skipped > 0) {
         problems.push(`${track.name}: ${skipped} of the equalizer's ${count} bands ${skipped === 1 ? 'is' : 'are'} not played (each needs a type of highPass, lowPass, lowShelf, highShelf or bell, a freq above 0, and a q above 0 if it has one)`);
       }
+    }
+    for (const source of sidechainsOf(track)) {
+      const target = piece.tracks.find((other) => other.name === source);
+      if (!target) problems.push(`${track.name}: its compressor listens to "${source}", which no track is called, so it hears silence and never compresses`);
+      else if (target === track) problems.push(`${track.name}: its compressor's sidechain is its own track; leave sidechain off to compress on its own signal`);
+      else if ((target.channel?.role ?? 'regular') !== 'regular') problems.push(`${track.name}: its compressor listens to "${source}", a ${target.channel?.role} channel; a sidechain source is an instrument track`);
     }
     const children = piece.tracks.filter((other) => other.parent === track.id);
     if (track.channel?.role === 'submix' && children.length === 0) {

@@ -154,7 +154,8 @@ function addDevice(props: Context & { readonly track: PieceTrack | null }, plugi
 function DeviceCard(props: Context & { readonly device: PieceDevice }) {
   const { device } = props;
   const specs = PARAMS[device.plugin] ?? [];
-  const known = new Set([...specs.map((spec) => spec.key), 'bands', 'articulations']);
+  const known = new Set([...specs.map((spec) => spec.key), 'bands', 'articulations', ...(device.plugin === 'compressor' ? ['sidechain'] : [])]);
+  const sidechain = typeof device.params['sidechain'] === 'string' ? (device.params['sidechain'] as string) : '';
   const articulations = device.params['articulations'];
   const patches = articulations && typeof articulations === 'object' && !Array.isArray(articulations) ? Object.entries(articulations) : [];
   const bands = Array.isArray(device.params['bands']) ? (device.params['bands'] as readonly Record<string, unknown>[]) : null;
@@ -171,6 +172,27 @@ function DeviceCard(props: Context & { readonly device: PieceDevice }) {
         {specs.map((spec) => (
           <NumberParam key={spec.key} path={`params.${spec.key}`} spec={spec} value={device.params[spec.key]} {...props} />
         ))}
+        {device.plugin === 'compressor' ? (
+          // What the detector hears: this strip's own signal, or another track's after its fader.
+          <label style={{ display: 'flex', justifyContent: 'space-between', gap: 8, ...small }} title="params.sidechain">
+            <span>sidechain</span>
+            <select
+              data-param="params.sidechain"
+              value={sidechain}
+              onChange={(event) => write({ ...props, device }, 'Set sidechain', 'params.sidechain', event.target.value || null)}
+              style={{ ...small, maxWidth: 110 }}
+            >
+              <option value="">off</option>
+              {props.piece.tracks
+                .filter((track) => track.channel?.role === 'regular' && !track.channel.devices.includes(device))
+                .map((track) => (
+                  <option key={track.id} value={track.name}>
+                    {track.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+        ) : null}
         {bands?.map((band, i) => (
           // A band's shape is its `type`; the numbers below it are the band's own members.
           <div key={i} style={{ borderTop: `1px solid ${themeVars.boundary.default}`, paddingTop: 3 }}>

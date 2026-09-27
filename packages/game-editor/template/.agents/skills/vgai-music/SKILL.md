@@ -71,7 +71,8 @@ export default function Theme() {
   stage; `role="submix"` makes a GROUP: the `<Track>`s written inside that `<Track>` sum into its
   strip (its devices, sends, fader, pan) instead of the master, and a solo on it solos them all. Devices on any channel, in order: `equalizer` (`bands: [{ type, freq, gain, q }]`,
   types `highPass lowPass lowShelf highShelf bell`), `compressor` (`threshold ratio attack
-  release knee makeup`), `limiter` (`ceiling release`), `convolution` (`ir predelay wet`).
+  release knee makeup`, and `sidechain: "<track>"` to compress on another track's signal, as a pad
+  ducks under the melody), `limiter` (`ceiling release`), `convolution` (`ir predelay wet`).
 - Code that generates notes spells them with `formatAt(beats, beatsPerBar)` and
   `formatPitch(midi)` from `@volter/dawproject`.
 

@@ -60,7 +60,7 @@ function addInto(target: Stereo, source: Stereo, factor = 1): void {
 }
 
 /** The devices of a strip that process audio, in order. Instruments and MIDI devices are skipped. */
-function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stereo {
+function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs, keyOf: (name: string) => Stereo | undefined = () => undefined): Stereo {
   let current = signal;
   for (const device of track.channel?.devices ?? []) {
     const params = device.params as Readonly<Record<string, unknown>>;
@@ -69,7 +69,11 @@ function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stere
     } else if (device.plugin === 'compressor') {
       const settings = compressorParams(params);
       const compressor = new Compressor(settings, inputs.sampleRate);
-      compressor.process(current);
+      // A sidechain's detector hears the named track's strip after its fader and pan; a source
+      // that sounds nothing (muted, unknown) is silence, which leaves this strip uncompressed.
+      const sidechain = typeof params['sidechain'] === 'string' ? params['sidechain'] : null;
+      const length = current[0].length;
+      compressor.process(current, sidechain ? (keyOf(sidechain) ?? [new Float32Array(length), new Float32Array(length)]) : undefined);
       inputs.dynamics?.({ track: track.name, device: 'compressor', maxReductionDb: compressor.maxReductionDb, maxInputDb: compressor.maxInputDb, threshold: settings.threshold });
     } else if (device.plugin === 'limiter') {
       const limiter = new Limiter(params, inputs.sampleRate);
@@ -113,6 +117,24 @@ export function ancestors(piece: Piece, track: PieceTrack): PieceTrack[] {
     parent = group.parent;
   }
   return out;
+}
+
+/** The tracks a strip's compressors listen to (`params.sidechain`). */
+export function sidechainsOf(track: PieceTrack): string[] {
+  return (track.channel?.devices ?? []).flatMap((device) =>
+    device.plugin === 'compressor' && typeof device.params['sidechain'] === 'string' ? [device.params['sidechain'] as string] : [],
+  );
+}
+
+/** The piece's tracks with every sidechain source ahead of the tracks that listen to it (a cycle keeps written order). */
+export function sidechainOrder(piece: Piece): PieceTrack[] {
+  const done: PieceTrack[] = [];
+  const remaining = [...piece.tracks];
+  while (remaining.length > 0) {
+    const index = remaining.findIndex((track) => sidechainsOf(track).every((name) => !remaining.some((other) => other !== track && other.name === name)));
+    done.push(...remaining.splice(index < 0 ? 0 : index, 1));
+  }
+  return done;
 }
 
 /** Where a strip's output goes: its group's input when it sits in a `submix` track, else the master sum. */
@@ -199,8 +221,10 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
       } else addInto(bus, signal, levels[index] ?? 0);
     });
   };
-  // Instrument tracks.
-  for (const track of piece.tracks) {
+  // Instrument tracks, each sidechain source before the strips that listen to it.
+  const stripOut = new Map<string, Stereo>();
+  const keyOf = (name: string): Stereo | undefined => stripOut.get(name);
+  for (const track of sidechainOrder(piece)) {
     const channel = inputs.channelOf.get(track.id);
     if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
     const levels = stripLevels(piece, track, soloed);
@@ -208,11 +232,12 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
     if (inputs.only && !inputs.only.has(track.id)) continue;
     const source = inputs.channels[channel];
     if (!source) continue;
-    const signal = runDevices(track, copy(source), inputs);
+    const signal = runDevices(track, copy(source), inputs, keyOf);
     sendTo(track, levels.sends, signal, true);
     fader(track, signal, levels.fader);
     panStage(track, signal, levels.pan);
     sendTo(track, levels.sends, signal, false);
+    stripOut.set(track.name, signal);
     addInto(destination(track), signal);
   }
   // Group tracks, innermost first: the sum of what they contain, through their own strips, into

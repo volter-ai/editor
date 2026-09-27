@@ -283,11 +283,13 @@ export class Compressor {
     if (knee > 0 && Math.abs(2 * over) <= knee) return ((1 / ratio - 1) * (over + knee / 2) ** 2) / (2 * knee);
     return (1 / ratio - 1) * over;
   }
-  process(signal: Stereo): void {
+  /** `key`, when given, is what the detector hears (a sidechain); the gain still applies to `signal`. */
+  process(signal: Stereo, key?: Stereo): void {
     const [left, right] = signal;
+    const [keyLeft, keyRight] = key ?? signal;
     const makeup = dbToGain(this.params.makeup);
     for (let i = 0; i < left.length; i++) {
-      const peak = Math.max(Math.abs(left[i]!), Math.abs(right[i]!));
+      const peak = Math.max(Math.abs(keyLeft[i] ?? 0), Math.abs(keyRight[i] ?? 0));
       const levelDb = 20 * Math.log10(peak + 1e-12);
       if (levelDb > this.maxInputDb) this.maxInputDb = levelDb;
       const target = -this.gainComputer(levelDb);

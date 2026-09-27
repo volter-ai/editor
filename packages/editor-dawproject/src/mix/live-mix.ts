@@ -93,6 +93,8 @@ export class LiveMix {
   private connectedTo: AudioNode[] = [];
   private workletReady: Promise<void> | null = null;
   private readonly irCache = new Map<string, AudioBuffer>();
+  /** Compressors built with a sidechain, waiting for their source strip to exist (`build`). */
+  private pendingSidechains: { node: AudioNode; source: string }[] = [];
   /** The automated parameters of the sounding graph, for the piece they were read from. */
   private curves: { piece: Piece; beatAt: (second: number) => number; params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] } | null = null;
 
@@ -174,8 +176,9 @@ export class LiveMix {
         }
       } else if (device.plugin === 'compressor' || device.plugin === 'limiter') {
         await this.ensureWorklet();
+        const sidechain = device.plugin === 'compressor' && typeof params['sidechain'] === 'string' ? params['sidechain'] : null;
         const node = new AudioWorkletNode(this.context, 'volter-dynamics', {
-          numberOfInputs: 1,
+          numberOfInputs: sidechain ? 2 : 1,
           numberOfOutputs: 1,
           outputChannelCount: [2],
           processorOptions: { kind: device.plugin, params },
@@ -183,6 +186,7 @@ export class LiveMix {
         nodes.push(node);
         tail.connect(node);
         tail = node;
+        if (sidechain) this.pendingSidechains.push({ node, source: sidechain });
       } else if (device.plugin === 'convolution') {
         const path = typeof params['ir'] === 'string' ? params['ir'] : '';
         const node = this.context.createConvolver();
@@ -231,6 +235,7 @@ export class LiveMix {
   async build(piece: Piece, channelOf: ReadonlyMap<string, number>, current: () => boolean = () => true): Promise<boolean> {
     const context = this.context;
     const graph: Graph = { nodes: [], heads: [], strips: new Map(), output: null };
+    this.pendingSidechains = [];
     const discard = (): void => {
       for (const node of graph.nodes) node.disconnect();
     };
@@ -293,6 +298,12 @@ export class LiveMix {
         const panner = this.strip(graph, piece, track, soloed, output, sends);
         panner.connect(destination(track));
         wireSends(track, output, panner, sends);
+      }
+      // Each sidechained compressor hears its source track's strip after its fader and pan.
+      for (const { node, source } of this.pendingSidechains) {
+        const track = piece.tracks.find((candidate) => candidate.name === source);
+        const strip = track ? graph.strips.get(track.id) : undefined;
+        strip?.panner.connect(node, 0, 1);
       }
       const masterTrack = piece.tracks.find((track) => track.channel?.role === 'master');
       if (masterTrack) {
