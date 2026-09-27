@@ -139,7 +139,7 @@ import {
   frameAngle,
   frameForId,
   rectFrame,
-  snapPointToFrame,
+  snapPivotPoint,
   frameHandlePosition,
   frameIsTurned,
   frameResizePatch,
@@ -820,9 +820,6 @@ interface GestureState {
   /** A native rotate's starting angle on screen, degrees: Godot snaps the angle itself (step and
    *  offset), not the turn, unless Snap Relative. */
   startAngleDeg?: number;
-  /** A single moved node turned on screen: Godot's `snap_point` skips the grid, guides and pixel
-   *  snap for it (a multi-selection's move names no node, and snaps). Read once per move. */
-  moveTurned?: boolean;
   /** Other selected nodes moved by the same direct-manipulation gesture. */
   movePeers?: readonly MovePeer[];
   /** A 2D group rotate or scale: the point every node turns or scales about (the temporary pivot,
@@ -1961,17 +1958,17 @@ export function RootSelectionOverlay({
     pivot: boolean;
   } | null>(null);
 
-  /** Where a pivot lands: smart snapping's Node Sides and Node Center pull it onto its own node's
-   *  sides and centre lines (Godot's), unless Alt frees it. */
+  /** Where a pivot lands: `snapPivotPoint`, Godot's pivot drag. */
   const snapPivot = useCallback(
     (id: string, local: { x: number; y: number }, free: boolean): { x: number; y: number } => {
-      const choice = store.smartSnap;
-      if (free || !choice.enabled || (!choice.sides && !choice.center)) return local;
       const rect = rectForId(adapter, id);
-      const frame = frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null);
-      if (!frame) return local;
-      const zoom = Math.max(view.get().zoom, 0.01);
-      return snapPointToFrame(local, frame, choice.sides, choice.center, EDGE_SNAP_THRESHOLD_PX / zoom);
+      return snapPivotPoint(local, frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null), {
+        free,
+        smart: store.smartSnap,
+        gridOn: store.snapEnabled,
+        grid: store.snap2D,
+        threshold: EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01),
+      });
     },
     [adapter, store, view],
   );
@@ -2100,16 +2097,11 @@ export function RootSelectionOverlay({
       } else if (gesture.kind === 'move') {
         const { dx: moveDx, dy: moveDy } = constrainedMoveDelta(gesture.moveAxis, dx, dy);
         if (gesture.nativeOrigin) {
-          if (gesture.moveTurned === undefined) {
-            const frame = gesture.movePeers?.length ? null : frameForId(adapter, gesture.id);
-            gesture.moveTurned = !!frame && Math.abs(frameAngle(frame)) > 1e-6;
-          }
-          const turned = gesture.moveTurned;
           patch = nativeMovePatch(
             gesture,
             moveDx,
             moveDy,
-            store.snapEnabled && !turned,
+            store.snapEnabled,
             // On the 2D surface Alt is Godot's move modifier, so it never frees the move.
             false,
             // A native (2D) origin steps on the scene's grid, not the 3D translate step; Snap
@@ -2132,14 +2124,14 @@ export function RootSelectionOverlay({
             !store.smartSnap.enabled,
             EDGE_SNAP_THRESHOLD_PX / Math.max(pan.zoom, 0.01),
             {
-              x: turned ? [] : nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
-              y: turned ? [] : nativeGuides.filter((guide) => guide.axis === 'y').map((guide) => guide.value),
+              x: nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
+              y: nativeGuides.filter((guide) => guide.axis === 'y').map((guide) => guide.value),
             },
             store.smartSnap,
           );
-          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free, unless the
-          // one node moved is turned on screen, as Godot skips it then.
-          const pixel = (v: number): number => (store.snap2D.pixel && !turned ? Math.round(v) : v);
+          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free: Godot's
+          // move names no node to `snap_point`, so it snaps however the node is turned.
+          const pixel = (v: number): number => (store.snap2D.pixel ? Math.round(v) : v);
           if (patch['originX'] !== undefined) patch['originX'] = pixel(snapped.position.x);
           if (patch['originY'] !== undefined) patch['originY'] = pixel(snapped.position.y);
           setSnapGuides(snapped.guides);
@@ -2167,21 +2159,30 @@ export function RootSelectionOverlay({
       } else if (gesture.kind === 'rotate') {
         const absolute =
           gesture.nativeOrigin && gesture.startAngleDeg !== undefined && !store.snap2D.relative;
+        // Godot's `snap_angle`: a 2D turn snaps when (Smart Snap or Use Rotation Snap) XOR Cmd, so a
+        // Select-mode Cmd-drag snaps with both off and Cmd frees a snapped one.
+        const snapTurn =
+          (store.smartSnap.enabled || store.rotationSnap) !== (e.metaKey || e.ctrlKey);
         patch = computeRotatePatch(
           gesture.center!,
           gesture.startLocal,
           local,
-          // A 2D rotation steps under its own switch (Godot's Use Rotation Snap).
-          gesture.nativeOrigin ? absolute || !store.rotationSnap || e.altKey : e.altKey,
+          gesture.nativeOrigin ? absolute || !snapTurn : e.altKey,
           gesture.nativeOrigin ? store.snap2D.rotationStep : 15,
         );
-        if (absolute && store.rotationSnap && !e.altKey && patch['rotate'] !== undefined) {
+        if (absolute && snapTurn && patch['rotate'] !== undefined) {
           // Godot's Configure Snap: the angle lands on the step from the rotation offset.
           const step = store.snap2D.rotationStep;
           const offset = store.snap2D.rotationOffset;
           const start = gesture.startAngleDeg!;
           const angle = start + patch['rotate'];
-          patch = { rotate: Math.round((angle - offset) / step) * step + offset - start };
+          // The owner lands the node's LOCAL rotation on the step (Godot's `snap_angle` on
+          // `_edit_get_rotation()`), which is the angle on screen only under an unturned parent.
+          patch = {
+            rotate: Math.round((angle - offset) / step) * step + offset - start,
+            rotationStep: step,
+            rotationOffset: offset,
+          };
         }
         // About a temporary pivot the node turns around that point: its origin moves by the turn.
         const pivot = gesture.groupCenter ?? (gesture.nativeOrigin ? temporaryPivot(view) : null);
@@ -2237,6 +2238,9 @@ export function RootSelectionOverlay({
             gesture.kind === 'rotate'
               ? {
                   rotate: patch['rotate'] ?? 0,
+                  ...(patch['rotationStep'] !== undefined
+                    ? { rotationStep: patch['rotationStep'], rotationOffset: patch['rotationOffset'] ?? 0 }
+                    : {}),
                   ...(c
                     ? {
                         originX: c.x + ox * Math.cos(turn) - oy * Math.sin(turn),
@@ -3414,7 +3418,11 @@ export function RootSelectionOverlay({
                 <div
                   data-testid="world-rotate-handle"
                   aria-label="Rotate selection"
-                  title="Rotate selection (15° snap, Alt for free rotation)"
+                  title={
+                    transformModeAware
+                      ? 'Rotate selection (snaps under Smart Snap or Use Rotation Snap; Cmd inverts)'
+                      : 'Rotate selection (15° snap, Alt for free rotation)'
+                  }
                   style={{
                     ...rotateHandleStyle(singleRect),
                     ...(transformModeAware && !axisGizmos

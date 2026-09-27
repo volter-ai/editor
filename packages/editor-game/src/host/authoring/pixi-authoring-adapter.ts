@@ -606,7 +606,18 @@ function transformForBoxPatch(
     scale: [...session.transform.scale],
   };
   const rotate = patch['rotate'];
-  if (rotate !== undefined) next.rotation = rotateTransformZ(session.transform, localTurn(session, rotate));
+  if (rotate !== undefined) {
+    let turn = localTurn(session, rotate);
+    const step = patch['rotationStep'];
+    if (step !== undefined && step > 0) {
+      // Configure Snap's absolute step lands the node's own rotation on the step from the offset.
+      const [, , z, w] = session.transform.rotation;
+      const start = (2 * Math.atan2(z, w) * 180) / Math.PI;
+      const offset = patch['rotationOffset'] ?? 0;
+      turn = Math.round((start + turn - offset) / step) * step + offset - start;
+    }
+    next.rotation = rotateTransformZ(session.transform, turn);
+  }
   const width = patch['width'];
   if (width !== undefined && session.rect.width > 0) {
     next.scale[0] = session.transform.scale[0] * Math.max(0.0001, width / session.rect.width);
@@ -850,6 +861,15 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
             reparent: (id: string, newParentId: string | null) =>
               holdsNoChildren(newParentId) ? this.refuseStructure(noChildren) : structure.reparent!(id, newParentId),
           }
+        : {}),
+      ...(structure.paste
+        ? {
+            paste: (parentId: string | null) =>
+              holdsNoChildren(parentId) ? this.refuseStructure(noChildren) : structure.paste!(parentId),
+          }
+        : {}),
+      ...(structure.canPaste
+        ? { canPaste: (parentId: string | null) => !holdsNoChildren(parentId) && structure.canPaste!(parentId) }
         : {}),
       ...(structure.creatableKinds
         ? {

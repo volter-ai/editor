@@ -66,7 +66,7 @@ import {
   frameForId,
   rectFrame,
   rectForId,
-  snapPointToFrame,
+  snapPivotPoint,
   spatialHandlesForId,
 } from '@volter/editor-sdk/kit/components/world-overlay-gestures';
 import { pickCandidates } from '@volter/editor-sdk/kit/authoring/layered-pick';
@@ -1052,12 +1052,15 @@ function CanvasSceneModeLayer({
   };
   /** Where the pivot goes for a point: snapped to its node's sides and centre as a dragged pivot is. */
   const pivotPoint = (id: string, point: { x: number; y: number }, free: boolean) => {
-    const choice = store.smartSnap;
-    if (!adapter || free || !choice.enabled || (!choice.sides && !choice.center)) return point;
+    if (!adapter) return point;
     const rect = rectForId(adapter, id);
-    const frame = frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null);
-    if (!frame) return point;
-    return snapPointToFrame(point, frame, choice.sides, choice.center, EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01));
+    return snapPivotPoint(point, frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null), {
+      free,
+      smart: store.smartSnap,
+      gridOn: store.snapEnabled,
+      grid: store.snap2D,
+      threshold: EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01),
+    });
   };
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
