@@ -137,7 +137,6 @@ environment = SubResource("Environment_physical")
 transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 4, 0)
 light_color = Color(1, 0.95, 0.8, 1)
 light_energy = 1.3
-light_angular_distance = 2.5
 
 [node name="LightOnly" type="DirectionalLight3D" parent="."]
 sky_mode = 1
