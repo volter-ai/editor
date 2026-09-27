@@ -1394,6 +1394,8 @@ function planImportedInstance(
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
     targetKind: 'imported-scene',
+    // A script on the model's root (an imported model's root has none of its own).
+    ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     model: {
       sourceResPath: imported.resPath,
       rootClasses: root.class.nativeAncestry,
@@ -1441,7 +1443,9 @@ function planInstanceRoot(
     ok = false;
   }
   if (Object.keys(overrides).length > 0 && !structure(context, at, 'instance-root-override')) ok = false;
-  if (node.scriptResPath !== origin.scriptResPath) {
+  // A script on an instance whose root has none attaches to the component's root (its ref); one
+  // replacing the root's own script is not planned.
+  if (node.scriptResPath !== origin.scriptResPath && origin.scriptResPath !== undefined) {
     refuse(context, at, 'an instance root with its own script is not planned', 'structure');
     ok = false;
   }
@@ -1464,6 +1468,8 @@ function planInstanceRoot(
     name: node.name,
     targetKind: 'scene-instance',
     instance: { sourceResPath: instanced.resPath },
+    // Its own script, where the base's root has none (the component's root carries it).
+    ...(node.scriptResPath !== undefined && origin.scriptResPath === undefined ? { scriptResPath: node.scriptResPath } : {}),
     properties,
     groups: [],
     classes: [],
@@ -1635,11 +1641,8 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     const origin = node.inheritedNode;
     if (origin !== undefined && origin.nodePath === '.') {
       const instanced = context.scenes.get(origin.documentPath);
-      if (node.nodePath === '.') {
-        refuse(context, at, 'scene inheritance is not planned', 'structure');
-        refused = true;
-        continue;
-      }
+      // A scene inheriting its base (`[node ... instance=...]` at its root) is that base's
+      // instance: its component with this scene's overrides and additions, never a copy.
       if (instanced?.sourceKind === 'imported-gltf') {
         instanceRoots.set(node.nodePath, instanced);
         const plannedRoot = planImportedInstance(context, node, instanced);
@@ -1822,6 +1825,21 @@ const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scal
 /** An instance whose scene's root class is not known yet. */
 const PENDING_INSTANCE = '(instanced scene)';
 
+/**
+ * The native class of a scene's root: its own, or for a scene inheriting its base (its root an
+ * instance), the base's root class; an imported model's root class.
+ */
+export function godotSceneRootClass(
+  scenes: ReadonlyMap<string, { readonly root: Pick<TargetGodotSceneNodePlan, 'classes' | 'instance' | 'model'> }>,
+  resPath: string,
+): string | undefined {
+  const root = scenes.get(resPath)?.root;
+  if (root === undefined) return undefined;
+  if (root.instance !== undefined) return godotSceneRootClass(scenes, root.instance.sourceResPath);
+  if (root.model !== undefined) return root.model.rootClasses[0];
+  return root.classes[0];
+}
+
 /** A setter as the idiomatic tables name it: `set_axis_lock:8` for an indexed one. */
 function setterName(entry: TargetGodotSceneSetterPlan): readonly string[] {
   return [entry.setter.exportName, `${entry.setter.exportName}:${String(entry.index)}`];
@@ -1909,7 +1927,7 @@ export function idiomaticRefusal(
  */
 function checkInstanceOverrides(context: PlanContext, scenes: readonly TargetGodotSceneDocumentPlan[]): void {
   const byPath = new Map(scenes.map((scene) => [scene.sourceResPath, scene] as const));
-  const rootClass = (resPath: string): string | undefined => byPath.get(resPath)?.root.classes[0];
+  const rootClass = (resPath: string): string | undefined => godotSceneRootClass(byPath, resPath);
   for (const scene of scenes) {
     const refusal = idiomaticRefusal(scene, rootClass);
     if (refusal !== undefined) refuse(context, scene.sourceResPath, `the scene has no idiomatic form: ${refusal}`, 'node-family', refusal);

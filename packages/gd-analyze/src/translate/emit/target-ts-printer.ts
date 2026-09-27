@@ -65,6 +65,8 @@ function typeNode(value: TargetTsType): ts.TypeNode {
       return ts.factory.createArrayTypeNode(typeNode(value.element));
     case 'indexed-access-type':
       return ts.factory.createIndexedAccessTypeNode(typeNode(value.object), typeNode(value.index));
+    case 'type-query':
+      return ts.factory.createTypeQueryNode(ts.factory.createIdentifier(value.name));
     case 'tuple-type':
       return ts.factory.createTupleTypeNode(value.elements.map(typeNode));
     case 'union-type':

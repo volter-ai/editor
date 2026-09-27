@@ -60,6 +60,8 @@ export type TargetTsType =
       }[];
     }
   | { readonly kind: 'literal-type'; readonly value: string | number | boolean | null }
+  /** `typeof name`: a value's type (a component's, for its props). */
+  | { readonly kind: 'type-query'; readonly name: string }
   | {
       readonly kind: 'function-type';
       readonly parameters: readonly TargetTsParameter[];

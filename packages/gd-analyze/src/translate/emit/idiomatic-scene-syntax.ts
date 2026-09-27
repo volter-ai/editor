@@ -31,7 +31,7 @@ import type {
 } from '../data/direct-project-composition-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
-import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneRootClass, godotSceneSubnodes } from '../data/scene-document-plan';
 import { godotResolveNodePath } from '../data/scene-animation';
 import {
   attribute,
@@ -472,7 +472,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   if (instanced === undefined) throw new Error(`${at}: the instanced scene is absent from composition`);
   const local = instanced.exportName;
   emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
-  const rootClass = instanced.root.classes[0] as string;
+  const rootClass = godotSceneRootClass(emission.scenes, instanced.sourceResPath) as string;
   const overrides: TargetTsJsxAttribute[] = [];
   // The instance's groups join its scene root's (`SceneState::instantiate`, packed_scene.cpp:511).
   const rootData = nodeData(instanced.root);
@@ -710,8 +710,21 @@ function rootPropsType(
   tag: string,
   targetPath: string,
   three: string | undefined,
+  rootNode: DirectGodotSceneNodePlan,
 ): { readonly type: TargetTsType; readonly children: boolean; readonly from?: { readonly module: string; readonly name: string } } {
   const omitRef = (type: TargetTsType): TargetTsType => ({ kind: 'type-reference', name: 'Omit', arguments: [type, { kind: 'literal-type', value: 'ref' }] });
+  // An inherited scene (its root an instance of its base): the base component's own props.
+  if (rootNode.instance !== undefined) {
+    return { type: { kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'Parameters', arguments: [{ kind: 'type-query', name: tag }] }, index: { kind: 'literal-type', value: 0 } }, children: true };
+  }
+  // A scene inheriting an imported model: the model element's group props.
+  if (rootNode.model !== undefined) {
+    return {
+      type: omitRef({ kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'ThreeElements', arguments: [] }, index: { kind: 'literal-type', value: 'group' } }),
+      children: true,
+      from: { module: '@react-three/fiber', name: 'ThreeElements' },
+    };
+  }
   // A compat element's own props (`useGodotElement`).
   if (tag.startsWith('Godot') && three !== undefined) {
     return {
@@ -804,9 +817,9 @@ export function idiomaticSceneSourceFile(
   }
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
   // the scene's own: the prefab form.
-  const rootThree = familyThreeType(scene.root.classes[0] ?? '');
+  const rootThree = scene.root.instance === undefined && scene.root.model === undefined ? familyThreeType(scene.root.classes[0] ?? '') : undefined;
   if (node.tag.startsWith('Godot') && rootThree !== undefined) emission.three.add(rootThree);
-  const props = rootPropsType(node.tag, scene.targetPath, rootThree);
+  const props = rootPropsType(node.tag, scene.targetPath, rootThree, scene.root);
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
     attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: 'props' } }],

@@ -12,7 +12,9 @@
  * node before it, one after it, one placed under an instance, itself, and a path leaving the scene)
  * as its `_ready` reads them. Nodes added under an instance with an explicit `index` (one moved
  * before the instance's own children, one whose index is past the end and stays) are in the order
- * the tree walk reads.
+ * the tree walk reads. An inherited scene (its root an instance of prop.tscn, overridden, with a
+ * child added, and a script of its own the base's root lacks) is instanced; its script's `_ready`
+ * reads its name and children.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -68,6 +70,28 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.3, 0)
 
 [node name="Leaf" parent="Arm" instance=ExtResource("1_leaf")]
 `,
+  // A scene inheriting prop.tscn: its root overridden, a child added under the base's root.
+  'derived.gd': `extends Node3D
+
+var greeting := ""
+var count := 0
+
+func _ready() -> void:
+\tgreeting = str(name)
+\tcount = get_children().size()
+`,
+  'derived.tscn': `[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://prop.tscn" id="1_prop"]
+[ext_resource type="Script" path="res://derived.gd" id="2_derived"]
+
+[node name="Derived" instance=ExtResource("1_prop")]
+script = ExtResource("2_derived")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="Added" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+`,
   // The root's script records the order of its callbacks and of the connections authored below.
   'main.gd': `extends Node3D
 
@@ -87,6 +111,7 @@ func _ready() -> void:
 \tevents.append("main_ready")
 \tevents.append(%Cam.name)
 \tevents.append([sibling.name, later.name, added.name, own == self, outside == null])
+\tevents.append([$Derived.greeting, $Derived.count])
 
 func _on_placed_ready() -> void:
 \tevents.append("placed_ready")
@@ -97,10 +122,11 @@ func _on_cam_entered() -> void:
 func _on_main_ready() -> void:
 \tevents.append("main_ready_signal")
 `,
-  'main.tscn': `[gd_scene load_steps=3 format=3]
+  'main.tscn': `[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://prop.tscn" id="1_prop"]
 [ext_resource type="Script" path="res://main.gd" id="2_main"]
+[ext_resource type="PackedScene" path="res://derived.tscn" id="3_derived"]
 
 [node name="Main" type="Node3D" node_paths=PackedStringArray("sibling", "later", "added", "own", "outside")]
 script = ExtResource("2_main")
@@ -137,6 +163,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.75)
 [node name="Prop2" parent="." instance=ExtResource("1_prop")]
 
 [node name="DefaultCam" type="Camera3D" parent="."]
+
+[node name="Derived" parent="." instance=ExtResource("3_derived")]
 
 [connection signal="ready" from="Placed" to="." method="_on_placed_ready"]
 [connection signal="tree_entered" from="Placed/Cam" to="." method="_on_cam_entered"]
@@ -205,7 +233,7 @@ import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
 import { GodotProjectStartup } from './src/lib/godot-compat/react-lifecycle';
-import { get_children, get_name, is_in_group, godot_is_native, godot_node_enter_pending, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
+import { get_children, get_name, is_in_group, godot_is_native, godot_node_enter_pending, godot_node_entity, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
 
@@ -249,7 +277,8 @@ const walk = (path, object) => {
   rows.push(row);
   // The Node protocol's children: a container the JSX did not author as a node (drei's camera
   // renders one) is not one.
-  for (const child of get_children(object)) walk(path === '.' ? get_name(child) : path + '/' + get_name(child), child);
+  // A scripted child is its script instance; its native entity is the node (receivers are native).
+  for (const child of get_children(object)) walk(path === '.' ? get_name(child) : path + '/' + get_name(child), godot_node_entity(child));
 };
 const main = holder.current.children[0];
 walk('.', main);
