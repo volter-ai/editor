@@ -780,6 +780,24 @@ export function lowerOfficialClassMembers(
       return { members: [method.member], requirements: method.requirements };
     }
     if (node.kind === 'ENUM') return lowerEnum(context, node);
+    if (node.kind === 'SIGNAL') {
+      // `signal name(...)`: the instance's Signal, a field holding compat's script signal
+      // (`Signal(owner, name)`, gdscript.cpp:1651), emitted through `Signal.emit`.
+      const requirements = context.structural(node, 'signal', [], 'signal');
+      return {
+        members: [
+          {
+            kind: 'field-member',
+            name: officialBoundPropertyName(context, node.identifier, node),
+            initializer: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_script_signal' }, arguments: [] },
+          },
+        ],
+        requirements: [
+          ...requirements,
+          { kind: 'compat-import-requirement', module: 'lib/godot-compat/signal-value', imported: 'godot_script_signal', local: 'godot_script_signal', typeOnly: false },
+        ],
+      };
+    }
     return context.refuse(node, `${node.kind} class member needs an evidenced direct lowering`);
   });
   const ready = implicitReadyMembers(context, root, onready);

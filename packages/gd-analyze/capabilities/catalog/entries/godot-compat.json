@@ -112,6 +112,7 @@
     "src/lib/godot-compat/shader-material.ts",
     "src/lib/godot-compat/shader.ts",
     "src/lib/godot-compat/shape-3d.ts",
+    "src/lib/godot-compat/signal-value.ts",
     "src/lib/godot-compat/signal.ts",
     "src/lib/godot-compat/skeleton-3d.ts",
     "src/lib/godot-compat/sky.ts",

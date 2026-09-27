@@ -311,6 +311,11 @@ rule('cast-script-on-native', 'CAST', 'cast:script', [NATIVE], CLASS, structural
 // Control flow on bool, by type.
 
 rule('if-bool', 'IF', 'if', [BOOL], '', structural('if'), { file: COMPILER, symbol: 'GDScriptCompiler::_parse_block IF', line: 2066 });
+// A script signal is a Signal of the instance (`GDScriptInstance::get`, gdscript.cpp:1651); a script
+// function named as a value is `Callable(self, name)` (callable.cpp:392).
+rule('signal-member', 'SIGNAL', 'signal', [], '', structural('signal'), { file: 'modules/gdscript/gdscript.cpp', symbol: 'GDScriptInstance::get (script signal)', line: 1651 });
+rule('member-signal', 'IDENTIFIER', 'member-identifier:MEMBER_SIGNAL', [], B, structural('member-identifier'), EXPRESSION);
+rule('member-function-callable', 'IDENTIFIER', 'member-identifier:MEMBER_FUNCTION', [], B, structural('member-identifier'), { file: 'core/variant/callable.cpp', symbol: 'Callable::Callable(const Object *, const StringName &)', line: 392 });
 // `if obj:` jumps on the Object's truth: false when null or freed (`Variant::booleanize`).
 for (const [id, cls] of [['if-native', NATIVE], ['if-class', CLASS]] as const) {
   rule(id, 'IF', 'if', [cls], '', structural('if'), { file: 'core/variant/variant_op.cpp', symbol: 'Variant::booleanize (OBJECT: get_validated_object)', line: 1120 });
@@ -1398,6 +1403,24 @@ func not_nulls() -> Array:
 \tvar tagged: Tagged = $Tagged
 \treturn [nothing != null, body != null, tagged != null, body != nothing, tagged != body]
 
+signal pinged(v: int)
+signal counted
+var heard := []
+
+func _on_ping(v) -> void:
+\theard.append(v)
+
+# A script signal and a script function as a Callable: connect, emit, is_connected, disconnect.
+func signals() -> Array:
+\tpinged.connect(_on_ping)
+\tpinged.emit(1)
+\tvar connected := pinged.is_connected(_on_ping)
+\tcounted.connect(_on_ping)
+\tcounted.emit(5)
+\tpinged.disconnect(_on_ping)
+\tpinged.emit(2)
+\treturn [heard, connected, pinged.is_connected(_on_ping), counted.is_connected(_on_ping)]
+
 # An Object's truth (\`if obj:\`, \`not obj\`): false when null.
 func truths() -> Array:
 \tvar nothing: Node = null
@@ -1802,7 +1825,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
@@ -1895,6 +1918,8 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     'lib/godot-compat/basis',
     'lib/godot-compat/dictionary',
     'lib/godot-compat/object',
+    'lib/godot-compat/signal-value',
+    'lib/godot-compat/callable',
     'lib/godot-compat/physics-direct-space-state-3d',
     'lib/godot-compat/physics-ray-query-parameters-3d',
     'lib/godot-compat/transform-3d',

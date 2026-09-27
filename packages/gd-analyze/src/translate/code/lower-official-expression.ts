@@ -1289,9 +1289,23 @@ export function lowerOfficialExpression(
             );
           }
         }
+        if (node.source === 'MEMBER_FUNCTION') {
+          // A script function named as a value is `Callable(self, name)` (`callable.ts`).
+          return expression(
+            {
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_callable_method' },
+              arguments: [{ kind: 'this-expression' }, { kind: 'literal-expression', value: node.name }],
+              span: span(context.script, node),
+            },
+            [
+              ...context.structural(node, 'member-identifier', [], `member-identifier:${node.source}`),
+              { kind: 'compat-import-requirement', module: 'lib/godot-compat/callable', imported: 'godot_callable_method', local: 'godot_callable_method', typeOnly: false },
+            ],
+          );
+        }
         if (
           node.source === 'MEMBER_VARIABLE' ||
-          node.source === 'MEMBER_FUNCTION' ||
           node.source === 'MEMBER_SIGNAL' ||
           node.source === 'INHERITED_VARIABLE'
         ) {

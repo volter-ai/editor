@@ -73,6 +73,7 @@ export type GodotStructuralConstruct =
   | 'preload'
   | 'return'
   | 'self'
+  | 'signal'
   | 'singleton'
   | 'stringify'
   | 'subscript-attribute'
