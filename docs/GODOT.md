@@ -113,6 +113,15 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    - spawning is React state: adding an instantiated scene is a state update its parent renders;
    - timers and tweens advance from the host's frame, in the hooks of the component that owns
      them; no library clock and no `setTimeout`;
+   - physics is Rapier's own, through @react-three/rapier: each body's component registers its
+     node and Rapier body when it mounts (no per-step listing of bodies, no per-kind declarers);
+     CharacterBody3D's `move_and_slide` is Rapier's kinematic character controller (slide, floor
+     snap, maximum slope, autostep); RigidBody3D is Rapier's dynamics, with gravity from
+     `<Physics gravity>`, damping and gravity scale as props, and `_integrate_forces` run from
+     the component's `useBeforePhysicsStep` through a body-state binding over the Rapier body;
+     Area3D is a sensor's intersection events; RayCast3D and space queries are Rapier queries
+     when asked; collision layers and masks are Rapier collision groups where Godot's 32 bits fit
+     Rapier's 16, and a contact filter only where they do not;
    - class-name registries go, class-name dispatch leaves emit and compat, and `world.tsx` exports
      only its component; the editor and the walk drive a game with DOM input, as a player does.
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
