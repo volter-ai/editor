@@ -142,16 +142,16 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
     return undefined;
   };
 
-  // The sources that are not calls between scripts, per function name and parameter index.
+  // The sources that are not calls between scripts, per script function (`resPath`, name) and
+  // parameter index: the engine calls a script's own override, a connection the function its target
+  // node's script (or the nearest ancestor script) declares.
   const direct = new Map<string, Source[][]>();
-  const add = (name: string, index: number, source: Source): void => {
-    const rows = direct.get(name) ?? [];
+  const siteKey = (resPath: string, name: string) => `${resPath}\0${name}`;
+  const add = (key: string, index: number, source: Source): void => {
+    const rows = direct.get(key) ?? [];
     while (rows.length <= index) rows.push([]);
     (rows[index] as Source[]).push(source);
-    direct.set(name, rows);
-  };
-  const unknownAll = (name: string, count: number, rule: ParameterRule): void => {
-    for (let index = 0; index < count; index += 1) add(name, index, { datatype: undefined, rule });
+    direct.set(key, rows);
   };
   for (const [name, sites] of functions) {
     for (const site of sites) {
@@ -159,25 +159,28 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
       if (declared === undefined) continue;
       site.parameters.forEach((_, index) => {
         const type = declared[index];
-        add(name, index, { datatype: type === undefined ? undefined : apiTypeDatatype(inputs.apiDump, type), rule: 'engine-virtual-parameter' });
+        add(siteKey(site.resPath, name), index, { datatype: type === undefined ? undefined : apiTypeDatatype(inputs.apiDump, type), rule: 'engine-virtual-parameter' });
       });
     }
   }
+  const scenesByPath = new Map(inputs.scenes.map((entry) => [entry.resPath, entry] as const));
   for (const scene of inputs.scenes) {
     for (const connection of scene.connections) {
       const sites = functions.get(connection.method);
       if (sites === undefined) continue;
-      const count = Math.max(...sites.map((site) => site.parameters.length));
-      if ((connection.binds?.length ?? 0) > 0 || (connection.unbinds ?? 0) > 0 || (connection.bindCount ?? 0) > 0) {
-        unknownAll(connection.method, count, 'signal-handler-parameter');
-        continue;
+      // The function the connection calls: its target node's script's, else the nearest ancestor's.
+      const resolved = resolveScenePath(scenesByPath, { documentPath: scene.resPath, nodePath: '.' }, connection.to);
+      const script = typeof resolved === 'string' ? undefined : inputs.scriptAt(resolved.documentPath, resolved.pathInDocument);
+      const site = script === undefined ? undefined : [script, ...inputs.scriptAncestors(script)].map((resPath) => sites.find((entry) => entry.resPath === resPath)).find((entry) => entry !== undefined);
+      // A connection whose target the analysis cannot place reaches any function of that name.
+      const targets = site === undefined ? sites : [site];
+      const bound = (connection.binds?.length ?? 0) > 0 || (connection.unbinds ?? 0) > 0 || (connection.bindCount ?? 0) > 0;
+      const argumentsOf = bound ? undefined : signalArguments(scene, connection.from, connection.signal);
+      for (const target of targets) {
+        target.parameters.forEach((_, index) => {
+          add(siteKey(target.resPath, connection.method), index, { datatype: argumentsOf?.[index], rule: 'signal-handler-parameter' });
+        });
       }
-      const argumentsOf = signalArguments(scene, connection.from, connection.signal);
-      if (argumentsOf === undefined) {
-        unknownAll(connection.method, count, 'signal-handler-parameter');
-        continue;
-      }
-      for (let index = 0; index < count; index += 1) add(connection.method, index, { datatype: argumentsOf[index], rule: 'signal-handler-parameter' });
     }
   }
 
@@ -200,7 +203,8 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
   const settle = (name: string, sites: readonly FunctionSite[], withCalls: boolean): void => {
     if (escaped.has(name)) return;
     const count = Math.max(...sites.map((site) => site.parameters.length));
-    const sources: Source[][] = Array.from({ length: count }, (_, index) => [...(direct.get(name)?.[index] ?? [])]);
+    // The callers by name (any receiver): a call may reach any script's function of that name.
+    const sources: Source[][] = Array.from({ length: count }, () => []);
     if (withCalls) {
       for (const program of inputs.programs) {
         for (const node of program.nodes) {
@@ -221,17 +225,16 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
         }
       }
     }
-    for (let index = 0; index < count; index += 1) {
-      const found = sources[index] as Source[];
-      if (found.length === 0 || found.some((source) => source.datatype === undefined)) continue;
-      const first = found[0]?.datatype as GodotBoundDatatype;
-      if (!found.every((source) => sameType(source.datatype as GodotBoundDatatype, first))) continue;
-      const rules = [...new Set(found.map((source) => source.rule))].sort();
-      for (const site of sites) {
-        const parameter = site.parameters[index];
-        if (parameter === undefined || parameter.node.datatype.kind !== 'VARIANT') continue;
+    for (const site of sites) {
+      site.parameters.forEach((parameter, index) => {
+        if (parameter.node.datatype.kind !== 'VARIANT') return;
+        const found = [...(sources[index] as Source[]), ...(direct.get(siteKey(site.resPath, name))?.[index] ?? [])];
+        if (found.length === 0 || found.some((source) => source.datatype === undefined)) return;
+        const first = found[0]?.datatype as GodotBoundDatatype;
+        if (!found.every((source) => sameType(source.datatype as GodotBoundDatatype, first))) return;
+        const rules = [...new Set(found.map((source) => source.rule))].sort();
         resolvedTypes.set(parameterKey(site.resPath, name, parameter.name), { datatype: first, rules });
-      }
+      });
     }
   };
   // The engine's and the scenes' callers first, so a call passing such a parameter carries its type.

@@ -526,6 +526,22 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       ) {
         result = { datatype: value.datatype, rule: value.rule };
       }
+    } else if (node?.kind === 'ASSIGNMENT' && node.operation !== 'OP_NONE' && node.datatype.kind === 'VARIANT') {
+      // A compound assignment's value is the operator's result over the assignee and the value,
+      // by Godot's operator table (`Variant::get_operator_return_type`), when that is the
+      // assignee's own type.
+      const left = datatypeOf(node.assignee);
+      const right = datatypeOf(node.assignedValue);
+      const leftType = left?.kind === 'BUILTIN' ? left.builtinType : undefined;
+      const rightType = right?.kind === 'BUILTIN' ? right.builtinType : right?.kind === 'ENUM' ? 'int' : undefined;
+      const spelling = OPERATOR_SPELLING[node.variantOperatorId];
+      const returnType =
+        leftType === undefined || rightType === undefined
+          ? undefined
+          : (inputs.apiDump.builtinClasses ?? []).find((entry) => entry.name === leftType)?.operatorSignatures?.find((entry) => entry.name === spelling && entry.rightType === rightType)?.returnType;
+      if (returnType !== undefined && returnType === leftType) {
+        result = { datatype: builtinDatatype(returnType), rule: 'type-test-narrowing' };
+      }
     } else if (node?.kind === 'UNARY_OPERATOR' && node.variantOperatorId === OP_NOT && node.datatype.kind === 'VARIANT') {
       const operand = datatypeOf(node.operand);
       if (operand?.kind === 'BUILTIN' && operand.builtinType === 'bool') {

@@ -5,7 +5,8 @@
  * script signal and a native signal through scene connections, a script's own calls) and of what a
  * script function returns when called through a receiver declared as its base script class,
  * against the datatypes the analysis gave the same parameter reads and call (`bindGodotProject`),
- * and whether it classified the call as a script dispatch. A parameter whose callers disagree (the
+ * and whether it classified the call as a script dispatch; a compound assignment of a typed member
+ * with such a parameter has the operator's result type (the member's own). A parameter whose callers disagree (the
  * recorder's own `value`) or that a `Callable` reaches (`escaped`) must stay untyped; the native
  * side records such a parameter as untyped when its values had more than one type.
  */
@@ -43,6 +44,7 @@ signal hit(amount: int)
 
 var rows := {}
 var frames := 0
+var accumulated := 0.0
 
 # The type each label's value had, or "untyped" when its values had more than one.
 func record(label, value) -> void:
@@ -80,6 +82,9 @@ func _process(delta) -> void:
 
 func _physics_process(delta) -> void:
 \trecord("physics", delta)
+\t# A compound assignment of a typed member with the parameter: the operator's result type.
+\taccumulated += delta
+\trecord("compound", accumulated)
 \tframes += 1
 
 func _notification(what: int) -> void:
@@ -172,6 +177,13 @@ export function measureParameterTypeProof(tools: GodotProofTools): readonly Godo
         target[label.value.value] = typeName(refined ?? (argument.datatype.kind === 'VARIANT' ? undefined : argument.datatype));
       }
     }
+    // The compound assignment's value: the refined type of the `+=` itself.
+    const compound = program.nodes.find((node) => {
+      if (node.kind !== 'ASSIGNMENT' || node.operation === 'OP_NONE') return false;
+      const assignee = program.nodes[node.assignee];
+      return assignee?.kind === 'IDENTIFIER' && assignee.name === 'accumulated';
+    });
+    target['compound'] = typeName(compound === undefined ? undefined : main.refinedTypes.find((entry) => entry.nodeId === compound.id)?.datatype ?? (compound.datatype.kind === 'VARIANT' ? undefined : compound.datatype));
     // The recorder's own `value` is passed values of several types: it stays untyped.
     const recorder = program.nodes.find((node) => node.kind === 'IDENTIFIER' && node.source === 'FUNCTION_PARAMETER' && node.name === 'value');
     target['recorder-value'] = typeName(recorder === undefined ? undefined : main.refinedTypes.find((entry) => entry.nodeId === recorder.id)?.datatype);

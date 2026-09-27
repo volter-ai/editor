@@ -157,6 +157,13 @@ rule('builtin-constant', 'SUBSCRIPT', 'subscript-attribute:builtin-constant', []
 });
 // A script instance's member variable read on another object (`t.level`): the generated
 // instance's field (`OPCODE_GET_NAMED` finds the script member before the native property).
+// A script instance's function named on another object (`t.describe()`): the callee of a call the
+// VM dispatches on the instance (`OPCODE_CALL`, the script's function before ClassDB's).
+rule('script-method-callee', 'SUBSCRIPT', 'subscript-attribute', [CLASS], CALLEE, structural('subscript-attribute'), {
+  file: 'modules/gdscript/gdscript_vm.cpp',
+  symbol: 'OPCODE_CALL (script instance function)',
+  line: 1903,
+});
 rule('script-member-read', 'SUBSCRIPT', 'subscript-attribute', [CLASS], B, structural('subscript-attribute'), {
   file: 'modules/gdscript/gdscript_vm.cpp',
   symbol: 'OPCODE_GET_NAMED (script instance member)',
@@ -250,6 +257,15 @@ rule('object-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, NAT
   symbol: 'OperatorEvaluatorObjectEqual (identity)',
   line: 509,
 });
+// `!=` on objects is the negated identity (`variant_op.cpp:636`, `:637`).
+for (const [id, left, right, symbol, line] of [
+  ['object-not-equal-null', NATIVE, B, 'OperatorEvaluatorNotEqualObjectNil', 637],
+  ['script-not-equal-null', CLASS, B, 'OperatorEvaluatorNotEqualObjectNil', 637],
+  ['object-not-equal', NATIVE, NATIVE, 'OperatorEvaluatorNotEqualObject', 636],
+  ['script-not-equal-object', CLASS, NATIVE, 'OperatorEvaluatorNotEqualObject', 636],
+] as const) {
+  rule(id, 'BINARY_OPERATOR', 'operator:OP_COMP_NOT_EQUAL:1', [left, right], B, { kind: 'binary', operator: '!==' }, { file: VARIANT_OP, symbol, line });
+}
 
 // ---------------------------------------------------------------------------------------------
 // The scene tree from script: `$Path`, type tests and casts on objects.
@@ -1330,10 +1346,16 @@ const TAGGED_SOURCE = `class_name Tagged
 extends Node3D
 
 var level: int = 3
+
+func describe() -> int:
+\treturn level
 `;
 
 const DERIVED_TAGGED_SOURCE = `class_name DerivedTagged
 extends Tagged
+
+func describe() -> int:
+\treturn level * 10
 `;
 
 /** Type tests and casts over a scene of native and scripted nodes. */
@@ -1364,6 +1386,19 @@ func scripts() -> Array:
 func nulls() -> Array:
 \tvar nothing: Node = null
 \treturn [nothing is Node, nothing is Tagged]
+
+# A script function called through a receiver declared as the base script: the instance's own
+# (most derived) function runs (\`script-method-dispatch\`).
+func dispatched() -> Array:
+\tvar t: Tagged = $Tagged
+\tvar d: Tagged = $Derived
+\treturn [t.describe(), d.describe()]
+
+func not_nulls() -> Array:
+\tvar nothing: Node = null
+\tvar body: Node = $Body
+\tvar tagged: Tagged = $Tagged
+\treturn [nothing != null, body != null, tagged != null, body != nothing, tagged != body]
 
 func narrowed_members() -> Array:
 \tvar t: Node = $Tagged
@@ -1752,7 +1787,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
