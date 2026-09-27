@@ -20,7 +20,7 @@ import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import { AutomationLane } from './AutomationLane';
-import { freezeClip } from './freeze-clip';
+import { type FreezeTarget, freezeClip } from './freeze-clip';
 import { applySource, type Literal, propRefusal, readSource, recordStructWrite, restoreProps, setProps, setRefusal, type SourceIndex, writeProps, writeStruct } from './source-index';
 import { attributeText, type NoteInsert, rewriteNotes } from './source-notes';
 
@@ -118,9 +118,8 @@ export function PianoRoll(props: {
   readonly clip: PieceClip;
   readonly color: string;
   readonly trackName: string;
-  /** The clip's place among its track's clips, from 1: how the freezer finds it. */
-  /** The clip's place among its track's arrangement clips, from 1; 0 for a launcher slot's clip. */
-  readonly clipNumber: number;
+  /** How the freezer finds the clip: its place among its track's clips, or its scene's slot. */
+  readonly freezeTarget: FreezeTarget;
   readonly graph: DawNode | null;
   readonly piece: Piece;
   readonly index: SourceIndex;
@@ -681,9 +680,8 @@ export function PianoRoll(props: {
     clip.notes.some((note) => note.oid !== null && count(note.oid) > 1) || clip.lanes.some((lane) => lane.oid !== null && count(lane.oid) > 1);
   const freeze = async (): Promise<void> => {
     if (!props.graph) return;
-    if (props.clipNumber < 1) throw new Error('Freeze writes out an arrangement clip; a launcher slot’s clip is not frozen here yet.');
     const prevSource = await readSource(props.file);
-    const newSource = freezeClip(prevSource, props.graph, props.trackName, props.clipNumber);
+    const newSource = freezeClip(prevSource, props.graph, props.freezeTarget);
     if (!(await applySource(props.file, newSource, prevSource))) throw new Error(`${props.file} changed while freezing; try again.`);
     recordStructWrite('Freeze Clip', { file: props.file, prevSource, newSource }, where, props.onMessage);
   };

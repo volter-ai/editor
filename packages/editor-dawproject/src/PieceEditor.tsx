@@ -418,7 +418,7 @@ export function PieceEditor({
     if (!piece) return null;
     for (const [trackIndex, track] of piece.tracks.entries()) {
       for (const candidate of track.clips) {
-        if (candidate.id === selectedClip) return { clip: candidate, track, trackIndex, slot: false };
+        if (candidate.id === selectedClip) return { clip: candidate, track, trackIndex, scene: null };
       }
     }
     for (const scene of piece.scenes) {
@@ -426,13 +426,13 @@ export function PieceEditor({
         if (slot.clip?.id !== selectedClip) continue;
         const trackIndex = piece.tracks.findIndex((track) => track.name === slot.track);
         const track = piece.tracks[trackIndex];
-        if (track) return { clip: slot.clip, track, trackIndex, slot: true };
+        if (track) return { clip: slot.clip, track, trackIndex, scene: scene.name };
       }
     }
     const firstTrack = piece.tracks.findIndex((track) => track.clips.length > 0);
     const track = piece.tracks[firstTrack];
     const first = track?.clips[0];
-    return track && first ? { clip: first, track, trackIndex: firstTrack, slot: false } : null;
+    return track && first ? { clip: first, track, trackIndex: firstTrack, scene: null } : null;
   }, [piece, selectedClip]);
 
   selectedTrackRef.current = selectedTrack ?? clip?.track.id ?? null;
@@ -565,12 +565,12 @@ export function PieceEditor({
             clip={clip.clip}
             color={trackColor(clip.track, clip.trackIndex)}
             trackName={clip.track.name}
-            clipNumber={clip.slot ? 0 : clip.track.clips.indexOf(clip.clip) + 1}
+            freezeTarget={clip.scene === null ? { track: clip.track.name, clip: clip.track.clips.indexOf(clip.clip) + 1 } : { track: clip.track.name, scene: clip.scene }}
             graph={live.graph}
             piece={piece}
             index={index}
             pxPerBeat={pxPerBeat * 2}
-            playhead={clip.slot ? null : arrangePlayhead}
+            playhead={clip.scene === null ? arrangePlayhead : null}
             onMessage={setMessage}
             file={file}
             documentId={documentId}

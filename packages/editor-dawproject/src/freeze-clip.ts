@@ -27,11 +27,45 @@ function writeNote(node: DawNode, meter: number, flats: boolean): string {
   // served file's, never the source's.
   return `<Note ${Object.entries(props).filter(([name, value]) => value !== undefined && !name.startsWith('data-')).map(([name, value]) => attr(name, value)).join(' ')} />`;
 }
-function nearestTrack(node: SourceElement): SourceElement | undefined {
+function nearest(node: SourceElement, tag: string): SourceElement | undefined {
   for (let parent = node.parent; parent; parent = parent.parent) {
-    if (ts.isJsxElement(parent) && parent.openingElement.tagName.getText() === 'Track') return parent;
+    if (ts.isJsxElement(parent) && parent.openingElement.tagName.getText() === tag) return parent;
   }
   return undefined;
+}
+
+/**
+ * Which clip to freeze: the `clip`th (from 1) `<Clip>` of the track named `track` in the
+ * arrangement, or the clip in scene `scene`'s `<ClipSlot track>` of the launcher.
+ */
+export type FreezeTarget = { readonly track: string; readonly clip: number } | { readonly track: string; readonly scene: string };
+
+/** The mounted clip and its one static source element for a target, or a refusal naming why. */
+function locate(file: ts.SourceFile, graph: DawNode, target: FreezeTarget): { clip: DawNode; element: SourceElement } {
+  if ('scene' in target) {
+    const scenes = graph.children.filter((node) => node.type === 'Scene' && node.props['name'] === target.scene);
+    if (scenes.length !== 1) throw new Error(`Expected one mounted scene named "${target.scene}", found ${scenes.length}.`);
+    const slot = scenes[0]!.children.find((node) => node.type === 'ClipSlot' && node.props['track'] === target.track);
+    const clip = slot?.children.find((node) => node.type === 'Clip');
+    if (!clip) throw new Error(`Scene "${target.scene}" has no clip for "${target.track}".`);
+    const matches = elements(file, 'Clip').filter((node) => {
+      const slotElement = nearest(node, 'ClipSlot');
+      const scene = nearest(node, 'Scene');
+      return slotElement && scene && literalProp(slotElement, 'track') === target.track && literalProp(scene, 'name') === target.scene;
+    });
+    if (matches.length !== 1) throw new Error(`Expected one source Clip in scene "${target.scene}"'s slot for "${target.track}", found ${matches.length}.`);
+    return { clip, element: matches[0]! };
+  }
+  const tracks = graph.children.filter((node) => node.type === 'Track' && node.props['name'] === target.track);
+  if (tracks.length !== 1) throw new Error(`Expected one mounted track named "${target.track}", found ${tracks.length}.`);
+  const clip = tracks[0]!.children.filter((node) => node.type === 'Clip')[target.clip - 1];
+  if (!clip) throw new Error(`Track "${target.track}" has no clip ${target.clip}.`);
+  const matches = elements(file, 'Clip').filter((node) => {
+    const track = nearest(node, 'Track');
+    return track && literalProp(track, 'name') === target.track && literalProp(node, 'at') === clip.props['at'];
+  });
+  if (matches.length !== 1) throw new Error(`Expected one source Clip with literal at="${clip.props['at']}" in track "${target.track}", found ${matches.length}.`);
+  return { clip, element: matches[0]! };
 }
 function staticLane(node: SourceElement): boolean {
   if (!isStaticElement(node) || !literalProps(node)) return false;
@@ -43,19 +77,10 @@ function staticLane(node: SourceElement): boolean {
 function laneKey(props: Readonly<Record<string, unknown>>, points: readonly Readonly<Record<string, unknown>>[], meter: number): string {
   return JSON.stringify([props['target'], points.map((point) => [beatAt(String(point['at']), meter), point['value'], point['hold'] === true])]);
 }
-export function freezeClip(source: string, graph: DawNode, trackName: string, index: number): string {
-  const tracks = graph.children.filter((node) => node.type === 'Track' && node.props['name'] === trackName);
-  if (tracks.length !== 1) throw new Error(`Expected one mounted track named "${trackName}", found ${tracks.length}.`);
-  const clip = tracks[0]!.children.filter((node) => node.type === 'Clip')[index - 1];
-  if (!clip) throw new Error(`Track "${trackName}" has no clip ${index}.`);
+export function freezeClip(source: string, graph: DawNode, where: FreezeTarget): string {
   const meter = beatsPerBarOf(String(graph.children.find((node) => node.type === 'Transport')?.props['meter'] ?? '4/4'));
   const file = parseSource(source);
-  const matches = elements(file, 'Clip').filter((node) => {
-    const track = nearestTrack(node);
-    return track && literalProp(track, 'name') === trackName && literalProp(node, 'at') === clip.props['at'];
-  });
-  if (matches.length !== 1) throw new Error(`Expected one source Clip with literal at="${clip.props['at']}" in track "${trackName}", found ${matches.length}.`);
-  const target = matches[0]!;
+  const { clip, element: target } = locate(file, graph, where);
   if (!isStaticElement(target)) throw new Error('Cannot freeze a Clip inside an expression container or callback because it has no single static source location.');
   if (!ts.isJsxElement(target)) throw new Error('Cannot freeze a self-closing Clip because it has no source children.');
   if (clip.children.some((child) => child.type !== 'Note' && child.type !== 'Points')) throw new Error('Cannot freeze a Clip containing unsupported child elements.');

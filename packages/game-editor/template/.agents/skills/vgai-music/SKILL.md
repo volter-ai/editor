@@ -181,7 +181,8 @@ Literal `<Note>`s are WRITTEN: the person drags, adds, deletes and reshapes them
 Use code for material that follows a rule (a pad over the chord table), literals for what a
 person will shape (melodies, bass lines). When they want to shape generated material, the clip
 editor's Freeze writes it out, or run
-`npx tsx node_modules/@volter/editor-dawproject/scripts/freeze-clip.ts src/music/<piece>.tsx --track <name> --clip <n>`.
+`npx tsx node_modules/@volter/editor-dawproject/scripts/freeze-clip.ts src/music/<piece>.tsx --track <name> --clip <n>`
+(`--scene <name>` instead of `--clip` for that track's launcher slot in a scene).
 
 Before rewriting a section, read what the person changed (`git diff`, `git log -p`): change
 only what you were asked to, and leave their edits where they put them.
