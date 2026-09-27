@@ -150,6 +150,11 @@ export interface TargetGodotSceneResourcePlan {
   readonly animationTree?: GodotAnimationNodeData;
   /** A `.gdshader` as the pinned Godot's shader frontend read it, lowered to GLSL (`shader-glsl.ts`). */
   readonly shader?: TargetGodotLoweredShader;
+  /**
+   * An engine material's generated shaders (`sky_material.cpp` `_update_shader`), each a planned
+   * `Shader` resource's key, by the name its binding selects it with.
+   */
+  readonly engineShaders?: Readonly<Record<string, string>>;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
 }
@@ -245,6 +250,14 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
     entry: lowered.entry,
   };
 }
+
+/**
+ * How each engine material binding names the shader a variant's properties select
+ * (`panorama-sky-material.ts`); a class with no entry has no binding.
+ */
+const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record<string, boolean>>) => string>> = {
+  PanoramaSkyMaterial: (variant) => (variant['filter'] === true ? 'filterOn' : 'filterOff'),
+};
 
 /** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */
 function cubemapLoad(cubemap: BoundGodotCubemapDocument): TargetGodotImportedLoad | string {
@@ -606,6 +619,33 @@ function planResource(
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
   }
+  // An engine material: every shader its class generates, captured from the pinned Godot and
+  // lowered as a `.gdshader` is, each planned as a `Shader` its binding selects between.
+  const generated = (context.project?.documents.engineShaders ?? []).filter((entry) => entry.materialClass === data.type);
+  let engineShaders: Record<string, string> | undefined;
+  if (generated.length > 0) {
+    const lowerings = generated.map((shader) => ({ shader, lowered: shaderPlan(shader) }));
+    const unlowered = lowerings.find((entry) => typeof entry.lowered === 'string');
+    if (unlowered !== undefined) {
+      refuse(context, `${at}(${key})`, `${data.type}'s generated shader ${unlowered.shader.path}: ${String(unlowered.lowered)}`, 'resource', data.type);
+      return undefined;
+    }
+    const select = ENGINE_SHADER_SELECTORS[data.type];
+    const shaderRule = context.authority.resourceRule('Shader');
+    if (select === undefined || shaderRule === undefined) {
+      refuse(context, `${at}(${key})`, select === undefined ? `no binding selects ${data.type}'s generated shaders` : 'no live resource rule constructs Shader', 'resource', data.type);
+      return undefined;
+    }
+    context.evidence.add(shaderRule.evidenceClaimId);
+    engineShaders = {};
+    for (const { shader, lowered } of lowerings) {
+      const shaderKey = `${key}#${shader.path}`;
+      const planned = { key: shaderKey, className: 'Shader', construct: shaderRule.construct, shader: lowered as TargetGodotLoweredShader, setters: [], evidenceClaimId: shaderRule.evidenceClaimId };
+      document.planned.set(shaderKey, planned);
+      document.order.push(planned);
+      engineShaders[select(shader.variant)] = shaderKey;
+    }
+  }
   const rule = context.authority.resourceRule(data.type);
   if (rule === undefined) {
     refuse(context, at, `no live resource rule constructs ${data.type}`, 'resource', data.type);
@@ -680,7 +720,7 @@ function planResource(
     return undefined;
   }
   context.evidence.add(rule.evidenceClaimId);
-  const planned = { key, className: data.type, construct: rule.construct, setters, evidenceClaimId: rule.evidenceClaimId };
+  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), setters, evidenceClaimId: rule.evidenceClaimId };
   document.planned.set(key, planned);
   document.order.push(planned);
   return key;

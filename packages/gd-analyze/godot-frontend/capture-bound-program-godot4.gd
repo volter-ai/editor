@@ -134,9 +134,12 @@ func _engine_shader(exporter: GDScriptFrontendExporter, material: Material, mate
 	var query: Array[String] = []
 	for key in keys:
 		query.append("%s=%s" % [key, "true" if variant[key] else "false"])
-	var row: Dictionary = exporter.export_engine_shader(material, "engine://%s?%s" % [material_class, "&".join(query)])
+	var path := "engine://%s?%s" % [material_class, "&".join(query)]
+	var row: Dictionary = {"path": path, "ok": false, "stage": "exporter", "message": "this exporter build exports no engine shader"}
+	if exporter.has_method("export_engine_shader"):
+		row = exporter.call("export_engine_shader", material, path)
 	row["materialClass"] = material_class
 	row["variant"] = variant
-	if row.has("source"):
-		row["sourceSha256"] = (row["source"] as String).sha256_text()
+	row["sourceSha256"] = (row.get("source", "") as String).sha256_text()
+	row.erase("source")
 	return row

@@ -93,8 +93,8 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
     },
     officialSourcePatch: '4.7-selected-call-targets.patch',
     boundExporter: {
-      executableSha256: '814bf8e8d50fce2ea30f26c01ef5a00fc21ba0f0b378695592ecbbbc134cd928',
-      exporterSourceSha256: '93cdaf5c41786b0a0c0bea17a6f7650ace1c624d5d613e78f86bb2fdb6e46694',
+      executableSha256: '21e4bd4c452545c7543c6cd4ee1bc07215063e65a2eb71590b5374dd23b9ce7d',
+      exporterSourceSha256: '6e2b183a5b33ab576eb5bb8c2553f819c1219825684c3340c27258fd3664629e',
       sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
       sourceArchiveSha256: 'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6',
       buildOptions:

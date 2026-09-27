@@ -606,10 +606,12 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   const local = freshLocal(emission, key.replace(/^.*[:/#]/u, '').replace(/_[A-Za-z0-9]{5}$/u, ''));
   emission.hookLocals.set(key, local);
   const constructor = useCompat(emission, resource.construct.module.replace(/^lib\/godot-compat\//u, ''), resource.construct.exportName);
+  // An engine material's generated shaders come first, by the name its binding selects each with.
+  const engineShaders = resource.engineShaders === undefined ? [] : [{ kind: 'object-expression' as const, properties: Object.entries(resource.engineShaders).map(([name, shaderKey]) => ({ key: name, value: identifier(resourceLocal(emission, shaderKey)) })) }];
   const made: TargetTsExpression = {
     kind: 'call-expression',
     callee: identifier(constructor),
-    arguments: properties.length === 0 ? [] : [{ kind: 'object-expression', properties }],
+    arguments: [...engineShaders, ...(properties.length === 0 ? (engineShaders.length === 0 ? [] : [{ kind: 'object-expression' as const, properties: [] }]) : [{ kind: 'object-expression' as const, properties }])],
   };
   if (uses.length === 0) {
     emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });

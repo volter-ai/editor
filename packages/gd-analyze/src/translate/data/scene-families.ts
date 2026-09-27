@@ -315,6 +315,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_sdfgi_energy',
   ],
   Sky: ['set_material', 'set_radiance_size', 'set_process_mode'],
+  PanoramaSkyMaterial: ['set_panorama', 'set_filtering_enabled', 'set_energy_multiplier'],
   ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],
   Shader: [],
   CompressedCubemap: [],

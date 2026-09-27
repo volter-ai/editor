@@ -8,7 +8,9 @@
  * text the production lowering prints (`shader-glsl.ts`), the built-ins named as Godot's
  * Compatibility sky shader names them (`drivers/gles3/storage/material_storage.cpp:1522`). The
  * headless binary renders nothing, so the frontend's tree stands for Godot; the comparison is of
- * every output (`COLOR`, `ALPHA`) bit for bit.
+ * every output (`COLOR`, `ALPHA`) bit for bit. The engine sky materials' own shaders (the text
+ * `sky_material.cpp` generates, captured by the exporter from the server) are run the same way, keyed
+ * by their text's digest; one the lowering refuses is named in the detail and not compared.
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -79,6 +81,9 @@ function directions(count: number): readonly (readonly number[])[] {
 /** A cubemap stand-in: a smooth colour of the direction. */
 const cube: ShaderSampler = (d) => [f32(0.5 + 0.5 * (d[0] as number)), f32(0.5 + 0.25 * (d[1] as number)), f32(0.75 - 0.25 * (d[2] as number)), 1];
 
+/** A 2D panorama stand-in: a smooth colour of the coordinates. */
+const flat: ShaderSampler = (uv) => [f32(0.25 + 0.5 * (uv[0] as number)), f32(0.75 - 0.5 * (uv[1] as number)), f32(0.5), 1];
+
 /** Godot's sky pass's panorama coordinates for a direction, as its uniform inputs (`sky.glsl:205`). */
 function panorama(d: readonly number[]): readonly number[] {
   return [f32(((Math.atan2(d[0] as number, -(d[2] as number)) + 2 * Math.PI) % (2 * Math.PI)) / (2 * Math.PI)), f32(Math.acos(d[1] as number) / Math.PI)];
@@ -103,13 +108,20 @@ export function measureShaderLoweringProof(tools: GodotProofTools): readonly God
     const samples = directions(24);
     const reference: Record<string, unknown> = {};
     const lowered: Record<string, unknown> = {};
-    for (const shader of program.shaders as readonly GodotBoundShader[]) {
+    const refused: string[] = [];
+    const engine = program.engineShaders.map((shader) => ({ shader, key: `${shader.path}@${shader.sourceSha256}` }));
+    for (const { shader, key } of [...program.shaders.map((shader: GodotBoundShader) => ({ shader, key: shader.path })), ...engine]) {
       if (!shader.ok) throw new Error(`${shader.path}: the shader frontend refused it: ${shader.message}`);
       const lowering = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
-      if (typeof lowering === 'string') throw new Error(lowering);
+      if (typeof lowering === 'string') {
+        if (key === shader.path) throw new Error(lowering);
+        refused.push(`${key}: ${lowering}`);
+        continue;
+      }
       const defaults = new Map<string, ShaderValue | ShaderSampler>();
       for (const uniform of shader.tree.uniforms) {
         if (uniform.type.name === 'samplerCube') defaults.set(uniform.name, cube);
+        else if (uniform.type.name === 'sampler2D') defaults.set(uniform.name, flat);
         else if (uniform.default.length > 0) {
           const values = uniform.default.map((value) => ('float' in value ? value.float : 'int' in value ? value.int : 'uint' in value ? value.uint : value.bool ? 1 : 0));
           defaults.set(uniform.name, values.length === 1 ? (values[0] as number) : values);
@@ -140,8 +152,8 @@ export function measureShaderLoweringProof(tools: GodotProofTools): readonly God
         evaluateGlsl(`${lowering.functions}\n${lowering.entry}`, variables);
         rowsLowered.push([variables.get('color'), variables.get('alpha')]);
       }
-      reference[shader.path] = rows;
-      lowered[shader.path] = rowsLowered;
+      reference[key] = rows;
+      lowered[key] = rowsLowered;
     }
     const nativeJson = JSON.stringify(canonical(reference));
     const targetJson = JSON.stringify(canonical(lowered));
@@ -156,7 +168,7 @@ export function measureShaderLoweringProof(tools: GodotProofTools): readonly God
           comparison: sha256(comparison),
         },
         agree: nativeJson === targetJson,
-        detail: `native ${nativeJson}\ntarget ${targetJson}`,
+        detail: `native ${nativeJson}\ntarget ${targetJson}\nnot lowered ${JSON.stringify(refused)}`,
       },
     ];
   } finally {

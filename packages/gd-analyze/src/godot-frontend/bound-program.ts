@@ -1,8 +1,13 @@
-import { decodeGodotBoundShader, type GodotBoundShader } from './bound-shader';
+import {
+  decodeGodotBoundEngineShader,
+  decodeGodotBoundShader,
+  type GodotBoundEngineShader,
+  type GodotBoundShader,
+} from './bound-shader';
 import { GODOT_4_SOURCE_AUTHORITIES } from './source-authority';
 
 export const GODOT_BOUND_PROGRAM_PROTOCOL = 'vgai.godot-bound-program' as const;
-export const GODOT_BOUND_PROGRAM_VERSION = 11 as const;
+export const GODOT_BOUND_PROGRAM_VERSION = 12 as const;
 
 export interface GodotBoundProgramIdentity {
   readonly sourceRevision: string;
@@ -460,6 +465,8 @@ export interface GodotBoundProgram {
   readonly scripts: readonly GodotBoundScript[];
   /** Each `.gdshader` as the official shader frontend read it (`bound-shader.ts`). */
   readonly shaders: readonly GodotBoundShader[];
+  /** Each engine sky material class's generated shaders, every variant (`bound-shader.ts`). */
+  readonly engineShaders: readonly GodotBoundEngineShader[];
 }
 
 type ObjectValue = Record<string, unknown>;
@@ -1399,7 +1406,7 @@ export function decodeGodotBoundProgram(
   const root = object(value, 'Godot bound program');
   exactKeys(
     root,
-    ['protocol', 'protocolVersion', 'authority', 'engine', 'scripts', 'shaders'],
+    ['protocol', 'protocolVersion', 'authority', 'engine', 'scripts', 'shaders', 'engineShaders'],
     'Godot bound program',
   );
   if (root['protocol'] !== GODOT_BOUND_PROGRAM_PROTOCOL) {
@@ -1470,6 +1477,10 @@ export function decodeGodotBoundProgram(
     ),
     shaders: array(root['shaders'], 'Godot bound program.shaders').map((entry, index) =>
       decodeGodotBoundShader(entry, `Godot bound program.shaders[${index}]`),
+    ),
+    engineShaders: array(root['engineShaders'], 'Godot bound program.engineShaders').map(
+      (entry, index) =>
+        decodeGodotBoundEngineShader(entry, `Godot bound program.engineShaders[${index}]`),
     ),
   };
 }

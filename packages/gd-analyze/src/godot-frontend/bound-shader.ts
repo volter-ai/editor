@@ -142,6 +142,16 @@ export type GodotBoundShader =
       readonly line?: number;
     };
 
+/**
+ * A shader an engine material class generates for itself (`sky_material.cpp` `_update_shader`),
+ * captured from the server as that class built it and read by the same frontend as a `.gdshader`.
+ * `variant` names the properties that select which of the class's shaders it is.
+ */
+export type GodotBoundEngineShader = GodotBoundShader & {
+  readonly materialClass: string;
+  readonly variant: Readonly<Record<string, boolean>>;
+};
+
 type Row = Record<string, unknown>;
 
 function row(value: unknown, at: string): Row {
@@ -354,5 +364,18 @@ export function decodeGodotBoundShader(value: unknown, at: string): GodotBoundSh
     ...(typeof r['shaderType'] === 'string' ? { shaderType: r['shaderType'] } : {}),
     ...(typeof r['preprocessed'] === 'string' ? { preprocessed: r['preprocessed'] } : {}),
     ...(typeof r['line'] === 'number' ? { line: r['line'] } : {}),
+  };
+}
+
+/** One engine material shader row of the bound program. */
+export function decodeGodotBoundEngineShader(value: unknown, at: string): GodotBoundEngineShader {
+  const r = row(value, at);
+  const variant = row(r['variant'], `${at}.variant`);
+  return {
+    ...decodeGodotBoundShader(value, at),
+    materialClass: text(r['materialClass'], `${at}.materialClass`),
+    variant: Object.fromEntries(
+      Object.entries(variant).map(([key, entry]) => [key, flag(entry, `${at}.variant.${key}`)]),
+    ),
   };
 }

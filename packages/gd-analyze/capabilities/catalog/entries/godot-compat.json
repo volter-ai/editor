@@ -80,6 +80,7 @@
     "src/lib/godot-compat/packed-scene-instance.tsx",
     "src/lib/godot-compat/packed-scene.tsx",
     "src/lib/godot-compat/packed-string-array.ts",
+    "src/lib/godot-compat/panorama-sky-material.ts",
     "src/lib/godot-compat/physics-body-3d.ts",
     "src/lib/godot-compat/physics-direct-body-state-3d.ts",
     "src/lib/godot-compat/physics-direct-space-state-3d.ts",

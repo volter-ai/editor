@@ -6,7 +6,9 @@
  * background, ambient, tone mapping and fog; the sky's settings; the shader's mode and the
  * material's parameters; each cubemap face's bytes as RGBA8), against the components the production
  * pipeline emits for the same project, mounted in Node by @react-three/fiber with the copied image
- * sliced on the page, read through compat.
+ * sliced on the page, read through compat. A camera's own environment draws a PanoramaSkyMaterial,
+ * whose shaders its class generates (captured from the exporter and lowered, `shader-lowering`):
+ * its filtering, energy and panorama read back.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -47,7 +49,7 @@ window/size/viewport_height=64
 renderer/rendering_method="gl_compatibility"
 `,
   'stage/skybox.gdshader': readFileSync(path.join(FIXTURE, 'stage/skybox.gdshader'), 'utf8'),
-  'main.tscn': `[gd_scene load_steps=5 format=3]
+  'main.tscn': `[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Shader" path="res://stage/skybox.gdshader" id="3_s88my"]
 [ext_resource type="CompressedCubemap" path="res://stage/skybox.webp" id="4_ve7pq"]
@@ -71,10 +73,24 @@ fog_enabled = true
 fog_density = 0.0015
 fog_sky_affect = 0.0
 
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_fjheq"]
+filter = false
+energy_multiplier = 0.5
+
+[sub_resource type="Sky" id="Sky_7bk1c"]
+sky_material = SubResource("PanoramaSkyMaterial_fjheq")
+
+[sub_resource type="Environment" id="Environment_camera"]
+background_mode = 2
+sky = SubResource("Sky_7bk1c")
+
 [node name="Main" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_vpofs")
+
+[node name="Camera" type="Camera3D" parent="."]
+environment = SubResource("Environment_camera")
 `,
 };
 
@@ -89,6 +105,9 @@ func _sha(bytes: PackedByteArray) -> String:
 \tctx.start(HashingContext.HASH_SHA256)
 \tctx.update(bytes)
 \treturn ctx.finish().hex_encode()
+
+func _panorama(m: PanoramaSkyMaterial) -> Array:
+\treturn [m.filter, _bits(m.energy_multiplier), m.panorama == null]
 
 func _process(_delta: float) -> bool:
 \tvar main: Node = load("res://main.tscn").instantiate()
@@ -114,6 +133,7 @@ func _process(_delta: float) -> bool:
 \t\t"sky": [env.sky.radiance_size, env.sky.process_mode],
 \t\t"material": [material.shader.get_mode(), _bits(material.get_shader_parameter("exposure"))],
 \t\t"faces": faces,
+\t\t"panorama": _panorama(main.get_node("Camera").environment.sky.sky_material),
 \t}
 \tprint("ENVIRONMENT " + JSON.stringify(rows))
 \treturn true
@@ -141,6 +161,8 @@ import * as SK from './src/lib/godot-compat/sky';
 import * as SM from './src/lib/godot-compat/shader-material';
 import * as SH from './src/lib/godot-compat/shader';
 import * as W from './src/lib/godot-compat/world-environment';
+import * as C3 from './src/lib/godot-compat/camera-3d';
+import * as PS from './src/lib/godot-compat/panorama-sky-material';
 
 const require = createRequire(import.meta.url);
 IMG.godot_image_webp_module(await WebAssembly.compile(readFileSync(require.resolve('@jsquash/webp/codec/dec/webp_dec.wasm'))));
@@ -181,6 +203,10 @@ const rows = {
   sky: [SK.get_radiance_size(sky), SK.get_process_mode(sky)],
   material: [SH.get_mode(SM.get_shader(material)), bits(SM.get_shader_parameter(material, 'exposure'))],
   faces,
+  panorama: (() => {
+    const m = SK.get_material(E.get_sky(C3.get_environment(main.getObjectByName('Camera'))));
+    return [PS.is_filtering_enabled(m), bits(PS.get_energy_multiplier(m)), PS.get_panorama(m) === null];
+  })(),
 };
 await act(async () => { root.unmount(); });
 writeFileSync('environment.json', JSON.stringify(rows));

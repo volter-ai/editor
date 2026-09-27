@@ -1,4 +1,4 @@
-import type { GodotBoundShader } from '../godot-frontend/bound-shader';
+import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
@@ -300,6 +300,8 @@ export interface BoundGodotProjectDocuments {
   readonly sounds: readonly BoundGodotSoundDocument[];
   /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
   readonly shaders: readonly GodotBoundShader[];
+  /** Each engine sky material class's own generated shaders, read by the same frontend. */
+  readonly engineShaders: readonly GodotBoundEngineShader[];
   /** Images Godot's `cubemap_texture` importer imports: the source bytes and the importer's options. */
   readonly cubemaps: readonly BoundGodotCubemapDocument[];
 }
@@ -598,6 +600,7 @@ function boundDocuments(
   scriptFields: ReadonlyMap<string, ReadonlySet<string>>,
   evidence: AnalysisEvidence,
   shaders: readonly GodotBoundShader[],
+  engineShaders: readonly GodotBoundEngineShader[],
 ): BoundGodotProjectDocuments {
   const resolveSceneClass = sceneClassResolver(authority, apiDump, projectClasses, evidence);
   const provenance = (document: { readonly resPath: string }) => {
@@ -698,6 +701,7 @@ function boundDocuments(
       }),
     ),
     shaders,
+    engineShaders,
     cubemaps: unique(
       'cubemap',
       decoded.imports.flatMap((sidecar) => {
@@ -1406,6 +1410,7 @@ export function bindGodotProject(
     indexedScriptFieldProperties(scripts),
     analysisEvidence,
     code.shaders,
+    code.engineShaders,
   );
 
   return {
