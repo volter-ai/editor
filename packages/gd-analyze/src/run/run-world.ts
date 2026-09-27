@@ -361,6 +361,11 @@ export async function runImportedWorld(projectDir: string, options: RunWorldOpti
                 `${String(stepTimes.length)} physics frames, slowest ${String(percentile(stepTimes, 1))} ms, p50 ${String(percentile(stepTimes, 0.5))} ms, p99 ${String(percentile(stepTimes, 0.99))} ms; ` +
                 `physics per frame slowest ${String(percentile(physicsTimes, 1))} ms, p50 ${String(percentile(physicsTimes, 0.5))} ms, p99 ${String(percentile(physicsTimes, 0.99))} ms\n`,
             );
+            // A world that mounted but never stepped (a mount error React logged) is a failure.
+            if (stepTimes.length === 0) {
+              errors += 1;
+              process.stdout.write('no physics frame stepped: the world never ran\n');
+            }
             if (options.profile !== true) resolve(errors === 0 ? 0 : 1);
             break;
           case 'failed':

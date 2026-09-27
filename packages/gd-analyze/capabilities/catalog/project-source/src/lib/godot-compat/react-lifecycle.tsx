@@ -348,6 +348,11 @@ export interface GodotElementClass<Entity extends Object3D> {
 /** Three's own transform props, which a spatial element hands its object. */
 const THREE_TRANSFORM = new Set(['position', 'rotation', 'scale', 'quaternion', 'matrix', 'matrixAutoUpdate']);
 
+/** `userData` or one of its fields (`userData-NAME`, which R3F sets as `userData.NAME`). */
+function isUserData(property: string): boolean {
+  return property === 'userData' || property.startsWith('userData-');
+}
+
 /**
  * A node of a Godot class the scene's JSX writes as an element (`<GodotLabel text="…" />`): its
  * entity made as `SceneState::instantiate` makes the node (created, its class recorded, its
@@ -367,8 +372,9 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', classes: element.classes });
     element.mount(made);
     for (const [property, value] of Object.entries(properties)) {
-      // `userData` is the node's Godot-only state (its groups, `%Name`), which the Node protocol reads.
-      if ((element.spatial && THREE_TRANSFORM.has(property)) || property === 'userData') continue;
+      // `userData` (or one of its fields, `userData-NAME`) is the node's Godot-only state (its groups,
+      // `%Name`, its authored transform), which the Node protocol reads.
+      if ((element.spatial && THREE_TRANSFORM.has(property)) || isUserData(property)) continue;
       // The node's metadata, by name (`Object::_set`, `metadata/NAME`, `object.cpp:279`).
       if (property === 'meta') {
         for (const [name, entry] of Object.entries(value as Readonly<Record<string, unknown>>)) set_meta(made, name, entry);
@@ -382,7 +388,7 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     return made;
   });
   const transform = Object.fromEntries(
-    Object.entries(properties).filter(([property]) => property === 'userData' || (element.spatial && THREE_TRANSFORM.has(property))),
+    Object.entries(properties).filter(([property]) => isUserData(property) || (element.spatial && THREE_TRANSFORM.has(property))),
   );
   return createElement('primitive', { object: entity, ref, ...transform }, children);
 }
