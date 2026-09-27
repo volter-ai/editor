@@ -107,7 +107,6 @@ export interface DirectGodotProjectCompositionPlan {
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
-  readonly requiredCompatSymbols: readonly string[];
 }
 
 export interface DirectGodotCompositionDiagnostic {
@@ -496,20 +495,6 @@ function scriptAutoloads(
   return result;
 }
 
-function requiredCompatSymbols(
-  code: OfficialBoundCodePlan,
-  instances: readonly DirectGodotScriptInstancePlan[],
-  autoloads: readonly DirectGodotScriptAutoloadPlan[],
-): readonly string[] {
-  return [
-    ...new Set([
-      ...code.requiredCompatSymbols,
-      ...(instances.length > 0 || autoloads.length > 0 ? ['useGodotScriptTreeAttachment'] : []),
-      'GodotProjectStartup',
-    ]),
-  ].sort();
-}
-
 function validateAutoloadReferences(
   instances: readonly DirectGodotScriptInstancePlan[],
   autoloads: readonly DirectGodotScriptAutoloadPlan[],
@@ -716,7 +701,6 @@ export function planDirectGodotProjectComposition(
       sourceModules: plannedSourceModules,
       scenes: composedScenes,
       scriptAutoloads: autoloads,
-      requiredCompatSymbols: requiredCompatSymbols(code, instances, autoloads),
     },
   };
 }

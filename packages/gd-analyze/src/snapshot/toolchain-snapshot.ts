@@ -19,8 +19,6 @@ import type { GodotCodeTranslationAuthority } from '../translate/code/authority'
 import { godotCodeTranslationAuthority } from '../translate/code/authority-data';
 import type { GodotFieldValueAuthority } from '../translate/data/field-value-authority';
 import { godotFieldValueAuthority } from '../translate/data/field-value-authority-data';
-import type { GodotLifecycleAuthority } from '../translate/data/lifecycle-authority';
-import { godotLifecycleAuthority } from '../translate/data/lifecycle-authority-data';
 import type { GodotSceneNodeAuthority } from '../translate/data/scene-node-authority';
 import { godotSceneNodeAuthority } from '../translate/data/scene-node-authority-data';
 import type { GodotProjectSnapshot } from './project-snapshot';
@@ -98,8 +96,6 @@ export interface GodotToolchainFrontendSnapshot {
   readonly fieldValueAuthorityDigest: string;
   readonly sceneNodeAuthority: GodotSceneNodeAuthority;
   readonly sceneNodeAuthorityDigest: string;
-  readonly lifecycleAuthority: GodotLifecycleAuthority;
-  readonly lifecycleAuthorityDigest: string;
 }
 
 export interface GodotToolchainApiDumpSnapshot {
@@ -513,7 +509,6 @@ function captureToolchainSnapshot(
               codeAuthorityDigest: frontend.codeAuthorityDigest,
               fieldValueAuthorityDigest: frontend.fieldValueAuthorityDigest,
               sceneNodeAuthorityDigest: frontend.sceneNodeAuthorityDigest,
-              lifecycleAuthorityDigest: frontend.lifecycleAuthorityDigest,
               exporter: {
                 version: frontend.exporter.version,
                 executableSha256: frontend.exporter.executableSha256,
@@ -574,7 +569,6 @@ export function captureGodotImportToolchainSnapshot(
   const codeAuthority = godotCodeTranslationAuthority(authority);
   const fieldValueAuthority = godotFieldValueAuthority(authority);
   const sceneNodeAuthority = godotSceneNodeAuthority(authority);
-  const lifecycleAuthority = godotLifecycleAuthority(authority);
   const exporter = captureGodotBoundExporterSnapshot(
     options.boundExporterBinary,
     authority.officialSourcePatch,
@@ -618,8 +612,6 @@ export function captureGodotImportToolchainSnapshot(
     fieldValueAuthorityDigest: sha256(JSON.stringify(fieldValueAuthority)),
     sceneNodeAuthority,
     sceneNodeAuthorityDigest: sha256(JSON.stringify(sceneNodeAuthority)),
-    lifecycleAuthority,
-    lifecycleAuthorityDigest: sha256(JSON.stringify(lifecycleAuthority)),
   };
   return captureToolchainSnapshot(options, frontend) as GodotImportToolchainSnapshot;
 }

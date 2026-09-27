@@ -386,7 +386,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
       if (condition.before.length > 0 || condition.after.length > 0) {
         return context.refuse(
           conditionNode,
-          'sequenced while condition needs an evidenced loop restructuring recipe',
+          'sequenced while condition needs a loop restructuring the lane does not lower',
         );
       }
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
@@ -472,9 +472,9 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         requirements: context.structural(node, 'pass'),
       };
     case 'ASSERT':
-      return context.refuse(node, 'assert needs its evidenced Godot error protocol binding');
+      return context.refuse(node, 'assert needs the Godot error protocol, which compat does not implement');
     case 'MATCH':
-      return context.refuse(node, 'match patterns need their evidenced structured lowering');
+      return context.refuse(node, 'match patterns need a structured lowering the lane does not write');
     case 'BREAKPOINT':
       return context.refuse(node, 'breakpoint is an editor-only source operation');
     default:
@@ -641,7 +641,7 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
   if (node.abstract)
     return context.refuse(node, 'abstract functions need a target declaration recipe');
   if (node.restParameter >= 0) {
-    return context.refuse(node, 'rest parameters need an evidenced rest binding recipe');
+    return context.refuse(node, 'rest parameters need a rest binding the lane does not lower');
   }
   const bodyNode = context.node(node.body, node);
   const structuralRequirements = context.structural(
@@ -809,7 +809,7 @@ export function lowerOfficialClassMembers(
         ],
       };
     }
-    return context.refuse(node, `${node.kind} class member needs an evidenced direct lowering`);
+    return context.refuse(node, `${node.kind} class member has no lowering`);
   }
   const ready = context.recover<LoweredClassMembers>({ members: [], requirements: [] }, () =>
     implicitReadyMembers(context, root, onready),

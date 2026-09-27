@@ -625,7 +625,7 @@ export class LoweringContext {
       const cause = this.untypedLocalCause(inputNodes);
       this.refuse(
         node,
-        cause ?? `no evidenced code rule for ${node.kind}:${semanticKey}; identity=${JSON.stringify(identity)}`,
+        cause ?? `no code rule for ${node.kind}:${semanticKey}; identity=${JSON.stringify(identity)}`,
       );
     }
     if (entry.target.kind === 'refusal') this.refuse(node, entry.target.reason);
@@ -672,7 +672,7 @@ export class LoweringContext {
     if (entry === undefined) {
       this.refuse(
         node,
-        `no evidenced datatype rule for ${node.datatype.display}; identity=${godotBoundDatatypeIdentity(node.datatype)}`,
+        `no datatype rule for ${node.datatype.display}; identity=${godotBoundDatatypeIdentity(node.datatype)}`,
       );
     }
     if (entry.targetType.kind === 'type-reference' && entry.targetType.name === SCRIPT_CLASS_TYPE) {

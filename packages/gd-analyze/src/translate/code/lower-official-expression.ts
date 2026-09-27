@@ -1408,7 +1408,7 @@ export function lowerOfficialExpression(
   /**
    * An operation reading an int-or-float value: each tagged operand is evaluated once (every
    * operand is, in order), then a callsite-local switch over the tags runs the operation's own
-   * evidenced rule for each combination of int and float (`godot_numeric_is_int`), each branch
+   * rule for each combination of int and float (`godot_numeric_is_int`), each branch
    * reading the operand as that type. A result that is an int in one branch and a float in another
    * is tagged again; any other result is plain.
    */
@@ -2344,10 +2344,10 @@ export function lowerOfficialExpression(
         if (fn.kind !== 'FUNCTION')
           return context.refuse(fn, 'lambda does not reference an official FUNCTION node');
         if (fn.restParameter >= 0) {
-          return context.refuse(fn, 'lambda rest parameter needs an evidenced rest binding recipe');
+          return context.refuse(fn, 'lambda rest parameter needs a rest binding the lane does not lower');
         }
         if (fn.returnType >= 0) {
-          return context.refuse(fn, 'typed lambda needs an evidenced target return-type recipe');
+          return context.refuse(fn, 'typed lambda needs a target return type the lane does not lower');
         }
         if (fn.abstract) {
           return context.refuse(fn, 'abstract lambda has no direct target representation');
@@ -2355,7 +2355,7 @@ export function lowerOfficialExpression(
         if (node.captures.length > 0 || node.useSelf) {
           return context.refuse(
             node,
-            'captured lambda needs an evidenced by-value capture-environment recipe',
+            'captured lambda needs a by-value capture the lane does not lower',
           );
         }
         const requirements = context.structural(

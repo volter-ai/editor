@@ -80,11 +80,11 @@ export function refusalFamily(
   const subjects: string[] = [];
   // A code rule's identity is its semantic key and the datatypes it met; the key is the family,
   // the datatypes its subject.
-  const rule = /^no evidenced code rule for (.+?); identity=(\{.*\})$/su.exec(message);
+  const rule = /^no code rule for (.+?); identity=(\{.*\})$/su.exec(message);
   const identity = rule === null ? undefined : parsedRuleIdentity(rule[2] as string);
   if (rule !== null && identity !== undefined) {
     const types = (identity.inputDatatypes ?? []).map((datatype) => datatype.split('|')[2] ?? datatype);
-    return { shape: `no evidenced code rule for ${(rule[1] as string).replace(NUMBER, '<n>')}`, subjects: [`(${types.join(', ')})`] };
+    return { shape: `no code rule for ${(rule[1] as string).replace(NUMBER, '<n>')}`, subjects: [`(${types.join(', ')})`] };
   }
   const shape = message
     .replace(/ hash:\d+/gu, '')

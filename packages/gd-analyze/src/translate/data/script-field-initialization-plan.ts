@@ -114,7 +114,7 @@ function planAuthoredValue(
     const datatype = godotBoundDatatypeIdentity(field.datatype);
     const rule = resolved.rule(datatype, 'node-path', godotDatatypeClass(datatype));
     if (rule === undefined) {
-      state.diagnostics.push({ ...at, message: `no live field-value evidence for ${datatype} receiving a node path` });
+      state.diagnostics.push({ ...at, message: `no field-value rule for ${datatype} receiving a node path` });
       return;
     }
     addField(state, scriptResPath, attachment, { fieldName: field.name, application: 'script-property-set', value: { kind: 'node-reference', value: path } });
@@ -133,7 +133,7 @@ function planAuthoredValue(
   if (rule === undefined) {
     state.diagnostics.push({
       ...at,
-      message: `no live field-value evidence for ${datatype} receiving ${serialized}`,
+      message: `no field-value rule for ${datatype} receiving ${serialized}`,
     });
     return;
   }

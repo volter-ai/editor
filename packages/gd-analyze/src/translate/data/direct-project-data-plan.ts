@@ -9,7 +9,6 @@ import {
   type DirectGodotProjectShellFilePlan,
   planDirectGodotProjectShell,
 } from './direct-project-shell-plan';
-import { GodotLifecycleAuthorityResolver } from './lifecycle-authority';
 import { planFrozenPackageLock } from './package-lock-plan';
 
 export const DIRECT_GODOT_PROJECT_DATA_PLAN_VERSION = 5 as const;
@@ -320,28 +319,10 @@ function projectDataDiagnostics(
   if (project.window === undefined) {
     diagnostics.push({
       at: 'project.godot#[display].window/size',
-      message: `viewport is absent; the direct plan has not yet evidenced the ${DEFAULT_WINDOW.width}x${DEFAULT_WINDOW.height} engine default`,
+      message: `viewport is absent; the plan does not yet state the ${DEFAULT_WINDOW.width}x${DEFAULT_WINDOW.height} engine default`,
     });
   }
   return diagnostics;
-}
-
-/** The lifecycle rules every project's startup rests on: autoloads before main, inside `Main`'s loop. */
-function checkProjectStartup(
-  composition: DirectGodotProjectCompositionPlan,
-  toolchain: GodotImportToolchainSnapshot,
-): void {
-  const lifecycle = new GodotLifecycleAuthorityResolver(toolchain.frontend.lifecycleAuthority);
-  if (composition.sourceRevision !== lifecycle.sourceRevision) {
-    throw new Error('composition and project-startup lifecycle authority differ');
-  }
-  const startupRule =
-    composition.scriptAutoloads.length === 0 ? undefined : lifecycle.projectStartupRule();
-  if (composition.scriptAutoloads.length > 0 && startupRule === undefined) {
-    throw new Error('autoload-before-main project startup has no live evidence rule');
-  }
-  // Every project runs inside `Main`'s loop (`compat/main.tsx`).
-  if (lifecycle.mainLoopRule() === undefined) throw new Error("Main's loop has no live evidence rule");
 }
 
 /** Plan native project wiring and frozen requirements without reading source or writing output. */
@@ -355,7 +336,6 @@ export function planDirectGodotProjectData(
     return { kind: 'refused-project-data', diagnostics };
   }
   try {
-    checkProjectStartup(composition, toolchain);
     const packageManifest = plannedPackageManifest(project, toolchain);
     const packageLockText = planFrozenPackageLock(
       `${JSON.stringify(packageManifest, null, 2)}\n`,

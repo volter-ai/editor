@@ -524,7 +524,7 @@ function structure(
 ): boolean {
   const rule = context.authority.structureRule(id);
   if (rule === undefined) {
-    refuse(context, at, `no live scene-structure evidence for ${id}`, 'structure');
+    refuse(context, at, `no scene-structure rule for ${id}`, 'structure');
     return false;
   }
   return true;
@@ -613,7 +613,7 @@ function planResource(
     const lowered = shaderPlan(boundShader);
     const rule = context.authority.resourceRule('Shader');
     if (typeof lowered === 'string' || rule === undefined) {
-      refuse(context, at, typeof lowered === 'string' ? `${key}: ${lowered}` : 'no live resource rule constructs Shader', 'resource', 'Shader');
+      refuse(context, at, typeof lowered === 'string' ? `${key}: ${lowered}` : 'no resource rule constructs Shader', 'resource', 'Shader');
       return undefined;
     }
     const planned = { key, className: 'Shader', construct: rule.construct, shader: lowered, setters: [] };
@@ -624,7 +624,7 @@ function planResource(
     const { className, load } = imported;
     const rule = context.authority.resourceRule(className);
     if (typeof load === 'string' || rule === undefined) {
-      refuse(context, at, typeof load === 'string' ? `${key}: ${load}` : `no live resource rule constructs ${className}`, 'resource', className);
+      refuse(context, at, typeof load === 'string' ? `${key}: ${load}` : `no resource rule constructs ${className}`, 'resource', className);
       return undefined;
     }
     const planned = { key, className, construct: rule.construct, load, setters: [] };
@@ -649,7 +649,7 @@ function planResource(
     const select = ENGINE_SHADER_SELECTORS[data.type];
     const shaderRule = context.authority.resourceRule('Shader');
     if (select === undefined || shaderRule === undefined) {
-      refuse(context, `${at}(${key})`, select === undefined ? `no binding selects ${data.type}'s generated shaders` : 'no live resource rule constructs Shader', 'resource', data.type);
+      refuse(context, `${at}(${key})`, select === undefined ? `no binding selects ${data.type}'s generated shaders` : 'no resource rule constructs Shader', 'resource', data.type);
       return undefined;
     }
     engineShaders = {};
@@ -662,7 +662,7 @@ function planResource(
   }
   const rule = context.authority.resourceRule(data.type);
   if (rule === undefined) {
-    refuse(context, at, `no live resource rule constructs ${data.type}`, 'resource', data.type);
+    refuse(context, at, `no resource rule constructs ${data.type}`, 'resource', data.type);
     return undefined;
   }
   if (data.type === 'ArrayMesh') {
@@ -906,7 +906,7 @@ function treeProperty(context: PlanContext, at: string, propertyName: string, va
   if (parameter === null && path === undefined) return null;
   const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0AnimationTree`);
   if (rule === undefined) {
-    refuse(context, at, 'no live scene-node evidence for AnimationTree', 'node-family', 'AnimationTree');
+    refuse(context, at, 'no scene-node rule writes AnimationTree', 'node-family', 'AnimationTree');
     return undefined;
   }
   if (parameter !== null) {
@@ -940,7 +940,7 @@ function treeProperty(context: PlanContext, at: string, propertyName: string, va
 function mixerLibrary(context: PlanContext, at: string, name: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined {
   const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0AnimationPlayer`);
   if (rule === undefined) {
-    refuse(context, at, 'no live scene-node evidence for AnimationPlayer', 'node-family', 'AnimationPlayer');
+    refuse(context, at, 'no scene-node rule writes AnimationPlayer', 'node-family', 'AnimationPlayer');
     return undefined;
   }
   const target = setterValue(context, at, 'AnimationMixer.libraries', value, '');
@@ -1214,7 +1214,7 @@ function planProperties(
         at,
         serialized === undefined
           ? `serialized ${value.kind} value has no scene-property identity`
-          : `no live scene-property evidence for ${propertyName} receiving ${serialized.identity}`,
+          : `no scene-property rule for ${propertyName} receiving ${serialized.identity}`,
         'property',
         `${node.class.nativeName}.${propertyName}`,
       );
@@ -1237,7 +1237,7 @@ function placement(
   if (node.placement.kind !== 'child') return {};
   const rule = context.authority.placementRule('child');
   if (rule === undefined) {
-    refuse(context, `${node.documentPath}#${node.nodePath}`, 'no live scene placement evidence for a child node', 'structure');
+    refuse(context, `${node.documentPath}#${node.nodePath}`, 'no scene placement rule for a child node', 'structure');
     return undefined;
   }
   return { parentNodePath: node.placement.parentNodePath };
@@ -1255,7 +1255,7 @@ function groupsOf(context: PlanContext, node: BoundGodotSceneNode): readonly str
 function gridMapData(context: PlanContext, at: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined {
   const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0GridMap`);
   if (rule === undefined) {
-    refuse(context, at, 'no live scene-node evidence for GridMap', 'node-family', 'GridMap');
+    refuse(context, at, 'no scene-node rule writes GridMap', 'node-family', 'GridMap');
     return undefined;
   }
   try {
@@ -1291,7 +1291,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   }
   const rule = context.authority.rule(node.class.nativeCanonicalIdentity);
   if (rule === undefined) {
-    refuse(context, at, `no live scene-node evidence for ${node.class.nativeName}`, 'node-family', node.class.nativeName);
+    refuse(context, at, `no scene-node rule writes ${node.class.nativeName}`, 'node-family', node.class.nativeName);
     ok = false;
   } else {
   }

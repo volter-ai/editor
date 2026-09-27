@@ -33,7 +33,6 @@ function validateInputs(
     ['code', frontend.codeAuthority, frontend.codeAuthorityDigest],
     ['field-value', frontend.fieldValueAuthority, frontend.fieldValueAuthorityDigest],
     ['scene-node', frontend.sceneNodeAuthority, frontend.sceneNodeAuthorityDigest],
-    ['lifecycle', frontend.lifecycleAuthority, frontend.lifecycleAuthorityDigest],
   ] as const;
   for (const [name, authority, expected] of authorityDigests) {
     if (sha256(authority) !== expected) {
@@ -103,10 +102,7 @@ export function planGodotTranslation(
   if (composition.kind === 'refused-composition') {
     return { kind: 'refused-translation', diagnostics: composition.diagnostics };
   }
-  const sceneModules = planDirectGodotSceneModules(
-    composition.plan,
-    toolchain.frontend.lifecycleAuthority,
-  );
+  const sceneModules = planDirectGodotSceneModules(composition.plan);
   if (sceneModules.kind === 'refused-scene-modules') {
     return { kind: 'refused-translation', diagnostics: sceneModules.diagnostics };
   }
