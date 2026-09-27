@@ -36,6 +36,14 @@ export class BoundLoweringRefusal extends Error {
   }
 }
 
+/** Every refusal one script's lowering recorded (`LoweringContext.recover`), reported together. */
+export class BoundLoweringRefusals extends Error {
+  constructor(readonly refusals: readonly BoundLoweringRefusal[]) {
+    super(refusals.map((refusal) => refusal.message).join('\n'));
+    this.name = 'BoundLoweringRefusals';
+  }
+}
+
 export interface OfficialBoundLoweringDiagnostic extends TargetTsSpan {
   readonly message: string;
 }
@@ -485,6 +493,28 @@ export class LoweringContext {
 
   refuse(node: GodotBoundNode, message: string): never {
     throw new BoundLoweringRefusal(this.script, node, message);
+  }
+
+  readonly #refusals: BoundLoweringRefusal[] = [];
+
+  /** The refusals `recover` recorded, in source order of discovery. */
+  get refusals(): readonly BoundLoweringRefusal[] {
+    return this.#refusals;
+  }
+
+  /**
+   * Lowers one statement or member, or records its refusal and yields `fallback`, so a refused
+   * script reports every refusal it holds rather than its first. A script with any recorded
+   * refusal is still refused whole; the fallback only lets the rest of it be read.
+   */
+  recover<T>(fallback: T, lower: () => T): T {
+    try {
+      return lower();
+    } catch (error) {
+      if (!(error instanceof BoundLoweringRefusal)) throw error;
+      this.#refusals.push(error);
+      return fallback;
+    }
   }
 
   prove(

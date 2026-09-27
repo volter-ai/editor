@@ -25,6 +25,7 @@ import { lowerOfficialClassMembers } from './lower-official-statement';
 import type { GodotCodeRuleResolver } from './lowering-rules';
 import {
   BoundLoweringRefusal,
+  BoundLoweringRefusals,
   LoweringContext,
   type OfficialBoundAutoloadCandidate,
   type OfficialBoundAutoloadReference,
@@ -615,11 +616,18 @@ function lowerScript(
     operatorResult,
   );
   if (root.abstract) {
-    context.refuse(root, 'abstract script classes need a target declaration recipe');
+    context.recover(undefined, () =>
+      context.refuse(root, 'abstract script classes need a target declaration recipe'),
+    );
   }
-  if (source.inheritance.refusal !== undefined) context.refuse(root, source.inheritance.refusal);
+  const inheritanceRefusal = source.inheritance.refusal;
+  if (inheritanceRefusal !== undefined) {
+    context.recover(undefined, () => context.refuse(root, inheritanceRefusal));
+    // Everything below resolves the base the refusal names; it may not exist.
+    throw new BoundLoweringRefusals(context.refusals);
+  }
   const classRequirements = [
-    ...context.structural(root, 'class', [], 'class:concrete'),
+    ...context.recover([], () => context.structural(root, 'class', [], 'class:concrete')),
     // The claims that typed Variant values from project facts (refinedProgram).
     ...[...new Set(source.settingTypes.flatMap((entry) => entry.evidenceClaimIds))].map(
       (claimId): OfficialBoundLoweringRequirement => ({
@@ -660,6 +668,8 @@ function lowerScript(
         ]
       : [];
   const sourceMembers = lowerOfficialClassMembers(context, root);
+  // Whole-script closure below assumes every member lowered; a refused script stops here.
+  if (context.refusals.length > 0) throw new BoundLoweringRefusals(context.refusals);
   const requirements = mergeOfficialBoundRequirements(
     context,
     root,
@@ -889,7 +899,8 @@ export function lowerOfficialBoundProgram(
         compatSymbols,
       );
     } catch (error) {
-      if (error instanceof BoundLoweringRefusal) diagnostics.push(officialBoundDiagnostic(error));
+      if (error instanceof BoundLoweringRefusals) diagnostics.push(...error.refusals.map(officialBoundDiagnostic));
+      else if (error instanceof BoundLoweringRefusal) diagnostics.push(officialBoundDiagnostic(error));
       else throw error;
     }
   }

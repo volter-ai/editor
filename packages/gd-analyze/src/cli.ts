@@ -17,6 +17,10 @@ const USAGE = `usage: gd-analyze <command> [options]
            Report (read-only) the Godot capabilities the pinned fixtures use: call targets,
            unresolved calls, attributes, operators, node classes, resources, signals, assets.
 
+  refusals [fixture ...] --bound-exporter-binary <path> --official-binary <path> [--out <file.json>]
+           Plan (read-only) the import of each pinned fixture and report every refusal the
+           plan holds, per kit and grouped by family across kits. Nothing is emitted or built.
+
   evidence <name> --official-binary <path> [--bound-exporter-binary <path>]
            Run evidence/godot-4.7/<name>.cases.ts in the official Godot 4.7 binary (headless)
            and in Node: a compat case file through its compat module, a language case file
@@ -136,6 +140,15 @@ export async function runCli(argv: readonly string[]): Promise<number> {
   }
   if (command === 'closure') {
     return runClosure(
+      positionals(rest, ['--bound-exporter-binary', '--official-binary', '--out']),
+      requiredExporter(rest),
+      requiredOfficial(rest),
+      optionValue(rest, '--out'),
+    );
+  }
+  if (command === 'refusals') {
+    const { runRefusals } = await import('./report/refusals');
+    return runRefusals(
       positionals(rest, ['--bound-exporter-binary', '--official-binary', '--out']),
       requiredExporter(rest),
       requiredOfficial(rest),

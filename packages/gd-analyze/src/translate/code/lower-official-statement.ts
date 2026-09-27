@@ -224,7 +224,11 @@ export function lowerOfficialSuite(
 ): LoweredStatements {
   if (node.kind !== 'SUITE') context.refuse(node, `expected SUITE, received ${node.kind}`);
   const requirements = context.structural(node, 'suite');
-  const children = node.statements.map((id) => lowerStatement(context, context.node(id, node)));
+  const children = node.statements.map((id) =>
+    context.recover<LoweredStatements>({ statements: [], requirements: [] }, () =>
+      lowerStatement(context, context.node(id, node)),
+    ),
+  );
   return {
     statements: children.flatMap((child) => child.statements),
     requirements: [...requirements, ...children.flatMap((child) => child.requirements)],
@@ -763,7 +767,10 @@ export function lowerOfficialClassMembers(
   root: GodotBoundClassNode,
 ): LoweredClassMembers {
   const onready: LoweredStatements[] = [];
-  const lowered = root.members.map((id): LoweredClassMembers => {
+  const lowered = root.members.map((id): LoweredClassMembers =>
+    context.recover<LoweredClassMembers>({ members: [], requirements: [] }, () => lowerMember(id)),
+  );
+  function lowerMember(id: number): LoweredClassMembers {
     const node = context.node(id, root);
     if (node.kind === 'ANNOTATION') {
       const requirements = context.structural(
@@ -803,8 +810,10 @@ export function lowerOfficialClassMembers(
       };
     }
     return context.refuse(node, `${node.kind} class member needs an evidenced direct lowering`);
-  });
-  const ready = implicitReadyMembers(context, root, onready);
+  }
+  const ready = context.recover<LoweredClassMembers>({ members: [], requirements: [] }, () =>
+    implicitReadyMembers(context, root, onready),
+  );
   return {
     members: [...lowered.flatMap((entry) => entry.members), ...ready.members],
     requirements: [...lowered.flatMap((entry) => entry.requirements), ...ready.requirements],

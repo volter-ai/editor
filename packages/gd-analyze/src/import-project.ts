@@ -164,6 +164,20 @@ export function importGodotProject(
         'Choose a new destination.',
     );
   }
+  withBoundGodotProject(sourceDir, options, (boundProject, toolchain) =>
+    importCapturedGodotProject(sourceDir, targetDir, boundProject, toolchain),
+  );
+}
+
+/**
+ * The import's front half: snapshot the project and toolchain, run the official frontend once,
+ * read and analyze, and hand the bound project to `use` while its disposable capture exists.
+ */
+export function withBoundGodotProject<T>(
+  sourceDir: string,
+  options: ImportGodotProjectOptions,
+  use: (boundProject: BoundGodotProject, toolchain: GodotImportToolchainSnapshot) => T,
+): T {
   const snapshot = captureGodotProjectSnapshot(sourceDir);
   const toolchain = captureGodotImportToolchainSnapshot({
     projectEngine: snapshot.engine,
@@ -206,7 +220,7 @@ export function importGodotProject(
         godotUpgradeDeltasReached(boundProject, toolchain.frontend.projectVersion, toolchain.frontend.apiDump.parsed),
       ),
     );
-    importCapturedGodotProject(sourceDir, targetDir, boundProject, toolchain);
+    return use(boundProject, toolchain);
   } finally {
     if (existsSync(capturedProjectDir)) chmodSync(capturedProjectDir, 0o755);
     rmSync(snapshotTemp, { recursive: true, force: true });
