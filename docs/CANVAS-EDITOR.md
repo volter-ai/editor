@@ -149,4 +149,5 @@ shared frame and handles, single-axis group scale, rotated members under unequal
 under a mirrored or unevenly scaled parent, Mesh and particle kinds,
 Node Anchor (no Controls in Pixi), pixel snap under a rotated parent, the board's frames-only layers
 and missing zoom-menu view toggles, Frame all, and the absent Preview, Skeleton and node-type menus
-and Show Helpers, each with its reason in its row.
+and Show Helpers, each with its reason in its row. Exported games add three, declared above: a Pixi HUD's own buttons over
+a world, a demand-rendered game's photograph, and Build And Run's fixed `dist/` with no server.
