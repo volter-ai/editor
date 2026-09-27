@@ -29,7 +29,10 @@ DAWproject export embeds the file. The Launch tab is the clip launcher: a column
 `<Scene>`, a `<ClipSlot>` per track, launched by scene or by slot on the next bar (tracks a
 scene leaves out stop), with scenes and slots added, renamed and deleted in place;
 `render-piece` renders each scene as a seamless loop for the game's music player, and the
-DAWproject export carries them as its `Scenes`. In the piano
+DAWproject export carries them as its `Scenes`. Rec records what a person plays
+(a MIDI controller, or the computer keyboard laid out as Bitwig's) into the selected track, heard
+as it is played: on Stop the take is one edit, into the clip that holds it or a new "take" clip.
+In the piano
 roll, notes are selected (click, Shift-click, marquee, Cmd+A), moved and
 resized together, snapped to a chosen grid, quantized, copied, cut, pasted,
 duplicated and given an articulation. A gesture on several elements is one

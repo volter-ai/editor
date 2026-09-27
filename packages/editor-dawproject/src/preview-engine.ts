@@ -346,6 +346,20 @@ export class PreviewEngine {
     return end > start && origin < end ? { start, end } : whole;
   }
 
+  /**
+   * Sound a played note now on a track's instrument (a person playing it in), or release it
+   * (`velocity` 0). Heard only while the synth exists, which Play starts; answers whether it sounded.
+   */
+  monitor(trackId: string, pitch: number, velocity: number): boolean {
+    const synth = this.synth;
+    const piece = this.scheduled;
+    const voice = piece ? trackVoices(piece).get(trackId) : null;
+    if (!synth || !voice) return false;
+    if (velocity > 0) synth.noteOn(voice.channel, pitch, Math.max(1, Math.min(127, Math.round(velocity * 127))));
+    else synth.noteOff(voice.channel, pitch);
+    return true;
+  }
+
   /** Each strip's peak level now, left and right, in dBFS, by track id (`LiveMix.levels`); empty before a graph exists. */
   levels(): Map<string, readonly [number, number]> {
     return this.mix?.levels() ?? new Map();

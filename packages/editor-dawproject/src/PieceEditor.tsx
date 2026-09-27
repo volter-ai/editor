@@ -27,7 +27,8 @@ import { Launcher, useLauncherReading } from './Launcher';
 import type { Launches } from './launches';
 import { PianoRoll } from './PianoRoll';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
-import { readSourceIndex, type SourceIndex } from './source-index';
+import { applySource, readSource, readSourceIndex, recordStructWrite, type SourceIndex } from './source-index';
+import { KEY_SEMITONES, type TakeNote, writeTake } from './recorder';
 
 const small: CSSProperties = { fontSize: 11, color: themeVars.content.muted };
 const button: CSSProperties = {
@@ -83,6 +84,8 @@ export function PieceEditor({
   const [selectedClip, setSelectedClip] = useState<string | null>(null);
   // The selected track (a header clicked, or the track of the clip clicked): what Devices shows.
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  // The track a take records into: the selected one, else the selected clip's (set each render).
+  const selectedTrackRef = useRef<string | null>(null);
   // The lower pane, as Bitwig's: the selected clip's editor, its track's devices, or the mixer.
   const [lower, setLower] = useState<'clip' | 'devices' | 'mix'>('clip');
   // The upper pane: the arranger's timeline, or the clip launcher.
@@ -108,6 +111,10 @@ export function PieceEditor({
   const [loopRegion, setLoopRegion] = useState<{ readonly from: number; readonly to: number } | null>(null);
   const [looping, setLooping] = useState(false);
   const [metronome, setMetronome] = useState(false);
+  // RECORDING: the take being played in (its track, the notes finished and the ones held down),
+  // and whether the transport has started playing it.
+  const [recording, setRecording] = useState(false);
+  const take = useRef<{ trackId: string; notes: TakeNote[]; held: Map<number, { start: number; vel: number }>; octave: number; started: boolean; lastBeat: number } | null>(null);
   useEffect(() => engine.setMetronome(metronome), [engine, metronome]);
 
   useEffect(() => {
@@ -195,6 +202,125 @@ export function PieceEditor({
   // While the launcher plays, its timeline is not the arrangement's: the arranger shows no playhead.
   const arrangePlayhead = launcher ? null : playhead;
 
+  // A note played in: sounded at once on the take's track, and kept against the playhead.
+  const noteIn = useCallback(
+    (pitch: number, velocity: number) => {
+      const current = take.current;
+      if (!current) return;
+      engine.monitor(current.trackId, pitch, velocity);
+      const beat = engine.playhead();
+      if (beat === null) return;
+      current.lastBeat = beat;
+      if (velocity > 0) current.held.set(pitch, { start: beat, vel: velocity });
+      else {
+        const held = current.held.get(pitch);
+        current.held.delete(pitch);
+        if (held) current.notes.push({ pitch, vel: held.vel, start: held.start, end: beat > held.start ? beat : held.start + 0.25 });
+      }
+    },
+    [engine],
+  );
+
+  const finishTake = useCallback(() => {
+    const current = take.current;
+    take.current = null;
+    setRecording(false);
+    if (!current) return;
+    for (const [pitch, held] of current.held) {
+      engine.monitor(current.trackId, pitch, 0);
+      current.notes.push({ pitch, vel: held.vel, start: held.start, end: Math.max(current.lastBeat, held.start + 0.25) });
+    }
+    const latest = liveRef.current.live.piece;
+    const track = latest?.tracks.find((candidate) => candidate.id === current.trackId);
+    if (!latest || !track) return;
+    if (current.notes.length === 0) {
+      setMessage('Nothing was played, so nothing was recorded.', 'info');
+      return;
+    }
+    const notes = current.notes;
+    void (async () => {
+      const prevSource = await readSource(file);
+      const newSource = writeTake(prevSource, file, latest, track, index, notes);
+      if (!(await applySource(file, newSource, prevSource))) throw new Error(`${file} changed while the take was written; play it again.`);
+      recordStructWrite('Record Take', { file, prevSource, newSource }, { index, pieceFile: file, documentId }, setMessage);
+    })().catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)));
+  }, [engine, file, index, documentId, setMessage]);
+
+  // The take starts with the transport and ends when it stops, however it is stopped.
+  useEffect(() => {
+    const current = take.current;
+    if (!current) return;
+    if (engineState.kind === 'playing') current.started = true;
+    else if (current.started || engineState.kind === 'error') finishTake();
+  }, [engineState.kind, finishTake]);
+
+  // Keep the last beat the playhead reached, where held notes end if the transport stops first.
+  useEffect(() => {
+    if (take.current && playhead !== null) take.current.lastBeat = playhead;
+  }, [playhead]);
+
+  const toggleRecord = useCallback(() => {
+    if (take.current) {
+      engine.stop();
+      return;
+    }
+    const current = liveRef.current.live.piece;
+    const trackId = selectedTrackRef.current;
+    const track = current?.tracks.find((candidate) => candidate.id === trackId);
+    if (!track || (track.channel?.role ?? 'regular') !== 'regular' || !trackVoices(current!).get(track.id)) {
+      setMessage('Select an instrument track (a clip on it, or its header) to record into.');
+      return;
+    }
+    take.current = { trackId: track.id, notes: [], held: new Map(), octave: 0, started: false, lastBeat: startRef.current };
+    setRecording(true);
+    void engine.play(startRef.current);
+  }, [engine, setMessage]);
+
+  // What is played in while recording: the computer keyboard (while this document is active) and
+  // every MIDI input the browser offers.
+  useEffect(() => {
+    if (!recording) return;
+    const onKey = (event: KeyboardEvent): void => {
+      const target = event.target as HTMLElement | null;
+      if (!active || event.metaKey || event.ctrlKey || event.altKey || (target && (target.tagName === 'INPUT' || target.isContentEditable))) return;
+      const current = take.current;
+      if (!current) return;
+      if (event.code === 'KeyZ' || event.code === 'KeyX') {
+        if (event.type === 'keydown') current.octave = Math.max(-4, Math.min(4, current.octave + (event.code === 'KeyX' ? 1 : -1)));
+      } else {
+        const semitone = KEY_SEMITONES[event.code];
+        if (semitone === undefined) return;
+        if (!event.repeat) noteIn(60 + current.octave * 12 + semitone, event.type === 'keydown' ? 0.8 : 0);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    window.addEventListener('keydown', onKey, true);
+    window.addEventListener('keyup', onKey, true);
+    let inputs: MIDIInput[] = [];
+    const onMidi = (event: MIDIMessageEvent): void => {
+      const [status = 0, pitch = 0, velocity = 0] = event.data ?? [];
+      const kind = status & 0xf0;
+      if (kind === 0x90 && velocity > 0) noteIn(pitch, velocity / 127);
+      else if (kind === 0x80 || kind === 0x90) noteIn(pitch, 0);
+    };
+    let cancelled = false;
+    navigator.requestMIDIAccess?.().then(
+      (access) => {
+        if (cancelled) return;
+        inputs = [...access.inputs.values()];
+        for (const input of inputs) input.addEventListener('midimessage', onMidi);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+      window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('keyup', onKey, true);
+      for (const input of inputs) input.removeEventListener('midimessage', onMidi);
+    };
+  }, [recording, active, noteIn]);
+
   const togglePlay = useCallback(() => {
     if (engineState.kind === 'playing') engine.stop();
     else void engine.play(start);
@@ -244,6 +370,8 @@ export function PieceEditor({
     return track && first ? { clip: first, track, trackIndex: firstTrack, slot: false } : null;
   }, [piece, selectedClip]);
 
+  selectedTrackRef.current = selectedTrack ?? clip?.track.id ?? null;
+
   if (!piece) {
     return (
       <div style={{ padding: 16, ...small }}>
@@ -271,6 +399,8 @@ export function PieceEditor({
         onLoop={() => setLooping((on) => !on)}
         metronome={metronome}
         onMetronome={() => setMetronome((on) => !on)}
+        recording={recording}
+        onRecord={toggleRecord}
         writes={{ index, file, documentId, onMessage: setMessage }}
       />
       {live.error ? (

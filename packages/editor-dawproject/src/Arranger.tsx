@@ -76,6 +76,9 @@ export function TransportBar(props: {
   /** Whether the preview clicks each beat while playing. */
   readonly metronome: boolean;
   readonly onMetronome: () => void;
+  /** Whether notes played in are being recorded, and the button that starts and stops it. */
+  readonly recording: boolean;
+  readonly onRecord: () => void;
   readonly writes: ArrangerWrites;
 }) {
   const { piece, playing, engineState, playhead, writes } = props;
@@ -94,6 +97,15 @@ export function TransportBar(props: {
     <div tabIndex={-1} data-transport="" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 10px', outline: 'none', borderBottom: `1px solid ${themeVars.boundary.default}`, background: themeVars.surface.raised }}>
       <button type="button" style={button} onClick={props.onToggle} title="Play / Stop (Space)">
         {playing ? '■ Stop' : '▶ Play'}
+      </button>
+      <button
+        type="button"
+        data-control="record"
+        onClick={props.onRecord}
+        title="Record what you play (a MIDI controller, or the computer keyboard: A W S E D … K, Z/X octave) into the selected track"
+        style={{ ...button, color: props.recording ? themeVars.semantic.danger : themeVars.content.primary }}
+      >
+        ● {props.recording ? 'Recording' : 'Rec'}
       </button>
       <span style={{ ...mono, minWidth: 48 }}>{barBeat(playhead ?? props.start, piece.transport.beatsPerBar)}</span>
       <span style={{ ...small, display: 'flex', alignItems: 'center', gap: 4 }}>
