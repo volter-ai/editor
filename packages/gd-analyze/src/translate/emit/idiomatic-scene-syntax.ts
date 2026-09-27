@@ -563,6 +563,9 @@ const VISIBILITY_RANGE_PROPS: Readonly<Record<string, string>> = {
   set_visibility_range_fade_mode: 'fadeMode',
 };
 
+/** The transform components a node authored as properties, which three's own props state. */
+const SPATIAL_COMPONENTS = new Set(['position', 'rotation', 'scale']);
+
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
@@ -577,7 +580,8 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     node.children.length === 0 &&
     node.scriptInstance === undefined;
   // A node authored with position, rotation and scale (Godot's YXZ Euler) states them as they are.
-  const components = node.properties.filter((entry) => entry.propertyName !== 'transform').flatMap((entry): TargetTsJsxAttribute[] => {
+  // (A class's own properties, a camera's lens, are its element's.)
+  const components = node.properties.filter((entry) => SPATIAL_COMPONENTS.has(entry.propertyName)).flatMap((entry): TargetTsJsxAttribute[] => {
     const value = entry.value as readonly number[];
     if (entry.propertyName === 'rotation') return [attribute('rotation', { kind: 'array-expression', elements: [...value.map((component) => literal(component)), literal('YXZ')] })];
     return [attribute(entry.propertyName, numbers(value))];
