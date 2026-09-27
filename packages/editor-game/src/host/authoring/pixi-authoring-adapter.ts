@@ -426,6 +426,19 @@ function createDisplayObject(pixi: CanvasPixiNamespace, kind: string): Container
       return new pixi.Text({ text: 'Text', style: { fill: 0xffffff, fontSize: 24 } });
     case 'graphics':
       return new pixi.Graphics().rect(0, 0, 100, 100).fill(0xffffff);
+    case 'animatedSprite': {
+      const animated = new pixi.AnimatedSprite([pixi.Texture.WHITE]);
+      animated.setSize(64, 64);
+      return animated;
+    }
+    case 'tilingSprite':
+      return new pixi.TilingSprite({ texture: pixi.Texture.WHITE, width: 100, height: 100 });
+    case 'nineSliceSprite':
+      return new pixi.NineSliceSprite({ texture: pixi.Texture.WHITE, width: 100, height: 100 });
+    case 'bitmapText':
+      return new pixi.BitmapText({ text: 'BitmapText', style: { fill: 0xffffff, fontSize: 24 } });
+    case 'htmlText':
+      return new pixi.HTMLText({ text: 'HTMLText', style: { fill: 0xffffff, fontSize: 24 } });
     default:
       return null;
   }

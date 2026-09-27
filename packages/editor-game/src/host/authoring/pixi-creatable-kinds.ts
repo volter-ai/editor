@@ -18,10 +18,40 @@ export const PIXI_CREATABLE_KINDS: readonly CreatableKind[] = [
     description: 'Draws one texture: an image, or a frame of a spritesheet.',
   },
   {
+    kind: 'animatedSprite',
+    label: 'AnimatedSprite',
+    extends: 'sprite',
+    description: 'Plays a list of textures as frames at an animation speed.',
+  },
+  {
+    kind: 'tilingSprite',
+    label: 'TilingSprite',
+    extends: 'container',
+    description: 'Repeats one texture across its width and height, scrollable by its tile position.',
+  },
+  {
+    kind: 'nineSliceSprite',
+    label: 'NineSliceSprite',
+    extends: 'container',
+    description: 'Stretches a texture without stretching its corners: the nine-slice panel of a UI.',
+  },
+  {
     kind: 'text',
     label: 'Text',
     extends: 'container',
     description: 'Draws a string with a text style (font, size, fill, wrapping).',
+  },
+  {
+    kind: 'bitmapText',
+    label: 'BitmapText',
+    extends: 'container',
+    description: 'Draws a string from a bitmap font: fast to change every frame.',
+  },
+  {
+    kind: 'htmlText',
+    label: 'HTMLText',
+    extends: 'container',
+    description: 'Draws a string of HTML and CSS markup.',
   },
   {
     kind: 'graphics',

@@ -19,6 +19,7 @@ import {
   IconButton,
   MenuItem,
   MenuSeparator,
+  MenuSubmenu,
   Tooltip,
 } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter, DOMRectLike } from '@volter/editor-project/adapter';
@@ -56,6 +57,7 @@ import {
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
 import { bindCanvasSceneKeys } from './canvas-scene-hotkeys';
+import { setTemporaryPivot } from './canvas-temporary-pivot';
 import { markCanvasStageDocument } from '@volter/editor-sdk/kit/stage-context';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 import { ViewportPickMenu } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
@@ -645,7 +647,26 @@ export function CanvasSceneControls({
                 aria-label="Pivot mode"
                 aria-pressed={mode === 'pivot'}
                 size="comfortable"
-                onClick={() => setMode(mode === 'pivot' ? null : 'pivot')}
+                onClick={(event) => {
+                  // Godot: Shift on this button puts the temporary pivot at the selection's centre.
+                  if (event.shiftKey) {
+                    const rects = adapter
+                      ? [...store.selectedEntityIds]
+                          .map((id) => adapter.rects?.rect(id))
+                          .filter((rect): rect is DOMRectLike => rect != null)
+                      : [];
+                    const bounds = unionRects(rects);
+                    if (bounds) {
+                      setTemporaryPivot(view, {
+                        x: bounds.x + bounds.width / 2,
+                        y: bounds.y + bounds.height / 2,
+                      });
+                    }
+                    setMode('pivot');
+                    return;
+                  }
+                  setMode(mode === 'pivot' ? null : 'pivot');
+                }}
               >
                 <EditorIcon icon={faBullseye} size="md" />
               </IconButton>
@@ -873,17 +894,21 @@ function CanvasSceneViewMenu({
       </Button>
       {open && (
         <AnchoredMenu anchorRef={triggerRef} align="end" clamp aria-label="2D view" onDismiss={() => setOpen(false)}>
-          {gridStates.map((entry) => (
-            <MenuItem key={entry.label} role="menuitemradio" aria-checked={entry.on} onSelect={act(entry.pick)}>
-              <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
-              {entry.label}
+          {/* Godot's View menu: a Grid submenu, the Show switches, a Gizmos submenu, then the view
+              verbs. */}
+          <MenuSubmenu label="Grid" data-testid="canvas-scene-grid-submenu">
+            {gridStates.map((entry) => (
+              <MenuItem key={entry.label} role="menuitemradio" aria-checked={entry.on} onSelect={act(entry.pick)}>
+                <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
+                {entry.label}
+              </MenuItem>
+            ))}
+            <MenuSeparator />
+            <MenuItem data-testid="canvas-scene-toggle-grid" onSelect={act(toggleGrid)}>
+              <span className="vgai-menu-check" />
+              Toggle Grid
             </MenuItem>
-          ))}
-          <MenuItem data-testid="canvas-scene-toggle-grid" onSelect={act(toggleGrid)}>
-            <span className="vgai-menu-check" />
-            Toggle Grid
-          </MenuItem>
-          <MenuSeparator />
+          </MenuSubmenu>
           {switches.map((entry) => (
             <MenuItem
               key={entry.label}
@@ -896,26 +921,27 @@ function CanvasSceneViewMenu({
               {entry.label.startsWith('Show ') ? entry.label : `Show ${entry.label}`}
             </MenuItem>
           ))}
-          <MenuSeparator />
           {/* Godot's Gizmos submenu, in its order: Position, Lock, Group, Transformation. */}
-          {(
-            [
-              ['position', 'Position Gizmo'],
-              ['lock', 'Lock Gizmo'],
-              ['group', 'Group Gizmo'],
-              ['transformation', 'Transformation Gizmo'],
-            ] as const
-          ).map(([key, label]) => (
-            <MenuItem
-              key={key}
-              role="menuitemcheckbox"
-              aria-checked={drafting[key]}
-              onSelect={act(() => setViewDrafting(documentId, { [key]: !drafting[key] }))}
-            >
-              <span className="vgai-menu-check">{drafting[key] && <EditorIcon icon={faCheck} size="xs" />}</span>
-              {label}
-            </MenuItem>
-          ))}
+          <MenuSubmenu label="Gizmos" data-testid="canvas-scene-gizmos-submenu">
+            {(
+              [
+                ['position', 'Position'],
+                ['lock', 'Lock'],
+                ['group', 'Group'],
+                ['transformation', 'Transformation'],
+              ] as const
+            ).map(([key, label]) => (
+              <MenuItem
+                key={key}
+                role="menuitemcheckbox"
+                aria-checked={drafting[key]}
+                onSelect={act(() => setViewDrafting(documentId, { [key]: !drafting[key] }))}
+              >
+                <span className="vgai-menu-check">{drafting[key] && <EditorIcon icon={faCheck} size="xs" />}</span>
+                {label}
+              </MenuItem>
+            ))}
+          </MenuSubmenu>
           <MenuSeparator />
           <MenuItem disabled={!hasSelection} onSelect={act(onCenterSelection)}>
             <span className="vgai-menu-check" />
@@ -998,7 +1024,11 @@ function CanvasSceneModeLayer({
   const [pick, setPick] = useState<{ x: number; y: number; ids: readonly string[] } | null>(null);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onExit();
+      if (event.key === 'Escape') {
+        // Escape in Pivot mode lets go of the temporary pivot too.
+        if (mode === 'pivot') setTemporaryPivot(view, null);
+        onExit();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1036,6 +1066,12 @@ function CanvasSceneModeLayer({
       // Godot's List Select: every selectable node under the click, to choose from.
       const ids = pickCandidates(store, event.clientX, event.clientY, adapter ? { adapter } : {});
       setPick(ids.length > 0 ? { x: event.clientX, y: event.clientY, ids } : null);
+      return;
+    }
+    if (mode === 'pivot' && event.shiftKey) {
+      // Godot's Shift in Pivot mode: a temporary pivot rotation turns around, no node's own pivot
+      // changed.
+      setTemporaryPivot(view, rulerPoint(worldAt(event.clientX, event.clientY)));
       return;
     }
     if (mode === 'pivot') {

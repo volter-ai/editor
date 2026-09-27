@@ -45,6 +45,10 @@ export interface Snap2D {
   readonly primaryEvery: number;
   /** Degrees a snapped rotation is offset from multiples of the rotate step. */
   readonly rotationOffset: number;
+  /** Degrees a snapped 2D rotation steps by (Godot's Rotation Step, 15). */
+  readonly rotationStep: number;
+  /** What a snapped 2D scale steps by (Godot's Scale Step, 0.1). */
+  readonly scaleStep: number;
   readonly relative: boolean;
   readonly pixel: boolean;
 }
@@ -275,6 +279,9 @@ export class ShellStore implements ShellDocumentState {
     offsetY: 0,
     primaryEvery: 8,
     rotationOffset: 0,
+    // Godot's Configure Snap defaults for a 2D view, its own rather than the 3D view's.
+    rotationStep: 15,
+    scaleStep: 0.1,
     relative: false,
     pixel: true,
   };

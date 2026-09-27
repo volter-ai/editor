@@ -244,19 +244,8 @@ function SnapButton({
                 />
               </>
             )}
-            <Text variant="caption" tone="muted">
-              Rotate (deg)
-            </Text>
-            <TextInput
-              type="number"
-              value={store.snapValues.rotate}
-              step={5}
-              min={1}
-              onChange={(event) =>
-                store.setSnapValues({ rotate: Number(event.target.value) || 15 })
-              }
-            />
-            {dimensions === '2d' && (
+            {dimensions === '2d' ? (
+              // Godot's Configure Snap for a 2D view: its own rotation offset and step, and scale step.
               <>
                 <Text variant="caption" tone="muted">
                   Rotation Offset (deg)
@@ -268,20 +257,57 @@ function SnapButton({
                   step={1}
                   onChange={(event) => store.setSnap2D({ rotationOffset: Number(event.target.value) || 0 })}
                 />
+                <Text variant="caption" tone="muted">
+                  Rotation Step (deg)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Rotation step"
+                  value={store.snap2D.rotationStep}
+                  step={1}
+                  min={1}
+                  onChange={(event) => store.setSnap2D({ rotationStep: Number(event.target.value) || 15 })}
+                />
+                <Text variant="caption" tone="muted">
+                  Scale Step
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Scale step"
+                  value={store.snap2D.scaleStep}
+                  step={0.05}
+                  min={0.01}
+                  onChange={(event) => store.setSnap2D({ scaleStep: Number(event.target.value) || 0.1 })}
+                />
+              </>
+            ) : (
+              <>
+                <Text variant="caption" tone="muted">
+                  Rotate (deg)
+              </Text>
+              <TextInput
+                type="number"
+                value={store.snapValues.rotate}
+                step={5}
+                min={1}
+                onChange={(event) =>
+                  store.setSnapValues({ rotate: Number(event.target.value) || 15 })
+                }
+              />
+              <Text variant="caption" tone="muted">
+                Scale
+              </Text>
+              <TextInput
+                type="number"
+                value={store.snapValues.scale}
+                step={0.05}
+                min={0.01}
+                onChange={(event) =>
+                  store.setSnapValues({ scale: Number(event.target.value) || 0.25 })
+                }
+              />
               </>
             )}
-            <Text variant="caption" tone="muted">
-              Scale
-            </Text>
-            <TextInput
-              type="number"
-              value={store.snapValues.scale}
-              step={0.05}
-              min={0.01}
-              onChange={(event) =>
-                store.setSnapValues({ scale: Number(event.target.value) || 0.25 })
-              }
-            />
             {dimensions === '2d' && (
               <>
                 {(

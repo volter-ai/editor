@@ -97,6 +97,12 @@ import {
 import { pickCandidates, pickTopmost } from '@volter/editor-sdk/kit/authoring/layered-pick';
 import { AddNodeHere, type AddNodeHereState } from './CanvasAddNodeDialogs';
 import {
+  setTemporaryPivot,
+  subscribeTemporaryPivot,
+  temporaryPivot,
+  temporaryPivotVersion,
+} from './canvas-temporary-pivot';
+import {
   subscribeViewportPresentation,
   viewDrafting,
   viewportPresentationVersion,
@@ -1387,6 +1393,16 @@ export function RootSelectionOverlay({
   // `useSyncExternalStore` so a pan change (from THIS component's own
   // space-drag below, or a reset) re-renders immediately.
   const view = suppliedView ?? sharedRootViewController;
+  useSyncExternalStore(subscribeTemporaryPivot, temporaryPivotVersion);
+  const tempPivot = transformModeAware ? temporaryPivot(view) : null;
+  // A new selection lets go of the temporary pivot.
+  const selectionKey = [...store.selectedEntityIds].sort().join('\0');
+  const lastSelectionKey = useRef(selectionKey);
+  useEffect(() => {
+    if (lastSelectionKey.current === selectionKey) return;
+    lastSelectionKey.current = selectionKey;
+    if (temporaryPivot(view)) setTemporaryPivot(view, null);
+  }, [selectionKey, view]);
   const pan = useSyncExternalStore(view.subscribe, view.get, view.get);
   useSyncExternalStore(
     useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
@@ -1748,7 +1764,9 @@ export function RootSelectionOverlay({
         ownerBoxEdit: owner,
         startLocal: toHostLocal(e.clientX, e.clientY),
         origRect: rect,
-        center: nativeOrigin ?? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
+        // A temporary pivot (Godot's) is what the turn is measured around, when one is set.
+        center: (nativeOrigin ? temporaryPivot(view) : null) ??
+          nativeOrigin ?? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
         ...(nativeOrigin ? { nativeOrigin } : {}),
       };
     },
@@ -1989,7 +2007,7 @@ export function RootSelectionOverlay({
           // A 2D scale steps under its own switch (Godot's Use Scale Snap), not the grid magnet.
           store.scaleSnap,
           e.altKey,
-          store.snapValues.scale,
+          store.snap2D.scaleStep,
           e.shiftKey,
         );
         setSnapGuides([]);
@@ -2063,15 +2081,27 @@ export function RootSelectionOverlay({
           local,
           // A 2D rotation steps under its own switch (Godot's Use Rotation Snap).
           gesture.nativeOrigin ? absolute || !store.rotationSnap || e.altKey : e.altKey,
-          gesture.nativeOrigin ? store.snapValues.rotate : 15,
+          gesture.nativeOrigin ? store.snap2D.rotationStep : 15,
         );
         if (absolute && store.rotationSnap && !e.altKey && patch['rotate'] !== undefined) {
           // Godot's Configure Snap: the angle lands on the step from the rotation offset.
-          const step = store.snapValues.rotate;
+          const step = store.snap2D.rotationStep;
           const offset = store.snap2D.rotationOffset;
           const start = gesture.startAngleDeg!;
           const angle = start + patch['rotate'];
           patch = { rotate: Math.round((angle - offset) / step) * step + offset - start };
+        }
+        // About a temporary pivot the node turns around that point: its origin moves by the turn.
+        const pivot = gesture.nativeOrigin ? temporaryPivot(view) : null;
+        if (pivot && gesture.nativeOrigin && patch['rotate'] !== undefined) {
+          const turn = (patch['rotate'] * Math.PI) / 180;
+          const ox = gesture.nativeOrigin.x - pivot.x;
+          const oy = gesture.nativeOrigin.y - pivot.y;
+          patch = {
+            ...patch,
+            originX: pivot.x + ox * Math.cos(turn) - oy * Math.sin(turn),
+            originY: pivot.y + ox * Math.sin(turn) + oy * Math.cos(turn),
+          };
         }
       } else {
         patch = computeSpacingPatch(gesture.side!, dx, dy, gesture.origValue ?? 0);
@@ -2965,6 +2995,25 @@ export function RootSelectionOverlay({
                 {referencePoint.kind === 'anchor' ? 'A' : 'P'}
               </div>
             )}
+            {tempPivot ? (
+              // Godot's temporary pivot: a cross where rotation turns the selection.
+              <div
+                data-testid="world-2d-temporary-pivot"
+                aria-label="Temporary pivot"
+                style={{
+                  position: 'absolute',
+                  left: tempPivot.x - 8,
+                  top: tempPivot.y - 8,
+                  width: 16,
+                  height: 16,
+                  transform: `scale(${chromeScale})`,
+                  transformOrigin: 'center',
+                  pointerEvents: 'none',
+                  background:
+                    'linear-gradient(#ffb020, #ffb020) center / 16px 2px no-repeat, linear-gradient(#ffb020, #ffb020) center / 2px 16px no-repeat',
+                }}
+              />
+            ) : null}
             {/* Adapter-owned component handles — the ONE draggable point per
                 entry, drawn where the provider says it is. The 3D viewport
                 draws the same contract's layers by raycast; this is the same

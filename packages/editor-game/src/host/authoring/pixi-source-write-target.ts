@@ -114,7 +114,14 @@ const CREATE_SNIPPETS: Readonly<Record<string, string>> = {
   sprite: '<pixiSprite label="Sprite" />',
   text: '<pixiText label="Text" text="Text" />',
   graphics: '<pixiGraphics label="Graphics" />',
+  animatedSprite: '<pixiAnimatedSprite label="AnimatedSprite" textures={[Texture.WHITE]} width={64} height={64} />',
+  tilingSprite: '<pixiTilingSprite label="TilingSprite" texture={Texture.WHITE} width={100} height={100} />',
+  nineSliceSprite: '<pixiNineSliceSprite label="NineSliceSprite" texture={Texture.WHITE} width={100} height={100} />',
+  bitmapText: '<pixiBitmapText label="BitmapText" text="BitmapText" />',
+  htmlText: '<pixiHTMLText label="HTMLText" text="HTMLText" />',
 };
+/** A kind whose snippet names Pixi's `Texture`, which the file must then import. */
+const TEXTURE_SNIPPET_KINDS = new Set(['animatedSprite', 'tilingSprite', 'nineSliceSprite']);
 
 function isHiddenProp(name: string): boolean {
   return HIDDEN_PROPS.has(name) || /^on[A-Z]/.test(name) || name.startsWith('__vgai');
@@ -1189,7 +1196,10 @@ export function createSourceCanvasWriteTarget(
       // Nothing was attempted (the palette is empty in both cases), so there is
       // no write to ack.
       if (!snippet || !backend?.writeStruct) return { id: '', ack: undefined };
-      if (parentId) return { id: '', ack: structOp(parentId, 'create', { snippet }) };
+      const options = TEXTURE_SNIPPET_KINDS.has(kind)
+        ? { snippet, ensureImport: { name: 'Texture', module: 'pixi.js' } }
+        : { snippet };
+      if (parentId) return { id: '', ack: structOp(parentId, 'create', options) };
       const lastRoot = a2d.roots().at(-1);
       if (!lastRoot) {
         return {
@@ -1199,7 +1209,7 @@ export function createSourceCanvasWriteTarget(
           ),
         };
       }
-      return { id: '', ack: structOp(lastRoot.id, 'create-sibling', { snippet }) };
+      return { id: '', ack: structOp(lastRoot.id, 'create-sibling', options) };
     },
     creatableKinds: (parentId) => {
       if (!backend?.writeStruct) return [];
