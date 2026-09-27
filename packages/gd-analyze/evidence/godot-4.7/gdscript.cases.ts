@@ -428,6 +428,15 @@ rule('assign-OP_ADDITION-ii-variant', 'ASSIGNMENT', 'operator:OP_ADDITION:6', [I
   line: 1033,
 });
 
+// A `str()` argument is its `Variant::stringify` form (`variant-stringify.ts`), by its analysed type.
+for (const type of ['int', 'float', 'bool', 'String', 'StringName', 'Vector2', 'Vector2i', 'Vector3', 'Vector3i', 'Color']) {
+  rule(`str-argument-${type}`, 'CALL', 'str-argument', [`BUILTIN:${type}`], 'BUILTIN:String', structural('stringify'), {
+    file: 'core/variant/variant.cpp',
+    symbol: 'Variant::stringify',
+    line: 1597,
+  });
+}
+
 // Conversions a typed target applies (`write_assign_with_conversion`): int into float is the
 // identity on JS numbers. Float into int truncates and has no rule, so it refuses.
 const CONVERSION = { file: COMPILER, symbol: 'GDScriptCompiler write_assign_with_conversion', line: 1006 };
@@ -537,7 +546,7 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
 
 // An Array literal is a new JS array of its elements in source order, typed or not (a typed
 // array's element checks never fail on a well-typed program the analyzer accepted).
-for (const elements of [0, 1, 2, 3, 4, 5, 6, 8]) {
+for (const elements of [0, 1, 2, 3, 4, 5, 6, 8, 11, 21]) {
   rule(
     `array-literal-${String(elements)}`,
     'ARRAY',
@@ -888,6 +897,20 @@ static func typed_for_over_literal():
 \tfor action: String in [a, b, c, d]:
 \t\tout = out + action + ","
 \treturn out
+
+static func str_int() -> Array:
+\treturn [str(0), str(-7), str(123456789), str(-9007199254740991)]
+
+static func str_float() -> Array:
+\tvar zero := 0.0
+\tvar one := 1.0
+\treturn [str(1.0), str(0.5), str(-0.0), str(-1.5), str(1e30), str(-1e30), str(1e-30), str(123456.789), str(3.14159265358979), str(1000000000000.25), str(10000000000000.25), str(0.1), str(2.5e-7), str(12345678.9), str(1e15 + 0.5), str(9223372036854775808.0), str(10.5), str(99.99999999999999), str(one / zero), str(-one / zero), str(zero / zero)]
+
+static func str_other() -> Array:
+\treturn [str(true), str(false), str("text"), str(&"name"), str(Vector2(1.5, -0.0)), str(Vector2(0.1, 100.25)), str(Vector3(1, 2, 3)), str(Vector3(0.1, 1e-7, 123456.7)), str(Vector2i(1, -2)), str(Vector3i(3, 4, -5)), str(Color(1, 0.5, 0.25, 0.1))]
+
+static func str_many() -> String:
+\treturn str(1, " x ", 2.5, true, Vector2i(3, 4))
 
 static func literal_in_float_place() -> Vector3:
 \tvar r: float = 0.5
@@ -1615,6 +1638,7 @@ for (const call of ['variant_flow', 'variant_to_vector', 'variant_return']) {
 }
 cases.push({ id: 'variant-holds-builtin', call: 'variant_holds_builtin', comparator: 'exact' });
 cases.push({ id: 'literal-in-float-place', call: 'literal_in_float_place', comparator: 'exact' });
+for (const call of ['str_int', 'str_float', 'str_other', 'str_many']) cases.push({ id: call.replaceAll('_', '-'), call, comparator: 'exact' });
 cases.push({ id: 'typed-for-over-literal', call: 'typed_for_over_literal', comparator: 'exact' });
 cases.push({ id: 'inferred-constant-float', call: 'inferred_constant_float', comparator: 'exact' });
 cases.push({
@@ -1832,6 +1856,11 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     'lib/godot-compat/node',
     'lib/godot-compat/node-3d',
     'lib/godot-compat/string',
+    'lib/godot-compat/variant-stringify',
+    'lib/godot-compat/color',
+    'lib/godot-compat/vector2',
+    'lib/godot-compat/vector2i',
+    'lib/godot-compat/vector3i',
     'lib/godot-compat/vector3',
   ],
   rules,

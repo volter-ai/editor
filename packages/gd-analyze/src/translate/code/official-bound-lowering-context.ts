@@ -130,6 +130,7 @@ const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new S
   'literal',
   'local-identifier',
   'preload',
+  'stringify',
   'member-identifier',
   'self',
   'subscript-attribute',

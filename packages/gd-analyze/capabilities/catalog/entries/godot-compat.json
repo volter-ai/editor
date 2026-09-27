@@ -122,6 +122,7 @@
     "src/lib/godot-compat/touch-screen-button.ts",
     "src/lib/godot-compat/transform-2d.ts",
     "src/lib/godot-compat/transform-3d.ts",
+    "src/lib/godot-compat/variant-stringify.ts",
     "src/lib/godot-compat/vector2.ts",
     "src/lib/godot-compat/vector2i.ts",
     "src/lib/godot-compat/vector3.ts",

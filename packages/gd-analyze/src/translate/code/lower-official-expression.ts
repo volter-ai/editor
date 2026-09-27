@@ -1151,6 +1151,50 @@ function wideBindingResult(context: LoweringContext, call: TargetTsExpression): 
   return returned === undefined || returned === 'unknown' || returned === 'object' || returned.includes('|') || returned === 'Variant';
 }
 
+/** Each type `str()` states, by the `Variant::stringify` form compat writes it in (`variant-stringify.ts`). */
+const STRINGIFY: Readonly<Record<string, string | null>> = {
+  int: 'godot_str_int',
+  float: 'godot_str_float',
+  bool: 'godot_str_bool',
+  // A String is itself, and a StringName is its string.
+  String: null,
+  StringName: null,
+  Vector2: 'godot_str_vector2',
+  Vector2i: 'godot_str_vector2i',
+  Vector3: 'godot_str_vector3',
+  Vector3i: 'godot_str_vector3i',
+  Color: 'godot_str_color',
+};
+
+/**
+ * One `str()` argument as the text `Variant::stringify` gives it, chosen by its analysed type; an
+ * argument whose type analysis leaves as Variant is refused by name.
+ */
+function stringifiedArgument(
+  context: LoweringContext,
+  call: GodotBoundNode,
+  argument: GodotBoundNode,
+  value: LoweredExpression,
+): LoweredExpression {
+  const datatype = argument.datatype;
+  const type = datatype.kind === 'BUILTIN' && !datatype.metaType ? datatype.builtinType : undefined;
+  const form = type === undefined ? undefined : STRINGIFY[type];
+  if (form === undefined) {
+    return context.refuse(argument, `str() of a ${datatype.display} argument: its Variant::stringify form is not transcribed or its type is not settled`);
+  }
+  const requirements = context.structural(call, 'stringify', [argument], 'str-argument');
+  if (form === null) return { ...value, requirements: [...value.requirements, ...requirements] };
+  return {
+    ...value,
+    value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: form }, arguments: [value.value], span: span(context.script, argument) },
+    requirements: [
+      ...value.requirements,
+      ...requirements,
+      { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-stringify', imported: form, local: form, typeOnly: false },
+    ],
+  };
+}
+
 export function lowerOfficialExpression(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -1709,7 +1753,10 @@ export function lowerOfficialExpression(
           [calleeNode, ...argumentNodes],
           `call:${node.static ? 'static' : 'instance'}`,
         );
-        const args = argumentNodes.map((argument) => lowerExpression(context, argument));
+        const stringifying = node.compilerTarget.kind === 'variant-utility' && node.compilerTarget.member === 'str';
+        const args = argumentNodes.map((argument) =>
+          stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
+        );
         const target = callTargetBinding(context, node);
         if (
           calleeNode.kind === 'SUBSCRIPT' &&
