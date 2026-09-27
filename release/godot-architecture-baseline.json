@@ -6,7 +6,7 @@
     "class-mount-registry": 0,
     "compat-owns-time": 0,
     "compat-scheduler-hooks": 0,
-    "output-known-violations": 1,
+    "output-known-violations": 0,
     "world-exports": 0
   },
   "findings": [
@@ -173,7 +173,6 @@
     "class-name-switch | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | switch (className) #1",
     "class-name-switch | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | switch (shape.className) #1",
     "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (className) #1",
-    "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (resource.className) #1",
-    "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'framework-import GodotSpawnHost', #1"
+    "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (resource.className) #1"
   ]
 }

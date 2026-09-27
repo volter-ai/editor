@@ -103,6 +103,14 @@ interface NodeState {
 
 const NODE = new WeakMap<object, NodeState>();
 const NATIVE_OF_OWNER = new WeakMap<object, object>();
+/** An instantiated scene root's stand-in node, and the node React mounted for it. */
+const STANDS_FOR = new WeakMap<object, object>();
+
+/** The node an object is: a script instance's node, a stand-in's mounted node, or itself. */
+function entityOf(object: object): object {
+  const entity = NATIVE_OF_OWNER.get(object) ?? object;
+  return STANDS_FOR.get(entity) ?? entity;
+}
 let serial = 1;
 
 /** Godot 4's Node.ProcessMode namespace. */
@@ -116,7 +124,7 @@ function native(node: unknown, member: string): object {
   if ((typeof node !== 'object' || node === null) && typeof node !== 'function') {
     throw new TypeError(`godot-compat: Node.${member} requires a Node receiver.`);
   }
-  return NATIVE_OF_OWNER.get(node as object) ?? (node as object);
+  return entityOf(node as object);
 }
 
 function fresh(): NodeState {
@@ -286,7 +294,7 @@ export function godot_node_adopt(
 /** The object a type test reads, or null; a freed object is an error, as in Godot. */
 function testedObject(value: unknown, test: string): object | null {
   if ((typeof value !== 'object' || value === null) && typeof value !== 'function') return null;
-  const entity = NATIVE_OF_OWNER.get(value as object) ?? (value as object);
+  const entity = entityOf(value as object);
   if (NODE.get(entity)?.freed === true) {
     throw new Error(`godot-compat: Left operand of '${test}' is a previously freed instance.`);
   }
@@ -320,14 +328,14 @@ export function godot_script_call(value: unknown, method: string, scripts: reado
   if (value === null || value === undefined) {
     throw new Error(`Attempt to call function '${method}' in base 'null instance' on a null instance.`);
   }
-  if (typeof value === 'object' && NODE.get(NATIVE_OF_OWNER.get(value) ?? value)?.freed === true) {
+  if (typeof value === 'object' && NODE.get(entityOf(value))?.freed === true) {
     throw new Error(`Attempt to call function '${method}' in base 'previously freed' on a null instance.`);
   }
   const owner = objectOf(value as object);
   for (const script of scripts) {
     if (owner instanceof script) return (Reflect.get(owner, method) as (...values: unknown[]) => unknown).apply(owner, [...args]);
   }
-  const classes = nodeClasses(NATIVE_OF_OWNER.get(value as object) ?? (value as object));
+  const classes = nodeClasses(entityOf(value as object));
   throw new Error(`Invalid call. Nonexistent function '${method}' in base '${classes?.[0] ?? 'Object'}'.`);
 }
 
@@ -443,7 +451,7 @@ function nodeClasses(entity: object): readonly string[] | undefined {
 
 /** The Godot classes of an object's native entity; one with none is an error. */
 function classesOf(object: object, test: string): readonly string[] {
-  const entity = NATIVE_OF_OWNER.get(object) ?? object;
+  const entity = entityOf(object);
   const classes = nodeClasses(entity);
   if (classes === undefined) {
     throw new Error(`godot-compat: '${test}' needs the Godot class of an object the scene did not record.`);
@@ -592,7 +600,7 @@ export function godot_node_entity<Value>(object: Value): GodotNativeOf<Value> {
   // A node a script reached through an untyped path (`get_node` returns Variant): a null one is
   // Godot's call on a null instance.
   if (object === null || typeof object !== 'object') throw new TypeError('godot-compat: a node method was called on a null instance.');
-  return (NATIVE_OF_OWNER.get(object) ?? object) as GodotNativeOf<Value>;
+  return (entityOf(object)) as GodotNativeOf<Value>;
 }
 
 /**
@@ -628,7 +636,7 @@ export function godot_node_free(entity: object): void {
  * @source core/object/message_queue.cpp:264
  */
 export function godot_node_is_freed(object: object): boolean {
-  return NODE.get(NATIVE_OF_OWNER.get(object) ?? object)?.freed ?? false;
+  return NODE.get(entityOf(object))?.freed ?? false;
 }
 
 // --- Propagation.
@@ -848,6 +856,14 @@ export function add_child(self: object, node: object): void {
   const current = parentEntity(child);
   if (child === parent || (current !== null && NODE.has(current))) return;
   validateChildName(parent, child);
+  // An instantiated scene React has not mounted: React mounts it under the parent (a state update
+  // its scene's component renders), then it enters.
+  const mounted = addUnmounted?.(parent, child);
+  if (mounted !== undefined) {
+    INSERTION.get(parent)?.push(mounted);
+    if (stateOf(parent).insideTree && !stateOf(mounted).insideTree) enterTree(mounted, parent);
+    return;
+  }
   attach(parent, child);
   INSERTION.get(parent)?.push(child);
   if (stateOf(parent).insideTree) enterTree(child, parent);
@@ -1058,7 +1074,7 @@ export function queue_free(self: object): void {
  * @source scene/main/scene_tree.cpp:1641
  */
 export function godot_node_set_queued(object: object): void {
-  stateOf(NATIVE_OF_OWNER.get(object) ?? object).queued = true;
+  stateOf(entityOf(object)).queued = true;
 }
 
 /**
@@ -1068,7 +1084,7 @@ export function godot_node_set_queued(object: object): void {
  * @source core/object/object.h:813
  */
 export function godot_node_is_queued(object: object): boolean {
-  return NODE.get(NATIVE_OF_OWNER.get(object) ?? object)?.queued ?? false;
+  return NODE.get(entityOf(object))?.queued ?? false;
 }
 
 /**
@@ -1224,7 +1240,8 @@ export function can_process(self: object): boolean {
  * @source scene/main/scene_tree.cpp:1177
  */
 export function godot_node_processes(script: object | null, kind: 'process' | 'physics'): boolean {
-  const entity = script === null ? undefined : NATIVE_OF_OWNER.get(script);
+  const own = script === null ? undefined : NATIVE_OF_OWNER.get(script);
+  const entity = own === undefined ? undefined : entityOf(own);
   const state = entity === undefined ? undefined : NODE.get(entity);
   if (entity === undefined || state === undefined || !state.insideTree) return false;
   return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state, false);
@@ -1359,7 +1376,7 @@ const DEFERRED_NODE_PATHS: (() => void)[] = [];
  * Defers setting a node-path property until the scenes React mounted in this commit all exist
  * (their scripts attached): `SceneState::instantiate` sets a property stored as a NodePath to the
  * node at that path once every node of the scene is made (`packed_scene.cpp:597`). They are set
- * before those scenes enter the tree (`godot_node_mount`).
+ * before those scenes enter the tree (`godot_node_seat`).
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:597
@@ -1383,28 +1400,73 @@ function enteringTop(root: object): { readonly top: object; readonly parent: obj
 }
 
 /**
- * A scene React committed enters the tree, as `add_child` enters a child
- * (`scene/main/node.cpp:341-362`): the subtree is seated (its classes recorded), its deferred
- * node-path fields set, and, when its parent is inside the tree, it enters, parent first, then
- * readies under a ready parent, children first, running its scripts' `_enter_tree` and `_ready`.
- * A scene whose parent is not yet inside the tree waits: the enclosing scene's component, whose
- * effect runs after its children's, enters it with the rest. The tree's root is the three scene
- * the nodes hang from, entered the first time a scene reaches it. Called from the scene
- * component's last effect, once its scripts are attached; the returned call exits what is still
- * inside the tree, as React unmounts it.
+ * Seats a scene React committed: its nodes' classes recorded and its deferred node-path fields set,
+ * as `SceneState::instantiate` finishes the scene before anything enters the tree
+ * (`packed_scene.cpp:597`). Called from the scene component's last effect, once its scripts are
+ * attached.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:597
+ */
+export function godot_node_seat(root: object): void {
+  seatGodotScriptForest([root], []);
+  for (const set of DEFERRED_NODE_PATHS.splice(0)) set();
+}
+
+/**
+ * A seated scene enters the tree when its parent is inside it, as `add_child` enters a child
+ * (`scene/main/node.cpp:341-362`): parent first, running its scripts' `_enter_tree`, then readying
+ * children first under a ready parent, running their `_ready`. A scene whose parent is not yet
+ * inside the tree does not enter: the enclosing scene, entering later, takes it with the rest.
+ * The tree's root is the three scene the nodes hang from, entered the first time a scene reaches
+ * it. It runs once React's commit is done, so a `_ready` that adds a scene can mount it at once.
  *
  * @godot Node (protocol)
  * @source scene/main/node.cpp:341
  */
-export function godot_node_mount(root: object): () => void {
-  seatGodotScriptForest([root], []);
-  for (const set of DEFERRED_NODE_PATHS.splice(0)) set();
+export function godot_node_enter(root: object): void {
   let top = root as { readonly parent?: object | null; readonly isScene?: boolean };
   while (top.parent !== undefined && top.parent !== null) top = top.parent as typeof top;
   if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_tree_set_root(top);
   const entering = enteringTop(root);
   if (entering !== undefined && entering.top === root) enterTree(root, entering.parent);
-  return () => exitRoots([root]);
+}
+
+/**
+ * A scene React unmounts exits what of it is still inside the tree, children first, running its
+ * scripts' `_exit_tree`.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:410
+ */
+export function godot_node_exit(root: object): void {
+  exitRoots([root]);
+}
+
+/** How a scene not yet mounted is added: it mounts under the parent and its mounted root is returned. */
+let addUnmounted: ((parent: object, child: object) => object | undefined) | undefined;
+
+/**
+ * Registers how `add_child` adds an instantiated scene React has not mounted (`PackedScene`): the
+ * handler mounts it under the parent and returns its mounted root, or returns undefined for any
+ * other node.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:1711
+ */
+export function godot_node_add_unmounted(handler: (parent: object, child: object) => object | undefined): void {
+  addUnmounted = handler;
+}
+
+/**
+ * The node React mounted for an instantiated scene's root stands for the stand-in the script
+ * held until then: every call through either reaches the mounted node.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:318
+ */
+export function godot_node_stand_in(standIn: object, mounted: object): void {
+  STANDS_FOR.set(standIn, mounted);
 }
 
 // --- Input processing.

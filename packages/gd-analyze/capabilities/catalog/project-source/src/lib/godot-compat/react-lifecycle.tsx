@@ -32,10 +32,19 @@ import {
   godot_node_adopt,
   godot_node_defer_node_path,
   godot_node_object,
+  godot_node_enter,
+  godot_node_exit,
   godot_node_listen_input,
-  godot_node_mount,
   godot_node_scene_root,
+  godot_node_seat,
 } from './node';
+import {
+  type GodotSpawn,
+  GodotPendingSceneContext,
+  godot_packed_scene_claim,
+  godot_packed_scene_portals,
+  godot_packed_scene_spawner,
+} from './packed-scene-instance';
 import { useGodotAdvance } from './advance';
 import { set_visible } from './node-3d';
 import { set_meta } from './object';
@@ -51,20 +60,45 @@ function nodeOf(held: object | null): object | null {
 }
 
 /**
- * Marks the root of the scene a component writes as a scene root: the nodes the component mounts
- * below it are its own (their owner), which `%Name` and `get_owner` read.
+ * The scene a component writes, as the tree has it: its root marked a scene root (the nodes the
+ * component mounts below it are its own, which `%Name` and `get_owner` read), the scene seated and
+ * entered into the tree once React's commit is done (`godot_node_enter`; a scene a script added is
+ * entered by that `add_child`), and exited as React unmounts it. Returns the scenes scripts added
+ * under its nodes, which the component renders.
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:318
  */
-export function useGodotScene(root: RefObject<object | null>): void {
+export function useGodotScene(root: RefObject<object | null>): ReactNode {
+  const pending = useContext(GodotPendingSceneContext);
   useEffect(() => {
     const entity = nodeOf(root.current);
     if (entity === null) throw new Error('godot-compat: the root of a scene was not mounted.');
     godot_node_scene_root(entity);
-    // The scene enters the tree as React commits it (`godot_node_mount`).
-    return godot_node_mount(entity);
+    godot_node_seat(entity);
+    const added = godot_packed_scene_claim(pending, entity);
+    let mounted = true;
+    if (!added) queueMicrotask(() => mounted && godot_node_enter(entity));
+    return () => {
+      mounted = false;
+      godot_node_exit(entity);
+    };
   }, []);
+  return createElement(GodotAddedScenes, { root });
+}
+
+/**
+ * The scenes scripts added under a scene's nodes, as this component's own state: adding one
+ * renders only it, not the scene.
+ */
+function GodotAddedScenes({ root }: { readonly root: RefObject<object | null> }): ReactNode {
+  const [spawns, setSpawns] = useState<readonly GodotSpawn[]>([]);
+  useEffect(() => {
+    const entity = nodeOf(root.current);
+    if (entity === null) throw new Error('godot-compat: the root of a scene was not mounted.');
+    return godot_packed_scene_spawner(entity, setSpawns);
+  }, [root]);
+  return godot_packed_scene_portals(spawns);
 }
 
 /** Each node's script instance, as `useGodotScript` makes it. */
@@ -118,10 +152,15 @@ export function useGodotScript<Instance extends object>(
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
 ): RefObject<Instance | null> {
   const script = useRef<Instance | null>(null);
+  const pending = useContext(GodotPendingSceneContext);
   useEffect(() => {
     const native = nodeOf(ref.current);
     if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
-    const instance = new Script(native);
+    // An instantiated scene's root keeps the instance its instancer holds, now over the mounted node.
+    const made = pending?.instance;
+    const adopted = made instanceof Script && pending !== undefined && pending.mounted === undefined && (native as Object3D).parent === pending.container;
+    const instance = adopted ? (made as Instance) : new Script(native);
+    if (adopted && '$native' in instance) (instance as { $native: object }).$native = native;
     SCRIPT_OF.set(native, instance);
     for (const [field, value] of Object.entries(exported ?? {})) {
       // An authored node reference: the node, once every node of the commit exists.

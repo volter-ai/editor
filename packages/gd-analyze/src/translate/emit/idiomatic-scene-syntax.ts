@@ -941,10 +941,15 @@ export function idiomaticSceneSourceFile(
   }
   // The scene enters the tree last, once its scripts are attached and its signals connected: its
   // component's last effect, so every script of the scene exists before any `_ready` runs
-  // (`SceneState::instantiate` makes the whole scene before `add_child` enters it).
+  // (`SceneState::instantiate` makes the whole scene before `add_child` enters it). It returns the
+  // scenes scripts add under its nodes, which the component renders.
+  let added = 'addedScenes';
+  for (let n = 2; emission.refNames.has(added); n += 1) added = `addedScenes${String(n)}`;
   emission.hooks.push({
-    kind: 'expression-statement',
-    expression: {
+    kind: 'variable-statement',
+    declaration: 'const',
+    name: added,
+    initializer: {
       kind: 'call-expression',
       callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScene') },
       arguments: [{ kind: 'identifier-expression', name: emission.nodeRefs.get(scene.root.nodePath) as string }],
@@ -997,6 +1002,8 @@ export function idiomaticSceneSourceFile(
       },
     );
   }
+  const rootClass = scene.root.scriptInstance?.generatedClass;
+  const rootScript = rootClass === undefined ? undefined : emission.scripts.get(rootClass.modulePath + rootClass.exportName)?.local;
   const reactNames = [
     ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
     ...(emission.refNames.size === 0 ? [] : ['useRef']),
@@ -1126,9 +1133,26 @@ export function idiomaticSceneSourceFile(
           ...(emission.rootExports ? [{ kind: 'destructure-statement' as const, names: ['exports'], rest: 'rest', initializer: { kind: 'identifier-expression' as const, name: 'props' } }] : []),
           ...family.hooks,
           ...emission.hooks,
-          { kind: 'return-statement', expression: { ...root, kind: 'jsx-element-expression' } },
+          {
+            kind: 'return-statement',
+            expression: { kind: 'jsx-fragment-expression', children: [root, { kind: 'jsx-expression-child', value: { kind: 'identifier-expression', name: added } }] },
+          },
         ],
       },
+      // The root's script class, which `instantiate()` makes the instance of before the scene mounts.
+      ...(rootScript === undefined
+        ? []
+        : [
+            {
+              kind: 'expression-statement' as const,
+              expression: {
+                kind: 'assignment-expression' as const,
+                operator: '=' as const,
+                target: { kind: 'property-expression' as const, object: { kind: 'identifier-expression' as const, name: scene.exportName }, property: 'rootScript' },
+                value: { kind: 'identifier-expression' as const, name: rootScript },
+              },
+            },
+          ]),
     ],
   };
 }

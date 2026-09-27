@@ -13,9 +13,7 @@ import type { GodotOutputArtifact } from './emit';
 /** Compat exports that run Godot's machinery for the game: never imported by the game itself. */
 const FRAMEWORK = ['GodotMain', 'GodotProjectStartup', 'GodotSpawnHost', 'godot_main_iteration'] as const;
 
-const KNOWN: readonly string[] = [
-  'framework-import GodotSpawnHost',
-];
+const KNOWN: readonly string[] = [];
 
 const decoder = new TextDecoder();
 

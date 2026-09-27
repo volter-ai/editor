@@ -154,8 +154,9 @@ function autoloadComponent(
         ]),
       },
       ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports),
-      // The autoload enters the tree once its script is attached (its component's last effect).
-      { kind: 'expression-statement', expression: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
+      // The autoload enters the tree once its script is attached (its component's last effect); it
+      // renders the scenes its script adds under it.
+      { kind: 'variable-statement', declaration: 'const', name: 'addedScenes', initializer: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
       {
         kind: 'return-statement',
         expression: {
@@ -165,7 +166,7 @@ function autoloadComponent(
             { kind: 'jsx-string-attribute', name: 'name', value: autoload.name },
             { kind: 'jsx-expression-attribute', name: 'ref', value: { kind: 'identifier-expression', name: node } },
           ],
-          children: [],
+          children: [{ kind: 'jsx-expression-child', value: { kind: 'identifier-expression', name: 'addedScenes' } }],
         },
       },
     ],
@@ -322,7 +323,6 @@ export function emitDirectGodotWorldSyntax(
               attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }],
               children: [{ kind: 'jsx-expression-child', value: { kind: 'property-expression', object: id('props'), property: 'children' } }],
             },
-            { kind: 'jsx-element-child', tag: 'GodotSpawnHost', attributes: [], children: [] },
           ],
         },
       },
@@ -345,7 +345,6 @@ export function emitDirectGodotWorldSyntax(
     named('./lib/godot-compat/window', ['godot_window_canvas_layer', 'godot_window_process_events']),
     named('./lib/godot-compat/camera-3d', ['godot_camera_3d_draw']),
     named('./lib/godot-compat/canvas-item', ['godot_canvas_draw']),
-    named('./lib/godot-compat/packed-scene-instance', ['GodotSpawnHost']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>
       named(`./lib/godot-compat/${module}`, [...hooks.compat].filter(([, from]) => from === module).map(([name]) => name)),
