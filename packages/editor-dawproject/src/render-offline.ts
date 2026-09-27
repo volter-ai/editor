@@ -175,7 +175,9 @@ export function placeAudio(
   const fromBeat = window ? window.fromBeat : 0;
   const toBeat = window ? window.toBeat : Math.max(1, piece.length);
   const from = performance.secondsAt(fromBeat);
-  const loopSeconds = performance.secondsAt(toBeat) - from;
+  // Passes of whole samples, as `synthEvents` places them.
+  const loopSamples = Math.round((performance.secondsAt(toBeat) - from) * sampleRate);
+  const loopSeconds = loopSamples / sampleRate;
   const out = new Map<string, [Float32Array, Float32Array]>();
   for (const track of piece.tracks) {
     for (const clip of track.clips) {
@@ -195,7 +197,7 @@ export function placeAudio(
         const frames = Math.round((segmentEnd - segmentStart) * sampleRate);
         const steady = segment.envelope.length === 1 ? segment.envelope[0]![1] : null;
         for (let pass = 0; pass < passes; pass++) {
-          const at = Math.round((pass * loopSeconds + (segmentStart - from)) * sampleRate);
+          const at = pass * loopSamples + Math.round((segmentStart - from) * sampleRate);
           for (let i = 0; i < frames && at + i < total; i++) {
             const position = (sourceStart * sampleRate + i) * ratio;
             const k = Math.floor(position);
@@ -258,7 +260,10 @@ function synthEvents(
   const toBeat = window ? window.toBeat : Math.max(1, piece.length);
   const from = performance.secondsAt(fromBeat);
   const to = performance.secondsAt(toBeat);
-  const loopSeconds = to - from;
+  // A pass is a whole number of samples (the loop file's length), so every pass places each event
+  // on the same sample as the first: a loop's second pass is its first, shifted.
+  const loopSamples = Math.round((to - from) * sampleRate);
+  const loopSeconds = loopSamples / sampleRate;
   const inWindow = (second: number): boolean => second >= from - 1e-9 && second < to - 1e-9;
   // Each controller's last value before the window, sounding from its first sample.
   const carried = new Map<string, (typeof performance.controls)[number]>();
@@ -309,7 +314,7 @@ function synthEvents(
   }
   const audible = new Set(audibleTracks(piece).map((track) => track.id));
   for (let pass = 0; pass < passes; pass++) {
-    const at = (seconds: number): number => Math.round((pass * loopSeconds + seconds) * sampleRate);
+    const at = (seconds: number): number => pass * loopSamples + Math.round(seconds * sampleRate);
     for (const control of controls) {
       const channel = channelOf.get(control.track);
       if (channel === undefined || !audible.has(control.track)) continue;

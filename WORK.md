@@ -262,7 +262,10 @@ through the project-output door, so `.vgai/provenance.json` records every file a
 with renders byte-deterministic down to the OGG and its AAC twin (`.m4a`, which the player
 loads when the browser cannot decode Vorbis); `sections` writes each marker section as its
 own seamless loop at the mix's level (lengths exact to the frame against the report's
-`barSeconds`) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext,
+`barSeconds`; a render's passes are whole samples, so each section's channels are
+bit-identical to its bars in the piece wherever nothing rings in from the music before it:
+on Harbor, flute, strings and cello past A's first second, only the harp's decay out of A′
+differing) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext,
 the player switched from one section loop to the next on the bar line it computed (6.05 s,
 the report's bar 3 plus the lead), with the output equal to each loop's own samples on either
 side of the fade; a second queue before the switch replaced the waiting loop at the same
@@ -307,7 +310,8 @@ Open, with what closes each:
   ran into it and wrapped from 15.6 to 9.0; the metronome scheduled a blip every 0.75 s at
   80 BPM, the downbeat at 1760 Hz against 1320, and none once off; a paste at playhead 14.32
   wrote the note at 4:3.25 (the 1/16 grid) and undid byte-identically.
-- Live against export, synth half. Read from `spessasynth_lib`'s processor: at the start of
+- [minor] Live against export, synth half: the preview only, under a quantum and below what a
+  listener hears, while the export every game ships is sample-exact. Read from `spessasynth_lib`'s processor: at the start of
   each 128-sample render quantum it applies every queued event whose time has passed, then
   renders the quantum, so each note the preview schedules sounds up to 2.67 ms after its
   performed time (the export is sample-exact). Under a quantum is inaudible; matching the export
@@ -325,11 +329,6 @@ Open, with what closes each:
   matched to 0.0 dB), and Tidewatch and Victory on the orchestra. The library builds as 20 banks,
   66 patches (`scripts/vsco2-ce`, into `~/.volter/banks/vsco2-ce`, byte-reproducible; SF3,
   218 MB with round-robin members; an editor tab holding nine grows by about 425 MB).
-- A section loop's audio equals its bars in the whole piece only where the synthesizer's
-  state does not depend on what it played before: events match to the sample, and a pass
-  preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
-  its bars in the whole loop at −92 dB past its first 3 s (the wrapped tail), but section A at
-  −23 dB (flute and cello most). The state that carries is not identified.
 
 ## Both products in the browser substrate
 
