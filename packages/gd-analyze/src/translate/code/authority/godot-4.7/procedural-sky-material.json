@@ -616,7 +616,7 @@
         "observedOutputSha256": "baa42873d0b9bdea1d53e6fd3dbd289e6d0bebbd7b5e6cd20f93aeb57c2dde41"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_curve",
         "observedOutputSha256": "baa42873d0b9bdea1d53e6fd3dbd289e6d0bebbd7b5e6cd20f93aeb57c2dde41"
       },
@@ -655,7 +655,7 @@
         "observedOutputSha256": "e0e2d7edf1882c07926c6336a35188433b23f7790adfabab9b69311ce8522f3b"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_curve",
         "observedOutputSha256": "e0e2d7edf1882c07926c6336a35188433b23f7790adfabab9b69311ce8522f3b"
       },
@@ -694,7 +694,7 @@
         "observedOutputSha256": "8907b10de4f6f4972306cf27551cc61a9c9e05acf4f3600bbef5b331401741ec"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_energy_multiplier",
         "observedOutputSha256": "8907b10de4f6f4972306cf27551cc61a9c9e05acf4f3600bbef5b331401741ec"
       },
@@ -733,7 +733,7 @@
         "observedOutputSha256": "ea1f7cf94a3ed878955bf331378a4687e7a0f976acd0abbd41ea7049a130f1d8"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_energy_multiplier",
         "observedOutputSha256": "ea1f7cf94a3ed878955bf331378a4687e7a0f976acd0abbd41ea7049a130f1d8"
       },
@@ -772,7 +772,7 @@
         "observedOutputSha256": "7debdf113163df5d6c64b8455fd313145940ad558375982fc3193e4838c0703d"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_curve",
         "observedOutputSha256": "7debdf113163df5d6c64b8455fd313145940ad558375982fc3193e4838c0703d"
       },
@@ -811,7 +811,7 @@
         "observedOutputSha256": "c7cdac1983ec095d801f96815c8c1050baa8fc6057b017d0fd72a9af5c29413c"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_curve",
         "observedOutputSha256": "c7cdac1983ec095d801f96815c8c1050baa8fc6057b017d0fd72a9af5c29413c"
       },
@@ -850,7 +850,7 @@
         "observedOutputSha256": "480cd790aa8d0bbac448b053590d9b250e5e669d8a829881b091a8e1aaeb9fc7"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_energy_multiplier",
         "observedOutputSha256": "480cd790aa8d0bbac448b053590d9b250e5e669d8a829881b091a8e1aaeb9fc7"
       },
@@ -889,7 +889,7 @@
         "observedOutputSha256": "acc73c527c63a5e2ee4b87e756f102487e167ed54fe20337cb1ca70ab53b796e"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_energy_multiplier",
         "observedOutputSha256": "acc73c527c63a5e2ee4b87e756f102487e167ed54fe20337cb1ca70ab53b796e"
       },
@@ -928,7 +928,7 @@
         "observedOutputSha256": "b08d9fa4b25d54855d52bc025caa4d0dd32b7a7931eea8392ccb54b7240f06f1"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sun_angle_max",
         "observedOutputSha256": "b08d9fa4b25d54855d52bc025caa4d0dd32b7a7931eea8392ccb54b7240f06f1"
       },
@@ -967,7 +967,7 @@
         "observedOutputSha256": "a84c7bbd7a5a1a2101cb99b95d664de47dabb41a1c6450d61633f8f8d4be6e1a"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sun_angle_max",
         "observedOutputSha256": "a84c7bbd7a5a1a2101cb99b95d664de47dabb41a1c6450d61633f8f8d4be6e1a"
       },
@@ -1006,7 +1006,7 @@
         "observedOutputSha256": "8afd431db4dd2ea7614bc94d722f2e144b1bfd45c62dff4b1c92929d547c816d"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sun_curve",
         "observedOutputSha256": "8afd431db4dd2ea7614bc94d722f2e144b1bfd45c62dff4b1c92929d547c816d"
       },
@@ -1045,7 +1045,7 @@
         "observedOutputSha256": "9a808764c85c173d41ee199fd3aedaed7daceb743cb6ce42939555c214c43c30"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sun_curve",
         "observedOutputSha256": "9a808764c85c173d41ee199fd3aedaed7daceb743cb6ce42939555c214c43c30"
       },
@@ -1084,7 +1084,7 @@
         "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_energy_multiplier",
         "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
       },
@@ -1123,7 +1123,7 @@
         "observedOutputSha256": "244abbffddbf3f3ef06b441f0378337b644e77aab14d9b0b74296cbb91462de8"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_energy_multiplier",
         "observedOutputSha256": "244abbffddbf3f3ef06b441f0378337b644e77aab14d9b0b74296cbb91462de8"
       },
@@ -1162,7 +1162,7 @@
         "observedOutputSha256": "bcde2a46d78c7c5845848f3ee9f29ca589d209c92bf15f4024c3c92f1568349a"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_top_color",
         "observedOutputSha256": "bcde2a46d78c7c5845848f3ee9f29ca589d209c92bf15f4024c3c92f1568349a"
       },
@@ -1201,7 +1201,7 @@
         "observedOutputSha256": "cb86d6a8a2ed242619e3dd458f794bbd9782cf0546393b455c8fb2fdbfc791e1"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_top_color",
         "observedOutputSha256": "cb86d6a8a2ed242619e3dd458f794bbd9782cf0546393b455c8fb2fdbfc791e1"
       },
@@ -1240,7 +1240,7 @@
         "observedOutputSha256": "ec22eb8d8bd10ff6d4663eff76b3f91212a4ad0bc68e38476a7ea9bf9f31bf75"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_horizon_color",
         "observedOutputSha256": "ec22eb8d8bd10ff6d4663eff76b3f91212a4ad0bc68e38476a7ea9bf9f31bf75"
       },
@@ -1279,7 +1279,7 @@
         "observedOutputSha256": "9f861a492677516a3c53fb5e59e5131e4a76263b7f5df38e555b5e32af06270d"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_horizon_color",
         "observedOutputSha256": "9f861a492677516a3c53fb5e59e5131e4a76263b7f5df38e555b5e32af06270d"
       },
@@ -1318,7 +1318,7 @@
         "observedOutputSha256": "4a54a65d19c3e9f20bdc1b285d9aa0836bf3ed466464f3cec0d983d17dadb788"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_cover_modulate",
         "observedOutputSha256": "4a54a65d19c3e9f20bdc1b285d9aa0836bf3ed466464f3cec0d983d17dadb788"
       },
@@ -1357,7 +1357,7 @@
         "observedOutputSha256": "fa7d1f266123e2ae615f440eee0dc7ab1c869728cc11caabc0f70d0a83d5a933"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_cover_modulate",
         "observedOutputSha256": "fa7d1f266123e2ae615f440eee0dc7ab1c869728cc11caabc0f70d0a83d5a933"
       },
@@ -1396,7 +1396,7 @@
         "observedOutputSha256": "316ca48cf07b435f15b9d065f4f8ed2e6c4fb308af4cf79dd4e34377a1d94f78"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_bottom_color",
         "observedOutputSha256": "316ca48cf07b435f15b9d065f4f8ed2e6c4fb308af4cf79dd4e34377a1d94f78"
       },
@@ -1435,7 +1435,7 @@
         "observedOutputSha256": "29c88d1959167770684c181bdbb4ba137ce8f6afde35243e79e817e443b74f09"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_bottom_color",
         "observedOutputSha256": "29c88d1959167770684c181bdbb4ba137ce8f6afde35243e79e817e443b74f09"
       },
@@ -1474,7 +1474,7 @@
         "observedOutputSha256": "7b974c3e4818db10ff1c9fc916c9a02262f13685691b9fff4c4dcc1cc79a7676"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_horizon_color",
         "observedOutputSha256": "7b974c3e4818db10ff1c9fc916c9a02262f13685691b9fff4c4dcc1cc79a7676"
       },
@@ -1513,7 +1513,7 @@
         "observedOutputSha256": "5252f153572b69cd10fc3a5f5a4d576b20bd998f31436b234ffca82329752232"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_horizon_color",
         "observedOutputSha256": "5252f153572b69cd10fc3a5f5a4d576b20bd998f31436b234ffca82329752232"
       },
@@ -1552,7 +1552,7 @@
         "observedOutputSha256": "687219f3fef5b0ea23c592de2f56ad0b5b87d6fabcf442cd3b470e6a20d7c649"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_use_debanding",
         "observedOutputSha256": "687219f3fef5b0ea23c592de2f56ad0b5b87d6fabcf442cd3b470e6a20d7c649"
       },
@@ -1591,7 +1591,7 @@
         "observedOutputSha256": "1e7dfc0bdb8d9a49136b4795a2ecad9b5375b359b59d87eb0681b8d4e654702b"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_use_debanding",
         "observedOutputSha256": "1e7dfc0bdb8d9a49136b4795a2ecad9b5375b359b59d87eb0681b8d4e654702b"
       },
@@ -1630,7 +1630,7 @@
         "observedOutputSha256": "133ba1b9f9c8e8be6624a999767d33e579b8d5e040c34daf3969bcfe5c7b7af5"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_cover",
         "observedOutputSha256": "133ba1b9f9c8e8be6624a999767d33e579b8d5e040c34daf3969bcfe5c7b7af5"
       },
@@ -1669,7 +1669,7 @@
         "observedOutputSha256": "357d4fdca9b09c31a7826d8cfb35276fd34212bc42637254314f7cdd26e40932"
       },
       "target": {
-        "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49",
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
         "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_cover",
         "observedOutputSha256": "357d4fdca9b09c31a7826d8cfb35276fd34212bc42637254314f7cdd26e40932"
       },
@@ -1696,7 +1696,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "43be495eed719e5093caabe5300610e1d9d45e2698cecdaf73cc7e13f18955cb",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_curve",
@@ -1704,7 +1704,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2fd66ecace86091c83cccc1f0890433458292c255bb248cd2fd27fc550c5c6a6",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_energy_multiplier",
@@ -1712,7 +1712,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5df66975903024e4a94198cd820454245c63bd49b0542733be7aafe6b41127f7",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_energy_multiplier",
@@ -1720,7 +1720,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "61770f36cdc8e752f3a5a51d997d738772fb0e576458dee64809d910d1b8e5f4",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_curve",
@@ -1728,7 +1728,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ac612057355656983b02400b1f5fdc09821304a2b5e163c156559835e82ac456",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_curve",
@@ -1736,7 +1736,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "850a8733db7b128748cb46363c19758b812ffd20844f8bf61db7997a0b50d766",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_energy_multiplier",
@@ -1744,7 +1744,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ae0dcecc47c8baddf3e4cdde0e5c941a71c0d05efd00726ef6da0eb13ac2b6a6",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_energy_multiplier",
@@ -1752,7 +1752,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "116119442befc4e8f82e3d351e1305d00ae817d93949e95f7775feae28139879",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_angle_max",
@@ -1760,7 +1760,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "dd58f329be29dce47369d5335874926e376871580144c7114f21d7410ec0e3a6",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_angle_max",
@@ -1768,7 +1768,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c5049dac3a0fdf796b9efae97e926ec7aee68d8410823c17c69ccac27b3f828f",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_curve",
@@ -1776,7 +1776,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "07fcbe5fb326ca800f1e53e25142a348dffd1e14d23d4e5fb9df1cc5b4ad793b",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_curve",
@@ -1784,7 +1784,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c48a383b7881eaa57880bfa3fdc6a3fdc442e1c8388b85e2d240dd3f430eae1c",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_energy_multiplier",
@@ -1792,7 +1792,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "94225de17c19995e705e7e963cda376e199caf94b1199adfce30589ae08d676f",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_energy_multiplier",
@@ -1800,7 +1800,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "9ee3a5fcb5e9a5b7042cbe5da5fc97a7766ccf0f59f8a0b8616af9b0fd28c384",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_top_color",
@@ -1808,7 +1808,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f047f5b4d6e8118af57224d80f932e37121a6fdd5d7389d7fde04fe67499971e",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_top_color",
@@ -1816,7 +1816,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b4ec4822aa3082c8ee051c5ede0b5682eda12dde95a47d039fc26fa818bbdff7",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_horizon_color",
@@ -1824,7 +1824,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "05669298644c193818211d734b40aa45fe5650205c4ded1164261346d83bab29",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_horizon_color",
@@ -1832,7 +1832,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "49750b47ed0f3909eef6a8a975708fe65f41549e6dee8056471a9a109cc173f8",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover_modulate",
@@ -1840,7 +1840,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f6dd99f19e66b3a30fd2ec176b37764bbadcacba4ad67abc18f34de148c02c1f",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover_modulate",
@@ -1848,7 +1848,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "001d39d14a83d43d15c7ec112c2900409b30fc0a171ca1de6cd136fb2ff70f36",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_bottom_color",
@@ -1856,7 +1856,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "029604f186ab34c11454fd9d688050aca2979874191f3d0bc90ce2b2a8c58185",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_bottom_color",
@@ -1864,7 +1864,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4d27f53bc6d110c070eef8f7a50b3cc0a5c33efcbb80ebfb9e3e617b690d6d56",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_horizon_color",
@@ -1872,7 +1872,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "42f519ac4e81f80b18c0184267e2513961909f6935916bb9ad6a20e039d8b272",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_horizon_color",
@@ -1880,7 +1880,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "8c337bbad476a7f3120b53cc32ffc2f6b44543285f750cf6764d9c32c72b068e",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_use_debanding",
@@ -1888,7 +1888,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e9cc012ca795b5ebf80ca0a4f7e1c3547598a51353a1f426010e9dbd44ea1001",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_use_debanding",
@@ -1896,7 +1896,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0bbbd836b7d236995b4c02cf13719a2e52fbc1f96889b80d3aec31b7c61fcaef",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover",
@@ -1904,7 +1904,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2498832ac648c9a6a8f75f45e6c6ac33e7daf2ee60026d869ff02945a7379d32",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     },
     {
       "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover",
@@ -1912,7 +1912,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5df56c6c1c00f5ecbec9a1eb375c65526b7ce87fc8d19800b39ae5c7e6d54325",
-      "implementationSha256": "b08ae2cbf075b8bfae5c7e5acb4b91636b2e401d6839f125615c7e807b171a49"
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
     }
   ]
 }

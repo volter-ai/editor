@@ -364,7 +364,7 @@
         "observedOutputSha256": "24929e57bbf74c811e9f9a47014b20707297d23aaee662a8209534ffd26e18ab"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts get_fov",
         "observedOutputSha256": "24929e57bbf74c811e9f9a47014b20707297d23aaee662a8209534ffd26e18ab"
       },
@@ -403,7 +403,7 @@
         "observedOutputSha256": "3e8b03073b1bfc918fdc2044bb810012311c46c0f846e535e9dcb480a4afb6ea"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts get_near",
         "observedOutputSha256": "3e8b03073b1bfc918fdc2044bb810012311c46c0f846e535e9dcb480a4afb6ea"
       },
@@ -442,7 +442,7 @@
         "observedOutputSha256": "b98d31766bfe6438d2e508b6e480cdf14ac2d3b454faa1680587fa9194115944"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts get_far",
         "observedOutputSha256": "b98d31766bfe6438d2e508b6e480cdf14ac2d3b454faa1680587fa9194115944"
       },
@@ -481,7 +481,7 @@
         "observedOutputSha256": "8d7b6775ac133df39e5d05fe75a740a0d42312723df07fad47646b756292ff64"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts get_keep_aspect_mode",
         "observedOutputSha256": "8d7b6775ac133df39e5d05fe75a740a0d42312723df07fad47646b756292ff64"
       },
@@ -520,7 +520,7 @@
         "observedOutputSha256": "7f4a297bb27988961042bb01d4c8307c5519a48628a8af70ffd075a70746e274"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts set_fov",
         "observedOutputSha256": "7f4a297bb27988961042bb01d4c8307c5519a48628a8af70ffd075a70746e274"
       },
@@ -559,7 +559,7 @@
         "observedOutputSha256": "f0a4cadecc3050fbba47c83b1aae6fcf241b7b86f7ff2518e7222721bb3c7743"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts set_near",
         "observedOutputSha256": "f0a4cadecc3050fbba47c83b1aae6fcf241b7b86f7ff2518e7222721bb3c7743"
       },
@@ -598,7 +598,7 @@
         "observedOutputSha256": "0faa7fc9fe8f0491da3106b93fd7751fba3c22db85783f8efa763ffa08c5332e"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts set_far",
         "observedOutputSha256": "0faa7fc9fe8f0491da3106b93fd7751fba3c22db85783f8efa763ffa08c5332e"
       },
@@ -637,7 +637,7 @@
         "observedOutputSha256": "b7ac6ababdaf1a213308b5aefe8fd13cde0aad22c5549961f99e14d5e9ca2ddb"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts set_keep_aspect_mode",
         "observedOutputSha256": "b7ac6ababdaf1a213308b5aefe8fd13cde0aad22c5549961f99e14d5e9ca2ddb"
       },
@@ -676,7 +676,7 @@
         "observedOutputSha256": "151156212749808c015c3abb49b0c9508f796b439c23a43827e0360baca9942d"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts project_ray_normal",
         "observedOutputSha256": "151156212749808c015c3abb49b0c9508f796b439c23a43827e0360baca9942d"
       },
@@ -715,7 +715,7 @@
         "observedOutputSha256": "3892bf9ee617bff2cd51ffbac5f1f5715889e780bac748a37bfeb2d06384d990"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts project_ray_origin",
         "observedOutputSha256": "3892bf9ee617bff2cd51ffbac5f1f5715889e780bac748a37bfeb2d06384d990"
       },
@@ -754,7 +754,7 @@
         "observedOutputSha256": "98ce41cf1c90d904e8c7e9358514b66bcad6ac0847191f59f256a1b4f411c311"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts set_environment",
         "observedOutputSha256": "98ce41cf1c90d904e8c7e9358514b66bcad6ac0847191f59f256a1b4f411c311"
       },
@@ -793,7 +793,7 @@
         "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts get_environment",
         "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
       },
@@ -832,7 +832,7 @@
         "observedOutputSha256": "220391b23126f5ab7e1cd44f140d55f7ebc2ba23cd3567344d2b27dc7290cba4"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts is_current",
         "observedOutputSha256": "220391b23126f5ab7e1cd44f140d55f7ebc2ba23cd3567344d2b27dc7290cba4"
       },
@@ -871,7 +871,7 @@
         "observedOutputSha256": "4b7216cfd846b0c92d72a100569f21c82b2f98d59102a47684084343579a5e57"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts set_current",
         "observedOutputSha256": "4b7216cfd846b0c92d72a100569f21c82b2f98d59102a47684084343579a5e57"
       },
@@ -910,7 +910,7 @@
         "observedOutputSha256": "afa48ad55ef6c7b21315468c36bee456f2bc8de5e3c9c067405206df5bc19ea8"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts make_current",
         "observedOutputSha256": "afa48ad55ef6c7b21315468c36bee456f2bc8de5e3c9c067405206df5bc19ea8"
       },
@@ -949,7 +949,7 @@
         "observedOutputSha256": "5b00748802bb14a1d5f2cf7f9f3897010024eb60331b200213f812f5b57ad551"
       },
       "target": {
-        "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65",
+        "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c",
         "callsite": "lib/godot-compat/camera-3d.ts clear_current",
         "observedOutputSha256": "5b00748802bb14a1d5f2cf7f9f3897010024eb60331b200213f812f5b57ad551"
       },
@@ -976,7 +976,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "71f8ece7fcd0281600e8ace0ff0c847fea2c65e7139457f85a5d26bc7b9f10ee",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.get_near",
@@ -984,7 +984,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "11c3c3c4495dec25909a32c2feaf214f077c62eccb8a08e755287903013f88fe",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.get_far",
@@ -992,7 +992,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "55de01073b6768abac8086b21bdae5a6bb51783c5362dad959e83d2b8d1364a5",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.get_keep_aspect_mode",
@@ -1000,7 +1000,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a3682c7362238e1212bd5c0509a100c5bfc9c66aaede60c482136e2661d07d27",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.set_fov",
@@ -1008,7 +1008,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "47e32b5b7e0131a929aff1f441cf86d9a30001d02ba7bc1e97da4141c589b362",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.set_near",
@@ -1016,7 +1016,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "35b0e23eab35573fceb65de59c64ddf035b0c06e12cd9661c13aed6ea0ee832c",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.set_far",
@@ -1024,7 +1024,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "578f56b829b79ea52faae39f50dfeb724b34b282ef72fc03efb3b04e82ef96d3",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.set_keep_aspect_mode",
@@ -1032,7 +1032,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0805dcdb961be9273c49193f305215eda69bfafe53fda7c3c8eb6decb877bac0",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.project_ray_normal",
@@ -1040,7 +1040,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e9d87884b4f4f1d9a3d4f408491e884550db68e6cc8f01efecb1a7487eb9f7fd",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.project_ray_origin",
@@ -1048,7 +1048,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "78d71ffca27b1cc882713a5eb2d2b61d563b85af51319dba23cfa755b32c50e6",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.set_environment",
@@ -1056,7 +1056,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5037ad249c2071a4afcbd52e2b30506c7e4da148302b39a5b216a3de99ca0470",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.get_environment",
@@ -1064,7 +1064,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bca6da0fd91ffd1031adb87e9e43e21eb10ceee44d5d85b876520ade9b330a7b",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.is_current",
@@ -1072,7 +1072,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ea6038260b1db31a37b938369caf1b85b18e5e40a632358e07ca7909cc0b1190",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.set_current",
@@ -1080,7 +1080,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "96ce9495b2c9aab832777fe08956e92a808d9e7f343993aa4aead829c4940166",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.make_current",
@@ -1088,7 +1088,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5442824383b753be8a3d8c362b5143183fa2669051b44e649fc20ea0a919e575",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     },
     {
       "claimId": "godot-4.7-binding-Camera3D.clear_current",
@@ -1096,7 +1096,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "358de1901e309a175ec5c23788a848b45c1872218dfef35065ebe8d96dafb5fc",
-      "implementationSha256": "df6e422a88d0733c44c283b9b9846e8905bb197023739175c3fb54f0eee9ec65"
+      "implementationSha256": "f7b82987f1850d198546756fa088ef4e49e5d3d6405737c16e219e54a898041c"
     }
   ]
 }
