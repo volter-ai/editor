@@ -184,6 +184,12 @@ export function importGodotProject(
       projectDir: capturedProjectDir,
     });
     const decodedProject = readGodotProjectSnapshot(snapshot, toolchain.frontend.readAuthority);
+    // Documents the game never loads are not planned (`read/reachability.ts`): reported, with why.
+    if (decodedProject.unplanned.length > 0) {
+      process.stdout.write(
+        `Not planned, never loaded by the game:\n${decodedProject.unplanned.map((entry) => `  ${entry.resPath}: ${entry.reason}\n`).join('')}`,
+      );
+    }
     const boundProject = bindGodotProject(
       snapshot,
       boundProgram,
