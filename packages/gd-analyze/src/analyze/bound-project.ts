@@ -1,6 +1,7 @@
 import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
+import { parameterKey, typeFunctionParameters } from './parameter-types';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
 import type {
@@ -34,6 +35,7 @@ import type { GodotApiClass, GodotApiDump } from './api-dump';
 import type { GodotAnalysisAuthority, GodotAnalysisRuleId } from './authority';
 import {
   type BoundGodotCallReceiver,
+  type BoundGodotScriptCall,
   type BoundGodotUntypedCall,
   typeCallReceivers,
 } from './call-receivers';
@@ -66,6 +68,8 @@ export interface BoundGodotSourceScript {
   readonly callReceivers: readonly BoundGodotCallReceiver[];
   /** Dynamic calls left untyped, each with the reason; lowering refuses them where they stand. */
   readonly untypedCalls: readonly BoundGodotUntypedCall[];
+  /** Dynamic calls Godot dispatches to a script function (`script-method-dispatch`). */
+  readonly scriptCalls: readonly BoundGodotScriptCall[];
   /** Variant values the project fixes the type of (`project-setting-type`). */
   readonly settingTypes: readonly BoundGodotTypedValue[];
   /** Datatypes the project fixes where the analyzer left a node untyped (`refineDatatypes`). */
@@ -1303,6 +1307,19 @@ export function bindGodotProject(
       }
     }
   }
+  // Every untyped parameter's datatype from the callers the project has (`parameter-types.ts`).
+  const parameterTypes = typeFunctionParameters({
+    programs: code.scripts,
+    apiDump: apiDump.parsed,
+    nativeBase: (resPath) => inheritance.get(resPath)?.engineBase,
+    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
+    scenes: decoded.scenes,
+    scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
+    documentTexts: snapshot
+      .entries()
+      .filter((entry) => entry.entryType === 'file' && entry.digest !== undefined && /\.(tscn|tres|escn)$/u.test(entry.relativePath))
+      .map((entry) => new TextDecoder().decode(snapshot.bytesByDigest(entry.digest as string))),
+  });
   const onreadyField = (resPath: string): number | undefined => {
     const program = programsByPath.get(resPath);
     return program === undefined ? undefined : firstOnreadyField(program);
@@ -1331,7 +1348,7 @@ export function bindGodotProject(
     const callReceiverFacts = (
       bound: GodotBoundScript,
       placed: readonly BoundGodotScriptAttachment[],
-    ): Pick<BoundGodotSourceScript, 'callReceivers' | 'untypedCalls'> => {
+    ): Pick<BoundGodotSourceScript, 'callReceivers' | 'untypedCalls' | 'scriptCalls'> => {
       const selfOf = selfReceiver(program.resPath);
       const typed = typeCallReceivers({
         program: bound,
@@ -1342,8 +1359,16 @@ export function bindGodotProject(
           scriptMethodsByNode.get(`${documentPath}\0${nodePath}`),
         ...(selfOf === undefined ? {} : { self: selfOf }),
         claim: (rule) => analysisEvidence.liveClaim(rule),
+        scriptChainMethods: (resPath) => {
+          if (!classes.has(resPath)) return undefined;
+          const names = new Set<string>();
+          for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+            for (const method of classes.get(scriptPath)?.methods ?? []) names.add(method.name);
+          }
+          return names;
+        },
       });
-      return { callReceivers: typed.receivers, untypedCalls: typed.untyped };
+      return { callReceivers: typed.receivers, untypedCalls: typed.untyped, scriptCalls: typed.scriptCalls };
     };
     return {
       resPath: program.resPath,
@@ -1378,6 +1403,22 @@ export function bindGodotProject(
         scriptInfo: refinedScriptInfo,
         claim: (rule) => analysisEvidence.liveClaim(rule),
         assignedElsewhere: (member) => assignedElsewhere.has(member),
+        parameterType: (fn, parameter) => parameterTypes.get(parameterKey(program.resPath, fn, parameter)),
+        scriptFunctionReturn: (resPath, fn) => {
+          for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+            const chain = programsByPath.get(scriptPath);
+            const declared = chain?.nodes.find((candidate) => {
+              if (candidate.kind !== 'FUNCTION') return false;
+              const identifier = chain.nodes[candidate.identifier];
+              return identifier?.kind === 'IDENTIFIER' && identifier.name === fn;
+            });
+            if (declared === undefined) continue;
+            const datatype = declared.datatype;
+            const known = datatype.kind === 'BUILTIN' || datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || datatype.kind === 'ENUM';
+            return known && !datatype.metaType && datatype.builtinType !== 'Nil' ? datatype : undefined;
+          }
+          return undefined;
+        },
       }),
       settingTypes: typeProjectSettingValues({
         program,

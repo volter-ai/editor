@@ -19,6 +19,10 @@
  *   or the right operand of the `and`, when nothing reassigns it) is a T; `and`, `or` and `not`
  *   over booleans are booleans (`OperatorEvaluatorAnd`, core/variant/variant_op.cpp).
  *
+ * - `engine-virtual-parameter`, `signal-handler-parameter`, `call-site-parameter`: a read of an
+ *   untyped parameter is the one datatype every caller of its function passes
+ *   (`parameter-types.ts`), assigned nowhere in the function.
+ *
  * Lowering reads the program with these datatypes in place (`refinedProgram`); a node no rule
  * fixes keeps the analyzer's datatype.
  */
@@ -27,12 +31,15 @@ import type { GodotProject } from '../read/godot-types';
 import type { GodotApiDump } from './api-dump';
 import type { GodotAnalysisRuleId } from './authority';
 import { type CallReceiverAttachment, resolveScenePath } from './call-receivers';
+import type { ParameterType } from './parameter-types';
 import { OPERATOR_SPELLING } from './project-setting-types';
 
 export interface BoundGodotRefinedType {
   readonly nodeId: number;
   readonly datatype: GodotBoundDatatype;
   readonly rule: GodotAnalysisRuleId;
+  /** The rule each of `evidenceClaimIds` is the claim of (the first is `rule`). */
+  readonly rules: readonly GodotAnalysisRuleId[];
   readonly evidenceClaimIds: readonly string[];
   /** A scene node's datatype (`scene-node-receiver`): the node in each scene the script is attached to. */
   readonly sceneNodes?: readonly { readonly documentPath: string; readonly pathInDocument: string }[];
@@ -58,6 +65,10 @@ export interface RefineInputs {
   readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
   /** Whether any script of the project assigns a member of this name other than as its own (`obj.name = …`). */
   readonly assignedElsewhere: (member: string) => boolean;
+  /** An untyped parameter's datatype from every caller the project has (`parameter-types.ts`). */
+  readonly parameterType?: (fn: string, parameter: string) => ParameterType | undefined;
+  /** What a function of a script's chain returns (its declared or inferred datatype). */
+  readonly scriptFunctionReturn?: (resPath: string, fn: string) => GodotBoundDatatype | undefined;
 }
 
 const BASE: Omit<GodotBoundDatatype, 'kind' | 'display' | 'builtinType' | 'nativeType' | 'enumType' | 'scriptPath' | 'className'> = {
@@ -370,14 +381,46 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     return base === '.' ? text : `${base}/${text}`;
   };
 
+  /** A parameter read's datatype from its function's callers, when nothing in the function assigns it. */
+  const parameterTypeOf = (node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>): ParameterType | undefined => {
+    if (inputs.parameterType === undefined) return undefined;
+    const scope = program.nodes.find(
+      (candidate) =>
+        candidate.kind === 'FUNCTION' &&
+        within(node, candidate) &&
+        candidate.parameters.some((parameterId) => {
+          const parameter = nodes.get(parameterId);
+          const identifier = parameter?.kind === 'PARAMETER' ? nodes.get(parameter.identifier) : undefined;
+          return identifier?.kind === 'IDENTIFIER' && identifier.name === node.name;
+        }),
+    );
+    if (scope?.kind !== 'FUNCTION') return undefined;
+    const fnIdentifier = nodes.get(scope.identifier);
+    if (fnIdentifier?.kind !== 'IDENTIFIER') return undefined;
+    const reassigned = program.nodes.some((other) => {
+      if (other.kind !== 'ASSIGNMENT' || !within(other, scope)) return false;
+      const assignee = nodes.get(other.assignee);
+      return assignee?.kind === 'IDENTIFIER' && assignee.name === node.name;
+    });
+    return reassigned ? undefined : inputs.parameterType(fnIdentifier.name, node.name);
+  };
+
   function refine(id: number): BoundGodotRefinedType | undefined {
     if (refined.has(id)) return refined.get(id) ?? undefined;
     refined.set(id, null);
     const node = nodes.get(id);
     let result:
-      | { readonly datatype: GodotBoundDatatype; readonly rule: GodotAnalysisRuleId; readonly sceneNodes?: BoundGodotRefinedType['sceneNodes'] }
+      | {
+          readonly datatype: GodotBoundDatatype;
+          readonly rule: GodotAnalysisRuleId;
+          readonly also?: readonly GodotAnalysisRuleId[];
+          readonly sceneNodes?: BoundGodotRefinedType['sceneNodes'];
+        }
       | undefined;
-    if (node?.kind === 'GET_NODE') {
+    const parameter = node?.kind === 'IDENTIFIER' && node.source === 'FUNCTION_PARAMETER' && node.datatype.kind === 'VARIANT' ? parameterTypeOf(node) : undefined;
+    if (parameter !== undefined) {
+      result = { datatype: parameter.datatype, rule: parameter.rules[0] as GodotAnalysisRuleId, also: parameter.rules.slice(1) };
+    } else if (node?.kind === 'GET_NODE') {
       const own = node.datatype;
       const type = sceneNode(node.fullPath);
       if (
@@ -428,8 +471,14 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     ) {
       const callee = nodes.get(node.callee);
       const base = callee?.kind === 'SUBSCRIPT' && callee.isAttribute ? datatypeOf(callee.base) : undefined;
-      const type = base === undefined ? undefined : methodReturn(base, node.functionName);
-      if (type !== undefined) result = { datatype: type, rule: 'classdb-method-selection' };
+      // A function of the receiver's script returns what that function declares
+      // (`script-method-dispatch`: an override keeps the signature it overrides).
+      const scripted =
+        base !== undefined && (base.kind === 'CLASS' || base.kind === 'SCRIPT') && !base.metaType && base.scriptPath !== ''
+          ? inputs.scriptFunctionReturn?.(base.scriptPath, node.functionName)
+          : undefined;
+      const type = scripted ?? (base === undefined ? undefined : methodReturn(base, node.functionName));
+      if (type !== undefined) result = { datatype: type, rule: scripted !== undefined ? 'script-method-dispatch' : 'classdb-method-selection' };
     } else if (node?.kind === 'SUBSCRIPT' && !node.isAttribute && node.datatype.kind === 'VARIANT') {
       const base = datatypeOf(node.base);
       const index = datatypeOf(node.index);
@@ -484,13 +533,14 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       }
     }
     if (result === undefined) return undefined;
-    const claim = inputs.claim(result.rule);
-    if (claim === undefined) return undefined;
+    const claims = [result.rule, ...(result.also ?? [])].map((rule) => inputs.claim(rule));
+    if (claims.some((claim) => claim === undefined)) return undefined;
     const entry: BoundGodotRefinedType = {
       nodeId: id,
       datatype: result.datatype,
       rule: result.rule,
-      evidenceClaimIds: [claim],
+      rules: [result.rule, ...(result.also ?? [])],
+      evidenceClaimIds: claims as string[],
       ...(result.sceneNodes === undefined ? {} : { sceneNodes: result.sceneNodes }),
     };
     refined.set(id, entry);

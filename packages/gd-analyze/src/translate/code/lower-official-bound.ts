@@ -623,7 +623,13 @@ function lowerScript(
       }),
     ),
     // The claims that fixed datatypes the analyzer left open (refinedProgram).
-    ...[...new Map(source.refinedTypes.flatMap((entry) => entry.evidenceClaimIds.map((claimId) => [claimId, entry.rule] as const)))].map(
+    ...[
+      ...new Map([
+        ...source.refinedTypes.flatMap((entry) => entry.evidenceClaimIds.map((claimId, index) => [claimId, entry.rules[index] ?? entry.rule] as const)),
+        // Dynamic calls dispatched to a script function (`script-method-dispatch`).
+        ...source.scriptCalls.flatMap((entry) => entry.evidenceClaimIds.map((claimId) => [claimId, 'script-method-dispatch'] as const)),
+      ]),
+    ].map(
       ([claimId, rule]): OfficialBoundLoweringRequirement => ({
         kind: 'evidence-requirement',
         layer: 'analysis',

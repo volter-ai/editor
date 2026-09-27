@@ -227,3 +227,22 @@ export const GODOT_4_7_PROJECT_SETTING_PROOF = provenRules(
     comparator: 'canonical setting types exact equality',
   },
 );
+
+// Parameter and script-call typing (`src/analyze/parameter-types.ts`, the script branches of
+// `call-receivers.ts` and `refined-types.ts`): official Godot's runtime type of each untyped
+// parameter as its callers pass it, and of what a script function called through a typed receiver
+// returns, against the datatypes the analysis gave the same reads and calls.
+export const GODOT_4_7_PARAMETER_PROOF = provenRules(
+  'parameter-types',
+  {
+    'engine-virtual-parameter': { file: 'scene/main/node.cpp', symbol: 'GDVIRTUAL_CALL(_physics_process, ...)', line: 104 },
+    'signal-handler-parameter': { file: 'core/object/object.cpp', symbol: 'Object::emit_signalp', line: 1178 },
+    'call-site-parameter': { file: 'modules/gdscript/gdscript_vm.cpp', symbol: 'OPCODE_CALL', line: 1903 },
+    'script-method-dispatch': { file: 'core/object/object.cpp', symbol: 'Object::callp (the script instance first)', line: 768 },
+  },
+  {
+    native: 'res://main.gd _ready() and the engine callbacks it records',
+    target: 'typeFunctionParameters / typeCallReceivers / refineDatatypes through bindGodotProject',
+    comparator: 'canonical parameter and return types exact equality',
+  },
+);

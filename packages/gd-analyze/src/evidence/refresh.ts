@@ -27,6 +27,7 @@ import { measureProjectSettingProof } from './proofs/project-settings';
 import { measureProjectWorldProof } from './proofs/project-world';
 import { measureReadProof } from './proofs/read';
 import { measureReceiverProof } from './proofs/receivers';
+import { measureParameterTypeProof } from './proofs/parameter-types';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
 import { measureSceneRenderProof } from './proofs/scene-render';
 import { measureSceneImportedProof } from './proofs/scene-imported';
@@ -60,6 +61,7 @@ const PROOFS: readonly (readonly [
   ['read', measureReadProof],
   ['analysis', measureAnalysisProof],
   ['receivers', measureReceiverProof],
+  ['parameter-types', measureParameterTypeProof],
   ['project-settings', measureProjectSettingProof],
   ['field-values', measureFieldValueProof],
   ['scene-nodes', measureSceneNodeProof],

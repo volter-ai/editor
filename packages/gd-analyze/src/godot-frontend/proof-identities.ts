@@ -26,6 +26,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'read',
   'analysis',
   'receivers',
+  'parameter-types',
   'project-settings',
   'field-values',
   'scene-nodes',

@@ -43,6 +43,17 @@ export interface BoundGodotCallReceiver {
   readonly evidenceClaimIds: readonly string[];
 }
 
+/**
+ * A dynamic call Godot dispatches to a script function (`script-method-dispatch`): the receiver is a
+ * script instance of a known class and the name is a function of that script's chain, so
+ * `Object::callp` runs the script's function (the most derived one the instance has) before ClassDB;
+ * the target's method call on the script object dispatches the same way.
+ */
+export interface BoundGodotScriptCall {
+  readonly nodeId: number;
+  readonly evidenceClaimIds: readonly string[];
+}
+
 export interface BoundGodotUntypedCall {
   readonly nodeId: number;
   readonly reason: string;
@@ -64,6 +75,8 @@ export interface CallReceiverInputs {
   readonly self?: { readonly nativeClass: string; readonly scriptMethods: ReadonlySet<string> };
   /** The live claim for a rule, or undefined when the rule has no live evidence. */
   readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
+  /** The function names a script's chain declares (the script and its script ancestors). */
+  readonly scriptChainMethods?: (resPath: string) => ReadonlySet<string> | undefined;
 }
 
 type ReceiverType =
@@ -255,6 +268,7 @@ export function resolveScenePath(
 export function typeCallReceivers(inputs: CallReceiverInputs): {
   readonly receivers: readonly BoundGodotCallReceiver[];
   readonly untyped: readonly BoundGodotUntypedCall[];
+  readonly scriptCalls: readonly BoundGodotScriptCall[];
 } {
   const nodes = new Map<number, GodotBoundNode>(
     inputs.program.nodes.map((node) => [node.id, node] as const),
@@ -266,6 +280,7 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
   const scenes = new Map(inputs.read.scenes.map((scene) => [scene.resPath, scene] as const));
   const receivers = new Map<number, BoundGodotCallReceiver>();
   const untyped: BoundGodotUntypedCall[] = [];
+  const scriptCalls: BoundGodotScriptCall[] = [];
 
   const typeOfName = (name: string, claims: readonly string[]): ReceiverType => {
     if (builtins.has(name)) return { kind: 'builtin', name };
@@ -444,6 +459,23 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     return undefined;
   };
 
+  /**
+   * The functions the script on the node at `path` declares, when that path names one scripted
+   * node in every scene the script is attached to and the attachments agree on the script.
+   */
+  const scriptedPath = (path: string): ReadonlySet<string> | undefined => {
+    if (inputs.attachments.length === 0) return undefined;
+    let members: ReadonlySet<string> | undefined;
+    for (const attachment of inputs.attachments) {
+      const resolved = resolveScenePath(scenes, attachment, path);
+      if (typeof resolved === 'string') return undefined;
+      const found = inputs.scriptMethodsAt(resolved.documentPath, resolved.pathInDocument);
+      if (found === undefined || (members !== undefined && [...found].join() !== [...members].join())) return undefined;
+      members = found;
+    }
+    return members;
+  };
+
   const untypedReasons = new Map<number, string>();
   // A dynamic call is typed on demand, so a call whose receiver is another dynamic call's result
   // types that call first, whatever their node ids.
@@ -457,6 +489,33 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     const callee = nodes.get(call.callee);
     if (callee?.kind !== 'SUBSCRIPT' || !callee.isAttribute) {
       untypedReasons.set(call.id, 'a dynamic call without an attribute receiver');
+      return undefined;
+    }
+    const baseNode = nodes.get(callee.base);
+    // `Class.new()` constructs the native class (`ClassDB::instantiate`); it has no receiver.
+    if (call.functionName === 'new' && baseNode?.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS') {
+      untypedReasons.delete(call.id);
+      return undefined;
+    }
+    // A function of the script the receiver is declared as, or of the script on the scene node a
+    // `$Path` names: Godot calls the script's function (`script-method-dispatch`).
+    const scriptMembers =
+      baseNode !== undefined &&
+      (baseNode.datatype.kind === 'CLASS' || baseNode.datatype.kind === 'SCRIPT') &&
+      !baseNode.datatype.metaType &&
+      baseNode.datatype.scriptPath !== ''
+        ? inputs.scriptChainMethods?.(baseNode.datatype.scriptPath)
+        : baseNode?.kind === 'GET_NODE'
+          ? scriptedPath(baseNode.fullPath)
+          : undefined;
+    if (scriptMembers?.has(call.functionName) === true) {
+      const claim = inputs.claim('script-method-dispatch');
+      if (claim === undefined) {
+        untypedReasons.set(call.id, 'script-method-dispatch has no live evidence');
+        return undefined;
+      }
+      untypedReasons.delete(call.id);
+      scriptCalls.push({ nodeId: call.id, evidenceClaimIds: [claim] });
       return undefined;
     }
     const narrowed = narrowedSelection(callee.base, call.functionName);
@@ -487,5 +546,6 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
   return {
     receivers: [...receivers.values()].sort((left, right) => left.nodeId - right.nodeId),
     untyped,
+    scriptCalls: scriptCalls.sort((left, right) => left.nodeId - right.nodeId),
   };
 }

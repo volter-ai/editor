@@ -16,7 +16,11 @@ export type GodotAnalysisRuleId =
   | 'classdb-method-selection'
   | 'type-test-narrowing'
   | 'project-setting-type'
-  | 'ray-result-schema';
+  | 'ray-result-schema'
+  | 'engine-virtual-parameter'
+  | 'signal-handler-parameter'
+  | 'call-site-parameter'
+  | 'script-method-dispatch';
 
 export interface GodotAnalysisRule {
   readonly id: GodotAnalysisRuleId;

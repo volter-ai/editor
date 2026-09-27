@@ -8,6 +8,7 @@ import {
   GODOT_4_7_ANALYSIS_CLAIMS,
   GODOT_4_7_ANALYSIS_LIVENESS,
   GODOT_4_7_ANALYSIS_RULES,
+  GODOT_4_7_PARAMETER_PROOF,
   GODOT_4_7_PROJECT_SETTING_PROOF,
   GODOT_4_7_RECEIVER_PROOF,
 } from './authority/godot-4.7-analysis';
@@ -17,9 +18,13 @@ export const GODOT_RECEIVER_IMPLEMENTATION_FILES = [
   'src/analyze/api-dump.ts',
   'src/analyze/bound-project.ts',
   'src/analyze/call-receivers.ts',
+  'src/analyze/parameter-types.ts',
   'src/analyze/refined-types.ts',
   'src/read/scene-attachment-index.ts',
 ] as const;
+
+/** What parameter and script-call typing runs: receiver typing's files. */
+export const GODOT_PARAMETER_IMPLEMENTATION_FILES = GODOT_RECEIVER_IMPLEMENTATION_FILES;
 
 /** What setting typing runs: the reader's settings, the analysis and the registered-type table. */
 export const GODOT_PROJECT_SETTING_IMPLEMENTATION_FILES = [
@@ -50,6 +55,7 @@ export function godotAnalysisAuthority(source: GodotSourceAuthority): GodotAnaly
       ? [
           ...GODOT_4_7_ANALYSIS_RULES,
           ...GODOT_4_7_RECEIVER_PROOF.rules,
+          ...GODOT_4_7_PARAMETER_PROOF.rules,
           ...GODOT_4_7_PROJECT_SETTING_PROOF.rules,
         ]
       : [],
@@ -57,6 +63,7 @@ export function godotAnalysisAuthority(source: GodotSourceAuthority): GodotAnaly
       ? [
           ...GODOT_4_7_ANALYSIS_CLAIMS,
           ...GODOT_4_7_RECEIVER_PROOF.claims,
+          ...GODOT_4_7_PARAMETER_PROOF.claims,
           ...GODOT_4_7_PROJECT_SETTING_PROOF.claims,
         ]
       : [],
@@ -69,6 +76,10 @@ export function godotAnalysisAuthority(source: GodotSourceAuthority): GodotAnaly
           ...withLiveImplementation(
             GODOT_4_7_RECEIVER_PROOF.liveness,
             packageImplementationDigest(GODOT_RECEIVER_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_PARAMETER_PROOF.liveness,
+            packageImplementationDigest(GODOT_PARAMETER_IMPLEMENTATION_FILES),
           ),
           ...withLiveImplementation(
             GODOT_4_7_PROJECT_SETTING_PROOF.liveness,
