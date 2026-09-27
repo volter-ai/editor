@@ -19,7 +19,7 @@ import {
   godotMeshLibraryData,
   godotMeshLibraryDataPath,
 } from '../data/scene-families';
-import { assetCopyArtifact } from './asset-copy';
+import { assetCopyArtifact, licenseCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
 import {
@@ -265,12 +265,14 @@ export function planDirectGodotArtifacts(
   project: DirectGodotProjectDataPlan,
   capabilities: readonly CapabilityCopyArtifact[],
   models: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
+  licenses: readonly { readonly relativePath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
 ): readonly GodotPlannedArtifact[] {
   const artifacts = [
     ...sourceArtifacts(composition, code, scenes),
     ...projectArtifacts(project, composition),
     ...capabilities.map(capabilityCopyArtifact),
     ...models.map((model) => assetCopyArtifact(model.resPath, model.sourceDigest, model.bytes)),
+    ...licenses.map((license) => licenseCopyArtifact(license.relativePath, license.sourceDigest, license.bytes)),
   ];
   const paths = new Set<string>();
   for (const artifact of artifacts) {

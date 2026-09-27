@@ -279,8 +279,20 @@ export interface BoundGodotResourceDocument {
   readonly extResources: readonly BoundGodotExtResource[];
 }
 
+/** A license or attribution file the project carries (`LICENSE*`, `COPYING*`, `AUTHORS*`, credits). */
+export interface BoundGodotLicenseDocument {
+  readonly relativePath: string;
+  readonly sourceDigest: string;
+  readonly bytes: Uint8Array;
+}
+
+/** The basenames that hold a project's or an asset folder's license or attribution text. */
+const LICENSE_BASENAME = /^(licen[cs]es?|copying|copyright|authors|credits|notice|attribution)([._ -].*)?$/iu;
+
 export interface BoundGodotProjectDocuments {
   readonly scenes: readonly BoundGodotSceneDocument[];
+  /** The project's license and attribution files, carried into the output verbatim. */
+  readonly licenses: readonly BoundGodotLicenseDocument[];
   readonly resources: readonly BoundGodotResourceDocument[];
   /** Images Godot's `texture` importer imports: the source bytes and the importer's options. */
   readonly textures: readonly BoundGodotTextureDocument[];
@@ -611,6 +623,14 @@ function boundDocuments(
       });
   };
   return {
+    licenses: snapshot.entries().flatMap((entry) =>
+      entry.entryType === 'file' &&
+      entry.kind !== 'explicit-non-input' &&
+      entry.digest !== undefined &&
+      LICENSE_BASENAME.test(entry.relativePath.slice(entry.relativePath.lastIndexOf('/') + 1))
+        ? [{ relativePath: entry.relativePath, sourceDigest: entry.digest, bytes: snapshot.bytesByDigest(entry.digest) }]
+        : [],
+    ),
     scenes: unique(
       'scene',
       decoded.scenes.map((document) => {

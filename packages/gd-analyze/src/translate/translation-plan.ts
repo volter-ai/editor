@@ -24,7 +24,14 @@ export interface GodotTranslationPlan {
   readonly projectData: DirectGodotProjectDataPlan;
   /** Complete immutable artifact census; only emit may realize planned generated text. */
   readonly artifacts: readonly GodotPlannedArtifact[];
+  /** Every input the plan leaves out, with why nothing the game runs reads it. */
+  readonly unplannedInputs: readonly GodotUnplannedInput[];
   readonly deviations: readonly never[];
+}
+
+export interface GodotUnplannedInput {
+  readonly path: string;
+  readonly reason: string;
 }
 
 export interface GodotAcceptedTranslation {
@@ -71,9 +78,11 @@ function validateInputClosure(
   project: BoundGodotProject,
   composition: DirectGodotProjectCompositionPlan,
   sceneModules: DirectGodotSceneModulePlan,
-): readonly DirectGodotCompositionDiagnostic[] {
+): { readonly diagnostics: readonly DirectGodotCompositionDiagnostic[]; readonly unplanned: readonly GodotUnplannedInput[] } {
   const consumed = new Set([
     'project.godot',
+    // License and attribution files are carried verbatim (`licenses/<path>`).
+    ...project.documents.licenses.map((license) => license.relativePath),
     ...composition.sourceModules.map((module) => module.sourceResPath.slice('res://'.length)),
     ...sceneModules.modules.map((module) => module.sourceResPath.slice('res://'.length)),
     // An imported model is copied beside the app; its `.import` sidecar is what imported it.
@@ -129,29 +138,23 @@ function validateInputClosure(
    * its `.import` sidecar: the translated game reads files only through a planned scene, resource or
    * `preload` (no runtime `load` is bound), so such a file is never read.
    */
-  const accounted = (path: string): boolean => {
-    if (path.endsWith('.uid') && consumed.has(path.slice(0, -'.uid'.length))) return true;
-    if (emptyBusLayout(path) || roots.get(path) === 'application-icon') return true;
+  const unplannedReason = (path: string): string | undefined => {
+    if (path.endsWith('.uid') && consumed.has(path.slice(0, -'.uid'.length))) return 'the UID sidecar of a translated file, which the plan resolves by path';
+    if (emptyBusLayout(path)) return 'an empty AudioBusLayout, which AudioServer refuses (the Master bus stays)';
     const source = path.endsWith('.import') ? path.slice(0, -'.import'.length) : path;
-    if (source !== path && (roots.get(source) === 'application-icon')) return true;
-    return !referenced.has(source) && !roots.has(source) && (source === path || !consumed.has(source));
+    if (roots.get(source) === 'application-icon') return 'the application icon (window chrome the page host owns)';
+    if (referenced.has(source) || roots.has(source) || (source !== path && consumed.has(source))) return undefined;
+    return source === path ? 'nothing the game runs names it' : 'the import sidecar of a file nothing the game runs names';
   };
-  return project.inputs.flatMap((entry) => {
-    if (
-      entry.entryType === 'directory' ||
-      entry.kind === 'explicit-non-input' ||
-      consumed.has(entry.relativePath) ||
-      accounted(entry.relativePath)
-    ) {
-      return [];
-    }
-    return [
-      {
-        at: entry.resPath ?? entry.relativePath,
-        message: `${entry.kind} input has no source translation, asset copy, or conversion plan`,
-      },
-    ];
-  });
+  const diagnostics: DirectGodotCompositionDiagnostic[] = [];
+  const unplanned: GodotUnplannedInput[] = [];
+  for (const entry of project.inputs) {
+    if (entry.entryType === 'directory' || entry.kind === 'explicit-non-input' || consumed.has(entry.relativePath)) continue;
+    const reason = unplannedReason(entry.relativePath);
+    if (reason !== undefined) unplanned.push({ path: entry.resPath ?? entry.relativePath, reason });
+    else diagnostics.push({ at: entry.resPath ?? entry.relativePath, message: `${entry.kind} input has no source translation, asset copy, or conversion plan` });
+  }
+  return { diagnostics, unplanned };
 }
 
 function validateCapabilityClosure(
@@ -202,6 +205,7 @@ export function assembleGodotTranslationPlan(
       projectData,
       toolchain.capabilityCopies,
       [...importedModels(project, composition), ...importedTextures(project, composition)],
+      project.documents.licenses,
     );
   } catch (error) {
     return {
@@ -214,8 +218,9 @@ export function assembleGodotTranslationPlan(
       ],
     };
   }
+  const closure = validateInputClosure(project, composition, sceneModules);
   const diagnostics = [
-    ...validateInputClosure(project, composition, sceneModules),
+    ...closure.diagnostics,
     ...validateCapabilityClosure(projectData, artifacts),
   ];
   if (projectData.toolchainDigest !== toolchain.digest) {
@@ -234,6 +239,7 @@ export function assembleGodotTranslationPlan(
       sceneModules,
       projectData,
       artifacts,
+      unplannedInputs: closure.unplanned,
       deviations: [],
     },
   };

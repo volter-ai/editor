@@ -117,6 +117,14 @@ function importCapturedGodotProject(
         .join('\n'),
     );
   }
+  // Every input the translation leaves out, and why the game never reads it.
+  if (translation.plan.unplannedInputs.length > 0) {
+    process.stdout.write(
+      `Inputs not carried into the translation (${String(translation.plan.unplannedInputs.length)}):\n${translation.plan.unplannedInputs
+        .map((entry) => `  ${entry.path}: ${entry.reason}\n`)
+        .join('')}`,
+    );
+  }
   const emitted = emitGodotTranslation(translation);
   const parentDir = path.dirname(targetDir);
   mkdirSync(parentDir, { recursive: true });
