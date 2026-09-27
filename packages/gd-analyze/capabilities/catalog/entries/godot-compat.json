@@ -3,6 +3,7 @@
   "files": [
     "src/lib/godot-compat/LICENSE.OpenSans.txt",
     "src/lib/godot-compat/OpenSans_SemiBold.woff2",
+    "src/lib/godot-compat/aabb.ts",
     "src/lib/godot-compat/animation-library.ts",
     "src/lib/godot-compat/animation-mixer.ts",
     "src/lib/godot-compat/animation-player.ts",
