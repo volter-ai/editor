@@ -514,8 +514,9 @@ export function CanvasSceneControls({
       store,
       () => setMode(null),
       (mode) => setMode(sceneModes.get(view) === mode ? null : mode),
+      () => toggleCanvasGrid(documentId),
     );
-  }, [active, store, setMode, view]);
+  }, [active, store, setMode, view, documentId]);
   // One radio group however a tool is picked: a transform tool chosen by its key (W, E, R, T)
   // leaves List Select, Pivot, Pan and Ruler as its button does.
   const transformMode = store.transformMode;
@@ -619,7 +620,56 @@ export function CanvasSceneControls({
       <TransientHintOverlay />
       {/* Godot's 2D modes are ONE radio group: a transform tool leaves List Select, Pivot, Pan and
           Ruler, and while one of those is on no transform tool is lit. */}
-      <ToolStrip dimensions="2d" otherToolActive={mode !== null} onToolArmed={() => setMode(null)} />
+      <ToolStrip
+        dimensions="2d"
+        otherToolActive={mode !== null}
+        onToolArmed={() => setMode(null)}
+        // Godot's one row: Select, Move, Rotate, Scale, then List Select, Pivot, Pan and Ruler.
+        viewTools={
+          <>
+            <Tooltip text="List Select: click to list the selectable nodes there">
+              <IconButton
+                aria-label="List Select mode"
+                aria-pressed={mode === 'list'}
+                size="comfortable"
+                onClick={() => setMode(mode === 'list' ? null : 'list')}
+              >
+                <EditorIcon icon={faListUl} size="md" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip text="Pivot: click or drag to put the selected node's pivot there">
+              <IconButton
+                aria-label="Pivot mode"
+                aria-pressed={mode === 'pivot'}
+                size="comfortable"
+                onClick={() => setMode(mode === 'pivot' ? null : 'pivot')}
+              >
+                <EditorIcon icon={faBullseye} size="md" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip text="Pan (Space-drag pans in any mode)">
+              <IconButton
+                aria-label="Pan mode"
+                aria-pressed={mode === 'pan'}
+                size="comfortable"
+                onClick={() => setMode(mode === 'pan' ? null : 'pan')}
+              >
+                <EditorIcon icon={faHand} size="md" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip text="Ruler: drag to measure distance and angle">
+              <IconButton
+                aria-label="Ruler mode"
+                aria-pressed={mode === 'ruler'}
+                size="comfortable"
+                onClick={() => setMode(mode === 'ruler' ? null : 'ruler')}
+              >
+                <EditorIcon icon={faRulerCombined} size="md" />
+              </IconButton>
+            </Tooltip>
+          </>
+        }
+      />
       <CanvasSceneEditGizmos adapter={adapter} view={view} documentId={documentId} />
       {mode ? (
         <CanvasSceneModeLayer
@@ -638,46 +688,6 @@ export function CanvasSceneControls({
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
         </Button>
-        <Tooltip text="List Select: click to list the selectable nodes there">
-          <IconButton
-            aria-label="List Select mode"
-            aria-pressed={mode === 'list'}
-            size="comfortable"
-            onClick={() => setMode(mode === 'list' ? null : 'list')}
-          >
-            <EditorIcon icon={faListUl} size="md" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Pivot: click or drag to put the selected node's pivot there">
-          <IconButton
-            aria-label="Pivot mode"
-            aria-pressed={mode === 'pivot'}
-            size="comfortable"
-            onClick={() => setMode(mode === 'pivot' ? null : 'pivot')}
-          >
-            <EditorIcon icon={faBullseye} size="md" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Pan (Space-drag pans in any mode)">
-          <IconButton
-            aria-label="Pan mode"
-            aria-pressed={mode === 'pan'}
-            size="comfortable"
-            onClick={() => setMode(mode === 'pan' ? null : 'pan')}
-          >
-            <EditorIcon icon={faHand} size="md" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Ruler: drag to measure distance and angle">
-          <IconButton
-            aria-label="Ruler mode"
-            aria-pressed={mode === 'ruler'}
-            size="comfortable"
-            onClick={() => setMode(mode === 'ruler' ? null : 'ruler')}
-          >
-            <EditorIcon icon={faRulerCombined} size="md" />
-          </IconButton>
-        </Tooltip>
         <CanvasSceneLockButton adapter={adapter} selected={[...store.selectedEntityIds]} />
         <CanvasSceneGroupButton adapter={adapter} selected={[...store.selectedEntityIds]} />
         <CanvasSceneViewMenu
@@ -829,13 +839,7 @@ function CanvasSceneViewMenu({
     },
     { label: 'Hide Grid', on: !gridShown, pick: () => setViewGridVisible(documentId, false) },
   ];
-  // Godot's Toggle Grid (measured on 4.7.1): from Show it goes to Show When Snapping, and from
-  // any other state (When Snapping, Hide) to Show — Hide → Show → When Snapping → Show.
-  const toggleGrid = (): void => {
-    const showing = gridShown && !drafting.gridWhenSnapping;
-    setViewGridVisible(documentId, true);
-    setViewDrafting(documentId, { gridWhenSnapping: showing });
-  };
+  const toggleGrid = (): void => toggleCanvasGrid(documentId);
   const switches: readonly { label: string; on: boolean; toggle: () => void }[] = [
     { label: 'Rulers', on: drafting.rulers, toggle: () => setViewDrafting(documentId, { rulers: !drafting.rulers }) },
     { label: 'Guides', on: drafting.guides, toggle: () => setViewDrafting(documentId, { guides: !drafting.guides }) },
@@ -955,6 +959,14 @@ function CanvasSceneLockButton({ adapter, selected }: { adapter: AuthoringAdapte
  * drags the view with the primary button; Ruler draws the drag as a line and reads its length in
  * world units and its angle. Escape leaves the mode.
  */
+/** Godot's Toggle Grid (measured on 4.7.1): from Show it goes to Show When Snapping, and from any
+ *  other state (When Snapping, Hide) to Show — Hide → Show → When Snapping → Show. */
+function toggleCanvasGrid(documentId: string): void {
+  const showing = viewGridVisible(documentId) && !viewDrafting(documentId).gridWhenSnapping;
+  setViewGridVisible(documentId, true);
+  setViewDrafting(documentId, { gridWhenSnapping: showing });
+}
+
 /** Godot's 2D modes beside the transform tools: Pan, Ruler, List Select and Pivot. */
 type CanvasSceneMode = 'pan' | 'ruler' | 'list' | 'pivot';
 const sceneModes = new WeakMap<RootViewController, CanvasSceneMode | null>();

@@ -66,6 +66,7 @@ export type EditorKeyActionId =
   | 'viewport.cyclePivot'
   | 'canvas.panMode'
   | 'canvas.rulerMode'
+  | 'canvas.toggleGrid'
   | 'viewport.vertexSnapHold'
   | 'viewport.snapToFloor'
   | 'view.top'

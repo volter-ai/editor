@@ -675,6 +675,7 @@ export function ToolStrip({
   store: stage,
   otherToolActive = false,
   onToolArmed,
+  viewTools,
 }: {
   dimensions?: '2d' | '3d';
   door?: StageTransformDoor;
@@ -684,6 +685,9 @@ export function ToolStrip({
   otherToolActive?: boolean;
   /** Called when one of these is armed, so the group's other tools can let go. */
   onToolArmed?: () => void;
+  /** A view's own tools in the same group, drawn after these (a 2D view's List Select, Pivot,
+   *  Pan and Ruler, in Godot's order). */
+  viewTools?: React.ReactNode;
 } = {}) {
   const shell = useEditorStore();
   const store = stage ?? shell;
@@ -769,6 +773,7 @@ export function ToolStrip({
           onArm={() => requestTransformMode(store, 'combined')}
         />
       )}
+      {viewTools}
       {dimensions === '2d' ? <SnapButton store={store} dimensions="2d" /> : null}
     </FloatingToolbar>
   );

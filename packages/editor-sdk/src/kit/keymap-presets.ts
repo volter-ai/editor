@@ -190,6 +190,8 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   // `canvas_item_editor/pan_mode` G and `ruler_mode` M).
   'canvas.panMode': [{ key: 'g' }],
   'canvas.rulerMode': [{ key: 'm' }],
+  // Godot's View › Grid › Toggle Grid, Command+' (its 4.7.1 menu shortcut).
+  'canvas.toggleGrid': [{ key: "'", mod: true }],
   'viewport.vertexSnapHold': [{ key: 'v' }],
   'viewport.snapToFloor': [{ key: '', code: 'PageDown' }],
   'view.top': [{ key: '', code: 'Numpad7' }],

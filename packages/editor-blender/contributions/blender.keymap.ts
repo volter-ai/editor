@@ -38,6 +38,7 @@ export const keymap: KeymapContribution = {
     // Blender's G is Grab (`transform.translate` above); a 2D view's modes keep their buttons.
     'canvas.panMode': [],
     'canvas.rulerMode': [],
+    'canvas.toggleGrid': [],
     // `km_view3d` — `view3d.view_persportho` on NUMPAD_5; Blender has no isometric preset key.
     'view.perspective': [],
     'view.projection': [{ key: '', code: 'Numpad5' }],

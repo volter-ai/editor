@@ -18,6 +18,8 @@ export function bindCanvasSceneKeys(
   clearMode: () => void,
   /** Switch a canvas mode on, or off when it is the one on. */
   toggleMode: (mode: CanvasSceneKeyMode) => void,
+  /** View › Grid › Toggle Grid. */
+  toggleGrid: () => void,
 ): () => void {
   const arm = (mode: 'select' | 'translate' | 'rotate' | 'scale') => () => {
     clearMode();
@@ -30,5 +32,6 @@ export function bindCanvasSceneKeys(
     { id: 'transform.scale', scope: 'stage', run: arm('scale') },
     { id: 'canvas.panMode', scope: 'stage', run: () => toggleMode('pan') },
     { id: 'canvas.rulerMode', scope: 'stage', run: () => toggleMode('ruler') },
+    { id: 'canvas.toggleGrid', scope: 'stage', run: toggleGrid },
   ]);
 }
