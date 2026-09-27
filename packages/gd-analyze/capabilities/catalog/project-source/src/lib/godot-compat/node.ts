@@ -22,6 +22,7 @@
  * `Class.new()`). The authority must attach and detach synchronously, as Godot's `add_child` does.
  */
 
+import { godot_input_event_classes } from './input-event';
 import type { Object3D } from 'three';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { create_tween as treeCreateTween, get_root, godot_tree, godot_tree_process_delta, queue_delete, type SceneTree } from './scene-tree';
@@ -421,7 +422,7 @@ const NODE_3D = Object.freeze(['Node3D', 'Node', 'Object']);
  * from a module's reader.
  */
 function nodeClasses(entity: object): readonly string[] | undefined {
-  const recorded = NODE.get(entity)?.classes;
+  const recorded = NODE.get(entity)?.classes ?? godot_input_event_classes(entity);
   if (recorded !== undefined) return recorded;
   for (const reader of CLASS_READERS) {
     const read = reader(entity);

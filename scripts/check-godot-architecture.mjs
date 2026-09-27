@@ -40,12 +40,13 @@ const RULES = [
     pattern: /\[[\w.]*[cC]lassName\]|\.get\([\w.]*[cC]lassName\b/g,
   },
   {
-    // A Godot class name as a case, a comparison, a table key or a Map entry's key.
+    // A Godot class name as a case, a comparison, a table key or a Map entry's key. A list of class
+    // names alone (a class's ancestry, which `is` reads) is type data, not an entry keyed by a class.
     id: 'class-name-literal',
     row: 3,
     dirs: [EMIT, LOWERING, COMPAT],
     pattern: new RegExp(
-      `\\bcase\\s+'(?:${NAMES})'|[!=]==\\s*'(?:${NAMES})'|'(?:${NAMES})'\\s*[!=]==|^\\s+'?(?:${NAMES})'?\\s*:|\\[\\s*'(?:${NAMES})'\\s*,`,
+      `\\bcase\\s+'(?:${NAMES})'|[!=]==\\s*'(?:${NAMES})'|'(?:${NAMES})'\\s*[!=]==|^\\s+'?(?:${NAMES})'?\\s*:|\\[\\s*'(?:${NAMES})'\\s*,(?!\\s*'(?:${NAMES})')`,
       'gm',
     ),
   },

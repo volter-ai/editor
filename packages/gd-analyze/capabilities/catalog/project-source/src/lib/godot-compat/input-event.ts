@@ -72,6 +72,30 @@ export type InputEventRecord =
       readonly event_index?: number;
     });
 
+/** Each record's Godot class and its ancestors (ClassDB's `inherits`), which `is` and `as` read. */
+const CLASSES: Readonly<Record<InputEventRecord['type'], readonly string[]>> = {
+  key: ['InputEventKey', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  mouse_button: ['InputEventMouseButton', 'InputEventMouse', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  mouse_motion: ['InputEventMouseMotion', 'InputEventMouse', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  joypad_button: ['InputEventJoypadButton', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  joypad_motion: ['InputEventJoypadMotion', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  screen_touch: ['InputEventScreenTouch', 'InputEventFromWindow', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  screen_drag: ['InputEventScreenDrag', 'InputEventFromWindow', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+  action: ['InputEventAction', 'InputEvent', 'Resource', 'RefCounted', 'Object'],
+};
+
+/**
+ * An input event record's class and ancestors, for `is` and `as`; undefined for any other object
+ * (a three object's `type` names none of these).
+ *
+ * @godot InputEvent (protocol)
+ * @source core/input/input_event.h:150
+ */
+export function godot_input_event_classes(object: object): readonly string[] | undefined {
+  const type = (object as { readonly type?: unknown }).type;
+  return typeof type === 'string' && Object.hasOwn(CLASSES, type) ? CLASSES[type as InputEventRecord['type']] : undefined;
+}
+
 /**
  * `pressed && !canceled`; an event class without `pressed` is never pressed.
  *
