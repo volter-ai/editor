@@ -283,18 +283,18 @@
 			{
 				"command": "vgai.canvas.panMode",
 				"key": "G",
-				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface == 'canvas' && vgai.keymap == 'vgai'"
+				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface != 'three' && vgai.keymap == 'vgai'"
 			},
 			{
 				"command": "vgai.canvas.rulerMode",
 				"key": "M",
-				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface == 'canvas' && vgai.keymap == 'vgai'"
+				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface != 'three' && vgai.keymap == 'vgai'"
 			},
 			{
 				"command": "vgai.canvas.toggleGrid",
 				"key": "ctrl+'",
 				"mac": "cmd+'",
-				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface == 'canvas' && vgai.keymap == 'vgai'"
+				"when": "vgai.stage.focused && vgai.document.kind != 'game' && vgai.stage.surface != 'three' && vgai.keymap == 'vgai'"
 			},
 			{
 				"command": "vgai.viewport.snapToFloor",
