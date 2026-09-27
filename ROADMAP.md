@@ -117,11 +117,11 @@ Completion:
 
 ## godot-lane: The Godot import lane
 
-Status: active (resumed on the second machine 2026-09-27; docs/GODOT.md §Resumed)
-Restored from vgai-engine `archive/godot-lane-2026-09-19` into `packages/gd-analyze`. The design, what was built, the rulings and the order of work are [docs/GODOT.md](docs/GODOT.md). `platformer-3d-godot4` imports as idiomatic R3F over an evidenced godot-compat and plays in the game editor; the six Godot 4.x starter kits import as far as their named refusals; the six Godot 3 games wait on a 3.x frontend.
+Status: active; conforming to the owner's 2026-09-27 rulings before ports resume (docs/GODOT.md §The lane's law)
+Restored from vgai-engine `archive/godot-lane-2026-09-19` into `packages/gd-analyze`. The law, the design, what was built and the order of work are [docs/GODOT.md](docs/GODOT.md). `platformer-3d-godot4` imports and plays in the game editor; the six Godot 4.x starter kits import as far as their named refusals; the Godot 3 games wait on a 3.x frontend. A blind review on 2026-09-27 failed the architecture on every row: compat had regrown into a Godot engine under a bit-exact evidence gate, which the rulings retire.
 Completion:
-- A context-free reviewer passes all ten rows of vgai-engine `docs/ARCHITECTURE-CORE.md` §Migration compiler reference architecture on the lane.
-- Every game in the frozen corpus freshly translates from its pin, builds, boots in the game editor with a silent console, plays, and matches the native game side by side.
+- A context-free reviewer passes every row of docs/GODOT.md §The lane's law on the lane.
+- Every game in the frozen corpus freshly translates from its pin, builds, boots in the game editor with a silent console, and a blind walk, side by side with the original in official Godot, reports that it plays like the original.
 
 ## public-game-release: The game editor's public release
 

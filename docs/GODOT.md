@@ -5,6 +5,110 @@ components, its scripts become ordinary TypeScript, and what Godot's API means a
 from a copied capability. The owner called its turn on 2026-09-25. It came back from vgai-engine's
 tag `archive/godot-lane-2026-09-19` (vgai-engine `6499489cb`); nothing here was re-derived.
 
+## The lane's law (owner, 2026-09-27)
+
+These rulings supersede everything below that conflicts with them. Sections that still describe
+the code as it stands, and which the conformance work changes, carry a banner saying so.
+
+**1. Read Godot, then translate idiomatically.** Godot's source is how the lane learns what a
+member, node or system really does. It is never the thing the lane ports. The output, and the
+body of every compat member, is what a three.js, R3F, Rapier or DOM developer would write to get
+that behaviour. Scripts still call Godot's API by name, so compat still exports Godot's members
+under Godot's names; their bodies are ordinary library code.
+
+The author's reading of ruling 1, pending the owner's confirmation (§Proposals): the host owns the
+frame and physics (R3F's frame, @react-three/rapier's fixed step and its hooks), React owns
+mounting, and these are never ported:
+
+- Godot's main loop and timing (`Main::iteration`, `MainTimerSync`);
+- its servers and their storage (`RenderingServer`, `ParticlesStorage`, `PhysicsServer3D`
+  internals, text and display servers);
+- its scene-tree bookkeeping beyond what a public member needs;
+- any registry, spawn host, mirrored tree or class-name table that exists because Godot has one.
+
+**2. No formal accuracy standard.** Correctness is judged by playing the game, not by numeric
+equivalence. There are no claim records, comparators, tolerances or evidence gate: the import
+uses what compat implements and refuses only what it does not. Running a snippet in official
+Godot stays a building tool for when behaviour is unclear, never a gate.
+
+The two rulings are one change. A gate that demands bit-exact agreement with Godot can only be
+passed by reproducing Godot's implementation, so the evidence gate is what drove the transcription:
+`MainTimerSync`, the spawn host, class-mount registries, gles3's particle storage. Retiring the
+gate is what makes idiomatic translation possible.
+
+**Acceptance is a blind walk.** A game is ported when a fresh subagent, told only what a player
+would do, plays the imported game in the game editor through a Playwright REPL one action at a
+time, side by side with the original running in official Godot, and reports that it plays like the
+original (the workspace's standing directive). The walk reports what a player sees and whether it
+plays the same; it never measures or compares values, so it cannot become a comparator again. One walk per game when its work is done, never per
+change. Changes in between are checked cheaply: typecheck, import, `gd-analyze run`, a look in
+the editor.
+
+**The architecture review gate.** The structural bar is ARCHITECTURE.md (rule 4 especially) and
+these rows, judged by a context-free reviewer who is given only this section, ARCHITECTURE.md and
+the code, including an emitted game:
+
+1. One pipeline: snapshot, official frontend, read, analyze, plan, emit, materialize.
+   `import-project.ts` is the only caller of the phases; no CLI command, proof or script composes
+   them itself.
+2. Each phase owns its concern: read decodes, analyze decides (types, reachability), translate
+   plans, emit prints mechanically.
+3. The mapping from Godot classes to library idioms is one plan-time data table in `translate/data`.
+   Emit, lowering and compat never branch on, compare with or index by a Godot class name, and
+   compat keeps no registry keyed by one.
+4. Compat is bindings onto libraries: no main loop, clock, physics stepping, scheduler, spawn host,
+   mirrored tree or server of its own (ruling 1).
+5. The output is plain library code a three.js or R3F developer would recognize: no runtime
+   framework the game is written against, no generated shared helper or dispatcher. (No exports
+   for the editor: the author's reading, pending the owner, §Proposals.)
+6. Every emitted file and dependency is reachable from the game's entry; nothing is emitted for
+   the editor or for debugging.
+
+The review runs before any merge into `godot` that touches compat, the planner, lowering or emit,
+including every builder's branch, and its verdict is appended to the ledger below. Until every row
+passes, a merge may not add a finding to those the ledger's latest entry lists; after that, every
+row must pass.
+
+**The ratchet.** `scripts/check-godot-architecture.mjs`, run by the pre-commit hook, counts the
+patterns the review keeps finding against the baseline committed at `HEAD`, rule by rule, and fails
+when a count grows: a Godot class name (from the pinned API dump) used as a `case`, compared with
+`===`/`!==`, or used as a table or `Map` key in emit, lowering or compat; class-mount registries;
+time and stepping primitives in compat; exported declarations the emitted world carries beyond its
+component. Moving a finding between files passes; editing the working baseline does not. Conformance work lowers the baseline in the
+same commit that removes a pattern. The reviewer judges; the ratchet stops the slow creep a
+reviewer run only at milestones misses: the 09-26 regrowth was about 300 commits, each locally
+reasonable.
+
+**Rulings wait for the owner.** A design decision that changes what compat or the output owns is
+written as a proposal in §Proposals and is not built on until the owner approves it. The
+composition-site design below was an unreviewed author's ruling that two days of work stacked on.
+
+**Proposals.**
+
+- *Never ported, and no exports for the editor* (the author, 2026-09-27): the list under ruling 1
+  and row 5's clause, the author's reading of the owner's rulings. Open until the owner confirms.
+
+**Ledger.**
+
+| Date | Commit | Reviewed against | Verdict |
+| --- | --- | --- | --- |
+| 2026-09-27 | `godot` `69edd5ae` | vgai-engine's ten rows (before these rulings) | All ten fail. Compat owns the main loop and physics stepping (`scene-tree.ts` `godot_main_iteration`, the paused `<Physics>` in `main.tsx`), class-name registries (`CLASS_MOUNTS`, `godot_node_class_mount`), a spawn host and a mirrored canvas tree; emit dispatches on class names (`switch (className)` in `idiomatic-scene-syntax.ts`, `GODOT_ELEMENTS[className]`); lowering special-cases `AnimationTree`; the emitted `world.tsx` exports `debug`; claim records store one digest as both sides. The baseline the conformance work starts from. |
+
+**Order of work.**
+
+1. Retire the evidence gate from the import: bindings are what compat implements, and the plan
+   stops reading claims. The claim records, the refresh, liveness and the case files go with it.
+2. Conform to rows 3 to 5: the host owns frame and physics, React owns mounting and instancing,
+   class-name dispatch leaves emit and compat, `world.tsx` becomes plain.
+3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
+   landed, and CSGBox3D), each accepted by a walk.
+
+Parked by these rulings: the GPUParticles3D branch (`godot-particles`, a transcription of gles3's
+particle storage; redo it as a three.js particle system), the Sprite3D branch (`godot-sprite3d`;
+its members carry over, its emitter wiring waits for step 2), and `evidence --refresh --stale`
+(`godot-stale`, moot once the gate goes).
+
+
 ## Where it lives
 
 | Path | What it is |
@@ -20,6 +124,8 @@ A capability moves there with the first translated game that runs in the editor,
 that port's dependency closure.
 
 ## The intended architecture
+
+> Superseded in part by §The lane's law (2026-09-27): the evidence law and the acceptance below are retired; the lane's own review rows replace vgai-engine's ten.
 
 The design is vgai-engine `docs/ARCHITECTURE-CORE.md` §Foreign games and §Migration compiler
 reference architecture, at the tag. In short:
@@ -147,10 +253,13 @@ Godot's import cache, which only an editor build produces.
 
 ## The compat contract
 
+> Superseded in part by §The lane's law (2026-09-27): members are idiomatic library code informed by Godot's source, not transcriptions of it; evidence, comparators and claim records are retired. The module layout, naming and native receivers stand.
+
 This contract says what `godot-compat` is, and a mechanical check enforces it (`scripts/check-godot-compat.mjs`,
 run by the pre-commit hook). It applies ARCHITECTURE-CORE §10 and ARCHITECTURE.md rule 4 to one
-package. The owner's direction (2026-09-25) is that Godot's own source is readable, so every
-member is a transcription of that source, not a reconstruction from behaviour.
+package. The owner's direction (2026-09-25) was that Godot's own source is readable, so behaviour is read
+from it rather than guessed; the 2026-09-27 ruling keeps that and drops transcription (§The lane's
+law).
 
 **One module per Godot class.** `godot-compat/<kebab-name>.ts` holds the members of exactly one
 Godot class, built-in type or singleton, named as Godot names it: `character-body-3d.ts`,
@@ -306,6 +415,8 @@ generator merges `-0.0` into an earlier `0.0` constant in the same function
 
 ## The output is idiomatic three.js (owner ruling, 2026-09-26)
 
+> Superseded in part by §The lane's law (2026-09-27): the owner's 09-26 ruling on idiomatic output stands and is extended; where this section has compat as a frame clock running Godot's callbacks, or rows as evidenced rules, ruling 1 and row 4 replace it.
+
 The owner's words: "we're supposed to be writing idiomatic threejs while using godot compat
 runtime for the godot lib stuff."
 
@@ -399,6 +510,8 @@ worked example above, then carried to each family.
 
 ## Scene structure
 
+> Superseded in part by §The lane's law (2026-09-27): rows are plan data, not evidenced rules; there is no evidence gate.
+
 What a `.tscn` says about structure, independent of any node class, lowers as follows. Each row
 is one evidenced rule, measured by building the same scene in official Godot and in the generated
 component:
@@ -417,6 +530,8 @@ component:
   through the property rule of its node family.
 
 ## Node, SceneTree and the composition site
+
+> Superseded in part by §The lane's law (2026-09-27): this describes the current code. The main loop, `MainTimerSync`, the spawn host and class mounts are what ruling 1 and row 4 remove; the host owns frame and physics, React owns mounting.
 
 The design for the tree, set from what Node3D measured. The first native classes are proven:
 Node3D and Camera3D, 724 cases, exact.
@@ -479,6 +594,8 @@ Node3D and Camera3D, 724 cases, exact.
 
 ## The canvas: Controls, Node2D and text
 
+> Superseded in part by §The lane's law (2026-09-27): members are idiomatic DOM and three.js code read from Godot's source, not transcriptions of it.
+
 Each canvas node (Control, Node2D) is a non-spatial three `Group`, so the Node tree needs no
 second kind of entity. Its layout is Godot's own, transcribed from `control.cpp` and the
 container classes and recomputed at the moments Godot recomputes it. It is drawn by
@@ -498,6 +615,8 @@ then shortcut, unhandled-key and unhandled input, in reverse tree order, and sto
 `set_input_as_handled`. It is fed the same event records `Input` receives.
 
 ## Node families
+
+> Superseded in part by §The lane's law (2026-09-27): families are added as idiomatic library code with no instrument evidence; where a family below transcribes a Godot builder or keeps a Godot system over a library's own (a Godot `AnimationMixer` over three's), ruling 1 replaces it as the family is conformed.
 
 A scene node becomes native JSX in the generated scene component. The JSX element is its native
 entity, and compat's receiver for that node. Each family below is one unit: a scene-node rule
@@ -522,6 +641,8 @@ the output is plain library code (ARCHITECTURE.md rule 4):
 | `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
 
 ## Where it stands (2026-09-27)
+
+> Superseded in part by §The lane's law (2026-09-27): a record of the state before the rulings; the evidence it describes is retired.
 
 Measured through the lane's own commands and, for the platformer, the game editor's own doors.
 
@@ -574,6 +695,8 @@ reaches; it informs and never gates.
   GDScript 3's tree. That is its own lane-sized unit.
 
 ## Handoff (2026-09-27): moving the lane to another machine
+
+> Superseded in part by §The lane's law (2026-09-27): a record of the handoff. Its instructions to re-measure and to push only after liveness is live are void: there is no evidence gate.
 
 The lane was stopped cleanly at the owner's word. Nothing runs; every builder's work is on a
 branch of `volter-ai/editor`.
@@ -644,6 +767,8 @@ Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, ma
 
 ## Resumed (2026-09-27, second machine)
 
+> Superseded in part by §The lane's law (2026-09-27): a record from before the rulings; its refresh and liveness steps are void.
+
 The lane moved to a second machine the same day. Tools live in an APFS sparse image on its
 external drive (`Backup Driv/volter/godot-work.sparsebundle`, mounted at `/Volumes/GodotWork`:
 `tools/`, `src/`, `tmp/`, and the `godot` worktree `editor-godot/`). The drive itself is exFAT,
@@ -698,6 +823,8 @@ The platformer gate passes on this machine: import (plan, emit, `npm ci`, typech
 and `run --frames 120`: 0 thrown, 239 physics frames, physics per frame p50 4.7 ms, p99 8.5 ms.
 
 ## What comes next
+
+> Superseded by §The lane's law, §Order of work (2026-09-27). The list below is the order before the rulings.
 
 In order.
 

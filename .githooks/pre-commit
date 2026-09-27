@@ -11,6 +11,10 @@ fi
 if git diff --cached --name-only | grep -qE '^packages/gd-analyze/capabilities/'; then
   node scripts/check-godot-compat.mjs || exit 1
 fi
+# The Godot lane's architecture ratchet (docs/GODOT.md §The lane's law): findings only shrink.
+if git diff --cached --name-only | grep -qE '^(packages/gd-analyze/(capabilities|src/translate)/|release/godot-architecture-baseline\.json$)'; then
+  node scripts/check-godot-architecture.mjs || exit 1
+fi
 
 # The release lists' manifest boundary: a published package may only reach packages its list
 # publishes, at their release versions (a dependency on an unlisted package breaks the install).

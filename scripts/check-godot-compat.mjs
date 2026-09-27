@@ -246,7 +246,8 @@ function checkEntry(files) {
  * so it imports one: an npm package, itself or through a compat module it imports that does
  * (`rendering-server.ts` reaches three through `viewport.ts`, which holds the renderer), or onto
  * the browser itself, whose globals it reads (`display-server.ts` reads `window`). And it
- * carries no more than the protocol it transcribes: at most SERVER_CODE_LINES lines of code.
+ * stays small: at most SERVER_CODE_LINES lines of code, so it binds a library and never grows into
+ * a server (docs/GODOT.md §The lane's law, ruling 1).
  */
 function serverBinding(file, name) {
   if (FORBIDDEN_NAME.test(name.replace(/server/gu, ''))) return false;
@@ -263,10 +264,10 @@ function serverBinding(file, name) {
 }
 
 /**
- * The largest protocol a server binding carries is `GodotSpace3D::test_body_motion` with its
- * `_rest_cbk_result` (`modules/godot_physics_3d/godot_space_3d.cpp:454-512,652-1031`, Godot 4.7):
- * 320 lines of code, comments and blank lines dropped. A transcription of it is no longer than its
- * source; a server module past that holds more than the protocol (its own geometry or solver).
+ * A size cap on a server-named binding: 320 lines of code, comments and blank lines dropped (set
+ * from the largest piece of behaviour a server binding was measured to need, Godot 4.7's
+ * `GodotSpace3D::test_body_motion`). A server module past it is growing its own geometry or solver
+ * instead of binding the library's (docs/GODOT.md §The lane's law, ruling 1).
  */
 const SERVER_CODE_LINES = 320;
 
@@ -301,7 +302,7 @@ function checkServerBinding(file, text) {
   }
   const code = stripComments(text).split('\n').filter((line) => line.trim() !== '').length;
   if (code > SERVER_CODE_LINES) {
-    report(file, 1, `a server-named BINDING has ${code} lines of code, over ${SERVER_CODE_LINES} (the largest protocol a server binding transcribes): geometry and solvers are the library's`);
+    report(file, 1, `a server-named BINDING has ${code} lines of code, over ${SERVER_CODE_LINES} (a server binding binds a library; geometry and solvers are the library's)`);
   }
 }
 
