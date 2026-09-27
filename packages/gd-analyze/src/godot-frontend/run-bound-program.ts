@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodeGodotBoundProgram, type GodotBoundProgram } from './bound-program';
+import { GODOT_4_SOURCE_AUTHORITIES } from './source-authority';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..', '..');
@@ -197,8 +198,11 @@ export function captureGodotBoundProgram(options: {
   readonly projectDir: string;
   readonly importer?: GodotOfficialImporter;
 }): GodotBoundProgram {
+  // The patch of the pinned release this exporter binary is (4.7's when it is none of them).
+  const executableSha256 = sha256(readFileSync(path.resolve(options.godotBinary)));
+  const release = Object.values(GODOT_4_SOURCE_AUTHORITIES).find((entry) => entry.boundExporter?.executableSha256 === executableSha256);
   return captureGodotBoundProgramFromSnapshot({
-    exporter: captureGodotBoundExporterSnapshot(options.godotBinary),
+    exporter: captureGodotBoundExporterSnapshot(options.godotBinary, release?.officialSourcePatch ?? DEFAULT_OFFICIAL_SOURCE_PATCH),
     projectDir: options.projectDir,
     ...(options.importer === undefined ? {} : { importer: options.importer }),
   });
