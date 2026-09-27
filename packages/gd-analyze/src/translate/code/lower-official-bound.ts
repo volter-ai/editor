@@ -183,6 +183,8 @@ function mergeOfficialBoundRequirements(
         break;
       }
       case 'evidence-requirement': {
+        // Rules derived from compat and the language data carry no claim (no evidence gate).
+        if (requirement.claimId === '') break;
         const prior = evidence.get(requirement.claimId);
         if (prior !== undefined && !sameValue(prior, requirement)) {
           context.refuse(owner, `${requirement.claimId}: semantic claim has conflicting uses`);

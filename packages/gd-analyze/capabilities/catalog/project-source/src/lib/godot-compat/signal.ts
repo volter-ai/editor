@@ -179,7 +179,7 @@ export function godotFunctionState<T>(source: PromiseLike<T>): GodotGDScriptFunc
 }
 
 /**
- * @godot GDScriptFunctionState.is_valid
+ * @godot GDScriptFunctionState.is_valid (protocol)
  * @source modules/gdscript/gdscript_function.cpp:288
  */
 export function godotFunctionStateIsValid(
@@ -223,7 +223,7 @@ export function isSignalHandle(value: unknown): value is SignalHandle<readonly a
 /**
  * Object.emit_signal reaches the private emitter only for a Signal minted by this compat owner.
  *
- * @godot Object.emit_signal
+ * @godot Object.emit_signal (protocol)
  * @source core/object/object.cpp:1178
  */
 export function emitRetainedGodotSignal(

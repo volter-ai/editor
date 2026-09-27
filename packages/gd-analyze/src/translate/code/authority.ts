@@ -57,20 +57,12 @@ export class GodotCodeEvidenceResolver {
     this.#apiDumpSha256 = authority.apiDumpSha256;
   }
 
-  claim(id: string, layer: SemanticClaimLayer, canonicalIdentity: string): SemanticClaimRecord {
-    const liveness = this.#liveness.get(id);
-    if (liveness === undefined) throw new Error(`semantic claim has no liveness record: ${id}`);
-    const claim = this.#registry.claim(id, liveness);
-    if (
-      claim.layer !== layer ||
-      claim.canonicalIdentity !== canonicalIdentity ||
-      claim.godot.sourceRevision !== this.#sourceRevision ||
-      claim.godot.apiDumpSha256 !== this.#apiDumpSha256
-    ) {
-      throw new Error(`semantic claim does not prove ${layer}:${canonicalIdentity}: ${id}`);
-    }
-    return claim;
-  }
+  /**
+   * Evidence no longer gates lowering (docs/GODOT.md §The lane's law, ruling 2): every rule the
+   * authority carries is usable. Kept as the call site lowering still makes until the claim
+   * plumbing is removed.
+   */
+  claim(_id: string, _layer: SemanticClaimLayer, _canonicalIdentity: string): void {}
 }
 
 /** Resolved lookup surfaces plus the evidence authority that makes their accepted rows usable. */

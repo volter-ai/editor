@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   monorepoImplementationDigest,
   packageImplementationDigest,
@@ -8,34 +11,21 @@ import {
   GODOT_CODE_TRANSLATION_AUTHORITY_VERSION,
   type GodotCodeTranslationAuthority,
 } from './authority';
-import {
-  GODOT_4_7_AUTOLOAD_REFERENCE_CLAIMS,
-  GODOT_4_7_AUTOLOAD_REFERENCE_LIVENESS,
-  GODOT_4_7_AUTOLOAD_REFERENCE_RULES,
-} from './authority/godot-4.7-autoload-reference';
-import {
-  GODOT_4_7_LANGUAGE_CLAIMS,
-  GODOT_4_7_LANGUAGE_DATATYPES,
-  GODOT_4_7_LANGUAGE_LIVENESS,
-  GODOT_4_7_LANGUAGE_RULES,
-} from './authority/godot-4.7-language-semantics';
+import { GODOT_4_7_AUTOLOAD_REFERENCE_RULES } from './authority/godot-4.7-autoload-reference';
+import { GODOT_4_7_LANGUAGE_DATATYPES, GODOT_4_7_LANGUAGE_RULES } from './authority/godot-4.7-language-semantics';
 import {
   GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
-  GODOT_4_7_CODE_SEED_CLAIMS,
   GODOT_4_7_CODE_SEED_DATATYPES,
-  GODOT_4_7_CODE_SEED_LIVENESS,
   GODOT_4_7_CODE_SEED_RULES,
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from './authority/godot-4.7-seed';
-import { godot47EvidenceFiles } from './authority/godot-4.7-evidence';
-import {
-  GODOT_4_7_SCENE_SPAWN_BINDINGS,
-  GODOT_4_7_SCENE_SPAWN_CLAIMS,
-  GODOT_4_7_SCENE_SPAWN_LIVENESS,
-  GODOT_4_7_SCENE_SPAWN_RULES,
-} from './authority/godot-4.7-scene-spawn';
+import { GODOT_4_7_SCENE_SPAWN_RULES } from './authority/godot-4.7-scene-spawn';
 import { GODOT_BINDING_TABLE_VERSION } from './bindings';
-import { GODOT_CODE_RULE_TABLE_VERSION } from './lowering-rules';
+import { godotCompatBindings, godotCompatDatatypes } from './compat-bindings';
+import LANGUAGE_RULES from './language-rules.json' with { type: 'json' };
+import { GODOT_CODE_RULE_TABLE_VERSION, type GodotCodeRuleEntry, type GodotDatatypeRuleEntry } from './lowering-rules';
+
+const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 export const GODOT_CODE_IMPLEMENTATION_FILES = [
   'src/translate/code/bindings.ts',
@@ -88,10 +78,10 @@ export const GODOT_SCENE_SPAWN_IMPLEMENTATION_FILES = [
 ] as const;
 
 /**
- * The checked-in translation authority selected with the official frontend.
- *
- * Rows land here only after their exact-pin native/target differential claim exists. An absent row
- * is deliberately a lowering refusal; it is never inferred from the handwritten translator.
+ * The code translation authority for the pinned frontend: the bindings compat's own exports give
+ * (`compat-bindings.ts`), the GDScript language rules (`language-rules.json` and the seed rules),
+ * and the datatype rules. There is no evidence gate (docs/GODOT.md §The lane's law, ruling 2): an
+ * absent row is a lowering refusal because compat or the rules do not cover the construct.
  */
 export function godotCodeTranslationAuthority(
   source: GodotSourceAuthority,
@@ -99,9 +89,9 @@ export function godotCodeTranslationAuthority(
   const seeded =
     source.revision === GODOT_4_7_CODE_SEED_SOURCE_REVISION &&
     source.apiDumpSha256 === GODOT_4_7_CODE_SEED_API_DUMP_SHA256;
-  const evidence = seeded
-    ? godot47EvidenceFiles(packageImplementationDigest(GODOT_CODE_IMPLEMENTATION_FILES))
-    : [];
+  const apiDump = seeded
+    ? (JSON.parse(readFileSync(path.join(PACKAGE_ROOT, 'vendor/extension-api', source.apiDumpFile), 'utf8')) as Parameters<typeof godotCompatBindings>[1])
+    : undefined;
   return {
     version: GODOT_CODE_TRANSLATION_AUTHORITY_VERSION,
     sourceRevision: source.revision,
@@ -109,7 +99,7 @@ export function godotCodeTranslationAuthority(
     bindings: {
       version: GODOT_BINDING_TABLE_VERSION,
       sourceRevision: source.revision,
-      entries: [...(seeded ? GODOT_4_7_SCENE_SPAWN_BINDINGS : []), ...evidence.flatMap((file) => file.bindings)],
+      entries: apiDump === undefined ? [] : godotCompatBindings(source.revision, apiDump).entries,
     },
     rules: {
       version: GODOT_CODE_RULE_TABLE_VERSION,
@@ -120,39 +110,19 @@ export function godotCodeTranslationAuthority(
             ...GODOT_4_7_LANGUAGE_RULES,
             ...GODOT_4_7_AUTOLOAD_REFERENCE_RULES,
             ...GODOT_4_7_SCENE_SPAWN_RULES,
-            ...evidence.flatMap((file) => file.rules),
+            ...(LANGUAGE_RULES.rules as readonly GodotCodeRuleEntry[]),
           ]
         : [],
-      datatypes: seeded
-        ? [
+      datatypes: apiDump === undefined
+        ? []
+        : [
             ...GODOT_4_7_CODE_SEED_DATATYPES,
             ...GODOT_4_7_LANGUAGE_DATATYPES,
-            ...evidence.flatMap((file) => file.datatypes),
-          ]
-        : [],
+            ...(LANGUAGE_RULES.datatypes as readonly GodotDatatypeRuleEntry[]),
+            ...godotCompatDatatypes(source.revision, apiDump),
+          ],
     },
-    claims: seeded
-      ? [
-          ...GODOT_4_7_CODE_SEED_CLAIMS,
-          ...GODOT_4_7_LANGUAGE_CLAIMS,
-          ...GODOT_4_7_AUTOLOAD_REFERENCE_CLAIMS,
-          ...GODOT_4_7_SCENE_SPAWN_CLAIMS,
-          ...evidence.flatMap((file) => file.claims),
-        ]
-      : [],
-    liveness: seeded
-      ? [
-          ...withLiveImplementation(
-            [...GODOT_4_7_CODE_SEED_LIVENESS, ...GODOT_4_7_LANGUAGE_LIVENESS],
-            packageImplementationDigest(GODOT_CODE_IMPLEMENTATION_FILES),
-          ),
-          ...withLiveImplementation(
-            GODOT_4_7_AUTOLOAD_REFERENCE_LIVENESS,
-            monorepoImplementationDigest(GODOT_AUTOLOAD_REFERENCE_IMPLEMENTATION_FILES),
-          ),
-          ...withLiveImplementation(GODOT_4_7_SCENE_SPAWN_LIVENESS, monorepoImplementationDigest(GODOT_SCENE_SPAWN_IMPLEMENTATION_FILES)),
-          ...evidence.flatMap((file) => file.liveness),
-        ]
-      : [],
+    claims: [],
+    liveness: [],
   };
 }
