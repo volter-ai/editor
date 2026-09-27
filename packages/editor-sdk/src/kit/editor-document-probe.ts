@@ -524,6 +524,20 @@ function pointerInit(element: HTMLElement, at: readonly [number, number] = [0.5,
  * nothing else, so a rename driven by two separate single clicks never starts
  * (measured against the Outliner's own `onDoubleClick` → `onStartEditing`).
  */
+/**
+ * What a real press's default action does with focus, which an untrusted `mousedown` never does:
+ * focus the nearest element that can hold it, the pressed one or an ancestor (a `tabindex`, a
+ * natively focusable control, an editable region). A bare `element.focus()` on a plain `<div>` does
+ * nothing, and focus stays wherever a pointer handler along the way put it.
+ */
+function focusAsPressed(element: HTMLElement): void {
+  let focusable: HTMLElement | null = element;
+  while (focusable && !(focusable.hasAttribute('tabindex') || focusable.tabIndex >= 0 || focusable.isContentEditable)) {
+    focusable = focusable.parentElement;
+  }
+  (focusable ?? element).focus({ preventScroll: true });
+}
+
 function dispatchClick(
   element: HTMLElement,
   clicks = 1,
@@ -538,7 +552,7 @@ function dispatchClick(
       const up = { ...init, buttons: 0, detail: n };
       element.dispatchEvent(new PointerEvent('pointerdown', { ...down, pointerType: 'mouse' }));
       element.dispatchEvent(new MouseEvent('mousedown', down));
-      element.focus();
+      focusAsPressed(element);
       element.dispatchEvent(new PointerEvent('pointerup', { ...up, pointerType: 'mouse' }));
       element.dispatchEvent(new MouseEvent('mouseup', up));
       element.dispatchEvent(new MouseEvent('click', up));
@@ -717,7 +731,7 @@ function dispatchDrag(
     element.dispatchEvent(new MouseEvent('mousemove', { ...start, buttons: 0 }));
     element.dispatchEvent(new PointerEvent('pointerdown', { ...start, pointerType: 'mouse' }));
     element.dispatchEvent(new MouseEvent('mousedown', start));
-    element.focus();
+    focusAsPressed(element);
     const count = Math.max(1, Math.round(steps));
     const path: (readonly [number, number])[] = [from, ...via, to];
     for (let leg = 0; leg + 1 < path.length; leg++) {
@@ -1000,15 +1014,16 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       // focus first unless focus is already inside it.
       if (!(document.activeElement instanceof Node && target.contains(document.activeElement))) {
         // As a click does: the nearest element that can hold focus, the target or an ancestor.
-        let focusable: HTMLElement | null = target;
-        while (focusable && !(focusable.hasAttribute('tabindex') || focusable.tabIndex >= 0 || focusable.isContentEditable)) {
-          focusable = focusable.parentElement;
-        }
-        focusable?.focus({ preventScroll: true });
+        focusAsPressed(target);
       }
-      target.dispatchEvent(keyEvent('keydown', step));
+      // And the keystroke itself goes to the element holding focus, as a person's does: a
+      // target that contains the focused element (the document itself, with no selector) is where
+      // it bubbles through, not where it starts.
+      const active = document.activeElement;
+      const receiver = active instanceof HTMLElement && target.contains(active) ? active : target;
+      receiver.dispatchEvent(keyEvent('keydown', step));
       if (step.holdMs) await new Promise((settle) => setTimeout(settle, step.holdMs));
-      target.dispatchEvent(keyEvent('keyup', step));
+      receiver.dispatchEvent(keyEvent('keyup', step));
       return drove(target);
     }
     case 'select': {
