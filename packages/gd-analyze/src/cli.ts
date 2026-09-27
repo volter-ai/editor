@@ -28,6 +28,16 @@ const USAGE = `usage: gd-analyze <command> [options]
            proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
            is named and nothing is written for it.
 
+  run <imported-project-dir> [--frames <n>] [--budget-ms <ms>]
+           Mount an imported project's world headlessly (the proofs' harness) and step it n
+           display frames at 60 Hz with no input (default 300): each frame's thrown error is
+           printed with its stack, and a frame over its budget (default 2000 ms) is paused
+           through the inspector and its call stack printed.
+
+  run --self-check --bound-exporter-binary <path> --official-binary <path>
+           Import a world whose script spins in _process and check that run reports the hang
+           with a paused frame at that script's loop line.
+
   liveness
            Check every claim the import's authorities carry against the working tree, as the
            import checks each before use; list the stale ones (no Godot binary needed).
@@ -86,6 +96,23 @@ export async function runCli(argv: readonly string[]): Promise<number> {
   if (command === undefined || command === '--help' || command === '-h') {
     process.stdout.write(USAGE);
     return command === undefined ? 2 : 0;
+  }
+  if (command === 'run' && rest.includes('--self-check')) {
+    const { runSpinSelfCheck } = await import('./run/run-world');
+    (await import('./evidence/node-assets')).registerNodeAssetImports();
+    process.exit(await runSpinSelfCheck({ exporterBinary: requiredExporter(rest), officialBinary: requiredOfficial(rest) }));
+  }
+  if (command === 'run') {
+    const positional = positionals(rest, ['--frames', '--budget-ms']);
+    if (positional.length !== 1) fail('run needs exactly one imported project directory');
+    const { runImportedWorld } = await import('./run/run-world');
+    (await import('./evidence/node-assets')).registerNodeAssetImports();
+    const code = await runImportedWorld(positional[0] as string, {
+      frames: Number(optionValue(rest, '--frames') ?? 300),
+      budgetMs: Number(optionValue(rest, '--budget-ms') ?? 2000),
+    });
+    // A terminated, paused worker can leave the inspector's handles open: the run ends here.
+    process.exit(code);
   }
   if (command === 'import') {
     const positional = positionals(rest, ['--bound-exporter-binary', '--official-binary']);
