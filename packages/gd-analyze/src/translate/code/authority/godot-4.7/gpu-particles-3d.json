@@ -1,0 +1,3006 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/gpu-particles-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_amount",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_amount",
+        "localName": "GPUParticles3D_set_amount",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_amount"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_amount",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_amount",
+        "localName": "GPUParticles3D_get_amount",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_amount"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_lifetime",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_lifetime",
+        "localName": "GPUParticles3D_set_lifetime",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_lifetime"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_lifetime",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_lifetime",
+        "localName": "GPUParticles3D_get_lifetime",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_lifetime"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_one_shot",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_one_shot",
+        "localName": "GPUParticles3D_set_one_shot",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_one_shot"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_one_shot",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_one_shot",
+        "localName": "GPUParticles3D_get_one_shot",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_one_shot"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_use_fixed_seed",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_use_fixed_seed",
+        "localName": "GPUParticles3D_set_use_fixed_seed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_use_fixed_seed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_use_fixed_seed",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_use_fixed_seed",
+        "localName": "GPUParticles3D_get_use_fixed_seed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_use_fixed_seed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_seed",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_seed",
+        "localName": "GPUParticles3D_set_seed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_seed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_seed",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_seed",
+        "localName": "GPUParticles3D_get_seed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_seed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_pre_process_time",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_pre_process_time",
+        "localName": "GPUParticles3D_set_pre_process_time",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_pre_process_time"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_pre_process_time",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_pre_process_time",
+        "localName": "GPUParticles3D_get_pre_process_time",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_pre_process_time"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_speed_scale",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_speed_scale",
+        "localName": "GPUParticles3D_set_speed_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_speed_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_speed_scale",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_speed_scale",
+        "localName": "GPUParticles3D_get_speed_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_speed_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_explosiveness_ratio",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_explosiveness_ratio",
+        "localName": "GPUParticles3D_set_explosiveness_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_explosiveness_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_explosiveness_ratio",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_explosiveness_ratio",
+        "localName": "GPUParticles3D_get_explosiveness_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_explosiveness_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_randomness_ratio",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_randomness_ratio",
+        "localName": "GPUParticles3D_set_randomness_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_randomness_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_randomness_ratio",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_randomness_ratio",
+        "localName": "GPUParticles3D_get_randomness_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_randomness_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_amount_ratio",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_amount_ratio",
+        "localName": "GPUParticles3D_set_amount_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_amount_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_amount_ratio",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_amount_ratio",
+        "localName": "GPUParticles3D_get_amount_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_amount_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_use_local_coordinates",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_use_local_coordinates",
+        "localName": "GPUParticles3D_set_use_local_coordinates",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_use_local_coordinates"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_use_local_coordinates",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_use_local_coordinates",
+        "localName": "GPUParticles3D_get_use_local_coordinates",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_use_local_coordinates"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_fixed_fps",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_fixed_fps",
+        "localName": "GPUParticles3D_set_fixed_fps",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_fixed_fps"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_fixed_fps",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_fixed_fps",
+        "localName": "GPUParticles3D_get_fixed_fps",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_fixed_fps"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_fractional_delta",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_fractional_delta",
+        "localName": "GPUParticles3D_set_fractional_delta",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_fractional_delta"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_fractional_delta",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_fractional_delta",
+        "localName": "GPUParticles3D_get_fractional_delta",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_fractional_delta"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_interpolate",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_interpolate",
+        "localName": "GPUParticles3D_set_interpolate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_interpolate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_interpolate",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_interpolate",
+        "localName": "GPUParticles3D_get_interpolate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_interpolate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_draw_order",
+        "kind": "native-member",
+        "signature": "hash:1208074815"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_draw_order",
+        "localName": "GPUParticles3D_set_draw_order",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_draw_order"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_draw_order",
+        "kind": "native-member",
+        "signature": "hash:3770381780"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_draw_order",
+        "localName": "GPUParticles3D_get_draw_order",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_draw_order"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_transform_align",
+        "kind": "native-member",
+        "signature": "hash:3892425954"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_transform_align",
+        "localName": "GPUParticles3D_set_transform_align",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_transform_align"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_transform_align",
+        "kind": "native-member",
+        "signature": "hash:2100992166"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_transform_align",
+        "localName": "GPUParticles3D_get_transform_align",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_transform_align"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_visibility_aabb",
+        "kind": "native-member",
+        "signature": "hash:259215842"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_visibility_aabb",
+        "localName": "GPUParticles3D_set_visibility_aabb",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_visibility_aabb"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_visibility_aabb",
+        "kind": "native-member",
+        "signature": "hash:1068685055"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_visibility_aabb",
+        "localName": "GPUParticles3D_get_visibility_aabb",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_visibility_aabb"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_emitting",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_emitting",
+        "localName": "GPUParticles3D_set_emitting",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_emitting"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "is_emitting",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "is_emitting",
+        "localName": "GPUParticles3D_is_emitting",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.is_emitting"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_process_material",
+        "kind": "native-member",
+        "signature": "hash:2757459619"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_process_material",
+        "localName": "GPUParticles3D_set_process_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_process_material"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_process_material",
+        "kind": "native-member",
+        "signature": "hash:5934680"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_process_material",
+        "localName": "GPUParticles3D_get_process_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_process_material"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_draw_pass_mesh",
+        "kind": "native-member",
+        "signature": "hash:969122797"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_draw_pass_mesh",
+        "localName": "GPUParticles3D_set_draw_pass_mesh",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_draw_pass_mesh"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_draw_pass_mesh",
+        "kind": "native-member",
+        "signature": "hash:1576363275"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_draw_pass_mesh",
+        "localName": "GPUParticles3D_get_draw_pass_mesh",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_draw_pass_mesh"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "set_draw_passes",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "set_draw_passes",
+        "localName": "GPUParticles3D_set_draw_passes",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.set_draw_passes"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "get_draw_passes",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "get_draw_passes",
+        "localName": "GPUParticles3D_get_draw_passes",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.get_draw_passes"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "restart",
+        "kind": "native-member",
+        "signature": "hash:107499316"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "restart",
+        "localName": "GPUParticles3D_restart",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.restart"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GPUParticles3D",
+        "member": "finished",
+        "kind": "native-signal",
+        "signature": "signal"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gpu-particles-3d",
+        "exportName": "finished",
+        "localName": "GPUParticles3D_finished",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GPUParticles3D.finished"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_amount",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_amount\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_amount",
+        "sourceLine": 80
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5a12fc26954cc8ffd47f39d1a123580c1c4144623bd5d9c28907365862b148e3",
+        "callsite": "res://probe.gd _init() set_amount",
+        "observedOutputSha256": "bc7cff18dac73c2bea030b0de3f6b4880a5210a1bd3434dc9e6cb789e88b65ae"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_amount",
+        "observedOutputSha256": "bc7cff18dac73c2bea030b0de3f6b4880a5210a1bd3434dc9e6cb789e88b65ae"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6627e6421f378000d03a4965df1a4ad24f2d94f2b89d54179d4ff4ef7614de47"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_amount",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_amount\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_amount",
+        "sourceLine": 193
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4abb337e3d28717ef29e5323fd8b598ba6e962780c76b1952a8129f897bc27bd",
+        "callsite": "res://probe.gd _init() get_amount",
+        "observedOutputSha256": "cc680fcd3beb85f0c094b7f9ab69e45c544b4557db644f886a15d9cb58f88570"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_amount",
+        "observedOutputSha256": "cc680fcd3beb85f0c094b7f9ab69e45c544b4557db644f886a15d9cb58f88570"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "91bff08064bd8e0ab2be08ef3919aa2eff2704c0c2165db2b560d0e6157fe75c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_lifetime",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_lifetime\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_lifetime",
+        "sourceLine": 86
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ed831135cf47707ff681133b0ee2e64d704430efb22d7f0cf634ffb992aa3742",
+        "callsite": "res://probe.gd _init() set_lifetime",
+        "observedOutputSha256": "42a030d160255e031ac04ec9605e9e29f9d496e786d7ec86f0e0bcba8b5be13c"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_lifetime",
+        "observedOutputSha256": "42a030d160255e031ac04ec9605e9e29f9d496e786d7ec86f0e0bcba8b5be13c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b4d0de93346ef4fefe56fae2106f248509969c8434538d9ce42997d658677d14"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_lifetime",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_lifetime\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_lifetime",
+        "sourceLine": 197
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2b87eb5190d515d39c4607947c4bab54c31f2083781b5c9800ba491c9118402d",
+        "callsite": "res://probe.gd _init() get_lifetime",
+        "observedOutputSha256": "b2305bd99c18635849de7b76057654a24e165040ea94d469d1819ea0de9cd758"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_lifetime",
+        "observedOutputSha256": "b2305bd99c18635849de7b76057654a24e165040ea94d469d1819ea0de9cd758"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2e92e960d013ae013df099d528942446e1b0f600d7c7142178a10b528d67466a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_one_shot",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_one_shot\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_one_shot",
+        "sourceLine": 97
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "973bf6c7b734dc0e688f90239e59bbf0ea2779de30a62a18ea2bc0ffcf3cbb9f",
+        "callsite": "res://probe.gd _init() set_one_shot",
+        "observedOutputSha256": "cb96ac884d8129d98e3dbf17d255be6f921dae1b9da8c58a54698bee9fcde3ae"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_one_shot",
+        "observedOutputSha256": "cb96ac884d8129d98e3dbf17d255be6f921dae1b9da8c58a54698bee9fcde3ae"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "30bd3e344b0387257be601c3ba35c4f69a274ec2f9782fe8dbfe44399dc9d850"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_one_shot",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_one_shot\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_one_shot",
+        "sourceLine": 205
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5fcb10affd496ac2d6d59f84ef6f346e30293362a6157cacd0a78ec44cc749e4",
+        "callsite": "res://probe.gd _init() get_one_shot",
+        "observedOutputSha256": "8cebb7e12c164e9a230fa6690e0f46d3ebc08346bc0132e1a60e722dcd8503d8"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_one_shot",
+        "observedOutputSha256": "8cebb7e12c164e9a230fa6690e0f46d3ebc08346bc0132e1a60e722dcd8503d8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4204d2aba65041a78061b658a261e953f7a498485afa2cd8f0e6cfd8f9f24d83"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_use_fixed_seed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_use_fixed_seed\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_use_fixed_seed",
+        "sourceLine": 108
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "438bb168456e194aa9cf74a010744bbbc03ee78d83b89db0cdca1485e47f86f2",
+        "callsite": "res://probe.gd _init() set_use_fixed_seed",
+        "observedOutputSha256": "fc144845c8ca2d54eb227228645a1ea2e7932181992c844bdb0415f79acee1d8"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_use_fixed_seed",
+        "observedOutputSha256": "fc144845c8ca2d54eb227228645a1ea2e7932181992c844bdb0415f79acee1d8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6b904bad79e6ccdabe8e79d3566658ae8de8fbf6cf82ea57f43b8050cc65ddbf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_use_fixed_seed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_use_fixed_seed\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_use_fixed_seed",
+        "sourceLine": 116
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d90695a3667305aa6915ef361218fd89a2524220f2aa03b70c29ff171be94cbb",
+        "callsite": "res://probe.gd _init() get_use_fixed_seed",
+        "observedOutputSha256": "ff78e61318252d9c2459b54bf6e6537e6decb15b38b403b8d1e94cc1d6052507"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_use_fixed_seed",
+        "observedOutputSha256": "ff78e61318252d9c2459b54bf6e6537e6decb15b38b403b8d1e94cc1d6052507"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "59fbbbbe37ca330c1c13a03a95b7b7653287bf51a31451e2a6cb1dc595a7bd68"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_seed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_seed\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_seed",
+        "sourceLine": 120
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3b8d4b2da5705da8ca173e5cdc15048f29b4956d58f503f520ae4b895e0aae9f",
+        "callsite": "res://probe.gd _init() set_seed",
+        "observedOutputSha256": "72cf6f6220147fcfa79ed11a93a6a6d94771b0f9e9dae2270cbe0a8c9afe96f9"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_seed",
+        "observedOutputSha256": "72cf6f6220147fcfa79ed11a93a6a6d94771b0f9e9dae2270cbe0a8c9afe96f9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1347f30e07156822753934e7524e00a9d1ba4d7fa5b9f72fe7a533aa27052c5b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_seed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_seed\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_seed",
+        "sourceLine": 125
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "69b530c5cbb88af4444aa70c015bf6f55281a95e8b47f9dae4adc467c57113e2",
+        "callsite": "res://probe.gd _init() get_seed",
+        "observedOutputSha256": "fae0b7153a8e720dc999bf47cdf55daa78a2d556d2d7515d336859dcee9834bc"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_seed",
+        "observedOutputSha256": "fae0b7153a8e720dc999bf47cdf55daa78a2d556d2d7515d336859dcee9834bc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6ce08415f4060fe2e3975b8235bc157150f42420992b3a58a548d72c552ea26d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_pre_process_time",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_pre_process_time\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_pre_process_time",
+        "sourceLine": 129
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "efb54895f947df2f99a974cdeec4d8a901645cb6111cb518acf1a87c8b2fcdde",
+        "callsite": "res://probe.gd _init() set_pre_process_time",
+        "observedOutputSha256": "444319f708ddc988914b148920ebca4c7feefd5c8aa70ed10429ade37e24e891"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_pre_process_time",
+        "observedOutputSha256": "444319f708ddc988914b148920ebca4c7feefd5c8aa70ed10429ade37e24e891"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "327fd91ff76d34808a5a57c275153d453bb92fbb939722ce809d5dd89cd6c653"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_pre_process_time",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_pre_process_time\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_pre_process_time",
+        "sourceLine": 209
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f49a1d044fa16dd7cd945439cb5f145aa8ebea204c043f276afe997e89cd9f51",
+        "callsite": "res://probe.gd _init() get_pre_process_time",
+        "observedOutputSha256": "5d74cc0822eedc70cef3c0a7c484ef6ff5f364602ba3490794180daa414d6116"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_pre_process_time",
+        "observedOutputSha256": "5d74cc0822eedc70cef3c0a7c484ef6ff5f364602ba3490794180daa414d6116"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "de80bb583434e7bf362f9ec9b796b68163cf80ef356cb43fd515fd57ac413cca"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_speed_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_speed_scale\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_speed_scale",
+        "sourceLine": 179
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bb9d56c49c942a793742f2a254f060414c55e6254cce9d0b6ea53d8c24fa56ce",
+        "callsite": "res://probe.gd _init() set_speed_scale",
+        "observedOutputSha256": "0fae798e275fa1e1a2b62228e168a3edfdde171a4ead93ed30be77e14ec361d1"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_speed_scale",
+        "observedOutputSha256": "0fae798e275fa1e1a2b62228e168a3edfdde171a4ead93ed30be77e14ec361d1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "924c660458917ab749e1a02488d614e5242494e838a2fca3dded5c2fb8770c9a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_speed_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_speed_scale\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_speed_scale",
+        "sourceLine": 233
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "06cd8be916064e4813c099fc0afc1fba46d52a61f01520c8304ce3cace819027",
+        "callsite": "res://probe.gd _init() get_speed_scale",
+        "observedOutputSha256": "3ac333b409146c1d18b8354965cdd4bada4eb81a7951c24668ac04f301a29ced"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_speed_scale",
+        "observedOutputSha256": "3ac333b409146c1d18b8354965cdd4bada4eb81a7951c24668ac04f301a29ced"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f866d5884a85c2f6f4370a924b788efcff8555d5fe9dc33b666ed348768e1dd0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_explosiveness_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_explosiveness_ratio\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_explosiveness_ratio",
+        "sourceLine": 134
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "90829d31711a4c55af135624d4f546677f007af77e9233c0c6ef39f67bc21787",
+        "callsite": "res://probe.gd _init() set_explosiveness_ratio",
+        "observedOutputSha256": "3419e4cb6a69e45d3d347f9ee10bfda215f98c0b3702983e52a75b55017d25ec"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_explosiveness_ratio",
+        "observedOutputSha256": "3419e4cb6a69e45d3d347f9ee10bfda215f98c0b3702983e52a75b55017d25ec"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9adf2ccb69b6b60ec3975109c3e06a5756499ae6263863779f697da3fe144cfc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_explosiveness_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_explosiveness_ratio\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_explosiveness_ratio",
+        "sourceLine": 213
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1684c1061690a48560467049f44d6e41cce6aebf376aa6a6a50332f011c3f4ed",
+        "callsite": "res://probe.gd _init() get_explosiveness_ratio",
+        "observedOutputSha256": "bb11979b8e5a9453cab51dd3113be80f9ecbb2e4ba26c5b50eebc5bec4cfdc11"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_explosiveness_ratio",
+        "observedOutputSha256": "bb11979b8e5a9453cab51dd3113be80f9ecbb2e4ba26c5b50eebc5bec4cfdc11"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0be35c8f7d6f04c665be0cb11453d3ce696fbfb43ac087965cdb69734d208af6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_randomness_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_randomness_ratio\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_randomness_ratio",
+        "sourceLine": 139
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "030b60db1729734dd680f634426a9d773042c8502ccc66c6b62639c56cdd5ae8",
+        "callsite": "res://probe.gd _init() set_randomness_ratio",
+        "observedOutputSha256": "df7bcbd14df8824cf39bc38d69619e00ba3b919a5f8a7e4ef3505802f6a3cc8e"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_randomness_ratio",
+        "observedOutputSha256": "df7bcbd14df8824cf39bc38d69619e00ba3b919a5f8a7e4ef3505802f6a3cc8e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c4a4bd35b2382077b832a9de1ce2b91b439d5ca223c5cf2bcc94de0a271dea9f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_randomness_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_randomness_ratio\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_randomness_ratio",
+        "sourceLine": 217
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "53723b2d4eb2a268413a387895d9b2f20d6c5a880eb6160957b6875bfaea41d3",
+        "callsite": "res://probe.gd _init() get_randomness_ratio",
+        "observedOutputSha256": "420f98dd009baa22d8bd4db0eedbca7c91da8871e23b76e55b2be9482c4ad242"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_randomness_ratio",
+        "observedOutputSha256": "420f98dd009baa22d8bd4db0eedbca7c91da8871e23b76e55b2be9482c4ad242"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7fd5385ad03ddd6b6a322af4eebc9e48ccde0d7f4b42a5a3ef0dfd1043f5ce25"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_amount_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_amount_ratio\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_amount_ratio",
+        "sourceLine": 774
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "80cf59bbd3892c4b1990d70a69434462f20da854f45ae73dd061ba344df5858b",
+        "callsite": "res://probe.gd _init() set_amount_ratio",
+        "observedOutputSha256": "632368bfc2cc404e18d3fafba4b788279473aef6d6e7d468e02b5942259d9042"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_amount_ratio",
+        "observedOutputSha256": "632368bfc2cc404e18d3fafba4b788279473aef6d6e7d468e02b5942259d9042"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7d9b8417d66dd1f4f330d9bbfbb03aa672c95a7f173e59565551f43ab9059e5e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_amount_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_amount_ratio\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_amount_ratio",
+        "sourceLine": 779
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "35fb959f2fae99c1c151a136bc92eebe0a9a5a2d3305f99d29bbf318e82b8fdb",
+        "callsite": "res://probe.gd _init() get_amount_ratio",
+        "observedOutputSha256": "812054f6888de9469f21dda9dd59395ae786317b58b69c140c3253d3764325bc"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_amount_ratio",
+        "observedOutputSha256": "812054f6888de9469f21dda9dd59395ae786317b58b69c140c3253d3764325bc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1c5c8a65051db58dfc2afea2a72cb5bbe37bb9905a08281bbff2ea715f761149"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_use_local_coordinates",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_use_local_coordinates\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_use_local_coordinates",
+        "sourceLine": 150
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "880e261490917a45a9f8ca02a9ebf5e8157baa4ff6dcc301ad5888c69aa3a193",
+        "callsite": "res://probe.gd _init() set_use_local_coordinates",
+        "observedOutputSha256": "7b87d72b6971bacd64a1b673fb17129e5b6df4735c227ee6205f9ab44499d22a"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_use_local_coordinates",
+        "observedOutputSha256": "7b87d72b6971bacd64a1b673fb17129e5b6df4735c227ee6205f9ab44499d22a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6b270188ce96b9666f610c177511b71205007519833fbf3bf7a768011fe1dd67"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_use_local_coordinates",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_use_local_coordinates\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_use_local_coordinates",
+        "sourceLine": 225
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b43e9bfc08b754c729b8f61c90a720bca12a4833af7cff3b1b58a52f6dff28f6",
+        "callsite": "res://probe.gd _init() get_use_local_coordinates",
+        "observedOutputSha256": "e87d47b3ffd43cfe033b4d28e93471a29b02944ded4f93066a746320f21aa45e"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_use_local_coordinates",
+        "observedOutputSha256": "e87d47b3ffd43cfe033b4d28e93471a29b02944ded4f93066a746320f21aa45e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c7c807653bc58d772557064f756e0325ec03b23ea289cbbf139558779b97e644"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_fixed_fps",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_fixed_fps\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_fixed_fps",
+        "sourceLine": 314
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0728379084acdc8ee07af2415940aad86302cb466b4e465c88eed9c172958fed",
+        "callsite": "res://probe.gd _init() set_fixed_fps",
+        "observedOutputSha256": "568c3884874dcd2f03ecc66336d5b82164bd4bd2d34ad155ef3fc0561c5d8135"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_fixed_fps",
+        "observedOutputSha256": "568c3884874dcd2f03ecc66336d5b82164bd4bd2d34ad155ef3fc0561c5d8135"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d37df3d53d68f36caf4d495c295252816866308d63fd72bbb8bafa843421f259"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_fixed_fps",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_fixed_fps\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_fixed_fps",
+        "sourceLine": 319
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3ee596407d857d70ae5d7c6b199c81f91993833ee0aab273214ea4fada708b30",
+        "callsite": "res://probe.gd _init() get_fixed_fps",
+        "observedOutputSha256": "f64eb3aff6a734bda4acb1e6f19b6667ca8cebe34a4ff8ae1f75773dd96433eb"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_fixed_fps",
+        "observedOutputSha256": "f64eb3aff6a734bda4acb1e6f19b6667ca8cebe34a4ff8ae1f75773dd96433eb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "820cfffd4646364845e8edef88a1c1db7e851daee151efec4c867a5b5a62a77a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_fractional_delta",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_fractional_delta\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_fractional_delta",
+        "sourceLine": 323
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7f7b13d2d944e831a44567cfdbfbccf953151027539d2097b240415b432fb43b",
+        "callsite": "res://probe.gd _init() set_fractional_delta",
+        "observedOutputSha256": "58e9167eb3da556e7e782e4ffb2819a8f5b9d8c0a894e893c88350c06618f7b1"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_fractional_delta",
+        "observedOutputSha256": "58e9167eb3da556e7e782e4ffb2819a8f5b9d8c0a894e893c88350c06618f7b1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f8c00f3f57690b459fbb099f5c32c899e19907a42807d9d341f1f939f1f58a38"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_fractional_delta",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_fractional_delta\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_fractional_delta",
+        "sourceLine": 328
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fd5e6c4183d22cd96be7f995b6e404bc04fb74475f7e48b9b0e7950e41d62b88",
+        "callsite": "res://probe.gd _init() get_fractional_delta",
+        "observedOutputSha256": "a9d73c2ba8c6da67ba5a1d771cea2d952fd35b8e8e930095c3b0104ee4d3359e"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_fractional_delta",
+        "observedOutputSha256": "a9d73c2ba8c6da67ba5a1d771cea2d952fd35b8e8e930095c3b0104ee4d3359e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8407d93bf694b3e3ae804a27d475602f6c04499774cbf380215fd3ec7500dd67"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_interpolate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_interpolate\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_interpolate",
+        "sourceLine": 332
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "071655fd9ef5b8212034c0f3d254210d190a9e3c386c459ec8255bf35b53b671",
+        "callsite": "res://probe.gd _init() set_interpolate",
+        "observedOutputSha256": "cb3f26e0862c09b2eb5fb5be3a4901134190cc8bef5ff1d669ed9459d2bba3e6"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_interpolate",
+        "observedOutputSha256": "cb3f26e0862c09b2eb5fb5be3a4901134190cc8bef5ff1d669ed9459d2bba3e6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6f9fc3960fd128c744eba377a110023c082526858f7da0a6117837c0bff28b71"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_interpolate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_interpolate\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_interpolate",
+        "sourceLine": 337
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e70729ce77c3751a574f81cb82577fa106ef75c59575dd8f5052294261dc697d",
+        "callsite": "res://probe.gd _init() get_interpolate",
+        "observedOutputSha256": "7c301bf75bb92d91bfa7ce809cfac5192e8b279b1c0e1057acbddb8e605bf9cb"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_interpolate",
+        "observedOutputSha256": "7c301bf75bb92d91bfa7ce809cfac5192e8b279b1c0e1057acbddb8e605bf9cb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "56cd93144db50cfbb6a3c2e994fb35675d9d6865d263b8066e0e7ab34a909049"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_draw_order",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_draw_order\u0000hash:1208074815",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_draw_order",
+        "sourceLine": 241
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8aed85dd42c8d18c66da860ff1bd4047e1425135df2c34fb9cbaa99cd9f299d4",
+        "callsite": "res://probe.gd _init() set_draw_order",
+        "observedOutputSha256": "ac763c76e9b39d24fd40a21226fb96543ba827ae547b98418facb0d8cfc7be54"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_draw_order",
+        "observedOutputSha256": "ac763c76e9b39d24fd40a21226fb96543ba827ae547b98418facb0d8cfc7be54"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f15d0fded3a81d51f88242d181094d5c145367f30e84a044951ed6675fc37a4f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_draw_order",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_draw_order\u0000hash:3770381780",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_draw_order",
+        "sourceLine": 266
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "17f2097fac98dbce58238bdddfd6fd4ea1a8456ace653aad0717353682dda9b7",
+        "callsite": "res://probe.gd _init() get_draw_order",
+        "observedOutputSha256": "fc0445297ecd6108ed49baeeccb31888a54ec11cbd7162ebd3bc98a6e5dbb114"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_draw_order",
+        "observedOutputSha256": "fc0445297ecd6108ed49baeeccb31888a54ec11cbd7162ebd3bc98a6e5dbb114"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "71975c061c26380647226533bc734f8b4ab0f7d45933b76e445207150aca0405"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_transform_align",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_transform_align\u0000hash:3892425954",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_transform_align",
+        "sourceLine": 652
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f01843e296128ac05c2625db51a57a631701af2af06b7e36446e29c0ed13c64c",
+        "callsite": "res://probe.gd _init() set_transform_align",
+        "observedOutputSha256": "c87733ad10bfa4c9c9a8f8049a5642612b5ed3e69cf88438dba145d24480d507"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_transform_align",
+        "observedOutputSha256": "c87733ad10bfa4c9c9a8f8049a5642612b5ed3e69cf88438dba145d24480d507"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "01ba56ca5fa0673e278ea558221187356353504b42e0705fad922618eee790c1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_transform_align",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_transform_align\u0000hash:2100992166",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_transform_align",
+        "sourceLine": 660
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d2dc889876d92913bbfcf190975dc8d785d1325d5c2ca1160c5a625270f78020",
+        "callsite": "res://probe.gd _init() get_transform_align",
+        "observedOutputSha256": "2c39655ba3b12d7ec0b8c8a0bb91b185ab8640e78347c6bfd2b58da71db54c90"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_transform_align",
+        "observedOutputSha256": "2c39655ba3b12d7ec0b8c8a0bb91b185ab8640e78347c6bfd2b58da71db54c90"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fbf48b39c61dc321bf4f9b5eadcc32437e281323fd11d1931487d3136eea204f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_visibility_aabb",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_visibility_aabb\u0000hash:259215842",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_visibility_aabb",
+        "sourceLine": 144
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7150bffc1a47adaed82611a2ddc2a992c78cfb2c1fbb29eb1b063a35ffe74539",
+        "callsite": "res://probe.gd _init() set_visibility_aabb",
+        "observedOutputSha256": "22a65655050e42e58725064441facf56a61a60eb7edcca1ab4093e8fa193172f"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_visibility_aabb",
+        "observedOutputSha256": "bd28c5202d39e4b8411b1ce8eecb63d7bdba3c85b4bb6195a755e15148c44c86"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6b85faeaa7797018b8a62c10e2e2a67a4a0f43f8573021e4bad3c84bb0570015"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_visibility_aabb",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_visibility_aabb\u0000hash:1068685055",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_visibility_aabb",
+        "sourceLine": 221
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e33a64eeb2afd2c470e3b142fa354f99369135e87dba89622f1fe1d2605584cb",
+        "callsite": "res://probe.gd _init() get_visibility_aabb",
+        "observedOutputSha256": "f937694449598f23967055fad88b357b7c84ff71e33c6d306b7e28e4a0e46ed3"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_visibility_aabb",
+        "observedOutputSha256": "dec62c25d30605d057264c2b89b090d4eae594cef734da3074fbdfb3c3309203"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dce7805bd28b6516d4d1ce06d9a462250306320c0ea890989d74874245239bc3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_emitting",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_emitting\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_emitting",
+        "sourceLine": 49
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cf2d7988bb7f3d775070a5470cc144f4b352e560367ddccd8a5aaa78051b725d",
+        "callsite": "res://probe.gd _init() set_emitting",
+        "observedOutputSha256": "b48350e60acdeb039b67361530532d9087042eaf793e9e188c1c12c6b069856d"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_emitting",
+        "observedOutputSha256": "b48350e60acdeb039b67361530532d9087042eaf793e9e188c1c12c6b069856d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1e40afb8981405c4392fe32941ce1ae67c28a6ce56963cced168795b094cb784"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.is_emitting",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000is_emitting\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.is_emitting",
+        "sourceLine": 189
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "37c0f26c452cf86be2e2a6f92921619f73fab46ec9bd49c1512e12ea96b6d5da",
+        "callsite": "res://probe.gd _init() is_emitting",
+        "observedOutputSha256": "bf95fd0020eaea6ab6e733f3eb7c3e40fcb491144d49d1dc6aaba42741b2d49b"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts is_emitting",
+        "observedOutputSha256": "bf95fd0020eaea6ab6e733f3eb7c3e40fcb491144d49d1dc6aaba42741b2d49b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2a855de459ab2445ceb1554529ab488f53789161d393d5f757920b8ba484cd56"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_process_material",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_process_material\u0000hash:2757459619",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_process_material",
+        "sourceLine": 155
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4a1044d8235709f00290a081c2379c9f796200e6ca473dd8ac54be137113cdd5",
+        "callsite": "res://probe.gd _init() set_process_material",
+        "observedOutputSha256": "581bff5040d6b506783efffb35d6767cf8f1956120e0872c9c87fa8e4667ac61"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_process_material",
+        "observedOutputSha256": "581bff5040d6b506783efffb35d6767cf8f1956120e0872c9c87fa8e4667ac61"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "04e7a499a2ada0a067ee953fbfdb75a2bb7c901be767956c70ab06fc7f7079f8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_process_material",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_process_material\u0000hash:5934680",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_process_material",
+        "sourceLine": 229
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a94f6b80328b1d36512a6a7964e33770131f1c3821bc2c7d78666388569b238e",
+        "callsite": "res://probe.gd _init() get_process_material",
+        "observedOutputSha256": "c6f1f56a80ba0768bbc975c4905975a059af9fb02f9e4c9976f6bc44404a18b6"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_process_material",
+        "observedOutputSha256": "c6f1f56a80ba0768bbc975c4905975a059af9fb02f9e4c9976f6bc44404a18b6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f033177ccb40f5c8f98c33ccc7364941557e7b302bf6077747557cb7142a01c4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_draw_pass_mesh",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_draw_pass_mesh\u0000hash:969122797",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_draw_pass_mesh",
+        "sourceLine": 284
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "13404c4e9f6a691b200bc1496487cd0438a095295585562bc73ba80091786597",
+        "callsite": "res://probe.gd _init() set_draw_pass_mesh",
+        "observedOutputSha256": "bb6836a44fc6ae9cbbed94dc191cd8a54a1021ba53c69d2749672bfbf3a02de2"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_draw_pass_mesh",
+        "observedOutputSha256": "bb6836a44fc6ae9cbbed94dc191cd8a54a1021ba53c69d2749672bfbf3a02de2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0283380f9c0845980b9aa353e3f0f9cfbd324c66394f4b9e197b7a722c517553"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_draw_pass_mesh",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_draw_pass_mesh\u0000hash:1576363275",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_draw_pass_mesh",
+        "sourceLine": 308
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "41e6f2f4ca1f2f80ce16b2296e633769f4bc90a27c272d2053a663a9196b4633",
+        "callsite": "res://probe.gd _init() get_draw_pass_mesh",
+        "observedOutputSha256": "34da7607c67099d4de525e66bd783881fd71a39c9a6cfab0d2edc4ae9ff1b787"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_draw_pass_mesh",
+        "observedOutputSha256": "34da7607c67099d4de525e66bd783881fd71a39c9a6cfab0d2edc4ae9ff1b787"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "463b852274cfb8748c6b4af5c3b443543ab061e5d2a2de8a1a2f3d71d29b52bf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_draw_passes",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000set_draw_passes\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.set_draw_passes",
+        "sourceLine": 270
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a0a34421c699a751f1bbb1d3ffdf63303aab70e96c2bcd957e6886619b6568c6",
+        "callsite": "res://probe.gd _init() set_draw_passes",
+        "observedOutputSha256": "e83f711f3d27a968edc45345590aa39b5378ffa16055d1131d2de82a23d79898"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts set_draw_passes",
+        "observedOutputSha256": "e83f711f3d27a968edc45345590aa39b5378ffa16055d1131d2de82a23d79898"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "648d46c20389dcb5780ed2d1821d5398736f3f8b29b5ec0b97f30232f5469d7d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_draw_passes",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000get_draw_passes\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.get_draw_passes",
+        "sourceLine": 280
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "88ea914e4cc64df8d284ebd7a1a7eba9917139977ffb3d45b04685f4a09578d6",
+        "callsite": "res://probe.gd _init() get_draw_passes",
+        "observedOutputSha256": "3814f0e77b9eab4f16e3ea9d441b9f875152211cb6424ec1c95fd422f42dd8cf"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts get_draw_passes",
+        "observedOutputSha256": "3814f0e77b9eab4f16e3ea9d441b9f875152211cb6424ec1c95fd422f42dd8cf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3bd098a4ca2b16bf7967b3bfd051367c39351f780b5750c78efcbe1e79fe707a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.restart",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GPUParticles3D\u0000restart\u0000hash:107499316",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.restart",
+        "sourceLine": 442
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "491cb0ce4d000142ba0b8d9b28b1ca8d1f7237be6892c829ab242a88617b2ce7",
+        "callsite": "res://probe.gd _init() restart",
+        "observedOutputSha256": "5260dbd922a35a9652415523e2048345bb4be118d75f4728040e1aa2c2714f8d"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts restart",
+        "observedOutputSha256": "5260dbd922a35a9652415523e2048345bb4be118d75f4728040e1aa2c2714f8d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b02f65439f624da19ed4fb97518fd60cc974a8e2e11c715aba9855a5d44911b3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GPUParticles3D.finished",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000GPUParticles3D\u0000finished\u0000signal",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/gpu_particles_3d.cpp",
+        "sourceSymbol": "GPUParticles3D.finished",
+        "sourceLine": 554
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "16ed6fc897a917baef391475e8bae763590ec2f3fe0891b9d860854730ee8a50",
+        "callsite": "res://probe.gd _init() signal-finished",
+        "observedOutputSha256": "0462ba0eb0cd074b34a9ef90453a3e54de2d21a2572549626596ff24f30b59d7"
+      },
+      "target": {
+        "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7",
+        "callsite": "lib/godot-compat/gpu-particles-3d.ts finished",
+        "observedOutputSha256": "0462ba0eb0cd074b34a9ef90453a3e54de2d21a2572549626596ff24f30b59d7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c9a5783906c1802eb5f1017ab909dea8a633c37e2fe3d70594e39ac17a44d1b3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gpu-particles-3d",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_amount",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5a12fc26954cc8ffd47f39d1a123580c1c4144623bd5d9c28907365862b148e3",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_amount",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4abb337e3d28717ef29e5323fd8b598ba6e962780c76b1952a8129f897bc27bd",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_lifetime",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ed831135cf47707ff681133b0ee2e64d704430efb22d7f0cf634ffb992aa3742",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_lifetime",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2b87eb5190d515d39c4607947c4bab54c31f2083781b5c9800ba491c9118402d",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_one_shot",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "973bf6c7b734dc0e688f90239e59bbf0ea2779de30a62a18ea2bc0ffcf3cbb9f",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_one_shot",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5fcb10affd496ac2d6d59f84ef6f346e30293362a6157cacd0a78ec44cc749e4",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_use_fixed_seed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "438bb168456e194aa9cf74a010744bbbc03ee78d83b89db0cdca1485e47f86f2",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_use_fixed_seed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d90695a3667305aa6915ef361218fd89a2524220f2aa03b70c29ff171be94cbb",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_seed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3b8d4b2da5705da8ca173e5cdc15048f29b4956d58f503f520ae4b895e0aae9f",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_seed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "69b530c5cbb88af4444aa70c015bf6f55281a95e8b47f9dae4adc467c57113e2",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_pre_process_time",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "efb54895f947df2f99a974cdeec4d8a901645cb6111cb518acf1a87c8b2fcdde",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_pre_process_time",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f49a1d044fa16dd7cd945439cb5f145aa8ebea204c043f276afe997e89cd9f51",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_speed_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bb9d56c49c942a793742f2a254f060414c55e6254cce9d0b6ea53d8c24fa56ce",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_speed_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "06cd8be916064e4813c099fc0afc1fba46d52a61f01520c8304ce3cace819027",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_explosiveness_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "90829d31711a4c55af135624d4f546677f007af77e9233c0c6ef39f67bc21787",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_explosiveness_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1684c1061690a48560467049f44d6e41cce6aebf376aa6a6a50332f011c3f4ed",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_randomness_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "030b60db1729734dd680f634426a9d773042c8502ccc66c6b62639c56cdd5ae8",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_randomness_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "53723b2d4eb2a268413a387895d9b2f20d6c5a880eb6160957b6875bfaea41d3",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_amount_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "80cf59bbd3892c4b1990d70a69434462f20da854f45ae73dd061ba344df5858b",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_amount_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "35fb959f2fae99c1c151a136bc92eebe0a9a5a2d3305f99d29bbf318e82b8fdb",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_use_local_coordinates",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "880e261490917a45a9f8ca02a9ebf5e8157baa4ff6dcc301ad5888c69aa3a193",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_use_local_coordinates",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b43e9bfc08b754c729b8f61c90a720bca12a4833af7cff3b1b58a52f6dff28f6",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_fixed_fps",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0728379084acdc8ee07af2415940aad86302cb466b4e465c88eed9c172958fed",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_fixed_fps",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3ee596407d857d70ae5d7c6b199c81f91993833ee0aab273214ea4fada708b30",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_fractional_delta",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7f7b13d2d944e831a44567cfdbfbccf953151027539d2097b240415b432fb43b",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_fractional_delta",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fd5e6c4183d22cd96be7f995b6e404bc04fb74475f7e48b9b0e7950e41d62b88",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_interpolate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "071655fd9ef5b8212034c0f3d254210d190a9e3c386c459ec8255bf35b53b671",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_interpolate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e70729ce77c3751a574f81cb82577fa106ef75c59575dd8f5052294261dc697d",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_draw_order",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8aed85dd42c8d18c66da860ff1bd4047e1425135df2c34fb9cbaa99cd9f299d4",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_draw_order",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "17f2097fac98dbce58238bdddfd6fd4ea1a8456ace653aad0717353682dda9b7",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_transform_align",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f01843e296128ac05c2625db51a57a631701af2af06b7e36446e29c0ed13c64c",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_transform_align",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d2dc889876d92913bbfcf190975dc8d785d1325d5c2ca1160c5a625270f78020",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_visibility_aabb",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7150bffc1a47adaed82611a2ddc2a992c78cfb2c1fbb29eb1b063a35ffe74539",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_visibility_aabb",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e33a64eeb2afd2c470e3b142fa354f99369135e87dba89622f1fe1d2605584cb",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_emitting",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cf2d7988bb7f3d775070a5470cc144f4b352e560367ddccd8a5aaa78051b725d",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.is_emitting",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "37c0f26c452cf86be2e2a6f92921619f73fab46ec9bd49c1512e12ea96b6d5da",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_process_material",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4a1044d8235709f00290a081c2379c9f796200e6ca473dd8ac54be137113cdd5",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_process_material",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a94f6b80328b1d36512a6a7964e33770131f1c3821bc2c7d78666388569b238e",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_draw_pass_mesh",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "13404c4e9f6a691b200bc1496487cd0438a095295585562bc73ba80091786597",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_draw_pass_mesh",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "41e6f2f4ca1f2f80ce16b2296e633769f4bc90a27c272d2053a663a9196b4633",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.set_draw_passes",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a0a34421c699a751f1bbb1d3ffdf63303aab70e96c2bcd957e6886619b6568c6",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.get_draw_passes",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "88ea914e4cc64df8d284ebd7a1a7eba9917139977ffb3d45b04685f4a09578d6",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.restart",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "491cb0ce4d000142ba0b8d9b28b1ca8d1f7237be6892c829ab242a88617b2ce7",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    },
+    {
+      "claimId": "godot-4.7-binding-GPUParticles3D.finished",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "16ed6fc897a917baef391475e8bae763590ec2f3fe0891b9d860854730ee8a50",
+      "implementationSha256": "52920b2bdbbee7871a8e08182476f4b2fa852f99af7d119318c78168b50585b7"
+    }
+  ]
+}

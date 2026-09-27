@@ -45,6 +45,9 @@ import { randi } from './global-scope';
 import { can_process, godot_node_foreign, godot_node_set_internal_physics, godot_node_set_internal_process, godot_node_tree_signal, get_physics_process_delta_time, get_process_delta_time, is_inside_tree } from './node';
 import { get_global_transform, is_visible_in_tree } from './node-3d';
 import type { GodotParticleTexture, GodotShaderParameter, ParticleProcessMaterial } from './particle-process-material';
+import { godot_base_material_3d_three } from './base-material-3d';
+import { godot_mesh_surfaces } from './mesh';
+import { godot_primitive_mesh_geometry, type PrimitiveMesh } from './primitive-mesh';
 import { GODOT_PARTICLES_COPY_GLSL, GODOT_PARTICLES_GLSL, GODOT_STDLIB_INC_GLSL } from './particles-shader-gles3';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { type GodotSignal, godot_object_signal } from './signal';
@@ -161,11 +164,19 @@ interface GPUParticles3D {
   active_time: number;
   previous_position: readonly [number, number, number];
   previous_velocity: readonly [number, number, number];
-  /** The draw passes' meshes as three draws them, and the material override. */
-  draw_passes: ({ readonly geometry: BufferGeometry; readonly material: Material | null } | null)[];
+  /** The draw passes' meshes (`draw_passes`, a `Mesh` resource or none each), and the material override. */
+  draw_passes: (object | null)[];
+  /** Each draw pass's surfaces as three draws them, made from its mesh when first drawn. */
+  pass_surfaces: (readonly PassSurface[] | null)[];
   material_override: Material | null;
   cast_shadow: boolean;
   drawn: InstancedMesh[];
+}
+
+/** A draw pass mesh's surface as three draws it: its geometry and its material. */
+interface PassSurface {
+  readonly geometry: BufferGeometry;
+  readonly material: Material | null;
 }
 
 const STATE = new WeakMap<object, GPUParticles3D>();
@@ -856,10 +867,10 @@ function internalPhysics(entity: object, s: GPUParticles3D): void {
 /**
  * Makes `entity` a GPUParticles3D with Godot's defaults (`GPUParticles3D::GPUParticles3D`,
  * `gpu_particles_3d.cpp:933`): emitting, 8 particles, one second, 30 fixed fps, fractional delta,
- * interpolated, a seed from the global generator; on entering the tree it processes internally
- * (`NOTIFICATION_ENTER_TREE`, `:577`).
+ * interpolated, one draw pass, a seed from the global generator; on entering the tree it processes
+ * internally (`NOTIFICATION_ENTER_TREE`, `:577`).
  *
- * @godot GPUParticles3D.GPUParticles3D
+ * @godot GPUParticles3D (protocol)
  * @source scene/3d/gpu_particles_3d.cpp:933
  */
 export function godot_gpu_particles_3d_adopt(entity: object): void {
@@ -939,7 +950,8 @@ export function godot_gpu_particles_3d_adopt(entity: object): void {
     active_time: 0,
     previous_position: [0, 0, 0],
     previous_velocity: [0, 0, 0],
-    draw_passes: [null],
+    draw_passes: [],
+    pass_surfaces: [],
     material_override: null,
     cast_shadow: true,
     drawn: [],
@@ -959,6 +971,7 @@ export function godot_gpu_particles_3d_adopt(entity: object): void {
   set_explosiveness_ratio(entity, 0);
   set_randomness_ratio(entity, 0);
   set_use_local_coordinates(entity, false);
+  set_draw_passes(entity, 1);
   set_draw_order(entity, 0);
   set_speed_scale(entity, 1);
   godot_node_tree_signal(entity, 'tree_entered').connect(() => {
@@ -1085,6 +1098,14 @@ export function set_use_fixed_seed(self: object, p_use_fixed_seed: boolean): voi
 }
 
 /**
+ * @godot GPUParticles3D.get_use_fixed_seed
+ * @source scene/3d/gpu_particles_3d.cpp:116
+ */
+export function get_use_fixed_seed(self: object): boolean {
+  return stateOf(self, 'get_use_fixed_seed').use_fixed_seed;
+}
+
+/**
  * @godot GPUParticles3D.set_seed
  * @source scene/3d/gpu_particles_3d.cpp:120
  */
@@ -1167,6 +1188,15 @@ export function set_visibility_aabb(self: object, p_aabb: { readonly position: {
 }
 
 /**
+ * @godot GPUParticles3D.get_visibility_aabb
+ * @source scene/3d/gpu_particles_3d.cpp:221
+ */
+export function get_visibility_aabb(self: object): AABB {
+  const { position, size } = stateOf(self, 'get_visibility_aabb').visibility_aabb;
+  return aabb(vector3(...position), vector3(...size));
+}
+
+/**
  * @godot GPUParticles3D.set_use_local_coordinates
  * @source scene/3d/gpu_particles_3d.cpp:150
  */
@@ -1236,6 +1266,67 @@ export function set_draw_order(self: object, p_order: number): void {
 }
 
 /**
+ * @godot GPUParticles3D.get_draw_order
+ * @source scene/3d/gpu_particles_3d.cpp:266
+ */
+export function get_draw_order(self: object): number {
+  return stateOf(self, 'get_draw_order').draw_order;
+}
+
+/**
+ * A count below 1 fails; passes past a smaller count lose their meshes (`set_draw_pass_mesh`
+ * with none) and new ones have none.
+ *
+ * @godot GPUParticles3D.set_draw_passes
+ * @source scene/3d/gpu_particles_3d.cpp:270
+ */
+export function set_draw_passes(self: object, p_count: number): void {
+  const s = stateOf(self, 'set_draw_passes');
+  if (p_count < 1) return;
+  for (let i = p_count; i < s.draw_passes.length; i += 1) set_draw_pass_mesh(self, i, null);
+  s.draw_passes.length = Math.min(s.draw_passes.length, p_count);
+  while (s.draw_passes.length < p_count) s.draw_passes.push(null);
+  s.pass_surfaces.length = Math.min(s.pass_surfaces.length, p_count);
+  while (s.pass_surfaces.length < p_count) s.pass_surfaces.push(null);
+  undraw(self, s);
+}
+
+/**
+ * @godot GPUParticles3D.get_draw_passes
+ * @source scene/3d/gpu_particles_3d.cpp:280
+ */
+export function get_draw_passes(self: object): number {
+  return stateOf(self, 'get_draw_passes').draw_passes.length;
+}
+
+/**
+ * A pass outside the draw passes fails and leaves them; the mesh is drawn as its surfaces (a
+ * primitive mesh's one surface and its material, or the surfaces a mesh class registers).
+ *
+ * @godot GPUParticles3D.set_draw_pass_mesh
+ * @source scene/3d/gpu_particles_3d.cpp:284
+ */
+export function set_draw_pass_mesh(self: object, p_pass: number, p_mesh: object | null): void {
+  const s = stateOf(self, 'set_draw_pass_mesh');
+  if (p_pass < 0 || p_pass >= s.draw_passes.length) return;
+  s.draw_passes[p_pass] = p_mesh;
+  s.pass_surfaces[p_pass] = null;
+  undraw(self, s);
+}
+
+/**
+ * A pass outside the draw passes fails and gives none.
+ *
+ * @godot GPUParticles3D.get_draw_pass_mesh
+ * @source scene/3d/gpu_particles_3d.cpp:308
+ */
+export function get_draw_pass_mesh(self: object, p_pass: number): object | null {
+  const s = stateOf(self, 'get_draw_pass_mesh');
+  if (p_pass < 0 || p_pass >= s.draw_passes.length) return null;
+  return s.draw_passes[p_pass] ?? null;
+}
+
+/**
  * A changed rate frees the system's buffers and restarts it (`particles_set_fixed_fps`).
  *
  * @godot GPUParticles3D.set_fixed_fps
@@ -1271,6 +1362,14 @@ export function set_fractional_delta(self: object, p_enable: boolean): void {
 }
 
 /**
+ * @godot GPUParticles3D.get_fractional_delta
+ * @source scene/3d/gpu_particles_3d.cpp:328
+ */
+export function get_fractional_delta(self: object): boolean {
+  return stateOf(self, 'get_fractional_delta').fractional_delta;
+}
+
+/**
  * @godot GPUParticles3D.set_interpolate
  * @source scene/3d/gpu_particles_3d.cpp:332
  */
@@ -1278,6 +1377,14 @@ export function set_interpolate(self: object, p_enable: boolean): void {
   const s = stateOf(self, 'set_interpolate');
   s.interpolate = p_enable;
   s.particles.interpolate = p_enable;
+}
+
+/**
+ * @godot GPUParticles3D.get_interpolate
+ * @source scene/3d/gpu_particles_3d.cpp:337
+ */
+export function get_interpolate(self: object): boolean {
+  return stateOf(self, 'get_interpolate').interpolate;
 }
 
 /**
@@ -1291,6 +1398,14 @@ export function set_amount_ratio(self: object, p_ratio: number): void {
 }
 
 /**
+ * @godot GPUParticles3D.get_amount_ratio
+ * @source scene/3d/gpu_particles_3d.cpp:779
+ */
+export function get_amount_ratio(self: object): number {
+  return stateOf(self, 'get_amount_ratio').amount_ratio;
+}
+
+/**
  * @godot GPUParticles3D.set_transform_align
  * @source scene/3d/gpu_particles_3d.cpp:652
  */
@@ -1298,6 +1413,14 @@ export function set_transform_align(self: object, p_align: number): void {
   const s = stateOf(self, 'set_transform_align');
   s.transform_align = p_align;
   s.particles.transform_align = p_align;
+}
+
+/**
+ * @godot GPUParticles3D.get_transform_align
+ * @source scene/3d/gpu_particles_3d.cpp:660
+ */
+export function get_transform_align(self: object): number {
+  return stateOf(self, 'get_transform_align').transform_align;
 }
 
 /**
@@ -1326,9 +1449,11 @@ export function restart(self: object, p_keep_seed = false): void {
  * local, grown by the longest axis of the largest draw pass. It reads the sort buffer when a
  * previous frame filled it, else the back instance buffer, as the Compatibility renderer does
  * (`ParticlesStorage::particles_get_current_aabb`, `drivers/gles3/storage/particles_storage.cpp:408`);
- * with no buffer yet it is `AABB()`, as there (`:419`).
+ * with no buffer yet it is `AABB()`, as there (`:419`). Headless Godot cannot simulate GPU
+ * particles, so no differential case measures it: it is a protocol export until the windowed proof
+ * (`scene-gpu-particles`) does, the translation's page reading it directly.
  *
- * @godot GPUParticles3D.capture_aabb
+ * @godot GPUParticles3D (protocol)
  * @source scene/3d/gpu_particles_3d.cpp:458
  */
 export function capture_aabb(self: object): AABB {
@@ -1361,10 +1486,9 @@ export function capture_aabb(self: object): AABB {
     }
   }
   let longest_axis_size = 0;
-  for (const pass of s.draw_passes) {
-    if (pass === null) continue;
-    pass.geometry.computeBoundingBox();
-    const bounds = pass.geometry.boundingBox as Box3;
+  for (const surface of passSurfaces(s)) {
+    surface.geometry.computeBoundingBox();
+    const bounds = surface.geometry.boundingBox as Box3;
     const mesh_aabb = aabb(vector3(bounds.min.x, bounds.min.y, bounds.min.z), vector3(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y, bounds.max.z - bounds.min.z));
     longest_axis_size = Math.max(get_longest_axis_size(mesh_aabb), longest_axis_size);
   }
@@ -1420,7 +1544,7 @@ function readBack(gl: WebGL2RenderingContext, entity: object, s: GPUParticles3D)
       // The three transform rows, then the packed colour and custom (`particles_copy.glsl`).
       scratch.set(floats[at] as number, floats[at + 1] as number, floats[at + 2] as number, floats[at + 3] as number, floats[at + 4] as number, floats[at + 5] as number, floats[at + 6] as number, floats[at + 7] as number, floats[at + 8] as number, floats[at + 9] as number, floats[at + 10] as number, floats[at + 11] as number, 0, 0, 0, 1);
       mesh.setMatrixAt(i, scratch);
-      const packed = [words[at + 12] as number, words[at + 13] as number, words[at + 14] as number, words[at + 15] as number];
+      const packed: readonly [number, number, number, number] = [words[at + 12] as number, words[at + 13] as number, words[at + 14] as number, words[at + 15] as number];
       (colors.array as Float32Array).set([half(packed[0] & 0xffff), half(packed[0] >>> 16), half(packed[1] & 0xffff), half(packed[1] >>> 16)], i * 4);
       (customs.array as Float32Array).set([half(packed[2] & 0xffff), half(packed[2] >>> 16), half(packed[3] & 0xffff), half(packed[3] >>> 16)], i * 4);
     }
@@ -1437,7 +1561,7 @@ function readBack(gl: WebGL2RenderingContext, entity: object, s: GPUParticles3D)
  */
 function draw(entity: object, s: GPUParticles3D): InstancedMesh[] {
   const count = s.particles.amount;
-  const wanted = s.draw_passes.filter((pass): pass is { geometry: BufferGeometry; material: Material | null } => pass !== null);
+  const wanted = passSurfaces(s);
   if (s.drawn.length !== wanted.length || s.drawn.some((mesh) => mesh.count !== count)) {
     for (const mesh of s.drawn) (entity as Object3D).remove(mesh);
     s.drawn = wanted.map((pass) => {
@@ -1522,13 +1646,33 @@ export function godot_gpu_particles_3d_frame(renderer: WebGLRenderer, camera: Ca
 
 godot_viewport_frame_work(godot_gpu_particles_3d_frame);
 
-/** The draw passes and the material override, as a scene states them. */
-function setDrawPass(self: object, pass: number, value: { readonly geometry: BufferGeometry; readonly material: Material | null } | null): void {
-  const s = stateOf(self, 'set_draw_pass_mesh');
-  while (s.draw_passes.length <= pass) s.draw_passes.push(null);
-  s.draw_passes[pass] = value;
+/** The drawn instances, made again at the next frame (a draw pass or the material override changed). */
+function undraw(self: object, s: GPUParticles3D): void {
   for (const mesh of s.drawn) (self as Object3D).remove(mesh);
   s.drawn = [];
+}
+
+/**
+ * Every draw pass's surfaces, in pass order: a registered mesh's surfaces, or a primitive mesh's
+ * one surface and its material (`BaseMaterial3D`, drawn as three's).
+ */
+function passSurfaces(s: GPUParticles3D): PassSurface[] {
+  const out: PassSurface[] = [];
+  s.draw_passes.forEach((mesh, pass) => {
+    if (mesh === null) return;
+    let surfaces = s.pass_surfaces[pass] ?? null;
+    if (surfaces === null) {
+      const registered = godot_mesh_surfaces(mesh);
+      const three = (material: object | null | undefined): Material | null => (material === null || material === undefined ? null : godot_base_material_3d_three(material as never));
+      surfaces =
+        registered === undefined
+          ? [{ geometry: godot_primitive_mesh_geometry(mesh as PrimitiveMesh), material: three((mesh as PrimitiveMesh).material) }]
+          : registered.map((surface) => ({ geometry: surface.geometry, material: three(surface.material) }));
+      s.pass_surfaces[pass] = surfaces;
+    }
+    out.push(...surfaces);
+  });
+  return out;
 }
 
 /** The props a scene states on `<GodotGPUParticles3D>`, by the setter each calls. */
@@ -1557,14 +1701,14 @@ const GPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
     ['seed', (self, value: number) => set_seed(self, value)],
     ['processMaterial', (self, value: ParticleProcessMaterial | null) => set_process_material(self, value)],
     ['visibilityAabb', (self, value: readonly number[]) => set_visibility_aabb(self, { position: { x: value[0] as number, y: value[1] as number, z: value[2] as number }, size: { x: value[3] as number, y: value[4] as number, z: value[5] as number } })],
-    ['drawPass1', (self, value: { readonly geometry: BufferGeometry; readonly material: Material | null } | null) => setDrawPass(self, 0, value)],
+    ['drawPass1', (self, value: object | null) => set_draw_pass_mesh(self, 0, value)],
     [
       'materialOverride',
-      (self, value: Material | null) => {
+      // The scene's material resource (a `BaseMaterial3D`), drawn as three's.
+      (self, value: object | null) => {
         const s = stateOf(self, 'set_material_override');
-        s.material_override = value;
-        for (const mesh of s.drawn) (self as Object3D).remove(mesh);
-        s.drawn = [];
+        s.material_override = value === null ? null : godot_base_material_3d_three(value as never);
+        undraw(self, s);
       },
     ],
     [
