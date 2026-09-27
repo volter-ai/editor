@@ -74,10 +74,10 @@ function itemRect(entity: Mesh): Rect2 {
 }
 
 /**
- * Makes `entity` a Sprite3D (`Sprite3D::Sprite3D`, `sprite_3d.cpp:1031`): no texture.
+ * Makes `entity` a Sprite3D (`Sprite3D::Sprite3D`, `sprite_3d.cpp:1030`): no texture.
  *
  * @godot Sprite3D (protocol)
- * @source scene/3d/sprite_3d.cpp:1031
+ * @source scene/3d/sprite_3d.cpp:1030
  */
 export function godot_sprite_3d_mount(entity: Mesh): void {
   const state: Sprite3DState = { texture: null, redraw: () => godot_sprite_base_3d_queue_redraw(entity) };
@@ -121,7 +121,7 @@ const SPRITE_3D = {
  * A Sprite3D as a scene writes it: `<GodotSprite3D texture={selector} />`.
  *
  * @godot Sprite3D (protocol)
- * @source scene/3d/sprite_3d.cpp:1031
+ * @source scene/3d/sprite_3d.cpp:1030
  */
 export function GodotSprite3D(props: GodotElementProps<Mesh>): ReactElement {
   return useGodotElement(SPRITE_3D, props);

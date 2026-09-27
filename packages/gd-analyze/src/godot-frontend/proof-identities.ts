@@ -38,6 +38,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-audio',
   'scene-gridmap',
   'scene-particles',
+  'scene-sprites',
   'scene-environment',
   'shader-lowering',
   'post-effects',

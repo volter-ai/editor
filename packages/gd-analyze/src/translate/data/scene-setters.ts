@@ -209,6 +209,8 @@ export type TargetSceneValue =
   | { readonly kind: 'PackedFloat32Array' | 'PackedColorArray'; readonly components: readonly number[] }
   /** An `AABB`: its position's then its size's components. */
   | { readonly kind: 'AABB'; readonly components: readonly number[] }
+  /** A `Rect2` (an AtlasTexture's `region`): its position's then its size's components. */
+  | { readonly kind: 'Rect2'; readonly components: readonly number[] }
   /**
    * An untyped `Array` of numbers and vectors (a Curve's `_data` and `_limits`), flat: a vector's
    * components in its place.
@@ -251,11 +253,11 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         if (components.length % 3 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: 'PackedVector3Array', components };
       }
-      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB'];
+      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6], Rect2: [4] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB' | 'Rect2'];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;
       const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
       if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
-      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB', components };
+      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB' | 'Rect2', components };
     }
     case 'array': {
       if (value.elementType !== undefined) return undefined;

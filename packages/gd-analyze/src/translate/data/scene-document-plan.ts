@@ -146,6 +146,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly library?: TargetGodotMeshLibraryPlan;
   /** An `AnimationLibrary`'s animations (`_data`, `AnimationLibrary::_set_data`) as data. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
+  /** A `SpriteFrames`' animations (`animations`, `SpriteFrames::_set_animations`), each frame's texture planned. */
+  readonly spriteFrames?: TargetGodotSpriteFramesPlan;
   /** An `AnimationNodeBlendTree`'s graph (its nodes and connections) as data. */
   readonly animationTree?: GodotAnimationNodeData;
   /** A `.gdshader` as the pinned Godot's shader frontend read it, lowered to GLSL (`shader-glsl.ts`). */
@@ -157,6 +159,19 @@ export interface TargetGodotSceneResourcePlan {
   readonly engineShaders?: Readonly<Record<string, string>>;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
+}
+
+/**
+ * A SpriteFrames as `godot_sprite_frames_new` receives it: each animation's name, speed, loop (a
+ * flag or a mode, as written) and frames, each frame's texture a planned resource's key or null.
+ */
+export interface TargetGodotSpriteFramesPlan {
+  readonly animations: readonly {
+    readonly name: string;
+    readonly speed: number;
+    readonly loop: number | boolean;
+    readonly frames: readonly { readonly texture: string | null; readonly duration: number }[];
+  }[];
 }
 
 /** A MeshLibrary's items by id, each mesh and shape a planned resource's key. */
@@ -699,6 +714,15 @@ function planResource(
     document.order.push(planned);
     return key;
   }
+  if (data.type === 'SpriteFrames') {
+    const spriteFrames = spriteFramesPlan(context, `${at}(${key})`, data, nestedScope);
+    if (spriteFrames === undefined) return undefined;
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: data.type, construct: rule.construct, spriteFrames, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   if (data.type === 'MeshLibrary') {
     const library = meshLibraryPlan(context, `${at}(${key})`, data, nestedScope);
     if (library === undefined) return undefined;
@@ -780,6 +804,55 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
       return undefined;
     }
     animations.push({ name: item.key, animation });
+  }
+  return { animations };
+}
+
+/**
+ * A SpriteFrames' `animations` (`SpriteFrames::_set_animations`, `sprite_frames.cpp:206`): each
+ * entry a dictionary of `name`, `speed`, `loop` and `frames`, each frame a dictionary of `texture`
+ * (a resource, planned, or null) and `duration`. The Godot 3 form (a frame that is a bare texture)
+ * refuses.
+ */
+function spriteFramesPlan(context: PlanContext, at: string, data: BoundGodotResourceData, scope: string): TargetGodotSpriteFramesPlan | undefined {
+  for (const [name, value] of Object.entries(data.properties)) {
+    if (name === 'animations' || name === 'resource_name' || (name === 'script' && value.kind === 'null')) continue;
+    refuse(context, `${at}.${name}`, `SpriteFrames.${name} is not translated`, 'property', `SpriteFrames.${name}`);
+    return undefined;
+  }
+  const field = (value: GodotValue | undefined, key: string): GodotValue | undefined => (value?.kind === 'dict' ? value.entries.find((entry) => entry.key === key)?.value : undefined);
+  const list = data.properties['animations'];
+  const animations: TargetGodotSpriteFramesPlan['animations'][number][] = [];
+  for (const [index, item] of (list?.kind === 'array' ? list.items : []).entries()) {
+    const name = field(item, 'name');
+    const speed = field(item, 'speed');
+    const loop = field(item, 'loop');
+    const frames = field(item, 'frames');
+    if (name?.kind !== 'string' || speed?.kind !== 'number' || (loop?.kind !== 'bool' && loop?.kind !== 'number') || frames?.kind !== 'array') {
+      refuse(context, `${at}.animations[${String(index)}]`, 'an animation without its name, speed, loop and frames', 'resource', 'SpriteFrames');
+      return undefined;
+    }
+    const planned: { texture: string | null; duration: number }[] = [];
+    for (const frame of frames.items) {
+      const texture = field(frame, 'texture');
+      const duration = field(frame, 'duration');
+      if (texture === undefined || duration?.kind !== 'number') {
+        refuse(context, `${at}.animations[${String(index)}]`, 'a frame without its texture and duration', 'resource', 'SpriteFrames');
+        return undefined;
+      }
+      if (texture.kind === 'null') {
+        planned.push({ texture: null, duration: duration.value });
+        continue;
+      }
+      const reference = referenceOf(texture);
+      const textureKey = reference === undefined ? undefined : planResource(context, at, reference.reference, reference.id, scope);
+      if (textureKey === undefined) {
+        if (reference === undefined) refuse(context, `${at}.animations[${String(index)}]`, 'a frame texture that is not a resource reference', 'resource', 'SpriteFrames');
+        return undefined;
+      }
+      planned.push({ texture: textureKey, duration: duration.value });
+    }
+    animations.push({ name: name.value, speed: speed.value, loop: loop.value, frames: planned });
   }
   return { animations };
 }

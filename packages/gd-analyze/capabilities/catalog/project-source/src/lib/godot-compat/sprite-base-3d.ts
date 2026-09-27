@@ -133,8 +133,10 @@ export function godot_sprite_base_3d_mount(entity: Mesh, subclass: GodotSpriteBa
   geometry.setIndex([0, 2, 1, 0, 3, 2]);
   entity.geometry = geometry;
   entity.material = new MeshBasicMaterial({ transparent: true, depthWrite: false, side: DoubleSide });
-  // A GeometryInstance3D casts (`SHADOW_CASTING_SETTING_ON`) until its material says otherwise.
+  // A GeometryInstance3D's setting is `SHADOW_CASTING_SETTING_ON`; whether the quad casts is its
+  // material's pass (`material` below).
   godot_geometry_instance_3d_mount(entity);
+  set_cast_shadows_setting(entity, 1);
   godot_visual_instance_3d_aabb(entity, () => state.aabb);
   godot_node_tree_signal(entity, 'tree_entered').connect(() => imUpdate(entity, state));
 }

@@ -70,7 +70,7 @@
         "observedOutputSha256": "1ef538a2f0fd4de720f525fe1f11f9be7e32b34487cd0ca706575b14f4f98b4c"
       },
       "target": {
-        "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976",
+        "implementationSha256": "f6fd746157d2c865125fc2384bf8796368dcdcabba6d9a389ba6a36ab18f507f",
         "callsite": "lib/godot-compat/sprite-3d.ts set_texture",
         "observedOutputSha256": "1ef538a2f0fd4de720f525fe1f11f9be7e32b34487cd0ca706575b14f4f98b4c"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "284e3a42f2d3e31b08e5b85bb54338423f9f84297b99928d1f1edeba767c361b"
       },
       "target": {
-        "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976",
+        "implementationSha256": "f6fd746157d2c865125fc2384bf8796368dcdcabba6d9a389ba6a36ab18f507f",
         "callsite": "lib/godot-compat/sprite-3d.ts get_texture",
         "observedOutputSha256": "284e3a42f2d3e31b08e5b85bb54338423f9f84297b99928d1f1edeba767c361b"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "9ec9b48d59f33f4183f0ee6180bb2a2910542277313a65825ff6661ddab7b811",
-      "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976"
+      "implementationSha256": "f6fd746157d2c865125fc2384bf8796368dcdcabba6d9a389ba6a36ab18f507f"
     },
     {
       "claimId": "godot-4.7-binding-Sprite3D.get_texture",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3481c515d550fdd3429700c739a0e40646cfa63a372c7f8e4c58118c10f5545d",
-      "implementationSha256": "afa12b481262e58c3f7a0f038833c062d0d33b761ac71299ffc16bc2c1ef7976"
+      "implementationSha256": "f6fd746157d2c865125fc2384bf8796368dcdcabba6d9a389ba6a36ab18f507f"
     }
   ]
 }

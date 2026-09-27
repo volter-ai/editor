@@ -38,6 +38,7 @@ import { measureSceneAudioProof } from './proofs/scene-audio';
 import { measureSceneAnimationProof } from './proofs/scene-animation';
 import { measureSceneGridMapProof } from './proofs/scene-gridmap';
 import { measureSceneParticlesProof } from './proofs/scene-particles';
+import { measureSceneSpritesProof } from './proofs/scene-sprites';
 import { measureSceneEnvironmentProof } from './proofs/scene-environment';
 import { measureShaderLoweringProof } from './proofs/shader-lowering';
 import { measurePostEffectsProof } from './proofs/post-effects';
@@ -73,6 +74,7 @@ const PROOFS: readonly (readonly [
   ['scene-audio', measureSceneAudioProof],
   ['scene-gridmap', measureSceneGridMapProof],
   ['scene-particles', measureSceneParticlesProof],
+  ['scene-sprites', measureSceneSpritesProof],
   ['shader-lowering', measureShaderLoweringProof],
   ['post-effects', measurePostEffectsProof],
   ['scene-environment', measureSceneEnvironmentProof],

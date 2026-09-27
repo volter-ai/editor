@@ -46,6 +46,7 @@ const VISIBILITY_RANGE = [
 const NODE_3D = ['set_visible'];
 // A GeometryInstance3D's `transparency`: stored, never drawn by the web's renderer (`geometry-instance-3d.ts`).
 const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency'];
+const SPRITE_BASE_3D = ['set_pixel_size', 'set_draw_flag:0', 'set_draw_flag:1', 'set_draw_flag:2', 'set_draw_flag:3', 'set_cast_shadows_setting', 'set_layer_mask'];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
@@ -88,6 +89,11 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_width',
     ...VISIBILITY_RANGE,
   ],
+  // `<GodotSprite3D>` and `<GodotAnimatedSprite3D>` (`sprite-base-3d.ts`): the SpriteBase3D props,
+  // the draw flags a scene writes (transparent, shaded, double_sided, no_depth_test), shadow casting
+  // and render layers.
+  Sprite3D: [...NODE_3D, 'set_meta:*', ...SPRITE_BASE_3D, 'set_texture'],
+  AnimatedSprite3D: [...NODE_3D, 'set_meta:*', ...SPRITE_BASE_3D, 'set_sprite_frames', 'set_animation', 'set_frame'],
   CPUParticles3D: [
     ...GEOMETRY_INSTANCE_3D,
     'set_emitting',
@@ -266,6 +272,9 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_shadow_offset',
   ],
   PlaceholderTexture2D: ['set_size'],
+  // `godot_atlas_texture_new` (`atlas-texture.ts`); a SpriteFrames' animations are its plan's data.
+  AtlasTexture: ['set_atlas', 'set_region'],
+  SpriteFrames: [],
   CanvasTexture: ['set_diffuse_texture'],
   AudioStreamWAV: [],
   // An environment's background, ambient light, tone mapping and fog (`environment.ts`, `world-environment.ts`).

@@ -462,6 +462,8 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   Sprite2D: ['sprite-2d', 'Group'],
   TouchScreenButton: ['touch-screen-button', 'Group'],
   Label3D: ['label-3d', 'Mesh'],
+  Sprite3D: ['sprite-3d', 'Mesh'],
+  AnimatedSprite3D: ['animated-sprite-3d', 'Mesh'],
   AudioStreamPlayer: ['audio-stream-player', 'Group'],
   AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
   GridMap: ['grid-map', 'Group'],
@@ -566,6 +568,53 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
       callee: identifier(useCompat(emission, 'shader-material', 'godot_shader_material_new')),
       arguments: [shader, { kind: 'object-expression', properties: parameters }],
     };
+    if (uses.length === 0) {
+      emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+      return local;
+    }
+    emission.loaded.add(local);
+    emission.react.add('useMemo');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
+    });
+    return local;
+  }
+  if (resource.className === 'SpriteFrames') {
+    // `godot_sprite_frames_new([{ name, speed, loop, frames: [{ texture, duration }] }])`, each frame's
+    // texture the resource's local.
+    const plan = resource.spriteFrames;
+    if (plan === undefined) throw new Error(`${key}: a SpriteFrames without its animations`);
+    const animations: TargetTsExpression = {
+      kind: 'array-expression',
+      elements: plan.animations.map((animation) => ({
+        kind: 'object-expression' as const,
+        properties: [
+          { key: 'name', value: literal(animation.name) },
+          { key: 'speed', value: literal(animation.speed) },
+          { key: 'loop', value: literal(animation.loop) },
+          {
+            key: 'frames',
+            value: {
+              kind: 'array-expression' as const,
+              elements: animation.frames.map((frame) => ({
+                kind: 'object-expression' as const,
+                properties: [
+                  { key: 'texture', value: frame.texture === null ? literal(null) : identifier(resourceLocal(emission, frame.texture)) },
+                  { key: 'duration', value: literal(frame.duration) },
+                ],
+              })),
+            },
+          },
+        ],
+      })),
+    };
+    const uses = [...new Set(plan.animations.flatMap((animation) => animation.frames.flatMap((frame) => (frame.texture === null ? [] : [resourceLocal(emission, frame.texture)]))))].filter((local) => emission.loaded.has(local));
+    const local = freshLocal(emission, stemOf(key));
+    emission.hookLocals.set(key, local);
+    const made: TargetTsExpression = { kind: 'call-expression', callee: identifier(useCompat(emission, 'sprite-frames', 'godot_sprite_frames_new')), arguments: [animations] };
     if (uses.length === 0) {
       emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
       return local;
