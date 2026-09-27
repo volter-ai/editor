@@ -1,0 +1,45 @@
+# Autopublish: a push to main builds and checks the game release (which lists
+# the modeling release's packages too) and publishes, with provenance, every
+# package of release/game.json whose version npm does not have yet. A release
+# is a version bump on main. Auth is the repository secret NPM_TOKEN (an npm
+# automation token with write on the @volter scope).
+name: publish
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency: publish
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Which versions npm lacks
+        id: check
+        run: |
+          new=""
+          for name in $(node -p "require('./release/game.json').packages.join(' ')"); do
+            dir="$(grep -l "\"name\": \"$name\"" packages/*/package.json | xargs dirname)"
+            spec="$name@$(node -p "require('./$dir/package.json').version")"
+            if [ -n "$(npm view "$spec" version 2>/dev/null)" ]; then echo "$spec is published"; else echo "$spec is new"; new="$new $dir"; fi
+          done
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+      - if: steps.check.outputs.new
+        run: npm ci
+      - if: steps.check.outputs.new
+        run: npm run build:game
+      - if: steps.check.outputs.new
+        run: npm run check:release:game && npm run check:packed-imports:game
+      - if: steps.check.outputs.new
+        run: for dir in ${{ steps.check.outputs.new }}; do (cd "$dir" && npm publish --access public --provenance --ignore-scripts); done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
