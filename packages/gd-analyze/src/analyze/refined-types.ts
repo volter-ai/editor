@@ -424,7 +424,11 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       node?.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && (node.datatype.kind === 'VARIANT' || node.datatype.typeSource === 'INFERRED') && onreadyPath(node.name) === undefined
         ? inputs.memberType?.(node.name)
         : undefined;
-    if (parameter !== undefined) {
+    // Inside `if event is InputEventMouseMotion:` the test's class holds whatever the callers pass.
+    const narrowedParameter = parameter !== undefined && node?.kind === 'IDENTIFIER' ? narrowed(node) : undefined;
+    if (narrowedParameter !== undefined) {
+      result = { datatype: narrowedParameter, rule: 'type-test-narrowing' };
+    } else if (parameter !== undefined) {
       result = { datatype: parameter.datatype, rule: parameter.rules[0] as GodotAnalysisRuleId, also: parameter.rules.slice(1) };
     } else if (stored !== undefined) {
       result = { datatype: stored, rule: 'member-assignment-type' };

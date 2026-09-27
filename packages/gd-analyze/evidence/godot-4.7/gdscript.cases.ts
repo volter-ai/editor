@@ -1486,7 +1486,15 @@ func narrowed_compound() -> Array:
 \tvar n: Node = $Lamp
 \tif n is OmniLight3D:
 \t\tout.append(-n.light_energy / 10)
+\tvar l: Light3D = $Lamp
+\tout.append(_narrowed_parameter(l))
 \treturn out
+
+# A parameter its callers type (Light3D) narrowed by a test to a subclass (\`omni_range\`).
+func _narrowed_parameter(light) -> Array:
+\tif light is OmniLight3D:
+\t\treturn [-light.omni_range / 10]
+\treturn []
 
 func scene_members() -> Array:
 \t$Tagged.position = Vector3(1.0, 2.0, 3.0)
