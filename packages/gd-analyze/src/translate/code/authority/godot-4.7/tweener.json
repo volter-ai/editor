@@ -1,28 +1,28 @@
 {
   "implementation": {
     "kind": "compat-module",
-    "module": "lib/godot-compat/window"
+    "module": "lib/godot-compat/tweener"
   },
   "bindings": [
     {
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
-        "owner": "Window",
-        "member": "get_size",
-        "kind": "native-member",
-        "signature": "hash:3690982128"
+        "owner": "Tweener",
+        "member": "finished",
+        "kind": "native-signal",
+        "signature": "signal"
       },
       "target": {
         "kind": "compat-binding",
         "capabilityId": "godot-compat",
-        "module": "lib/godot-compat/window",
-        "exportName": "get_size",
-        "localName": "Window_get_size",
+        "module": "lib/godot-compat/tweener",
+        "exportName": "finished",
+        "localName": "Tweener_finished",
         "use": {
           "kind": "call",
           "sourceReceiver": "first-argument"
         },
-        "evidenceClaimId": "godot-4.7-binding-Window.get_size"
+        "evidenceClaimId": "godot-4.7-binding-Tweener.finished"
       }
     }
   ],
@@ -31,39 +31,39 @@
   "claims": [
     {
       "registryVersion": 1,
-      "claimId": "godot-4.7-binding-Window.get_size",
+      "claimId": "godot-4.7-binding-Tweener.finished",
       "layer": "binding",
-      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Window\u0000get_size\u0000hash:3690982128",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000Tweener\u0000finished\u0000signal",
       "godot": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
-        "sourceFile": "scene/main/window.cpp",
-        "sourceSymbol": "Window.get_size",
-        "sourceLine": 427
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "Tweener.finished",
+        "sourceLine": 77
       },
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "150e732ece8d6d3d7ace6d2539085ef7709e9c076f7e6d65813ba30c2061cc66",
-        "callsite": "res://probe.gd _init() get_size-root",
-        "observedOutputSha256": "4b54bfb83af38f349527906519942bd84751f2cc3cdd2300fbdc0433ab6325da"
+        "inputSha256": "7844fb832c2765a863099b2dfb630b6c12fa495434e9dfca2109f6d16d236bf0",
+        "callsite": "res://probe.gd _init() finished-order signal-finished",
+        "observedOutputSha256": "abefb6b210c179d270e17dd7af168516676eab3e4e89b5af0c29f9839434e073"
       },
       "target": {
-        "implementationSha256": "986d48cb23a3bc08fd6af9d11b7fe2be10521cc35c04b522b7ab529058f64ea0",
-        "callsite": "lib/godot-compat/window.ts get_size",
-        "observedOutputSha256": "4b54bfb83af38f349527906519942bd84751f2cc3cdd2300fbdc0433ab6325da"
+        "implementationSha256": "6ad619af3b17adbccadbc286e415c0d7a71eeeb034bc305263f6f2e90a7f07c3",
+        "callsite": "lib/godot-compat/tweener.ts finished",
+        "observedOutputSha256": "abefb6b210c179d270e17dd7af168516676eab3e4e89b5af0c29f9839434e073"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
-        "resultSha256": "87675b306157abca55d147c8f84b3bdc2c0cc083e41e8a79f3d4cc2130c089ad"
+        "resultSha256": "163bf4cbf3e8faefd1be9b0a9b5e5afde0dcdce7c2ed30fbc7836827078c9d9f"
       },
       "reproductionCommand": [
         "npx",
         "tsx",
         "packages/gd-analyze/src/cli.ts",
         "evidence",
-        "window",
+        "tweener",
         "--official-binary",
         "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
       ]
@@ -71,12 +71,12 @@
   ],
   "liveness": [
     {
-      "claimId": "godot-4.7-binding-Window.get_size",
+      "claimId": "godot-4.7-binding-Tweener.finished",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "150e732ece8d6d3d7ace6d2539085ef7709e9c076f7e6d65813ba30c2061cc66",
-      "implementationSha256": "986d48cb23a3bc08fd6af9d11b7fe2be10521cc35c04b522b7ab529058f64ea0"
+      "inputSha256": "7844fb832c2765a863099b2dfb630b6c12fa495434e9dfca2109f6d16d236bf0",
+      "implementationSha256": "6ad619af3b17adbccadbc286e415c0d7a71eeeb034bc305263f6f2e90a7f07c3"
     }
   ]
 }

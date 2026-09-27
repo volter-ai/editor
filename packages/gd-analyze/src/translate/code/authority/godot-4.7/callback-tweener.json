@@ -1,0 +1,82 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/callback-tweener"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CallbackTweener",
+        "member": "set_delay",
+        "kind": "native-member",
+        "signature": "hash:3008182292"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/callback-tweener",
+        "exportName": "set_delay",
+        "localName": "CallbackTweener_set_delay",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CallbackTweener.set_delay"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CallbackTweener.set_delay",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CallbackTweener\u0000set_delay\u0000hash:3008182292",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/tween.cpp",
+        "sourceSymbol": "CallbackTweener.set_delay",
+        "sourceLine": 750
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "092f6ada5c007f8a35a25f72ee031ad533103084555f786a81cc535891d65411",
+        "callsite": "res://probe.gd _init() set_delay-0 set_delay-0.01 set_delay-0.02 set_delay-0.05 set_delay-0.1",
+        "observedOutputSha256": "4ed7fbbe481eca044c903ce53d1ed6e182de827e163bce44cbcd22148934f18a"
+      },
+      "target": {
+        "implementationSha256": "4481242f5e67599f0bb54cf8c09402179d7f4e2a187b56c2bd3c594737006402",
+        "callsite": "lib/godot-compat/callback-tweener.ts set_delay",
+        "observedOutputSha256": "4ed7fbbe481eca044c903ce53d1ed6e182de827e163bce44cbcd22148934f18a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8a4a9bcfa42dfa2f73e5cd59b834f2d3c42cbc81b7bb950a77eafa41281edadf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "callback-tweener",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CallbackTweener.set_delay",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "092f6ada5c007f8a35a25f72ee031ad533103084555f786a81cc535891d65411",
+      "implementationSha256": "4481242f5e67599f0bb54cf8c09402179d7f4e2a187b56c2bd3c594737006402"
+    }
+  ]
+}
