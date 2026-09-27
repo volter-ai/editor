@@ -27,7 +27,7 @@
  * fixes keeps the analyzer's datatype.
  */
 import type { GodotBoundDatatype, GodotBoundNode, GodotBoundScript } from '../godot-frontend/bound-program';
-import type { GodotProject } from '../read/godot-types';
+import type { GodotProject, SceneNode } from '../read/godot-types';
 import type { GodotApiDump } from './api-dump';
 import type { GodotAnalysisRuleId } from './authority';
 import { type CallReceiverAttachment, resolveScenePath } from './call-receivers';
@@ -71,6 +71,8 @@ export interface RefineInputs {
   readonly memberType?: (name: string) => GodotBoundDatatype | undefined;
   /** What a function of a script's chain returns (its declared or inferred datatype). */
   readonly scriptFunctionReturn?: (resPath: string, fn: string) => GodotBoundDatatype | undefined;
+  /** Why an expression a rule would type stayed untyped, named for the refusal that follows. */
+  readonly untyped?: (nodeId: number, reason: string) => void;
 }
 
 const BASE: Omit<GodotBoundDatatype, 'kind' | 'display' | 'builtinType' | 'nativeType' | 'enumType' | 'scriptPath' | 'className'> = {
@@ -271,12 +273,14 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
 
   let sceneNodes: { readonly documentPath: string; readonly pathInDocument: string }[] = [];
   /** The node at `path` in every attached scene, when they agree; `sceneNodes` holds where each is. */
-  const sceneNode = (path: string): GodotBoundDatatype | undefined => {
+  const sceneNode = (path: string | ((attachment: CallReceiverAttachment) => string | undefined)): GodotBoundDatatype | undefined => {
     sceneNodes = [];
     if (inputs.attachments.length === 0) return undefined;
     let agreed: GodotBoundDatatype | undefined;
     for (const attachment of inputs.attachments) {
-      const resolved = resolveScenePath(scenes, attachment, path);
+      const own = typeof path === 'string' ? path : path(attachment);
+      if (own === undefined) return undefined;
+      const resolved = resolveScenePath(scenes, attachment, own);
       if (typeof resolved === 'string') return undefined;
       sceneNodes.push({ documentPath: resolved.documentPath, pathInDocument: resolved.pathInDocument });
       const script = inputs.scriptAt(resolved.documentPath, resolved.pathInDocument);
@@ -360,6 +364,69 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     const path = scenePathOf(initializer.id);
     onready.set(name, path);
     return path;
+  };
+
+  /**
+   * The path an exported node reference (`@export var target: Node`) holds on one attachment: the
+   * `NodePath` its scene node authors in `node_paths`, which Godot resolves to that node as the
+   * scene instantiates. Undefined when the member has a setter or is assigned by any script, when
+   * the attached node authors no relative path, or when a scene overrides the value on it.
+   */
+  const exportedDeclaration = (name: string): boolean => {
+    const root = nodes.get(program.rootNodeId);
+    if (root?.kind !== 'CLASS') return false;
+    const declaration = root.members
+      .map((member) => nodes.get(member))
+      .find((member) => member?.kind === 'VARIABLE' && (() => {
+        const identifier = nodes.get(member.identifier);
+        return identifier?.kind === 'IDENTIFIER' && identifier.name === name;
+      })());
+    if (declaration?.kind !== 'VARIABLE' || !declaration.exported || declaration.onready || declaration.static || declaration.setter >= 0) return false;
+    if (inputs.assignedElsewhere(name)) return false;
+    return !program.nodes.some((other) => {
+      if (other.kind !== 'ASSIGNMENT') return false;
+      const assignee = nodes.get(other.assignee);
+      return assignee?.kind === 'IDENTIFIER' && assignee.name === name && assignee.source === 'MEMBER_VARIABLE';
+    });
+  };
+  const overrides = (attachment: CallReceiverAttachment, name: string): boolean => {
+    const patches = (node: { readonly properties: Readonly<Record<string, unknown>>; readonly inheritedNode?: { readonly documentPath: string; readonly nodePath: string }; readonly instanceOf?: string }): boolean =>
+      node.properties[name] !== undefined &&
+      ((node.inheritedNode?.documentPath === attachment.documentPath && node.inheritedNode.nodePath === attachment.nodePath) ||
+        (attachment.nodePath === '.' && node.instanceOf === attachment.documentPath));
+    const walk = (node: SceneNode): boolean => patches(node) || node.children.some(walk);
+    return [...scenes.values()].some(
+      (document) => (document.root !== undefined && walk(document.root)) || document.unplacedNodes.some(patches),
+    );
+  };
+  let exportCause: string | undefined;
+  const exportedPath = (name: string) => (attachment: CallReceiverAttachment): string | undefined => {
+    const at = `${attachment.documentPath}#${attachment.nodePath}`;
+    let node = scenes.get(attachment.documentPath)?.root;
+    if (attachment.nodePath !== '.' && attachment.nodePath !== '') {
+      for (const segment of attachment.nodePath.split('/')) node = node?.children.find((child) => child.name === segment);
+    }
+    // An instancing node that authors no value of its own holds the instanced scene root's.
+    const seen = new Set<string>();
+    while (node !== undefined && !node.nodePathProperties.includes(name) && node.properties[name] === undefined && node.instanceOf !== undefined && !seen.has(node.instanceOf)) {
+      seen.add(node.instanceOf);
+      node = scenes.get(node.instanceOf)?.root;
+    }
+    if (node === undefined || !node.nodePathProperties.includes(name)) {
+      exportCause = `${at} authors no node path for it`;
+      return undefined;
+    }
+    if (overrides(attachment, name)) {
+      exportCause = `a scene instancing ${at} sets it again`;
+      return undefined;
+    }
+    const value = node.properties[name];
+    const text = value?.kind === 'ctor' && value.name === 'NodePath' && value.args[0]?.kind === 'string' ? value.args[0].value : undefined;
+    if (text === undefined || text === '' || text.startsWith('/') || text.startsWith('%') || text.includes(':')) {
+      exportCause = `${at} authors a path that is not relative to it`;
+      return undefined;
+    }
+    return text;
   };
 
   /**
@@ -458,6 +525,19 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       const type = sceneNode(onreadyPath(node.name) as string);
       if (type !== undefined && (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType)))) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
+    } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && node.datatype.kind === 'NATIVE' && !node.datatype.metaType && exportedDeclaration(node.name)) {
+      // An exported node reference holds the node every attached scene's NodePath names.
+      const own = node.datatype;
+      exportCause = undefined;
+      const type = sceneNode(exportedPath(node.name));
+      if (type !== undefined && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)) {
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      } else if (type === undefined) {
+        inputs.untyped?.(
+          id,
+          `the exported \`${node.name}\` holds no one node class: ${exportCause ?? (inputs.attachments.length === 0 ? 'the script is attached to no scene node' : 'the attached scenes assign nodes of different classes, or a path that does not resolve')}`,
+        );
       }
     } else if (node?.kind === 'SUBSCRIPT' && node.isAttribute && (node.datatype.kind === 'VARIANT' || node.datatype.kind === 'UNRESOLVED')) {
       const base = datatypeOf(node.base);

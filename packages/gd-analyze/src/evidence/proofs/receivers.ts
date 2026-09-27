@@ -7,7 +7,8 @@
  * stay untyped (Godot calls the script first).
  *
  * The datatypes the analysis fixes (`scene-node-receiver`, `classdb-method-selection`): each
- * `$Path` / `%Unique` node's class or script and its members' types, against Godot's
+ * `$Path` / `%Unique` node's class or script, the node an exported reference's NodePath names, and
+ * their members' types, against Godot's
  * `get_class()` / script path / `typeof` of the same values.
  *
  * Calls inside `if n is A or n is B:` are typed by the narrowed classes (`type-test-narrowing`):
@@ -102,6 +103,11 @@ const REFINED = [
   'lamp',
   'scripted_node',
   'door.collision_layer',
+  // Exported node references: the node the attached scene's NodePath names.
+  'target',
+  'target.level',
+  'exported_lamp',
+  'exported_lamp.omni_range',
 ] as const;
 
 /** The keys of \`intersect_ray\`'s result the analysis types. */
@@ -125,6 +131,8 @@ renderer/rendering_method="gl_compatibility"
 @onready var door = $Level/Door
 @onready var lamp := get_node("Level/Inner/Lamp") as Light3D
 @onready var scripted_node: Node3D = $Scripted
+@export var target: Node
+@export var exported_lamp: Node
 
 func typed_calls() -> void:
 ${CALLS.map(([nodePath, member]) => `\t$${nodePath}.${member}(${argumentsOf(member)})`).join('\n')}
@@ -230,8 +238,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
 [sub_resource type="BoxShape3D" id="GroundBox"]
 size = Vector3(4, 1, 4)
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("target", "exported_lamp")]
 script = ExtResource("1_main")
+target = NodePath("Scripted")
+exported_lamp = NodePath("Level/Inner/Lamp")
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 

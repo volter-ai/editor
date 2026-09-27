@@ -422,6 +422,11 @@ export class LoweringContext {
    * rule for one type applies. Looks through the operands and their own operands.
    */
   untypedLocalCause(inputNodes: readonly GodotBoundNode[]): string | undefined {
+    // An input analysis named the cause of (an exported node reference no scene settles).
+    for (const input of inputNodes) {
+      const named = input.kind === 'CALL' ? undefined : this.untypedCalls.get(input.id);
+      if (named !== undefined) return named;
+    }
     const nodes = this.script.nodes;
     const typeName = (datatype: GodotBoundNode['datatype']): string | undefined =>
       datatype.kind === 'BUILTIN' ? datatype.builtinType : datatype.kind === 'NATIVE' ? datatype.nativeType : datatype.kind === 'ENUM' ? 'int' : undefined;

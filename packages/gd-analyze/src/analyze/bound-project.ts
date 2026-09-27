@@ -1374,8 +1374,10 @@ export function bindGodotProject(
       sceneNodes.byKey,
       analysisEvidence,
     );
+    const untypedReads: BoundGodotUntypedCall[] = [];
     const refinedTypes = refineDatatypes({
         program,
+        untyped: (nodeId, reason) => untypedReads.push({ nodeId, reason }),
         attachments,
         read: decoded,
         apiDump: apiDump.parsed,
@@ -1440,7 +1442,7 @@ export function bindGodotProject(
           return names;
         },
       });
-      return { callReceivers: typed.receivers, untypedCalls: typed.untyped, scriptCalls: typed.scriptCalls };
+      return { callReceivers: typed.receivers, untypedCalls: [...typed.untyped, ...untypedReads.filter((entry) => !typed.untyped.some((call) => call.nodeId === entry.nodeId))], scriptCalls: typed.scriptCalls };
     };
     return {
       resPath: program.resPath,
