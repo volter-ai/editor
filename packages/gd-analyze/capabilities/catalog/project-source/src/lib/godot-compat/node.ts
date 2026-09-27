@@ -731,7 +731,9 @@ export function duplicate(self: object, flags = 15): unknown {
 export function add_child(self: object, node: object): void {
   const parent = native(self, 'add_child');
   const child = native(node, 'add_child');
-  if (child === parent || parentEntity(child) !== null) return;
+  // A parent that is not a node (the group an instantiated scene waits in) is no Godot parent.
+  const current = parentEntity(child);
+  if (child === parent || (current !== null && NODE.has(current))) return;
   validateChildName(parent, child);
   attach(parent, child);
   if (stateOf(parent).insideTree) enterTree(child, parent);

@@ -302,6 +302,12 @@ export function emitDirectGodotWorldSyntax(
   );
   if (scene === undefined) throw new Error(`${composition.mainScene}: main scene plan is absent`);
   const mainAutoloadReferences = directGodotSceneAutoloadReferences(scene.root);
+  // Every other scene reading autoloads gets them at `<GodotMain>`'s level, where the scenes a
+  // script instantiates mount (compat's spawn host).
+  const otherScenes = composition.scenes
+    .filter((candidate) => candidate !== scene)
+    .map((candidate) => ({ candidate, references: directGodotSceneAutoloadReferences(candidate.root) }))
+    .filter((entry) => entry.references.length > 0);
   const autoloadPrepare = directGodotAutoloadPreparation(composition);
   const sceneBindings = [
     { imported: scene.exportName, local: scene.exportName },
@@ -320,6 +326,16 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(scene.targetPath),
       namedBindings: sceneBindings,
     },
+    ...otherScenes.map(({ candidate }): TargetTsStatement => ({
+      kind: 'import-statement',
+      module: moduleSpecifier(candidate.targetPath),
+      namedBindings: [
+        {
+          imported: directGodotSceneAutoloadContextName(candidate.exportName),
+          local: directGodotSceneAutoloadContextName(candidate.exportName),
+        },
+      ],
+    })),
     {
       kind: 'import-statement',
       module: './lib/godot-compat/main',
@@ -438,12 +454,28 @@ export function emitDirectGodotWorldSyntax(
         };
   // `Main`'s loop around the startup transaction: the autoloads and the main scene enter the tree
   // once the loop has made the root window, inside the `<Physics>` world it provides.
-  const worldExpression: TargetTsExpression = {
-    kind: 'jsx-element-expression',
-    tag: 'GodotMain',
-    attributes: [],
-    children: [startup],
-  };
+  const main: TargetTsJsxElementShape = { tag: 'GodotMain', attributes: [], children: [startup] };
+  const provided = otherScenes.reduce<TargetTsJsxElementShape>(
+    (inner, { candidate, references }) => ({
+      tag: directGodotSceneAutoloadContextName(candidate.exportName),
+      attributes: [
+        {
+          kind: 'jsx-expression-attribute',
+          name: 'value',
+          value: {
+            kind: 'object-expression',
+            properties: references.map((reference) => ({
+              key: reference.name,
+              value: { kind: 'identifier-expression', name: `$autoloadInstance_${directGodotAutoloadIndex(composition, reference)}` },
+            })),
+          },
+        },
+      ],
+      children: [{ kind: 'jsx-element-child', ...inner }],
+    }),
+    main,
+  );
+  const worldExpression: TargetTsExpression = { kind: 'jsx-element-expression', ...provided };
   const data = projectDataLoad(composition);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,

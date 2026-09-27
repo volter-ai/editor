@@ -39,6 +39,7 @@ import { measureSceneGridMapProof } from './proofs/scene-gridmap';
 import { measureSceneParticlesProof } from './proofs/scene-particles';
 import { measureSceneEnvironmentProof } from './proofs/scene-environment';
 import { measureShaderLoweringProof } from './proofs/shader-lowering';
+import { measureSceneSpawnProof } from './proofs/scene-spawn';
 import { measureSceneMeshesProof } from './proofs/scene-meshes';
 import { measureSceneTexturesProof } from './proofs/scene-textures';
 import { measureSceneUiProof } from './proofs/scene-ui';
@@ -74,6 +75,7 @@ const PROOFS: readonly (readonly [
   ['scene-animation', measureSceneAnimationProof],
   ['scene-imported', measureSceneImportedProof],
   ['scene-physics', measureScenePhysicsProof],
+  ['scene-spawn', measureSceneSpawnProof],
   ['scene-idiomatic', measureSceneIdiomaticProof],
   ['code-seed', measureCodeSeedProof],
   ['language', measureLanguageProof],

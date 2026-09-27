@@ -28,6 +28,12 @@ import {
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from './authority/godot-4.7-seed';
 import { godot47EvidenceFiles } from './authority/godot-4.7-evidence';
+import {
+  GODOT_4_7_SCENE_SPAWN_BINDINGS,
+  GODOT_4_7_SCENE_SPAWN_CLAIMS,
+  GODOT_4_7_SCENE_SPAWN_LIVENESS,
+  GODOT_4_7_SCENE_SPAWN_RULES,
+} from './authority/godot-4.7-scene-spawn';
 import { GODOT_BINDING_TABLE_VERSION } from './bindings';
 import { GODOT_CODE_RULE_TABLE_VERSION } from './lowering-rules';
 
@@ -65,6 +71,22 @@ export const GODOT_AUTOLOAD_REFERENCE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
 ] as const;
 
+/** What the scene-spawn proof runs: preload lowering, the spawn host, and the lifecycle and physics it drives. */
+export const GODOT_SCENE_SPAWN_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/translate/code/lower-official-bound.ts',
+  'packages/gd-analyze/src/translate/code/lower-official-expression.ts',
+  'packages/gd-analyze/src/translate/code/official-bound-lowering-context.ts',
+  'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/packed-scene-instance.tsx',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/main.tsx',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/world-3d.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/collision-object-3d.ts',
+] as const;
+
 /**
  * The checked-in translation authority selected with the official frontend.
  *
@@ -87,7 +109,7 @@ export function godotCodeTranslationAuthority(
     bindings: {
       version: GODOT_BINDING_TABLE_VERSION,
       sourceRevision: source.revision,
-      entries: evidence.flatMap((file) => file.bindings),
+      entries: [...(seeded ? GODOT_4_7_SCENE_SPAWN_BINDINGS : []), ...evidence.flatMap((file) => file.bindings)],
     },
     rules: {
       version: GODOT_CODE_RULE_TABLE_VERSION,
@@ -97,6 +119,7 @@ export function godotCodeTranslationAuthority(
             ...GODOT_4_7_CODE_SEED_RULES,
             ...GODOT_4_7_LANGUAGE_RULES,
             ...GODOT_4_7_AUTOLOAD_REFERENCE_RULES,
+            ...GODOT_4_7_SCENE_SPAWN_RULES,
             ...evidence.flatMap((file) => file.rules),
           ]
         : [],
@@ -113,6 +136,7 @@ export function godotCodeTranslationAuthority(
           ...GODOT_4_7_CODE_SEED_CLAIMS,
           ...GODOT_4_7_LANGUAGE_CLAIMS,
           ...GODOT_4_7_AUTOLOAD_REFERENCE_CLAIMS,
+          ...GODOT_4_7_SCENE_SPAWN_CLAIMS,
           ...evidence.flatMap((file) => file.claims),
         ]
       : [],
@@ -126,6 +150,7 @@ export function godotCodeTranslationAuthority(
             GODOT_4_7_AUTOLOAD_REFERENCE_LIVENESS,
             monorepoImplementationDigest(GODOT_AUTOLOAD_REFERENCE_IMPLEMENTATION_FILES),
           ),
+          ...withLiveImplementation(GODOT_4_7_SCENE_SPAWN_LIVENESS, monorepoImplementationDigest(GODOT_SCENE_SPAWN_IMPLEMENTATION_FILES)),
           ...evidence.flatMap((file) => file.liveness),
         ]
       : [],

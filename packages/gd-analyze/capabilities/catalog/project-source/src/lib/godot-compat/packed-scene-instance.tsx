@@ -30,10 +30,10 @@ const PRELOADED = new Map<string, PackedScene>();
 /**
  * The scene resource at `path`, made once: every `preload` of the path yields the same resource
  * (`GDScriptParser` preloads through `ResourceLoader::load`, which returns the cached one,
- * `core/io/resource_loader.cpp:367`).
+ * `core/io/resource_loader.cpp:801`).
  *
  * @godot PackedScene (protocol)
- * @source core/io/resource_loader.cpp:367
+ * @source core/io/resource_loader.cpp:801
  */
 export function godot_packed_scene_preload(path: string, component: ComponentType<Record<string, never>>): PackedScene {
   let scene = PRELOADED.get(path);
@@ -85,7 +85,7 @@ export function GodotSpawnHost(): ReactElement {
  * instantiate from there fails by name.
  *
  * @godot PackedScene.instantiate
- * @source scene/resources/packed_scene.cpp:2154
+ * @source scene/resources/packed_scene.cpp:2507
  */
 export function instantiate(self: PackedScene, edit_state = 0): unknown {
   void edit_state;

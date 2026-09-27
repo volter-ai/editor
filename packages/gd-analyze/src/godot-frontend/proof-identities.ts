@@ -42,6 +42,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-animation',
   'scene-imported',
   'scene-physics',
+  'scene-spawn',
   'scene-idiomatic',
   'lifecycle',
   'project-startup',
