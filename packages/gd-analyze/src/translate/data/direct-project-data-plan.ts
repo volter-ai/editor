@@ -71,7 +71,8 @@ export interface DirectGodotProjectDataPlan {
       readonly version: string;
       readonly packageJsonDigest: string;
       readonly sourceBuild?: { readonly sha: string; readonly dirty: boolean };
-      readonly entryPoint: '@volter/game-runtime/world3d-react';
+      /** What the template's `main.ts` mounts a `three` root with: fiber's `<Canvas>`. */
+      readonly entryPoint: '@react-three/fiber';
     };
     readonly packages: readonly DirectGodotPackageRequirement[];
     readonly capabilities: readonly DirectGodotCapabilityRequirement[];
@@ -400,7 +401,7 @@ export function planDirectGodotProjectData(
             ...(toolchain.engineSource === undefined
               ? {}
               : { sourceBuild: { ...toolchain.engineSource } }),
-            entryPoint: '@volter/game-runtime/world3d-react',
+            entryPoint: '@react-three/fiber',
           },
           packages: packageRequirements(packageManifest, packageLock),
           capabilities: capabilityRequirements(toolchain),

@@ -447,11 +447,13 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
         JSON.stringify(
           [
             'index.html',
+            'manifest-entry-modules-plugin.ts',
             'package-lock.json',
             'package.json',
             'public/.gitkeep',
             ...capabilityStampPlans.map((stamp) => stamp.targetPath),
             'src/main.ts',
+            'src/manifest-entry-modules.d.ts',
             'src/project/input-map.json',
             'src/project/settings.ts',
             'src/world.tsx',
@@ -461,10 +463,9 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
             'vite.config.ts',
           ].sort(),
         ) ||
-      mainSource.includes('import World from "./world";') === false ||
-      mainSource.includes('"src/world.tsx": {') === false ||
-      mainSource.includes('"default": World') === false ||
-      /react-root|net-config|server\/rooms|virtual:vgai-manifest-entries/u.test(mainSource) ||
+      // The template's boot: every manifest root through the entry modules its plugin generates.
+      mainSource.includes("from 'virtual:vgai-manifest-entries'") === false ||
+      mainSource.includes("import manifest from '../vgai.project.json'") === false ||
       worldSource.includes('import { MainScene } from "./scenes/main";') === false ||
       worldSource.includes(
         'import { GodotProjectStartup, useGodotScriptTreeAttachment } from "./lib/godot-compat/react-lifecycle";',

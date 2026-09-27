@@ -9,7 +9,6 @@ import type {
 } from '../artifacts/types';
 import type { TargetTsSourceFile } from '../code/target-ts-syntax';
 import type { GodotAcceptedTranslation, GodotTranslationPlan } from '../translation-plan';
-import { directMainSyntax, directViteConfigSyntax } from './direct-project-shell-syntax';
 import { emitDirectGodotWorldSyntax } from './direct-project-world-syntax';
 import { emitDirectGodotSceneSyntax } from './direct-scene-syntax';
 import { emitTargetTsSourceFile } from './target-ts-printer';
@@ -72,7 +71,7 @@ interface EmissionContext {
   readonly codeSyntax: Map<string, TargetTsSourceFile>;
   readonly sceneSyntax: Map<string, ReturnType<typeof emitDirectGodotSceneSyntax>[number]>;
   readonly sceneInputs: Map<string, GodotTranslationPlan['composition']['scenes'][number]>;
-  readonly projectModules: Map<'world' | 'main' | 'vite-config', string>;
+  readonly projectModules: Map<'world', string>;
 }
 
 function sourceSyntax(
@@ -131,18 +130,6 @@ function projectSyntax(
       });
       syntax = emitDirectGodotWorldSyntax(context.plan.composition);
       break;
-    case 'main':
-    case 'vite-config': {
-      const shell = context.plan.projectData.shellFiles.find(
-        (file) => file.kind === 'generated-target-ts' && file.module === module,
-      );
-      if (shell === undefined || shell.targetPath !== artifact.path) {
-        throw new Error(`${artifact.path}: accepted ${module} shell plan is inconsistent`);
-      }
-      actualInputDigest = structuralDigest(shell);
-      syntax = module === 'main' ? directMainSyntax() : directViteConfigSyntax();
-      break;
-    }
   }
   if (actualInputDigest !== artifact.content.inputDigest) {
     throw new Error(`${artifact.path}: accepted ${module} input changed before emission`);
@@ -248,12 +235,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
   if (sceneInputs.size !== accepted.plan.composition.scenes.length) {
     throw new Error('accepted composition repeats a scene source path');
   }
-  const projectModuleRows = [
-    ['world', accepted.plan.projectData.worldModule.targetPath],
-    ...accepted.plan.projectData.shellFiles.flatMap((file) =>
-      file.kind === 'generated-target-ts' ? [[file.module, file.targetPath] as const] : [],
-    ),
-  ] as const;
+  const projectModuleRows = [['world', accepted.plan.projectData.worldModule.targetPath]] as const;
   const projectModules = new Map(projectModuleRows);
   if (projectModules.size !== projectModuleRows.length) {
     throw new Error('accepted project data repeats a generated module');

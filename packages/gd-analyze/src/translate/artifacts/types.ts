@@ -61,7 +61,7 @@ export type GodotPlannedProjectDataArtifact =
       readonly path: string;
       readonly content: {
         readonly kind: 'generated-target-ts';
-        readonly module: 'world' | 'main' | 'vite-config';
+        readonly module: 'world';
         readonly inputDigest: string;
       };
       readonly sourceMapPath: string;

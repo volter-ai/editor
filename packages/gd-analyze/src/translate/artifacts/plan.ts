@@ -190,16 +190,7 @@ function projectArtifacts(
     ...plan.capabilityStamps.map((stamp) =>
       projectDataJsonArtifact(stamp.targetPath, stamp.value, [], [stamp.toolchainSource]),
     ),
-    ...plan.shellFiles.map((file) =>
-      file.kind === 'generated-target-ts'
-        ? projectDataGeneratedModuleArtifact(
-            file.targetPath,
-            file.module,
-            structuralDigest(file),
-            file.sourcePaths,
-          )
-        : projectDataBytesArtifact(file.targetPath, file.bytes, file.sourcePaths),
-    ),
+    ...plan.shellFiles.map((file) => projectDataBytesArtifact(file.targetPath, file.bytes, file.sourcePaths)),
   ];
 }
 

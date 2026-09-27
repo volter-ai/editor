@@ -9,19 +9,19 @@ import type {
 
 const TEMPLATE_PREFIX = 'packages/game-editor/template/';
 
-export type DirectGodotProjectShellFilePlan =
-  | {
-      readonly kind: 'generated-target-ts';
-      readonly module: 'main' | 'vite-config';
-      readonly targetPath: string;
-      readonly sourcePaths: readonly string[];
-    }
-  | {
-      readonly kind: 'bytes';
-      readonly targetPath: string;
-      readonly bytes: Uint8Array;
-      readonly sourcePaths: readonly string[];
-    };
+export interface DirectGodotProjectShellFilePlan {
+  readonly kind: 'bytes';
+  readonly targetPath: string;
+  readonly bytes: Uint8Array;
+  readonly sourcePaths: readonly string[];
+}
+
+/**
+ * The template's boot, carried as it is: its `main.ts` mounts each root the manifest declares
+ * (a `three` root's entry in fiber's `<Canvas>`), through the entry modules its Vite plugin
+ * generates from the manifest.
+ */
+const TEMPLATE_SHELL = ['src/main.ts', 'src/manifest-entry-modules.d.ts', 'vite.config.ts', 'manifest-entry-modules-plugin.ts'] as const;
 
 function frozenTemplateArtifact(
   toolchain: GodotImportToolchainSnapshot,
@@ -83,25 +83,19 @@ function retainedIndex(
   };
 }
 
-/** Select the complete frozen host shell and its two emitter-owned generated modules. */
+/** Select the complete frozen host shell: the template's own files, and what the lane adapts. */
 export function planDirectGodotProjectShell(
   projectName: string,
   toolchain: GodotImportToolchainSnapshot,
 ): readonly DirectGodotProjectShellFilePlan[] {
   const files: DirectGodotProjectShellFilePlan[] = [
     retainedIndex(projectName, toolchain),
-    {
-      kind: 'generated-target-ts',
-      module: 'main',
-      targetPath: 'src/main.ts',
+    ...TEMPLATE_SHELL.map((targetPath): DirectGodotProjectShellFilePlan => ({
+      kind: 'bytes',
+      targetPath,
+      bytes: frozenTemplateArtifact(toolchain, targetPath).bytes,
       sourcePaths: ['project.godot'],
-    },
-    {
-      kind: 'generated-target-ts',
-      module: 'vite-config',
-      targetPath: 'vite.config.ts',
-      sourcePaths: ['project.godot'],
-    },
+    })),
     {
       kind: 'bytes',
       targetPath: 'tsconfig.json',
