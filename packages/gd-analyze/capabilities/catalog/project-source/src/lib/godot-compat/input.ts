@@ -443,8 +443,9 @@ export type GodotDebugInputValueType = 'digital' | 'scalar';
 
 /**
  * The session's input door over Godot's own Input (`native-debug-module.ts`'s `debug.input`): the
- * InputMap's actions, read live (`scalar` for an action a joypad axis drives, its strength, else
- * `digital`); `set` presses the action at the value's strength (`true` is 1) or releases it (a
+ * InputMap's actions, read live (`digital` for an action any key or button drives, `scalar` only
+ * for one only joypad axes drive); a digital `true` presses at strength 1, as a key press does;
+ * `set` presses the action at the value's strength (`true` is 1) or releases it (a
  * false or non-positive value), as `Input.action_press` / `action_release`; `clear` releases every
  * action it holds; `tap` presses the action and releases it once the next physics frame has run,
  * as a script's `action_press`, `await physics_frame`, `await process_frame`, `action_release`.
@@ -461,7 +462,7 @@ export function godot_input_debug(): {
   return {
     actions: () =>
       Object.fromEntries(
-        [...inputMap].map(([name, action]) => [name, action.inputs.some((event) => event.type === 'joypad_motion') ? 'scalar' : 'digital'] as const),
+        [...inputMap].map(([name, action]) => [name, action.inputs.length > 0 && action.inputs.every((event) => event.type === 'joypad_motion') ? 'scalar' : 'digital'] as const),
       ),
     set: (action, value) => {
       const strength = typeof value === 'boolean' ? (value ? 1 : 0) : typeof value === 'number' ? value : 0;
