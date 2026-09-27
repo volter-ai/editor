@@ -628,6 +628,10 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const transform = [...transformAttributes(at, matrix), ...components].filter(
     (entry) => !scaleless || entry.kind === 'jsx-spread-attribute' || entry.name !== 'scale',
   );
+  // three's `DirectionalLight` starts at (0, 1, 0) (`Object3D.DEFAULT_UP`); Godot's at the origin.
+  if (className === 'DirectionalLight3D' && !transform.some((entry) => entry.kind !== 'jsx-spread-attribute' && entry.name === 'position')) {
+    transform.push(attribute('position', numbers([0, 0, 0])));
+  }
   const children = () => node.children.map((child) => nodeElement(emission, child));
   if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);

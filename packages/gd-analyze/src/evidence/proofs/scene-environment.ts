@@ -13,11 +13,8 @@
  * lights the sky pass receives (`_setup_sky`: visible, sky mode not `LIGHT_ONLY`, tree order, each
  * direction, energy, colour and angular size) are read on the native side from the nodes as
  * `rasterizer_scene_gles3.cpp:741` reads them (the size's `deg_to_rad(float)` re-expressed in
- * GDScript), against compat's `godot_world_environment_sky_lights` over the mounted scene. Each
- * authored rotation is about one axis (a composite comes from a rotated parent): a rotation about
- * two axes reaches compat through three's Euler props and reads back a basis float32 ulps from
- * Godot's (measured on this proof: a sun at `Transform3D(0.866025, -0.25, 0.433013, …)` differs in
- * the last bits of its direction), which is the scene emission's precision, not the sky pass's.
+ * GDScript), against compat's `godot_world_environment_sky_lights` over the mounted scene: a sun
+ * rotated about two axes, a light under a rotated parent, one in `LIGHT_ONLY` and a hidden one.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -138,7 +135,7 @@ environment = SubResource("Environment_procedural")
 environment = SubResource("Environment_physical")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 4, 0)
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 4, 0)
 light_color = Color(1, 0.95, 0.8, 1)
 light_energy = 1.3
 
