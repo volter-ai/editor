@@ -1,5 +1,4 @@
 import {
-  faBorderAll,
   faBullseye,
   faCheck,
   faCrosshairs,
@@ -499,7 +498,6 @@ export function CanvasSceneControls({
   const store = useEditorStore();
   useSyncExternalStore(store.subscribe, store.getSnapshot);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
-  const showGrid = viewGridVisible(documentId);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   // The mode is the view's, so it survives the remount a source write causes (Godot's stays on).
   const [mode, setModeState] = useState<CanvasSceneMode | null>(() => sceneModes.get(view) ?? null);
@@ -648,16 +646,6 @@ export function CanvasSceneControls({
         className="vgai-viewport-toolbar vgai-viewport-toolbar-right"
         data-vgai-canvas-navigation-ignore="true"
       >
-        <Tooltip text={`Grid: ${showGrid ? 'On' : 'Off'}`}>
-          <IconButton
-            aria-label="Toggle 2D grid"
-            aria-pressed={showGrid}
-            size="comfortable"
-            onClick={() => setViewGridVisible(documentId, !showGrid)}
-          >
-            <EditorIcon icon={faBorderAll} size="md" />
-          </IconButton>
-        </Tooltip>
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
         </Button>
@@ -852,6 +840,20 @@ function CanvasSceneViewMenu({
     },
     { label: 'Hide Grid', on: !gridShown, pick: () => setViewGridVisible(documentId, false) },
   ];
+  // Godot's Toggle Grid (measured on 4.7.1): from any other state it shows the grid, and from Show
+  // it returns to the state it came from (When Snapping → Show → When Snapping).
+  const toggleGrid = (): void => {
+    const showing = gridShown && !drafting.gridWhenSnapping;
+    if (!showing) {
+      gridStatesBeforeShow.set(documentId, gridShown ? 'snapping' : 'hide');
+      setViewGridVisible(documentId, true);
+      setViewDrafting(documentId, { gridWhenSnapping: false });
+      return;
+    }
+    const back = gridStatesBeforeShow.get(documentId) ?? 'snapping';
+    if (back === 'hide') setViewGridVisible(documentId, false);
+    else setViewDrafting(documentId, { gridWhenSnapping: true });
+  };
   const switches: readonly { label: string; on: boolean; toggle: () => void }[] = [
     { label: 'Rulers', on: drafting.rulers, toggle: () => setViewDrafting(documentId, { rulers: !drafting.rulers }) },
     { label: 'Guides', on: drafting.guides, toggle: () => setViewDrafting(documentId, { guides: !drafting.guides }) },
@@ -883,6 +885,10 @@ function CanvasSceneViewMenu({
               {entry.label}
             </MenuItem>
           ))}
+          <MenuItem data-testid="canvas-scene-toggle-grid" onSelect={act(toggleGrid)}>
+            <span className="vgai-menu-check" />
+            Toggle Grid
+          </MenuItem>
           <MenuSeparator />
           {switches.map((entry) => (
             <MenuItem
@@ -970,6 +976,8 @@ function CanvasSceneLockButton({ adapter, selected }: { adapter: AuthoringAdapte
 /** Godot's 2D modes beside the transform tools: Pan, Ruler, List Select and Pivot. */
 type CanvasSceneMode = 'pan' | 'ruler' | 'list' | 'pivot';
 const sceneModes = new WeakMap<RootViewController, CanvasSceneMode | null>();
+/** Per view, the Grid state Toggle Grid returns to from Show. */
+const gridStatesBeforeShow = new Map<string, 'snapping' | 'hide'>();
 
 function CanvasSceneModeLayer({
   mode,
