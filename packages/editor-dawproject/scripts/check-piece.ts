@@ -50,7 +50,16 @@ for (const track of piece.tracks) {
     banks.set(path, SoundBankLoader.fromArrayBuffer(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)));
   }
 }
-const { problems, parallels } = checkPiece(piece, banks);
+const checked = checkPiece(piece, banks);
+const { parallels } = checked;
+const problems = [...checked.problems];
+for (const track of piece.tracks) {
+  for (const clip of track.clips) {
+    if (clip.audio && !existsSync(resolve(clip.audio.file))) {
+      problems.push(`${track.name}: clip "${clip.name ?? 'clip'}" plays ${clip.audio.file}, which is not in this project (a path from the project folder), so it is silent`);
+    }
+  }
+}
 console.log(
   JSON.stringify(
     {

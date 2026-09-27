@@ -70,6 +70,16 @@ export interface PieceClip {
   readonly duration: number;
   readonly notes: readonly PieceNote[];
   readonly lanes: readonly PiecePoints[];
+  /** The recorded file this clip plays (`<Audio>`), or `null` for a note clip. */
+  readonly audio: PieceAudio | null;
+}
+
+/** A clip's recorded file: a WAV at a project path, from `offset` seconds into it, at `gain` dB. */
+export interface PieceAudio {
+  readonly oid: string | null;
+  readonly file: string;
+  readonly offset: number;
+  readonly gain: number;
 }
 
 export interface PieceDevice {
@@ -251,7 +261,11 @@ export function readPiece(root: DawNode): Piece {
           .filter((lane) => lane.type === 'Points')
           .map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
         length = Math.max(length, time + duration);
-        clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes });
+        const audioNode = child.children.find((part) => part.type === 'Audio');
+        const audio: PieceAudio | null = audioNode
+          ? { oid: audioNode.oid, file: str(audioNode.props['file']) ?? '', offset: num(audioNode.props['offset'], 0), gain: num(audioNode.props['gain'], 0) }
+          : null;
+        clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes, audio });
       } else if (child.type === 'Points') {
         trackLanes.push(readLane(child, `${trackId}:lane:${childIndex}`, `<Track "${trackName}">`));
       }

@@ -437,6 +437,7 @@ export class PreviewEngine {
     this.stopTimer();
     this.synth?.stopAll(true);
     this.mix?.cancelAutomation();
+    this.mix?.stopAudio();
     this.setState({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
   }
 
@@ -476,6 +477,7 @@ export class PreviewEngine {
       this.stopTimer();
       this.synth.stopAll(true);
       this.mix?.cancelAutomation();
+    this.mix?.stopAudio();
       this.adopt(piece);
       const performance = this.performance!;
       this.originSecond = performance.secondsAt(fromBeat);
@@ -519,6 +521,7 @@ export class PreviewEngine {
     this.stopTimer();
     this.synth?.stopAll(true);
     this.mix?.cancelAutomation();
+    this.mix?.stopAudio();
     // Clicks already scheduled ahead go with their node; the next tick makes a new one.
     this.clickOut?.disconnect();
     this.clickOut = null;
@@ -587,7 +590,10 @@ export class PreviewEngine {
     const region = this.region(performance, this.originSecond);
     scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at, this.patches, region);
     // The tracks' mixer automation, for the same passes the notes were scheduled for.
-    for (const pass of passes(this.scheduledTo, horizon, region)) this.mix?.automate(piece, performance.beatAt, pass, at);
+    for (const pass of passes(this.scheduledTo, horizon, region)) {
+      this.mix?.automate(piece, performance.beatAt, pass, at);
+      this.mix?.scheduleAudio(piece, performance.secondsAt, pass, at);
+    }
     if (this.metronomeOn) {
       // Every beat whose piece-second falls in each pass, the bar's first one accented.
       const beatsPerBar = piece.transport.beatsPerBar;

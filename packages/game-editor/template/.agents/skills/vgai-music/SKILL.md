@@ -73,6 +73,10 @@ export default function Theme() {
   types `highPass lowPass lowShelf highShelf bell`), `compressor` (`threshold ratio attack
   release knee makeup`, and `sidechain: "<track>"` to compress on another track's signal, as a pad
   ducks under the melody), `limiter` (`ceiling release`), `convolution` (`ir predelay wet`).
+- A recording: a clip holding `<Audio file="audio/take.wav" offset={0.5} gain={-6} />` instead of
+  notes plays that WAV (a path from the project folder) from `offset` seconds into it, at `gain`
+  dB, for the clip's `bars`; its track needs no instrument device. `check-piece` names a file
+  that is not there, and the DAWproject export embeds each recording.
 - Code that generates notes spells them with `formatAt(beats, beatsPerBar)` and
   `formatPitch(midi)` from `@volter/dawproject`.
 

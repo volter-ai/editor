@@ -23,6 +23,8 @@ export interface MixInputs {
   readonly channels: readonly Stereo[];
   /** Each soundfont track's MIDI channel. */
   readonly channelOf: ReadonlyMap<string, number>;
+  /** Each audio track's placed recordings, by track id: its strip's input. */
+  readonly audio?: ReadonlyMap<string, Stereo>;
   readonly sampleRate: number;
   /** Impulse responses by project path, loaded by the caller. */
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
@@ -226,11 +228,12 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const keyOf = (name: string): Stereo | undefined => stripOut.get(name);
   for (const track of sidechainOrder(piece)) {
     const channel = inputs.channelOf.get(track.id);
-    if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
+    const recorded = inputs.audio?.get(track.id);
+    if ((channel === undefined && !recorded) || (track.channel?.role ?? 'regular') !== 'regular') continue;
     const levels = stripLevels(piece, track, soloed);
     if (!levels.sounding) continue;
     if (inputs.only && !inputs.only.has(track.id)) continue;
-    const source = inputs.channels[channel];
+    const source = channel !== undefined ? inputs.channels[channel] : recorded;
     if (!source) continue;
     const signal = runDevices(track, copy(source), inputs, keyOf);
     sendTo(track, levels.sends, signal, true);

@@ -20,7 +20,10 @@ arrangement, which both mixes apply on one 5 ms grid (they null at −139.6 dB w
 lanes moving). A `<Track>` whose channel is `role="submix"` is a group: the tracks
 inside it sum into its strip, drawn indented under it and nested in the DAWproject
 export. A compressor's `sidechain` names the track its detector hears
-(after that track's fader and pan), in both mixes, picked in its device card. In the piano
+(after that track's fader and pan), in both mixes, picked in its device card. A clip
+holding `<Audio file offset gain>` plays a recording instead of notes (both mixes null at
+−139.7 dB with one); its editor sets where in the file it starts and its level, and the
+DAWproject export embeds the file. In the piano
 roll, notes are selected (click, Shift-click, marquee, Cmd+A), moved and
 resized together, snapped to a chosen grid, quantized, copied, cut, pasted,
 duplicated and given an articulation. A gesture on several elements is one

@@ -21,6 +21,7 @@ import { Arranger, TransportBar, trackColor } from './Arranger';
 import { useLivePiece } from './live-piece';
 import { Devices } from './Devices';
 import { Mixer } from './Mixer';
+import { AudioClip } from './AudioClip';
 import { PianoRoll } from './PianoRoll';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
 import { readSourceIndex, type SourceIndex } from './source-index';
@@ -300,6 +301,8 @@ export function PieceEditor({
             resource={{ file, documentId }}
             onMessage={setMessage}
           />
+        ) : clip?.clip.audio ? (
+          <AudioClip key={clip.clip.id} clip={clip.clip} piece={piece} index={index} file={file} documentId={documentId} onMessage={setMessage} />
         ) : clip ? (
           <PianoRoll
             key={clip.clip.id}

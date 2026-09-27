@@ -891,7 +891,10 @@ function ClipBlock(props: {
       }}
       title={clip.name ?? undefined}
     >
-      <div style={{ fontSize: 9, padding: '0 3px', color, whiteSpace: 'nowrap' }}>{clip.name ?? ''}</div>
+      <div style={{ fontSize: 9, padding: '0 3px', color, whiteSpace: 'nowrap' }}>
+        {clip.name ?? ''}
+        {clip.audio ? <span data-clip-audio={clip.audio.file}> · audio {clip.audio.file.split('/').pop()}</span> : null}
+      </div>
       {clip.notes.map((note) => (
         <span
           key={note.id}

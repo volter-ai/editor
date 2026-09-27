@@ -20,13 +20,43 @@
 
 import { strToU8, zipSync } from 'fflate';
 import packageJson from '../../package.json';
-import { assignChannels } from '../render-offline';
+import { assignChannels, type DecodedAudio } from '../render-offline';
+import { wav24 } from '../wav';
 import type { Piece, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
 import { destinationOf } from '../mix/offline-mix';
 
 export interface DawprojectOptions {
   readonly title: string;
   readonly application?: { readonly name: string; readonly version: string };
+  /** The recordings the piece's `<Audio>` clips play, by project path; each clip's is embedded. */
+  readonly audio?: ReadonlyMap<string, DecodedAudio>;
+}
+
+/**
+ * The recordings a piece's audio clips embed in the container, one per file and gain: DAWproject
+ * has no clip gain, so a clip's `gain` is applied to the samples it carries.
+ */
+function embeddedAudio(piece: Piece, audio: ReadonlyMap<string, DecodedAudio> | undefined): Map<string, { path: string; wav: Uint8Array; seconds: number; channels: number; sampleRate: number }> {
+  const embedded = new Map<string, { path: string; wav: Uint8Array; seconds: number; channels: number; sampleRate: number }>();
+  const used = new Set<string>();
+  for (const track of piece.tracks) {
+    for (const clip of track.clips) {
+      if (!clip.audio) continue;
+      const key = `${clip.audio.file}|${clip.audio.gain}`;
+      if (embedded.has(key)) continue;
+      const decoded = audio?.get(clip.audio.file);
+      if (!decoded) throw new Error(`The recording ${clip.audio.file} was not loaded; the export embeds every clip's recording.`);
+      const scale = 10 ** (clip.audio.gain / 20);
+      const left = decoded.channels[0]!.map((sample) => sample * scale);
+      const right = (decoded.channels[1] ?? decoded.channels[0]!).map((sample) => sample * scale);
+      const stem = clip.audio.file.replace(/^.*\//, '').replace(/\.wav$/i, '');
+      let path = `audio/${stem}${clip.audio.gain === 0 ? '' : ` ${clip.audio.gain}dB`}.wav`;
+      for (let n = 2; used.has(path); n++) path = `audio/${stem} ${n}.wav`;
+      used.add(path);
+      embedded.set(key, { path, wav: wav24(left, right, decoded.sampleRate), seconds: left.length / decoded.sampleRate, channels: 2, sampleRate: decoded.sampleRate });
+    }
+  }
+  return embedded;
 }
 
 function escape(text: string): string {
@@ -55,6 +85,7 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     lines.push(`${'  '.repeat(depth)}${text}`);
   };
   const application = options.application ?? { name: 'Volter Editor', version: packageJson.version };
+  const recordings = embeddedAudio(piece, options.audio);
 
   out(0, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
   out(0, '<Project version="1.0">');
@@ -85,7 +116,10 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     const channel = track.channel;
     const role = channel?.role ?? 'regular';
     const group = destinationOf(piece, track);
-    const contentType = role === 'regular' ? 'notes' : role === 'submix' ? 'tracks' : 'audio';
+    const recorded = track.clips.some((clip) => clip.audio);
+    const played = track.clips.some((clip) => !clip.audio);
+    const regular = recorded && played ? 'audio notes' : recorded ? 'audio' : 'notes';
+    const contentType = role === 'regular' ? regular : role === 'submix' ? 'tracks' : 'audio';
     out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType, loaded: true })}>`);
     out(3, `<Channel${attrs({ id: channelIds.get(track.id), role, audioChannels: 2, destination: role === 'master' ? null : group ? channelIds.get(group.id) : masterId, solo: channel?.solo ?? false })}>`);
     if (channel && channel.devices.length > 0) {
@@ -171,6 +205,16 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     out(3, `<Lanes${attrs({ id: id(), track: trackIds.get(track.id) })}>`);
     out(4, `<Clips${attrs({ id: id() })}>`);
     for (const clip of track.clips) {
+      if (clip.audio) {
+        // A recording: its content is in seconds, and `offset` is where in the file it starts.
+        const recording = recordings.get(`${clip.audio.file}|${clip.audio.gain}`)!;
+        out(5, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), contentTimeUnit: 'seconds', playStart: clip.audio.offset })}>`);
+        out(6, `<Audio${attrs({ id: id(), timeUnit: 'seconds', duration: recording.seconds, channels: recording.channels, sampleRate: recording.sampleRate, algorithm: 'raw' })}>`);
+        out(7, `<File${attrs({ path: recording.path })}/>`);
+        out(6, '</Audio>');
+        out(5, '</Clip>');
+        continue;
+      }
       out(5, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), playStart: 0 })}>`);
       out(6, `<Lanes${attrs({ id: id() })}>`);
       out(7, `<Notes${attrs({ id: id() })}>`);
@@ -234,11 +278,13 @@ export function metadataXml(options: DawprojectOptions): string {
 export function pieceToDawproject(piece: Piece, options: DawprojectOptions): Uint8Array {
   // A fixed timestamp: the zip otherwise stamps each entry with the time of export, so the same
   // piece gave a different file every time.
+  const files: Record<string, Uint8Array> = {
+    'project.xml': strToU8(pieceToProjectXml(piece, options)),
+    'metadata.xml': strToU8(metadataXml(options)),
+  };
+  for (const recording of embeddedAudio(piece, options.audio).values()) files[recording.path] = recording.wav;
   return zipSync(
-    {
-      'project.xml': strToU8(pieceToProjectXml(piece, options)),
-      'metadata.xml': strToU8(metadataXml(options)),
-    },
+    files,
     { mtime: new Date(1980, 0, 1) },
   );
 }

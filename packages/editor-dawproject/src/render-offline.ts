@@ -50,7 +50,7 @@ export function assignChannels(piece: Piece): Map<string, TrackAssignment> {
 }
 
 /**
- * The tracks that sound in a full render: a soundfont device, not muted, and soloed when any
+ * The tracks that sound in a full render: a soundfont device or an audio clip, not muted, and soloed when any
  * instrument strip is (`soloActive`: a solo written on a bus or the master counts for nothing, in
  * both mixes).
  */
@@ -58,7 +58,7 @@ export function audibleTracks(piece: Piece): Piece['tracks'] {
   const assignments = assignChannels(piece);
   const soloed = soloActive(piece);
   // The mixes' own rule (`stripLevels`): a solo on a group solos what it contains.
-  return piece.tracks.filter((track) => assignments.has(track.id) && stripLevels(piece, track, soloed).sounding);
+  return piece.tracks.filter((track) => (assignments.has(track.id) || track.clips.some((clip) => clip.audio)) && stripLevels(piece, track, soloed).sounding);
 }
 
 /**
@@ -145,6 +145,67 @@ export interface RenderedChannels {
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
   /** Where the render's first sample falls in the piece (a section starts at its marker). */
   readonly startSecond: number;
+  /** Each audio track's clips placed in the same passes and tail, by track id. */
+  readonly audio: ReadonlyMap<string, [Float32Array, Float32Array]>;
+}
+
+/** A decoded recording, as `readWav` answers. */
+export interface DecodedAudio {
+  readonly channels: readonly Float32Array[];
+  readonly sampleRate: number;
+}
+
+/**
+ * Every audio clip of the piece placed where it sounds in a render of `passes` passes of
+ * [fromBeat, toBeat) (the whole piece without a window) and a tail: from the clip's start (the
+ * file from `offset` seconds, or further when the window starts inside the clip) to the clip's end
+ * or the window's, at `gain` dB. A file at another sample rate is read at this one by linear
+ * interpolation.
+ */
+export function placeAudio(
+  piece: Piece,
+  files: ReadonlyMap<string, DecodedAudio>,
+  sampleRate: number,
+  total: number,
+  passes: number,
+  window?: BeatWindow,
+): Map<string, [Float32Array, Float32Array]> {
+  const performance = perform(piece);
+  const fromBeat = window ? window.fromBeat : 0;
+  const toBeat = window ? window.toBeat : Math.max(1, piece.length);
+  const from = performance.secondsAt(fromBeat);
+  const loopSeconds = performance.secondsAt(toBeat) - from;
+  const out = new Map<string, [Float32Array, Float32Array]>();
+  for (const track of piece.tracks) {
+    for (const clip of track.clips) {
+      const audio = clip.audio;
+      const file = audio ? files.get(audio.file) : undefined;
+      if (!audio || !file || file.channels.length === 0) continue;
+      const clipStart = Math.max(performance.secondsAt(clip.time), from);
+      const clipEnd = Math.min(performance.secondsAt(clip.time + clip.duration), from + loopSeconds);
+      if (clipEnd <= clipStart) continue;
+      const sourceStart = audio.offset + (clipStart - performance.secondsAt(clip.time));
+      const gain = 10 ** (audio.gain / 20);
+      const [left, right] = out.get(track.id) ?? [new Float32Array(total), new Float32Array(total)];
+      out.set(track.id, [left, right]);
+      const sourceLeft = file.channels[0]!;
+      const sourceRight = file.channels[1] ?? sourceLeft;
+      const ratio = file.sampleRate / sampleRate;
+      const frames = Math.round((clipEnd - clipStart) * sampleRate);
+      for (let pass = 0; pass < passes; pass++) {
+        const at = Math.round((pass * loopSeconds + (clipStart - from)) * sampleRate);
+        for (let i = 0; i < frames && at + i < total; i++) {
+          const position = (sourceStart * sampleRate + i) * ratio;
+          const k = Math.floor(position);
+          if (k + 1 >= sourceLeft.length) break;
+          const t = position - k;
+          left[at + i]! += (sourceLeft[k]! + (sourceLeft[k + 1]! - sourceLeft[k]!) * t) * gain;
+          right[at + i]! += (sourceRight[k]! + (sourceRight[k + 1]! - sourceRight[k]!) * t) * gain;
+        }
+      }
+    }
+  }
+  return out;
 }
 
 /** One thing the synth does, at one sample: a note, a controller, a channel's setup. */
@@ -220,7 +281,9 @@ function synthEvents(
     },
   );
   for (const track of audibleTracks(piece)) {
-    const assignment = assignments.get(track.id)!;
+    const assignment = assignments.get(track.id);
+    // An audio track has no synth channel to set up: its strip's input is its recordings.
+    if (!assignment) continue;
     const { channel } = assignment;
     events.push({
       sample: 0,
@@ -296,6 +359,8 @@ export async function renderChannels(
   irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
   passes = 2,
   window?: BeatWindow,
+  /** The recordings the piece's audio clips name, decoded, by project path. */
+  audioFiles: ReadonlyMap<string, DecodedAudio> = new Map(),
 ): Promise<RenderedChannels> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
   // Each bank at its own offset, one above the highest bank number already loaded, so a track's
@@ -341,7 +406,11 @@ export async function renderChannels(
     event.apply(synth);
   }
   renderTo(total);
-  return { piece, sampleRate, loopSeconds, channels, irs, startSecond: perform(piece).secondsAt(window?.fromBeat ?? 0) };
+  return {
+    piece, sampleRate, loopSeconds, channels, irs,
+    startSecond: perform(piece).secondsAt(window?.fromBeat ?? 0),
+    audio: placeAudio(piece, audioFiles, sampleRate, total, passes, window),
+  };
 }
 
 /**
@@ -352,7 +421,7 @@ export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>, 
   const { piece, sampleRate, loopSeconds, irs } = rendered;
   const channelOf = new Map([...assignChannels(piece)].map(([trackId, assignment]) => [trackId, assignment.channel]));
   const timeline = { startSecond: rendered.startSecond, loopSeconds, beatAt: perform(piece).beatAt };
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
+  const [left, right] = mix(piece, { channels: rendered.channels, audio: rendered.audio, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const loopSamples = Math.round(loopSeconds * sampleRate);
   const start = loopSamples;
   const outLeft = left.slice(start, start + loopSamples);
@@ -376,7 +445,7 @@ export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string
   const channelOf = new Map([...assignChannels(piece)].map(([id, assignment]) => [id, assignment.channel]));
   // One pass and its tail run on in piece time: no fold.
   const timeline = { startSecond: rendered.startSecond, loopSeconds: 0, beatAt: perform(piece).beatAt };
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
+  const [left, right] = mix(piece, { channels: rendered.channels, audio: rendered.audio, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const fade = Math.min(Math.round(0.01 * sampleRate), left.length);
   for (const channel of [left, right]) {
     for (let i = 0; i < fade; i++) channel[channel.length - fade + i]! *= (fade - 1 - i) / Math.max(1, fade - 1);

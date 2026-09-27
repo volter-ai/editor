@@ -11,7 +11,7 @@ import type { ComponentType } from 'react';
 import { checkPiece } from './checks';
 import { SoundBankLoader } from 'spessasynth_core';
 import { measureLoop, nullResidualDb } from './measure';
-import { assignChannels, audibleTracks, mixLoop, mixOneShot, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from './render-offline';
+import { assignChannels, audibleTracks, type DecodedAudio, mixLoop, mixOneShot, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from './render-offline';
 import type { DynamicsReport, ImpulseResponse } from './mix/offline-mix';
 import { loopWav24, wav24, readWav } from './wav';
 
@@ -122,7 +122,15 @@ export async function renderPiece({
 
     const beatsPerBar = piece.transport.beatsPerBar;
     const assignments = assignChannels(piece);
-    if (assignments.size === 0) throw new Error('No track has a soundfont device; there is nothing to render.');
+    const audioClips = piece.tracks.flatMap((track) => track.clips.flatMap((clip) => (clip.audio ? [clip.audio] : [])));
+    if (assignments.size === 0 && audioClips.length === 0) throw new Error('No track has a soundfont device or an audio clip; there is nothing to render.');
+    // Every recording an audio clip names, read from the project.
+    const audioFiles = new Map<string, DecodedAudio>();
+    for (const { file } of audioClips) {
+      if (audioFiles.has(file)) continue;
+      const wav = readWav(new Uint8Array(readFileSync(resolve(project, file))));
+      audioFiles.set(file, { channels: wav.channels, sampleRate: wav.sampleRate });
+    }
     // Every bank a soundfont device names, read from the project.
     const bank = new Map<string, ArrayBuffer>();
     for (const { bank: path } of assignments.values()) {
@@ -142,7 +150,7 @@ export async function renderPiece({
         irs.set(path, { channels: wav.channels, sampleRate: wav.sampleRate });
       }
     }
-    const rendered = await renderChannels(piece, bank, undefined, undefined, irs, oneShot ? 1 : 2);
+    const rendered = await renderChannels(piece, bank, undefined, undefined, irs, oneShot ? 1 : 2, undefined, audioFiles);
     const mixRender = oneShot ? mixOneShot : mixLoop;
     const writeWav = oneShot ? wav24 : loopWav24;
     // What the mix's compressors and limiters did, for a composer who cannot hear them.
@@ -258,7 +266,7 @@ export async function renderPiece({
         // A section ends at the next marker with a later beat.
         const end = Math.min(piece.length, markers.slice(i + 1).find((next) => next.time > marker.time)?.time ?? piece.length);
         // The section is that stretch of the whole piece's performance, looped on itself.
-        const audio = mixLoop(await renderChannels(piece, bank, undefined, undefined, irs, 2, { fromBeat: marker.time, toBeat: end }));
+        const audio = mixLoop(await renderChannels(piece, bank, undefined, undefined, irs, 2, { fromBeat: marker.time, toBeat: end }, audioFiles));
         scale(audio, preGain * 10 ** (gainDb / 20));
         const file = uniqueName(used, marker.name);
         const wav = join(directory, `${file}.wav`);

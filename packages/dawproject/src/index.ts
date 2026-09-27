@@ -132,6 +132,18 @@ export interface NoteProps {
 }
 
 /**
+ * DAWproject `Audio`: a recorded file a `<Clip>` plays, instead of notes. `file` is a WAV at a
+ * project path; it plays from the clip's start (or from `offset` seconds into the file) for the
+ * clip's length, at `gain` dB. A track whose clips hold audio is an audio track: its strip's input
+ * is the files, not an instrument.
+ */
+export interface AudioProps {
+  readonly file: string;
+  readonly offset?: number;
+  readonly gain?: number;
+}
+
+/**
  * DAWproject `Points`: an automation lane. In a `<Clip>`, `target` is a MIDI controller
  * (`cc1` modulation, `cc11` expression, `cc64` sustain, …) or `pitchbend`, with values 0–1
  * (pitch bend −1…1). In `<Transport>`, `target="tempo"` and values are BPM.
@@ -168,6 +180,7 @@ export const Clip = element<ClipProps>('dawproject.Clip');
 export const Note = element<NoteProps>('dawproject.Note');
 export const Marker = element<MarkerProps>('dawproject.Marker');
 export const Points = element<PointsProps>('dawproject.Points');
+export const Audio = element<AudioProps>('dawproject.Audio');
 export const Point = element<PointProps>('dawproject.Point');
 
 /** Every element this package names, keyed by its short name. */
@@ -183,6 +196,7 @@ export const ELEMENT_TYPES = {
   Marker: 'dawproject.Marker',
   Points: 'dawproject.Points',
   Point: 'dawproject.Point',
+  Audio: 'dawproject.Audio',
 } as const;
 
 export type ElementName = keyof typeof ELEMENT_TYPES;

@@ -57,6 +57,7 @@ export function mixSignature(piece: Piece): string {
       track.id,
       track.name,
       track.channel && [track.channel.role, track.channel.devices, track.channel.sends.map((send) => [send.to, send.pre])],
+      track.clips.some((clip) => clip.audio),
     ]),
   );
 }
@@ -79,6 +80,8 @@ interface StripNodes {
 interface Graph {
   readonly nodes: AudioNode[];
   readonly heads: AudioNode[];
+  /** Each audio track's strip input, by track id: where its clips' sources connect. */
+  readonly audioHeads: Map<string, AudioNode>;
   readonly strips: Map<string, StripNodes>;
   output: AudioNode | null;
 }
@@ -95,6 +98,9 @@ export class LiveMix {
   private readonly irCache = new Map<string, AudioBuffer>();
   /** Compressors built with a sidechain, waiting for their source strip to exist (`build`). */
   private pendingSidechains: { node: AudioNode; source: string }[] = [];
+  /** Decoded recordings by project path, and the sources playing them now. */
+  private readonly recordings = new Map<string, AudioBuffer>();
+  private readonly playing = new Set<AudioBufferSourceNode>();
   /** The automated parameters of the sounding graph, for the piece they were read from. */
   private curves: { piece: Piece; beatAt: (second: number) => number; params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] } | null = null;
 
@@ -234,7 +240,7 @@ export class LiveMix {
    */
   async build(piece: Piece, channelOf: ReadonlyMap<string, number>, current: () => boolean = () => true): Promise<boolean> {
     const context = this.context;
-    const graph: Graph = { nodes: [], heads: [], strips: new Map(), output: null };
+    const graph: Graph = { nodes: [], heads: [], audioHeads: new Map(), strips: new Map(), output: null };
     this.pendingSidechains = [];
     const discard = (): void => {
       for (const node of graph.nodes) node.disconnect();
@@ -298,6 +304,18 @@ export class LiveMix {
         const panner = this.strip(graph, piece, track, soloed, output, sends);
         panner.connect(destination(track));
         wireSends(track, output, panner, sends);
+      }
+      // Audio tracks: their strips take the clips' recordings (`scheduleAudio`), loaded now so a
+      // play never waits on a file.
+      for (const track of piece.tracks) {
+        if (channelOf.has(track.id) || (track.channel?.role ?? 'regular') !== 'regular' || !track.clips.some((clip) => clip.audio)) continue;
+        const [input, output] = await this.chain(track, graph.nodes);
+        graph.audioHeads.set(track.id, input);
+        const sends: (GainNode | null)[] = [];
+        const panner = this.strip(graph, piece, track, soloed, output, sends);
+        panner.connect(destination(track));
+        wireSends(track, output, panner, sends);
+        for (const clip of track.clips) if (clip.audio) await this.recording(clip.audio.file);
       }
       // Each sidechained compressor hears its source track's strip after its fader and pan.
       for (const { node, source } of this.pendingSidechains) {
@@ -400,6 +418,57 @@ export class LiveMix {
         param.linearRampToValueAtTime(curve.grid(k), at(pass.offset + k * AUTOMATION_GRID));
       }
     }
+  }
+
+  /** A recording an audio clip names, decoded as the export decodes it (`readWav`), cached. */
+  private async recording(path: string): Promise<AudioBuffer> {
+    let buffer = this.recordings.get(path);
+    if (!buffer) {
+      buffer = await this.loadIr(path);
+      this.recordings.set(path, buffer);
+    }
+    return buffer;
+  }
+
+  /**
+   * Start the audio clips' recordings for one pass of playing time (`preview-engine`'s `passes`):
+   * each clip's stretch inside the pass, from the file position it has reached there, at its gain,
+   * into its track's strip; the same placement the export's `placeAudio` makes.
+   */
+  scheduleAudio(piece: Piece, secondsAt: (beat: number) => number, pass: { readonly offset: number; readonly from: number; readonly to: number }, at: (second: number) => number): void {
+    const graph = this.graph;
+    if (!graph) return;
+    for (const track of piece.tracks) {
+      const head = graph.audioHeads.get(track.id);
+      if (!head) continue;
+      for (const clip of track.clips) {
+        const audio = clip.audio;
+        const buffer = audio ? this.recordings.get(audio.file) : undefined;
+        if (!audio || !buffer) continue;
+        const clipStart = secondsAt(clip.time);
+        const start = Math.max(clipStart, pass.from);
+        const end = Math.min(secondsAt(clip.time + clip.duration), pass.to);
+        if (end <= start) continue;
+        const source = this.context.createBufferSource();
+        source.buffer = buffer;
+        const gain = this.context.createGain();
+        gain.gain.value = 10 ** (audio.gain / 20);
+        source.connect(gain).connect(head);
+        source.start(at(pass.offset + start), audio.offset + (start - clipStart), end - start);
+        source.onended = () => {
+          source.disconnect();
+          gain.disconnect();
+          this.playing.delete(source);
+        };
+        this.playing.add(source);
+      }
+    }
+  }
+
+  /** Stop every recording started (the transport stopped or starts somewhere else). */
+  stopAudio(): void {
+    for (const source of this.playing) source.stop();
+    this.playing.clear();
   }
 
   /** Drop every scheduled automation value (the transport stopped or starts somewhere else). */
