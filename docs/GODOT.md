@@ -139,9 +139,9 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    (a three camera is a Camera3D by type). Open: class-name dispatch in emit and lowering (the
    ratchet's `class-name-*` rows), and compat elements must be idempotent under a re-render of
    their scene (`GodotImportedScene` re-applied its overrides on every render until `aad36aae`).
-   The headless runner (`gd-analyze run`, `src/run/`) loads R3F's CommonJS build beside the
-   module build of three, so a colour prop reaches a light as a string there; the browser does
-   not, and a look in the browser is the check until the runner loads module builds throughout.
+   The headless runner (`gd-analyze run`, `src/run/`) loads one three, as the bundler does
+   (`tsx/esm`, and `three` resolved to its module build for `require` too), so it plays what the
+   browser plays.
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 

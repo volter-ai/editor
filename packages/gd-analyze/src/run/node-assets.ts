@@ -17,7 +17,8 @@ import { resolve } from './node-asset-loader.mjs';
  */
 export const NODE_MOUNT_IMPORTS: readonly string[] = [
   '--import',
-  'tsx',
+  // tsx's ES module loader only: its CommonJS hooks would bypass the run's resolve hook for `require`.
+  'tsx/esm',
   '--import',
   pathToFileURL(path.join(import.meta.dirname, 'node-asset-hook.mjs')).href,
   // The editor's callsite props on every compat component a mount renders (node-callsite-stamp.mjs).
