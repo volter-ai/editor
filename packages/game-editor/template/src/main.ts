@@ -57,7 +57,16 @@ for (const root of roots) {
   container.appendChild(layer);
   const Entry = entryComponent(root);
   if (root.adapter === 'three') {
-    createRoot(layer).render(createElement(Canvas, null, createElement(Entry)));
+    // R3F's wrapper sets its own `pointer-events: auto`, so a world above the bottom one says `none`
+    // itself; `alpha` clears the bottom world opaque, as the editor's renderer does.
+    const bottom = root === bottomWorld;
+    createRoot(layer).render(
+      createElement(
+        Canvas,
+        { gl: { alpha: !bottom }, style: bottom ? undefined : { pointerEvents: 'none' } },
+        createElement(Entry),
+      ),
+    );
   } else if (root.adapter === 'dom') {
     layer.style.pointerEvents = 'none';
     createRoot(layer).render(createElement(Entry));

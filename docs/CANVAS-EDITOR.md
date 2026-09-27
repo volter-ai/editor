@@ -125,7 +125,10 @@ the editor's runtime stacks worlds: the bottom `three` or `canvas` world takes p
 clears opaque, a world above it lets input fall through and clears transparent, and Pixi renders at
 the device pixel ratio with `autoDensity` and antialiasing, as the editor's canvas root does. The
 editor's router forwards a point to an upper world only when that world declares a `hitTest`, and no
-root declares one, so both hand every pointer event to the bottom world.
+root declares one, so both hand every pointer event to the bottom world; a Pixi HUD's own buttons
+therefore take no clicks over a world, in Play or exported, and an interactive HUD belongs in a `dom`
+root, whose elements claim their clicks [minor]. A `three` world above the bottom one says
+`pointer-events: none` on React Three Fiber's own wrapper, which otherwise sets `auto`.
 
 Build Profiles' Build And Run (Unity's; Godot's Web export runs in a browser) builds, then opens the
 Build Player document on the build's own `dist/`, which the editor server serves; what the running
@@ -133,9 +136,13 @@ build prints, and its uncaught errors, reach the editor's console prefixed `[Bui
 Godot export run with remote debug reports into the editor, and the screenshot door photographs the
 build inside the player, its canvases copied in the player's own frame (walked: a fresh game with a
 3D `world` and a `canvas` HUD above it built and ran; the screenshot showed the world with the HUD's
-TilingSprite and BitmapText over it, and the console read no errors). Build And Run always runs
-`dist/` and starts no `server` configuration [minor]; the pointer fall-through is read from the code,
-not walked, since no door reaches into the player's input.
+TilingSprite and BitmapText over it, and the console read no errors). The document probe reaches
+into the player as it reaches into a portal, and a click there lands where the page hit-tests it,
+naming what it hit (walked: a press at the HUD's centre reached the three.js canvas beneath, the HUD
+canvas reading `pointer-events: none` at a 2096 px store for 1048 CSS px; with the 3D world moved
+above, its canvas read `none` and the press reached the Pixi canvas). Build And Run always runs
+`dist/` and starts no `server` configuration, and a game that renders only on demand may photograph
+before its frame [minor].
 
 Remaining partials, tagged: all [minor] — a single node's scale about the temporary pivot, a group's
 shared frame and handles, single-axis group scale, rotated members under unequal group scale, a turn

@@ -120,6 +120,7 @@ import type {
 } from '@volter/editor-sdk/document-probe';
 import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import { framedCapture } from '@volter/editor-sdk/kit/framed-document-capture';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
@@ -213,6 +214,10 @@ function scopeRoots(scope: Scope): HTMLElement[] {
       if (content && !roots.includes(content)) roots.push(content);
     }
   }
+  // A document whose subject runs in a same-origin frame (the Build Player)
+  // hands over that frame's own subject, as it does to the capture door.
+  const framed = framedCapture(scope.container)?.container;
+  if (framed && !roots.includes(framed)) roots.push(framed);
   return roots;
 }
 
@@ -505,7 +510,7 @@ function pointerInit(element: HTMLElement, at: readonly [number, number] = [0.5,
     bubbles: true,
     cancelable: true,
     composed: true,
-    view: window,
+    view: element.ownerDocument.defaultView ?? window,
     clientX: rect.x + rect.width * at[0],
     clientY: rect.y + rect.height * at[1],
     button: 0,
@@ -538,13 +543,27 @@ function focusAsPressed(element: HTMLElement): void {
   (focusable ?? element).focus({ preventScroll: true });
 }
 
+/** A point given as fractions of `element`'s box, in its own document's client pixels. */
+function pointAt(element: HTMLElement, at: readonly [number, number] = [0.5, 0.5]): { clientX: number; clientY: number } {
+  const rect = element.getBoundingClientRect();
+  return { clientX: rect.x + rect.width * at[0], clientY: rect.y + rect.height * at[1] };
+}
+
+/** What a framed page hit-tests at that point of `element`: the element a mouse press there reaches. */
+function pressedInFrame(element: HTMLElement, at?: readonly [number, number]): HTMLElement {
+  const { clientX, clientY } = pointAt(element, at);
+  const hit = element.ownerDocument.elementFromPoint(clientX, clientY);
+  return (hit as HTMLElement | null) ?? element;
+}
+
 function dispatchClick(
   element: HTMLElement,
   clicks = 1,
   at?: readonly [number, number],
   modifiers: { altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean } = {},
+  point?: { clientX: number; clientY: number },
 ): void {
-  const init = { ...pointerInit(element, at), ...modifiers };
+  const init = { ...pointerInit(element, at), ...point, ...modifiers };
   const total = Math.max(1, Math.round(clicks));
   withoutPointerCapture(element, () => {
     for (let n = 1; n <= total; n++) {
@@ -955,13 +974,16 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       if (at !== undefined && !(Array.isArray(at) && at.length === 2 && at.every((v) => typeof v === 'number' && Number.isFinite(v)))) {
         throw new Error(`click's \`at\` is [x, y], fractions of the element's box; got ${JSON.stringify(at)}.`);
       }
-      dispatchClick(element, step.clicks ?? 1, at, {
+      // Inside a framed page the press lands where a mouse would: on whatever the page
+      // hit-tests at that point (its stacking and `pointer-events` decide), which the answer names.
+      const pressed = element.ownerDocument === document ? element : pressedInFrame(element, at);
+      dispatchClick(pressed, step.clicks ?? 1, at && pressed === element ? at : undefined, {
         ...(step.altKey ? { altKey: true } : {}),
         ...(step.ctrlKey ? { ctrlKey: true } : {}),
         ...(step.metaKey ? { metaKey: true } : {}),
         ...(step.shiftKey ? { shiftKey: true } : {}),
-      });
-      return drove(element);
+      }, pressed === element ? undefined : pointAt(element, at));
+      return drove(pressed);
     }
     case 'type': {
       const target = gestureTarget(scope, step);
