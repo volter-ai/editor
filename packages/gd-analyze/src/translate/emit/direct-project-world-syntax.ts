@@ -343,6 +343,11 @@ export function emitDirectGodotWorldSyntax(
     },
     {
       kind: 'import-statement',
+      module: '@volter/game-runtime/world3d-react/rapier-physics-bridge',
+      namedBindings: [{ imported: 'rapierPhysicsSystem', local: 'rapierPhysicsSystem' }],
+    },
+    {
+      kind: 'import-statement',
       module: './lib/godot-compat/react-lifecycle',
       namedBindings: [
         { imported: 'GodotProjectStartup', local: 'GodotProjectStartup' },
@@ -383,10 +388,11 @@ export function emitDirectGodotWorldSyntax(
           })),
         ]),
   ];
+  // The world's swap slot (the template's shape): the composition table, the active entry, and
+  // the root rendered by its Godot name.
   const mainSceneShape: TargetTsJsxElementShape = {
-    tag: scene.exportName,
-    // The scene names its own root.
-    attributes: [],
+    tag: 'Scene',
+    attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: scene.root.name }],
     children: [],
   };
   const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', ...mainSceneShape };
@@ -486,10 +492,33 @@ export function emitDirectGodotWorldSyntax(
       ...data.statements,
       ...composition.scriptAutoloads.map(autoloadComponent),
       {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: 'scenes',
+        initializer: { kind: 'object-expression', properties: [{ key: 'main', value: { kind: 'identifier-expression', name: scene.exportName } }] },
+      },
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: 'activeScene',
+        type: { kind: 'type-reference', name: 'keyof typeof scenes', arguments: [] },
+        initializer: { kind: 'literal-expression', value: 'main' },
+      },
+      {
         kind: 'function-statement',
         name: 'World',
         parameters: [],
         body: [
+          {
+            kind: 'variable-statement',
+            declaration: 'const',
+            name: 'Scene',
+            initializer: {
+              kind: 'element-expression',
+              object: { kind: 'identifier-expression', name: 'scenes' },
+              index: { kind: 'identifier-expression', name: 'activeScene' },
+            },
+          },
           ...composition.scriptAutoloads.map(
             (_autoload, index): TargetTsStatement => ({
               kind: 'variable-statement',
@@ -506,6 +535,17 @@ export function emitDirectGodotWorldSyntax(
           { kind: 'return-statement', expression: worldExpression },
         ],
         modifiers: ['export', 'default'],
+      },
+      // Godot's physics server as the editor's physics system (`<RapierPhysicsBridge>` in GodotMain).
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: 'systems',
+        initializer: {
+          kind: 'object-expression',
+          properties: [{ key: 'physics', value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'rapierPhysicsSystem' }, arguments: [] } }],
+        },
+        modifiers: ['export'],
       },
     ],
   };

@@ -24,7 +24,7 @@ import { captureGodotImportToolchainSnapshot } from '../../snapshot/toolchain-sn
 import { GODOT_SCENE_SPAWN_IMPLEMENTATION_FILES } from '../../translate/code/authority-data';
 import { emitGodotTranslation } from '../../translate/emit';
 import { planGodotTranslation } from '../../translate/plan';
-import { linkEmittedNodeModules } from './emitted-node-modules';
+import { EMITTED_RESOLVE_HOOK, linkEmittedNodeModules } from './emitted-node-modules';
 import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } from './proof';
 
 const files: Readonly<Record<string, string>> = {
@@ -296,7 +296,7 @@ export async function measureSceneSpawnProof(tools: GodotProofTools): Promise<re
     writeGodotTranslationArtifacts(emitGodotTranslation(translation), out);
     linkEmittedNodeModules(out);
     writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
-    const mounted = spawnSync(process.execPath, ['--import', 'tsx', 'gd-analyze-mount.mts'], {
+    const mounted = spawnSync(process.execPath, ['--import', 'tsx', '--import', `./${EMITTED_RESOLVE_HOOK}`, 'gd-analyze-mount.mts'], {
       cwd: out,
       encoding: 'utf8',
       timeout: 120_000,

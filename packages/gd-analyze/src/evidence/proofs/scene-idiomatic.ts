@@ -38,7 +38,7 @@ import { captureGodotImportToolchainSnapshot } from '../../snapshot/toolchain-sn
 import { GODOT_SCENE_IDIOMATIC_IMPLEMENTATION_FILES } from '../../translate/data/scene-node-authority-data';
 import { emitGodotTranslation } from '../../translate/emit';
 import { planGodotTranslation } from '../../translate/plan';
-import { linkEmittedNodeModules } from './emitted-node-modules';
+import { EMITTED_RESOLVE_HOOK, linkEmittedNodeModules } from './emitted-node-modules';
 import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } from './proof';
 
 
@@ -396,7 +396,7 @@ process.exit(0);
 
 function mountedWorld(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
-  const run = spawnSync(process.execPath, ['--import', 'tsx', 'gd-analyze-mount.mts'], {
+  const run = spawnSync(process.execPath, ['--import', 'tsx', '--import', `./${EMITTED_RESOLVE_HOOK}`, 'gd-analyze-mount.mts'], {
     cwd: out,
     encoding: 'utf8',
     timeout: 120_000,

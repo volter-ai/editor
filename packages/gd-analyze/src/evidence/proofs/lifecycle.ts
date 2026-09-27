@@ -477,9 +477,12 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
       worldSource.indexOf('<$Autoload_0 instanceRef={$autoloadInstance_0}/>') >
         worldSource.indexOf('<$Autoload_1 instanceRef={$autoloadInstance_1}/>') ||
       worldSource.indexOf('<$Autoload_1 instanceRef={$autoloadInstance_1}/>') >
-        worldSource.indexOf('<MainScene />') ||
+        worldSource.indexOf('<Scene name=') ||
       worldSource.includes('export default function World()') === false ||
-      worldSource.includes('<MainScene />') === false ||
+      worldSource.includes('"main": MainScene') === false ||
+      worldSource.includes('const Scene = scenes[activeScene];') === false ||
+      worldSource.includes('<Scene name=') === false ||
+      worldSource.includes('"physics": rapierPhysicsSystem()') === false ||
       manifest.name !== 'Direct composition proof' ||
       JSON.stringify(manifest.resolution) !== JSON.stringify({ width: 960, height: 540 }) ||
       JSON.stringify(manifest.roots) !==

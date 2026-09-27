@@ -17,6 +17,9 @@ const MONOREPO_ROOT = path.resolve(PACKAGE_ROOT, '..', '..');
 /** Packages loaded through their ES module build, as the project's bundler loads them. */
 const MODULE_BUILDS = new Set(['@react-three/rapier']);
 
+/** The resolve hook a proof's mount imports (`node --import ./gd-analyze-resolve.mjs`). */
+export const EMITTED_RESOLVE_HOOK = 'gd-analyze-resolve.mjs';
+
 export function linkEmittedNodeModules(out: string): void {
   const own = path.join(PACKAGE_ROOT, 'node_modules');
   const shared = path.join(MONOREPO_ROOT, 'node_modules');
@@ -34,6 +37,18 @@ export function linkEmittedNodeModules(out: string): void {
     }
     symlinkSync(source, path.join(target, name));
   };
+  // A workspace package the world imports (`@volter/game-runtime`'s Rapier bridge) resolves its
+  // dependencies from its own checkout, where Node would pick the CommonJS build again: every
+  // importer's `@react-three/rapier` is the module build, as the bundler resolves it.
+  const moduleUrls: Record<string, string> = {};
+  for (const name of MODULE_BUILDS) {
+    const local = path.join(own, name);
+    const source = existsSync(local) ? local : path.join(shared, name);
+    const manifest = JSON.parse(readFileSync(path.join(source, 'package.json'), 'utf8')) as { readonly module: string };
+    moduleUrls[name] = pathToFileURL(path.join(source, manifest.module)).href;
+  }
+  const hook = `const urls = ${JSON.stringify(moduleUrls)};\nexport async function resolve(specifier, context, next) {\n  const url = urls[specifier];\n  return url === undefined ? next(specifier, context) : { url, shortCircuit: true };\n}\n`;
+  writeFileSync(path.join(out, EMITTED_RESOLVE_HOOK), `import { register } from 'node:module';\nregister(${JSON.stringify(`data:text/javascript,${encodeURIComponent(hook)}`)});\n`);
   for (const entry of readdirSync(shared)) {
     if (entry.startsWith('.')) continue;
     if (!entry.startsWith('@')) {
