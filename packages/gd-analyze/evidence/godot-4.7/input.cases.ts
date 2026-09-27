@@ -159,6 +159,28 @@ add('action_press-then-key-release', 'action_press', [JUMP], [
   PROC,
   ...STATE('jump'),
 ]);
+// The session door's tap: pressed now, released once the next physics frame ran; the physics frame
+// sees it just pressed, the process step after it just released.
+add('debug-tap', 'action_press', [JUMP], [
+  { tap: 'jump' },
+  ...STATE('jump'),
+  PHYS,
+  ...STATE('jump'),
+  PROC,
+  ...STATE('jump'),
+  PHYS,
+  ...STATE('jump'),
+]);
+add('debug-tap-from-process', 'action_press', [JUMP], [
+  PROC,
+  { tap: 'jump' },
+  PROC,
+  ...STATE('jump'),
+  PHYS,
+  ...STATE('jump'),
+  PROC,
+  ...STATE('jump'),
+]);
 add('action_release-unknown', 'action_release', [JUMP], [{ release: 'missing' }, { press: 'missing' }, read('is_action_pressed', 'missing')]);
 add('input-event-action', 'parse_input_event', [JUMP], [
   { parse: { type: 'action', action: 'jump', pressed: true, strength: 0.4 } },

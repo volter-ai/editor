@@ -60,12 +60,31 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
             { kind: 'import-statement' as const, module: './project/settings', defaultBinding: 'settings', namedBindings: [] },
           ]
         : []),
-      { kind: 'import-statement' as const, module: './lib/godot-compat/input', namedBindings: [{ imported: 'godot_input_map_load_json', local: 'godot_input_map_load_json' }] },
+      {
+        kind: 'import-statement' as const,
+        module: './lib/godot-compat/input',
+        namedBindings: [
+          { imported: 'godot_input_map_load_json', local: 'godot_input_map_load_json' },
+          { imported: 'godot_input_debug', local: 'godot_input_debug' },
+        ],
+      },
       { kind: 'import-statement' as const, module: './project/input-map.json', defaultBinding: 'inputMap', namedBindings: [] },
     ],
     statements: [
       ...(settings ? [load('godot_project_settings_load_json', 'settings')] : []),
       load('godot_input_map_load_json', 'inputMap'),
+      // The session's input door (`native-debug-module.ts`): the InputMap's actions, set through
+      // Godot's own `Input.action_press` / `action_release` (`input.ts`).
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: 'debug',
+        modifiers: ['export'],
+        initializer: {
+          kind: 'object-expression',
+          properties: [{ key: 'input', value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_input_debug' }, arguments: [] } }],
+        },
+      },
     ],
   };
 }

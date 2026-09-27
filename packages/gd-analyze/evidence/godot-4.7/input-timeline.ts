@@ -26,6 +26,8 @@ export type Step =
   | { readonly parse: InputEventRecord }
   | { readonly press: string; readonly strength?: number }
   | { readonly release: string }
+  /** The debug door's tap (`godot_input_debug`): a press released once the next physics frame ran. */
+  | { readonly tap: string }
   | { readonly cursor: number }
   | { readonly flush: true }
   | { readonly await: 'physics' | 'process' }
@@ -94,7 +96,32 @@ export function timeline(actions: readonly ActionSpec[], steps: readonly Step[])
       lines.push(...gdEvent(name, event, rename), `InputMap.action_add_event(${gs(rename(action.name))}, ${name})`);
     }
   }
+  // A tap's release in GDScript: after the next physics frame, at the process step that follows it.
+  // Every iteration runs one physics step before its process step (the target's `nextIteration`),
+  // so a process step awaited from a process step has passed one.
+  let tapped: string[] = [];
+  let tapPhysicsSeen = false;
+  let generatorPhase: 'physics' | 'process' = 'process';
   for (const step of steps) {
+    if ('tap' in step) {
+      lines.push(`Input.action_press(${gs(rename(step.tap))})`);
+      tapped.push(step.tap);
+      tapPhysicsSeen = false;
+      continue;
+    }
+    if ('await' in step) {
+      const fromProcess = generatorPhase === 'process';
+      generatorPhase = step.await;
+      if (tapped.length > 0) {
+        lines.push(step.await === 'physics' ? 'await physics_frame' : 'await process_frame');
+        if (step.await === 'physics' || fromProcess) tapPhysicsSeen = true;
+        if (step.await === 'process' && tapPhysicsSeen) {
+          for (const action of tapped) lines.push(`Input.action_release(${gs(rename(action))})`);
+          tapped = [];
+        }
+        continue;
+      }
+    }
     if ('parse' in step) {
       const name = `e${String((eventNumber += 1))}`;
       lines.push(...gdEvent(name, step.parse, rename), `Input.parse_input_event(${name})`);
@@ -118,6 +145,7 @@ export function timeline(actions: readonly ActionSpec[], steps: readonly Step[])
   lines.push('return out');
 
   const target = (): unknown => {
+    const door = I.godot_input_debug();
     let physics = 1000;
     let process = 1000;
     let phase: 'physics' | 'process' = 'process';
@@ -133,7 +161,8 @@ export function timeline(actions: readonly ActionSpec[], steps: readonly Step[])
     };
     const out: unknown[] = [];
     for (const step of steps) {
-      if ('parse' in step) I.parse_input_event(renameEvent(step.parse, rename));
+      if ('tap' in step) door.tap(rename(step.tap));
+      else if ('parse' in step) I.parse_input_event(renameEvent(step.parse, rename));
       else if ('press' in step) I.action_press(rename(step.press), ...(step.strength === undefined ? [] : [step.strength]));
       else if ('release' in step) I.action_release(rename(step.release));
       else if ('cursor' in step) I.set_custom_mouse_cursor(null, step.cursor);

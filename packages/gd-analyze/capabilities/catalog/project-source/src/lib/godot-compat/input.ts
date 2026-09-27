@@ -423,6 +423,66 @@ export function godot_input_frame(physicsFrames: number, processFrames: number, 
   engine.physicsFrames = physicsFrames;
   engine.processFrames = processFrames;
   engine.inPhysics = inPhysics;
+  // A debug tap's release, once the physics frame after its press has run (`godot_input_debug`).
+  if (!inPhysics) {
+    for (const [action, frame] of [...debugTaps]) {
+      if (physicsFrames < frame) continue;
+      debugTaps.delete(action);
+      action_release(action);
+    }
+  }
+}
+
+/** The debug door's taps: action → the physics frame that must run before it is released. */
+const debugTaps = new Map<string, number>();
+/** The actions the debug door holds pressed, released by its `clear`. */
+const debugHeld = new Set<string>();
+
+/** The session input door's value types (`native-entry-surface.ts`). */
+export type GodotDebugInputValueType = 'digital' | 'scalar';
+
+/**
+ * The session's input door over Godot's own Input (`native-debug-module.ts`'s `debug.input`): the
+ * InputMap's actions, read live (`scalar` for an action a joypad axis drives, its strength, else
+ * `digital`); `set` presses the action at the value's strength (`true` is 1) or releases it (a
+ * false or non-positive value), as `Input.action_press` / `action_release`; `clear` releases every
+ * action it holds; `tap` presses the action and releases it once the next physics frame has run,
+ * as a script's `action_press`, `await physics_frame`, `await process_frame`, `action_release`.
+ *
+ * @godot Input (protocol)
+ * @source core/input/input.cpp:1410
+ */
+export function godot_input_debug(): {
+  readonly actions: () => Readonly<Record<string, GodotDebugInputValueType>>;
+  readonly set: (action: string, value: boolean | number | { readonly x: number; readonly y: number }) => void;
+  readonly clear: () => void;
+  readonly tap: (action: string) => void;
+} {
+  return {
+    actions: () =>
+      Object.fromEntries(
+        [...inputMap].map(([name, action]) => [name, action.inputs.some((event) => event.type === 'joypad_motion') ? 'scalar' : 'digital'] as const),
+      ),
+    set: (action, value) => {
+      const strength = typeof value === 'boolean' ? (value ? 1 : 0) : typeof value === 'number' ? value : 0;
+      if (strength > 0) {
+        action_press(action, strength);
+        debugHeld.add(action);
+      } else {
+        action_release(action);
+        debugHeld.delete(action);
+      }
+    },
+    clear: () => {
+      for (const action of [...debugHeld, ...debugTaps.keys()]) action_release(action);
+      debugHeld.clear();
+      debugTaps.clear();
+    },
+    tap: (action) => {
+      action_press(action);
+      debugTaps.set(action, engine.physicsFrames + 1);
+    },
+  };
 }
 
 /**
