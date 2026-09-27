@@ -64,14 +64,12 @@ const AUTHORED = new WeakSet<DirectionalLight>();
 
 const SHADOW_MODE = new WeakMap<DirectionalLight, number>();
 
-// `duplicate` copies the shadow mode; the copy aims at its own copy of the target.
+// `duplicate` copies the shadow mode; the copy is aimed through a target of its own.
 godot_node_duplicate_state('DirectionalLight3D', (from, to) => {
-  const source = from as DirectionalLight;
   const copy = to as DirectionalLight;
-  const mode = SHADOW_MODE.get(source);
+  const mode = SHADOW_MODE.get(from as DirectionalLight);
   if (mode !== undefined) SHADOW_MODE.set(copy, mode);
-  const index = source.children.indexOf(source.target);
-  if (index >= 0) copy.target = copy.children[index] as Object3D;
+  godot_directional_light_3d_aim(copy);
 });
 
 /**

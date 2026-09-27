@@ -1,4 +1,4 @@
-import { DirectionalLight, Group } from 'three';
+import { DirectionalLight, Group, Vector3 } from 'three';
 import * as B3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/color';
 import * as DL from '../../capabilities/catalog/project-source/src/lib/godot-compat/directional-light-3d';
@@ -159,6 +159,47 @@ cases.push({
     DL.set_sky_mode(d, 2);
     out.push(L.get_param(l, 0), DL.get_sky_mode(l), L.get_param(d, 0), DL.get_sky_mode(d));
     return out;
+  },
+});
+
+// duplicate() of a directional light whose three target came after a node child (as a scene's
+// JSX mounts it: children first, then the aim), added to the tree: the copy shines along its own
+// global -Z, snapped as `snappedf` rounds (`Math::snapped`, `core/math/math_funcs.h`), through a
+// target that is its own child.
+const snapped = (value: number): number => Math.floor(value / 0.0001 + 0.5) * 0.0001;
+cases.push({
+  id: 'duplicate-directional-light-aim',
+  symbol: { kind: 'native-member', owner: 'Node', member: 'duplicate' },
+  comparator: 'exact',
+  gdscript: [
+    'var l := DirectionalLight3D.new()',
+    'var c := Node3D.new()',
+    'l.add_child(c)',
+    'l.transform = Transform3D(Basis(Vector3(0, 1, 0), 0.5) * Basis(Vector3(1, 0, 0), -0.75), Vector3(1, 2, 3))',
+    'var d: DirectionalLight3D = l.duplicate()',
+    'holder.add_child(d)',
+    'var z := -d.global_transform.basis.z',
+    'var out := [snappedf(z.x, 0.0001), snappedf(z.y, 0.0001), snappedf(z.z, 0.0001)]',
+    'l.free()',
+    'return out',
+  ].join('\n'),
+  target: () => {
+    const holder = new Group();
+    N.godot_node_adopt(holder, { classes: ['Node', 'Object'] });
+    const l = new DirectionalLight();
+    N.godot_node_adopt(l, { classes: LIGHT_CLASSES });
+    const c = new Group();
+    N.godot_node_adopt(c, { classes: ['Node3D', 'Node', 'Object'] });
+    N.add_child(l, c);
+    DL.godot_directional_light_3d_mount(l);
+    N3.set_transform(l, T3.construct(B3.op_multiply(B3.construct(V.construct(0, 1, 0), 0.5), B3.construct(V.construct(1, 0, 0), -0.75)), V.construct(1, 2, 3)));
+    const d = N.duplicate(l) as DirectionalLight;
+    N.add_child(holder, d);
+    if (d.target?.parent !== d) return 'the copy aims through a target that is not its own child';
+    holder.updateMatrixWorld(true);
+    const from = new Vector3().setFromMatrixPosition(d.matrixWorld);
+    const aim = new Vector3().setFromMatrixPosition(d.target.matrixWorld).sub(from);
+    return [snapped(aim.x), snapped(aim.y), snapped(aim.z)];
   },
 });
 
