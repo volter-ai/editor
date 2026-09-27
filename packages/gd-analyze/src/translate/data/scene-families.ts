@@ -293,6 +293,12 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_fog_sky_affect',
     'set_fog_height',
     'set_fog_height_density',
+    // Stored, never drawn by the Compatibility renderer (`environment.ts`).
+    'set_ssao_power',
+    'set_ssao_horizon',
+    'set_glow_level:*',
+    'set_sdfgi_cascades',
+    'set_sdfgi_energy',
   ],
   Sky: ['set_material', 'set_radiance_size', 'set_process_mode'],
   ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],

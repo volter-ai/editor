@@ -41,6 +41,12 @@ export interface Environment {
   fog_height_density: number;
   fog_sky_affect: number;
   fog_mode: number;
+  /** Stored and read back; the Compatibility renderer never reads them (`godot_environment_set_unread`). */
+  ssao_power: number;
+  ssao_horizon: number;
+  glow_levels: number[];
+  sdfgi_cascades: number;
+  sdfgi_energy: number;
 }
 
 /**
@@ -74,6 +80,11 @@ export function construct(): Environment {
     fog_height_density: 0,
     fog_sky_affect: 1,
     fog_mode: 0,
+    ssao_power: 1.5,
+    ssao_horizon: f32(0.06),
+    glow_levels: [0, f32(0.8), f32(0.4), f32(0.1), 0, 0, 0],
+    sdfgi_cascades: 4,
+    sdfgi_energy: 1,
   };
 }
 
@@ -477,7 +488,106 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   ['fogHeightDensity', (self, value: number) => set_fog_height_density(self, value)],
   ['fogSkyAffect', (self, value: number) => set_fog_sky_affect(self, value)],
   ['fogMode', (self, value: number) => set_fog_mode(self, value)],
+  ['ssaoPower', (self, value: number) => set_ssao_power(self, value)],
+  ['ssaoHorizon', (self, value: number) => set_ssao_horizon(self, value)],
+  ['sdfgiCascades', (self, value: number) => set_sdfgi_cascades(self, value)],
+  ['sdfgiEnergy', (self, value: number) => set_sdfgi_energy(self, value)],
+  // `glow_levels/N` is the level N - 1 (`environment.cpp:1464`).
+  ...[1, 2, 3, 4, 5, 6, 7].map((n): [string, (self: Environment, value: never) => void] => [`glowLevels${String(n)}`, (self, value: number) => set_glow_level(self, n - 1, value)]),
 ]);
+
+// --- Parameters the Compatibility renderer (the web's) never reads: stored and read back, drawing
+// nothing. Its SSAO pass reads only the intensity and radius (`rasterizer_scene_gles3.cpp:2996`);
+// its glow is fixed levels (`drivers/gles3/effects/glow.cpp`), never the environment's; its SDFGI
+// update is empty (`rasterizer_scene_gles3.h:882`).
+
+/**
+ * @godot Environment.set_ssao_power
+ * @source scene/resources/environment.cpp:347
+ */
+export function set_ssao_power(self: Environment, power: number): void {
+  self.ssao_power = f32(power);
+}
+
+/**
+ * @godot Environment.get_ssao_power
+ * @source scene/resources/environment.cpp:352
+ */
+export function get_ssao_power(self: Environment): number {
+  return self.ssao_power;
+}
+
+/**
+ * @godot Environment.set_ssao_horizon
+ * @source scene/resources/environment.cpp:365
+ */
+export function set_ssao_horizon(self: Environment, horizon: number): void {
+  self.ssao_horizon = f32(horizon);
+}
+
+/**
+ * @godot Environment.get_ssao_horizon
+ * @source scene/resources/environment.cpp:370
+ */
+export function get_ssao_horizon(self: Environment): number {
+  return self.ssao_horizon;
+}
+
+/**
+ * An index outside the seven levels changes nothing (`ERR_FAIL_INDEX`).
+ *
+ * @godot Environment.set_glow_level
+ * @source scene/resources/environment.cpp:617
+ */
+export function set_glow_level(self: Environment, level: number, intensity: number): void {
+  if (!Number.isInteger(level) || level < 0 || level >= self.glow_levels.length) return;
+  self.glow_levels[level] = f32(intensity);
+}
+
+/**
+ * An index outside the seven levels reads 0 (`ERR_FAIL_INDEX_V`).
+ *
+ * @godot Environment.get_glow_level
+ * @source scene/resources/environment.cpp:625
+ */
+export function get_glow_level(self: Environment, level: number): number {
+  return Number.isInteger(level) && level >= 0 && level < self.glow_levels.length ? (self.glow_levels[level] as number) : 0;
+}
+
+/**
+ * A count outside 1 to 8 changes nothing (`ERR_FAIL_COND_MSG`).
+ *
+ * @godot Environment.set_sdfgi_cascades
+ * @source scene/resources/environment.cpp:483
+ */
+export function set_sdfgi_cascades(self: Environment, cascades: number): void {
+  if (cascades < 1 || cascades > 8) return;
+  self.sdfgi_cascades = cascades;
+}
+
+/**
+ * @godot Environment.get_sdfgi_cascades
+ * @source scene/resources/environment.cpp:489
+ */
+export function get_sdfgi_cascades(self: Environment): number {
+  return self.sdfgi_cascades;
+}
+
+/**
+ * @godot Environment.set_sdfgi_energy
+ * @source scene/resources/environment.cpp:564
+ */
+export function set_sdfgi_energy(self: Environment, energy: number): void {
+  self.sdfgi_energy = f32(energy);
+}
+
+/**
+ * @godot Environment.get_sdfgi_energy
+ * @source scene/resources/environment.cpp:569
+ */
+export function get_sdfgi_energy(self: Environment): number {
+  return self.sdfgi_energy;
+}
 
 /**
  * An Environment of the properties a scene states, set in the order given; an unknown one fails

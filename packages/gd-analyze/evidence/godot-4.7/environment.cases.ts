@@ -29,12 +29,16 @@ const FLOATS: readonly (readonly [string, string, readonly number[]])[] = [
   ['set_fog_sky_affect', 'get_fog_sky_affect', [0]],
   ['set_fog_height', 'get_fog_height', [-2.5]],
   ['set_fog_height_density', 'get_fog_height_density', [0.3]],
+  ['set_ssao_power', 'get_ssao_power', [2.25]],
+  ['set_ssao_horizon', 'get_ssao_horizon', [0.12]],
+  ['set_sdfgi_energy', 'get_sdfgi_energy', [0.7]],
 ];
 const INTS: readonly (readonly [string, string, readonly number[]])[] = [
   ['set_background', 'get_background', [2, 1]],
   ['set_ambient_source', 'get_ambient_source', [2]],
   ['set_reflection_source', 'get_reflection_source', [1]],
   ['set_tonemapper', 'get_tonemapper', [4, 1]],
+  ['set_sdfgi_cascades', 'get_sdfgi_cascades', [6, 0, 9]],
 ];
 for (const [setter, getter, values] of [...FLOATS, ...INTS]) {
   const integer = INTS.some((entry) => entry[0] === setter);
@@ -46,6 +50,15 @@ for (const [setter, getter, values] of [...FLOATS, ...INTS]) {
     });
   }
   c.add(`${getter}-default`, getter, [`return Environment.new().${getter}()`], () => call(getter)(E.construct()));
+}
+// The glow levels by index, with the defaults and an index outside the seven.
+for (const level of [0, 1, 2, 3, 6, 7, -1]) {
+  c.add(`get_glow_level-default-${String(level)}`, 'get_glow_level', [`return Environment.new().get_glow_level(${String(level)})`], () => E.get_glow_level(E.construct(), level));
+  c.add(`set_glow_level-${String(level)}`, 'set_glow_level', ['var e := Environment.new()', `e.set_glow_level(${String(level)}, 0.35)`, 'return [e.get_glow_level(0), e.get_glow_level(1), e.get_glow_level(6)]'], () => {
+    const e = E.construct();
+    E.set_glow_level(e, level, 0.35);
+    return [E.get_glow_level(e, 0), E.get_glow_level(e, 1), E.get_glow_level(e, 6)];
+  });
 }
 for (const [setter, getter] of [
   ['set_bg_color', 'get_bg_color'],
@@ -136,6 +149,26 @@ for (const [id, mapper, white] of [
     fact: { value: expected(mapper, white, f32(16.29), 1.25).join(','), source: TONEMAP },
   });
 }
+
+// What the Compatibility renderer draws does not change with the parameters it never reads: its
+// SSAO pass takes the intensity and radius alone, its glow its own levels, its SDFGI nothing.
+c.cases.push({
+  id: 'unread-parameters-draw-nothing',
+  symbol: { kind: 'native-member', owner: 'Environment', member: 'set_ssao_power' },
+  gdscript: '',
+  target: () => {
+    const e = E.construct();
+    const before = JSON.stringify(E.godot_environment_tonemap_parameters(e));
+    E.set_ssao_power(e, 3);
+    E.set_ssao_horizon(e, 0.5);
+    E.set_glow_level(e, 2, 1);
+    E.set_sdfgi_cascades(e, 2);
+    E.set_sdfgi_energy(e, 4);
+    return JSON.stringify(E.godot_environment_tonemap_parameters(e)) === before;
+  },
+  comparator: 'render-mapping',
+  fact: { value: true, source: { file: 'drivers/gles3/rasterizer_scene_gles3.cpp', symbol: 'ssao_strength / ssao_radius: the only SSAO parameters read', line: 2996 } },
+});
 
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'Environment', compatModule: 'lib/godot-compat/environment', cases: c.cases };
 export default EVIDENCE;
