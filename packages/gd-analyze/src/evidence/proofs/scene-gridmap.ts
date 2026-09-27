@@ -11,6 +11,10 @@
  * mesh placement, against the matrix of that cell's instance in its item's `InstancedMesh`); and
  * ray queries straight down onto the first cells of each map, onto the cell the script set, and with
  * a mask that excludes the map's layer: which collider each hits (the GridMap) or that it misses.
+ * Drawn: a camera straight above the level's cell farthest from the origin, looking down with a
+ * narrow field, sees that cell and not the origin (Godot's `is_position_in_frustum`); three draws the
+ * cell's `InstancedMesh` there by the bounds the mesh holds (`Frustum.intersectsObject` uses them as
+ * held; a renderer computes missing ones at its first cull, before the cells are placed).
  * Measured and named: each hit's point and normal (`ray-hit`, Rapier's ray test against
  * GodotPhysics3D's).
  */
@@ -122,6 +126,26 @@ func _map(g: GridMap) -> Dictionary:
 \t\trays.append(_ray(top, top - Vector3(0, g.cell_size.y * 8, 0), 0xffffffff))
 \treturn {"cells": cells, "drawn": drawn, "rays": rays, "layer": g.collision_layer, "mask": g.collision_mask}
 
+# The used cell farthest from the map's origin, seen from straight above it through a 20-degree
+# camera: whether the camera sees that cell and the origin.
+func _far(g: GridMap) -> Array:
+\tvar best := Vector3i()
+\tvar distance := -1.0
+\tfor cell in g.get_used_cells():
+\t\tvar at: Vector3 = g.global_transform * g.map_to_local(cell)
+\t\tif at.length() > distance:
+\t\t\tdistance = at.length()
+\t\t\tbest = cell
+\tvar target: Vector3 = g.global_transform * g.map_to_local(best)
+\tvar camera := Camera3D.new()
+\tcamera.fov = 20
+\tmain.add_child(camera)
+\tcamera.global_position = target + Vector3(0, 10, 0)
+\tcamera.rotation = Vector3(-PI / 2, 0, 0)
+\tvar seen := [camera.is_position_in_frustum(target), camera.is_position_in_frustum(g.global_transform.origin)]
+\tcamera.queue_free()
+\treturn seen
+
 func _initialize() -> void:
 \tmain = load("res://main.tscn").instantiate()
 \troot.add_child(main)
@@ -138,6 +162,7 @@ func _physics_process(_delta: float) -> bool:
 \t\t"meta": [small.get_meta("_editor_floor_").x, small.get_meta("_editor_floor_").y, small.get_meta("_editor_floor_").z],
 \t\t"set_cell": _ray(set_top, set_top - Vector3(0, 8, 0), 4),
 \t\t"masked": _ray(set_top, set_top - Vector3(0, 8, 0), 2),
+\t\t"far": _far(main.get_node("Level")),
 \t}
 \tvar file := FileAccess.open("res://gridmap.json", FileAccess.WRITE)
 \tfile.store_string(JSON.stringify(state))
@@ -258,6 +283,31 @@ const map = (g) => {
   });
   return { cells, drawn, rays, layer: G.get_collision_layer(g), mask: G.get_collision_mask(g) };
 };
+// The level's cell farthest from its origin, from straight above through a 20-degree camera: whether
+// three draws that cell's InstancedMesh there, and whether the origin is in view.
+const far = (g) => {
+  const global = N3.get_global_transform(g);
+  let best = null;
+  let distance = -1;
+  for (const cell of G.get_used_cells(g)) {
+    const at = xform(global, G.map_to_local(g, cell));
+    const length = Math.hypot(at.x, at.y, at.z);
+    if (length > distance) { distance = length; best = cell; }
+  }
+  const target = xform(global, G.map_to_local(g, best));
+  const camera = new THREE.PerspectiveCamera(20, 1152 / 648, 0.05, 4000);
+  camera.position.set(target.x, target.y + 10, target.z);
+  camera.rotation.set(-Math.PI / 2, 0, 0);
+  camera.updateMatrixWorld();
+  const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  const entry = ML.godot_mesh_library_item(G.get_mesh_library(g), G.get_cell_item(g, best));
+  const mesh = g.children.find((child) => child.isInstancedMesh && child.geometry === entry.mesh.geometry);
+  mesh.updateMatrixWorld(true);
+  // The bounds the mesh holds, read as they are: a live renderer computes missing bounds at its
+  // first cull, which may come before the cells' matrices are written (Frustum.intersectsObject).
+  const bounds = mesh.boundingSphere === null ? null : mesh.boundingSphere.clone().applyMatrix4(mesh.matrixWorld);
+  return [bounds !== null && frustum.intersectsSphere(bounds), frustum.containsPoint(new THREE.Vector3(global.origin.x, global.origin.y, global.origin.z))];
+};
 const small = find('Small');
 const setTop = xform(N3.get_global_transform(small), plus(G.map_to_local(small, vector3i(5, 0, 0)), vector3(0, 4, 0)));
 const floor = O.get_meta(small, '_editor_floor_');
@@ -267,6 +317,7 @@ const state = {
   meta: [floor.x, floor.y, floor.z],
   set_cell: ray(setTop, plus(setTop, vector3(0, -8, 0)), 4),
   masked: ray(setTop, plus(setTop, vector3(0, -8, 0)), 2),
+  far: far(find('Level')),
 };
 await act(async () => { root.unmount(); });
 // The state is large: written to a file, not a pipe that may be cut at exit.

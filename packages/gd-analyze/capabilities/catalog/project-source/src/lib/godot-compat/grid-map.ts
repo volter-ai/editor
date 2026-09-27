@@ -534,6 +534,11 @@ function ItemInstances({ state, item }: { readonly state: GridMapState; readonly
     if (instanced === null || entry === undefined) return;
     cells.forEach((cell, index) => instanced.setMatrixAt(index, matrixOf(op_multiply(cellTransform(state, cell), entry.meshTransform))));
     instanced.instanceMatrix.needsUpdate = true;
+    // three culls an InstancedMesh by the bounds of its instances, computed once (lazily, while
+    // every matrix was the identity) unless recomputed: recomputed as its matrices change, so the
+    // map is drawn wherever its cells are in view, as Godot draws each cell's octant.
+    instanced.computeBoundingSphere();
+    instanced.computeBoundingBox();
   });
   const drawn = entry?.mesh ?? null;
   if (entry === undefined || drawn === null || cells.length === 0) return null;
