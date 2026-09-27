@@ -172,9 +172,9 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
   const tree = shader.tree;
   if (tree.structs.length > 0) return `${shader.path}: shader structs are not lowered`;
   if (tree.varyings.length > 0) return `${shader.path}: varyings are not lowered`;
-  if (tree.constants.length > 0) return `${shader.path}: shader constants are not lowered`;
   const used = new Set<string>();
   const uniformNames = new Set(tree.uniforms.map((uniform) => uniform.name));
+  const constantNames = new Set(tree.constants.map((constant) => constant.name));
   const functionNames = new Set(tree.functions.map((entry2) => entry2.name));
   const type = (name: string): string => {
     if (!GLSL_TYPES.has(name)) throw new Refused(`the ${name} type is not lowered`);
@@ -189,6 +189,7 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       case 'VARIABLE': {
         if (node.local) return `godot_l_${node.name}`;
         if (uniformNames.has(node.name)) return `godot_u_${node.name}`;
+        if (constantNames.has(node.name)) return `godot_c_${node.name}`;
         const builtin = builtins[node.name];
         if (builtin === undefined) throw new Refused(`the built-in ${node.name} is not carried`);
         used.add(node.name);
@@ -296,7 +297,11 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       return { name: uniform.name, glsl, declaration: `uniform ${type(uniform.type.name)} ${glsl};`, uniform };
     });
     let entryBody: string | undefined;
-    const functions: string[] = [];
+    // The global constants first, in declaration order: `const <type> godot_c_<name> = <value>;`.
+    const functions: string[] = tree.constants.map((constant) => {
+      if (constant.type.arraySize > 0 || constant.initializer === null) throw new Refused(`the ${constant.name} constant is not lowered`);
+      return `const ${type(constant.type.name)} godot_c_${constant.name} = ${expression(constant.initializer)};`;
+    });
     for (const { name, function: fn } of tree.functions) {
       if (fn === null || fn.kind !== 'FUNCTION' || fn.body === null || fn.body.kind !== 'BLOCK') throw new Refused(`the ${name} function has no body`);
       if (name === entry) {

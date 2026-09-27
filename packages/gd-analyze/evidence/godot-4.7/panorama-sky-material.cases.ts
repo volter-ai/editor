@@ -6,7 +6,7 @@ import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { resourceCases } from './resource-cases';
 
 /** The generated shaders' code is the import's (proof `scene-environment`); these read properties. */
-const shader = (): Shader => ({ lowered: { mode: 'sky', uniforms: [], functions: '', entry: '' } });
+const shader = (): Shader => ({ lowered: { mode: 'sky', renderModes: [], uniforms: [], functions: '', entry: '' } });
 const make = () => P.construct({ filterOff: shader(), filterOn: shader() });
 
 const c = resourceCases('PanoramaSkyMaterial');

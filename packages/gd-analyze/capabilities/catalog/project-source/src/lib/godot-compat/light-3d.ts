@@ -214,6 +214,33 @@ export function godot_light_3d_sky_mode(self: Light, mode?: number): number {
   return state.skyMode;
 }
 
+/** What a directional light hands the sky pass (`_setup_sky`, `rasterizer_scene_gles3.cpp:741`). */
+export interface GodotSkyLight {
+  /** `energy` (physical light units off; a negative light is not bound, so the sign is +). */
+  readonly energy: number;
+  /** The light's colour as authored, NOT converted to linear (`srgb_col`, `:760`). */
+  readonly color: readonly [number, number, number];
+  /** The angular diameter `LIGHT_PARAM_SIZE` in radians (`Math::deg_to_rad`, `:767`). */
+  readonly size: number;
+}
+
+/**
+ * A directional light's sky-pass data, or null when its sky mode is `SKY_MODE_LIGHT_ONLY` and the
+ * sky never sees it (`rasterizer_scene_gles3.cpp:741`).
+ *
+ * @godot Light3D (protocol)
+ * @source drivers/gles3/rasterizer_scene_gles3.cpp:741
+ */
+export function godot_light_3d_sky_light(self: Light): GodotSkyLight | null {
+  const state = stateOf(self);
+  if (state.skyMode === 1) return null;
+  return {
+    energy: state.params[PARAM_ENERGY] as number,
+    color: [state.color.r, state.color.g, state.color.b],
+    size: f32((state.params[5] as number) * f32(f32(Math.PI) / 180)),
+  };
+}
+
 /**
  * An index outside `Param` fails and leaves the parameters.
  *

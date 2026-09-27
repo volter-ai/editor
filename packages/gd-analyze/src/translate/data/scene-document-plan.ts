@@ -223,6 +223,8 @@ function soundLoad(sound: BoundGodotSoundDocument): TargetGodotImportedLoad | st
 /** A shader's lowered code, as compat's `godot_shader_new` receives it. */
 export interface TargetGodotLoweredShader {
   readonly mode: string;
+  /** The `render_mode`s it states that the sky pass acts on (`use_debanding`). */
+  readonly renderModes: readonly string[];
   readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null }[];
   readonly functions: string;
   readonly entry: string;
@@ -237,8 +239,13 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
+  // The sky render modes (`material_storage.cpp:1562`): debanding is drawn; `disable_fog` agrees
+  // with a sky the fog never covers (`fog-model`); the half- and quarter-resolution passes are not.
+  const unsupported = shader.tree.renderModes.find((mode) => mode !== 'use_debanding' && mode !== 'disable_fog');
+  if (unsupported !== undefined) return `render_mode ${unsupported} is not drawn`;
   return {
     mode: shader.shaderType,
+    renderModes: shader.tree.renderModes.filter((mode) => mode === 'use_debanding'),
     uniforms: lowered.uniforms.map(({ name, glsl, uniform }) => {
       if (uniform.hint !== 0 && !['source_color', 'filter_linear', 'hint_range', 'hint_default_black', 'hint_default_white'].some((hint) => uniform.hintName.includes(hint))) {
         return { name, glsl, type: uniform.type.name, default: null };
@@ -257,6 +264,8 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
  */
 const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record<string, boolean>>) => string>> = {
   PanoramaSkyMaterial: (variant) => (variant['filter'] === true ? 'filterOn' : 'filterOff'),
+  ProceduralSkyMaterial: (variant) => `debanding${variant['use_debanding'] === true ? 1 : 0}Cover${variant['sky_cover'] === true ? 1 : 0}`,
+  PhysicalSkyMaterial: (variant) => `debanding${variant['use_debanding'] === true ? 1 : 0}Night${variant['night_sky'] === true ? 1 : 0}`,
 };
 
 /** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */

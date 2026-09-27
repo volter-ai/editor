@@ -8,7 +8,12 @@
  * pipeline emits for the same project, mounted in Node by @react-three/fiber with the copied image
  * sliced on the page, read through compat. A camera's own environment draws a PanoramaSkyMaterial,
  * whose shaders its class generates (captured from the exporter and lowered, `shader-lowering`):
- * its filtering, energy and panorama read back.
+ * its filtering, energy and panorama read back; two more cameras' environments draw a
+ * ProceduralSkyMaterial and a PhysicalSkyMaterial, their properties read back. The directional
+ * lights the sky pass receives (`_setup_sky`: visible, sky mode not `LIGHT_ONLY`, tree order, each
+ * direction, energy, colour and angular size) are read on the native side from the nodes as
+ * `rasterizer_scene_gles3.cpp:741` reads them (the size's `deg_to_rad(float)` re-expressed in
+ * GDScript), against compat's `godot_world_environment_sky_lights` over the mounted scene.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -49,7 +54,7 @@ window/size/viewport_height=64
 renderer/rendering_method="gl_compatibility"
 `,
   'stage/skybox.gdshader': readFileSync(path.join(FIXTURE, 'stage/skybox.gdshader'), 'utf8'),
-  'main.tscn': `[gd_scene load_steps=8 format=3]
+  'main.tscn': `[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Shader" path="res://stage/skybox.gdshader" id="3_s88my"]
 [ext_resource type="CompressedCubemap" path="res://stage/skybox.webp" id="4_ve7pq"]
@@ -85,6 +90,35 @@ background_mode = 2
 sky = SubResource("Sky_7bk1c")
 ambient_light_source = 2
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lg8b7"]
+sky_horizon_color = Color(0.67451, 0.682353, 0.698039, 1)
+sky_curve = 0.0175
+ground_bottom_color = Color(1, 1, 1, 1)
+ground_curve = 0.171484
+sun_angle_max = 12.5
+sky_energy_multiplier = 1.5
+
+[sub_resource type="Sky" id="Sky_procedural"]
+sky_material = SubResource("ProceduralSkyMaterial_lg8b7")
+
+[sub_resource type="Environment" id="Environment_procedural"]
+background_mode = 2
+sky = SubResource("Sky_procedural")
+ambient_light_source = 2
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_1"]
+turbidity = 25.0
+mie_color = Color(0.9, 0.8, 0.7, 1)
+use_debanding = false
+
+[sub_resource type="Sky" id="Sky_physical"]
+sky_material = SubResource("PhysicalSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_physical"]
+background_mode = 2
+sky = SubResource("Sky_physical")
+ambient_light_source = 2
+
 [node name="Main" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -92,6 +126,32 @@ environment = SubResource("Environment_vpofs")
 
 [node name="Camera" type="Camera3D" parent="."]
 environment = SubResource("Environment_camera")
+
+[node name="ProceduralCamera" type="Camera3D" parent="."]
+environment = SubResource("Environment_procedural")
+
+[node name="PhysicalCamera" type="Camera3D" parent="."]
+environment = SubResource("Environment_physical")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 4, 0)
+light_color = Color(1, 0.95, 0.8, 1)
+light_energy = 1.3
+light_angular_distance = 2.5
+
+[node name="LightOnly" type="DirectionalLight3D" parent="."]
+sky_mode = 1
+
+[node name="Hidden" type="DirectionalLight3D" parent="."]
+visible = false
+
+[node name="Group" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, -0.866025, 0, 0.866025, 0.5, 0, 0, 0)
+
+[node name="SkyOnly" type="DirectionalLight3D" parent="Group"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 0, 0, 0)
+light_energy = 0.4
+sky_mode = 2
 `,
 };
 
@@ -109,6 +169,32 @@ func _sha(bytes: PackedByteArray) -> String:
 
 func _panorama(m: PanoramaSkyMaterial) -> Array:
 \treturn [m.filter, _bits(m.energy_multiplier), m.panorama == null]
+
+func _c(c: Color) -> Array:
+\treturn [_bits(c.r), _bits(c.g), _bits(c.b), _bits(c.a)]
+
+func _procedural(m: ProceduralSkyMaterial) -> Array:
+\treturn [_c(m.sky_top_color), _c(m.sky_horizon_color), _bits(m.sky_curve), _bits(m.sky_energy_multiplier), m.sky_cover == null, _c(m.sky_cover_modulate), _c(m.ground_bottom_color), _c(m.ground_horizon_color), _bits(m.ground_curve), _bits(m.ground_energy_multiplier), _bits(m.sun_angle_max), _bits(m.sun_curve), m.use_debanding, _bits(m.energy_multiplier)]
+
+func _physical(m: PhysicalSkyMaterial) -> Array:
+\treturn [_bits(m.rayleigh_coefficient), _c(m.rayleigh_color), _bits(m.mie_coefficient), _bits(m.mie_eccentricity), _c(m.mie_color), _bits(m.turbidity), _bits(m.sun_disk_scale), _c(m.ground_color), _bits(m.energy_multiplier), m.use_debanding, m.night_sky == null]
+
+func _f32(v: float) -> float:
+\treturn PackedFloat32Array([v])[0]
+
+# \`_setup_sky\` (rasterizer_scene_gles3.cpp:741): the visible directional lights not LIGHT_ONLY, in
+# tree order, at most four; direction \`basis.xform(Vector3(0, 0, 1)).normalized()\`, energy,
+# colour as authored, size \`Math::deg_to_rad(float)\`.
+func _sky_lights(node: Node) -> Array:
+\tvar out := []
+\tfor light in node.find_children("*", "DirectionalLight3D", true, false):
+\t\tvar l: DirectionalLight3D = light
+\t\tif not l.is_visible_in_tree() or l.sky_mode == DirectionalLight3D.SKY_MODE_LIGHT_ONLY or out.size() >= 4:
+\t\t\tcontinue
+\t\tvar d := (l.global_transform.basis * Vector3(0, 0, 1)).normalized()
+\t\tvar size := _f32(_f32(l.light_angular_distance) * _f32(_f32(PI) / 180.0))
+\t\tout.append([_bits(d.x), _bits(d.y), _bits(d.z), _bits(l.light_energy), _bits(l.light_color.r), _bits(l.light_color.g), _bits(l.light_color.b), _bits(size)])
+\treturn out
 
 func _process(_delta: float) -> bool:
 \tvar main: Node = load("res://main.tscn").instantiate()
@@ -135,6 +221,9 @@ func _process(_delta: float) -> bool:
 \t\t"material": [material.shader.get_mode(), _bits(material.get_shader_parameter("exposure"))],
 \t\t"faces": faces,
 \t\t"panorama": _panorama(main.get_node("Camera").environment.sky.sky_material),
+\t\t"procedural": _procedural(main.get_node("ProceduralCamera").environment.sky.sky_material),
+\t\t"physical": _physical(main.get_node("PhysicalCamera").environment.sky.sky_material),
+\t\t"skyLights": _sky_lights(main),
 \t}
 \tprint("ENVIRONMENT " + JSON.stringify(rows))
 \treturn true
@@ -164,6 +253,8 @@ import * as SH from './src/lib/godot-compat/shader';
 import * as W from './src/lib/godot-compat/world-environment';
 import * as C3 from './src/lib/godot-compat/camera-3d';
 import * as PS from './src/lib/godot-compat/panorama-sky-material';
+import * as PR from './src/lib/godot-compat/procedural-sky-material';
+import * as PH from './src/lib/godot-compat/physical-sky-material';
 
 const require = createRequire(import.meta.url);
 IMG.godot_image_webp_module(await WebAssembly.compile(readFileSync(require.resolve('@jsquash/webp/codec/dec/webp_dec.wasm'))));
@@ -208,6 +299,17 @@ const rows = {
     const m = SK.get_material(E.get_sky(C3.get_environment(main.getObjectByName('Camera'))));
     return [PS.is_filtering_enabled(m), bits(PS.get_energy_multiplier(m)), PS.get_panorama(m) === null];
   })(),
+  procedural: (() => {
+    const m = SK.get_material(E.get_sky(C3.get_environment(main.getObjectByName('ProceduralCamera'))));
+    const c = (v) => [bits(v.r), bits(v.g), bits(v.b), bits(v.a)];
+    return [c(PR.get_sky_top_color(m)), c(PR.get_sky_horizon_color(m)), bits(PR.get_sky_curve(m)), bits(PR.get_sky_energy_multiplier(m)), PR.get_sky_cover(m) === null, c(PR.get_sky_cover_modulate(m)), c(PR.get_ground_bottom_color(m)), c(PR.get_ground_horizon_color(m)), bits(PR.get_ground_curve(m)), bits(PR.get_ground_energy_multiplier(m)), bits(PR.get_sun_angle_max(m)), bits(PR.get_sun_curve(m)), PR.get_use_debanding(m), bits(PR.get_energy_multiplier(m))];
+  })(),
+  physical: (() => {
+    const m = SK.get_material(E.get_sky(C3.get_environment(main.getObjectByName('PhysicalCamera'))));
+    const c = (v) => [bits(v.r), bits(v.g), bits(v.b), bits(v.a)];
+    return [bits(PH.get_rayleigh_coefficient(m)), c(PH.get_rayleigh_color(m)), bits(PH.get_mie_coefficient(m)), bits(PH.get_mie_eccentricity(m)), c(PH.get_mie_color(m)), bits(PH.get_turbidity(m)), bits(PH.get_sun_disk_scale(m)), c(PH.get_ground_color(m)), bits(PH.get_energy_multiplier(m)), PH.get_use_debanding(m), PH.get_night_sky(m) === null];
+  })(),
+  skyLights: W.godot_world_environment_sky_lights(main).map((l) => [...l.direction.map(bits), bits(l.energy), ...l.color.map(bits), bits(l.size)]),
 };
 await act(async () => { root.unmount(); });
 writeFileSync('environment.json', JSON.stringify(rows));

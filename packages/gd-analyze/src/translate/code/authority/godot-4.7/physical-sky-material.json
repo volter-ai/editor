@@ -1,0 +1,1510 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physical-sky-material"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_rayleigh_coefficient",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_rayleigh_coefficient",
+        "localName": "PhysicalSkyMaterial_get_rayleigh_coefficient",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_rayleigh_coefficient"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_rayleigh_coefficient",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_rayleigh_coefficient",
+        "localName": "PhysicalSkyMaterial_set_rayleigh_coefficient",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_rayleigh_coefficient"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_mie_coefficient",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_mie_coefficient",
+        "localName": "PhysicalSkyMaterial_get_mie_coefficient",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_coefficient"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_mie_coefficient",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_mie_coefficient",
+        "localName": "PhysicalSkyMaterial_set_mie_coefficient",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_coefficient"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_mie_eccentricity",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_mie_eccentricity",
+        "localName": "PhysicalSkyMaterial_get_mie_eccentricity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_eccentricity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_mie_eccentricity",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_mie_eccentricity",
+        "localName": "PhysicalSkyMaterial_set_mie_eccentricity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_eccentricity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_turbidity",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_turbidity",
+        "localName": "PhysicalSkyMaterial_get_turbidity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_turbidity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_turbidity",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_turbidity",
+        "localName": "PhysicalSkyMaterial_set_turbidity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_turbidity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_sun_disk_scale",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_sun_disk_scale",
+        "localName": "PhysicalSkyMaterial_get_sun_disk_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_sun_disk_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_sun_disk_scale",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_sun_disk_scale",
+        "localName": "PhysicalSkyMaterial_set_sun_disk_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_sun_disk_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_energy_multiplier",
+        "localName": "PhysicalSkyMaterial_get_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_energy_multiplier",
+        "localName": "PhysicalSkyMaterial_set_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_rayleigh_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_rayleigh_color",
+        "localName": "PhysicalSkyMaterial_get_rayleigh_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_rayleigh_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_rayleigh_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_rayleigh_color",
+        "localName": "PhysicalSkyMaterial_set_rayleigh_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_rayleigh_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_mie_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_mie_color",
+        "localName": "PhysicalSkyMaterial_get_mie_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_mie_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_mie_color",
+        "localName": "PhysicalSkyMaterial_set_mie_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_ground_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_ground_color",
+        "localName": "PhysicalSkyMaterial_get_ground_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_ground_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_ground_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_ground_color",
+        "localName": "PhysicalSkyMaterial_set_ground_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_ground_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_use_debanding",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_use_debanding",
+        "localName": "PhysicalSkyMaterial_get_use_debanding",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_use_debanding"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_use_debanding",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_use_debanding",
+        "localName": "PhysicalSkyMaterial_set_use_debanding",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_use_debanding"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "get_night_sky",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "get_night_sky",
+        "localName": "PhysicalSkyMaterial_get_night_sky",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.get_night_sky"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicalSkyMaterial",
+        "member": "set_night_sky",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physical-sky-material",
+        "exportName": "set_night_sky",
+        "localName": "PhysicalSkyMaterial_set_night_sky",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicalSkyMaterial.set_night_sky"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_rayleigh_coefficient",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_rayleigh_coefficient\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_rayleigh_coefficient",
+        "sourceLine": 529
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "84e470a1faddd852d0024bf2c11852cebfefc930481fa680c312d73a050dfbb2",
+        "callsite": "res://probe.gd _init() get_rayleigh_coefficient-default",
+        "observedOutputSha256": "7a99f0ae7346635035b7985c70e4df819d12a579c7a098e55f8cb3a7cccf6b40"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_rayleigh_coefficient",
+        "observedOutputSha256": "7a99f0ae7346635035b7985c70e4df819d12a579c7a098e55f8cb3a7cccf6b40"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "da0dd7d0a84298c4d37def24ab8aac74329bc3279104b4464cd342740e105067"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_rayleigh_coefficient",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_rayleigh_coefficient\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_rayleigh_coefficient",
+        "sourceLine": 524
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "91cd1f6481170edcdeff65fd6d29e5809982083211ce46569685522a77e3f8b5",
+        "callsite": "res://probe.gd _init() set_rayleigh_coefficient-0.5 set_rayleigh_coefficient-7.25",
+        "observedOutputSha256": "9935dc8b4843092692680325fdeb8e1510c7b8d2667cfd4ed9955154eaf51415"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_rayleigh_coefficient",
+        "observedOutputSha256": "9935dc8b4843092692680325fdeb8e1510c7b8d2667cfd4ed9955154eaf51415"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e958dc52f3b9d90cdab4640d1b4cf683462787d85cee0c2bf941db34d1dc58e8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_coefficient",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_mie_coefficient\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_mie_coefficient",
+        "sourceLine": 547
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1139451d65b8eec5c652ca98715c892b699404ba07288e1d8e8dfa2db2593463",
+        "callsite": "res://probe.gd _init() get_mie_coefficient-default",
+        "observedOutputSha256": "37ba55750c96c8deccebb8d857f8d53a304e2e9926ba8ed541e30ab67b157fed"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_mie_coefficient",
+        "observedOutputSha256": "37ba55750c96c8deccebb8d857f8d53a304e2e9926ba8ed541e30ab67b157fed"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c27ceed1109a145695cc992a5700ffb55a5d1a5b01baa7ca182506282bd021b9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_coefficient",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_mie_coefficient\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_mie_coefficient",
+        "sourceLine": 542
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a9ee4c9bfbf184fffd7b19602dab00b0813141a82817b8f6fa5a060eeaf65c72",
+        "callsite": "res://probe.gd _init() set_mie_coefficient-0.001 set_mie_coefficient-0.3",
+        "observedOutputSha256": "cfb330ed7b5fa151e04b3a03caeab042e7002ff76b1de800586595810a6f1c22"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_mie_coefficient",
+        "observedOutputSha256": "cfb330ed7b5fa151e04b3a03caeab042e7002ff76b1de800586595810a6f1c22"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9af5c4c74e2fbf89071781088a9bc56884ccaa69010449c0ffe19a914ef16c25"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_eccentricity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_mie_eccentricity\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_mie_eccentricity",
+        "sourceLine": 556
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "487ddd640018e1aeaf9619339ff18552780178c7f455deda6ecc26ed0ff10133",
+        "callsite": "res://probe.gd _init() get_mie_eccentricity-default",
+        "observedOutputSha256": "3bf2b3a46bdc0d51568052ed67569dcc1b4646ed45fff4cfcc929cfda52b0132"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_mie_eccentricity",
+        "observedOutputSha256": "3bf2b3a46bdc0d51568052ed67569dcc1b4646ed45fff4cfcc929cfda52b0132"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "17c43f339cbcb7eac67a19cb8adf2ccf69d40d4683b1b5932601e59f54252382"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_eccentricity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_mie_eccentricity\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_mie_eccentricity",
+        "sourceLine": 551
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "80556d7408ced705cce17655816d0f3e20e991082f023e61cbe3e2de3572331f",
+        "callsite": "res://probe.gd _init() set_mie_eccentricity--0.5 set_mie_eccentricity-0.95",
+        "observedOutputSha256": "c338f1175d79955bda1544927740ea8d27027d520f424dc2affcbf920fda0123"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_mie_eccentricity",
+        "observedOutputSha256": "c338f1175d79955bda1544927740ea8d27027d520f424dc2affcbf920fda0123"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "040cac9f83c77d950ec1606840c2712b1ce478a1ea0c686ac9ae3278c7d93115"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_turbidity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_turbidity\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_turbidity",
+        "sourceLine": 574
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "49e9100971b53b5d4d4d9f0b4e522c5980cf23eb60c214a87c218ccafa66f568",
+        "callsite": "res://probe.gd _init() get_turbidity-default",
+        "observedOutputSha256": "96b7561d175ce96ebde74a4c0c738b08b632843cd27f2d2a34db97e60b62fa56"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_turbidity",
+        "observedOutputSha256": "96b7561d175ce96ebde74a4c0c738b08b632843cd27f2d2a34db97e60b62fa56"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e9ee0aface6e75a949e191c23e3df6958fba20a3c8d9a12d64661f116559a67c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_turbidity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_turbidity\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_turbidity",
+        "sourceLine": 569
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "41768488486f961ba3b757e9dbb8bbe8b57bb804bb0eb855938c1b6f5c1e6039",
+        "callsite": "res://probe.gd _init() set_turbidity-3.5 set_turbidity-100",
+        "observedOutputSha256": "acfc16922a9aa196aa86a351ab52d01fee997d8d5b9187ca4e809d4a6f640b00"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_turbidity",
+        "observedOutputSha256": "acfc16922a9aa196aa86a351ab52d01fee997d8d5b9187ca4e809d4a6f640b00"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "875eae209e83b25ce362fd7f725f2b7b91131c13730ed426d94ec57715370eb3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_sun_disk_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_sun_disk_scale\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_sun_disk_scale",
+        "sourceLine": 583
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d1b1108c5289c68f273c44628abe36b85258fc06bb72e35cc3017ad93a7385f9",
+        "callsite": "res://probe.gd _init() get_sun_disk_scale-default",
+        "observedOutputSha256": "7e4c520048df11c6e15759118d902ecfc75724f3a2cbb9c3eabd34dcb541e876"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_sun_disk_scale",
+        "observedOutputSha256": "7e4c520048df11c6e15759118d902ecfc75724f3a2cbb9c3eabd34dcb541e876"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d9a829b25d36522d0af6df3e24988eca3ccf5b4ef3e0d829fbd10b957f692363"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_sun_disk_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_sun_disk_scale\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_sun_disk_scale",
+        "sourceLine": 578
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d1d4693558633add66ba55b58c7a3823fca7a48f1538bbc6f6082d49ef543f5a",
+        "callsite": "res://probe.gd _init() set_sun_disk_scale-0.5 set_sun_disk_scale-12",
+        "observedOutputSha256": "833a433d5300e0bf91a58787ea8d9d4ec7b0ed0f62b25a6b66226dfc4803fafd"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_sun_disk_scale",
+        "observedOutputSha256": "833a433d5300e0bf91a58787ea8d9d4ec7b0ed0f62b25a6b66226dfc4803fafd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6163ecb449dbeba5dd35800ed0ab3246234a9bae07db5abe891441623da1ff57"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_energy_multiplier\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_energy_multiplier",
+        "sourceLine": 601
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "69dd800664b97e7a28b284404ae2d3319dc4a66a90012e640556a203074242a6",
+        "callsite": "res://probe.gd _init() get_energy_multiplier-default",
+        "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_energy_multiplier",
+        "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8748716c18f62d0e1e25640362b9076dacdcb91dc068b92975f2ce69d32db288"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_energy_multiplier\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_energy_multiplier",
+        "sourceLine": 596
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4b8ea43d4c75f7c223ade2f2212231c81b5159464513fdd3658fe8d383094eb1",
+        "callsite": "res://probe.gd _init() set_energy_multiplier-0.5 set_energy_multiplier-16",
+        "observedOutputSha256": "244abbffddbf3f3ef06b441f0378337b644e77aab14d9b0b74296cbb91462de8"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_energy_multiplier",
+        "observedOutputSha256": "244abbffddbf3f3ef06b441f0378337b644e77aab14d9b0b74296cbb91462de8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b92465f0d30c817530c3427a577f8a194069384dcf96d4ec735f9be4fde67b55"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_rayleigh_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_rayleigh_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_rayleigh_color",
+        "sourceLine": 538
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bad14ea706451b5d21b0ac722c33e57353b3587b49f1097ca06d67a161d80cd6",
+        "callsite": "res://probe.gd _init() get_rayleigh_color-default",
+        "observedOutputSha256": "9dce364d8256c6d4e6fc468d22a5d75fa6e5c61656fdeedda23f05d99f143baf"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_rayleigh_color",
+        "observedOutputSha256": "9dce364d8256c6d4e6fc468d22a5d75fa6e5c61656fdeedda23f05d99f143baf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "871ed7f81dc655b4ce01e6ea0c6bc7d7366440228c3fa330565d483017a4818e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_rayleigh_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_rayleigh_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_rayleigh_color",
+        "sourceLine": 533
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "68b4c1b8966a56e933e7145f9a19c8980ba8810df266b83a1ebd24a0e6222cd1",
+        "callsite": "res://probe.gd _init() set_rayleigh_color",
+        "observedOutputSha256": "d77a527492b03bb77e1f8a7397717dedd63922b49f82425c34db87040045119a"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_rayleigh_color",
+        "observedOutputSha256": "d77a527492b03bb77e1f8a7397717dedd63922b49f82425c34db87040045119a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "38556feed114c3b3777223831a3492e97f6facbd21a881686be597b8b79200a2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_mie_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_mie_color",
+        "sourceLine": 565
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "67763e71c85adfe193398f13f5b4f85d41f0d794bcd846ff841570cf558bfa20",
+        "callsite": "res://probe.gd _init() get_mie_color-default",
+        "observedOutputSha256": "db3d69146fe21839fb13a226218a9c324f2f5219618a7df339325f9e0726c029"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_mie_color",
+        "observedOutputSha256": "db3d69146fe21839fb13a226218a9c324f2f5219618a7df339325f9e0726c029"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "989a8d7cfeb27a41f2582453c6567d052da96fbb600668f11b6d6d3766d990f6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_mie_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_mie_color",
+        "sourceLine": 560
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "56aa9aa5f596db0f2ff3a193887d573a713fd0804dc32625010b709c2187e0a7",
+        "callsite": "res://probe.gd _init() set_mie_color",
+        "observedOutputSha256": "1eea9dd48beb058d92b1e6917b7ec221f6126a2379f607c3420601c052ac2579"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_mie_color",
+        "observedOutputSha256": "1eea9dd48beb058d92b1e6917b7ec221f6126a2379f607c3420601c052ac2579"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4a5efab0c98203d075cdd14ff96f722d284cc871b0629698b8d5f27c6d5f5462"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_ground_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_ground_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_ground_color",
+        "sourceLine": 592
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "50672b9abd0b9743e669177d0d4791e72a7ea5cb516d125f77dcfd4b133684a7",
+        "callsite": "res://probe.gd _init() get_ground_color-default",
+        "observedOutputSha256": "58718c90e44c5399b68c927fc7d4d56459a1cf28672e293731d3ba6b4d40c41b"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_ground_color",
+        "observedOutputSha256": "58718c90e44c5399b68c927fc7d4d56459a1cf28672e293731d3ba6b4d40c41b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d4a6634902722d9444b12e47c88bb6f977cc006df78760de30948a60cafb7bbd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_ground_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_ground_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_ground_color",
+        "sourceLine": 587
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b6c97a3748daa5c571620c63d5b5b9551f37c53ec01d5c38348b2d95ef146ddd",
+        "callsite": "res://probe.gd _init() set_ground_color",
+        "observedOutputSha256": "2a202d8a142db7b2378e316df2f2ddf420a889b27acc01a6db0b52baa829a039"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_ground_color",
+        "observedOutputSha256": "2a202d8a142db7b2378e316df2f2ddf420a889b27acc01a6db0b52baa829a039"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7e5a974e999b407689c938cfb0a480d17ca64c0e83abd39d2b81376991febe0c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_use_debanding",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_use_debanding\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_use_debanding",
+        "sourceLine": 614
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4ca9cee44af2f92197052c9e92a2be800d991a7ee0ee35a13f8f0c286d1cdfd3",
+        "callsite": "res://probe.gd _init() get_use_debanding-default",
+        "observedOutputSha256": "687219f3fef5b0ea23c592de2f56ad0b5b87d6fabcf442cd3b470e6a20d7c649"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_use_debanding",
+        "observedOutputSha256": "687219f3fef5b0ea23c592de2f56ad0b5b87d6fabcf442cd3b470e6a20d7c649"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7bc011e90333cf68e24e1c05487063b2f87686794bf359f90458b15b6e6e3836"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_use_debanding",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_use_debanding\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_use_debanding",
+        "sourceLine": 605
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a46c0e8dd51bb9ec00e88043c099384c411af928982f6afce17d3c8f4c5d02fc",
+        "callsite": "res://probe.gd _init() set_use_debanding-false",
+        "observedOutputSha256": "1e7dfc0bdb8d9a49136b4795a2ecad9b5375b359b59d87eb0681b8d4e654702b"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_use_debanding",
+        "observedOutputSha256": "1e7dfc0bdb8d9a49136b4795a2ecad9b5375b359b59d87eb0681b8d4e654702b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fe2a2bb8454212cbf77a0aa0d0e60fc080d1f57c849cdb055c17ecafd4c9000b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_night_sky",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000get_night_sky\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.get_night_sky",
+        "sourceLine": 633
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6e52e9c24b4bae4c3686cbdf74d6a3448d21d4e00a481343044a9c42418a4a62",
+        "callsite": "res://probe.gd _init() get_night_sky-default",
+        "observedOutputSha256": "ad46b8f3342f32cb796a7371a822e8faee018dfe04b1d9e41b9c66b7e79ba5fb"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts get_night_sky",
+        "observedOutputSha256": "ad46b8f3342f32cb796a7371a822e8faee018dfe04b1d9e41b9c66b7e79ba5fb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f2ee751d47afa1eb8cf2f83b697173933601d78dc334c651275abe65ffd5172f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_night_sky",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicalSkyMaterial\u0000set_night_sky\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "PhysicalSkyMaterial.set_night_sky",
+        "sourceLine": 618
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d056ba174b418ad13247a59ebbc10368c6a5ffacc94323b59a87cf62e04502c5",
+        "callsite": "res://probe.gd _init() set_night_sky",
+        "observedOutputSha256": "4208fc731d048187cacc582ff4df9662d68a91f448086e1fbe0227e3e986de05"
+      },
+      "target": {
+        "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f",
+        "callsite": "lib/godot-compat/physical-sky-material.ts set_night_sky",
+        "observedOutputSha256": "4208fc731d048187cacc582ff4df9662d68a91f448086e1fbe0227e3e986de05"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dcf30a5b0d30a5ddb7373d9f33fb7e50dcc20549b3995bd49b57d58b0293b9c0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physical-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_rayleigh_coefficient",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "84e470a1faddd852d0024bf2c11852cebfefc930481fa680c312d73a050dfbb2",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_rayleigh_coefficient",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "91cd1f6481170edcdeff65fd6d29e5809982083211ce46569685522a77e3f8b5",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_coefficient",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1139451d65b8eec5c652ca98715c892b699404ba07288e1d8e8dfa2db2593463",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_coefficient",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a9ee4c9bfbf184fffd7b19602dab00b0813141a82817b8f6fa5a060eeaf65c72",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_eccentricity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "487ddd640018e1aeaf9619339ff18552780178c7f455deda6ecc26ed0ff10133",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_eccentricity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "80556d7408ced705cce17655816d0f3e20e991082f023e61cbe3e2de3572331f",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_turbidity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "49e9100971b53b5d4d4d9f0b4e522c5980cf23eb60c214a87c218ccafa66f568",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_turbidity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "41768488486f961ba3b757e9dbb8bbe8b57bb804bb0eb855938c1b6f5c1e6039",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_sun_disk_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d1b1108c5289c68f273c44628abe36b85258fc06bb72e35cc3017ad93a7385f9",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_sun_disk_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d1d4693558633add66ba55b58c7a3823fca7a48f1538bbc6f6082d49ef543f5a",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "69dd800664b97e7a28b284404ae2d3319dc4a66a90012e640556a203074242a6",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4b8ea43d4c75f7c223ade2f2212231c81b5159464513fdd3658fe8d383094eb1",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_rayleigh_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bad14ea706451b5d21b0ac722c33e57353b3587b49f1097ca06d67a161d80cd6",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_rayleigh_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "68b4c1b8966a56e933e7145f9a19c8980ba8810df266b83a1ebd24a0e6222cd1",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_mie_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "67763e71c85adfe193398f13f5b4f85d41f0d794bcd846ff841570cf558bfa20",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_mie_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "56aa9aa5f596db0f2ff3a193887d573a713fd0804dc32625010b709c2187e0a7",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_ground_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "50672b9abd0b9743e669177d0d4791e72a7ea5cb516d125f77dcfd4b133684a7",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_ground_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b6c97a3748daa5c571620c63d5b5b9551f37c53ec01d5c38348b2d95ef146ddd",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_use_debanding",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4ca9cee44af2f92197052c9e92a2be800d991a7ee0ee35a13f8f0c286d1cdfd3",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_use_debanding",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a46c0e8dd51bb9ec00e88043c099384c411af928982f6afce17d3c8f4c5d02fc",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.get_night_sky",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6e52e9c24b4bae4c3686cbdf74d6a3448d21d4e00a481343044a9c42418a4a62",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicalSkyMaterial.set_night_sky",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d056ba174b418ad13247a59ebbc10368c6a5ffacc94323b59a87cf62e04502c5",
+      "implementationSha256": "142a853a9ea1a9bbdbdeb66e75cc6a91b240e1c156c84c5e99261589267b188f"
+    }
+  ]
+}

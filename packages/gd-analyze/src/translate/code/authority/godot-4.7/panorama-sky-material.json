@@ -154,7 +154,7 @@
         "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
       },
       "target": {
-        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b",
         "callsite": "lib/godot-compat/panorama-sky-material.ts get_energy_multiplier",
         "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
       },
@@ -193,7 +193,7 @@
         "observedOutputSha256": "a1c9209528694215f8b57cb7546ad70539f55eb41ab41e5dde7cec6627257a51"
       },
       "target": {
-        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b",
         "callsite": "lib/godot-compat/panorama-sky-material.ts set_energy_multiplier",
         "observedOutputSha256": "a1c9209528694215f8b57cb7546ad70539f55eb41ab41e5dde7cec6627257a51"
       },
@@ -232,7 +232,7 @@
         "observedOutputSha256": "ec1592d018fddce075951ec8bd4b32dff168af0cf5a36e983870e4ac041fe93c"
       },
       "target": {
-        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b",
         "callsite": "lib/godot-compat/panorama-sky-material.ts is_filtering_enabled",
         "observedOutputSha256": "ec1592d018fddce075951ec8bd4b32dff168af0cf5a36e983870e4ac041fe93c"
       },
@@ -271,7 +271,7 @@
         "observedOutputSha256": "681f82b937073aa7d5199058960739a15c2dd948f5ff37858346147c076a806d"
       },
       "target": {
-        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b",
         "callsite": "lib/godot-compat/panorama-sky-material.ts set_filtering_enabled",
         "observedOutputSha256": "681f82b937073aa7d5199058960739a15c2dd948f5ff37858346147c076a806d"
       },
@@ -310,7 +310,7 @@
         "observedOutputSha256": "3ef7e8825ec1f84ec888883f95b2bc2c177ae37dc6e18b74798108b07b2d3885"
       },
       "target": {
-        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b",
         "callsite": "lib/godot-compat/panorama-sky-material.ts get_panorama",
         "observedOutputSha256": "3ef7e8825ec1f84ec888883f95b2bc2c177ae37dc6e18b74798108b07b2d3885"
       },
@@ -349,7 +349,7 @@
         "observedOutputSha256": "503a484384573aa0c2c2d52db57a779c865d9caaad03537b9abfd602fb142105"
       },
       "target": {
-        "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b",
+        "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b",
         "callsite": "lib/godot-compat/panorama-sky-material.ts set_panorama",
         "observedOutputSha256": "503a484384573aa0c2c2d52db57a779c865d9caaad03537b9abfd602fb142105"
       },
@@ -376,7 +376,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "aeaa4d6e72467278ba5d0e1a41b101751096a0f956f3c94ac7bf8969b2daa1b9",
-      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+      "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b"
     },
     {
       "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_energy_multiplier",
@@ -384,7 +384,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "197452bcc465206a285b2da7e1d6806c9b272d490c5495f576df114cb56e3b6d",
-      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+      "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b"
     },
     {
       "claimId": "godot-4.7-binding-PanoramaSkyMaterial.is_filtering_enabled",
@@ -392,7 +392,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c24a78d50528a806c23c94784429adb9c3df5c7c35e855ded00c071b5055eb3f",
-      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+      "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b"
     },
     {
       "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_filtering_enabled",
@@ -400,7 +400,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3db2a1bd99a0342db1e79ecb8e9255a33840bf3171add341106ab2bee30cdbd9",
-      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+      "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b"
     },
     {
       "claimId": "godot-4.7-binding-PanoramaSkyMaterial.get_panorama",
@@ -408,7 +408,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "96b10b116d184dec3fda205cbcf680b5ae419b35cd06c111755ee1c8e46e9e3d",
-      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+      "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b"
     },
     {
       "claimId": "godot-4.7-binding-PanoramaSkyMaterial.set_panorama",
@@ -416,7 +416,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "23f83d5174095d8d320999ecf57034f190f0a721aafa40f7ff3b8c8b0f947b9c",
-      "implementationSha256": "c06d276b86564fffd803f701d423dfcdad919e32c8511aab14a408bd854b6e7b"
+      "implementationSha256": "83eec05de44c9e048cc663c7c02438c409b29102a9e908070e2bd166f237ac3b"
     }
   ]
 }

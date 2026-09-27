@@ -5,7 +5,7 @@ import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { resourceCases } from './resource-cases';
 
 const c = resourceCases('ShaderMaterial');
-const lowered = { mode: 'sky', uniforms: [{ name: 'exposure', glsl: 'godot_u_exposure', type: 'float', default: [1] }], functions: '', entry: '' };
+const lowered = { mode: 'sky', renderModes: [], uniforms: [{ name: 'exposure', glsl: 'godot_u_exposure', type: 'float', default: [1] }], functions: '', entry: '' };
 c.add('set_shader', 'set_shader', ['var m := ShaderMaterial.new()', 'var s := Shader.new()', 's.code = "shader_type sky; uniform float exposure = 1.0; void sky() {}"', 'm.set_shader(s)', 'return m.get_shader() == s'], () => {
   const m = SM.construct();
   const s = SH.godot_shader_new(lowered);

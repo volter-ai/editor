@@ -81,6 +81,17 @@ function directions(count: number): readonly (readonly number[])[] {
 /** A cubemap stand-in: a smooth colour of the direction. */
 const cube: ShaderSampler = (d) => [f32(0.5 + 0.5 * (d[0] as number)), f32(0.5 + 0.25 * (d[1] as number)), f32(0.75 - 0.25 * (d[2] as number)), 1];
 
+/**
+ * The sky pass's directional lights at sample values (`_setup_sky` fills at most four): two the
+ * sky sees, the rest disabled with zeroed data, as the renderer leaves them.
+ */
+const SKY_LIGHTS: readonly { readonly enabled: boolean; readonly direction: readonly number[]; readonly energy: number; readonly color: readonly number[]; readonly size: number }[] = [
+  { enabled: true, direction: [f32(0.36), f32(0.48), f32(-0.8)], energy: f32(1.5), color: [f32(1), f32(0.9), f32(0.75)], size: f32(0.05) },
+  { enabled: true, direction: [f32(-0.6), f32(0.8), f32(0)], energy: f32(0.7), color: [f32(0.5), f32(0.6), f32(1)], size: f32(0.2) },
+  { enabled: false, direction: [0, 0, 0], energy: 0, color: [0, 0, 0], size: 0 },
+  { enabled: false, direction: [0, 0, 0], energy: 0, color: [0, 0, 0], size: 0 },
+];
+
 /** A 2D panorama stand-in: a smooth colour of the coordinates. */
 const flat: ShaderSampler = (uv) => [f32(0.25 + 0.5 * (uv[0] as number)), f32(0.75 - 0.5 * (uv[1] as number)), f32(0.5), 1];
 
@@ -137,6 +148,13 @@ export function measureShaderLoweringProof(tools: GodotProofTools): readonly God
           ['PI', f32(Number(GODOT_SKY_SHADER_BUILTINS['PI']))],
           ['COLOR', [0, 0, 0]],
           ['ALPHA', 1],
+          ...SKY_LIGHTS.flatMap((light, n): [string, ShaderValue][] => [
+            [`LIGHT${String(n)}_ENABLED`, light.enabled],
+            [`LIGHT${String(n)}_DIRECTION`, light.direction],
+            [`LIGHT${String(n)}_ENERGY`, light.energy],
+            [`LIGHT${String(n)}_COLOR`, light.color],
+            [`LIGHT${String(n)}_SIZE`, light.size],
+          ]),
         ]);
         evaluateGodotShaderTree(shader.tree, 'sky', builtins, defaults as ReadonlyMap<string, ShaderValue | ShaderSampler>);
         rows.push([builtins.get('COLOR'), builtins.get('ALPHA')]);
@@ -146,6 +164,13 @@ export function measureShaderLoweringProof(tools: GodotProofTools): readonly God
           ['time', f32(1.25)],
           ['color', [0, 0, 0]],
           ['alpha', 1],
+          ...SKY_LIGHTS.flatMap((light, n): [string, ShaderValue][] => [
+            [`godot_sky_light${String(n)}_enabled`, light.enabled],
+            [`godot_sky_light${String(n)}_direction`, light.direction],
+            [`godot_sky_light${String(n)}_energy`, light.energy],
+            [`godot_sky_light${String(n)}_color`, light.color],
+            [`godot_sky_light${String(n)}_size`, light.size],
+          ]),
         ]);
         for (const uniform of lowering.uniforms) variables.set(uniform.glsl, defaults.get(uniform.name) as ShaderValue | ShaderSampler);
         // The printed helper functions, then the entry body.

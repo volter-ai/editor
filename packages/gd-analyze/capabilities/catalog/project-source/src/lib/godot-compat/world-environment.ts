@@ -9,7 +9,11 @@
  *   whose fragment code is the renderer's sky pass (`drivers/gles3/shaders/sky.glsl:184`: the view
  *   direction `cube_normal`, the panorama coordinates by its own `atan2`/`acos` approximations,
  *   `color` and `alpha`, the shader's lowered `sky()` body, then `sky_energy_multiplier` and the
- *   conversion to linear by `srgb_to_linear`'s polynomial); a colour background is the scene's
+ *   conversion to linear by `srgb_to_linear`'s polynomial), its `LIGHTn_*` built-ins filled each
+ *   frame as `_setup_sky` fills the sky's light buffer (`rasterizer_scene_gles3.cpp:741`): up to
+ *   four directional lights the sky sees (sky mode not `LIGHT_ONLY`), each its direction
+ *   `basis * (0, 0, 1)` normalized, its energy, its colour as authored and its size in radians,
+ *   the rest disabled; a colour background is the scene's
  *   clear colour (`scene.background`), scaled by the energy multiplier;
  * - a constant-colour ambient (`AMBIENT_SOURCE_COLOR`, or the background's colour) is a three
  *   `AmbientLight`: the renderer adds `ambient_light_color_energy * albedo * (1 - metallic)`
@@ -29,7 +33,10 @@
  * `FogExp2` by `1 - exp(-(depth * density)^2)` per fragment; height fog and sun scatter are not
  * drawn, nor fog on the sky); `sky-radiance` (the sky's radiance, which Godot's materials reflect and
  * an ambient source of `SKY` lights with, is not captured: a scene whose ambient comes from the sky
- * refuses, and reflections of it are not drawn); `srgb-output` (three writes sRGB with the exact
+ * refuses, and reflections of it are not drawn); `sky-light-order` (the sky's lights are the
+ * visible directional lights in scene-tree order, where Godot takes them in the order they entered
+ * the world: the same for authored scenes, possibly different for lights a script adds or moves);
+ * `srgb-output` (three writes sRGB with the exact
  * transfer function where Godot uses `linear_to_srgb`'s approximation, `tonemap_inc.glsl:14`).
  */
 
@@ -43,12 +50,14 @@ import {
   type Camera,
   BackSide,
   Color as ThreeColor,
+  type DirectionalLight,
   type CubeTexture,
   CustomToneMapping,
   FogExp2,
   Group,
   type Material,
   Mesh,
+  type Object3D,
   type PerspectiveCamera,
   type Scene,
   ShaderChunk,
@@ -59,6 +68,7 @@ import {
 import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
 import { get_environment as get_camera_environment, godot_camera_3d_world_listener } from './camera-3d';
+import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
 import { godot_node_foreign } from './node';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
@@ -207,6 +217,7 @@ function skyFragment(shader: Shader): string {
   return `#define M_PI 3.14159265359
 uniform float sky_energy_multiplier;
 uniform float time;
+${SKY_LIGHT_UNIFORMS}
 varying vec3 vGodotSkyDirection;
 ${lowered.uniforms.map((uniform) => `uniform ${uniform.type} ${uniform.glsl};`).join('\n')}
 
@@ -251,8 +262,78 @@ ${lowered.entry}
 	gl_FragColor = vec4(color, alpha);
 	#include <tonemapping_fragment>
 	#include <colorspace_fragment>
-}
+${lowered.renderModes.includes('use_debanding') ? SKY_DEBANDING : ''}}
 `;
+}
+
+/**
+ * `render_mode use_debanding`: the sky pass's noise added to its sRGB output (`sky.glsl:134`,
+ * `:276`), `luminance_multiplier` 1 (named `post-buffer-precision` where the post pass draws).
+ */
+const SKY_DEBANDING = `	{
+		const vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+		float res = fract(magic.z * fract(dot(gl_FragCoord.xy, magic.xy))) * 2.0 - 1.0;
+		gl_FragColor.rgb += vec3(res, -res, res) / 255.0 * sky_energy_multiplier;
+	}
+`;
+
+/** The sky pass's four directional lights, one set of uniforms per `LIGHTn` (`sky-shader.ts`). */
+const SKY_LIGHTS = 4;
+const SKY_LIGHT_UNIFORMS = Array.from({ length: SKY_LIGHTS }, (_, n) =>
+  [`uniform bool godot_sky_light${String(n)}_enabled;`, `uniform vec3 godot_sky_light${String(n)}_direction;`, `uniform float godot_sky_light${String(n)}_energy;`, `uniform vec3 godot_sky_light${String(n)}_color;`, `uniform float godot_sky_light${String(n)}_size;`].join('\n'),
+).join('\n');
+
+/** One directional light as the sky pass receives it. */
+export interface GodotWorldSkyLight extends GodotSkyLight {
+  /** `basis.xform(Vector3(0, 0, 1)).normalized()`, in float. */
+  readonly direction: readonly [number, number, number];
+}
+
+/**
+ * The directional lights `scene` hands its sky pass, as `_setup_sky` fills the light buffer: the
+ * visible ones the sky sees (sky mode not `LIGHT_ONLY`), in scene order, at most four.
+ *
+ * @godot WorldEnvironment (protocol)
+ * @source drivers/gles3/rasterizer_scene_gles3.cpp:741
+ */
+export function godot_world_environment_sky_lights(scene: Object3D): GodotWorldSkyLight[] {
+  const f32 = Math.fround;
+  const lights: GodotWorldSkyLight[] = [];
+  const visit = (object: Object3D): void => {
+    if (!object.visible || lights.length >= SKY_LIGHTS) return;
+    if ((object as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
+      const sky = godot_light_3d_sky_light(object as DirectionalLight);
+      if (sky !== null) {
+        object.updateWorldMatrix(true, false);
+        const e = object.matrixWorld.elements;
+        // `Vector3::normalize` (`vector3.h:548`) in float.
+        const [x, y, z] = [f32(e[8] as number), f32(e[9] as number), f32(e[10] as number)];
+        const length = f32(Math.sqrt(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z))));
+        const direction: [number, number, number] = length === 0 ? [0, 0, 0] : [f32(x / length), f32(y / length), f32(z / length)];
+        lights.push({ ...sky, direction });
+      }
+    }
+    for (const child of object.children) visit(child);
+  };
+  visit(scene);
+  return lights;
+}
+
+/** Fills a sky material's light uniforms from `scene`'s sky lights, the rest disabled. */
+function updateSkyLights(three: ThreeShaderMaterial, scene: Object3D): void {
+  const lights = godot_world_environment_sky_lights(scene);
+  for (let n = 0; n < SKY_LIGHTS; n += 1) {
+    const entry = lights[n];
+    const set = (name: string, value: unknown) => {
+      (three.uniforms[`godot_sky_light${String(n)}_${name}`] as { value: unknown }).value = value;
+    };
+    set('enabled', entry !== undefined);
+    if (entry === undefined) continue;
+    set('direction', [...entry.direction]);
+    set('energy', entry.energy);
+    set('color', [...entry.color]);
+    set('size', entry.size);
+  }
 }
 
 const SKY_VERTEX = `varying vec3 vGodotSkyDirection;
@@ -291,6 +372,15 @@ export function godot_sky_material_three(material: ShaderMaterial, energy: numbe
   if (shader === null) throw new Error('godot-compat: a sky material without a shader draws nothing.');
   if (shader.lowered.mode !== 'sky') throw new Error(`godot-compat: a ${shader.lowered.mode} shader cannot draw a sky.`);
   const uniforms: Record<string, { value: unknown }> = { sky_energy_multiplier: { value: energy }, time: { value: 0 } };
+  for (let n = 0; n < SKY_LIGHTS; n += 1) {
+    Object.assign(uniforms, {
+      [`godot_sky_light${String(n)}_enabled`]: { value: false },
+      [`godot_sky_light${String(n)}_direction`]: { value: [0, 0, 1] },
+      [`godot_sky_light${String(n)}_energy`]: { value: 0 },
+      [`godot_sky_light${String(n)}_color`]: { value: [0, 0, 0] },
+      [`godot_sky_light${String(n)}_size`]: { value: 0 },
+    });
+  }
   for (const uniform of shader.lowered.uniforms) uniforms[uniform.glsl] = { value: uniformValue(material, uniform) };
   const three = new ThreeShaderMaterial({
     uniforms,
@@ -446,9 +536,10 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () 
       const box = new Mesh(new BoxGeometry(1, 1, 1), godot_sky_material_three(sky, env.bg_energy_multiplier));
       box.frustumCulled = false;
       box.renderOrder = -Number.MAX_SAFE_INTEGER;
-      box.onBeforeRender = (_renderer, _scene, camera) => {
+      box.onBeforeRender = (_renderer, drawnScene, camera) => {
         box.position.setFromMatrixPosition(camera.matrixWorld);
         box.updateMatrixWorld();
+        updateSkyLights(box.material as ThreeShaderMaterial, drawnScene);
       };
       godot_node_foreign(box);
       scene.add(box);

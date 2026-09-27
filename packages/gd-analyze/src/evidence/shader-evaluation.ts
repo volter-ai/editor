@@ -239,6 +239,8 @@ export function evaluateGodotShaderTree(
     }
   };
   const samplerOf = (value: ShaderValue): ShaderSampler | undefined => (typeof value === 'function' ? (value as ShaderSampler) : undefined);
+  // The shader's global constants, each its initializer's value, in declaration order.
+  const constants = new Map<string, ShaderValue>();
   const read = (node: GodotShaderNode): ShaderValue => {
     switch (node.kind) {
       case 'CONSTANT':
@@ -246,6 +248,7 @@ export function evaluateGodotShaderTree(
       case 'VARIABLE': {
         if (node.local) return locals.get(node.name) as ShaderValue;
         if (uniforms.has(node.name)) return uniforms.get(node.name) as ShaderValue;
+        if (constants.has(node.name)) return constants.get(node.name) as ShaderValue;
         const value = builtins.get(node.name);
         if (value === undefined) throw new Error(`the built-in ${node.name} has no sample value`);
         return value;
@@ -324,6 +327,10 @@ export function evaluateGodotShaderTree(
         read(node);
     }
   };
+  for (const constant of tree.constants) {
+    if (constant.initializer === null) throw new Error(`the constant ${constant.name} has no initializer`);
+    constants.set(constant.name, read(constant.initializer));
+  }
   try {
     run(fn.body);
   } catch (error) {

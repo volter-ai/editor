@@ -10,7 +10,7 @@ for (const [mode, body] of [
   ['canvas_item', 'void fragment() {}'],
 ] as const) {
   c.add(`get_mode-${mode}`, 'get_mode', ['var s := Shader.new()', `s.code = "shader_type ${mode}; ${body}"`, 'return s.get_mode()'], () =>
-    SH.get_mode(SH.godot_shader_new({ mode, uniforms: [], functions: '', entry: '' })),
+    SH.get_mode(SH.godot_shader_new({ mode, renderModes: [], uniforms: [], functions: '', entry: '' })),
   );
 }
 

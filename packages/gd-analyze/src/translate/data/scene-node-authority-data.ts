@@ -324,7 +324,7 @@ export const GODOT_SCENE_ENVIRONMENT_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
   'packages/gd-analyze/src/translate/artifacts/plan.ts',
   'packages/gd-analyze/src/translate/translation-plan.ts',
-  ...['environment.ts', 'sky.ts', 'shader.ts', 'shader-material.ts', 'panorama-sky-material.ts', 'compressed-cubemap.ts', 'world-environment.ts', 'image.ts', 'react-lifecycle.tsx', 'node.ts'].map((file) => `${COMPAT}/${file}`),
+  ...['environment.ts', 'sky.ts', 'shader.ts', 'shader-material.ts', 'panorama-sky-material.ts', 'procedural-sky-material.ts', 'physical-sky-material.ts', 'light-3d.ts', 'compressed-cubemap.ts', 'world-environment.ts', 'image.ts', 'react-lifecycle.tsx', 'node.ts'].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
 /** What the shader-lowering proof runs: the exporter's shader export, its reader, the lowering and both evaluators. */

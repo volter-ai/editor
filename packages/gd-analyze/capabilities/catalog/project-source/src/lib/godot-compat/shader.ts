@@ -23,6 +23,8 @@ export interface GodotShaderUniform {
 /** The lowered code: the GLSL the import printed from Godot's own parse of the shader. */
 export interface GodotLoweredShader {
   readonly mode: string;
+  /** The `render_mode`s the sky pass acts on (`use_debanding`). */
+  readonly renderModes: readonly string[];
   readonly uniforms: readonly GodotShaderUniform[];
   readonly functions: string;
   readonly entry: string;

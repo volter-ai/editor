@@ -316,6 +316,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   Sky: ['set_material', 'set_radiance_size', 'set_process_mode'],
   PanoramaSkyMaterial: ['set_panorama', 'set_filtering_enabled', 'set_energy_multiplier'],
+  ProceduralSkyMaterial: ['set_sky_top_color', 'set_sky_horizon_color', 'set_sky_curve', 'set_sky_energy_multiplier', 'set_sky_cover', 'set_sky_cover_modulate', 'set_ground_bottom_color', 'set_ground_horizon_color', 'set_ground_curve', 'set_ground_energy_multiplier', 'set_sun_angle_max', 'set_sun_curve', 'set_use_debanding', 'set_energy_multiplier'],
+  PhysicalSkyMaterial: ['set_rayleigh_coefficient', 'set_rayleigh_color', 'set_mie_coefficient', 'set_mie_eccentricity', 'set_mie_color', 'set_turbidity', 'set_sun_disk_scale', 'set_ground_color', 'set_energy_multiplier', 'set_use_debanding', 'set_night_sky'],
   ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],
   Shader: [],
   CompressedCubemap: [],
