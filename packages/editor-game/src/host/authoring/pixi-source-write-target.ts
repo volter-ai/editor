@@ -119,9 +119,12 @@ const CREATE_SNIPPETS: Readonly<Record<string, string>> = {
   nineSliceSprite: '<pixiNineSliceSprite label="NineSliceSprite" texture={Texture.WHITE} width={100} height={100} />',
   bitmapText: '<pixiBitmapText label="BitmapText" text="BitmapText" />',
   htmlText: '<pixiHTMLText label="HTMLText" text="HTMLText" />',
+  meshPlane: '<pixiMeshPlane label="MeshPlane" texture={Texture.WHITE} width={100} height={100} />',
+  perspectiveMesh: '<pixiPerspectiveMesh label="PerspectiveMesh" texture={Texture.WHITE} width={100} height={100} />',
+  particleContainer: '<pixiParticleContainer label="ParticleContainer" />',
 };
 /** A kind whose snippet names Pixi's `Texture`, which the file must then import. */
-const TEXTURE_SNIPPET_KINDS = new Set(['animatedSprite', 'tilingSprite', 'nineSliceSprite']);
+const TEXTURE_SNIPPET_KINDS = new Set(['animatedSprite', 'tilingSprite', 'nineSliceSprite', 'meshPlane', 'perspectiveMesh']);
 
 function isHiddenProp(name: string): boolean {
   return HIDDEN_PROPS.has(name) || /^on[A-Z]/.test(name) || name.startsWith('__vgai');

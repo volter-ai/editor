@@ -439,6 +439,18 @@ function createDisplayObject(pixi: CanvasPixiNamespace, kind: string): Container
       return new pixi.BitmapText({ text: 'BitmapText', style: { fill: 0xffffff, fontSize: 24 } });
     case 'htmlText':
       return new pixi.HTMLText({ text: 'HTMLText', style: { fill: 0xffffff, fontSize: 24 } });
+    case 'meshPlane': {
+      const plane = new pixi.MeshPlane({ texture: pixi.Texture.WHITE });
+      plane.setSize(100, 100);
+      return plane;
+    }
+    case 'perspectiveMesh': {
+      const mesh = new pixi.PerspectiveMesh({ texture: pixi.Texture.WHITE });
+      mesh.setSize(100, 100);
+      return mesh;
+    }
+    case 'particleContainer':
+      return new pixi.ParticleContainer();
     default:
       return null;
   }

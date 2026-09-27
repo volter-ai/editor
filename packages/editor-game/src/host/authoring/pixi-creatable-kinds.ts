@@ -59,4 +59,22 @@ export const PIXI_CREATABLE_KINDS: readonly CreatableKind[] = [
     extends: 'container',
     description: 'Draws vector shapes (rectangles, circles, paths) from its draw callback.',
   },
+  {
+    kind: 'meshPlane',
+    label: 'MeshPlane',
+    extends: 'container',
+    description: 'A textured grid of vertices that can be bent and deformed.',
+  },
+  {
+    kind: 'perspectiveMesh',
+    label: 'PerspectiveMesh',
+    extends: 'meshPlane',
+    description: 'A texture drawn in perspective between four corner points.',
+  },
+  {
+    kind: 'particleContainer',
+    label: 'ParticleContainer',
+    extends: 'container',
+    description: 'Draws many lightweight particles in one batch, added from code with addParticle.',
+  },
 ];

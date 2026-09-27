@@ -1877,9 +1877,11 @@ export function RootSelectionOverlay({
         x: rect.x + rect.width / 2,
         y: rect.y + rect.height / 2,
       };
+      const frame = frameForId(adapter, id);
       capturePointer(e);
       owner.begin(id);
       gestureRef.current = {
+        ...(frame ? { startAngleDeg: (frameAngle(frame) * 180) / Math.PI } : {}),
         kind: 'native-scale',
         id,
         ownerBoxEdit: owner,
@@ -2176,6 +2178,22 @@ export function RootSelectionOverlay({
           ...patch,
           originX: c.x + (gesture.nativeOrigin.x - c.x) * fx,
           originY: c.y + (gesture.nativeOrigin.y - c.y) * fy,
+        };
+      }
+      // One node scales about Godot's temporary pivot when one is set: its origin's offset from the
+      // pivot scales along the node's own axes, by the factors its scale takes.
+      const scalePivot =
+        gesture.kind === 'native-scale' && !gesture.groupCenter && gesture.nativeOrigin ? temporaryPivot(view) : null;
+      if (scalePivot && gesture.nativeOrigin) {
+        const a = ((gesture.startAngleDeg ?? 0) * Math.PI) / 180;
+        const dx = gesture.nativeOrigin.x - scalePivot.x;
+        const dy = gesture.nativeOrigin.y - scalePivot.y;
+        const u = (dx * Math.cos(a) + dy * Math.sin(a)) * (patch['scaleXFactor'] ?? 1);
+        const v = (-dx * Math.sin(a) + dy * Math.cos(a)) * (patch['scaleYFactor'] ?? 1);
+        patch = {
+          ...patch,
+          originX: scalePivot.x + u * Math.cos(a) - v * Math.sin(a),
+          originY: scalePivot.y + u * Math.sin(a) + v * Math.cos(a),
         };
       }
       gesture.ownerBoxEdit.apply(gesture.id, patch);
