@@ -35,6 +35,13 @@ export type GodotCodeRuleRecipe =
   | { readonly kind: 'integer-binary'; readonly operator: '*' | '%' | '/' }
   /** GDScript int negation: `0 - x`, which never yields -0. */
   | { readonly kind: 'integer-negate' }
+  /**
+   * Object `==` / `!=` (and null): compat's `godot_object_equal`, a freed Object reading as null
+   * (`OperatorEvaluatorEqualObject`, core/variant/variant_op.h:471).
+   */
+  | { readonly kind: 'object-equal'; readonly negate: boolean }
+  /** An Object's truth (`not obj`, `if obj:`): compat's `godot_object_truthy` (`Variant::booleanize`). */
+  | { readonly kind: 'object-truthy'; readonly negate: boolean }
   | { readonly kind: 'refusal'; readonly reason: string };
 
 export type GodotStructuralConstruct =

@@ -11,6 +11,7 @@ import { Group, Object3D, Scene } from 'three';
 import * as EN from '../../capabilities/catalog/project-source/src/lib/godot-compat/engine';
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as O from '../../capabilities/catalog/project-source/src/lib/godot-compat/object';
+import * as GS from '../../capabilities/catalog/project-source/src/lib/godot-compat/global-scope';
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import * as STT from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree-timer';
 import { gd, gs } from './literals';
@@ -47,6 +48,8 @@ export type Read =
   | readonly ['in_group', string, string]
   | readonly ['inside', string]
   | readonly ['queued', string]
+  /** The node as an Object value, freed or not: `== null`, `!= null`, `is_instance_valid`, `if n:`, `not n`. */
+  | readonly ['object_value', string]
   | readonly ['node_ready', string]
   | readonly ['processing', string]
   | readonly ['physics_processing', string]
@@ -108,6 +111,8 @@ function gdRead(read: Read): string {
       return `${v(read[1])}.is_inside_tree()`;
     case 'queued':
       return `${v(read[1])}.is_queued_for_deletion()`;
+    case 'object_value':
+      return `[${v(read[1])} == null, ${v(read[1])} != null, is_instance_valid(${v(read[1])}), true if ${v(read[1])} else false, not ${v(read[1])}]`;
     case 'node_ready':
       return `${v(read[1])}.is_node_ready()`;
     case 'processing':
@@ -249,6 +254,10 @@ function target(segments: readonly Segment[]): () => unknown {
           return N.is_inside_tree(node(r[1]));
         case 'queued':
           return O.is_queued_for_deletion(node(r[1]));
+        case 'object_value': {
+          const value = node(r[1]);
+          return [O.godot_object_equal(value, null), !O.godot_object_equal(value, null), GS.is_instance_valid(value), O.godot_object_truthy(value), !O.godot_object_truthy(value)];
+        }
         case 'node_ready':
           return N.is_node_ready(node(r[1]));
         case 'processing':

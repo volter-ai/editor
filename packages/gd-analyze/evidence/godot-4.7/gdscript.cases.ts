@@ -227,35 +227,35 @@ for (const [op, id, js] of [
   });
 }
 // The analyzer admits only `null` as a built-in operand of an object comparison.
-rule('object-equal-null', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, B], B, { kind: 'binary', operator: '===' }, {
+rule('object-equal-null', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, B], B, { kind: 'object-equal', negate: false }, {
   file: VARIANT_OP,
-  symbol: 'OperatorEvaluatorObjectNil (null identity)',
-  line: 510,
+  symbol: 'OperatorEvaluatorEqualObject / EqualObjectNil (a freed Object reads as null)',
+  line: 471,
 });
-rule('object-equal-script', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, CLASS], B, { kind: 'binary', operator: '===' }, {
+rule('object-equal-script', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, CLASS], B, { kind: 'object-equal', negate: false }, {
   file: VARIANT_OP,
-  symbol: 'OperatorEvaluatorObjectEqual (identity)',
-  line: 509,
+  symbol: 'OperatorEvaluatorEqualObject / EqualObjectNil (a freed Object reads as null)',
+  line: 471,
 });
-rule('script-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, CLASS], B, { kind: 'binary', operator: '===' }, {
+rule('script-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, CLASS], B, { kind: 'object-equal', negate: false }, {
   file: VARIANT_OP,
-  symbol: 'OperatorEvaluatorObjectEqual (identity)',
-  line: 509,
+  symbol: 'OperatorEvaluatorEqualObject / EqualObjectNil (a freed Object reads as null)',
+  line: 471,
 });
-rule('script-equal-object', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, NATIVE], B, { kind: 'binary', operator: '===' }, {
+rule('script-equal-object', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, NATIVE], B, { kind: 'object-equal', negate: false }, {
   file: VARIANT_OP,
-  symbol: 'OperatorEvaluatorObjectEqual (identity)',
-  line: 509,
+  symbol: 'OperatorEvaluatorEqualObject / EqualObjectNil (a freed Object reads as null)',
+  line: 471,
 });
-rule('script-equal-null', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, B], B, { kind: 'binary', operator: '===' }, {
+rule('script-equal-null', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, B], B, { kind: 'object-equal', negate: false }, {
   file: VARIANT_OP,
-  symbol: 'OperatorEvaluatorObjectNil (null identity)',
-  line: 510,
+  symbol: 'OperatorEvaluatorEqualObject / EqualObjectNil (a freed Object reads as null)',
+  line: 471,
 });
-rule('object-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, NATIVE], B, { kind: 'binary', operator: '===' }, {
+rule('object-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, NATIVE], B, { kind: 'object-equal', negate: false }, {
   file: VARIANT_OP,
-  symbol: 'OperatorEvaluatorObjectEqual (identity)',
-  line: 509,
+  symbol: 'OperatorEvaluatorEqualObject / EqualObjectNil (a freed Object reads as null)',
+  line: 471,
 });
 // `!=` on objects is the negated identity (`variant_op.cpp:636`, `:637`).
 for (const [id, left, right, symbol, line] of [
@@ -264,7 +264,7 @@ for (const [id, left, right, symbol, line] of [
   ['object-not-equal', NATIVE, NATIVE, 'OperatorEvaluatorNotEqualObject', 636],
   ['script-not-equal-object', CLASS, NATIVE, 'OperatorEvaluatorNotEqualObject', 636],
 ] as const) {
-  rule(id, 'BINARY_OPERATOR', 'operator:OP_COMP_NOT_EQUAL:1', [left, right], B, { kind: 'binary', operator: '!==' }, { file: VARIANT_OP, symbol, line });
+  rule(id, 'BINARY_OPERATOR', 'operator:OP_COMP_NOT_EQUAL:1', [left, right], B, { kind: 'object-equal', negate: true }, { file: VARIANT_OP, symbol: `${symbol} (a freed Object reads as null)`, line });
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -311,6 +311,13 @@ rule('cast-script-on-native', 'CAST', 'cast:script', [NATIVE], CLASS, structural
 // Control flow on bool, by type.
 
 rule('if-bool', 'IF', 'if', [BOOL], '', structural('if'), { file: COMPILER, symbol: 'GDScriptCompiler::_parse_block IF', line: 2066 });
+// `if obj:` jumps on the Object's truth: false when null or freed (`Variant::booleanize`).
+for (const [id, cls] of [['if-native', NATIVE], ['if-class', CLASS]] as const) {
+  rule(id, 'IF', 'if', [cls], '', structural('if'), { file: 'core/variant/variant_op.cpp', symbol: 'Variant::booleanize (OBJECT: get_validated_object)', line: 1120 });
+}
+for (const [id, cls] of [['not-native', NATIVE], ['not-class', CLASS]] as const) {
+  rule(id, 'UNARY_OPERATOR', 'operator:OP_LOGIC_NOT:23', [cls], B, { kind: 'object-truthy', negate: true }, { file: 'core/variant/variant_op.h', symbol: 'OperatorEvaluatorNotObject', line: 1097 });
+}
 rule('while-bool', 'WHILE', 'while', [BOOL], '', structural('while'), { file: COMPILER, symbol: 'GDScriptCompiler::_parse_block WHILE', line: 2127 });
 rule('for-range-int', 'FOR', 'for-range:int', [INT], '', structural('for-range'), {
   file: COMPILER,
@@ -1391,6 +1398,23 @@ func not_nulls() -> Array:
 \tvar tagged: Tagged = $Tagged
 \treturn [nothing != null, body != null, tagged != null, body != nothing, tagged != body]
 
+# An Object's truth (\`if obj:\`, \`not obj\`): false when null.
+func truths() -> Array:
+\tvar nothing: Node = null
+\tvar body: Node = $Body
+\tvar tagged: Tagged = $Tagged
+\tvar out := []
+\tif body:
+\t\tout.append(1)
+\tif nothing:
+\t\tout.append(2)
+\tif tagged:
+\t\tout.append(3)
+\tout.append(not nothing)
+\tout.append(not body)
+\tout.append(not tagged)
+\treturn out
+
 func narrowed_members() -> Array:
 \tvar t: Node = $Tagged
 \tvar b: Node = $Body
@@ -1778,7 +1802,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
@@ -1870,6 +1894,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     'lib/godot-compat/array',
     'lib/godot-compat/basis',
     'lib/godot-compat/dictionary',
+    'lib/godot-compat/object',
     'lib/godot-compat/physics-direct-space-state-3d',
     'lib/godot-compat/physics-ray-query-parameters-3d',
     'lib/godot-compat/transform-3d',

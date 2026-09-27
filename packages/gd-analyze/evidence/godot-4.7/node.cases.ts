@@ -56,6 +56,9 @@ add('can_process', 'can_process', [now({ new: 'a' }, { read: ['can_process', 'a'
 add('remove_child-exit-order', 'remove_child', [now(...TREE, { add: 'a' }), proc({ remove: 'b', from: 'a' }, { read: ['inside', 'd'] }, { read: ['children', 'a'] }), proc({ add: 'b', to: 'c' }, { read: ['node_ready', 'b'] })]);
 add('queue_free-timing', 'queue_free', [now(...TREE, { add: 'a' }), proc({ free: 'b' }, { read: ['queued', 'b'] }, { read: ['inside', 'b'] }, { log: 'queued' }), phys({ log: 'physics-after-free' }), proc()]);
 add('queue_free-in-physics', 'queue_free', [now(...TREE, { add: 'a' }), phys({ free: 'c' }, { read: ['inside', 'c'] }), proc({ read: ['children', 'a'] })]);
+// A freed node as an Object value: equal to null, invalid and false once freed (the variable still
+// holds it), not while only queued.
+add('freed-object-value', 'queue_free', [now(...TREE, { add: 'a' }), proc({ read: ['object_value', 'b'] }, { free: 'b' }, { read: ['object_value', 'b'] }), proc({ read: ['object_value', 'b'] })]);
 add('queue_free-flag', 'queue_free', [now({ new: 'a' }, { add: 'a' }, { read: ['queued', 'a'] }, { free: 'a' }, { read: ['queued', 'a'] })]);
 add('get_children', 'get_children', [now(...TREE, { add: 'a' }, { read: ['children', 'a'] }, { read: ['children', 'b'] }, { read: ['children', 'e'] }, { new: 'u', script: 'none' }, { add: 'u', to: 'a' }, { read: ['children', 'a'] })]);
 add('get_parent', 'get_parent', [now(...TREE, { read: ['parent', 'd'] }, { read: ['parent', 'a'] }, { add: 'a' }, { read: ['parent', 'c'] })]);

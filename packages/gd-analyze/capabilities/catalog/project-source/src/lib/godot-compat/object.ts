@@ -159,3 +159,31 @@ export function remove_meta(self: object, name: string): void {
 export function get_meta_list(self: object): string[] {
   return [...metaOf(self).keys()];
 }
+
+/** An Object value as a Variant compares it: a freed Object reads as null (`Variant::get_validated_object`). */
+function validated(value: unknown): unknown {
+  if (value === null || value === undefined) return null;
+  return typeof value === 'object' && godot_node_is_freed(value) ? null : value;
+}
+
+/**
+ * `==` on Objects and null: identity, a freed Object equal to null and to any other freed Object
+ * (`OperatorEvaluatorEqualObject` / `...EqualObjectNil`, core/variant/variant_op.h:470, :484).
+ *
+ * @godot Object (protocol)
+ * @source core/variant/variant_op.h:470
+ */
+export function godot_object_equal(a: unknown, b: unknown): boolean {
+  return validated(a) === validated(b);
+}
+
+/**
+ * An Object's truth (`if obj:`, `not obj`): a live Object is true, null or a freed one false
+ * (`Variant::booleanize`, `is_zero` for OBJECT, core/variant/variant.cpp:952).
+ *
+ * @godot Object (protocol)
+ * @source core/variant/variant_op.cpp:1120
+ */
+export function godot_object_truthy(value: unknown): boolean {
+  return validated(value) !== null;
+}

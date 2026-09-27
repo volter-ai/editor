@@ -331,7 +331,23 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
     case 'IF': {
       const conditionNode = context.node(node.condition, node);
       const structuralRequirements = context.structural(node, 'if', [conditionNode]);
-      const condition = settleForStatement(context, lowerExpression(context, conditionNode));
+      const lowered = lowerExpression(context, conditionNode);
+      // An Object condition is its truth (`Variant::booleanize`): false when null or freed.
+      const objectCondition =
+        (conditionNode.datatype.kind === 'NATIVE' || conditionNode.datatype.kind === 'CLASS' || conditionNode.datatype.kind === 'SCRIPT') && !conditionNode.datatype.metaType;
+      const condition = settleForStatement(
+        context,
+        objectCondition
+          ? {
+              ...lowered,
+              value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_object_truthy' }, arguments: [lowered.value] },
+              requirements: [
+                ...lowered.requirements,
+                { kind: 'compat-import-requirement', module: 'lib/godot-compat/object', imported: 'godot_object_truthy', local: 'godot_object_truthy', typeOnly: false },
+              ],
+            }
+          : lowered,
+      );
       const whenTrue = lowerOfficialSuite(context, context.node(node.trueBlock, node));
       const whenFalse =
         node.falseBlock < 0

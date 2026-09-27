@@ -364,6 +364,16 @@ function operatorBinding(
   return use;
 }
 
+/** A call of compat's Object comparison (`object.ts`), negated when the rule says so. */
+function objectCall(name: string, args: readonly TargetTsExpression[], negate: boolean, at: ReturnType<typeof span>): TargetTsExpression {
+  const call: TargetTsExpression = { kind: 'call-expression', callee: { kind: 'identifier-expression', name }, arguments: [...args], span: at };
+  return negate ? { kind: 'unary-expression', operator: '!', operand: call, span: at } : call;
+}
+
+function objectImport(name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: 'lib/godot-compat/object', imported: name, local: name, typeOnly: false };
+}
+
 /** Built-in types whose values Godot copies; Array and Dictionary are shared references. */
 function builtinValueType(node: GodotBoundNode): boolean {
   return (
@@ -1383,8 +1393,17 @@ export function lowerOfficialExpression(
           'unary',
           'binding',
           'integer-negate',
+          'object-truthy',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'object-truthy') {
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            ([operand]) => objectCall('godot_object_truthy', [operand as TargetTsExpression], recipe.negate, span(context.script, node)),
+            [...rule.requirements, objectImport('godot_object_truthy')],
+          );
+        }
         if (recipe.kind === 'integer-negate') {
           // An int negation never yields -0: `0 - x`.
           return compose(
@@ -1429,8 +1448,17 @@ export function lowerOfficialExpression(
           'binary',
           'binding',
           'integer-binary',
+          'object-equal',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'object-equal') {
+          return compose(
+            context,
+            [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
+            ([leftValue, rightValue]) => objectCall('godot_object_equal', [leftValue as TargetTsExpression, rightValue as TargetTsExpression], recipe.negate, span(context.script, node)),
+            [...rule.requirements, objectImport('godot_object_equal')],
+          );
+        }
         if (recipe.kind === 'binding') {
           const use = operatorBinding(context, node, leftNode, rightNode);
           return compose(

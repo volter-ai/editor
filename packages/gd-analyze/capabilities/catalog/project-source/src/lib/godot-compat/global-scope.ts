@@ -21,6 +21,8 @@
  * (`core/math/math_funcs.cpp:36`), a PCG32 (`thirdparty/misc/pcg.cpp`), held here as module state.
  */
 
+import { godot_node_is_freed } from './node';
+
 const U64 = (1n << 64n) - 1n;
 const PCG_MULTIPLIER = 6364136223846793005n;
 /** `PCG_DEFAULT_INC_64` (`thirdparty/misc/pcg.h:9`). */
@@ -211,8 +213,7 @@ export function deg_to_rad(angle: number): number {
 /**
  * True only for a live Object. An Object's representation is its native entity or script
  * instance; a JS primitive, an Array, a Map (Dictionary), a function (Callable) and a frozen plain
- * record (a built-in value) are not Objects. Freed Objects are not represented, so a freed Object
- * is not recognised.
+ * record (a built-in value) are not Objects. A freed Object is not valid.
  *
  * @godot @GlobalScope.is_instance_valid
  * @source core/variant/variant_utility.cpp:1133
@@ -221,7 +222,7 @@ export function is_instance_valid(instance: unknown): boolean {
   if (typeof instance !== 'object' || instance === null) return false;
   if (Array.isArray(instance) || instance instanceof Map) return false;
   if (Object.getPrototypeOf(instance) === Object.prototype && Object.isFrozen(instance)) return false;
-  return true;
+  return !godot_node_is_freed(instance);
 }
 
 /**
