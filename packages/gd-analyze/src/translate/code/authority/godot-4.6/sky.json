@@ -1,0 +1,434 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/sky"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Sky",
+        "member": "set_radiance_size",
+        "kind": "native-member",
+        "signature": "hash:1512957179"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sky",
+        "exportName": "set_radiance_size",
+        "localName": "Sky_set_radiance_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Sky.set_radiance_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Sky",
+        "member": "get_radiance_size",
+        "kind": "native-member",
+        "signature": "hash:2708733976"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sky",
+        "exportName": "get_radiance_size",
+        "localName": "Sky_get_radiance_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Sky.get_radiance_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Sky",
+        "member": "set_process_mode",
+        "kind": "native-member",
+        "signature": "hash:875986769"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sky",
+        "exportName": "set_process_mode",
+        "localName": "Sky_set_process_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Sky.set_process_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Sky",
+        "member": "get_process_mode",
+        "kind": "native-member",
+        "signature": "hash:731245043"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sky",
+        "exportName": "get_process_mode",
+        "localName": "Sky_get_process_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Sky.get_process_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Sky",
+        "member": "set_material",
+        "kind": "native-member",
+        "signature": "hash:2757459619"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sky",
+        "exportName": "set_material",
+        "localName": "Sky_set_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Sky.set_material"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Sky",
+        "member": "get_material",
+        "kind": "native-member",
+        "signature": "hash:5934680"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sky",
+        "exportName": "get_material",
+        "localName": "Sky_get_material",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Sky.get_material"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Sky.set_radiance_size",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Sky\u0000set_radiance_size\u0000hash:1512957179",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/resources/sky.cpp",
+        "sourceSymbol": "Sky.set_radiance_size",
+        "sourceLine": 36
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "5102e7291628a141260846f56060d58e7df217a73ff01e37bf6dd4c6b27ac41b",
+        "callsite": "res://probe.gd _init() set_radiance_size-0 set_radiance_size-6 set_radiance_size-7",
+        "observedOutputSha256": "22ae0c7413a9ebf55801cc423bec66857cdcd65f45e2984db4e9a8ba13d8dd7f"
+      },
+      "target": {
+        "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d",
+        "callsite": "lib/godot-compat/sky.ts set_radiance_size",
+        "observedOutputSha256": "22ae0c7413a9ebf55801cc423bec66857cdcd65f45e2984db4e9a8ba13d8dd7f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "270e25396897603b52f852860b234e66272adeb80416e291c17699e0597a8dc2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sky",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Sky.get_radiance_size",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Sky\u0000get_radiance_size\u0000hash:2708733976",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/resources/sky.cpp",
+        "sourceSymbol": "Sky.get_radiance_size",
+        "sourceLine": 46
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "643b6ef379f9e41ddd042a73cdef38f81d6932f05749a91e9074496083e6b2a7",
+        "callsite": "res://probe.gd _init() get_radiance_size-default",
+        "observedOutputSha256": "6fdf295b25ad7885982209e7a5b3841aacb79de3f128f40717fd122f012b4209"
+      },
+      "target": {
+        "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d",
+        "callsite": "lib/godot-compat/sky.ts get_radiance_size",
+        "observedOutputSha256": "6fdf295b25ad7885982209e7a5b3841aacb79de3f128f40717fd122f012b4209"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5d131c6a3b7d528cf2988df8c226ff4e5034d4af58c2e723cb9b2f6d5d9eb5f8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sky",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Sky.set_process_mode",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Sky\u0000set_process_mode\u0000hash:875986769",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/resources/sky.cpp",
+        "sourceSymbol": "Sky.set_process_mode",
+        "sourceLine": 50
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "e0c3677fec588a4a4dc784f34b8f4c7a5cafed27b1ad536845bf755fca7e1e0a",
+        "callsite": "res://probe.gd _init() set_process_mode",
+        "observedOutputSha256": "15e3c69ded35a217cafa658057cba057e5a3f17becd2eea3dce732fb20a8e61c"
+      },
+      "target": {
+        "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d",
+        "callsite": "lib/godot-compat/sky.ts set_process_mode",
+        "observedOutputSha256": "15e3c69ded35a217cafa658057cba057e5a3f17becd2eea3dce732fb20a8e61c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "14f6c68db13b6f115dd966bba3a53132951b985b21b7511181dbf327f4e9d709"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sky",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Sky.get_process_mode",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Sky\u0000get_process_mode\u0000hash:731245043",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/resources/sky.cpp",
+        "sourceSymbol": "Sky.get_process_mode",
+        "sourceLine": 55
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "75344daa08b153e887c4b3aaffe88fbd7f64d2535b0a019c2dfdc7bdbf42f671",
+        "callsite": "res://probe.gd _init() get_process_mode-default",
+        "observedOutputSha256": "9042972c07a5c4764f421ce09f8a3df8e4e4534e025363cca0bc15a54741cd76"
+      },
+      "target": {
+        "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d",
+        "callsite": "lib/godot-compat/sky.ts get_process_mode",
+        "observedOutputSha256": "9042972c07a5c4764f421ce09f8a3df8e4e4534e025363cca0bc15a54741cd76"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3fcb573e13454a8c1e7b684872e85dd115b51aaf1079680f367bdcef062b71d2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sky",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Sky.set_material",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Sky\u0000set_material\u0000hash:2757459619",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/resources/sky.cpp",
+        "sourceSymbol": "Sky.set_material",
+        "sourceLine": 59
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "570c435383adbed47ff79ae37dca05ebd450e523aed5c751b1d435ae2b2eed6d",
+        "callsite": "res://probe.gd _init() set_material",
+        "observedOutputSha256": "6233eaa815520b2ae8d11206bc3e5102bfdb2c71f1624c8db0101f1483565c2d"
+      },
+      "target": {
+        "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d",
+        "callsite": "lib/godot-compat/sky.ts set_material",
+        "observedOutputSha256": "6233eaa815520b2ae8d11206bc3e5102bfdb2c71f1624c8db0101f1483565c2d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ed1436abbed66d624556e41df7bebb4d4d322fb6c8ad289e9a2af2e0c80dbad4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sky",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Sky.get_material",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000Sky\u0000get_material\u0000hash:5934680",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/resources/sky.cpp",
+        "sourceSymbol": "Sky.get_material",
+        "sourceLine": 68
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "af64118f5f5d3c759bec3868fe73d28c875825b37086e59e044b9c9f2bde291e",
+        "callsite": "res://probe.gd _init() get_material-default",
+        "observedOutputSha256": "fe1e5fae69d07fdecdf922c65fcce37b87af24f03f14911bf753183164ab5f1d"
+      },
+      "target": {
+        "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d",
+        "callsite": "lib/godot-compat/sky.ts get_material",
+        "observedOutputSha256": "fe1e5fae69d07fdecdf922c65fcce37b87af24f03f14911bf753183164ab5f1d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f3cd7e7bb63f7f08418ec36bb5430fb1f84407dc6daaafc2560d6ff2279875b9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sky",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-Sky.set_radiance_size",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "5102e7291628a141260846f56060d58e7df217a73ff01e37bf6dd4c6b27ac41b",
+      "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d"
+    },
+    {
+      "claimId": "godot-4.6-binding-Sky.get_radiance_size",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "643b6ef379f9e41ddd042a73cdef38f81d6932f05749a91e9074496083e6b2a7",
+      "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d"
+    },
+    {
+      "claimId": "godot-4.6-binding-Sky.set_process_mode",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "e0c3677fec588a4a4dc784f34b8f4c7a5cafed27b1ad536845bf755fca7e1e0a",
+      "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d"
+    },
+    {
+      "claimId": "godot-4.6-binding-Sky.get_process_mode",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "75344daa08b153e887c4b3aaffe88fbd7f64d2535b0a019c2dfdc7bdbf42f671",
+      "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d"
+    },
+    {
+      "claimId": "godot-4.6-binding-Sky.set_material",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "570c435383adbed47ff79ae37dca05ebd450e523aed5c751b1d435ae2b2eed6d",
+      "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d"
+    },
+    {
+      "claimId": "godot-4.6-binding-Sky.get_material",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "af64118f5f5d3c759bec3868fe73d28c875825b37086e59e044b9c9f2bde291e",
+      "implementationSha256": "037dc0f76ce317caa680d869115fb8ee768dede81fa2d74de5097d6ffa56706d"
+    }
+  ]
+}
