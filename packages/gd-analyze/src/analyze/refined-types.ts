@@ -10,7 +10,11 @@
  *   its initializer runs once, in the script's `@implicit_ready` as the node becomes ready
  *   (modules/gdscript/gdscript_compiler.cpp:2409), so after that the member holds that node.
  * - `classdb-method-selection`: a member read on a typed object is the member's declared type: a
- *   script field's, else the native property's getter return type (`ClassDB::get_property`).
+ *   script field's, else the native property's getter return type (`ClassDB::get_property`). A
+ *   dynamic call on a typed receiver returns what the method the receiver's type selects returns
+ *   (a built-in's own method, or the ClassDB method up a native class's chain, `ClassDB::get_method`,
+ *   core/object/class_db.cpp:1132; never on a scripted receiver, whose script may override it); a
+ *   built-in indexed by an int is its indexed getter's type (`indexing_return_type`).
  * - `type-test-narrowing`: a local used where `local is T` has held (the true branch of the `if`,
  *   or the right operand of the `and`, when nothing reassigns it) is a T; `and`, `or` and `not`
  *   over booleans are booleans (`OperatorEvaluatorAnd`, core/variant/variant_op.cpp).
@@ -187,6 +191,24 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       }
     }
     return undefined;
+  };
+
+  /** What a method the receiver's type selects returns; undefined for a scripted receiver or void. */
+  const methodReturn = (base: GodotBoundDatatype, member: string): GodotBoundDatatype | undefined => {
+    if (base.metaType) return undefined;
+    let returned: string | undefined;
+    if (base.kind === 'BUILTIN') {
+      returned = (inputs.apiDump.builtinClasses ?? [])
+        .find((entry) => entry.name === base.builtinType)
+        ?.methods.find((entry) => entry.name === member)?.return_type;
+    } else if (base.kind === 'NATIVE') {
+      for (let current = classes.get(base.nativeType); current !== undefined && returned === undefined; ) {
+        returned = current.methods.find((entry) => entry.name === member)?.return_type;
+        current = current.base_class === '' ? undefined : classes.get(current.base_class);
+      }
+    }
+    if (returned === undefined || returned === '' || returned === 'void' || returned === 'Variant') return undefined;
+    return apiTypeDatatype(inputs.apiDump, returned);
   };
 
   /** The type `name is T` establishes, when `test` is such a test or an `and` of them. */
@@ -399,6 +421,24 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         const type = memberType(base, attribute.name);
         if (type !== undefined) result = { datatype: type, rule: 'classdb-method-selection' };
       }
+    } else if (
+      node?.kind === 'CALL' &&
+      (node.compilerTarget.kind === 'dynamic' || node.compilerTarget.kind === 'unresolved') &&
+      node.datatype.kind === 'VARIANT'
+    ) {
+      const callee = nodes.get(node.callee);
+      const base = callee?.kind === 'SUBSCRIPT' && callee.isAttribute ? datatypeOf(callee.base) : undefined;
+      const type = base === undefined ? undefined : methodReturn(base, node.functionName);
+      if (type !== undefined) result = { datatype: type, rule: 'classdb-method-selection' };
+    } else if (node?.kind === 'SUBSCRIPT' && !node.isAttribute && node.datatype.kind === 'VARIANT') {
+      const base = datatypeOf(node.base);
+      const index = datatypeOf(node.index);
+      const returned =
+        base?.kind === 'BUILTIN' && !base.metaType && index?.kind === 'BUILTIN' && index.builtinType === 'int'
+          ? (inputs.apiDump.builtinClasses ?? []).find((entry) => entry.name === base.builtinType)?.indexingReturnType
+          : undefined;
+      const type = returned === undefined || returned === 'Variant' ? undefined : apiTypeDatatype(inputs.apiDump, returned);
+      if (type !== undefined) result = { datatype: type, rule: 'classdb-method-selection' };
     } else if (node?.kind === 'IDENTIFIER' && (node.datatype.kind === 'NATIVE' || node.datatype.kind === 'VARIANT')) {
       const type = narrowed(node);
       if (type !== undefined && (node.datatype.kind === 'VARIANT' || inherits(type.nativeType, node.datatype.nativeType))) {

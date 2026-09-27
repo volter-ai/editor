@@ -84,6 +84,13 @@ const REFINED = [
   '%Tip',
   '$Level/Inner/Lamp.omni_range',
   '$Level/Door.collision_layer',
+  // Dynamic calls and an index on typed values: the selected method's return type, the indexed getter's.
+  '$Level/Door.get_global_transform()',
+  '$Level/Door.get_global_transform().basis[2]',
+  '$Level/Door.get_global_transform().basis[2].normalized()',
+  '$Level/Door.get_global_transform().basis[2].normalized() * 2.0',
+  '$Level/Door.get_collision_layer()',
+  '$Level/Inner/Lamp.get_param(0)',
   '$Scripted.level',
   '$Scripted.position',
   '%Marker.gizmo_extents',
