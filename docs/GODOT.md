@@ -400,17 +400,29 @@ Node3D and Camera3D, 724 cases, exact.
   Control is its DOM element. A plain `Node` in a 3D tree mounts as a `<group>` that compat marks
   non-spatial: its matrix stays identity, and Node3D's parent rule skips it. A Node3D under it
   therefore takes global = local, as in Godot.
-- **Transforms are handed over exact.** A mounted Node3D receives its authored `Transform3D` as
-  the Object3D's matrix (`matrixAutoUpdate` off), never as decomposed position, rotation and
-  scale props. Node3D's module owns the decomposition three reads.
+- **Transforms are idiomatic props.** A scene node's authored `Transform3D` is written as
+  `position`, `rotation` and `scale` props (§The output is idiomatic three.js), under the named
+  `transform-decomposition` deviation. Node3D's module owns the decomposition three reads.
 - **Tree structure is read, not kept.** A node's parent and children are the native links
   (three's `parent`/`children`, the DOM's), and `get_node` walks names over them. Name, groups,
   process mode, ready state and owner are Node PROTOCOL state in WeakMaps keyed by the entity.
-- **Runtime tree changes go through the generated scene's hierarchy authority.**
-  `PackedScene.instantiate()` returns that scene's factory. `add_child` of an instanced scene
-  renders it through the parent scene's React state, and `queue_free` removes it at the end of
-  the frame (Godot's deletion queue, in compat). A native node made with `Class.new()` attaches
-  imperatively to its parent's entity, which React never reconciles.
+- **React mounts; the SceneTree notifies.** React mounts and unmounts native objects, and its
+  effects only register them and their script bindings. Every Godot notification (enter tree,
+  ready, exit tree) is run by compat's SceneTree from the main loop, as `Main` and `SceneTree` run
+  them: the startup forest (autoloads, then the main scene) enters at the start of the first
+  iteration, before any physics step; a scene React mounts later enters on a script's
+  `add_child`, or, placed under the tree root by the editor, at the next iteration.
+- **Runtime instancing mounts the same scene component.** `preload` of a project scene is one
+  `PackedScene` per path holding the scene component the editor authors. `instantiate()` mounts it
+  synchronously (R3F's `flushSync`) through one spawn host in `<GodotMain>`, as a portal into a
+  group outside the tree, so the R3F store, the Rapier world and the autoloads reach it, and
+  returns the root not in the tree. `free`, `queue_free` and `remove_child` exit through compat;
+  freeing an instanced root then unmounts its component. A declared Rapier body whose node is
+  outside the tree is disabled until the node enters. `instantiate()` while React is committing
+  (a script's `_init`) is a named error; no corpus script does it. The `scene-spawn` proof
+  (spawn in `_ready` and in `_physics_process`, remove, re-add, free) agrees with official Godot.
+  A native node made with `Class.new()` attaches imperatively to its parent's entity, which React
+  never reconciles.
 - **SceneTree's clock is the host's.** The generated world runs Godot's frame order from R3F's
   frame and a fixed physics step (`physics/common/physics_ticks_per_second`, default 60):
   notifications, `_process`, `_physics_process`, deferred calls, timers (`create_timer`), tweens
