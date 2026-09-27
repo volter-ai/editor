@@ -412,6 +412,25 @@ export function godot_input_map_load_json(actions: readonly GodotInputMapActionJ
 }
 
 /**
+ * Input's own frame counters, which `is_action_just_pressed` and its siblings compare against: a
+ * physics step begins (`physics`, true) or ends (false), or a process frame begins. The world's
+ * hooks call it (`useGodotInputFrames`, the world's `useFrame`).
+ *
+ * @godot Input (protocol)
+ * @source core/input/input.cpp:1568
+ */
+export function godot_input_advance(phase: 'physics' | 'physics-end' | 'process'): void {
+  if (phase === 'physics') {
+    engine.physicsFrames += 1;
+    engine.inPhysics = true;
+    return;
+  }
+  if (phase === 'process') engine.processFrames += 1;
+  engine.inPhysics = false;
+  godot_input_frame(engine.physicsFrames, engine.processFrames, false);
+}
+
+/**
  * The Engine frame counters the just-pressed stamps compare against: `Main::iteration` increments
  * `physics_frames` and sets `in_physics` around each physics step (`main/main.cpp:4973`) and
  * increments `process_frames` after the process step (`main/main.cpp:5115`).

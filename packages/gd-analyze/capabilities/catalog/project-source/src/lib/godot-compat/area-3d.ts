@@ -16,12 +16,8 @@
  */
 
 import type { Collider } from '@dimforge/rapier3d-compat';
-import {
-  godot_collision_object_adopt,
-  godot_collision_object_declarer,
-  godot_collision_object_of_collider,
-  godot_collision_object_state,
-} from './collision-object-3d';
+import type { Object3D } from 'three';
+import { godot_collision_object_kind, godot_collision_object_layers, godot_collision_object_of_collider } from './collision-object-3d';
 import { godot_node_entity, godot_node_object, godot_node_tree_signal, is_inside_tree } from './node';
 import { createSignal, type GodotConnection, type GodotSignal, type SignalHandle } from './signal';
 
@@ -58,10 +54,11 @@ function signalsOf(entity: object): { readonly bodyEntered: SignalHandle<[object
   }
   return signals;
 }
-function stateOf(object: object, member: string): AreaState {
-  const state = AREA.get(godot_node_entity(object));
-  if (state === undefined) throw new TypeError(`godot-compat: Area3D.${member} requires an Area3D.`);
-  return state;
+/** An area's state, made the first time it is asked for, with `monitoring` its `userData`'s. */
+function stateOf(object: object, _member: string): AreaState {
+  const entity = godot_node_entity(object);
+  godot_area_3d_adopt(entity);
+  return AREA.get(entity) as AreaState;
 }
 
 /** `add_body_to_query` / `remove_body_from_query` (`godot_area_3d.cpp:195`). */
@@ -113,11 +110,10 @@ export function godot_area_3d_intersection(
 ): void {
   const entity = godot_collision_object_of_collider(event.target.collider);
   const body = godot_collision_object_of_collider(event.other.collider);
-  const state = entity === undefined ? undefined : AREA.get(entity);
-  if (entity === undefined || state === undefined || body === undefined || !state.monitoring) return;
-  const own = godot_collision_object_state(entity);
-  const other = godot_collision_object_state(body);
-  if (own === undefined || other === undefined || other.kind === 'area' || (own.mask & other.layer) === 0) return;
+  if (entity === undefined || body === undefined) return;
+  const state = stateOf(entity, 'body_entered');
+  if (!state.monitoring || godot_collision_object_kind(body) === 'area') return;
+  if ((godot_collision_object_layers(entity).mask & godot_collision_object_layers(body).layer) === 0) return;
   bodyInout(state, entered, body);
 }
 
@@ -128,10 +124,10 @@ export function godot_area_3d_intersection(
  * @source scene/3d/physics/area_3d.cpp:818
  */
 export function godot_area_3d_adopt(entity: object): void {
-  godot_collision_object_adopt(entity, 'area');
   if (AREA.has(entity)) return;
+  const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
   AREA.set(entity, {
-    monitoring: true,
+    monitoring: data['monitoring'] === undefined ? true : Boolean(data['monitoring']),
     monitorable: true,
     bodies: new Map(),
     locked: false,
@@ -228,12 +224,3 @@ export function has_overlapping_bodies(self: object): boolean {
 export function overlaps_body(self: object, body: object): boolean {
   return stateOf(self, 'overlaps_body').bodies.get(godot_node_entity(body))?.inTree ?? false;
 }
-
-// A fixed body with sensor colliders the scene's JSX declares is an Area3D; `monitoring` is the
-// `userData`'s. Its overlaps arrive as the body's Rapier intersection events.
-godot_collision_object_declarer('area', (entity, _body, data) => {
-  godot_area_3d_adopt(entity);
-  if (data['monitoring'] === undefined) return new Set();
-  set_monitoring(entity, Boolean(data['monitoring']));
-  return new Set(['monitoring']);
-});

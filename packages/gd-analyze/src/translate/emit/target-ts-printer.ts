@@ -287,13 +287,19 @@ function expression(value: TargetTsExpression): ts.Expression {
         true,
       );
     case 'property-expression':
-      return ts.factory.createPropertyAccessExpression(expression(value.object), value.property);
+      return value.optional === true
+        ? ts.factory.createPropertyAccessChain(expression(value.object), ts.factory.createToken(ts.SyntaxKind.QuestionDotToken), value.property)
+        : ts.factory.createPropertyAccessExpression(expression(value.object), value.property);
     case 'element-expression':
       return ts.factory.createElementAccessExpression(
         expression(value.object),
         expression(value.index),
       );
     case 'call-expression':
+      // A call through `object?.method` continues the optional chain (`object?.method()`).
+      if (value.callee.kind === 'property-expression' && value.callee.optional === true) {
+        return ts.factory.createCallChain(expression(value.callee), undefined, value.typeArguments?.map(typeNode), value.arguments.map(expression));
+      }
       return ts.factory.createCallExpression(
         expression(value.callee),
         value.typeArguments?.map(typeNode),

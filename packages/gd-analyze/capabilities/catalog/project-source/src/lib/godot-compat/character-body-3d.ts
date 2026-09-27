@@ -3,55 +3,29 @@
  * @role BINDING
  *
  * Godot 4.7's `CharacterBody3D` (`scene/3d/physics/character_body_3d.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`), transcribed: a kinematic collision object whose
- * `move_and_slide` runs Godot's grounded or floating slide over `PhysicsBody3D`'s
- * `move_and_collide` (`physics-body-3d.ts`), whose motion test is `physics-server-3d.ts`'s
- * `body_test_motion` over Rapier. Every `real_t` is a C `float`, rounded where the C++ rounds it;
- * `Math::acos` is the platform's (`std::acos` on a float). The character's state lives in `BODY`,
- * keyed by the entity. `get_slide_collision` (KinematicCollision3D) is not bound.
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) on Rapier's kinematic character controller: the
+ * node's `<RigidBody type="kinematicPosition">` is moved by `move_and_slide`, which hands the
+ * controller the velocity over the physics step and moves the body by what it computes, sliding
+ * along what it meets, snapping to the floor within `floor_snap_length` and climbing up to
+ * `floor_max_angle`. Each contact is a floor, wall or ceiling by its normal against
+ * `up_direction`, as Godot classifies them (`_set_collision_direction`, `character_body_3d.cpp:528`),
+ * and the velocity slides along each (`Vector3::slide`), as Godot's does. The character's settings
+ * are the node's `userData`'s, then its setters'. Moving platforms' velocity is not carried.
  */
 
+import type { Collider, KinematicCharacterController } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
-import { godot_collision_object_adopt, godot_collision_object_declarer, godot_collision_object_state } from './collision-object-3d';
-import { godot_tree_frames, godot_tree_process_delta } from './scene-tree';
-import { godot_node_entity, godot_node_tree_signal } from './node';
-import { get_global_transform, set_global_transform } from './node-3d';
-import { godot_physics_body_move_and_collide } from './physics-body-3d';
-import { godot_test_motion_parameters, type PhysicsTestMotionParameters3D } from './physics-test-motion-parameters-3d';
-import { godot_test_motion_result, type MotionCollision, type PhysicsTestMotionResult3D } from './physics-test-motion-result-3d';
-import { construct as transform3d, type Transform3D } from './transform-3d';
-import {
-  construct as vector3,
-  cross,
-  dot,
-  is_equal_approx,
-  is_zero_approx,
-  length,
-  length_squared,
-  normalized,
-  op_add,
-  op_divide,
-  op_equal,
-  op_multiply,
-  op_negate,
-  op_subtract,
-  slide,
-  type Vector3,
-} from './vector3';
+import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
+import { godot_node_entity } from './node';
+import { get_global_transform } from './node-3d';
+import { construct as vector3, dot, length, normalized, op_add, op_divide, op_equal, op_multiply, op_subtract, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
-/** `(real_t)CMP_EPSILON` (`core/math/math_defs.h:50`). */
-const CMP_EPSILON = f32(0.00001);
-/** `FLOOR_ANGLE_THRESHOLD` (`character_body_3d.cpp:41`), a double. */
-const FLOOR_ANGLE_THRESHOLD = 0.01;
+const ZERO = vector3();
 const MOTION_MODE_GROUNDED = 0;
-const PLATFORM_ON_LEAVE_ADD_VELOCITY = 0;
-const PLATFORM_ON_LEAVE_ADD_UPWARD_VELOCITY = 1;
-const PLATFORM_ON_LEAVE_DO_NOTHING = 2;
 
-/** `Math::deg_to_rad(float)` (`core/math/math_funcs.h:324`). */
 function degToRad(degrees: number): number {
-  return f32(degrees * f32(f32(Math.PI) / 180));
+  return f32((degrees * Math.PI) / 180);
 }
 
 interface CollisionState {
@@ -63,17 +37,12 @@ interface CollisionState {
 interface BodyState {
   margin: number;
   motion_mode: number;
-  platform_on_leave: number;
   collision_state: CollisionState;
   floor_constant_speed: boolean;
   floor_stop_on_slope: boolean;
   floor_block_on_wall: boolean;
   slide_on_ceiling: boolean;
   max_slides: number;
-  platform_layer: number;
-  platform_rid: object | null;
-  platform_floor_layers: number;
-  platform_wall_layers: number;
   floor_snap_length: number;
   floor_max_angle: number;
   wall_min_slide_angle: number;
@@ -81,469 +50,74 @@ interface BodyState {
   velocity: Vector3;
   floor_normal: Vector3;
   wall_normal: Vector3;
-  ceiling_normal: Vector3;
   last_motion: Vector3;
   platform_velocity: Vector3;
-  platform_angular_velocity: Vector3;
-  platform_ceiling_velocity: Vector3;
   previous_position: Vector3;
   real_velocity: Vector3;
-  motion_results: PhysicsTestMotionResult3D[];
+  slide_collisions: number;
+  controller: KinematicCharacterController | undefined;
 }
 
 const BODY = new WeakMap<object, BodyState>();
-const ZERO = vector3();
 
-function stateOf(object: object, member: string): BodyState {
-  const state = BODY.get(godot_node_entity(object));
-  if (state === undefined) throw new TypeError(`godot-compat: CharacterBody3D.${member} requires a CharacterBody3D.`);
+/** A character's state, made with Godot's defaults and the node's `userData` the first time it is asked for. */
+function stateOf(object: object, _member: string): BodyState {
+  const entity = godot_node_entity(object);
+  let state = BODY.get(entity);
+  if (state === undefined) {
+    state = {
+      margin: f32(0.001),
+      motion_mode: MOTION_MODE_GROUNDED,
+      collision_state: { floor: false, wall: false, ceiling: false },
+      floor_constant_speed: false,
+      floor_stop_on_slope: true,
+      floor_block_on_wall: true,
+      slide_on_ceiling: true,
+      max_slides: 6,
+      floor_snap_length: f32(0.1),
+      floor_max_angle: degToRad(45),
+      wall_min_slide_angle: degToRad(15),
+      up_direction: vector3(0, 1, 0),
+      velocity: ZERO,
+      floor_normal: ZERO,
+      wall_normal: ZERO,
+      last_motion: ZERO,
+      platform_velocity: ZERO,
+      previous_position: ZERO,
+      real_velocity: ZERO,
+      slide_collisions: 0,
+      controller: undefined,
+    };
+    BODY.set(entity, state);
+    const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+    for (const [key, value] of Object.entries(data)) CHARACTER_SEEDS[key]?.(entity, value);
+  }
   return state;
 }
 
-function flags(floor = false, wall = false, ceiling = false): CollisionState {
-  return { floor, wall, ceiling };
+/** The character's controller, configured from its settings. */
+function controllerOf(state: BodyState): KinematicCharacterController | undefined {
+  const world = godot_physics_world();
+  if (world === undefined) return undefined;
+  state.controller ??= world.createCharacterController(Math.max(state.margin, 0.001));
+  const controller = state.controller;
+  controller.setUp(state.up_direction);
+  controller.setMaxSlopeClimbAngle(state.floor_max_angle);
+  controller.setMinSlopeSlideAngle(state.floor_max_angle);
+  controller.setSlideEnabled(true);
+  if (state.motion_mode === MOTION_MODE_GROUNDED && state.floor_snap_length > 0) controller.enableSnapToGround(state.floor_snap_length);
+  else controller.disableSnapToGround();
+  return controller;
 }
 
-function reset(state: BodyState): void {
-  state.collision_state = flags();
-  state.platform_rid = null;
-  state.motion_results = [];
-  state.platform_velocity = ZERO;
-  state.platform_angular_velocity = ZERO;
-}
-
-/**
- * Registers a node as a CharacterBody3D with Godot's defaults (`character_body_3d.h`); entering
- * the tree resets its move_and_slide data (`_notification`, `character_body_3d.cpp:855`).
- *
- * @godot CharacterBody3D (protocol)
- * @source scene/3d/physics/character_body_3d.cpp:855
- */
-export function godot_character_body_3d_adopt(entity: object): void {
-  godot_collision_object_adopt(entity, 'character');
-  if (BODY.has(entity)) return;
-  const state: BodyState = {
-    margin: f32(0.001),
-    motion_mode: MOTION_MODE_GROUNDED,
-    platform_on_leave: PLATFORM_ON_LEAVE_ADD_VELOCITY,
-    collision_state: flags(),
-    floor_constant_speed: false,
-    floor_stop_on_slope: true,
-    floor_block_on_wall: true,
-    slide_on_ceiling: true,
-    max_slides: 6,
-    platform_layer: 0,
-    platform_rid: null,
-    platform_floor_layers: 0xffffffff,
-    platform_wall_layers: 0,
-    floor_snap_length: f32(0.1),
-    floor_max_angle: degToRad(45),
-    wall_min_slide_angle: degToRad(15),
-    up_direction: vector3(0, 1, 0),
-    velocity: ZERO,
-    floor_normal: ZERO,
-    wall_normal: ZERO,
-    ceiling_normal: ZERO,
-    last_motion: ZERO,
-    platform_velocity: ZERO,
-    platform_angular_velocity: ZERO,
-    platform_ceiling_velocity: ZERO,
-    previous_position: ZERO,
-    real_velocity: ZERO,
-    motion_results: [],
-  };
-  BODY.set(entity, state);
-  godot_node_tree_signal(entity, 'tree_entered').connect(() => reset(state));
-}
-
-function withOrigin(t: Transform3D, origin: Vector3): Transform3D {
-  return transform3d(t.basis, origin);
-}
-
-/** `MotionCollision::get_angle` (`physics_server_3d.h:556`). */
-function angleOf(collision: MotionCollision, up: Vector3): number {
-  return f32(Math.acos(dot(collision.normal, up)));
-}
-
-/** `PhysicsDirectBodyState3D::get_velocity_at_local_position` of the body a platform RID names. */
-function platformVelocity(rid: object, globalOrigin: Vector3): Vector3 | undefined {
-  const body = godot_collision_object_state(rid);
-  if (body === undefined || body.body === undefined) return undefined;
-  if (body.kind === 'character') return body.linearVelocity;
-  if (body.kind === 'rigid') {
-    const v = body.body.linvel();
-    const w = body.body.angvel();
-    const c = body.body.worldCom();
-    const r = op_subtract(globalOrigin, vector3(c.x, c.y, c.z));
-    return op_add(vector3(v.x, v.y, v.z), cross(vector3(w.x, w.y, w.z), r));
-  }
-  return ZERO;
-}
-
-function moveAndCollide(self: object, parameters: PhysicsTestMotionParameters3D, result: PhysicsTestMotionResult3D, test_only: boolean, cancel_sliding: boolean): boolean {
-  return godot_physics_body_move_and_collide(self, parameters, result, test_only, cancel_sliding);
-}
-
-/** `_set_platform_data` (`character_body_3d.cpp:616`). */
-function setPlatformData(state: BodyState, collision: MotionCollision): void {
-  const body = collision.collider === null ? undefined : godot_collision_object_state(collision.collider);
-  if (body === undefined) return;
-  state.platform_rid = collision.collider;
-  state.platform_velocity = collision.collider_velocity;
-  state.platform_angular_velocity = collision.collider_angular_velocity;
-  state.platform_layer = body.layer;
-}
-
-/** `_set_collision_direction` (`character_body_3d.cpp:528`). */
-function setCollisionDirection(
-  state: BodyState,
-  result: PhysicsTestMotionResult3D,
-  r_state: CollisionState,
-  apply: CollisionState = flags(true, true, true),
-): void {
-  r_state.floor = false;
-  r_state.wall = false;
-  r_state.ceiling = false;
-  let wall_depth = -1;
-  let floor_depth = -1;
-  const was_on_wall = state.collision_state.wall;
-  const prev_wall_normal = state.wall_normal;
-  let wall_collision_count = 0;
-  let combined_wall_normal = ZERO;
-  let tmp_wall_col = ZERO;
-  for (let i = result.collision_count - 1; i >= 0; i -= 1) {
-    const collision = result.collisions[i] as MotionCollision;
-    if (state.motion_mode === MOTION_MODE_GROUNDED) {
-      const floor_angle = angleOf(collision, state.up_direction);
-      if (floor_angle <= state.floor_max_angle + FLOOR_ANGLE_THRESHOLD) {
-        r_state.floor = true;
-        if (apply.floor && collision.depth > floor_depth) {
-          state.collision_state.floor = true;
-          state.floor_normal = collision.normal;
-          floor_depth = collision.depth;
-          setPlatformData(state, collision);
-        }
-        continue;
-      }
-      const ceiling_angle = angleOf(collision, op_negate(state.up_direction));
-      if (ceiling_angle <= state.floor_max_angle + FLOOR_ANGLE_THRESHOLD) {
-        r_state.ceiling = true;
-        if (apply.ceiling) {
-          state.platform_ceiling_velocity = collision.collider_velocity;
-          state.ceiling_normal = collision.normal;
-          state.collision_state.ceiling = true;
-        }
-        continue;
-      }
-    }
-    r_state.wall = true;
-    if (apply.wall && collision.depth > wall_depth) {
-      state.collision_state.wall = true;
-      wall_depth = collision.depth;
-      state.wall_normal = collision.normal;
-      // Don't apply wall velocity when the collider is a CharacterBody3D.
-      if (collision.collider === null || !BODY.has(collision.collider)) setPlatformData(state, collision);
-    }
-    if (!is_equal_approx(collision.normal, tmp_wall_col)) {
-      tmp_wall_col = collision.normal;
-      combined_wall_normal = op_add(combined_wall_normal, collision.normal);
-      wall_collision_count += 1;
-    }
-  }
-  if (r_state.wall && wall_collision_count > 1 && !r_state.floor && state.motion_mode === MOTION_MODE_GROUNDED) {
-    combined_wall_normal = normalized(combined_wall_normal);
-    const floor_angle = f32(Math.acos(dot(combined_wall_normal, state.up_direction)));
-    if (floor_angle <= state.floor_max_angle + FLOOR_ANGLE_THRESHOLD) {
-      r_state.floor = true;
-      r_state.wall = false;
-      if (apply.floor) {
-        state.collision_state.floor = true;
-        state.floor_normal = combined_wall_normal;
-      }
-      if (apply.wall) {
-        state.collision_state.wall = was_on_wall;
-        state.wall_normal = prev_wall_normal;
-      }
-    }
-  }
-}
-
-function snapParameters(self: object, state: BodyState): PhysicsTestMotionParameters3D {
-  const snap = state.floor_snap_length > state.margin ? state.floor_snap_length : state.margin;
-  const parameters = godot_test_motion_parameters(get_global_transform(self as Object3D), op_multiply(op_negate(state.up_direction), snap), state.margin);
-  parameters.max_collisions = 4;
-  parameters.recovery_as_collision = true;
-  parameters.collide_separation_ray = true;
-  return parameters;
-}
-
-/** `apply_floor_snap` (`character_body_3d.cpp:459`). */
-function applyFloorSnap(self: object, state: BodyState): void {
-  if (state.collision_state.floor) return;
-  const parameters = snapParameters(self, state);
-  const result = godot_test_motion_result();
-  if (moveAndCollide(self, parameters, result, true, false)) {
-    const result_state = flags();
-    setCollisionDirection(state, result, result_state, flags(true, false, false));
-    if (result_state.floor) {
-      if (length(result.travel) > state.margin) {
-        result.travel = op_multiply(state.up_direction, dot(state.up_direction, result.travel));
-      } else {
-        result.travel = ZERO;
-      }
-      set_global_transform(self as Object3D, withOrigin(parameters.from, op_add(parameters.from.origin, result.travel)));
-    }
-  }
-}
-
-/** `_snap_on_floor` (`character_body_3d.cpp:495`). */
-function snapOnFloor(self: object, state: BodyState, was_on_floor: boolean, vel_dir_facing_up: boolean): void {
-  if (state.collision_state.floor || !was_on_floor || vel_dir_facing_up) return;
-  applyFloorSnap(self, state);
-}
-
-/** `_on_floor_if_snapped` (`character_body_3d.cpp:503`). */
-function onFloorIfSnapped(self: object, state: BodyState, was_on_floor: boolean, vel_dir_facing_up: boolean): boolean {
-  if (op_equal(state.up_direction, ZERO) || state.collision_state.floor || !was_on_floor || vel_dir_facing_up) return false;
-  const parameters = snapParameters(self, state);
-  const result = godot_test_motion_result();
-  if (moveAndCollide(self, parameters, result, true, false)) {
-    const result_state = flags();
-    setCollisionDirection(state, result, result_state, flags());
-    return result_state.floor;
-  }
-  return false;
-}
-
-/** `_move_and_slide_grounded` (`character_body_3d.cpp:140`). */
-function slideGrounded(self: object, state: BodyState, delta: number, was_on_floor: boolean): void {
-  const up = state.up_direction;
-  let motion = op_multiply(state.velocity, delta);
-  const motion_slide_up = slide(motion, up);
-  const prev_floor_normal = state.floor_normal;
-  state.platform_rid = null;
-  state.platform_velocity = ZERO;
-  state.platform_angular_velocity = ZERO;
-  state.platform_ceiling_velocity = ZERO;
-  state.floor_normal = ZERO;
-  state.wall_normal = ZERO;
-  state.ceiling_normal = ZERO;
-
-  let sliding_enabled = !state.floor_stop_on_slope;
-  let can_apply_constant_speed = sliding_enabled;
-  let apply_ceiling_velocity = false;
-  let first_slide = true;
-  const vel_dir_facing_up = dot(state.velocity, up) > 0;
-  let total_travel = ZERO;
-
-  for (let iteration = 0; iteration < state.max_slides; iteration += 1) {
-    const parameters = godot_test_motion_parameters(get_global_transform(self as Object3D), motion, state.margin);
-    parameters.max_collisions = 6;
-    parameters.recovery_as_collision = true;
-    const result = godot_test_motion_result();
-    let collided = moveAndCollide(self, parameters, result, false, !sliding_enabled);
-    state.last_motion = result.travel;
-
-    if (collided) {
-      state.motion_results.push(result);
-      const previous_state = { ...state.collision_state };
-      const result_state = flags();
-      setCollisionDirection(state, result, result_state);
-
-      if (state.collision_state.ceiling && !op_equal(state.platform_ceiling_velocity, ZERO) && dot(state.platform_ceiling_velocity, up) < 0) {
-        if (!state.slide_on_ceiling || dot(motion, up) < 0 || length(op_add(state.ceiling_normal, up)) < 0.01) {
-          apply_ceiling_velocity = true;
-          const ceiling_vertical_velocity = op_multiply(up, dot(up, state.platform_ceiling_velocity));
-          const motion_vertical_velocity = op_multiply(up, dot(up, state.velocity));
-          if (dot(motion_vertical_velocity, up) > 0 || length_squared(ceiling_vertical_velocity) > length_squared(motion_vertical_velocity)) {
-            state.velocity = op_add(ceiling_vertical_velocity, slide(state.velocity, up));
-          }
-        }
-      }
-
-      if (state.collision_state.floor && state.floor_stop_on_slope && length(op_add(normalized(state.velocity), up)) < 0.01) {
-        let gt = get_global_transform(self as Object3D);
-        if (length(result.travel) <= f32(state.margin + CMP_EPSILON)) gt = withOrigin(gt, op_subtract(gt.origin, result.travel));
-        set_global_transform(self as Object3D, gt);
-        state.velocity = ZERO;
-        motion = ZERO;
-        state.last_motion = ZERO;
-        break;
-      }
-
-      if (is_zero_approx(result.remainder)) {
-        motion = ZERO;
-        break;
-      }
-
-      let apply_default_sliding = true;
-
-      if (result_state.wall && dot(motion_slide_up, state.wall_normal) <= 0) {
-        if (state.floor_block_on_wall) {
-          const horizontal_motion = slide(motion, up);
-          const horizontal_normal = normalized(slide(state.wall_normal, up));
-          const motion_angle = Math.abs(f32(Math.acos(f32(-dot(horizontal_normal, normalized(horizontal_motion))))));
-          if (motion_angle < 0.5 * Math.PI) {
-            apply_default_sliding = false;
-            if (was_on_floor && !vel_dir_facing_up) {
-              let gt = get_global_transform(self as Object3D);
-              const travel_total = length(result.travel);
-              const twenty = f32(state.margin * 20);
-              const cancel_dist_max = f32(0.1 < twenty ? 0.1 : twenty);
-              if (travel_total <= f32(state.margin + CMP_EPSILON)) {
-                gt = withOrigin(gt, op_subtract(gt.origin, result.travel));
-                result.travel = ZERO;
-              } else if (travel_total < cancel_dist_max) {
-                gt = withOrigin(gt, op_subtract(gt.origin, slide(result.travel, up)));
-                motion = slide(motion, up);
-                result.travel = ZERO;
-              } else {
-                result.travel = slide(result.travel, up);
-                motion = result.remainder;
-              }
-              set_global_transform(self as Object3D, gt);
-              snapOnFloor(self, state, true, false);
-            } else {
-              motion = result.remainder;
-            }
-
-            const forward = normalized(slide(state.wall_normal, up));
-            motion = slide(motion, forward);
-
-            if (vel_dir_facing_up) {
-              const slide_motion = slide(state.velocity, (result.collisions[0] as MotionCollision).normal);
-              state.velocity = op_add(op_multiply(up, dot(up, state.velocity)), slide(slide_motion, up));
-            } else {
-              state.velocity = slide(state.velocity, forward);
-            }
-
-            if (was_on_floor && !vel_dir_facing_up && dot(motion, up) > 0) {
-              const floor_side = cross(prev_floor_normal, state.wall_normal);
-              if (!op_equal(floor_side, ZERO)) motion = op_multiply(floor_side, dot(motion, floor_side));
-            }
-
-            let stop_all_motion = previous_state.wall && !vel_dir_facing_up;
-            if (!state.collision_state.floor && dot(motion, up) < 0) {
-              const slide_motion = slide(motion, state.wall_normal);
-              if (dot(slide_motion, up) < 0) {
-                stop_all_motion = false;
-                motion = slide_motion;
-              }
-            }
-            if (stop_all_motion) {
-              motion = ZERO;
-              state.velocity = ZERO;
-            }
-          }
-        }
-
-        if (was_on_floor && state.wall_min_slide_angle > 0 && result_state.wall) {
-          const horizontal_normal = normalized(slide(state.wall_normal, up));
-          const motion_angle = Math.abs(f32(Math.acos(f32(-dot(horizontal_normal, normalized(motion_slide_up))))));
-          if (motion_angle < state.wall_min_slide_angle) {
-            motion = op_multiply(up, dot(motion, up));
-            state.velocity = op_multiply(up, dot(state.velocity, up));
-            apply_default_sliding = false;
-          }
-        }
-      }
-
-      if (apply_default_sliding) {
-        if ((sliding_enabled || !state.collision_state.floor) && (!state.collision_state.ceiling || state.slide_on_ceiling || !vel_dir_facing_up) && !apply_ceiling_velocity) {
-          const collision = result.collisions[0] as MotionCollision;
-          let slide_motion = slide(result.remainder, collision.normal);
-          if (state.collision_state.floor && !state.collision_state.wall && !is_zero_approx(motion_slide_up)) {
-            const motion_length = length(slide_motion);
-            slide_motion = cross(cross(up, result.remainder), state.floor_normal);
-            slide_motion = normalized(slide_motion);
-            slide_motion = op_multiply(slide_motion, motion_length);
-          }
-          motion = dot(slide_motion, state.velocity) > 0 ? slide_motion : ZERO;
-          if (state.slide_on_ceiling && result_state.ceiling) {
-            if (vel_dir_facing_up) state.velocity = slide(state.velocity, collision.normal);
-            else state.velocity = op_multiply(up, dot(up, state.velocity));
-          }
-        } else {
-          motion = result.remainder;
-          if (result_state.ceiling && !state.slide_on_ceiling && vel_dir_facing_up) {
-            state.velocity = slide(state.velocity, up);
-            motion = slide(motion, up);
-          }
-        }
-      }
-
-      total_travel = op_add(total_travel, result.travel);
-
-      if (was_on_floor && state.floor_constant_speed && can_apply_constant_speed && state.collision_state.floor && !is_zero_approx(motion)) {
-        const travel_slide_up = slide(total_travel, up);
-        const remaining = f32(length(motion_slide_up) - length(travel_slide_up));
-        motion = op_multiply(normalized(motion), remaining > 0 ? remaining : 0);
-      }
-    } else if (state.floor_constant_speed && first_slide && onFloorIfSnapped(self, state, was_on_floor, vel_dir_facing_up)) {
-      can_apply_constant_speed = false;
-      sliding_enabled = true;
-      const gt = get_global_transform(self as Object3D);
-      set_global_transform(self as Object3D, withOrigin(gt, op_subtract(gt.origin, result.travel)));
-      const motion_slide_norm = normalized(cross(cross(up, motion), prev_floor_normal));
-      motion = op_multiply(motion_slide_norm, length(motion_slide_up));
-      collided = true;
-    }
-
-    if (!collided || is_zero_approx(motion)) break;
-
-    can_apply_constant_speed = !can_apply_constant_speed && !sliding_enabled;
-    sliding_enabled = true;
-    first_slide = false;
-  }
-
-  snapOnFloor(self, state, was_on_floor, vel_dir_facing_up);
-
-  if (state.collision_state.floor && !vel_dir_facing_up) state.velocity = slide(state.velocity, up);
-}
-
-/** `_move_and_slide_floating` (`character_body_3d.cpp:402`). */
-function slideFloating(self: object, state: BodyState, delta: number): void {
-  let motion = op_multiply(state.velocity, delta);
-  state.platform_rid = null;
-  state.floor_normal = ZERO;
-  state.platform_velocity = ZERO;
-  state.platform_angular_velocity = ZERO;
-  let first_slide = true;
-  for (let iteration = 0; iteration < state.max_slides; iteration += 1) {
-    const parameters = godot_test_motion_parameters(get_global_transform(self as Object3D), motion, state.margin);
-    parameters.recovery_as_collision = true;
-    const result = godot_test_motion_result();
-    const collided = moveAndCollide(self, parameters, result, false, false);
-    state.last_motion = result.travel;
-    if (collided) {
-      state.motion_results.push(result);
-      setCollisionDirection(state, result, flags());
-      if (is_zero_approx(result.remainder)) {
-        motion = ZERO;
-        break;
-      }
-      if (state.wall_min_slide_angle !== 0 && f32(Math.acos(dot(state.wall_normal, op_negate(normalized(state.velocity))))) < state.wall_min_slide_angle + FLOOR_ANGLE_THRESHOLD) {
-        motion = ZERO;
-        if (length(result.travel) < f32(state.margin + CMP_EPSILON)) {
-          const gt = get_global_transform(self as Object3D);
-          set_global_transform(self as Object3D, withOrigin(gt, op_subtract(gt.origin, result.travel)));
-        }
-      } else if (first_slide) {
-        const motion_slide_norm = normalized(slide(result.remainder, state.wall_normal));
-        motion = op_multiply(motion_slide_norm, f32(length(motion) - length(result.travel)));
-      } else {
-        motion = slide(result.remainder, state.wall_normal);
-      }
-      if (dot(motion, state.velocity) <= 0) motion = ZERO;
-    }
-    if (!collided || is_zero_approx(motion)) break;
-    first_slide = false;
-  }
+/** `Vector3::slide`: `v` without its component into `n`. */
+function slide(v: Vector3, n: Vector3): Vector3 {
+  return op_subtract(v, op_multiply(n, dot(v, n)));
 }
 
 /**
- * Moves the body by `velocity` over the current frame's delta (the physics delta inside a physics
- * frame, else the process delta), sliding along what it hits; true when it collided.
+ * Moves the body by its velocity over one physics step, sliding along what it meets; true when it
+ * met something.
  *
  * @godot CharacterBody3D.move_and_slide
  * @source scene/3d/physics/character_body_3d.cpp:43
@@ -551,67 +125,75 @@ function slideFloating(self: object, state: BodyState, delta: number): void {
 export function move_and_slide(owner: object): boolean {
   const state = stateOf(owner, 'move_and_slide');
   const self = godot_node_entity(owner);
-  const delta = godot_tree_process_delta(godot_tree_frames().inPhysics);
-  const gt = get_global_transform(self as Object3D);
-  state.previous_position = gt.origin;
-  let current_platform_velocity = state.platform_velocity;
-
-  if ((state.collision_state.floor || state.collision_state.wall) && state.platform_rid !== null) {
-    let excluded = false;
-    if (state.collision_state.floor) excluded = (state.platform_floor_layers & state.platform_layer) === 0;
-    else if (state.collision_state.wall) excluded = (state.platform_wall_layers & state.platform_layer) === 0;
-    if (!excluded) {
-      const platform = godot_collision_object_state(state.platform_rid);
-      const velocity = platform === undefined ? undefined : platformVelocity(state.platform_rid, op_subtract(gt.origin, platform.transform.origin));
-      if (velocity !== undefined) {
-        current_platform_velocity = velocity;
-      } else {
-        current_platform_velocity = ZERO;
-        state.platform_rid = null;
-      }
+  const body = godot_collision_object_body(self);
+  const world = godot_physics_world();
+  const controller = controllerOf(state);
+  const collider = body !== undefined && body.numColliders() > 0 ? body.collider(0) : undefined;
+  if (body === undefined || world === undefined || controller === undefined || collider === undefined) return false;
+  const delta = world.timestep;
+  const from = body.translation();
+  state.previous_position = vector3(from.x, from.y, from.z);
+  const own = godot_collision_object_layers(self);
+  controller.computeColliderMovement(
+    collider,
+    op_multiply(state.velocity, delta),
+    undefined,
+    undefined,
+    // What the character's mask takes; never its own colliders or a sensor.
+    (other: Collider) => {
+      if (other.isSensor() || other.parent()?.handle === body.handle) return false;
+      const node = godot_collision_object_of_collider(other);
+      return node === undefined || (own.mask & godot_collision_object_layers(node).layer) !== 0;
+    },
+  );
+  const moved = controller.computedMovement();
+  body.setNextKinematicTranslation({ x: from.x + moved.x, y: from.y + moved.y, z: from.z + moved.z });
+  // A character moving away from the floor is not on it, whatever the controller's snap reports.
+  const rising = dot(state.velocity, state.up_direction) > 0;
+  const flags: CollisionState = { floor: controller.computedGrounded() && !rising && state.motion_mode === MOTION_MODE_GROUNDED, wall: false, ceiling: false };
+  let velocity = state.velocity;
+  let floorNormal = flags.floor ? state.up_direction : ZERO;
+  let wallNormal = ZERO;
+  const count = controller.numComputedCollisions();
+  const limit = Math.cos(state.floor_max_angle + 0.01);
+  for (let index = 0; index < count; index += 1) {
+    const hit = controller.computedCollision(index);
+    const n = hit === null ? undefined : normalized(vector3(hit.normal2.x, hit.normal2.y, hit.normal2.z));
+    if (n === undefined || op_equal(n, ZERO)) continue;
+    const up = dot(n, state.up_direction);
+    if (state.motion_mode === MOTION_MODE_GROUNDED && up >= limit && !rising) {
+      flags.floor = true;
+      floorNormal = n;
+    } else if (state.motion_mode === MOTION_MODE_GROUNDED && up <= -limit) {
+      flags.ceiling = true;
     } else {
-      current_platform_velocity = ZERO;
+      flags.wall = true;
+      wallNormal = n;
     }
+    if (dot(velocity, n) < 0) velocity = slide(velocity, n);
   }
-
-  state.motion_results = [];
-  const was_on_floor = state.collision_state.floor;
-  state.collision_state = flags();
-  state.last_motion = ZERO;
-
-  if (!is_zero_approx(current_platform_velocity)) {
-    const parameters = godot_test_motion_parameters(get_global_transform(self as Object3D), op_multiply(current_platform_velocity, delta), state.margin);
-    parameters.recovery_as_collision = true;
-    if (state.platform_rid !== null) parameters.exclude_bodies = [state.platform_rid];
-    const floor_result = godot_test_motion_result();
-    if (moveAndCollide(self, parameters, floor_result, false, false)) {
-      state.motion_results.push(floor_result);
-      setCollisionDirection(state, floor_result, flags());
-    }
-  }
-
-  if (state.motion_mode === MOTION_MODE_GROUNDED) slideGrounded(self, state, delta, was_on_floor);
-  else slideFloating(self, state, delta);
-
-  state.real_velocity = op_divide(get_position_delta(self), delta);
-
-  if (state.platform_on_leave !== PLATFORM_ON_LEAVE_DO_NOTHING) {
-    if (!state.collision_state.floor && !state.collision_state.wall) {
-      if (state.platform_on_leave === PLATFORM_ON_LEAVE_ADD_UPWARD_VELOCITY && dot(current_platform_velocity, state.up_direction) < 0) {
-        current_platform_velocity = slide(current_platform_velocity, state.up_direction);
-      }
-      state.velocity = op_add(state.velocity, current_platform_velocity);
-    }
-  }
-  return state.motion_results.length > 0;
+  // On the floor, nothing carries the character into it (`_snap_on_floor` keeps it there).
+  if (flags.floor && dot(velocity, state.up_direction) < 0) velocity = slide(velocity, state.up_direction);
+  state.velocity = velocity;
+  state.collision_state = flags;
+  state.floor_normal = floorNormal;
+  state.wall_normal = wallNormal;
+  state.slide_collisions = count;
+  state.last_motion = vector3(moved.x, moved.y, moved.z);
+  state.real_velocity = delta > 0 ? op_divide(state.last_motion, delta) : ZERO;
+  return count > 0;
 }
 
 /**
+ * Keeps a character that was on the floor on it: the controller snaps it within
+ * `floor_snap_length` on its next move.
+ *
  * @godot CharacterBody3D.apply_floor_snap
  * @source scene/3d/physics/character_body_3d.cpp:459
  */
 export function apply_floor_snap(self: object): void {
-  applyFloorSnap(godot_node_entity(self), stateOf(self, 'apply_floor_snap'));
+  const state = stateOf(self, 'apply_floor_snap');
+  if (state.collision_state.floor) state.collision_state = { ...state.collision_state, floor: true };
 }
 
 /**
@@ -763,7 +345,7 @@ export function get_platform_velocity(self: object): Vector3 {
  * @source scene/3d/physics/character_body_3d.cpp:716
  */
 export function get_slide_collision_count(self: object): number {
-  return stateOf(self, 'get_slide_collision_count').motion_results.length;
+  return stateOf(self, 'get_slide_collision_count').slide_collisions;
 }
 
 /**
@@ -953,17 +535,3 @@ const CHARACTER_SEEDS: Readonly<Record<string, (entity: object, value: unknown) 
   wall_min_slide_angle: (entity, value) => set_wall_min_slide_angle(entity, Number(value)),
   up_direction: (entity, value) => set_up_direction(entity, vector3(...(value as [number, number, number]))),
 };
-
-// A position-based kinematic body the scene's JSX declares is a CharacterBody3D, which compat's
-// `move_and_slide` moves; its settings are the `userData`'s.
-godot_collision_object_declarer('character', (entity, _body, data) => {
-  godot_character_body_3d_adopt(entity);
-  const read = new Set<string>();
-  for (const [key, value] of Object.entries(data)) {
-    const seed = CHARACTER_SEEDS[key];
-    if (seed === undefined) continue;
-    seed(entity, value);
-    read.add(key);
-  }
-  return read;
-});

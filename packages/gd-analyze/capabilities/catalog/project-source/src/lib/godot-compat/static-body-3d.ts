@@ -3,25 +3,26 @@
  * @role BINDING
  *
  * Godot 4.7's `StaticBody3D` (`scene/3d/physics/static_body_3d.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a collision object in `BODY_MODE_STATIC`, a fixed
- * Rapier body (`collision-object-3d.ts`).
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a fixed @react-three/rapier body
+ * (`collision-object-3d.ts`). Its material override is its colliders' friction and restitution;
+ * the scene's own is its `userData`'s.
  */
 
-import { godot_collision_object_adopt, godot_collision_object_declarer, godot_collision_object_material } from './collision-object-3d';
+import type { Object3D } from 'three';
+import { godot_collision_object_colliders } from './collision-object-3d';
 import { godot_node_entity } from './node';
-import { godot_physics_material_of, type PhysicsMaterial } from './physics-material';
-
-/**
- * Registers a node as a StaticBody3D (`PhysicsBody3D(PhysicsServer3D::BODY_MODE_STATIC)`).
- *
- * @godot StaticBody3D (protocol)
- * @source scene/3d/physics/static_body_3d.cpp:251
- */
-export function godot_static_body_3d_adopt(entity: object): void {
-  godot_collision_object_adopt(entity, 'static');
-}
+import { godot_physics_material_computed, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 
 const MATERIAL = new WeakMap<object, PhysicsMaterial | null>();
+
+function materialOf(entity: object): PhysicsMaterial | null {
+  if (!MATERIAL.has(entity)) {
+    const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+    const authored = data['physics_material_override'];
+    MATERIAL.set(entity, authored === undefined ? null : godot_physics_material_of(authored as Readonly<Record<string, unknown>>));
+  }
+  return MATERIAL.get(entity) ?? null;
+}
 
 /**
  * @godot StaticBody3D.set_physics_material_override
@@ -30,7 +31,12 @@ const MATERIAL = new WeakMap<object, PhysicsMaterial | null>();
 export function set_physics_material_override(self: object, physics_material_override: PhysicsMaterial | null): void {
   const entity = godot_node_entity(self);
   MATERIAL.set(entity, physics_material_override);
-  godot_collision_object_material(entity, physics_material_override);
+  if (physics_material_override === null) return;
+  const { friction, bounce } = godot_physics_material_computed(physics_material_override);
+  for (const collider of godot_collision_object_colliders(entity)) {
+    collider.setFriction(friction);
+    collider.setRestitution(bounce);
+  }
 }
 
 /**
@@ -38,15 +44,5 @@ export function set_physics_material_override(self: object, physics_material_ove
  * @source scene/3d/physics/static_body_3d.cpp:69
  */
 export function get_physics_material_override(self: object): PhysicsMaterial | null {
-  return MATERIAL.get(godot_node_entity(self)) ?? null;
+  return materialOf(godot_node_entity(self));
 }
-
-// A fixed body the scene's JSX declares is a StaticBody3D; its material override is the one the
-// `userData` holds (its friction and bounce are its colliders' props).
-godot_collision_object_declarer('static', (entity, _body, data) => {
-  godot_static_body_3d_adopt(entity);
-  const material = data['physics_material_override'];
-  if (material === undefined) return new Set();
-  set_physics_material_override(entity, godot_physics_material_of(material as Readonly<Record<string, unknown>>));
-  return new Set(['physics_material_override']);
-});

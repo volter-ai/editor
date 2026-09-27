@@ -1,4 +1,4 @@
-import type { BoundGodotLifecyclePhase } from '../../analyze/bound-project';
+import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-lifecycle-hooks';
 import * as path from 'node:path';
 import {
   TARGET_TS_SYNTAX_VERSION,
@@ -65,7 +65,6 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
         module: './lib/godot-compat/input',
         namedBindings: [
           { imported: 'godot_input_map_load_json', local: 'godot_input_map_load_json' },
-          { imported: 'godot_input_debug', local: 'godot_input_debug' },
         ],
       },
       { kind: 'import-statement' as const, module: './project/input-map.json', defaultBinding: 'inputMap', namedBindings: [] },
@@ -73,18 +72,6 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
     statements: [
       ...(settings ? [load('godot_project_settings_load_json', 'settings')] : []),
       load('godot_input_map_load_json', 'inputMap'),
-      // The session's input door (`native-debug-module.ts`): the InputMap's actions, set through
-      // Godot's own `Input.action_press` / `action_release` (`input.ts`).
-      {
-        kind: 'variable-statement',
-        declaration: 'const',
-        name: 'debug',
-        modifiers: ['export'],
-        initializer: {
-          kind: 'object-expression',
-          properties: [{ key: 'input', value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_input_debug' }, arguments: [] } }],
-        },
-      },
     ],
   };
 }
@@ -105,31 +92,6 @@ function property(object: string | TargetTsExpression, member: string): TargetTs
   };
 }
 
-function nullGuard(name: string): TargetTsStatement {
-  return {
-    kind: 'if-statement',
-    condition: {
-      kind: 'binary-expression',
-      operator: '===',
-      left: { kind: 'identifier-expression', name },
-      right: { kind: 'literal-expression', value: null },
-    },
-    // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
-    then: [
-      {
-        kind: 'throw-statement',
-        expression: {
-          kind: 'new-expression',
-          callee: { kind: 'identifier-expression', name: 'Error' },
-          arguments: [
-            { kind: 'literal-expression', value: 'Godot autoload native node was not mounted.' },
-          ],
-        },
-      },
-    ],
-  };
-}
-
 function assignment(target: TargetTsExpression, value: TargetTsExpression): TargetTsStatement {
   return {
     kind: 'expression-statement',
@@ -138,55 +100,14 @@ function assignment(target: TargetTsExpression, value: TargetTsExpression): Targ
 }
 
 /** `argument`: the callback's one parameter (a frame's delta, an input event), passed through. */
-function lifecycleCallback(instance: string, method: string, argument?: string): TargetTsExpression {
-  return {
-    kind: 'arrow-expression',
-    parameters: argument === undefined ? [] : [{ name: argument }],
-    body: {
-      kind: 'call-expression',
-      callee: property(instance, method),
-      arguments: argument === undefined ? [] : [{ kind: 'identifier-expression', name: argument }],
-    },
-  };
-}
-
-function lifecycleBinding(
-  autoload: DirectGodotScriptAutoloadPlan,
-  suffix: string,
-): TargetTsExpression {
-  const method = (phase: BoundGodotLifecyclePhase): string | undefined =>
-    autoload.lifecycle.find((entry) => entry.phase === phase)?.methodName;
-  // Each phase's binding key and its callback's parameter (`node.ts` GodotScriptLifecycleBinding).
-  const callbacks = [
-    ['enterTree', method('enter-tree'), undefined],
-    ['ready', method('ready'), undefined],
-    ['exitTree', method('exit-tree'), undefined],
-    ['process', method('process'), 'delta'],
-    ['physicsProcess', method('physics-process'), 'delta'],
-    ['input', method('input'), 'event'],
-    ['shortcutInput', method('shortcut-input'), 'event'],
-    ['unhandledInput', method('unhandled-input'), 'event'],
-    ['unhandledKeyInput', method('unhandled-key-input'), 'event'],
-  ] as const;
-  return {
-    kind: 'object-expression',
-    properties: [
-      { key: 'native', value: { kind: 'identifier-expression', name: `$native_${suffix}` } },
-      { key: 'owner', value: { kind: 'identifier-expression', name: `$instance_${suffix}` } },
-      ...callbacks.flatMap(([key, methodName, argument]) =>
-        methodName === undefined
-          ? []
-          : [{ key, value: lifecycleCallback(`$instance_${suffix}`, methodName, argument) }],
-      ),
-    ],
-  };
-}
-
 function autoloadComponent(
   autoload: DirectGodotScriptAutoloadPlan,
   index: number,
+  imports: ScriptLifecycleImports,
 ): TargetTsStatement {
-  const suffix = `autoload_${index}`;
+  const node = `$node_autoload_${index}`;
+  const script = `$script_autoload_${index}`;
+  const call = (name: string, args: readonly TargetTsExpression[]): TargetTsExpression => ({ kind: 'call-expression', callee: { kind: 'identifier-expression', name }, arguments: args });
   return {
     kind: 'function-statement',
     name: `$Autoload_${index}`,
@@ -196,15 +117,7 @@ function autoloadComponent(
         type: {
           kind: 'object-type',
           properties: [
-            {
-              name: 'instanceRef',
-              readonly: true,
-              type: {
-                kind: 'type-reference',
-                name: 'RefObject',
-                arguments: [nullable(referenceType(`$AutoloadScript_${index}`))],
-              },
-            },
+            { name: 'instanceRef', readonly: true, type: { kind: 'type-reference', name: 'RefObject', arguments: [nullable(referenceType(`$AutoloadScript_${index}`))] } },
           ],
         },
       },
@@ -213,79 +126,35 @@ function autoloadComponent(
       {
         kind: 'variable-statement',
         declaration: 'const',
-        name: `$node_${suffix}`,
-        initializer: {
-          kind: 'call-expression',
-          callee: { kind: 'identifier-expression', name: 'useRef' },
-          typeArguments: [nullable(referenceType('Group'))],
-          arguments: [{ kind: 'literal-expression', value: null }],
-        },
+        name: node,
+        initializer: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'useRef' }, typeArguments: [nullable(referenceType('Group'))], arguments: [{ kind: 'literal-expression', value: null }] },
       },
+      { kind: 'expression-statement', expression: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: script,
+        initializer: call('useGodotScript', [{ kind: 'identifier-expression', name: node }, { kind: 'identifier-expression', name: `$AutoloadScript_${index}` }]),
+      },
+      // The world's scenes read the autoload's instance through `instanceRef`.
       {
         kind: 'expression-statement',
-        expression: {
-          kind: 'call-expression',
-          callee: { kind: 'identifier-expression', name: 'useGodotScriptTreeAttachment' },
-          arguments: [
-            { kind: 'identifier-expression', name: `$node_${suffix}` },
-            {
-              kind: 'arrow-expression',
-              parameters: [],
-              body: [
-                {
-                  kind: 'variable-statement',
-                  declaration: 'const',
-                  name: `$native_${suffix}`,
-                  initializer: property(`$node_${suffix}`, 'current'),
-                },
-                nullGuard(`$native_${suffix}`),
-                {
-                  kind: 'variable-statement',
-                  declaration: 'const',
-                  name: `$instance_${suffix}`,
-                  initializer: {
-                    kind: 'new-expression',
-                    callee: { kind: 'identifier-expression', name: `$AutoloadScript_${index}` },
-                    arguments: [{ kind: 'identifier-expression', name: `$native_${suffix}` }],
-                  },
-                },
-                assignment(property(property('props', 'instanceRef'), 'current'), {
-                  kind: 'identifier-expression',
-                  name: `$instance_${suffix}`,
-                }),
-                {
-                  kind: 'return-statement',
-                  expression: {
-                    kind: 'object-expression',
-                    properties: [
-                      {
-                        key: 'bindings',
-                        value: {
-                          kind: 'array-expression',
-                          elements: [lifecycleBinding(autoload, suffix)],
-                        },
-                      },
-                      {
-                        key: 'release',
-                        value: {
-                          kind: 'arrow-expression',
-                          parameters: [],
-                          body: [
-                            assignment(property(property('props', 'instanceRef'), 'current'), {
-                              kind: 'literal-expression',
-                              value: null,
-                            }),
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          ],
-        },
+        expression: call('useEffect', [
+          {
+            kind: 'arrow-expression',
+            parameters: [],
+            body: [
+              assignment(property(property('props', 'instanceRef'), 'current'), property(script, 'current')),
+              {
+                kind: 'return-statement',
+                expression: { kind: 'arrow-expression', parameters: [], body: [assignment(property(property('props', 'instanceRef'), 'current'), { kind: 'literal-expression', value: null })] },
+              },
+            ],
+          },
+          { kind: 'array-expression', elements: [] },
+        ]),
       },
+      ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports),
       {
         kind: 'return-statement',
         expression: {
@@ -293,17 +162,22 @@ function autoloadComponent(
           tag: 'group',
           attributes: [
             { kind: 'jsx-string-attribute', name: 'name', value: autoload.name },
-            {
-              kind: 'jsx-expression-attribute',
-              name: 'ref',
-              value: { kind: 'identifier-expression', name: `$node_${suffix}` },
-            },
+            { kind: 'jsx-expression-attribute', name: 'ref', value: { kind: 'identifier-expression', name: node } },
           ],
           children: [],
         },
       },
     ],
   };
+}
+
+/** The value of a carried engine setting, or its default. */
+function settingNumbers(composition: DirectGodotProjectCompositionPlan, key: string, fallback: readonly number[]): readonly number[] {
+  const value = composition.projectSettings.find((entry) => entry.key === key)?.value;
+  if (value === undefined) return fallback;
+  if (value.kind === 'number') return [value.value];
+  if ('components' in value) return value.components;
+  return fallback;
 }
 
 function moduleSpecifier(target: string): string {
@@ -316,186 +190,165 @@ function moduleSpecifier(target: string): string {
 export function emitDirectGodotWorldSyntax(
   composition: DirectGodotProjectCompositionPlan,
 ): TargetTsSourceFile {
-  const scene = composition.scenes.find(
-    (candidate) => candidate.sourceResPath === composition.mainScene,
-  );
+  const scene = composition.scenes.find((candidate) => candidate.sourceResPath === composition.mainScene);
   if (scene === undefined) throw new Error(`${composition.mainScene}: main scene plan is absent`);
+  const id = (name: string): TargetTsExpression => ({ kind: 'identifier-expression', name });
+  const call = (name: string, args: readonly TargetTsExpression[] = []): TargetTsExpression => ({ kind: 'call-expression', callee: id(name), arguments: args });
+  const statement = (expression: TargetTsExpression): TargetTsStatement => ({ kind: 'expression-statement', expression });
+  const named = (module: string, names: readonly string[], typeOnly = false): TargetTsStatement => ({
+    kind: 'import-statement',
+    module,
+    namedBindings: [...new Set(names)].sort().map((name) => ({ imported: name, local: name })),
+    ...(typeOnly ? { typeOnly: true as const } : {}),
+  });
   const mainAutoloadReferences = directGodotSceneAutoloadReferences(scene.root);
-  // Every other scene reading autoloads gets them at `<GodotMain>`'s level, where the scenes a
-  // script instantiates mount (compat's spawn host).
   const otherScenes = composition.scenes
     .filter((candidate) => candidate !== scene)
     .map((candidate) => ({ candidate, references: directGodotSceneAutoloadReferences(candidate.root) }))
     .filter((entry) => entry.references.length > 0);
-  const autoloadPrepare = directGodotAutoloadPreparation(composition);
-  const sceneBindings = [
-    { imported: scene.exportName, local: scene.exportName },
-    ...(mainAutoloadReferences.length === 0
-      ? []
-      : [
-          {
-            imported: directGodotSceneAutoloadContextName(scene.exportName),
-            local: directGodotSceneAutoloadContextName(scene.exportName),
-          },
-        ]),
-  ];
-  const imports: TargetTsStatement[] = [
-    {
-      kind: 'import-statement',
-      module: moduleSpecifier(scene.targetPath),
-      namedBindings: sceneBindings,
-    },
-    ...otherScenes.map(({ candidate }): TargetTsStatement => ({
-      kind: 'import-statement',
-      module: moduleSpecifier(candidate.targetPath),
-      namedBindings: [
-        {
-          imported: directGodotSceneAutoloadContextName(candidate.exportName),
-          local: directGodotSceneAutoloadContextName(candidate.exportName),
-        },
-      ],
-    })),
-    {
-      kind: 'import-statement',
-      module: './lib/godot-compat/main',
-      namedBindings: [{ imported: 'GodotMain', local: 'GodotMain' }],
-    },
-    {
-      kind: 'import-statement',
-      module: './lib/godot-compat/react-lifecycle',
-      namedBindings: [
-        { imported: 'GodotProjectStartup', local: 'GodotProjectStartup' },
-        ...(composition.scriptAutoloads.length === 0
-          ? []
-          : [{ imported: 'useGodotScriptTreeAttachment', local: 'useGodotScriptTreeAttachment' }]),
-      ],
-    },
-    ...(composition.scriptAutoloads.length === 0
-      ? []
-      : [
-          {
-            kind: 'import-statement' as const,
-            module: 'react',
-            namedBindings: [{ imported: 'useRef', local: 'useRef' }],
-          },
-          {
-            kind: 'import-statement' as const,
-            module: 'react',
-            namedBindings: [{ imported: 'RefObject', local: 'RefObject' }],
-            typeOnly: true as const,
-          },
-          {
-            kind: 'import-statement' as const,
-            module: 'three',
-            namedBindings: [{ imported: 'Group', local: 'Group' }],
-            typeOnly: true as const,
-          },
-          ...composition.scriptAutoloads.map((autoload, index) => ({
-            kind: 'import-statement' as const,
-            module: moduleSpecifier(autoload.generatedClass.modulePath),
-            namedBindings: [
-              {
-                imported: autoload.generatedClass.exportName,
-                local: `$AutoloadScript_${index}`,
-              },
-            ],
-          })),
-        ]),
-  ];
-  // The world's swap slot (the template's shape): the composition table, the active entry, and
-  // the root rendered by its Godot name.
-  const mainSceneShape: TargetTsJsxElementShape = {
-    tag: 'Scene',
-    attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: scene.root.name }],
-    children: [],
-  };
-  const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', ...mainSceneShape };
+  const hooks: ScriptLifecycleImports = { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() };
+  const autoloadComponents = composition.scriptAutoloads.map((autoload, index) => autoloadComponent(autoload, index, hooks));
+  const hasAutoloads = composition.scriptAutoloads.length > 0;
+  // `<Physics>` at the project's tick rate and gravity (`physics/common/physics_ticks_per_second`,
+  // `physics/3d/default_gravity` along `default_gravity_vector`).
+  const ticks = settingNumbers(composition, 'physics/common/physics_ticks_per_second', [60])[0] ?? 60;
+  const magnitude = settingNumbers(composition, 'physics/3d/default_gravity', [9.8])[0] ?? 9.8;
+  const direction = settingNumbers(composition, 'physics/3d/default_gravity_vector', [0, -1, 0]);
+  const gravity = direction.map((component) => Math.fround(component * magnitude));
+  const numbers = (values: readonly number[]): TargetTsExpression => ({ kind: 'array-expression', elements: values.map((value) => ({ kind: 'literal-expression', value })) });
+  const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', tag: 'Scene', attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: scene.root.name }], children: [] };
+  const autoloadValue = (references: readonly { readonly name: string }[]): TargetTsExpression => ({
+    kind: 'object-expression',
+    properties: references.map((reference) => ({ key: reference.name, value: id(`$autoloadInstance_${directGodotAutoloadIndex(composition, reference as never)}`) })),
+  });
   const composedMainScene: TargetTsJsxChild =
     mainAutoloadReferences.length === 0
       ? mainScene
-      : {
-          kind: 'jsx-element-child',
-          tag: directGodotSceneAutoloadContextName(scene.exportName),
-          attributes: [
-            {
-              kind: 'jsx-expression-attribute',
-              name: 'value',
-              value: {
-                kind: 'object-expression',
-                properties: mainAutoloadReferences.map((reference) => ({
-                  key: reference.name,
-                  value: {
-                    kind: 'identifier-expression',
-                    name: `$autoloadInstance_${directGodotAutoloadIndex(composition, reference)}`,
-                  },
-                })),
-              },
-            },
-          ],
-          children: [mainScene],
-        };
-  const startup: TargetTsJsxChild = {
-          kind: 'jsx-element-child',
-          tag: 'GodotProjectStartup',
-          attributes:
-            autoloadPrepare.length === 0
-              ? []
-              : [
-                  {
-                    kind: 'jsx-expression-attribute',
-                    name: 'prepare',
-                    value: {
-                      kind: 'arrow-expression',
-                      parameters: [],
-                      body: autoloadPrepare,
-                    },
-                  },
-                ],
-          children: [
-            ...composition.scriptAutoloads.map(
-              (_autoload, index): TargetTsJsxChild => ({
-                kind: 'jsx-element-child',
-                tag: `$Autoload_${index}`,
-                attributes: [
-                  {
-                    kind: 'jsx-expression-attribute',
-                    name: 'instanceRef',
-                    value: {
-                      kind: 'identifier-expression',
-                      name: `$autoloadInstance_${index}`,
-                    },
-                  },
-                ],
-                children: [],
-              }),
-            ),
-            composedMainScene,
-          ],
-        };
-  // `Main`'s loop around the startup transaction: the autoloads and the main scene enter the tree
-  // once the loop has made the root window, inside the `<Physics>` world it provides.
-  const main: TargetTsJsxElementShape = { tag: 'GodotMain', attributes: [], children: [startup] };
+      : { kind: 'jsx-element-child', tag: directGodotSceneAutoloadContextName(scene.exportName), attributes: [{ kind: 'jsx-expression-attribute', name: 'value', value: autoloadValue(mainAutoloadReferences) }], children: [mainScene] };
+  const game: TargetTsJsxElementShape = {
+    tag: 'Game',
+    attributes: [],
+    children: [
+      ...composition.scriptAutoloads.map((_autoload, index): TargetTsJsxChild => ({
+        kind: 'jsx-element-child',
+        tag: `$Autoload_${index}`,
+        attributes: [{ kind: 'jsx-expression-attribute', name: 'instanceRef', value: id(`$autoloadInstance_${index}`) }],
+        children: [],
+      })),
+      composedMainScene,
+    ],
+  };
+  // Scenes a script instantiates read their autoloads from providers around the world's content.
   const provided = otherScenes.reduce<TargetTsJsxElementShape>(
     (inner, { candidate, references }) => ({
       tag: directGodotSceneAutoloadContextName(candidate.exportName),
-      attributes: [
-        {
-          kind: 'jsx-expression-attribute',
-          name: 'value',
-          value: {
-            kind: 'object-expression',
-            properties: references.map((reference) => ({
-              key: reference.name,
-              value: { kind: 'identifier-expression', name: `$autoloadInstance_${directGodotAutoloadIndex(composition, reference)}` },
-            })),
-          },
-        },
-      ],
+      attributes: [{ kind: 'jsx-expression-attribute', name: 'value', value: autoloadValue(references) }],
       children: [{ kind: 'jsx-element-child', ...inner }],
     }),
-    main,
+    game,
   );
-  const worldExpression: TargetTsExpression = { kind: 'jsx-element-expression', ...provided };
+  const world: TargetTsExpression = {
+    kind: 'jsx-element-expression',
+    tag: 'Suspense',
+    attributes: [{ kind: 'jsx-expression-attribute', name: 'fallback', value: { kind: 'literal-expression', value: null } }],
+    children: [
+      {
+        kind: 'jsx-element-child',
+        tag: 'Physics',
+        attributes: [
+          { kind: 'jsx-expression-attribute', name: 'timeStep', value: { kind: 'binary-expression', operator: '/', left: { kind: 'literal-expression', value: 1 }, right: { kind: 'literal-expression', value: ticks } } },
+          { kind: 'jsx-expression-attribute', name: 'gravity', value: numbers(gravity) },
+          { kind: 'jsx-expression-attribute', name: 'colliders', value: { kind: 'literal-expression', value: false } },
+        ],
+        children: [{ kind: 'jsx-element-child', ...provided }],
+      },
+    ],
+  };
+  const useThree = (name: string): TargetTsStatement => ({
+    kind: 'variable-statement',
+    declaration: 'const',
+    name,
+    initializer: call('useThree', [{ kind: 'arrow-expression', parameters: [{ name: 'state' }], body: { kind: 'property-expression', object: id('state'), property: name } }]),
+  });
+  // Inside `<Physics>`: the world's wiring, and each frame the page's input delivered, the frame
+  // counted, the current camera made R3F's and the canvas items drawn.
+  const gameComponent: TargetTsStatement = {
+    kind: 'function-statement',
+    name: 'Game',
+    parameters: [{ name: 'props', type: { kind: 'type-reference', name: 'PropsWithChildren', arguments: [] } }],
+    body: [
+      statement(call('useGodotResources')),
+      statement(call('useGodotWorld')),
+      statement(call('useGodotInputFrames')),
+      useThree('scene'),
+      useThree('gl'),
+      useThree('get'),
+      useThree('set'),
+      statement(
+        call('useFrame', [
+          {
+            kind: 'arrow-expression',
+            parameters: [],
+            body: [
+              statement(call('godot_window_process_events')),
+              statement(call('godot_input_advance', [{ kind: 'literal-expression', value: 'process' }])),
+              { kind: 'variable-statement', declaration: 'const', name: 'camera', initializer: call('godot_camera_3d_draw', [id('scene')]) },
+              {
+                kind: 'if-statement',
+                condition: {
+                  kind: 'binary-expression',
+                  operator: '&&',
+                  left: { kind: 'binary-expression', operator: '!==', left: id('camera'), right: { kind: 'literal-expression', value: null } },
+                  right: { kind: 'binary-expression', operator: '!==', left: { kind: 'property-expression', object: call('get'), property: 'camera' }, right: id('camera') },
+                },
+                // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
+                then: [statement(call('set', [{ kind: 'object-expression', properties: [{ key: 'camera', value: id('camera') }] }]))],
+              },
+              statement(call('godot_canvas_draw', [id('scene'), call('godot_window_canvas_layer', [{ kind: 'property-expression', object: id('gl'), property: 'domElement' }])])),
+            ],
+          },
+        ]),
+      ),
+      {
+        kind: 'return-statement',
+        expression: {
+          kind: 'jsx-fragment-expression',
+          children: [
+            { kind: 'jsx-expression-child', value: { kind: 'property-expression', object: id('props'), property: 'children' } },
+            { kind: 'jsx-element-child', tag: 'GodotSpawnHost', attributes: [], children: [] },
+          ],
+        },
+      },
+    ],
+  };
+  const imports: TargetTsStatement[] = [
+    named('react', ['Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
+    named('react', ['PropsWithChildren', ...(hasAutoloads ? ['RefObject'] : [])], true),
+    named('@react-three/fiber', ['useFrame', 'useThree', ...hooks.fiber]),
+    named('@react-three/rapier', ['Physics', ...hooks.rapier]),
+    ...(hasAutoloads ? [named('three', ['Group'], true)] : []),
+    { kind: 'import-statement', module: moduleSpecifier(scene.targetPath), namedBindings: [{ imported: scene.exportName, local: scene.exportName }, ...(mainAutoloadReferences.length === 0 ? [] : [{ imported: directGodotSceneAutoloadContextName(scene.exportName), local: directGodotSceneAutoloadContextName(scene.exportName) }])] },
+    ...otherScenes.map(({ candidate }): TargetTsStatement => ({
+      kind: 'import-statement',
+      module: moduleSpecifier(candidate.targetPath),
+      namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
+    })),
+    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotWorld']),
+    named('./lib/godot-compat/advance', ['useGodotInputFrames']),
+    named('./lib/godot-compat/window', ['godot_window_canvas_layer', 'godot_window_process_events']),
+    named('./lib/godot-compat/camera-3d', ['godot_camera_3d_draw']),
+    named('./lib/godot-compat/canvas-item', ['godot_canvas_draw']),
+    named('./lib/godot-compat/packed-scene-instance', ['GodotSpawnHost']),
+    ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
+    ...[...new Set(hooks.compat.values())].map((module) =>
+      named(`./lib/godot-compat/${module}`, [...hooks.compat].filter(([, from]) => from === module).map(([name]) => name)),
+    ),
+    ...composition.scriptAutoloads.map((autoload, index): TargetTsStatement => ({
+      kind: 'import-statement',
+      module: moduleSpecifier(autoload.generatedClass.modulePath),
+      namedBindings: [{ imported: autoload.generatedClass.exportName, local: `$AutoloadScript_${index}` }],
+    })),
+  ];
   const data = projectDataLoad(composition);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
@@ -503,50 +356,31 @@ export function emitDirectGodotWorldSyntax(
     statements: [
       ...imports,
       ...data.imports,
+      // The input map is Input's, next to the frame counter the world advances.
+      named('./lib/godot-compat/input', ['godot_input_advance']),
       ...data.statements,
-      ...composition.scriptAutoloads.map(autoloadComponent),
+      ...autoloadComponents,
+      gameComponent,
       {
         kind: 'variable-statement',
         declaration: 'const',
         name: 'scenes',
-        initializer: { kind: 'object-expression', properties: [{ key: 'main', value: { kind: 'identifier-expression', name: scene.exportName } }] },
+        initializer: { kind: 'object-expression', properties: [{ key: 'main', value: id(scene.exportName) }] },
       },
-      {
-        kind: 'variable-statement',
-        declaration: 'const',
-        name: 'activeScene',
-        type: { kind: 'type-reference', name: 'keyof typeof scenes', arguments: [] },
-        initializer: { kind: 'literal-expression', value: 'main' },
-      },
+      { kind: 'variable-statement', declaration: 'const', name: 'activeScene', type: { kind: 'type-reference', name: 'keyof typeof scenes', arguments: [] }, initializer: { kind: 'literal-expression', value: 'main' } },
       {
         kind: 'function-statement',
         name: 'World',
         parameters: [],
         body: [
-          {
+          { kind: 'variable-statement', declaration: 'const', name: 'Scene', initializer: { kind: 'element-expression', object: id('scenes'), index: id('activeScene') } },
+          ...composition.scriptAutoloads.map((_autoload, index): TargetTsStatement => ({
             kind: 'variable-statement',
             declaration: 'const',
-            name: 'Scene',
-            initializer: {
-              kind: 'element-expression',
-              object: { kind: 'identifier-expression', name: 'scenes' },
-              index: { kind: 'identifier-expression', name: 'activeScene' },
-            },
-          },
-          ...composition.scriptAutoloads.map(
-            (_autoload, index): TargetTsStatement => ({
-              kind: 'variable-statement',
-              declaration: 'const',
-              name: `$autoloadInstance_${index}`,
-              initializer: {
-                kind: 'call-expression',
-                callee: { kind: 'identifier-expression', name: 'useRef' },
-                typeArguments: [nullable(referenceType(`$AutoloadScript_${index}`))],
-                arguments: [{ kind: 'literal-expression', value: null }],
-              },
-            }),
-          ),
-          { kind: 'return-statement', expression: worldExpression },
+            name: `$autoloadInstance_${index}`,
+            initializer: { kind: 'call-expression', callee: id('useRef'), typeArguments: [nullable(referenceType(`$AutoloadScript_${index}`))], arguments: [{ kind: 'literal-expression', value: null }] },
+          })),
+          { kind: 'return-statement', expression: world },
         ],
         modifiers: ['export', 'default'],
       },

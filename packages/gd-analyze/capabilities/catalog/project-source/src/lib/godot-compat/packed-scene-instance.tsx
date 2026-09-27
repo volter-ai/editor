@@ -17,7 +17,6 @@ import { createPortal, flushSync } from '@react-three/fiber';
 import { type ComponentType, createElement, Fragment, type ReactElement, useLayoutEffect, useState } from 'react';
 import { Group, type Object3D } from 'three';
 import { godot_node_adopt, godot_node_object, seatGodotScriptForest } from './node';
-import { godot_world_3d_declare_detached } from './world-3d';
 
 /** A project scene as a resource: its path and the scene component written for it. */
 export interface PackedScene {
@@ -100,8 +99,6 @@ export function instantiate(self: PackedScene, edit_state = 0): unknown {
       `godot-compat: PackedScene.instantiate(${self.resource_path}) ran while React was committing (a scene script's _init); it cannot mount there.`,
     );
   }
-  // The scene's bodies are declared, and held out of the space until the root enters the tree.
-  godot_world_3d_declare_detached();
   seatGodotScriptForest([root], []);
   // The root belongs to the spawn host: added and removed by compat, and freed by dropping it.
   godot_node_adopt(root, {

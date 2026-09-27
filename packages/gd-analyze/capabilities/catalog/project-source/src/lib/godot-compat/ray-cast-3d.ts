@@ -13,7 +13,7 @@
 import type { ThreeElements } from '@react-three/fiber';
 import { createElement, type Ref, useLayoutEffect, useRef } from 'react';
 import type { Group, Object3D } from 'three';
-import { godot_collision_object_state } from './collision-object-3d';
+import { godot_collision_object_body } from './collision-object-3d';
 import { godot_node_class_reader, godot_node_entity, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
@@ -60,7 +60,7 @@ function update(entity: object, state: RayState): void {
   query.to = transform(global, to);
   const exclude = new Set(state.exceptions);
   const parent = (entity as Object3D).parent;
-  if (state.excludeParent && parent !== null && godot_collision_object_state(parent) !== undefined) exclude.add(parent);
+  if (state.excludeParent && parent !== null && godot_collision_object_body(parent) !== undefined) exclude.add(parent);
   query.exclude = [...exclude];
   query.collision_mask = state.mask;
   query.collide_with_bodies = state.collideWithBodies;

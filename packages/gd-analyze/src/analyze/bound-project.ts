@@ -123,7 +123,9 @@ export type BoundGodotLifecyclePhase =
   | 'shortcut-input'
   | 'unhandled-input'
   | 'unhandled-key-input'
-  | 'exit-tree';
+  | 'exit-tree'
+  /** A RigidBody3D script's `_integrate_forces(state)`, run before each physics step. */
+  | 'integrate-forces';
 
 export interface BoundGodotLifecycleEntry {
   readonly phase: BoundGodotLifecyclePhase;
@@ -145,6 +147,7 @@ const LIFECYCLE_METHODS: readonly {
   { phase: 'unhandled-input', methodName: '_unhandled_input' },
   { phase: 'unhandled-key-input', methodName: '_unhandled_key_input' },
   { phase: 'exit-tree', methodName: '_exit_tree' },
+  { phase: 'integrate-forces', methodName: '_integrate_forces' },
 ];
 
 export interface BoundGodotProjectEntrypoints {

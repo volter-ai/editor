@@ -17,7 +17,7 @@ import { CapsuleCollider, ConvexHullCollider, CuboidCollider, BallCollider, Rigi
 import { createElement, type ReactElement, useEffect, useRef, useSyncExternalStore } from 'react';
 import { Group, type InstancedMesh, Matrix4, type Object3D, Quaternion as ThreeQuaternion, Vector3 as ThreeVector3 } from 'three';
 import { construct as basis, type Basis } from './basis';
-import { godot_collision_object_adopt, godot_collision_object_stand_in, godot_collision_object_state, set_collision_layer as setBodyLayer, set_collision_mask as setBodyMask } from './collision-object-3d';
+import { godot_collision_object_stand_in, set_collision_layer as setBodyLayer, set_collision_mask as setBodyMask } from './collision-object-3d';
 import { godot_mesh_library_connect_changed, godot_mesh_library_item, type MeshLibrary } from './mesh-library';
 import { godot_node_entity } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
@@ -335,7 +335,7 @@ export function set_collision_layer(self: object, layer: number): void {
   const state = stateOf(self, 'set_collision_layer');
   state.layer = layer >>> 0;
   const entity = godot_node_entity(self);
-  if (godot_collision_object_state(entity) !== undefined) setBodyLayer(entity, state.layer);
+  setBodyLayer(entity, state.layer);
 }
 
 /**
@@ -354,7 +354,7 @@ export function set_collision_mask(self: object, mask: number): void {
   const state = stateOf(self, 'set_collision_mask');
   state.mask = mask >>> 0;
   const entity = godot_node_entity(self);
-  if (godot_collision_object_state(entity) !== undefined) setBodyMask(entity, state.mask);
+  setBodyMask(entity, state.mask);
 }
 
 /**
@@ -577,10 +577,10 @@ function CellBody({ state, entity }: { readonly state: GridMapState; readonly en
   useEffect(() => {
     const held = body.current;
     if (held === null) return undefined;
-    godot_collision_object_adopt(entity, 'static');
+    const release = godot_collision_object_stand_in(held as never, entity);
     setBodyLayer(entity, state.layer);
     setBodyMask(entity, state.mask);
-    return godot_collision_object_stand_in(held as never, entity, (collider) => shapes.get(collider.handle));
+    return release;
   }, []);
   const colliders: ReactElement[] = [];
   for (const cell of state.cells.values()) {

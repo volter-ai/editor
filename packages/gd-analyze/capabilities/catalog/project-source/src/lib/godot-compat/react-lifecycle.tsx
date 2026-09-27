@@ -25,144 +25,21 @@ import {
   useState,
 } from 'react';
 import { Group, type Object3D } from 'three';
+import type { InputEventRecord } from './input-event';
 import {
   type GodotScriptLifecycleBinding,
   godot_element_callsite,
   godot_node_adopt,
   godot_node_defer_node_path,
   godot_node_object,
-  godot_node_pending_children,
-  godot_node_register_forest,
+  godot_node_listen_input,
+  godot_node_mount,
   godot_node_scene_root,
 } from './node';
 import { useGodotAdvance } from './advance';
 import { set_visible } from './node-3d';
 import { set_meta } from './object';
-import { godot_tree_root } from './scene-tree';
-import { godot_world_3d_declared_object } from './world-3d';
-
-export interface GodotScriptTreeAttachment {
-  readonly root: object;
-  readonly bindings: readonly GodotScriptLifecycleBinding[];
-  readonly release: () => void;
-}
-
-interface GodotStartupRegistration extends GodotScriptTreeAttachment {
-  readonly sequence: number;
-}
-
-interface GodotStartupBatch {
-  register(attachment: GodotScriptTreeAttachment): () => void;
-}
-
-const GodotStartupContext = createContext<GodotStartupBatch | null>(null);
-
-function contains(root: object, sought: object): boolean {
-  if (root === sought) return true;
-  const children = (root as { readonly children?: readonly object[] }).children ?? [];
-  return children.some((child) => contains(child, sought));
-}
-
-function outermostRoots(registrations: readonly GodotStartupRegistration[]): readonly object[] {
-  return registrations
-    .filter(
-      (candidate) =>
-        registrations.some(
-          (other) => other !== candidate && contains(other.root, candidate.root),
-        ) === false,
-    )
-    .map((registration) => registration.root);
-}
-
-/**
- * React composition boundary for Godot's one project-startup lifecycle transaction.
- *
- * Descendant scene/autoload components retain their own native refs and script instances. This
- * context collects only their mount-time native identities and callbacks. Once every descendant
- * exists, generated project composition may wire its exact typed cross-root fields through
- * `prepare`; compat then applies Godot's cross-root enter/ready/exit ordering. No hierarchy or
- * registration survives unmount.
- *
- * @godot Node (protocol)
- * @source main/main.cpp:4495-4560 (autoloads added to root)
- * @source main/main.cpp:4764 (then the main scene)
- */
-export function GodotProjectStartup({
-  children,
-  prepare,
-}: PropsWithChildren<{ readonly prepare?: () => void }>) {
-  const registrations = useRef<GodotStartupRegistration[]>([]);
-  const nextSequence = useRef(0);
-  const prepareOnMount = useRef(prepare);
-  const batch = useRef<GodotStartupBatch | null>(null);
-  batch.current ??= {
-    register(attachment): () => void {
-      const registration = { ...attachment, sequence: nextSequence.current++ };
-      registrations.current.push(registration);
-      return () => {
-        const index = registrations.current.indexOf(registration);
-        if (index >= 0) registrations.current.splice(index, 1);
-      };
-    },
-  };
-
-  // After every descendant's effects: a `@react-three/rapier` body exists, and its object is known,
-  // only once its own effects have run.
-  useEffect(() => {
-    const mounted = [...registrations.current].sort(
-      (left, right) => left.sequence - right.sequence,
-    );
-    prepareOnMount.current?.();
-    // Every scene mounted under the tree root enters, scripted or not (`Main::start` adds the
-    // autoloads, then the main scene, to the root); a registered root outside them enters too.
-    const treeRoot = godot_tree_root();
-    const pending = treeRoot === undefined ? [] : godot_node_pending_children(treeRoot);
-    const roots = [
-      ...pending,
-      ...outermostRoots(mounted).filter((root) => !pending.some((scene) => contains(scene, root))),
-    ];
-    // React only registers the forest; the SceneTree enters it before its first iteration.
-    const releaseLifecycle = godot_node_register_forest(
-      roots,
-      mounted.flatMap((registration) => registration.bindings),
-      true,
-    );
-    return () => {
-      releaseLifecycle();
-      for (let index = mounted.length - 1; index >= 0; index -= 1) mounted[index]!.release();
-    };
-  }, []);
-
-  return createElement(GodotStartupContext.Provider, { value: batch.current }, children);
-}
-
-/**
- * Seat one generated scene's retained script attachments on its native hierarchy.
- *
- * At project startup the enclosing batch owns notification ordering. A scene mounted later has no
- * enclosing startup context: it is registered, and enters the tree where a script adds it, or (React
- * having placed it below the tree) at the start of the SceneTree's next iteration.
- *
- * @godot Node (protocol)
- * @source scene/main/node.cpp:341-362 (a node added to the tree enters, then readies, at once)
- */
-export function useGodotScriptTreeAttachment<Native extends object>(
-  root: RefObject<Native | null>,
-  attach: () => Omit<GodotScriptTreeAttachment, 'root'>,
-): void {
-  const startup = useContext(GodotStartupContext);
-  useLayoutEffect(() => {
-    const nativeRoot = root.current;
-    if (nativeRoot === null) return;
-    const attachment = { root: nativeRoot, ...attach() };
-    if (startup !== null) return startup.register(attachment);
-    const releaseLifecycle = godot_node_register_forest([attachment.root], attachment.bindings, false);
-    return () => {
-      releaseLifecycle();
-      attachment.release();
-    };
-  }, []);
-}
+import { godot_collision_object_node } from './collision-object-3d';
 
 /**
  * The node an element's ref holds: its object, or for a `@react-three/rapier` body (whose ref is
@@ -170,7 +47,7 @@ export function useGodotScriptTreeAttachment<Native extends object>(
  */
 function nodeOf(held: object | null): object | null {
   if (held === null || (held as { readonly isObject3D?: boolean }).isObject3D === true) return held;
-  return godot_world_3d_declared_object(held) ?? null;
+  return godot_collision_object_node(held) ?? null;
 }
 
 /**
@@ -185,6 +62,8 @@ export function useGodotScene(root: RefObject<object | null>): void {
     const entity = nodeOf(root.current);
     if (entity === null) throw new Error('godot-compat: the root of a scene was not mounted.');
     godot_node_scene_root(entity);
+    // The scene enters the tree as React commits it (`godot_node_mount`).
+    return godot_node_mount(entity);
   }, []);
 }
 
@@ -221,27 +100,13 @@ export function useGodotConnection<Name extends string, Args extends unknown[]>(
   }, []);
 }
 
-/** The virtual methods Godot calls on a script, by the binding slot each fills. */
-const LIFECYCLE_METHODS = [
-  ['enterTree', '_enter_tree'],
-  ['ready', '_ready'],
-  ['exitTree', '_exit_tree'],
-  ['process', '_process'],
-  ['physicsProcess', '_physics_process'],
-  ['input', '_input'],
-  ['shortcutInput', '_shortcut_input'],
-  ['unhandledInput', '_unhandled_input'],
-  ['unhandledKeyInput', '_unhandled_key_input'],
-] as const;
-
 /**
- * Attaches a script to the node its ref holds: the script instance over the mounted Object3D, its
- * authored exported values (`SceneState::instantiate` sets them after the instance exists,
- * packed_scene.cpp:494), and its virtual methods (the ones the script or its base scripts define)
- * registered with the Node protocol, which calls them on the SceneTree's clock. `autoloads` are
- * the autoload singletons the script reads, each by its field, as the refs the world mounts them
- * into. At project startup the enclosing startup transaction registers it; a node mounted later
- * registers alone. The SceneTree enters either (`godot_node_register_forest`).
+ * Attaches a script to the node its ref holds, in the component's own effect: the script instance
+ * over the mounted Object3D and its authored exported values (`SceneState::instantiate` sets them
+ * after the instance exists, packed_scene.cpp:494). `autoloads` are the autoload singletons the
+ * script reads, each by its field, as the refs the world mounts them into. The script's virtual
+ * methods are not registered anywhere: the component calls them from its own hooks
+ * (`useEffect`, `useFrame`, `useBeforePhysicsStep`, `useGodotInput`).
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:494
@@ -251,20 +116,22 @@ export function useGodotScript<Instance extends object>(
   Script: new (native: object) => Instance,
   exported?: Partial<Instance>,
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
-): void {
-  const startup = useContext(GodotStartupContext);
+): RefObject<Instance | null> {
+  const script = useRef<Instance | null>(null);
   useEffect(() => {
     const native = nodeOf(ref.current);
     if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
     const instance = new Script(native);
     SCRIPT_OF.set(native, instance);
     for (const [field, value] of Object.entries(exported ?? {})) {
-      // An authored node reference is set once the scene's nodes all exist (`godot_node_reference`).
+      // An authored node reference: the node, once every node of the commit exists.
       if (value instanceof GodotNodeReference) {
-        godot_node_defer_node_path(() => {
+        const set = () => {
           const node = nodeOf(value.ref.current);
           (instance as Record<string, unknown>)[field] = node === null ? null : godot_node_object(node);
-        });
+        };
+        if (value.ref.current !== null) set();
+        else queueMicrotask(set);
       } else {
         (instance as Record<string, unknown>)[field] = value;
       }
@@ -274,16 +141,34 @@ export function useGodotScript<Instance extends object>(
       if (value === null || value === undefined) throw new Error(`godot-compat: the autoload ${field} reads was not mounted.`);
       (instance as Record<string, unknown>)[field] = value;
     }
-    const methods = instance as unknown as Readonly<Record<string, unknown>>;
-    const slots: Record<string, unknown> = {};
-    for (const [slot, name] of LIFECYCLE_METHODS) {
-      const method = methods[name];
-      if (typeof method === 'function') slots[slot] = (...args: unknown[]) => (method as (...values: unknown[]) => unknown).apply(instance, args);
-    }
-    const binding = { native, owner: instance, ...slots } as GodotScriptLifecycleBinding;
-    const attachment = { root: native, bindings: [binding], release: () => {} };
-    if (startup !== null) return startup.register(attachment);
-    return godot_node_register_forest([native], [binding], false);
+    // The node's Godot object is its script instance (`get_node`, signals, `is`).
+    godot_node_adopt(native, { binding: { owner: instance } });
+    script.current = instance;
+    return () => {
+      script.current = null;
+    };
+  }, []);
+  return script;
+}
+
+/**
+ * A script's input callback for one stage, from its component: `_input`, `_shortcut_input`,
+ * `_unhandled_key_input` or `_unhandled_input`, called as the viewport delivers each event.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:3474
+ */
+export function useGodotInput(
+  ref: RefObject<object | null>,
+  kind: 'input' | 'shortcutInput' | 'unhandledKeyInput' | 'unhandledInput',
+  listener: (event: InputEventRecord) => void,
+): void {
+  const current = useRef(listener);
+  current.current = listener;
+  useEffect(() => {
+    const node = nodeOf(ref.current);
+    if (node === null) throw new Error('godot-compat: the node an input callback attaches to was not mounted.');
+    return godot_node_listen_input(node, kind, (event) => current.current(event as InputEventRecord));
   }, []);
 }
 

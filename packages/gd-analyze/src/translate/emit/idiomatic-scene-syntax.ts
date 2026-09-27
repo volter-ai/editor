@@ -30,6 +30,7 @@ import type {
   DirectGodotSceneNodePlan,
   DirectGodotScriptInstancePlan,
 } from '../data/direct-project-composition-plan';
+import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-lifecycle-hooks';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneRootClass, godotSceneSubnodes } from '../data/scene-document-plan';
@@ -160,7 +161,13 @@ interface Emission {
   readonly scripts: Map<string, { readonly local: string; readonly module: string; readonly exportName: string }>;
   readonly hooks: TargetTsStatement[];
   /** The scripts' attachments, after every ref (a field may reference another node's). */
-  readonly scriptHooks: (() => TargetTsStatement)[];
+  readonly scriptHooks: (() => TargetTsStatement[])[];
+  /** What the scripts' lifecycle hooks import (`script-lifecycle-hooks.ts`). */
+  readonly lifecycle: ScriptLifecycleImports;
+  /** Whether the colliders being emitted are an area's sensors. */
+  readonly sensor: { current: boolean };
+  /** What the scene imports from Rapier itself (`@dimforge/rapier3d-compat`). */
+  readonly rapierCore: Set<string>;
   readonly refNames: Set<string>;
   /** The nodes another statement refers to (a script's, a connection's): their refs, once made. */
   readonly needsRef: ReadonlySet<string>;
@@ -231,9 +238,12 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
         exportName: cls.exportName,
       });
     }
-    emission.scriptHooks.push(() => ({
-      kind: 'expression-statement',
-      expression: {
+    const scriptName = `${refName}Script`;
+    emission.scriptHooks.push(() => [{
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: scriptName,
+      initializer: {
         kind: 'call-expression',
         callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScript') },
         arguments: [
@@ -268,7 +278,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
               ]),
         ],
       },
-    }));
+    }, ...scriptLifecycleHooks(scriptName, refName, script.lifecycle, emission.lifecycle)]);
   }
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
 }
@@ -355,6 +365,7 @@ const BODY_DATA: Readonly<Record<string, string>> = {
 function bodyProps(
   emission: Emission,
   className: string,
+  sensor: boolean,
   setters: readonly TargetGodotSceneSetterPlan[],
   resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
   shapes: Readonly<Record<string, Record<string, unknown>>>,
@@ -383,7 +394,7 @@ function bodyProps(
   }
   if (locks.linear.includes(false)) props.set('enabledTranslations', dataExpression(locks.linear));
   if (locks.angular.includes(false)) props.set('enabledRotations', dataExpression(locks.angular));
-  if (className !== 'Area3D') {
+  if (!sensor) {
     // Godot's friction is the smaller of the pair's, its bounce the larger (`combine_friction`,
     // `combine_bounce`, godot_body_pair_3d.cpp:255); a body without a material has friction 1 and
     // no bounce. A rough or absorbent material's sign (`physics_material.h:55`) is not carried.
@@ -421,12 +432,28 @@ function shapeData(emission: Emission, node: DirectGodotSceneNodePlan): Record<s
   return shapes;
 }
 
-const BODY_TYPES: Readonly<Record<string, string>> = {
-  StaticBody3D: 'fixed',
-  Area3D: 'fixed',
-  RigidBody3D: 'dynamic',
-  CharacterBody3D: 'kinematicPosition',
+/** Each body class's Rapier body type, and whether its colliders are sensors (an area's are). */
+const BODY_TYPES: Readonly<Record<string, { readonly type: string; readonly sensor: boolean }>> = {
+  StaticBody3D: { type: 'fixed', sensor: false },
+  Area3D: { type: 'fixed', sensor: true },
+  RigidBody3D: { type: 'dynamic', sensor: false },
+  CharacterBody3D: { type: 'kinematicPosition', sensor: false },
 };
+
+/**
+ * A body's children, its colliders told whether they are an area's sensors: a sensor also reports
+ * kinematic and fixed bodies (Rapier leaves those pairs out by default; a CharacterBody3D is
+ * kinematic, an area fixed).
+ */
+function sensorChildren(emission: Emission, sensor: boolean, children: () => TargetTsJsxChild[]): TargetTsJsxChild[] {
+  const outer = emission.sensor.current;
+  emission.sensor.current = sensor;
+  try {
+    return children();
+  } finally {
+    emission.sensor.current = outer;
+  }
+}
 
 /**
  * An area's sensor events: each collider pair Rapier reports starting or stopping to intersect the
@@ -457,7 +484,13 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
   const set = shape.setters;
   const tag = (component: string, args: TargetTsExpression): TargetTsJsxChild => {
     emission.rapier.add(component);
-    return element(component, [name, attribute('args', args), ...transform]);
+    const sensorTypes: TargetTsJsxAttribute[] = [];
+    if (emission.sensor.current) {
+      emission.rapierCore.add('ActiveCollisionTypes');
+      const types = (member: string): TargetTsExpression => ({ kind: 'property-expression', object: { kind: 'identifier-expression', name: 'ActiveCollisionTypes' }, property: member });
+      sensorTypes.push(attribute('activeCollisionTypes', { kind: 'binary-expression', operator: '|', left: { kind: 'binary-expression', operator: '|', left: types('DEFAULT'), right: types('KINEMATIC_FIXED') }, right: types('FIXED_FIXED') }));
+    }
+    return element(component, [name, attribute('args', args), ...sensorTypes, ...transform]);
   };
   switch (shape.className) {
     case 'BoxShape3D':
@@ -552,18 +585,19 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // `visible` is the root element's three prop; `transparency` its `userData`'s.
   const stated = withoutSpatial(node);
   overrides.push(...visibleProp(node.setters));
+  const rootBody = BODY_TYPES[rootClass];
   const familyProps = stated.setters.length > 0 ? familyInstanceProps(emission.family, rootClass, stated, instanced.root.setters) : undefined;
   if (familyProps !== undefined) {
     overrides.push(...familyProps);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
-  } else if (BODY_TYPES[rootClass] !== undefined) {
+  } else if (rootBody !== undefined) {
     // The overridden values merged over the prefab's own: the props that differ from its root's
     // (a `userData` always whole, since the element's replaces the prefab's).
     const merged = [...instanced.root.setters.filter((own) => !node.setters.some((entry) => sameSetter(entry, own))), ...node.setters];
     const resources = new Map([...instanced.resources, ...emission.scene.resources].map((resource) => [resource.key, resource] as const));
     const shapes = shapeData({ ...emission, resources: new Map(instanced.resources.map((resource) => [resource.key, resource] as const)) }, instanced.root);
-    const own = bodyProps(emission, rootClass, instanced.root.setters, new Map(instanced.resources.map((resource) => [resource.key, resource] as const)), shapes, rootData);
-    for (const [prop, value] of bodyProps(emission, rootClass, merged, resources, shapes, data)) {
+    const own = bodyProps(emission, rootClass, rootBody.sensor, instanced.root.setters, new Map(instanced.resources.map((resource) => [resource.key, resource] as const)), shapes, rootData);
+    for (const [prop, value] of bodyProps(emission, rootClass, rootBody.sensor, merged, resources, shapes, data)) {
       if (JSON.stringify(own.get(prop)) !== JSON.stringify(value)) overrides.push(attribute(prop, value));
     }
   } else {
@@ -580,7 +614,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     );
   }
   const children = node.children.map((child) => nodeElement(emission, child));
-  const ref = BODY_TYPES[rootClass] !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, familyThreeType(rootClass) ?? 'Group');
+  const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, familyThreeType(rootClass) ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
 }
 
@@ -707,19 +741,19 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const children = () => node.children.map((child) => nodeElement(emission, child));
   if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);
-  const bodyType = BODY_TYPES[className];
-  if (bodyType !== undefined) {
+  const body = BODY_TYPES[className];
+  if (body !== undefined) {
     emission.rapier.add('RigidBody');
-    const props = bodyProps(emission, className, node.setters, emission.resources, shapeData(emission, node), nodeData(node));
+    const props = bodyProps(emission, className, body.sensor, node.setters, emission.resources, shapeData(emission, node), nodeData(node));
     return element('RigidBody', [
       name,
       ...nodeRef(emission, node, 'RapierRigidBody', 'rapier'),
-      { kind: 'jsx-string-attribute', name: 'type', value: bodyType },
+      { kind: 'jsx-string-attribute', name: 'type', value: body.type },
       attribute('colliders', { kind: 'literal-expression', value: false }),
-      ...(className === 'Area3D' ? [flag('sensor'), ...sensorEvents(emission)] : []),
+      ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission)] : []),
       ...transform,
       ...[...props].map(([prop, value]) => attribute(prop, value)),
-    ], children());
+    ], sensorChildren(emission, body.sensor, children));
   }
   const visible = visibleProp(node.setters);
   const own = withoutSpatial(node);
@@ -864,8 +898,11 @@ export function idiomaticSceneSourceFile(
     scripts: new Map(),
     hooks: [],
     scriptHooks: [],
+    lifecycle: { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() },
+    sensor: { current: false },
+    rapierCore: new Set(),
     refNames: new Set(),
-    needsRef: refTargets(scene),
+    needsRef: new Set([...refTargets(scene), scene.root.nodePath]),
     nodeRefs: new Map(),
     rapierTypes: new Set(),
     scenes: new Map(project.scenes.map((entry) => [entry.sourceResPath, entry] as const)),
@@ -881,11 +918,11 @@ export function idiomaticSceneSourceFile(
       ),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
-  emission.hooks.push(...emission.scriptHooks.map((hook) => hook()));
-  if ((function hasUnique(entry: DirectGodotSceneNodePlan): boolean {
-    return entry.unique === true || godotSceneSubnodes(entry).some(hasUnique);
-  })(scene.root)) {
-    // Marked before any script attaches (a script mounted outside a startup enters at once).
+  emission.hooks.push(...emission.scriptHooks.flatMap((hook) => hook()));
+  for (const [name, module] of emission.lifecycle.compat) useCompat(emission, module, name);
+  for (const name of emission.lifecycle.rapier) emission.rapier.add(name);
+  {
+    // Every scene enters the tree as React commits it, before its scripts attach.
     const rootRef = emission.nodeRefs.get(scene.root.nodePath) as string;
     const at = emission.hooks.findIndex((hook) => hook.kind === 'variable-statement' && hook.name === rootRef);
     emission.hooks.splice(at + 1, 0, {
@@ -965,8 +1002,15 @@ export function idiomaticSceneSourceFile(
   const reactNames = [
     ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
     ...(emission.refNames.size === 0 ? [] : ['useRef']),
+    ...[...emission.lifecycle.react].sort(),
   ];
   const imports: TargetTsStatement[] = [
+    ...(emission.rapierCore.size === 0
+      ? []
+      : [{ kind: 'import-statement' as const, module: '@dimforge/rapier3d-compat', namedBindings: [...emission.rapierCore].sort().map((name) => ({ imported: name, local: name })) }]),
+    ...(emission.lifecycle.fiber.size === 0
+      ? []
+      : [{ kind: 'import-statement' as const, module: '@react-three/fiber', namedBindings: [...emission.lifecycle.fiber].sort().map((name) => ({ imported: name, local: name })) }]),
     ...(reactNames.length === 0
       ? []
       : [{ kind: 'import-statement' as const, module: 'react', namedBindings: reactNames.map((name) => ({ imported: name, local: name })) }]),

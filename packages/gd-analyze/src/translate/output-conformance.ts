@@ -14,9 +14,7 @@ import type { GodotOutputArtifact } from './emit';
 const FRAMEWORK = ['GodotMain', 'GodotProjectStartup', 'GodotSpawnHost', 'godot_main_iteration'] as const;
 
 const KNOWN: readonly string[] = [
-  'framework-import GodotMain',
-  'framework-import GodotProjectStartup',
-  'world-export debug',
+  'framework-import GodotSpawnHost',
 ];
 
 const decoder = new TextDecoder();

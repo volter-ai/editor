@@ -2,12 +2,12 @@
   "counts": {
     "class-name-switch": 4,
     "class-name-lookup": 11,
-    "class-name-literal": 151,
+    "class-name-literal": 149,
     "class-mount-registry": 5,
-    "compat-owns-time": 10,
-    "compat-scheduler-hooks": 2,
-    "output-known-violations": 3,
-    "world-exports": 4
+    "compat-owns-time": 5,
+    "compat-scheduler-hooks": 0,
+    "output-known-violations": 1,
+    "world-exports": 0
   },
   "findings": [
     "class-mount-registry | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/camera-3d.ts | godot_node_class_mount( #1",
@@ -89,9 +89,7 @@
     "class-name-literal | packages/gd-analyze/src/translate/code/lower-official-expression.ts | int: #1",
     "class-name-literal | packages/gd-analyze/src/translate/code/lower-official-statement.ts | === 'int' #1",
     "class-name-literal | packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts | === 'bool' #1",
-    "class-name-literal | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | !== 'Area3D' #1",
     "class-name-literal | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | !== 'CollisionShape3D' #1",
-    "class-name-literal | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | === 'Area3D' #1",
     "class-name-literal | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | === 'Camera3D' #1",
     "class-name-literal | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | === 'Camera3D' #2",
     "class-name-literal | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | === 'DirectionalLight3D' #1",
@@ -182,23 +180,10 @@
     "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (className) #1",
     "class-name-switch | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | switch (resource.className) #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/global-scope.ts | performance.now( #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/main.tsx | godot_main_iteration #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/main.tsx | godot_main_iteration #2",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/main.tsx | performance.now( #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/random-number-generator.ts | performance.now( #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts | godot_main_iteration #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts | godot_tree_physics_step #1",
     "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/scene-tree.ts | godot_tree_physics_step #2",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/world-3d.ts | world.step( #1",
-    "compat-owns-time | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/world-3d.ts | world.step( #2",
-    "compat-scheduler-hooks | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/main.tsx | useFrame #1",
-    "compat-scheduler-hooks | packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/main.tsx | useFrame #2",
-    "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'framework-import GodotMain', #1",
-    "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'framework-import GodotProjectStartup', #1",
-    "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'world-export debug', #1",
-    "world-exports | packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts | godot_input_debug #1",
-    "world-exports | packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts | godot_input_debug #2",
-    "world-exports | packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts | godot_input_debug #3",
-    "world-exports | packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts | modifiers: ['export'] #1"
+    "output-known-violations | packages/gd-analyze/src/translate/output-conformance.ts | 'framework-import GodotSpawnHost', #1"
   ]
 }

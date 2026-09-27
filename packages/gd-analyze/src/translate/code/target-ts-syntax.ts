@@ -280,6 +280,8 @@ export type TargetTsExpression =
       readonly kind: 'property-expression';
       readonly object: TargetTsExpression;
       readonly property: string;
+      /** `object?.property`: undefined when the object is null or undefined. */
+      readonly optional?: true;
     })
   | (TargetTsExpressionBase & {
       readonly kind: 'element-expression';

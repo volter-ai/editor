@@ -106,10 +106,17 @@ try {
   const realNow = globalThis.performance.now.bind(globalThis.performance);
   let stepsMs = [];
   let physicsBegan = 0;
-  (await import('./src/lib/godot-compat/scene-tree')).godot_tree_observe_physics((phase) => {
-    if (phase === 'begin') physicsBegan = realNow();
-    else stepsMs.push(Math.round((realNow() - physicsBegan) * 10) / 10);
-  });
+  // Each Rapier step, timed: the world's own step is the physics frame.
+  const RAPIER = (await import('@dimforge/rapier3d-compat')).default;
+  const rapierStep = RAPIER.World.prototype.step;
+  RAPIER.World.prototype.step = function (...args) {
+    physicsBegan = realNow();
+    try {
+      return rapierStep.apply(this, args);
+    } finally {
+      stepsMs.push(Math.round((realNow() - physicsBegan) * 10) / 10);
+    }
+  };
   // The clock the world's main loop reads: advanced one 60 Hz frame per step.
   let now = 0;
   globalThis.performance.now = () => now;
@@ -163,7 +170,8 @@ try {
     stepsMs = [];
     const began = Date.now();
     try {
-      advance(now);
+      // R3F's manual frame takes its timestamp in seconds.
+      advance(now / 1000);
     } catch (thrown) {
       error = stackOf(thrown);
     }

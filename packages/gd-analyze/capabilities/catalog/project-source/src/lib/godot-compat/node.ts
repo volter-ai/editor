@@ -1569,6 +1569,29 @@ export function godot_node_enter_pending(): void {
 }
 
 /**
+ * A scene React committed enters the tree, as `add_child` enters a child
+ * (`scene/main/node.cpp:341-362`): the subtree is seated (its classes recorded), its deferred
+ * node-path fields set, and from its top node below the tree it enters, parent first, then readies
+ * under a ready parent, children first. The tree's root is the three scene the nodes hang from,
+ * entered the first time a scene reaches it. Called from the scene component's layout effect, once
+ * React has attached the scene's objects; the returned call exits what is still inside the tree, as
+ * React unmounts it. Scripts' own `_ready` runs after, from the component's `useEffect`.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:341
+ */
+export function godot_node_mount(root: object): () => void {
+  seatGodotScriptForest([root], []);
+  for (const set of DEFERRED_NODE_PATHS.splice(0)) set();
+  let top = root as { readonly parent?: object | null; readonly isScene?: boolean };
+  while (top.parent !== undefined && top.parent !== null) top = top.parent as typeof top;
+  if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_node_enter_root(top);
+  const entering = enteringTop(root);
+  if (entering !== undefined) enterTree(entering.top, entering.parent);
+  return () => exitRoots([root]);
+}
+
+/**
  * One mounted scene root and its attachments: `mountGodotScriptForest` of one root.
  *
  * @godot Node (protocol)
@@ -1673,6 +1696,25 @@ export function godot_node_input_receivers(root: object, kind: GodotInputKind): 
   };
   visit(root);
   return found.reverse();
+}
+
+/**
+ * A script's input callback for one stage (`_input`, `_unhandled_input`, ...), which the viewport
+ * calls in Godot's order as it delivers events (`Node::_call_input`, `node.cpp:3474`); the returned
+ * call removes it. The node's component adds it from its own effect.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:3474
+ */
+export function godot_node_listen_input(entity: object, kind: GodotInputKind, listener: (event: unknown) => void): () => void {
+  const state = stateOf(entity);
+  state.binding = { ...(state.binding ?? { owner: entity }), [kind]: listener } as GodotScriptLifecycleBinding;
+  state[kind] = true;
+  return () => {
+    if (state.binding?.[kind] !== listener) return;
+    state.binding = { ...state.binding, [kind]: undefined } as GodotScriptLifecycleBinding;
+    state[kind] = false;
+  };
 }
 
 /**
