@@ -16,12 +16,12 @@
  * through `godot_input_map_load`.
  *
  * Events are the records `input-event.ts` describes. Every event is buffered: Godot's
- * `use_accumulated_input` is on, and only mouse motion and screen drags accumulate, which no action
- * reads, so accumulation is not transcribed. `is_action_just_pressed_by_event` and the key/mouse
+ * `use_accumulated_input` is on, so a mouse motion or screen drag folds into the buffered event
+ * before it when they are one motion (`godot_input_event_accumulate`). `is_action_just_pressed_by_event` and the key/mouse
  * polling members are not transcribed.
  */
 
-import { get_device as deviceOf, type InputEventRecord } from './input-event';
+import { get_device as deviceOf, godot_input_event_accumulate, type InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
 
 const f32 = Math.fround;
@@ -487,13 +487,18 @@ export function godot_input_debug(): {
 }
 
 /**
- * Buffers the event; it reaches the action state at the next `flush_buffered_events`.
+ * Buffers the event, folded into the buffered event before it when they are one motion
+ * (`use_accumulated_input`, on by default); it reaches the action state at the next
+ * `flush_buffered_events`.
  *
  * @godot Input.parse_input_event
  * @source core/input/input.cpp:1519
  */
 export function parse_input_event(event: InputEventRecord): void {
-  buffered.push(event);
+  const last = buffered[buffered.length - 1];
+  const folded = last === undefined ? undefined : godot_input_event_accumulate(last, event);
+  if (folded === undefined) buffered.push(event);
+  else buffered[buffered.length - 1] = folded;
 }
 
 /**

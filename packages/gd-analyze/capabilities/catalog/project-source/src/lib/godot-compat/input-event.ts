@@ -11,7 +11,7 @@
  * for a mouse event (`:715`), 0 otherwise. Only mouse buttons and screen touches can be canceled.
  */
 
-import type { Vector2 } from './vector2';
+import { construct as vector2, type Vector2 } from './vector2';
 
 interface Base {
   readonly device?: number;
@@ -45,7 +45,15 @@ export type InputEventRecord =
         readonly button_index: number;
         readonly position: Vector2;
       })
-  | (Base & Modifiers & { readonly type: 'mouse_motion'; readonly position: Vector2 })
+  | (Base &
+      Modifiers & {
+        readonly type: 'mouse_motion';
+        readonly position: Vector2;
+        /** The motion since the last event, in canvas pixels; unset is `Vector2()`. */
+        readonly relative?: Vector2;
+        /** The mouse buttons held (`MouseButtonMask`); unset is none. */
+        readonly button_mask?: number;
+      })
   | (Base & { readonly type: 'joypad_button'; readonly pressed: boolean; readonly button_index: number })
   | (Base & { readonly type: 'joypad_motion'; readonly axis: number; readonly axis_value: number })
   | (Base & {
@@ -85,4 +93,38 @@ export function get_device(self: InputEventRecord): number {
   if (self.type === 'key') return 16;
   if (self.type === 'mouse_button' || self.type === 'mouse_motion') return 32;
   return 0;
+}
+
+const ZERO = vector2();
+const held = (value: boolean | undefined): boolean => value === true;
+
+/**
+ * `InputEvent::accumulate`: the event `next` folded into the buffered `last` when they are one
+ * motion, else undefined. A mouse motion takes a motion with the same buttons and modifiers
+ * (`InputEventMouseMotion::accumulate`: the latest position, the relative motions summed); a screen
+ * drag takes a drag of the same touch (`InputEventScreenDrag::accumulate`: the latest position).
+ *
+ * @godot InputEvent (protocol)
+ * @source core/input/input_event.cpp:1031
+ * @source core/input/input_event.cpp:1536
+ */
+export function godot_input_event_accumulate(last: InputEventRecord, next: InputEventRecord): InputEventRecord | undefined {
+  if (last.type === 'mouse_motion' && next.type === 'mouse_motion') {
+    if (
+      (last.button_mask ?? 0) !== (next.button_mask ?? 0) ||
+      held(last.shift_pressed) !== held(next.shift_pressed) ||
+      held(last.ctrl_pressed) !== held(next.ctrl_pressed) ||
+      held(last.alt_pressed) !== held(next.alt_pressed) ||
+      held(last.meta_pressed) !== held(next.meta_pressed)
+    ) {
+      return undefined;
+    }
+    const a = last.relative ?? ZERO;
+    const b = next.relative ?? ZERO;
+    return { ...last, position: next.position, relative: vector2(a.x + b.x, a.y + b.y) };
+  }
+  if (last.type === 'screen_drag' && next.type === 'screen_drag') {
+    return last.index === next.index ? { ...last, position: next.position } : undefined;
+  }
+  return undefined;
 }

@@ -11,8 +11,8 @@
  * The root window is also where the page's input arrives: the canvas's keyboard, mouse and touch
  * events become Godot's input records as the web display server makes them
  * (`platform/web/display_server_web.cpp`, `dom_keys.inc`, `js/libs/library_godot_input.js`). The
- * record carries what `input-event.ts` models: no unicode, double click, button mask, pressure,
- * relative motion or velocity; the wheel, gamepads and IME are not bound. `Input`'s mouse button
+ * record carries what `input-event.ts` models: a mouse motion's relative motion and button mask;
+ * no unicode, double click, pressure or velocity; the wheel, gamepads and IME are not bound. `Input`'s mouse button
  * mask is kept here from the buttons this binding delivered (emulated mouse buttons from touches
  * do not change it). A key, mouse button or touch resumes the page's audio (`resume_audio`).
  */
@@ -243,7 +243,13 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
   on(page, 'pointermove', (raw) => {
     const event = raw as PointerEvent;
     if (!web.insideCanvas && web.mask === 0) return;
-    parse_input_event({ type: 'mouse_motion', position: canvasPoint(canvas, event), ...modifiers(event, 0) });
+    // The movement scaled from CSS pixels to canvas pixels (`platform/web/js/libs/library_godot_input.js:528`).
+    const rect = canvas.getBoundingClientRect();
+    const relative = vector2(
+      rect.width === 0 ? 0 : (event.movementX * canvas.width) / rect.width,
+      rect.height === 0 ? 0 : (event.movementY * canvas.height) / rect.height,
+    );
+    parse_input_event({ type: 'mouse_motion', position: canvasPoint(canvas, event), relative, button_mask: web.mask, ...modifiers(event, 0) });
   });
   on(canvas, 'mouseover', () => {
     web.insideCanvas = true;
