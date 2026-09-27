@@ -10,7 +10,9 @@
  * `[connection]`s (Node `ready` and `tree_entered`), compared by the order the root's script sees
  * its own callbacks and the connected calls, and the root script's authored node references (to a
  * node before it, one after it, one placed under an instance, itself, and a path leaving the scene)
- * as its `_ready` reads them.
+ * as its `_ready` reads them. Nodes added under an instance with an explicit `index` (one moved
+ * before the instance's own children, one whose index is past the end and stays) are in the order
+ * the tree walk reads.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -127,6 +129,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 2.5)
 
 [node name="Extra" type="Node3D" parent="Prop1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.75)
+
+[node name="First" type="Node3D" parent="Prop1" index="0"]
+
+[node name="Stays" type="Node3D" parent="Prop1" index="7"]
 
 [node name="Prop2" parent="." instance=ExtResource("1_prop")]
 

@@ -432,6 +432,7 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
     ...(node.unique === true ? { unique_name_in_owner: true } : {}),
     ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),
     ...(transparency?.kind === 'number' ? { transparency: transparency.value } : {}),
+    ...(node.siblingIndex === undefined ? {} : { index: node.siblingIndex }),
     ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
   };
 }

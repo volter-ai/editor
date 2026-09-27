@@ -76,6 +76,11 @@ export interface TargetGodotSceneNodePlan {
   readonly classes: readonly string[];
   /** `unique_name_in_owner`: the scene root finds the node as `%Name`. */
   readonly unique?: true;
+  /**
+   * The sibling position the scene authors (`index`), which moves the node there once added when
+   * that is before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
+   */
+  readonly siblingIndex?: number;
   /** Authored properties without a JSX rule: their setters' calls on the entity at mount, in order. */
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   /** An AnimationPlayer's tracks resolved against the scene: the bindings its mixer receives. */
@@ -1561,12 +1566,9 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
           (member) => member.path.lastIndexOf('/') >= 0 && member.path.slice(0, member.path.lastIndexOf('/')) === target,
         ).length;
         const placedBefore = importedEnclosing.placedAt.get(target) ?? 0;
-        // Placed after the model's own children, in authored order.
-        if (node.siblingIndex !== undefined && node.siblingIndex !== modelChildren + placedBefore) {
-          refuse(context, at, 'a placement at a sibling index before the model node\'s own children is not planned', 'structure');
-          refused = true;
-          continue;
-        }
+        // Placed after the model's own children, in authored order, unless its index moves it
+        // before them (`siblingIndex`).
+        const moved = node.siblingIndex !== undefined && node.siblingIndex !== modelChildren + placedBefore ? node.siblingIndex : undefined;
         if (!importedEnclosing.nodes.some((member) => member.path === target)) {
           refuse(context, at, `${target} is not a node of the imported model`, 'editable-children');
           refused = true;
@@ -1586,7 +1588,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
           refused = true;
           continue;
         }
-        planned.push({ ...plannedNode, portal: { instanceNodePath: enclosing, at: target } });
+        planned.push({ ...plannedNode, portal: { instanceNodePath: enclosing, at: target }, ...(moved === undefined ? {} : { siblingIndex: moved }) });
         continue;
       }
     }
@@ -1627,11 +1629,9 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
       refused = true;
       continue;
     }
-    if (node.siblingIndex !== undefined) {
-      refuse(context, at, 'explicit sibling order is not planned', 'structure');
-      refused = true;
-      continue;
-    }
+    // An explicit sibling position moves the node once added (`siblingIndex`, compat's `index`).
+    const place = <Planned extends TargetGodotSceneNodePlan>(plannedNode: Planned): Planned =>
+      node.siblingIndex === undefined ? plannedNode : { ...plannedNode, siblingIndex: node.siblingIndex };
     const origin = node.inheritedNode;
     if (origin !== undefined && origin.nodePath === '.') {
       const instanced = context.scenes.get(origin.documentPath);
@@ -1648,7 +1648,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         } else {
           const overrides: { at: string; setters: readonly TargetGodotSceneSetterPlan[]; animation?: TargetGodotAnimationBindingsPlan }[] = [];
           importedPlans.set(node.nodePath, { rootClasses: plannedRoot.model.rootClasses, nodes: plannedRoot.model.nodes, animated: plannedRoot.model.animations !== undefined, overrides, placedAt: new Map() });
-          planned.push({ ...plannedRoot, model: { ...plannedRoot.model, overrides } });
+          planned.push(place({ ...plannedRoot, model: { ...plannedRoot.model, overrides } }));
         }
         continue;
       }
@@ -1667,7 +1667,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
       instanceRoots.set(node.nodePath, instanced);
       const plannedRoot = planInstanceRoot(context, node, instanced);
       if (plannedRoot === undefined) refused = true;
-      else planned.push(plannedRoot);
+      else planned.push(place(plannedRoot));
       continue;
     }
     if (origin !== undefined) {
@@ -1677,7 +1677,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     }
     const plannedNode = planNativeNode(context, node);
     if (plannedNode === undefined) refused = true;
-    else planned.push(plannedNode);
+    else planned.push(place(plannedNode));
   }
   // An AnimationTree blends its AnimationPlayer's libraries from the player's root node: its tracks
   // bind as the player's do (`AnimationTree::_setup_animation_player`, animation_tree.cpp:996).

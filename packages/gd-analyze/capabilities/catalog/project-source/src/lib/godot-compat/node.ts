@@ -334,11 +334,32 @@ function seedDeclared(entity: object): void {
   }
   const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
   for (const group of (data['groups'] ?? []) as readonly string[]) if (!state.groups.includes(group)) state.groups.push(group);
+  // An explicit sibling position (`index`): the scene moves the node there once added, when that is
+  // before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
+  const index = data['index'];
+  if (typeof index === 'number') moveToIndex(entity as Object3D, index);
   if (data['unique_name_in_owner'] === true) {
     if (state.owner === undefined) throw new Error(`godot-compat: %${nameOf(entity)} has no scene root to own it.`);
     stateOf(state.owner).uniqueNodes.set(nameOf(entity), entity);
   }
 }
+/**
+ * `parent->move_child(node, index)` when `index < parent->get_child_count() - 1` as the node is
+ * added: the Godot children before it are the ones added earlier, so it moves only to a position
+ * before its own. Three's children hold objects that are not nodes (a model's surfaces) too: the
+ * node goes before the node now at `index`.
+ */
+function moveToIndex(entity: Object3D, index: number): void {
+  const parent = entity.parent;
+  if (parent === null) return;
+  const siblings = parent.children.filter((child) => !FOREIGN.has(child) && (NODE.has(child) || nameOf(child) !== ''));
+  const position = siblings.indexOf(entity);
+  if (index < 0 || index >= position) return;
+  const before = siblings[index] as Object3D;
+  parent.children.splice(parent.children.indexOf(entity), 1);
+  parent.children.splice(parent.children.indexOf(before), 0, entity);
+}
+
 const CLASS_MOUNTS = new Map<string, (entity: object) => void>();
 
 /**
