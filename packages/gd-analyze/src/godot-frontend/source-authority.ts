@@ -1,0 +1,145 @@
+/**
+ * The exact Godot implementations that define this lane's meaning.
+ *
+ * Fixtures decide priority and prove integration. They do not define semantics. A parser rule,
+ * API binding, lifecycle rule, renderer mapping or physics behavior is implemented against one
+ * of these immutable engine revisions and then checked against the matching native editor.
+ */
+export type SupportedGodotMajor = 3 | 4;
+
+export interface GodotSourceAuthority {
+  readonly major: SupportedGodotMajor;
+  readonly version: string;
+  readonly repository: 'https://github.com/godotengine/godot';
+  readonly revision: string;
+  readonly apiDumpFile: string;
+  readonly apiDumpSha256: string;
+  /** The official frontend units a bound-program exporter is compiled from. */
+  readonly frontendFiles: readonly string[];
+  /** Engine source estates consulted when implementing observable runtime protocol. */
+  readonly runtimeRoots: readonly string[];
+  /**
+   * The one bound-program exporter build this pin accepts: the official source at `revision`
+   * with this repository's exporter module and patch compiled in, every engine module enabled
+   * (a game's scripts name module classes such as GridMap and CSG). Its build writes
+   * `identity.json` beside the executable; these are that file's digests. Absent means no
+   * exporter is pinned, and import refuses.
+   */
+  /** The official-source patch its exporter is built with (`godot-frontend/official-source-patches`). */
+  readonly officialSourcePatch?: string;
+  readonly boundExporter?: {
+    readonly executableSha256: string;
+    readonly exporterSourceSha256: string;
+    readonly sourceTreeSha256: string;
+    /** The official source archive of `revision` the build extracted. */
+    readonly sourceArchiveSha256: string;
+    readonly buildOptions: string;
+  };
+  /**
+   * The official release editor of this revision: the native oracle evidence records cite, and
+   * the importer. Before the exporter runs, it performs Godot's own `--headless --import` on the
+   * snapshot copy, so a `preload` of a scene holding imported assets resolves as it does in
+   * Godot's editor. It is optimized, where a dev-build exporter imports too slowly to use.
+   */
+  readonly officialEditor?: {
+    readonly executableSha256: string;
+    readonly reportedVersion: string;
+  };
+}
+
+const REPOSITORY = 'https://github.com/godotengine/godot' as const;
+
+export const GODOT_SOURCE_AUTHORITIES: Readonly<
+  Record<SupportedGodotMajor, GodotSourceAuthority>
+> = {
+  3: {
+    major: 3,
+    version: '3.6.2-stable',
+    repository: REPOSITORY,
+    revision: '3cd3caab6779a7f3ec3bbeb9f200db50c735cfc8',
+    apiDumpFile: 'godot-3.6.2-api.json',
+    apiDumpSha256: '8219cab2bf15c89b0a8ada568dae0b587b1032d4853e240b0d0389cfba3b6c02',
+    frontendFiles: [
+      'modules/gdscript/gdscript_tokenizer.h',
+      'modules/gdscript/gdscript_tokenizer.cpp',
+      'modules/gdscript/gdscript_parser.h',
+      'modules/gdscript/gdscript_parser.cpp',
+      'modules/gdscript/gdscript_compiler.h',
+      'modules/gdscript/gdscript_compiler.cpp',
+    ],
+    runtimeRoots: ['core/', 'scene/', 'servers/', 'modules/gdscript/'],
+  },
+  4: {
+    major: 4,
+    version: '4.7-stable',
+    repository: REPOSITORY,
+    revision: '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88',
+    apiDumpFile: 'godot-4.7-extension_api.json',
+    apiDumpSha256: '53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943',
+    frontendFiles: [
+      'modules/gdscript/gdscript_tokenizer.h',
+      'modules/gdscript/gdscript_tokenizer.cpp',
+      'modules/gdscript/gdscript_parser.h',
+      'modules/gdscript/gdscript_parser.cpp',
+      'modules/gdscript/gdscript_analyzer.h',
+      'modules/gdscript/gdscript_analyzer.cpp',
+      'modules/gdscript/gdscript_compiler.h',
+      'modules/gdscript/gdscript_compiler.cpp',
+    ],
+    runtimeRoots: ['core/', 'scene/', 'servers/', 'modules/gdscript/'],
+    officialEditor: {
+      executableSha256: '445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f',
+      reportedVersion: '4.7.stable.official.5b4e0cb0f',
+    },
+    officialSourcePatch: '4.7-selected-call-targets.patch',
+    boundExporter: {
+      executableSha256: '21e4bd4c452545c7543c6cd4ee1bc07215063e65a2eb71590b5374dd23b9ce7d',
+      exporterSourceSha256: '6e2b183a5b33ab576eb5bb8c2553f819c1219825684c3340c27258fd3664629e',
+      sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
+      sourceArchiveSha256: 'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6',
+      buildOptions:
+        'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
+    },
+  },
+};
+
+/**
+ * Every pinned Godot 4 release. `GODOT_SOURCE_AUTHORITIES[4]` is the 4.7 row, the one every 4.x
+ * project imports under (`selectGodotFrontendAuthority`). The 4.6 row pins the official 4.6 editor
+ * and exporter that measure the 4.6-to-4.7 deltas (`evidence --godot 4.6`, `authority/godot-4.6/`).
+ */
+export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSourceAuthority>> = {
+  '4.6': {
+    major: 4,
+    version: '4.6-stable',
+    repository: REPOSITORY,
+    revision: '89cea143987d564363e15d207438530651d943ac',
+    apiDumpFile: 'godot-4.6-extension_api.json',
+    apiDumpSha256: '7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2',
+    officialEditor: {
+      executableSha256: '974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc',
+      reportedVersion: '4.6.stable.official.89cea1439',
+    },
+    officialSourcePatch: '4.6-selected-call-targets.patch',
+    boundExporter: {
+      executableSha256: '28e6c8de18fd232cd6993015ae3d1ee52d9f762399429a632d02e9f0bf077173',
+      exporterSourceSha256: '50b326ccadb7419df14075bb9d3e00e1213d4e4a06ba6a999cab71120e8597b0',
+      sourceTreeSha256: '0bbc5b19dc29cfd69b020f58691dd710539c5e8717dc14082aa963a1be9f57f3',
+      sourceArchiveSha256: '4387f22b1ef3ad9efd34ba0cd8075b0c3f192ddb3fc2ad7e400c9c44145900ad',
+      buildOptions:
+        'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
+    },
+    frontendFiles: GODOT_SOURCE_AUTHORITIES[4].frontendFiles,
+    runtimeRoots: GODOT_SOURCE_AUTHORITIES[4].runtimeRoots,
+  },
+  '4.7': GODOT_SOURCE_AUTHORITIES[4],
+};
+
+export function godotSourceAuthority(major: number): GodotSourceAuthority {
+  if (major !== 3 && major !== 4) {
+    throw new Error(
+      `Godot source authority supports engine major 3 or 4, received ${String(major)}.`,
+    );
+  }
+  return GODOT_SOURCE_AUTHORITIES[major];
+}

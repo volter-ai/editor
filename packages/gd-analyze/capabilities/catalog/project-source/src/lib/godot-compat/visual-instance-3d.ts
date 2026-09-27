@@ -1,0 +1,72 @@
+/**
+ * @godot-class VisualInstance3D
+ * @role BINDING
+ *
+ * Godot 4.7's `VisualInstance3D` render layers (`scene/3d/visual_instance_3d.cpp`, revision
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) bound onto three's layers: an instance is drawn by a
+ * camera whose cull mask shares a bit with its layer mask (`RendererSceneCull`), as three draws an
+ * object whose `layers` share a bit with the camera's. Godot's 20 render layers are three's layers
+ * 0 to 19; a Camera3D's cull mask is its camera's layers (`camera-3d.ts`).
+ */
+
+import type { Object3D } from 'three';
+import { godot_node_duplicate_state } from './node';
+import './node-3d';
+import { construct as vector3, type Vector3 } from './vector3';
+
+const LAYERS = new WeakMap<Object3D, number>();
+
+// `duplicate` copies `layers` (the three copy carries the mask).
+godot_node_duplicate_state('VisualInstance3D', (from, to) => {
+  const mask = LAYERS.get(from as Object3D);
+  if (mask !== undefined) LAYERS.set(to as Object3D, mask);
+});
+
+/**
+ * @godot VisualInstance3D.set_layer_mask
+ * @source scene/3d/visual_instance_3d.cpp:130
+ */
+export function set_layer_mask(self: Object3D, mask: number): void {
+  const value = mask >>> 0;
+  LAYERS.set(self, value);
+  self.layers.mask = value;
+}
+
+/**
+ * Layer 1 until set (`visual_instance_3d.h:44`); a scene's element states its mask as three's
+ * `layers`, which this reads back until a script sets it.
+ *
+ * @godot VisualInstance3D.get_layer_mask
+ * @source scene/3d/visual_instance_3d.cpp:135
+ */
+export function get_layer_mask(self: Object3D): number {
+  return LAYERS.get(self) ?? self.layers.mask >>> 0;
+}
+
+/** An axis-aligned box as `AABB` holds it. */
+export interface AABB {
+  readonly position: Vector3;
+  readonly size: Vector3;
+}
+
+const BOXES = new WeakMap<Object3D, () => AABB>();
+
+/**
+ * Gives an instance its class's bounding box (`get_aabb`, virtual in VisualInstance3D).
+ *
+ * @godot VisualInstance3D (protocol)
+ * @source scene/3d/visual_instance_3d.cpp:42
+ */
+export function godot_visual_instance_3d_aabb(self: Object3D, aabb: () => AABB): void {
+  BOXES.set(self, aabb);
+}
+
+/**
+ * The instance's local bounding box; the empty box for a class that registered none.
+ *
+ * @godot VisualInstance3D.get_aabb
+ * @source scene/3d/visual_instance_3d.cpp:42
+ */
+export function get_aabb(self: Object3D): AABB {
+  return BOXES.get(self)?.() ?? { position: vector3(), size: vector3() };
+}

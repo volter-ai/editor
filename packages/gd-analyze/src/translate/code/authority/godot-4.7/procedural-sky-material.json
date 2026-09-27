@@ -1,0 +1,1918 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/procedural-sky-material"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sky_curve",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sky_curve",
+        "localName": "ProceduralSkyMaterial_get_sky_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sky_curve",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sky_curve",
+        "localName": "ProceduralSkyMaterial_set_sky_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sky_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sky_energy_multiplier",
+        "localName": "ProceduralSkyMaterial_get_sky_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sky_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sky_energy_multiplier",
+        "localName": "ProceduralSkyMaterial_set_sky_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_ground_curve",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_ground_curve",
+        "localName": "ProceduralSkyMaterial_get_ground_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_ground_curve",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_ground_curve",
+        "localName": "ProceduralSkyMaterial_set_ground_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_ground_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_ground_energy_multiplier",
+        "localName": "ProceduralSkyMaterial_get_ground_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_ground_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_ground_energy_multiplier",
+        "localName": "ProceduralSkyMaterial_set_ground_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sun_angle_max",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sun_angle_max",
+        "localName": "ProceduralSkyMaterial_get_sun_angle_max",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_angle_max"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sun_angle_max",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sun_angle_max",
+        "localName": "ProceduralSkyMaterial_set_sun_angle_max",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_angle_max"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sun_curve",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sun_curve",
+        "localName": "ProceduralSkyMaterial_get_sun_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sun_curve",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sun_curve",
+        "localName": "ProceduralSkyMaterial_set_sun_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_energy_multiplier",
+        "localName": "ProceduralSkyMaterial_get_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_energy_multiplier",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_energy_multiplier",
+        "localName": "ProceduralSkyMaterial_set_energy_multiplier",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_energy_multiplier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sky_top_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sky_top_color",
+        "localName": "ProceduralSkyMaterial_get_sky_top_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_top_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sky_top_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sky_top_color",
+        "localName": "ProceduralSkyMaterial_set_sky_top_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_top_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sky_horizon_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sky_horizon_color",
+        "localName": "ProceduralSkyMaterial_get_sky_horizon_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_horizon_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sky_horizon_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sky_horizon_color",
+        "localName": "ProceduralSkyMaterial_set_sky_horizon_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_horizon_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sky_cover_modulate",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sky_cover_modulate",
+        "localName": "ProceduralSkyMaterial_get_sky_cover_modulate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover_modulate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sky_cover_modulate",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sky_cover_modulate",
+        "localName": "ProceduralSkyMaterial_set_sky_cover_modulate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover_modulate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_ground_bottom_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_ground_bottom_color",
+        "localName": "ProceduralSkyMaterial_get_ground_bottom_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_bottom_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_ground_bottom_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_ground_bottom_color",
+        "localName": "ProceduralSkyMaterial_set_ground_bottom_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_bottom_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_ground_horizon_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_ground_horizon_color",
+        "localName": "ProceduralSkyMaterial_get_ground_horizon_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_horizon_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_ground_horizon_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_ground_horizon_color",
+        "localName": "ProceduralSkyMaterial_set_ground_horizon_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_horizon_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_use_debanding",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_use_debanding",
+        "localName": "ProceduralSkyMaterial_get_use_debanding",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_use_debanding"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_use_debanding",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_use_debanding",
+        "localName": "ProceduralSkyMaterial_set_use_debanding",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_use_debanding"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "get_sky_cover",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "get_sky_cover",
+        "localName": "ProceduralSkyMaterial_get_sky_cover",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProceduralSkyMaterial",
+        "member": "set_sky_cover",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/procedural-sky-material",
+        "exportName": "set_sky_cover",
+        "localName": "ProceduralSkyMaterial_set_sky_cover",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sky_curve\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sky_curve",
+        "sourceLine": 68
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "43be495eed719e5093caabe5300610e1d9d45e2698cecdaf73cc7e13f18955cb",
+        "callsite": "res://probe.gd _init() get_sky_curve-default",
+        "observedOutputSha256": "baa42873d0b9bdea1d53e6fd3dbd289e6d0bebbd7b5e6cd20f93aeb57c2dde41"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_curve",
+        "observedOutputSha256": "baa42873d0b9bdea1d53e6fd3dbd289e6d0bebbd7b5e6cd20f93aeb57c2dde41"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c40108e983c8eed1a77a5f717dbfb84ed99588a299d711bd41d2399dd95f1ac3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sky_curve\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sky_curve",
+        "sourceLine": 61
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2fd66ecace86091c83cccc1f0890433458292c255bb248cd2fd27fc550c5c6a6",
+        "callsite": "res://probe.gd _init() set_sky_curve-0.0175 set_sky_curve-0.5 set_sky_curve-1",
+        "observedOutputSha256": "e0e2d7edf1882c07926c6336a35188433b23f7790adfabab9b69311ce8522f3b"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_curve",
+        "observedOutputSha256": "e0e2d7edf1882c07926c6336a35188433b23f7790adfabab9b69311ce8522f3b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fef750961a41f3520300e20eb115d9b487025903c939d27daca493c8f75af8c7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sky_energy_multiplier\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sky_energy_multiplier",
+        "sourceLine": 79
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5df66975903024e4a94198cd820454245c63bd49b0542733be7aafe6b41127f7",
+        "callsite": "res://probe.gd _init() get_sky_energy_multiplier-default",
+        "observedOutputSha256": "8907b10de4f6f4972306cf27551cc61a9c9e05acf4f3600bbef5b331401741ec"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_energy_multiplier",
+        "observedOutputSha256": "8907b10de4f6f4972306cf27551cc61a9c9e05acf4f3600bbef5b331401741ec"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b0612f280ddfb01984ef702195702243a251e03d4dd242d0e3abeb1428fa7ae3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sky_energy_multiplier\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sky_energy_multiplier",
+        "sourceLine": 72
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "61770f36cdc8e752f3a5a51d997d738772fb0e576458dee64809d910d1b8e5f4",
+        "callsite": "res://probe.gd _init() set_sky_energy_multiplier-0.5 set_sky_energy_multiplier-2",
+        "observedOutputSha256": "ea1f7cf94a3ed878955bf331378a4687e7a0f976acd0abbd41ea7049a130f1d8"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_energy_multiplier",
+        "observedOutputSha256": "ea1f7cf94a3ed878955bf331378a4687e7a0f976acd0abbd41ea7049a130f1d8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bf1ad5f918e16ac803309838d9abb8c2f2aa72901f35d893a273ef05ce5f8eb3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_ground_curve\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_ground_curve",
+        "sourceLine": 137
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ac612057355656983b02400b1f5fdc09821304a2b5e163c156559835e82ac456",
+        "callsite": "res://probe.gd _init() get_ground_curve-default",
+        "observedOutputSha256": "7debdf113163df5d6c64b8455fd313145940ad558375982fc3193e4838c0703d"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_curve",
+        "observedOutputSha256": "7debdf113163df5d6c64b8455fd313145940ad558375982fc3193e4838c0703d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f80f0bfa3bda6dad858a5116bd29c34f6402043c4b7d9a94245cd118a3e38481"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_ground_curve\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_ground_curve",
+        "sourceLine": 130
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "850a8733db7b128748cb46363c19758b812ffd20844f8bf61db7997a0b50d766",
+        "callsite": "res://probe.gd _init() set_ground_curve-0.171484 set_ground_curve-0.5",
+        "observedOutputSha256": "c7cdac1983ec095d801f96815c8c1050baa8fc6057b017d0fd72a9af5c29413c"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_curve",
+        "observedOutputSha256": "c7cdac1983ec095d801f96815c8c1050baa8fc6057b017d0fd72a9af5c29413c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fa2b5c7f54cf494ec579382c284d0ff1c2dc32677a8038877f8967eddf59be44"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_ground_energy_multiplier\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_ground_energy_multiplier",
+        "sourceLine": 147
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ae0dcecc47c8baddf3e4cdde0e5c941a71c0d05efd00726ef6da0eb13ac2b6a6",
+        "callsite": "res://probe.gd _init() get_ground_energy_multiplier-default",
+        "observedOutputSha256": "480cd790aa8d0bbac448b053590d9b250e5e669d8a829881b091a8e1aaeb9fc7"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_energy_multiplier",
+        "observedOutputSha256": "480cd790aa8d0bbac448b053590d9b250e5e669d8a829881b091a8e1aaeb9fc7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6600cd996af8c80f4e80c523cb61fe198bb0086c6f52afc074d133f925e1ced1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_ground_energy_multiplier\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_ground_energy_multiplier",
+        "sourceLine": 141
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "116119442befc4e8f82e3d351e1305d00ae817d93949e95f7775feae28139879",
+        "callsite": "res://probe.gd _init() set_ground_energy_multiplier-0.3 set_ground_energy_multiplier-4",
+        "observedOutputSha256": "acc73c527c63a5e2ee4b87e756f102487e167ed54fe20337cb1ca70ab53b796e"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_energy_multiplier",
+        "observedOutputSha256": "acc73c527c63a5e2ee4b87e756f102487e167ed54fe20337cb1ca70ab53b796e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bf21335622a1f5a92d5108fea22aa4f206ae8147626497ceaa7e493475d60c04"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_angle_max",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sun_angle_max\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sun_angle_max",
+        "sourceLine": 156
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dd58f329be29dce47369d5335874926e376871580144c7114f21d7410ec0e3a6",
+        "callsite": "res://probe.gd _init() get_sun_angle_max-default",
+        "observedOutputSha256": "b08d9fa4b25d54855d52bc025caa4d0dd32b7a7931eea8392ccb54b7240f06f1"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sun_angle_max",
+        "observedOutputSha256": "b08d9fa4b25d54855d52bc025caa4d0dd32b7a7931eea8392ccb54b7240f06f1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1f022e9c270fa1a5fb33e57530a971f848be443f91c48d3811c39efafe5a34e9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_angle_max",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sun_angle_max\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sun_angle_max",
+        "sourceLine": 151
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c5049dac3a0fdf796b9efae97e926ec7aee68d8410823c17c69ccac27b3f828f",
+        "callsite": "res://probe.gd _init() set_sun_angle_max-10 set_sun_angle_max-45.5",
+        "observedOutputSha256": "a84c7bbd7a5a1a2101cb99b95d664de47dabb41a1c6450d61633f8f8d4be6e1a"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sun_angle_max",
+        "observedOutputSha256": "a84c7bbd7a5a1a2101cb99b95d664de47dabb41a1c6450d61633f8f8d4be6e1a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "20658babd46771ec56c19bf2e82f52f1f325b70b36a472bf389e79b4ef5be931"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sun_curve\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sun_curve",
+        "sourceLine": 167
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "07fcbe5fb326ca800f1e53e25142a348dffd1e14d23d4e5fb9df1cc5b4ad793b",
+        "callsite": "res://probe.gd _init() get_sun_curve-default",
+        "observedOutputSha256": "8afd431db4dd2ea7614bc94d722f2e144b1bfd45c62dff4b1c92929d547c816d"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sun_curve",
+        "observedOutputSha256": "8afd431db4dd2ea7614bc94d722f2e144b1bfd45c62dff4b1c92929d547c816d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "12116ef448fcb033354c7e8ffcaae86f8faab1893afa5f9eeb71d0f40210cece"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sun_curve\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sun_curve",
+        "sourceLine": 160
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c48a383b7881eaa57880bfa3fdc6a3fdc442e1c8388b85e2d240dd3f430eae1c",
+        "callsite": "res://probe.gd _init() set_sun_curve-0.05 set_sun_curve-0.3",
+        "observedOutputSha256": "9a808764c85c173d41ee199fd3aedaed7daceb743cb6ce42939555c214c43c30"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sun_curve",
+        "observedOutputSha256": "9a808764c85c173d41ee199fd3aedaed7daceb743cb6ce42939555c214c43c30"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6d5458479064c294f6005bc1ab9c579e76a27dae62d0a8a5e74b681ac6d25fa2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_energy_multiplier\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_energy_multiplier",
+        "sourceLine": 189
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "94225de17c19995e705e7e963cda376e199caf94b1199adfce30589ae08d676f",
+        "callsite": "res://probe.gd _init() get_energy_multiplier-default",
+        "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_energy_multiplier",
+        "observedOutputSha256": "d0420d0d7a2a8f51f8684d3d8ef5eff0d88b4a52bb9c51ed035a5827db7d737f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8748716c18f62d0e1e25640362b9076dacdcb91dc068b92975f2ce69d32db288"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_energy_multiplier",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_energy_multiplier\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_energy_multiplier",
+        "sourceLine": 184
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9ee3a5fcb5e9a5b7042cbe5da5fc97a7766ccf0f59f8a0b8616af9b0fd28c384",
+        "callsite": "res://probe.gd _init() set_energy_multiplier-0.5 set_energy_multiplier-16",
+        "observedOutputSha256": "244abbffddbf3f3ef06b441f0378337b644e77aab14d9b0b74296cbb91462de8"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_energy_multiplier",
+        "observedOutputSha256": "244abbffddbf3f3ef06b441f0378337b644e77aab14d9b0b74296cbb91462de8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b92465f0d30c817530c3427a577f8a194069384dcf96d4ec735f9be4fde67b55"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_top_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sky_top_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sky_top_color",
+        "sourceLine": 48
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f047f5b4d6e8118af57224d80f932e37121a6fdd5d7389d7fde04fe67499971e",
+        "callsite": "res://probe.gd _init() get_sky_top_color-default",
+        "observedOutputSha256": "bcde2a46d78c7c5845848f3ee9f29ca589d209c92bf15f4024c3c92f1568349a"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_top_color",
+        "observedOutputSha256": "bcde2a46d78c7c5845848f3ee9f29ca589d209c92bf15f4024c3c92f1568349a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "240ed0ec29d439236fdb4c3244fc5a147047609f1665d53e0863d82eb6cff6e3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_top_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sky_top_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sky_top_color",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b4ec4822aa3082c8ee051c5ede0b5682eda12dde95a47d039fc26fa818bbdff7",
+        "callsite": "res://probe.gd _init() set_sky_top_color",
+        "observedOutputSha256": "cb86d6a8a2ed242619e3dd458f794bbd9782cf0546393b455c8fb2fdbfc791e1"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_top_color",
+        "observedOutputSha256": "cb86d6a8a2ed242619e3dd458f794bbd9782cf0546393b455c8fb2fdbfc791e1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "10e578fde5c8aca5d5a1722ebb0d90cb3e9dbfd9f01c538ce70d2b627b881674"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_horizon_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sky_horizon_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sky_horizon_color",
+        "sourceLine": 57
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "05669298644c193818211d734b40aa45fe5650205c4ded1164261346d83bab29",
+        "callsite": "res://probe.gd _init() get_sky_horizon_color-default",
+        "observedOutputSha256": "ec22eb8d8bd10ff6d4663eff76b3f91212a4ad0bc68e38476a7ea9bf9f31bf75"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_horizon_color",
+        "observedOutputSha256": "ec22eb8d8bd10ff6d4663eff76b3f91212a4ad0bc68e38476a7ea9bf9f31bf75"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d169e065fdeecf76a0df8780e0d815c55a15d84a19c194639d488a219de2b77b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_horizon_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sky_horizon_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sky_horizon_color",
+        "sourceLine": 52
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "49750b47ed0f3909eef6a8a975708fe65f41549e6dee8056471a9a109cc173f8",
+        "callsite": "res://probe.gd _init() set_sky_horizon_color",
+        "observedOutputSha256": "9f861a492677516a3c53fb5e59e5131e4a76263b7f5df38e555b5e32af06270d"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_horizon_color",
+        "observedOutputSha256": "9f861a492677516a3c53fb5e59e5131e4a76263b7f5df38e555b5e32af06270d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "010903fa82bfe01693bd1cfb5609f8d117771917636e861aa2674d1ab103bc25"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover_modulate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sky_cover_modulate\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sky_cover_modulate",
+        "sourceLine": 108
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f6dd99f19e66b3a30fd2ec176b37764bbadcacba4ad67abc18f34de148c02c1f",
+        "callsite": "res://probe.gd _init() get_sky_cover_modulate-default",
+        "observedOutputSha256": "4a54a65d19c3e9f20bdc1b285d9aa0836bf3ed466464f3cec0d983d17dadb788"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_cover_modulate",
+        "observedOutputSha256": "4a54a65d19c3e9f20bdc1b285d9aa0836bf3ed466464f3cec0d983d17dadb788"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b93a012b0023d658c09ad50452765d7aa92d40b904183be6dfbe1076041e7d26"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover_modulate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sky_cover_modulate\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sky_cover_modulate",
+        "sourceLine": 103
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "001d39d14a83d43d15c7ec112c2900409b30fc0a171ca1de6cd136fb2ff70f36",
+        "callsite": "res://probe.gd _init() set_sky_cover_modulate",
+        "observedOutputSha256": "fa7d1f266123e2ae615f440eee0dc7ab1c869728cc11caabc0f70d0a83d5a933"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_cover_modulate",
+        "observedOutputSha256": "fa7d1f266123e2ae615f440eee0dc7ab1c869728cc11caabc0f70d0a83d5a933"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4b421e5865db9b3bcd65b89e625a4ad100063799de9d6d9ce164406a77f6badc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_bottom_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_ground_bottom_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_ground_bottom_color",
+        "sourceLine": 117
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "029604f186ab34c11454fd9d688050aca2979874191f3d0bc90ce2b2a8c58185",
+        "callsite": "res://probe.gd _init() get_ground_bottom_color-default",
+        "observedOutputSha256": "316ca48cf07b435f15b9d065f4f8ed2e6c4fb308af4cf79dd4e34377a1d94f78"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_bottom_color",
+        "observedOutputSha256": "316ca48cf07b435f15b9d065f4f8ed2e6c4fb308af4cf79dd4e34377a1d94f78"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "75f7be8570dd48f00b80bc8afd6581225af8a7cc86feed113edfed5a12050a79"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_bottom_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_ground_bottom_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_ground_bottom_color",
+        "sourceLine": 112
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4d27f53bc6d110c070eef8f7a50b3cc0a5c33efcbb80ebfb9e3e617b690d6d56",
+        "callsite": "res://probe.gd _init() set_ground_bottom_color",
+        "observedOutputSha256": "29c88d1959167770684c181bdbb4ba137ce8f6afde35243e79e817e443b74f09"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_bottom_color",
+        "observedOutputSha256": "29c88d1959167770684c181bdbb4ba137ce8f6afde35243e79e817e443b74f09"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "45f12c33bb9f78b9f4a3cb8e66cf94e2ec933b5cfa50254bbc9fe5bb3ac7ec64"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_horizon_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_ground_horizon_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_ground_horizon_color",
+        "sourceLine": 126
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "42f519ac4e81f80b18c0184267e2513961909f6935916bb9ad6a20e039d8b272",
+        "callsite": "res://probe.gd _init() get_ground_horizon_color-default",
+        "observedOutputSha256": "7b974c3e4818db10ff1c9fc916c9a02262f13685691b9fff4c4dcc1cc79a7676"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_ground_horizon_color",
+        "observedOutputSha256": "7b974c3e4818db10ff1c9fc916c9a02262f13685691b9fff4c4dcc1cc79a7676"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a2ccfbb058fdb2fb7c52e33a155400378c116294f42c5182b02f67400b5ed4a4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_horizon_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_ground_horizon_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_ground_horizon_color",
+        "sourceLine": 121
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8c337bbad476a7f3120b53cc32ffc2f6b44543285f750cf6764d9c32c72b068e",
+        "callsite": "res://probe.gd _init() set_ground_horizon_color",
+        "observedOutputSha256": "5252f153572b69cd10fc3a5f5a4d576b20bd998f31436b234ffca82329752232"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_ground_horizon_color",
+        "observedOutputSha256": "5252f153572b69cd10fc3a5f5a4d576b20bd998f31436b234ffca82329752232"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cedd324c7361347e17532fdf5419834dca39796f589d79ec1f4999fb2bff3202"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_use_debanding",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_use_debanding\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_use_debanding",
+        "sourceLine": 180
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e9cc012ca795b5ebf80ca0a4f7e1c3547598a51353a1f426010e9dbd44ea1001",
+        "callsite": "res://probe.gd _init() get_use_debanding-default",
+        "observedOutputSha256": "687219f3fef5b0ea23c592de2f56ad0b5b87d6fabcf442cd3b470e6a20d7c649"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_use_debanding",
+        "observedOutputSha256": "687219f3fef5b0ea23c592de2f56ad0b5b87d6fabcf442cd3b470e6a20d7c649"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7bc011e90333cf68e24e1c05487063b2f87686794bf359f90458b15b6e6e3836"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_use_debanding",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_use_debanding\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_use_debanding",
+        "sourceLine": 171
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0bbbd836b7d236995b4c02cf13719a2e52fbc1f96889b80d3aec31b7c61fcaef",
+        "callsite": "res://probe.gd _init() set_use_debanding-false",
+        "observedOutputSha256": "1e7dfc0bdb8d9a49136b4795a2ecad9b5375b359b59d87eb0681b8d4e654702b"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_use_debanding",
+        "observedOutputSha256": "1e7dfc0bdb8d9a49136b4795a2ecad9b5375b359b59d87eb0681b8d4e654702b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fe2a2bb8454212cbf77a0aa0d0e60fc080d1f57c849cdb055c17ecafd4c9000b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000get_sky_cover\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.get_sky_cover",
+        "sourceLine": 99
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2498832ac648c9a6a8f75f45e6c6ac33e7daf2ee60026d869ff02945a7379d32",
+        "callsite": "res://probe.gd _init() get_sky_cover-default",
+        "observedOutputSha256": "133ba1b9f9c8e8be6624a999767d33e579b8d5e040c34daf3969bcfe5c7b7af5"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts get_sky_cover",
+        "observedOutputSha256": "133ba1b9f9c8e8be6624a999767d33e579b8d5e040c34daf3969bcfe5c7b7af5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0f3df490211d6ea525a4658bc44a55bb15025745a816230441985bf87d5245c8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProceduralSkyMaterial\u0000set_sky_cover\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/sky_material.cpp",
+        "sourceSymbol": "ProceduralSkyMaterial.set_sky_cover",
+        "sourceLine": 83
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5df56c6c1c00f5ecbec9a1eb375c65526b7ce87fc8d19800b39ae5c7e6d54325",
+        "callsite": "res://probe.gd _init() set_sky_cover",
+        "observedOutputSha256": "357d4fdca9b09c31a7826d8cfb35276fd34212bc42637254314f7cdd26e40932"
+      },
+      "target": {
+        "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce",
+        "callsite": "lib/godot-compat/procedural-sky-material.ts set_sky_cover",
+        "observedOutputSha256": "357d4fdca9b09c31a7826d8cfb35276fd34212bc42637254314f7cdd26e40932"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "df4df66cd052185d9aacde2d5bcc62768c36fa59e08e4a589465ff8126d82c10"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "procedural-sky-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "43be495eed719e5093caabe5300610e1d9d45e2698cecdaf73cc7e13f18955cb",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2fd66ecace86091c83cccc1f0890433458292c255bb248cd2fd27fc550c5c6a6",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5df66975903024e4a94198cd820454245c63bd49b0542733be7aafe6b41127f7",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "61770f36cdc8e752f3a5a51d997d738772fb0e576458dee64809d910d1b8e5f4",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ac612057355656983b02400b1f5fdc09821304a2b5e163c156559835e82ac456",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "850a8733db7b128748cb46363c19758b812ffd20844f8bf61db7997a0b50d766",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ae0dcecc47c8baddf3e4cdde0e5c941a71c0d05efd00726ef6da0eb13ac2b6a6",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "116119442befc4e8f82e3d351e1305d00ae817d93949e95f7775feae28139879",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_angle_max",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dd58f329be29dce47369d5335874926e376871580144c7114f21d7410ec0e3a6",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_angle_max",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c5049dac3a0fdf796b9efae97e926ec7aee68d8410823c17c69ccac27b3f828f",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sun_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "07fcbe5fb326ca800f1e53e25142a348dffd1e14d23d4e5fb9df1cc5b4ad793b",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sun_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c48a383b7881eaa57880bfa3fdc6a3fdc442e1c8388b85e2d240dd3f430eae1c",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "94225de17c19995e705e7e963cda376e199caf94b1199adfce30589ae08d676f",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_energy_multiplier",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9ee3a5fcb5e9a5b7042cbe5da5fc97a7766ccf0f59f8a0b8616af9b0fd28c384",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_top_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f047f5b4d6e8118af57224d80f932e37121a6fdd5d7389d7fde04fe67499971e",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_top_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b4ec4822aa3082c8ee051c5ede0b5682eda12dde95a47d039fc26fa818bbdff7",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_horizon_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "05669298644c193818211d734b40aa45fe5650205c4ded1164261346d83bab29",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_horizon_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "49750b47ed0f3909eef6a8a975708fe65f41549e6dee8056471a9a109cc173f8",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover_modulate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f6dd99f19e66b3a30fd2ec176b37764bbadcacba4ad67abc18f34de148c02c1f",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover_modulate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "001d39d14a83d43d15c7ec112c2900409b30fc0a171ca1de6cd136fb2ff70f36",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_bottom_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "029604f186ab34c11454fd9d688050aca2979874191f3d0bc90ce2b2a8c58185",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_bottom_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4d27f53bc6d110c070eef8f7a50b3cc0a5c33efcbb80ebfb9e3e617b690d6d56",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_ground_horizon_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "42f519ac4e81f80b18c0184267e2513961909f6935916bb9ad6a20e039d8b272",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_ground_horizon_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8c337bbad476a7f3120b53cc32ffc2f6b44543285f750cf6764d9c32c72b068e",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_use_debanding",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e9cc012ca795b5ebf80ca0a4f7e1c3547598a51353a1f426010e9dbd44ea1001",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_use_debanding",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0bbbd836b7d236995b4c02cf13719a2e52fbc1f96889b80d3aec31b7c61fcaef",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.get_sky_cover",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2498832ac648c9a6a8f75f45e6c6ac33e7daf2ee60026d869ff02945a7379d32",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    },
+    {
+      "claimId": "godot-4.7-binding-ProceduralSkyMaterial.set_sky_cover",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5df56c6c1c00f5ecbec9a1eb375c65526b7ce87fc8d19800b39ae5c7e6d54325",
+      "implementationSha256": "8f8b8e5102533f484a66aa7b1df3fa5fcb66353620ad0616600dccae030926ce"
+    }
+  ]
+}

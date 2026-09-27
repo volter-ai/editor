@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/shader-material"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ShaderMaterial",
+        "member": "set_shader",
+        "kind": "native-member",
+        "signature": "hash:3341921675"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/shader-material",
+        "exportName": "set_shader",
+        "localName": "ShaderMaterial_set_shader",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ShaderMaterial.set_shader"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ShaderMaterial",
+        "member": "get_shader",
+        "kind": "native-member",
+        "signature": "hash:2078273437"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/shader-material",
+        "exportName": "get_shader",
+        "localName": "ShaderMaterial_get_shader",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ShaderMaterial.get_shader"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ShaderMaterial",
+        "member": "set_shader_parameter",
+        "kind": "native-member",
+        "signature": "hash:3776071444"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/shader-material",
+        "exportName": "set_shader_parameter",
+        "localName": "ShaderMaterial_set_shader_parameter",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ShaderMaterial.set_shader_parameter"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ShaderMaterial",
+        "member": "get_shader_parameter",
+        "kind": "native-member",
+        "signature": "hash:2760726917"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/shader-material",
+        "exportName": "get_shader_parameter",
+        "localName": "ShaderMaterial_get_shader_parameter",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ShaderMaterial.get_shader_parameter"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ShaderMaterial.set_shader",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ShaderMaterial\u0000set_shader\u0000hash:3341921675",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "ShaderMaterial.set_shader",
+        "sourceLine": 387
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "617c85d058502a4f4fcf58f8376be549fcc7c3da505fb639cf4055c259cef69f",
+        "callsite": "res://probe.gd _init() set_shader",
+        "observedOutputSha256": "08bd9871d3e390a2acea61f8ed74586753ee4b55fa53a7b71506be4d0562be3b"
+      },
+      "target": {
+        "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b",
+        "callsite": "lib/godot-compat/shader-material.ts set_shader",
+        "observedOutputSha256": "08bd9871d3e390a2acea61f8ed74586753ee4b55fa53a7b71506be4d0562be3b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "35496e523ec5692981ee6804de7561c497d382ee09001949fb73ac9a212b20f9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "shader-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ShaderMaterial.get_shader",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ShaderMaterial\u0000get_shader\u0000hash:2078273437",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "ShaderMaterial.get_shader",
+        "sourceLine": 415
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "016c7e37f68d9a9ca8d85811b6a29c411e781bf98297ef9b8cec8758497c129c",
+        "callsite": "res://probe.gd _init() get_shader-default",
+        "observedOutputSha256": "41814809bc2576c4f6280d505c18d660e16c89ac8aca39d41d5bd55d64dae4be"
+      },
+      "target": {
+        "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b",
+        "callsite": "lib/godot-compat/shader-material.ts get_shader",
+        "observedOutputSha256": "41814809bc2576c4f6280d505c18d660e16c89ac8aca39d41d5bd55d64dae4be"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c578910e7fa752635e62c09eef11ec71f0cec4c4fb24b0f66cfc75ccbaf8bcfc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "shader-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ShaderMaterial.set_shader_parameter",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ShaderMaterial\u0000set_shader_parameter\u0000hash:3776071444",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "ShaderMaterial.set_shader_parameter",
+        "sourceLine": 419
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3bcc68fcead5ad5fab475819049c32f859d4b8ae06424b063dc007a103fc5c29",
+        "callsite": "res://probe.gd _init() set_shader_parameter",
+        "observedOutputSha256": "0cb0f30c559c969d42179a8f047ad0641172782df27d952068793b0093b4f1da"
+      },
+      "target": {
+        "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b",
+        "callsite": "lib/godot-compat/shader-material.ts set_shader_parameter",
+        "observedOutputSha256": "0cb0f30c559c969d42179a8f047ad0641172782df27d952068793b0093b4f1da"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9a597282c55c6c8c5db27f62078ad7f32b9233bf6b312e42ab983571b5a330f8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "shader-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ShaderMaterial.get_shader_parameter",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ShaderMaterial\u0000get_shader_parameter\u0000hash:2760726917",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/material.cpp",
+        "sourceSymbol": "ShaderMaterial.get_shader_parameter",
+        "sourceLine": 453
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "645c688bb3f2026402a20826678d7172a01c1a401e27a63c2f3179179caa9768",
+        "callsite": "res://probe.gd _init() get_shader_parameter-unset",
+        "observedOutputSha256": "f494d2253742593f80bbb840e91a8dd35848471d7f7472c01e7fce992c0b6d5d"
+      },
+      "target": {
+        "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b",
+        "callsite": "lib/godot-compat/shader-material.ts get_shader_parameter",
+        "observedOutputSha256": "f494d2253742593f80bbb840e91a8dd35848471d7f7472c01e7fce992c0b6d5d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4a0579560401af6512bd3de39c4ccc92480e91fc0c3254e70a145179dd519a92"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "shader-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-ShaderMaterial.set_shader",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "617c85d058502a4f4fcf58f8376be549fcc7c3da505fb639cf4055c259cef69f",
+      "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b"
+    },
+    {
+      "claimId": "godot-4.7-binding-ShaderMaterial.get_shader",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "016c7e37f68d9a9ca8d85811b6a29c411e781bf98297ef9b8cec8758497c129c",
+      "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b"
+    },
+    {
+      "claimId": "godot-4.7-binding-ShaderMaterial.set_shader_parameter",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3bcc68fcead5ad5fab475819049c32f859d4b8ae06424b063dc007a103fc5c29",
+      "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b"
+    },
+    {
+      "claimId": "godot-4.7-binding-ShaderMaterial.get_shader_parameter",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "645c688bb3f2026402a20826678d7172a01c1a401e27a63c2f3179179caa9768",
+      "implementationSha256": "3131dec4cde794dad9b36eb011678a63ec25b75a21dd0755f8c41de3b927781b"
+    }
+  ]
+}

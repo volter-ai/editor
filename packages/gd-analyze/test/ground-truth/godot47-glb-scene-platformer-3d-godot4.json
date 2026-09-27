@@ -1,0 +1,3601 @@
+{
+	"godot_version": {
+		"major": 4,
+		"minor": 7,
+		"patch": 0,
+		"hex": 263936,
+		"status": "stable",
+		"build": "official",
+		"hash": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+		"timestamp": 0,
+		"string": "4.7-stable (official)"
+	},
+	"probe": "probe-glb-scene.gd",
+	"float_decimal_places": 6,
+	"scene_count": 2,
+	"scenes": [
+		{
+			"res_path": "res://enemy/enemy.glb",
+			"node_count": 5,
+			"nodes": [
+				{
+					"name": "enemy",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "Skeleton",
+					"class": "Node3D",
+					"path": "Skeleton",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "Skeleton3D",
+					"class": "Skeleton3D",
+					"path": "Skeleton/Skeleton3D",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"bones": [
+						{
+							"index": 0,
+							"name": "MASTER",
+							"parent": -1,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									1.0,
+									0.000001
+								],
+								"basis_z": [
+									0.0,
+									-0.000001,
+									1.0
+								],
+								"origin": [
+									0.0,
+									0.0,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 1,
+							"name": "body",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									-0.000001,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"basis_z": [
+									-0.000001,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.0,
+									0.661877,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 2,
+							"name": "eyes",
+							"parent": 1,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.000001
+								],
+								"basis_y": [
+									-0.000001,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.0,
+									0.475726,
+									-0.061712
+								]
+							}
+						},
+						{
+							"index": 3,
+							"name": "r-frontleg",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"origin": [
+									0.913587,
+									0.661877,
+									0.631826
+								]
+							}
+						},
+						{
+							"index": 4,
+							"name": "r-frontleg001",
+							"parent": 3,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.0,
+									0.61475,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 5,
+							"name": "l-frontleg",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"origin": [
+									-0.913587,
+									0.661877,
+									0.631826
+								]
+							}
+						},
+						{
+							"index": 6,
+							"name": "l-frontleg001",
+							"parent": 5,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.0,
+									0.61475,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 7,
+							"name": "r-backleg",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"origin": [
+									1.05436,
+									0.661877,
+									-0.654576
+								]
+							}
+						},
+						{
+							"index": 8,
+							"name": "r-backleg001",
+							"parent": 7,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.0,
+									0.61475,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 9,
+							"name": "l-backleg",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"origin": [
+									-1.05436,
+									0.661877,
+									-0.654576
+								]
+							}
+						},
+						{
+							"index": 10,
+							"name": "l-backleg001",
+							"parent": 9,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.0,
+									0.61475,
+									0.0
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Body",
+					"class": "MeshInstance3D",
+					"path": "Skeleton/Skeleton3D/Body",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "enemy_body",
+						"surface_count": 3,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "enemy_red",
+									"resource_path": "res://enemy/enemy.glb::StandardMaterial3D_rjwis"
+								},
+								"override": {
+									"null": true
+								}
+							},
+							{
+								"index": 1,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "enemy_black",
+									"resource_path": "res://enemy/enemy.glb::StandardMaterial3D_o0qec"
+								},
+								"override": {
+									"null": true
+								}
+							},
+							{
+								"index": 2,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "enemy_glow",
+									"resource_path": "res://enemy/enemy.glb::StandardMaterial3D_h3x5u"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "..",
+					"skin_bind_count": 11
+				},
+				{
+					"name": "AnimationPlayer",
+					"class": "AnimationPlayer",
+					"path": "AnimationPlayer",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"root_node": "..",
+					"animations": [
+						{
+							"name": "RESET",
+							"length": 0.001,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 11,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:eyes",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 5,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "idle",
+							"length": 2.5,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 11,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 74
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 72
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:eyes",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 3,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 30
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 39
+								},
+								{
+									"index": 5,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 38
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 30
+								},
+								{
+									"index": 8,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 37
+								},
+								{
+									"index": 9,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 35
+								}
+							]
+						},
+						{
+							"name": "impact",
+							"length": 0.633333,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 11,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 17
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 17
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:eyes",
+									"interpolation": 1,
+									"key_count": 16
+								},
+								{
+									"index": 3,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 5,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "walk",
+							"length": 1.7,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 11,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 51
+								},
+								{
+									"index": 1,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:body",
+									"interpolation": 1,
+									"key_count": 51
+								},
+								{
+									"index": 2,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:eyes",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 43
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 5,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 43
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-frontleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 43
+								},
+								{
+									"index": 8,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 41
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-backleg",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"res_path": "res://player/player.glb",
+			"node_count": 5,
+			"nodes": [
+				{
+					"name": "player",
+					"class": "Node3D",
+					"path": ".",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "Skeleton",
+					"class": "Node3D",
+					"path": "Skeleton",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							0.3,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							0.3,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							0.3
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true
+				},
+				{
+					"name": "Skeleton3D",
+					"class": "Skeleton3D",
+					"path": "Skeleton/Skeleton3D",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"bones": [
+						{
+							"index": 0,
+							"name": "MASTER",
+							"parent": -1,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									1.0,
+									0.000001
+								],
+								"basis_z": [
+									0.0,
+									-0.000001,
+									1.0
+								],
+								"origin": [
+									0.0,
+									-0.011277,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 1,
+							"name": "hip",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"origin": [
+									0.0,
+									2.106121,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 2,
+							"name": "waist",
+							"parent": 1,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"origin": [
+									0.0,
+									0.384614,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 3,
+							"name": "chest",
+							"parent": 2,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.999166,
+									-0.040823
+								],
+								"basis_z": [
+									0.0,
+									0.040823,
+									0.999166
+								],
+								"origin": [
+									0.0,
+									0.821699,
+									0.000001
+								]
+							}
+						},
+						{
+							"index": 4,
+							"name": "neck",
+							"parent": 3,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.000001
+								],
+								"basis_y": [
+									0.0,
+									0.985328,
+									-0.170671
+								],
+								"basis_z": [
+									-0.000001,
+									-0.170671,
+									-0.985328
+								],
+								"origin": [
+									-0.000001,
+									1.249062,
+									-0.000001
+								]
+							}
+						},
+						{
+							"index": 5,
+							"name": "headtracker",
+							"parent": 4,
+							"rest": {
+								"basis_x": [
+									0.0,
+									-0.99999,
+									-0.00452
+								],
+								"basis_y": [
+									-0.000001,
+									-0.00452,
+									0.99999
+								],
+								"basis_z": [
+									-1.0,
+									0.0,
+									-0.000001
+								],
+								"origin": [
+									-0.000001,
+									0.491774,
+									0.000002
+								]
+							}
+						},
+						{
+							"index": 6,
+							"name": "head",
+							"parent": 5,
+							"rest": {
+								"basis_x": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"basis_y": [
+									-0.967868,
+									-0.25146,
+									0.0
+								],
+								"basis_z": [
+									0.25146,
+									-0.967868,
+									0.0
+								],
+								"origin": [
+									-0.000001,
+									0.004005,
+									-0.000001
+								]
+							}
+						},
+						{
+							"index": 7,
+							"name": "vent",
+							"parent": 6,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.999996,
+									-0.002823
+								],
+								"basis_z": [
+									0.0,
+									0.002823,
+									0.999996
+								],
+								"origin": [
+									0.0,
+									1.242904,
+									0.270995
+								]
+							}
+						},
+						{
+							"index": 8,
+							"name": "r-arm",
+							"parent": 3,
+							"rest": {
+								"basis_x": [
+									0.11477,
+									0.585289,
+									-0.802661
+								],
+								"basis_y": [
+									0.705366,
+									-0.616962,
+									-0.349021
+								],
+								"basis_z": [
+									-0.69949,
+									-0.526113,
+									-0.483652
+								],
+								"origin": [
+									0.940785,
+									0.773564,
+									0.107143
+								]
+							}
+						},
+						{
+							"index": 9,
+							"name": "r-forearm",
+							"parent": 8,
+							"rest": {
+								"basis_x": [
+									-0.859541,
+									-0.499604,
+									0.107631
+								],
+								"basis_y": [
+									-0.507934,
+									0.811834,
+									-0.287974
+								],
+								"basis_z": [
+									0.056494,
+									-0.302195,
+									-0.951571
+								],
+								"origin": [
+									0.000004,
+									0.935511,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 10,
+							"name": "l-arm",
+							"parent": 3,
+							"rest": {
+								"basis_x": [
+									0.114771,
+									-0.585289,
+									0.802661
+								],
+								"basis_y": [
+									-0.705366,
+									-0.616962,
+									-0.349021
+								],
+								"basis_z": [
+									0.69949,
+									-0.526113,
+									-0.483652
+								],
+								"origin": [
+									-0.940785,
+									0.773564,
+									0.107143
+								]
+							}
+						},
+						{
+							"index": 11,
+							"name": "l-forearm",
+							"parent": 10,
+							"rest": {
+								"basis_x": [
+									-0.859541,
+									0.499604,
+									-0.107631
+								],
+								"basis_y": [
+									0.507934,
+									0.811834,
+									-0.287973
+								],
+								"basis_z": [
+									-0.056494,
+									-0.302194,
+									-0.951571
+								],
+								"origin": [
+									-0.000004,
+									0.935511,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 12,
+							"name": "r-thigh",
+							"parent": 1,
+							"rest": {
+								"basis_x": [
+									0.994899,
+									0.082679,
+									-0.058071
+								],
+								"basis_y": [
+									0.085029,
+									-0.995605,
+									0.039244
+								],
+								"basis_z": [
+									-0.05457,
+									-0.043981,
+									-0.997544
+								],
+								"origin": [
+									0.349651,
+									0.163876,
+									0.062823
+								]
+							}
+						},
+						{
+							"index": 13,
+							"name": "r-leg",
+							"parent": 12,
+							"rest": {
+								"basis_x": [
+									-0.999508,
+									-0.002297,
+									0.031295
+								],
+								"basis_y": [
+									0.00087,
+									0.994903,
+									0.100834
+								],
+								"basis_z": [
+									-0.031367,
+									0.100812,
+									-0.994411
+								],
+								"origin": [
+									0.0,
+									0.644637,
+									-0.000001
+								]
+							}
+						},
+						{
+							"index": 14,
+							"name": "r-foot",
+							"parent": 13,
+							"rest": {
+								"basis_x": [
+									0.996208,
+									-0.074915,
+									-0.044237
+								],
+								"basis_y": [
+									0.041126,
+									-0.042576,
+									0.998246
+								],
+								"basis_z": [
+									-0.076667,
+									-0.99628,
+									-0.039334
+								],
+								"origin": [
+									-0.000001,
+									1.430732,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 15,
+							"name": "l-thigh",
+							"parent": 1,
+							"rest": {
+								"basis_x": [
+									0.994899,
+									-0.082679,
+									0.058072
+								],
+								"basis_y": [
+									-0.085029,
+									-0.995606,
+									0.039245
+								],
+								"basis_z": [
+									0.054571,
+									-0.043982,
+									-0.997544
+								],
+								"origin": [
+									-0.349651,
+									0.163877,
+									0.062823
+								]
+							}
+						},
+						{
+							"index": 16,
+							"name": "l-leg",
+							"parent": 15,
+							"rest": {
+								"basis_x": [
+									-0.999508,
+									0.002297,
+									-0.031294
+								],
+								"basis_y": [
+									-0.000871,
+									0.994902,
+									0.100836
+								],
+								"basis_z": [
+									0.031366,
+									0.100814,
+									-0.994411
+								],
+								"origin": [
+									-0.000001,
+									0.644635,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 17,
+							"name": "l-foot",
+							"parent": 16,
+							"rest": {
+								"basis_x": [
+									0.996208,
+									0.074914,
+									0.044238
+								],
+								"basis_y": [
+									-0.041127,
+									-0.042575,
+									0.998246
+								],
+								"basis_z": [
+									0.076667,
+									-0.996281,
+									-0.039333
+								],
+								"origin": [
+									0.0,
+									1.430731,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 18,
+							"name": "HEAD",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"origin": [
+									0.000001,
+									6.352284,
+									5.796593
+								]
+							}
+						},
+						{
+							"index": 19,
+							"name": "r-LEGCONTROL",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"origin": [
+									0.518863,
+									0.204768,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 20,
+							"name": "l-LEGCONTROL",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									1.0,
+									0.0
+								],
+								"basis_z": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"origin": [
+									-0.518863,
+									0.204768,
+									0.0
+								]
+							}
+						},
+						{
+							"index": 21,
+							"name": "r-LEGORIENT",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									0.411677,
+									1.628811,
+									0.66395
+								]
+							}
+						},
+						{
+							"index": 22,
+							"name": "l-LEGORIENT",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									-1.0,
+									0.0,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									-1.0
+								],
+								"basis_z": [
+									0.0,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									-0.411677,
+									1.628811,
+									0.66395
+								]
+							}
+						},
+						{
+							"index": 23,
+							"name": "r-ARMCONTROL",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									-0.000001,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"basis_z": [
+									-0.000001,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									2.62535,
+									2.590161,
+									0.186879
+								]
+							}
+						},
+						{
+							"index": 24,
+							"name": "l-ARMCONTROL",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									-0.000001,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"basis_z": [
+									-0.000001,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									-2.62535,
+									2.590161,
+									0.186879
+								]
+							}
+						},
+						{
+							"index": 25,
+							"name": "r-ARMORIENT",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									-0.000001,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"basis_z": [
+									-0.000001,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									1.57185,
+									3.447682,
+									-0.510255
+								]
+							}
+						},
+						{
+							"index": 26,
+							"name": "l-ARMORIENT",
+							"parent": 0,
+							"rest": {
+								"basis_x": [
+									1.0,
+									-0.000001,
+									0.0
+								],
+								"basis_y": [
+									0.0,
+									0.0,
+									1.0
+								],
+								"basis_z": [
+									-0.000001,
+									-1.0,
+									0.0
+								],
+								"origin": [
+									-1.57185,
+									3.447682,
+									-0.510255
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Robot",
+					"class": "MeshInstance3D",
+					"path": "Skeleton/Skeleton3D/Robot",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"transform": {
+						"basis_x": [
+							1.0,
+							0.0,
+							0.0
+						],
+						"basis_y": [
+							0.0,
+							1.0,
+							0.0
+						],
+						"basis_z": [
+							0.0,
+							0.0,
+							1.0
+						],
+						"origin": [
+							0.0,
+							0.0,
+							0.0
+						]
+					},
+					"visible": true,
+					"mesh": {
+						"class": "ArrayMesh",
+						"resource_name": "player_robot",
+						"surface_count": 2,
+						"surfaces": [
+							{
+								"index": 0,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "player_gray",
+									"resource_path": "res://player/player_gray.tres"
+								},
+								"override": {
+									"null": true
+								}
+							},
+							{
+								"index": 1,
+								"material": {
+									"class": "StandardMaterial3D",
+									"resource_name": "player_glow",
+									"resource_path": "res://player/player_glow.tres"
+								},
+								"override": {
+									"null": true
+								}
+							}
+						]
+					},
+					"skeleton_path": "..",
+					"skin_bind_count": 27
+				},
+				{
+					"name": "AnimationPlayer",
+					"class": "AnimationPlayer",
+					"path": "AnimationPlayer",
+					"owned": true,
+					"unique_name_in_owner": false,
+					"root_node": "..",
+					"animations": [
+						{
+							"name": "RESET",
+							"length": 0.001,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "falling",
+							"length": 0.433333,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "idle",
+							"length": 1.233333,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 27
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 22
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 19
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 22
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 24
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 23
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 24
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 23
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 23
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 19
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 19
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 19
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 19
+								}
+							]
+						},
+						{
+							"name": "jump",
+							"length": 0.433333,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 14
+								}
+							]
+						},
+						{
+							"name": "run",
+							"length": 0.833333,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 26
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 26
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 23
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 24
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 26
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 22
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 26
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 15
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 24
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 16
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 23
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 23
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 22
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 18
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 18
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 18
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 18
+								}
+							]
+						},
+						{
+							"name": "shooting",
+							"length": 0.433333,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "shooting_standing",
+							"length": 0.433333,
+							"loop_mode": 0,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 12
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 4
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 14
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 13
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 11
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 1
+								}
+							]
+						},
+						{
+							"name": "walk",
+							"length": 1.033333,
+							"loop_mode": 1,
+							"step": 0.033333,
+							"track_count": 32,
+							"tracks": [
+								{
+									"index": 0,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:MASTER",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 1,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 32
+								},
+								{
+									"index": 2,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:hip",
+									"interpolation": 1,
+									"key_count": 32
+								},
+								{
+									"index": 3,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:waist",
+									"interpolation": 1,
+									"key_count": 28
+								},
+								{
+									"index": 4,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:chest",
+									"interpolation": 1,
+									"key_count": 30
+								},
+								{
+									"index": 5,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:neck",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 6,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:headtracker",
+									"interpolation": 1,
+									"key_count": 17
+								},
+								{
+									"index": 7,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:head",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 8,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:vent",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 9,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-arm",
+									"interpolation": 1,
+									"key_count": 28
+								},
+								{
+									"index": 10,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-forearm",
+									"interpolation": 1,
+									"key_count": 27
+								},
+								{
+									"index": 11,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-arm",
+									"interpolation": 1,
+									"key_count": 27
+								},
+								{
+									"index": 12,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 13,
+									"type": 3,
+									"path": "Skeleton/Skeleton3D:l-forearm",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 14,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-thigh",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 15,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 16,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-leg",
+									"interpolation": 1,
+									"key_count": 29
+								},
+								{
+									"index": 17,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:r-foot",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 18,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-thigh",
+									"interpolation": 1,
+									"key_count": 28
+								},
+								{
+									"index": 19,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 20,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-leg",
+									"interpolation": 1,
+									"key_count": 30
+								},
+								{
+									"index": 21,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:l-foot",
+									"interpolation": 1,
+									"key_count": 22
+								},
+								{
+									"index": 22,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 25
+								},
+								{
+									"index": 23,
+									"type": 2,
+									"path": "Skeleton/Skeleton3D:HEAD",
+									"interpolation": 1,
+									"key_count": 1
+								},
+								{
+									"index": 24,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 25,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGCONTROL",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 26,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 27,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-LEGORIENT",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 28,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 29,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMCONTROL",
+									"interpolation": 1,
+									"key_count": 20
+								},
+								{
+									"index": 30,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:r-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 21
+								},
+								{
+									"index": 31,
+									"type": 1,
+									"path": "Skeleton/Skeleton3D:l-ARMORIENT",
+									"interpolation": 1,
+									"key_count": 21
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

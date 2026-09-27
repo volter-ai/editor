@@ -1,0 +1,490 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/area-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "get_overlapping_bodies",
+        "kind": "native-member",
+        "signature": "hash:3995934104"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "get_overlapping_bodies",
+        "localName": "Area3D_get_overlapping_bodies",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.get_overlapping_bodies"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "overlaps_body",
+        "kind": "native-member",
+        "signature": "hash:3093956946"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "overlaps_body",
+        "localName": "Area3D_overlaps_body",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.overlaps_body"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "has_overlapping_bodies",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "has_overlapping_bodies",
+        "localName": "Area3D_has_overlapping_bodies",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.has_overlapping_bodies"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "set_monitoring",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "set_monitoring",
+        "localName": "Area3D_set_monitoring",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.set_monitoring"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "is_monitoring",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "is_monitoring",
+        "localName": "Area3D_is_monitoring",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.is_monitoring"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "body_entered",
+        "kind": "native-signal",
+        "signature": "signal"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "body_entered",
+        "localName": "Area3D_body_entered",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.body_entered"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Area3D",
+        "member": "body_exited",
+        "kind": "native-signal",
+        "signature": "signal"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/area-3d",
+        "exportName": "body_exited",
+        "localName": "Area3D_body_exited",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Area3D.body_exited"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.get_overlapping_bodies",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Area3D\u0000get_overlapping_bodies\u0000hash:3995934104",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.get_overlapping_bodies",
+        "sourceLine": 515
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "21418f18bcd226186c6c4934e7ed9f3b4e836348aae68ac1664caeeb513b6a60",
+        "callsite": "res://probe.gd _init() static-body-moved-through character-walks-through",
+        "observedOutputSha256": "1d56a78fafc8ca9a42ed179d908957aa72d7e54c0eee969da1c8155e0e4d7620"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts get_overlapping_bodies",
+        "observedOutputSha256": "2e788c1765284e3b758d0f88c14a618958c20605ecb553f8edbb719fe8399d62"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0011335015296936035 over 2 cases",
+        "resultSha256": "0de1df5ae265320114d0bea4e7f52596557bf7b7190f7c743a71f46df1c3b323"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.overlaps_body",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Area3D\u0000overlaps_body\u0000hash:3093956946",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.overlaps_body",
+        "sourceLine": 583
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ca340ace25f2e36c9ac601ed12fa636fa789fae8298bcbfceb16389a7e8dafbe",
+        "callsite": "res://probe.gd _init() body-added-and-removed",
+        "observedOutputSha256": "a093a725e13261349597e5dd88a7c4930595e8a8b48896eea74e5a0b1698837f"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts overlaps_body",
+        "observedOutputSha256": "a093a725e13261349597e5dd88a7c4930595e8a8b48896eea74e5a0b1698837f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "557ecb44ce69b12b0ada97669e0fdf19fd5283d4b5988d984fe07d99a279c227"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.has_overlapping_bodies",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Area3D\u0000has_overlapping_bodies\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.has_overlapping_bodies",
+        "sourceLine": 532
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cb3dc49e1a4f8ea9142c2f22dc49c506a96a2391a54e9ff1788a5402bfe9738c",
+        "callsite": "res://probe.gd _init() area-moved-and-masked",
+        "observedOutputSha256": "3b22c092d8c1924d52660ee178701cb346b2545ba26070a588073e96a5ff6b75"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts has_overlapping_bodies",
+        "observedOutputSha256": "3b22c092d8c1924d52660ee178701cb346b2545ba26070a588073e96a5ff6b75"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f5cd8591352595f2eedcca708e2288de14681a41badb42233594d71eb33ca80a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.set_monitoring",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Area3D\u0000set_monitoring\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.set_monitoring",
+        "sourceLine": 381
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "98abcd9078eebce1663ce876c7d2bcdd738844e1cc192c2bb1785988d5054980",
+        "callsite": "res://probe.gd _init() set_monitoring",
+        "observedOutputSha256": "e8d9c049584d2c3314f456e7d4345c629249748c30e22aac5607dd1e1d154941"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts set_monitoring",
+        "observedOutputSha256": "e8d9c049584d2c3314f456e7d4345c629249748c30e22aac5607dd1e1d154941"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "52d6d465661e6c22050fe7f859d861de59c58074d2081783ed857c667344cf38"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.is_monitoring",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Area3D\u0000is_monitoring\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.is_monitoring",
+        "sourceLine": 511
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "426ed189f76e6f3b93433e7b872902d4fecedcec6fc30fde15b07756e733e209",
+        "callsite": "res://probe.gd _init() is_monitoring",
+        "observedOutputSha256": "f0b18a5e0df6dd56355d61e90ccfbb353bffd2a4e9bc309d92c757d998fbcd72"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts is_monitoring",
+        "observedOutputSha256": "f0b18a5e0df6dd56355d61e90ccfbb353bffd2a4e9bc309d92c757d998fbcd72"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "39454ddef98e88de315b22d61fd1e67319d92febd74ea0d5f114b90b401bf4eb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.body_entered",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000Area3D\u0000body_entered\u0000signal",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.body_entered",
+        "sourceLine": 265
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0f7f6414a4f6639668a67085843a26a569f452a1aadca87321f8b3630847c169",
+        "callsite": "res://probe.gd _init() signal-body_entered",
+        "observedOutputSha256": "a83e4d58099b258976d67554ecdf98fd23930142da59206c78f4b46b10138388"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts body_entered",
+        "observedOutputSha256": "a83e4d58099b258976d67554ecdf98fd23930142da59206c78f4b46b10138388"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "37f1cdcdd65e1849058201f1edfcc54d3501970dfa41f1ed17d417dd1a471d63"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Area3D.body_exited",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-signal\u0000Area3D\u0000body_exited\u0000signal",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/area_3d.cpp",
+        "sourceSymbol": "Area3D.body_exited",
+        "sourceLine": 265
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0243b38b0827245e7c4ac73728ba474f9426c0d12d219a16ca735749515be9fa",
+        "callsite": "res://probe.gd _init() signal-body_exited",
+        "observedOutputSha256": "55595c3295ae2e20fd545492dab723913f94a1b022722f1ab39c735bc646a62a"
+      },
+      "target": {
+        "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8",
+        "callsite": "lib/godot-compat/area-3d.ts body_exited",
+        "observedOutputSha256": "55595c3295ae2e20fd545492dab723913f94a1b022722f1ab39c735bc646a62a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a5d430fbccbe24c6afc81bf443692d0d0f1dc703805dfc9b4ba92c60aaded00d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "area-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Area3D.get_overlapping_bodies",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "21418f18bcd226186c6c4934e7ed9f3b4e836348aae68ac1664caeeb513b6a60",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Area3D.overlaps_body",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ca340ace25f2e36c9ac601ed12fa636fa789fae8298bcbfceb16389a7e8dafbe",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Area3D.has_overlapping_bodies",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cb3dc49e1a4f8ea9142c2f22dc49c506a96a2391a54e9ff1788a5402bfe9738c",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Area3D.set_monitoring",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "98abcd9078eebce1663ce876c7d2bcdd738844e1cc192c2bb1785988d5054980",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Area3D.is_monitoring",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "426ed189f76e6f3b93433e7b872902d4fecedcec6fc30fde15b07756e733e209",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Area3D.body_entered",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0f7f6414a4f6639668a67085843a26a569f452a1aadca87321f8b3630847c169",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    },
+    {
+      "claimId": "godot-4.7-binding-Area3D.body_exited",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0243b38b0827245e7c4ac73728ba474f9426c0d12d219a16ca735749515be9fa",
+      "implementationSha256": "3e558d02f8759bcb311706183543ac814f7dbc4a3190f13621bdf56da5efc5a8"
+    }
+  ]
+}

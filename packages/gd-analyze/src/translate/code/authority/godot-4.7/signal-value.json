@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/signal-value"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Signal",
+        "member": "emit",
+        "kind": "builtin-member",
+        "signature": "hash:3286317445"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/signal-value",
+        "exportName": "emit",
+        "localName": "Signal_emit",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Signal.emit"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Signal",
+        "member": "connect",
+        "kind": "builtin-member",
+        "signature": "hash:979702392"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/signal-value",
+        "exportName": "connect",
+        "localName": "Signal_connect",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Signal.connect"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Signal",
+        "member": "disconnect",
+        "kind": "builtin-member",
+        "signature": "hash:3470848906"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/signal-value",
+        "exportName": "disconnect",
+        "localName": "Signal_disconnect",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Signal.disconnect"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Signal",
+        "member": "is_connected",
+        "kind": "builtin-member",
+        "signature": "hash:4129521963"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/signal-value",
+        "exportName": "is_connected",
+        "localName": "Signal_is_connected",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Signal.is_connected"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Signal.emit",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Signal\u0000emit\u0000hash:3286317445",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/callable.cpp",
+        "sourceSymbol": "Signal.emit",
+        "sourceLine": 534
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b41a86c9b1619eeea03cdc9deedc2d34103af87fc5ff6b916696d5e8cc8b1649",
+        "callsite": "res://probe.gd _init() emit-two-slots",
+        "observedOutputSha256": "1bb6c27d679ecda2ab2137f574f5d847b4c674870116c233debd4d45d53cad79"
+      },
+      "target": {
+        "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6",
+        "callsite": "lib/godot-compat/signal-value.ts emit",
+        "observedOutputSha256": "1bb6c27d679ecda2ab2137f574f5d847b4c674870116c233debd4d45d53cad79"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ca933117fccda117c7125b5c096868cbf6fd87d8c354264eb63e1c4c890f2c49"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "signal-value",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Signal.connect",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Signal\u0000connect\u0000hash:979702392",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/callable.cpp",
+        "sourceSymbol": "Signal.connect",
+        "sourceLine": 543
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6a692419aea53d7b7f3f99ab6b4ca2de884e9be3ab72250d41c48fc526709631",
+        "callsite": "res://probe.gd _init() connect-returns connect-one-shot",
+        "observedOutputSha256": "29dbcd7181be73bec7258dd274e1927344bd019f52a37b5b57adaa331cfb1b5f"
+      },
+      "target": {
+        "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6",
+        "callsite": "lib/godot-compat/signal-value.ts connect",
+        "observedOutputSha256": "29dbcd7181be73bec7258dd274e1927344bd019f52a37b5b57adaa331cfb1b5f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9fca7b74cdec88f7bd208bb80edcb8c0cc2cbf926e5c4a2dd21e605e07b4fea7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "signal-value",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Signal.disconnect",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Signal\u0000disconnect\u0000hash:3470848906",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/callable.cpp",
+        "sourceSymbol": "Signal.disconnect",
+        "sourceLine": 550
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8f627f5986c2357bc29c2c377adf8e86790a4035dc4217f9e1ed741d5b7e18a0",
+        "callsite": "res://probe.gd _init() disconnect disconnect-not-connected reference-counted-release",
+        "observedOutputSha256": "1830801dc931f16dc50c4f4e4551dfb77f45d32b04936430d466e7eb8c3747d0"
+      },
+      "target": {
+        "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6",
+        "callsite": "lib/godot-compat/signal-value.ts disconnect",
+        "observedOutputSha256": "1830801dc931f16dc50c4f4e4551dfb77f45d32b04936430d466e7eb8c3747d0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "117171897f4b619ea575ba0afefa92963a91b9bd67797f9bf1543fb977a679a3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "signal-value",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Signal.is_connected",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Signal\u0000is_connected\u0000hash:4129521963",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/callable.cpp",
+        "sourceSymbol": "Signal.is_connected",
+        "sourceLine": 556
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a55f76ed4c1e815d6c064f7dd5c7d3fdf7b58e95a40468c67ab2227baff1c3ac",
+        "callsite": "res://probe.gd _init() is_connected",
+        "observedOutputSha256": "dcdda2d564426783c7f7cba108116ffdc78e5247bca56e0eb46f1ad30a4c67c2"
+      },
+      "target": {
+        "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6",
+        "callsite": "lib/godot-compat/signal-value.ts is_connected",
+        "observedOutputSha256": "dcdda2d564426783c7f7cba108116ffdc78e5247bca56e0eb46f1ad30a4c67c2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8446b1adbb448b76070cb7fe0887708b209795594ca8543dd94c458a270f3524"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "signal-value",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Signal.emit",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b41a86c9b1619eeea03cdc9deedc2d34103af87fc5ff6b916696d5e8cc8b1649",
+      "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Signal.connect",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6a692419aea53d7b7f3f99ab6b4ca2de884e9be3ab72250d41c48fc526709631",
+      "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Signal.disconnect",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8f627f5986c2357bc29c2c377adf8e86790a4035dc4217f9e1ed741d5b7e18a0",
+      "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Signal.is_connected",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a55f76ed4c1e815d6c064f7dd5c7d3fdf7b58e95a40468c67ab2227baff1c3ac",
+      "implementationSha256": "d84e8081d3f83fd09f06b579e33a42c1a78ed553e405989c5d2e545db70921e6"
+    }
+  ]
+}

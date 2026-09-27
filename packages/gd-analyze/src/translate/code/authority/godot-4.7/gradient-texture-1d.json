@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/gradient-texture-1d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GradientTexture1D",
+        "member": "set_gradient",
+        "kind": "native-member",
+        "signature": "hash:2756054477"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient-texture-1d",
+        "exportName": "set_gradient",
+        "localName": "GradientTexture1D_set_gradient",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GradientTexture1D.set_gradient"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GradientTexture1D",
+        "member": "set_width",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient-texture-1d",
+        "exportName": "set_width",
+        "localName": "GradientTexture1D_set_width",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GradientTexture1D.set_width"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GradientTexture1D",
+        "member": "get_gradient",
+        "kind": "native-member",
+        "signature": "hash:132272999"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient-texture-1d",
+        "exportName": "get_gradient",
+        "localName": "GradientTexture1D_get_gradient",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GradientTexture1D.get_gradient"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GradientTexture1D.set_gradient",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GradientTexture1D\u0000set_gradient\u0000hash:2756054477",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient_texture.cpp",
+        "sourceSymbol": "GradientTexture1D.set_gradient",
+        "sourceLine": 64
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "29aeb6708b4cca34e35ce0f2dce97d73478e5d8a27e181608436304a3c893433",
+        "callsite": "res://probe.gd _init() pixels-set_gradient",
+        "observedOutputSha256": "f97a0afe6fb7195aea9c36287f9fa02355b82c47d1005630b3c890f55cfb9ad6"
+      },
+      "target": {
+        "implementationSha256": "4106df645c752e25d017d1ce2bed028073fe67914a6a46282d04412eba941a51",
+        "callsite": "lib/godot-compat/gradient-texture-1d.ts set_gradient",
+        "observedOutputSha256": "2ddd456eedc98f2757dc3a208664905f753b8c89b1b371e300a08a2f3dc73966"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9e042481926ea40b080a8cfd4af53a01d5ab914a0f9524b818adc38ffdbe2648"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient-texture-1d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GradientTexture1D.set_width",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GradientTexture1D\u0000set_width\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient_texture.cpp",
+        "sourceSymbol": "GradientTexture1D.set_width",
+        "sourceLine": 145
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "09a4a50d585b91f69c012fba7f833a70b3429a14cfc43bb1fdb237618238bee5",
+        "callsite": "res://probe.gd _init() pixels-set_width",
+        "observedOutputSha256": "e5ca3a32b5a8a47fcdb348af72e038c2964c62d6886cd1f22af3def6dd37139b"
+      },
+      "target": {
+        "implementationSha256": "4106df645c752e25d017d1ce2bed028073fe67914a6a46282d04412eba941a51",
+        "callsite": "lib/godot-compat/gradient-texture-1d.ts set_width",
+        "observedOutputSha256": "1883eef5b9424d2498e3c67f6563312e61b9ddc3794de78c442197bef909f754"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a9d9d5741933538e715e4d2d08f763fb55ab5e4b08d974315db4699008b151a0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient-texture-1d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GradientTexture1D.get_gradient",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GradientTexture1D\u0000get_gradient\u0000hash:132272999",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient_texture.cpp",
+        "sourceSymbol": "GradientTexture1D.get_gradient",
+        "sourceLine": 79
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5271ee29404651f5607d3bfc5e07d21f7a012ea79027016df02811513a9ed634",
+        "callsite": "res://probe.gd _init() get_gradient",
+        "observedOutputSha256": "7081902cdfcd62988eb10b28995d0e81a20665c3d61ed8e67b415fc5a5652cfa"
+      },
+      "target": {
+        "implementationSha256": "4106df645c752e25d017d1ce2bed028073fe67914a6a46282d04412eba941a51",
+        "callsite": "lib/godot-compat/gradient-texture-1d.ts get_gradient",
+        "observedOutputSha256": "7081902cdfcd62988eb10b28995d0e81a20665c3d61ed8e67b415fc5a5652cfa"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "00fac76be2ab5f0845a89d6be49651c7b6ab6b9150b4b0221be721ae28a7eb2c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient-texture-1d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-GradientTexture1D.set_gradient",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "29aeb6708b4cca34e35ce0f2dce97d73478e5d8a27e181608436304a3c893433",
+      "implementationSha256": "4106df645c752e25d017d1ce2bed028073fe67914a6a46282d04412eba941a51"
+    },
+    {
+      "claimId": "godot-4.7-binding-GradientTexture1D.set_width",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "09a4a50d585b91f69c012fba7f833a70b3429a14cfc43bb1fdb237618238bee5",
+      "implementationSha256": "4106df645c752e25d017d1ce2bed028073fe67914a6a46282d04412eba941a51"
+    },
+    {
+      "claimId": "godot-4.7-binding-GradientTexture1D.get_gradient",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5271ee29404651f5607d3bfc5e07d21f7a012ea79027016df02811513a9ed634",
+      "implementationSha256": "4106df645c752e25d017d1ce2bed028073fe67914a6a46282d04412eba941a51"
+    }
+  ]
+}

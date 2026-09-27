@@ -1,0 +1,72 @@
+{
+  "id": "kaykit-hexagons",
+  "upstreams": [
+    {
+      "repo": "https://github.com/KenneyNL/KayKit-Hexagons",
+      "commit": "d778a718f7ab3f567301f6ddbbaf42fb573920d7",
+      "branch": "main",
+      "upstream_path": ".",
+      "license": "MIT",
+      "license_file": "LICENSE",
+      "retrieved": "2026-08-18",
+      "vendored_into": ".",
+      "vendored_paths": [
+        "."
+      ],
+      "note": "kaykit-hexagons is an official Kenney Godot project, pinned at the named upstream commit as unmodified migration evidence. The repository root is the Godot project root.",
+      "excluded_from_upstream": {
+        "rule": "NOTHING is excluded. All 42 tracked files are vendored byte-for-byte.",
+        "why": "The complete upstream project is small enough to retain, and its scenes, scripts, resources, assets, import metadata, license, and README are all relevant migration evidence.",
+        "file_count": 0,
+        "bytes": 0,
+        "paths": []
+      }
+    }
+  ],
+  "vendored_file_count": 42,
+  "vendored_bytes": 1586249,
+  "sha256_manifest": {
+    ".gitattributes": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b",
+    ".gitignore": "c209b257c9c4ffc68ecef3032b576cb49284a50f6dfb0f49fb2d38f9aa13135e",
+    "LICENSE": "12c75c8af8670426fd2d87045330e88fb0559cf7816fc1e49b6c5ba1e0f0abc3",
+    "Libraries/library-terrain.tres": "e3745acc1f0e4a6d413866937ff328876272664b7a05a2ddc6abcccd8f2f0635",
+    "Libraries/library-terrain.tscn": "4be003b256239532c4bbdee1aec639c9daadbfd34c7ce3979b0b15c0ff417b9f",
+    "Libraries/library-tiles.tres": "99185e91dc0470523bcd1cd307d8298dae7545646654f800e3d89155545617ae",
+    "Libraries/library-tiles.tscn": "750c899dea1e15b3d0570c79e6141f99d071ef28049d7ddd5222002b6462c1a9",
+    "Models/Items/Beige.material": "53fa080a4be28993be916caddb4d3f28df5221289320c592bfcbf86558528084",
+    "Models/Items/Brown.material": "978005f0a84618de727c5be0a3561b3e704cc3df06de5cde2b6f518d93551be6",
+    "Models/Items/BrownDark.material": "0e253c11fd6d54a9cd17f085746c8baa8efee5df3c7442206a34e46874d9a12e",
+    "Models/Items/GreenDark.material": "8541ff1755de93e2075081bdaffa2b5fd11e9d4cf68da45ae04775266384acfe",
+    "Models/Items/Stone.material": "d01adbd3e1fc2908ddc8b5003cccff57a34fe9bd1cb111e39940bfdc226464eb",
+    "Models/Items/White.material": "63e3749b50d01d2f2634eba6417bdf9bf1989b5f73a92644f24bd416cd69e4fe",
+    "Models/Items/detail_forestA.gltf.glb": "3ac0d4878d31208f11a578f4852907faf782faaca4cc3bae2bfc43564ffc336d",
+    "Models/Items/detail_forestA.gltf.glb.import": "9166f9fe7f23b8b931f68b3a81f77ea88e3d8ddfc44a71e20d8bd6b03c29648c",
+    "Models/Items/detail_forestA.mesh": "415fb771074e6f99f4e0041a1a09c5d7005fe9f8d0ef0cfc56b55b35ab6ad0d3",
+    "Models/Items/house.gltf.glb": "2b067cc2661fb6682ec9a1691e21a927d0b018cacaef645e4bb46e2497b15dfc",
+    "Models/Items/house.gltf.glb.import": "1efb394491b80f503fccb06db763267ab1b962f467c1a1d78c241f90e0398716",
+    "Models/Items/house.mesh": "dafb89c0b5f432d1ff3f381abce0a2753c6b841715b74ab5221a203929d1f323",
+    "Models/Items/mountain.gltf.glb": "a027d4d86f7c7b6187da3668dbe62ee876654c17f559e1c3b3746645e11211c8",
+    "Models/Items/mountain.gltf.glb.import": "ec9637c1602edf38cfec0067d1a2ae8db59d2e4cb43ef85ff68ee4d2bcabdaa6",
+    "Models/Items/mountain.mesh": "06b7d397797e13428df1a318aea19926c6d4aa49ae8ebb27ee44444e0e2a6dbe",
+    "Models/Terrain/Beige.material": "96013c110843abd95b4a30682636e0b150df0c2265d7933f9e87d7f9d25a93c7",
+    "Models/Terrain/Brown.material": "254cf904adc40f8788f3261176c528e4cb5a8b01c163dde592a27daad988f430",
+    "Models/Terrain/Green.material": "58fd2cb8983bed8046639fba1307cd3014980bda99e4951f77d22f94b011798b",
+    "Models/Terrain/hex_forest.gltf.glb": "803a2bce13f82aa93e9a9d1b5126a306382f6df94fc45437326beb8f0b5a1073",
+    "Models/Terrain/hex_forest.gltf.glb.import": "170c230029afde35e02da681e19c36858bf493d913907fdb0781b7523f8580c0",
+    "Models/Terrain/hex_forest.mesh": "3f1ed1eaca80cc0a7b08c86192fc82b21c36f55cab5e9bdae7d6ea6c04f1dbd1",
+    "Models/Terrain/hex_rock.gltf.glb": "c6b8e13b1893b5789e36f9d69c235a7180814c762f01f8ddc4f297cd7662f027",
+    "Models/Terrain/hex_rock.gltf.glb.import": "d482ce6c1d40971856c7cfd71972f9065f7781be92e847962bc43d5bb98f4446",
+    "Models/Terrain/hex_rock.mesh": "8e5cb4407c1b3bc582be618c087b2d8c4aee86d970a98c81bc20f9b7afb0e14e",
+    "Models/Terrain/hex_sand.gltf.glb": "c21e4031880fd2f6fb432a6fdef918b9d1e80ff7293be20f497eefc15edc4808",
+    "Models/Terrain/hex_sand.gltf.glb.import": "a39740592c21134c8a35ee95937661e71ab763e023687e646d5cb19fe3b3edea",
+    "Models/Terrain/hex_sand.mesh": "7bb4287070e46dd42db26302d9a4d36dbca6cbc7e91634ccbc655fc308cbf8e6",
+    "README.md": "48969cff3c1ea52cd7e95606d969c75504ab9f19a01c2a1bb3e412b62ab7af53",
+    "Scenes/main.tscn": "2d06b030c246d8ceee779520c306d31b807883fc84617543dfb3ed763af97d4d",
+    "Scripts/rotate.gd": "a04d4f53e43c52817f1a1f5e7243621ce4568bfe474248f8033938204e2945cf",
+    "Scripts/terrain.gd": "c9c88dc5c5c70bab86bd65ab7f2ab6e98f32017bea9b3e25db960eee448e577b",
+    "default_env.tres": "a2a0380f837d5c205164ca1e8d5034d5e7a94fb3a6831b9cb95e2d9b75aad9c3",
+    "icon.png": "2c160bfdb8d0423b958083202dc7b58d499cbef22f28d2a58626884378ce9b7f",
+    "icon.png.import": "242a6bdf772ab886116087f9fb9b59d7caa90f0bca2a2e7bc6ddacd3271d63a2",
+    "project.godot": "d08916eab11e4da3243a6672180dbba2c46df5b4718a9b454c22b234721f0b08"
+  }
+}

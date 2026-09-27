@@ -1,0 +1,84 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/callable"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "Callable",
+        "member": "bind",
+        "kind": "builtin-member",
+        "signature": "hash:3224143119"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/callable",
+        "exportName": "bind",
+        "localName": "Callable_bind",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-Callable.bind"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-Callable.bind",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000builtin-member\u0000Callable\u0000bind\u0000hash:3224143119",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "core/variant/callable_bind.cpp",
+        "sourceSymbol": "Callable.bind",
+        "sourceLine": 141
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "2e3f461c2a99d244b6f392c8326b36e6ad7debda293d04be43cb664c5793fb60",
+        "callsite": "res://probe.gd _init() bind-none bind-one bind-two bind-all bind-nested bind-values bind-captures-at-bind",
+        "observedOutputSha256": "6b9c6b84ac8f8aa15fbe485569352907038152a3c49502811e7f8648e74264ac"
+      },
+      "target": {
+        "implementationSha256": "6d1153a8340d39ee2cd4808add00f51fe9f4bf154d394b165e7a2f74fe092797",
+        "callsite": "lib/godot-compat/callable.ts bind",
+        "observedOutputSha256": "6b9c6b84ac8f8aa15fbe485569352907038152a3c49502811e7f8648e74264ac"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2334624db1f0b4d6c1fcc8eea0dec1436eca9e01aee27fbce8bf408bfdf83fbb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "callable",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-Callable.bind",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "2e3f461c2a99d244b6f392c8326b36e6ad7debda293d04be43cb664c5793fb60",
+      "implementationSha256": "6d1153a8340d39ee2cd4808add00f51fe9f4bf154d394b165e7a2f74fe092797"
+    }
+  ]
+}

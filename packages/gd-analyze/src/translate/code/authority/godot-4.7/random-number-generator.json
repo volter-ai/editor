@@ -1,0 +1,558 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/random-number-generator"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "set_seed",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "set_seed",
+        "localName": "RandomNumberGenerator_set_seed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.set_seed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "get_seed",
+        "kind": "native-member",
+        "signature": "hash:2455072627"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "get_seed",
+        "localName": "RandomNumberGenerator_get_seed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.get_seed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "randi",
+        "kind": "native-member",
+        "signature": "hash:2455072627"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "randi",
+        "localName": "RandomNumberGenerator_randi",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.randi"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "randf",
+        "kind": "native-member",
+        "signature": "hash:191475506"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "randf",
+        "localName": "RandomNumberGenerator_randf",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.randf"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "randf_range",
+        "kind": "native-member",
+        "signature": "hash:4269894367"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "randf_range",
+        "localName": "RandomNumberGenerator_randf_range",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.randf_range"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "randi_range",
+        "kind": "native-member",
+        "signature": "hash:50157827"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "randi_range",
+        "localName": "RandomNumberGenerator_randi_range",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.randi_range"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "RandomNumberGenerator",
+        "kind": "native-class",
+        "signature": "GDScriptNativeClass"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "construct",
+        "localName": "RandomNumberGenerator_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.RandomNumberGenerator"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RandomNumberGenerator",
+        "member": "randomize",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/random-number-generator",
+        "exportName": "randomize",
+        "localName": "RandomNumberGenerator_randomize",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RandomNumberGenerator.randomize"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.set_seed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000set_seed\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.set_seed",
+        "sourceLine": 45
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "82015cbfd4b294f1ddf8a4a4ae79e4c9553b0f386538f78b205b7af96290e4e9",
+        "callsite": "res://probe.gd _init() seed-0 seed-1 seed-12345 seed-1099511627779 seed--7",
+        "observedOutputSha256": "61d19648419a0c642982a183e15050e2e8a95f55e2767adbb8a67b15dadb169f"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts set_seed",
+        "observedOutputSha256": "61d19648419a0c642982a183e15050e2e8a95f55e2767adbb8a67b15dadb169f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "69dd44d51532c3605f5b64d4518536118a9763e169ccea4c5b4c1f238e258aa1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.get_seed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000get_seed\u0000hash:2455072627",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.get_seed",
+        "sourceLine": 46
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0073d85d0e0cb650e96647b8aba69261ddb91b6d071a752792c8a58f37997869",
+        "callsite": "res://probe.gd _init() get_seed-0 get_seed-1 get_seed-12345 get_seed-1099511627779 get_seed--7",
+        "observedOutputSha256": "0cd7676902897917b461e50641e12a6a930dcbc48791de684af087a895c9690f"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts get_seed",
+        "observedOutputSha256": "0cd7676902897917b461e50641e12a6a930dcbc48791de684af087a895c9690f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7a2476e8d2d33162b46bd9d8d67e26e473d832ea2988e33ac64b6658a24fdce9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randi",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000randi\u0000hash:2455072627",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.randi",
+        "sourceLine": 53
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9003f73d96e2db401f561d178708c30c1e73017504337828db9d97c13c1ec95c",
+        "callsite": "res://probe.gd _init() randi-0 randi-1 randi-12345 randi-1099511627779 randi--7",
+        "observedOutputSha256": "4676917807fc93c573fd3efae297254ba140a29dda8408882a6ebf75edb01e04"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts randi",
+        "observedOutputSha256": "4676917807fc93c573fd3efae297254ba140a29dda8408882a6ebf75edb01e04"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "38f91d7238c756ea7d6280217cccd078070a93a1eeea3f6ec6d0104dc8c65241"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randf",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000randf\u0000hash:191475506",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.randf",
+        "sourceLine": 54
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "15fc405f602c7d4d32080436c60ba475f5d8317fa107f36d5a2ffe9eb579718a",
+        "callsite": "res://probe.gd _init() randf-0 randf-1 randf-12345 randf-1099511627779 randf--7",
+        "observedOutputSha256": "61df69c651d63ff81f15205d41268d3576d12d37a7b43df769e7dfa5dfe97c3d"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts randf",
+        "observedOutputSha256": "61df69c651d63ff81f15205d41268d3576d12d37a7b43df769e7dfa5dfe97c3d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "97c3e7000cc53536e400e62076812a861d8fc681b56653626bad1ba5745b8e0d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randf_range",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000randf_range\u0000hash:4269894367",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.randf_range",
+        "sourceLine": 55
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "82d3241a8ac3cace57a01305347e0f7e48c23d4a8bf05d1d5acefbb60a941499",
+        "callsite": "res://probe.gd _init() randf_range-0-0.1-2 randf_range-0--5-5 randf_range-0-3--1.5 randf_range-1-0.1-2 randf_range-1--5-5 randf_range-1-3--1.5 randf_range-12345-0.1-2 randf_range-12345--5-5 randf_range-12345-3--1.5 randf_range-1099511627779-0.1-2 randf_range-1099511627779--5-5 randf_range-1099511627779-3--1.5 randf_range--7-0.1-2 randf_range--7--5-5 randf_range--7-3--1.5",
+        "observedOutputSha256": "d0092f3eb166c367717045b8ac44a70c26989fe321646c545999840a50d066e1"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts randf_range",
+        "observedOutputSha256": "d0092f3eb166c367717045b8ac44a70c26989fe321646c545999840a50d066e1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e35fb4486ad5a309bade7f4e9ca59640185a9d36fb14ffaab0eaf33bb59c6274"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randi_range",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000randi_range\u0000hash:50157827",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.randi_range",
+        "sourceLine": 57
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2671f823e36e55904ed6405b856bd4eb8bcebd36c5dbacd111f70cda6c21b0f1",
+        "callsite": "res://probe.gd _init() randi_range-0-0-10 randi_range-0--3-3 randi_range-0-5-5 randi_range-0-7--2 randi_range-1-0-10 randi_range-1--3-3 randi_range-1-5-5 randi_range-1-7--2 randi_range-12345-0-10 randi_range-12345--3-3 randi_range-12345-5-5 randi_range-12345-7--2 randi_range-1099511627779-0-10 randi_range-1099511627779--3-3 randi_range-1099511627779-5-5 randi_range-1099511627779-7--2 randi_range--7-0-10 randi_range--7--3-3 randi_range--7-5-5 randi_range--7-7--2",
+        "observedOutputSha256": "4f9444532af2fcda0b2649a916292c213db6b2f9da8106e21df6a7e679a4a04a"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts randi_range",
+        "observedOutputSha256": "4f9444532af2fcda0b2649a916292c213db6b2f9da8106e21df6a7e679a4a04a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c3d837cda0ad252089482c5d2af8b0ccff6dd14f55c07eba05b2abb714a139e3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.RandomNumberGenerator",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-class\u0000RandomNumberGenerator\u0000RandomNumberGenerator\u0000GDScriptNativeClass",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_number_generator.h",
+        "sourceSymbol": "RandomNumberGenerator.RandomNumberGenerator",
+        "sourceLine": 61
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "26ad675107d42da835c1f9921ae4add8b0044b07750bd77717e0a3342f2174f6",
+        "callsite": "res://probe.gd _init() new-clock-seeded",
+        "observedOutputSha256": "e389d10435cdf674e2d1a92efb98b22f1077c69db6999ec3d94cb2b608aef37e"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts construct",
+        "observedOutputSha256": "e389d10435cdf674e2d1a92efb98b22f1077c69db6999ec3d94cb2b608aef37e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b0c1a922d555e23b80284bcee7c8096da4b531b394bf1b5f438a8a9816eed546"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randomize",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RandomNumberGenerator\u0000randomize\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/random_pcg.cpp",
+        "sourceSymbol": "RandomNumberGenerator.randomize",
+        "sourceLine": 42
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f9d9f993cfe3656a939cf50d552e0066566eefc0f5ebfa4f2a55a43aac253ed3",
+        "callsite": "res://probe.gd _init() randomize",
+        "observedOutputSha256": "50faee740619d770f0112f4841f5a7555b6148cc2e6c8113b5dafae9243a5ed3"
+      },
+      "target": {
+        "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1",
+        "callsite": "lib/godot-compat/random-number-generator.ts randomize",
+        "observedOutputSha256": "50faee740619d770f0112f4841f5a7555b6148cc2e6c8113b5dafae9243a5ed3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fb62715e3db72ddf34d5ee15840f0d51fcf77e03d69ec3c3b6110776853571fd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "random-number-generator",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.set_seed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "82015cbfd4b294f1ddf8a4a4ae79e4c9553b0f386538f78b205b7af96290e4e9",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.get_seed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0073d85d0e0cb650e96647b8aba69261ddb91b6d071a752792c8a58f37997869",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randi",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9003f73d96e2db401f561d178708c30c1e73017504337828db9d97c13c1ec95c",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randf",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "15fc405f602c7d4d32080436c60ba475f5d8317fa107f36d5a2ffe9eb579718a",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randf_range",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "82d3241a8ac3cace57a01305347e0f7e48c23d4a8bf05d1d5acefbb60a941499",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randi_range",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2671f823e36e55904ed6405b856bd4eb8bcebd36c5dbacd111f70cda6c21b0f1",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.RandomNumberGenerator",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "26ad675107d42da835c1f9921ae4add8b0044b07750bd77717e0a3342f2174f6",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    },
+    {
+      "claimId": "godot-4.7-binding-RandomNumberGenerator.randomize",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f9d9f993cfe3656a939cf50d552e0066566eefc0f5ebfa4f2a55a43aac253ed3",
+      "implementationSha256": "33da52eb85b667a477fc2591ff002c662d4a6174ebf2203dc21e97171f76e5e1"
+    }
+  ]
+}

@@ -1,0 +1,1767 @@
+{
+  "protocol": "vgai.godot-frontend-surface",
+  "protocolVersion": 1,
+  "engineMajor": 4,
+  "engineVersion": "4.7-stable",
+  "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+  "sources": [
+    {
+      "file": "modules/gdscript/gdscript_tokenizer.h",
+      "sha256": "9f0800f722f4b33f68bab3bbfa9debcd1d01bb99c9ae27552a9e21e2bdc478e2"
+    },
+    {
+      "file": "modules/gdscript/gdscript_parser.h",
+      "sha256": "a655ec740f570a43b4314b6f97f7f5ee9da5a7bb6517b3845193830e92795914"
+    },
+    {
+      "file": "modules/gdscript/gdscript_analyzer.h",
+      "sha256": "109bbe5038557ea0d11ed99869ec5acec16dbead9a26d8982de87f5138edbed1"
+    },
+    {
+      "file": "modules/gdscript/gdscript_compiler.h",
+      "sha256": "8c81156a95e9c337983b977d94ef26561d542067733dc1ecf2a73ca358e1505a"
+    }
+  ],
+  "rows": [
+    {
+      "id": "ast:ANNOTATION",
+      "family": "ast",
+      "name": "ANNOTATION",
+      "source": "modules/gdscript/gdscript_parser.h:304"
+    },
+    {
+      "id": "ast:ARRAY",
+      "family": "ast",
+      "name": "ARRAY",
+      "source": "modules/gdscript/gdscript_parser.h:305"
+    },
+    {
+      "id": "ast:ASSERT",
+      "family": "ast",
+      "name": "ASSERT",
+      "source": "modules/gdscript/gdscript_parser.h:306"
+    },
+    {
+      "id": "ast:ASSIGNMENT",
+      "family": "ast",
+      "name": "ASSIGNMENT",
+      "source": "modules/gdscript/gdscript_parser.h:307"
+    },
+    {
+      "id": "ast:AWAIT",
+      "family": "ast",
+      "name": "AWAIT",
+      "source": "modules/gdscript/gdscript_parser.h:308"
+    },
+    {
+      "id": "ast:BINARY_OPERATOR",
+      "family": "ast",
+      "name": "BINARY_OPERATOR",
+      "source": "modules/gdscript/gdscript_parser.h:309"
+    },
+    {
+      "id": "ast:BREAK",
+      "family": "ast",
+      "name": "BREAK",
+      "source": "modules/gdscript/gdscript_parser.h:310"
+    },
+    {
+      "id": "ast:BREAKPOINT",
+      "family": "ast",
+      "name": "BREAKPOINT",
+      "source": "modules/gdscript/gdscript_parser.h:311"
+    },
+    {
+      "id": "ast:CALL",
+      "family": "ast",
+      "name": "CALL",
+      "source": "modules/gdscript/gdscript_parser.h:312"
+    },
+    {
+      "id": "ast:CAST",
+      "family": "ast",
+      "name": "CAST",
+      "source": "modules/gdscript/gdscript_parser.h:313"
+    },
+    {
+      "id": "ast:CLASS",
+      "family": "ast",
+      "name": "CLASS",
+      "source": "modules/gdscript/gdscript_parser.h:314"
+    },
+    {
+      "id": "ast:CONSTANT",
+      "family": "ast",
+      "name": "CONSTANT",
+      "source": "modules/gdscript/gdscript_parser.h:315"
+    },
+    {
+      "id": "ast:CONTINUE",
+      "family": "ast",
+      "name": "CONTINUE",
+      "source": "modules/gdscript/gdscript_parser.h:316"
+    },
+    {
+      "id": "ast:DICTIONARY",
+      "family": "ast",
+      "name": "DICTIONARY",
+      "source": "modules/gdscript/gdscript_parser.h:317"
+    },
+    {
+      "id": "ast:ENUM",
+      "family": "ast",
+      "name": "ENUM",
+      "source": "modules/gdscript/gdscript_parser.h:318"
+    },
+    {
+      "id": "ast:FOR",
+      "family": "ast",
+      "name": "FOR",
+      "source": "modules/gdscript/gdscript_parser.h:319"
+    },
+    {
+      "id": "ast:FUNCTION",
+      "family": "ast",
+      "name": "FUNCTION",
+      "source": "modules/gdscript/gdscript_parser.h:320"
+    },
+    {
+      "id": "ast:GET_NODE",
+      "family": "ast",
+      "name": "GET_NODE",
+      "source": "modules/gdscript/gdscript_parser.h:321"
+    },
+    {
+      "id": "ast:IDENTIFIER",
+      "family": "ast",
+      "name": "IDENTIFIER",
+      "source": "modules/gdscript/gdscript_parser.h:322"
+    },
+    {
+      "id": "ast:IF",
+      "family": "ast",
+      "name": "IF",
+      "source": "modules/gdscript/gdscript_parser.h:323"
+    },
+    {
+      "id": "ast:LAMBDA",
+      "family": "ast",
+      "name": "LAMBDA",
+      "source": "modules/gdscript/gdscript_parser.h:324"
+    },
+    {
+      "id": "ast:LITERAL",
+      "family": "ast",
+      "name": "LITERAL",
+      "source": "modules/gdscript/gdscript_parser.h:325"
+    },
+    {
+      "id": "ast:MATCH",
+      "family": "ast",
+      "name": "MATCH",
+      "source": "modules/gdscript/gdscript_parser.h:326"
+    },
+    {
+      "id": "ast:MATCH_BRANCH",
+      "family": "ast",
+      "name": "MATCH_BRANCH",
+      "source": "modules/gdscript/gdscript_parser.h:327"
+    },
+    {
+      "id": "ast:NONE",
+      "family": "ast",
+      "name": "NONE",
+      "source": "modules/gdscript/gdscript_parser.h:303"
+    },
+    {
+      "id": "ast:PARAMETER",
+      "family": "ast",
+      "name": "PARAMETER",
+      "source": "modules/gdscript/gdscript_parser.h:328"
+    },
+    {
+      "id": "ast:PASS",
+      "family": "ast",
+      "name": "PASS",
+      "source": "modules/gdscript/gdscript_parser.h:329"
+    },
+    {
+      "id": "ast:PATTERN",
+      "family": "ast",
+      "name": "PATTERN",
+      "source": "modules/gdscript/gdscript_parser.h:330"
+    },
+    {
+      "id": "ast:PRELOAD",
+      "family": "ast",
+      "name": "PRELOAD",
+      "source": "modules/gdscript/gdscript_parser.h:331"
+    },
+    {
+      "id": "ast:RETURN",
+      "family": "ast",
+      "name": "RETURN",
+      "source": "modules/gdscript/gdscript_parser.h:332"
+    },
+    {
+      "id": "ast:SELF",
+      "family": "ast",
+      "name": "SELF",
+      "source": "modules/gdscript/gdscript_parser.h:333"
+    },
+    {
+      "id": "ast:SIGNAL",
+      "family": "ast",
+      "name": "SIGNAL",
+      "source": "modules/gdscript/gdscript_parser.h:334"
+    },
+    {
+      "id": "ast:SUBSCRIPT",
+      "family": "ast",
+      "name": "SUBSCRIPT",
+      "source": "modules/gdscript/gdscript_parser.h:335"
+    },
+    {
+      "id": "ast:SUITE",
+      "family": "ast",
+      "name": "SUITE",
+      "source": "modules/gdscript/gdscript_parser.h:336"
+    },
+    {
+      "id": "ast:TERNARY_OPERATOR",
+      "family": "ast",
+      "name": "TERNARY_OPERATOR",
+      "source": "modules/gdscript/gdscript_parser.h:337"
+    },
+    {
+      "id": "ast:TYPE",
+      "family": "ast",
+      "name": "TYPE",
+      "source": "modules/gdscript/gdscript_parser.h:338"
+    },
+    {
+      "id": "ast:TYPE_TEST",
+      "family": "ast",
+      "name": "TYPE_TEST",
+      "source": "modules/gdscript/gdscript_parser.h:339"
+    },
+    {
+      "id": "ast:UNARY_OPERATOR",
+      "family": "ast",
+      "name": "UNARY_OPERATOR",
+      "source": "modules/gdscript/gdscript_parser.h:340"
+    },
+    {
+      "id": "ast:VARIABLE",
+      "family": "ast",
+      "name": "VARIABLE",
+      "source": "modules/gdscript/gdscript_parser.h:341"
+    },
+    {
+      "id": "ast:WHILE",
+      "family": "ast",
+      "name": "WHILE",
+      "source": "modules/gdscript/gdscript_parser.h:342"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:check_class_member_name_conflict",
+      "family": "official-rule",
+      "name": "check_class_member_name_conflict",
+      "source": "modules/gdscript/gdscript_analyzer.h:63"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:check_native_member_name_conflict",
+      "family": "official-rule",
+      "name": "check_native_member_name_conflict",
+      "source": "modules/gdscript/gdscript_analyzer.h:62"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:check_type_compatibility",
+      "family": "official-rule",
+      "name": "check_type_compatibility",
+      "source": "modules/gdscript/gdscript_analyzer.h:176"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_array",
+      "family": "official-rule",
+      "name": "reduce_array",
+      "source": "modules/gdscript/gdscript_analyzer.h:99"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_assignment",
+      "family": "official-rule",
+      "name": "reduce_assignment",
+      "source": "modules/gdscript/gdscript_analyzer.h:100"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_await",
+      "family": "official-rule",
+      "name": "reduce_await",
+      "source": "modules/gdscript/gdscript_analyzer.h:101"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_binary_op",
+      "family": "official-rule",
+      "name": "reduce_binary_op",
+      "source": "modules/gdscript/gdscript_analyzer.h:102"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_call",
+      "family": "official-rule",
+      "name": "reduce_call",
+      "source": "modules/gdscript/gdscript_analyzer.h:103"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_cast",
+      "family": "official-rule",
+      "name": "reduce_cast",
+      "source": "modules/gdscript/gdscript_analyzer.h:104"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_dictionary",
+      "family": "official-rule",
+      "name": "reduce_dictionary",
+      "source": "modules/gdscript/gdscript_analyzer.h:105"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_expression",
+      "family": "official-rule",
+      "name": "reduce_expression",
+      "source": "modules/gdscript/gdscript_analyzer.h:98"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_get_node",
+      "family": "official-rule",
+      "name": "reduce_get_node",
+      "source": "modules/gdscript/gdscript_analyzer.h:106"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_identifier",
+      "family": "official-rule",
+      "name": "reduce_identifier",
+      "source": "modules/gdscript/gdscript_analyzer.h:107"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_identifier_from_base",
+      "family": "official-rule",
+      "name": "reduce_identifier_from_base",
+      "source": "modules/gdscript/gdscript_analyzer.h:108"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_identifier_from_base_set_class",
+      "family": "official-rule",
+      "name": "reduce_identifier_from_base_set_class",
+      "source": "modules/gdscript/gdscript_analyzer.h:156"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_lambda",
+      "family": "official-rule",
+      "name": "reduce_lambda",
+      "source": "modules/gdscript/gdscript_analyzer.h:109"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_literal",
+      "family": "official-rule",
+      "name": "reduce_literal",
+      "source": "modules/gdscript/gdscript_analyzer.h:110"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_preload",
+      "family": "official-rule",
+      "name": "reduce_preload",
+      "source": "modules/gdscript/gdscript_analyzer.h:111"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_self",
+      "family": "official-rule",
+      "name": "reduce_self",
+      "source": "modules/gdscript/gdscript_analyzer.h:112"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_subscript",
+      "family": "official-rule",
+      "name": "reduce_subscript",
+      "source": "modules/gdscript/gdscript_analyzer.h:113"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_ternary_op",
+      "family": "official-rule",
+      "name": "reduce_ternary_op",
+      "source": "modules/gdscript/gdscript_analyzer.h:114"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_type_test",
+      "family": "official-rule",
+      "name": "reduce_type_test",
+      "source": "modules/gdscript/gdscript_analyzer.h:115"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:reduce_unary_op",
+      "family": "official-rule",
+      "name": "reduce_unary_op",
+      "source": "modules/gdscript/gdscript_analyzer.h:116"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_annotation",
+      "family": "official-rule",
+      "name": "resolve_annotation",
+      "source": "modules/gdscript/gdscript_analyzer.h:73"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_assert",
+      "family": "official-rule",
+      "name": "resolve_assert",
+      "source": "modules/gdscript/gdscript_analyzer.h:91"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_assignable",
+      "family": "official-rule",
+      "name": "resolve_assignable",
+      "source": "modules/gdscript/gdscript_analyzer.h:84"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_body",
+      "family": "official-rule",
+      "name": "resolve_body",
+      "source": "modules/gdscript/gdscript_analyzer.h:170"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_class_body",
+      "family": "official-rule",
+      "name": "resolve_class_body",
+      "source": "modules/gdscript/gdscript_analyzer.h:78"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_class_inheritance",
+      "family": "official-rule",
+      "name": "resolve_class_inheritance",
+      "source": "modules/gdscript/gdscript_analyzer.h:67"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_class_interface",
+      "family": "official-rule",
+      "name": "resolve_class_interface",
+      "source": "modules/gdscript/gdscript_analyzer.h:76"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_class_member",
+      "family": "official-rule",
+      "name": "resolve_class_member",
+      "source": "modules/gdscript/gdscript_analyzer.h:74"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_constant",
+      "family": "official-rule",
+      "name": "resolve_constant",
+      "source": "modules/gdscript/gdscript_analyzer.h:86"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_datatype",
+      "family": "official-rule",
+      "name": "resolve_datatype",
+      "source": "modules/gdscript/gdscript_analyzer.h:69"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_dependencies",
+      "family": "official-rule",
+      "name": "resolve_dependencies",
+      "source": "modules/gdscript/gdscript_analyzer.h:171"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_for",
+      "family": "official-rule",
+      "name": "resolve_for",
+      "source": "modules/gdscript/gdscript_analyzer.h:89"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_function_body",
+      "family": "official-rule",
+      "name": "resolve_function_body",
+      "source": "modules/gdscript/gdscript_analyzer.h:81"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_function_signature",
+      "family": "official-rule",
+      "name": "resolve_function_signature",
+      "source": "modules/gdscript/gdscript_analyzer.h:80"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_if",
+      "family": "official-rule",
+      "name": "resolve_if",
+      "source": "modules/gdscript/gdscript_analyzer.h:88"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_inheritance",
+      "family": "official-rule",
+      "name": "resolve_inheritance",
+      "source": "modules/gdscript/gdscript_analyzer.h:168"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_interface",
+      "family": "official-rule",
+      "name": "resolve_interface",
+      "source": "modules/gdscript/gdscript_analyzer.h:169"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_match",
+      "family": "official-rule",
+      "name": "resolve_match",
+      "source": "modules/gdscript/gdscript_analyzer.h:92"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_match_branch",
+      "family": "official-rule",
+      "name": "resolve_match_branch",
+      "source": "modules/gdscript/gdscript_analyzer.h:93"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_match_pattern",
+      "family": "official-rule",
+      "name": "resolve_match_pattern",
+      "source": "modules/gdscript/gdscript_analyzer.h:94"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_node",
+      "family": "official-rule",
+      "name": "resolve_node",
+      "source": "modules/gdscript/gdscript_analyzer.h:82"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_parameter",
+      "family": "official-rule",
+      "name": "resolve_parameter",
+      "source": "modules/gdscript/gdscript_analyzer.h:87"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_pending_lambda_bodies",
+      "family": "official-rule",
+      "name": "resolve_pending_lambda_bodies",
+      "source": "modules/gdscript/gdscript_analyzer.h:155"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_return",
+      "family": "official-rule",
+      "name": "resolve_return",
+      "source": "modules/gdscript/gdscript_analyzer.h:95"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_suite",
+      "family": "official-rule",
+      "name": "resolve_suite",
+      "source": "modules/gdscript/gdscript_analyzer.h:83"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_variable",
+      "family": "official-rule",
+      "name": "resolve_variable",
+      "source": "modules/gdscript/gdscript_analyzer.h:85"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:resolve_while",
+      "family": "official-rule",
+      "name": "resolve_while",
+      "source": "modules/gdscript/gdscript_analyzer.h:90"
+    },
+    {
+      "id": "official-rule:gdscript_analyzer.h:validate_call_arg",
+      "family": "official-rule",
+      "name": "validate_call_arg",
+      "source": "modules/gdscript/gdscript_analyzer.h:142"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_compile_class",
+      "family": "official-rule",
+      "name": "_compile_class",
+      "source": "modules/gdscript/gdscript_compiler.h:161"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_block",
+      "family": "official-rule",
+      "name": "_parse_block",
+      "source": "modules/gdscript/gdscript_compiler.h:156"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_expression",
+      "family": "official-rule",
+      "name": "_parse_expression",
+      "source": "modules/gdscript/gdscript_compiler.h:152"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_function",
+      "family": "official-rule",
+      "name": "_parse_function",
+      "source": "modules/gdscript/gdscript_compiler.h:157"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_match_pattern",
+      "family": "official-rule",
+      "name": "_parse_match_pattern",
+      "source": "modules/gdscript/gdscript_compiler.h:153"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_setter_getter",
+      "family": "official-rule",
+      "name": "_parse_setter_getter",
+      "source": "modules/gdscript/gdscript_compiler.h:159"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:compile",
+      "family": "official-rule",
+      "name": "compile",
+      "source": "modules/gdscript/gdscript_compiler.h:179"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:check",
+      "family": "official-rule",
+      "name": "check",
+      "source": "modules/gdscript/gdscript_parser.h:1532"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse",
+      "family": "official-rule",
+      "name": "parse",
+      "source": "modules/gdscript/gdscript_parser.h:1632"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_annotation",
+      "family": "official-rule",
+      "name": "parse_annotation",
+      "source": "modules/gdscript/gdscript_parser.h:1557"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_array",
+      "family": "official-rule",
+      "name": "parse_array",
+      "source": "modules/gdscript/gdscript_parser.h:1607"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_assert",
+      "family": "official-rule",
+      "name": "parse_assert",
+      "source": "modules/gdscript/gdscript_parser.h:1584"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_assignment",
+      "family": "official-rule",
+      "name": "parse_assignment",
+      "source": "modules/gdscript/gdscript_parser.h:1606"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_attribute",
+      "family": "official-rule",
+      "name": "parse_attribute",
+      "source": "modules/gdscript/gdscript_parser.h:1615"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_await",
+      "family": "official-rule",
+      "name": "parse_await",
+      "source": "modules/gdscript/gdscript_parser.h:1614"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_binary",
+      "family": "official-rule",
+      "name": "parse_binary",
+      "source": "modules/gdscript/gdscript_parser.h:1633"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_binary_not_in_operator",
+      "family": "official-rule",
+      "name": "parse_binary_not_in_operator",
+      "source": "modules/gdscript/gdscript_parser.h:1604"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_binary_operator",
+      "family": "official-rule",
+      "name": "parse_binary_operator",
+      "source": "modules/gdscript/gdscript_parser.h:1603"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_break",
+      "family": "official-rule",
+      "name": "parse_break",
+      "source": "modules/gdscript/gdscript_parser.h:1585"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_builtin_constant",
+      "family": "official-rule",
+      "name": "parse_builtin_constant",
+      "source": "modules/gdscript/gdscript_parser.h:1601"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_call",
+      "family": "official-rule",
+      "name": "parse_call",
+      "source": "modules/gdscript/gdscript_parser.h:1609"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_cast",
+      "family": "official-rule",
+      "name": "parse_cast",
+      "source": "modules/gdscript/gdscript_parser.h:1613"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_class",
+      "family": "official-rule",
+      "name": "parse_class",
+      "source": "modules/gdscript/gdscript_parser.h:1544"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_class_body",
+      "family": "official-rule",
+      "name": "parse_class_body",
+      "source": "modules/gdscript/gdscript_parser.h:1547"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_class_doc_comment",
+      "family": "official-rule",
+      "name": "parse_class_doc_comment",
+      "source": "modules/gdscript/gdscript_parser.h:1628"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_class_member",
+      "family": "official-rule",
+      "name": "parse_class_member",
+      "source": "modules/gdscript/gdscript_parser.h:1549"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_class_name",
+      "family": "official-rule",
+      "name": "parse_class_name",
+      "source": "modules/gdscript/gdscript_parser.h:1545"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_constant",
+      "family": "official-rule",
+      "name": "parse_constant",
+      "source": "modules/gdscript/gdscript_parser.h:1583"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_continue",
+      "family": "official-rule",
+      "name": "parse_continue",
+      "source": "modules/gdscript/gdscript_parser.h:1586"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_dictionary",
+      "family": "official-rule",
+      "name": "parse_dictionary",
+      "source": "modules/gdscript/gdscript_parser.h:1608"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_doc_comment",
+      "family": "official-rule",
+      "name": "parse_doc_comment",
+      "source": "modules/gdscript/gdscript_parser.h:1627"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_enum",
+      "family": "official-rule",
+      "name": "parse_enum",
+      "source": "modules/gdscript/gdscript_parser.h:1551"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_expression",
+      "family": "official-rule",
+      "name": "parse_expression",
+      "source": "modules/gdscript/gdscript_parser.h:1594"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_extends",
+      "family": "official-rule",
+      "name": "parse_extends",
+      "source": "modules/gdscript/gdscript_parser.h:1546"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_for",
+      "family": "official-rule",
+      "name": "parse_for",
+      "source": "modules/gdscript/gdscript_parser.h:1587"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_function",
+      "family": "official-rule",
+      "name": "parse_function",
+      "source": "modules/gdscript/gdscript_parser.h:1553"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_function_signature",
+      "family": "official-rule",
+      "name": "parse_function_signature",
+      "source": "modules/gdscript/gdscript_parser.h:1554"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_get_node",
+      "family": "official-rule",
+      "name": "parse_get_node",
+      "source": "modules/gdscript/gdscript_parser.h:1610"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_grouping",
+      "family": "official-rule",
+      "name": "parse_grouping",
+      "source": "modules/gdscript/gdscript_parser.h:1612"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_identifier",
+      "family": "official-rule",
+      "name": "parse_identifier",
+      "source": "modules/gdscript/gdscript_parser.h:1599"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_if",
+      "family": "official-rule",
+      "name": "parse_if",
+      "source": "modules/gdscript/gdscript_parser.h:1588"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_invalid_token",
+      "family": "official-rule",
+      "name": "parse_invalid_token",
+      "source": "modules/gdscript/gdscript_parser.h:1620"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_lambda",
+      "family": "official-rule",
+      "name": "parse_lambda",
+      "source": "modules/gdscript/gdscript_parser.h:1617"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_literal",
+      "family": "official-rule",
+      "name": "parse_literal",
+      "source": "modules/gdscript/gdscript_parser.h:1596"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_match",
+      "family": "official-rule",
+      "name": "parse_match",
+      "source": "modules/gdscript/gdscript_parser.h:1589"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_match_branch",
+      "family": "official-rule",
+      "name": "parse_match_branch",
+      "source": "modules/gdscript/gdscript_parser.h:1590"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_match_pattern",
+      "family": "official-rule",
+      "name": "parse_match_pattern",
+      "source": "modules/gdscript/gdscript_parser.h:1591"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_parameter",
+      "family": "official-rule",
+      "name": "parse_parameter",
+      "source": "modules/gdscript/gdscript_parser.h:1552"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_precedence",
+      "family": "official-rule",
+      "name": "parse_precedence",
+      "source": "modules/gdscript/gdscript_parser.h:1595"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_preload",
+      "family": "official-rule",
+      "name": "parse_preload",
+      "source": "modules/gdscript/gdscript_parser.h:1611"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_program",
+      "family": "official-rule",
+      "name": "parse_program",
+      "source": "modules/gdscript/gdscript_parser.h:1543"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_property",
+      "family": "official-rule",
+      "name": "parse_property",
+      "source": "modules/gdscript/gdscript_parser.h:1580"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_property_getter",
+      "family": "official-rule",
+      "name": "parse_property_getter",
+      "source": "modules/gdscript/gdscript_parser.h:1581"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_property_setter",
+      "family": "official-rule",
+      "name": "parse_property_setter",
+      "source": "modules/gdscript/gdscript_parser.h:1582"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_self",
+      "family": "official-rule",
+      "name": "parse_self",
+      "source": "modules/gdscript/gdscript_parser.h:1598"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_signal",
+      "family": "official-rule",
+      "name": "parse_signal",
+      "source": "modules/gdscript/gdscript_parser.h:1550"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_statement",
+      "family": "official-rule",
+      "name": "parse_statement",
+      "source": "modules/gdscript/gdscript_parser.h:1577"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_subscript",
+      "family": "official-rule",
+      "name": "parse_subscript",
+      "source": "modules/gdscript/gdscript_parser.h:1616"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_suite",
+      "family": "official-rule",
+      "name": "parse_suite",
+      "source": "modules/gdscript/gdscript_parser.h:1555"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_ternary_operator",
+      "family": "official-rule",
+      "name": "parse_ternary_operator",
+      "source": "modules/gdscript/gdscript_parser.h:1605"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_type",
+      "family": "official-rule",
+      "name": "parse_type",
+      "source": "modules/gdscript/gdscript_parser.h:1621"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_type_test",
+      "family": "official-rule",
+      "name": "parse_type_test",
+      "source": "modules/gdscript/gdscript_parser.h:1618"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_unary_operator",
+      "family": "official-rule",
+      "name": "parse_unary_operator",
+      "source": "modules/gdscript/gdscript_parser.h:1602"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_variable",
+      "family": "official-rule",
+      "name": "parse_variable",
+      "source": "modules/gdscript/gdscript_parser.h:1578"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_while",
+      "family": "official-rule",
+      "name": "parse_while",
+      "source": "modules/gdscript/gdscript_parser.h:1592"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_yield",
+      "family": "official-rule",
+      "name": "parse_yield",
+      "source": "modules/gdscript/gdscript_parser.h:1619"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:validate_annotation_arguments",
+      "family": "official-rule",
+      "name": "validate_annotation_arguments",
+      "source": "modules/gdscript/gdscript_parser.h:1559"
+    },
+    {
+      "id": "official-rule:gdscript_tokenizer.h:check_indent",
+      "family": "official-rule",
+      "name": "check_indent",
+      "source": "modules/gdscript/gdscript_tokenizer.h:275"
+    },
+    {
+      "id": "official-rule:gdscript_tokenizer.h:check_vcs_marker",
+      "family": "official-rule",
+      "name": "check_vcs_marker",
+      "source": "modules/gdscript/gdscript_tokenizer.h:288"
+    },
+    {
+      "id": "operator:OP_ADDITION",
+      "family": "operator",
+      "name": "OP_ADDITION",
+      "source": "modules/gdscript/gdscript_parser.h:465"
+    },
+    {
+      "id": "operator:OP_BIT_AND",
+      "family": "operator",
+      "name": "OP_BIT_AND",
+      "source": "modules/gdscript/gdscript_parser.h:473"
+    },
+    {
+      "id": "operator:OP_BIT_LEFT_SHIFT",
+      "family": "operator",
+      "name": "OP_BIT_LEFT_SHIFT",
+      "source": "modules/gdscript/gdscript_parser.h:471"
+    },
+    {
+      "id": "operator:OP_BIT_OR",
+      "family": "operator",
+      "name": "OP_BIT_OR",
+      "source": "modules/gdscript/gdscript_parser.h:474"
+    },
+    {
+      "id": "operator:OP_BIT_RIGHT_SHIFT",
+      "family": "operator",
+      "name": "OP_BIT_RIGHT_SHIFT",
+      "source": "modules/gdscript/gdscript_parser.h:472"
+    },
+    {
+      "id": "operator:OP_BIT_SHIFT_LEFT",
+      "family": "operator",
+      "name": "OP_BIT_SHIFT_LEFT",
+      "source": "modules/gdscript/gdscript_parser.h:437"
+    },
+    {
+      "id": "operator:OP_BIT_SHIFT_RIGHT",
+      "family": "operator",
+      "name": "OP_BIT_SHIFT_RIGHT",
+      "source": "modules/gdscript/gdscript_parser.h:438"
+    },
+    {
+      "id": "operator:OP_BIT_XOR",
+      "family": "operator",
+      "name": "OP_BIT_XOR",
+      "source": "modules/gdscript/gdscript_parser.h:475"
+    },
+    {
+      "id": "operator:OP_COMP_EQUAL",
+      "family": "operator",
+      "name": "OP_COMP_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:479"
+    },
+    {
+      "id": "operator:OP_COMP_GREATER",
+      "family": "operator",
+      "name": "OP_COMP_GREATER",
+      "source": "modules/gdscript/gdscript_parser.h:483"
+    },
+    {
+      "id": "operator:OP_COMP_GREATER_EQUAL",
+      "family": "operator",
+      "name": "OP_COMP_GREATER_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:484"
+    },
+    {
+      "id": "operator:OP_COMP_LESS",
+      "family": "operator",
+      "name": "OP_COMP_LESS",
+      "source": "modules/gdscript/gdscript_parser.h:481"
+    },
+    {
+      "id": "operator:OP_COMP_LESS_EQUAL",
+      "family": "operator",
+      "name": "OP_COMP_LESS_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:482"
+    },
+    {
+      "id": "operator:OP_COMP_NOT_EQUAL",
+      "family": "operator",
+      "name": "OP_COMP_NOT_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:480"
+    },
+    {
+      "id": "operator:OP_CONTENT_TEST",
+      "family": "operator",
+      "name": "OP_CONTENT_TEST",
+      "source": "modules/gdscript/gdscript_parser.h:478"
+    },
+    {
+      "id": "operator:OP_DIVISION",
+      "family": "operator",
+      "name": "OP_DIVISION",
+      "source": "modules/gdscript/gdscript_parser.h:468"
+    },
+    {
+      "id": "operator:OP_LOGIC_AND",
+      "family": "operator",
+      "name": "OP_LOGIC_AND",
+      "source": "modules/gdscript/gdscript_parser.h:476"
+    },
+    {
+      "id": "operator:OP_LOGIC_OR",
+      "family": "operator",
+      "name": "OP_LOGIC_OR",
+      "source": "modules/gdscript/gdscript_parser.h:477"
+    },
+    {
+      "id": "operator:OP_MODULO",
+      "family": "operator",
+      "name": "OP_MODULO",
+      "source": "modules/gdscript/gdscript_parser.h:469"
+    },
+    {
+      "id": "operator:OP_MULTIPLICATION",
+      "family": "operator",
+      "name": "OP_MULTIPLICATION",
+      "source": "modules/gdscript/gdscript_parser.h:467"
+    },
+    {
+      "id": "operator:OP_NONE",
+      "family": "operator",
+      "name": "OP_NONE",
+      "source": "modules/gdscript/gdscript_parser.h:430"
+    },
+    {
+      "id": "operator:OP_POWER",
+      "family": "operator",
+      "name": "OP_POWER",
+      "source": "modules/gdscript/gdscript_parser.h:470"
+    },
+    {
+      "id": "operator:OP_SUBTRACTION",
+      "family": "operator",
+      "name": "OP_SUBTRACTION",
+      "source": "modules/gdscript/gdscript_parser.h:466"
+    },
+    {
+      "id": "pattern:PT_ARRAY",
+      "family": "pattern",
+      "name": "PT_ARRAY",
+      "source": "modules/gdscript/gdscript_parser.h:1011"
+    },
+    {
+      "id": "pattern:PT_BIND",
+      "family": "pattern",
+      "name": "PT_BIND",
+      "source": "modules/gdscript/gdscript_parser.h:1010"
+    },
+    {
+      "id": "pattern:PT_DICTIONARY",
+      "family": "pattern",
+      "name": "PT_DICTIONARY",
+      "source": "modules/gdscript/gdscript_parser.h:1012"
+    },
+    {
+      "id": "pattern:PT_EXPRESSION",
+      "family": "pattern",
+      "name": "PT_EXPRESSION",
+      "source": "modules/gdscript/gdscript_parser.h:1009"
+    },
+    {
+      "id": "pattern:PT_LITERAL",
+      "family": "pattern",
+      "name": "PT_LITERAL",
+      "source": "modules/gdscript/gdscript_parser.h:1008"
+    },
+    {
+      "id": "pattern:PT_REST",
+      "family": "pattern",
+      "name": "PT_REST",
+      "source": "modules/gdscript/gdscript_parser.h:1013"
+    },
+    {
+      "id": "pattern:PT_WILDCARD",
+      "family": "pattern",
+      "name": "PT_WILDCARD",
+      "source": "modules/gdscript/gdscript_parser.h:1014"
+    },
+    {
+      "id": "token:AMPERSAND",
+      "family": "token",
+      "name": "AMPERSAND",
+      "source": "modules/gdscript/gdscript_tokenizer.h:71"
+    },
+    {
+      "id": "token:AMPERSAND_AMPERSAND",
+      "family": "token",
+      "name": "AMPERSAND_AMPERSAND",
+      "source": "modules/gdscript/gdscript_tokenizer.h:67"
+    },
+    {
+      "id": "token:AMPERSAND_EQUAL",
+      "family": "token",
+      "name": "AMPERSAND_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:94"
+    },
+    {
+      "id": "token:AND",
+      "family": "token",
+      "name": "AND",
+      "source": "modules/gdscript/gdscript_tokenizer.h:64"
+    },
+    {
+      "id": "token:ANNOTATION",
+      "family": "token",
+      "name": "ANNOTATION",
+      "source": "modules/gdscript/gdscript_tokenizer.h:53"
+    },
+    {
+      "id": "token:AS",
+      "family": "token",
+      "name": "AS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:110"
+    },
+    {
+      "id": "token:ASSERT",
+      "family": "token",
+      "name": "ASSERT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:111"
+    },
+    {
+      "id": "token:AWAIT",
+      "family": "token",
+      "name": "AWAIT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:112"
+    },
+    {
+      "id": "token:BACKTICK",
+      "family": "token",
+      "name": "BACKTICK",
+      "source": "modules/gdscript/gdscript_tokenizer.h:159"
+    },
+    {
+      "id": "token:BANG",
+      "family": "token",
+      "name": "BANG",
+      "source": "modules/gdscript/gdscript_tokenizer.h:69"
+    },
+    {
+      "id": "token:BANG_EQUAL",
+      "family": "token",
+      "name": "BANG_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:62"
+    },
+    {
+      "id": "token:BRACE_CLOSE",
+      "family": "token",
+      "name": "BRACE_CLOSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:136"
+    },
+    {
+      "id": "token:BRACE_OPEN",
+      "family": "token",
+      "name": "BRACE_OPEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:135"
+    },
+    {
+      "id": "token:BRACKET_CLOSE",
+      "family": "token",
+      "name": "BRACKET_CLOSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:134"
+    },
+    {
+      "id": "token:BRACKET_OPEN",
+      "family": "token",
+      "name": "BRACKET_OPEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:133"
+    },
+    {
+      "id": "token:BREAK",
+      "family": "token",
+      "name": "BREAK",
+      "source": "modules/gdscript/gdscript_tokenizer.h:103"
+    },
+    {
+      "id": "token:BREAKPOINT",
+      "family": "token",
+      "name": "BREAKPOINT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:113"
+    },
+    {
+      "id": "token:CARET",
+      "family": "token",
+      "name": "CARET",
+      "source": "modules/gdscript/gdscript_tokenizer.h:74"
+    },
+    {
+      "id": "token:CARET_EQUAL",
+      "family": "token",
+      "name": "CARET_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:96"
+    },
+    {
+      "id": "token:CLASS",
+      "family": "token",
+      "name": "CLASS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:114"
+    },
+    {
+      "id": "token:CLASS_NAME",
+      "family": "token",
+      "name": "CLASS_NAME",
+      "source": "modules/gdscript/gdscript_tokenizer.h:115"
+    },
+    {
+      "id": "token:COLON",
+      "family": "token",
+      "name": "COLON",
+      "source": "modules/gdscript/gdscript_tokenizer.h:144"
+    },
+    {
+      "id": "token:COMMA",
+      "family": "token",
+      "name": "COMMA",
+      "source": "modules/gdscript/gdscript_tokenizer.h:139"
+    },
+    {
+      "id": "token:CONST_INF",
+      "family": "token",
+      "name": "CONST_INF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:155"
+    },
+    {
+      "id": "token:CONST_NAN",
+      "family": "token",
+      "name": "CONST_NAN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:156"
+    },
+    {
+      "id": "token:CONST_PI",
+      "family": "token",
+      "name": "CONST_PI",
+      "source": "modules/gdscript/gdscript_tokenizer.h:153"
+    },
+    {
+      "id": "token:CONST_TAU",
+      "family": "token",
+      "name": "CONST_TAU",
+      "source": "modules/gdscript/gdscript_tokenizer.h:154"
+    },
+    {
+      "id": "token:CONTINUE",
+      "family": "token",
+      "name": "CONTINUE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:104"
+    },
+    {
+      "id": "token:DEDENT",
+      "family": "token",
+      "name": "DEDENT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:151"
+    },
+    {
+      "id": "token:DOLLAR",
+      "family": "token",
+      "name": "DOLLAR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:145"
+    },
+    {
+      "id": "token:ELIF",
+      "family": "token",
+      "name": "ELIF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:99"
+    },
+    {
+      "id": "token:ELSE",
+      "family": "token",
+      "name": "ELSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:100"
+    },
+    {
+      "id": "token:EMPTY",
+      "family": "token",
+      "name": "EMPTY",
+      "source": "modules/gdscript/gdscript_tokenizer.h:51"
+    },
+    {
+      "id": "token:ENUM",
+      "family": "token",
+      "name": "ENUM",
+      "source": "modules/gdscript/gdscript_tokenizer.h:117"
+    },
+    {
+      "id": "token:EQUAL",
+      "family": "token",
+      "name": "EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:85"
+    },
+    {
+      "id": "token:EQUAL_EQUAL",
+      "family": "token",
+      "name": "EQUAL_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:61"
+    },
+    {
+      "id": "token:ERROR",
+      "family": "token",
+      "name": "ERROR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:162"
+    },
+    {
+      "id": "token:EXTENDS",
+      "family": "token",
+      "name": "EXTENDS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:118"
+    },
+    {
+      "id": "token:FOR",
+      "family": "token",
+      "name": "FOR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:101"
+    },
+    {
+      "id": "token:FORWARD_ARROW",
+      "family": "token",
+      "name": "FORWARD_ARROW",
+      "source": "modules/gdscript/gdscript_tokenizer.h:146"
+    },
+    {
+      "id": "token:FUNC",
+      "family": "token",
+      "name": "FUNC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:119"
+    },
+    {
+      "id": "token:GREATER",
+      "family": "token",
+      "name": "GREATER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:59"
+    },
+    {
+      "id": "token:GREATER_EQUAL",
+      "family": "token",
+      "name": "GREATER_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:60"
+    },
+    {
+      "id": "token:GREATER_GREATER",
+      "family": "token",
+      "name": "GREATER_GREATER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:76"
+    },
+    {
+      "id": "token:GREATER_GREATER_EQUAL",
+      "family": "token",
+      "name": "GREATER_GREATER_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:93"
+    },
+    {
+      "id": "token:IDENTIFIER",
+      "family": "token",
+      "name": "IDENTIFIER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:54"
+    },
+    {
+      "id": "token:IF",
+      "family": "token",
+      "name": "IF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:98"
+    },
+    {
+      "id": "token:INDENT",
+      "family": "token",
+      "name": "INDENT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:150"
+    },
+    {
+      "id": "token:IS",
+      "family": "token",
+      "name": "IS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:121"
+    },
+    {
+      "id": "token:LESS",
+      "family": "token",
+      "name": "LESS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:57"
+    },
+    {
+      "id": "token:LESS_EQUAL",
+      "family": "token",
+      "name": "LESS_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:58"
+    },
+    {
+      "id": "token:LESS_LESS",
+      "family": "token",
+      "name": "LESS_LESS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:75"
+    },
+    {
+      "id": "token:LESS_LESS_EQUAL",
+      "family": "token",
+      "name": "LESS_LESS_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:92"
+    },
+    {
+      "id": "token:LITERAL",
+      "family": "token",
+      "name": "LITERAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:55"
+    },
+    {
+      "id": "token:MATCH",
+      "family": "token",
+      "name": "MATCH",
+      "source": "modules/gdscript/gdscript_tokenizer.h:107"
+    },
+    {
+      "id": "token:MINUS",
+      "family": "token",
+      "name": "MINUS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:79"
+    },
+    {
+      "id": "token:MINUS_EQUAL",
+      "family": "token",
+      "name": "MINUS_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:87"
+    },
+    {
+      "id": "token:NAMESPACE",
+      "family": "token",
+      "name": "NAMESPACE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:122"
+    },
+    {
+      "id": "token:NEWLINE",
+      "family": "token",
+      "name": "NEWLINE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:149"
+    },
+    {
+      "id": "token:NOT",
+      "family": "token",
+      "name": "NOT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:66"
+    },
+    {
+      "id": "token:OR",
+      "family": "token",
+      "name": "OR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:65"
+    },
+    {
+      "id": "token:PARENTHESIS_CLOSE",
+      "family": "token",
+      "name": "PARENTHESIS_CLOSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:138"
+    },
+    {
+      "id": "token:PARENTHESIS_OPEN",
+      "family": "token",
+      "name": "PARENTHESIS_OPEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:137"
+    },
+    {
+      "id": "token:PASS",
+      "family": "token",
+      "name": "PASS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:105"
+    },
+    {
+      "id": "token:PERCENT",
+      "family": "token",
+      "name": "PERCENT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:83"
+    },
+    {
+      "id": "token:PERCENT_EQUAL",
+      "family": "token",
+      "name": "PERCENT_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:91"
+    },
+    {
+      "id": "token:PERIOD",
+      "family": "token",
+      "name": "PERIOD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:141"
+    },
+    {
+      "id": "token:PERIOD_PERIOD",
+      "family": "token",
+      "name": "PERIOD_PERIOD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:142"
+    },
+    {
+      "id": "token:PERIOD_PERIOD_PERIOD",
+      "family": "token",
+      "name": "PERIOD_PERIOD_PERIOD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:143"
+    },
+    {
+      "id": "token:PIPE",
+      "family": "token",
+      "name": "PIPE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:72"
+    },
+    {
+      "id": "token:PIPE_EQUAL",
+      "family": "token",
+      "name": "PIPE_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:95"
+    },
+    {
+      "id": "token:PIPE_PIPE",
+      "family": "token",
+      "name": "PIPE_PIPE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:68"
+    },
+    {
+      "id": "token:PLUS",
+      "family": "token",
+      "name": "PLUS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:78"
+    },
+    {
+      "id": "token:PLUS_EQUAL",
+      "family": "token",
+      "name": "PLUS_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:86"
+    },
+    {
+      "id": "token:PRELOAD",
+      "family": "token",
+      "name": "PRELOAD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:123"
+    },
+    {
+      "id": "token:QUESTION_MARK",
+      "family": "token",
+      "name": "QUESTION_MARK",
+      "source": "modules/gdscript/gdscript_tokenizer.h:160"
+    },
+    {
+      "id": "token:RETURN",
+      "family": "token",
+      "name": "RETURN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:106"
+    },
+    {
+      "id": "token:SELF",
+      "family": "token",
+      "name": "SELF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:124"
+    },
+    {
+      "id": "token:SEMICOLON",
+      "family": "token",
+      "name": "SEMICOLON",
+      "source": "modules/gdscript/gdscript_tokenizer.h:140"
+    },
+    {
+      "id": "token:SIGNAL",
+      "family": "token",
+      "name": "SIGNAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:125"
+    },
+    {
+      "id": "token:SLASH",
+      "family": "token",
+      "name": "SLASH",
+      "source": "modules/gdscript/gdscript_tokenizer.h:82"
+    },
+    {
+      "id": "token:SLASH_EQUAL",
+      "family": "token",
+      "name": "SLASH_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:90"
+    },
+    {
+      "id": "token:STAR",
+      "family": "token",
+      "name": "STAR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:80"
+    },
+    {
+      "id": "token:STAR_EQUAL",
+      "family": "token",
+      "name": "STAR_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:88"
+    },
+    {
+      "id": "token:STAR_STAR",
+      "family": "token",
+      "name": "STAR_STAR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:81"
+    },
+    {
+      "id": "token:STAR_STAR_EQUAL",
+      "family": "token",
+      "name": "STAR_STAR_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:89"
+    },
+    {
+      "id": "token:STATIC",
+      "family": "token",
+      "name": "STATIC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:126"
+    },
+    {
+      "id": "token:SUPER",
+      "family": "token",
+      "name": "SUPER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:127"
+    },
+    {
+      "id": "token:TILDE",
+      "family": "token",
+      "name": "TILDE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:73"
+    },
+    {
+      "id": "token:TK_CONST",
+      "family": "token",
+      "name": "TK_CONST",
+      "source": "modules/gdscript/gdscript_tokenizer.h:116"
+    },
+    {
+      "id": "token:TK_EOF",
+      "family": "token",
+      "name": "TK_EOF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:163"
+    },
+    {
+      "id": "token:TK_IN",
+      "family": "token",
+      "name": "TK_IN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:120"
+    },
+    {
+      "id": "token:TK_VOID",
+      "family": "token",
+      "name": "TK_VOID",
+      "source": "modules/gdscript/gdscript_tokenizer.h:130"
+    },
+    {
+      "id": "token:TRAIT",
+      "family": "token",
+      "name": "TRAIT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:128"
+    },
+    {
+      "id": "token:UNDERSCORE",
+      "family": "token",
+      "name": "UNDERSCORE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:147"
+    },
+    {
+      "id": "token:VAR",
+      "family": "token",
+      "name": "VAR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:129"
+    },
+    {
+      "id": "token:VCS_CONFLICT_MARKER",
+      "family": "token",
+      "name": "VCS_CONFLICT_MARKER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:158"
+    },
+    {
+      "id": "token:WHEN",
+      "family": "token",
+      "name": "WHEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:108"
+    },
+    {
+      "id": "token:WHILE",
+      "family": "token",
+      "name": "WHILE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:102"
+    },
+    {
+      "id": "token:YIELD",
+      "family": "token",
+      "name": "YIELD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:131"
+    }
+  ]
+}

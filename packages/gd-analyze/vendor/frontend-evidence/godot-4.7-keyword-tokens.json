@@ -1,0 +1,975 @@
+{
+  "protocol": "vgai.godot-bound-program-keyword-token-report",
+  "protocolVersion": 1,
+  "authority": {
+    "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+    "sourceTreeSha256": "b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec",
+    "sourceArchiveSha256": "b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6",
+    "exporterSourceSha256": "86d6b3555253af693a8e29dc8e45bc6034ad23caea284857cf81bd034aadf989",
+    "executableSha256": "5dc663aedea7d480dff4155912a88f4c2cbe561f9a05e8df480dfabf0a55bb7e",
+    "buildOptions": "platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=no module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes",
+    "officialArchiveSha256": "a6708c336f690e0dd8abd3d587d661707f4f33ed436946a3ec000d2fb497fd6c",
+    "officialExecutableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+    "officialEngine": {
+      "major": 4,
+      "minor": 7,
+      "patch": 0,
+      "status": "stable",
+      "build": "official",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "string": "4.7-stable (official)"
+    }
+  },
+  "rows": [
+    {
+      "row": "token:AND",
+      "token": {
+        "type": "and",
+        "typeId": 10,
+        "source": "and",
+        "startLine": 2,
+        "startColumn": 14,
+        "endLine": 2,
+        "endColumn": 17
+      },
+      "baselineSha256": "1a6aa317cc8f52d6a8dc18497f65a0bcaac4446a21b087e6abfd5e362af50aff",
+      "mutantSha256": "31bbf5ccc22d27a173662bb7b86e86c2d7fbafb66f2da19154d1f53069a7eaab",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 29,
+        "deletedByteCount": 9,
+        "deletedSourceSha256": "d070799b124978073823007c8014f553000f453b3e238d806770b9c8e7b1fd7b"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:ANNOTATION",
+      "token": {
+        "type": "Annotation",
+        "typeId": 1,
+        "source": "@tool",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 6
+      },
+      "baselineSha256": "52dc6db86b445db3846d751e2fde53e2acf7a58aa98fd056ab06a3a9d22c0c57",
+      "mutantSha256": "006c373933f8e49903c974a70b81864df932f34b72076a11916696e4577e804a",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 6,
+        "deletedByteCount": 6,
+        "deletedSourceSha256": "134e59d7eadca8a929a25fa60bb54ff6b8afb0fad94099cd1c8898dcd5be968c"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:AS",
+      "token": {
+        "type": "as",
+        "typeId": 51,
+        "source": "as",
+        "startLine": 2,
+        "startColumn": 16,
+        "endLine": 2,
+        "endColumn": 18
+      },
+      "baselineSha256": "5b71bbbdd5ff197c1baac4b229e772796fabc3d16f21cf2807121a22f6d19497",
+      "mutantSha256": "9c8faeb21b8dc3f35773d757947b16a5780b633a02d4c8a7030cd6d173df06da",
+      "deletion": {
+        "startOffset": 26,
+        "endOffset": 33,
+        "deletedByteCount": 7,
+        "deletedSourceSha256": "79a243d30942cfe347be3cf5a17d96f3794dc2c23e7e1699e047f20ff8de44cb"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:ASSERT",
+      "token": {
+        "type": "assert",
+        "typeId": 52,
+        "source": "assert",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 8
+      },
+      "baselineSha256": "751c4d1efc703875228ca25c98e8b50c844a2bb16b452618b1548a83a44fc7b2",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 27,
+        "deletedByteCount": 14,
+        "deletedSourceSha256": "cb8f01d7aa1a2b5cd2917d70b968c1711e648a4333b6b2ad00f296b87894a8d2"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:AWAIT",
+      "token": {
+        "type": "await",
+        "typeId": 53,
+        "source": "await",
+        "startLine": 3,
+        "startColumn": 2,
+        "endLine": 3,
+        "endColumn": 7
+      },
+      "baselineSha256": "3223a3c9c258afbf4ad63cf2101e5688970c095a9e8c2c2ae8834634d4ec6205",
+      "mutantSha256": "74df1efce46d087f31c081916e6a69a58a848f5ed7486a380f1d5dbca7f35042",
+      "deletion": {
+        "startOffset": 26,
+        "endOffset": 58,
+        "deletedByteCount": 32,
+        "deletedSourceSha256": "21aacd4d9132e2eb333d3365983f5b255c3b6dccfa53c97efed12c501dea696e"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BREAK",
+      "token": {
+        "type": "break",
+        "typeId": 45,
+        "source": "break",
+        "startLine": 3,
+        "startColumn": 3,
+        "endLine": 3,
+        "endColumn": 8
+      },
+      "baselineSha256": "637a3f7cc216c593b44b2d675d1ac0c7743cb5474eaff31216218e09129f9cf5",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 34,
+        "deletedByteCount": 21,
+        "deletedSourceSha256": "440dcc03e82a9628b74edeeb35c3bf07a13cf8869e693f0d1b5f3225a1503493"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:BREAKPOINT",
+      "token": {
+        "type": "breakpoint",
+        "typeId": 54,
+        "source": "breakpoint",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "be7723e0e8db3a996ab7b30ccb6554ee12ef246a5112fdb203ba223d4c2fd364",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 25,
+        "deletedByteCount": 12,
+        "deletedSourceSha256": "5fab8eaf5cd2054535ceb38aaec6640a82da93958327611f297be1e0a2a8b3ae"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CLASS",
+      "token": {
+        "type": "class",
+        "typeId": 55,
+        "source": "class",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 6
+      },
+      "baselineSha256": "b2a1b2c06eab6143d6c70a1b6e250a94f476fc818450b148db95aee74e82a489",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 19,
+        "deletedByteCount": 19,
+        "deletedSourceSha256": "c54e308c21e1d9e512dbf21de36ac12c12aeabd847b0714dc56a8d3fdf96c996"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CLASS_NAME",
+      "token": {
+        "type": "class_name",
+        "typeId": 56,
+        "source": "class_name",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 11
+      },
+      "baselineSha256": "b259213caaf0ac1fc14478337fa7827a012652f5a3ae8d726311d4f81fc9dcee",
+      "mutantSha256": "006c373933f8e49903c974a70b81864df932f34b72076a11916696e4577e804a",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 27,
+        "deletedByteCount": 27,
+        "deletedSourceSha256": "63d235ea64ec2fe90122b2262c7875aa8064091c00b3c02bd5002d5fd870ba35"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CONST_INF",
+      "token": {
+        "type": "INF",
+        "typeId": 93,
+        "source": "INF",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 16
+      },
+      "baselineSha256": "5f2ac84cb52f4eed8fadb7f65a47fd6df525828795bed29903cc94e886f1dcc9",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 20,
+        "deletedByteCount": 16,
+        "deletedSourceSha256": "b83f101884763364954ee8db9c5724bb9bad98d51a48916174700d96bb10abb6"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CONST_NAN",
+      "token": {
+        "type": "NaN",
+        "typeId": 94,
+        "source": "NAN",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 16
+      },
+      "baselineSha256": "913938c21eebca2892b7883036d17e882772c1b8b56c6ef26ce3944460b89a79",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 20,
+        "deletedByteCount": 16,
+        "deletedSourceSha256": "1fa539f9c0bf4b1f69916a04863bf9951e18ae867d6a9cd3c085d42288bde953"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CONST_PI",
+      "token": {
+        "type": "PI",
+        "typeId": 91,
+        "source": "PI",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 15
+      },
+      "baselineSha256": "dda48aa45528969bd88cc63447beee29dec0c637d4c8bdd891940364daa3015d",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 19,
+        "deletedByteCount": 15,
+        "deletedSourceSha256": "059b67653e98d734fad13adf1189793974eae54f271d25b83d214a5736dcacfc"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CONST_TAU",
+      "token": {
+        "type": "TAU",
+        "typeId": 92,
+        "source": "TAU",
+        "startLine": 1,
+        "startColumn": 13,
+        "endLine": 1,
+        "endColumn": 16
+      },
+      "baselineSha256": "363f467d3c04c0bfba734a1e6a5e5508500a6b4cb08a7994cecc14f7e638929a",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 4,
+        "endOffset": 20,
+        "deletedByteCount": 16,
+        "deletedSourceSha256": "1481950a638557f2cc59f8112d7b6765cb2384dfc44af749e8232486bdc70738"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:CONTINUE",
+      "token": {
+        "type": "continue",
+        "typeId": 46,
+        "source": "continue",
+        "startLine": 3,
+        "startColumn": 3,
+        "endLine": 3,
+        "endColumn": 11
+      },
+      "baselineSha256": "a1eed6703d39772f3d62e41af7731b6bea7b41f8152c43bb5efe10ae9e194bd1",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 42,
+        "deletedByteCount": 29,
+        "deletedSourceSha256": "7b97e4715185ecc0c194d0e72264af2a6c49ebabf254d17ab0b52c526dd5bf91"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:ELIF",
+      "token": {
+        "type": "elif",
+        "typeId": 41,
+        "source": "elif",
+        "startLine": 4,
+        "startColumn": 2,
+        "endLine": 4,
+        "endColumn": 6
+      },
+      "baselineSha256": "d90995a9bfd45dbcf94c16141cf1c3b999805e4faca9c5fbb56be394c34a8453",
+      "mutantSha256": "f91e43088b7e737f4b52aca16b552f394748cef2618df2f373b1cca277ff3a2a",
+      "deletion": {
+        "startOffset": 30,
+        "endOffset": 49,
+        "deletedByteCount": 19,
+        "deletedSourceSha256": "7cab42dac3cad8b443da72ca98c7e5d0d8ed708757c9ecf4df27e11deed85e24"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:ELSE",
+      "token": {
+        "type": "else",
+        "typeId": 42,
+        "source": "else",
+        "startLine": 4,
+        "startColumn": 2,
+        "endLine": 4,
+        "endColumn": 6
+      },
+      "baselineSha256": "a262f2bbe33ba276af8543ef66d09b9827f4301bb86e0bed05899701077d9331",
+      "mutantSha256": "ebec6cc85ffa4d87fa15e99fed2ccf0af4db71100a57cf6965df92692d8d6a5c",
+      "deletion": {
+        "startOffset": 29,
+        "endOffset": 43,
+        "deletedByteCount": 14,
+        "deletedSourceSha256": "3fbddf6da21a36989b3662c8571ea30dfa684f861ab94fd6f8f5299076a2c139"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:ENUM",
+      "token": {
+        "type": "enum",
+        "typeId": 58,
+        "source": "enum",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 5
+      },
+      "baselineSha256": "607ac7af230363fe653f80d4dfb5ed3a0c3051c819cc0d07ef76f2ec8abc70c8",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 32,
+        "deletedByteCount": 32,
+        "deletedSourceSha256": "38959efdb0658b6c9d6c4bcba064455a45b677191a7a69c655f61db3ebc189e2"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:EXTENDS",
+      "token": {
+        "type": "extends",
+        "typeId": 59,
+        "source": "extends",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 8
+      },
+      "baselineSha256": "5a9308d7c3c6b37de2bd6326cebd396b4434795058f62c5da0a093bd52dd4ccf",
+      "mutantSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 13,
+        "deletedByteCount": 13,
+        "deletedSourceSha256": "006c373933f8e49903c974a70b81864df932f34b72076a11916696e4577e804a"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:FOR",
+      "token": {
+        "type": "for",
+        "typeId": 43,
+        "source": "for",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 5
+      },
+      "baselineSha256": "1c93f4f6b25513ff9efb31f34cd8526a21839013b73a429ff8f1b92eb1c8ade9",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 38,
+        "deletedByteCount": 25,
+        "deletedSourceSha256": "f15ae677e446bf25847b04805226c12aba5f7517e5519db0c7ecb81a2f316255"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:FUNC",
+      "token": {
+        "type": "func",
+        "typeId": 60,
+        "source": "func",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 5
+      },
+      "baselineSha256": "7e0d194752949a1b0a83bf8cab0f1d65c424fa209a5ff9c197e1933af943d4d9",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 18,
+        "deletedByteCount": 18,
+        "deletedSourceSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:IF",
+      "token": {
+        "type": "if",
+        "typeId": 40,
+        "source": "if",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 4
+      },
+      "baselineSha256": "794db43772aaff61749faaa46e4ce747b119f107f3424be05b0c3980e57ca83c",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 30,
+        "deletedByteCount": 17,
+        "deletedSourceSha256": "ac2611810269bb461afcb5b9cf48da3b2191f78d205a56741d98967608a0c672"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:IS",
+      "token": {
+        "type": "is",
+        "typeId": 62,
+        "source": "is",
+        "startLine": 3,
+        "startColumn": 14,
+        "endLine": 3,
+        "endColumn": 16
+      },
+      "baselineSha256": "19362ca6fa486905d3540f1a1faeb99a364c8a9ab230f2b3e35a2b4bb26cc6c7",
+      "mutantSha256": "5a09ed8b7cfbe3033f4f5312eb3257b2f668fbfc2ae1e5a530889d18282ad027",
+      "deletion": {
+        "startOffset": 37,
+        "endOffset": 45,
+        "deletedByteCount": 8,
+        "deletedSourceSha256": "b9d4ef69a9306ccceff09f5b786e798f6d00ce3e2efa60a58c15ae545696efd7"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:MATCH",
+      "token": {
+        "type": "match",
+        "typeId": 49,
+        "source": "match",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 7
+      },
+      "baselineSha256": "7b1c96d716624076aadb0ba2036cb23ac1d42de895ced99ddb7e4b4067aca87d",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 36,
+        "deletedByteCount": 23,
+        "deletedSourceSha256": "41ef5c73f3de4f72e5a5c216619135cec86f57ddf46a8cbdacd9ca7d7f34385e"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:NOT",
+      "token": {
+        "type": "not",
+        "typeId": 12,
+        "source": "not",
+        "startLine": 2,
+        "startColumn": 9,
+        "endLine": 2,
+        "endColumn": 12
+      },
+      "baselineSha256": "2d14e15f478318a92ceff8aad8ca8a192eabba141219d747ed45f879c15baa68",
+      "mutantSha256": "31bbf5ccc22d27a173662bb7b86e86c2d7fbafb66f2da19154d1f53069a7eaab",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 24,
+        "deletedByteCount": 4,
+        "deletedSourceSha256": "fb8f29af1d93b7366b85b7f8ac392cddb2bcc5eb1b956b26c58ff09c31785c55"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:OR",
+      "token": {
+        "type": "or",
+        "typeId": 11,
+        "source": "or",
+        "startLine": 2,
+        "startColumn": 15,
+        "endLine": 2,
+        "endColumn": 17
+      },
+      "baselineSha256": "c394f649744ee2e1bdc6e010f7040d09b64dbc09983bfaf22b103df8a0d258c2",
+      "mutantSha256": "01c4c3069a0e786fee7f05ede159ca2505e7748ba70d01326368ddf17a7911a8",
+      "deletion": {
+        "startOffset": 20,
+        "endOffset": 29,
+        "deletedByteCount": 9,
+        "deletedSourceSha256": "89d2e0b03b954010c441d8ad82c3abb8a778bca7e1d7488403f4d2d397b97926"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PASS",
+      "token": {
+        "type": "pass",
+        "typeId": 47,
+        "source": "pass",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 6
+      },
+      "baselineSha256": "f23acb15e74186f1f49d444a65fafdfadffc4fd116cc0525ddca9f3db9c70925",
+      "mutantSha256": "1e41cfe0aaa4c832f4c155d4806e0cb79ed5e1de48c29a48afb66855ae932e15",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 19,
+        "deletedByteCount": 6,
+        "deletedSourceSha256": "dc6784cdbffe87c8819896e12b35ab4bafa55e83d0d78f641757c06bdc15dbfa"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:PRELOAD",
+      "token": {
+        "type": "preload",
+        "typeId": 64,
+        "source": "preload",
+        "startLine": 1,
+        "startColumn": 16,
+        "endLine": 1,
+        "endColumn": 23
+      },
+      "baselineSha256": "d841a406a13db3abfae4884d92847fa7e52cb47add2c23545f4effee090ee24f",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 50,
+        "deletedByteCount": 50,
+        "deletedSourceSha256": "e6c5a716c316cafc989fa4a6458c6d65384b62406b203e393d0849302af87583"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:RETURN",
+      "token": {
+        "type": "return",
+        "typeId": 48,
+        "source": "return",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 8
+      },
+      "baselineSha256": "a7c89fad57f68e2bb58d4dca53632e78d92f9eba2229d63390b6bedf8f172fcb",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 23,
+        "deletedByteCount": 10,
+        "deletedSourceSha256": "405779e9c49799ed25096b5bf199de9e390f450045584c8e4b9668582155bb03"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:SELF",
+      "token": {
+        "type": "self",
+        "typeId": 65,
+        "source": "self",
+        "startLine": 3,
+        "startColumn": 2,
+        "endLine": 3,
+        "endColumn": 6
+      },
+      "baselineSha256": "0d4417c972e4b7af88a14364cc3f380b9da73dc0e76b5bfbc0ba23526b11021f",
+      "mutantSha256": "74df1efce46d087f31c081916e6a69a58a848f5ed7486a380f1d5dbca7f35042",
+      "deletion": {
+        "startOffset": 26,
+        "endOffset": 43,
+        "deletedByteCount": 17,
+        "deletedSourceSha256": "a92e1be8ff5ced5a19dc6ec28637790d891849f54f83234867ca114a0ff4c0d5"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:SIGNAL",
+      "token": {
+        "type": "signal",
+        "typeId": 66,
+        "source": "signal",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 7
+      },
+      "baselineSha256": "6fb15f42d82f0971821f30df9f1e3b22aa1b00872f279fa8da2f07ba26656e08",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 17,
+        "deletedByteCount": 17,
+        "deletedSourceSha256": "936a69cc416379f81ff5ca4e6ada1b094a1888cceba925c389f7de52879012b2"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:STATIC",
+      "token": {
+        "type": "static",
+        "typeId": 67,
+        "source": "static",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 7
+      },
+      "baselineSha256": "004d88b2489347926083b549b038a3b424c38fcf787b44d924d6179769db5c78",
+      "mutantSha256": "dec6a2a3890f296c3bc4b2cfd31304ed54b3b1feecba91aca3649dd00fdeb283",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 7,
+        "deletedByteCount": 7,
+        "deletedSourceSha256": "15542aa52be38778a22d7d9f8ca05db952c9b8d62297aab058a34fa3a232d85c"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:SUPER",
+      "token": {
+        "type": "super",
+        "typeId": 68,
+        "source": "super",
+        "startLine": 3,
+        "startColumn": 2,
+        "endLine": 3,
+        "endColumn": 7
+      },
+      "baselineSha256": "4464228f637fb1c96168c24070b3c2e414b9a666f65f8f889cf0c3981f45efc1",
+      "mutantSha256": "5bff3808b121ce0cca91c63b4ca4f77cd27cbb616a238b88eb497c4f816dc03e",
+      "deletion": {
+        "startOffset": 43,
+        "endOffset": 66,
+        "deletedByteCount": 23,
+        "deletedSourceSha256": "36ed1056063d43b1fe4f44fbfe3e22f83d47989113c1ca7252ef5f847c704d98"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:TK_CONST",
+      "token": {
+        "type": "const",
+        "typeId": 57,
+        "source": "const",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 6
+      },
+      "baselineSha256": "14916861b514bdffa6cac88bf76f0adc177f3c266b74bccb89d3f435250ce44e",
+      "mutantSha256": "7d3c84f07dffb8ad46c886996c46ed5712c5e3a9c27f7cb9d11dcdcdd310c6af",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 16,
+        "deletedByteCount": 16,
+        "deletedSourceSha256": "b19d7566e2e9c70dac5e0f15d16e182f7962ff4b0816908972e84adb8aa8cab5"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:TK_IN",
+      "token": {
+        "type": "in",
+        "typeId": 61,
+        "source": "in",
+        "startLine": 2,
+        "startColumn": 12,
+        "endLine": 2,
+        "endColumn": 14
+      },
+      "baselineSha256": "1c93f4f6b25513ff9efb31f34cd8526a21839013b73a429ff8f1b92eb1c8ade9",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 38,
+        "deletedByteCount": 25,
+        "deletedSourceSha256": "f15ae677e446bf25847b04805226c12aba5f7517e5519db0c7ecb81a2f316255"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:TK_VOID",
+      "token": {
+        "type": "void",
+        "typeId": 71,
+        "source": "void",
+        "startLine": 1,
+        "startColumn": 15,
+        "endLine": 1,
+        "endColumn": 19
+      },
+      "baselineSha256": "618e784ec5ca1a60e6964a837ace1ccc6cc6d2b73790b368984ad6dc9105c069",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 10,
+        "endOffset": 18,
+        "deletedByteCount": 8,
+        "deletedSourceSha256": "998a2d2588cf2f6272edd8a307bd300a0315a24fd8d433e9af782e18968b8b8d"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:VAR",
+      "token": {
+        "type": "var",
+        "typeId": 70,
+        "source": "var",
+        "startLine": 1,
+        "startColumn": 1,
+        "endLine": 1,
+        "endColumn": 4
+      },
+      "baselineSha256": "c04943583a03b5bf19b4461dd01cea2db51799ed3b5cf0a1756af37cd024550e",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 0,
+        "endOffset": 14,
+        "deletedByteCount": 14,
+        "deletedSourceSha256": "e7e17d1dd23cf13fd3d89072abf5840ab668c17d958623d3597016e63070cc57"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:WHEN",
+      "token": {
+        "type": "when",
+        "typeId": 50,
+        "source": "when",
+        "startLine": 3,
+        "startColumn": 13,
+        "endLine": 3,
+        "endColumn": 17
+      },
+      "baselineSha256": "f41d24cece2d34fba865af95d23dfb2389794ba2216955ef9bc3777b1edf19e1",
+      "mutantSha256": "ba554c62500083fe6db1629a2baf448aa6c508c609374a51102f80ad793df018",
+      "deletion": {
+        "startOffset": 33,
+        "endOffset": 49,
+        "deletedByteCount": 16,
+        "deletedSourceSha256": "b221eab407439b6fbab8171cb892999820b6210216ea4bea2704f3310584d17f"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    },
+    {
+      "row": "token:WHILE",
+      "token": {
+        "type": "while",
+        "typeId": 44,
+        "source": "while",
+        "startLine": 2,
+        "startColumn": 2,
+        "endLine": 2,
+        "endColumn": 7
+      },
+      "baselineSha256": "fc323a798cd4b01b11622a1e8985cf58d6817d6adc02f2891cf5b7d8b96ed16d",
+      "mutantSha256": "ff25c479891cc9c4ada5a61937b2790ef9d3e461e9bd0058aa17c4d4c69adabe",
+      "deletion": {
+        "startOffset": 13,
+        "endOffset": 34,
+        "deletedByteCount": 21,
+        "deletedSourceSha256": "a21be0579d27e526f0a8579de531df8381fa704b75b932804a1359493a16fe44"
+      },
+      "baselineAccepted": true,
+      "mutantAccepted": true,
+      "mutantTokenAbsent": true,
+      "officialBaselineAccepted": true,
+      "officialMutantAccepted": true
+    }
+  ]
+}

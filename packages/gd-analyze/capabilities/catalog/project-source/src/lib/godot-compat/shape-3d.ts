@@ -1,0 +1,122 @@
+/**
+ * @godot-class Shape3D
+ * @role BINDING
+ *
+ * Godot 4.7's `Shape3D` resources (`scene/resources/3d/shape_3d.h`, revision
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) as Rapier collider shapes. A shape is a mutable record
+ * of its Godot properties, shared by reference as a Resource is. Each concrete shape module gives
+ * its records the Rapier description of their current properties (the shape data the physics
+ * server receives, `shape_set_data`), so a body builds a collider from any shape without naming
+ * its class. Rapier answers every geometric question about it.
+ */
+
+import type { ColliderDesc, Shape } from '@dimforge/rapier3d-compat';
+
+/** What a concrete shape module gives its records. */
+export interface ShapeGeometry<T> {
+  /** The Rapier collider description of the shape's current properties. */
+  readonly collider: (shape: T) => ColliderDesc | null;
+  /**
+   * For a shape that is a core swept by a radius (a sphere is its centre, a capsule its
+   * segment): that core as a Rapier shape, and the radius, so a contact query asks Rapier about
+   * the core, whose separation Rapier measures without its penetration solver.
+   */
+  readonly core?: (shape: T) => { readonly shape: Shape; readonly radius: number };
+  /** A concave shape's `backface_collision`. */
+  readonly backface?: (shape: T) => boolean;
+}
+
+/** Where a shape record keeps its geometry. */
+const GEOMETRY: unique symbol = Symbol('godot-compat Shape3D geometry');
+
+function geometryOf(shape: object): ShapeGeometry<object> {
+  const geometry = (shape as { [GEOMETRY]?: ShapeGeometry<object> })[GEOMETRY];
+  if (geometry === undefined) throw new TypeError('godot-compat: not a Shape3D.');
+  return geometry;
+}
+
+/**
+ * Gives a new shape record its geometry (`shape_create` and `shape_set_data` on the physics
+ * server, `scene/resources/3d/shape_3d.cpp`).
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:142
+ */
+export function godot_shape_3d_describe<T extends object>(shape: T, geometry: ShapeGeometry<T>): T {
+  Object.defineProperty(shape, GEOMETRY, { value: geometry, enumerable: false });
+  return shape;
+}
+
+/**
+ * The Rapier collider description of a shape's current properties, with a key that changes when
+ * they do.
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:142
+ */
+export function godot_shape_3d_collider(shape: object): { readonly desc: ColliderDesc | null; readonly key: string } {
+  return { desc: geometryOf(shape).collider(shape), key: godot_shape_3d_key(shape) };
+}
+
+const SHAPE_OBSERVERS: ((shape: object) => void)[] = [];
+
+/**
+ * A shape's properties changed: its owners bring their colliders up to it
+ * (`Shape3D::_update_shape`, `shape_3d.cpp:130`, reaching the owners' `_shape_changed`).
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:130
+ */
+export function godot_shape_3d_changed(shape: object): void {
+  for (const observer of SHAPE_OBSERVERS) observer(shape);
+}
+
+/**
+ * Registers a shape owner's view of `godot_shape_3d_changed`.
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:130
+ */
+export function godot_shape_3d_observe(observer: (shape: object) => void): void {
+  if (!SHAPE_OBSERVERS.includes(observer)) SHAPE_OBSERVERS.push(observer);
+}
+
+/** Each shape's last key, with the property values it was made from. */
+const KEYS = new WeakMap<object, { readonly values: readonly unknown[]; readonly key: string }>();
+
+/**
+ * The shape's settings as a key (its collider is rebuilt when the key changes): kept while every
+ * property still holds the same value (a face or point array is replaced whole by its setter), so
+ * a large shape is not serialized again each time the space is brought up to date.
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:142
+ */
+export function godot_shape_3d_key(shape: object): string {
+  const values = Object.values(shape);
+  const known = KEYS.get(shape);
+  if (known !== undefined && known.values.length === values.length && known.values.every((value, index) => value === values[index])) return known.key;
+  const key = JSON.stringify(shape);
+  KEYS.set(shape, { values, key });
+  return key;
+}
+
+/**
+ * The shape's core and radius, when it is a core swept by a radius.
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:142
+ */
+export function godot_shape_3d_core(shape: object): { readonly shape: Shape; readonly radius: number } | undefined {
+  return geometryOf(shape).core?.(shape);
+}
+
+/**
+ * Whether a concave shape collides with the backs of its faces (false for any other shape).
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/concave_polygon_shape_3d.cpp:110
+ */
+export function godot_shape_3d_backface(shape: object): boolean {
+  return geometryOf(shape).backface?.(shape) ?? false;
+}

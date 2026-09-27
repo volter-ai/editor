@@ -1,0 +1,273 @@
+import type { MeshPhysicalMaterial, MeshStandardMaterial, Texture } from 'three';
+import * as B from '../../capabilities/catalog/project-source/src/lib/godot-compat/base-material-3d';
+import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/color';
+import * as P from '../../capabilities/catalog/project-source/src/lib/godot-compat/placeholder-texture-2d';
+import * as S from '../../capabilities/catalog/project-source/src/lib/godot-compat/standard-material-3d';
+import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
+import { gd } from './literals';
+import { resourceCases } from './resource-cases';
+
+/**
+ * BaseMaterial3D on a StandardMaterial3D: each parameter set and read back in official Godot, and
+ * (`render-mapping`) the three material the Compatibility scene shader's reading of it selects,
+ * cited to the shader: unshaded draws as `MeshBasicMaterial`, albedo and energy-scaled emission
+ * pass through the shader's sRGB polynomial (`drivers/gles3/shaders/tonemap_inc.glsl:22`).
+ */
+
+const c = resourceCases('BaseMaterial3D');
+const gc = (r: number, g: number, b: number, a = 1): string => `Color(${gd(r)}, ${gd(g)}, ${gd(b)}, ${gd(a)})`;
+
+for (const [name, [r, g, b, a]] of [
+  ['default-ish', [1, 1, 1, 1]],
+  ['gold', [1.5, 1.26, 0, 1]],
+  ['translucent', [0.7, 0.7, 0.7, 0.25098]],
+] as const) {
+  c.add(`set_albedo-${name}`, 'set_albedo', ['var m := StandardMaterial3D.new()', `m.set_albedo(${gc(r, g, b, a)})`, 'return m.get_albedo()'], () => {
+    const m = S.construct();
+    B.set_albedo(m, C.construct(r, g, b, a));
+    return B.get_albedo(m);
+  });
+}
+c.add('get_albedo-default', 'get_albedo', ['return StandardMaterial3D.new().get_albedo()'], () => B.get_albedo(S.construct()));
+for (const [member, getter, values] of [
+  ['set_metallic', 'get_metallic', [0.1, 1]],
+  ['set_roughness', 'get_roughness', [0, 0.2]],
+  ['set_emission_energy_multiplier', 'get_emission_energy_multiplier', [3.71, 0.5]],
+] as const) {
+  for (const value of values) {
+    c.add(`${member}-${gd(value)}`, member, ['var m := StandardMaterial3D.new()', `m.${member}(${gd(value)})`, `return m.${getter}()`], () => {
+      const m = S.construct();
+      B[member](m, value);
+      return B[getter](m);
+    });
+  }
+  c.add(`${getter}-default`, getter, [`return StandardMaterial3D.new().${getter}()`], () => B[getter](S.construct()));
+}
+c.add('set_emission', 'set_emission', ['var m := StandardMaterial3D.new()', `m.set_emission(${gc(1, 0.884824, 0.513098)})`, 'return m.get_emission()'], () => {
+  const m = S.construct();
+  B.set_emission(m, C.construct(1, 0.884824, 0.513098, 1));
+  return B.get_emission(m);
+});
+c.add('get_emission-default', 'get_emission', ['return StandardMaterial3D.new().get_emission()'], () => B.get_emission(S.construct()));
+for (const [feature, enabled] of [
+  [0, true],
+  [4, true],
+  [12, true],
+  [99, true],
+] as const) {
+  c.add(`set_feature-${String(feature)}`, 'set_feature', ['var m := StandardMaterial3D.new()', `m.set_feature(${String(feature)}, ${String(enabled)})`, `return m.get_feature(${String(feature)})`], () => {
+    const m = S.construct();
+    B.set_feature(m, feature, enabled);
+    return B.get_feature(m, feature);
+  });
+}
+c.add('get_feature-default', 'get_feature', ['return StandardMaterial3D.new().get_feature(0)'], () => B.get_feature(S.construct(), 0));
+for (const [member, getter, value] of [
+  ['set_transparency', 'get_transparency', 1],
+  ['set_blend_mode', 'get_blend_mode', 1],
+  ['set_shading_mode', 'get_shading_mode', 0],
+] as const) {
+  c.add(member, member, ['var m := StandardMaterial3D.new()', `m.${member}(${String(value)})`, `return m.${getter}()`], () => {
+    const m = S.construct();
+    B[member](m, value);
+    return B[getter](m);
+  });
+  c.add(`${getter}-default`, getter, [`return StandardMaterial3D.new().${getter}()`], () => B[getter](S.construct()));
+}
+
+// The three material each parameter draws as. The fact is the Compatibility shader's reading,
+// computed here from the cited polynomial; the target reads the three material compat built.
+const f32 = Math.fround;
+const godotLinear = (v: number): number => f32(v * f32(f32(v * f32(f32(v * 0.305306011) + 0.682171111)) + 0.012522878));
+const SHADER = { file: 'drivers/gles3/shaders/scene.glsl', symbol: 'albedo = srgb_to_linear(albedo); emission = srgb_to_linear(emission)', line: 2398 };
+const mapping = (id: string, member: string, fact: unknown, target: () => unknown): GodotEvidenceCase => ({
+  id: `three-${id}`,
+  symbol: { kind: 'native-member', owner: 'BaseMaterial3D', member },
+  gdscript: '',
+  target,
+  comparator: 'render-mapping',
+  fact: { value: fact, source: SHADER },
+});
+const shaded = (m: B.BaseMaterial3D) => B.godot_base_material_3d_three(m) as MeshStandardMaterial;
+c.cases.push(
+  mapping('albedo-linear', 'set_albedo', [godotLinear(1.5), godotLinear(1.26), 0, 1, false].join(','), () => {
+    const m = S.construct();
+    B.set_albedo(m, C.construct(1.5, 1.26, 0, 1));
+    const t = shaded(m);
+    return [t.color.r, t.color.g, t.color.b, t.opacity, t.transparent].join(',');
+  }),
+  mapping('albedo-alpha-transparent', 'set_transparency', [f32(0.25098), true].join(','), () => {
+    const m = S.construct();
+    B.set_albedo(m, C.construct(1, 0.858824, 0.572549, 0.25098));
+    B.set_transparency(m, 1);
+    const t = shaded(m);
+    return [t.opacity, t.transparent].join(',');
+  }),
+  mapping('emission-energy', 'set_emission_energy_multiplier', [godotLinear(f32(1 * f32(3.71))), godotLinear(f32(f32(0.884824) * f32(3.71))), godotLinear(f32(f32(0.513098) * f32(3.71))), 1].join(','), () => {
+    const m = S.construct();
+    B.set_feature(m, 0, true);
+    B.set_emission(m, C.construct(1, 0.884824, 0.513098, 1));
+    B.set_emission_energy_multiplier(m, 3.71);
+    const t = shaded(m);
+    return [t.emissive.r, t.emissive.g, t.emissive.b, t.emissiveIntensity].join(',');
+  }),
+  mapping('emission-disabled', 'set_feature', [0, 0, 0].join(','), () => {
+    const m = S.construct();
+    B.set_emission(m, C.construct(1, 1, 1, 1));
+    const t = shaded(m);
+    return [t.emissive.r, t.emissive.g, t.emissive.b].join(',');
+  }),
+  mapping('metallic-roughness', 'set_metallic', [f32(0.1), 0].join(','), () => {
+    const m = S.construct();
+    B.set_metallic(m, 0.1);
+    B.set_roughness(m, 0);
+    const t = shaded(m);
+    return [t.metalness, t.roughness].join(',');
+  }),
+  mapping('unshaded-basic', 'set_shading_mode', 'MeshBasicMaterial', () => {
+    const m = S.construct();
+    B.set_shading_mode(m, 0);
+    return B.godot_base_material_3d_three(m).type;
+  }),
+  // three's AdditiveBlending (2): Godot's BLEND_MODE_ADD, `blend_mode_add` in the scene shader.
+  mapping('blend-add', 'set_blend_mode', 2, () => {
+    const m = S.construct();
+    B.set_blend_mode(m, 1);
+    return B.godot_base_material_3d_three(m).blending;
+  }),
+);
+
+// Flags, texture slots and the texture filter, read back.
+for (const [flag, enabled] of [[16, false], [16, true], [1, true], [99, true]] as const) {
+  c.add(`set_flag-${String(flag)}-${String(enabled)}`, 'set_flag', ['var m := StandardMaterial3D.new()', `m.set_flag(${String(flag)}, ${String(enabled)})`, `return m.get_flag(${String(flag)})`], () => {
+    const m = S.construct();
+    B.set_flag(m, flag, enabled);
+    return B.get_flag(m, flag);
+  });
+}
+for (const flag of [16, 0, 24]) {
+  c.add(`get_flag-default-${String(flag)}`, 'get_flag', [`return StandardMaterial3D.new().get_flag(${String(flag)})`], () => B.get_flag(S.construct(), flag));
+}
+for (const filter of [0, 1, 2, 5]) {
+  c.add(`set_texture_filter-${String(filter)}`, 'set_texture_filter', ['var m := StandardMaterial3D.new()', `m.set_texture_filter(${String(filter)})`, 'return m.get_texture_filter()'], () => {
+    const m = S.construct();
+    B.set_texture_filter(m, filter);
+    return B.get_texture_filter(m);
+  });
+}
+c.add('get_texture_filter-default', 'get_texture_filter', ['return StandardMaterial3D.new().get_texture_filter()'], () => B.get_texture_filter(S.construct()));
+for (const param of [0, 2, 18, 19]) {
+  c.add(`set_texture-${String(param)}`, 'set_texture', ['var m := StandardMaterial3D.new()', 'var t := PlaceholderTexture2D.new()', `m.set_texture(${String(param)}, t)`, `return [m.get_texture(${String(param)}) == t, m.get_texture(0) == t]`], () => {
+    const m = S.construct();
+    const t = P.godot_placeholder_texture_2d_new();
+    B.set_texture(m, param, t);
+    return [B.get_texture(m, param) === t, B.get_texture(m, 0) === t];
+  });
+}
+c.add('get_texture-default', 'get_texture', ['return StandardMaterial3D.new().get_texture(0) == null'], () => B.get_texture(S.construct(), 0) === null);
+
+// The albedo texture's sampler (`gl_set_filter`/`gl_set_repeat`, texture_storage.h:255): three's
+// GL constants for each filter and repeat flag, over an image with mipmaps and one without.
+const SAMPLER = { file: 'drivers/gles3/storage/texture_storage.h', symbol: 'Texture::gl_set_filter / gl_set_repeat', line: 255 };
+const GL = { NEAREST: 9728, LINEAR: 9729, NEAREST_MIPMAP_LINEAR: 9986, LINEAR_MIPMAP_LINEAR: 9987, REPEAT: 10497, CLAMP_TO_EDGE: 33071 };
+const threeGl: Readonly<Record<number, number>> = { 1003: GL.NEAREST, 1006: GL.LINEAR, 1005: GL.NEAREST_MIPMAP_LINEAR, 1008: GL.LINEAR_MIPMAP_LINEAR, 1000: GL.REPEAT, 1001: GL.CLAMP_TO_EDGE };
+for (const mipmapped of [true, false]) {
+  for (const [filter, min, mag] of [
+    [0, GL.NEAREST, GL.NEAREST],
+    [1, GL.LINEAR, GL.LINEAR],
+    [2, mipmapped ? GL.NEAREST_MIPMAP_LINEAR : GL.NEAREST, GL.NEAREST],
+    [3, mipmapped ? GL.LINEAR_MIPMAP_LINEAR : GL.LINEAR, GL.LINEAR],
+  ] as const) {
+    for (const repeat of [true, false]) {
+      c.cases.push({
+        id: `three-sampler-${String(filter)}-${String(repeat)}-${mipmapped ? 'mipmaps' : 'single'}`,
+        symbol: { kind: 'native-member', owner: 'BaseMaterial3D', member: 'set_texture_filter' },
+        gdscript: '',
+        target: () => {
+          const m = S.construct();
+          const t = P.godot_placeholder_texture_2d_new();
+          if (mipmapped) t.mipmaps = [{}, {}] as never;
+          B.set_texture(m, 0, t);
+          B.set_texture_filter(m, filter);
+          B.set_flag(m, 16, repeat);
+          const map = shaded(m).map as Texture;
+          return [threeGl[map.minFilter], threeGl[map.magFilter], threeGl[map.wrapS], threeGl[map.wrapT], map.colorSpace].join(',');
+        },
+        comparator: 'render-mapping',
+        fact: { value: [min, mag, repeat ? GL.REPEAT : GL.CLAMP_TO_EDGE, repeat ? GL.REPEAT : GL.CLAMP_TO_EDGE, 'srgb'].join(','), source: SAMPLER },
+      });
+    }
+  }
+}
+
+// Culling, billboards, particle animation and proximity fade: each set and read back (the enemy's and
+// coin's particle materials), with Godot's defaults.
+for (const [member, getter, values] of [
+  ['set_cull_mode', 'get_cull_mode', [2, 1]],
+  ['set_billboard_mode', 'get_billboard_mode', [3, 1]],
+  ['set_particles_anim_h_frames', 'get_particles_anim_h_frames', [1, 4]],
+  ['set_particles_anim_v_frames', 'get_particles_anim_v_frames', [1, 3]],
+] as const) {
+  for (const value of values) {
+    c.add(`${member}-${String(value)}`, member, ['var m := StandardMaterial3D.new()', `m.${member}(${String(value)})`, `return m.${getter}()`], () => {
+      const m = S.construct();
+      B[member](m, value);
+      return B[getter](m);
+    });
+  }
+  c.add(`${getter}-default`, getter, [`return StandardMaterial3D.new().${getter}()`], () => B[getter](S.construct()));
+}
+for (const [member, getter] of [
+  ['set_particles_anim_loop', 'get_particles_anim_loop'],
+  ['set_proximity_fade_enabled', 'is_proximity_fade_enabled'],
+] as const) {
+  c.add(member, member, ['var m := StandardMaterial3D.new()', `m.${member}(true)`, `return m.${getter}()`], () => {
+    const m = S.construct();
+    B[member](m, true);
+    return B[getter](m);
+  });
+  c.add(`${getter}-default`, getter, [`return StandardMaterial3D.new().${getter}()`], () => B[getter](S.construct()));
+}
+for (const value of [0.5, 0.001]) {
+  c.add(`set_proximity_fade_distance-${gd(value)}`, 'set_proximity_fade_distance', ['var m := StandardMaterial3D.new()', `m.set_proximity_fade_distance(${gd(value)})`, 'return m.get_proximity_fade_distance()'], () => {
+    const m = S.construct();
+    B.set_proximity_fade_distance(m, value);
+    return B.get_proximity_fade_distance(m);
+  });
+}
+c.add('get_proximity_fade_distance-default', 'get_proximity_fade_distance', ['return StandardMaterial3D.new().get_proximity_fade_distance()'], () => B.get_proximity_fade_distance(S.construct()));
+
+// Anisotropy: the coin's ratio and a negative one set and read back, and (`render-mapping`) the
+// physical material each draws as, cited to the scene shader's anisotropy (`material.cpp:1894`: the
+// default flowmap's direction is the tangent at full strength).
+for (const value of [1, -0.35]) {
+  c.add(`set_anisotropy-${gd(value)}`, 'set_anisotropy', ['var m := StandardMaterial3D.new()', `m.set_anisotropy(${gd(value)})`, 'return m.get_anisotropy()'], () => {
+    const m = S.construct();
+    B.set_anisotropy(m, value);
+    return B.get_anisotropy(m);
+  });
+}
+c.add('get_anisotropy-default', 'get_anisotropy', ['return StandardMaterial3D.new().get_anisotropy()'], () => B.get_anisotropy(S.construct()));
+const ANISOTROPY = { file: 'scene/resources/material.cpp', symbol: 'ANISOTROPY = anisotropy_ratio * anisotropy_tex.b; ANISOTROPY_FLOW = anisotropy_tex.rg * 2.0 - 1.0', line: 1903 };
+for (const [id, ratio, fact] of [
+  ['coin', 1, ['MeshPhysicalMaterial', 1, 0]],
+  ['across', -0.35, ['MeshPhysicalMaterial', f32(0.35), Math.PI / 2]],
+] as const) {
+  c.cases.push({
+    id: `three-anisotropy-${id}`,
+    symbol: { kind: 'native-member', owner: 'BaseMaterial3D', member: 'set_anisotropy' },
+    gdscript: '',
+    target: () => {
+      const m = S.construct();
+      B.set_feature(m, 4, true);
+      B.set_anisotropy(m, ratio);
+      const t = B.godot_base_material_3d_three(m) as MeshPhysicalMaterial;
+      return [t.type, t.anisotropy, t.anisotropyRotation].join(',');
+    },
+    comparator: 'render-mapping',
+    fact: { value: fact.join(','), source: ANISOTROPY },
+  });
+}
+
+const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'BaseMaterial3D', compatModule: 'lib/godot-compat/base-material-3d', cases: c.cases };
+export default EVIDENCE;

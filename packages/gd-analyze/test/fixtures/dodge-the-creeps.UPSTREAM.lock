@@ -1,0 +1,73 @@
+{
+  "id": "dodge-the-creeps",
+  "upstreams": [
+    {
+      "repo": "https://github.com/godotengine/godot-demo-projects",
+      "commit": "fe1ccaea7725053f760d7a30b8a44619686224e8",
+      "branch": "3.x",
+      "upstream_path": "2d/dodge_the_creeps",
+      "license": "MIT",
+      "license_file": "LICENSE",
+      "retrieved": "2026-08-03",
+      "vendored_into": ".",
+      "vendored_paths": [
+        "."
+      ],
+      "note": "Dodge the Creeps — the finished game from Godot's own 'Your first 2D game' tutorial, and the Godot lane's PILOT: an EXTERNAL canonical game small enough to run the whole pipe on (4 scripts / 4 scenes / 25 nodes) while still exercising the canonical 2D surface — Area2D signals, Timers, input actions, PackedScene instancing, AnimatedSprite, CanvasLayer HUD, PathFollow2D spawning, audio, RigidBody2D, yield-on-signal. External by owner decision: a pilot we author can quietly contain only what our translator already handles. Same Godot 3 dialect as ROTA (config_version=4), so the one pinned api.json serves both. This is an ANALYSIS FIXTURE, not a runnable ingest — nothing serves it, the import ladder measures it — which is why it lives here rather than in vendor/games/. LICENSE VERIFICATION, both files read at the pinned commit: the repository root carries LICENSE.md, verbatim MIT (Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur; Copyright (c) 2014-2022 Godot Engine contributors), and the demo directory carries its own LICENSE, verbatim MIT (Copyright (c) 2017 KidsCanCode). No additional terms in either. The demo's README.md states the third-party asset terms and is vendored with the tree, which is what carries the attribution those terms require: art/'House In a Forest Loop.ogg' is CC-BY 3.0 (HorrorPen, opengameart.org), the images are CC0 1.0 (kenney.nl, 'Abstract Platformer'), and fonts/Xolonium-Regular.ttf is SIL OFL 1.1 (Severin Meyer) with its own fonts/LICENSE.txt and fonts/FONTLOG.txt vendored beside it.",
+      "excluded_from_upstream": {
+        "rule": "NOTHING is excluded. Every file upstream tracks under 2d/dodge_the_creeps at the pinned commit is vendored, byte-for-byte: 43 of 43, and the two sets are identical rather than merely equal in size.",
+        "why": "MEASURED FIRST, as the rota lock's whitelist was: the whole game is 2,158,715 bytes, of which 1,854,193 (86%) is two audio files. ROTA needed an extension whitelist because its upstream tree is 67.5 MB; that reason does not exist at 2.06 MB, and a partial vendoring would buy nothing while leaving the S4 rung (a committed port that BOOTS and behaves) without the art it will render. Two file classes were decided rather than defaulted. (1) Godot's `.import` sidecars are editor artifacts the S0 reader never opens — kept anyway, because they are part of what upstream tracks and excluding them would make the vendored set a judgement call instead of a fact ('everything' needs no rule). (2) The demo's own `.gitignore` (`.import`, `logs/`) is a nested ignore file that takes effect inside THIS repo — checked, and it matches no vendored path (the sidecars are named `<file>.png.import`, not `.import`), so it is carried unaltered like everything else. Note that vendoring the art changes no diagnostic: `ext-resource-opaque` is a statement about the FORMAT this reader opens, reported identically whether or not the bytes are present.",
+        "file_count": 0,
+        "bytes": 0,
+        "paths": []
+      }
+    }
+  ],
+  "vendored_file_count": 43,
+  "vendored_bytes": 2158715,
+  "sha256_manifest": {
+    ".gitignore": "b3e95a48ca3f4e98ea98039246ad051a2c157aaecc1a99f6607766e493afe5d3",
+    "HUD.gd": "69aa265609f7ef404794d0716f54b32ff01b8b633e57436c2a41168a4282d938",
+    "HUD.tscn": "c01d7cf1048cc6a676b847a79408666a41f61ad8e10c6d0dd22b3d7b8140d8ed",
+    "LICENSE": "fa7c29376d85c548b5ba7abfbb664faf55d407ddda7b4766c33022cfc9f385b0",
+    "Main.gd": "403dcad3ff262d38dda09a30f0ed6006c830286a79c8b131e07cdc038f2bbecd",
+    "Main.tscn": "b5592852012125c1d862fced3bbe66f347200e34af55fb6bd67bdc06eed8287b",
+    "Mob.gd": "9d4291c4f084f80e835e9c22b70f9c495301c6a690dac39c23a777428a6ee850",
+    "Mob.tscn": "49dc4c0e5d9691716d1104325e8ce9e7643df326ed6c795a4c39f979928f3ef1",
+    "Player.gd": "8b4047527fc8d7361abcd05d3ea4ad5f5e04595849a73f16b228da29825743ce",
+    "Player.tscn": "ea183299188681ee9fa78a5110b2199f5640bc773b1ce25386c27703bf0e59d0",
+    "README.md": "31fc754cf5115dabf3744b3360f181b791074fef3f5d82bcf48924e21ce8a6e0",
+    "art/House In a Forest Loop.ogg": "32680f2b2631eb9f6e2902ebbbec1b43ab82b4dbf154fdc9bfbfa17b03270504",
+    "art/House In a Forest Loop.ogg.import": "06c1595a211964aa84df95bdcc746dd5398f2a7ed7d3b2266fa9d3d766f3d3e3",
+    "art/enemyFlyingAlt_1.png": "62da7d43b4a75a5ecc16e8d4e6c8e7c0d64492d06bfc1aac1b56529ca6215c2b",
+    "art/enemyFlyingAlt_1.png.import": "c94ff34d08f65a693f6d15c66d125078ba6db8c661b0a3d1819d0ca5084800fd",
+    "art/enemyFlyingAlt_2.png": "bb754c99971c8f8c52002483ce9e5353a7c04807c4591cf6c70df01136af920a",
+    "art/enemyFlyingAlt_2.png.import": "2b2b7a560e9e076e6f66d7a5946e119778eca66a35cc93214e643f497f445b9c",
+    "art/enemySwimming_1.png": "93edec676cc46dbe13dfffded00f93c8129e36ffc17d33f4f4e44bab9f0c7e30",
+    "art/enemySwimming_1.png.import": "80ba3db7f11ec6ac5d2935a1d66af7332e61d2385ef14e0ff773f805f8598107",
+    "art/enemySwimming_2.png": "fb84a191fa45e53432422cd1922a01561f167994c29675ca5c2c4243ee1c1c87",
+    "art/enemySwimming_2.png.import": "7b7cd9e34463827ca3db0841037b528c41276cc0bdcdb85da7074ca2c4459438",
+    "art/enemyWalking_1.png": "6c8784f1db2707de4cbf536c55cc39ea3d8e55996d7d3f0f84e7e973ec64d11e",
+    "art/enemyWalking_1.png.import": "1138582c4b0372c598a4ce0f4b989667e6bba23c45110749a5aa562119af987f",
+    "art/enemyWalking_2.png": "0f8f7f31763abba06c643e85ade713d40da1fb90754897b7870d9bf7bf098e79",
+    "art/enemyWalking_2.png.import": "d923693fb411f2b936e8291cb24b2bd0db3950e9a04558c6a3d4524967b24487",
+    "art/gameover.wav": "18693d1d1059a634f63bf40236e579bea04694fe8bcad10e595ceaa79ffc7abc",
+    "art/gameover.wav.import": "8230078066032a1719d5a7dcd431459d031f4dce638bdd2cf11d3de6fbc78fda",
+    "art/playerGrey_up1.png": "a5caedb9a7533e2213ffe8f05e9a803bd16d504ae0ea82459cd74bd01eea115f",
+    "art/playerGrey_up1.png.import": "397b74962f762674e8cf0c8fcdbdf5724ed02dff64fa38cce42af2f73517cc23",
+    "art/playerGrey_up2.png": "73778e8738af16a2ff8ef71e9c2e270eafdcd192c9e9e99db87a2865c1aad6fc",
+    "art/playerGrey_up2.png.import": "9bc8b65186ce2e437f7e3757a6ba1c3ac761ea2b35502480db5a02e819b73730",
+    "art/playerGrey_walk1.png": "57d14c3d2faf19a53e1e65b1922f5a71d9feae1acb99def6bc1f82a1bfcf2f54",
+    "art/playerGrey_walk1.png.import": "8e2b9cadf365f072c4a137e9c9e0ee1f7c31db520dfc093888e22b1fc1d2eab4",
+    "art/playerGrey_walk2.png": "245f2ae01ca6a0704874f1c9274ff4e2b6696c29f3f89b7b79030b1d94128d3d",
+    "art/playerGrey_walk2.png.import": "9588e1f4bdb2dbec848f71b74a7a83cb6dd672c571ebbf7d7cb623e2ff24745d",
+    "fonts/FONTLOG.txt": "025f35aaa57011831a2c1f26003a4bbc2e35130d5438f88f704cb4b6e961b4c1",
+    "fonts/LICENSE.txt": "0e18b49e25c5697ca3c7e216ed39d0684a0d3a58a10435f699965e872105ab43",
+    "fonts/Xolonium-Regular.ttf": "d6453340972bfa0d42a660765021a915703e4536adc37888fe8eba3981e0ad3d",
+    "icon.png": "c900115c670bbcbd360459bdcb92002c67871f9dc037c2e7e4bb27fe5d376f41",
+    "icon.png.import": "283616abf50595d9a6015e25f558986730ea17fc230ab4fba1efe6890c459a6e",
+    "project.godot": "0ff2d43cb432eb10efa346cd52b93df47e028ee48cdbb69fce7d51845505cb28",
+    "screenshots/.gdignore": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "screenshots/dodge.png": "6536992df122ce3eb3165289bdcfc8c918ec1eabef25bbe353e2d1634895472d"
+  }
+}

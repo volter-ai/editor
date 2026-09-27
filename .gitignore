@@ -9,3 +9,6 @@ dist-node/
 dist-server/
 dist-config/
 .vgai/
+
+# TypeScript incremental build caches
+.tsbuildinfo/

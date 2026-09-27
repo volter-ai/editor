@@ -1,0 +1,1205 @@
+{
+  "protocol": "vgai.godot-frontend-surface",
+  "protocolVersion": 1,
+  "engineMajor": 3,
+  "engineVersion": "3.6.2-stable",
+  "sourceRevision": "3cd3caab6779a7f3ec3bbeb9f200db50c735cfc8",
+  "sources": [
+    {
+      "file": "modules/gdscript/gdscript_tokenizer.h",
+      "sha256": "9f03abd8905d2f8030208328162d190bbc21246877e47487daa9b6201d5c2c1d"
+    },
+    {
+      "file": "modules/gdscript/gdscript_parser.h",
+      "sha256": "8fd3ad67b117b172afc0486c46a9478db56265f1d3d1f5e674d515646dfa6ff8"
+    },
+    {
+      "file": "modules/gdscript/gdscript_compiler.h",
+      "sha256": "9d5b243642f5c60a4df40af777a33fb68124ac342a7dbf7ad9d142fb8a985862"
+    }
+  ],
+  "rows": [
+    {
+      "id": "ast:TYPE_ARRAY",
+      "family": "ast",
+      "name": "TYPE_ARRAY",
+      "source": "modules/gdscript/gdscript_parser.h:118"
+    },
+    {
+      "id": "ast:TYPE_ASSERT",
+      "family": "ast",
+      "name": "TYPE_ASSERT",
+      "source": "modules/gdscript/gdscript_parser.h:125"
+    },
+    {
+      "id": "ast:TYPE_BLOCK",
+      "family": "ast",
+      "name": "TYPE_BLOCK",
+      "source": "modules/gdscript/gdscript_parser.h:114"
+    },
+    {
+      "id": "ast:TYPE_BREAKPOINT",
+      "family": "ast",
+      "name": "TYPE_BREAKPOINT",
+      "source": "modules/gdscript/gdscript_parser.h:126"
+    },
+    {
+      "id": "ast:TYPE_BUILT_IN_FUNCTION",
+      "family": "ast",
+      "name": "TYPE_BUILT_IN_FUNCTION",
+      "source": "modules/gdscript/gdscript_parser.h:113"
+    },
+    {
+      "id": "ast:TYPE_CAST",
+      "family": "ast",
+      "name": "TYPE_CAST",
+      "source": "modules/gdscript/gdscript_parser.h:124"
+    },
+    {
+      "id": "ast:TYPE_CLASS",
+      "family": "ast",
+      "name": "TYPE_CLASS",
+      "source": "modules/gdscript/gdscript_parser.h:111"
+    },
+    {
+      "id": "ast:TYPE_CONSTANT",
+      "family": "ast",
+      "name": "TYPE_CONSTANT",
+      "source": "modules/gdscript/gdscript_parser.h:117"
+    },
+    {
+      "id": "ast:TYPE_CONTROL_FLOW",
+      "family": "ast",
+      "name": "TYPE_CONTROL_FLOW",
+      "source": "modules/gdscript/gdscript_parser.h:122"
+    },
+    {
+      "id": "ast:TYPE_DICTIONARY",
+      "family": "ast",
+      "name": "TYPE_DICTIONARY",
+      "source": "modules/gdscript/gdscript_parser.h:119"
+    },
+    {
+      "id": "ast:TYPE_FUNCTION",
+      "family": "ast",
+      "name": "TYPE_FUNCTION",
+      "source": "modules/gdscript/gdscript_parser.h:112"
+    },
+    {
+      "id": "ast:TYPE_IDENTIFIER",
+      "family": "ast",
+      "name": "TYPE_IDENTIFIER",
+      "source": "modules/gdscript/gdscript_parser.h:115"
+    },
+    {
+      "id": "ast:TYPE_LOCAL_VAR",
+      "family": "ast",
+      "name": "TYPE_LOCAL_VAR",
+      "source": "modules/gdscript/gdscript_parser.h:123"
+    },
+    {
+      "id": "ast:TYPE_NEWLINE",
+      "family": "ast",
+      "name": "TYPE_NEWLINE",
+      "source": "modules/gdscript/gdscript_parser.h:127"
+    },
+    {
+      "id": "ast:TYPE_OPERATOR",
+      "family": "ast",
+      "name": "TYPE_OPERATOR",
+      "source": "modules/gdscript/gdscript_parser.h:121"
+    },
+    {
+      "id": "ast:TYPE_SELF",
+      "family": "ast",
+      "name": "TYPE_SELF",
+      "source": "modules/gdscript/gdscript_parser.h:120"
+    },
+    {
+      "id": "ast:TYPE_TYPE",
+      "family": "ast",
+      "name": "TYPE_TYPE",
+      "source": "modules/gdscript/gdscript_parser.h:116"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_assign_right_expression",
+      "family": "official-rule",
+      "name": "_parse_assign_right_expression",
+      "source": "modules/gdscript/gdscript_compiler.h:148"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_block",
+      "family": "official-rule",
+      "name": "_parse_block",
+      "source": "modules/gdscript/gdscript_compiler.h:150"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_class_blocks",
+      "family": "official-rule",
+      "name": "_parse_class_blocks",
+      "source": "modules/gdscript/gdscript_compiler.h:153"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_class_level",
+      "family": "official-rule",
+      "name": "_parse_class_level",
+      "source": "modules/gdscript/gdscript_compiler.h:152"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_expression",
+      "family": "official-rule",
+      "name": "_parse_expression",
+      "source": "modules/gdscript/gdscript_compiler.h:149"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:_parse_function",
+      "family": "official-rule",
+      "name": "_parse_function",
+      "source": "modules/gdscript/gdscript_compiler.h:151"
+    },
+    {
+      "id": "official-rule:gdscript_compiler.h:compile",
+      "family": "official-rule",
+      "name": "compile",
+      "source": "modules/gdscript/gdscript_compiler.h:161"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_check_block_types",
+      "family": "official-rule",
+      "name": "_check_block_types",
+      "source": "modules/gdscript/gdscript_parser.h:639"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_check_class_blocks_types",
+      "family": "official-rule",
+      "name": "_check_class_blocks_types",
+      "source": "modules/gdscript/gdscript_parser.h:637"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_check_class_level_types",
+      "family": "official-rule",
+      "name": "_check_class_level_types",
+      "source": "modules/gdscript/gdscript_parser.h:636"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_check_function_types",
+      "family": "official-rule",
+      "name": "_check_function_types",
+      "source": "modules/gdscript/gdscript_parser.h:638"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse",
+      "family": "official-rule",
+      "name": "_parse",
+      "source": "modules/gdscript/gdscript_parser.h:655"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_and_reduce_expression",
+      "family": "official-rule",
+      "name": "_parse_and_reduce_expression",
+      "source": "modules/gdscript/gdscript_parser.h:605"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_arguments",
+      "family": "official-rule",
+      "name": "_parse_arguments",
+      "source": "modules/gdscript/gdscript_parser.h:600"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_block",
+      "family": "official-rule",
+      "name": "_parse_block",
+      "source": "modules/gdscript/gdscript_parser.h:614"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_class",
+      "family": "official-rule",
+      "name": "_parse_class",
+      "source": "modules/gdscript/gdscript_parser.h:616"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_expression",
+      "family": "official-rule",
+      "name": "_parse_expression",
+      "source": "modules/gdscript/gdscript_parser.h:603"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_extends",
+      "family": "official-rule",
+      "name": "_parse_extends",
+      "source": "modules/gdscript/gdscript_parser.h:615"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_newline",
+      "family": "official-rule",
+      "name": "_parse_newline",
+      "source": "modules/gdscript/gdscript_parser.h:602"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_pattern",
+      "family": "official-rule",
+      "name": "_parse_pattern",
+      "source": "modules/gdscript/gdscript_parser.h:609"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_pattern_block",
+      "family": "official-rule",
+      "name": "_parse_pattern_block",
+      "source": "modules/gdscript/gdscript_parser.h:610"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_parse_type",
+      "family": "official-rule",
+      "name": "_parse_type",
+      "source": "modules/gdscript/gdscript_parser.h:621"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_reduce_export_var_type",
+      "family": "official-rule",
+      "name": "_reduce_export_var_type",
+      "source": "modules/gdscript/gdscript_parser.h:606"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_reduce_expression",
+      "family": "official-rule",
+      "name": "_reduce_expression",
+      "source": "modules/gdscript/gdscript_parser.h:604"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_reduce_function_call_type",
+      "family": "official-rule",
+      "name": "_reduce_function_call_type",
+      "source": "modules/gdscript/gdscript_parser.h:634"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_reduce_identifier_type",
+      "family": "official-rule",
+      "name": "_reduce_identifier_type",
+      "source": "modules/gdscript/gdscript_parser.h:635"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_reduce_node_type",
+      "family": "official-rule",
+      "name": "_reduce_node_type",
+      "source": "modules/gdscript/gdscript_parser.h:633"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:_resolve_type",
+      "family": "official-rule",
+      "name": "_resolve_type",
+      "source": "modules/gdscript/gdscript_parser.h:622"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse",
+      "family": "official-rule",
+      "name": "parse",
+      "source": "modules/gdscript/gdscript_parser.h:665"
+    },
+    {
+      "id": "official-rule:gdscript_parser.h:parse_bytecode",
+      "family": "official-rule",
+      "name": "parse_bytecode",
+      "source": "modules/gdscript/gdscript_parser.h:666"
+    },
+    {
+      "id": "official-rule:gdscript_tokenizer.h:_parse_identifier",
+      "family": "official-rule",
+      "name": "_parse_identifier",
+      "source": "modules/gdscript/gdscript_tokenizer.h:245"
+    },
+    {
+      "id": "official-rule:gdscript_tokenizer.h:parse_code_string",
+      "family": "official-rule",
+      "name": "parse_code_string",
+      "source": "modules/gdscript/gdscript_tokenizer.h:286"
+    },
+    {
+      "id": "operator:OP_ADD",
+      "family": "operator",
+      "name": "OP_ADD",
+      "source": "modules/gdscript/gdscript_parser.h:366"
+    },
+    {
+      "id": "operator:OP_AND",
+      "family": "operator",
+      "name": "OP_AND",
+      "source": "modules/gdscript/gdscript_parser.h:364"
+    },
+    {
+      "id": "operator:OP_ASSIGN",
+      "family": "operator",
+      "name": "OP_ASSIGN",
+      "source": "modules/gdscript/gdscript_parser.h:374"
+    },
+    {
+      "id": "operator:OP_ASSIGN_ADD",
+      "family": "operator",
+      "name": "OP_ASSIGN_ADD",
+      "source": "modules/gdscript/gdscript_parser.h:375"
+    },
+    {
+      "id": "operator:OP_ASSIGN_BIT_AND",
+      "family": "operator",
+      "name": "OP_ASSIGN_BIT_AND",
+      "source": "modules/gdscript/gdscript_parser.h:382"
+    },
+    {
+      "id": "operator:OP_ASSIGN_BIT_OR",
+      "family": "operator",
+      "name": "OP_ASSIGN_BIT_OR",
+      "source": "modules/gdscript/gdscript_parser.h:383"
+    },
+    {
+      "id": "operator:OP_ASSIGN_BIT_XOR",
+      "family": "operator",
+      "name": "OP_ASSIGN_BIT_XOR",
+      "source": "modules/gdscript/gdscript_parser.h:384"
+    },
+    {
+      "id": "operator:OP_ASSIGN_DIV",
+      "family": "operator",
+      "name": "OP_ASSIGN_DIV",
+      "source": "modules/gdscript/gdscript_parser.h:378"
+    },
+    {
+      "id": "operator:OP_ASSIGN_MOD",
+      "family": "operator",
+      "name": "OP_ASSIGN_MOD",
+      "source": "modules/gdscript/gdscript_parser.h:379"
+    },
+    {
+      "id": "operator:OP_ASSIGN_MUL",
+      "family": "operator",
+      "name": "OP_ASSIGN_MUL",
+      "source": "modules/gdscript/gdscript_parser.h:377"
+    },
+    {
+      "id": "operator:OP_ASSIGN_SHIFT_LEFT",
+      "family": "operator",
+      "name": "OP_ASSIGN_SHIFT_LEFT",
+      "source": "modules/gdscript/gdscript_parser.h:380"
+    },
+    {
+      "id": "operator:OP_ASSIGN_SHIFT_RIGHT",
+      "family": "operator",
+      "name": "OP_ASSIGN_SHIFT_RIGHT",
+      "source": "modules/gdscript/gdscript_parser.h:381"
+    },
+    {
+      "id": "operator:OP_ASSIGN_SUB",
+      "family": "operator",
+      "name": "OP_ASSIGN_SUB",
+      "source": "modules/gdscript/gdscript_parser.h:376"
+    },
+    {
+      "id": "operator:OP_BIT_AND",
+      "family": "operator",
+      "name": "OP_BIT_AND",
+      "source": "modules/gdscript/gdscript_parser.h:385"
+    },
+    {
+      "id": "operator:OP_BIT_INVERT",
+      "family": "operator",
+      "name": "OP_BIT_INVERT",
+      "source": "modules/gdscript/gdscript_parser.h:355"
+    },
+    {
+      "id": "operator:OP_BIT_OR",
+      "family": "operator",
+      "name": "OP_BIT_OR",
+      "source": "modules/gdscript/gdscript_parser.h:386"
+    },
+    {
+      "id": "operator:OP_BIT_XOR",
+      "family": "operator",
+      "name": "OP_BIT_XOR",
+      "source": "modules/gdscript/gdscript_parser.h:387"
+    },
+    {
+      "id": "operator:OP_CALL",
+      "family": "operator",
+      "name": "OP_CALL",
+      "source": "modules/gdscript/gdscript_parser.h:343"
+    },
+    {
+      "id": "operator:OP_DIV",
+      "family": "operator",
+      "name": "OP_DIV",
+      "source": "modules/gdscript/gdscript_parser.h:369"
+    },
+    {
+      "id": "operator:OP_EQUAL",
+      "family": "operator",
+      "name": "OP_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:358"
+    },
+    {
+      "id": "operator:OP_GREATER",
+      "family": "operator",
+      "name": "OP_GREATER",
+      "source": "modules/gdscript/gdscript_parser.h:362"
+    },
+    {
+      "id": "operator:OP_GREATER_EQUAL",
+      "family": "operator",
+      "name": "OP_GREATER_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:363"
+    },
+    {
+      "id": "operator:OP_IN",
+      "family": "operator",
+      "name": "OP_IN",
+      "source": "modules/gdscript/gdscript_parser.h:357"
+    },
+    {
+      "id": "operator:OP_INDEX",
+      "family": "operator",
+      "name": "OP_INDEX",
+      "source": "modules/gdscript/gdscript_parser.h:349"
+    },
+    {
+      "id": "operator:OP_INDEX_NAMED",
+      "family": "operator",
+      "name": "OP_INDEX_NAMED",
+      "source": "modules/gdscript/gdscript_parser.h:350"
+    },
+    {
+      "id": "operator:OP_INIT_ASSIGN",
+      "family": "operator",
+      "name": "OP_INIT_ASSIGN",
+      "source": "modules/gdscript/gdscript_parser.h:373"
+    },
+    {
+      "id": "operator:OP_IS",
+      "family": "operator",
+      "name": "OP_IS",
+      "source": "modules/gdscript/gdscript_parser.h:346"
+    },
+    {
+      "id": "operator:OP_IS_BUILTIN",
+      "family": "operator",
+      "name": "OP_IS_BUILTIN",
+      "source": "modules/gdscript/gdscript_parser.h:347"
+    },
+    {
+      "id": "operator:OP_LESS",
+      "family": "operator",
+      "name": "OP_LESS",
+      "source": "modules/gdscript/gdscript_parser.h:360"
+    },
+    {
+      "id": "operator:OP_LESS_EQUAL",
+      "family": "operator",
+      "name": "OP_LESS_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:361"
+    },
+    {
+      "id": "operator:OP_MOD",
+      "family": "operator",
+      "name": "OP_MOD",
+      "source": "modules/gdscript/gdscript_parser.h:370"
+    },
+    {
+      "id": "operator:OP_MUL",
+      "family": "operator",
+      "name": "OP_MUL",
+      "source": "modules/gdscript/gdscript_parser.h:368"
+    },
+    {
+      "id": "operator:OP_NEG",
+      "family": "operator",
+      "name": "OP_NEG",
+      "source": "modules/gdscript/gdscript_parser.h:352"
+    },
+    {
+      "id": "operator:OP_NOT",
+      "family": "operator",
+      "name": "OP_NOT",
+      "source": "modules/gdscript/gdscript_parser.h:354"
+    },
+    {
+      "id": "operator:OP_NOT_EQUAL",
+      "family": "operator",
+      "name": "OP_NOT_EQUAL",
+      "source": "modules/gdscript/gdscript_parser.h:359"
+    },
+    {
+      "id": "operator:OP_OR",
+      "family": "operator",
+      "name": "OP_OR",
+      "source": "modules/gdscript/gdscript_parser.h:365"
+    },
+    {
+      "id": "operator:OP_PARENT_CALL",
+      "family": "operator",
+      "name": "OP_PARENT_CALL",
+      "source": "modules/gdscript/gdscript_parser.h:344"
+    },
+    {
+      "id": "operator:OP_POS",
+      "family": "operator",
+      "name": "OP_POS",
+      "source": "modules/gdscript/gdscript_parser.h:353"
+    },
+    {
+      "id": "operator:OP_SHIFT_LEFT",
+      "family": "operator",
+      "name": "OP_SHIFT_LEFT",
+      "source": "modules/gdscript/gdscript_parser.h:371"
+    },
+    {
+      "id": "operator:OP_SHIFT_RIGHT",
+      "family": "operator",
+      "name": "OP_SHIFT_RIGHT",
+      "source": "modules/gdscript/gdscript_parser.h:372"
+    },
+    {
+      "id": "operator:OP_SUB",
+      "family": "operator",
+      "name": "OP_SUB",
+      "source": "modules/gdscript/gdscript_parser.h:367"
+    },
+    {
+      "id": "operator:OP_TERNARY_ELSE",
+      "family": "operator",
+      "name": "OP_TERNARY_ELSE",
+      "source": "modules/gdscript/gdscript_parser.h:390"
+    },
+    {
+      "id": "operator:OP_TERNARY_IF",
+      "family": "operator",
+      "name": "OP_TERNARY_IF",
+      "source": "modules/gdscript/gdscript_parser.h:389"
+    },
+    {
+      "id": "operator:OP_YIELD",
+      "family": "operator",
+      "name": "OP_YIELD",
+      "source": "modules/gdscript/gdscript_parser.h:345"
+    },
+    {
+      "id": "pattern:PT_ARRAY",
+      "family": "pattern",
+      "name": "PT_ARRAY",
+      "source": "modules/gdscript/gdscript_parser.h:407"
+    },
+    {
+      "id": "pattern:PT_BIND",
+      "family": "pattern",
+      "name": "PT_BIND",
+      "source": "modules/gdscript/gdscript_parser.h:405"
+    },
+    {
+      "id": "pattern:PT_CONSTANT",
+      "family": "pattern",
+      "name": "PT_CONSTANT",
+      "source": "modules/gdscript/gdscript_parser.h:404"
+    },
+    {
+      "id": "pattern:PT_DICTIONARY",
+      "family": "pattern",
+      "name": "PT_DICTIONARY",
+      "source": "modules/gdscript/gdscript_parser.h:406"
+    },
+    {
+      "id": "pattern:PT_IGNORE_REST",
+      "family": "pattern",
+      "name": "PT_IGNORE_REST",
+      "source": "modules/gdscript/gdscript_parser.h:408"
+    },
+    {
+      "id": "pattern:PT_WILDCARD",
+      "family": "pattern",
+      "name": "PT_WILDCARD",
+      "source": "modules/gdscript/gdscript_parser.h:409"
+    },
+    {
+      "id": "token:TK_BRACKET_CLOSE",
+      "family": "token",
+      "name": "TK_BRACKET_CLOSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:126"
+    },
+    {
+      "id": "token:TK_BRACKET_OPEN",
+      "family": "token",
+      "name": "TK_BRACKET_OPEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:125"
+    },
+    {
+      "id": "token:TK_BUILT_IN_FUNC",
+      "family": "token",
+      "name": "TK_BUILT_IN_FUNC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:52"
+    },
+    {
+      "id": "token:TK_BUILT_IN_TYPE",
+      "family": "token",
+      "name": "TK_BUILT_IN_TYPE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:51"
+    },
+    {
+      "id": "token:TK_CF_BREAK",
+      "family": "token",
+      "name": "TK_CF_BREAK",
+      "source": "modules/gdscript/gdscript_tokenizer.h:92"
+    },
+    {
+      "id": "token:TK_CF_CONTINUE",
+      "family": "token",
+      "name": "TK_CF_CONTINUE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:93"
+    },
+    {
+      "id": "token:TK_CF_ELIF",
+      "family": "token",
+      "name": "TK_CF_ELIF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:88"
+    },
+    {
+      "id": "token:TK_CF_ELSE",
+      "family": "token",
+      "name": "TK_CF_ELSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:89"
+    },
+    {
+      "id": "token:TK_CF_FOR",
+      "family": "token",
+      "name": "TK_CF_FOR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:90"
+    },
+    {
+      "id": "token:TK_CF_IF",
+      "family": "token",
+      "name": "TK_CF_IF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:87"
+    },
+    {
+      "id": "token:TK_CF_MATCH",
+      "family": "token",
+      "name": "TK_CF_MATCH",
+      "source": "modules/gdscript/gdscript_tokenizer.h:96"
+    },
+    {
+      "id": "token:TK_CF_PASS",
+      "family": "token",
+      "name": "TK_CF_PASS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:94"
+    },
+    {
+      "id": "token:TK_CF_RETURN",
+      "family": "token",
+      "name": "TK_CF_RETURN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:95"
+    },
+    {
+      "id": "token:TK_CF_WHILE",
+      "family": "token",
+      "name": "TK_CF_WHILE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:91"
+    },
+    {
+      "id": "token:TK_COLON",
+      "family": "token",
+      "name": "TK_COLON",
+      "source": "modules/gdscript/gdscript_tokenizer.h:135"
+    },
+    {
+      "id": "token:TK_COMMA",
+      "family": "token",
+      "name": "TK_COMMA",
+      "source": "modules/gdscript/gdscript_tokenizer.h:131"
+    },
+    {
+      "id": "token:TK_CONST_INF",
+      "family": "token",
+      "name": "TK_CONST_INF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:142"
+    },
+    {
+      "id": "token:TK_CONST_NAN",
+      "family": "token",
+      "name": "TK_CONST_NAN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:143"
+    },
+    {
+      "id": "token:TK_CONST_PI",
+      "family": "token",
+      "name": "TK_CONST_PI",
+      "source": "modules/gdscript/gdscript_tokenizer.h:139"
+    },
+    {
+      "id": "token:TK_CONST_TAU",
+      "family": "token",
+      "name": "TK_CONST_TAU",
+      "source": "modules/gdscript/gdscript_tokenizer.h:140"
+    },
+    {
+      "id": "token:TK_CONSTANT",
+      "family": "token",
+      "name": "TK_CONSTANT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:49"
+    },
+    {
+      "id": "token:TK_CURLY_BRACKET_CLOSE",
+      "family": "token",
+      "name": "TK_CURLY_BRACKET_CLOSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:128"
+    },
+    {
+      "id": "token:TK_CURLY_BRACKET_OPEN",
+      "family": "token",
+      "name": "TK_CURLY_BRACKET_OPEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:127"
+    },
+    {
+      "id": "token:TK_CURSOR",
+      "family": "token",
+      "name": "TK_CURSOR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:146"
+    },
+    {
+      "id": "token:TK_DOLLAR",
+      "family": "token",
+      "name": "TK_DOLLAR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:136"
+    },
+    {
+      "id": "token:TK_EMPTY",
+      "family": "token",
+      "name": "TK_EMPTY",
+      "source": "modules/gdscript/gdscript_tokenizer.h:47"
+    },
+    {
+      "id": "token:TK_EOF",
+      "family": "token",
+      "name": "TK_EOF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:145"
+    },
+    {
+      "id": "token:TK_ERROR",
+      "family": "token",
+      "name": "TK_ERROR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:144"
+    },
+    {
+      "id": "token:TK_FORWARD_ARROW",
+      "family": "token",
+      "name": "TK_FORWARD_ARROW",
+      "source": "modules/gdscript/gdscript_tokenizer.h:137"
+    },
+    {
+      "id": "token:TK_IDENTIFIER",
+      "family": "token",
+      "name": "TK_IDENTIFIER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:48"
+    },
+    {
+      "id": "token:TK_NEWLINE",
+      "family": "token",
+      "name": "TK_NEWLINE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:138"
+    },
+    {
+      "id": "token:TK_OP_ADD",
+      "family": "token",
+      "name": "TK_OP_ADD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:63"
+    },
+    {
+      "id": "token:TK_OP_AND",
+      "family": "token",
+      "name": "TK_OP_AND",
+      "source": "modules/gdscript/gdscript_tokenizer.h:60"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN",
+      "family": "token",
+      "name": "TK_OP_ASSIGN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:70"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_ADD",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_ADD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:71"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_BIT_AND",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_BIT_AND",
+      "source": "modules/gdscript/gdscript_tokenizer.h:78"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_BIT_OR",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_BIT_OR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:79"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_BIT_XOR",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_BIT_XOR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:80"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_DIV",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_DIV",
+      "source": "modules/gdscript/gdscript_tokenizer.h:74"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_MOD",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_MOD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:75"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_MUL",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_MUL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:73"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_SHIFT_LEFT",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_SHIFT_LEFT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:76"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_SHIFT_RIGHT",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_SHIFT_RIGHT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:77"
+    },
+    {
+      "id": "token:TK_OP_ASSIGN_SUB",
+      "family": "token",
+      "name": "TK_OP_ASSIGN_SUB",
+      "source": "modules/gdscript/gdscript_tokenizer.h:72"
+    },
+    {
+      "id": "token:TK_OP_BIT_AND",
+      "family": "token",
+      "name": "TK_OP_BIT_AND",
+      "source": "modules/gdscript/gdscript_tokenizer.h:81"
+    },
+    {
+      "id": "token:TK_OP_BIT_INVERT",
+      "family": "token",
+      "name": "TK_OP_BIT_INVERT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:84"
+    },
+    {
+      "id": "token:TK_OP_BIT_OR",
+      "family": "token",
+      "name": "TK_OP_BIT_OR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:82"
+    },
+    {
+      "id": "token:TK_OP_BIT_XOR",
+      "family": "token",
+      "name": "TK_OP_BIT_XOR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:83"
+    },
+    {
+      "id": "token:TK_OP_DIV",
+      "family": "token",
+      "name": "TK_OP_DIV",
+      "source": "modules/gdscript/gdscript_tokenizer.h:66"
+    },
+    {
+      "id": "token:TK_OP_EQUAL",
+      "family": "token",
+      "name": "TK_OP_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:54"
+    },
+    {
+      "id": "token:TK_OP_GREATER",
+      "family": "token",
+      "name": "TK_OP_GREATER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:58"
+    },
+    {
+      "id": "token:TK_OP_GREATER_EQUAL",
+      "family": "token",
+      "name": "TK_OP_GREATER_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:59"
+    },
+    {
+      "id": "token:TK_OP_IN",
+      "family": "token",
+      "name": "TK_OP_IN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:53"
+    },
+    {
+      "id": "token:TK_OP_LESS",
+      "family": "token",
+      "name": "TK_OP_LESS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:56"
+    },
+    {
+      "id": "token:TK_OP_LESS_EQUAL",
+      "family": "token",
+      "name": "TK_OP_LESS_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:57"
+    },
+    {
+      "id": "token:TK_OP_MOD",
+      "family": "token",
+      "name": "TK_OP_MOD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:67"
+    },
+    {
+      "id": "token:TK_OP_MUL",
+      "family": "token",
+      "name": "TK_OP_MUL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:65"
+    },
+    {
+      "id": "token:TK_OP_NOT",
+      "family": "token",
+      "name": "TK_OP_NOT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:62"
+    },
+    {
+      "id": "token:TK_OP_NOT_EQUAL",
+      "family": "token",
+      "name": "TK_OP_NOT_EQUAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:55"
+    },
+    {
+      "id": "token:TK_OP_OR",
+      "family": "token",
+      "name": "TK_OP_OR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:61"
+    },
+    {
+      "id": "token:TK_OP_SHIFT_LEFT",
+      "family": "token",
+      "name": "TK_OP_SHIFT_LEFT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:68"
+    },
+    {
+      "id": "token:TK_OP_SHIFT_RIGHT",
+      "family": "token",
+      "name": "TK_OP_SHIFT_RIGHT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:69"
+    },
+    {
+      "id": "token:TK_OP_SUB",
+      "family": "token",
+      "name": "TK_OP_SUB",
+      "source": "modules/gdscript/gdscript_tokenizer.h:64"
+    },
+    {
+      "id": "token:TK_PARENTHESIS_CLOSE",
+      "family": "token",
+      "name": "TK_PARENTHESIS_CLOSE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:130"
+    },
+    {
+      "id": "token:TK_PARENTHESIS_OPEN",
+      "family": "token",
+      "name": "TK_PARENTHESIS_OPEN",
+      "source": "modules/gdscript/gdscript_tokenizer.h:129"
+    },
+    {
+      "id": "token:TK_PERIOD",
+      "family": "token",
+      "name": "TK_PERIOD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:133"
+    },
+    {
+      "id": "token:TK_PR_AS",
+      "family": "token",
+      "name": "TK_PR_AS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:109"
+    },
+    {
+      "id": "token:TK_PR_ASSERT",
+      "family": "token",
+      "name": "TK_PR_ASSERT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:113"
+    },
+    {
+      "id": "token:TK_PR_BREAKPOINT",
+      "family": "token",
+      "name": "TK_PR_BREAKPOINT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:116"
+    },
+    {
+      "id": "token:TK_PR_CLASS",
+      "family": "token",
+      "name": "TK_PR_CLASS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:98"
+    },
+    {
+      "id": "token:TK_PR_CLASS_NAME",
+      "family": "token",
+      "name": "TK_PR_CLASS_NAME",
+      "source": "modules/gdscript/gdscript_tokenizer.h:99"
+    },
+    {
+      "id": "token:TK_PR_CONST",
+      "family": "token",
+      "name": "TK_PR_CONST",
+      "source": "modules/gdscript/gdscript_tokenizer.h:107"
+    },
+    {
+      "id": "token:TK_PR_ENUM",
+      "family": "token",
+      "name": "TK_PR_ENUM",
+      "source": "modules/gdscript/gdscript_tokenizer.h:111"
+    },
+    {
+      "id": "token:TK_PR_EXPORT",
+      "family": "token",
+      "name": "TK_PR_EXPORT",
+      "source": "modules/gdscript/gdscript_tokenizer.h:105"
+    },
+    {
+      "id": "token:TK_PR_EXTENDS",
+      "family": "token",
+      "name": "TK_PR_EXTENDS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:100"
+    },
+    {
+      "id": "token:TK_PR_FUNCTION",
+      "family": "token",
+      "name": "TK_PR_FUNCTION",
+      "source": "modules/gdscript/gdscript_tokenizer.h:97"
+    },
+    {
+      "id": "token:TK_PR_IS",
+      "family": "token",
+      "name": "TK_PR_IS",
+      "source": "modules/gdscript/gdscript_tokenizer.h:101"
+    },
+    {
+      "id": "token:TK_PR_MASTER",
+      "family": "token",
+      "name": "TK_PR_MASTER",
+      "source": "modules/gdscript/gdscript_tokenizer.h:119"
+    },
+    {
+      "id": "token:TK_PR_MASTERSYNC",
+      "family": "token",
+      "name": "TK_PR_MASTERSYNC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:123"
+    },
+    {
+      "id": "token:TK_PR_ONREADY",
+      "family": "token",
+      "name": "TK_PR_ONREADY",
+      "source": "modules/gdscript/gdscript_tokenizer.h:102"
+    },
+    {
+      "id": "token:TK_PR_PRELOAD",
+      "family": "token",
+      "name": "TK_PR_PRELOAD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:112"
+    },
+    {
+      "id": "token:TK_PR_PUPPET",
+      "family": "token",
+      "name": "TK_PR_PUPPET",
+      "source": "modules/gdscript/gdscript_tokenizer.h:121"
+    },
+    {
+      "id": "token:TK_PR_PUPPETSYNC",
+      "family": "token",
+      "name": "TK_PR_PUPPETSYNC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:124"
+    },
+    {
+      "id": "token:TK_PR_REMOTE",
+      "family": "token",
+      "name": "TK_PR_REMOTE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:117"
+    },
+    {
+      "id": "token:TK_PR_REMOTESYNC",
+      "family": "token",
+      "name": "TK_PR_REMOTESYNC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:122"
+    },
+    {
+      "id": "token:TK_PR_SETGET",
+      "family": "token",
+      "name": "TK_PR_SETGET",
+      "source": "modules/gdscript/gdscript_tokenizer.h:106"
+    },
+    {
+      "id": "token:TK_PR_SIGNAL",
+      "family": "token",
+      "name": "TK_PR_SIGNAL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:115"
+    },
+    {
+      "id": "token:TK_PR_SLAVE",
+      "family": "token",
+      "name": "TK_PR_SLAVE",
+      "source": "modules/gdscript/gdscript_tokenizer.h:120"
+    },
+    {
+      "id": "token:TK_PR_STATIC",
+      "family": "token",
+      "name": "TK_PR_STATIC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:104"
+    },
+    {
+      "id": "token:TK_PR_SYNC",
+      "family": "token",
+      "name": "TK_PR_SYNC",
+      "source": "modules/gdscript/gdscript_tokenizer.h:118"
+    },
+    {
+      "id": "token:TK_PR_TOOL",
+      "family": "token",
+      "name": "TK_PR_TOOL",
+      "source": "modules/gdscript/gdscript_tokenizer.h:103"
+    },
+    {
+      "id": "token:TK_PR_VAR",
+      "family": "token",
+      "name": "TK_PR_VAR",
+      "source": "modules/gdscript/gdscript_tokenizer.h:108"
+    },
+    {
+      "id": "token:TK_PR_VOID",
+      "family": "token",
+      "name": "TK_PR_VOID",
+      "source": "modules/gdscript/gdscript_tokenizer.h:110"
+    },
+    {
+      "id": "token:TK_PR_YIELD",
+      "family": "token",
+      "name": "TK_PR_YIELD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:114"
+    },
+    {
+      "id": "token:TK_QUESTION_MARK",
+      "family": "token",
+      "name": "TK_QUESTION_MARK",
+      "source": "modules/gdscript/gdscript_tokenizer.h:134"
+    },
+    {
+      "id": "token:TK_SELF",
+      "family": "token",
+      "name": "TK_SELF",
+      "source": "modules/gdscript/gdscript_tokenizer.h:50"
+    },
+    {
+      "id": "token:TK_SEMICOLON",
+      "family": "token",
+      "name": "TK_SEMICOLON",
+      "source": "modules/gdscript/gdscript_tokenizer.h:132"
+    },
+    {
+      "id": "token:TK_WILDCARD",
+      "family": "token",
+      "name": "TK_WILDCARD",
+      "source": "modules/gdscript/gdscript_tokenizer.h:141"
+    }
+  ]
+}

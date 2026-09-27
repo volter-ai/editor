@@ -1,0 +1,34 @@
+{
+  "repo": "https://github.com/godotengine/godot",
+  "revision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+  "version": "4.7-stable",
+  "license": "MIT",
+  "license_file": "LICENSE.txt",
+  "note": "The Compatibility renderer's post-pass shaders, byte-for-byte: the reference the transcribed post effects (godot-compat environment-post.ts) are evaluated against.",
+  "files": {
+    "glow.glsl": {
+      "upstream_path": "drivers/gles3/shaders/effects/glow.glsl",
+      "sha256": "a4bdb55aa0d76f08059db685a0cbe02d2697f42fd2904f2b7012eb1dbf108fba"
+    },
+    "post.glsl": {
+      "upstream_path": "drivers/gles3/shaders/effects/post.glsl",
+      "sha256": "1d8d77195e53c759e33cebbe059931df0cbb2afbae55507bb51ad2c96c00c18f"
+    },
+    "s4ao_inc.glsl": {
+      "upstream_path": "drivers/gles3/shaders/s4ao_inc.glsl",
+      "sha256": "98ea6229316f01c180a16cf19d8433e7a84a03cac9bed5dcda63834e6af07803"
+    },
+    "s4ao_mega_inc.glsl": {
+      "upstream_path": "drivers/gles3/shaders/s4ao_mega_inc.glsl",
+      "sha256": "7ab5712b7564b77f1ec0cc5c568066eef487b84d61d72c146abd8c17b537e816"
+    },
+    "s4ao_micro_inc.glsl": {
+      "upstream_path": "drivers/gles3/shaders/s4ao_micro_inc.glsl",
+      "sha256": "4005eb481adf46976242a838aeb706bb1a3546988f09ad280a21acc010b01efb"
+    },
+    "tonemap_inc.glsl": {
+      "upstream_path": "drivers/gles3/shaders/tonemap_inc.glsl",
+      "sha256": "a0dea1a09f4d89739d5d3447c04929146bbf266e72532b68b7d76705216f69da"
+    }
+  }
+}

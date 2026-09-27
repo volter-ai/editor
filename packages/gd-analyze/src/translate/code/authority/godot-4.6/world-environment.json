@@ -1,0 +1,154 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/world-environment"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "WorldEnvironment",
+        "member": "set_environment",
+        "kind": "native-member",
+        "signature": "hash:4143518816"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/world-environment",
+        "exportName": "set_environment",
+        "localName": "WorldEnvironment_set_environment",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-WorldEnvironment.set_environment"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "owner": "WorldEnvironment",
+        "member": "get_environment",
+        "kind": "native-member",
+        "signature": "hash:3082064660"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/world-environment",
+        "exportName": "get_environment",
+        "localName": "WorldEnvironment_get_environment",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.6-binding-WorldEnvironment.get_environment"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-WorldEnvironment.set_environment",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000WorldEnvironment\u0000set_environment\u0000hash:4143518816",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/3d/world_environment.cpp",
+        "sourceSymbol": "WorldEnvironment.set_environment",
+        "sourceLine": 111
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "9f365456ff2da3a88ea0c487799ebf8c539c0377bc786d5034fba6d8c07a1fad",
+        "callsite": "res://probe.gd _init() set_environment ambient-stage fog-stage",
+        "observedOutputSha256": "2b0f62a37e116268ed33c187fed03cd49b72aad7c5e9e68f6dd4259fec91ff99"
+      },
+      "target": {
+        "implementationSha256": "8843161c2d2d402900a2d5f9377493de95042ff37cbec649962188f7dd08f65b",
+        "callsite": "lib/godot-compat/world-environment.ts set_environment",
+        "observedOutputSha256": "2b0f62a37e116268ed33c187fed03cd49b72aad7c5e9e68f6dd4259fec91ff99"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, render-mapping",
+        "tolerance": "exact",
+        "resultSha256": "f7141d8b29cdecf28715a1570fddce8d4667d91e4e4368bb00988c0e33dcd158"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "world-environment",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.6-binding-WorldEnvironment.get_environment",
+      "layer": "binding",
+      "canonicalIdentity": "89cea143987d564363e15d207438530651d943ac\u0000native-member\u0000WorldEnvironment\u0000get_environment\u0000hash:3082064660",
+      "godot": {
+        "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+        "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+        "sourceFile": "scene/3d/world_environment.cpp",
+        "sourceSymbol": "WorldEnvironment.get_environment",
+        "sourceLine": 132
+      },
+      "native": {
+        "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+        "buildIdentity": "Godot 4.6.stable.official.89cea1439",
+        "inputSha256": "dc956df2f03c3109ad478c9a4a0359b42136270fff4636ca67e546d055c10070",
+        "callsite": "res://probe.gd _init() get_environment-default",
+        "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
+      },
+      "target": {
+        "implementationSha256": "8843161c2d2d402900a2d5f9377493de95042ff37cbec649962188f7dd08f65b",
+        "callsite": "lib/godot-compat/world-environment.ts get_environment",
+        "observedOutputSha256": "1c09d33d53302209655d514628f304a93d00c39d5dd49b7d5fb663614bda9123"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "66ea7f6c157192fc04ca2764fa1d110c86058183637c2a6f86b3a65e41965477"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "world-environment",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.6-stable-official/Godot.app/Contents/MacOS/Godot",
+        "--godot",
+        "4.6"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.6-binding-WorldEnvironment.set_environment",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "9f365456ff2da3a88ea0c487799ebf8c539c0377bc786d5034fba6d8c07a1fad",
+      "implementationSha256": "8843161c2d2d402900a2d5f9377493de95042ff37cbec649962188f7dd08f65b"
+    },
+    {
+      "claimId": "godot-4.6-binding-WorldEnvironment.get_environment",
+      "sourceRevision": "89cea143987d564363e15d207438530651d943ac",
+      "apiDumpSha256": "7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2",
+      "executableSha256": "974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc",
+      "inputSha256": "dc956df2f03c3109ad478c9a4a0359b42136270fff4636ca67e546d055c10070",
+      "implementationSha256": "8843161c2d2d402900a2d5f9377493de95042ff37cbec649962188f7dd08f65b"
+    }
+  ]
+}

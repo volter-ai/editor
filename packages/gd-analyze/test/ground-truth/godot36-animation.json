@@ -1,0 +1,231 @@
+{
+  "godotVersion": {
+    "major": 3,
+    "minor": 6,
+    "patch": 0,
+    "hex": 198144,
+    "status": "stable",
+    "build": "official",
+    "year": 2024,
+    "hash": "de2f0f147c5b7eff2d0f6dbc35042a4173fd59be",
+    "string": "3.6-stable (official)"
+  },
+  "note": "Blended POSE of player.tscn's AnimationTree, measured on ONE shared Spatial whose leaf clips sit on orthogonal axes: X=idle|jumpup, Y=walkcycle|falling, Z=shooting. So pose (x,y,z) == the effective weight Godot's AnimationTree gives each active leaf — which is an ORDER-DEPENDENT incremental lerp (animation_tree.cpp:928, first track inits and near-zero-blend tracks are skipped at :846), NOT the naive multiplicative product. The weights sum to 1, so three's weighted AnimationAction blend reproduces the pose. scale is TimeScale's factor: it does not change weights, only the on-floor subtree's time base (see timeScale block).",
+  "cases": [
+    {
+      "params": {
+        "walk_blend": "0.00000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "1.00000000000000000",
+        "y": "0.00000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "1.00000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.00000000000000000",
+        "y": "1.00000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.50000000000000000",
+        "y": "0.50000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.25000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.75000000000000000",
+        "y": "0.25000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.70000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.50000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.37500000000000000",
+        "y": "0.12500000000000000",
+        "z": "0.50000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.30000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.40000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.49199998378753660",
+        "y": "0.10800000280141830",
+        "z": "0.40000000596046450"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "0.50000000000000000",
+        "scale": "1.00000000000000000"
+      },
+      "pose": {
+        "x": "0.37500000000000000",
+        "y": "0.12500000000000000",
+        "z": "0.50000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "1.00000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 0,
+        "gun_blend": "1.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.00000000000000000",
+        "y": "0.00000000000000000",
+        "z": "1.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.00000000000000000",
+        "state_current": 1,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "1.00000000000000000",
+        "y": "0.00000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "1.00000000000000000",
+        "state_current": 1,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.00000000000000000",
+        "y": "1.00000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.50000000000000000",
+        "state_current": 1,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.50000000000000000",
+        "y": "0.50000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.25000000000000000",
+        "state_current": 1,
+        "gun_blend": "0.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.75000000000000000",
+        "y": "0.25000000000000000",
+        "z": "0.00000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.50000000000000000",
+        "state_current": 1,
+        "gun_blend": "0.50000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.37500000000000000",
+        "y": "0.12500000000000000",
+        "z": "0.50000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.60000000000000000",
+        "state_current": 1,
+        "gun_blend": "0.25000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.41249996423721310",
+        "y": "0.33750000596046450",
+        "z": "0.25000000000000000"
+      }
+    },
+    {
+      "params": {
+        "walk_blend": "0.50000000000000000",
+        "air_dir_blend": "0.30000000000000000",
+        "state_current": 1,
+        "gun_blend": "1.00000000000000000",
+        "scale": "1.50000000000000000"
+      },
+      "pose": {
+        "x": "0.00000000000000000",
+        "y": "0.00000000000000000",
+        "z": "1.00000000000000000"
+      }
+    }
+  ],
+  "timeScale": {
+    "scale": "2.00000000000000000",
+    "dt": "0.10000000000000000",
+    "headAfter": "0.20000000298023220"
+  }
+}

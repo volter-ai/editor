@@ -1,0 +1,280 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/rect2"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Rect2",
+        "member": "Rect2",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rect2",
+        "exportName": "construct",
+        "localName": "Rect2_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Rect2.Rect2"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Rect2",
+        "member": "position",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rect2",
+        "exportName": "with_position",
+        "localName": "Rect2_with_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Rect2.position.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Rect2",
+        "member": "size",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rect2",
+        "exportName": "with_size",
+        "localName": "Rect2_with_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Rect2.size.set"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "sourceDatatype": "BUILTIN:Rect2",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "Rect2",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/rect2",
+        "exportName": "Rect2"
+      },
+      "evidenceClaimId": "godot-4.7-datatype-Rect2"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Rect2.Rect2",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Rect2\u0000Rect2\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/rect2.h",
+        "sourceSymbol": "Rect2.Rect2",
+        "sourceLine": 378
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4adfcd92f5977c537891d4570c2b5e3a23d5f91367ed99530e941acb81f49471",
+        "callsite": "res://probe.gd _init() construct-empty construct-floats-unit construct-copy-unit construct-vectors-unit construct-floats-decimals construct-copy-decimals construct-vectors-decimals construct-floats-negative-size construct-copy-negative-size construct-vectors-negative-size construct-floats-huge construct-copy-huge construct-vectors-huge construct-floats-nan construct-copy-nan construct-vectors-nan",
+        "observedOutputSha256": "376ff226318efd8c9e624cd7d77be37f3fff73f50bb309b77b88def969691df2"
+      },
+      "target": {
+        "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3",
+        "callsite": "lib/godot-compat/rect2.ts construct",
+        "observedOutputSha256": "0492b0f1ae666548d547d8d0d580de858988a56f6eed964101cecac109c08630"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ac7e51f84f902e51e4e1209e1cf3d6b463af76b7ac2bdf9c09fac4cd5f85e91d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rect2",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Rect2.position.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Rect2\u0000position\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/rect2.h",
+        "sourceSymbol": "Rect2.position",
+        "sourceLine": 42
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "32f85e1c78e9b8c8393d059e2368d1354e7a02a6f7ad4ddc1e0efb739a370b27",
+        "callsite": "res://probe.gd _init() with_position-unit with_position-decimals with_position-negative-size with_position-huge with_position-nan",
+        "observedOutputSha256": "efcc3163b45746dc5fee5a20de8ada5ee1d3c27c4924bd7b9d6faf19afdf26ee"
+      },
+      "target": {
+        "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3",
+        "callsite": "lib/godot-compat/rect2.ts with_position",
+        "observedOutputSha256": "a10d8b579bf9f8a64f33df0fdc62cf664754befb76517e46eb764ee439c733ab"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "56483f6df88cbc0820ef7efffe51a7ffe59b92e8030d4c47baa3c16f85683057"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rect2",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Rect2.size.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Rect2\u0000size\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/rect2.h",
+        "sourceSymbol": "Rect2.size",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "32a05ffb2868cb1df5e01f6e6d93c69bccf356ba3ae6eb63e4becb51bccef690",
+        "callsite": "res://probe.gd _init() with_size-unit with_size-decimals with_size-negative-size with_size-huge with_size-nan",
+        "observedOutputSha256": "db5f82ce7f3284d3d1895c9f9d4bba20ebb663bd44efd484759d61dce69dd142"
+      },
+      "target": {
+        "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3",
+        "callsite": "lib/godot-compat/rect2.ts with_size",
+        "observedOutputSha256": "371ddded8a2ee1259c6021d855ea7c14f8ddf63e3d0aeb5b7ddcbd0ca60b8b16"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d80caa138348202f3ea4ad5166d5593d6c45e7d4cc3975d56a25c1f23a5c508a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rect2",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-datatype-Rect2",
+      "layer": "translate-code",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000datatype\u0000BUILTIN:Rect2",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::RECT2",
+        "sourceLine": 108
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3888e744b7212dcb949aeecdef488219fae6be8f117280e6228c8e6941e514ee",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "6a119f804981f1c14a0667d0ef9080565b0558dde51e7fd2b8f8069c5f5abec5"
+      },
+      "target": {
+        "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3",
+        "callsite": "lib/godot-compat/rect2.ts Rect2",
+        "observedOutputSha256": "9ec20ca66b450130a634ff7c403c556bdc4b7ffded6ffa3aeb61c31acc86309c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c6c71830eefb79cbbf7f3aae11bd5f8405e9c04baccf2e9546337d2717b51cfe"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rect2",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Rect2.Rect2",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4adfcd92f5977c537891d4570c2b5e3a23d5f91367ed99530e941acb81f49471",
+      "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3"
+    },
+    {
+      "claimId": "godot-4.7-binding-Rect2.position.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "32f85e1c78e9b8c8393d059e2368d1354e7a02a6f7ad4ddc1e0efb739a370b27",
+      "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3"
+    },
+    {
+      "claimId": "godot-4.7-binding-Rect2.size.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "32a05ffb2868cb1df5e01f6e6d93c69bccf356ba3ae6eb63e4becb51bccef690",
+      "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3"
+    },
+    {
+      "claimId": "godot-4.7-datatype-Rect2",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3888e744b7212dcb949aeecdef488219fae6be8f117280e6228c8e6941e514ee",
+      "implementationSha256": "fce208a0c56dc7f57b644b20b9a0eaf98e1382f343ae2204da423803755b3eb3"
+    }
+  ]
+}
