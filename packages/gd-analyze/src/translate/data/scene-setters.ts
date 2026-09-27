@@ -71,6 +71,12 @@ const METADATA = /^metadata\/(.+)$/;
  */
 const SHADER_PARAMETER = /^shader_parameter\/(.+)$/;
 
+/**
+ * An Environment's glow levels, each an indexed property (`ADD_PROPERTYI`, scene/resources/
+ * environment.cpp:1464-1470): `glow_levels/N` is `set_glow_level(N - 1, value)`, N from 1 to 7.
+ */
+const GLOW_LEVEL = /^glow_levels\/([1-7])$/;
+
 export function sceneSetterLookup(
   codeAuthority: GodotCodeTranslationAuthority,
   apiDump: GodotApiDump,
@@ -142,6 +148,10 @@ export function sceneSetterLookup(
       owner = 'Skeleton3D';
       setter = `set_bone_pose_${bone[2] as string}`;
       index = Number(bone[1]);
+    } else if (GLOW_LEVEL.test(property) && ancestry.includes('Environment')) {
+      owner = 'Environment';
+      setter = 'set_glow_level';
+      index = Number((GLOW_LEVEL.exec(property) as RegExpExecArray)[1]) - 1;
     } else if (RANDOMIZER_ENTRY.test(property) && ancestry.includes('AudioStreamRandomizer')) {
       const entry = RANDOMIZER_ENTRY.exec(property) as RegExpExecArray;
       owner = 'AudioStreamRandomizer';
