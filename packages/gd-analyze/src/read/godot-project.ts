@@ -61,7 +61,7 @@ import { resolveProjectResourcePath, resourceKindOf, splitAutoloadTarget } from 
 import { buildProjectResourceResolver } from './resource-path-resolver';
 import type { DocumentContext } from './scene';
 import { readResourceDocument, readSceneDocument } from './scene';
-import { partitionReachableDocuments } from './reachability';
+import { partitionReachableDocuments, SPELLED_PATH_TEXT } from './reachability';
 import type { GodotTextFile } from './text-format';
 import { GodotParseError, parseGodotTextFile } from './text-format';
 import { buildUidIndex, resolveResourceRef } from './uid-index';
@@ -963,7 +963,7 @@ export function readGodotProjectDocuments(
     rootTexts: [
       source.text(projectPath),
       ...projectFiles
-        .filter((resPath) => resPath.toLowerCase().endsWith('.gd'))
+        .filter((resPath) => SPELLED_PATH_TEXT.has(path.posix.extname(resPath).toLowerCase()))
         .map((resPath) => source.text(resPath)),
     ],
     rootPaths: [

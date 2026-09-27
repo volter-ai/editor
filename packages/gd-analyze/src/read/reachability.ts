@@ -12,9 +12,10 @@
  *
  * The walk over-approximates reachability, never under-approximates it:
  *
- * - every `res://` or `uid://` string spelled anywhere in `project.godot`, in any project script,
- *   or in an inline script of a reachable scene is a root, and it reaches every path it is a PREFIX
- *   of (a script that assembles `"res://levels/level" + str(n) + ".tscn"` reaches every level);
+ * - every `res://` or `uid://` string spelled anywhere in `project.godot`, in any project script or
+ *   data file (`SPELLED_PATH_TEXT`: a level list in JSON is how a game names what it loads), or in
+ *   an inline script of a reachable scene is a root, and it reaches every path it is a PREFIX of (a
+ *   script that assembles `"res://levels/level" + str(n) + ".tscn"` reaches every level);
  * - a reachable document reaches each of its `[ext_resource]` targets;
  * - a reachable imported asset reaches the materials its `.import` sidecar extracted.
  *
@@ -32,7 +33,7 @@ export interface UnplannedDocument {
 }
 
 export interface ReachabilityInput {
-  /** `project.godot` and every project script, as text. */
+  /** `project.godot`, every project script and data file (`SPELLED_PATH_TEXT`), as text. */
   readonly rootTexts: readonly string[];
   /** Already-resolved entry paths: main scene, autoloads, runtime roots. */
   readonly rootPaths: readonly string[];
@@ -49,6 +50,9 @@ export interface ReachabilityResult {
   readonly diagnostics: readonly Diagnostic[];
   readonly unplanned: readonly UnplannedDocument[];
 }
+
+/** The project files whose text is searched for spelled paths: scripts and data files. */
+export const SPELLED_PATH_TEXT: ReadonlySet<string> = new Set(['.godot', '.gd', '.json', '.cfg', '.ini', '.txt', '.csv', '.xml', '.yaml', '.yml']);
 
 const SPELLED_PATH = /(?:res|uid):\/\/[^"'\s)\]]*/g;
 
@@ -135,7 +139,7 @@ export function partitionReachableDocuments(input: ReachabilityInput): Reachabil
     return {
       resPath,
       reason:
-        'nothing the game loads reaches it (main scene, autoloads, project settings, script paths)' +
+        'nothing the game loads reaches it (main scene, autoloads, project settings, paths spelled in scripts and data files)' +
         errors.map((error) => `; ${error.message}`).join(''),
       diagnostics,
     };

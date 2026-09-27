@@ -1405,6 +1405,9 @@ async function runLanguageEvidence(
     writeFileSync(path.join(project, 'main.tscn'), MAIN_SCENE);
     for (const script of evidence.scripts) writeFileSync(path.join(project, script.file), script.source);
     for (const scene of evidence.scenes ?? []) writeFileSync(path.join(project, scene.file), scene.source);
+    // The probe instantiates each case scene by path; this list is the harness's record of them,
+    // so the reader plans them as the scenes this project loads (`read/reachability.ts`).
+    writeFileSync(path.join(project, 'harness-scenes.json'), `${JSON.stringify((evidence.scenes ?? []).map((scene) => `res://${scene.file}`))}\n`);
 
     // Target: production code lowering over the official frontend's bound program.
     const snapshot = captureGodotProjectSnapshot(project);
