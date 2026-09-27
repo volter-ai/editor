@@ -6,8 +6,11 @@
  * Fiber component and renders inside `<Canvas>`; a `dom` root's entry
  * default-exports a React component and renders with react-dom, in a layer
  * that lets pointer events fall through to the world except where its own
- * elements claim them (`pointer-events: auto`). The editor mounts the same
- * entries itself; nothing here runs inside it.
+ * elements claim them (`pointer-events: auto`); a `canvas` root's entry default-exports a
+ * `@pixi/react` component and renders inside `<Application>`, with every `pixi.js` class
+ * registered first, as the editor's own canvas mount registers them (so a node the editor created,
+ * a TilingSprite or a BitmapText, mounts here too). The editor mounts the same entries itself;
+ * nothing here runs inside it.
  *
  * `manifestEntryModules` is generated from the manifest's `entry` paths
  * (`manifest-entry-modules-plugin.ts`), so the manifest stays the one list of
@@ -54,6 +57,12 @@ for (const root of roots) {
   } else if (root.adapter === 'dom') {
     layer.style.pointerEvents = 'none';
     createRoot(layer).render(createElement(Entry));
+  } else if (root.adapter === 'canvas') {
+    const [{ Application, extend }, PIXI] = await Promise.all([import('@pixi/react'), import('pixi.js')]);
+    extend(PIXI as unknown as Parameters<typeof extend>[0]);
+    createRoot(layer).render(
+      createElement(Application, { resizeTo: layer, backgroundAlpha: 0 }, createElement(Entry)),
+    );
   } else {
     throw new Error(
       `main.ts: root "${root.id}" declares adapter ${JSON.stringify(root.adapter)}, which this boot does not mount.`,

@@ -33,7 +33,7 @@ function requireAction(action: string): GameAction {
   if (!isGameAction(action)) {
     throw new Error(
       `Unknown input action "${action}" — this game declares ${
-        gameActions.length === 0 ? 'none yet (add yours in src/input.ts)' : gameActions.join(', ')
+        (gameActions as readonly string[]).length === 0 ? 'none yet (add yours in src/input.ts)' : gameActions.join(', ')
       }.`,
     );
   }

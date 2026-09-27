@@ -1382,6 +1382,21 @@ function writeEditorPackages(targetDir: string, wanted: readonly string[]): void
 /**
  * A React-only scaffold must be genuinely React-only.
  */
+/** The multiplayer client's control scheme into the template's empty input store
+ *  ({@link NETWORKED_INPUT_LINES}): every scaffold that keeps the client (the server and a world) —
+ *  the full template, which ships both, and a composition that chose them. */
+function writeNetworkedInput(targetDir: string): void {
+  const inputPath = join(targetDir, 'src', 'input.ts');
+  let input = readFileSync(inputPath, 'utf-8');
+  for (const [line, replacement] of NETWORKED_INPUT_LINES) {
+    if (!input.includes(line)) {
+      throw new Error(`The template input store no longer declares its actions as expected: ${line}`);
+    }
+    input = input.replace(line, replacement);
+  }
+  writeFileSync(inputPath, input, 'utf-8');
+}
+
 function rewriteTemplateVariantFiles(
   targetDir: string,
   composition: ScaffoldComposition,
@@ -1402,15 +1417,7 @@ function rewriteTemplateVariantFiles(
   // product, never from this library.
   writeEditorPackages(targetDir, composition.editorPackages);
   if (additions.has('server') && additions.has('three')) {
-    const inputPath = join(targetDir, 'src', 'input.ts');
-    let input = readFileSync(inputPath, 'utf-8');
-    for (const [line, replacement] of NETWORKED_INPUT_LINES) {
-      if (!input.includes(line)) {
-        throw new Error(`The template input store no longer declares its actions as expected: ${line}`);
-      }
-      input = input.replace(line, replacement);
-    }
-    writeFileSync(inputPath, input, 'utf-8');
+    writeNetworkedInput(targetDir);
   } else {
     for (const relative of SERVER_CLIENT_PATHS) {
       rmSync(join(targetDir, relative), { recursive: true, force: true });
@@ -1734,6 +1741,10 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
       withAgentsContract(readFileSync(agentsPath, 'utf-8'), additions),
       'utf-8',
     );
+  } else if (exampleId === undefined && existsSync(join(targetDir, 'src', 'net'))) {
+    // The full template is its own composition: it ships the server and the world, so it keeps
+    // the multiplayer client and needs that client's controls as a composition that chose them does.
+    writeNetworkedInput(targetDir);
   }
   rewriteTsconfig(targetDir, engineRelPath, editorRelPath);
   rewriteViteConfig(targetDir);

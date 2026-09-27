@@ -172,6 +172,8 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // against the same sweep.
   '@colyseus/sdk': () => import('@colyseus/sdk'), // template main.ts
   'react-dom': () => import('react-dom'), // template main.ts
+  'pixi.js': () => import('pixi.js'), // template main.ts (a `canvas` root)
+  '@pixi/react': () => import('@pixi/react'), // template main.ts (a `canvas` root)
   // ---- Editor-citizen modules PROJECT TOOL CONTRIBUTIONS import. A
   // contribution is project source rendered inside the editor's own panels,
   // so these must resolve to the editor's LIVE modules — a second copy of the
