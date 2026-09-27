@@ -820,6 +820,9 @@ interface GestureState {
   /** A native rotate's starting angle on screen, degrees: Godot snaps the angle itself (step and
    *  offset), not the turn, unless Snap Relative. */
   startAngleDeg?: number;
+  /** A single moved node turned on screen: Godot's `snap_point` skips the grid, guides and pixel
+   *  snap for it (a multi-selection's move names no node, and snaps). Read once per move. */
+  moveTurned?: boolean;
   /** Other selected nodes moved by the same direct-manipulation gesture. */
   movePeers?: readonly MovePeer[];
   /** A 2D group rotate or scale: the point every node turns or scales about (the temporary pivot,
@@ -2097,11 +2100,16 @@ export function RootSelectionOverlay({
       } else if (gesture.kind === 'move') {
         const { dx: moveDx, dy: moveDy } = constrainedMoveDelta(gesture.moveAxis, dx, dy);
         if (gesture.nativeOrigin) {
+          if (gesture.moveTurned === undefined) {
+            const frame = gesture.movePeers?.length ? null : frameForId(adapter, gesture.id);
+            gesture.moveTurned = !!frame && Math.abs(frameAngle(frame)) > 1e-6;
+          }
+          const turned = gesture.moveTurned;
           patch = nativeMovePatch(
             gesture,
             moveDx,
             moveDy,
-            store.snapEnabled,
+            store.snapEnabled && !turned,
             // On the 2D surface Alt is Godot's move modifier, so it never frees the move.
             false,
             // A native (2D) origin steps on the scene's grid, not the 3D translate step; Snap
@@ -2124,13 +2132,14 @@ export function RootSelectionOverlay({
             !store.smartSnap.enabled,
             EDGE_SNAP_THRESHOLD_PX / Math.max(pan.zoom, 0.01),
             {
-              x: nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
-              y: nativeGuides.filter((guide) => guide.axis === 'y').map((guide) => guide.value),
+              x: turned ? [] : nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
+              y: turned ? [] : nativeGuides.filter((guide) => guide.axis === 'y').map((guide) => guide.value),
             },
             store.smartSnap,
           );
-          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free.
-          const pixel = (v: number): number => (store.snap2D.pixel ? Math.round(v) : v);
+          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free, unless the
+          // one node moved is turned on screen, as Godot skips it then.
+          const pixel = (v: number): number => (store.snap2D.pixel && !turned ? Math.round(v) : v);
           if (patch['originX'] !== undefined) patch['originX'] = pixel(snapped.position.x);
           if (patch['originY'] !== undefined) patch['originY'] = pixel(snapped.position.y);
           setSnapGuides(snapped.guides);
