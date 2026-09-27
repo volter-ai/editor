@@ -428,7 +428,9 @@ export class LoweringContext {
       const value = nodes[id];
       if (value === undefined) return [undefined];
       if (value.kind === 'TERNARY_OPERATOR') return [...valueTypes(value.trueExpression), ...valueTypes(value.falseExpression)];
-      return [typeName(value.datatype)];
+      // A Variant-returning call (`sign(x)`) is named by its function: its type is decided at run time.
+      if (value.kind === 'CALL' && value.datatype.kind === 'VARIANT') return [`Variant (from ${value.functionName}())`];
+      return [typeName(value.datatype) ?? value.datatype.display];
     };
     const within = (inner: GodotBoundNode, outer: GodotBoundNode) => inner.startLine >= outer.startLine && inner.endLine <= outer.endLine;
     const visit = (node: GodotBoundNode, depth: number): string | undefined => {
