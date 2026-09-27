@@ -1,3 +1,4 @@
+import { dirname as posixDirname, relative as posixRelative } from 'node:path/posix';
 import { createHash } from 'node:crypto';
 import type { DirectJsonValue } from '../data/direct-project-data-plan';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
@@ -56,6 +57,22 @@ export function projectDataJsonArtifact(
       artifactOrigin,
     ),
   };
+}
+
+/**
+ * A data file as a typed module: the value checked against the compat interface that reads it
+ * (`export default value satisfies T`), so every field has the exact type compat declares.
+ */
+export function projectDataTypedModuleArtifact(
+  path: string,
+  value: unknown,
+  sourcePaths: readonly string[],
+  type: { readonly module: string; readonly name: string },
+): GodotPlannedProjectDataArtifact {
+  let specifier = posixRelative(posixDirname(path), `src/lib/godot-compat/${type.module}`);
+  if (!specifier.startsWith('.')) specifier = `./${specifier}`;
+  const text = `import type { ${type.name} } from '${specifier}';\n\nconst data = ${JSON.stringify(value, null, 2)} satisfies ${type.name};\n\nexport default data;\n`;
+  return projectDataBytesArtifact(path, new TextEncoder().encode(text), sourcePaths);
 }
 
 /** Plan already-final importer-owned opaque bytes. */

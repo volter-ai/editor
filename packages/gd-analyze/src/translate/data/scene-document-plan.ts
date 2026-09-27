@@ -2120,5 +2120,5 @@ export function planGodotSceneDocuments(
 
 /** An imported model's data file: the importer's tree (`src/models/<path>.json`). */
 export function godotImportedModelDataPath(resPath: string): string {
-  return `src/models/${resPath.slice('res://'.length).replace(/[^A-Za-z0-9._/-]+/gu, '_')}.json`;
+  return `src/models/${resPath.slice('res://'.length).replace(/[^A-Za-z0-9._/-]+/gu, '_')}.ts`;
 }

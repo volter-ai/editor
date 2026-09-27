@@ -525,7 +525,7 @@ export function godotMeshLibraryData(
 
 /** Where a MeshLibrary's data file is written, beside its meshes' (`godotArrayMeshDataPath`). */
 export function godotMeshLibraryDataPath(sceneTargetPath: string, key: string): string {
-  return godotArrayMeshDataPath(sceneTargetPath, key).replace(/(\.mesh)?\.json$/u, '.library.json');
+  return godotArrayMeshDataPath(sceneTargetPath, key).replace(/(\.mesh)?\.json$/u, '.library.ts');
 }
 
 /** Where a GridMap's cells data file is written: beside its scene, by the node's path. */

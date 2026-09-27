@@ -844,7 +844,7 @@ export function idiomaticSceneSourceFile(
       : [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [...emission.rapierTypes].sort().map((name) => ({ imported: name, local: name })), typeOnly: true as const }]),
     ...[...emission.models].map(([local, file]) => ({
       kind: 'import-statement' as const,
-      module: `${moduleSpecifier(scene.targetPath, file.replace(/\.json$/u, '.ts'))}.json`,
+      module: moduleSpecifier(scene.targetPath, file),
       defaultBinding: local,
       namedBindings: [],
     })),

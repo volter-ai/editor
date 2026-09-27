@@ -26,6 +26,7 @@ import {
   projectDataBytesArtifact,
   projectDataGeneratedModuleArtifact,
   projectDataJsonArtifact,
+  projectDataTypedModuleArtifact,
 } from './project-data';
 import { sourceTranslationArtifact } from './source-translation';
 import type { GodotPlannedArtifact } from './types';
@@ -109,15 +110,16 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): rea
       if (!written.has(file)) {
         written.set(
           file,
-          projectDataJsonArtifact(
+          projectDataTypedModuleArtifact(
             file,
             {
               rootClasses: node.model.rootClasses,
               nodes: node.model.nodes,
               // The importer's AnimationPlayer library, which the model's player holds.
               ...(node.model.animations === undefined ? {} : { animations: node.model.animations }),
-            } as unknown as DirectJsonValue,
+            },
             [scene.sourceResPath],
+            { module: 'packed-scene', name: 'GodotImportedSceneTree' },
           ),
         );
       }
@@ -141,15 +143,15 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
       }
       if (resource.animationTree !== undefined) {
         const file = godotAnimationTreeDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, resource.animationTree as unknown as DirectJsonValue, [scene.sourceResPath]));
+        if (!written.has(file)) written.set(file, projectDataTypedModuleArtifact(file, resource.animationTree, [scene.sourceResPath], { module: 'animation-tree', name: 'GodotAnimationNodeData' }));
       }
       if (resource.animations !== undefined) {
         const file = godotAnimationLibraryDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, resource.animations as unknown as DirectJsonValue, [scene.sourceResPath]));
+        if (!written.has(file)) written.set(file, projectDataTypedModuleArtifact(file, resource.animations, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
       }
       if (resource.library !== undefined) {
         const file = godotMeshLibraryDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, godotMeshLibraryData(resource.library, resources) as DirectJsonValue, [scene.sourceResPath]));
+        if (!written.has(file)) written.set(file, projectDataTypedModuleArtifact(file, godotMeshLibraryData(resource.library, resources), [scene.sourceResPath], { module: 'mesh-library', name: 'GodotMeshLibraryData' }));
       }
     }
     // A GridMap's cells, as written (a node's own `data`, or an instance's override of it).

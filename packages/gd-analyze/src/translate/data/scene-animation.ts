@@ -220,7 +220,7 @@ export function godotResolveNodePath(from: string, path: string): string | undef
 /** Where a library's data file is written, beside its scene. */
 export function godotAnimationLibraryDataPath(sceneTargetPath: string, key: string): string {
   const safe = (text: string) => text.replace(/[^A-Za-z0-9._-]+/gu, '_');
-  return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${safe(key.replace(/^(sub|ext):/u, ''))}.animations.json`;
+  return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${safe(key.replace(/^(sub|ext):/u, ''))}.animations.ts`;
 }
 
 /** A blend-tree node as the data file writes it (compat `animation-tree.ts`'s `GodotAnimationNodeData`). */
@@ -315,5 +315,5 @@ export function godotAnimationTreeParameters(root: GodotAnimationNodeData): Read
 
 /** Where a blend tree's data file is written, beside its scene. */
 export function godotAnimationTreeDataPath(sceneTargetPath: string, key: string): string {
-  return godotAnimationLibraryDataPath(sceneTargetPath, key).replace(/\.animations\.json$/u, '.animation-tree.json');
+  return godotAnimationLibraryDataPath(sceneTargetPath, key).replace(/\.animations\.ts$/u, '.animation-tree.ts');
 }
