@@ -1702,6 +1702,29 @@ export function lowerOfficialExpression(
             [...rule.requirements, ...use.requirements],
           );
         }
+        const signalOwner =
+          node.isAttribute && nativeObjectType(baseNode)
+            ? context.nativeSignalOwner?.(baseNode.datatype.nativeType, officialBoundPropertyName(context, node.attribute, node))
+            : undefined;
+        if (signalOwner !== undefined) {
+          // An engine signal read as a value (`player.finished`): Signal(object, name)
+          // (`ClassDB::get_property`, class_db.cpp:1660), through the class's accessor on the entity.
+          const signal = officialBoundPropertyName(context, node.attribute, node);
+          const rule = context.selectRule(node, ['subscript-attribute:native-signal'], [baseNode], ['binding']);
+          const use = context.bindingUse(
+            { sourceRevision: context.sourceRevision, kind: 'native-signal', owner: signalOwner, member: signal, signature: 'signal' },
+            node,
+          );
+          if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+            return context.refuse(node, `signal binding ${use.target.localName} does not take its object first`);
+          }
+          return compose(
+            context,
+            [nativeEntity(lowerExpression(context, baseNode))],
+            (values) => bindingCall(context, node, use, values),
+            [...rule.requirements, ...use.requirements],
+          );
+        }
         if (node.isAttribute && nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node))) {
           const property = officialBoundPropertyName(context, node.attribute, node);
           const getter = nativeAccessorUse(context, node, baseNode, property, 'getter');

@@ -40,7 +40,7 @@ import {
 import { godot_node_adopt, godot_node_entity, godot_node_observe_child_order, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
-import { get_size as subViewportSize, godot_sub_viewport_connect_size_changed } from './sub-viewport';
+import { get_size as subViewportSize } from './sub-viewport';
 import { get_size as windowSize, godot_window_connect_size_changed, godot_window_has_size } from './window';
 import { basis_xform, construct as transform2d, get_scale as transformScale, affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
@@ -238,13 +238,7 @@ function enteredTree(entity: Object3D): void {
   // follows its viewport's size, the root window's or a SubViewport's (the viewport is one of them).
   const viewport = godot_canvas_item_parent(entity) === null ? viewportOf(entity) : null;
   if (viewport !== null) {
-    const resized = () => sizeChanged(entity);
-    const fromWindow = godot_window_connect_size_changed(viewport, resized);
-    const fromSubViewport = godot_sub_viewport_connect_size_changed(viewport, resized);
-    state.viewportSizeChanged = () => {
-      fromWindow();
-      fromSubViewport();
-    };
+    state.viewportSizeChanged = godot_window_connect_size_changed(viewport, () => sizeChanged(entity));
   }
   themeChanged(entity);
   updateMaximumSize(entity);

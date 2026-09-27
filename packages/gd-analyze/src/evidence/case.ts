@@ -36,7 +36,9 @@ export type GodotEvidenceSymbolKind =
    * `Class.new()` of a native class (`ClassDB::instantiate`): owner and member are the class; the
    * binding constructs it with no receiver.
    */
-  | 'native-constructor';
+  | 'native-constructor'
+  /** An engine signal a class declares, read as a Signal value (`AudioStreamPlayer.finished`). */
+  | 'native-signal';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;

@@ -190,6 +190,8 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     }
     if ((base.kind === 'NATIVE' || base.kind === 'CLASS' || base.kind === 'SCRIPT') && !base.metaType) {
       for (let current = classes.get(base.nativeType); current !== undefined; ) {
+        // An engine signal reads as a Signal (`ClassDB::get_property`, class_db.cpp:1660).
+        if (current.signals.some((entry) => entry.name === member)) return apiTypeDatatype(inputs.apiDump, 'Signal');
         const property = current.properties.find((entry) => entry.name === member);
         if (property !== undefined) {
           if (property.getter === undefined) return undefined;

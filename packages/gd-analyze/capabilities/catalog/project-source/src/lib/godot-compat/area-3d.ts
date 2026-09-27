@@ -271,6 +271,26 @@ export function godot_area_3d_signal(self: object, name: 'body_entered' | 'body_
 }
 
 /**
+ * The area's `body_entered` signal, whose argument is the body node.
+ *
+ * @godot Area3D.body_entered
+ * @source scene/3d/physics/area_3d.cpp:265
+ */
+export function body_entered(self: object): GodotSignal<[object]> {
+  return godot_area_3d_signal(self, 'body_entered');
+}
+
+/**
+ * The area's `body_exited` signal, whose argument is the body node.
+ *
+ * @godot Area3D.body_exited
+ * @source scene/3d/physics/area_3d.cpp:265
+ */
+export function body_exited(self: object): GodotSignal<[object]> {
+  return godot_area_3d_signal(self, 'body_exited');
+}
+
+/**
  * Turning monitoring off exits every body in the tree at once (`_clear_monitoring`,
  * `area_3d.cpp:305`) and drops the server's pending counts; turning it on re-tests every pair, so
  * bodies already inside enter again at the next flush (`GodotArea3D::set_monitor_callback`,

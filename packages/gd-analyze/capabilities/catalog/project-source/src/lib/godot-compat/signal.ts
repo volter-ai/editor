@@ -357,6 +357,30 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
   return { signal, emit, clear };
 }
 
+const OBJECT_SIGNALS = new WeakMap<object, Map<string, SignalHandle<readonly any[]>>>();
+
+/**
+ * An engine signal of one object (`Viewport.size_changed`), minted on first use: the object's
+ * signal map entry (`Object::signal_map`), one per object and name, which its engine code emits and
+ * scripts connect to.
+ *
+ * @godot Signal (protocol)
+ * @source core/object/object.cpp:1223 (emit_signalp reads the object's signal map)
+ */
+export function godot_object_signal<Args extends readonly unknown[]>(owner: object, name: string): SignalHandle<Args> {
+  let signals = OBJECT_SIGNALS.get(owner);
+  if (signals === undefined) {
+    signals = new Map();
+    OBJECT_SIGNALS.set(owner, signals);
+  }
+  let handle = signals.get(name);
+  if (handle === undefined) {
+    handle = createSignal<readonly any[]>();
+    signals.set(name, handle);
+  }
+  return handle as unknown as SignalHandle<Args>;
+}
+
 type SignalAwaitResult<Args extends readonly unknown[]> =
   Args extends readonly [] ? null :
     Args extends readonly [infer Value] ? Value : Args;

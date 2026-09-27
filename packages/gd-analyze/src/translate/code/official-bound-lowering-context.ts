@@ -220,6 +220,8 @@ export class LoweringContext {
     readonly narrowedNodes: ReadonlySet<number> = new Set(),
     /** Calls lowered to a switch over the project scripts that declare the method (`call-receivers.ts`). */
     readonly scriptSwitches: ReadonlyMap<number, readonly string[]> = new Map(),
+    /** The engine class up a class's chain that declares a signal of this name. */
+    readonly nativeSignalOwner?: (className: string, signal: string) => string | undefined,
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();

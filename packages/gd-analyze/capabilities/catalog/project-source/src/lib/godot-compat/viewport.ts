@@ -23,6 +23,7 @@ import { godot_control_call_gui_input, godot_control_find } from './control';
 import { godot_input_set_dispatch } from './input';
 import type { InputEventRecord } from './input-event';
 import { type GodotInputKind, can_process, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
+import { type GodotSignal, godot_object_signal } from './signal';
 import { affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 
 const renderers = new Set<WebGLRenderer>();
@@ -256,4 +257,14 @@ export function push_input(self: object, p_event: InputEventRecord, p_local_coor
 export function godot_viewport_attach_input(root: object): () => void {
   godot_input_set_dispatch((event) => push_input(root, event));
   return () => godot_input_set_dispatch(undefined);
+}
+
+/**
+ * The viewport's `size_changed` signal, which a changed size emits (`Viewport::_set_size`).
+ *
+ * @godot Viewport.size_changed
+ * @source scene/main/viewport.cpp:1188
+ */
+export function size_changed(self: object): GodotSignal<[]> {
+  return godot_object_signal<[]>(godot_node_entity(self), 'size_changed').signal;
 }

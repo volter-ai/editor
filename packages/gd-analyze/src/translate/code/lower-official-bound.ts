@@ -562,6 +562,7 @@ function lowerScript(
   nativeConstants: NativeConstantLookup | undefined,
   nativeMethods: NativeMethodLookup | undefined,
   nativeType: ((className: string) => readonly GodotNativeTypePart[]) | undefined,
+  nativeSignalOwner?: (className: string, signal: string) => string | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -607,6 +608,7 @@ function lowerScript(
     nativeType,
     new Set(source.refinedTypes.filter((entry) => entry.rule === 'type-test-narrowing').map((entry) => entry.nodeId)),
     new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
+    nativeSignalOwner,
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -763,6 +765,18 @@ export const GODOT_FORWARDED_SETTERS: Readonly<Record<string, string>> = {
   'Control.size': 'set_size',
 };
 
+/** The engine class up a class's chain that declares a signal (`ClassDB::has_signal`). */
+export function nativeSignalLookup(apiDump: GodotApiDump): (className: string, signal: string) => string | undefined {
+  const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  return (className, signal) => {
+    for (let current = classes.get(className); current !== undefined; ) {
+      if (current.signals.some((entry) => entry.name === signal)) return current.name;
+      current = current.base_class === '' ? undefined : classes.get(current.base_class);
+    }
+    return undefined;
+  };
+}
+
 export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
   const method = (className: string, name: string): NativePropertyAccessor | undefined => {
@@ -822,6 +836,7 @@ export function lowerOfficialBoundProgram(
   const nativeConstants = apiDump === undefined ? undefined : nativeConstantLookup(apiDump);
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
+  const nativeSignalOwner = apiDump === undefined ? undefined : nativeSignalLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -845,6 +860,7 @@ export function lowerOfficialBoundProgram(
         nativeConstants,
         nativeMethods,
         nativeType,
+        nativeSignalOwner,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

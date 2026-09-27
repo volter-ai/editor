@@ -121,12 +121,12 @@ export function construct(): Group {
 }
 
 /**
- * The player's `finished` signal.
+ * The player's `finished` signal, emitted when a playback ends.
  *
- * @godot AudioStreamPlayer (protocol)
+ * @godot AudioStreamPlayer.finished
  * @source scene/audio/audio_stream_player_internal.cpp:82
  */
-export function godot_audio_player_finished(self: object): GodotSignal<[]> {
+export function finished(self: object): GodotSignal<[]> {
   return stateOf(self, 'finished').finished.signal;
 }
 

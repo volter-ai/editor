@@ -1,4 +1,7 @@
+import { Group } from 'three';
+import * as A from '../../capabilities/catalog/project-source/src/lib/godot-compat/area-3d';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
+import { signalCase } from './native-signal-case';
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment } from './physics-timeline';
 
 const cases: GodotEvidenceCase[] = [];
@@ -62,6 +65,23 @@ add('set_monitoring', 'set_monitoring', [
   ...frames(3, { read: ['overlapping', 'coin'] }),
 ]);
 add('is_monitoring', 'is_monitoring', [{ ops: [COIN, { read: ['monitoring', 'coin'] }, { monitoring: 'coin', on: false }, { read: ['monitoring', 'coin'] }] }]);
+
+// The body signals read as Signal values (`bottom_detector.body_entered.connect(...)`).
+for (const member of ['body_entered', 'body_exited'] as const) {
+  cases.push(
+    signalCase({
+      owner: 'Area3D',
+      member,
+      make: 'Area3D.new()',
+      free: 'o.free()',
+      args: 'o',
+      signal: () => {
+        const area = new Group();
+        return { signal: A[member](area) as never, args: [area] };
+      },
+    }),
+  );
+}
 
 const EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

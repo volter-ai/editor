@@ -18,7 +18,10 @@ export interface GodotOfficialSymbolIdentity {
     | 'builtin-constant'
     /** A write to a built-in value's member (`v.x = e`), lowered as `v = with_x(v, e)`;
      *  signature `set`. */
-    | 'builtin-member-set';
+    | 'builtin-member-set'
+    /** An engine signal read as a value (`player.finished`): owner the declaring class, member the
+     *  signal, signature `signal`; called with the object's native entity. */
+    | 'native-signal';
   readonly owner: string;
   readonly member: string;
   readonly signature: string;

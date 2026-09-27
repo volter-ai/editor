@@ -391,6 +391,8 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         const name = attribute?.kind === 'IDENTIFIER' ? attribute.name : undefined;
         const selection = inputs.claim('classdb-method-selection');
         for (let current = classes.get(base.name); current !== undefined && name !== undefined && selection !== undefined; ) {
+          // An engine signal reads as a Signal (`ClassDB::get_property`, class_db.cpp:1660).
+          if (current.signals.some((entry) => entry.name === name)) return typeOfName('Signal', [...base.claims, selection]);
           const property = current.properties.find((entry) => entry.name === name);
           if (property !== undefined) {
             const getter = property.getter;
@@ -437,6 +439,17 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     // assignment guarantees an object of that class or a descendant.
     if (datatype.kind === 'NATIVE' && !datatype.metaType && (datatype.typeSource === 'ANNOTATED_EXPLICIT' || datatype.typeSource === 'ANNOTATED_INFERRED')) {
       return typeOfName(datatype.nativeType, []);
+    }
+    // An untyped local the compiler inferred from its initializer (`var p = AudioStreamPlayer.new()`)
+    // that nothing assigns again holds that value.
+    if (datatype.kind === 'NATIVE' && !datatype.metaType && datatype.typeSource === 'INFERRED' && node.kind === 'IDENTIFIER' && node.source === 'LOCAL_VARIABLE') {
+      const scope = program.nodes.find((candidate) => candidate.kind === 'FUNCTION' && within(node, candidate));
+      const reassigned = program.nodes.some((other) => {
+        if (other.kind !== 'ASSIGNMENT' || scope === undefined || !within(other, scope)) return false;
+        const assignee = nodes.get(other.assignee);
+        return assignee?.kind === 'IDENTIFIER' && assignee.name === node.name && assignee.source === 'LOCAL_VARIABLE';
+      });
+      if (scope !== undefined && !reassigned) return typeOfName(datatype.nativeType, []);
     }
     return {
       kind: 'unknown',

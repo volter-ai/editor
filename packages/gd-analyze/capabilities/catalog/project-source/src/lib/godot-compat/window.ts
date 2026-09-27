@@ -18,6 +18,7 @@
  */
 
 import type { Object3D } from 'three';
+import { godot_object_signal } from './signal';
 import { godot_audio_resume } from './audio-stream';
 import { flush_buffered_events, godot_input_attach_canvas, parse_input_event } from './input';
 import type { InputEventRecord } from './input-event';
@@ -25,7 +26,6 @@ import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector2i, type Vector2i } from './vector2i';
 
 const SIZES = new WeakMap<Object3D, Vector2i>();
-const SIZE_CHANGED = new WeakMap<Object3D, Set<() => void>>();
 
 /**
  * Stores the window's size as the host reads it from the page (`Window::set_size`,
@@ -42,23 +42,21 @@ export function godot_window_set_size(self: Object3D, p_size: Vector2i): void {
   const previous = SIZES.get(self);
   SIZES.set(self, size);
   if (previous !== undefined && previous.x === size.x && previous.y === size.y) return;
-  for (const listener of [...(SIZE_CHANGED.get(self) ?? [])]) listener();
+  godot_object_signal<[]>(self, 'size_changed').emit();
 }
 
 /**
- * Connects `listener` to the window's `size_changed`, as a root Control connects its
- * `_size_changed` on entering the canvas (`control.cpp:4577`); the returned call disconnects it
+ * Connects `listener` to a viewport's `size_changed` (the root window's or a SubViewport's), as a
+ * root Control connects its `_size_changed` on entering the canvas (`control.cpp:4577`); the returned call disconnects it
  * (`NOTIFICATION_EXIT_CANVAS`, `control.cpp:4589`).
  *
  * @godot Window (protocol)
  * @source scene/main/viewport.cpp:1188
  */
 export function godot_window_connect_size_changed(self: Object3D, listener: () => void): () => void {
-  const listeners = SIZE_CHANGED.get(self) ?? new Set<() => void>();
-  SIZE_CHANGED.set(self, listeners);
-  listeners.add(listener);
+  const connection = godot_object_signal<[]>(self, 'size_changed').signal.connect(listener);
   return () => {
-    listeners.delete(listener);
+    connection.disconnect();
   };
 }
 

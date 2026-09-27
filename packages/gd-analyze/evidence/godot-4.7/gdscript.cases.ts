@@ -644,6 +644,13 @@ for (const [id, result] of [['singleton-property-enum', ENUM]] as const) {
     line: 419,
   });
 }
+// An engine signal a native object's class declares reads as Signal(object, name), which compat
+// hands out through the class's accessor (`native-signal` bindings).
+rule('native-signal', 'SUBSCRIPT', 'subscript-attribute:native-signal', [NATIVE], B, { kind: 'binding' }, {
+  file: 'core/object/class_db.cpp',
+  symbol: 'ClassDB::get_property (a signal name reads as Signal(object, name))',
+  line: 1660,
+});
 // ClassDB integer constants and enum values are their values (the API dump states them).
 for (const [name, result] of [
   ['enum', ENUM],
@@ -1443,6 +1450,26 @@ func signals() -> Array:
 \tpinged.emit(2)
 \treturn [heard, connected, pinged.is_connected(_on_ping), counted.is_connected(_on_ping)]
 
+# An engine signal read as a Signal value, on an untyped and a typed receiver (\`native-signal\`).
+var finishes := []
+
+func _on_finished() -> void:
+\tfinishes.append(finishes.size())
+
+func native_signals() -> Array:
+\tvar p = AudioStreamPlayer.new()
+\tadd_child(p)
+\tvar q := AudioStreamPlayer.new()
+\tadd_child(q)
+\tp.finished.connect(_on_finished)
+\tq.finished.connect(_on_finished)
+\tp.finished.emit()
+\tq.finished.emit()
+\tvar connected: bool = p.finished.is_connected(_on_finished)
+\tq.finished.disconnect(_on_finished)
+\tq.finished.emit()
+\treturn [finishes, connected, q.finished.is_connected(_on_finished)]
+
 # An Object's truth (\`if obj:\`, \`not obj\`): false when null.
 func truths() -> Array:
 \tvar nothing: Node = null
@@ -1859,7 +1886,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'switched', 'singletons', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'not_nulls', 'truths', 'signals', 'native_signals', 'switched', 'singletons', 'dispatched', 'casts', 'narrowed_members', 'narrowed_compound', 'rid_values', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
@@ -1948,6 +1975,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
   ],
   compatModules: [
     'lib/godot-compat/animation-tree',
+    'lib/godot-compat/audio-stream-player',
     'lib/godot-compat/array',
     'lib/godot-compat/basis',
     'lib/godot-compat/dictionary',

@@ -987,6 +987,8 @@ function bindingSymbol(
     case 'native-constructor':
       // The identity lowering gives `Class.new()` (`nativeClassBinding`): the class as a value.
       return { ...base, kind: 'native-class', signature: 'GDScriptNativeClass' };
+    case 'native-signal':
+      return { ...base, kind: 'native-signal', signature: 'signal' };
     case 'utility-function':
       return {
         ...base,
@@ -1003,6 +1005,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
     case 'builtin-member':
     case 'builtin-member-set':
     case 'native-member':
+    case 'native-signal':
       return { kind: 'call', sourceReceiver: 'first-argument' };
     case 'builtin-constructor':
     case 'builtin-static':

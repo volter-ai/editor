@@ -5,6 +5,7 @@ import * as N from '../../capabilities/catalog/project-source/src/lib/godot-comp
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { playerCases } from './audio-players';
+import { signalCase } from './native-signal-case';
 
 // A player a script makes (`AudioStreamPlayer.new()`, as the kits' audio autoloads do), added to
 // the tree: its defaults and that it entered.
@@ -29,6 +30,10 @@ const EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',
   godotClass: 'AudioStreamPlayer',
   compatModule: 'lib/godot-compat/audio-stream-player',
-  cases: [...playerCases('AudioStreamPlayer', P as never, (entity) => P.godot_audio_stream_player_mount(entity)), constructed],
+  cases: [
+    ...playerCases('AudioStreamPlayer', P as never, (entity) => P.godot_audio_stream_player_mount(entity)),
+    constructed,
+    signalCase({ owner: 'AudioStreamPlayer', member: 'finished', make: 'AudioStreamPlayer.new()', free: 'o.free()', args: '', signal: () => ({ signal: P.finished(P.construct()) as never, args: [] }) }),
+  ],
 };
 export default EVIDENCE;

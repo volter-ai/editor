@@ -1,4 +1,7 @@
+import { Scene } from 'three';
+import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/viewport';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
+import { signalCase } from './native-signal-case';
 import { type Event, inputCase, type Op } from './input-tree';
 
 const cases: GodotEvidenceCase[] = [];
@@ -73,6 +76,9 @@ const GUI: Op[] = [
   { read: 'get_mouse_filter', on: 'panel' },
 ];
 add('push_input-gui', 'push_input', GUI);
+
+// The viewport's size_changed read as a Signal value (`get_viewport().size_changed.connect(...)`).
+cases.push(signalCase({ owner: 'Viewport', member: 'size_changed', make: 'holder.get_viewport()', args: '', signal: () => ({ signal: V.size_changed(new Scene()) as never, args: [] }) }));
 
 const EVIDENCE: GodotEvidenceCaseFile = { kind: 'node', godotClass: 'Viewport', compatModule: 'lib/godot-compat/viewport', cases };
 export default EVIDENCE;
