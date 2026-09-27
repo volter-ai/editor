@@ -106,11 +106,13 @@ Inspector's Transform, and the board's frames in the Hierarchy.
 Godot's 2D tool keys, read from the installed 4.7.1's shortcuts (Q Select, W Move, E Rotate, R Scale,
 G Pan, M Ruler), are all bound, the `canvas.*` ones only on a canvas stage: a mounted canvas
 document marks itself, so the stage reports `canvas` for it even in a world with a 3D root, and a
-stage with no canvas handler (3D, the 2D board, a DOM story) leaves the keys free (walked on a
-workbench carrying an earlier form of the rule: W lit Move, Q Select, G Pan, M Ruler and a second M left it; on a 3D stage G
+stage with no canvas handler (3D, the 2D board, a DOM story) leaves the keys free (walked in a world with both roots, a 3D `world` and a 2D canvas `hud`, on a workbench carrying the
+rule: on the 2D view W lit Move, Q Select, G Pan, M Ruler and a second M left it, Command+' drew the
+grid and took it away, and nothing logged "did not run"; on the 3D view G changed nothing while W
+armed Move. Walked before that on a canvas-only world, on an earlier form of the rule: W lit Move, Q Select, G Pan, M Ruler and a second M left it; on a 3D stage G
 did nothing and logged nothing while W still armed Move). The tool strip is Godot's one row: Select to
 Ruler, snapping, then Lock, Group and the View menu (walked); Frame all, with no home in Godot,
 stays apart.
 
-1. The canvas-surface rule in a world with both a 3D and a 2D root is not walked (the probes are one
-   or the other), nor on the new rule's workbench build yet.
+None open beyond the partials recorded in the rows above; on the 2D board and a DOM story the
+canvas keys are left free by the same rule, which is not walked there.
