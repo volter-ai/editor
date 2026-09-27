@@ -1,6 +1,7 @@
 /**
  * A TRACK'S MIXER AUTOMATION, as both mixes apply it: a `<Points>` child of `<Track>` whose
- * target is `volume` or `send:<bus>` (dB) or `pan` (−1…1).
+ * target is `volume` or `send:<bus>` (dB) or `pan` (−1…1), and the channel's `<Lfo>`s on the
+ * same targets, whose waves add to the lane (or to the written value where there is no lane).
  *
  * The lane's value runs piecewise-linear between its points in its own units (a `hold` point
  * steps), and is held flat before its first point and after its last. What a mix APPLIES is that
@@ -9,7 +10,7 @@
  * exactly those lines (`linearRampToValueAtTime` between grid points) and the offline mix computes
  * the same lines per sample, so the two mixes stay equal with a lane that curves in dB.
  */
-import type { PiecePoints, PieceTrack } from '@volter/dawproject/piece';
+import type { PieceLfo, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
 import { dbToGain } from './dsp';
 
 /** Seconds between the values a mix applies. 5 ms: finer than a fader move a person can hear. */
@@ -29,6 +30,53 @@ export function mixTarget(target: string): MixTarget | null {
 /** The track's lane for a target, when it has one (the first, when it has several). */
 export function laneFor(track: PieceTrack, target: string): PiecePoints | undefined {
   return track.lanes.find((lane) => lane.target === target && lane.points.length > 0);
+}
+
+/** An LFO's wave at a beat of the piece, −1…1 times its depth. */
+export function lfoValue(lfo: PieceLfo, beat: number): number {
+  const cycle = beat / lfo.period + lfo.phase;
+  const p = cycle - Math.floor(cycle);
+  // Every shape starts its cycle where a sine does, rising through 0 (the saw from −1).
+  const wave =
+    lfo.shape === 'triangle'
+      ? 1 - 4 * Math.abs(((p + 0.25) % 1) - 0.5)
+      : lfo.shape === 'square'
+        ? p < 0.5
+          ? 1
+          : -1
+        : lfo.shape === 'saw'
+          ? 2 * p - 1
+          : Math.sin(2 * Math.PI * p);
+  return wave * lfo.depth;
+}
+
+/**
+ * What moves one strip parameter: its lane (if any) and the LFOs on it, around `base`, the value
+ * written on the channel. `null` when nothing moves it.
+ */
+export interface Motion {
+  readonly lane: PiecePoints | undefined;
+  readonly lfos: readonly PieceLfo[];
+  readonly base: number;
+}
+
+/** The motion of a track's `target` parameter, or `null` when it holds its written value. */
+export function motionFor(track: PieceTrack, target: string): Motion | null {
+  const parsed = mixTarget(target);
+  const channel = track.channel;
+  if (!parsed || !channel) return null;
+  const lane = laneFor(track, target);
+  const lfos = channel.lfos.filter((lfo) => lfo.target === target && lfo.depth !== 0 && lfo.period > 0);
+  if (!lane && lfos.length === 0) return null;
+  const base =
+    parsed.kind === 'volume' ? channel.volume : parsed.kind === 'pan' ? channel.pan : (channel.sends.find((send) => send.to === parsed.to)?.level ?? 0);
+  return { lane, lfos, base };
+}
+
+/** A moving parameter's value at a beat, in its own units: the lane (or the written value) plus every LFO's wave. */
+export function motionValueAtBeat(motion: Motion): (beat: number) => number {
+  const laneAt = motion.lane ? laneValueAtBeat(motion.lane) : () => motion.base;
+  return (beat) => motion.lfos.reduce((sum, lfo) => sum + lfoValue(lfo, beat), laneAt(beat));
 }
 
 /** The lane's value at a beat of the piece, as a function (its points sorted once). */
@@ -60,11 +108,11 @@ export function appliedValue(target: MixTarget, value: number): number {
  * it (`beatAt` maps a second to the beat the lane is written in) and the line between them. The
  * returned function caches each grid value it computes.
  */
-export function automationCurve(lane: PiecePoints, target: MixTarget, beatAt: (second: number) => number): {
+export function automationCurve(motion: Motion, target: MixTarget, beatAt: (second: number) => number): {
   readonly at: (second: number) => number;
   readonly grid: (k: number) => number;
 } {
-  const valueAt = laneValueAtBeat(lane);
+  const valueAt = motionValueAtBeat(motion);
   const cache = new Map<number, number>();
   const grid = (k: number): number => {
     let value = cache.get(k);

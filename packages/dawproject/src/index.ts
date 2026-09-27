@@ -73,6 +73,22 @@ export interface ChannelProps {
   readonly children?: ReactNode;
 }
 
+/**
+ * A modulator on a `<Channel>`, as Bitwig's LFO: a wave added to one of the channel's own
+ * parameters, `target` `volume` or `send:<bus>` (±`depth` dB) or `pan` (±`depth`, the sum
+ * clamped to −1…1). One cycle lasts `period` (a note value or a number of beats, so it follows
+ * the tempo), counted from the piece's first beat and offset by `phase` (0–1 of a cycle). It adds
+ * to the parameter's written value, or to its automation lane where it has one. DAWproject has no
+ * modulators: its export writes the moving parameter as automation points.
+ */
+export interface LfoProps {
+  readonly target: string;
+  readonly shape?: 'sine' | 'triangle' | 'square' | 'saw';
+  readonly period: Length;
+  readonly depth: number;
+  readonly phase?: number;
+}
+
 /** DAWproject `Send`: this channel feeds the `effect` channel of the track named `to`, at `level` dB. */
 export interface SendProps {
   readonly to: string;
@@ -202,6 +218,7 @@ export const Marker = element<MarkerProps>('dawproject.Marker');
 export const Points = element<PointsProps>('dawproject.Points');
 export const Audio = element<AudioProps>('dawproject.Audio');
 export const Point = element<PointProps>('dawproject.Point');
+export const Lfo = element<LfoProps>('dawproject.Lfo');
 export const Scene = element<SceneProps>('dawproject.Scene');
 export const ClipSlot = element<ClipSlotProps>('dawproject.ClipSlot');
 
@@ -219,6 +236,7 @@ export const ELEMENT_TYPES = {
   Points: 'dawproject.Points',
   Point: 'dawproject.Point',
   Audio: 'dawproject.Audio',
+  Lfo: 'dawproject.Lfo',
   Scene: 'dawproject.Scene',
   ClipSlot: 'dawproject.ClipSlot',
 } as const;

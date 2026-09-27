@@ -212,6 +212,16 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
         problems.push(`${track.name}: its pan lane has values outside −1…1; they are clamped`);
       }
     }
+    for (const lfo of track.channel?.lfos ?? []) {
+      const target = mixTarget(lfo.target);
+      if (!target) {
+        problems.push(`${track.name}: its <Lfo>'s target "${lfo.target}" is none of volume, pan or send:<bus>, so it moves nothing`);
+      } else if (target.kind === 'send' && !(track.channel?.sends ?? []).some((send) => send.to === target.to)) {
+        problems.push(`${track.name}: its <Lfo> moves a send the track does not have; add <Send to="${target.to}"> to its channel`);
+      } else if (lfo.depth === 0) {
+        problems.push(`${track.name}: its <Lfo> on ${lfo.target} has depth 0, so it moves nothing`);
+      }
+    }
     if (track.channel?.solo && track.channel.role !== 'regular') {
       problems.push(`${track.name}: a solo on the ${track.channel.role === 'master' ? 'master' : 'effect bus'} channel does nothing; solo the regular tracks that feed it`);
     }

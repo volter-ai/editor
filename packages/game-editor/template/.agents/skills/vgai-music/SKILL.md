@@ -73,6 +73,11 @@ export default function Theme() {
   types `highPass lowPass lowShelf highShelf bell`), `compressor` (`threshold ratio attack
   release knee makeup`, and `sidechain: "<track>"` to compress on another track's signal, as a pad
   ducks under the melody), `limiter` (`ceiling release`), `convolution` (`ir predelay wet`).
+- Movement: `<Lfo target="volume" shape="sine" period="w" depth={3} />` in a `<Channel>` swings
+  its volume ±3 dB once a bar (`target` `volume`, `pan` or `send:<bus>`; `shape` `sine triangle
+  square saw`; `period` a note value or beats, so it follows the tempo; `phase` 0–1), adding to
+  the written value or to the track's lane for that target. The DAWproject export writes it out
+  as automation points.
 - Scenes: `<Scene name="Combat">` (a `<Project>` child, after the tracks) holds a
   `<ClipSlot track="Bass"><Clip bars={1}>…</Clip></ClipSlot>` per track that plays in it. A slot's
   clip has no `at`; its notes count from its own start as bar 1 (`at="1:2.5"`), and it loops. A

@@ -17,7 +17,9 @@ deleted and duplicated; markers are added, moved, renamed and deleted; a ruler
 click sets where Play starts; tracks, devices and sends are added; a track's
 mixer (volume, pan, each send) is automated on its own lanes across the
 arrangement, which both mixes apply on one 5 ms grid (they null at −139.6 dB with
-lanes moving). A `<Track>` whose channel is `role="submix"` is a group: the tracks
+lanes moving). A channel's `<Lfo>`s swing its volume, pan or a send on the same grid, over
+the lane where there is one (−139 dB null with four LFOs moving), edited as cards beside its
+devices. A `<Track>` whose channel is `role="submix"` is a group: the tracks
 inside it sum into its strip, drawn indented under it and nested in the DAWproject
 export. A compressor's `sidechain` names the track its detector hears
 (after that track's fader and pan), in both mixes, picked in its device card. A clip

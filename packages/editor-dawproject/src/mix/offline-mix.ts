@@ -10,7 +10,7 @@
  */
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { convolve, prepareIr } from './convolve';
-import { automationCurve, laneFor, mixTarget } from './automation';
+import { automationCurve, mixTarget, motionFor } from './automation';
 import { Biquad, Compressor, compressorParams, dbToGain, gain, gainEach, Limiter, pan, panEach, type Stereo, validBands } from './dsp';
 
 export interface ImpulseResponse {
@@ -172,13 +172,13 @@ export function stripLevels(piece: Piece, track: PieceTrack, soloed = soloActive
 export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const length = inputs.channels[0]?.[0].length ?? 0;
   const silence = (): Stereo => [new Float32Array(length), new Float32Array(length)];
-  // A strip parameter a track automates, per sample (`automation.ts`); null where it is static.
+  // A strip parameter a track automates or modulates, per sample (`automation.ts`); null where it is static.
   const envelope = (track: PieceTrack, target: string): Float32Array | null => {
     const timeline = inputs.timeline;
-    const lane = timeline ? laneFor(track, target) : undefined;
+    const motion = timeline ? motionFor(track, target) : null;
     const parsed = mixTarget(target);
-    if (!timeline || !lane || !parsed) return null;
-    const curve = automationCurve(lane, parsed, timeline.beatAt);
+    if (!timeline || !motion || !parsed) return null;
+    const curve = automationCurve(motion, parsed, timeline.beatAt);
     const out = new Float32Array(length);
     for (let i = 0; i < length; i++) {
       const offset = i / inputs.sampleRate;

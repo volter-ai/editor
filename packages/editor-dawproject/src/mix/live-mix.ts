@@ -21,7 +21,7 @@ import { everyClip } from '../launches';
 import { readWav } from '../wav';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { prepareIr } from './convolve';
-import { AUTOMATION_GRID, automationCurve, laneFor, mixTarget } from './automation';
+import { AUTOMATION_GRID, automationCurve, mixTarget, motionFor } from './automation';
 import { biquadNode, validBands } from './dsp';
 import { destinationOf, soloActive, stripLevels } from './offline-mix';
 import workletUrl from './dynamics.worklet.ts?worker&url';
@@ -382,8 +382,8 @@ export class LiveMix {
       const nodes = graph.strips.get(track.id);
       if (!nodes || !track.channel) continue;
       const levels = stripLevels(piece, track, soloed);
-      // An automated parameter follows its lane (`automate`); a silenced strip is silenced anyway.
-      const automated = (target: string, level: number): boolean => level !== 0 && levels.sounding && laneFor(track, target) !== undefined && mixTarget(target) !== null;
+      // A moving parameter (a lane, an LFO) follows its curve (`automate`); a silenced strip is silenced anyway.
+      const automated = (target: string, level: number): boolean => level !== 0 && levels.sounding && motionFor(track, target) !== null;
       if (!automated('volume', levels.fader)) set(nodes.fader.gain, levels.fader);
       if (!automated('pan', 1)) set(nodes.panner.pan, levels.pan);
       nodes.sends.forEach((send, index) => {
@@ -402,13 +402,13 @@ export class LiveMix {
     const params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] = [];
     for (const track of piece.tracks) {
       const nodes = graph.strips.get(track.id);
-      if (!nodes || !track.channel || track.lanes.length === 0) continue;
+      if (!nodes || !track.channel || (track.lanes.length === 0 && track.channel.lfos.length === 0)) continue;
       const levels = stripLevels(piece, track, soloed);
       if (!levels.sounding) continue;
       const add = (param: AudioParam | undefined, target: string): void => {
-        const lane = laneFor(track, target);
+        const motion = motionFor(track, target);
         const parsed = mixTarget(target);
-        if (param && lane && parsed) params.push({ param, curve: automationCurve(lane, parsed, beatAt) });
+        if (param && motion && parsed) params.push({ param, curve: automationCurve(motion, parsed, beatAt) });
       };
       add(levels.fader !== 0 ? nodes.fader.gain : undefined, 'volume');
       add(nodes.panner.pan, 'pan');

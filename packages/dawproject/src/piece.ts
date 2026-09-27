@@ -98,6 +98,18 @@ export interface PieceSend {
   readonly pre: boolean;
 }
 
+/** A channel's LFO (`<Lfo>`): a wave added to `target`, one cycle per `period` beats. */
+export interface PieceLfo {
+  readonly oid: string | null;
+  readonly target: string;
+  readonly shape: 'sine' | 'triangle' | 'square' | 'saw';
+  readonly period: number;
+  readonly depth: number;
+  readonly phase: number;
+  /** The period as written (`"h"`, `2`), for an editor field. */
+  readonly writtenPeriod: string;
+}
+
 export interface PieceChannel {
   readonly oid: string | null;
   /** `submix`: a group track's channel, summing the tracks it contains (DAWproject's role). */
@@ -108,6 +120,7 @@ export interface PieceChannel {
   readonly solo: boolean;
   readonly devices: readonly PieceDevice[];
   readonly sends: readonly PieceSend[];
+  readonly lfos: readonly PieceLfo[];
 }
 
 export interface PieceTrack {
@@ -273,6 +286,27 @@ export function readPiece(root: DawNode): Piece {
           sends: child.children
             .filter((send) => send.type === 'Send')
             .map((send) => ({ oid: send.oid, to: str(send.props['to']) ?? '', level: num(send.props['level'], 0), pre: bool(send.props['pre']) })),
+          lfos: child.children
+            .filter((lfo) => lfo.type === 'Lfo')
+            .map((lfo) => {
+              const shape = str(lfo.props['shape']);
+              const period = lfo.props['period'];
+              return {
+                oid: lfo.oid,
+                target: str(lfo.props['target']) ?? '',
+                shape: shape === 'triangle' || shape === 'square' || shape === 'saw' ? shape : 'sine',
+                period: (() => {
+                  try {
+                    return beatsOf(typeof period === 'number' ? period : String(period ?? ''));
+                  } catch (error) {
+                    throw new Error(`The <Lfo> on ${trackName}'s channel has no period it can cycle over: ${error instanceof Error ? error.message : String(error)}`);
+                  }
+                })(),
+                depth: num(lfo.props['depth'], 0),
+                phase: num(lfo.props['phase'], 0),
+                writtenPeriod: String(period ?? ''),
+              };
+            }),
           volume: num(child.props['volume'], 0),
           pan: num(child.props['pan'], 0),
           mute: bool(child.props['mute']),

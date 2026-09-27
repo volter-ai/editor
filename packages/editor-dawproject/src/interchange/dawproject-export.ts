@@ -24,6 +24,7 @@ import { assignChannels, type DecodedAudio } from '../render-offline';
 import { everyClip } from '../launches';
 import { wav24 } from '../wav';
 import type { Piece, PieceClip, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
+import { motionFor, motionValueAtBeat } from '../mix/automation';
 import { destinationOf } from '../mix/offline-mix';
 
 export interface DawprojectOptions {
@@ -232,15 +233,27 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     for (const clip of track.clips) emitClip(5, clip, midiChannel);
     out(4, '</Clips>');
     // The track's mixer automation, each lane on the parameter it moves (`<Target parameter>`).
-    for (const points of track.lanes) {
-      const parameter = paramIds.get(track.id)?.get(points.target);
-      if (!parameter) continue;
-      const pan = points.target === 'pan';
+    // An LFO has no DAWproject form: a parameter it moves is written as points, 32 per cycle of its
+    // fastest LFO across the arrangement, of the value the mixes apply (lane plus waves).
+    const targets = [...new Set([...track.lanes.map((points) => points.target), ...(track.channel?.lfos ?? []).map((lfo) => lfo.target)])];
+    for (const target of targets) {
+      const parameter = paramIds.get(track.id)?.get(target);
+      const motion = motionFor(track, target);
+      if (!parameter || !motion) continue;
+      const pan = target === 'pan';
+      const written = (value: number): number => (pan ? (Math.max(-1, Math.min(1, value)) + 1) / 2 : 10 ** (value / 20));
       out(4, `<Points${attrs({ id: id(), unit: pan ? 'normalized' : 'linear' })}>`);
       out(5, `<Target${attrs({ parameter })}/>`);
-      for (const point of [...points.points].sort((a, b) => a.time - b.time)) {
-        const value = pan ? (Math.max(-1, Math.min(1, point.value)) + 1) / 2 : 10 ** (point.value / 20);
-        out(5, `<RealPoint${attrs({ time: beats(point.time), value: beats(value), interpolation: point.hold ? 'hold' : 'linear' })}/>`);
+      if (motion.lfos.length === 0 && motion.lane) {
+        for (const point of [...motion.lane.points].sort((a, b) => a.time - b.time)) {
+          out(5, `<RealPoint${attrs({ time: beats(point.time), value: beats(written(point.value)), interpolation: point.hold ? 'hold' : 'linear' })}/>`);
+        }
+      } else {
+        const step = Math.min(...motion.lfos.map((lfo) => lfo.period)) / 32;
+        const valueAt = motionValueAtBeat(motion);
+        for (let k = 0; k * step <= piece.length + 1e-9; k++) {
+          out(5, `<RealPoint${attrs({ time: beats(k * step), value: beats(written(valueAt(k * step))), interpolation: 'linear' })}/>`);
+        }
       }
       out(4, '</Points>');
     }
