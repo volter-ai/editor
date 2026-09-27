@@ -83,6 +83,7 @@ sky_material = SubResource("PanoramaSkyMaterial_fjheq")
 [sub_resource type="Environment" id="Environment_camera"]
 background_mode = 2
 sky = SubResource("Sky_7bk1c")
+ambient_light_source = 2
 
 [node name="Main" type="Node3D"]
 
