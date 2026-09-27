@@ -16,6 +16,16 @@ add('set_shape', 'set_shape', [
   { await: 'physics', ops: [ray(3), { reshape: 'a', index: 1, shape: { box: [2, 2, 2] } }] },
   { await: 'physics', ops: [ray(3)] },
 ]);
+// A shape child moved straight through three between frames (a JSX prop re-render, an editor
+// drag), as Godot sees its CollisionShape3D moved: from the next physics frame a query finds it at
+// its new place and not at its old one. (A move Godot sees applies to a query in the same frame; a
+// move made in three is known only at the next step.)
+add('moved-through-three', 'set_shape', [
+  { ops: [BODY] },
+  { await: 'physics', ops: [ray(3), ray(5), { shift: 'a', index: 1, at: [5, 0, 0] }] },
+  { await: 'physics', ops: [ray(5), ray(3)] },
+  { await: 'physics', ops: [ray(5)] },
+]);
 add('get_shape', 'get_shape', [{ ops: [BODY, { read: ['shapeNull', 'a', 0] }, { reshape: 'a', index: 0, shape: null }, { read: ['shapeNull', 'a', 0] }] }]);
 add('set_disabled', 'set_disabled', [
   { ops: [BODY, { disable: 'a', index: 1, on: true }] },

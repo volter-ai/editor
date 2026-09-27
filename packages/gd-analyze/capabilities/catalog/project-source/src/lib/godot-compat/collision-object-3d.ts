@@ -97,6 +97,35 @@ const ENTITY_OF_COLLIDER = new Map<number, object>();
  */
 const DIRTY = new Set<object>();
 
+/** The three values each shape node's local transform was last read from, as pushed. */
+const PUSHED_LOCAL = new WeakMap<object, readonly number[]>();
+
+/** An object's local transform as three holds it: its matrix, or its position, quaternion and scale. */
+function threeLocal(object: Object3D): readonly number[] {
+  if (!object.matrixAutoUpdate) return [...object.matrix.elements];
+  const { position: p, quaternion: q, scale: s } = object;
+  return [p.x, p.y, p.z, q.x, q.y, q.z, q.w, s.x, s.y, s.z];
+}
+
+/**
+ * A shape node moved through three directly (a JSX prop re-render, an editor drag), not through
+ * Node3D's setters: its owner is marked as behind, as `NOTIFICATION_LOCAL_TRANSFORM_CHANGED` marks
+ * it for a move Godot sees (`collision_shape_3d.cpp:95`). Only collision objects' shape nodes are
+ * compared, against the value last pushed.
+ */
+function markMovedShapes(): void {
+  for (const [entity, state] of OBJECT) {
+    if (DIRTY.has(entity) || state.body === undefined || STAND_IN_COLLIDERS.has(entity)) continue;
+    for (const entry of state.colliders) {
+      const pushed = PUSHED_LOCAL.get(entry.shapeNode);
+      const now = threeLocal(entry.shapeNode as Object3D);
+      if (pushed !== undefined && pushed.length === now.length && pushed.every((value, index) => value === now[index])) continue;
+      DIRTY.add(entity);
+      break;
+    }
+  }
+}
+
 /** Marks the collision object at or above an entity (a shape's owner is its parent) as behind. */
 function markOwner(entity: object): void {
   let node: Object3D | null = entity as Object3D;
@@ -586,6 +615,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
     UNSTEPPED.add(entry.collider.handle);
     ENTITY_OF_COLLIDER.set(entry.collider.handle, entity);
   }
+  for (const entry of state.colliders) PUSHED_LOCAL.set(entry.shapeNode, threeLocal(entry.shapeNode as Object3D));
   if (state.materialApplied) applyMaterial(state);
 }
 
@@ -631,6 +661,7 @@ export function godot_collision_object_material(entity: object, material: Physic
 export function godot_collision_objects_sync(world: World, query = false): void {
   space = world;
   godot_collision_objects_hold_detached();
+  if (!query) markMovedShapes();
   for (const entity of [...DIRTY]) {
     const state = OBJECT.get(entity);
     if (state === undefined) {

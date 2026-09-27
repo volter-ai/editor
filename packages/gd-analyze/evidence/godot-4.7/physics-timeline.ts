@@ -71,6 +71,8 @@ export type Op =
   | { readonly layerBit: string; readonly bit: number; readonly on: boolean }
   | { readonly maskBit: string; readonly bit: number; readonly on: boolean }
   | { readonly disable: string; readonly index: number; readonly on: boolean }
+  /** A shape child moved through three directly (a JSX prop re-render, an editor drag): not through compat. */
+  | { readonly shift: string; readonly index: number; readonly at: Triple }
   | { readonly reshape: string; readonly index: number; readonly shape: Shape | null }
   | { readonly remove: string }
   | { readonly add: string; readonly to?: string }
@@ -292,6 +294,7 @@ function gdOp(op: Op): string[] {
     return [...gdShape(name, op.shape), `${v(op.reshape)}.get_child(${String(op.index)}).set_shape(${name})`];
   }
   if ('disable' in op) return [`${v(op.disable)}.get_child(${String(op.index)}).set_disabled(${String(op.on)})`];
+  if ('shift' in op) return [`${v(op.shift)}.get_child(${String(op.index)}).position = ${gv(op.at)}`];
   if ('add' in op) return [`${op.to === undefined ? 'holder' : v(op.to)}.add_child(${v(op.add)})`];
   if ('watch' in op) {
     return [
@@ -581,6 +584,7 @@ function target(segments: readonly Segment[]): () => unknown {
       else if ('maskBit' in op) CO.set_collision_mask_value(node(op.maskBit), op.bit, op.on);
       else if ('reshape' in op) CS.set_shape(node(op.reshape).children[op.index] as object, op.shape === null ? null : jsShape(op.shape));
       else if ('disable' in op) CS.set_disabled(node(op.disable).children[op.index] as object, op.on);
+      else if ('shift' in op) (node(op.shift).children[op.index] as Object3D).position.set(...op.at);
       else if ('add' in op) N.add_child(op.to === undefined ? holder : node(op.to), node(op.add));
       else if ('watch' in op) {
         const area = node(op.watch);
