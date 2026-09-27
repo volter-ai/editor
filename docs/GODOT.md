@@ -598,9 +598,7 @@ branch of `volter-ai/editor`.
   re-run the match-3 import (official Godot crashed on it), the platformer gate, rebase, push.
 
 **Open work.**
-- [core] The full denominator: lowering stops at a script's first refusal
-  (`lower-official-bound.ts`, one catch per script), so refusal counts show one gap per file.
-  Record every refusal and report them by family per kit; plan work from that.
+- [core] Plan from the full denominator (`gd-analyze refusals`, §Resumed below).
 - [core] `evidence --refresh --stale`: re-measure only what `gd-analyze liveness` reports stale.
 - [core] The platformer traced against official Godot on the same scripted inputs, frame by frame.
 - [core] Land the three wip branches (above), then GPUParticles2D (one shared WebGL context, each
@@ -613,7 +611,7 @@ branch of `volter-ai/editor`.
   worker thread, stripped binary; 1 in ~40 runs); the import reports the signal and does not retry.
 
 Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, match-3 24,
-3d-platformer 50, city-builder 7, racing 35.
+3d-platformer 50, city-builder 7, racing 35. Superseded by the full counts in §Resumed.
 
 **Prerequisites on the new machine.**
 - macOS on arm64: the official editors and the bound exporters are macOS arm64 builds.
@@ -621,7 +619,7 @@ Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, ma
 - Official Godot 4.7-stable (executable sha256 `445c6f95…`, reports
   `4.7.stable.official.5b4e0cb0f`) and 4.6-stable (`974197a7…`), from the Godot releases.
 - The bound exporters, pinned by executable sha in `src/godot-frontend/source-authority.ts`
-  (4.7 `21e4bd4c…`). Either copy them (`tools/godot-4.7-bound-exporter-engine-shader`, 600 MB;
+  (4.7 `c8034e90…` since the resume, §Resumed). Either copy them (`tools/godot-4.7-bound-exporter-engine-shader`, 600 MB;
   `tools/godot-4.6-bound-exporter-shader`, 619 MB), or rebuild with
   `node packages/gd-analyze/scripts/build-godot-bound-exporter.mjs --version 4.7` from the pinned
   source trees (`godot-4.7-source`, `godot-4.6-source`, revision and tree sha in the same file;
@@ -643,6 +641,61 @@ Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, ma
   --bound-exporter-binary … --official-binary …`, then `cli.ts run <out> --frames 120` (0 thrown,
   stepped physics frames). Live reading: `npm ci` in `<out>`, `npx volter-game-editor edit .`,
   `play`, and drive it through `game.input.set/tap` (the game's `debug.input` door).
+
+## Resumed (2026-09-27, second machine)
+
+The lane moved to a second machine the same day. Tools live in an APFS sparse image on its
+external drive (`Backup Driv/volter/godot-work.sparsebundle`, mounted at `/Volumes/GodotWork`:
+`tools/`, `src/`, `tmp/`, and the `godot` worktree `editor-godot/`). The drive itself is exFAT,
+which has no symlinks or Unix modes, so npm and scons cannot run on it directly. Its USB
+throughput makes `node_modules` trees slow there: an import's output directory belongs on the
+internal disk, with `TMPDIR` on the image.
+
+**Toolchain.** Official 4.7 and 4.6 and both pinned source archives downloaded at their pinned
+sha256. The 4.7 bound exporter, rebuilt with Apple clang 17 from the pinned tree, matched the
+tree, archive and exporter-source digests; only its executable differed, so 4.7 is re-pinned to
+`c8034e90…` with a full refresh (every proof agrees, every claim live). The 4.6 rebuild's
+exporter-source digest is `9c6e0243…` against the pinned `50b326cc…`: the exporter module moved on
+after 4.6 was last pinned. Re-pinning 4.6 is a `--godot 4.6` refresh, still open.
+
+**The full denominator.** Lowering now records each refusal and skips the statement or member it
+refused (`LoweringContext.recover`), so a refused script reports every refusal it holds; a script
+with any is still refused whole, and an accepted script lowers byte-identically. A refused
+inheritance still stops its script, because everything after it resolves the base.
+`gd-analyze refusals` plans each fixture read-only (no emit, install or build) and groups every
+refusal by family: the message with its paths, numbers and API-dump class names masked, the names
+kept as the family's subjects. Measured at the resume:
+
+| Kit | Refusals |
+| --- | --- |
+| starter-kit-fps | 77 |
+| starter-kit-match-3 | 66 |
+| starter-kit-3d-platformer | 62 |
+| starter-kit-racing | 56 |
+| starter-kit-city-builder | 39 |
+| starter-kit-basic-scene | 8 |
+| platformer-3d-godot4 | 0 (imports) |
+| five Godot 3 games | the frontend pin, by name |
+
+The largest families: scene field values with no target binding (84: GPUParticles3D's
+`set_process_material`/`set_draw_pass_mesh`/`set_amount`, `set_material_override`,
+AnimatedSprite3D, LabelSettings), code calls with no target binding (32: Tween, `GDScript.new`,
+`print`), model images outside the file (25, `godot-wip-e`), scene nodes with no live evidence
+(18: GPUParticles3D, AnimatedSprite3D, Timer, CSGBox3D, SubViewport, the 2D nodes), and GDScript
+language rules over Variant (about 50: subscripts, `if`, `for`, assignment conversions,
+coroutines, defaulted parameters).
+
+**The import lock was not installable.** The frozen import lock left out
+`@colyseus/uwebsockets-transport`, a required peer of `colyseus` (under `@volter/game-editor`),
+and so `uWebSockets.js`: it had been resolved with peer dependencies off, and `npm ci` of every
+imported game failed under npm's defaults. The lock now carries both rows, as npm resolves them.
+`uWebSockets.js` is published only on GitHub, so its row is a git URL pinned to a full commit
+with no integrity; the lock plan accepts exactly that form (the commit names the content) and
+nothing looser. npm fetches it as GitHub's https tarball with no git credentials (measured with
+ssh disabled and an empty cache). The monorepo's own lock resolves it the same way.
+
+The platformer gate passes on this machine: import (plan, emit, `npm ci`, typecheck, vite build)
+and `run --frames 120`: 0 thrown, 239 physics frames, physics per frame p50 4.7 ms, p99 8.5 ms.
 
 ## What comes next
 

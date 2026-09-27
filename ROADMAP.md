@@ -117,7 +117,7 @@ Completion:
 
 ## godot-lane: The Godot import lane
 
-Status: paused to move machines (owner, 2026-09-27); resume from docs/GODOT.md §Handoff
+Status: active (resumed on the second machine 2026-09-27; docs/GODOT.md §Resumed)
 Restored from vgai-engine `archive/godot-lane-2026-09-19` into `packages/gd-analyze`. The design, what was built, the rulings and the order of work are [docs/GODOT.md](docs/GODOT.md). `platformer-3d-godot4` imports as idiomatic R3F over an evidenced godot-compat and plays in the game editor; the six Godot 4.x starter kits import as far as their named refusals; the six Godot 3 games wait on a 3.x frontend.
 Completion:
 - A context-free reviewer passes all ten rows of vgai-engine `docs/ARCHITECTURE-CORE.md` §Migration compiler reference architecture on the lane.
