@@ -42,7 +42,6 @@ export type GodotTargetBinding =
       readonly exportName: string;
       readonly localName: string;
       readonly use: GodotTargetBindingUse;
-      readonly evidenceClaimId: string;
     }
   | {
       readonly kind: 'compat-binding';
@@ -51,7 +50,6 @@ export type GodotTargetBinding =
       readonly exportName: string;
       readonly localName: string;
       readonly use: GodotTargetBindingUse;
-      readonly evidenceClaimId: string;
     }
   | {
       readonly kind: 'refusal-binding';

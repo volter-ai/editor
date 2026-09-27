@@ -8,8 +8,6 @@ import {
 } from '../../../game-editor/node/scaffold/baseline.js';
 import { type CatalogEntry, readCatalog } from '../../../game-editor/node/scaffold/catalog.js';
 import { type GodotApiDump, parseGodotApiDump } from '../analyze/api-dump';
-import type { GodotAnalysisAuthority } from '../analyze/authority';
-import { godotAnalysisAuthority } from '../analyze/authority-data';
 import {
   captureGodotBoundExporterSnapshot,
   type GodotBoundExporterSnapshot,
@@ -17,8 +15,6 @@ import {
 } from '../godot-frontend/run-bound-program';
 import { selectGodotFrontendAuthority } from '../godot-frontend/select-frontend';
 import type { GodotSourceAuthority } from '../godot-frontend/source-authority';
-import type { GodotReadAuthority } from '../read/authority';
-import { godotReadAuthority } from '../read/authority-data';
 import type { GodotCodeTranslationAuthority } from '../translate/code/authority';
 import { godotCodeTranslationAuthority } from '../translate/code/authority-data';
 import type { GodotFieldValueAuthority } from '../translate/data/field-value-authority';
@@ -93,10 +89,6 @@ export interface GodotToolchainFrontendSnapshot {
   readonly authority: GodotSourceAuthority;
   /** The release the project was authored in (`config/features`), at most the pinned one. */
   readonly projectVersion: string;
-  readonly analysisAuthority: GodotAnalysisAuthority;
-  readonly analysisAuthorityDigest: string;
-  readonly readAuthority: GodotReadAuthority;
-  readonly readAuthorityDigest: string;
   readonly exporter: GodotBoundExporterSnapshot;
   readonly importer: GodotOfficialImporter;
   readonly apiDump: GodotToolchainApiDumpSnapshot;
@@ -161,7 +153,7 @@ function sha256(bytes: Uint8Array | string): string {
 }
 
 /** Capture and decode the exact API dump named by the selected source authority once. */
-export function captureGodotApiDumpSnapshot(
+function captureGodotApiDumpSnapshot(
   authority: GodotSourceAuthority,
   extensionApiDir: string = DEFAULT_EXTENSION_API_DIR,
 ): GodotToolchainApiDumpSnapshot {
@@ -514,8 +506,6 @@ function captureToolchainSnapshot(
         : {
             frontend: {
               authority: frontend.authority,
-              analysisAuthorityDigest: frontend.analysisAuthorityDigest,
-              readAuthorityDigest: frontend.readAuthorityDigest,
               apiDump: {
                 fileName: frontend.apiDump.fileName,
                 digest: frontend.apiDump.digest,
@@ -581,9 +571,7 @@ export function captureGodotImportToolchainSnapshot(
 ): GodotImportToolchainSnapshot {
   const selected = selectGodotFrontendAuthority(options.projectEngine);
   const authority = selected.authority;
-  const analysisAuthority = godotAnalysisAuthority(authority);
   const codeAuthority = godotCodeTranslationAuthority(authority);
-  const readAuthority = godotReadAuthority(authority);
   const fieldValueAuthority = godotFieldValueAuthority(authority);
   const sceneNodeAuthority = godotSceneNodeAuthority(authority);
   const lifecycleAuthority = godotLifecycleAuthority(authority);
@@ -621,10 +609,6 @@ export function captureGodotImportToolchainSnapshot(
   const frontend: GodotToolchainFrontendSnapshot = {
     authority,
     projectVersion: selected.projectVersion,
-    analysisAuthority,
-    analysisAuthorityDigest: sha256(JSON.stringify(analysisAuthority)),
-    readAuthority,
-    readAuthorityDigest: sha256(JSON.stringify(readAuthority)),
     exporter,
     importer: { binary: options.officialBinary, executableSha256: officialSha256 },
     apiDump: captureGodotApiDumpSnapshot(authority),

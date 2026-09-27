@@ -17,7 +17,6 @@ import {
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { type BoundGodotProject, bindGodotProject } from './analyze/bound-project';
-import { measuringEvidenceActive } from './godot-frontend/implementation-liveness';
 import { captureGodotBoundProgramFromSnapshot } from './godot-frontend/run-bound-program';
 import {
   promoteGodotTranslation,
@@ -89,9 +88,6 @@ function importCapturedGodotProject(
   boundProject: BoundGodotProject,
   toolchain: GodotImportToolchainSnapshot,
 ): void {
-  if (measuringEvidenceActive()) {
-    throw new Error('import refuses to run while evidence is being measured');
-  }
   const sourceDir = path.resolve(sourceArg);
   const targetDir = path.resolve(targetArg);
   if (!existsSync(path.join(sourceDir, 'project.godot'))) {
@@ -199,7 +195,7 @@ export function withBoundGodotProject<T>(
       importer: toolchain.frontend.importer,
       projectDir: capturedProjectDir,
     });
-    const decodedProject = readGodotProjectSnapshot(snapshot, toolchain.frontend.readAuthority);
+    const decodedProject = readGodotProjectSnapshot(snapshot);
     // Documents the game never loads are not planned (`read/reachability.ts`): reported, with why.
     if (decodedProject.unplanned.length > 0) {
       process.stdout.write(
@@ -209,8 +205,7 @@ export function withBoundGodotProject<T>(
     const boundProject = bindGodotProject(
       snapshot,
       boundProgram,
-      bindGodotResources(decodedProject, toolchain.frontend.readAuthority),
-      toolchain.frontend.analysisAuthority,
+      bindGodotResources(decodedProject),
       toolchain.frontend.authority,
       toolchain.frontend.apiDump,
       decodedProject,

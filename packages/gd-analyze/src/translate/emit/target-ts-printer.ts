@@ -544,7 +544,7 @@ function statement(value: TargetTsStatement): ts.Statement {
 }
 
 /** Mechanical formatting only; all semantic choices are already present in {@link source}. */
-export function printTargetTsSourceFile(source: TargetTsSourceFile): string {
+function printTargetTsSourceFile(source: TargetTsSourceFile): string {
   const sourceFile = ts.factory.updateSourceFile(
     ts.createSourceFile(
       source.sourcePath,

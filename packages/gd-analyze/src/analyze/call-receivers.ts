@@ -16,13 +16,11 @@
  *   ancestry that declares it, carrying that method's bind hash — the identity the official
  *   compiler records for the same call when it is typed.
  *
- * Each typed call carries the claims of the rules it used; a rule without a live claim leaves the
- * call untyped with its reason, and code lowering refuses it at its source location. Nothing here
- * guesses: an unknown base, disagreeing attachments, a script-owned member or a path this pass
+ * A call this pass cannot type stays untyped with its reason, and code lowering refuses it at its
+ * source location. Nothing here guesses: an unknown base, disagreeing attachments, a script-owned member or a path this pass
  * cannot follow stays untyped.
  */
 import type { GodotApiDump } from './api-dump';
-import type { GodotAnalysisRuleId } from './authority';
 import type {
   GodotBoundCallNode,
   GodotBoundNode,
@@ -40,7 +38,6 @@ export interface BoundGodotCallReceiver {
   };
   /** The selected method's declared return type, as the API dump spells it. */
   readonly returnType: string;
-  readonly evidenceClaimIds: readonly string[];
 }
 
 /**
@@ -51,7 +48,6 @@ export interface BoundGodotCallReceiver {
  */
 export interface BoundGodotScriptCall {
   readonly nodeId: number;
-  readonly evidenceClaimIds: readonly string[];
   /**
    * When the receiver's class is only known as a native class that declares no such method: the
    * finite set of project scripts (extending that class) whose chain declares it. The call lowers
@@ -79,17 +75,12 @@ export interface CallReceiverInputs {
   readonly scriptMethodsAt: (documentPath: string, nodePath: string) => ReadonlySet<string> | undefined;
   /** `self`'s native class and the script chain's own methods, when the chain has a native root. */
   readonly self?: { readonly nativeClass: string; readonly scriptMethods: ReadonlySet<string> };
-  /** The live claim for a rule, or undefined when the rule has no live evidence. */
-  readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
   /** The function names a script's chain declares (the script and its script ancestors). */
   readonly scriptChainMethods?: (resPath: string) => ReadonlySet<string> | undefined;
   /** The project scripts extending a native class whose chain declares a method, sorted. */
   readonly scriptsDeclaring?: (method: string, nativeClass: string) => readonly string[];
-  /**
-   * An untyped parameter read's datatype from its function's callers (`parameter-types.ts`), with
-   * the claims of the rules that found it.
-   */
-  readonly parameterType?: (nodeId: number) => { readonly datatype: GodotBoundNode['datatype']; readonly claims: readonly string[] } | undefined;
+  /** An untyped parameter read's datatype from its function's callers (`parameter-types.ts`). */
+  readonly parameterType?: (nodeId: number) => { readonly datatype: GodotBoundNode['datatype'] } | undefined;
 }
 
 type ReceiverType =
@@ -97,7 +88,6 @@ type ReceiverType =
   | {
       readonly kind: 'native';
       readonly name: string;
-      readonly claims: readonly string[];
       /** Members a script on the receiver declares: Godot calls those, not ClassDB's. */
       readonly scriptMembers?: ReadonlySet<string>;
     }
@@ -309,9 +299,9 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
   const untyped: BoundGodotUntypedCall[] = [];
   const scriptCalls: BoundGodotScriptCall[] = [];
 
-  const typeOfName = (name: string, claims: readonly string[]): ReceiverType => {
+  const typeOfName = (name: string): ReceiverType => {
     if (builtins.has(name)) return { kind: 'builtin', name };
-    if (classes.has(name)) return { kind: 'native', name, claims };
+    if (classes.has(name)) return { kind: 'native', name };
     return { kind: 'unknown', reason: `type ${name} is neither a built-in nor a native class` };
   };
 
@@ -319,7 +309,7 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     receiver: ReceiverType,
     member: string,
   ):
-    | { readonly target: BoundGodotCallReceiver['target']; readonly returnType: string; readonly claims: readonly string[] }
+    | { readonly target: BoundGodotCallReceiver['target']; readonly returnType: string }
     | string => {
     if (receiver.kind === 'unknown') return receiver.reason;
     if (receiver.kind === 'builtin') {
@@ -328,14 +318,11 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       return {
         target: { kind: 'builtin-member', owner: receiver.name, member, signatureHash: method.hash },
         returnType: method.return_type,
-        claims: [],
       };
     }
     if (receiver.scriptMembers?.has(member) === true) {
       return `${member} is a script member of the receiver`;
     }
-    const selection = inputs.claim('classdb-method-selection');
-    if (selection === undefined) return 'classdb-method-selection has no live evidence';
     let current = classes.get(receiver.name);
     const seen = new Set<string>();
     while (current !== undefined && !seen.has(current.name)) {
@@ -346,7 +333,6 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         return {
           target: { kind: 'native-member', owner: current.name, member, signatureHash: method.hash },
           returnType: method.return_type,
-          claims: [...receiver.claims, selection],
         };
       }
       current = current.base_class === '' ? undefined : classes.get(current.base_class);
@@ -358,8 +344,6 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     const node = nodes.get(id);
     if (node === undefined) return { kind: 'unknown', reason: `bound node ${String(id)} is absent` };
     if (node.kind === 'GET_NODE') {
-      const rule = inputs.claim('scene-node-receiver');
-      if (rule === undefined) return { kind: 'unknown', reason: 'scene-node-receiver has no live evidence' };
       if (inputs.attachments.length === 0) {
         return { kind: 'unknown', reason: `$${node.fullPath}: the script is attached to no scene node` };
       }
@@ -379,20 +363,20 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         }
         agreed = resolved;
       }
-      return typeOfName((agreed as ResolvedSceneNode).className, [rule]);
+      return typeOfName((agreed as ResolvedSceneNode).className);
     }
     if (node.kind === 'IDENTIFIER' && (node.source === 'FUNCTION_PARAMETER' || node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && inputs.parameterType?.(id) !== undefined) {
       // A parameter every caller passes one type to (`parameter-types.ts`).
       const parameter = inputs.parameterType?.(id);
       if (parameter !== undefined) {
         const datatype = parameter.datatype;
-        if (datatype.kind === 'NATIVE' && !datatype.metaType) return { kind: 'native', name: datatype.nativeType, claims: parameter.claims };
-        if (datatype.kind === 'BUILTIN') return typeOfName(datatype.builtinType, parameter.claims);
+        if (datatype.kind === 'NATIVE' && !datatype.metaType) return { kind: 'native', name: datatype.nativeType };
+        if (datatype.kind === 'BUILTIN') return typeOfName(datatype.builtinType);
       }
     }
     if (node.kind === 'SELF' && inputs.self !== undefined) {
       // `self.member()`: the instance is its script chain over its native class.
-      return { kind: 'native', name: inputs.self.nativeClass, claims: [], scriptMembers: inputs.self.scriptMethods };
+      return { kind: 'native', name: inputs.self.nativeClass, scriptMembers: inputs.self.scriptMethods };
     }
     if (node.kind === 'SUBSCRIPT') {
       // A built-in's member (`transform.basis`) or index (`basis[2]`) has the type the API dump
@@ -403,16 +387,15 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         // the type the API dump states (`ClassDB::get_property`).
         const attribute = nodes.get(node.attribute);
         const name = attribute?.kind === 'IDENTIFIER' ? attribute.name : undefined;
-        const selection = inputs.claim('classdb-method-selection');
-        for (let current = classes.get(base.name); current !== undefined && name !== undefined && selection !== undefined; ) {
+        for (let current = classes.get(base.name); current !== undefined && name !== undefined; ) {
           // An engine signal reads as a Signal (`ClassDB::get_property`, class_db.cpp:1660).
-          if (current.signals.some((entry) => entry.name === name)) return typeOfName('Signal', [...base.claims, selection]);
+          if (current.signals.some((entry) => entry.name === name)) return typeOfName('Signal');
           const property = current.properties.find((entry) => entry.name === name);
           if (property !== undefined) {
             const getter = property.getter;
             for (let owner: typeof current | undefined = current; owner !== undefined && getter !== undefined; ) {
               const method = owner.methods.find((entry) => entry.name === getter);
-              if (method !== undefined) return typeOfName(method.return_type, [...base.claims, selection]);
+              if (method !== undefined) return typeOfName(method.return_type);
               owner = owner.base_class === '' ? undefined : classes.get(owner.base_class);
             }
             break;
@@ -426,33 +409,33 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
           const attribute = nodes.get(node.attribute);
           const name = attribute?.kind === 'IDENTIFIER' ? attribute.name : undefined;
           const member = builtin?.members.find((entry) => entry.name === name);
-          if (member !== undefined) return typeOfName(member.type, []);
+          if (member !== undefined) return typeOfName(member.type);
         } else if (builtin?.indexingReturnType !== undefined) {
-          return typeOfName(builtin.indexingReturnType, []);
+          return typeOfName(builtin.indexingReturnType);
         }
       }
     }
     if (node.kind === 'CALL') {
       const typed = receivers.get(id) ?? typeCall(node);
-      if (typed !== undefined) return typeOfName(typed.returnType, typed.evidenceClaimIds);
+      if (typed !== undefined) return typeOfName(typed.returnType);
       const target = node.compilerTarget;
       if (target.kind === 'native-method' || target.kind === 'native-static') {
         const method = classes.get(target.owner)?.methods.find((entry) => entry.name === target.member);
-        if (method !== undefined) return typeOfName(method.return_type, []);
+        if (method !== undefined) return typeOfName(method.return_type);
       }
       if (target.kind === 'builtin-member' || target.kind === 'builtin-static') {
         const method = builtins.get(target.owner)?.methods.find((entry) => entry.name === target.member);
-        if (method !== undefined) return typeOfName(method.return_type, []);
+        if (method !== undefined) return typeOfName(method.return_type);
       }
     }
     const datatype = node.datatype;
     if (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil') {
-      return typeOfName(datatype.builtinType, []);
+      return typeOfName(datatype.builtinType);
     }
     // A value the compiler holds to a native class (`var t: Node3D`, `body: Node3D`): Godot's typed
     // assignment guarantees an object of that class or a descendant.
     if (datatype.kind === 'NATIVE' && !datatype.metaType && (datatype.typeSource === 'ANNOTATED_EXPLICIT' || datatype.typeSource === 'ANNOTATED_INFERRED')) {
-      return typeOfName(datatype.nativeType, []);
+      return typeOfName(datatype.nativeType);
     }
     // An untyped local the compiler inferred from its initializer (`var p = AudioStreamPlayer.new()`)
     // that nothing assigns again holds that value.
@@ -463,7 +446,7 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         const assignee = nodes.get(other.assignee);
         return assignee?.kind === 'IDENTIFIER' && assignee.name === node.name && assignee.source === 'LOCAL_VARIABLE';
       });
-      if (scope !== undefined && !reassigned) return typeOfName(datatype.nativeType, []);
+      if (scope !== undefined && !reassigned) return typeOfName(datatype.nativeType);
     }
     return {
       kind: 'unknown',
@@ -516,9 +499,7 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         return assignee?.kind === 'IDENTIFIER' && assignee.name === base.name;
       });
       if (reassigned) continue;
-      const rule = inputs.claim('type-test-narrowing');
-      if (rule === undefined) return 'type-test-narrowing has no live evidence';
-      const selections = classes.map((name) => select({ kind: 'native', name, claims: [rule] }, member));
+      const selections = classes.map((name) => select({ kind: 'native', name }, member));
       const first = selections[0];
       if (first === undefined) continue;
       if (typeof first === 'string') return first;
@@ -587,13 +568,8 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
           ? scriptedPath(baseNode.fullPath)
           : undefined;
     if (scriptMembers?.has(call.functionName) === true) {
-      const claim = inputs.claim('script-method-dispatch');
-      if (claim === undefined) {
-        untypedReasons.set(call.id, 'script-method-dispatch has no live evidence');
-        return undefined;
-      }
       untypedReasons.delete(call.id);
-      scriptCalls.push({ nodeId: call.id, evidenceClaimIds: [claim] });
+      scriptCalls.push({ nodeId: call.id });
       return undefined;
     }
     const narrowed = narrowedSelection(callee.base, call.functionName);
@@ -603,10 +579,9 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       // No engine class selects it, but the receiver's class is known: the project scripts of that
       // class that declare it are every object the call can succeed on (`script-method-dispatch`).
       const scripts = inputs.scriptsDeclaring?.(call.functionName, receiver.name) ?? [];
-      const claim = inputs.claim('script-method-dispatch');
-      if (scripts.length > 0 && claim !== undefined) {
+      if (scripts.length > 0) {
         untypedReasons.delete(call.id);
-        scriptCalls.push({ nodeId: call.id, evidenceClaimIds: [...receiver.claims, claim], scripts });
+        scriptCalls.push({ nodeId: call.id, scripts });
         return undefined;
       }
     }
@@ -619,7 +594,6 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       nodeId: call.id,
       target: selected.target,
       returnType: selected.returnType,
-      evidenceClaimIds: [...new Set(selected.claims)].sort(),
     };
     receivers.set(call.id, typed);
     return typed;

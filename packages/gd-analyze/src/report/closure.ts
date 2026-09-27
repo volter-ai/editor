@@ -32,8 +32,6 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { captureGodotBoundProgram } from '../godot-frontend/run-bound-program';
-import { godotSourceAuthority } from '../godot-frontend/source-authority';
-import { godotReadAuthority } from '../read/authority-data';
 import { readGodotProjectSnapshot } from '../read/godot-project';
 import type { SceneNode } from '../read/godot-types';
 import {
@@ -188,7 +186,7 @@ function readGame(fixture: string, exporter: string, official: string): GameClos
         }
       }
     }
-    const project = readGodotProjectSnapshot(snapshot, godotReadAuthority(godotSourceAuthority(4)));
+    const project = readGodotProjectSnapshot(snapshot);
     for (const scene of project.scenes) {
       if (scene.gltfOrigin !== undefined) continue;
       sceneClasses(scene.root, result.nodeClasses);

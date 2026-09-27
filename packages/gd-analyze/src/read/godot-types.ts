@@ -533,11 +533,6 @@ export interface RenderingSettings {
 /** The whole read: what `readGodotProject` returns. */
 export interface GodotProject {
   readonly projectDir: string;
-  /** Exact source/native claims whose live identities authorized this decoded project. */
-  readonly readEvidence: {
-    readonly claimIds: readonly string[];
-    readonly registryDigest: string;
-  };
   /** Stable complete `res://` inventory read from the project tree, excluding skipped caches. */
   readonly sourceFiles: readonly string[];
   /** `[application] config/name`, falling back to the directory name. */

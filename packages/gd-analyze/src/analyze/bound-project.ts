@@ -35,14 +35,12 @@ import type { GodotProjectSnapshot, GodotProjectSnapshotEntry } from '../snapsho
 import { GodotProjectSnapshotReader } from '../snapshot/project-snapshot-reader';
 import type { GodotToolchainApiDumpSnapshot } from '../snapshot/toolchain-snapshot';
 import type { GodotApiClass, GodotApiDump } from './api-dump';
-import type { GodotAnalysisAuthority, GodotAnalysisRuleId } from './authority';
 import {
   type BoundGodotCallReceiver,
   type BoundGodotScriptCall,
   type BoundGodotUntypedCall,
   typeCallReceivers,
 } from './call-receivers';
-import { GodotAnalysisAuthorityResolver } from './authority';
 import {
   type BoundGodotScriptSingletonReference,
   type BoundGodotScriptSingletonTarget,
@@ -78,7 +76,7 @@ export interface BoundGodotSourceScript {
   /** Datatypes the project fixes where the analyzer left a node untyped (`refineDatatypes`). */
   readonly refinedTypes: readonly BoundGodotRefinedType[];
   /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
-  readonly numericVariants?: ScriptNumericVariants & { readonly evidenceClaimId: string };
+  readonly numericVariants?: ScriptNumericVariants;
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -101,7 +99,6 @@ export interface BoundGodotScriptField {
   readonly setterNodeId?: number;
   readonly getterNodeId?: number;
   readonly attachmentValues: readonly BoundGodotScriptFieldAttachmentValue[];
-  readonly evidenceClaimId: string;
 }
 
 export interface BoundGodotScriptAttachment {
@@ -110,7 +107,6 @@ export interface BoundGodotScriptAttachment {
   readonly nodeClass?: string;
   readonly authoredProperties: Readonly<Record<string, GodotValue>>;
   readonly nodePathProperties: readonly string[];
-  readonly evidenceClaimId: string;
 }
 
 export interface BoundGodotScriptAutoload {
@@ -134,7 +130,6 @@ export interface BoundGodotLifecycleEntry {
   readonly methodName: string;
   readonly ownerResPath: string;
   readonly nodeId: number;
-  readonly evidenceClaimId: string;
 }
 
 const LIFECYCLE_METHODS: readonly {
@@ -223,8 +218,6 @@ export interface BoundGodotSceneNodeClass {
   readonly nativeCanonicalIdentity: string;
   /** Native ClassDB ancestry, the selected class first and Object last. */
   readonly nativeAncestry: readonly string[];
-  readonly nativeAncestryEvidenceClaimId: string;
-  readonly resolutionEvidenceClaimId: string;
   readonly source:
     | { readonly kind: 'native-class' }
     | { readonly kind: 'project-script-class'; readonly scriptResPath: string };
@@ -364,7 +357,6 @@ export interface BoundGodotScriptInheritance {
   readonly scriptAncestors: readonly string[];
   readonly engineBase?: string;
   readonly refusal?: string;
-  readonly evidenceClaimId: string;
 }
 
 /**
@@ -389,40 +381,12 @@ export interface BoundGodotProject {
   readonly read: Omit<GodotProject, 'projectDir'>;
   /** Exact normalized import/resource program selected from the same reader product. */
   readonly resourceProgram: BoundGodotResourceProgram;
-  readonly analysisEvidence: {
-    readonly claimIds: readonly string[];
-    readonly registryDigest: string;
-  };
   readonly documents: BoundGodotProjectDocuments;
   readonly scripts: readonly BoundGodotSourceScript[];
   readonly entrypoints: BoundGodotProjectEntrypoints;
 }
 
 type DecodedProjectRelationships = GodotProject;
-
-class AnalysisEvidence {
-  readonly claimIds = new Set<string>();
-  readonly resolver: GodotAnalysisAuthorityResolver;
-
-  constructor(authority: GodotAnalysisAuthority) {
-    this.resolver = new GodotAnalysisAuthorityResolver(authority);
-  }
-
-  require(id: GodotAnalysisRuleId): string {
-    const claimId = this.resolver.require(id).claimId;
-    this.claimIds.add(claimId);
-    return claimId;
-  }
-
-  /** The rule's live claim, or undefined when the rule has no live evidence (the join refuses). */
-  liveClaim(id: GodotAnalysisRuleId): string | undefined {
-    try {
-      return this.require(id);
-    } catch {
-      return undefined;
-    }
-  }
-}
 
 function retainedReadProduct(project: GodotProject): Omit<GodotProject, 'projectDir'> {
   const { projectDir: _sourceRoot, ...retained } = project;
@@ -463,7 +427,6 @@ function sceneClassResolver(
   authority: GodotSourceAuthority,
   apiDump: GodotApiDump,
   projectClasses: readonly BoundProjectSceneClass[],
-  evidence: AnalysisEvidence,
 ): (authoredName: string) => ResolvedSceneClass {
   const native = new Map<string, GodotApiClass>();
   for (const entry of apiDump.classes) {
@@ -495,8 +458,6 @@ function sceneClassResolver(
       nativeName: selected.name,
       nativeCanonicalIdentity: [authority.revision, 'ClassDB', selected.name].join('\0'),
       nativeAncestry: nativeAncestry(selected, native),
-      nativeAncestryEvidenceClaimId: evidence.require('native-ancestry'),
-      resolutionEvidenceClaimId: evidence.require('scene-class-resolution'),
       source:
         scriptResPath === undefined
           ? { kind: 'native-class' }
@@ -607,11 +568,10 @@ function boundDocuments(
   projectClasses: readonly BoundProjectSceneClass[],
   projectNodes: IndexedSceneNodeIndex,
   scriptFields: ReadonlyMap<string, ReadonlySet<string>>,
-  evidence: AnalysisEvidence,
   shaders: readonly GodotBoundShader[],
   engineShaders: readonly GodotBoundEngineShader[],
 ): BoundGodotProjectDocuments {
-  const resolveSceneClass = sceneClassResolver(authority, apiDump, projectClasses, evidence);
+  const resolveSceneClass = sceneClassResolver(authority, apiDump, projectClasses);
   const provenance = (document: { readonly resPath: string }) => {
     const entry = snapshot.entryByResPath(document.resPath);
     if (entry?.entryType !== 'file' || entry.digest === undefined) {
@@ -792,7 +752,6 @@ function indexedScriptFieldProperties(
 function normalizedAttachments(
   attachments: readonly ScriptAttachment[],
   nodes: ReadonlyMap<string, SceneNode | UnplacedNode>,
-  evidence: AnalysisEvidence,
 ): readonly BoundGodotScriptAttachment[] {
   const seen = new Set<string>();
   return attachments
@@ -814,7 +773,6 @@ function normalizedAttachments(
           ...(node.type === undefined ? {} : { nodeClass: node.type }),
           authoredProperties: node.properties,
           nodePathProperties: node.nodePathProperties,
-          evidenceClaimId: evidence.require('field-attachment-join'),
         },
       ];
     })
@@ -895,7 +853,6 @@ function lifecycleEntries(
   resPath: string,
   ancestry: BoundGodotScriptInheritance,
   classes: ReadonlyMap<string, BoundGodotScriptClass>,
-  evidence: AnalysisEvidence,
   onreadyField: (resPath: string) => number | undefined,
 ): readonly BoundGodotLifecycleEntry[] {
   const owners = [resPath, ...ancestry.scriptAncestors];
@@ -913,7 +870,6 @@ function lifecycleEntries(
               methodName,
               ownerResPath: resPath,
               nodeId,
-              evidenceClaimId: evidence.require('lifecycle-selection'),
             },
           ];
         }
@@ -930,7 +886,6 @@ function lifecycleEntries(
             methodName,
             ownerResPath,
             nodeId: method.nodeId,
-            evidenceClaimId: evidence.require('lifecycle-selection'),
           },
         ];
       }
@@ -942,7 +897,6 @@ function lifecycleEntries(
 function scriptFields(
   script: GodotBoundScript,
   attachments: readonly BoundGodotScriptAttachment[],
-  evidence: AnalysisEvidence,
 ): readonly BoundGodotScriptField[] {
   const root = classRoot(script);
   return root.members.flatMap((nodeId): BoundGodotScriptField[] => {
@@ -979,7 +933,6 @@ function scriptFields(
                 ...(authored ? { authoredValue } : {}),
               };
             }),
-        evidenceClaimId: evidence.require('field-attachment-join'),
       },
     ];
   });
@@ -1082,7 +1035,6 @@ function immediateBase(
 
 function resolveInheritance(
   scripts: ReadonlyMap<string, GodotBoundScript>,
-  evidence: AnalysisEvidence,
 ): ReadonlyMap<string, BoundGodotScriptInheritance> {
   const resolved = new Map<string, BoundGodotScriptInheritance>();
   const resolving = new Set<string>();
@@ -1092,13 +1044,11 @@ function resolveInheritance(
     const known = resolved.get(resPath);
     if (known !== undefined) return known;
     const script = scripts.get(resPath);
-    const evidenceClaimId = evidence.require('script-inheritance');
     if (script === undefined) {
       return {
         immediate: { kind: 'unresolved', reason: `${resPath} is absent from the official program` },
         scriptAncestors: [],
         refusal: `${resPath} is absent from the official program`,
-        evidenceClaimId,
       };
     }
     const immediate = immediateBase(script, globalClasses);
@@ -1107,7 +1057,6 @@ function resolveInheritance(
         immediate,
         scriptAncestors: [],
         engineBase: immediate.className,
-        evidenceClaimId,
       } as const;
       resolved.set(resPath, result);
       return result;
@@ -1117,7 +1066,6 @@ function resolveInheritance(
         immediate,
         scriptAncestors: [],
         refusal: immediate.reason,
-        evidenceClaimId,
       } as const;
       resolved.set(resPath, result);
       return result;
@@ -1128,7 +1076,6 @@ function resolveInheritance(
         immediate,
         scriptAncestors: [immediate.resPath],
         refusal,
-        evidenceClaimId,
       } as const;
       resolved.set(resPath, result);
       return result;
@@ -1139,7 +1086,6 @@ function resolveInheritance(
         immediate,
         scriptAncestors: [immediate.resPath],
         refusal,
-        evidenceClaimId,
       } as const;
       resolved.set(resPath, result);
       return result;
@@ -1153,7 +1099,6 @@ function resolveInheritance(
       scriptAncestors,
       ...(parent.engineBase === undefined ? {} : { engineBase: parent.engineBase }),
       ...(parent.refusal === undefined ? {} : { refusal: parent.refusal }),
-      evidenceClaimId,
     };
     resolved.set(resPath, result);
     return result;
@@ -1202,16 +1147,11 @@ export function bindGodotProject(
   source: GodotProjectSnapshot,
   code: GodotBoundProgram,
   resources: BoundGodotResourceProgram,
-  analysisAuthority: GodotAnalysisAuthority,
   authority: GodotSourceAuthority,
   apiDump: GodotToolchainApiDumpSnapshot,
   decoded: DecodedProjectRelationships,
 ): BoundGodotProject {
   assertCompatibleInputs(source, code, resources, authority, apiDump, decoded);
-  const analysisEvidence = new AnalysisEvidence(analysisAuthority);
-  if (analysisEvidence.resolver.sourceRevision !== authority.revision) {
-    throw new Error('Godot analysis authority and selected source authority disagree');
-  }
   refuseDecodedDiagnostics(decoded.diagnostics);
   // A script nothing the game loads reaches is not planned (`read/reachability.ts`).
   const unplanned = new Set(decoded.unplanned.map((entry) => entry.resPath));
@@ -1224,7 +1164,7 @@ export function bindGodotProject(
     seen.add(program.resPath);
     programs.set(program.resPath, program);
   }
-  const inheritance = resolveInheritance(programs, analysisEvidence);
+  const inheritance = resolveInheritance(programs);
   const classes = new Map(
     code.scripts.map((program) => [program.resPath, scriptClass(program)] as const),
   );
@@ -1296,7 +1236,7 @@ export function bindGodotProject(
             const identifier = program.nodes[member.identifier];
             if (identifier?.kind === 'IDENTIFIER' && identifier.name === name) {
               // An untyped member the project stores one type in (`member-types.ts`).
-              if (member.datatype.kind === 'VARIANT' && analysisEvidence.liveClaim('member-assignment-type') !== undefined) {
+              if (member.datatype.kind === 'VARIANT') {
                 return storedMemberType(scriptPath, name) ?? member.datatype;
               }
               return member.datatype;
@@ -1356,16 +1296,13 @@ export function bindGodotProject(
       .map((entry) => new TextDecoder().decode(snapshot.bytesByDigest(entry.digest as string))),
   });
   // Every untyped variable holding an int at some times and a float at others (`numeric-variants.ts`).
-  // The rule's claim is asked only when some variable is one, so a project without any records none.
-  const foundNumeric = numericVariants({
+  const numericByScript = numericVariants({
     programs: code.scripts,
     scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
     apiDump: apiDump.parsed,
     parameterType: (resPath, fn, parameter) => parameterTypes.get(parameterKey(resPath, fn, parameter))?.datatype,
     numericParameters,
   });
-  const numericClaim = foundNumeric.size === 0 ? undefined : analysisEvidence.liveClaim('numeric-variant');
-  const numericByScript = numericClaim === undefined ? new Map<string, ScriptNumericVariants>() : foundNumeric;
   const storedMemberType = (resPath: string, name: string): GodotBoundDatatype | undefined => {
     for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
       const found = memberTypes.get(memberKey(scriptPath, name));
@@ -1396,7 +1333,6 @@ export function bindGodotProject(
     const attachments = normalizedAttachments(
       attachmentsByScript.get(program.resPath) ?? [],
       sceneNodes.byKey,
-      analysisEvidence,
     );
     const untypedReads: BoundGodotUntypedCall[] = [];
     const refinedTypes = refineDatatypes({
@@ -1407,10 +1343,9 @@ export function bindGodotProject(
         apiDump: apiDump.parsed,
         scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
         scriptInfo: refinedScriptInfo,
-        claim: (rule) => analysisEvidence.liveClaim(rule),
         assignedElsewhere: (member) => assignedElsewhere.has(member),
         parameterType: (fn, parameter) => parameterTypes.get(parameterKey(program.resPath, fn, parameter)),
-        memberType: (name) => (analysisEvidence.liveClaim('member-assignment-type') === undefined ? undefined : storedMemberType(program.resPath, name)),
+        memberType: (name) => storedMemberType(program.resPath, name),
         scriptFunctionReturn: (resPath, fn) => {
           for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
             const chain = programsByPath.get(scriptPath);
@@ -1432,7 +1367,7 @@ export function bindGodotProject(
     const parameterReads = new Map(
       refinedTypes
         .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type' || entry.rule === 'scene-node-receiver')
-        .map((entry) => [entry.nodeId, { datatype: entry.datatype, claims: entry.evidenceClaimIds }] as const),
+        .map((entry) => [entry.nodeId, { datatype: entry.datatype }] as const),
     );
     const callReceiverFacts = (
       bound: GodotBoundScript,
@@ -1447,7 +1382,6 @@ export function bindGodotProject(
         scriptMethodsAt: (documentPath, nodePath) =>
           scriptMethodsByNode.get(`${documentPath}\0${nodePath}`),
         ...(selfOf === undefined ? {} : { self: selfOf }),
-        claim: (rule) => analysisEvidence.liveClaim(rule),
         parameterType: (nodeId) => parameterReads.get(nodeId),
         scriptsDeclaring: (method, nativeClass) =>
           [...classes.keys()]
@@ -1479,7 +1413,6 @@ export function bindGodotProject(
         left.name.localeCompare(right.name),
       ),
       singletonReferences: bindGodotScriptSingletonReferences(
-        authority.revision,
         program,
         singletonTargets,
       ),
@@ -1487,20 +1420,18 @@ export function bindGodotProject(
         program.resPath,
         scriptInheritance,
         classes,
-        analysisEvidence,
         onreadyField,
       ),
-      fields: scriptFields(program, attachments, analysisEvidence),
+      fields: scriptFields(program, attachments),
       ...callReceiverFacts(program, attachments),
       refinedTypes,
-      ...(numericClaim === undefined || !numericByScript.has(program.resPath)
-        ? {}
-        : { numericVariants: { ...(numericByScript.get(program.resPath) as ScriptNumericVariants), evidenceClaimId: numericClaim } }),
+      ...(numericByScript.has(program.resPath)
+        ? { numericVariants: numericByScript.get(program.resPath) as ScriptNumericVariants }
+        : {}),
       settingTypes: typeProjectSettingValues({
         program,
         projectSettings: decoded.authoredSettings,
         apiDump: apiDump.parsed,
-        claim: () => analysisEvidence.liveClaim('project-setting-type'),
       }),
     };
   });
@@ -1525,7 +1456,6 @@ export function bindGodotProject(
     projectClasses,
     sceneNodes,
     indexedScriptFieldProperties(scripts),
-    analysisEvidence,
     code.shaders,
     code.engineShaders,
   );
@@ -1540,10 +1470,6 @@ export function bindGodotProject(
     inputs: source.entries,
     read: retainedReadProduct(decoded),
     resourceProgram: resources,
-    analysisEvidence: {
-      claimIds: [...analysisEvidence.claimIds].sort(),
-      registryDigest: analysisEvidence.resolver.registryDigest,
-    },
     documents,
     scripts,
     entrypoints: {

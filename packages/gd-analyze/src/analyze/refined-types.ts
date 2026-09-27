@@ -1,6 +1,6 @@
 /**
  * Datatypes the project fixes where the official analyzer left a node untyped (`Node`, Variant).
- * Each is what Godot's runtime would find there, and the rule that finds it is evidenced:
+ * Each is what Godot's runtime would find there, found by one of these rules:
  *
  * - `scene-node-receiver`: `$Path` / `%Unique` is the node at that path in every scene the script
  *   is attached to (they must agree): its script class when it carries a script, else its class; so
@@ -29,18 +29,27 @@
 import type { GodotBoundDatatype, GodotBoundNode, GodotBoundScript } from '../godot-frontend/bound-program';
 import type { GodotProject, SceneNode } from '../read/godot-types';
 import type { GodotApiDump } from './api-dump';
-import type { GodotAnalysisRuleId } from './authority';
 import { type CallReceiverAttachment, resolveScenePath } from './call-receivers';
 import type { ParameterType } from './parameter-types';
 import { OPERATOR_SPELLING } from './project-setting-types';
 
+/** The analysis rules that fix a datatype the official analyzer left open. */
+export type GodotAnalysisRuleId =
+  | 'scene-node-receiver'
+  | 'classdb-method-selection'
+  | 'type-test-narrowing'
+  | 'ray-result-schema'
+  | 'engine-virtual-parameter'
+  | 'signal-handler-parameter'
+  | 'call-site-parameter'
+  | 'script-method-dispatch'
+  | 'member-assignment-type';
+
 export interface BoundGodotRefinedType {
   readonly nodeId: number;
   readonly datatype: GodotBoundDatatype;
+  /** The rule that fixed it. */
   readonly rule: GodotAnalysisRuleId;
-  /** The rule each of `evidenceClaimIds` is the claim of (the first is `rule`). */
-  readonly rules: readonly GodotAnalysisRuleId[];
-  readonly evidenceClaimIds: readonly string[];
   /** A scene node's datatype (`scene-node-receiver`): the node in each scene the script is attached to. */
   readonly sceneNodes?: readonly { readonly documentPath: string; readonly pathInDocument: string }[];
 }
@@ -62,7 +71,6 @@ export interface RefineInputs {
   /** The script attached at an exact (document, node path). */
   readonly scriptAt: (documentPath: string, nodePath: string) => string | undefined;
   readonly scriptInfo: (resPath: string) => RefinedScriptInfo | undefined;
-  readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
   /** Whether any script of the project assigns a member of this name other than as its own (`obj.name = …`). */
   readonly assignedElsewhere: (member: string) => boolean;
   /** An untyped parameter's datatype from every caller the project has (`parameter-types.ts`). */
@@ -498,7 +506,6 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       | {
           readonly datatype: GodotBoundDatatype;
           readonly rule: GodotAnalysisRuleId;
-          readonly also?: readonly GodotAnalysisRuleId[];
           readonly sceneNodes?: BoundGodotRefinedType['sceneNodes'];
         }
       | undefined;
@@ -512,7 +519,7 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     if (narrowedParameter !== undefined) {
       result = { datatype: narrowedParameter, rule: 'type-test-narrowing' };
     } else if (parameter !== undefined) {
-      result = { datatype: parameter.datatype, rule: parameter.rules[0] as GodotAnalysisRuleId, also: parameter.rules.slice(1) };
+      result = { datatype: parameter.datatype, rule: parameter.rules[0] as GodotAnalysisRuleId };
     } else if (stored !== undefined) {
       result = { datatype: stored, rule: 'member-assignment-type' };
     } else if (node?.kind === 'GET_NODE') {
@@ -671,14 +678,10 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       }
     }
     if (result === undefined) return undefined;
-    const claims = [result.rule, ...(result.also ?? [])].map((rule) => inputs.claim(rule));
-    if (claims.some((claim) => claim === undefined)) return undefined;
     const entry: BoundGodotRefinedType = {
       nodeId: id,
       datatype: result.datatype,
       rule: result.rule,
-      rules: [result.rule, ...(result.also ?? [])],
-      evidenceClaimIds: claims as string[],
       ...(result.sceneNodes === undefined ? {} : { sceneNodes: result.sceneNodes }),
     };
     refined.set(id, entry);

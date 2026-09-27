@@ -74,10 +74,6 @@ export interface BoundGodotResourceProgram {
   readonly sourceRevision: string;
   /** Exact ClassDB/GDNative dump paired with {@link sourceRevision}. */
   readonly apiDumpSha256: string;
-  readonly evidence: {
-    readonly claimIds: readonly string[];
-    readonly registryDigest: string;
-  };
   readonly imports: readonly BoundGodotAssetImport[];
 }
 
@@ -102,13 +98,6 @@ export function assertBoundGodotResourceProgram(
       `Godot frontend API dump mismatch for ${authority.version}: ` +
         `${value.apiDumpSha256} != ${authority.apiDumpSha256}`,
     );
-  }
-  if (
-    value.evidence.claimIds.length === 0 ||
-    new Set(value.evidence.claimIds).size !== value.evidence.claimIds.length ||
-    !/^[0-9a-f]{64}$/.test(value.evidence.registryDigest)
-  ) {
-    throw new Error('Godot frontend resource evidence is missing or malformed');
   }
   const sidecars = new Set<string>();
   for (const imported of value.imports) {

@@ -13,8 +13,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -29,8 +28,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -45,8 +43,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -59,8 +56,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -73,8 +69,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -90,8 +85,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -104,8 +98,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -118,8 +111,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -134,8 +126,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -150,8 +141,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -166,8 +156,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -180,8 +169,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -194,8 +182,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -211,8 +198,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -225,8 +211,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -241,8 +226,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -257,8 +241,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -273,8 +256,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -287,8 +269,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -301,8 +282,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -318,8 +298,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -332,8 +311,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -346,8 +324,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -362,8 +339,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -378,8 +354,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -394,8 +369,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -408,8 +382,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -422,8 +395,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -439,8 +411,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -453,8 +424,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -469,8 +439,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -485,8 +454,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -499,8 +467,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -513,8 +480,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -530,8 +496,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -546,8 +511,7 @@
       "target": {
         "kind": "structural",
         "construct": "constant"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -562,8 +526,7 @@
       "target": {
         "kind": "structural",
         "construct": "constant"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -578,8 +541,7 @@
       "target": {
         "kind": "structural",
         "construct": "constant"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -594,8 +556,7 @@
       "target": {
         "kind": "structural",
         "construct": "constant"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -608,8 +569,7 @@
       "target": {
         "kind": "structural",
         "construct": "self"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -622,8 +582,7 @@
       "target": {
         "kind": "structural",
         "construct": "singleton"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -636,8 +595,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -650,8 +608,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -666,8 +623,7 @@
       "target": {
         "kind": "structural",
         "construct": "subscript-attribute"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -682,8 +638,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -699,8 +654,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -717,8 +671,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -736,8 +689,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -756,8 +708,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -777,8 +728,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -793,8 +743,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -810,8 +759,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -828,8 +776,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -847,8 +794,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -867,8 +813,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -888,8 +833,7 @@
       "target": {
         "kind": "structural",
         "construct": "call"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -901,8 +845,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -917,8 +860,7 @@
       "target": {
         "kind": "structural",
         "construct": "subscript-attribute"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -933,8 +875,7 @@
       "target": {
         "kind": "structural",
         "construct": "subscript-attribute"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -948,8 +889,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -965,8 +905,7 @@
       "target": {
         "kind": "structural",
         "construct": "subscript-element"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -981,8 +920,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -997,8 +935,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1013,8 +950,7 @@
       "target": {
         "kind": "structural",
         "construct": "subscript-attribute"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1029,8 +965,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1045,8 +980,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1060,8 +994,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1074,8 +1007,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1091,8 +1023,7 @@
       "target": {
         "kind": "binary",
         "operator": "==="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1108,8 +1039,7 @@
       "target": {
         "kind": "binary",
         "operator": "!=="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1125,8 +1055,7 @@
       "target": {
         "kind": "object-equal",
         "negate": false
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1142,8 +1071,7 @@
       "target": {
         "kind": "object-equal",
         "negate": false
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1159,8 +1087,7 @@
       "target": {
         "kind": "object-equal",
         "negate": false
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1176,8 +1103,7 @@
       "target": {
         "kind": "object-equal",
         "negate": false
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1193,8 +1119,7 @@
       "target": {
         "kind": "object-equal",
         "negate": false
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1210,8 +1135,7 @@
       "target": {
         "kind": "object-equal",
         "negate": false
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1227,8 +1151,7 @@
       "target": {
         "kind": "object-equal",
         "negate": true
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1244,8 +1167,7 @@
       "target": {
         "kind": "object-equal",
         "negate": true
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1261,8 +1183,7 @@
       "target": {
         "kind": "object-equal",
         "negate": true
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1278,8 +1199,7 @@
       "target": {
         "kind": "object-equal",
         "negate": true
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1292,8 +1212,7 @@
       "target": {
         "kind": "structural",
         "construct": "get-node"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1306,8 +1225,7 @@
       "target": {
         "kind": "structural",
         "construct": "get-node"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1322,8 +1240,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-test"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1338,8 +1255,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-test"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1354,8 +1270,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-test"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1370,8 +1285,7 @@
       "target": {
         "kind": "structural",
         "construct": "cast"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1386,8 +1300,7 @@
       "target": {
         "kind": "structural",
         "construct": "cast"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1402,8 +1315,7 @@
       "target": {
         "kind": "structural",
         "construct": "cast"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1418,8 +1330,7 @@
       "target": {
         "kind": "structural",
         "construct": "if"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1432,8 +1343,7 @@
       "target": {
         "kind": "structural",
         "construct": "signal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1446,8 +1356,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1460,8 +1369,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1476,8 +1384,7 @@
       "target": {
         "kind": "structural",
         "construct": "if"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1492,8 +1399,7 @@
       "target": {
         "kind": "structural",
         "construct": "if"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1508,8 +1414,7 @@
       "target": {
         "kind": "object-truthy",
         "negate": true
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1524,8 +1429,7 @@
       "target": {
         "kind": "object-truthy",
         "negate": true
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1540,8 +1444,7 @@
       "target": {
         "kind": "structural",
         "construct": "for-range"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1557,8 +1460,7 @@
       "target": {
         "kind": "structural",
         "construct": "for-of"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1571,8 +1473,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1588,8 +1489,7 @@
       "target": {
         "kind": "binary",
         "operator": "&&"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1605,8 +1505,7 @@
       "target": {
         "kind": "binary",
         "operator": "||"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1621,8 +1520,7 @@
       "target": {
         "kind": "unary",
         "operator": "!"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1638,8 +1536,7 @@
       "target": {
         "kind": "binary",
         "operator": "==="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1655,8 +1552,7 @@
       "target": {
         "kind": "binary",
         "operator": "!=="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1672,8 +1568,7 @@
       "target": {
         "kind": "binary",
         "operator": "+"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1689,8 +1584,7 @@
       "target": {
         "kind": "binary",
         "operator": "-"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1706,8 +1600,7 @@
       "target": {
         "kind": "integer-binary",
         "operator": "*"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1723,8 +1616,7 @@
       "target": {
         "kind": "integer-binary",
         "operator": "/"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1740,8 +1632,7 @@
       "target": {
         "kind": "binary",
         "operator": "==="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1757,8 +1648,7 @@
       "target": {
         "kind": "binary",
         "operator": "!=="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1774,8 +1664,7 @@
       "target": {
         "kind": "binary",
         "operator": "<"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1791,8 +1680,7 @@
       "target": {
         "kind": "binary",
         "operator": "<="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1808,8 +1696,7 @@
       "target": {
         "kind": "binary",
         "operator": ">"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1825,8 +1712,7 @@
       "target": {
         "kind": "binary",
         "operator": ">="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1842,8 +1728,7 @@
       "target": {
         "kind": "binary",
         "operator": "+"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1859,8 +1744,7 @@
       "target": {
         "kind": "binary",
         "operator": "-"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1876,8 +1760,7 @@
       "target": {
         "kind": "binary",
         "operator": "*"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1893,8 +1776,7 @@
       "target": {
         "kind": "binary",
         "operator": "/"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1910,8 +1792,7 @@
       "target": {
         "kind": "binary",
         "operator": "==="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1927,8 +1808,7 @@
       "target": {
         "kind": "binary",
         "operator": "!=="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1944,8 +1824,7 @@
       "target": {
         "kind": "binary",
         "operator": "<"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1961,8 +1840,7 @@
       "target": {
         "kind": "binary",
         "operator": "<="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1978,8 +1856,7 @@
       "target": {
         "kind": "binary",
         "operator": ">"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -1995,8 +1872,7 @@
       "target": {
         "kind": "binary",
         "operator": ">="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2012,8 +1888,7 @@
       "target": {
         "kind": "binary",
         "operator": "+"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2029,8 +1904,7 @@
       "target": {
         "kind": "binary",
         "operator": "-"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2046,8 +1920,7 @@
       "target": {
         "kind": "binary",
         "operator": "*"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2063,8 +1936,7 @@
       "target": {
         "kind": "binary",
         "operator": "/"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2080,8 +1952,7 @@
       "target": {
         "kind": "binary",
         "operator": "==="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2097,8 +1968,7 @@
       "target": {
         "kind": "binary",
         "operator": "!=="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2114,8 +1984,7 @@
       "target": {
         "kind": "binary",
         "operator": "<"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2131,8 +2000,7 @@
       "target": {
         "kind": "binary",
         "operator": "<="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2148,8 +2016,7 @@
       "target": {
         "kind": "binary",
         "operator": ">"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2165,8 +2032,7 @@
       "target": {
         "kind": "binary",
         "operator": ">="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2182,8 +2048,7 @@
       "target": {
         "kind": "binary",
         "operator": "+"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2199,8 +2064,7 @@
       "target": {
         "kind": "binary",
         "operator": "-"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2216,8 +2080,7 @@
       "target": {
         "kind": "binary",
         "operator": "*"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2233,8 +2096,7 @@
       "target": {
         "kind": "binary",
         "operator": "/"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2250,8 +2112,7 @@
       "target": {
         "kind": "binary",
         "operator": "==="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2267,8 +2128,7 @@
       "target": {
         "kind": "binary",
         "operator": "!=="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2284,8 +2144,7 @@
       "target": {
         "kind": "binary",
         "operator": "<"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2301,8 +2160,7 @@
       "target": {
         "kind": "binary",
         "operator": "<="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2318,8 +2176,7 @@
       "target": {
         "kind": "binary",
         "operator": ">"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2335,8 +2192,7 @@
       "target": {
         "kind": "binary",
         "operator": ">="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2352,8 +2208,7 @@
       "target": {
         "kind": "integer-binary",
         "operator": "%"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2367,8 +2222,7 @@
       },
       "target": {
         "kind": "integer-negate"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2383,8 +2237,7 @@
       "target": {
         "kind": "unary",
         "operator": "-"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2400,8 +2253,7 @@
       "target": {
         "kind": "assignment",
         "operator": "+="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2417,8 +2269,7 @@
       "target": {
         "kind": "assignment",
         "operator": "+="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2434,8 +2285,7 @@
       "target": {
         "kind": "assignment",
         "operator": "-="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2451,8 +2301,7 @@
       "target": {
         "kind": "assignment",
         "operator": "-="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2468,8 +2317,7 @@
       "target": {
         "kind": "assignment",
         "operator": "*="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2485,8 +2333,7 @@
       "target": {
         "kind": "assignment",
         "operator": "*="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2502,8 +2349,7 @@
       "target": {
         "kind": "assignment",
         "operator": "+="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2518,8 +2364,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2534,8 +2379,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2550,8 +2394,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2566,8 +2409,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2582,8 +2424,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2598,8 +2439,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2614,8 +2454,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2630,8 +2469,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2646,8 +2484,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2662,8 +2499,7 @@
       "target": {
         "kind": "structural",
         "construct": "stringify"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2679,8 +2515,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2696,8 +2531,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2713,8 +2547,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2730,8 +2563,7 @@
       "target": {
         "kind": "assignment",
         "operator": "="
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2747,8 +2579,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2761,8 +2592,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2778,8 +2608,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2792,8 +2621,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2806,8 +2634,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2820,8 +2647,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2834,8 +2660,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2848,8 +2673,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2862,8 +2686,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2876,8 +2699,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2890,8 +2712,7 @@
       "target": {
         "kind": "structural",
         "construct": "type-default"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2904,8 +2725,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2920,8 +2740,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2936,8 +2755,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2952,8 +2770,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2968,8 +2785,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2984,8 +2800,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -2998,8 +2813,7 @@
       "target": {
         "kind": "structural",
         "construct": "implicit-ready"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3012,8 +2826,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3028,8 +2841,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3045,8 +2857,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3063,8 +2874,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3082,8 +2892,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3102,8 +2911,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3123,8 +2931,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3146,8 +2953,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3172,8 +2978,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3208,8 +3013,7 @@
       "target": {
         "kind": "structural",
         "construct": "array-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3222,8 +3026,7 @@
       "target": {
         "kind": "structural",
         "construct": "dictionary-object-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3239,8 +3042,7 @@
       "target": {
         "kind": "structural",
         "construct": "dictionary-object-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3258,8 +3060,7 @@
       "target": {
         "kind": "structural",
         "construct": "dictionary-object-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3279,8 +3080,7 @@
       "target": {
         "kind": "structural",
         "construct": "dictionary-object-literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3293,8 +3093,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3307,8 +3106,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3320,8 +3118,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3334,8 +3131,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3348,8 +3144,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3363,8 +3158,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3378,8 +3172,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3393,8 +3186,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3408,8 +3200,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3423,8 +3214,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3439,8 +3229,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-tag"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3455,8 +3244,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-tag"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3471,8 +3259,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-tag"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3487,8 +3274,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-tag"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3503,8 +3289,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-tag"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3517,8 +3302,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-switch"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3531,8 +3315,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-switch"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3545,8 +3328,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-switch"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3559,8 +3341,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-store"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3573,8 +3354,7 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3587,8 +3367,7 @@
       "target": {
         "kind": "structural",
         "construct": "local-identifier"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3603,8 +3382,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-convert"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3619,8 +3397,7 @@
       "target": {
         "kind": "structural",
         "construct": "numeric-convert"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3634,8 +3411,7 @@
       },
       "target": {
         "kind": "binding"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3648,8 +3424,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3662,8 +3437,7 @@
       "target": {
         "kind": "structural",
         "construct": "literal"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3676,8 +3450,7 @@
       "target": {
         "kind": "structural",
         "construct": "pass"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3692,8 +3465,7 @@
       "target": {
         "kind": "structural",
         "construct": "while"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3709,8 +3481,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3726,8 +3497,7 @@
       "target": {
         "kind": "structural",
         "construct": "return"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3743,8 +3513,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3759,8 +3528,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3775,8 +3543,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3791,8 +3558,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3807,8 +3573,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3823,8 +3588,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3839,8 +3603,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3855,8 +3618,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "source": {
@@ -3871,8 +3633,7 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
-      },
-      "evidenceClaimId": ""
+      }
     }
   ],
   "datatypes": [
@@ -3882,8 +3643,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "number"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3891,8 +3651,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "number"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3900,8 +3659,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "boolean"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3909,8 +3667,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "void"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3918,8 +3675,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "number"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3928,8 +3684,7 @@
         "kind": "type-reference",
         "name": "$ScriptClass",
         "arguments": []
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3938,8 +3693,7 @@
         "kind": "type-reference",
         "name": "$ScriptClass",
         "arguments": []
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3947,8 +3701,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "any"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3966,8 +3719,7 @@
             "keyword": "unknown"
           }
         ]
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3978,8 +3730,7 @@
           "kind": "keyword-type",
           "keyword": "unknown"
         }
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -3990,8 +3741,7 @@
           "kind": "keyword-type",
           "keyword": "unknown"
         }
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -4009,8 +3759,7 @@
             "keyword": "unknown"
           }
         ]
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -4018,8 +3767,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "string"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -4027,8 +3775,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "string"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -4036,8 +3783,7 @@
       "targetType": {
         "kind": "keyword-type",
         "keyword": "object"
-      },
-      "evidenceClaimId": ""
+      }
     },
     {
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
@@ -4046,8 +3792,7 @@
         "kind": "type-reference",
         "name": "$NativeClass",
         "arguments": []
-      },
-      "evidenceClaimId": ""
+      }
     }
   ]
 }

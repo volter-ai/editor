@@ -2,15 +2,12 @@ import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import { builtinDatatype } from '../../analyze/refined-types';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
-import type { SemanticClaimLayer } from '../../godot-frontend/semantic-claims';
 import { safeIdent } from '../target-names';
-import type { GodotCodeEvidenceResolver } from './authority';
 import type {
   GodotBindingResolver,
   GodotOfficialSymbolIdentity,
   GodotTargetBinding,
 } from './bindings';
-import { godotOfficialSymbolKey } from './bindings';
 import type {
   GodotCodeRuleEntry,
   GodotCodeRuleIdentity,
@@ -18,11 +15,7 @@ import type {
   GodotCodeRuleResolver,
   GodotStructuralConstruct,
 } from './lowering-rules';
-import {
-  godotBoundDatatypeIdentity,
-  godotCodeRuleKey,
-  godotDatatypeRuleKey,
-} from './lowering-rules';
+import { godotBoundDatatypeIdentity } from './lowering-rules';
 import type { TargetTsExpression, TargetTsSpan, TargetTsType } from './target-ts-syntax';
 
 export class BoundLoweringRefusal extends Error {
@@ -66,12 +59,6 @@ export type OfficialBoundLoweringRequirement =
       readonly kind: 'binding-requirement';
       readonly symbol: GodotOfficialSymbolIdentity;
       readonly target: Exclude<GodotTargetBinding, { readonly kind: 'refusal-binding' }>;
-    }
-  | {
-      readonly kind: 'evidence-requirement';
-      readonly layer: 'analysis' | 'language';
-      readonly claimId: string;
-      readonly canonicalIdentity: string;
     }
   | {
       readonly kind: 'autoload-reference-requirement';
@@ -122,8 +109,6 @@ export interface OfficialBoundAutoloadCandidate {
   readonly sourceClassName: string;
   readonly targetClassName: string;
   readonly module: string;
-  readonly evidenceClaimId: string;
-  readonly canonicalIdentity: string;
 }
 
 const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new Set([
@@ -203,7 +188,6 @@ export class LoweringContext {
     readonly script: GodotBoundScript,
     readonly bindings: GodotBindingResolver,
     readonly rules: GodotCodeRuleResolver,
-    readonly evidence: GodotCodeEvidenceResolver,
     readonly classIdentifier: string,
     readonly autoloads: ReadonlyMap<number, OfficialBoundAutoloadCandidate>,
     /** Dynamic calls analysis typed from project facts, and why the rest stayed untyped. */
@@ -237,7 +221,6 @@ export class LoweringContext {
     readonly numericVariants?: {
       readonly variables: readonly number[];
       readonly taggedArguments: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
-      readonly evidenceClaimId: string;
     },
     /** Godot's operator table: the result type of `left op right` (right absent for a unary). */
     readonly operatorResult?: (left: string, operator: number, right: string | undefined) => string | undefined,
@@ -324,7 +307,6 @@ export class LoweringContext {
         `official identifier ${node.name} does not carry the bound identity of singleton ${candidate.resPath}`,
       );
     }
-    this.prove(node, candidate.evidenceClaimId, 'analyze', candidate.canonicalIdentity);
     const rule = this.rule(
       node,
       'autoload-identifier:resolved-script-singleton',
@@ -359,16 +341,7 @@ export class LoweringContext {
     };
     return {
       reference,
-      requirements: [
-        {
-          kind: 'evidence-requirement',
-          layer: 'analysis',
-          claimId: candidate.evidenceClaimId,
-          canonicalIdentity: candidate.canonicalIdentity,
-        },
-        ...rule.requirements,
-        { kind: 'autoload-reference-requirement', reference },
-      ],
+      requirements: [...rule.requirements, { kind: 'autoload-reference-requirement', reference }],
     };
   }
 
@@ -486,13 +459,6 @@ export class LoweringContext {
     return undefined;
   }
 
-  /** The analysis claim an int-or-float lowering rests on. */
-  numericRequirement(): OfficialBoundLoweringRequirement {
-    const claimId = this.numericVariants?.evidenceClaimId;
-    if (claimId === undefined) throw new Error('numeric variants lowered without their claim');
-    return { kind: 'evidence-requirement', layer: 'analysis', claimId, canonicalIdentity: `${this.sourceRevision}\0analyze\0numeric-variant` };
-  }
-
   refuse(node: GodotBoundNode, message: string): never {
     throw new BoundLoweringRefusal(this.script, node, message);
   }
@@ -519,22 +485,6 @@ export class LoweringContext {
     }
   }
 
-  prove(
-    node: GodotBoundNode,
-    claimId: string,
-    layer: SemanticClaimLayer,
-    canonicalIdentity: string,
-  ): void {
-    try {
-      this.evidence.claim(claimId, layer, canonicalIdentity);
-    } catch (error) {
-      this.refuse(
-        node,
-        error instanceof Error ? error.message : `semantic evidence failed: ${String(error)}`,
-      );
-    }
-  }
-
   bindingUse(symbol: GodotOfficialSymbolIdentity, node: GodotBoundNode): OfficialBoundBindingUse {
     const target = this.bindings.resolve(symbol);
     if (target.kind === 'refusal-binding') this.refuse(node, target.reason);
@@ -547,7 +497,6 @@ export class LoweringContext {
         `binding target local is not a valid TypeScript lexical name: ${target.localName}`,
       );
     }
-    this.prove(node, target.evidenceClaimId, 'binding', godotOfficialSymbolKey(symbol));
     return {
       target,
       requirements: [
@@ -570,10 +519,6 @@ export class LoweringContext {
     return this.selectRule(node, [semanticKey], inputNodes, [expected], includeResultDatatype);
   }
 
-  /**
-   * The first semantic key, in order, that has an evidenced rule (exact datatypes first, then the
-   * datatype classes the resolver generalizes to), whose recipe is one of `expected`.
-   */
   /**
    * Why an operand is untyped, when the cause is an untyped local its function assigns values of
    * more than one type (`var d = sign(x)` then `d = ... else 1`): no single type fixes it, so no
@@ -690,18 +635,7 @@ export class LoweringContext {
         `code rule ${node.kind}:${semanticKey} produced ${entry.target.kind}, expected ${expected.join(' or ')}`,
       );
     }
-    this.prove(node, entry.evidenceClaimId, 'translate-code', godotCodeRuleKey(entry.source));
-    return {
-      recipe: entry.target,
-      requirements: [
-        {
-          kind: 'evidence-requirement',
-          layer: 'language',
-          claimId: entry.evidenceClaimId,
-          canonicalIdentity: godotCodeRuleKey(entry.source),
-        },
-      ],
-    };
+    return { recipe: entry.target, requirements: [] };
   }
 
   structural(
@@ -731,7 +665,6 @@ export class LoweringContext {
         type: { kind: 'type-reference', name: 'GodotNumeric', arguments: [] },
         requirements: [
           { kind: 'compat-import-requirement', module: 'lib/godot-compat/numeric', imported: 'GodotNumeric', local: 'GodotNumeric', typeOnly: true },
-          this.numericRequirement(),
         ],
       };
     }
@@ -742,7 +675,6 @@ export class LoweringContext {
         `no evidenced datatype rule for ${node.datatype.display}; identity=${godotBoundDatatypeIdentity(node.datatype)}`,
       );
     }
-    this.prove(node, entry.evidenceClaimId, 'translate-code', godotDatatypeRuleKey(entry));
     if (entry.targetType.kind === 'type-reference' && entry.targetType.name === SCRIPT_CLASS_TYPE) {
       // A script-class datatype names the class generated for that script.
       const found =
@@ -753,12 +685,6 @@ export class LoweringContext {
       return {
         type: { kind: 'type-reference', name: found.name, arguments: [] },
         requirements: [
-          {
-            kind: 'evidence-requirement',
-            layer: 'language',
-            claimId: entry.evidenceClaimId,
-            canonicalIdentity: godotDatatypeRuleKey(entry),
-          },
           ...(found.module === undefined
             ? []
             : [
@@ -775,23 +701,16 @@ export class LoweringContext {
     }
     if (entry.targetType.kind === 'type-reference' && entry.targetType.name === NATIVE_CLASS_TYPE) {
       // An engine-class datatype is the type compat's modules take for that class and its ancestors.
-      const evidence: OfficialBoundLoweringRequirement = {
-        kind: 'evidence-requirement',
-        layer: 'language',
-        claimId: entry.evidenceClaimId,
-        canonicalIdentity: godotDatatypeRuleKey(entry),
-      };
       if (node.datatype.kind !== 'NATIVE' || node.datatype.nativeType === '' || this.nativeType === undefined) {
         this.refuse(node, `datatype ${node.datatype.display} names no engine class type`);
       }
       const parts = this.nativeType(node.datatype.nativeType);
-      if (parts.length === 0) return { type: { kind: 'keyword-type', keyword: 'object' }, requirements: [evidence] };
+      if (parts.length === 0) return { type: { kind: 'keyword-type', keyword: 'object' }, requirements: [] };
       const local = (part: GodotNativeTypePart) => `$Native_${part.exportName}`;
       const references: TargetTsType[] = parts.map((part) => ({ kind: 'type-reference', name: local(part), arguments: [] }));
       return {
         type: references.length === 1 ? (references[0] as TargetTsType) : { kind: 'intersection-type', members: references },
         requirements: [
-          evidence,
           ...parts.map((part): OfficialBoundLoweringRequirement =>
             part.compat
               ? { kind: 'compat-import-requirement', module: part.module, imported: part.exportName, local: local(part), typeOnly: true }
@@ -807,10 +726,7 @@ export class LoweringContext {
         const inner = this.targetType(element);
         return {
           type: { kind: 'array-type', element: inner.type },
-          requirements: [
-            { kind: 'evidence-requirement', layer: 'language', claimId: entry.evidenceClaimId, canonicalIdentity: godotDatatypeRuleKey(entry) },
-            ...inner.requirements,
-          ],
+          requirements: inner.requirements,
         };
       }
     }
@@ -820,12 +736,6 @@ export class LoweringContext {
     return {
       type: entry.targetType,
       requirements: [
-        {
-          kind: 'evidence-requirement',
-          layer: 'language',
-          claimId: entry.evidenceClaimId,
-          canonicalIdentity: godotDatatypeRuleKey(entry),
-        },
         ...(entry.typeImport === undefined || entry.targetType.kind !== 'type-reference'
           ? []
           : [

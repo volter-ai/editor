@@ -1,30 +1,11 @@
 /**
  * UI node families: canvas layers, Controls and their containers, labels and texture rects, 2D
  * nodes, sprites and touch-screen buttons, and the resources they take (canvas and placeholder
- * textures, label settings). Their own proof (`src/evidence/proofs/scene-ui.ts`) instantiates a
- * scene of them in official Godot and reads each node's layout back through Godot's getters
- * (global rects, sizes, minimum sizes, line counts, transforms), against the emitted component
- * mounted in Node and read through compat's getters.
+ * textures, label settings).
  */
-import {
-  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
-  godotProofIdentities,
-} from '../../../godot-frontend/proof-identities';
-import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
-import {
-  GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
-  GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
-  GODOT_4_7_CODE_SEED_SOURCE_REVISION,
-} from '../../code/authority/godot-4.7-seed';
-import {
-  type GodotSceneNodeClaimLiveness,
-  type GodotSceneNodeRule,
-  type GodotSceneResourceRule,
-  godotSceneNodeRuleKey,
-  godotSceneResourceRuleKey,
-} from '../scene-node-authority';
+import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
+import type { GodotSceneNodeRule, GodotSceneResourceRule } from '../scene-node-authority';
 
-const UI_IDENTITIES = godotProofIdentities('scene-ui');
 const REVISION = GODOT_4_7_CODE_SEED_SOURCE_REVISION;
 const identityOf = (className: string) => `${REVISION}\0ClassDB\0${className}`;
 
@@ -46,7 +27,6 @@ export const GODOT_4_7_UI_NODE_RULES: readonly (GodotSceneNodeRule & { readonly 
   sourceRevision: REVISION,
   nativeCanonicalIdentity: identityOf(className),
   targetKind: 'three-node' as const,
-  evidenceClaimId: `godot-4.7-scene-node-${module}`,
   source: { file, symbol: `${className}::${className}`, line },
 }));
 
@@ -60,58 +40,5 @@ export const GODOT_4_7_UI_RESOURCE_RULES: readonly (GodotSceneResourceRule & { r
   sourceRevision: REVISION,
   className,
   construct: { module: `lib/godot-compat/${module}`, exportName },
-  evidenceClaimId: `godot-4.7-scene-resource-${module}`,
   source: { file, symbol: `${className}::${className}`, line },
-}));
-
-function uiClaim(canonicalIdentity: string, claimId: string, source: Source): SemanticClaimRecord {
-  return {
-    registryVersion: 1,
-    claimId,
-    layer: 'translate-data',
-    canonicalIdentity,
-    godot: {
-      sourceRevision: REVISION,
-      apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
-      sourceFile: source.file,
-      sourceSymbol: source.symbol,
-      sourceLine: source.line,
-    },
-    native: {
-      executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
-      buildIdentity: 'Godot 4.7-stable official 5b4e0cb0f',
-      inputSha256: UI_IDENTITIES.input,
-      callsite: 'res://observe.gd _process()',
-      observedOutputSha256: UI_IDENTITIES.observed,
-    },
-    target: {
-      implementationSha256: UI_IDENTITIES.implementation,
-      callsite: 'emitted scene components mounted by @react-three/fiber, read through compat getters',
-      observedOutputSha256: UI_IDENTITIES.observed,
-    },
-    comparison: {
-      comparator: 'canonical UI layout (global rects, sizes, minimum sizes, line counts, transforms) exact equality',
-      tolerance: 'exact',
-      resultSha256: UI_IDENTITIES.comparison,
-    },
-    reproductionCommand: GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
-  };
-}
-
-export const GODOT_4_7_UI_CLAIMS: readonly SemanticClaimRecord[] = [
-  ...GODOT_4_7_UI_NODE_RULES.map((rule) =>
-    uiClaim(godotSceneNodeRuleKey(rule.sourceRevision, rule.nativeCanonicalIdentity), rule.evidenceClaimId, rule.source),
-  ),
-  ...GODOT_4_7_UI_RESOURCE_RULES.map((rule) =>
-    uiClaim(godotSceneResourceRuleKey(rule.sourceRevision, rule.className), rule.evidenceClaimId, rule.source),
-  ),
-];
-
-export const GODOT_4_7_UI_LIVENESS: readonly GodotSceneNodeClaimLiveness[] = GODOT_4_7_UI_CLAIMS.map((entry) => ({
-  claimId: entry.claimId,
-  sourceRevision: REVISION,
-  apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
-  executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
-  inputSha256: UI_IDENTITIES.input,
-  implementationSha256: UI_IDENTITIES.implementation,
 }));

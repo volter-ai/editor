@@ -112,7 +112,7 @@ export interface GodotShaderUniform {
   readonly group: string;
 }
 
-export interface GodotShaderTree {
+interface GodotShaderTree {
   readonly renderModes: readonly string[];
   readonly uniforms: readonly GodotShaderUniform[];
   readonly varyings: readonly { readonly name: string; readonly type: GodotShaderType; readonly stage: number; readonly interpolation: number }[];
