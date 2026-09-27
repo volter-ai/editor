@@ -9,7 +9,8 @@
  * a curve every texel is 0. A particle process material samples it (`gpu-particles-3d.ts`).
  */
 
-import { type Curve, sample_baked } from './curve';
+import { add_point, construct as curve, type Curve, sample_baked, set_max_value, set_min_value } from './curve';
+import { construct as vector2 } from './vector2';
 
 const f32 = Math.fround;
 /** `CurveTexture::TextureMode` (`curve_texture.h:41`). */
@@ -107,6 +108,24 @@ export function set_texture_mode(self: CurveTexture, p_mode: number): void {
  */
 export function get_texture_mode(self: CurveTexture): number {
   return self.texture_mode;
+}
+
+/**
+ * A texture with no curve gets a flat curve at 1 over the range given (`ensure_default_setup`,
+ * not bound; a particle process material calls it when the texture is set on a parameter).
+ *
+ * @godot CurveTexture (protocol)
+ * @source scene/resources/curve_texture.cpp:69
+ */
+export function godot_curve_texture_ensure_default_setup(self: CurveTexture, p_min: number, p_max: number): void {
+  if (self.curve === null) {
+    const made = curve();
+    add_point(made, vector2(0, 1));
+    add_point(made, vector2(1, 1));
+    set_min_value(made, p_min);
+    set_max_value(made, p_max);
+    set_curve(self, made);
+  }
 }
 
 /**

@@ -14,7 +14,7 @@
 
 import type { Color } from './color';
 import { construct as color } from './color';
-import { type CurveTexture, godot_curve_texture_pixels } from './curve-texture';
+import { type CurveTexture, godot_curve_texture_ensure_default_setup, godot_curve_texture_pixels } from './curve-texture';
 import { type GradientTexture1D, godot_gradient_texture_1d_pixels } from './gradient-texture-1d';
 import type { Shader } from './shader';
 import type { Vector3 } from './vector3';
@@ -37,6 +37,10 @@ export interface GodotParticleTexture {
 
 const PARTICLE_TEXTURES = new WeakMap<object, GodotParticleTexture>();
 
+function isCurveTexture(object: object): object is CurveTexture {
+  return 'texture_mode' in object && 'curve' in object;
+}
+
 /**
  * A texture as the particle pass samples it: a `CurveTexture`'s float image, a `GradientTexture1D`'s
  * RGBA8 bytes; another class is not sampled and fails by name.
@@ -47,7 +51,7 @@ function particleTexture(texture: unknown): GodotParticleTexture | null {
   const known = PARTICLE_TEXTURES.get(object);
   if (known !== undefined) return known;
   let made: GodotParticleTexture;
-  if ('texture_mode' in object && 'curve' in object) {
+  if (isCurveTexture(object)) {
     made = { source: object, pixels: () => godot_curve_texture_pixels(object as CurveTexture) };
   } else if ('gradient' in object && 'use_hdr' in object) {
     made = { source: object, pixels: () => ({ width: (object as GradientTexture1D).width, height: 1, format: 'rgba8', data: godot_gradient_texture_1d_pixels(object as GradientTexture1D) }) };
@@ -147,6 +151,31 @@ const TEXTURE_NAMES: readonly (string | null)[] = [
   'radial_velocity_curve',
   'directional_velocity_curve',
   'scale_over_velocity_curve',
+];
+
+/**
+ * The range a `CurveTexture` set on each `Parameter` gets when it has no curve (`_adjust_curve_range`,
+ * `:1596`, called by `set_param_texture`, `:1609`); `null` where Godot adjusts none.
+ */
+const CURVE_RANGES: readonly (readonly [number, number] | null)[] = [
+  null,
+  [-360, 360],
+  [-2, 2],
+  [-200, 200],
+  [-200, 200],
+  [-200, 200],
+  [0, 100],
+  [-360, 360],
+  [0, 1],
+  [-1, 1],
+  [0, 200],
+  null,
+  [0, 1],
+  null,
+  null,
+  null,
+  null,
+  [0, 3],
 ];
 
 const vec3 = (value: Vector3): readonly number[] => [value.x, value.y, value.z];
@@ -319,8 +348,8 @@ export function get_param_max(self: ParticleProcessMaterial, p_param: number): n
 }
 
 /**
- * A curve's default range (`_adjust_curve_range`) is its texture's own business; the texture is
- * sampled as it is.
+ * A `CurveTexture` with no curve gets a flat one over the parameter's range (`_adjust_curve_range`,
+ * `:1596`: `CurveTexture::ensure_default_setup`).
  *
  * @godot ParticleProcessMaterial.set_param_texture
  * @source scene/resources/particle_process_material.cpp:1609
@@ -332,6 +361,8 @@ export function set_param_texture(self: ParticleProcessMaterial, p_param: number
   self.tex_parameters[p_param] = texture;
   const name = TEXTURE_NAMES[p_param];
   if (name !== null && name !== undefined) self.parameters.set(name, texture);
+  const range = CURVE_RANGES[p_param];
+  if (range !== null && range !== undefined && texture !== null && isCurveTexture(texture.source)) godot_curve_texture_ensure_default_setup(texture.source, range[0], range[1]);
 }
 
 /**

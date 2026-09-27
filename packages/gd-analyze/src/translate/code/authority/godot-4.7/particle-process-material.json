@@ -1,0 +1,3754 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/particle-process-material"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "ParticleProcessMaterial",
+        "kind": "native-class",
+        "signature": "GDScriptNativeClass"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "construct",
+        "localName": "ParticleProcessMaterial_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.ParticleProcessMaterial"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_spread",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_spread",
+        "localName": "ParticleProcessMaterial_set_spread",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_spread"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_spread",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_spread",
+        "localName": "ParticleProcessMaterial_get_spread",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_spread"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_flatness",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_flatness",
+        "localName": "ParticleProcessMaterial_set_flatness",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_flatness"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_flatness",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_flatness",
+        "localName": "ParticleProcessMaterial_get_flatness",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_flatness"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_sphere_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_sphere_radius",
+        "localName": "ParticleProcessMaterial_set_emission_sphere_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_sphere_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_sphere_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_sphere_radius",
+        "localName": "ParticleProcessMaterial_get_emission_sphere_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_sphere_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_ring_height",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_ring_height",
+        "localName": "ParticleProcessMaterial_set_emission_ring_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_ring_height",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_ring_height",
+        "localName": "ParticleProcessMaterial_get_emission_ring_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_ring_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_ring_radius",
+        "localName": "ParticleProcessMaterial_set_emission_ring_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_ring_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_ring_radius",
+        "localName": "ParticleProcessMaterial_get_emission_ring_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_ring_inner_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_ring_inner_radius",
+        "localName": "ParticleProcessMaterial_set_emission_ring_inner_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_inner_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_ring_inner_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_ring_inner_radius",
+        "localName": "ParticleProcessMaterial_get_emission_ring_inner_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_inner_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_ring_cone_angle",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_ring_cone_angle",
+        "localName": "ParticleProcessMaterial_set_emission_ring_cone_angle",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_cone_angle"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_ring_cone_angle",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_ring_cone_angle",
+        "localName": "ParticleProcessMaterial_get_emission_ring_cone_angle",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_cone_angle"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_inherit_velocity_ratio",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_inherit_velocity_ratio",
+        "localName": "ParticleProcessMaterial_set_inherit_velocity_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_inherit_velocity_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_inherit_velocity_ratio",
+        "kind": "native-member",
+        "signature": "hash:191475506"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_inherit_velocity_ratio",
+        "localName": "ParticleProcessMaterial_get_inherit_velocity_ratio",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_inherit_velocity_ratio"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_lifetime_randomness",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_lifetime_randomness",
+        "localName": "ParticleProcessMaterial_set_lifetime_randomness",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_lifetime_randomness"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_lifetime_randomness",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_lifetime_randomness",
+        "localName": "ParticleProcessMaterial_get_lifetime_randomness",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_lifetime_randomness"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_direction",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_direction",
+        "localName": "ParticleProcessMaterial_set_direction",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_direction"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_direction",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_direction",
+        "localName": "ParticleProcessMaterial_get_direction",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_direction"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_velocity_pivot",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_velocity_pivot",
+        "localName": "ParticleProcessMaterial_set_velocity_pivot",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_velocity_pivot"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_velocity_pivot",
+        "kind": "native-member",
+        "signature": "hash:3783033775"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_velocity_pivot",
+        "localName": "ParticleProcessMaterial_get_velocity_pivot",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_velocity_pivot"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_box_extents",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_box_extents",
+        "localName": "ParticleProcessMaterial_set_emission_box_extents",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_box_extents"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_box_extents",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_box_extents",
+        "localName": "ParticleProcessMaterial_get_emission_box_extents",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_box_extents"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_ring_axis",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_ring_axis",
+        "localName": "ParticleProcessMaterial_set_emission_ring_axis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_axis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_ring_axis",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_ring_axis",
+        "localName": "ParticleProcessMaterial_get_emission_ring_axis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_axis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_shape_offset",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_shape_offset",
+        "localName": "ParticleProcessMaterial_set_emission_shape_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_shape_offset",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_shape_offset",
+        "localName": "ParticleProcessMaterial_get_emission_shape_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_shape_scale",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_shape_scale",
+        "localName": "ParticleProcessMaterial_set_emission_shape_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_shape_scale",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_shape_scale",
+        "localName": "ParticleProcessMaterial_get_emission_shape_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_gravity",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_gravity",
+        "localName": "ParticleProcessMaterial_set_gravity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_gravity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_gravity",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_gravity",
+        "localName": "ParticleProcessMaterial_get_gravity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_gravity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_color",
+        "localName": "ParticleProcessMaterial_set_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_color",
+        "localName": "ParticleProcessMaterial_get_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_shape",
+        "kind": "native-member",
+        "signature": "hash:461501442"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_shape",
+        "localName": "ParticleProcessMaterial_set_emission_shape",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_shape",
+        "kind": "native-member",
+        "signature": "hash:3719733018"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_shape",
+        "localName": "ParticleProcessMaterial_get_emission_shape",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_color_ramp",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_color_ramp",
+        "localName": "ParticleProcessMaterial_set_color_ramp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_color_ramp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_color_ramp",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_color_ramp",
+        "localName": "ParticleProcessMaterial_get_color_ramp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_color_ramp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_color_initial_ramp",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_color_initial_ramp",
+        "localName": "ParticleProcessMaterial_set_color_initial_ramp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_color_initial_ramp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_color_initial_ramp",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_color_initial_ramp",
+        "localName": "ParticleProcessMaterial_get_color_initial_ramp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_color_initial_ramp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_alpha_curve",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_alpha_curve",
+        "localName": "ParticleProcessMaterial_set_alpha_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_alpha_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_alpha_curve",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_alpha_curve",
+        "localName": "ParticleProcessMaterial_get_alpha_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_alpha_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_emission_curve",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_emission_curve",
+        "localName": "ParticleProcessMaterial_set_emission_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_emission_curve",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_emission_curve",
+        "localName": "ParticleProcessMaterial_get_emission_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_velocity_limit_curve",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_velocity_limit_curve",
+        "localName": "ParticleProcessMaterial_set_velocity_limit_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_velocity_limit_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_velocity_limit_curve",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_velocity_limit_curve",
+        "localName": "ParticleProcessMaterial_get_velocity_limit_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_velocity_limit_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_param_min",
+        "kind": "native-member",
+        "signature": "hash:2295964248"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_param_min",
+        "localName": "ParticleProcessMaterial_set_param_min",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_min"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_param_max",
+        "kind": "native-member",
+        "signature": "hash:2295964248"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_param_max",
+        "localName": "ParticleProcessMaterial_set_param_max",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_max"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_param_min",
+        "kind": "native-member",
+        "signature": "hash:3903786503"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_param_min",
+        "localName": "ParticleProcessMaterial_get_param_min",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_min"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_param_max",
+        "kind": "native-member",
+        "signature": "hash:3903786503"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_param_max",
+        "localName": "ParticleProcessMaterial_get_param_max",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_max"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_param_texture",
+        "kind": "native-member",
+        "signature": "hash:526976089"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_param_texture",
+        "localName": "ParticleProcessMaterial_set_param_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_texture"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_param_texture",
+        "kind": "native-member",
+        "signature": "hash:3489372978"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_param_texture",
+        "localName": "ParticleProcessMaterial_get_param_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_texture"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "set_particle_flag",
+        "kind": "native-member",
+        "signature": "hash:1711815571"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "set_particle_flag",
+        "localName": "ParticleProcessMaterial_set_particle_flag",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.set_particle_flag"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ParticleProcessMaterial",
+        "member": "get_particle_flag",
+        "kind": "native-member",
+        "signature": "hash:3895316907"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/particle-process-material",
+        "exportName": "get_particle_flag",
+        "localName": "ParticleProcessMaterial_get_particle_flag",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ParticleProcessMaterial.get_particle_flag"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.ParticleProcessMaterial",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-class\u0000ParticleProcessMaterial\u0000ParticleProcessMaterial\u0000GDScriptNativeClass",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.ParticleProcessMaterial",
+        "sourceLine": 2747
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "79ef93e193054a7136d7e84d92cdedea369e6f57a46d38c33180195e39830f4d",
+        "callsite": "res://probe.gd _init() new",
+        "observedOutputSha256": "fd14ea5ed0baf9e19c710267cd826526ee1e6122fa69878b0a058bdee86c3bc4"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts construct",
+        "observedOutputSha256": "114a58e0b658ee1ec8d281bef5b9c78457e2c348d451c67a5355f7192f7ff7f6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2fbed09f4f4cdd96909db52f61a67759c68ea2d9773bc4bcb7e28406c2ad1db7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_spread",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_spread\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_spread",
+        "sourceLine": 1412
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bc0d3e911113dbc298b4f09a6c5500f5edb07d894bba19287f68239808dfc99c",
+        "callsite": "res://probe.gd _init() set_spread",
+        "observedOutputSha256": "2dfabd237bf04c48477d9593eada7729711a8142019ba4d801d0d5bfe15391c8"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_spread",
+        "observedOutputSha256": "2dfabd237bf04c48477d9593eada7729711a8142019ba4d801d0d5bfe15391c8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a5264cb91f9083c3e9d3a1caeff65126c5fb25a2a7906a0fbd77aaad07f9237f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_spread",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_spread\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_spread",
+        "sourceLine": 1417
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "78bff2c236e400e0499ba0e977c8a33c2c9288d693c5226c08f7d201620deaf2",
+        "callsite": "res://probe.gd _init() get_spread",
+        "observedOutputSha256": "c6f83cdb076795b146e93b6f632e03cc4eabd5d5d3ce2742853787f946debf35"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_spread",
+        "observedOutputSha256": "c6f83cdb076795b146e93b6f632e03cc4eabd5d5d3ce2742853787f946debf35"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "42a2a857b0c4f9a4ecc7e05c058fa3f7bfa657a371696d54734af1a17175330e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_flatness",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_flatness\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_flatness",
+        "sourceLine": 1421
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cfd36cb56716e90940003fe562793cd758e46a282b8b885479ea5d24556a9b31",
+        "callsite": "res://probe.gd _init() set_flatness",
+        "observedOutputSha256": "a7a3c3ef8b5d77c2f29f7264b15ba67b0ed6b29a3e788860bdcc23de1752bef1"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_flatness",
+        "observedOutputSha256": "a7a3c3ef8b5d77c2f29f7264b15ba67b0ed6b29a3e788860bdcc23de1752bef1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fb13c3e53b5850535d00ff818064378ccb01e8814b2e2e766d499274899c7a1e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_flatness",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_flatness\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_flatness",
+        "sourceLine": 1426
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6ea9b1a8b8158c1a0339b06aaa07ee816e3d7abd594da57941205c90e38628a3",
+        "callsite": "res://probe.gd _init() get_flatness",
+        "observedOutputSha256": "aea2d9ba23a4f1b9d512a7a2a0ae8954b85b128c87bef862b9cee407d26787db"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_flatness",
+        "observedOutputSha256": "aea2d9ba23a4f1b9d512a7a2a0ae8954b85b128c87bef862b9cee407d26787db"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e63117fe33aec9db0dd37e8644c0e0383d63826e41f7767175365f5e31b9299d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_sphere_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_sphere_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_sphere_radius",
+        "sourceLine": 1792
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2446fe61dec18018b9f3fbf802cc222bb88d618c48cb4d1838006d088af5dd02",
+        "callsite": "res://probe.gd _init() set_emission_sphere_radius",
+        "observedOutputSha256": "8812c20faac05f715626da0b0007c26013fbe08c7abf9c4726ca35b13784ba8a"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_sphere_radius",
+        "observedOutputSha256": "8812c20faac05f715626da0b0007c26013fbe08c7abf9c4726ca35b13784ba8a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fb21c567b189d89735812417d909890491e7b06606e06bd0f651d8d08d491241"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_sphere_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_sphere_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_sphere_radius",
+        "sourceLine": 1881
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0c4f0dd3f954b7455e820e4894e6805dfb6ee62c7c60f943267da656943547b6",
+        "callsite": "res://probe.gd _init() get_emission_sphere_radius",
+        "observedOutputSha256": "c73b08cc11202b39fdf17747aa8e1a85023cba19aa105eb2b56d4513d8a1034a"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_sphere_radius",
+        "observedOutputSha256": "c73b08cc11202b39fdf17747aa8e1a85023cba19aa105eb2b56d4513d8a1034a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d9a4887006b333ad54dcece06c36a61bde83a0f52dba9774952a0f69d333305d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_ring_height\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_ring_height",
+        "sourceLine": 1840
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d869a165efadf19c8c2e7bfb860f78c2ea03bb3d178acd1a6e59b0ef7e9fd84e",
+        "callsite": "res://probe.gd _init() set_emission_ring_height",
+        "observedOutputSha256": "852f83e15d827728344af40c9b72c66d66b85dfd27fc3cb0531c2237d20a9d44"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_ring_height",
+        "observedOutputSha256": "852f83e15d827728344af40c9b72c66d66b85dfd27fc3cb0531c2237d20a9d44"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c00fbb9ba98859a4d684c512f83a73675fe2b53fb5889c2b3884cc06d1c0a975"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_ring_height\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_ring_height",
+        "sourceLine": 1909
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4f8dd2482425c2e3c7237854cafacd23927de57593c27a6dafbd3a6273524fc2",
+        "callsite": "res://probe.gd _init() get_emission_ring_height",
+        "observedOutputSha256": "4c559517d62e71963dcfb08ff1431f10763cf6eb49f2f3c4a37900ac9a99e09c"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_ring_height",
+        "observedOutputSha256": "4c559517d62e71963dcfb08ff1431f10763cf6eb49f2f3c4a37900ac9a99e09c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cf95e69e47873a5a7e4b78135d1ba87398cf6459fd9c8780013b0681327a3593"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_ring_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_ring_radius",
+        "sourceLine": 1848
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dee2f6a26d13ff4c11b38a83832ac891e307ced36c546d6cecf81c70c80a0b10",
+        "callsite": "res://probe.gd _init() set_emission_ring_radius",
+        "observedOutputSha256": "f3d41599e2a98cf713e96325c8f504316a9b5e407e1a02943365acf50d9dc1d0"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_ring_radius",
+        "observedOutputSha256": "f3d41599e2a98cf713e96325c8f504316a9b5e407e1a02943365acf50d9dc1d0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "360521a799a4bd41fdcb4b7efd6b3fa590f8c707bc45949571bc17ffb996f4b4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_ring_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_ring_radius",
+        "sourceLine": 1913
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c09bbfb6b066f5bc5360940ce981da2e7e028121e711e5bd398fefaf5fec8720",
+        "callsite": "res://probe.gd _init() get_emission_ring_radius",
+        "observedOutputSha256": "52cb4dd5fae8d028f605df6e7f5f9161bcf0b969622729411cac9b502fbbcb65"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_ring_radius",
+        "observedOutputSha256": "52cb4dd5fae8d028f605df6e7f5f9161bcf0b969622729411cac9b502fbbcb65"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "81fd86cb3f44b5519235d52467cda5184fec643ba3c6825a5a20d76d1edc10b0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_inner_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_ring_inner_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_ring_inner_radius",
+        "sourceLine": 1856
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f7960e50a96fe5a6b498c195726da4388f6d3fec7096a563df94ae49df602fb0",
+        "callsite": "res://probe.gd _init() set_emission_ring_inner_radius",
+        "observedOutputSha256": "7e068a499f8b847b79e33164af4a5c0ba7cccf92e1df56e7b1b40ab309c9bec9"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_ring_inner_radius",
+        "observedOutputSha256": "7e068a499f8b847b79e33164af4a5c0ba7cccf92e1df56e7b1b40ab309c9bec9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "656cf4d45bb4bf69518d0d78c1b25639a53f7576a05ef51d093b48ac6cfff9b9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_inner_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_ring_inner_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_ring_inner_radius",
+        "sourceLine": 1917
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5b391f4a2eb43fdd6996b5fca2230fec2cbdd3d6752019c0976fb8dd17968725",
+        "callsite": "res://probe.gd _init() get_emission_ring_inner_radius",
+        "observedOutputSha256": "4e02ba0b8cfbc2266399d5990206f515b6c735ba2c28e6adb2aad9cdb972f7b4"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_ring_inner_radius",
+        "observedOutputSha256": "4e02ba0b8cfbc2266399d5990206f515b6c735ba2c28e6adb2aad9cdb972f7b4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "43ee68dfe25ef5f823711a4c91183fb36f483ffe17db98247f7f7ccfcb552008"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_cone_angle",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_ring_cone_angle\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_ring_cone_angle",
+        "sourceLine": 1864
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5dec5ffae413a1557c1e0741cf4eebf9ed9dad83e1233fadf603475ee09118ea",
+        "callsite": "res://probe.gd _init() set_emission_ring_cone_angle",
+        "observedOutputSha256": "ef9907e607d8c8afb25fe7792fefed3cbf641e2dfdc43ce4d2986506fd144a07"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_ring_cone_angle",
+        "observedOutputSha256": "ef9907e607d8c8afb25fe7792fefed3cbf641e2dfdc43ce4d2986506fd144a07"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "48efd1cabd45a55c9d3526bb14b9082a87cc29bb27fdd8de2000ffb98dcd843b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_cone_angle",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_ring_cone_angle\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_ring_cone_angle",
+        "sourceLine": 1921
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "60c0069c2daedd24926d1e9bbf55e20153f90ab7d966b789f8e9fd49d3b44755",
+        "callsite": "res://probe.gd _init() get_emission_ring_cone_angle",
+        "observedOutputSha256": "b2df9b6413ce7d921b51f7e7caf07dabbb78c3222a5c3aac31bfeea21e600039"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_ring_cone_angle",
+        "observedOutputSha256": "b2df9b6413ce7d921b51f7e7caf07dabbb78c3222a5c3aac31bfeea21e600039"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5d1c07ac5f64bb5ba7e3d77acfbb216446caee5bf36e50dd8b91b8edc6503ba6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_inherit_velocity_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_inherit_velocity_ratio\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_inherit_velocity_ratio",
+        "sourceLine": 1872
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a95a9f6a58ef02c83b616beda7785c6b32bb8fffbb88d18c8e37ba348fe4044a",
+        "callsite": "res://probe.gd _init() set_inherit_velocity_ratio",
+        "observedOutputSha256": "7b91578c7eaec7ceca92a65595b6da24ebcc91181755599c870f688d882d5076"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_inherit_velocity_ratio",
+        "observedOutputSha256": "7b91578c7eaec7ceca92a65595b6da24ebcc91181755599c870f688d882d5076"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "42cb855479c42878a8257680b253111be775dcf521537d984df4c050704aa59a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_inherit_velocity_ratio",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_inherit_velocity_ratio\u0000hash:191475506",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_inherit_velocity_ratio",
+        "sourceLine": 1949
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3f48d21ff86ebb5f313c1aaf74c08340c01b7b5ff2ce8b382ed4c6cae8e6a8b1",
+        "callsite": "res://probe.gd _init() get_inherit_velocity_ratio",
+        "observedOutputSha256": "1363bb5d6d3e38adf67db1cec686a02a41e426f88a5b36170af5d26db6d77554"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_inherit_velocity_ratio",
+        "observedOutputSha256": "1363bb5d6d3e38adf67db1cec686a02a41e426f88a5b36170af5d26db6d77554"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "75ba54a25ff06043fa52fe986a98c74bda52ed0873a6d6a728444f44045cae71"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_lifetime_randomness",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_lifetime_randomness\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_lifetime_randomness",
+        "sourceLine": 2129
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "08dfd32d8c39bf53f04c8e647fe4434059b32c90aae49f39b7625d370058883a",
+        "callsite": "res://probe.gd _init() set_lifetime_randomness",
+        "observedOutputSha256": "6f8018ed1ad661f612a2a83a8940e3996e42366cc8e55f96f8c53d1563b489aa"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_lifetime_randomness",
+        "observedOutputSha256": "6f8018ed1ad661f612a2a83a8940e3996e42366cc8e55f96f8c53d1563b489aa"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1755c987cc24ee31cf9c0fbc778444a1799c36558020af75a5f4d8a59ff32a90"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_lifetime_randomness",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_lifetime_randomness\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_lifetime_randomness",
+        "sourceLine": 2134
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6673167b41e11a4acbb3a7cd5d6901acd82d48a5704749ecacc6a674892a1024",
+        "callsite": "res://probe.gd _init() get_lifetime_randomness",
+        "observedOutputSha256": "bf014fa593af420f6ed2c7df48961ae7e49c17241cc67125a381b0a04233ac14"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_lifetime_randomness",
+        "observedOutputSha256": "bf014fa593af420f6ed2c7df48961ae7e49c17241cc67125a381b0a04233ac14"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "58f7e54657de8a048f57c3cfc4dc19eec4cbc2b344c49fb8324d3c286bf5fbcd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_direction",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_direction\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_direction",
+        "sourceLine": 1403
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e876f122e71335a410a12bb1022dcddb7fe68d7c21ebb4f69483f43439915375",
+        "callsite": "res://probe.gd _init() set_direction",
+        "observedOutputSha256": "a972306577c5db581efbe5bf109af0e61c1b0faf9e73e441bb8eba305c53d016"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_direction",
+        "observedOutputSha256": "a972306577c5db581efbe5bf109af0e61c1b0faf9e73e441bb8eba305c53d016"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e03cf407a6231269b6880c17b07b6b7b29d10f3d3266bcc30c98fbe67e187a31"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_direction",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_direction\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_direction",
+        "sourceLine": 1408
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0706fc5fd8adadaa93793ccb32c5b1a5f597c98800b2b1abad03269654e9dba7",
+        "callsite": "res://probe.gd _init() get_direction",
+        "observedOutputSha256": "3982bd2103ca07f8118470e31f78e253cafa429e2e2a4d95d087dd763653f9c1"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_direction",
+        "observedOutputSha256": "3982bd2103ca07f8118470e31f78e253cafa429e2e2a4d95d087dd763653f9c1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "20ea1ebda62725cdb13b4b18796114313d29de509ddc658411cc38cfd0cabf58"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_velocity_pivot",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_velocity_pivot\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_velocity_pivot",
+        "sourceLine": 1430
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7d687d5e7e9d1ccf0e9759d949197ce08acbbf00a11c64fb64cf866dee56a352",
+        "callsite": "res://probe.gd _init() set_velocity_pivot",
+        "observedOutputSha256": "01b1c8d3eeb438a945050319e23b2037ce14f182eb2e8ad31ce8a2ef791cebae"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_velocity_pivot",
+        "observedOutputSha256": "01b1c8d3eeb438a945050319e23b2037ce14f182eb2e8ad31ce8a2ef791cebae"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d097ba29fac900b9efedb6a0f6b35a4ef31f95ff59c23cfc1de2f41c27e09694"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_velocity_pivot",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_velocity_pivot\u0000hash:3783033775",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_velocity_pivot",
+        "sourceLine": 1435
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "445610d4f010ec43b39d393985ce6a1d25358375385010dc4bd63db15e1df4f5",
+        "callsite": "res://probe.gd _init() get_velocity_pivot",
+        "observedOutputSha256": "b968defb72ea642fa5907d2621db0268d31f909550c2479e73ace3999512a3f7"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_velocity_pivot",
+        "observedOutputSha256": "b968defb72ea642fa5907d2621db0268d31f909550c2479e73ace3999512a3f7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6af92f9d0a89844c1b1ff0f1c7d23bb06d7a7fe874e46f3da83be9d6df0112f1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_box_extents",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_box_extents\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_box_extents",
+        "sourceLine": 1800
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ea51fc7bff9fa0baa173ab0a8f2c05941a3986bd7f4faf89a537a6a5c4620c03",
+        "callsite": "res://probe.gd _init() set_emission_box_extents",
+        "observedOutputSha256": "2ae3b92e84e8ab65c4b4779a07de54ea5dba4c2102a4c7f9f6df8b46568d1e05"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_box_extents",
+        "observedOutputSha256": "2ae3b92e84e8ab65c4b4779a07de54ea5dba4c2102a4c7f9f6df8b46568d1e05"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "719a4e073baeeedda14621fb9da49b24d4d7c344883a2c741ab4fe872b4aa6ad"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_box_extents",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_box_extents\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_box_extents",
+        "sourceLine": 1885
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dcc925f82367618f680158218c48ea51dd01eae433f3b046e2a43069e9490291",
+        "callsite": "res://probe.gd _init() get_emission_box_extents",
+        "observedOutputSha256": "a84f9345227366b9b03f64eab2f53378d44ae238dea3d87fd2d83ef49a58943d"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_box_extents",
+        "observedOutputSha256": "a84f9345227366b9b03f64eab2f53378d44ae238dea3d87fd2d83ef49a58943d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9e86dce5006e2a5beb6a481461369f02fddbe6b8c4db7a7f4345e83c38cfd158"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_axis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_ring_axis\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_ring_axis",
+        "sourceLine": 1832
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a2a8ffaa6fea5a940e40a8c5baf9d60382515ad75610f5818bb0b91c45b6347e",
+        "callsite": "res://probe.gd _init() set_emission_ring_axis",
+        "observedOutputSha256": "81921266b84b65610aa2543e799cc29008e97aa62e833b7af047d3ed57214d7f"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_ring_axis",
+        "observedOutputSha256": "81921266b84b65610aa2543e799cc29008e97aa62e833b7af047d3ed57214d7f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "183435cb4322058e7afe59dda6381a5424f9392c49304780f93ac810ce3e84c4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_axis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_ring_axis\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_ring_axis",
+        "sourceLine": 1905
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4288babe9614437cdda388112aae853ccdd6884cbda23500e1730eb9eba619cb",
+        "callsite": "res://probe.gd _init() get_emission_ring_axis",
+        "observedOutputSha256": "cf6e9a2fa3afe4558f5d183734d035116f69c767cc1d92baf6a3a6800ba402b4"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_ring_axis",
+        "observedOutputSha256": "cf6e9a2fa3afe4558f5d183734d035116f69c767cc1d92baf6a3a6800ba402b4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7fd29bfa3d6b7aaecfe2ad5b7588765ec5a09485216d043e02b262ae139b41a6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_shape_offset\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_shape_offset",
+        "sourceLine": 1925
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ea02a73944e01d050f2c016d22286f2a5c94534405b17651983d18998d1faab5",
+        "callsite": "res://probe.gd _init() set_emission_shape_offset",
+        "observedOutputSha256": "39aa70391ef9bd3789196c873feb34cdf27cecbc4faabdac94d2ba1e98e14f69"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_shape_offset",
+        "observedOutputSha256": "39aa70391ef9bd3789196c873feb34cdf27cecbc4faabdac94d2ba1e98e14f69"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eb1c867830d14ed2e7466b8fb37a64e44648d14cbe5a441982be12f2089e9d9b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_shape_offset\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_shape_offset",
+        "sourceLine": 1933
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "73277aa0f33fb973a2ddb5838ce2c90580aa8fb70833e9a47053ed8d2494a7d6",
+        "callsite": "res://probe.gd _init() get_emission_shape_offset",
+        "observedOutputSha256": "4cf387c3a07273db9d3ba670699826385508dc356e2df701615e8584af3208f3"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_shape_offset",
+        "observedOutputSha256": "4cf387c3a07273db9d3ba670699826385508dc356e2df701615e8584af3208f3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d20b46e6b81dbdd3465e410758a62a01e28fcf1e9e5ccef4d8b984acf10fb954"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_shape_scale\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_shape_scale",
+        "sourceLine": 1937
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "78e367112e3cef2a01c4efce2b2db68f82ad0d8ad9579ff9b7d2fc441ed5351e",
+        "callsite": "res://probe.gd _init() set_emission_shape_scale",
+        "observedOutputSha256": "73c5f24ad0a1490d1fd60bbcd2429b00f2bb824b8d0ba5a899ddeb5b20f9bb5a"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_shape_scale",
+        "observedOutputSha256": "73c5f24ad0a1490d1fd60bbcd2429b00f2bb824b8d0ba5a899ddeb5b20f9bb5a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d407d950106c609f9f6add940084626a2343368ace0b747da391156891c22965"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_shape_scale\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_shape_scale",
+        "sourceLine": 1945
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a815a493ae961e844268a4c3c7b95194f0b60d8438386a7dc2824785d9b25888",
+        "callsite": "res://probe.gd _init() get_emission_shape_scale",
+        "observedOutputSha256": "0a4ae1242f34bcff8e1ea80aac8a9215bac842737bd44a69f11ff8dddcf06b02"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_shape_scale",
+        "observedOutputSha256": "0a4ae1242f34bcff8e1ea80aac8a9215bac842737bd44a69f11ff8dddcf06b02"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a38bb807544475be7b2108e89657349393c5dc2b1921a4a3a5aedf2d9fedcf45"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_gravity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_gravity\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_gravity",
+        "sourceLine": 2116
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b8e7ddbc6164b0bf48306e10ac5a90f899a9cea4aa57ae136786621df761e95b",
+        "callsite": "res://probe.gd _init() set_gravity",
+        "observedOutputSha256": "6794ca27c4bdef4a710cfe949b570cbc66d80f21d355129d3617ac047be5c4d6"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_gravity",
+        "observedOutputSha256": "6794ca27c4bdef4a710cfe949b570cbc66d80f21d355129d3617ac047be5c4d6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8307627d2a75c6ef9c133f44956dec30240de6cc514be31bc204798adc9d174d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_gravity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_gravity\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_gravity",
+        "sourceLine": 2125
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e0dde4d291fb4b4d67321f663a513172bfb1c636cf5b9ef7396ee9ebc8af0480",
+        "callsite": "res://probe.gd _init() get_gravity",
+        "observedOutputSha256": "5790555c5d766648a5b9010ec988043693f09041a6cc90c179bb0b6c099bca1e"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_gravity",
+        "observedOutputSha256": "5790555c5d766648a5b9010ec988043693f09041a6cc90c179bb0b6c099bca1e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "20623bd5a3413053512520fa8f41b1b489f4643663a86ee6f2f383c2f89c509b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_color",
+        "sourceLine": 1699
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e58c6c0f900bb50bf24b8c1ee0b65afa4af81e8466774f312568d93a41867091",
+        "callsite": "res://probe.gd _init() set_color",
+        "observedOutputSha256": "26f4e7733d2e2e796f7b9cd3d93506f4b3c8533bd54fb5c11dd2b1d9791636cf"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_color",
+        "observedOutputSha256": "a6659ebe92e13067a01fcdc9b4a17b0aad71cdee1049a76b4b3d2b363cd816b5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ef20e83ccc6c163a23c7ba394a84d48313fd8a31c4cfd1812f86ed6a7cf5a79b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_color",
+        "sourceLine": 1704
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0c91eb046d6592d5bfcc7390fce29108621f2e396adfcbcfdf31fbcb2e4e28e9",
+        "callsite": "res://probe.gd _init() get_color",
+        "observedOutputSha256": "2b6d51ad1cd5b726bd8920c24aa03647ab55e67641f4cc2e80abefdf1c4a4d79"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_color",
+        "observedOutputSha256": "3c76eaeef1d2b36180fd5129faa5c78206b421cc02fbe0139815d57b0a5e81cf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "da7653990278ab68397d99bef6613536bad3a987117a2275ca641f7aa3ccefee"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_shape\u0000hash:461501442",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_shape",
+        "sourceLine": 1782
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7a1287b67d316e120941476321cf26b321716694e51a27007f765ad751766d5e",
+        "callsite": "res://probe.gd _init() set_emission_shape",
+        "observedOutputSha256": "d76ef59db264554d57b42f4165180162fcb41d768bafea0f2ecc5c5b7ec0792a"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_shape",
+        "observedOutputSha256": "d76ef59db264554d57b42f4165180162fcb41d768bafea0f2ecc5c5b7ec0792a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "635f3436b6eceddba4e0e431284b1faf795d42132fa425f5f3ec5cc34b31f166"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_shape\u0000hash:3719733018",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_shape",
+        "sourceLine": 1877
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "814c160108fb6724c1ad0545d04324b1204e02c2bb7c2af514bbb8b51321847f",
+        "callsite": "res://probe.gd _init() get_emission_shape",
+        "observedOutputSha256": "85bdee6c9efe93d29883b10c6fe7a331824fad49c82721041a207c7896c39dbf"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_shape",
+        "observedOutputSha256": "85bdee6c9efe93d29883b10c6fe7a331824fad49c82721041a207c7896c39dbf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4f888880c51008271e1c4b41db99c3377327e4d3b45128af5e5954d1c69b7d54"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_color_ramp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_color_ramp\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_color_ramp",
+        "sourceLine": 1708
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "733eb378793b1ab971868909ebda2dc7ed8e5217d24859449989db065be66ed9",
+        "callsite": "res://probe.gd _init() set_color_ramp",
+        "observedOutputSha256": "ed69e5cb292bc1f4ac7c936a95207d7a87ad6fb65369a83a2c21d8bd5387559f"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_color_ramp",
+        "observedOutputSha256": "ed69e5cb292bc1f4ac7c936a95207d7a87ad6fb65369a83a2c21d8bd5387559f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e8956cef1e77f20baa800a56cc22fff2be3a7b7472f6441cadfa5bd1cc05d908"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_color_ramp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_color_ramp\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_color_ramp",
+        "sourceLine": 1716
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "838b7a2187300bc11c0ae71b8763a8a248565cf49ad6ca686c15170b0a7dafba",
+        "callsite": "res://probe.gd _init() get_color_ramp",
+        "observedOutputSha256": "42f8383303fe1b69bd2ec972804277a05f040ec655341d1ac71f5a9c2c1f3ef0"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_color_ramp",
+        "observedOutputSha256": "42f8383303fe1b69bd2ec972804277a05f040ec655341d1ac71f5a9c2c1f3ef0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d70c4ed178e164fd7a950aea0593692a3c94a70f254287f349cb7a3a77f51b65"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_color_initial_ramp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_color_initial_ramp\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_color_initial_ramp",
+        "sourceLine": 1720
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e186b5eccf4144204e64c49853fd4f90cdb02d4de09fd7f5e39ece0e3a8b57e3",
+        "callsite": "res://probe.gd _init() set_color_initial_ramp",
+        "observedOutputSha256": "98526c000bcf2959ac3d77b7e5cb5e0a4150d921fe6b8b64e3591bfe04c7210d"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_color_initial_ramp",
+        "observedOutputSha256": "98526c000bcf2959ac3d77b7e5cb5e0a4150d921fe6b8b64e3591bfe04c7210d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0bfc1123d34070cb02e0c9588c12c4bc698de59940a79f8c8573574f6ae74e07"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_color_initial_ramp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_color_initial_ramp\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_color_initial_ramp",
+        "sourceLine": 1728
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8b0801b03c7f6aa95b4494f652b055de78262b59d387fad9ee8193ef678d6b68",
+        "callsite": "res://probe.gd _init() get_color_initial_ramp",
+        "observedOutputSha256": "153d2af8bcdeb78142c3463b2d4b7d0739db0c6d5162b3d73f68e7a285c9e72c"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_color_initial_ramp",
+        "observedOutputSha256": "153d2af8bcdeb78142c3463b2d4b7d0739db0c6d5162b3d73f68e7a285c9e72c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a0a39c62051bfdf56269dd164c72b0f2cf57f05220ab9989f125e7fa0905851f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_alpha_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_alpha_curve\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_alpha_curve",
+        "sourceLine": 1741
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9442378b2d6ea853fa133c3d28377127b5b673834ea25cdf36dff51b8da7a4c7",
+        "callsite": "res://probe.gd _init() set_alpha_curve",
+        "observedOutputSha256": "a73832933cc629be5d65ac78ff20991e730c039d468ef6b2921fdc9bb5b613ad"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_alpha_curve",
+        "observedOutputSha256": "a73832933cc629be5d65ac78ff20991e730c039d468ef6b2921fdc9bb5b613ad"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "33acce6ac13d60c126e084409995f512ed42bf3530c4cfee2008ff0af9382b23"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_alpha_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_alpha_curve\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_alpha_curve",
+        "sourceLine": 1749
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bc677294ca4fcf628f6d562fad91d8a477db1cbe8abbcd5d98c27093d983fcb2",
+        "callsite": "res://probe.gd _init() get_alpha_curve",
+        "observedOutputSha256": "fe8cc60069a924f65e9af9716014ef7d462015e69c349e3c32b6dc4e5164c37d"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_alpha_curve",
+        "observedOutputSha256": "fe8cc60069a924f65e9af9716014ef7d462015e69c349e3c32b6dc4e5164c37d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "30293f0c7032ae7bc7b7ebee01481d342b1e5331ae1d95997f10f2565ae4da34"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_emission_curve\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_emission_curve",
+        "sourceLine": 1753
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4ff57330909430f04563f00ed9fd74ca3711de47e4b9407ecd9b7aec45b470ea",
+        "callsite": "res://probe.gd _init() set_emission_curve",
+        "observedOutputSha256": "f07f2d640614a65b4ba542e61c5251bb8743c143d6ab03b4eb704bf44a5aff27"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_emission_curve",
+        "observedOutputSha256": "f07f2d640614a65b4ba542e61c5251bb8743c143d6ab03b4eb704bf44a5aff27"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "778cad4e1aa58a3dcf9a8cd0931e1f2a976ac34c868a0edf61332214fc2f498e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_emission_curve\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_emission_curve",
+        "sourceLine": 1761
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3937a4573e13205f695167f7014cbbc80ed007d9bdf425f45e82ea3da31f693d",
+        "callsite": "res://probe.gd _init() get_emission_curve",
+        "observedOutputSha256": "417f14816d572c1b62989a0994e7492e5a277d9c99b945bbf9ff2370021a97f8"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_emission_curve",
+        "observedOutputSha256": "417f14816d572c1b62989a0994e7492e5a277d9c99b945bbf9ff2370021a97f8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7dabb992987acd73aa49e34250b349fa9a24d6b73a35c807d0958eaea1b3cf7c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_velocity_limit_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_velocity_limit_curve\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_velocity_limit_curve",
+        "sourceLine": 1765
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c2d386652e9d3ca8b1d8e1e364af1d3d4fc3a968e98ed9397087d6e433c87a3a",
+        "callsite": "res://probe.gd _init() set_velocity_limit_curve",
+        "observedOutputSha256": "89cabfa0a6a754a98aad8574b38270d98f5f409d7987d741dfbdada547f56a9e"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_velocity_limit_curve",
+        "observedOutputSha256": "89cabfa0a6a754a98aad8574b38270d98f5f409d7987d741dfbdada547f56a9e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1d70feca2311d24aa901bf1c5a493bb7c9d2685cc2e10e53ecbb1b9c3669ee4a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_velocity_limit_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_velocity_limit_curve\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_velocity_limit_curve",
+        "sourceLine": 1773
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bbd45df3f769f1ca5adbd6dba94b2c90289d997915769c8ac9e5d9e31db538c1",
+        "callsite": "res://probe.gd _init() get_velocity_limit_curve",
+        "observedOutputSha256": "413130a739bb138ed7e16fb07b96052385ae42c990e1b5875a917c11b627e23c"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_velocity_limit_curve",
+        "observedOutputSha256": "413130a739bb138ed7e16fb07b96052385ae42c990e1b5875a917c11b627e23c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bccf65e7bfde4aec6305bf792975205271f84f30c9433e91d81b5d52c96d2b7f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_min",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_param_min\u0000hash:2295964248",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_param_min",
+        "sourceLine": 1448
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "768a1d23dffbe0f7d82e3b78262f71f4ef9d62f8b4e94c68afec4fea0888dd45",
+        "callsite": "res://probe.gd _init() param-min-max-0 param-min-max-1 param-min-max-2 param-min-max-3 param-min-max-4 param-min-max-5 param-min-max-6 param-min-max-7 param-min-max-8 param-min-max-9 param-min-max-10 param-min-max-11 param-min-max-12 param-min-max-13 param-min-max-14 param-min-max-15 param-min-max-16 param-min-max-17",
+        "observedOutputSha256": "873ba2bc95cf292110edc2d9ac34c7e0c008733826c5b4636b14ab64f13bf40b"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_param_min",
+        "observedOutputSha256": "873ba2bc95cf292110edc2d9ac34c7e0c008733826c5b4636b14ab64f13bf40b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "08b4ee3295113b09ba3e526589d27700efcdd0c72d9c110dee427323a2f52cfd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_max",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_param_max\u0000hash:2295964248",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_param_max",
+        "sourceLine": 1522
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b9cc0d41d3bb1bac5b293d4f0ead9fc46ee65768eb4001f9e62b54f44556643f",
+        "callsite": "res://probe.gd _init() param-max-lowers-min",
+        "observedOutputSha256": "9195a481c401d4e21a31cf3a777dc41bb4313ef5fc5f2a2e1bd3df66c50654f2"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_param_max",
+        "observedOutputSha256": "9195a481c401d4e21a31cf3a777dc41bb4313ef5fc5f2a2e1bd3df66c50654f2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "78db9f7c9bba714ebcec69786c88b6d1e98735f2debcd458c5df7059fc0ce0c3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_min",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_param_min\u0000hash:3903786503",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_param_min",
+        "sourceLine": 1516
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e47f08f8749791001d08e375fe60f9703dad9726112501ce0ab4c8f22c05ac9c",
+        "callsite": "res://probe.gd _init() param-out-of-range",
+        "observedOutputSha256": "5c3c84f2b097d3334b0825e764c0e2ffb4754adefdd702717897024705807c96"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_param_min",
+        "observedOutputSha256": "5c3c84f2b097d3334b0825e764c0e2ffb4754adefdd702717897024705807c96"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "effbcc357c5b5598c3af55d171810533335351c4f26dd0a56c7f7b922f5b01ea"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_max",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_param_max\u0000hash:3903786503",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_param_max",
+        "sourceLine": 1590
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "92a5fe4ee0def906471e4fd77df8847834998bdc790d4eb1c490f29b880b56b9",
+        "callsite": "res://probe.gd _init() get_param_max",
+        "observedOutputSha256": "8a6cd63caa9df4148ea07aee71358ae32dfd215e9f34f38e648107aaafc72805"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_param_max",
+        "observedOutputSha256": "8a6cd63caa9df4148ea07aee71358ae32dfd215e9f34f38e648107aaafc72805"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c7c1acc2cffb0c9c4864edf4891bf5f56769f079688177f28b29835306696430"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_param_texture\u0000hash:526976089",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_param_texture",
+        "sourceLine": 1609
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ce9d8b572c12b6e8a90fd48e706da3218e7fb96445a38d2fdd6a0b7f81277bda",
+        "callsite": "res://probe.gd _init() param-texture-0 param-texture-1 param-texture-2 param-texture-3 param-texture-4 param-texture-5 param-texture-6 param-texture-7 param-texture-8 param-texture-9 param-texture-10 param-texture-11 param-texture-12 param-texture-13 param-texture-14 param-texture-15 param-texture-16 param-texture-17 param-texture-gradient",
+        "observedOutputSha256": "71c10a3aedccff13c339ace747718a215232bd6bc74a7e31f6f8fd236797fa55"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_param_texture",
+        "observedOutputSha256": "71c10a3aedccff13c339ace747718a215232bd6bc74a7e31f6f8fd236797fa55"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3c79285ae073c2748af671fdf3398fc1a8d2e5e6e0cfc3a512c9675c1a08b873"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_param_texture\u0000hash:3489372978",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_param_texture",
+        "sourceLine": 1693
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d4a849228b6a1e875ff18f31be7a146dca97550a0c2c46763222d7dd2df2fbc5",
+        "callsite": "res://probe.gd _init() get_param_texture",
+        "observedOutputSha256": "cf0caf5188e8bba66b8fb4f320334eabd078820707a682bfb65ca7e6354c17a2"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_param_texture",
+        "observedOutputSha256": "cf0caf5188e8bba66b8fb4f320334eabd078820707a682bfb65ca7e6354c17a2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3451c35beb9ecd9befdb3a3cbbdb8ed96a802c6107662fa8a7813b4cb5413ae0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_particle_flag",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000set_particle_flag\u0000hash:1711815571",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.set_particle_flag",
+        "sourceLine": 1732
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a71c3d1331fc870a2442d827b10423e3d696f61ce13073c51b611cc0a0ade89f",
+        "callsite": "res://probe.gd _init() particle-flags",
+        "observedOutputSha256": "ca82f7395e071061bac605aaec60a7445793aae1340cc53964e1760c592176bd"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts set_particle_flag",
+        "observedOutputSha256": "ca82f7395e071061bac605aaec60a7445793aae1340cc53964e1760c592176bd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8a65c3a136e5a834c3742dff63a425e29d74c754a5991fd2957b43d4629193c9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_particle_flag",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ParticleProcessMaterial\u0000get_particle_flag\u0000hash:3895316907",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/particle_process_material.cpp",
+        "sourceSymbol": "ParticleProcessMaterial.get_particle_flag",
+        "sourceLine": 1777
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8b0752f302a4ac1d9df255c7530ad90511aa2425832c1daad2e26b0a5a3308a9",
+        "callsite": "res://probe.gd _init() get_particle_flag",
+        "observedOutputSha256": "9fd5059dc932bf43998cd7a8b8dc8b03a48469bea23f5062b5a9974080433beb"
+      },
+      "target": {
+        "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012",
+        "callsite": "lib/godot-compat/particle-process-material.ts get_particle_flag",
+        "observedOutputSha256": "9fd5059dc932bf43998cd7a8b8dc8b03a48469bea23f5062b5a9974080433beb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c5244022b3a7515fcd3c9132ebb8a2c1bdb66d757ba7bd730d39ee756f11d8e8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "particle-process-material",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.ParticleProcessMaterial",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "79ef93e193054a7136d7e84d92cdedea369e6f57a46d38c33180195e39830f4d",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_spread",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bc0d3e911113dbc298b4f09a6c5500f5edb07d894bba19287f68239808dfc99c",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_spread",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "78bff2c236e400e0499ba0e977c8a33c2c9288d693c5226c08f7d201620deaf2",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_flatness",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cfd36cb56716e90940003fe562793cd758e46a282b8b885479ea5d24556a9b31",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_flatness",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6ea9b1a8b8158c1a0339b06aaa07ee816e3d7abd594da57941205c90e38628a3",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_sphere_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2446fe61dec18018b9f3fbf802cc222bb88d618c48cb4d1838006d088af5dd02",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_sphere_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0c4f0dd3f954b7455e820e4894e6805dfb6ee62c7c60f943267da656943547b6",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d869a165efadf19c8c2e7bfb860f78c2ea03bb3d178acd1a6e59b0ef7e9fd84e",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4f8dd2482425c2e3c7237854cafacd23927de57593c27a6dafbd3a6273524fc2",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dee2f6a26d13ff4c11b38a83832ac891e307ced36c546d6cecf81c70c80a0b10",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c09bbfb6b066f5bc5360940ce981da2e7e028121e711e5bd398fefaf5fec8720",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_inner_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f7960e50a96fe5a6b498c195726da4388f6d3fec7096a563df94ae49df602fb0",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_inner_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5b391f4a2eb43fdd6996b5fca2230fec2cbdd3d6752019c0976fb8dd17968725",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_cone_angle",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5dec5ffae413a1557c1e0741cf4eebf9ed9dad83e1233fadf603475ee09118ea",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_cone_angle",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "60c0069c2daedd24926d1e9bbf55e20153f90ab7d966b789f8e9fd49d3b44755",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_inherit_velocity_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a95a9f6a58ef02c83b616beda7785c6b32bb8fffbb88d18c8e37ba348fe4044a",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_inherit_velocity_ratio",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3f48d21ff86ebb5f313c1aaf74c08340c01b7b5ff2ce8b382ed4c6cae8e6a8b1",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_lifetime_randomness",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "08dfd32d8c39bf53f04c8e647fe4434059b32c90aae49f39b7625d370058883a",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_lifetime_randomness",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6673167b41e11a4acbb3a7cd5d6901acd82d48a5704749ecacc6a674892a1024",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_direction",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e876f122e71335a410a12bb1022dcddb7fe68d7c21ebb4f69483f43439915375",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_direction",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0706fc5fd8adadaa93793ccb32c5b1a5f597c98800b2b1abad03269654e9dba7",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_velocity_pivot",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7d687d5e7e9d1ccf0e9759d949197ce08acbbf00a11c64fb64cf866dee56a352",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_velocity_pivot",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "445610d4f010ec43b39d393985ce6a1d25358375385010dc4bd63db15e1df4f5",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_box_extents",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ea51fc7bff9fa0baa173ab0a8f2c05941a3986bd7f4faf89a537a6a5c4620c03",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_box_extents",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dcc925f82367618f680158218c48ea51dd01eae433f3b046e2a43069e9490291",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_ring_axis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a2a8ffaa6fea5a940e40a8c5baf9d60382515ad75610f5818bb0b91c45b6347e",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_ring_axis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4288babe9614437cdda388112aae853ccdd6884cbda23500e1730eb9eba619cb",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ea02a73944e01d050f2c016d22286f2a5c94534405b17651983d18998d1faab5",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "73277aa0f33fb973a2ddb5838ce2c90580aa8fb70833e9a47053ed8d2494a7d6",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "78e367112e3cef2a01c4efce2b2db68f82ad0d8ad9579ff9b7d2fc441ed5351e",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a815a493ae961e844268a4c3c7b95194f0b60d8438386a7dc2824785d9b25888",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_gravity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b8e7ddbc6164b0bf48306e10ac5a90f899a9cea4aa57ae136786621df761e95b",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_gravity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e0dde4d291fb4b4d67321f663a513172bfb1c636cf5b9ef7396ee9ebc8af0480",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e58c6c0f900bb50bf24b8c1ee0b65afa4af81e8466774f312568d93a41867091",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0c91eb046d6592d5bfcc7390fce29108621f2e396adfcbcfdf31fbcb2e4e28e9",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_shape",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7a1287b67d316e120941476321cf26b321716694e51a27007f765ad751766d5e",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_shape",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "814c160108fb6724c1ad0545d04324b1204e02c2bb7c2af514bbb8b51321847f",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_color_ramp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "733eb378793b1ab971868909ebda2dc7ed8e5217d24859449989db065be66ed9",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_color_ramp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "838b7a2187300bc11c0ae71b8763a8a248565cf49ad6ca686c15170b0a7dafba",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_color_initial_ramp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e186b5eccf4144204e64c49853fd4f90cdb02d4de09fd7f5e39ece0e3a8b57e3",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_color_initial_ramp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8b0801b03c7f6aa95b4494f652b055de78262b59d387fad9ee8193ef678d6b68",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_alpha_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9442378b2d6ea853fa133c3d28377127b5b673834ea25cdf36dff51b8da7a4c7",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_alpha_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bc677294ca4fcf628f6d562fad91d8a477db1cbe8abbcd5d98c27093d983fcb2",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_emission_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4ff57330909430f04563f00ed9fd74ca3711de47e4b9407ecd9b7aec45b470ea",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_emission_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3937a4573e13205f695167f7014cbbc80ed007d9bdf425f45e82ea3da31f693d",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_velocity_limit_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c2d386652e9d3ca8b1d8e1e364af1d3d4fc3a968e98ed9397087d6e433c87a3a",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_velocity_limit_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bbd45df3f769f1ca5adbd6dba94b2c90289d997915769c8ac9e5d9e31db538c1",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_min",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "768a1d23dffbe0f7d82e3b78262f71f4ef9d62f8b4e94c68afec4fea0888dd45",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_max",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b9cc0d41d3bb1bac5b293d4f0ead9fc46ee65768eb4001f9e62b54f44556643f",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_min",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e47f08f8749791001d08e375fe60f9703dad9726112501ce0ab4c8f22c05ac9c",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_max",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "92a5fe4ee0def906471e4fd77df8847834998bdc790d4eb1c490f29b880b56b9",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_param_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ce9d8b572c12b6e8a90fd48e706da3218e7fb96445a38d2fdd6a0b7f81277bda",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_param_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d4a849228b6a1e875ff18f31be7a146dca97550a0c2c46763222d7dd2df2fbc5",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.set_particle_flag",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a71c3d1331fc870a2442d827b10423e3d696f61ce13073c51b611cc0a0ade89f",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    },
+    {
+      "claimId": "godot-4.7-binding-ParticleProcessMaterial.get_particle_flag",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8b0752f302a4ac1d9df255c7530ad90511aa2425832c1daad2e26b0a5a3308a9",
+      "implementationSha256": "6304c37e9982db9f66eb6891d221e413101191f92effd3b4a44420bee1e57012"
+    }
+  ]
+}
