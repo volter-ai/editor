@@ -23,13 +23,13 @@
  * global transform is not transcribed (Rapier bodies are rigid).
  */
 
-import RAPIER, { type Collider, type RigidBody, type World } from '@dimforge/rapier3d-compat';
+import RAPIER, { type Collider, type RigidBody, type Shape, ShapeType, type World } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_shape_3d_declare, godot_collision_shape_3d_of } from './collision-shape-3d';
 import { godot_node_class_reader, godot_node_entity, godot_node_is_freed, godot_node_object, is_inside_tree } from './node';
 import { get_global_transform, get_transform } from './node-3d';
 import { godot_physics_material_computed, type PhysicsMaterial } from './physics-material';
-import { godot_shape_3d_collider } from './shape-3d';
+import { godot_shape_3d_collider, godot_shape_3d_key } from './shape-3d';
 import { construct as basis } from './basis';
 import { affine_inverse, construct as transform3d, type Transform3D } from './transform-3d';
 import { construct as vector3, op_divide, op_subtract, type Vector3 } from './vector3';
@@ -42,9 +42,8 @@ export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
 export interface CollisionShapeEntry {
   readonly shapeNode: object;
   readonly shape: object;
-  /** The shape's transform in the body, and its `affine_inverse` (`godot_collision_object_3d.cpp:66`). */
+  /** The shape's transform in the body (`godot_collision_object_3d.cpp:66`). */
   local: Transform3D;
-  localInverse: Transform3D;
   disabled: boolean;
   /** In the broad phase (`Shape::bpid != 0`): queries see it. */
   inBroadphase: boolean;
@@ -91,6 +90,11 @@ interface ObjectState {
 
 const OBJECT = new Map<object, ObjectState>();
 const ENTITY_OF_COLLIDER = new Map<number, object>();
+/**
+ * An area's sensor meets every body kind, a fixed one too: Rapier's `ALL` leaves `FIXED_FIXED` out,
+ * and an Area3D and a StaticBody3D are both fixed bodies.
+ */
+const AREA_SENSOR_TYPES = RAPIER.ActiveCollisionTypes.ALL | RAPIER.ActiveCollisionTypes.FIXED_FIXED;
 /**
  * The bodies the scene's JSX declares (`@react-three/rapier`'s `<RigidBody>`), with their colliders
  * by object: compat drives them through their API and never creates or removes them.
@@ -233,6 +237,15 @@ export function godot_collision_objects_declare(
     }
     listed.add(object);
     const known = DECLARED.get(object);
+    // The same body with the same colliders as last listed: nothing to declare again.
+    if (
+      known !== undefined &&
+      known.body === body &&
+      known.colliders.size === colliders.length &&
+      colliders.every((entry) => known.colliders.get(entry.object) === entry.collider)
+    ) {
+      continue;
+    }
     DECLARED.set(object, { body, colliders: new Map(colliders.map((entry) => [entry.object, entry.collider] as const)) });
     const data = ((object as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
     const shapes = (data['shapes'] ?? {}) as Readonly<Record<string, Readonly<Record<string, unknown>>>>;
@@ -299,7 +312,7 @@ function syncStandIn(entity: object, state: ObjectState, colliders: readonly { r
     if (shape === undefined) throw new Error('godot-compat: a stand-in collider without its shape.');
     collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
     ENTITY_OF_COLLIDER.set(collider.handle, entity);
-    return { shapeNode: object, shape, local, localInverse: affine_inverse(local), disabled: false, inBroadphase: false, collider, key: '' };
+    return { shapeNode: object, shape, local, disabled: false, inBroadphase: false, collider, key: '' };
   });
   state.moved = true;
   updateShapes(state);
@@ -384,7 +397,20 @@ function bodyDesc(kind: CollisionObjectKind): RAPIER.RigidBodyDesc {
 }
 
 function sameTransform(a: Transform3D, b: Transform3D): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  const same = (u: Vector3, v: Vector3): boolean => u.x === v.x && u.y === v.y && u.z === v.z;
+  return same(a.origin, b.origin) && same(a.basis.x, b.basis.x) && same(a.basis.y, b.basis.y) && same(a.basis.z, b.basis.z);
+}
+
+/** A shape's local transform as a key, made once per transform record. */
+const LOCAL_KEYS = new WeakMap<Transform3D, string>();
+
+function localKey(local: Transform3D): string {
+  let key = LOCAL_KEYS.get(local);
+  if (key === undefined) {
+    key = JSON.stringify(local);
+    LOCAL_KEYS.set(local, key);
+  }
+  return key;
 }
 
 /** Unregisters a shape's collider, removing it from the world unless the scene declares it. */
@@ -439,6 +465,14 @@ export function godot_collision_object_place(entity: object, global: Transform3D
   state.body.setRotation(rotationOf(global), false);
 }
 
+/** Whether a shape of the object left it, changed, or was disabled since its last sync. */
+function shapeLeft(entity: object, state: ObjectState): boolean {
+  return state.colliders.some((entry) => {
+    const shape = godot_collision_shape_3d_of(entry.shapeNode);
+    return (entry.shapeNode as Object3D).parent !== entity || godot_node_is_freed(entry.shapeNode) || shape?.shape !== entry.shape || (shape.disabled && !entry.disabled);
+  });
+}
+
 /**
  * The server shape list brought up to the CollisionShape3D children, as their calls reach the
  * server (`scene/3d/physics/collision_object_3d.cpp`, `shape_owner_*`): a child that left or whose
@@ -471,7 +505,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
     let entry = state.colliders.find((candidate) => candidate.shapeNode === child);
     if (entry === undefined) {
       const local = get_transform(child);
-      entry = { shapeNode: child, shape: shapeState.shape, local, localInverse: affine_inverse(local), disabled: shapeState.disabled, inBroadphase: false, collider: undefined, key: '' };
+      entry = { shapeNode: child, shape: shapeState.shape, local, disabled: shapeState.disabled, inBroadphase: false, collider: undefined, key: '' };
       state.colliders.push(entry);
       state.moved = true;
     }
@@ -481,9 +515,8 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       if (entry.disabled) entry.inBroadphase = false;
     }
     const local = get_transform(child);
-    if (JSON.stringify(local) !== JSON.stringify(entry.local)) {
+    if (!sameTransform(local, entry.local)) {
       entry.local = local;
-      entry.localInverse = affine_inverse(local);
       state.moved = true;
     }
     if (declared !== undefined) {
@@ -495,26 +528,30 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       dropCollider(world, entry, false);
       if (collider === undefined) continue;
       collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
+      if (state.kind === 'area') collider.setActiveCollisionTypes(AREA_SENSOR_TYPES);
       entry.collider = collider;
       ENTITY_OF_COLLIDER.set(collider.handle, entity);
       continue;
     }
+    // The key first: the collider description is made only when it is rebuilt.
+    const key = `${godot_shape_3d_key(entry.shape)}|${localKey(entry.local)}|${state.kind}`;
+    if (!entry.disabled && entry.collider !== undefined && entry.key === key) continue;
     const described = godot_shape_3d_collider(entry.shape);
-    const key = `${described.key}|${JSON.stringify(entry.local)}|${state.kind}`;
     if (entry.disabled || described.desc === null) {
       dropCollider(world, entry, true);
       continue;
     }
-    if (entry.collider !== undefined && entry.key === key) continue;
     if (entry.collider !== undefined) state.moved = true;
     dropCollider(world, entry, true);
     described.desc
       .setTranslation(entry.local.origin.x, entry.local.origin.y, entry.local.origin.z)
       .setRotation(rotationOf(entry.local))
-      .setSensor(state.kind === 'area');
+      .setSensor(state.kind === 'area')
+      .setActiveCollisionTypes(state.kind === 'area' ? AREA_SENSOR_TYPES : RAPIER.ActiveCollisionTypes.DEFAULT);
     described.desc.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
     entry.collider = world.createCollider(described.desc, state.body);
     entry.key = key;
+    UNSTEPPED.add(entry.collider.handle);
     ENTITY_OF_COLLIDER.set(entry.collider.handle, entity);
   }
   if (state.materialApplied) applyMaterial(state);
@@ -558,7 +595,8 @@ export function godot_collision_object_material(entity: object, material: Physic
  * @godot CollisionObject3D (protocol)
  * @source scene/3d/physics/collision_object_3d.cpp:96
  */
-export function godot_collision_objects_sync(world: World): void {
+export function godot_collision_objects_sync(world: World, query = false): void {
+  space = world;
   godot_collision_objects_hold_detached();
   for (const [entity, state] of OBJECT) {
     if (godot_node_is_freed(entity) || !is_inside_tree(entity)) {
@@ -577,10 +615,117 @@ export function godot_collision_objects_sync(world: World): void {
       godot_collision_object_place(entity);
       state.moved = true;
     }
-    syncShapes(world, entity, state);
+    // A removed or disabled shape leaves the broad phase at once, so a space query brings a
+    // static body's shapes up only when one left; a new one waits for the step, which its
+    // unstepped collider does too (`remove_shape`, `godot_collision_object_3d.cpp:109`).
+    const settled = query && !entering && state.kind === 'static' && (STAND_IN_COLLIDERS.has(entity) || !shapeLeft(entity, state));
+    if (!settled) syncShapes(world, entity, state);
     if (entering) updateShapes(state);
   }
   world.propagateModifiedBodyPositionsToColliders();
+}
+
+/** The space the objects were last brought up to, for the culling queries below. */
+let space: World | undefined;
+/** Colliders made since the space last stepped: Rapier's broad phase does not hold them yet. */
+const UNSTEPPED = new Set<number>();
+
+/**
+ * The colliders whose bounds may meet the box from `min` to `max`, as Rapier's broad phase culls
+ * them (GodotPhysics3D culls a query by its broad phase the same way, `cull_aabb`,
+ * `godot_space_3d.cpp:620`); `undefined` before the space exists (every collider is then a
+ * candidate). The broad phase is current as of the last step, so every collider of an object that
+ * is not static, or moved since, or was made since, is added whole. A superset: the exact tests
+ * decide.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_space_3d.cpp:620
+ */
+export function godot_collision_objects_near(
+  min: Vector3,
+  max: Vector3,
+): { readonly handles: ReadonlySet<number>; readonly entities: ReadonlySet<object> } | undefined {
+  if (space === undefined) return undefined;
+  const found = new Set<number>(UNSTEPPED);
+  const entities = new Set<object>();
+  space.collidersWithAabbIntersectingAabb(
+    { x: (min.x + max.x) / 2, y: (min.y + max.y) / 2, z: (min.z + max.z) / 2 },
+    { x: (max.x - min.x) / 2, y: (max.y - min.y) / 2, z: (max.z - min.z) / 2 },
+    (collider) => {
+      found.add(collider.handle);
+      return true;
+    },
+  );
+  for (const handle of found) {
+    const entity = ENTITY_OF_COLLIDER.get(handle);
+    if (entity !== undefined) entities.add(entity);
+  }
+  for (const [entity, state] of OBJECT) {
+    if (state.kind === 'static' && !state.moved) continue;
+    entities.add(entity);
+    for (const entry of state.colliders) if (entry.collider !== undefined) found.add(entry.collider.handle);
+  }
+  return { handles: found, entities };
+}
+
+/**
+ * `godot_collision_objects_near` over the bounds a body's shapes sweep along `motion` (each
+ * shape's reach about its origin, at both ends), grown by `grow`.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_space_3d.cpp:689
+ */
+export function godot_collision_objects_near_motion(
+  shapes: readonly { readonly shape: Shape; readonly origin: Vector3 }[],
+  motion: Vector3,
+  grow: number,
+): ReturnType<typeof godot_collision_objects_near> {
+  let low = vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+  let high = vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+  for (const { shape, origin } of shapes) {
+    const reach = godot_collision_shape_reach(shape) + grow;
+    for (const end of [origin, vector3(origin.x + motion.x, origin.y + motion.y, origin.z + motion.z)]) {
+      low = vector3(Math.min(low.x, end.x - reach), Math.min(low.y, end.y - reach), Math.min(low.z, end.z - reach));
+      high = vector3(Math.max(high.x, end.x + reach), Math.max(high.y, end.y + reach), Math.max(high.z, end.z + reach));
+    }
+  }
+  return Number.isFinite(low.x) && Number.isFinite(high.x) ? godot_collision_objects_near(low, high) : undefined;
+}
+
+/**
+ * A bound on how far a Rapier shape reaches from its origin (its bounding sphere's radius about
+ * the origin), `Infinity` for a shape without one here.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_shape_3d.cpp:73
+ */
+export function godot_collision_shape_reach(shape: Shape): number {
+  const any = shape as unknown as Record<string, unknown>;
+  switch (shape.type) {
+    case ShapeType.Ball:
+      return any['radius'] as number;
+    case ShapeType.Cuboid: {
+      const h = any['halfExtents'] as { x: number; y: number; z: number };
+      return Math.hypot(h.x, h.y, h.z);
+    }
+    case ShapeType.Capsule:
+      return (any['halfHeight'] as number) + (any['radius'] as number);
+    case ShapeType.Cylinder:
+    case ShapeType.Cone:
+      return Math.hypot(any['halfHeight'] as number, any['radius'] as number);
+    case ShapeType.ConvexPolyhedron:
+    case ShapeType.TriMesh: {
+      const vertices = any['vertices'] as Float32Array | undefined;
+      if (vertices === undefined) return Number.POSITIVE_INFINITY;
+      let reach = 0;
+      for (let index = 0; index + 2 < vertices.length; index += 3) {
+        reach = Math.max(reach, Math.hypot(vertices[index] as number, vertices[index + 1] as number, vertices[index + 2] as number));
+      }
+      return reach;
+    }
+    default:
+      return Number.POSITIVE_INFINITY;
+  }
 }
 
 /**
@@ -725,6 +870,8 @@ function basisOf(q: { x: number; y: number; z: number; w: number }): Transform3D
  * @source modules/godot_physics_3d/godot_body_3d.cpp:708
  */
 export function godot_collision_objects_read_rigid(): void {
+  // The step put every collider in the broad phase.
+  UNSTEPPED.clear();
   for (const state of OBJECT.values()) {
     if (state.kind !== 'rigid' || state.body === undefined) continue;
     const t = state.body.translation();

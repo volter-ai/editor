@@ -28,7 +28,7 @@ const USAGE = `usage: gd-analyze <command> [options]
            proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
            is named and nothing is written for it.
 
-  run <imported-project-dir> [--frames <n>] [--budget-ms <ms>]
+  run <imported-project-dir> [--frames <n>] [--budget-ms <ms>] [--profile [--profile-after <frames>]]
            Mount an imported project's world headlessly (the proofs' harness) and step it n
            display frames at 60 Hz with no input (default 300): each frame's thrown error is
            printed with its stack, and a frame over its budget (default 2000 ms) is paused
@@ -103,13 +103,15 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     process.exit(await runSpinSelfCheck({ exporterBinary: requiredExporter(rest), officialBinary: requiredOfficial(rest) }));
   }
   if (command === 'run') {
-    const positional = positionals(rest, ['--frames', '--budget-ms']);
+    const positional = positionals(rest, ['--frames', '--budget-ms', '--profile-after']);
     if (positional.length !== 1) fail('run needs exactly one imported project directory');
     const { runImportedWorld } = await import('./run/run-world');
     (await import('./evidence/node-assets')).registerNodeAssetImports();
     const code = await runImportedWorld(positional[0] as string, {
       frames: Number(optionValue(rest, '--frames') ?? 300),
       budgetMs: Number(optionValue(rest, '--budget-ms') ?? 2000),
+      profile: rest.includes('--profile'),
+      profileAfter: Number(optionValue(rest, '--profile-after') ?? 0),
     });
     // A terminated, paused worker can leave the inspector's handles open: the run ends here.
     process.exit(code);

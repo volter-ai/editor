@@ -18,7 +18,13 @@
  */
 
 import { type Collider, Ray, ShapeType, type TriMesh } from '@dimforge/rapier3d-compat';
-import { godot_collision_object_object, godot_collision_object_of_collider, godot_collision_object_state, godot_collision_objects } from './collision-object-3d';
+import {
+  godot_collision_object_object,
+  godot_collision_object_of_collider,
+  godot_collision_object_state,
+  godot_collision_objects,
+  godot_collision_objects_near,
+} from './collision-object-3d';
 import type { PhysicsRayQueryParameters3D } from './physics-ray-query-parameters-3d';
 import { godot_shape_3d_backface } from './shape-3d';
 import { construct as vector3, dot, normalized, op_subtract, type Vector3 } from './vector3';
@@ -35,16 +41,23 @@ function admits(entity: object, query: PhysicsRayQueryParameters3D): boolean {
 }
 
 /**
- * The admitted shapes in world order. Godot culls by the segment's bounds before intersecting each
- * shape (`GodotSpace3D::intersect_ray`); the exact per-shape cast below answers the same, so every
- * shape in the world is a candidate (Rapier's broad phase is current only after a step).
+ * The admitted shapes in world order, culled by the segment's bounds as Godot culls them before
+ * intersecting each shape (`GodotSpace3D::intersect_ray`, `godot_space_3d.cpp:110`), through
+ * Rapier's broad phase (with what moved since the last step added whole).
  */
 function candidates(query: PhysicsRayQueryParameters3D) {
+  const from = query.from;
+  const to = query.to;
+  const near = godot_collision_objects_near(
+    vector3(Math.min(from.x, to.x), Math.min(from.y, to.y), Math.min(from.z, to.z)),
+    vector3(Math.max(from.x, to.x), Math.max(from.y, to.y), Math.max(from.z, to.z)),
+  );
   const found: { entity: object; index: number; collider: Collider; backface: boolean }[] = [];
   for (const [entity, state] of godot_collision_objects()) {
+    if (near !== undefined && !near.entities.has(entity)) continue;
     if (!admits(entity, query)) continue;
     state.colliders.forEach((entry, index) => {
-      if (entry.inBroadphase && entry.collider !== undefined) {
+      if (entry.inBroadphase && entry.collider !== undefined && (near === undefined || near.handles.has(entry.collider.handle))) {
         found.push({ entity, index, collider: entry.collider, backface: godot_shape_3d_backface(entry.shape) });
       }
     });

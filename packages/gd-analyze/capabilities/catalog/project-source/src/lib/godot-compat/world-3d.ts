@@ -57,6 +57,8 @@ export interface GodotPhysicsHost {
     readonly body: RigidBody;
     readonly colliders: readonly { readonly object: object; readonly collider: Collider }[];
   }>;
+  /** A number that changes whenever the declared bodies or colliders do (their count). */
+  readonly revision?: () => number;
 }
 
 /**
@@ -128,10 +130,20 @@ export function godot_world_3d_declare_detached(): void {
   godot_collision_objects_hold_detached();
 }
 
-/** The collision objects brought up to the tree, the host's declared bodies among them. */
-function syncSpace(host: GodotPhysicsHost): void {
-  godot_collision_objects_declare(host.bodies());
-  godot_collision_objects_sync(host.world);
+let declaredRevision: number | undefined;
+
+/**
+ * The collision objects brought up to the tree, the host's declared bodies among them. A space
+ * query's sync (`query`) re-reads the declared bodies only when the host's revision moved, and
+ * brings a static body's shapes up only when one left it (see `godot_collision_objects_sync`).
+ */
+function syncSpace(host: GodotPhysicsHost, query = false): void {
+  const revision = host.revision?.();
+  if (!query || revision === undefined || revision !== declaredRevision) {
+    godot_collision_objects_declare(host.bodies());
+    declaredRevision = revision;
+  }
+  godot_collision_objects_sync(host.world, query);
 }
 
 /**
@@ -204,7 +216,7 @@ export function godot_world_3d_direct_state(space: PhysicsSpace3D): PhysicsDirec
     godot_collision_objects_sync(space.world);
     return Object.freeze({ space });
   }
-  syncSpace(current.host);
+  syncSpace(current.host, true);
   return current.state;
 }
 

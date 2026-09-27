@@ -52,15 +52,22 @@ function usePhysicsHost(): GodotPhysicsHost {
     filterContacts: (filter) => {
       rapier.filterContactPairHooks.add({ current: (c1: number, c2: number) => filter(c1, c2) } as never);
     },
-    bodies: () =>
-      [...rapier.rigidBodyStates.values()].map((state) => {
+    revision: () => rapier.rigidBodyStates.size * 65536 + rapier.colliderStates.size,
+    bodies: () => {
+      // Each body's colliders, grouped by the object they belong to in one pass.
+      const byParent = new Map<object, { object: object; collider: Collider }[]>();
+      for (const entry of rapier.colliderStates.values()) {
+        if (entry.worldParent === undefined) continue;
+        const list = byParent.get(entry.worldParent) ?? [];
+        list.push({ object: entry.object, collider: entry.collider as Collider });
+        byParent.set(entry.worldParent, list);
+      }
+      return [...rapier.rigidBodyStates.values()].map((state) => {
         const body = state.rigidBody as RigidBody;
-        const colliders: { object: object; collider: Collider }[] = [];
-        for (const entry of rapier.colliderStates.values()) {
-          if (entry.worldParent === state.object) colliders.push({ object: entry.object, collider: entry.collider as Collider });
-        }
+        const colliders = byParent.get(state.object) ?? [];
         return { object: state.object, body, colliders };
-      }),
+      });
+    },
   };
 }
 

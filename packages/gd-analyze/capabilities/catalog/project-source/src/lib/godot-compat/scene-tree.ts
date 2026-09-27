@@ -194,6 +194,19 @@ function flushDeleteQueue(): void {
   }
 }
 
+let physicsObserver: ((phase: 'begin' | 'end') => void) | undefined;
+
+/**
+ * An instrument's view of the physics steps: called as each step begins and ends (the headless
+ * `gd-analyze run` times physics apart from drawing with it).
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4973
+ */
+export function godot_tree_observe_physics(observer: ((phase: 'begin' | 'end') => void) | undefined): void {
+  physicsObserver = observer;
+}
+
 /**
  * One physics step: `Engine` counts it, then `SceneTree::physics_process`
  * (`scene/main/scene_tree.cpp:639`): `physics_frame`, the physics-processing nodes, deferred calls,
@@ -205,6 +218,8 @@ function flushDeleteQueue(): void {
  */
 export function godot_tree_physics_step(delta: number): void {
   openIteration();
+  // (What entering the tree runs at the iteration's start is the SceneTree's, not the step's.)
+  physicsObserver?.('begin');
   clock.inPhysics = true;
   clock.physicsFrames += 1;
   godot_input_frame(clock.physicsFrames, clock.processFrames, true);
@@ -223,6 +238,7 @@ export function godot_tree_physics_step(delta: number): void {
   godot_message_queue_flush();
   clock.inPhysics = false;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
+  physicsObserver?.('end');
 }
 
 /**

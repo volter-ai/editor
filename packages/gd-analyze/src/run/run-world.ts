@@ -20,12 +20,72 @@ export interface RunWorldOptions {
   readonly frames: number;
   /** A frame (or the mount) taking longer than this is a hang (milliseconds). */
   readonly budgetMs: number;
+  /** Profile the stepped frames (the inspector's sampling profiler) and print where time went. */
+  readonly profile?: boolean;
+  /** With `profile`, start sampling after this many frames (the warm-up left out). */
+  readonly profileAfter?: number;
+}
+
+/** A sampled profile's self time by source-mapped function, the heaviest first. */
+function profileSummary(
+  profile: { readonly nodes: readonly { readonly id: number; readonly children?: readonly number[]; readonly callFrame: { readonly functionName: string; readonly scriptId: string; readonly url: string; readonly lineNumber: number; readonly columnNumber: number }; readonly hitCount?: number }[]; readonly startTime: number; readonly endTime: number },
+  scripts: ReadonlyMap<string, { readonly url: string; readonly map: ScriptMap | undefined }>,
+): string {
+  const total = profile.nodes.reduce((sum, node) => sum + (node.hitCount ?? 0), 0);
+  const byFunction = new Map<string, number>();
+  for (const node of profile.nodes) {
+    const hits = node.hitCount ?? 0;
+    if (hits === 0) continue;
+    const frame = node.callFrame;
+    const mapped = original(scripts.get(frame.scriptId)?.map, frame.lineNumber, frame.columnNumber);
+    const where = mapped ?? `${frame.url}:${String(frame.lineNumber + 1)}`;
+    const key = `${frame.functionName || '<anonymous>'} (${where.replace(/^.*\/(src|node_modules)\//u, '$1/')})`;
+    byFunction.set(key, (byFunction.get(key) ?? 0) + hits);
+  }
+  const ms = (profile.endTime - profile.startTime) / 1000;
+  const line = ([key, hits]: readonly [string, number]) => `  ${((hits / total) * 100).toFixed(1).padStart(5)}%  ${((hits / total) * ms).toFixed(0).padStart(6)} ms  ${key}`;
+  // Inclusive time of the project's own functions (compat and scripts): each node's hits and its subtree's.
+  const nodes = new Map(profile.nodes.map((node) => [node.id, node] as const));
+  const inclusiveOf = new Map<number, number>();
+  const inclusive = (id: number): number => {
+    const known = inclusiveOf.get(id);
+    if (known !== undefined) return known;
+    const node = nodes.get(id);
+    const sum = (node?.hitCount ?? 0) + (node?.children ?? []).reduce((acc, child) => acc + inclusive(child), 0);
+    inclusiveOf.set(id, sum);
+    return sum;
+  };
+  const byOwn = new Map<string, number>();
+  const visit = (id: number, open: ReadonlySet<string>): void => {
+    const node = nodes.get(id);
+    if (node === undefined) return;
+    const frame = node.callFrame;
+    const mapped = original(scripts.get(frame.scriptId)?.map, frame.lineNumber, frame.columnNumber);
+    let next = open;
+    if (mapped !== undefined && /\/src\//u.test(mapped)) {
+      const key = `${frame.functionName || '<anonymous>'} (${mapped.replace(/^.*\/src\//u, 'src/').replace(/:\d+$/u, '')})`;
+      // Recursion counts once.
+      if (!open.has(key)) {
+        byOwn.set(key, (byOwn.get(key) ?? 0) + inclusive(id));
+        next = new Set([...open, key]);
+      }
+    }
+    for (const child of node.children ?? []) visit(child, next);
+  };
+  const rootNode = profile.nodes[0];
+  if (rootNode !== undefined) visit(rootNode.id, new Set());
+  return [
+    'self time:',
+    ...[...byFunction].sort((a, b) => b[1] - a[1]).slice(0, 15).map(line),
+    'inclusive time of the project\'s functions:',
+    ...[...byOwn].sort((a, b) => b[1] - a[1]).slice(0, 25).map(line),
+  ].join('\n');
 }
 
 /** What the world driver posts from the worker. */
 type WorkerReport =
   | { readonly kind: 'mounted'; readonly waitedMs: number }
-  | { readonly kind: 'frame'; readonly frame: number; readonly ms: number; readonly error?: string }
+  | { readonly kind: 'frame'; readonly frame: number; readonly ms: number; readonly physicsMs: number; readonly stepsMs: readonly number[]; readonly error?: string }
   | { readonly kind: 'done' }
   | { readonly kind: 'failed'; readonly error: string };
 
@@ -42,6 +102,15 @@ const post = (report) => parentPort.postMessage(report);
 const stackOf = (error) => (error instanceof Error ? (error.stack ?? String(error)) : String(error));
 try {
   const require = createRequire(import.meta.url);
+  // Physics timed on the real clock, each physics frame (a step; a frame holds as many as the
+  // project's tick rate puts in it) apart from the frame (drawing, scripts' process).
+  const realNow = globalThis.performance.now.bind(globalThis.performance);
+  let stepsMs = [];
+  let physicsBegan = 0;
+  (await import('./src/lib/godot-compat/scene-tree')).godot_tree_observe_physics((phase) => {
+    if (phase === 'begin') physicsBegan = realNow();
+    else stepsMs.push(Math.round((realNow() - physicsBegan) * 10) / 10);
+  });
   // The clock the world's main loop reads: advanced one 60 Hz frame per step.
   let now = 0;
   globalThis.performance.now = () => now;
@@ -92,17 +161,20 @@ try {
   for (let frame = 1; frame <= workerData.frames; frame += 1) {
     now += 1000 / 60;
     let error;
+    stepsMs = [];
     const began = Date.now();
     try {
       advance(now);
     } catch (thrown) {
       error = stackOf(thrown);
     }
-    post({ kind: 'frame', frame, ms: Date.now() - began, ...(error === undefined ? {} : { error }) });
+    post({ kind: 'frame', frame, ms: Date.now() - began, physicsMs: Math.round(stepsMs.reduce((sum, ms) => sum + ms, 0) * 10) / 10, stepsMs, ...(error === undefined ? {} : { error }) });
     // Let the frame's promises (resource loads, React's commits) settle, as a page's would.
     await new Promise((resolve) => setImmediate(resolve));
   }
   post({ kind: 'done' });
+  // A profiled run stays up until the profile is read.
+  if (workerData.profile) await new Promise((resolve) => parentPort.once('message', resolve));
 } catch (thrown) {
   post({ kind: 'failed', error: stackOf(thrown) });
 }
@@ -197,7 +269,7 @@ export async function runImportedWorld(projectDir: string, options: RunWorldOpti
     process.chdir(out);
     const worker = new Worker(pathToFileURL(path.join(out, 'gd-analyze-run-world.mts')), {
       execArgv: [...NODE_MOUNT_IMPORTS, '--import', pathToFileURL(path.join(out, EMITTED_RESOLVE_HOOK)).href, '--enable-source-maps'],
-      workerData: { frames: options.frames, mountMs: 60_000 },
+      workerData: { frames: options.frames, mountMs: 60_000, profile: options.profile === true },
       stdout: false,
       stderr: false,
     });
@@ -246,24 +318,50 @@ export async function runImportedWorld(projectDir: string, options: RunWorldOpti
     let lastProgress = Date.now();
     let mounted = false;
     let errors = 0;
+    const physicsTimes: number[] = [];
+    const stepTimes: number[] = [];
+    const percentile = (times: readonly number[], p: number): number => {
+      const sorted = [...times].sort((a, b) => a - b);
+      return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] ?? 0;
+    };
+    let maxFrame = 0;
     const finished = new Promise<number>((resolve) => {
       worker.on('message', (report: WorkerReport) => {
         lastProgress = Date.now();
         switch (report.kind) {
           case 'mounted':
             mounted = true;
+            if (options.profile === true && (options.profileAfter ?? 0) === 0) void send('Profiler.enable').then(() => send('Profiler.start'));
             process.stdout.write(`mounted after ${String(report.waitedMs)} ms\n`);
             break;
           case 'frame':
-            if (report.ms > 250) process.stdout.write(`frame ${String(report.frame)} took ${String(report.ms)} ms\n`);
+            if (options.profile === true && report.frame === options.profileAfter) void send('Profiler.enable').then(() => send('Profiler.start'));
+            // A frame over 250 ms, or with physics over a 60 Hz frame's 16 ms, or a physics frame over it.
+            if (report.ms > 250 || report.physicsMs > 16 || report.stepsMs.some((ms) => ms > 16)) {
+              process.stdout.write(`frame ${String(report.frame)} took ${String(report.ms)} ms (physics ${String(report.physicsMs)} ms: ${report.stepsMs.map(String).join(' + ')})\n`);
+            }
+            physicsTimes.push(report.physicsMs);
+            stepTimes.push(...report.stepsMs);
+            maxFrame = Math.max(maxFrame, report.ms);
             if (report.error !== undefined) {
               errors += 1;
               process.stdout.write(`frame ${String(report.frame)} threw:\n${report.error}\n`);
             }
             break;
           case 'done':
-            process.stdout.write(`${String(options.frames)} frames, ${String(errors)} threw\n`);
-            resolve(errors === 0 ? 0 : 1);
+            if (options.profile === true) {
+              void send('Profiler.stop').then((message) => {
+                const result = message['result'] as { readonly profile: Parameters<typeof profileSummary>[0] };
+                process.stdout.write(`self time over the stepped frames:\n${profileSummary(result.profile, scripts)}\n`);
+                resolve(errors === 0 ? 0 : 1);
+              });
+            }
+            process.stdout.write(
+              `${String(options.frames)} frames, ${String(errors)} threw; slowest frame ${String(maxFrame)} ms; ` +
+                `${String(stepTimes.length)} physics frames, slowest ${String(percentile(stepTimes, 1))} ms, p50 ${String(percentile(stepTimes, 0.5))} ms, p99 ${String(percentile(stepTimes, 0.99))} ms; ` +
+                `physics per frame slowest ${String(percentile(physicsTimes, 1))} ms, p50 ${String(percentile(physicsTimes, 0.5))} ms, p99 ${String(percentile(physicsTimes, 0.99))} ms\n`,
+            );
+            if (options.profile !== true) resolve(errors === 0 ? 0 : 1);
             break;
           case 'failed':
             process.stdout.write(`the world failed before stepping:\n${report.error}\n`);

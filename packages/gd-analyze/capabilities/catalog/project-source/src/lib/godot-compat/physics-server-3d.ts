@@ -34,6 +34,7 @@ import {
   godot_collision_object_pose,
   godot_collision_object_state,
   godot_collision_objects,
+  godot_collision_objects_near_motion,
   godot_collision_objects_update_shapes,
 } from './collision-object-3d';
 import type { PhysicsTestMotionParameters3D } from './physics-test-motion-parameters-3d';
@@ -78,19 +79,29 @@ interface Contact {
   readonly normal: Vector3;
 }
 
-/** `_cull_aabb_for_body` (`godot_space_3d.cpp:620`) without the AABB, and the motion's exclusions. */
-function candidates(body: object, parameters: PhysicsTestMotionParameters3D): Candidate[] {
+/**
+ * `_cull_aabb_for_body` (`godot_space_3d.cpp:620`): the shapes Rapier's broad phase finds in the
+ * body's bounds over the motion, grown by the margin (`godot_space_3d.cpp:689`), less the motion's
+ * exclusions.
+ */
+function candidates(
+  body: object,
+  parameters: PhysicsTestMotionParameters3D,
+  near: { readonly handles: ReadonlySet<number>; readonly entities: ReadonlySet<object> } | undefined,
+): Candidate[] {
   const self = godot_collision_object_state(body);
   if (self === undefined) return [];
   const found: Candidate[] = [];
   for (const [entity, other] of [...godot_collision_objects()].reverse()) {
     if (entity === body || other.kind === 'area') continue;
+    if (near !== undefined && !near.entities.has(entity)) continue;
     if ((self.mask & other.layer) === 0) continue;
     if (other.exceptions.has(body) || self.exceptions.has(entity)) continue;
     if (parameters.exclude_bodies.includes(entity)) continue;
     if (parameters.exclude_objects.includes(godot_collision_object_object(entity))) continue;
     other.colliders.forEach((entry: CollisionShapeEntry, index) => {
       if (!entry.inBroadphase || entry.collider === undefined) return;
+      if (near !== undefined && !near.handles.has(entry.collider.handle)) return;
       found.push({ entity, index, shape: entry.collider.shape, transform: transform(other.transform, entry.local) });
     });
   }
@@ -247,7 +258,9 @@ export function body_test_motion(body: object, parameters: PhysicsTestMotionPara
   const min_contact_depth = f32(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR);
   const motion = parameters.motion;
   const motion_length = length(motion);
-  const others = candidates(body, parameters);
+  // The body's bounds over the motion, grown past the margin by what unsticking can move it.
+  const bodyShapes = shapes.flatMap(({ entry, shape }) => (shape === undefined ? [] : [{ shape, origin: transform(parameters.from, entry.local).origin }]));
+  const others = candidates(body, parameters, godot_collision_objects_near_motion(bodyShapes, motion, 4 * margin + 0.1));
   let body_transform = parameters.from;
   let recovered = false;
 

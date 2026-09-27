@@ -55,7 +55,27 @@ export function godot_shape_3d_describe<T extends object>(shape: T, geometry: Sh
  * @source scene/resources/3d/shape_3d.cpp:142
  */
 export function godot_shape_3d_collider(shape: object): { readonly desc: ColliderDesc | null; readonly key: string } {
-  return { desc: geometryOf(shape).collider(shape), key: JSON.stringify(shape) };
+  return { desc: geometryOf(shape).collider(shape), key: godot_shape_3d_key(shape) };
+}
+
+/** Each shape's last key, with the property values it was made from. */
+const KEYS = new WeakMap<object, { readonly values: readonly unknown[]; readonly key: string }>();
+
+/**
+ * The shape's settings as a key (its collider is rebuilt when the key changes): kept while every
+ * property still holds the same value (a face or point array is replaced whole by its setter), so
+ * a large shape is not serialized again each time the space is brought up to date.
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:142
+ */
+export function godot_shape_3d_key(shape: object): string {
+  const values = Object.values(shape);
+  const known = KEYS.get(shape);
+  if (known !== undefined && known.values.length === values.length && known.values.every((value, index) => value === values[index])) return known.key;
+  const key = JSON.stringify(shape);
+  KEYS.set(shape, { values, key });
+  return key;
 }
 
 /**
