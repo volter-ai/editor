@@ -183,7 +183,7 @@ import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
 import { GodotProjectStartup } from './src/lib/godot-compat/react-lifecycle';
-import { get_children, get_name, is_in_group, godot_is_native, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
+import { get_children, get_name, is_in_group, godot_is_native, godot_node_enter_pending, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
 
@@ -209,6 +209,8 @@ const holder = { current: null };
 // The scene component takes no ref (its props omit it); a holder group around it finds its root.
 // Mounted as the world mounts a scene: inside the startup transaction, which enters it whole.
 await act(async () => { root.render(createElement(GodotProjectStartup, null, createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' })))); });
+// The SceneTree enters what React registered before its first iteration.
+godot_node_enter_pending();
 const rows = [];
 const walk = (path, object) => {
   const spatial = godot_node_is_spatial(object);

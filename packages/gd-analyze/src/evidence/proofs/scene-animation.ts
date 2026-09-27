@@ -360,6 +360,9 @@ const findMain = () => scene()?.children.find((child) => child.name === 'Main');
 for (let wait = 0; wait < 2000 && findMain() === undefined; wait += 1) {
   await act(async () => { await new Promise((resolve) => setTimeout(resolve, 10)); });
 }
+// The SceneTree enters what React registered before its first iteration (Main::start readies the
+// main scene before the first frame): frame 1 is read there.
+N.godot_node_enter_pending();
 const main = findMain();
 const find = (name) => N.get_children(main).find((child) => N.get_name(child) === name);
 const anim = find('Animation');
