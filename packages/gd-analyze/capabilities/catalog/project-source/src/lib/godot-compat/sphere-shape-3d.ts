@@ -7,7 +7,7 @@
  */
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import { godot_shape_3d_describe } from './shape-3d';
+import { godot_shape_3d_changed, godot_shape_3d_describe } from './shape-3d';
 
 const f32 = Math.fround;
 
@@ -40,6 +40,7 @@ export function construct(): SphereShape3D {
 export function set_radius(self: SphereShape3D, radius: number): void {
   if (radius < 0) return;
   self.radius = f32(radius);
+  godot_shape_3d_changed(self);
 }
 
 /**

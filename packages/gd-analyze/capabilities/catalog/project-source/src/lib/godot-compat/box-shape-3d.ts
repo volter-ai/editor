@@ -8,7 +8,7 @@
  */
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import { godot_shape_3d_describe } from './shape-3d';
+import { godot_shape_3d_changed, godot_shape_3d_describe } from './shape-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
 export interface BoxShape3D {
@@ -37,6 +37,7 @@ export function construct(): BoxShape3D {
 export function set_size(self: BoxShape3D, size: Vector3): void {
   if (size.x < 0 || size.y < 0 || size.z < 0) return;
   self.size = vector3(size);
+  godot_shape_3d_changed(self);
 }
 
 /**

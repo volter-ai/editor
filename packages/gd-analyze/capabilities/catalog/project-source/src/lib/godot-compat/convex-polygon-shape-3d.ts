@@ -14,7 +14,7 @@
  */
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import { godot_shape_3d_describe } from './shape-3d';
+import { godot_shape_3d_changed, godot_shape_3d_describe } from './shape-3d';
 import { construct as vector3, op_add, op_multiply, op_subtract, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
@@ -90,6 +90,7 @@ export function construct(): ConvexPolygonShape3D {
  */
 export function set_points(self: ConvexPolygonShape3D, points: readonly Vector3[]): void {
   self.points = Object.freeze(points.map((point) => vector3(point)));
+  godot_shape_3d_changed(self);
 }
 
 /**

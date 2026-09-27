@@ -131,12 +131,26 @@ export function godot_collision_shape_3d_of(entity: object): { readonly shape: o
   return SHAPE.get(entity);
 }
 
+const OWNER_OBSERVERS: ((entity: object) => void)[] = [];
+
+/**
+ * Registers the owner's view of a CollisionShape3D whose shape or `disabled` changed: its parent
+ * brings the shape up (`_update_in_shape_owner`, `collision_shape_3d.cpp:46`).
+ *
+ * @godot CollisionShape3D (protocol)
+ * @source scene/3d/physics/collision_shape_3d.cpp:46
+ */
+export function godot_collision_shape_3d_observe(observer: (entity: object) => void): void {
+  if (!OWNER_OBSERVERS.includes(observer)) OWNER_OBSERVERS.push(observer);
+}
+
 /**
  * @godot CollisionShape3D.set_shape
  * @source scene/3d/physics/collision_shape_3d.cpp:192
  */
 export function set_shape(self: object, shape: object | null): void {
   stateOf(self).shape = shape;
+  for (const observer of OWNER_OBSERVERS) observer(godot_node_entity(self));
 }
 
 /**
@@ -153,6 +167,7 @@ export function get_shape(self: object): object | null {
  */
 export function set_disabled(self: object, disabled: boolean): void {
   stateOf(self).disabled = disabled;
+  for (const observer of OWNER_OBSERVERS) observer(godot_node_entity(self));
 }
 
 /**

@@ -58,6 +58,29 @@ export function godot_shape_3d_collider(shape: object): { readonly desc: Collide
   return { desc: geometryOf(shape).collider(shape), key: godot_shape_3d_key(shape) };
 }
 
+const SHAPE_OBSERVERS: ((shape: object) => void)[] = [];
+
+/**
+ * A shape's properties changed: its owners bring their colliders up to it
+ * (`Shape3D::_update_shape`, `shape_3d.cpp:130`, reaching the owners' `_shape_changed`).
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:130
+ */
+export function godot_shape_3d_changed(shape: object): void {
+  for (const observer of SHAPE_OBSERVERS) observer(shape);
+}
+
+/**
+ * Registers a shape owner's view of `godot_shape_3d_changed`.
+ *
+ * @godot Shape3D (protocol)
+ * @source scene/resources/3d/shape_3d.cpp:130
+ */
+export function godot_shape_3d_observe(observer: (shape: object) => void): void {
+  if (!SHAPE_OBSERVERS.includes(observer)) SHAPE_OBSERVERS.push(observer);
+}
+
 /** Each shape's last key, with the property values it was made from. */
 const KEYS = new WeakMap<object, { readonly values: readonly unknown[]; readonly key: string }>();
 

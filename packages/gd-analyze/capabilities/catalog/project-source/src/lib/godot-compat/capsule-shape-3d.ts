@@ -9,7 +9,7 @@
  */
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import { godot_shape_3d_describe } from './shape-3d';
+import { godot_shape_3d_changed, godot_shape_3d_describe } from './shape-3d';
 
 const f32 = Math.fround;
 
@@ -47,6 +47,7 @@ export function set_radius(self: CapsuleShape3D, radius: number): void {
   if (radius < 0) return;
   self.radius = f32(radius);
   if (self.height < f32(self.radius * 2)) self.height = f32(self.radius * 2);
+  godot_shape_3d_changed(self);
 }
 
 /**
@@ -67,6 +68,7 @@ export function set_height(self: CapsuleShape3D, height: number): void {
   if (height < 0) return;
   self.height = f32(height);
   if (self.radius > f32(self.height * 0.5)) self.radius = f32(self.height * 0.5);
+  godot_shape_3d_changed(self);
 }
 
 /**

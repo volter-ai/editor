@@ -9,7 +9,7 @@
  */
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import { godot_shape_3d_describe } from './shape-3d';
+import { godot_shape_3d_changed, godot_shape_3d_describe } from './shape-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
 export interface ConcavePolygonShape3D {
@@ -46,6 +46,7 @@ export function construct(): ConcavePolygonShape3D {
  */
 export function set_faces(self: ConcavePolygonShape3D, faces: readonly Vector3[]): void {
   self.faces = Object.freeze(faces.map((point) => vector3(point)));
+  godot_shape_3d_changed(self);
 }
 
 /**
@@ -62,6 +63,7 @@ export function get_faces(self: ConcavePolygonShape3D): readonly Vector3[] {
  */
 export function set_backface_collision_enabled(self: ConcavePolygonShape3D, enabled: boolean): void {
   self.backface_collision = enabled;
+  godot_shape_3d_changed(self);
 }
 
 /**

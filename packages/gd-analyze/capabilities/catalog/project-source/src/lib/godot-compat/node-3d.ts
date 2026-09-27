@@ -476,6 +476,19 @@ function readLocal(object: Object3D): Local {
  * Write `data.local_transform` into the Object3D: three's `position`/`quaternion`/`scale` (its
  * matrix recomposed from them each frame), or the matrix of an entity that holds it there.
  */
+const LOCAL_OBSERVERS: ((object: Object3D) => void)[] = [];
+
+/**
+ * Registers a view of each Node3D whose local transform is set (`NOTIFICATION_LOCAL_TRANSFORM_CHANGED`,
+ * which a CollisionShape3D asks for to move its shape in its owner, `collision_shape_3d.cpp:95`).
+ *
+ * @godot Node3D (protocol)
+ * @source scene/3d/node_3d.cpp:127
+ */
+export function godot_node_3d_observe_local(observer: (object: Object3D) => void): void {
+  if (!LOCAL_OBSERVERS.includes(observer)) LOCAL_OBSERVERS.push(observer);
+}
+
 function writeLocal(object: Object3D, state: Node3DState, local: Local): void {
   const b = local.basis;
   const o = local.origin;
@@ -498,6 +511,7 @@ function writeLocal(object: Object3D, state: Node3DState, local: Local): void {
     object.matrixWorldAutoUpdate = true;
   }
   object.matrixWorldNeedsUpdate = true;
+  for (const observer of LOCAL_OBSERVERS) observer(object);
 }
 
 function isIdentity(local: Local): boolean {

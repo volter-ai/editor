@@ -29,6 +29,7 @@ import {
   godot_collision_objects_sync,
   godot_collision_objects_transforms_changed,
 } from './collision-object-3d';
+import { godot_node_observe_tree } from './node';
 import { godot_node_3d_world_source } from './node-3d';
 import { godot_tree_physics_server } from './scene-tree';
 
@@ -133,17 +134,24 @@ export function godot_world_3d_declare_detached(): void {
 }
 
 let declaredRevision: number | undefined;
+/** A node entered or left the tree since the declared bodies were last read. */
+let treeChanged = true;
+godot_node_observe_tree(() => {
+  treeChanged = true;
+});
 
 /**
- * The collision objects brought up to the tree, the host's declared bodies among them. A space
- * query's sync (`query`) re-reads the declared bodies only when the host's revision moved, and
- * brings a static body's shapes up only when one left it (see `godot_collision_objects_sync`).
+ * The collision objects brought up to the tree, the host's declared bodies among them, re-read
+ * when a node entered or left the tree or the host's revision moved. A space query's sync
+ * (`query`) brings a static body's shapes up only when one left it (see
+ * `godot_collision_objects_sync`).
  */
 function syncSpace(host: GodotPhysicsHost, query = false): void {
   const revision = host.revision?.();
-  if (!query || revision === undefined || revision !== declaredRevision) {
+  if (treeChanged || revision === undefined || revision !== declaredRevision) {
     godot_collision_objects_declare(host.bodies());
     declaredRevision = revision;
+    treeChanged = false;
   }
   godot_collision_objects_sync(host.world, query);
   if (query && godot_collision_objects_broad_phase_stale()) buildBroadPhase(host.world);
