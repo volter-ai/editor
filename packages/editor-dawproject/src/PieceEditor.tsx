@@ -29,7 +29,7 @@ import { PianoRoll } from './PianoRoll';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
 import { applySource, readSource, readSourceIndex, recordStructWrite, type SourceIndex } from './source-index';
 import { KEY_SEMITONES, type TakeNote, writeTake } from './recorder';
-import { type AudioCapture, captureInput, takeWav, writeAudioTake } from './audio-take';
+import { type AudioCapture, captureInput, takesPerPass, takeWav, writeAudioTake } from './audio-take';
 import { perform } from '@volter/dawproject/perform';
 import { editorHost } from '@volter/editor-sdk/host';
 
@@ -265,22 +265,30 @@ export function PieceEditor({
         setMessage('No audio came in from the input, so nothing was recorded.', 'info');
         return;
       }
-      // Placed where it began: from the bar line before it, the file padded back to that line.
+      // Placed where it began: from the bar line before it, the file padded back to that line; a
+      // take over several passes of the loop is one take per pass, in a clip over the loop's bars.
       const beatsPerBar = latest.transport.beatsPerBar;
       const performance = perform(latest);
-      const startBeat = engine.beatAtTime(heard.startTime) ?? 0;
+      const played = engine.playedAt(heard.startTime);
+      const passes = played ? takesPerPass(heard, played.elapsed, played.region) : null;
+      const startBeat = passes && played ? performance.beatAt(played.region.start) : (engine.beatAtTime(heard.startTime) ?? 0);
       const firstBar = Math.floor(startBeat / beatsPerBar + 1e-9);
-      const pad = performance.secondsAt(startBeat) - performance.secondsAt(firstBar * beatsPerBar);
-      const endBeat = performance.beatAt(performance.secondsAt(startBeat) + heard.left.length / heard.sampleRate);
+      const endBeat = passes && played ? performance.beatAt(played.region.end) : performance.beatAt(performance.secondsAt(startBeat) + heard.left.length / heard.sampleRate);
       const bars = Math.max(1, Math.ceil(endBeat / beatsPerBar - 1e-9) - firstBar);
+      const barPad = performance.secondsAt(startBeat) - performance.secondsAt(firstBar * beatsPerBar);
+      const recordings = passes ?? [{ ...heard, pad: 0 }];
       const files = editorHost().files;
+      const paths: string[] = [];
       let number = 1;
-      while (await files.exists(`audio/take-${number}.wav`)) number++;
-      const path = `audio/take-${number}.wav`;
-      await files.write(path, takeWav(heard, pad));
+      for (const recording of recordings) {
+        while (await files.exists(`audio/take-${number}.wav`)) number++;
+        const path = `audio/take-${number}.wav`;
+        await files.write(path, takeWav(recording, barPad + recording.pad));
+        paths.push(path);
+      }
       const prevSource = await readSource(file);
-      const newSource = writeAudioTake(prevSource, file, latest, track, index, path, firstBar, bars);
-      if (!(await applySource(file, newSource, prevSource))) throw new Error(`${file} changed while the take was written; ${path} holds the recording.`);
+      const newSource = writeAudioTake(prevSource, file, latest, track, index, paths, firstBar, bars);
+      if (!(await applySource(file, newSource, prevSource))) throw new Error(`${file} changed while the take was written; ${paths.join(', ')} hold the recording.`);
       recordStructWrite('Record Audio Take', { file, prevSource, newSource }, { index, pieceFile: file, documentId }, setMessage);
     })().catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)));
   }, [engine, file, index, documentId, setMessage]);

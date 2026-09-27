@@ -17,6 +17,7 @@
  * graph in place (`apply`): rebuilding would cut the reverb's tail and reset the dynamics.
  */
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
+import { audioSegments, envelopeAt } from '../comp';
 import { everyClip } from '../launches';
 import { readWav } from '../wav';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
@@ -59,7 +60,7 @@ export function mixSignature(piece: Piece): string {
       track.name,
       track.channel && [track.channel.role, track.channel.devices, track.channel.sends.map((send) => [send.to, send.pre])],
       // The recordings its clips play, arranged or in launcher slots: each is loaded as the graph is built.
-      everyClip(piece, track).flatMap((clip) => (clip.audio ? [clip.audio.file] : [])),
+      everyClip(piece, track).flatMap((clip) => clip.takes.map((take) => take.file)),
     ]),
   );
 }
@@ -329,7 +330,7 @@ export class LiveMix {
         const panner = this.strip(graph, piece, track, soloed, output, sends);
         panner.connect(destination(track));
         wireSends(track, output, panner, sends);
-        for (const clip of everyClip(piece, track)) if (clip.audio) await this.recording(clip.audio.file);
+        for (const clip of everyClip(piece, track)) for (const take of clip.takes) await this.recording(take.file);
       }
       // Each sidechained compressor hears its source track's strip after its fader and pan.
       for (const { node, source } of this.pendingSidechains) {
@@ -456,25 +457,27 @@ export class LiveMix {
       const head = graph.audioHeads.get(track.id);
       if (!head) continue;
       for (const clip of track.clips) {
-        const audio = clip.audio;
-        const buffer = audio ? this.recordings.get(audio.file) : undefined;
-        if (!audio || !buffer) continue;
-        const clipStart = secondsAt(clip.time);
-        const start = Math.max(clipStart, pass.from);
-        const end = Math.min(secondsAt(clip.time + clip.duration), pass.to);
-        if (end <= start) continue;
-        const source = this.context.createBufferSource();
-        source.buffer = buffer;
-        const gain = this.context.createGain();
-        gain.gain.value = 10 ** (audio.gain / 20);
-        source.connect(gain).connect(head);
-        source.start(at(pass.offset + start), audio.offset + (start - clipStart), end - start);
-        source.onended = () => {
-          source.disconnect();
-          gain.disconnect();
-          this.playing.delete(source);
-        };
-        this.playing.add(source);
+        for (const segment of audioSegments(clip, secondsAt)) {
+          const buffer = this.recordings.get(segment.audio.file);
+          if (!buffer) continue;
+          const start = Math.max(segment.from, pass.from);
+          const end = Math.min(segment.to, pass.to);
+          if (end <= start) continue;
+          const source = this.context.createBufferSource();
+          source.buffer = buffer;
+          const gain = this.context.createGain();
+          // The segment's envelope from where this pass meets it: its value there, then a line to each point after.
+          gain.gain.setValueAtTime(envelopeAt(segment.envelope, start), at(pass.offset + start));
+          for (const [second, value] of segment.envelope) if (second > start) gain.gain.linearRampToValueAtTime(value, at(pass.offset + second));
+          source.connect(gain).connect(head);
+          source.start(at(pass.offset + start), segment.sourceAt + (start - segment.from), end - start);
+          source.onended = () => {
+            source.disconnect();
+            gain.disconnect();
+            this.playing.delete(source);
+          };
+          this.playing.add(source);
+        }
       }
     }
   }

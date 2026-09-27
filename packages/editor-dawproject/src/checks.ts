@@ -87,6 +87,16 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
     const program = typeof device?.params['program'] === 'number' ? device.params['program'] : null;
     const range = program === null || device?.params['drums'] === true ? undefined : RANGES[program];
     for (const clip of track.clips) {
+      const takeNames = clip.takes.map((take) => take.take);
+      const doubled = takeNames.find((name, i) => takeNames.indexOf(name) !== i);
+      if (doubled) problems.push(`${track.name}: clip "${clip.name ?? 'clip'}" has two takes named "${doubled}", so a <Comp> naming it plays the first`);
+      for (const comp of clip.comps) {
+        if (!takeNames.includes(comp.take)) {
+          problems.push(`${track.name}: a <Comp> at ${barBeat(comp.time)} picks take "${comp.take}", which clip "${clip.name ?? 'clip'}" does not have (${takeNames.join(', ') || 'no takes'}), so it is ignored`);
+        } else if (comp.time < clip.time - EPSILON || comp.time >= clip.time + clip.duration - EPSILON) {
+          problems.push(`${track.name}: a <Comp> at ${barBeat(comp.time)} is outside its clip "${clip.name ?? 'clip'}"${comp.time < clip.time ? ', so it picks from the clip\'s start' : ', so it picks nothing'}`);
+        }
+      }
       for (const note of clip.notes) {
         if (note.time < -EPSILON || note.time + note.duration > clip.duration + EPSILON) {
           problems.push(`${track.name}: note at ${barBeat(note.start)} runs outside its clip "${clip.name ?? 'clip'}" (${clip.duration} beats)`);

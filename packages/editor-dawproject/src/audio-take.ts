@@ -64,10 +64,39 @@ export function takeWav(take: { readonly left: Float32Array; readonly right: Flo
 }
 
 /**
- * The source with a recorded clip on `track`: `<Clip at bars name="take"><Audio file /></Clip>`
- * from bar `firstBar` for `bars` bars, after the clip that starts before it (or the channel).
+ * A take cut into one per pass of the loop it was played over: each pass as its own recording,
+ * padded back to the region's start so every take lines up with the clip over the region. The
+ * part of a take played before the region (a play started ahead of the loop) is dropped, and a
+ * last pass cut short by Stop is a take like the rest. `null` when the take lies in one pass.
  */
-export function writeAudioTake(source: string, pieceFile: string, piece: Piece, track: PieceTrack, index: SourceIndex, path: string, firstBar: number, bars: number): string {
+export function takesPerPass(
+  take: { readonly left: Float32Array; readonly right: Float32Array; readonly sampleRate: number },
+  elapsed: number,
+  region: { readonly start: number; readonly end: number },
+): { left: Float32Array; right: Float32Array; sampleRate: number; pad: number }[] | null {
+  const length = region.end - region.start;
+  const seconds = take.left.length / take.sampleRate;
+  if (length <= 0 || elapsed + seconds <= region.end + 1e-3 || elapsed >= region.end) return null;
+  const passes: { left: Float32Array; right: Float32Array; sampleRate: number; pad: number }[] = [];
+  // From the region's start (or the take's, when later), one pass at a time.
+  let from = Math.max(elapsed, region.start);
+  while (from < elapsed + seconds - 1e-3) {
+    const inPass = region.start + ((from - region.start) % length);
+    const to = Math.min(elapsed + seconds, from + (region.end - inPass));
+    const a = Math.round((from - elapsed) * take.sampleRate);
+    const b = Math.round((to - elapsed) * take.sampleRate);
+    passes.push({ left: take.left.slice(a, b), right: take.right.slice(a, b), sampleRate: take.sampleRate, pad: inPass - region.start });
+    from = to;
+  }
+  return passes;
+}
+
+/**
+ * The source with a recorded clip on `track`: `<Clip at bars name="take">` holding an `<Audio>`
+ * per path (named takes 1, 2, … when there are several), from bar `firstBar` for `bars` bars,
+ * after the clip that starts before it (or the channel).
+ */
+export function writeAudioTake(source: string, pieceFile: string, piece: Piece, track: PieceTrack, index: SourceIndex, paths: readonly string[], firstBar: number, bars: number): string {
   const beatsPerBar = piece.transport.beatsPerBar;
   const own = (oid: string | null): oid is string => oid !== null && (piece.oidCounts.get(oid) ?? 0) === 1;
   const before = track.clips.filter((clip) => clip.time <= firstBar * beatsPerBar && own(clip.oid)).at(-1);
@@ -81,5 +110,7 @@ export function writeAudioTake(source: string, pieceFile: string, piece: Piece, 
   const newline = source.includes('\r\n') ? '\r\n' : '\n';
   const indent = indentOf(source, file, anchor);
   const clip = `<Clip ${attributeText('at', formatAt(firstBar * beatsPerBar, beatsPerBar, { bar: true }))} ${attributeText('bars', bars)} ${attributeText('name', 'take')}>`;
-  return insertElement(source, file, anchor, 'after', `${clip}${newline}${indent}  <Audio ${attributeText('file', path)} />${newline}${indent}</Clip>`);
+  // One recording, or one take per pass: the newest (last) plays until the clip is comped.
+  const takes = paths.map((path, i) => `${newline}${indent}  <Audio ${attributeText('file', path)}${paths.length > 1 ? ` ${attributeText('take', String(i + 1))}` : ''} />`).join('');
+  return insertElement(source, file, anchor, 'after', `${clip}${takes}${newline}${indent}</Clip>`);
 }

@@ -495,6 +495,17 @@ export class PreviewEngine {
     return performance.beatAt(foldSecond(Math.max(0, elapsed), this.region(performance, this.originSecond)));
   }
 
+  /**
+   * Where context time `time` fell in the last play of the arrangement: the piece-second it had
+   * reached counting up across loop passes (`elapsed`), and the region the play repeated, in
+   * piece-seconds. A take recorded over several passes is cut into one per pass from these.
+   */
+  playedAt(time: number): { readonly elapsed: number; readonly region: Region } | null {
+    const performance = this.performance;
+    if (!performance || performance.seconds <= 0 || this.launches) return null;
+    return { elapsed: this.originSecond + (time - this.originTime), region: this.region(performance, this.originSecond) };
+  }
+
   /** The beat under the playhead, or `null` when stopped. */
   playhead(): number | null {
     const performance = this.performance;

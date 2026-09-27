@@ -88,6 +88,9 @@ export default function Theme() {
   notes plays that WAV (a path from the project folder) from `offset` seconds into it, at `gain`
   dB, for the clip's `bars`; its track needs no instrument device. `check-piece` names a file
   that is not there, and the DAWproject export embeds each recording.
+- A clip may hold several recordings of one part: `<Audio file take="1" />`, `<Audio file
+  take="2" />`, … (a looped audio recording writes one per pass); the newest plays, and
+  `<Comp take="1" at="5:3" />` plays take 1 from 5:3 on. Leave a person's comp as they set it.
 - A take a person records (Rec in the transport) arrives as notes at their played timing,
   480 ticks a beat (`at="3:2.097917"`, `dur="0.8375"`), in the clip that holds it or a new
   `<Clip name="take">`; quantize it only if they ask.

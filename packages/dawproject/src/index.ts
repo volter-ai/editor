@@ -161,6 +161,21 @@ export interface AudioProps {
   readonly file: string;
   readonly offset?: number;
   readonly gain?: number;
+  /**
+   * The take's name, when a clip holds several recordings of one part (one per pass of a loop):
+   * the newest (last) plays unless `<Comp>`s pick others.
+   */
+  readonly take?: string;
+}
+
+/**
+ * A comp choice in a clip of several takes: from `at` (a position of the piece, inside the clip)
+ * the take named `take` plays, until the next `<Comp>`. Before the first, the newest take plays.
+ * Where the take changes, the two cross in 5 ms.
+ */
+export interface CompProps {
+  readonly take: string;
+  readonly at: Position;
 }
 
 /**
@@ -219,6 +234,7 @@ export const Points = element<PointsProps>('dawproject.Points');
 export const Audio = element<AudioProps>('dawproject.Audio');
 export const Point = element<PointProps>('dawproject.Point');
 export const Lfo = element<LfoProps>('dawproject.Lfo');
+export const Comp = element<CompProps>('dawproject.Comp');
 export const Scene = element<SceneProps>('dawproject.Scene');
 export const ClipSlot = element<ClipSlotProps>('dawproject.ClipSlot');
 
@@ -237,6 +253,7 @@ export const ELEMENT_TYPES = {
   Point: 'dawproject.Point',
   Audio: 'dawproject.Audio',
   Lfo: 'dawproject.Lfo',
+  Comp: 'dawproject.Comp',
   Scene: 'dawproject.Scene',
   ClipSlot: 'dawproject.ClipSlot',
 } as const;

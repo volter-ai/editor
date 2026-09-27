@@ -44,6 +44,7 @@ function placed(clip: PieceClip, start: number, end: number, copy: number): Piec
     duration,
     notes: clip.notes.filter((note) => note.time < duration).map((note) => ({ ...note, id: `${note.id}@${copy}`, start: start + note.time })),
     lanes: clip.lanes.map((lane) => ({ ...lane, points: lane.points.map((point) => ({ ...point, time: start + point.time })) })),
+    comps: clip.comps.map((comp) => ({ ...comp, time: start + comp.time })),
   };
 }
 

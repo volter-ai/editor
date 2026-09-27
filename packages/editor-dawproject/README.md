@@ -33,7 +33,10 @@ DAWproject export carries them as its `Scenes`. Rec records what a person plays
 (a MIDI controller, or the computer keyboard laid out as Bitwig's) into the selected track, heard
 as it is played: on Stop the take is one edit, into the clip that holds it or a new "take" clip. On a track
 with no instrument Rec records the audio input instead: the take is saved as
-`audio/take-N.wav` (padded back to the bar it began in) and placed as an `<Audio>` clip.
+`audio/take-N.wav` (padded back to the bar it began in) and placed as an `<Audio>` clip; over
+a loop, each pass is its own take in one clip. A clip of several takes is comped in its panel:
+drag across a take's lane to play it there (`<Comp take at>`, both mixes crossing takes in 5 ms
+and nulling at −140 dB), and the DAWproject export writes the comp as its segments.
 In the piano
 roll, notes are selected (click, Shift-click, marquee, Cmd+A), moved and
 resized together, snapped to a chosen grid, quantized, copied, cut, pasted,

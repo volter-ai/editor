@@ -25,6 +25,8 @@ import { everyClip } from '../launches';
 import { wav24 } from '../wav';
 import type { Piece, PieceClip, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
 import { motionFor, motionValueAtBeat } from '../mix/automation';
+import { audioSegments, COMP_FADE } from '../comp';
+import { perform } from '@volter/dawproject/perform';
 import { destinationOf } from '../mix/offline-mix';
 
 export interface DawprojectOptions {
@@ -42,17 +44,16 @@ function embeddedAudio(piece: Piece, audio: ReadonlyMap<string, DecodedAudio> | 
   const embedded = new Map<string, { path: string; wav: Uint8Array; seconds: number; channels: number; sampleRate: number }>();
   const used = new Set<string>();
   for (const track of piece.tracks) {
-    for (const clip of everyClip(piece, track)) {
-      if (!clip.audio) continue;
-      const key = `${clip.audio.file}|${clip.audio.gain}`;
+    for (const take of everyClip(piece, track).flatMap((clip) => clip.takes)) {
+      const key = `${take.file}|${take.gain}`;
       if (embedded.has(key)) continue;
-      const decoded = audio?.get(clip.audio.file);
-      if (!decoded) throw new Error(`The recording ${clip.audio.file} was not loaded; the export embeds every clip's recording.`);
-      const scale = 10 ** (clip.audio.gain / 20);
+      const decoded = audio?.get(take.file);
+      if (!decoded) throw new Error(`The recording ${take.file} was not loaded; the export embeds every clip's recording.`);
+      const scale = 10 ** (take.gain / 20);
       const left = decoded.channels[0]!.map((sample) => sample * scale);
       const right = (decoded.channels[1] ?? decoded.channels[0]!).map((sample) => sample * scale);
-      const stem = clip.audio.file.replace(/^.*\//, '').replace(/\.wav$/i, '');
-      let path = `audio/${stem}${clip.audio.gain === 0 ? '' : ` ${clip.audio.gain}dB`}.wav`;
+      const stem = take.file.replace(/^.*\//, '').replace(/\.wav$/i, '');
+      let path = `audio/${stem}${take.gain === 0 ? '' : ` ${take.gain}dB`}.wav`;
       for (let n = 2; used.has(path); n++) path = `audio/${stem} ${n}.wav`;
       used.add(path);
       embedded.set(key, { path, wav: wav24(left, right, decoded.sampleRate), seconds: left.length / decoded.sampleRate, channels: 2, sampleRate: decoded.sampleRate });
@@ -88,6 +89,7 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
   };
   const application = options.application ?? { name: 'Volter Editor', version: packageJson.version };
   const recordings = embeddedAudio(piece, options.audio);
+  const performance = perform(piece);
 
   out(0, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
   out(0, '<Project version="1.0">');
@@ -203,13 +205,19 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
   /** A clip at `depth`: its notes and controller lanes, or the recording it plays. */
   const emitClip = (depth: number, clip: PieceClip, midiChannel: number): void => {
     if (clip.audio) {
-      // A recording: its content is in seconds, and `offset` is where in the file it starts.
-      const recording = recordings.get(`${clip.audio.file}|${clip.audio.gain}`)!;
-      out(depth, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), contentTimeUnit: 'seconds', playStart: clip.audio.offset })}>`);
-      out(depth + 1, `<Audio${attrs({ id: id(), timeUnit: 'seconds', duration: recording.seconds, channels: recording.channels, sampleRate: recording.sampleRate, algorithm: 'raw' })}>`);
-      out(depth + 2, `<File${attrs({ path: recording.path })}/>`);
-      out(depth + 1, '</Audio>');
-      out(depth, '</Clip>');
+      // A recording: its content is in seconds, and where the clip starts in the file is its
+      // `playStart`. A comped clip is written as its segments, one clip each, crossing in fades.
+      for (const segment of audioSegments(clip, performance.secondsAt)) {
+        const recording = recordings.get(`${segment.audio.file}|${segment.audio.gain}`)!;
+        const time = performance.beatAt(segment.from);
+        const fadeIn = segment.envelope[0]?.[1] === 0 ? COMP_FADE : null;
+        const fadeOut = segment.envelope.at(-1)?.[1] === 0 && segment.envelope.length > 1 ? COMP_FADE : null;
+        out(depth, `<Clip${attrs({ name: clip.name, time: beats(time), duration: beats(performance.beatAt(segment.to) - time), contentTimeUnit: 'seconds', playStart: segment.sourceAt, fadeTimeUnit: fadeIn || fadeOut ? 'seconds' : null, fadeInTime: fadeIn, fadeOutTime: fadeOut })}>`);
+        out(depth + 1, `<Audio${attrs({ id: id(), timeUnit: 'seconds', duration: recording.seconds, channels: recording.channels, sampleRate: recording.sampleRate, algorithm: 'raw' })}>`);
+        out(depth + 2, `<File${attrs({ path: recording.path })}/>`);
+        out(depth + 1, '</Audio>');
+        out(depth, '</Clip>');
+      }
       return;
     }
     out(depth, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), playStart: 0 })}>`);

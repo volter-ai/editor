@@ -70,8 +70,19 @@ export interface PieceClip {
   readonly duration: number;
   readonly notes: readonly PieceNote[];
   readonly lanes: readonly PiecePoints[];
-  /** The recorded file this clip plays (`<Audio>`), or `null` for a note clip. */
+  /** The recorded file this clip plays by default (`<Audio>`, the newest take), or `null` for a note clip. */
   readonly audio: PieceAudio | null;
+  /** Every `<Audio>` in the clip, oldest first: its takes when there are several. */
+  readonly takes: readonly PieceAudio[];
+  /** Which take plays from where (`<Comp>`), in time order. */
+  readonly comps: readonly PieceComp[];
+}
+
+/** A comp choice: from `time` (beats of the piece) the take named `take` plays. */
+export interface PieceComp {
+  readonly oid: string | null;
+  readonly take: string;
+  readonly time: number;
 }
 
 /** A clip's recorded file: a WAV at a project path, from `offset` seconds into it, at `gain` dB. */
@@ -80,6 +91,8 @@ export interface PieceAudio {
   readonly file: string;
   readonly offset: number;
   readonly gain: number;
+  /** Its take name (`take`), or its place among the clip's takes from 1 when unnamed. */
+  readonly take: string;
 }
 
 export interface PieceDevice {
@@ -262,11 +275,20 @@ export function readPiece(root: DawNode): Piece {
         };
       });
     const lanes = child.children.filter((lane) => lane.type === 'Points').map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
-    const audioNode = child.children.find((part) => part.type === 'Audio');
-    const audio: PieceAudio | null = audioNode
-      ? { oid: audioNode.oid, file: str(audioNode.props['file']) ?? '', offset: num(audioNode.props['offset'], 0), gain: num(audioNode.props['gain'], 0) }
-      : null;
-    return { id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes, audio };
+    const takes: PieceAudio[] = child.children
+      .filter((part) => part.type === 'Audio')
+      .map((part, takeIndex) => ({
+        oid: part.oid,
+        file: str(part.props['file']) ?? '',
+        offset: num(part.props['offset'], 0),
+        gain: num(part.props['gain'], 0),
+        take: str(part.props['take']) ?? String(takeIndex + 1),
+      }));
+    const comps: PieceComp[] = child.children
+      .filter((part) => part.type === 'Comp')
+      .map((part) => ({ oid: part.oid, take: str(part.props['take']) ?? '', time: position(part.props['at'], `A <Comp> in ${where}`) }))
+      .sort((a, b) => a.time - b.time);
+    return { id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes, audio: takes.at(-1) ?? null, takes, comps };
   };
   /**
    * A track, and (after it) every track it contains: a group's children sum into its strip, the

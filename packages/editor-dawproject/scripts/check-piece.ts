@@ -55,8 +55,10 @@ const { parallels } = checked;
 const problems = [...checked.problems];
 for (const track of piece.tracks) {
   for (const clip of track.clips) {
-    if (clip.audio && !existsSync(resolve(clip.audio.file))) {
-      problems.push(`${track.name}: clip "${clip.name ?? 'clip'}" plays ${clip.audio.file}, which is not in this project (a path from the project folder), so it is silent`);
+    for (const file of new Set(clip.takes.map((take) => take.file))) {
+      if (!existsSync(resolve(file))) {
+        problems.push(`${track.name}: clip "${clip.name ?? 'clip'}" plays ${file}, which is not in this project (a path from the project folder), so it is silent`);
+      }
     }
   }
 }

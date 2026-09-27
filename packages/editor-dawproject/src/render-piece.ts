@@ -123,7 +123,7 @@ export async function renderPiece({
 
     const beatsPerBar = piece.transport.beatsPerBar;
     const assignments = assignChannels(piece);
-    const audioClips = piece.tracks.flatMap((track) => everyClip(piece, track).flatMap((clip) => (clip.audio ? [clip.audio] : [])));
+    const audioClips = piece.tracks.flatMap((track) => everyClip(piece, track).flatMap((clip) => clip.takes));
     if (piece.length <= 0) {
       throw new Error('The arrangement has no clips, so there is no piece to render; a piece’s scenes are rendered beside its arrangement (write the arrangement’s clips on the tracks).');
     }

@@ -9,6 +9,7 @@
  */
 
 import { perform } from '@volter/dawproject/perform';
+import { audioSegments, envelopeAt } from './comp';
 import type { Piece } from '@volter/dawproject/piece';
 import { notePatches } from './articulations';
 import { roundRobins } from './sfz-bank';
@@ -178,29 +179,37 @@ export function placeAudio(
   const out = new Map<string, [Float32Array, Float32Array]>();
   for (const track of piece.tracks) {
     for (const clip of track.clips) {
-      const audio = clip.audio;
-      const file = audio ? files.get(audio.file) : undefined;
-      if (!audio || !file || file.channels.length === 0) continue;
-      const clipStart = Math.max(performance.secondsAt(clip.time), from);
-      const clipEnd = Math.min(performance.secondsAt(clip.time + clip.duration), from + loopSeconds);
-      if (clipEnd <= clipStart) continue;
-      const sourceStart = audio.offset + (clipStart - performance.secondsAt(clip.time));
-      const gain = 10 ** (audio.gain / 20);
-      const [left, right] = out.get(track.id) ?? [new Float32Array(total), new Float32Array(total)];
-      out.set(track.id, [left, right]);
-      const sourceLeft = file.channels[0]!;
-      const sourceRight = file.channels[1] ?? sourceLeft;
-      const ratio = file.sampleRate / sampleRate;
-      const frames = Math.round((clipEnd - clipStart) * sampleRate);
-      for (let pass = 0; pass < passes; pass++) {
-        const at = Math.round((pass * loopSeconds + (clipStart - from)) * sampleRate);
-        for (let i = 0; i < frames && at + i < total; i++) {
-          const position = (sourceStart * sampleRate + i) * ratio;
-          const k = Math.floor(position);
-          if (k + 1 >= sourceLeft.length) break;
-          const t = position - k;
-          left[at + i]! += (sourceLeft[k]! + (sourceLeft[k + 1]! - sourceLeft[k]!) * t) * gain;
-          right[at + i]! += (sourceRight[k]! + (sourceRight[k + 1]! - sourceRight[k]!) * t) * gain;
+      // Each stretch of the clip from the take that plays there (`comp.ts`), at its envelope.
+      for (const segment of audioSegments(clip, performance.secondsAt)) {
+        const file = files.get(segment.audio.file);
+        if (!file || file.channels.length === 0) continue;
+        const segmentStart = Math.max(segment.from, from);
+        const segmentEnd = Math.min(segment.to, from + loopSeconds);
+        if (segmentEnd <= segmentStart) continue;
+        const sourceStart = segment.sourceAt + (segmentStart - segment.from);
+        const [left, right] = out.get(track.id) ?? [new Float32Array(total), new Float32Array(total)];
+        out.set(track.id, [left, right]);
+        const sourceLeft = file.channels[0]!;
+        const sourceRight = file.channels[1] ?? sourceLeft;
+        const ratio = file.sampleRate / sampleRate;
+        const frames = Math.round((segmentEnd - segmentStart) * sampleRate);
+        const steady = segment.envelope.length === 1 ? segment.envelope[0]![1] : null;
+        for (let pass = 0; pass < passes; pass++) {
+          const at = Math.round((pass * loopSeconds + (segmentStart - from)) * sampleRate);
+          for (let i = 0; i < frames && at + i < total; i++) {
+            const position = (sourceStart * sampleRate + i) * ratio;
+            const k = Math.floor(position);
+            if (k >= sourceLeft.length) break;
+            const t = position - k;
+            // Between the last sample and the file's end the browser's source carries on along the
+            // last slope (measured: a read at 7.6 of [..., 7, 8] gives 8.6), so the export does too.
+            const nextLeft = k + 1 < sourceLeft.length ? sourceLeft[k + 1]! : 2 * sourceLeft[k]! - (sourceLeft[k - 1] ?? sourceLeft[k]!);
+            const nextRight = k + 1 < sourceRight.length ? sourceRight[k + 1]! : 2 * sourceRight[k]! - (sourceRight[k - 1] ?? sourceRight[k]!);
+            // The envelope at this output sample's own time, as the editor's gain ramps compute it.
+            const gain = steady ?? envelopeAt(segment.envelope, from + (at + i) / sampleRate - pass * loopSeconds);
+            left[at + i]! += (sourceLeft[k]! + (nextLeft - sourceLeft[k]!) * t) * gain;
+            right[at + i]! += (sourceRight[k]! + (nextRight - sourceRight[k]!) * t) * gain;
+          }
         }
       }
     }

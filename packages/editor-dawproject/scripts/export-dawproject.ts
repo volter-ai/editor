@@ -24,9 +24,11 @@ const title = componentNameOf(basename(input)).replace(/([a-z])([A-Z])/g, '$1 $2
 const project = process.cwd();
 const audio = new Map<string, DecodedAudio>();
 for (const clip of piece.tracks.flatMap((track) => everyClip(piece, track))) {
-  if (!clip.audio || audio.has(clip.audio.file)) continue;
-  const wav = readWav(new Uint8Array(readFileSync(resolve(project, clip.audio.file))));
-  audio.set(clip.audio.file, { channels: wav.channels, sampleRate: wav.sampleRate });
+  for (const take of clip.takes) {
+    if (audio.has(take.file)) continue;
+    const wav = readWav(new Uint8Array(readFileSync(resolve(project, take.file))));
+    audio.set(take.file, { channels: wav.channels, sampleRate: wav.sampleRate });
+  }
 }
 writeFileSync(resolve(output), pieceToDawproject(piece, { title, audio }));
 console.log(`Wrote ${resolve(output)}`);
