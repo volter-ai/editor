@@ -104,10 +104,13 @@ gizmos, the View menu's Grid states and Position and Transformation gizmos, Skew
 Inspector's Transform, and the board's frames in the Hierarchy.
 
 Godot's 2D tool keys, read from the installed 4.7.1's shortcuts (Q Select, W Move, E Rotate, R Scale,
-G Pan, M Ruler), are all bound, the `canvas.*` ones only where the stage is not three.js (walked on a
-workbench carrying them: W lit Move, Q Select, G Pan, M Ruler and a second M left it; on a 3D stage G
+G Pan, M Ruler), are all bound, the `canvas.*` ones only on a canvas stage: a mounted canvas
+document marks itself, so the stage reports `canvas` for it even in a world with a 3D root, and a
+stage with no canvas handler (3D, the 2D board, a DOM story) leaves the keys free (walked on a
+workbench carrying an earlier form of the rule: W lit Move, Q Select, G Pan, M Ruler and a second M left it; on a 3D stage G
 did nothing and logged nothing while W still armed Move). The tool strip is Godot's one row: Select to
 Ruler, snapping, then Lock, Group and the View menu (walked); Frame all, with no home in Godot,
 stays apart.
 
-None open beyond the partials recorded in the rows above.
+1. The canvas-surface rule in a world with both a 3D and a 2D root is not walked (the probes are one
+   or the other), nor on the new rule's workbench build yet.
