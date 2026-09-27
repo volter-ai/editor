@@ -323,7 +323,12 @@ Open, with what closes each:
   (CC0) is the finished palette and the General MIDI SoundFont the sketch palette, as the skill
   teaches: VSCO is recorded orchestral instruments with their own articulations and round-robin
   repetitions, which a General MIDI preset has none of; no listening test was run, and a
-  listening verdict against it reopens this. The evidence a listener would use stays in the probe:
+  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project VGAI Hosted
+  Editor; Harbor on each palette, loudness matched, unlabeled, one play order per job;
+  volter-listening.aaron-0ed.workers.dev, `/a/` General MIDI first, `/b/` VSCO first): the one verdict in (order a)
+  heard the two as "almost the same", both like real musicians, and mildly preferred General MIDI. The renders differ
+  (they do not null: +3.3 dB residual) with near-equal band balance, since every track was matched. One listener in
+  one order is not a verdict; a VSCO-first listen is what reopens or keeps this call. The evidence a listener would use stays in the probe:
   `music-probe/out/ab/gm/harbor.ogg` against `out/ab/orchestra/harbor-orchestra.ogg` (levels
   matched to 0.0 dB), and Tidewatch and Victory on the orchestra. The library builds as 20 banks,
   66 patches (`scripts/vsco2-ce`, into `~/.volter/banks/vsco2-ce`, byte-reproducible; SF3,
