@@ -284,6 +284,16 @@ export interface GodotElementProps<Entity extends Object3D> {
   readonly [property: string]: unknown;
 }
 
+/**
+ * The props an instancing scene hands a scene whose root is a Godot element: its name, children
+ * placed under it, and its Godot properties (no ref: the scene's own root keeps its ref).
+ */
+export interface GodotSceneRootProps {
+  readonly name?: string;
+  readonly children?: ReactNode;
+  readonly [property: string]: unknown;
+}
+
 /** A Godot property's prop: the setter it calls with the literal value the JSX states. */
 export type GodotElementProp<Entity> = (entity: Entity, value: never) => void;
 

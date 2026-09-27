@@ -19,6 +19,9 @@ const SETTINGS = new Map<string, unknown>();
 /** A setting's value as the project's settings file holds it: a primitive, or `{ Vector3: [...] }`. */
 export type GodotSettingJson = number | boolean | string | { readonly Vector2: readonly number[] } | { readonly Vector3: readonly number[] } | { readonly Color: readonly number[] };
 
+/** The project's settings as the translation writes them: each key with its value. */
+export type GodotProjectSettingsJson = readonly (readonly [string, GodotSettingJson])[];
+
 function settingValue(value: GodotSettingJson): unknown {
   if (typeof value !== 'object') return value;
   if ('Vector2' in value) return vector2(...(value.Vector2 as [number, number]));
@@ -33,7 +36,7 @@ function settingValue(value: GodotSettingJson): unknown {
  * @godot ProjectSettings (protocol)
  * @source core/config/project_settings.cpp:870
  */
-export function godot_project_settings_load_json(entries: readonly (readonly [string, GodotSettingJson])[]): void {
+export function godot_project_settings_load_json(entries: GodotProjectSettingsJson): void {
   godot_project_settings_load(entries.map(([key, value]) => [key, settingValue(value)] as const));
 }
 

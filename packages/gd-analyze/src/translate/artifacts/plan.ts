@@ -180,7 +180,7 @@ function projectArtifacts(
       structuralDigest({ composition, module: plan.worldModule }),
       sourcePaths,
     ),
-    projectDataJsonArtifact(DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition) as DirectJsonValue, sourcePaths),
+    projectDataTypedModuleArtifact(DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition), sourcePaths, { module: 'project-settings', name: 'GodotProjectSettingsJson' }),
     projectDataJsonArtifact(DIRECT_GODOT_INPUT_MAP_PATH, directGodotInputMapJson(composition) as DirectJsonValue, sourcePaths),
     ...meshDataArtifacts(composition),
     ...modelDataArtifacts(composition),

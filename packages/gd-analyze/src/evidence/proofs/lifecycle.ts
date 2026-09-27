@@ -453,7 +453,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
             ...capabilityStampPlans.map((stamp) => stamp.targetPath),
             'src/main.ts',
             'src/project/input-map.json',
-            'src/project/settings.json',
+            'src/project/settings.ts',
             'src/world.tsx',
             'tsconfig.json',
             'vgai.adapter.ts',

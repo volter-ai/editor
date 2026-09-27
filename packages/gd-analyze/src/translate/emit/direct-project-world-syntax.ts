@@ -23,7 +23,7 @@ import {
 } from './direct-autoload-syntax';
 
 /** The project's settings file: each setting its scripts read, a built-in value as `{ Vector3: [...] }`. */
-export const DIRECT_GODOT_SETTINGS_PATH = 'src/project/settings.json';
+export const DIRECT_GODOT_SETTINGS_PATH = 'src/project/settings.ts';
 /** The project's input map file: the actions it defines and the built-ins it uses. */
 export const DIRECT_GODOT_INPUT_MAP_PATH = 'src/project/input-map.json';
 
@@ -57,7 +57,7 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
       ...(settings
         ? [
             { kind: 'import-statement' as const, module: './lib/godot-compat/project-settings', namedBindings: [{ imported: 'godot_project_settings_load_json', local: 'godot_project_settings_load_json' }] },
-            { kind: 'import-statement' as const, module: './project/settings.json', defaultBinding: 'settings', namedBindings: [] },
+            { kind: 'import-statement' as const, module: './project/settings', defaultBinding: 'settings', namedBindings: [] },
           ]
         : []),
       { kind: 'import-statement' as const, module: './lib/godot-compat/input', namedBindings: [{ imported: 'godot_input_map_load_json', local: 'godot_input_map_load_json' }] },

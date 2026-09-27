@@ -684,9 +684,9 @@ function rootPropsType(
   // A compat element's own props (`useGodotElement`).
   if (tag.startsWith('Godot') && three !== undefined) {
     return {
-      type: omitRef({ kind: 'type-reference', name: 'GodotElementProps', arguments: [{ kind: 'type-reference', name: three, arguments: [] }] }),
+      type: { kind: 'type-reference', name: 'GodotSceneRootProps', arguments: [] },
       children: true,
-      from: { module: moduleSpecifier(targetPath, 'src/lib/godot-compat/react-lifecycle.tsx'), name: 'GodotElementProps' },
+      from: { module: moduleSpecifier(targetPath, 'src/lib/godot-compat/react-lifecycle.tsx'), name: 'GodotSceneRootProps' },
     };
   }
   if (tag === 'PerspectiveCamera') {
