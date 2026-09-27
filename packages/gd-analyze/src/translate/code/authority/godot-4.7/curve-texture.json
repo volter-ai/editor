@@ -1,0 +1,422 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/curve-texture"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CurveTexture",
+        "member": "set_width",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve-texture",
+        "exportName": "set_width",
+        "localName": "CurveTexture_set_width",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CurveTexture.set_width"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CurveTexture",
+        "member": "set_texture_mode",
+        "kind": "native-member",
+        "signature": "hash:1321955367"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve-texture",
+        "exportName": "set_texture_mode",
+        "localName": "CurveTexture_set_texture_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CurveTexture.set_texture_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CurveTexture",
+        "member": "CurveTexture",
+        "kind": "native-class",
+        "signature": "GDScriptNativeClass"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve-texture",
+        "exportName": "construct",
+        "localName": "CurveTexture_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CurveTexture.CurveTexture"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CurveTexture",
+        "member": "get_texture_mode",
+        "kind": "native-member",
+        "signature": "hash:715756376"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve-texture",
+        "exportName": "get_texture_mode",
+        "localName": "CurveTexture_get_texture_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CurveTexture.get_texture_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CurveTexture",
+        "member": "set_curve",
+        "kind": "native-member",
+        "signature": "hash:270443179"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve-texture",
+        "exportName": "set_curve",
+        "localName": "CurveTexture_set_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CurveTexture.set_curve"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CurveTexture",
+        "member": "get_curve",
+        "kind": "native-member",
+        "signature": "hash:2460114913"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve-texture",
+        "exportName": "get_curve",
+        "localName": "CurveTexture_get_curve",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CurveTexture.get_curve"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CurveTexture.set_width",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CurveTexture\u0000set_width\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve_texture.cpp",
+        "sourceSymbol": "CurveTexture.set_width",
+        "sourceLine": 54
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2337579c4d218ba5294b54adb66ff9694f306f278b6312b7b04104b95363b4a8",
+        "callsite": "res://probe.gd _init() width-bounds state-curve-first",
+        "observedOutputSha256": "693b14c6ff8006d8ac5236a2049ab32773616d416d705e62e0b8170b0cbb2cd2"
+      },
+      "target": {
+        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "callsite": "lib/godot-compat/curve-texture.ts set_width",
+        "observedOutputSha256": "693b14c6ff8006d8ac5236a2049ab32773616d416d705e62e0b8170b0cbb2cd2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "47ef7220285ed1a50b2eea4ba29f012150387d73be69deb82bef0477e844d2f5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CurveTexture.set_texture_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CurveTexture\u0000set_texture_mode\u0000hash:1321955367",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve_texture.cpp",
+        "sourceSymbol": "CurveTexture.set_texture_mode",
+        "sourceLine": 151
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e7783e08eb12f2793d9f1a69c23c9a164b633d126f23259fdf644cb08ff37800",
+        "callsite": "res://probe.gd _init() mode-bounds",
+        "observedOutputSha256": "c36d0930bb04094c0b6e23acdc1381cb88e45b5034f80161ba3af4f1593f1e08"
+      },
+      "target": {
+        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "callsite": "lib/godot-compat/curve-texture.ts set_texture_mode",
+        "observedOutputSha256": "c36d0930bb04094c0b6e23acdc1381cb88e45b5034f80161ba3af4f1593f1e08"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "161faeda417f1bd78346305e5902bd1a1a80211b1641c2c58714bd1c3b346839"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CurveTexture.CurveTexture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-class\u0000CurveTexture\u0000CurveTexture\u0000GDScriptNativeClass",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve_texture.h",
+        "sourceSymbol": "CurveTexture.CurveTexture",
+        "sourceLine": 48
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "95a33a593febdd2f6090a55e3d15ec55e06887197bf787f1ea393fe39b862e35",
+        "callsite": "res://probe.gd _init() new",
+        "observedOutputSha256": "6e6d3256c4f6e830fde1d4e1a187cb2876d42d4a5391fad9d4ae89fed38c76e4"
+      },
+      "target": {
+        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "callsite": "lib/godot-compat/curve-texture.ts construct",
+        "observedOutputSha256": "6e6d3256c4f6e830fde1d4e1a187cb2876d42d4a5391fad9d4ae89fed38c76e4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "98bb096e446c3f45e540b8433fa5e09e2adf6ebcbf489622bbe114cf739a9feb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CurveTexture.get_texture_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CurveTexture\u0000get_texture_mode\u0000hash:715756376",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve_texture.cpp",
+        "sourceSymbol": "CurveTexture.get_texture_mode",
+        "sourceLine": 159
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cbabf96e0018ba7620d86934b272c1dc99353a938b9c2353b260764cfd894633",
+        "callsite": "res://probe.gd _init() get_texture_mode",
+        "observedOutputSha256": "b4b12aeaf5c50b79f278125dfd642c8b58fddb53b6918bbc4d34ce70d363b4f0"
+      },
+      "target": {
+        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "callsite": "lib/godot-compat/curve-texture.ts get_texture_mode",
+        "observedOutputSha256": "b4b12aeaf5c50b79f278125dfd642c8b58fddb53b6918bbc4d34ce70d363b4f0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2438913dd350c14289fd7f51399e3b3159bd284f1edddbc456474564efc3ebdf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CurveTexture.set_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CurveTexture\u0000set_curve\u0000hash:270443179",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve_texture.cpp",
+        "sourceSymbol": "CurveTexture.set_curve",
+        "sourceLine": 81
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f765a2cfc86e7df04f6ed3a3eeea382953e8022d51be80c50f952d20f57a0c81",
+        "callsite": "res://probe.gd _init() curve-identity",
+        "observedOutputSha256": "e72f3b5abc68bd28f2ab8b38cbf9fdd5b21cf148269d2b0412128c19c484d489"
+      },
+      "target": {
+        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "callsite": "lib/godot-compat/curve-texture.ts set_curve",
+        "observedOutputSha256": "e72f3b5abc68bd28f2ab8b38cbf9fdd5b21cf148269d2b0412128c19c484d489"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "899001ec6c510d97731b9ed6e10ac7dfa269d0d796d4bd170356654b0728e301"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CurveTexture.get_curve",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CurveTexture\u0000get_curve\u0000hash:2460114913",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve_texture.cpp",
+        "sourceSymbol": "CurveTexture.get_curve",
+        "sourceLine": 147
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3c8a8dfdff09263463da5dca696d4505d54925337961a852c7ea424df47c9125",
+        "callsite": "res://probe.gd _init() get_curve",
+        "observedOutputSha256": "f3dd0156798e7ef93da9022ab3e7a1a1bd77ab0755c864504a6d7cce551d0bb7"
+      },
+      "target": {
+        "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8",
+        "callsite": "lib/godot-compat/curve-texture.ts get_curve",
+        "observedOutputSha256": "f3dd0156798e7ef93da9022ab3e7a1a1bd77ab0755c864504a6d7cce551d0bb7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "309f6d4ef31d561cb90f2077c76328d09de01a4a8bfc0512d74a4703ce171bc9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve-texture",
+        "--official-binary",
+        "/Volumes/GodotWork/tools/official-4.7/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CurveTexture.set_width",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2337579c4d218ba5294b54adb66ff9694f306f278b6312b7b04104b95363b4a8",
+      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+    },
+    {
+      "claimId": "godot-4.7-binding-CurveTexture.set_texture_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e7783e08eb12f2793d9f1a69c23c9a164b633d126f23259fdf644cb08ff37800",
+      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+    },
+    {
+      "claimId": "godot-4.7-binding-CurveTexture.CurveTexture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "95a33a593febdd2f6090a55e3d15ec55e06887197bf787f1ea393fe39b862e35",
+      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+    },
+    {
+      "claimId": "godot-4.7-binding-CurveTexture.get_texture_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cbabf96e0018ba7620d86934b272c1dc99353a938b9c2353b260764cfd894633",
+      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+    },
+    {
+      "claimId": "godot-4.7-binding-CurveTexture.set_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f765a2cfc86e7df04f6ed3a3eeea382953e8022d51be80c50f952d20f57a0c81",
+      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+    },
+    {
+      "claimId": "godot-4.7-binding-CurveTexture.get_curve",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3c8a8dfdff09263463da5dca696d4505d54925337961a852c7ea424df47c9125",
+      "implementationSha256": "6fa0eda05ed6deaa8723b00bf29567d037dc67b6e1d3d320ee143bfac5ac6ff8"
+    }
+  ]
+}

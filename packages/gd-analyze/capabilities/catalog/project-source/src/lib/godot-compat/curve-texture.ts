@@ -65,7 +65,9 @@ export function set_width(self: CurveTexture, p_width: number): void {
 }
 
 /**
- * @godot CurveTexture.get_width
+ * The override of `Texture2D.get_width` (ClassDB binds it on `Texture2D`, not here).
+ *
+ * @godot CurveTexture (protocol)
  * @source scene/resources/curve_texture.cpp:65
  */
 export function get_width(self: CurveTexture): number {
