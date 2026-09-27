@@ -12,7 +12,7 @@
  *  Sources (sha256 at generation; the generator refuses when one has moved):
  *    cf74b0b3421398d38cb7369fc3e740725a7af84f9c48aea689559b1532f86bb0  packages/editor-sdk/src/kit/keymap-presets.ts
  *    7e779dc4663c599c4901d3f16f707a2d042e120554b03df6789951a80e047f5f  packages/editor-sdk/src/kit/editor-hotkeys.ts
- *    b36d89c11ed8321cf0e2a9b37931ff6a73edde278f8caa526760a4ed6367a8ed  packages/editor-sdk/src/kit/components/CanvasSceneViewport.tsx
+ *    1d16b2426899ac8fd066dc7aa86e1caceba196eb6d9704673e2af4c90eebdb50  packages/editor-sdk/src/kit/components/CanvasSceneViewport.tsx
  *    b7a7bea8f3419cfe3f999369a77042ee7009b731899f8a72ee9fd95e6f270d15  packages/editor-threejs/src/kit/viewport-hotkeys.ts
  *    8ea0d0eb8348a1aafa642404563313e5ea7135015a9d88386c6168cf7f4dbc1c  packages/editor-blender/contributions/blender.keymap.ts
  *  101 rules over 59 commands (vgai 43, blender 58).
