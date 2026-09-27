@@ -163,6 +163,8 @@ export interface NativeProperty {
   readonly setter?: NativePropertyAccessor;
   /** An indexed property's index (`ADD_PROPERTYI`), which its accessors take before the value. */
   readonly index?: number;
+  /** The property's Variant type as the API dump states it (`Vector2`, `float`). */
+  readonly type?: string;
 }
 
 /** A native class's property, found up the ancestry the API dump states, or undefined. */

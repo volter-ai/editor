@@ -1,5 +1,6 @@
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { type Op, type Segment, TREE_PROBE_HELPERS, treeCase } from './tree-timeline';
+import { frames as tweenFrames, type Op as TweenOp, type Segment as TweenSegment, tweenCase } from './tween-timeline';
 
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, member: string, segments: readonly Segment[]): void {
@@ -21,6 +22,24 @@ add('get_root', 'get_root', [now({ new: 'a' }, { add: 'a' }, { read: ['viewport_
 add('get_frame', 'get_frame', [now({ read: ['tree_frame'] }), phys({ read: ['tree_frame'] }), proc({ read: ['tree_frame'] }), phys({ read: ['tree_frame'] })]);
 add('queue_delete', 'queue_delete', [now({ new: 'a' }, { add: 'a' }), proc({ queueDelete: 'a' }, { read: ['queued', 'a'] }, { log: 'queued' }), proc()]);
 add('reload_current_scene-without-scene', 'reload_current_scene', [now({ read: ['reload'] })]);
+
+// `create_tween`: tweens stepped in creation order, unbound, from the pass after they are made (a
+// tween made in a physics frame runs in that frame's process pass).
+function addTween(id: string, segments: readonly TweenSegment[]): void {
+  const built = tweenCase(segments);
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'SceneTree', member: 'create_tween' }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+}
+const logged = (tween: string, log: string): TweenOp[] => [{ tween }, { callback: `c${tween}`, tween, log }];
+addTween('create_tween-order', [{ ops: [...logged('b', 'second-made'), ...logged('a', 'first-made')] }, ...tweenFrames(2)]);
+addTween('create_tween-two-kinds', [
+  { ops: [{ node: 'n', kind: 'Node2D' }, { tween: 't' }, { callback: 'c', tween: 't', log: 'outer' }, { tween: 'u' }, { prop: 'p', tween: 'u', target: 'n', property: 'rotation', to: 1, duration: 0.03 }] },
+  ...tweenFrames(3, { value: 'n', property: 'rotation' }),
+]);
+addTween('create_tween-in-physics-frame', [
+  { ops: [{ node: 'n', kind: 'Node2D' }] },
+  { await: 'physics', ops: [{ tween: 't' }, { prop: 'p', tween: 't', target: 'n', property: 'rotation', to: 1, duration: 0.05 }, { log: 'made' }] },
+  ...tweenFrames(4, { value: 'n', property: 'rotation' }),
+]);
 
 const SCENE_TREE_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

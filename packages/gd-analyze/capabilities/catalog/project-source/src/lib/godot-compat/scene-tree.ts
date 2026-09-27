@@ -21,6 +21,7 @@ import { godot_message_queue_flush } from './object';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
+import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
 
 export interface SceneTree {
   readonly process_frame: GodotSignal<[]>;
@@ -44,6 +45,7 @@ const clock = {
   reload: undefined as (() => void) | undefined,
 };
 let timers: SceneTreeTimer[] = [];
+let tweens: Tween[] = [];
 let physicsServer: { readonly flush: () => void; readonly step: (delta: number) => void; readonly transforms: () => void } | undefined;
 
 /**
@@ -163,6 +165,24 @@ function processTimers(delta: number, physics: boolean): void {
   timers = timers.filter((timer) => !done.has(timer));
 }
 
+/**
+ * `SceneTree::process_tweens` (`scene/main/scene_tree.cpp:825`): the tweens that existed when the
+ * pass began, in creation order, each of this pass's kind and able to process stepped by the
+ * frame's delta; one whose step reports it is done is cleared and dropped. The tree never pauses.
+ */
+function processTweens(delta: number, physics: boolean): void {
+  const pass = [...tweens];
+  const done = new Set<Tween>();
+  for (const tween of pass) {
+    if (!godot_tween_can_process(tween, false) || physics !== godot_tween_in_physics(tween)) continue;
+    if (!godot_tween_step(tween, delta)) {
+      godot_tween_clear(tween);
+      done.add(tween);
+    }
+  }
+  if (done.size > 0) tweens = tweens.filter((tween) => !done.has(tween));
+}
+
 /** `SceneTree::_flush_delete_queue` (`scene/main/scene_tree.cpp:1626`). */
 function flushDeleteQueue(): void {
   while (deleteQueue.length > 0) {
@@ -187,7 +207,7 @@ export function godot_tree_observe_physics(observer: ((phase: 'begin' | 'end') =
 /**
  * One physics step: `Engine` counts it, then `SceneTree::physics_process`
  * (`scene/main/scene_tree.cpp:639`): `physics_frame`, the physics-processing nodes, deferred calls,
- * physics timers, the deletion queue; `Main::iteration` then flushes deferred calls again
+ * physics timers and tweens, the deletion queue; `Main::iteration` then flushes deferred calls again
  * (`main/main.cpp:5025`).
  *
  * @godot SceneTree (protocol)
@@ -208,6 +228,7 @@ export function godot_tree_physics_step(delta: number): void {
   processNodes(true);
   godot_message_queue_flush();
   processTimers(delta, true);
+  processTweens(delta, true);
   physicsServer?.transforms();
   flushDeleteQueue();
   godot_message_queue_flush();
@@ -220,8 +241,8 @@ export function godot_tree_physics_step(delta: number): void {
 
 /**
  * One process frame, `SceneTree::process` (`scene/main/scene_tree.cpp:695`): `process_frame`,
- * deferred calls, the processing nodes, deferred calls, a pending scene change, process timers,
- * the deletion queue; `Main::iteration` then flushes deferred calls and counts the frame
+ * deferred calls, the processing nodes, deferred calls, a pending scene change, process timers and
+ * tweens, the deletion queue; `Main::iteration` then flushes deferred calls and counts the frame
  * (`main/main.cpp:5115`).
  *
  * @godot SceneTree (protocol)
@@ -241,6 +262,7 @@ export function godot_tree_frame(delta: number): void {
     clock.reload?.();
   }
   processTimers(delta, false);
+  processTweens(delta, false);
   physicsServer?.transforms();
   flushDeleteQueue();
   godot_message_queue_flush();
@@ -307,6 +329,20 @@ export function create_timer(
   const timer = godot_timer_create(time_sec, process_always, process_in_physics, ignore_time_scale);
   timers.push(timer);
   return timer;
+}
+
+/**
+ * A tween the tree holds and steps in every process pass (or physics pass, by its process mode)
+ * that begins after it was made, in creation order, until it finishes or is killed.
+ *
+ * @godot SceneTree.create_tween
+ * @source scene/main/scene_tree.cpp:1780
+ */
+export function create_tween(self: SceneTree): Tween {
+  void self;
+  const tween = godot_tween_create();
+  tweens.push(tween);
+  return tween;
 }
 
 /**

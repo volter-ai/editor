@@ -11,6 +11,7 @@ import * as VI from '../../capabilities/catalog/project-source/src/lib/godot-com
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { type Op, type Segment, TREE_PROBE_HELPERS, treeCase } from './tree-timeline';
 import { inputCase, type Op as InputOp } from './input-tree';
+import { frames as tweenFrames, type Op as TweenOp, tweenCase } from './tween-timeline';
 
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, member: string, segments: readonly Segment[], owner = 'Node'): void {
@@ -218,6 +219,26 @@ cases.push({
     return [snapped(aim.x), snapped(aim.y), snapped(aim.z)];
   },
 });
+
+// `create_tween`: a tween bound to the node, which holds while the node is outside the tree or
+// cannot process, and is dropped when the node is freed.
+function addTween(id: string, ops: readonly TweenOp[], later: readonly { readonly ops: readonly TweenOp[]; readonly count: number }[]): void {
+  const sample: TweenOp[] = [{ value: 'a', property: 'position' }, { read: 'is_running', of: 't' }, { read: 'is_valid', of: 't' }];
+  const built = tweenCase([{ ops }, ...later.flatMap((step) => [{ await: 'process' as const, ops: step.ops }, ...tweenFrames(step.count, ...sample)])]);
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'Node', member: 'create_tween' }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+}
+const TWEENED: readonly TweenOp[] = [
+  { node: 'a', kind: 'Node2D' },
+  { tween: 't', on: 'a' },
+  { watch: 't', signal: 'finished' },
+  { prop: 'p', tween: 't', target: 'a', property: 'position', to: { v2: [12, -6] }, duration: 0.1 },
+];
+addTween('create_tween-runs', TWEENED, [{ ops: [], count: 8 }]);
+addTween('create_tween-removed-from-tree', TWEENED, [{ ops: [], count: 2 }, { ops: [{ remove: 'a' }], count: 2 }, { ops: [{ add: 'a' }], count: 6 }]);
+addTween('create_tween-disabled-node', TWEENED, [{ ops: [], count: 2 }, { ops: [{ processMode: 'a', mode: 4 }], count: 2 }, { ops: [{ processMode: 'a', mode: 0 }], count: 6 }]);
+addTween('create_tween-node-freed', [...TWEENED, { node: 'b', kind: 'Node2D' }], [{ ops: [], count: 2 }, { ops: [{ free: 'a' }, { log: 'freed' }], count: 0 }, { ops: [{ read: 'is_running', of: 't' }, { read: 'is_valid', of: 't' }], count: 0 }]);
+// A node outside the tree makes its tween from the one tree; it holds until the node enters.
+addTween('create_tween-outside-tree', [{ node: 'a', kind: 'Node2D' }, { remove: 'a' }, { tween: 't', on: 'a' }, { prop: 'p', tween: 't', target: 'a', property: 'position', to: { v2: [3, 3] }, duration: 0.05 }], [{ ops: [], count: 2 }, { ops: [{ add: 'a' }], count: 5 }]);
 
 const NODE_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

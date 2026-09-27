@@ -13,6 +13,7 @@ import {
 } from './bindings';
 import {
   type LoweringContext,
+  type NativePropertyAccessor,
   type OfficialBoundBindingUse,
   type OfficialBoundLoweringRequirement,
   officialBoundPropertyName,
@@ -448,6 +449,73 @@ function treeParameter(
   const missing = context.treeParameters?.(baseNode.id).find((tree) => !tree.parameters.has(path));
   if (missing !== undefined) return context.refuse(node, `${path} is not a parameter of the AnimationTree ${missing.at}`);
   return { baseNode, indexNode, path };
+}
+
+/** The Variant types compat's Tween interpolates (`tween.ts`, `Animation::interpolate_variant`). */
+const TWEENED_TYPES: ReadonlySet<string> = new Set(['float', 'Vector2', 'Vector3', 'Color']);
+
+/**
+ * `tween.tween_property(object, "property", …)`: the property Godot reaches through
+ * `Object::get_indexed`/`set_indexed` by name (tween.cpp:104, :627, :671), resolved here to the
+ * object's native class's getter and setter bindings, which compat's PropertyTweener reads and
+ * writes through (`{ get, set }`, `tween.ts`). The path must be a literal naming one native property
+ * of a type Tween interpolates; a sub-property (`position:x`), a script's own property or any other
+ * type refuses by name.
+ */
+function tweenedProperty(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  argumentNodes: readonly GodotBoundNode[],
+): LoweredExpression {
+  const objectNode = argumentNodes[0];
+  const pathNode = argumentNodes[1];
+  if (objectNode === undefined || pathNode === undefined) return context.refuse(node, 'tween_property without its object and property');
+  const value = pathNode.kind === 'LITERAL' ? pathNode.value : undefined;
+  const property = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
+  if (property === undefined) return context.refuse(node, 'tween_property of a property only known at run time');
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(property)) return context.refuse(node, `tween_property of the sub-property path ${property}`);
+  const className =
+    objectNode.kind === 'SELF'
+      ? context.nativeBase
+      : nativeMemberReceiver(context, objectNode, property)
+        ? objectNode.datatype.nativeType
+        : undefined;
+  if (className === undefined || className === '') {
+    return context.refuse(node, `tween_property of ${property} on an object whose native class is not fixed (${objectNode.datatype.display})`);
+  }
+  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(property) === true) {
+    return context.refuse(node, `tween_property of the script's own property ${property}`);
+  }
+  const found = context.nativeProperty(className, property);
+  if (found === undefined) return context.refuse(node, `tween_property of ${property}, which ${className} does not declare`);
+  if (found.index !== undefined) return context.refuse(node, `tween_property of the indexed property ${found.owner}.${property}`);
+  if (found.type === undefined || !TWEENED_TYPES.has(found.type)) {
+    return context.refuse(node, `tween_property of ${found.owner}.${property}, a ${found.type ?? 'untyped'} property Tween's interpolation is not transcribed for`);
+  }
+  const accessor = (method: NativePropertyAccessor | undefined, which: string): OfficialBoundBindingUse => {
+    if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${which}`);
+    const use = context.bindingUse(
+      { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
+      node,
+    );
+    if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+      return context.refuse(node, `accessor binding ${use.target.localName} does not take its receiver first`);
+    }
+    return use;
+  };
+  const getter = accessor(found.getter, 'getter');
+  const setter = accessor(found.setter, 'setter');
+  return expression(
+    {
+      kind: 'object-expression',
+      properties: [
+        { key: 'get', value: boundTargetExpression(getter.target) },
+        { key: 'set', value: boundTargetExpression(setter.target) },
+      ],
+      span: span(context.script, node),
+    },
+    [...getter.requirements, ...setter.requirements],
+  );
 }
 
 /** Compat's tree parameter protocol (`animation-tree.ts`): its import. */
@@ -2075,7 +2143,7 @@ export function lowerOfficialExpression(
           `call:${node.static ? 'static' : 'instance'}`,
         );
         const stringifying = node.compilerTarget.kind === 'variant-utility' && node.compilerTarget.member === 'str';
-        const args = argumentNodes.map((argument) =>
+        const lowered = argumentNodes.map((argument) =>
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );
         const target = callTargetBinding(context, node);
@@ -2083,6 +2151,12 @@ export function lowerOfficialExpression(
         // the script chain (`object.ts`); a name some engine class declares, or one only known at run
         // time, would need ClassDB at run time and is refused by name.
         const selected = node.compilerTarget.kind === 'native-method' ? node.compilerTarget : context.callReceivers.get(node.id)?.target;
+        // A tweened property's object is its native entity, and the property's accessors follow the
+        // call's own arguments (`tweenedProperty`).
+        const args =
+          selected?.owner === 'Tween' && selected.member === 'tween_property' && lowered[0] !== undefined
+            ? [nativeEntity(lowered[0]), ...lowered.slice(1), tweenedProperty(context, node, argumentNodes)]
+            : lowered;
         if (selected?.owner === 'Object' && selected.member === 'has_method') {
           const argument = argumentNodes[0];
           const name = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;
