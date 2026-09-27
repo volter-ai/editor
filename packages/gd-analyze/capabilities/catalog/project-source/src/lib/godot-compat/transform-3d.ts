@@ -6,7 +6,13 @@
  * revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`: a `Basis` and a `Vector3 origin`.
  */
 
-import { type Basis, construct as basis, inverse as basisInverse, op_multiply as basisMultiply } from './basis';
+import {
+  type Basis,
+  construct as basis,
+  inverse as basisInverse,
+  op_multiply as basisMultiply,
+  orthonormalized as basisOrthonormalized,
+} from './basis';
 import {
   construct as vector3,
   cross,
@@ -105,6 +111,16 @@ export function looking_at(
     return construct();
   }
   return make(lookingAtBasis(op_subtract(p_target, o), p_up, p_use_model_front), o);
+}
+
+/**
+ * The basis orthonormalized (`Basis::orthonormalize`), the origin kept.
+ *
+ * @godot Transform3D.orthonormalized
+ * @source core/math/transform_3d.cpp:157
+ */
+export function orthonormalized(self: Transform3D): Transform3D {
+  return make(basisOrthonormalized(self.basis), self.origin);
 }
 
 /**

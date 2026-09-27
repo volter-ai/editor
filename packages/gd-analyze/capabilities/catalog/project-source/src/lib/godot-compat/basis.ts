@@ -10,7 +10,14 @@
  */
 
 import { length_squared as quaternionLengthSquared, type Quaternion } from './quaternion';
-import { construct as vector3, dot, op_multiply as vector3Multiply, type Vector3 } from './vector3';
+import {
+  construct as vector3,
+  dot,
+  normalized,
+  op_multiply as vector3Multiply,
+  op_subtract as vector3Subtract,
+  type Vector3,
+} from './vector3';
 
 const f32 = Math.fround;
 /** `(real_t)UNIT_EPSILON` without `PRECISE_MATH_CHECKS` (`core/math/math_defs.h:65`). */
@@ -86,6 +93,20 @@ export function construct(
   if (args.length === 1) return fromColumns(args[0].x, args[0].y, args[0].z);
   if (args.length === 2) return axisAngle(args[0], args[1]);
   return fromColumns(vector3(args[0]), vector3(args[1]), vector3(args[2]));
+}
+
+/**
+ * Gram-Schmidt over the columns in `real_t` (`Basis::orthonormalize`): x normalized, y less its x
+ * part normalized, z less its x and y parts normalized.
+ *
+ * @godot Basis.orthonormalized
+ * @source core/math/basis.cpp:56
+ */
+export function orthonormalized(self: Basis): Basis {
+  const x = normalized(self.x);
+  const y = normalized(vector3Subtract(self.y, vector3Multiply(x, dot(x, self.y))));
+  const z = normalized(vector3Subtract(vector3Subtract(self.z, vector3Multiply(x, dot(x, self.z))), vector3Multiply(y, dot(y, self.z))));
+  return fromColumns(x, y, z);
 }
 
 /**

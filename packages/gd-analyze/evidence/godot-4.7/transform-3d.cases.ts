@@ -38,6 +38,17 @@ const UPS: readonly (readonly [string, Triple])[] = [
 const c = caseCollector('Transform3D');
 c.add('construct-empty', c.constructor, 'Transform3D()', () => T.construct());
 for (const [name, origin] of ORIGINS) {
+  for (const [basisName, x, y, z] of [
+    ['general', ...GENERAL],
+    ['scaled-rotation', [0.72, 0.96, -1.6], [-2.4, 1.8, 0], [0.24, 0.32, 0.3]],
+    ['sheared', [1, 0.5, 0], [0, 1, 0.25], [0.1, 0, 1]],
+  ] as const) {
+    c.add(`orthonormalized-${basisName}-${name}`, c.member('orthonormalized'), `Transform3D(${gb(x, y, z)}, ${gv(origin)}).orthonormalized()`, () =>
+      T.orthonormalized(T.construct(tb(x, y, z), tv(origin))),
+    );
+  }
+}
+for (const [name, origin] of ORIGINS) {
   c.add(`construct-basis-origin-${name}`, c.constructor, `Transform3D(${gb(...GENERAL)}, ${gv(origin)})`, () =>
     T.construct(tb(...GENERAL), tv(origin)),
   );

@@ -29,6 +29,12 @@ const VECTORS: readonly (readonly [string, Triple])[] = [
 const c = caseCollector('Basis');
 c.add('construct-empty', c.constructor, 'Basis()', () => B.construct());
 for (const [name, x, y, z] of BASES) {
+  c.add(`orthonormalized-${name}`, c.member('orthonormalized'), `${gb(x, y, z)}.orthonormalized()`, () => B.orthonormalized(tb(x, y, z)));
+}
+c.add('orthonormalized-degenerate', c.member('orthonormalized'), `${gb([1, 0, 0], [2, 0, 0], [0, 0, 3])}.orthonormalized()`, () =>
+  B.orthonormalized(tb([1, 0, 0], [2, 0, 0], [0, 0, 3])),
+);
+for (const [name, x, y, z] of BASES) {
   c.add(`construct-columns-${name}`, c.constructor, gb(x, y, z), () => tb(x, y, z));
   c.add(`construct-copy-${name}`, c.constructor, `Basis(${gb(x, y, z)})`, () => B.construct(tb(x, y, z)));
 }
