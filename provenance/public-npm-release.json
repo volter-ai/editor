@@ -7,7 +7,7 @@
   "tag": "release-0.5.68-source",
   "note": "The archives were packed from this tree: the version commit 83d6c3a3, the release build's regenerated notices (de023dd0), and the template declaring pixi.js and @pixi/react (1dd3af21), which the packed-import check found its main.ts importing undeclared. All three are on main."
  },
- "publication": "Sixteen versions are live: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/blender-engine 0.1.9 is unchanged and was not republished (the repacked archive has the registry's shasum). @volter/model-editor 0.5.68 is held by the registry as a staged version: a republish answered 409 \"previously staged version\"; npm stage list shows nothing to approve, as with model-editor 0.5.67, which went live about forty minutes later without approval.",
+ "publication": "All seventeen versions are live: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/blender-engine 0.1.9 is unchanged and was not republished (the repacked archive has the registry's shasum). @volter/model-editor 0.5.68 was held by the registry as a staged version for about an hour (a republish answered 409 \"previously staged version\"; npm stage list showed nothing to approve), then went live without approval, as 0.5.67 did.",
  "lists": [
   "release/modeling.json",
   "release/game.json"
@@ -114,7 +114,7 @@
   "@volter/model-editor": {
    "version": "0.5.68",
    "shasum": "2890807eebc2edfc1a31a92337aa74f8c6263646",
-   "live": false
+   "live": true
   },
   "@volter/threejs-runtime": {
    "version": "0.5.68",

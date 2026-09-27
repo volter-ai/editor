@@ -3,9 +3,9 @@
 Volter Editor 0.5.68 (editor-blender 0.1.11, blender-engine 0.1.9 unchanged) is published from the tag
 `release-0.5.68-source`, both lists ([release/modeling.json](release/modeling.json),
 [release/game.json](release/game.json)), carrying the music layer (automation, LFOs, groups, sidechain, audio
-tracks, the clip launcher, recording and comping). Sixteen versions are live, each registry digest matching its tested
-archive and each tarball downloading without credentials byte-identical to it; `@volter/model-editor` 0.5.68 is held
-staged by the registry, as 0.5.67's was for about forty minutes. From the registry, with no credentials and a fresh
+tracks, the clip launcher, recording and comping). All seventeen versions are live, each registry digest matching its tested
+archive and each tarball downloading without credentials byte-identical to it (`@volter/model-editor` sat staged
+for about an hour, then went live without approval). From the registry, with no credentials and a fresh
 home, `npx @volter/game-editor@0.5.68 create` installed the runtime image, downloaded its workbench anonymously, took
 `add music`, launched a scene of a two-scene piece (its slots playing, the scene's strips metering and the stopped
 track reading −inf), rendered it through `project.music.render` with both scene loops and provenance, and undid an
