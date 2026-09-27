@@ -88,7 +88,9 @@
     "vite": "^6.4.3",
     "ztrack": "^1.5.5",
     "three-bvh-csg": "^0.0.18",
-    "three-mesh-bvh": "^0.9.12"
+    "three-mesh-bvh": "^0.9.12",
+    "@pixi/react": "8.0.5",
+    "pixi.js": "^8.6.0"
   },
   "bin": {
     "volter-game-editor": "./dist-node/cli.js"
