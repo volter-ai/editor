@@ -27,6 +27,7 @@ import { GODOT_SCENE_PHYSICS_IMPLEMENTATION_FILES } from '../../translate/data/s
 import { emitGodotTranslation } from '../../translate/emit';
 import { planGodotTranslation } from '../../translate/plan';
 import { EMITTED_RESOLVE_HOOK, linkEmittedNodeModules } from './emitted-node-modules';
+import { NODE_MOUNT_IMPORTS } from '../node-assets';
 import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } from './proof';
 
 
@@ -432,7 +433,7 @@ console.log('PHYSICS ' + JSON.stringify(rows));
 
 function mountedPhysics(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
-  const run = spawnSync(process.execPath, ['--import', 'tsx', '--import', `./${EMITTED_RESOLVE_HOOK}`, 'gd-analyze-mount.mts'], {
+  const run = spawnSync(process.execPath, [...NODE_MOUNT_IMPORTS, '--import', `./${EMITTED_RESOLVE_HOOK}`, 'gd-analyze-mount.mts'], {
     cwd: out,
     encoding: 'utf8',
     timeout: 120_000,

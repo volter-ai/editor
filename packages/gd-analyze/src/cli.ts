@@ -110,6 +110,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     );
   }
   if (command === 'evidence') {
+    (await import('./evidence/node-assets')).registerNodeAssetImports();
     const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary', '--godot', '--pipeline-official-binary']);
     const version = optionValue(rest, '--godot') ?? '4.7';
     if (version !== '4.6' && version !== '4.7') fail('evidence --godot takes 4.6 or 4.7');

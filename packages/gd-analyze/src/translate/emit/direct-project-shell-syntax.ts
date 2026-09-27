@@ -276,9 +276,7 @@ export function directViteConfigSyntax(): TargetTsSourceFile {
               },
               {
                 key: 'exclude',
-                // The WebP decoder loads its wasm beside its own module (jsquash's documented Vite
-                // setup): a prebundled copy in `.vite/deps` cannot find it.
-                value: array([lit('@volter/game-runtime/runtime/mount-game'), lit('@jsquash/webp')]),
+                value: array([lit('@volter/game-runtime/runtime/mount-game')]),
               },
             ]),
           },

@@ -28,6 +28,7 @@ import { captureGodotImportToolchainSnapshot } from '../../snapshot/toolchain-sn
 import { GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES } from '../../translate/data/scene-node-authority-data';
 import { emitGodotTranslation } from '../../translate/emit';
 import { planGodotTranslation } from '../../translate/plan';
+import { NODE_MOUNT_IMPORTS } from '../node-assets';
 import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } from './proof';
 
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
@@ -343,7 +344,7 @@ process.exit(0);
 
 function mountedParticles(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
-  const run = spawnSync(process.execPath, ['--import', 'tsx', 'gd-analyze-mount.mts'], {
+  const run = spawnSync(process.execPath, [...NODE_MOUNT_IMPORTS, 'gd-analyze-mount.mts'], {
     cwd: out,
     encoding: 'utf8',
     timeout: 120_000,

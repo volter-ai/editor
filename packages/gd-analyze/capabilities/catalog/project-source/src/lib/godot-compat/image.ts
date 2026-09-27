@@ -13,6 +13,9 @@
  */
 
 import webpDecode, { init as webpInit } from '@jsquash/webp/decode.js';
+// The decoder's WebAssembly as a Vite asset: its URL does not depend on where the dep optimizer
+// puts the decoder's script.
+import webpWasmUrl from '@jsquash/webp/codec/dec/webp_dec.wasm?url';
 import { decode as pngDecode } from 'fast-png';
 import { construct as color, type Color } from './color';
 
@@ -87,8 +90,8 @@ function webpHasAlpha(bytes: Uint8Array): boolean {
 let webpModule: Promise<void> | undefined;
 
 /**
- * Hands the WebP decoder its compiled WebAssembly module, for a host that cannot fetch it beside
- * the decoder's own script (the page fetches it itself).
+ * Hands the WebP decoder its compiled WebAssembly module, for a host that cannot fetch it (Node);
+ * the page compiles the module from its asset URL on the first decode.
  *
  * @godot Image (protocol)
  * @source modules/webp/webp_common.cpp:153
@@ -98,7 +101,8 @@ export function godot_image_webp_module(module: WebAssembly.Module): void {
 }
 
 async function decodeWebp(bytes: Uint8Array): Promise<Image> {
-  if (webpModule !== undefined) await webpModule;
+  webpModule ??= WebAssembly.compileStreaming(fetch(webpWasmUrl)).then((module) => webpInit(module));
+  await webpModule;
   const decoded = await webpDecode(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer);
   const rgba = new Uint8Array(decoded.data.buffer, decoded.data.byteOffset, decoded.data.byteLength);
   if (webpHasAlpha(bytes)) return { width: decoded.width, height: decoded.height, format: FORMAT_RGBA8, levels: [rgba.slice()] };
