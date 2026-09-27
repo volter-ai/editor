@@ -1,6 +1,17 @@
 # The canvas editor and its reference
 
-A `canvas` root (Pixi, through `@pixi/react`) is a game's 2D scene. Its nearest product is Godot's 2D
+A game's UI is React DOM; Pixi is 2D game rendering. A `dom` root is the UI layer: the HUD over the
+world, menus and screens, authored on the UI board (`workspace:ui-components`, from the root's
+stories), where an element is selected with its layout and edited in place, and drawn over the world
+in Play, where its elements take their own clicks. The `game` template ships one, `src/ui/game.tsx`,
+as the HUD over its 3D world. A `canvas` root (Pixi, through `@pixi/react`) is a game's 2D scene:
+sprites, tilemaps, the 2D world itself, never its UI. When a 2D scene is stacked over another world,
+its tappable game objects take their presses as described below. (Walked on a fresh `game`: the UI
+board listed the HUD's four stories; a double-click on the Ready story's title selected its `h1`,
+showing `static` and `inline-block`, its handles and an in-place text field; in Play the HUD drew
+over the world, a press on its panel hit the `h1` and a press beside it the three.js canvas.)
+
+For a `canvas` root, the nearest product is Godot's 2D
 editor, the main screen a Godot project's `Node2D` scenes are authored in. Figma is the reference for
 the component board, a layout of UI, not a game scene, and is recorded separately when that board
 returns. This page records the reference's structure, then maps every control of ours to its owner in
@@ -106,7 +117,7 @@ Inspector's Transform, and the board's frames in the Hierarchy.
 Godot's 2D tool keys, read from the installed 4.7.1's shortcuts (Q Select, W Move, E Rotate, R Scale,
 G Pan, M Ruler), are all bound, the `canvas.*` ones only on a canvas stage: a mounted canvas
 document marks itself, so the stage reports `canvas` for it even in a world with a 3D root, and a
-stage with no canvas handler (3D, the 2D board, a DOM story) leaves the keys free (walked in a world with both roots, a 3D `world` and a 2D canvas `hud`, on a workbench carrying the
+stage with no canvas handler (3D, the 2D board, a DOM story) leaves the keys free (walked in a world with both roots, a 3D `world` and a 2D canvas root, on a workbench carrying the
 rule: on the 2D view W lit Move, Q Select, G Pan, M Ruler and a second M left it, Command+' drew the
 grid and took it away, and nothing logged "did not run"; on the 3D view G changed nothing while W
 armed Move. Walked before that on a canvas-only world, on an earlier form of the rule: W lit Move, Q Select, G Pan, M Ruler and a second M left it; on a 3D stage G
@@ -126,11 +137,11 @@ clears opaque, a world above it lets input fall through and clears transparent, 
 the device pixel ratio with `autoDensity` and antialiasing, as the editor's canvas root does. The
 editor's router forwards a point to an upper world only when that world's `hitTest` claims it; a Pixi
 world above claims a point only where Pixi's own hit test finds an interactive object (`eventMode`
-static or dynamic) there: a HUD's button takes the press, alone, and every other point falls through
+static or dynamic) there: a tappable sprite takes the press, alone, and every other point falls through
 to the world beneath, in Play (the canvas root offers its `hitTest` to the runtime's router) and
-exported (the boot routes the same way). Walked in Play and in the Build Player: a press on a Pixi
-button over the 3D world logged the button's handler once and nothing in the world; a press
-elsewhere logged the world once and not the button. A `three` world above the bottom one says
+exported (the boot routes the same way). Walked in Play and in the Build Player: a press on an interactive
+Pixi sprite over the 3D world logged the sprite's handler once and nothing in the world; a press
+elsewhere logged the world once and not the sprite. A `three` world above the bottom one says
 `pointer-events: none` on React Three Fiber's own wrapper, which otherwise sets `auto`.
 
 Build Profiles' Build And Run (Unity's; Godot's Web export runs in a browser) builds, then opens the
@@ -138,10 +149,10 @@ Build Player document on the build's own `dist/`, which the editor server serves
 build prints, and its uncaught errors, reach the editor's console prefixed `[Build Player]`, as a
 Godot export run with remote debug reports into the editor, and the screenshot door photographs the
 build inside the player, its canvases copied in the player's own frame (walked: a fresh game with a
-3D `world` and a `canvas` HUD above it built and ran; the screenshot showed the world with the HUD's
+3D `world` and a `canvas` layer above it built and ran; the screenshot showed the world with the layer's
 TilingSprite and BitmapText over it, and the console read no errors). The document probe reaches
 into the player as it reaches into a portal, and a click there lands where the page hit-tests it,
-naming what it hit (walked: a press at the HUD's centre reached the three.js canvas beneath, the HUD
+naming what it hit (walked: a press at the 2D layer's centre reached the three.js canvas beneath, its
 canvas reading `pointer-events: none` at a 2096 px store for 1048 CSS px; with the 3D world moved
 above, its canvas read `none` and the press reached the Pixi canvas). Build And Run always runs
 `dist/` and starts no `server` configuration, and a game that renders only on demand may photograph

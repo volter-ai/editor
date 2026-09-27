@@ -109,8 +109,9 @@ request needs.
   unrecognized manifest key is rejected. Never call `createRoot`,
   `hydrateRoot`, or `ReactDOM.render` from project code.
 - One component, one concern.
-- A player HUD is a `dom` root, never drei `Html` (invisible in
-  captures).
+- UI is React DOM: a player HUD, menus and screens are the `dom` root
+  (`src/ui/game.tsx`, over the world), never a Pixi `canvas` root and never
+  drei `Html` (invisible in captures). A `canvas` root is 2D game rendering.
 - Never fabricate first-party data, modify imported game source without
   consent, or author schema fields with no runtime reader. The game's
   numbers and tables are plain typed literals under `src/data/`.

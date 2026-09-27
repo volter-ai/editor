@@ -87,7 +87,7 @@ export interface MountedRootBase {
 
   resize?(width: number, height: number): void;
   /** Does this world claim a pointer at (x, y), in CSS pixels from its surface's top-left? The input
-   *  router asks it of a world stacked above the bottom one (a Pixi HUD's interactive objects).
+   *  router asks it of a world stacked above the bottom one (a 2D layer's interactive Pixi objects).
    *  Absent: such a world claims no point, and input falls through to the bottom world. */
   hitTest?(x: number, y: number): boolean;
   dispose(): void;

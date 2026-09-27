@@ -51,7 +51,7 @@ const roots = [...(manifest.roots as readonly DeclaredRoot[])].sort(
 const bottomWorld = roots.find((root) => root.adapter === 'three' || root.adapter === 'canvas');
 
 // A `canvas` world above the bottom one claims the points where Pixi finds an interactive object (a
-// HUD's button), as the editor's input router does: the press goes to that world alone, and every
+// sprite the player taps), as the editor's input router does: the press goes to that world alone, and every
 // other point falls through to the world beneath. Topmost first.
 const claims: { readonly zOrder: number; readonly canvas: HTMLCanvasElement; readonly hit: (x: number, y: number) => boolean }[] = [];
 const forwarded = new WeakSet<Event>();

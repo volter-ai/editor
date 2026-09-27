@@ -118,7 +118,7 @@ export interface NativeProjectFacts {
  */
 const SLOT_LIBRARIES: Partial<Record<SystemAdapterSlot, readonly string[]>> = {
   physics: ['@react-three/rapier', '@dimforge/rapier3d-compat', '@dimforge/rapier2d-compat'],
-  networking: ['colyseus.js'],
+  networking: ['@colyseus/sdk', 'colyseus.js'],
   navigation: ['recast-navigation', '@recast-navigation/core'],
   audio: ['tone', 'howler'],
 };
@@ -347,6 +347,19 @@ export function measureNativeSystemAdapters(
             ? `declared absent by root "${absence.rootId}": ${absence.reason} ` +
               `(the project does depend on ${libraries.join(' + ')}; the reason engages with that)${lastMountNote}`
             : `declared absent by root "${absence.rootId}": ${absence.reason}${lastMountNote}`,
+      };
+    }
+    // A Colyseus client is the editor's to observe: Play binds its observer of the game's room
+    // sockets (`adapter-runtime-bindings.ts`'s `withObservedNetworking`), so an unbound slot while
+    // nothing plays is that observer not yet attached, not an adapter the game owes.
+    if (slot === 'networking' && libraries.length > 0) {
+      return {
+        slot,
+        state: 'empty',
+        attestedBy: 'host',
+        evidence:
+          `this project ships ${libraries.join(' + ')}; the editor observes its room sockets from ` +
+          'Play, and nothing is connected while editing',
       };
     }
     // Nothing declared, and the library IS here: the host's inference below

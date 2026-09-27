@@ -160,7 +160,7 @@ export function createInputRouter(
     if (claimant && claimant !== bottomId) {
       const entry = byId.get(claimant);
       if (entry) {
-        // The claim is exclusive: the world beneath never hears a press its HUD took.
+        // The claim is exclusive: the world beneath never hears a press the layer above took.
         evt.stopPropagation();
         forwardEvent(entry.canvas, evt);
       }

@@ -308,7 +308,7 @@ function canvasWorldAdapter(
           mountedApp.ticker.update(elapsedMs);
         },
         // Pixi's own hit test finds only interactive objects (`eventMode` static or dynamic), so a
-        // HUD claims its buttons and lets every other point fall through to the world beneath.
+        // 2D layer claims its tappable objects and lets every other point fall through to the world beneath.
         hitTest(x: number, y: number): boolean {
           if (disposed) return false;
           // Pixi points its boundary at the last rendered scene inside each of its own pointer

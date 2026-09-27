@@ -37,7 +37,9 @@ export const presets: ScaffoldPresets = {
     // silent console the agent contract requires; they are an author's TODO
     // from the moment the author ASKS for those panels (`--with studio`, or
     // `--template full`).
-    game: { additions: ['three', 'server', 'blender'] },
+    // A game's UI is React DOM: its HUD is the `ui` root over the world. A `canvas` (Pixi) root
+    // is 2D game rendering, never the UI layer.
+    game: { additions: ['three', 'ui', 'server', 'blender'] },
     /** A 3D world and its models: the smallest thing that plays. */
     prototype: { additions: ['three', 'blender'] },
     // EVERY addition in one project — the composition acceptance made
