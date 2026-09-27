@@ -61,6 +61,7 @@ import { resolveProjectResourcePath, resourceKindOf, splitAutoloadTarget } from 
 import { buildProjectResourceResolver } from './resource-path-resolver';
 import type { DocumentContext } from './scene';
 import { readResourceDocument, readSceneDocument } from './scene';
+import { partitionReachableDocuments } from './reachability';
 import type { GodotTextFile } from './text-format';
 import { GodotParseError, parseGodotTextFile } from './text-format';
 import { buildUidIndex, resolveResourceRef } from './uid-index';
@@ -956,6 +957,28 @@ export function readGodotProjectDocuments(
     });
   }
 
+  // Only what the game loads is planned; the rest is recorded as unplanned with its reason, and
+  // its own reader diagnostics travel with that record (`read/reachability.ts`).
+  const reachable = partitionReachableDocuments({
+    rootTexts: [
+      source.text(projectPath),
+      ...projectFiles
+        .filter((resPath) => resPath.toLowerCase().endsWith('.gd'))
+        .map((resPath) => source.text(resPath)),
+    ],
+    rootPaths: [
+      ...(mainScene === undefined ? [] : [mainScene]),
+      ...autoloads.map((autoload) => autoload.resPath),
+      ...runtimeRoots.map((root) => root.resPath),
+      ...optionalRuntimeRoots.map((root) => root.resPath),
+    ],
+    scenes,
+    resources,
+    imports,
+    uids: projectResourceUidIndex,
+    diagnostics,
+  });
+
   return {
     projectDir: source.label,
     readEvidence: {
@@ -987,10 +1010,11 @@ export function readGodotProjectDocuments(
     autoloads,
     inputActions: settings.inputActions,
     globalClasses: settings.globalClasses,
-    scenes,
-    resources,
+    scenes: reachable.scenes,
+    resources: reachable.resources,
     imports,
-    diagnostics,
+    unplanned: reachable.unplanned,
+    diagnostics: reachable.diagnostics,
   };
 }
 

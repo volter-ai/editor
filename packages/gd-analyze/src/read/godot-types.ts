@@ -20,6 +20,7 @@ import type { GodotValue, ResourceId } from './godot-value';
 import type { ImportSidecar } from './import-sidecar';
 import type { ResolvedSetting } from './known-settings';
 import type { ResourceKind } from './res-path';
+import type { UnplannedDocument } from './reachability';
 
 /** A per-item problem. Never fatal: one unreadable resource must not cost the other 322. */
 export interface Diagnostic {
@@ -601,6 +602,11 @@ export interface GodotProject {
    * `read/import-sidecar.ts` for the 3.6 run that measured it.
    */
   readonly imports: readonly ImportSidecar[];
+  /**
+   * Documents nothing the game loads reaches (`read/reachability.ts`): never planned, each with
+   * its reason and the reader diagnostics it would otherwise have raised.
+   */
+  readonly unplanned: readonly UnplannedDocument[];
   readonly diagnostics: readonly Diagnostic[];
 }
 

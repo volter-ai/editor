@@ -26,6 +26,8 @@ renderer/rendering_method="gl_compatibility"
 `,
   'read_probe.gd': `extends Node
 
+const REACHED := preload("res://reached.tscn")
+
 func _ready() -> void:
 	var obj := ConfigFile.new()
 	obj.load("res://cube.obj.import")
@@ -50,6 +52,11 @@ func _ready() -> void:
 			"importerVersion": obj.get_value("remap", "importer_version"),
 		},
 		"cubemapArrangement": layouts[cubemap.get_value("params", "slices/arrangement")],
+		"loaded": {
+			"reached": ResourceLoader.has_cached("res://reached.tscn"),
+			"assembled": load("res://lev" + "el.tscn") != null,
+			"orphan": ResourceLoader.has_cached("res:/" + "/orphan.tscn"),
+		},
 	}))
 	get_tree().quit()
 `,
@@ -61,6 +68,24 @@ func _ready() -> void:
 script = ExtResource("1_probe")
 
 [node name="Child" type="Node" parent="."]
+`,
+  'reached.tscn': `[gd_scene format=3]
+
+[node name="Reached" type="Node"]
+`,
+  'level.tscn': `[gd_scene format=3]
+
+[node name="Level" type="Node"]
+`,
+  // Reached by nothing the game loads, and it names a file that is not in the project: Godot
+  // runs the game without ever opening it, so the reader records it unplanned instead of refusing.
+  'orphan.tscn': `[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://never.glb" id="1_never"]
+
+[node name="Orphan" type="Node"]
+
+[node name="Never" parent="." instance=ExtResource("1_never")]
 `,
   'cube.obj': `o Triangle
 v 0 0 0
@@ -138,7 +163,21 @@ export function measureReadProof(tools: GodotProofTools): readonly GodotProofMea
         importerVersion: obj.importerVersion,
       },
       cubemapArrangement: cubemap.arrangement,
+      loaded: Object.fromEntries(
+        (
+          [
+            ['reached', 'res://reached.tscn'],
+            ['assembled', 'res://level.tscn'],
+            ['orphan', 'res://orphan.tscn'],
+          ] as const
+        ).map(([key, resPath]) => [key, decoded.scenes.some((scene) => scene.resPath === resPath)]),
+      ),
     };
+    const orphan = decoded.unplanned.find((row) => row.resPath === 'res://orphan.tscn');
+    const recorded =
+      orphan !== undefined &&
+      orphan.reason.includes('res://never.glb') &&
+      !decoded.diagnostics.some((diagnostic) => diagnostic.severity === 'error');
     const nativeRun = spawnSync(officialBinary, ['--headless', '--path', temp], {
       encoding: 'utf8',
       timeout: 120_000,
@@ -165,8 +204,8 @@ export function measureReadProof(tools: GodotProofTools): readonly GodotProofMea
           observed: actualObserved,
           comparison: actualComparison,
         },
-        agree: nativeJson === targetJson,
-        detail: `native ${nativeJson}\ntarget ${targetJson}`,
+        agree: nativeJson === targetJson && recorded,
+        detail: `native ${nativeJson}\ntarget ${targetJson}\nunplanned ${JSON.stringify(decoded.unplanned.map(({ resPath, reason }) => ({ resPath, reason })))}`,
       },
     ];
   } finally {

@@ -18,6 +18,7 @@ export const GODOT_READ_IMPLEMENTATION_FILES = [
   'src/read/scene.ts',
   'src/read/import-sidecar.ts',
   'src/read/godot-project.ts',
+  'src/read/reachability.ts',
   'src/read/resource-program.ts',
 ] as const;
 
