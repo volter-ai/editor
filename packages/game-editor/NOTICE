@@ -9,7 +9,7 @@ corresponding-source requirements.
 Transferred from the AGPL-3.0-only volter-engine repository at revision
 09c2749ce:
   - packages/game-editor (the product entry and its create presets)
-  - packages/create-volter-project (the project scaffolder, in node/scaffold)
+  - the project scaffolder package (now node/scaffold)
   - packages/editor/template (template/)
   - packages/editor/template-dotfiles (template-dotfiles/)
   - packages/editor/catalog/project-source and catalog/entries (catalog/)

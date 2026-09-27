@@ -2193,7 +2193,7 @@ the starter template carries), and it is excluded from the grant below.
 
 That subtree is the CAPABILITY DISTRIBUTION: source whose whole purpose is to
 be copied, byte for byte, out of this package and into projects that are not
-ours. `volter add <id>` copies a capability's declared files into a user's game,
+ours. `volter-game-editor add <id>` copies a capability's declared files into a user's game,
 and `npm run capabilities:sync` copies the same bytes into the MIT starter
 template (`packages/editor/template/`) — the two copies are identical, which
 `capabilities:sync -- --check` proves file by file. The copy becomes the
@@ -3081,7 +3081,7 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 Copyright 2026 Volter AI, Inc.
 
 Editor source, server modules and build plugins were imported from the AGPL-3.0-only
-@volter/editor package. LICENSE contains that license.
+editor package of volter-ai/volter-engine. LICENSE contains that license.
 
 src/performance-profiler.ts was imported from the Apache-2.0
 @volter/game-runtime package and retains that license. LICENSE-APACHE
@@ -3096,7 +3096,7 @@ provenance/editor-host.json and provenance/editor-session.json, provenance/edito
 provenance/editor-workbench.json. Bundled dependency license texts are preserved in BUNDLED_NOTICES.
 Native assets and the workbench distribution require separate review.
 
-server/support/ modules transferred from @volter/sdk are Apache-2.0.
+server/support/ modules transferred from the SDK package of volter-ai/volter-engine are Apache-2.0.
 Their source paths and hashes are recorded in provenance/editor-server.json.
 
 
@@ -3776,13 +3776,13 @@ Copyright 2026 Volter AI, Inc.
 The files in this package were imported from volter-ai/volter-engine at commit
 09c2749ce. LICENSE contains the AGPL-3.0-only license they retain.
 
-  packages/game/src, packages/game/contributions (@volter/game)
+  packages/game/src, packages/game/contributions
     -> src, contributions
-  packages/dom/src, packages/dom/contributions (@volter/dom)
+  packages/dom/src, packages/dom/contributions
     -> src/react, contributions/react
   packages/threejs/src except viewport/ and capture/, packages/threejs/contributions
-  (@volter/threejs) -> src/three, contributions/three
-  host modules of packages/editor/src (@volter/editor) -> src/host, including
+  -> src/three, contributions/three
+  host modules of packages/editor/src -> src/host, including
   gameplay-export.ts and document-preview-three.ts, and the world-root stage
   (components/world-root-stage.ts and the modules it draws with)
   src/host/components/world-root-stage-binding.tsx is transcribed from the
@@ -3791,8 +3791,8 @@ The files in this package were imported from volter-ai/volter-engine at commit
   contributions/scene-document.service.ts from the Scene document half of
   packages/editor/src/components/CenterDocuments.tsx
 
-src/host/sdk/tools.ts was imported from packages/volter-sdk/src/tools.ts, part of
-the Apache-2.0 @volter/sdk package, and retains that license. It re-exports the
+src/host/sdk/tools.ts was imported from src/tools.ts of the Apache-2.0 SDK
+package of volter-ai/volter-engine, and retains that license. It re-exports the
 Apache-2.0 tool contract of @volter/editor-sdk.
 
 
@@ -4898,7 +4898,8 @@ Source: the unmodified npm package @volter/editor-sdk@0.5.68, from https://githu
 Copyright 2026 Volter AI, Inc.
 
 Project tool registry, provider execution and related types were transferred
-from the Apache-2.0 @volter/sdk package. Original source hashes and revision are
+from the Apache-2.0 SDK package of volter-ai/volter-engine. Original source
+hashes and revision are
 recorded in provenance/editor-server.json.
 
 The project output-root policy is Apache-2.0, transferred from the original
@@ -5785,9 +5786,9 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 Copyright 2026 Volter AI, Inc.
 
 Modules under src/viewport and src/capture were imported from the
-AGPL-3.0-only @volter/threejs package; LICENSE contains that license.
+AGPL-3.0-only threejs package of volter-ai/volter-engine; LICENSE contains that license.
 serving/model-import-conversion.ts was imported from the AGPL-3.0-only
-@volter/editor package's server and retains that license.
+editor package's server in volter-ai/volter-engine and retains that license.
 
 Modules under src/adapter, src/animation, src/ecs and src/render, together
 with src/asset-loaders.ts, src/asset-parse-error.ts and src/loader.ts, were

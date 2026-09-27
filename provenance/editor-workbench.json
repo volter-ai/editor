@@ -8,122 +8,98 @@
       "sha256": "9300eeb92d0cb7a2b3884dee425fc5a3ffe66962d2b6bd9060f9587a4e0f54bb"
     },
     {
-      "source": "packages/editor/workbench/extensions/volter-keymaps/package.json",
       "path": "packages/editor-core/workbench/extensions/volter-keymaps/package.json",
       "sha256": "f0589972774bd204f0d32ffd30cca8053101abbf9d214e3b657ef3cdc80c7873"
     },
     {
-      "source": "packages/editor/workbench/src/media/volter-cover.css",
       "path": "packages/editor-core/workbench/src/media/volter-cover.css",
       "sha256": "8b8a80dea010a67fdc6fde9277a20dc767e5785517ec805c61a931aee6924ac0"
     },
     {
-      "source": "packages/editor/workbench/src/media/volter-parts.css",
       "path": "packages/editor-core/workbench/src/media/volter-parts.css",
       "sha256": "e0e6aaeb6c3911abcdc8fbf693f8f44dc62a5aac457facda402ebb6e40f81988"
     },
     {
-      "source": "packages/editor/workbench/src/volter.contribution.ts",
       "path": "packages/editor-core/workbench/src/volter.contribution.ts",
       "sha256": "654e2d3a9d70cf92c24f795292bf245c230e799ed88fe1e686f6f4ff8ded6605"
     },
     {
-      "source": "packages/editor/workbench/src/volterColors.ts",
       "path": "packages/editor-core/workbench/src/volterColors.ts",
       "sha256": "75011c5b181268539c55334cac2a0b1b52396bdf836ef02a4aa129bcc6f5883a"
     },
     {
-      "source": "packages/editor/workbench/src/volterCommands.ts",
       "path": "packages/editor-core/workbench/src/volterCommands.ts",
       "sha256": "5452dc7bd39a238f5fcf1b06c2d586c0019b0c55e66afd6cbbbf704ee65bda86"
     },
     {
-      "source": "packages/editor/workbench/src/volterCover.ts",
       "path": "packages/editor-core/workbench/src/volterCover.ts",
       "sha256": "74e2ec96871e19db07e23cde529a41d91055428a5e3eee30b561b80517d128a1"
     },
     {
-      "source": "packages/editor/workbench/src/volterDocumentInput.ts",
       "path": "packages/editor-core/workbench/src/volterDocumentInput.ts",
       "sha256": "4f6dd2fda0c87e80b96c8beac6dd1e1b2757d1a4e7124fa7c3cef66fb8528c97"
     },
     {
-      "source": "packages/editor/workbench/src/volterDocumentViews.ts",
       "path": "packages/editor-core/workbench/src/volterDocumentViews.ts",
       "sha256": "8c8aacb1a5786aa603670310ece55978874ceb5808a56b502fc5c4e68dc01df6"
     },
     {
-      "source": "packages/editor/workbench/src/volterDocuments.ts",
       "path": "packages/editor-core/workbench/src/volterDocuments.ts",
       "sha256": "fd374e79d9223d6506b7599168d00e39bb54ce1191b3887422fc81f32beeea8b"
     },
     {
-      "source": "packages/editor/workbench/src/volterFiles.ts",
       "path": "packages/editor-core/workbench/src/volterFiles.ts",
       "sha256": "93a5ae88e36604bfc4ac434c35378a374326ca117694bacba32bcad12bca97f0"
     },
     {
-      "source": "packages/editor/workbench/src/volterGeneratedKeymaps.ts",
       "path": "packages/editor-core/workbench/src/volterGeneratedKeymaps.ts",
       "sha256": "e5d5f62e4fa997eb92e0c9316b7759c662118888cf5d01b21207008fc0d41179"
     },
     {
-      "source": "packages/editor/workbench/src/volterGeneratedSettings.ts",
       "path": "packages/editor-core/workbench/src/volterGeneratedSettings.ts",
       "sha256": "f25e52841aa79741ceea29dc19a2da1b8e4b60182a904a9ad470dc6c66f01c4c"
     },
     {
-      "source": "packages/editor/workbench/src/volterHistory.ts",
       "path": "packages/editor-core/workbench/src/volterHistory.ts",
       "sha256": "21b2fe97d990d9c5463ec85d3a385ba184996266952fa137faf0c81ce814dfd9"
     },
     {
-      "source": "packages/editor/workbench/src/volterKeyboard.ts",
       "path": "packages/editor-core/workbench/src/volterKeyboard.ts",
       "sha256": "abc37fa9839b1039b6353c7c4a5a98d5e3527ed57b51da51b0c48ac24b83312d"
     },
     {
-      "source": "packages/editor/workbench/src/volterNotifications.ts",
       "path": "packages/editor-core/workbench/src/volterNotifications.ts",
       "sha256": "7805a3b0f18cbac4143ced39230c8fefde4a449a27521a5aced4948916fcdc4b"
     },
     {
-      "source": "packages/editor/workbench/src/volterOutput.ts",
       "path": "packages/editor-core/workbench/src/volterOutput.ts",
       "sha256": "d29a9e29f54c7c2d999c982bfa63cf3cccec07e8018a493a99ef7c371d35c28d"
     },
     {
-      "source": "packages/editor/workbench/src/volterProduct.ts",
       "path": "packages/editor-core/workbench/src/volterProduct.ts",
       "sha256": "0f7f1db9a4f9469d3071fbd88cde3d306c2e0b813e9a784c03cdb40b1f6ae722"
     },
     {
-      "source": "packages/editor/workbench/src/volterSessionOrigin.ts",
       "path": "packages/editor-core/workbench/src/volterSessionOrigin.ts",
       "sha256": "de943ffe7a32fc7e68afea01204e7d2e45dcc0eb648c0ec893bd1e485d0b4772"
     },
     {
-      "source": "packages/editor/workbench/src/volterSettings.ts",
       "path": "packages/editor-core/workbench/src/volterSettings.ts",
       "sha256": "6a8eb665394b42b77a2bbcd0ac8674b25b293821ebd3d988e4805e8ba5e169b3"
     },
     {
-      "source": "packages/editor/workbench/src/volterStatus.ts",
       "path": "packages/editor-core/workbench/src/volterStatus.ts",
       "sha256": "9d75a9dff256322d288cdfb435f06ddafa0c0951cafd56079c78eb7912b833fc"
     },
     {
-      "source": "packages/editor/workbench/src/volterTitleBar.ts",
       "path": "packages/editor-core/workbench/src/volterTitleBar.ts",
       "sha256": "e86310b950af2b2346a838849dfb4436bdce35278ab85345260a1d356c486d34"
     },
     {
-      "source": "packages/editor/workbench/src/volterUtilityViews.ts",
       "path": "packages/editor-core/workbench/src/volterUtilityViews.ts",
       "sha256": "55595b6af771ccbb95d01468538ba96a80513aea1846a7ef6812179e13b1c689"
     },
     {
-      "source": "packages/editor/workbench/src/volterViews.ts",
       "path": "packages/editor-core/workbench/src/volterViews.ts",
       "sha256": "a2e538c081fff4beb39e81384a115478863e85e27e25bcc292f320c257098623"
     },

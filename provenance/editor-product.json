@@ -13,42 +13,34 @@
       "sha256": "17d07f961fdeb226f1426df6dabf46ebf2072f91600468c8f5b5ad3ac5a843ea"
     },
     {
-      "source": "packages/volter-cli/src/editor-boot.ts",
       "path": "packages/editor/node/editor-boot.ts",
       "sha256": "2b672398bcf5cacfc9cf00215b083e1c9892f30c1163fbeb609e12eadbd80343"
     },
     {
-      "source": "packages/volter-cli/src/project-editor-port.ts",
       "path": "packages/editor/node/project-editor-port.ts",
       "sha256": "8da16809041a71f2716aee0cd9ab1b786f8350e5862d19ff39d32448fbf92693"
     },
     {
-      "source": "packages/volter-cli/src/loopback-port.ts",
       "path": "packages/editor/node/loopback-port.ts",
       "sha256": "e352e47453d9778e7fe55103e76bcc588b47a4eeab4a260f8c0f0b6734f73fad"
     },
     {
-      "source": "packages/volter-cli/src/editor-sessions.ts",
       "path": "packages/editor/node/editor-sessions.ts",
       "sha256": "23ef25957675f97e10fcd64ab7e5af42cf20097e5a4764da8a22677032df3dd8"
     },
     {
-      "source": "packages/volter-cli/src/session-resolution.ts",
       "path": "packages/editor/node/session-resolution.ts",
       "sha256": "f0fb519a2a6e71a471ee4793560cf219f11b90eaf7e5d6f16b33e50eed2a1851"
     },
     {
-      "source": "packages/volter-cli/src/blender-mcp.ts",
       "path": "packages/editor/node/blender-mcp.ts",
       "sha256": "26e4c1b9bb1df94f9d283285b1b54b5b00b969c478d93d3b3b75677c2f67f66b"
     },
     {
-      "source": "packages/volter-cli/src/blender-mcp-defaults.json",
       "path": "packages/editor/node/blender-mcp-defaults.json",
       "sha256": "1457cf50d87a7efc513405d2eb98a9f3080ca171b76f8c8249da86ebd6dc5a48"
     },
     {
-      "source": "packages/volter-cli/src/blender-mcp-tools.json",
       "path": "packages/editor/node/blender-mcp-tools.json",
       "sha256": "a6b3b279e801e2e3dbe7a7eebebb1efb63f4bc1ce87d128b52d620dd8eed2178"
     }

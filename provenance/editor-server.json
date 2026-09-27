@@ -698,72 +698,58 @@
       "sha256": "e1319810436b269832a68c467ce01f93cec2f601d148aa1e4526df80e177b4c5"
     },
     {
-      "source": "packages/volter-sdk/src/project/build-discipline.ts",
       "path": "packages/editor-core/server/support/project/build-discipline.ts",
       "sha256": "e774e7f262f92939c142e615019d845b511ba5627e95e6e216ac8a9f34bd0d54"
     },
     {
-      "source": "packages/volter-sdk/src/project/session-journal.ts",
       "path": "packages/editor-core/server/support/project/session-journal.ts",
       "sha256": "0e551e203b3d70234b369b83d775c10e7225ddefefd7970bfd6fbdc6ce7947f0"
     },
     {
-      "source": "packages/volter-sdk/src/provider-execution.ts",
       "path": "packages/editor-sdk/src/tools/provider-execution.ts",
       "sha256": "d28ad82f4e7ca50cd6f2fbf9a103a718839373cd3a721555c2a01167aa14a4c3"
     },
     {
-      "source": "packages/volter-sdk/src/project/provenance.ts",
       "path": "packages/editor-core/server/support/project/provenance.ts",
       "sha256": "e6196ed805fbe725964c56e8d081b95ffebb0123e64c76dd9196bb076a923433"
     },
     {
-      "source": "packages/volter-sdk/src/project/log-naming.ts",
       "path": "packages/editor-core/server/support/project/log-naming.ts",
       "sha256": "c1b9d2f72bee289833cff9fb21a51483f49cae3c00613b806831a5bf538ed4a5"
     },
     {
-      "source": "packages/volter-sdk/src/play/log-format.ts",
       "path": "packages/editor-core/server/support/play/log-format.ts",
       "sha256": "656f295e44e4a7416f4ca34ae9eba41887d90bcba8eedab698b62db6748663c1"
     },
     {
-      "source": "packages/volter-sdk/src/project/inspection-node.ts",
       "path": "packages/editor-core/server/support/project/inspection-node.ts",
       "sha256": "571817a6d617ce45d7374b5309ff5d479b5021d9a726bd9b3f15d171970f74ce"
     },
     {
-      "source": "packages/volter-sdk/src/project/output-roots.ts",
       "path": "packages/editor-sdk/src/project/output-roots.ts",
       "sha256": "bfbd0b4861ba296fdd8cb95e304badf81336d44c5610d09edb8051fe1d1e26cd"
     },
     {
-      "source": "packages/volter-sdk/src/registry.ts",
       "path": "packages/editor-sdk/src/tools/registry.ts",
       "sha256": "ab1064aa1b9d48cf528478b2b0eeb75b2353965c7189f11f9dc0fdd7c15e78e8"
     },
     {
-      "source": "packages/volter-sdk/src/types.ts",
       "path": "packages/editor-sdk/src/tools/types.ts",
       "sha256": "1d9e8d8c862d1227c6c954aeb35b698b9261f0a16b94fa9b739cb08906d7aee4"
     },
     {
-      "source": "packages/volter-sdk/src/project/run-name.ts",
       "path": "packages/editor-core/server/support/project/run-name.ts",
       "sha256": "c75fb7e57e59622306e618751571e303572f8ce5da2b139423a9b04382313a90"
     },
     {
-      "source": "packages/volter-sdk/src/play/session-record.ts",
       "path": "packages/editor-core/server/support/play/session-record.ts",
       "sha256": "4fb6c79112604d9b5537a5756d731099d58b4d379ab51bd73c293662a2b03bdc"
     },
     {
-      "source": "packages/volter-sdk/src/project/shared.ts",
       "path": "packages/editor-core/server/support/project/shared.ts",
       "sha256": "f4a95389003d2b7a4aa8239c3744c06ec47078cb61bf605ee923786e535da5c7"
     },
     {
-      "source": "packages/volter-sdk/src/errors.ts",
       "path": "packages/editor-sdk/src/tools/errors.ts",
       "sha256": "4e73ec542cb5e5470a2f950d283278fb2d395761a9741e0d09aa4b1ed928254c"
     },

@@ -2,13 +2,13 @@ MIT License
 
 Copyright (c) 2026 Volter AI, Inc.
 
-This MIT license covers the volter game-project template (this directory) — the
+This MIT license covers the Volter game-project template (this directory) — the
 starter code scaffolded into your project. It is intentionally permissive so that
-the game you build with volter, and anything you generate from this template, is
+the game you build with Volter, and anything you generate from this template, is
 YOURS, free of any obligations to us. You may relicense your generated game
 under any terms you choose.
 
-(The volter engine and tooling — everything outside this directory — are licensed
+(The Volter engine and tooling — everything outside this directory — are licensed
 per component: Apache-2.0 core, AGPL-3.0 editor. See the repository LICENSE.md.)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

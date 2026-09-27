@@ -1,6 +1,6 @@
                     NOTICE — WHAT THIS PACKAGE IS, AND WHOSE IT IS
 
-This package (`@volter/blender`) is the EDITOR-SIDE half of Blender in the tab:
+This package (`@volter/editor-blender`) is the EDITOR-SIDE half of Blender in the tab:
 the Model document and its presenters, the Properties tabs, the outliner, the
 node and UV editors, the display transforms, the sky, the status items, the
 layouts, the finder and the Blender LOOK. Our code here is ours. Its ICON

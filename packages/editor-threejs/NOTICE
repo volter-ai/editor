@@ -1,9 +1,9 @@
 Copyright 2026 Volter AI, Inc.
 
 Modules under src/viewport and src/capture were imported from the
-AGPL-3.0-only @volter/threejs package; LICENSE contains that license.
+AGPL-3.0-only threejs package of volter-ai/volter-engine; LICENSE contains that license.
 serving/model-import-conversion.ts was imported from the AGPL-3.0-only
-@volter/editor package's server and retains that license.
+editor package's server in volter-ai/volter-engine and retains that license.
 
 Modules under src/adapter, src/animation, src/ecs and src/render, together
 with src/asset-loaders.ts, src/asset-parse-error.ts and src/loader.ts, were

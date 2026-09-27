@@ -458,12 +458,10 @@
       "sha256": "a0a4ee22120f70a07ed9e0674aef16aba6a35f21acc6cda4e35c325372cb0332"
     },
     {
-      "source": "packages/project/schemas/volter-project.schema.json",
       "path": "packages/editor-project/schemas/volter-project.schema.json",
       "sha256": "03095bae583f5f0eb5dbfe1da2741d282f58469cd364beb4d5de12c5a76bae72"
     },
     {
-      "source": "packages/project/schemas/volter-settings.schema.json",
       "path": "packages/editor-project/schemas/volter-settings.schema.json",
       "sha256": "5e3885949d5f2bb1cc725bdd45223e9697eed2ba1ca435a909699c5f1a414c9a"
     },
@@ -678,22 +676,18 @@
       "sha256": "2b59dee037eea54aef226f1b2ca082c07c6e3fab7dc8aa7861403a1c8070094d"
     },
     {
-      "source": "packages/volter-sdk/src/account.ts",
       "path": "packages/editor-sdk/src/account.ts",
       "sha256": "970c201924793348c740f6de8516a901b8d196fd5bd6b75117c7c63c8ca95420"
     },
     {
-      "source": "packages/volter-sdk/src/generations.ts",
       "path": "packages/editor-sdk/src/generations.ts",
       "sha256": "6549f9fb9d0874e4c01edab4d4f9f12722eb5aa2cc80ace42fa5328489e5c41d"
     },
     {
-      "source": "packages/volter-sdk/src/project-tool-catalog.ts",
       "path": "packages/editor-sdk/src/project-tool-catalog.ts",
       "sha256": "033847a0a7d2fee08819bc4b2f04d51bafab2b99ce437e6f1edd243adcaa1df3"
     },
     {
-      "source": "packages/volter-sdk/src/project/tab-census.ts",
       "path": "packages/editor-sdk/src/project/tab-census.ts",
       "sha256": "76348b330f06e34499d6a6fa93c8309e5e0319976ae52250227279049da7d77c"
     },

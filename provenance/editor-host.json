@@ -983,12 +983,10 @@
       "sha256": "3f9a6b7c4b8556f9b6f5d442043dd74e1736d182fe148a9b5907b7489a16b211"
     },
     {
-      "source": "packages/editor/src/components/VolterLogo.css",
       "path": "packages/editor-core/src/components/VolterLogo.css",
       "sha256": "138e4b8f277facecc45407a77a06f9103e99b222bf50548dec0acdd2a6be800a"
     },
     {
-      "source": "packages/editor/src/components/VolterLogo.tsx",
       "path": "packages/editor-sdk/src/kit/components/VolterLogo.tsx",
       "sha256": "e770216dc27028b32c25ef4bce559721eeaed7085c8a900a4028a28ba006c8c1"
     },
@@ -2733,7 +2731,6 @@
       "sha256": "887f5bb94db88f0a84e895840ec2b16d6565c69da3fae0e99b4e9a92bf460744"
     },
     {
-      "source": "packages/volter-sdk/src/project/inspection.ts",
       "path": "packages/editor-project/src/inspection.ts",
       "sha256": "8dbae1524e4d368d1331cea7911074e5e1e67880360379f869b9ea9106e7b044"
     },
