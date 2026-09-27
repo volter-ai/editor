@@ -428,6 +428,25 @@ const BODY_TYPES: Readonly<Record<string, string>> = {
   CharacterBody3D: 'kinematicPosition',
 };
 
+/**
+ * An area's sensor events: each collider pair Rapier reports starting or stopping to intersect the
+ * sensor enters or leaves the area (`godot_area_3d_intersection`).
+ */
+function sensorEvents(emission: Emission): TargetTsJsxAttribute[] {
+  const handler = useCompat(emission, 'area-3d', 'godot_area_3d_intersection');
+  return (['onIntersectionEnter', 'onIntersectionExit'] as const).map((prop) =>
+    attribute(prop, {
+      kind: 'arrow-expression',
+      parameters: [{ name: 'event' }],
+      body: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: handler },
+        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onIntersectionEnter' }],
+      },
+    }),
+  );
+}
+
 /** A collision shape's collider element: three's shape of the Godot shape's data. */
 function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[], at: string): TargetTsJsxChild {
   if (node.scriptInstance !== undefined) throw new Error(`${at}: a script on a collision shape has no idiomatic form`);
@@ -697,7 +716,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...nodeRef(emission, node, 'RapierRigidBody', 'rapier'),
       { kind: 'jsx-string-attribute', name: 'type', value: bodyType },
       attribute('colliders', { kind: 'literal-expression', value: false }),
-      ...(className === 'Area3D' ? [flag('sensor')] : []),
+      ...(className === 'Area3D' ? [flag('sensor'), ...sensorEvents(emission)] : []),
       ...transform,
       ...[...props].map(([prop, value]) => attribute(prop, value)),
     ], children());

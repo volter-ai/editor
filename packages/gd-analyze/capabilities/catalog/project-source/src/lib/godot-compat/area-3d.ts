@@ -3,44 +3,27 @@
  * @role BINDING
  *
  * Godot 4.7's `Area3D` (`scene/3d/physics/area_3d.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a collision object whose shapes are Rapier sensors
- * (`collision-object-3d.ts`), and GodotPhysics3D's area monitoring over them
- * (`modules/godot_physics_3d/godot_area_3d.cpp`, `godot_area_pair_3d.cpp`).
- *
- * In each space step, once shapes and kinematic bodies are updated and before bodies integrate
- * (`GodotStep3D::step`, `godot_step_3d.cpp:225`), the area-shape/body-shape pairs of an area in
- * the moved list (its transform, shapes, layer, mask or monitoring changed) or of an active body (a
- * kinematic body that moved this step) are set up (`GodotAreaPair3D::setup`: the area's mask
- * against the body's layer, then the two shapes' overlap, which Rapier's narrow phase decides: the
- * area's shapes are sensor colliders, and their intersections are read after the Rapier step,
- * which detects them before it integrates); a still StaticBody3D never enters an unmoved area. A pair whose overlap changed
- * counts up or down in the area's monitored map, kept in insertion order as Godot's HashMap is. The
- * next `flush_queries` (`GodotArea3D::call_queries`, `godot_area_3d.cpp:235`) hands each nonzero
- * entry to `_body_inout` (`area_3d.cpp:224`), which keeps the node-side body map and emits
- * `body_entered` / `body_exited`; a body leaving the tree while inside is exited at once
- * (`_body_exit_tree`, `area_3d.cpp:210`). The signals are reached through
- * `godot_area_3d_signal` (Godot signals have no evidence symbol kind yet).
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) over Rapier's sensors. The area's JSX body is a fixed
+ * `<RigidBody sensor>`; Rapier reports each collider pair that starts or stops intersecting it,
+ * and its `onIntersectionEnter` / `onIntersectionExit` hand the event here
+ * (`godot_area_3d_intersection`). A body whose layer the area's mask takes is counted by the
+ * collider pairs it overlaps (Godot's `_body_inout` reference count, `area_3d.cpp:224`): the
+ * first pair emits `body_entered`, the last to leave `body_exited`; a body leaving the tree while
+ * inside is exited at once and entered again if it comes back (`_body_exit_tree`, `:210`). Rapier
+ * reports an overlap from its step, a step after Godot's `flush_queries` would, and reports
+ * changes only: a body already inside when monitoring turns back on enters when it next starts
+ * overlapping.
  */
 
-import type { World } from '@dimforge/rapier3d-compat';
+import type { Collider } from '@dimforge/rapier3d-compat';
 import {
   godot_collision_object_adopt,
   godot_collision_object_declarer,
   godot_collision_object_of_collider,
   godot_collision_object_state,
-  godot_collision_object_touch,
-  godot_collision_objects,
 } from './collision-object-3d';
 import { godot_node_entity, godot_node_object, godot_node_tree_signal, is_inside_tree } from './node';
 import { createSignal, type GodotConnection, type GodotSignal, type SignalHandle } from './signal';
-import { godot_world_3d_physics_callbacks } from './world-3d';
-
-interface Pending {
-  readonly body: object;
-  readonly bodyShape: number;
-  readonly areaShape: number;
-  state: number;
-}
 
 interface BodyEntry {
   rc: number;
@@ -51,11 +34,7 @@ interface BodyEntry {
 interface AreaState {
   monitoring: boolean;
   monitorable: boolean;
-  /** `GodotAreaPair3D::colliding` of each area-shape/body-shape pair. */
-  readonly colliding: Map<string, Pending>;
-  /** `GodotArea3D::monitored_bodies`: counts since the last flush, in insertion order. */
-  readonly monitored: Map<string, Pending>;
-  /** `Area3D::body_map`. */
+  /** `Area3D::body_map`, in the order bodies entered. */
   readonly bodies: Map<object, BodyEntry>;
   locked: boolean;
   readonly bodyEntered: SignalHandle<[object]>;
@@ -79,18 +58,6 @@ function signalsOf(entity: object): { readonly bodyEntered: SignalHandle<[object
   }
   return signals;
 }
-const ids = new WeakMap<object, number>();
-let nextId = 0;
-
-function idOf(entity: object): number {
-  let id = ids.get(entity);
-  if (id === undefined) {
-    id = (nextId += 1);
-    ids.set(entity, id);
-  }
-  return id;
-}
-
 function stateOf(object: object, member: string): AreaState {
   const state = AREA.get(godot_node_entity(object));
   if (state === undefined) throw new TypeError(`godot-compat: Area3D.${member} requires an Area3D.`);
@@ -98,94 +65,6 @@ function stateOf(object: object, member: string): AreaState {
 }
 
 /** `add_body_to_query` / `remove_body_from_query` (`godot_area_3d.cpp:195`). */
-function count(area: AreaState, key: string, body: object, bodyShape: number, areaShape: number, by: number): void {
-  const entry = area.monitored.get(key);
-  if (entry === undefined) area.monitored.set(key, { body, bodyShape, areaShape, state: by });
-  else entry.state += by;
-}
-
-/** The areas in the moved list and the bodies active or moved as this step began. */
-const stepping = { moved: new Set<object>(), active: new Set<object>() };
-
-/**
- * The step's start (`GodotStep3D::step`, `godot_step_3d.cpp:225`): which areas are in the moved
- * list and which bodies are active, read before the step settles them.
- */
-function beginAreas(): void {
-  stepping.moved.clear();
-  stepping.active.clear();
-  for (const [entity, state] of godot_collision_objects()) {
-    if (state.moved) stepping.moved.add(entity);
-    if (state.active) stepping.active.add(entity);
-  }
-}
-
-/**
- * The space step's area pairs (`GodotAreaPair3D::setup` and `pre_solve`,
- * `godot_area_pair_3d.cpp:34`), read from Rapier's narrow phase once the step ran: an area's
- * sensors intersect what they met as the step began, the kinematic bodies at their transforms
- * before they integrate, as GodotPhysics3D sets pairs up before integration.
- */
-function stepAreas(world: World): void {
-  const objects = godot_collision_objects();
-  const byEntity = new Map(objects.map(([entity, state], index) => [entity, { state, index }] as const));
-  const keyOf = (entity: object, bodyShape: number, areaShape: number): string => `${String(idOf(entity))}|${String(bodyShape)}|${String(areaShape)}`;
-  for (const [areaEntity, areaObject] of objects) {
-    const area = AREA.get(areaEntity);
-    if (area === undefined) continue;
-    const touching = new Set<string>();
-    const candidates = new Map<string, { readonly body: object; readonly bodyShape: number; readonly areaShape: number }>();
-    for (const [key, pair] of area.colliding) candidates.set(key, pair);
-    areaObject.colliders.forEach((areaEntry, areaShape) => {
-      if (areaEntry.collider === undefined) return;
-      world.intersectionPairsWith(areaEntry.collider, (other) => {
-        const body = godot_collision_object_of_collider(other);
-        const bodyState = body === undefined ? undefined : byEntity.get(body)?.state;
-        if (body === undefined || bodyState === undefined || bodyState.kind === 'area') return;
-        const bodyShape = bodyState.colliders.findIndex((entry) => entry.collider === other);
-        if (bodyShape < 0) return;
-        const key = keyOf(body, bodyShape, areaShape);
-        touching.add(key);
-        if (!candidates.has(key)) candidates.set(key, { body, bodyShape, areaShape });
-      });
-    });
-    // Godot's pair order: the bodies in the space's order, then body shape, then area shape.
-    const order = [...candidates].sort(
-      ([, a], [, b]) => (byEntity.get(a.body)?.index ?? 0) - (byEntity.get(b.body)?.index ?? 0) || a.bodyShape - b.bodyShape || a.areaShape - b.areaShape,
-    );
-    const areaMoved = stepping.moved.has(areaEntity);
-    const seen = new Set<string>();
-    for (const [key, { body: bodyEntity, bodyShape, areaShape }] of order) {
-      const body = byEntity.get(bodyEntity)?.state;
-      const bodyEntry = body?.colliders[bodyShape];
-      const areaEntry = areaObject.colliders[areaShape];
-      if (body === undefined || bodyEntry === undefined || areaEntry === undefined) continue;
-      if (!bodyEntry.inBroadphase || !areaEntry.inBroadphase) continue;
-      const pair = area.colliding.get(key);
-      // A pair is set up only for a moved area or an active body (`godot_step_3d.cpp:237`,
-      // `:262`); a still static body is neither. A moved static body whose shape left the
-      // area's breaks its pair, removing it if it was colliding.
-      if (!areaMoved && !stepping.active.has(bodyEntity)) {
-        if (pair !== undefined && stepping.moved.has(bodyEntity) && !touching.has(key)) continue;
-        seen.add(key);
-        continue;
-      }
-      seen.add(key);
-      const result = (areaObject.mask & body.layer) !== 0 && touching.has(key);
-      if (result === (pair !== undefined)) continue;
-      if (result) area.colliding.set(key, { body: bodyEntity, bodyShape, areaShape, state: 1 });
-      else area.colliding.delete(key);
-      if (area.monitoring) count(area, key, bodyEntity, bodyShape, areaShape, result ? 1 : -1);
-    }
-    // A pair whose shape left the broad phase is destroyed; a colliding one is removed (`:94`).
-    for (const [key, pair] of [...area.colliding]) {
-      if (seen.has(key)) continue;
-      area.colliding.delete(key);
-      if (area.monitoring) count(area, key, pair.body, pair.bodyShape, pair.areaShape, -1);
-    }
-  }
-}
-
 /** `Area3D::_body_inout` (`area_3d.cpp:224`). */
 function bodyInout(area: AreaState, added: boolean, body: object): void {
   const entry = area.bodies.get(body);
@@ -219,24 +98,28 @@ function bodyInout(area: AreaState, added: boolean, body: object): void {
   area.locked = false;
 }
 
-/** `GodotArea3D::call_queries` (`godot_area_3d.cpp:235`), from `flush_queries`. */
-function flushAreas(): void {
-  for (const [entity, area] of [...AREA]) {
-    // An area of a world since replaced is forgotten.
-    if (godot_collision_object_state(entity) === undefined) {
-      AREA.delete(entity);
-      continue;
-    }
-    const pending = [...area.monitored.values()];
-    area.monitored.clear();
-    if (!area.monitoring) continue;
-    for (const entry of pending) {
-      if (entry.state === 0) continue;
-      bodyInout(area, entry.state > 0, entry.body);
-    }
-  }
-}
 
+/**
+ * A Rapier intersection event on the area's sensor (`onIntersectionEnter` / `onIntersectionExit`
+ * of its `<RigidBody>`, whose `target` is the area's collider): the other collider's body enters or
+ * leaves the area, if the area is monitoring and its mask takes the body's layer.
+ *
+ * @godot Area3D (protocol)
+ * @source scene/3d/physics/area_3d.cpp:224
+ */
+export function godot_area_3d_intersection(
+  event: { readonly target: { readonly collider: Collider }; readonly other: { readonly collider: Collider } },
+  entered: boolean,
+): void {
+  const entity = godot_collision_object_of_collider(event.target.collider);
+  const body = godot_collision_object_of_collider(event.other.collider);
+  const state = entity === undefined ? undefined : AREA.get(entity);
+  if (entity === undefined || state === undefined || body === undefined || !state.monitoring) return;
+  const own = godot_collision_object_state(entity);
+  const other = godot_collision_object_state(body);
+  if (own === undefined || other === undefined || other.kind === 'area' || (own.mask & other.layer) === 0) return;
+  bodyInout(state, entered, body);
+}
 
 /**
  * Registers a node as an Area3D: monitoring and monitorable (`area_3d.cpp:818`).
@@ -250,13 +133,10 @@ export function godot_area_3d_adopt(entity: object): void {
   AREA.set(entity, {
     monitoring: true,
     monitorable: true,
-    colliding: new Map(),
-    monitored: new Map(),
     bodies: new Map(),
     locked: false,
     ...signalsOf(entity),
   });
-  godot_world_3d_physics_callbacks(flushAreas, beginAreas, stepAreas, 1);
 }
 
 /**
@@ -303,9 +183,6 @@ export function set_monitoring(self: object, enable: boolean): void {
   const state = stateOf(self, 'set_monitoring');
   if (state.locked || enable === state.monitoring) return;
   state.monitoring = enable;
-  state.monitored.clear();
-  state.colliding.clear();
-  godot_collision_object_touch(self);
   if (enable) return;
   const bodies = [...state.bodies];
   state.bodies.clear();
@@ -353,7 +230,7 @@ export function overlaps_body(self: object, body: object): boolean {
 }
 
 // A fixed body with sensor colliders the scene's JSX declares is an Area3D; `monitoring` is the
-// `userData`'s. Its overlaps and signals are compat's (`flushAreas`), at Godot's flush.
+// `userData`'s. Its overlaps arrive as the body's Rapier intersection events.
 godot_collision_object_declarer('area', (entity, _body, data) => {
   godot_area_3d_adopt(entity);
   if (data['monitoring'] === undefined) return new Set();
