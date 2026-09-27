@@ -21,6 +21,9 @@
  *
  * What it cannot see: a path assembled from pieces none of which is spelled with a `res://` or
  * `uid://` prefix. Such a load reaches a document this walk calls unplanned.
+ *
+ * A script is unplanned the same way when nothing reaches its path; a script that declares a
+ * global `class_name` is always planned, since any reachable script may name its class.
  */
 import type { Diagnostic, ResourceDocument, SceneDocument } from './godot-types';
 import type { ImportSidecar } from './import-sidecar';
@@ -42,6 +45,8 @@ export interface ReachabilityInput {
   readonly imports: readonly ImportSidecar[];
   readonly uids: ReadonlyMap<string, string>;
   readonly diagnostics: readonly Diagnostic[];
+  /** The project's scripts, with their text: one nothing reaches is unplanned too. */
+  readonly scripts?: readonly { readonly resPath: string; readonly text: string }[];
 }
 
 export interface ReachabilityResult {
@@ -121,6 +126,10 @@ export function partitionReachableDocuments(input: ReachabilityInput): Reachabil
   }
 
   const unreachable = new Set([...documents.keys()].filter((path) => !reached.has(path)));
+  for (const script of input.scripts ?? []) {
+    if (reached.has(script.resPath) || /^\s*class_name\s/mu.test(script.text)) continue;
+    unreachable.add(script.resPath);
+  }
   const kept: Diagnostic[] = [];
   const dropped = new Map<string, Diagnostic[]>();
   for (const diagnostic of input.diagnostics) {

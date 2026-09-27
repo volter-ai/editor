@@ -5,7 +5,8 @@
  * script signal and a native signal through scene connections, a script's own calls) and of what a
  * script function returns when called through a receiver declared as its base script class,
  * against the datatypes the analysis gave the same parameter reads and call (`bindGodotProject`),
- * and whether it classified the call as a script dispatch; a compound assignment of a typed member
+ * and whether it classified the call as a script dispatch; a call on such a parameter is typed by
+ * its class's ClassDB method; a compound assignment of a typed member
  * with such a parameter has the operator's result type (the member's own). A parameter whose callers disagree (the
  * recorder's own `value`) or that a `Callable` reaches (`escaped`) must stay untyped; the native
  * side records such a parameter as untyped when its values had more than one type.
@@ -76,6 +77,8 @@ func _on_hit(amount) -> void:
 
 func _on_child(node) -> void:
 \trecord("native-signal", node)
+\t# A call on the typed parameter: ClassDB selects the method for the parameter's class.
+\trecord("parameter-receiver", node.is_inside_tree())
 
 func _process(delta) -> void:
 \trecord("idle", delta)
@@ -170,9 +173,9 @@ export function measureParameterTypeProof(tools: GodotProofTools): readonly Godo
       if (label?.kind !== 'LITERAL' || label.value.kind !== 'string' || argument === undefined) continue;
       const refined = main.refinedTypes.find((entry) => entry.nodeId === argument.id)?.datatype;
       if (argument.kind === 'CALL') {
-        // A script dispatch: classified as one, and returning its function's declared type.
-        const dispatched = main.scriptCalls.some((entry) => entry.nodeId === argument.id);
-        target[label.value.value] = dispatched ? typeName(refined ?? (argument.datatype.kind === 'VARIANT' ? undefined : argument.datatype)) : 'untyped';
+        // A script dispatch or a receiver the analysis typed: classified, with its return type.
+        const typed = main.scriptCalls.some((entry) => entry.nodeId === argument.id) || main.callReceivers.some((entry) => entry.nodeId === argument.id);
+        target[label.value.value] = typed ? typeName(refined ?? (argument.datatype.kind === 'VARIANT' ? undefined : argument.datatype)) : 'untyped';
       } else {
         target[label.value.value] = typeName(refined ?? (argument.datatype.kind === 'VARIANT' ? undefined : argument.datatype));
       }

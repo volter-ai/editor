@@ -1208,6 +1208,9 @@ export function bindGodotProject(
     throw new Error('Godot analysis authority and selected source authority disagree');
   }
   refuseDecodedDiagnostics(decoded.diagnostics);
+  // A script nothing the game loads reaches is not planned (`read/reachability.ts`).
+  const unplanned = new Set(decoded.unplanned.map((entry) => entry.resPath));
+  code = { ...code, scripts: code.scripts.filter((program) => !unplanned.has(program.resPath)) };
   const snapshot = new GodotProjectSnapshotReader(source);
   const seen = new Set<string>();
   const programs = new Map<string, GodotBoundScript>();
@@ -1345,6 +1348,38 @@ export function bindGodotProject(
       sceneNodes.byKey,
       analysisEvidence,
     );
+    const refinedTypes = refineDatatypes({
+        program,
+        attachments,
+        read: decoded,
+        apiDump: apiDump.parsed,
+        scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
+        scriptInfo: refinedScriptInfo,
+        claim: (rule) => analysisEvidence.liveClaim(rule),
+        assignedElsewhere: (member) => assignedElsewhere.has(member),
+        parameterType: (fn, parameter) => parameterTypes.get(parameterKey(program.resPath, fn, parameter)),
+        scriptFunctionReturn: (resPath, fn) => {
+          for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+            const chain = programsByPath.get(scriptPath);
+            const declared = chain?.nodes.find((candidate) => {
+              if (candidate.kind !== 'FUNCTION') return false;
+              const identifier = chain.nodes[candidate.identifier];
+              return identifier?.kind === 'IDENTIFIER' && identifier.name === fn;
+            });
+            if (declared === undefined) continue;
+            const datatype = declared.datatype;
+            const known = datatype.kind === 'BUILTIN' || datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || datatype.kind === 'ENUM';
+            return known && !datatype.metaType && datatype.builtinType !== 'Nil' ? datatype : undefined;
+          }
+          return undefined;
+        },
+      });
+    // The parameter reads the refinement typed from their callers, for receiver typing.
+    const parameterReads = new Map(
+      refinedTypes
+        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter')
+        .map((entry) => [entry.nodeId, { datatype: entry.datatype, claims: entry.evidenceClaimIds }] as const),
+    );
     const callReceiverFacts = (
       bound: GodotBoundScript,
       placed: readonly BoundGodotScriptAttachment[],
@@ -1359,6 +1394,7 @@ export function bindGodotProject(
           scriptMethodsByNode.get(`${documentPath}\0${nodePath}`),
         ...(selfOf === undefined ? {} : { self: selfOf }),
         claim: (rule) => analysisEvidence.liveClaim(rule),
+        parameterType: (nodeId) => parameterReads.get(nodeId),
         scriptChainMethods: (resPath) => {
           if (!classes.has(resPath)) return undefined;
           const names = new Set<string>();
@@ -1394,32 +1430,7 @@ export function bindGodotProject(
       ),
       fields: scriptFields(program, attachments, analysisEvidence),
       ...callReceiverFacts(program, attachments),
-      refinedTypes: refineDatatypes({
-        program,
-        attachments,
-        read: decoded,
-        apiDump: apiDump.parsed,
-        scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
-        scriptInfo: refinedScriptInfo,
-        claim: (rule) => analysisEvidence.liveClaim(rule),
-        assignedElsewhere: (member) => assignedElsewhere.has(member),
-        parameterType: (fn, parameter) => parameterTypes.get(parameterKey(program.resPath, fn, parameter)),
-        scriptFunctionReturn: (resPath, fn) => {
-          for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
-            const chain = programsByPath.get(scriptPath);
-            const declared = chain?.nodes.find((candidate) => {
-              if (candidate.kind !== 'FUNCTION') return false;
-              const identifier = chain.nodes[candidate.identifier];
-              return identifier?.kind === 'IDENTIFIER' && identifier.name === fn;
-            });
-            if (declared === undefined) continue;
-            const datatype = declared.datatype;
-            const known = datatype.kind === 'BUILTIN' || datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || datatype.kind === 'ENUM';
-            return known && !datatype.metaType && datatype.builtinType !== 'Nil' ? datatype : undefined;
-          }
-          return undefined;
-        },
-      }),
+      refinedTypes,
       settingTypes: typeProjectSettingValues({
         program,
         projectSettings: decoded.authoredSettings,

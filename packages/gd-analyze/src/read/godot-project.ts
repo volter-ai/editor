@@ -977,6 +977,9 @@ export function readGodotProjectDocuments(
     imports,
     uids: projectResourceUidIndex,
     diagnostics,
+    scripts: projectFiles
+      .filter((resPath) => resPath.toLowerCase().endsWith('.gd') && resPath !== 'res://.vgai-bound-capture.gd' && !(templateDirectory !== undefined && (resPath === templateDirectory || resPath.startsWith(`${templateDirectory}/`))))
+      .map((resPath) => ({ resPath, text: source.text(resPath) })),
   });
 
   return {

@@ -77,6 +77,11 @@ export interface CallReceiverInputs {
   readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
   /** The function names a script's chain declares (the script and its script ancestors). */
   readonly scriptChainMethods?: (resPath: string) => ReadonlySet<string> | undefined;
+  /**
+   * An untyped parameter read's datatype from its function's callers (`parameter-types.ts`), with
+   * the claims of the rules that found it.
+   */
+  readonly parameterType?: (nodeId: number) => { readonly datatype: GodotBoundNode['datatype']; readonly claims: readonly string[] } | undefined;
 }
 
 type ReceiverType =
@@ -354,6 +359,15 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       }
       return typeOfName((agreed as ResolvedSceneNode).className, [rule]);
     }
+    if (node.kind === 'IDENTIFIER' && node.source === 'FUNCTION_PARAMETER' && node.datatype.kind === 'VARIANT') {
+      // A parameter every caller passes one type to (`parameter-types.ts`).
+      const parameter = inputs.parameterType?.(id);
+      if (parameter !== undefined) {
+        const datatype = parameter.datatype;
+        if (datatype.kind === 'NATIVE' && !datatype.metaType) return { kind: 'native', name: datatype.nativeType, claims: parameter.claims };
+        if (datatype.kind === 'BUILTIN') return typeOfName(datatype.builtinType, parameter.claims);
+      }
+    }
     if (node.kind === 'SELF' && inputs.self !== undefined) {
       // `self.member()`: the instance is its script chain over its native class.
       return { kind: 'native', name: inputs.self.nativeClass, claims: [], scriptMembers: inputs.self.scriptMethods };
@@ -499,12 +513,16 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     }
     // A function of the script the receiver is declared as, or of the script on the scene node a
     // `$Path` names: Godot calls the script's function (`script-method-dispatch`).
+    const baseDatatype =
+      baseNode?.kind === 'IDENTIFIER' && baseNode.source === 'FUNCTION_PARAMETER' && baseNode.datatype.kind === 'VARIANT'
+        ? (inputs.parameterType?.(baseNode.id)?.datatype ?? baseNode.datatype)
+        : baseNode?.datatype;
     const scriptMembers =
-      baseNode !== undefined &&
-      (baseNode.datatype.kind === 'CLASS' || baseNode.datatype.kind === 'SCRIPT') &&
-      !baseNode.datatype.metaType &&
-      baseNode.datatype.scriptPath !== ''
-        ? inputs.scriptChainMethods?.(baseNode.datatype.scriptPath)
+      baseDatatype !== undefined &&
+      (baseDatatype.kind === 'CLASS' || baseDatatype.kind === 'SCRIPT') &&
+      !baseDatatype.metaType &&
+      baseDatatype.scriptPath !== ''
+        ? inputs.scriptChainMethods?.(baseDatatype.scriptPath)
         : baseNode?.kind === 'GET_NODE'
           ? scriptedPath(baseNode.fullPath)
           : undefined;

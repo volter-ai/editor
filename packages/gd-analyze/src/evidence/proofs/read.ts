@@ -56,6 +56,7 @@ func _ready() -> void:
 			"reached": ResourceLoader.has_cached("res://reached.tscn"),
 			"assembled": load("res://lev" + "el.tscn") != null,
 			"orphan": ResourceLoader.has_cached("res:/" + "/orphan.tscn"),
+			"orphanScript": ResourceLoader.has_cached("res:/" + "/orphan_script.gd"),
 		},
 	}))
 	get_tree().quit()
@@ -86,6 +87,12 @@ script = ExtResource("1_probe")
 [node name="Orphan" type="Node"]
 
 [node name="Never" parent="." instance=ExtResource("1_never")]
+`,
+  // A script nothing attaches, loads or names (no class_name): never loaded, so not planned.
+  'orphan_script.gd': `extends Node
+
+func never() -> void:
+	pass
 `,
   'cube.obj': `o Triangle
 v 0 0 0
@@ -173,6 +180,8 @@ export function measureReadProof(tools: GodotProofTools): readonly GodotProofMea
         ).map(([key, resPath]) => [key, decoded.scenes.some((scene) => scene.resPath === resPath)]),
       ),
     };
+    // The orphan script: planned unless unplanned (scripts are not decoded documents).
+    (target.loaded as Record<string, boolean>)['orphanScript'] = !decoded.unplanned.some((row) => row.resPath === 'res://orphan_script.gd');
     const orphan = decoded.unplanned.find((row) => row.resPath === 'res://orphan.tscn');
     const recorded =
       orphan !== undefined &&
