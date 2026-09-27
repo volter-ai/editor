@@ -738,6 +738,25 @@ export function godot_node_process_list(physics: boolean): readonly object[] {
   return [...list.nodes];
 }
 
+/**
+ * The order children were added in, where `move_child` made it differ from their order: Godot keeps
+ * children in a HashMap by insertion, which entering, readying and exiting walk
+ * (`_propagate_enter_tree`, `node.cpp:370`), and a separate cache in child order.
+ */
+const INSERTION = new WeakMap<object, object[]>();
+
+/** The children in the order they were added (their child order unless `move_child` reordered them). */
+function insertionOrder(entity: object): object[] {
+  const children = [...childEntities(entity)];
+  const added = INSERTION.get(entity);
+  if (added === undefined) return children;
+  const rank = (child: object): number => {
+    const index = added.indexOf(child);
+    return index < 0 ? added.length + children.indexOf(child) : index;
+  };
+  return children.sort((a, b) => rank(a) - rank(b));
+}
+
 /** `_propagate_enter_tree` (`scene/main/node.cpp:341`): self, then children. */
 function propagateEnterTree(entity: object): void {
   const state = stateOf(entity);
@@ -747,7 +766,7 @@ function propagateEnterTree(entity: object): void {
   for (const observer of TREE_OBSERVERS) observer(entity);
   state.binding?.enterTree?.();
   state.treeEntered.emit();
-  for (const child of [...childEntities(entity)]) {
+  for (const child of insertionOrder(entity)) {
     if (!(NODE.get(child)?.insideTree ?? false)) propagateEnterTree(child);
   }
 }
@@ -760,7 +779,7 @@ function propagateEnterTree(entity: object): void {
 function propagateReady(entity: object): void {
   const state = stateOf(entity);
   state.readyNotified = true;
-  for (const child of [...childEntities(entity)]) propagateReady(child);
+  for (const child of insertionOrder(entity)) propagateReady(child);
   if (state.readyFirst) {
     state.readyFirst = false;
     initializeProcessing(entity, state);
@@ -771,7 +790,7 @@ function propagateReady(entity: object): void {
 
 /** `_propagate_exit_tree` (`scene/main/node.cpp:410`): children in reverse first, then self. */
 function propagateExitTree(entity: object): void {
-  const children = [...childEntities(entity)];
+  const children = insertionOrder(entity);
   for (let index = children.length - 1; index >= 0; index -= 1) {
     const child = children[index] as object;
     if (NODE.get(child)?.insideTree ?? false) propagateExitTree(child);
@@ -804,6 +823,8 @@ function enterTree(child: object, parent: object): void {
 function removeChild(parent: object, child: object): void {
   if (stateOf(child).insideTree) propagateExitTree(child);
   detach(parent, child);
+  const added = INSERTION.get(parent);
+  if (added !== undefined && added.includes(child)) added.splice(added.indexOf(child), 1);
 }
 
 /** `_validate_child_name` (`scene/main/node.cpp:1527`): an empty or taken name becomes `@Class@n`. */
@@ -911,6 +932,7 @@ export function add_child(self: object, node: object): void {
   if (child === parent || (current !== null && NODE.has(current))) return;
   validateChildName(parent, child);
   attach(parent, child);
+  INSERTION.get(parent)?.push(child);
   if (stateOf(parent).insideTree) enterTree(child, parent);
 }
 
@@ -925,6 +947,57 @@ export function remove_child(self: object, node: object): void {
   const child = native(node, 'remove_child');
   if (parentEntity(child) !== parent) return;
   removeChild(parent, child);
+}
+
+const CHILD_ORDER_OBSERVERS: ((parent: object, child: object) => void)[] = [];
+
+/**
+ * Registers a view of a parent whose children changed order (`NOTIFICATION_CHILD_ORDER_CHANGED` and
+ * `move_child_notify`, `node.cpp:580`): a Container sorts again.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:580
+ */
+export function godot_node_observe_child_order(observer: (parent: object, child: object) => void): void {
+  if (!CHILD_ORDER_OBSERVERS.includes(observer)) CHILD_ORDER_OBSERVERS.push(observer);
+}
+
+/**
+ * Moves a child to `to_index` among its parent's children, a negative index counting from the end
+ * and one past the last meaning the last (`_move_child`, `node.cpp:531`); an index out of range, or
+ * a node that is not a child, leaves the order as it is (Godot's error). The tree changed (its
+ * process lists are not sorted again until a node joins them, `scene_tree.cpp:1189`). Internal
+ * children are not transcribed; three's children holding the node's siblings under other
+ * containers are not either.
+ *
+ * @godot Node.move_child
+ * @source scene/main/node.cpp:503
+ */
+export function move_child(self: object, child_node: object, to_index: number): void {
+  const parent = native(self, 'move_child');
+  const child = native(child_node, 'move_child');
+  if (parentEntity(child) !== parent) return;
+  const children = childEntities(parent).filter((entry) => NODE.has(entry));
+  let index = to_index < 0 ? to_index + children.length : to_index;
+  if (index < 0 || index > children.length) return;
+  if (index === children.length) index -= 1;
+  const from = children.indexOf(child);
+  if (from === index) return;
+  if (!INSERTION.has(parent)) INSERTION.set(parent, childEntities(parent).filter((entry) => NODE.has(entry)));
+  children.splice(from, 1);
+  children.splice(index, 0, child);
+  const next = children[index + 1] as Object3D | undefined;
+  const previous = children[index - 1] as Object3D | undefined;
+  const own = (child as Object3D).parent as Object3D;
+  const anchor = next !== undefined ? next : previous;
+  if (anchor === undefined || anchor.parent !== own) {
+    throw new Error('godot-compat: Node.move_child among siblings in different three containers is not transcribed.');
+  }
+  own.children.splice(own.children.indexOf(child as Object3D), 1);
+  const at = own.children.indexOf(anchor);
+  own.children.splice(next !== undefined ? at : at + 1, 0, child as Object3D);
+  if (stateOf(parent).insideTree) for (const observer of TREE_OBSERVERS) observer(child);
+  for (const observer of CHILD_ORDER_OBSERVERS) observer(parent, child);
 }
 
 /**

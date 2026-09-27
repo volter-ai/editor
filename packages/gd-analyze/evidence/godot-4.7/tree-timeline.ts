@@ -33,6 +33,7 @@ export type Op =
   | { readonly process: string; readonly on: boolean; readonly physics?: boolean }
   | { readonly rename: string; readonly to: string }
   | { readonly priority: string; readonly value: number }
+  | { readonly moveChild: string; readonly in: string; readonly to: number }
   | { readonly mode: string; readonly value: number }
   | { readonly resetInterpolation: string }
   | { readonly requestReady: string }
@@ -174,6 +175,7 @@ function gdOp(op: Op): string[] {
   if ('process' in op) return [`${v(op.process)}.${op.physics === true ? 'set_physics_process' : 'set_process'}(${String(op.on)})`];
   if ('rename' in op) return [`${v(op.rename)}.set_name(${gs(op.to)})`];
   if ('priority' in op) return [`${v(op.priority)}.set_process_priority(${String(op.value)})`];
+  if ('moveChild' in op) return [`${v(op.in)}.move_child(${v(op.moveChild)}, ${String(op.to)})`];
   if ('mode' in op) return [`${v(op.mode)}.set_process_mode(${String(op.value)})`];
   if ('resetInterpolation' in op) return [`${v(op.resetInterpolation)}.reset_physics_interpolation()`];
   if ('requestReady' in op) return [`${v(op.requestReady)}.request_ready()`];
@@ -329,6 +331,7 @@ function target(segments: readonly Segment[]): () => unknown {
       else if ('process' in op) (op.physics === true ? N.set_physics_process : N.set_process)(node(op.process), op.on);
       else if ('rename' in op) N.set_name(node(op.rename), op.to);
       else if ('priority' in op) N.set_process_priority(node(op.priority), op.value);
+      else if ('moveChild' in op) N.move_child(node(op.in), node(op.moveChild), op.to);
       else if ('mode' in op) N.set_process_mode(node(op.mode), op.value);
       else if ('resetInterpolation' in op) N.reset_physics_interpolation(node(op.resetInterpolation));
       else if ('requestReady' in op) N.request_ready(node(op.requestReady));

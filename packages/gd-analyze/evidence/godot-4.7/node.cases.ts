@@ -35,6 +35,19 @@ add('process-toggle', 'set_process', [now(...TREE, { add: 'a' }, { process: 'b',
 add('is_processing-read', 'is_processing', [now({ new: 'a' }, { read: ['processing', 'a'] }, { add: 'a' }, { read: ['processing', 'a'] }, { new: 'q', script: 'quiet' }, { add: 'q' }, { read: ['processing', 'q'] })]);
 add('set_physics_process', 'set_physics_process', [now({ new: 'a' }, { add: 'a' }, { process: 'a', on: false, physics: true }), phys({ read: ['physics_processing', 'a'] }), proc()]);
 add('is_physics_processing', 'is_physics_processing', [now({ new: 'a' }, { read: ['physics_processing', 'a'] }, { add: 'a' }, { read: ['physics_processing', 'a'] })]);
+add('move_child-front', 'move_child', [now(...TREE, { add: 'a' }, { moveChild: 'c', in: 'a', to: 0 }, { read: ['children', 'a'] }, { moveChild: 'e', in: 'b', to: 0 }, { read: ['children', 'b'] })]);
+add('move_child-negative', 'move_child', [now(...TREE, { add: 'a' }, { moveChild: 'b', in: 'a', to: -1 }, { read: ['children', 'a'] }, { moveChild: 'b', in: 'a', to: -2 }, { read: ['children', 'a'] })]);
+add('move_child-past-end', 'move_child', [now(...TREE, { add: 'a' }, { moveChild: 'b', in: 'a', to: 2 }, { read: ['children', 'a'] }, { moveChild: 'b', in: 'a', to: 0 }, { read: ['children', 'a'] })]);
+add('move_child-outside-tree', 'move_child', [now(...TREE, { moveChild: 'd', in: 'b', to: 1 }, { read: ['children', 'b'] }, { add: 'a' }, { read: ['children', 'b'] })]);
+// The physics-process list is sorted when a node joins it, not when the tree is reordered: after
+// move_child the old order holds until set_physics_process makes a node join again.
+add('process-order-after-move_child', 'move_child', [
+  now(...TREE, { add: 'a' }),
+  phys({ log: 'first' }),
+  phys({ moveChild: 'c', in: 'a', to: 0 }, { log: 'moved' }),
+  phys({ process: 'd', on: false, physics: true }, { process: 'd', on: true, physics: true }, { log: 'rejoined' }),
+  phys({ log: 'last' }),
+]);
 add('process-priority', 'set_process_priority', [now(...TREE, { priority: 'c', value: -5 }, { priority: 'a', value: 3 }, { add: 'a' }, { read: ['process_priority', 'c'] }), phys(), proc()]);
 add('get_process_priority', 'get_process_priority', [now({ new: 'a' }, { read: ['process_priority', 'a'] }, { priority: 'a', value: 7 }, { read: ['process_priority', 'a'] })]);
 add('process-mode-disabled', 'set_process_mode', [now(...TREE, { mode: 'b', value: 4 }, { add: 'a' }, { read: ['can_process', 'd'] }, { read: ['can_process', 'a'] }), proc(), phys()]);

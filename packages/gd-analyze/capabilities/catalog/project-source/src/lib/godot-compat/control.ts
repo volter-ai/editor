@@ -37,7 +37,7 @@ import {
   is_visible,
   is_visible_in_tree,
 } from './canvas-item';
-import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_adopt, godot_node_entity, godot_node_observe_child_order, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
 import { get_size as subViewportSize, godot_sub_viewport_connect_size_changed } from './sub-viewport';
@@ -307,6 +307,15 @@ function visibilityChanged(entity: Object3D): void {
  * `Container::queue_sort` (`container.cpp:156`): inside the tree, one deferred `_sort_children`
  * (`container.cpp:94`), which sorts when the container is still inside the tree.
  */
+// `Container::move_child_notify` (`container.cpp:65`): a Control child moved, the container's
+// minimum size is updated and its children sorted again.
+godot_node_observe_child_order((parent, child) => {
+  const state = CONTROLS.get(parent as Object3D);
+  if (state?.virtuals.sort === undefined || !CONTROLS.has(child as Object3D)) return;
+  update_minimum_size(parent);
+  queueSort(parent as Object3D);
+});
+
 function queueSort(entity: Object3D): void {
   const state = CONTROLS.get(entity) as ControlState;
   if (!is_inside_tree(entity) || state.pendingSort) return;
