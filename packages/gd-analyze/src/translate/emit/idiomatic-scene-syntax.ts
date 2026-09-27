@@ -921,19 +921,6 @@ export function idiomaticSceneSourceFile(
   emission.hooks.push(...emission.scriptHooks.flatMap((hook) => hook()));
   for (const [name, module] of emission.lifecycle.compat) useCompat(emission, module, name);
   for (const name of emission.lifecycle.rapier) emission.rapier.add(name);
-  {
-    // Every scene enters the tree as React commits it, before its scripts attach.
-    const rootRef = emission.nodeRefs.get(scene.root.nodePath) as string;
-    const at = emission.hooks.findIndex((hook) => hook.kind === 'variable-statement' && hook.name === rootRef);
-    emission.hooks.splice(at + 1, 0, {
-      kind: 'expression-statement',
-      expression: {
-        kind: 'call-expression',
-        callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScene') },
-        arguments: [{ kind: 'identifier-expression', name: rootRef }],
-      },
-    });
-  }
   // The scene's connections, made once its scripts are attached (`packed_scene.cpp:682`).
   for (const connection of scene.connections) {
     const accessor = useCompat(emission, connection.accessor.module.replace(/^lib\/godot-compat\//u, ''), connection.accessor.exportName);
@@ -952,6 +939,17 @@ export function idiomaticSceneSourceFile(
       },
     });
   }
+  // The scene enters the tree last, once its scripts are attached and its signals connected: its
+  // component's last effect, so every script of the scene exists before any `_ready` runs
+  // (`SceneState::instantiate` makes the whole scene before `add_child` enters it).
+  emission.hooks.push({
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScene') },
+      arguments: [{ kind: 'identifier-expression', name: emission.nodeRefs.get(scene.root.nodePath) as string }],
+    },
+  });
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
   // the scene's own: the prefab form.
   const rootThree = scene.root.instance === undefined && scene.root.model === undefined ? familyThreeType(scene.root.classes[0] ?? '') : undefined;

@@ -250,11 +250,24 @@ export function godot_node_adopt(
   if (options.classes !== undefined) state.classes = Object.freeze([...options.classes]);
   if (options.authority !== undefined) state.authority = options.authority;
   if (options.binding !== undefined) {
-    const binding = { ...options.binding, native: entity };
+    const owner = options.binding.owner as Record<string, unknown>;
+    // The tree notifications the script answers, its own or a base script's methods.
+    const virtual = (method: string): (() => void) | undefined =>
+      typeof owner[method] === 'function' ? () => (owner[method] as () => void).call(owner) : undefined;
+    const enterTree = virtual('_enter_tree');
+    const ready = virtual('_ready');
+    const exitTree = virtual('_exit_tree');
+    const binding: GodotScriptLifecycleBinding = {
+      ...(enterTree === undefined ? {} : { enterTree }),
+      ...(ready === undefined ? {} : { ready }),
+      ...(exitTree === undefined ? {} : { exitTree }),
+      ...options.binding,
+      native: entity,
+    };
     state.binding = binding;
     // The virtuals the script defines, its own or a base script's (`GDVIRTUAL_IS_OVERRIDDEN`).
     const defines = (callback: unknown, method: string): boolean =>
-      callback !== undefined || typeof (binding.owner as Record<string, unknown>)[method] === 'function';
+      callback !== undefined || typeof owner[method] === 'function';
     state.methods = Object.freeze({
       process: defines(binding.process, '_process'),
       physicsProcess: defines(binding.physicsProcess, '_physics_process'),
@@ -1372,11 +1385,13 @@ function enteringTop(root: object): { readonly top: object; readonly parent: obj
 /**
  * A scene React committed enters the tree, as `add_child` enters a child
  * (`scene/main/node.cpp:341-362`): the subtree is seated (its classes recorded), its deferred
- * node-path fields set, and from its top node below the tree it enters, parent first, then readies
- * under a ready parent, children first. The tree's root is the three scene the nodes hang from,
- * entered the first time a scene reaches it. Called from the scene component's layout effect, once
- * React has attached the scene's objects; the returned call exits what is still inside the tree, as
- * React unmounts it. Scripts' own `_ready` runs after, from the component's `useEffect`.
+ * node-path fields set, and, when its parent is inside the tree, it enters, parent first, then
+ * readies under a ready parent, children first, running its scripts' `_enter_tree` and `_ready`.
+ * A scene whose parent is not yet inside the tree waits: the enclosing scene's component, whose
+ * effect runs after its children's, enters it with the rest. The tree's root is the three scene
+ * the nodes hang from, entered the first time a scene reaches it. Called from the scene
+ * component's last effect, once its scripts are attached; the returned call exits what is still
+ * inside the tree, as React unmounts it.
  *
  * @godot Node (protocol)
  * @source scene/main/node.cpp:341
@@ -1388,7 +1403,7 @@ export function godot_node_mount(root: object): () => void {
   while (top.parent !== undefined && top.parent !== null) top = top.parent as typeof top;
   if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_tree_set_root(top);
   const entering = enteringTop(root);
-  if (entering !== undefined) enterTree(entering.top, entering.parent);
+  if (entering !== undefined && entering.top === root) enterTree(root, entering.parent);
   return () => exitRoots([root]);
 }
 

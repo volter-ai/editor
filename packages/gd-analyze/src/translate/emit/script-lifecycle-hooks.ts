@@ -1,13 +1,13 @@
 /**
- * A script's lifecycle as its component's own hooks (docs/GODOT.md §The lane's law, order of work 2):
- * `_ready` from a `useEffect`, queued as a microtask so every script of the commit exists first and
- * readies run children first, as Godot readies them; `_exit_tree` from its cleanup; `_process`
- * from `useFrame`; `_physics_process` and a RigidBody3D's `_integrate_forces` from
+ * A script's frame and input callbacks as its component's own hooks (docs/GODOT.md §The lane's law,
+ * order of work 2): `_process` from `useFrame`; `_physics_process` and a RigidBody3D's `_integrate_forces` from
  * `useBeforePhysicsStep` (the step's own `timestep` is the delta); input callbacks from
  * `useGodotInput`. `_process` and `_physics_process` run while the node processes
  * (`godot_node_processes`: inside the tree, not turned off by `set_process`, its process mode
  * allowing), as `SceneTree::_process_group` asks each node. Only the hooks the script defines are
- * written.
+ * written. `_enter_tree`, `_ready` and `_exit_tree` are not hooks of their own: the scene entering
+ * the tree (`useGodotScene`, the component's last effect) runs them, parents entering first and
+ * children readying first, once the whole scene's scripts are attached, as `add_child` does.
  */
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
 import type { TargetTsExpression, TargetTsStatement } from '../code/target-ts-syntax';
@@ -70,28 +70,6 @@ export function scriptLifecycleHooks(
 ): TargetTsStatement[] {
   const method = (phase: BoundGodotLifecycleEntry['phase']): string | undefined => lifecycle.find((entry) => entry.phase === phase)?.methodName;
   const statements: TargetTsStatement[] = [];
-  const enter = method('enter-tree');
-  const ready = method('ready');
-  const exit = method('exit-tree');
-  if (enter !== undefined || ready !== undefined || exit !== undefined) {
-    imports.react.add('useEffect');
-    const body: TargetTsStatement[] = [];
-    if (enter !== undefined) body.push({ kind: 'expression-statement', expression: call(script, enter, []) });
-    if (ready !== undefined) {
-      body.push({
-        kind: 'expression-statement',
-        expression: {
-          kind: 'call-expression',
-          callee: id('queueMicrotask'),
-          arguments: [{ kind: 'arrow-expression', parameters: [], body: call(script, ready, []) }],
-        },
-      });
-    }
-    if (exit !== undefined) {
-      body.push({ kind: 'return-statement', expression: { kind: 'arrow-expression', parameters: [], body: call(script, exit, []) } });
-    }
-    statements.push(hook('useEffect', [{ kind: 'arrow-expression', parameters: [], body }, { kind: 'array-expression', elements: [] }]));
-  }
   const process = method('process');
   if (process !== undefined) {
     imports.fiber.add('useFrame');

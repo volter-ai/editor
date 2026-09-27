@@ -129,7 +129,6 @@ function autoloadComponent(
         name: node,
         initializer: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'useRef' }, typeArguments: [nullable(referenceType('Group'))], arguments: [{ kind: 'literal-expression', value: null }] },
       },
-      { kind: 'expression-statement', expression: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
       {
         kind: 'variable-statement',
         declaration: 'const',
@@ -155,6 +154,8 @@ function autoloadComponent(
         ]),
       },
       ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports),
+      // The autoload enters the tree once its script is attached (its component's last effect).
+      { kind: 'expression-statement', expression: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
       {
         kind: 'return-statement',
         expression: {
