@@ -10,6 +10,8 @@
  *   <out>/<name>.mid          the piece as a Standard MIDI File (one pass)
  *   <out>/sections/<section>.wav / .ogg / .m4a  with --sections: marker sections, at the full mix
  *                             gain (a marker at or past the end, or on another's beat, makes none)
+ *   <out>/scenes/<scene>.wav / .ogg / .m4a  a seamless loop per launcher <Scene>, at the full mix
+ *                             gain, as long as its clips take to come round together
  *   <out>/stems/<track>.ogg / .m4a  stems, at the same gain as their WAVs (two tracks whose names
  *                             make one file name get -2, -3)
  *   <out>/stems/<track>.wav   each audible track rendered alone, at the mix's own gain, so the

@@ -17,6 +17,7 @@
  * graph in place (`apply`): rebuilding would cut the reverb's tail and reset the dynamics.
  */
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
+import { everyClip } from '../launches';
 import { readWav } from '../wav';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { prepareIr } from './convolve';
@@ -57,7 +58,8 @@ export function mixSignature(piece: Piece): string {
       track.id,
       track.name,
       track.channel && [track.channel.role, track.channel.devices, track.channel.sends.map((send) => [send.to, send.pre])],
-      track.clips.some((clip) => clip.audio),
+      // The recordings its clips play, arranged or in launcher slots: each is loaded as the graph is built.
+      everyClip(piece, track).flatMap((clip) => (clip.audio ? [clip.audio.file] : [])),
     ]),
   );
 }
@@ -308,14 +310,14 @@ export class LiveMix {
       // Audio tracks: their strips take the clips' recordings (`scheduleAudio`), loaded now so a
       // play never waits on a file.
       for (const track of piece.tracks) {
-        if (channelOf.has(track.id) || (track.channel?.role ?? 'regular') !== 'regular' || !track.clips.some((clip) => clip.audio)) continue;
+        if (channelOf.has(track.id) || (track.channel?.role ?? 'regular') !== 'regular' || !everyClip(piece, track).some((clip) => clip.audio)) continue;
         const [input, output] = await this.chain(track, graph.nodes);
         graph.audioHeads.set(track.id, input);
         const sends: (GainNode | null)[] = [];
         const panner = this.strip(graph, piece, track, soloed, output, sends);
         panner.connect(destination(track));
         wireSends(track, output, panner, sends);
-        for (const clip of track.clips) if (clip.audio) await this.recording(clip.audio.file);
+        for (const clip of everyClip(piece, track)) if (clip.audio) await this.recording(clip.audio.file);
       }
       // Each sidechained compressor hears its source track's strip after its fader and pan.
       for (const { node, source } of this.pendingSidechains) {

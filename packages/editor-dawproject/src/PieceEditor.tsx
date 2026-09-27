@@ -3,7 +3,8 @@
  *
  *   transport bar      play / stop, tempo, meter, the playhead's bar.beat
  *   arranger           track headers (name, mute, solo, volume) beside the timeline:
- *                      bar ruler, markers, one lane of clips per track
+ *                      bar ruler, markers, one lane of clips per track; or, on the Launch tab,
+ *                      the clip launcher (a column per scene, a slot per track)
  *   detail editor      the selected clip's notes on a piano roll
  *
  * Everything drawn is the LIVE piece (`live-piece.ts`): the module mounted and re-mounted on
@@ -22,6 +23,8 @@ import { useLivePiece } from './live-piece';
 import { Devices } from './Devices';
 import { Mixer } from './Mixer';
 import { AudioClip } from './AudioClip';
+import { Launcher, useLauncherReading } from './Launcher';
+import type { Launches } from './launches';
 import { PianoRoll } from './PianoRoll';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
 import { readSourceIndex, type SourceIndex } from './source-index';
@@ -53,6 +56,8 @@ export interface PieceDocumentContext {
   readonly loop: { readonly from: number; readonly to: number } | null;
   /** Whether the engine clicks the beat while playing. */
   readonly metronome: boolean;
+  /** The clip launcher while it is what plays: each track's launches and its timeline's beat now. */
+  readonly launcher: { readonly launches: Launches; readonly beat: number } | null;
   play(fromBeat?: number): Promise<void>;
   stop(): void;
 }
@@ -78,6 +83,8 @@ export function PieceEditor({
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   // The lower pane, as Bitwig's: the selected clip's editor, its track's devices, or the mixer.
   const [lower, setLower] = useState<'clip' | 'devices' | 'mix'>('clip');
+  // The upper pane: the arranger's timeline, or the clip launcher.
+  const [upper, setUpper] = useState<'arrange' | 'launch'>('arrange');
   // Refusals and failed writes are events: they go to the host's notification cards, never into
   // this document's own chrome (ARCHITECTURE-CORE §Editor chrome, "Notices take VS Code's shape").
   const notifyRef = useRef(notify);
@@ -126,6 +133,9 @@ export function PieceEditor({
       get metronome() {
         return engine.metronome;
       },
+      get launcher() {
+        return engine.launcher;
+      },
       play: (fromBeat = startRef.current) => engine.play(fromBeat),
       stop: () => engine.stop(),
     };
@@ -173,6 +183,11 @@ export function PieceEditor({
     return () => cancelAnimationFrame(frame);
   }, [engine, engineState.kind]);
 
+  const readLauncher = useCallback(() => engine.launcher, [engine]);
+  const launcher = useLauncherReading(readLauncher, engineState.kind === 'playing');
+  // While the launcher plays, its timeline is not the arrangement's: the arranger shows no playhead.
+  const arrangePlayhead = launcher ? null : playhead;
+
   const togglePlay = useCallback(() => {
     if (engineState.kind === 'playing') engine.stop();
     else void engine.play(start);
@@ -205,13 +220,21 @@ export function PieceEditor({
     if (!piece) return null;
     for (const [trackIndex, track] of piece.tracks.entries()) {
       for (const candidate of track.clips) {
-        if (candidate.id === selectedClip) return { clip: candidate, track, trackIndex };
+        if (candidate.id === selectedClip) return { clip: candidate, track, trackIndex, slot: false };
+      }
+    }
+    for (const scene of piece.scenes) {
+      for (const slot of scene.slots) {
+        if (slot.clip?.id !== selectedClip) continue;
+        const trackIndex = piece.tracks.findIndex((track) => track.name === slot.track);
+        const track = piece.tracks[trackIndex];
+        if (track) return { clip: slot.clip, track, trackIndex, slot: true };
       }
     }
     const firstTrack = piece.tracks.findIndex((track) => track.clips.length > 0);
     const track = piece.tracks[firstTrack];
     const first = track?.clips[0];
-    return track && first ? { clip: first, track, trackIndex: firstTrack } : null;
+    return track && first ? { clip: first, track, trackIndex: firstTrack, slot: false } : null;
   }, [piece, selectedClip]);
 
   if (!piece) {
@@ -232,7 +255,7 @@ export function PieceEditor({
         piece={piece}
         playing={engineState.kind === 'playing'}
         engineState={engineState}
-        playhead={playhead}
+        playhead={arrangePlayhead}
         start={start}
         onToggle={togglePlay}
         pxPerBeat={pxPerBeat}
@@ -248,12 +271,40 @@ export function PieceEditor({
           {live.error} — showing the last piece that rendered.
         </div>
       ) : null}
+      <div style={{ display: 'flex', gap: 2, padding: '2px 6px', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+        {(['arrange', 'launch'] as const).map((pane) => (
+          <button
+            key={pane}
+            type="button"
+            data-pane={pane}
+            onClick={() => setUpper(pane)}
+            style={{ ...button, padding: '0 10px', fontSize: 11, background: upper === pane ? themeVars.surface.inset : themeVars.surface.raised }}
+          >
+            {pane === 'arrange' ? 'Arrange' : `Launch${piece.scenes.length ? ` (${piece.scenes.length})` : ''}`}
+          </button>
+        ))}
+      </div>
       <div style={{ flex: '1 1 50%', minHeight: 120, overflow: 'auto', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+        {upper === 'launch' ? (
+          <Launcher
+            piece={piece}
+            launcher={launcher}
+            selectedClip={clip?.clip.id ?? null}
+            onSelectClip={(id, trackId) => {
+              setSelectedClip(id);
+              setSelectedTrack(trackId);
+            }}
+            onLaunchScene={(sceneId) => void engine.launchScene(sceneId)}
+            onLaunchSlot={(trackId, sceneId) => void engine.launchSlot(trackId, sceneId)}
+            active={active}
+            writes={{ index, file, documentId, onMessage: setMessage }}
+          />
+        ) : (
         <Arranger
           piece={piece}
           totalBeats={totalBeats}
           pxPerBeat={pxPerBeat}
-          playhead={playhead}
+          playhead={arrangePlayhead}
           start={start}
           onSeek={seek}
           loop={loopRange ?? { from: 0, to: 4 * beatsPerBar }}
@@ -270,6 +321,7 @@ export function PieceEditor({
           active={active}
           writes={{ index, file, documentId, onMessage: setMessage }}
         />
+        )}
       </div>
       <div style={{ display: 'flex', gap: 2, padding: '2px 6px', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
         {(['clip', 'devices', 'mix'] as const).map((pane) => (
@@ -309,12 +361,12 @@ export function PieceEditor({
             clip={clip.clip}
             color={trackColor(clip.track, clip.trackIndex)}
             trackName={clip.track.name}
-            clipNumber={clip.track.clips.indexOf(clip.clip) + 1}
+            clipNumber={clip.slot ? 0 : clip.track.clips.indexOf(clip.clip) + 1}
             graph={live.graph}
             piece={piece}
             index={index}
             pxPerBeat={pxPerBeat * 2}
-            playhead={playhead}
+            playhead={clip.slot ? null : arrangePlayhead}
             onMessage={setMessage}
             file={file}
             documentId={documentId}

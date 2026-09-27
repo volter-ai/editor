@@ -126,6 +126,23 @@ export interface PieceTrack {
   readonly parent: string | null;
 }
 
+/** A launcher cell: the clip the track named `track` loops when the slot is launched. */
+export interface PieceSlot {
+  readonly id: string;
+  readonly oid: string | null;
+  readonly track: string;
+  /** Its clip, whose `time` is 0 and whose notes count from its start; `null` for an empty slot. */
+  readonly clip: PieceClip | null;
+}
+
+/** A row of the clip launcher (`<Scene>`). */
+export interface PieceScene {
+  readonly id: string;
+  readonly oid: string | null;
+  readonly name: string;
+  readonly slots: readonly PieceSlot[];
+}
+
 export interface PieceMarker {
   readonly id: string;
   readonly oid: string | null;
@@ -137,7 +154,9 @@ export interface Piece {
   readonly transport: PieceTransport;
   readonly tracks: readonly PieceTrack[];
   readonly markers: readonly PieceMarker[];
-  /** The last beat any clip reaches. */
+  /** The clip launcher's rows, in source order. */
+  readonly scenes: readonly PieceScene[];
+  /** The last beat any arrangement clip reaches. */
   readonly length: number;
   /** How many nodes each oid rendered; above 1 means the element repeats. */
   readonly oidCounts: ReadonlyMap<string, number>;
@@ -200,7 +219,42 @@ export function readPiece(root: DawNode): Piece {
   const withTempo: PieceTransport = tempoNode ? { ...transport, tempoPoints: readLane(tempoNode, 'transport:tempo', '<Transport>') } : transport;
   const tracks: PieceTrack[] = [];
   const markers: PieceMarker[] = [];
+  const scenes: PieceScene[] = [];
   let length = 0;
+  /**
+   * A clip: on a track, a region from its `at`; in a launcher slot (`arranged` false), a loop of its
+   * own whose time is 0, so its notes' `at` counts from its start as bar 1.
+   */
+  const readClip = (child: DawNode, clipId: string, trackName: string, arranged: boolean): PieceClip => {
+    const clipName = str(child.props['name']);
+    const where = `<Clip${clipName ? ` "${clipName}"` : ''}> on ${trackName}`;
+    const time = arranged ? position(child.props['at'], where) : 0;
+    const duration = num(child.props['bars'], 0) * beatsPerBar;
+    const notes: PieceNote[] = child.children
+      .filter((note) => note.type === 'Note')
+      .map((note, noteIndex) => {
+        const writtenPitch = String(note.props['pitch'] ?? '');
+        const writtenDur = note.props['dur'];
+        const start = position(note.props['at'], `A <Note> in ${where}`);
+        return {
+          id: `${clipId}:note:${noteIndex}`,
+          oid: note.oid,
+          start,
+          time: start - time,
+          duration: beatsOf(typeof writtenDur === 'number' ? writtenDur : String(writtenDur ?? '')),
+          pitch: midiOf(writtenPitch),
+          vel: num(note.props['vel'], 0.7),
+          artic: str(note.props['artic']),
+          written: { at: String(note.props['at'] ?? ''), pitch: writtenPitch, dur: String(writtenDur ?? '') },
+        };
+      });
+    const lanes = child.children.filter((lane) => lane.type === 'Points').map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
+    const audioNode = child.children.find((part) => part.type === 'Audio');
+    const audio: PieceAudio | null = audioNode
+      ? { oid: audioNode.oid, file: str(audioNode.props['file']) ?? '', offset: num(audioNode.props['offset'], 0), gain: num(audioNode.props['gain'], 0) }
+      : null;
+    return { id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes, audio };
+  };
   /**
    * A track, and (after it) every track it contains: a group's children sum into its strip, the
    * group's channel `role="submix"`. `parent` is the group track's id.
@@ -234,38 +288,9 @@ export function readPiece(root: DawNode): Piece {
             })),
         };
       } else if (child.type === 'Clip') {
-        const clipId = `${trackId}:clip:${childIndex}`;
-        const clipName = str(child.props['name']);
-        const where = `<Clip${clipName ? ` "${clipName}"` : ''}> on ${trackName}`;
-        const time = position(child.props['at'], where);
-        const duration = num(child.props['bars'], 0) * beatsPerBar;
-        const notes: PieceNote[] = child.children
-          .filter((note) => note.type === 'Note')
-          .map((note, noteIndex) => {
-            const writtenPitch = String(note.props['pitch'] ?? '');
-            const writtenDur = note.props['dur'];
-            const start = position(note.props['at'], `A <Note> in ${where}`);
-            return {
-              id: `${clipId}:note:${noteIndex}`,
-              oid: note.oid,
-              start,
-              time: start - time,
-              duration: beatsOf(typeof writtenDur === 'number' ? writtenDur : String(writtenDur ?? '')),
-              pitch: midiOf(writtenPitch),
-              vel: num(note.props['vel'], 0.7),
-              artic: str(note.props['artic']),
-              written: { at: String(note.props['at'] ?? ''), pitch: writtenPitch, dur: String(writtenDur ?? '') },
-            };
-          });
-        const lanes = child.children
-          .filter((lane) => lane.type === 'Points')
-          .map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
-        length = Math.max(length, time + duration);
-        const audioNode = child.children.find((part) => part.type === 'Audio');
-        const audio: PieceAudio | null = audioNode
-          ? { oid: audioNode.oid, file: str(audioNode.props['file']) ?? '', offset: num(audioNode.props['offset'], 0), gain: num(audioNode.props['gain'], 0) }
-          : null;
-        clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes, audio });
+        const clip = readClip(child, `${trackId}:clip:${childIndex}`, trackName, true);
+        length = Math.max(length, clip.time + clip.duration);
+        clips.push(clip);
       } else if (child.type === 'Points') {
         trackLanes.push(readLane(child, `${trackId}:lane:${childIndex}`, `<Track "${trackName}">`));
       }
@@ -280,9 +305,19 @@ export function readPiece(root: DawNode): Piece {
       markers.push({ id: `marker:${index}`, oid: node.oid, time: position(node.props['at'], 'A <Marker>'), name: str(node.props['name']) ?? '' });
     } else if (node.type === 'Track') {
       readTrack(node, `track:${index}`, null);
+    } else if (node.type === 'Scene') {
+      const sceneId = `scene:${index}`;
+      const slots = node.children.flatMap((slot, slotIndex): PieceSlot[] => {
+        if (slot.type !== 'ClipSlot') return [];
+        const track = str(slot.props['track']) ?? '';
+        const clipNode = slot.children.find((child) => child.type === 'Clip');
+        const id = `${sceneId}:slot:${slotIndex}`;
+        return [{ id, oid: slot.oid, track, clip: clipNode ? readClip(clipNode, `${id}:clip`, track, false) : null }];
+      });
+      scenes.push({ id: sceneId, oid: node.oid, name: str(node.props['name']) ?? `Scene ${scenes.length + 1}`, slots });
     }
   });
-  return { transport: withTempo, tracks, markers, length, oidCounts };
+  return { transport: withTempo, tracks, markers, scenes, length, oidCounts };
 }
 
 /** Seconds per beat at the piece's tempo (a constant tempo; tempo automation is not read yet). */

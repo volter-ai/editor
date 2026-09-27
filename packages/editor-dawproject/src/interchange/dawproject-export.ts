@@ -21,8 +21,9 @@
 import { strToU8, zipSync } from 'fflate';
 import packageJson from '../../package.json';
 import { assignChannels, type DecodedAudio } from '../render-offline';
+import { everyClip } from '../launches';
 import { wav24 } from '../wav';
-import type { Piece, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
+import type { Piece, PieceClip, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
 import { destinationOf } from '../mix/offline-mix';
 
 export interface DawprojectOptions {
@@ -40,7 +41,7 @@ function embeddedAudio(piece: Piece, audio: ReadonlyMap<string, DecodedAudio> | 
   const embedded = new Map<string, { path: string; wav: Uint8Array; seconds: number; channels: number; sampleRate: number }>();
   const used = new Set<string>();
   for (const track of piece.tracks) {
-    for (const clip of track.clips) {
+    for (const clip of everyClip(piece, track)) {
       if (!clip.audio) continue;
       const key = `${clip.audio.file}|${clip.audio.gain}`;
       if (embedded.has(key)) continue;
@@ -116,8 +117,8 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     const channel = track.channel;
     const role = channel?.role ?? 'regular';
     const group = destinationOf(piece, track);
-    const recorded = track.clips.some((clip) => clip.audio);
-    const played = track.clips.some((clip) => !clip.audio);
+    const recorded = everyClip(piece, track).some((clip) => clip.audio);
+    const played = everyClip(piece, track).some((clip) => !clip.audio);
     const regular = recorded && played ? 'audio notes' : recorded ? 'audio' : 'notes';
     const contentType = role === 'regular' ? regular : role === 'submix' ? 'tracks' : 'audio';
     out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType, loaded: true })}>`);
@@ -198,34 +199,37 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     out(depth, '</Points>');
   };
 
+  /** A clip at `depth`: its notes and controller lanes, or the recording it plays. */
+  const emitClip = (depth: number, clip: PieceClip, midiChannel: number): void => {
+    if (clip.audio) {
+      // A recording: its content is in seconds, and `offset` is where in the file it starts.
+      const recording = recordings.get(`${clip.audio.file}|${clip.audio.gain}`)!;
+      out(depth, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), contentTimeUnit: 'seconds', playStart: clip.audio.offset })}>`);
+      out(depth + 1, `<Audio${attrs({ id: id(), timeUnit: 'seconds', duration: recording.seconds, channels: recording.channels, sampleRate: recording.sampleRate, algorithm: 'raw' })}>`);
+      out(depth + 2, `<File${attrs({ path: recording.path })}/>`);
+      out(depth + 1, '</Audio>');
+      out(depth, '</Clip>');
+      return;
+    }
+    out(depth, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), playStart: 0 })}>`);
+    out(depth + 1, `<Lanes${attrs({ id: id() })}>`);
+    out(depth + 2, `<Notes${attrs({ id: id() })}>`);
+    for (const note of [...clip.notes].sort((x, y) => x.start - y.start || x.pitch - y.pitch)) {
+      out(depth + 3, `<Note${attrs({ time: beats(note.time), duration: beats(note.duration), channel: midiChannel, key: note.pitch, vel: beats(note.vel) })}/>`);
+    }
+    out(depth + 2, '</Notes>');
+    for (const points of clip.lanes) lane(depth + 2, points, midiChannel, clip.time);
+    out(depth + 1, '</Lanes>');
+    out(depth, '</Clip>');
+  };
+
   out(1, `<Arrangement${attrs({ id: id() })}>`);
   out(2, `<Lanes${attrs({ id: id(), timeUnit: 'beats' })}>`);
   for (const track of piece.tracks) {
     const midiChannel = assignments.get(track.id)?.channel ?? 0;
     out(3, `<Lanes${attrs({ id: id(), track: trackIds.get(track.id) })}>`);
     out(4, `<Clips${attrs({ id: id() })}>`);
-    for (const clip of track.clips) {
-      if (clip.audio) {
-        // A recording: its content is in seconds, and `offset` is where in the file it starts.
-        const recording = recordings.get(`${clip.audio.file}|${clip.audio.gain}`)!;
-        out(5, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), contentTimeUnit: 'seconds', playStart: clip.audio.offset })}>`);
-        out(6, `<Audio${attrs({ id: id(), timeUnit: 'seconds', duration: recording.seconds, channels: recording.channels, sampleRate: recording.sampleRate, algorithm: 'raw' })}>`);
-        out(7, `<File${attrs({ path: recording.path })}/>`);
-        out(6, '</Audio>');
-        out(5, '</Clip>');
-        continue;
-      }
-      out(5, `<Clip${attrs({ name: clip.name, time: beats(clip.time), duration: beats(clip.duration), playStart: 0 })}>`);
-      out(6, `<Lanes${attrs({ id: id() })}>`);
-      out(7, `<Notes${attrs({ id: id() })}>`);
-      for (const note of [...clip.notes].sort((a, b) => a.start - b.start || a.pitch - b.pitch)) {
-        out(8, `<Note${attrs({ time: beats(note.time), duration: beats(note.duration), channel: midiChannel, key: note.pitch, vel: beats(note.vel) })}/>`);
-      }
-      out(7, '</Notes>');
-      for (const points of clip.lanes) lane(7, points, midiChannel, clip.time);
-      out(6, '</Lanes>');
-      out(5, '</Clip>');
-    }
+    for (const clip of track.clips) emitClip(5, clip, midiChannel);
     out(4, '</Clips>');
     // The track's mixer automation, each lane on the parameter it moves (`<Target parameter>`).
     for (const points of track.lanes) {
@@ -259,6 +263,24 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     out(2, '</TempoAutomation>');
   }
   out(1, '</Arrangement>');
+  // The clip launcher: a scene's slots, each on its track (`hasStop`: an empty launch stops it).
+  if (piece.scenes.length > 0) {
+    out(1, '<Scenes>');
+    for (const scene of piece.scenes) {
+      out(2, `<Scene${attrs({ id: id(), name: scene.name })}>`);
+      out(3, `<Lanes${attrs({ id: id(), timeUnit: 'beats' })}>`);
+      for (const track of piece.tracks) {
+        const slot = scene.slots.find((candidate) => candidate.track === track.name);
+        if (!slot) continue;
+        out(4, `<ClipSlot${attrs({ id: id(), track: trackIds.get(track.id), hasStop: true })}>`);
+        if (slot.clip) emitClip(5, slot.clip, assignments.get(track.id)?.channel ?? 0);
+        out(4, '</ClipSlot>');
+      }
+      out(3, '</Lanes>');
+      out(2, '</Scene>');
+    }
+    out(1, '</Scenes>');
+  }
   out(0, '</Project>');
   return `${lines.join('\n')}\n`;
 }

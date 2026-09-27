@@ -1,7 +1,7 @@
 /**
  * The game's MUSIC, played from a piece's render (`render-piece`'s output folder): the looped
- * mix, a section loop per `<Marker>` (`--sections`), the stems, and one-shot stingers
- * (`--one-shot`), all through the game's own Web Audio graph.
+ * mix, a section loop per `<Marker>` (`--sections`), a loop per launcher `<Scene>`, the stems,
+ * and one-shot stingers (`--one-shot`), all through the game's own Web Audio graph.
  *
  *   horizontal   `queue('Battle')` switches loops on the next bar line of what is playing
  *                (`barSeconds` in the report), or at its loop end; the old loop fades out
@@ -27,6 +27,8 @@ export interface MusicRender {
   readonly barSeconds: readonly number[];
   /** A section per marker: `start` is its second in the whole piece, where its loop begins. */
   readonly sections?: readonly { readonly name: string; readonly start: number; readonly seconds: number; readonly file: string; readonly fileM4a?: string }[];
+  /** A loop per launcher scene (one state of the music), `bars` whole bars from its own start. */
+  readonly scenes?: readonly { readonly name: string; readonly bars: number; readonly seconds: number; readonly file: string; readonly fileM4a?: string }[];
   readonly stems?: { readonly files?: readonly { readonly track: string; readonly file: string; readonly fileM4a?: string }[] };
 }
 
@@ -35,7 +37,7 @@ export interface MusicRender {
  * that cannot decode Vorbis (Safari on iOS before 17.4) gets the same loop from its `.m4a`.
  */
 export async function loadMusic(context: BaseAudioContext, baseUrl: string, render: MusicRender): Promise<Map<string, AudioBuffer>> {
-  const entries = [render, ...(render.sections ?? []), ...(render.stems?.files ?? [])];
+  const entries = [render, ...(render.sections ?? []), ...(render.scenes ?? []), ...(render.stems?.files ?? [])];
   const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   const decode = async (file: string): Promise<AudioBuffer> => {
     const response = await fetch(new URL(file, base));
@@ -65,7 +67,7 @@ interface Playing {
 export interface MusicPlayer {
   /** The player's output; connect it where the game's music bus is. */
   readonly output: GainNode;
-  /** Start a section's loop (by marker name), or the whole piece's with `null`, at `when` (now). */
+  /** Start a section's loop (by marker name) or a scene's (by scene name), or the whole piece's with `null`, at `when` (now). */
   play(section: string | null, options?: { stems?: boolean; when?: number }): void;
   /** Switch to another loop at the next bar line, or at the playing loop's end. Returns the context time it switches. */
   queue(section: string | null, options?: { at?: 'bar' | 'end'; fade?: number; stems?: boolean }): number;
@@ -104,20 +106,24 @@ export function createMusicPlayer(options: {
   };
 
   const start = (name: string | null, stems: boolean, when: number): Playing => {
-    const section = name === null ? null : render.sections?.find((candidate) => candidate.name === name);
-    if (name !== null && !section) throw new Error(`No section "${name}" in this render (render it with --sections).`);
-    if (stems && section) throw new Error('Stems are rendered for the whole piece, not per section.');
-    const files = stems ? (render.stems?.files ?? []).map((stem) => [stem.track, stem.file] as const) : [[name ?? 'mix', section?.file ?? render.file] as const];
+    const section = name === null ? undefined : render.sections?.find((candidate) => candidate.name === name);
+    const scene = name === null ? undefined : render.scenes?.find((candidate) => candidate.name === name);
+    if (section && scene) throw new Error(`"${name}" names both a section and a scene in this render; rename one of them.`);
+    if (name !== null && !section && !scene) {
+      throw new Error(`No section or scene "${name}" in this render (sections render with --sections; scenes always render).`);
+    }
+    if (stems && (section || scene)) throw new Error('Stems are rendered for the whole piece, not per section or scene.');
+    const files = stems ? (render.stems?.files ?? []).map((stem) => [stem.track, stem.file] as const) : [[name ?? 'mix', (section ?? scene)?.file ?? render.file] as const];
     if (files.length === 0) throw new Error('This render has no stems.');
     // The loop is the decoded buffer's own length (the context may resample the file); its bar
     // lines are the piece's that fall inside it, from its start. A marker off a downbeat starts a
     // loop mid-bar, and its bar lines are still the piece's.
     const seconds = buffer(files[0]![1]).duration;
     const from = section?.start ?? 0;
-    const bars = [
-      ...render.barSeconds.map((second) => second - from).filter((second) => second >= -1e-6 && second < seconds - 1e-3),
-      seconds,
-    ];
+    // A scene's loop is its own: its bar lines divide it evenly, from its start.
+    const bars = scene
+      ? [...Array.from({ length: scene.bars }, (_, bar) => (bar * seconds) / scene.bars), seconds]
+      : [...render.barSeconds.map((second) => second - from).filter((second) => second >= -1e-6 && second < seconds - 1e-3), seconds];
     const gain = context.createGain();
     gain.connect(output);
     const sources = new Map<string, { source: AudioBufferSourceNode; gain: GainNode }>();

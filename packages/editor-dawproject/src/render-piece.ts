@@ -14,6 +14,7 @@ import { measureLoop, nullResidualDb } from './measure';
 import { assignChannels, audibleTracks, type DecodedAudio, mixLoop, mixOneShot, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from './render-offline';
 import type { DynamicsReport, ImpulseResponse } from './mix/offline-mix';
 import { loopWav24, wav24, readWav } from './wav';
+import { everyClip, launchedPiece, slotClip } from './launches';
 
 const TARGETS: Record<string, number> = { console: -24, portable: -18 };
 
@@ -122,7 +123,10 @@ export async function renderPiece({
 
     const beatsPerBar = piece.transport.beatsPerBar;
     const assignments = assignChannels(piece);
-    const audioClips = piece.tracks.flatMap((track) => track.clips.flatMap((clip) => (clip.audio ? [clip.audio] : [])));
+    const audioClips = piece.tracks.flatMap((track) => everyClip(piece, track).flatMap((clip) => (clip.audio ? [clip.audio] : [])));
+    if (piece.length <= 0) {
+      throw new Error('The arrangement has no clips, so there is no piece to render; a piece’s scenes are rendered beside its arrangement (write the arrangement’s clips on the tracks).');
+    }
     if (assignments.size === 0 && audioClips.length === 0) throw new Error('No track has a soundfont device or an audio clip; there is nothing to render.');
     // Every recording an audio clip names, read from the project.
     const audioFiles = new Map<string, DecodedAudio>();
@@ -279,6 +283,52 @@ export async function renderPiece({
         });
       }
     }
+    // SCENES: each launcher scene as the loop a game plays for that state of the music, at the
+    // piece's own gain (so a crossfade from one to another keeps the level). The loop runs until
+    // every clip in it comes round together: the least common multiple of their lengths.
+    const sceneReports: { name: string; bars: number; seconds: number; tracks: string[]; file: string; fileM4a: string }[] = [];
+    if (piece.scenes.length > 0) {
+      const directory = join(out, 'scenes');
+      rmSync(directory, { recursive: true, force: true });
+      mkdirSync(directory, { recursive: true });
+      const used = new Set<string>();
+      const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+      for (const scene of piece.scenes) {
+        const playing = piece.tracks.flatMap((track) => {
+          const clip = slotClip(scene, track);
+          return clip && clip.duration > 0 ? [{ track, clip }] : [];
+        });
+        if (playing.length === 0) {
+          problems.push(`Scene "${scene.name}" has no clips, so it makes no loop.`);
+          continue;
+        }
+        // Lengths in 48ths of a beat, so a clip of a fraction of a bar still has a common multiple.
+        const ticks = playing.map(({ clip }) => Math.max(1, Math.round(clip.duration * 48)));
+        let length = ticks.reduce((a, b) => (a / gcd(a, b)) * b) / 48;
+        const longest = Math.max(...playing.map(({ clip }) => clip.duration));
+        if (length > 64 * beatsPerBar) {
+          problems.push(`Scene "${scene.name}": its clips (${playing.map(({ clip }) => clip.duration / beatsPerBar).join(', ')} bars) come round together only after ${length / beatsPerBar} bars; its loop is the longest clip, ${longest / beatsPerBar} bars, so the shorter ones are cut at its seam.`);
+          length = longest;
+        }
+        const launches = new Map(playing.map(({ track }) => [track.id, [{ scene: scene.id, from: 0, to: null }]]));
+        const audio = mixLoop(await renderChannels(launchedPiece(piece, launches, length), bank, undefined, undefined, irs, 2, undefined, audioFiles));
+        scale(audio, preGain * 10 ** (gainDb / 20));
+        let peak = 0;
+        for (const channel of [audio.left, audio.right]) for (const sample of channel) peak = Math.max(peak, Math.abs(sample));
+        if (peak === 0) problems.push(`Scene "${scene.name}" is silent: its clips (${playing.map(({ track }) => track.name).join(', ')}) sound no note.`);
+        else if (20 * Math.log10(peak) > CEILING_DBTP) {
+          problems.push(`Scene "${scene.name}" peaks at ${(20 * Math.log10(peak)).toFixed(1)} dBFS at the piece's gain, above the ${CEILING_DBTP} dBTP ceiling: it is louder than the arrangement the gain was set for. Bring its tracks down, or the arrangement up.`);
+        }
+        const file = uniqueName(used, scene.name);
+        const wav = join(directory, `${file}.wav`);
+        writeFileSync(wav, loopWav24(audio.left, audio.right, audio.sampleRate));
+        encode(wav, join(directory, file));
+        sceneReports.push({
+          name: scene.name, bars: length / beatsPerBar, seconds: audio.loopSeconds,
+          tracks: playing.map(({ track }) => track.name), file: `scenes/${file}.ogg`, fileM4a: `scenes/${file}.m4a`,
+        });
+      }
+    }
     const barSeconds = Array.from({ length: Math.floor(piece.length / beatsPerBar) + 1 }, (_, bar) => performance.secondsAt(bar * beatsPerBar));
 
     const { integrated, range, truePeak } = measure(wavPath);
@@ -309,6 +359,7 @@ export async function renderPiece({
       fileM4a: `${name}.m4a`,
       barSeconds,
       ...(sections ? { sections: sectionReports } : {}),
+      ...(sceneReports.length > 0 ? { scenes: sceneReports } : {}),
       tempo: piece.transport.tempo,
       meter: `${piece.transport.numerator}/${piece.transport.denominator}`,
       bars: piece.length / beatsPerBar,

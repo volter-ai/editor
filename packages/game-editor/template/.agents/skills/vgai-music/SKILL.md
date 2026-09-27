@@ -73,6 +73,12 @@ export default function Theme() {
   types `highPass lowPass lowShelf highShelf bell`), `compressor` (`threshold ratio attack
   release knee makeup`, and `sidechain: "<track>"` to compress on another track's signal, as a pad
   ducks under the melody), `limiter` (`ceiling release`), `convolution` (`ir predelay wet`).
+- Scenes: `<Scene name="Combat">` (a `<Project>` child, after the tracks) holds a
+  `<ClipSlot track="Bass"><Clip bars={1}>…</Clip></ClipSlot>` per track that plays in it. A slot's
+  clip has no `at`; its notes count from its own start as bar 1 (`at="1:2.5"`), and it loops. A
+  scene is one state of the game's music (explore, combat, calm): launched, each of its tracks
+  loops its clip from the next bar and every other track stops. The piece still needs its
+  arrangement; the scenes render beside it.
 - A recording: a clip holding `<Audio file="audio/take.wav" offset={0.5} gain={-6} />` instead of
   notes plays that WAV (a path from the project folder) from `offset` seconds into it, at `gain`
   dB, for the clip's `bars`; its track needs no instrument device. `check-piece` names a file
@@ -220,7 +226,8 @@ renders the same files outside `public/`, unrecorded.
 
 - The folder gets the whole piece as a seamless loop (`theme.ogg`; `theme.wav` carries a
   `smpl` loop), `sections/<marker>.ogg` with `--sections` (each section its own seamless loop,
-  at the whole mix's level), `stems/<track>.ogg`, and `report.json`. Every `.ogg` has an `.m4a`
+  at the whole mix's level), `scenes/<scene>.ogg` for every `<Scene>` (its loop as long as its
+  clips take to come round together, at the same level), `stems/<track>.ogg`, and `report.json`. Every `.ogg` has an `.m4a`
   (AAC) beside it for browsers that cannot decode Vorbis; `loadMusic` falls back to it.
 - The same piece renders to the same bytes every time, so an unchanged piece re-rendered leaves
   `.vgai/provenance.json` unchanged.
@@ -239,7 +246,7 @@ import { createMusicPlayer, loadMusic } from './lib/music/music-player';
 const render = await (await fetch('/music/theme/report.json')).json();
 const buffers = await loadMusic(context, '/music/theme/', render);
 const music = createMusicPlayer({ context, destination: musicBus, render, buffers });
-music.play('Explore');            // a section's loop, by its marker
+music.play('Explore');            // a section's loop, by its marker, or a scene's, by its name
 music.queue('Battle');            // switch on the next bar line; the old loop fades out
 music.stinger(victory, 'bar');    // a one-shot (rendered with --one-shot) on the next bar line
 ```

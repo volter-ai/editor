@@ -23,7 +23,11 @@ export. A compressor's `sidechain` names the track its detector hears
 (after that track's fader and pan), in both mixes, picked in its device card. A clip
 holding `<Audio file offset gain>` plays a recording instead of notes (both mixes null at
 −139.7 dB with one); its editor sets where in the file it starts and its level, and the
-DAWproject export embeds the file. In the piano
+DAWproject export embeds the file. The Launch tab is the clip launcher: a column per
+`<Scene>`, a `<ClipSlot>` per track, launched by scene or by slot on the next bar (tracks a
+scene leaves out stop), with scenes and slots added, renamed and deleted in place;
+`render-piece` renders each scene as a seamless loop for the game's music player, and the
+DAWproject export carries them as its `Scenes`. In the piano
 roll, notes are selected (click, Shift-click, marquee, Cmd+A), moved and
 resized together, snapped to a chosen grid, quantized, copied, cut, pasted,
 duplicated and given an articulation. A gesture on several elements is one

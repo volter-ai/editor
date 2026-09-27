@@ -108,9 +108,13 @@ export interface DeviceProps {
   readonly params?: Readonly<Record<string, DeviceParam>>;
 }
 
-/** DAWproject `Clip`: a region of a track's timeline, from bar `at` for `bars` bars. */
+/**
+ * DAWproject `Clip`: a region of a track's timeline, from bar `at` for `bars` bars. In a
+ * `<ClipSlot>` a clip has no `at`: it is a loop of its own, and its notes' positions count from
+ * its start as bar 1.
+ */
 export interface ClipProps {
-  readonly at: Position;
+  readonly at?: Position;
   readonly bars: number;
   readonly name?: string;
   readonly children?: ReactNode;
@@ -160,6 +164,22 @@ export interface PointProps {
   readonly hold?: boolean;
 }
 
+/**
+ * DAWproject `Scene`: a row of the clip launcher, a child of `<Project>`. Launching it plays each
+ * of its `<ClipSlot>`s on that slot's track, looping, from the next bar, and stops the tracks it
+ * has no slot for: one scene is one state of the music (a game's explore, combat, calm).
+ */
+export interface SceneProps {
+  readonly name: string;
+  readonly children?: ReactNode;
+}
+
+/** DAWproject `ClipSlot`: the launcher cell of the track named `track` in a scene, holding one `<Clip>`. */
+export interface ClipSlotProps {
+  readonly track: string;
+  readonly children?: ReactNode;
+}
+
 /** DAWproject `Marker`: a named point on the arrangement's timeline. */
 export interface MarkerProps {
   readonly at: Position;
@@ -182,6 +202,8 @@ export const Marker = element<MarkerProps>('dawproject.Marker');
 export const Points = element<PointsProps>('dawproject.Points');
 export const Audio = element<AudioProps>('dawproject.Audio');
 export const Point = element<PointProps>('dawproject.Point');
+export const Scene = element<SceneProps>('dawproject.Scene');
+export const ClipSlot = element<ClipSlotProps>('dawproject.ClipSlot');
 
 /** Every element this package names, keyed by its short name. */
 export const ELEMENT_TYPES = {
@@ -197,6 +219,8 @@ export const ELEMENT_TYPES = {
   Points: 'dawproject.Points',
   Point: 'dawproject.Point',
   Audio: 'dawproject.Audio',
+  Scene: 'dawproject.Scene',
+  ClipSlot: 'dawproject.ClipSlot',
 } as const;
 
 export type ElementName = keyof typeof ELEMENT_TYPES;

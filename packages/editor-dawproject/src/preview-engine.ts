@@ -20,12 +20,15 @@ import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
 import { type NotePatch, notePatches } from './articulations';
+import { type Launch, type Launches, launchedPiece, slotClip } from './launches';
 import { roundRobins } from './sfz-bank';
 import { LiveMix, mixSignature, servedIrLoader } from './mix/live-mix';
 import { stripLevels } from './mix/offline-mix';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
 
 const LOOKAHEAD_S = 0.2;
+/** How many bars ahead of the playhead the launcher's timeline is laid out. */
+const LAUNCH_AHEAD_BARS = 64;
 
 /**
  * Each track's channel set to its preset, at unity level and centre (the mix's strips apply the
@@ -249,6 +252,15 @@ export class PreviewEngine {
    */
   private scheduled: Piece | null = null;
   private performance: Performance | null = null;
+  /** The piece `scheduled` was made from: the latest piece itself, or the launcher's reading of it. */
+  private adoptedFrom: Piece | null = null;
+  /**
+   * The clip launcher's launches while it is what plays (`launchScene`/`launchSlot`), or `null`
+   * while the arrangement plays. Beats of the launcher's own timeline, which starts at 0.
+   */
+  private launches: Map<string, Launch[]> | null = null;
+  /** How far the launched piece is laid out, in beats; extended as the playhead nears it. */
+  private launchHorizon = 0;
   /** Audio time at which piece-second `originSecond` sounded. */
   private originTime = 0;
   private originSecond = 0;
@@ -316,7 +328,7 @@ export class PreviewEngine {
     if (next?.from === this.loopBeats?.from && next?.to === this.loopBeats?.to) return;
     const beat = this.playhead();
     this.loopBeats = next;
-    if (beat !== null) void this.play(beat);
+    if (beat !== null && !this.launches) void this.play(beat);
   }
 
   /**
@@ -327,7 +339,8 @@ export class PreviewEngine {
   private region(performance: Performance, origin: number): Region {
     const whole = { start: 0, end: performance.seconds };
     const loop = this.loopBeats;
-    if (!loop) return whole;
+    // The launcher's timeline runs on (its slots loop themselves); the arrangement's loop is not its.
+    if (!loop || this.launches) return whole;
     const start = performance.secondsAt(loop.from);
     const end = Math.min(performance.secondsAt(loop.to), performance.seconds);
     return end > start && origin < end ? { start, end } : whole;
@@ -374,13 +387,18 @@ export class PreviewEngine {
     this.sync().catch((error: unknown) => this.fail(error));
   }
 
-  /** Schedule `piece` from now on: its performance, note patches and channel presets. */
+  /**
+   * Schedule `piece` from now on: its performance, note patches and channel presets. While the
+   * launcher plays, what is scheduled is the piece as its launches lay it out (`launchedPiece`).
+   */
   private adopt(piece: Piece): void {
-    this.scheduled = piece;
-    this.performance = perform(piece);
+    this.adoptedFrom = piece;
+    const played = this.launches ? launchedPiece(piece, this.launches, this.launchHorizon) : piece;
+    this.scheduled = played;
+    this.performance = perform(played);
     const synth = this.synth;
-    this.patches = synth ? patchesFor(piece, this.performance, this.bankOffsets, synth.presetList) : new Map();
-    if (synth) setUpVoices(synth, piece, this.bankOffsets);
+    this.patches = synth ? patchesFor(played, this.performance, this.bankOffsets, synth.presetList) : new Map();
+    if (synth) setUpVoices(synth, played, this.bankOffsets);
   }
 
   private missingBanks(piece: Piece): boolean {
@@ -404,7 +422,7 @@ export class PreviewEngine {
       try {
         await this.loadBanks(synth, piece, wanted);
         if (!wanted()) return;
-        if (this.scheduled !== piece) this.adopt(piece);
+        if (this.adoptedFrom !== piece) this.adopt(piece);
         const signature = mixSignature(piece);
         if (signature !== this.mixBuiltFor) {
           const swapped = await mix.build(piece, channelsOf(piece), () => wanted() && this.mix === mix);
@@ -449,7 +467,70 @@ export class PreviewEngine {
     return performance.beatAt(foldSecond(Math.max(0, elapsed), this.region(performance, this.originSecond)));
   }
 
-  async play(fromBeat = 0): Promise<void> {
+  /** Play the arrangement from `fromBeat`; a launcher that was playing gives way to it. */
+  play(fromBeat = 0): Promise<void> {
+    this.launches = null;
+    return this.run(fromBeat);
+  }
+
+  /**
+   * What the launcher is doing: each track's launches (by track id) and the beat of its timeline
+   * now, or `null` while the arrangement plays or nothing does.
+   */
+  get launcher(): { readonly launches: Launches; readonly beat: number } | null {
+    const beat = this.playhead();
+    return this.launches && beat !== null ? { launches: this.launches, beat } : null;
+  }
+
+  /**
+   * Launch a scene: each track with a clip in its slots loops that clip, and every other track
+   * stops, from the next bar (or at once, from a stopped transport or a playing arrangement).
+   */
+  launchScene(sceneId: string): Promise<void> {
+    return this.launch((launches, at, piece) => {
+      const scene = piece.scenes.find((candidate) => candidate.id === sceneId);
+      for (const track of piece.tracks) this.relaunch(launches, track.id, slotClip(scene, track) ? sceneId : null, at);
+    });
+  }
+
+  /** Launch one track's slot in a scene from the next bar, or stop the track there (`sceneId` null). */
+  launchSlot(trackId: string, sceneId: string | null): Promise<void> {
+    return this.launch((launches, at) => this.relaunch(launches, trackId, sceneId, at));
+  }
+
+  /** End the track's running launch at `at`, drop any queued after it, and start `sceneId` there. */
+  private relaunch(launches: Map<string, Launch[]>, trackId: string, sceneId: string | null, at: number): void {
+    const kept = (launches.get(trackId) ?? [])
+      .filter((launch) => launch.from < at - 1e-9)
+      .map((launch) => (launch.to === null || launch.to > at ? { ...launch, to: at } : launch));
+    if (sceneId) kept.push({ scene: sceneId, from: at, to: null });
+    launches.set(trackId, kept);
+  }
+
+  /**
+   * Change the launches. While the launcher plays, the change lands on the first bar line that
+   * nothing has been scheduled past, and the transport carries on; otherwise the launcher starts
+   * at beat 0 of its own timeline with the change in place.
+   */
+  private async launch(change: (launches: Map<string, Launch[]>, at: number, piece: Piece) => void): Promise<void> {
+    const piece = this.piece;
+    if (!piece) return;
+    const bar = piece.transport.beatsPerBar;
+    const performance = this.performance;
+    if (this.launches && this.state.kind === 'playing' && performance) {
+      const at = Math.ceil(performance.beatAt(this.scheduledTo) / bar - 1e-9) * bar;
+      change(this.launches, at, piece);
+      this.launchHorizon = Math.max(this.launchHorizon, at + LAUNCH_AHEAD_BARS * bar);
+      this.adopt(this.adoptedFrom ?? piece);
+      return;
+    }
+    this.launches = new Map();
+    change(this.launches, 0, piece);
+    this.launchHorizon = LAUNCH_AHEAD_BARS * bar;
+    await this.run(0);
+  }
+
+  private async run(fromBeat: number): Promise<void> {
     if (!this.piece) return;
     const turn = ++this.transport;
     try {
@@ -477,7 +558,7 @@ export class PreviewEngine {
       this.stopTimer();
       this.synth.stopAll(true);
       this.mix?.cancelAutomation();
-    this.mix?.stopAudio();
+      this.mix?.stopAudio();
       this.adopt(piece);
       const performance = this.performance!;
       this.originSecond = performance.secondsAt(fromBeat);
@@ -518,6 +599,7 @@ export class PreviewEngine {
 
   stop(): void {
     this.transport++;
+    this.launches = null;
     this.stopTimer();
     this.synth?.stopAll(true);
     this.mix?.cancelAutomation();
@@ -608,5 +690,13 @@ export class PreviewEngine {
       }
     }
     this.scheduledTo = horizon;
+    // The launcher's timeline has no end: lay out more of it before the playhead gets there.
+    if (this.launches && this.adoptedFrom) {
+      const bar = piece.transport.beatsPerBar;
+      if (performance.beatAt(horizon) > this.launchHorizon - (LAUNCH_AHEAD_BARS / 2) * bar) {
+        this.launchHorizon += LAUNCH_AHEAD_BARS * bar;
+        this.adopt(this.adoptedFrom);
+      }
+    }
   }
 }

@@ -119,6 +119,7 @@ export function PianoRoll(props: {
   readonly color: string;
   readonly trackName: string;
   /** The clip's place among its track's clips, from 1: how the freezer finds it. */
+  /** The clip's place among its track's arrangement clips, from 1; 0 for a launcher slot's clip. */
   readonly clipNumber: number;
   readonly graph: DawNode | null;
   readonly piece: Piece;
@@ -680,6 +681,7 @@ export function PianoRoll(props: {
     clip.notes.some((note) => note.oid !== null && count(note.oid) > 1) || clip.lanes.some((lane) => lane.oid !== null && count(lane.oid) > 1);
   const freeze = async (): Promise<void> => {
     if (!props.graph) return;
+    if (props.clipNumber < 1) throw new Error('Freeze writes out an arrangement clip; a launcher slot’s clip is not frozen here yet.');
     const prevSource = await readSource(props.file);
     const newSource = freezeClip(prevSource, props.graph, props.trackName, props.clipNumber);
     if (!(await applySource(props.file, newSource, prevSource))) throw new Error(`${props.file} changed while freezing; try again.`);

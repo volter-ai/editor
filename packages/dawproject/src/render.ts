@@ -16,6 +16,7 @@
 import type { ComponentType, ReactNode } from 'react';
 import { createElement } from 'react';
 import Reconciler from 'react-reconciler';
+import { ELEMENT_TYPES } from './index';
 import { ConcurrentRoot, DefaultEventPriority } from 'react-reconciler/constants.js';
 
 export const OID_PROP = 'data-oid';
@@ -59,7 +60,7 @@ function ownProps(props: Record<string, unknown>): { props: Record<string, unkno
 function shortType(type: string): string {
   if (!type.startsWith(TYPE_PREFIX)) {
     throw new Error(
-      `<${type}> is not a DAWproject element. A piece renders only @volter/dawproject's elements (Project, Transport, Track, Channel, Device, Clip, Note, Marker) and components made of them.`,
+      `<${type}> is not a DAWproject element. A piece renders only @volter/dawproject's elements (${Object.keys(ELEMENT_TYPES).join(', ')}) and components made of them.`,
     );
   }
   return type.slice(TYPE_PREFIX.length);
