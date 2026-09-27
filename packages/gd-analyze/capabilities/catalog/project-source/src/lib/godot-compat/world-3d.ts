@@ -16,6 +16,8 @@
 
 import { type Collider, EventQueue, type RigidBody, SolverFlags, type World } from '@dimforge/rapier3d-compat';
 import {
+  godot_collision_objects_broad_phase_built,
+  godot_collision_objects_broad_phase_stale,
   godot_collision_objects_collide,
   godot_collision_objects_declare,
   godot_collision_objects_hold_detached,
@@ -144,6 +146,28 @@ function syncSpace(host: GodotPhysicsHost, query = false): void {
     declaredRevision = revision;
   }
   godot_collision_objects_sync(host.world, query);
+  if (query && godot_collision_objects_broad_phase_stale()) buildBroadPhase(host.world);
+}
+
+/**
+ * Rapier builds its broad phase only inside a step: a step of zero length before a query puts the
+ * colliders made and the static objects placed since the last step in it, as GodotPhysics3D's
+ * shapes enter its broad phase when they are added or moved (`_update_shapes`,
+ * `godot_collision_object_3d.cpp:155`). Its events are dropped.
+ */
+function buildBroadPhase(world: World): void {
+  const events = new EventQueue(true);
+  const timestep = world.timestep;
+  world.timestep = 0;
+  world.step(events, {
+    filterContactPair: (c1: number, c2: number): SolverFlags | null => (godot_collision_objects_collide(c1, c2) ? SolverFlags.COMPUTE_IMPULSE : null),
+    filterIntersectionPair: (): boolean => true,
+  });
+  world.timestep = timestep;
+  events.drainCollisionEvents(() => {});
+  events.drainContactForceEvents(() => {});
+  events.free();
+  godot_collision_objects_broad_phase_built();
 }
 
 /**

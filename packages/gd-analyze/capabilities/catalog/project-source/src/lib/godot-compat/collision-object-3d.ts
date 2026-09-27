@@ -458,6 +458,7 @@ export function godot_collision_object_place(entity: object, global: Transform3D
   state.transform = global;
   state.inverse = affine_inverse(global);
   state.moved = true;
+  PLACED_IN_BROAD_PHASE.delete(entity);
   // A static body's or area's new transform updates its shapes at once (`_set_transform`,
   // `godot_collision_object_3d.h:86`).
   if (state.kind === 'static' || state.kind === 'area') updateShapes(state);
@@ -629,6 +630,8 @@ export function godot_collision_objects_sync(world: World, query = false): void 
 let space: World | undefined;
 /** Colliders made since the space last stepped: Rapier's broad phase does not hold them yet. */
 const UNSTEPPED = new Set<number>();
+/** Static objects moved since the last step whose pose a step of zero length has since put in the broad phase. */
+const PLACED_IN_BROAD_PHASE = new Set<object>();
 
 /**
  * The colliders whose bounds may meet the box from `min` to `max`, as Rapier's broad phase culls
@@ -661,7 +664,7 @@ export function godot_collision_objects_near(
     if (entity !== undefined) entities.add(entity);
   }
   for (const [entity, state] of OBJECT) {
-    if (state.kind === 'static' && !state.moved) continue;
+    if (state.kind === 'static' && (!state.moved || PLACED_IN_BROAD_PHASE.has(entity))) continue;
     entities.add(entity);
     for (const entry of state.colliders) if (entry.collider !== undefined) found.add(entry.collider.handle);
   }
@@ -863,6 +866,29 @@ function basisOf(q: { x: number; y: number; z: number; w: number }): Transform3D
 }
 
 /**
+ * Whether Rapier's broad phase lacks a collider made, or a static object placed, since it was built.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_collision_object_3d.cpp:155
+ */
+export function godot_collision_objects_broad_phase_stale(): boolean {
+  if (UNSTEPPED.size > 0) return true;
+  for (const [entity, state] of OBJECT) if (state.kind === 'static' && state.moved && !PLACED_IN_BROAD_PHASE.has(entity)) return true;
+  return false;
+}
+
+/**
+ * The broad phase built by a step that moved nothing: every collider is in it at its pose.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_collision_object_3d.cpp:155
+ */
+export function godot_collision_objects_broad_phase_built(): void {
+  UNSTEPPED.clear();
+  for (const [entity, state] of OBJECT) if (state.kind === 'static' && state.moved) PLACED_IN_BROAD_PHASE.add(entity);
+}
+
+/**
  * A rigid body's transform is Rapier's after the step (`GodotBody3D::integrate_velocities`,
  * `godot_body_3d.cpp:708`), read back as Godot's transform.
  *
@@ -872,6 +898,7 @@ function basisOf(q: { x: number; y: number; z: number; w: number }): Transform3D
 export function godot_collision_objects_read_rigid(): void {
   // The step put every collider in the broad phase.
   UNSTEPPED.clear();
+  PLACED_IN_BROAD_PHASE.clear();
   for (const state of OBJECT.values()) {
     if (state.kind !== 'rigid' || state.body === undefined) continue;
     const t = state.body.translation();
