@@ -334,7 +334,7 @@ const TEMPLATE_EXAMPLE = 'src/contributions/my-tool.document.tsx';
  * Every point a contribution module may declare — the whole vocabulary, and
  * the teaching error's own list, so the two cannot disagree.
  *
- * It must stay equal to `@volter/sdk`'s `ToolContributionPoint` union and to the
+ * It must stay equal to the SDK's `ToolContributionPoint` union and to the
  * server scan's `TOOL_CONTRIBUTION_SUFFIXES` (`server/server-utils.ts`): a
  * point the scan finds and this loader rejects is a module that loads,
  * teaching-errors, and mounts nowhere.
@@ -1512,7 +1512,7 @@ function clearProjectToolContributions(): void {
   publishToolContributions();
 }
 
-/** `@volter/game/contributions/x.ts` → `@volter/game`. */
+/** `@volter/editor-game/contributions/x.ts` → `@volter/editor-game`. */
 function packageNameOf(specifier: string): string {
   const parts = specifier.split('/');
   return specifier.startsWith('@') ? `${parts[0]}/${parts[1]}` : (parts[0] ?? specifier);

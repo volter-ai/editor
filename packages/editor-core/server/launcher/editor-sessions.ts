@@ -3,7 +3,7 @@
  * `packages/editor/server/session-registry.ts` (dev.ts registers on listen /
  * project switch, unregisters on shutdown); the FORMAT — entry shape,
  * guards, path, liveness-filtered read — lives once in
- * `@volter/sdk`'s `session-registry-format`, which this module and both SDK
+ * the session-registry format, which this module and both SDK
  * transports import instead of carrying copies.
  *
  * Every read is defensive: PID-liveness-filtered (crashed servers can't

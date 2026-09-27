@@ -247,7 +247,7 @@ export function ProjectHeader({
       <Inline className="volter-project-header-right" justify="end" align="center">
         {/* WHO IS IN THIS SESSION. A chrome slot, not a component: the host
             owns the place and a package owns what sits there
-            (`chrome-slot-registry.ts`). `@volter/collaboration` fills it; a
+            (`chrome-slot-registry.ts`). the collaboration package fills it; a
             build without that package renders nothing here, which is the
             honest answer for an editor nobody else is in. */}
         <ChromeSlot slot="header-trailing" />
@@ -309,7 +309,7 @@ function WorkspaceTabs() {
 
 /** The global transport cluster: whatever the project's packages contribute
  *  to the header (`@volter/editor-sdk/chrome`, `.header`) — the Play transport
- *  ships with `@volter/game`; a folder of models contributes nothing here. */
+ *  ships with `@volter/editor-game`; a folder of models contributes nothing here. */
 function ProjectTransport() {
   useSyncExternalStore(
     subscribeContributedChrome,

@@ -22,7 +22,7 @@
  * ## Why the registry is HERE and not in the editor
  *
  * Both sides of it are outside `packages/editor/src`: a view's verbs are
- * registered by the package that OWNS the view (`@volter/blender`'s node
+ * registered by the package that OWNS the view (`@volter/editor-blender`'s node
  * editor), and they are read by the fork's bridge. The editor host mediates
  * nothing, so a registry inside it would be a closure file with no reader of
  * its own — the same reasoning `registerEditorHost` follows one module over.

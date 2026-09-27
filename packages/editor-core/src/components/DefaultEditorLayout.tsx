@@ -86,7 +86,7 @@ export function DefaultEditorLayout() {
 
   return (
     <>
-      {/* Edit-time audio is `@volter/game`'s `edit-mode-audio.service.ts`: the
+      {/* Edit-time audio is `@volter/editor-game`'s `edit-mode-audio.service.ts`: the
           graph it installs is the engine's audio RUNTIME, and the shell used to
           import it for every project including one that plays nothing. */}
       {/* Edit-time networking config (declared server + authored identity) for a

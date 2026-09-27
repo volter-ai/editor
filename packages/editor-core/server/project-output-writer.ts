@@ -108,7 +108,7 @@ async function withGenerationBilling(
  * Project-relative, contained, and under one of the writable output roots —
  * `public/` (shipped game assets) or `references/` (reference material the
  * editor's Content panel indexes but no export copies). The root rule itself
- * lives in `@volter/sdk/output-roots` because provider boundaries enforce the
+ * lives in `@volter/editor-sdk/project/output-roots` because provider boundaries enforce the
  * same one; `isContainedRelativePath` stays here as the host's own escape
  * check, which knows about absolute Windows paths and NUL bytes.
  */

@@ -1,7 +1,7 @@
 /**
- * Packaged editor server — the entry a `@volter/editor` npm package resolves from a
+ * Packaged editor server — the entry a `@volter/editor-core` npm package resolves from a
  * PROJECT's own `node_modules`, with NO monorepo checkout on disk (Phase B; see
- * the phase plan's D-FORK decision + §0/§3 "the real work" for `@volter/editor`).
+ * the phase plan's D-FORK decision + §0/§3 "the real work" for `@volter/editor-core`).
  *
  * Run with:
  *   VOLTER_PROJECT=<projectDir> node dist-server/packaged.mjs
@@ -18,7 +18,7 @@
  *
  * This file is the second code path: it serves the editor's OWN
  * app as a PREBUILT static SPA (`../dist/`, produced by the workspace-local
- * `npm run build -w @volter/editor`) — no dev-mode transform of the editor's
+ * `npm run build -w @volter/editor-core`) — no dev-mode transform of the editor's
  * own source is needed, since a project author isn't hot-reloading the
  * editor's own UI — and boots a SEPARATE, PROJECT-ROOTED Vite instance
  * (`root: <project>`, `configFile: false`, middleware mode, HMR + watch
@@ -31,7 +31,7 @@
  * adapter conformance kit against an arbitrary external folder, adapted for
  * live editing (HMR/watch on) instead of a one-shot SSR run.
  *
- * The project's runtime packages — `@volter/project`, `@volter/threejs-runtime`
+ * The project's runtime packages — `@volter/editor-project`, `@volter/threejs-runtime`
  * and `@volter/game-runtime` — resolve to the PROJECT's own installed copies,
  * not copies baked into this package's tarball. A project pinning
  * `@volter/game-runtime@0.3.0` must be served ITS 0.3.0 source, so each is
@@ -98,7 +98,7 @@
  *
  * The deeper structural gap this file's two-graph design opens: the editor's
  * own `react`/`react-dom` are STATICALLY bundled into its prebuilt SPA
- * (`dist/`, built at `npm run build -w @volter/editor` time), while this
+ * (`dist/`, built at `npm run build -w @volter/editor-core` time), while this
  * project-rooted Vite instance resolves bare `react` from the PROJECT's own
  * `node_modules` — two React module instances on one page, reading different
  * internal singletons. `dev.ts` has no such split (ONE Vite + repo-root
@@ -268,7 +268,7 @@ import { setProductNames } from '@volter/editor-sdk/kit/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// This file lives directly under the `@volter/editor` package root either as
+// This file lives directly under the `@volter/editor-core` package root either as
 // `packages/editor/server/packaged.ts` (source, run via tsx) or as the
 // esbuild-bundled `packages/editor/dist-server/packaged.mjs` (`server/` and
 // `dist-server/` are BOTH direct children of the package root) — so
@@ -487,7 +487,7 @@ async function main(): Promise<void> {
   const editorRuntimeIncludes = computeEditorRuntimeIncludes(projectPath);
   const runtimeSourceCrawlEntries = computeRuntimeSourceCrawlEntries(runtimeSources);
   const unresolvableRuntimeImports = computeUnresolvableRuntimeImports(runtimeSources, projectPath);
-  // The skew packages the project declares (`@volter/editor-blender`, `@volter/game`): their
+  // The skew packages the project declares (`@volter/editor-blender`, `@volter/editor-game`): their
   // contributions are walked at boot the way the engine's source is, so the
   // dependencies they reach are prebundled instead of served raw — see
   // `computePackageContributionCrawlEntries`.

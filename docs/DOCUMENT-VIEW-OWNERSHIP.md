@@ -147,7 +147,7 @@ Measured from `editor-viewport.ts`, `StageHost.tsx`, `viewport-door.ts` and
 three, R3F, quarks or `@volter/editor-threejs`. Those 44 import 35 neutral kit
 modules, and 54 other kit modules import them.
 
-- **Licensing.** `editor-core` code is AGPL-3.0-only, imported from `@volter/editor`
+- **Licensing.** `editor-core` code is AGPL-3.0-only, imported from `@volter/editor-core`
   (`provenance/editor-host.json`), and `@volter/editor-sdk` is Apache-2.0. Kit
   modules therefore do not move into the SDK. The SDK gains contracts (new
   interfaces and host doors), and core implements them.

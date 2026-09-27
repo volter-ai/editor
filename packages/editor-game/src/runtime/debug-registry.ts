@@ -107,7 +107,7 @@ export interface DebugCtxSurface {
 
 /** Engine-local error for the debug seam — mirrors the `code` + `data` shape
  *  `packages/volter-sdk/src/errors.ts` uses (no import: the engine does not
- *  depend on `@volter/sdk`). `code` is always machine-readable; nothing reading
+ *  depend on the SDK). `code` is always machine-readable; nothing reading
  *  this error may key off `message` prose. */
 export class DebugError extends Error {
   readonly code: string;
@@ -200,7 +200,7 @@ export interface InputTraceSnapshot {
  *  (`runtime/game.ts`, D15/T-D15.3-.4) for full semantics. Named here (not
  *  re-declared per-caller) so the bridge (`runtime/debug-bridge.ts`), the
  *  editor relay (`command-listener.ts`'s `run-ticks` case), and
- *  `play.runTicks` (`@volter/sdk`) all reference the SAME type. */
+ *  `play.runTicks` (the SDK) all reference the SAME type. */
 export interface RunTicksOptions {
   /** `'last'` (default) — skip `preRender`/`render` for every tick except
    *  the final one. `'all'` — render every tick. `'none'` — never render,

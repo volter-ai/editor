@@ -1352,7 +1352,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     if (pathname.startsWith('/node_modules')) return next();
 
     // Serve the RAW manifest (no view synthesis — the browser-side adapter
-    // resolver parses it itself via the pure `@volter/project/manifest/load` half;
+    // resolver parses it itself via the pure `@volter/editor-project/manifest/load` half;
     // T3.3 slice 2 part C) from the project root, not public/. 404s (falls
     // through to `next()`, same as any other missing project-root file) for
     // folders without a valid manifest.

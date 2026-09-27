@@ -3,7 +3,7 @@
  *
  * ## The defect this closes (WORK.md P2, "Packaged shell loads three.js twice")
  *
- * Under the PACKAGED runtime (`server/packaged.ts`: a `@volter/editor` npm
+ * Under the PACKAGED runtime (`server/packaged.ts`: a `@volter/editor-core` npm
  * package with no monorepo checkout) the page runs two module graphs at once:
  *
  *  - the editor shell, a PREBUILT production bundle (`dist/assets/index-*.js`)

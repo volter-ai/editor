@@ -1,6 +1,6 @@
 /** The editor's OWN captured dock arrangements (Animate, Look), shared data used by
  * imported layout components. A package's workspace ships its own beside its
- * layout contribution (`@volter/blender`'s `model-arrangement.json`). */
+ * layout contribution (`@volter/editor-blender`'s `model-arrangement.json`). */
 
 /**
  * ONE EDITOR AREA of a workspace, and the document that fills it.

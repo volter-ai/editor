@@ -44,7 +44,7 @@ export const volterViewBackground = registerColor('volter.view.background',
  *
  * THE ROWS ARE THE PRODUCT'S, because the utility and the colour both are: the one row that
  * ever existed is the Blender node editor's `#1a1a1a` inside a `#303030` panel, contributed by
- * `@volter/blender` and themed by the model editor's own `theme-blender`. A product registers
+ * `@volter/editor-blender` and themed by the model editor's own `theme-blender`. A product registers
  * its colour id and its row at LOAD, which is when `registerColor` accepts one — the product's
  * contribution is imported above the kit's for exactly this kind of reason.
  */

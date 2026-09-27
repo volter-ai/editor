@@ -234,11 +234,11 @@ function browserStoryEntries(projectRoot: string): string[] {
  * The editor dynamic-imports a project's tool CONTRIBUTIONS (`src/contributions/
  * *.utility.tsx` cockpit cells, `*.document.tsx`, `*.inspector.tsx`, …) into
  * the browser, and those pull ordinary siblings (`src/tools/
- * dev-cockpit.utility.tsx` → `./tuning` → `@volter/sdk/tools`). None of that
+ * dev-cockpit.utility.tsx` → `./tuning` → `@volter/editor-sdk/tools/registry`). None of that
  * hangs off any `roots[].entry`, so scoping the crawl to world entries alone
- * left `@volter/sdk/tools` undiscovered until the first cockpit mount —
+ * left `@volter/editor-sdk/tools/registry` undiscovered until the first cockpit mount —
  * measured 2026-08-09 on a live session: "✨ new dependencies optimized:
- * @volter/sdk/tools" → "optimized dependencies changed. reloading", a full
+ * @volter/editor-sdk/tools/registry" → "optimized dependencies changed. reloading", a full
  * editor reload minutes into authoring, which dropped the in-flight play
  * command (the exact class the C3 entries-scoping exists to prevent).
  *
@@ -319,7 +319,7 @@ function browserToolEntries(projectRoot: string): string[] {
  *
  * The specials come from the ROOT segment of the path, not from the parts this
  * module builds, so spelling every under-root entry root-RELATIVE removes them
- * from the string Vite tests: `resolve(root, 'node_modules/@volter/project/src/
+ * from the string Vite tests: `resolve(root, 'node_modules/@volter/editor-project/src/
  * loader.ts')` is the same file with no pattern syntax in the entry at all.
  * Entries outside the Vite root (the dev server's project entries) keep their
  * absolute spelling — Vite accepts absolute non-glob entries — because a
@@ -715,7 +715,7 @@ export function computeUnresolvableRuntimeImports(
 /**
  * A PACKAGE's contributions, as crawl entries (WORKBENCH.md §Package or copy;
  * ARCHITECTURE-CORE §The universal editor). On a real install a skew package
- * (`@volter/editor-blender`, `@volter/game`) sits under the project's `node_modules`, and
+ * (`@volter/editor-blender`, `@volter/editor-game`) sits under the project's `node_modules`, and
  * the editor imports its `package.json#volter.contributions` modules by
  * absolute path. Vite's scanner never walks a graph that starts under
  * `node_modules`, so every bare import those modules reach — the mesh kit's

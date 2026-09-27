@@ -8,14 +8,14 @@
  * name the packages they mount, in TypeScript, and each name is spelled as an
  * import of this virtual module:
  *
- *   import blender from 'volter:contributions/@volter/blender';
+ *   import blender from 'volter:contributions/@volter/editor-blender';
  *
  * whose body this plugin synthesizes from that package's own
  * `package.json#volter.contributions`:
  *
  *   export default [
- *     { entryPath: '@volter/blender/contributions/blender.command.ts',
- *       load: () => import('@volter/blender/contributions/blender.command') },
+ *     { entryPath: '@volter/editor-blender/contributions/blender.command.ts',
+ *       load: () => import('@volter/editor-blender/contributions/blender.command') },
  *     …
  *   ];
  *

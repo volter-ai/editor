@@ -36,7 +36,7 @@ export const LOCAL_ASSET_LIBRARY_ROOT_ENV = 'VOLTER_ASSET_LIBRARY_ROOT';
  * Existence is checked once, here, so callers get an honest `null` instead of
  * a path that only resolves in one realm.
  *
- * The 20 MB index is deliberately NOT shipped in `@volter/editor`'s `files`: it
+ * The 20 MB index is deliberately NOT shipped in `@volter/editor-core`'s `files`: it
  * indexes ~34k assets whose BYTES live on that SSD, so a registry install that
  * carried the index would still be unable to deliver a single one of them. The
  * cloud-hosted slice is the non-checkout answer (`cloud-asset-library`).

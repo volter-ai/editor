@@ -103,7 +103,7 @@ export interface EditorWorkspaceDescriptor {
 
 /**
  * The workspaces EVERY project gets — the host's own. Every other workspace is
- * a package's `workspace.layout` contribution (Game ships with `@volter/game`;
+ * a package's `workspace.layout` contribution (Game ships with `@volter/editor-game`;
  * Model, Sculpt and Texture with `@volter/editor-blender`), registered through
  * {@link registerContributedWorkspace} and listed by {@link editorWorkspaces}.
  * Animate and Design stay here until their packages exist (WORK.md §The

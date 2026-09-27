@@ -422,7 +422,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   // This terminal is the one an agent DOES watch — it is where save-validation
   // failures appear — so the same banners ride the save event that is already
   // being handled a few lines below. Deliberately not a timer and not a new
-  // watcher: no event, no reads. `@volter/sdk/build-discipline` owns every word
+  // watcher: no event, no reads. editor-core's `server/support/project/build-discipline.ts` owns every word
   // and every threshold; this is only a channel.
   let cadenceGate: TripwireGate = IDLE_TRIPWIRE_GATE;
   let unplayedGate: TripwireGate = IDLE_TRIPWIRE_GATE;

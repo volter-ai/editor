@@ -3,7 +3,7 @@
  *
  * ## The defect this closes
  *
- * Under the PACKAGED runtime (`server/packaged.ts`: a `@volter/editor` npm
+ * Under the PACKAGED runtime (`server/packaged.ts`: a `@volter/editor-core` npm
  * package with no monorepo checkout) the page runs two module graphs at once:
  *
  *  - the editor shell, a PREBUILT production bundle (`dist/assets/index-*.js`)
@@ -481,7 +481,7 @@ const reportedCommonJs = new Set<string>();
 export interface SharedReactScope {
   /** Specifier → built chunk URL (see {@link sharedReactUrls}). */
   urls: Record<string, string>;
-  /** The installed `@volter/editor` package root — its `src/` is `@editor/*`. */
+  /** The installed `@volter/editor-core` package root — its `src/` is `@editor/*`. */
   editorPackageRoot: string;
   /** Every open project root, live (the same getter the sibling plugins take). */
   projectRoots: () => Set<string>;

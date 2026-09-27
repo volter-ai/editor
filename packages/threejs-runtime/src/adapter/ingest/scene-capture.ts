@@ -111,7 +111,7 @@ export interface SceneCaptureOptions {
    * Identity, not shape, is the discriminator: a host renderer and a game
    * renderer are the same class, both built after install, both drawing real
    * scenes. The host is the only party that knows which is which, so it says
-   * so (`@volter/threejs/viewport/renderer-ownership`).
+   * so (`@volter/editor-threejs/viewport/renderer-ownership`).
    */
   isHostRenderer?: (renderer: unknown) => boolean;
   /**

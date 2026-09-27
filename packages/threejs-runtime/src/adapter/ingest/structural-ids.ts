@@ -28,7 +28,7 @@ export const CAMERA_ID = 'ingest:camera';
 /**
  * The editor parks its OWN objects — grid, its two lights, the particle
  * BatchedRenderer, every TransformControls/gizmo helper — on layer 31
- * (`@volter/threejs/viewport/editor-layers`'s `EDITOR_LAYER`) so the game camera
+ * (`@volter/editor-threejs/viewport/editor-layers`'s `EDITOR_LAYER`) so the game camera
  * never sees them. On an ingest root those objects are added to the GAME'S OWN
  * scene, which is the same tree this walk indexes.
  */

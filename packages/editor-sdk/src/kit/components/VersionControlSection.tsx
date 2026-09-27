@@ -4,7 +4,7 @@
  *
  * `components/ShareSessionPanel.tsx` rendered TWO unrelated surfaces out of
  * one 850-line function: share invitations, roles and tunnel health (the
- * collaboration lane's, and now `@volter/collaboration`'s `ShareAccessSection`)
+ * collaboration lane's, and now the collaboration package's `ShareAccessSection`)
  * and this one — status, stage, checkpoint, publish, pull request. Only this
  * half had a host caller (`components/WorktreeSwitcher.tsx`), and moving a
  * project's changes into another checkout is the worktree board's job whether

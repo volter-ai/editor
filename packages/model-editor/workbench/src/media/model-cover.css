@@ -5,7 +5,7 @@
    stylesheet may: the cover paints BEFORE `theme-blender` is registered — the web workbench's
    first frame is the page config's `initialColorTheme`, not an extension's — so a splash
    written against `--vscode-*` would be the workbench's default dark for exactly the seconds
-   it exists, instead of Blender's. Every value here is `@volter/blender`'s own traced
+   it exists, instead of Blender's. Every value here is `@volter/editor-blender`'s own traced
    `blender.palette.json`, named beside it:
 
      #161616  theme.color.surface.shell        the window's outermost band

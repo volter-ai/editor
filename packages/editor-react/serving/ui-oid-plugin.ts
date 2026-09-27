@@ -176,7 +176,7 @@ const VENDORED_GAME_SRC_RE = /\/vendor\/games\/[^/]+\//;
  *  Defensive against
  *  any shape (never trusts the manifest is even an object) — this is a
  *  best-effort identity probe for a WRITE-BACK BAN, not manifest validation
- *  (the real Zod schema/loader is `@volter/project/manifest/load`, not reachable
+ *  (the real Zod schema/loader is `@volter/editor-project/manifest/load`, not reachable
  *  from this vite-config-time, dependency-light file by design). */
 function manifestDeclaresIngestReactWorld(parsed: unknown): boolean {
   if (!parsed || typeof parsed !== 'object') return false;

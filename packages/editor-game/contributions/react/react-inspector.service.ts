@@ -62,7 +62,7 @@
  * the DOM projection and the CSS inspection estate
  * (`components/RootSelectionOverlay.tsx`); the surgical JSX writer and the
  * structural write pipe (`authoring/r3f-source-authoring-adapter.ts`,
- * `@volter/canvas/pixi-source-write-target.ts`); the breakpoint state
+ * `@volter/editor-game`'s `src/host/authoring/pixi-source-write-target.ts`); the breakpoint state
  * (`components/BoardRulers.tsx`); `authoring/react-story-board.ts`, the
  * board's geometry, which three host surfaces read
  * (`components/RootSelectionOverlay.tsx:98`,

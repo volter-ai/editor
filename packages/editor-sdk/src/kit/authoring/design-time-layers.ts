@@ -28,7 +28,7 @@
  * failure/teardown/play lifecycle was "the SAME for both media", and it
  * hard-coded each medium's staleness rule besides (canvas remounted on a
  * storage write, dom re-projected on a story publish). The contract is the
- * seam; `@volter/dom` and `@volter/canvas` register against it now, and the play
+ * seam; `@volter/editor-game`'s react and canvas lanes register against it now, and the play
  * handoff below tears every layer down and restores its Boundary node the
  * instant play starts exactly as it always did — which is why the LIFECYCLE
  * stays here rather than moving with either mount.
@@ -79,7 +79,7 @@ import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
  * project + root so equal root ids in different projects never bleed.
  *
  * IT IS STILL HERE, and it is the one lane word this module has left: the
- * board's mount lives in `@volter/dom` now, but `components/world-documents.tsx`
+ * board's mount lives in `@volter/editor-game` now, but `components/world-documents.tsx`
  * reads the remembered frame for the UI board document's `presentation()`
  * round-trip, and the host may not import a package. Closing it is the
  * world-documents unit's, which is where the rest of that file's `dom`/

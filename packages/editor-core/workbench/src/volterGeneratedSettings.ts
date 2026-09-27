@@ -4,7 +4,7 @@
  *  Every volter settings key, as the `configuration` contribution VS Code's Settings editor
  *  reads. Derived from `packages/project/schemas/volter-settings.schema.json`, which
  *  `npm run generate-schema` writes from the Zod settings document and
- *  `@volter/project/settings/keys` walks at runtime — so the keys the editor READS and the keys
+ *  `@volter/editor-project/settings/keys` walks at runtime — so the keys the editor READS and the keys
  *  a person can SEE are one derivation, not two lists.
  *
  *  SCOPE is WINDOW for every key: the layers are the person's (USER) and the project's

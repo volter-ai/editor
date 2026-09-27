@@ -4,7 +4,7 @@
  * sources and are GPL-2.0-or-later artwork (see "GPL PATHS, DELIBERATELY"
  * below, `blender-icon-trace.mjs`, and the provenance file
  * `blender.icons.traced.json`); the other 149 are drawn HERE in Blender's
- * IDIOM. That mixture is why `@volter/blender` is
+ * IDIOM. That mixture is why `@volter/editor-blender` is
  * `AGPL-3.0-only AND GPL-3.0-or-later` (`packages/blender/LICENSE`).
  * The idiom is what a screenshot conveys: a 16-unit grid, monochrome filled
  * silhouettes, ~1.3-unit strokes rendered as filled capsules with round ends,
@@ -2752,7 +2752,7 @@ g(
     dataVertex(10, 20),
 );
 
-// The Outliner's DATABLOCK row (`@volter/blender`'s datablock hierarchy) —
+// The Outliner's DATABLOCK row (`@volter/editor-blender`'s datablock hierarchy) —
 // the same MESH_DATA mark the Properties rail's Data tab draws, under its own
 // name because the two sites composite differently: `outliner.png`'s data
 // glyph is #07b189 over the row's #272727 and `properties-object.png`'s tab is
@@ -2783,7 +2783,7 @@ g('outliner-data', glyphs['properties-data'].path);
  * justify one shape.
  *
  * GPL PATHS, DELIBERATELY — AND THE PACKAGE'S SPDX SAYS SO. Blender's icon
- * sources are GPL-2.0-or-later, and `@volter/blender` is
+ * sources are GPL-2.0-or-later, and `@volter/editor-blender` is
  * `AGPL-3.0-only AND GPL-3.0-or-later` (`packages/blender/LICENSE`, whose
  * notice block names this set, its provenance file and the §13 combination):
  * our code is AGPL, these 197 paths are Blender's artwork conveyed as GPL-3.0,

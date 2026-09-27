@@ -72,7 +72,7 @@ export interface HelperVisibility {
   skeletons: boolean;
   /**
    * The WEIGHT display — a mesh coloured by its active vertex group
-   * (`@volter/blender`'s `blender-runtime-weights.ts`). Added 2026-09-19 (I4)
+   * (`@volter/editor-blender`'s `blender-runtime-weights.ts`). Added 2026-09-19 (I4)
    * because nothing in this set stood for it: `skeletons` is the bones, and
    * Blender's own viewport overlay has a Bones checkbox but reaches weight
    * colours through Weight Paint MODE, which an inspection surface has no

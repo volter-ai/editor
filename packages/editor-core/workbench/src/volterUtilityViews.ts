@@ -11,7 +11,7 @@
  *  dragged to the sidebar or a second group like any other view, which the dock never allowed.
  *
  *  WHY THE SET IS DYNAMIC. Which utilities exist is a fact about the OPEN PROJECT's packages —
- *  `@volter/blender` contributes the node editor, `@volter/game` the Profiler and State Watch,
+ *  `@volter/editor-blender` contributes the node editor, `@volter/editor-game` the Profiler and State Watch,
  *  Network exists only while a live session exposes a networking adapter. So the views are
  *  registered from the editor's live registry and re-registered when it changes, the same way
  *  `volterCommands.ts` publishes the palette. `registerViews`/`deregisterViews` is the workbench's

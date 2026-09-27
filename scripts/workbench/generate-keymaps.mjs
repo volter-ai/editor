@@ -16,7 +16,7 @@
  *  WHAT IT READS, and why THIS way. Three files of the volter-engine checkout it is pointed at:
  *
  *    packages/editor-sdk/src/kit/keymap-presets.ts        the `volter` table — the editor's own chords
- *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@volter/blender`'s G/R/S)
+ *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@volter/editor-blender`'s G/R/S)
  *    packages/editor-sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
  *  It reads them STATICALLY, with the TypeScript compiler API, rather than importing them

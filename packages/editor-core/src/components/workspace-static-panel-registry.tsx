@@ -48,7 +48,7 @@ const CONTENT_BY_KIND: Readonly<
   hierarchy: GameHierarchy,
   assets: ({ dependencies }) => <AssetBrowser services={dependencies?.assets} />,
   // The LIBRARY panel's place is the host's; its surface is not. Browsing an
-  // external provider's catalog is `@volter/asset-library`, filling the
+  // external provider's catalog is the asset-library package, filling the
   // `panel:asset-library` chrome slot (`chrome-slot-registry.ts`) exactly as
   // the `agent` row above does; a build without that package — the
   // open-source core+Blender cut — shows an empty panel rather than an

@@ -11,7 +11,7 @@
  * The cells JOIN: square inner corners and a shared border, so the group is
  * one widget with one cell lit rather than four boxes with daylight between
  * them. Transcribed from the sibling group in this same header
- * (`@volter/blender`'s select-mode cells), whose own comment records why. */
+ * (`@volter/editor-blender`'s select-mode cells), whose own comment records why. */
 .volter-viewport-shading-segments {
   display: inline-flex;
 }

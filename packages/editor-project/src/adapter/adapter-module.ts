@@ -802,7 +802,7 @@ export interface AdapterEditorConfiguration {
 
   /**
    * The project's LOOK, imported from the package that carries it
-   * (`@volter/blender`'s `blenderStyle`). Palette, material, icon set and chrome
+   * (`@volter/editor-blender`'s `blenderStyle`). Palette, material, icon set and chrome
    * regions in one object — the same `StyleContribution` the package's
    * `workspace.style` contribution registers, named here as the project's
    * choice. Beneath a person's own settings and above their cross-project

@@ -313,7 +313,7 @@
    `.volter-field-trigger` is deliberately NOT in this list: it is a LAYOUT
    class (full width, mono, left-aligned) and two of its three users are
    genuine select-like triggers while the third
-   (`@volter/dom/react-inspector-section.tsx`'s "No gradient — click to add")
+   (`@volter/editor-game`'s `src/react/react-inspector-section.tsx`'s "No gradient — click to add")
    is a plain action that opens nothing. Paint follows what the control DOES,
    which the ARIA already states.
 

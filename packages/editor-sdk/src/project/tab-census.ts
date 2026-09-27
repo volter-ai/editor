@@ -9,21 +9,19 @@
  * system recovers from perfectly and would otherwise leave unexplained — has a
  * number beside it. MEASUREMENT ONLY: nothing anywhere enforces a budget from
  * these. The page-side sampler and its `why` are
- * `packages/editor/src/tab-census.ts`.
+ * `packages/editor-sdk/src/kit/tab-census.ts`.
  *
- * WHY IT LIVES HERE. This one shape crosses four compilation units — the page
- * that samples it (`@volter/editor`'s browser bundle), the editor server that
- * files it (`@volter/editor`'s node half), the editor-extension surface that
- * describes the status response (`@volter/editor-sdk`), and the session journal
- * plus the CLI row that print it (`@volter/sdk`, `@volter/cli`). Each of them used
- * to spell the seven fields out again. `@volter/sdk` is the only package all four
- * already depend on: `@volter/editor-sdk` depends on `@volter/sdk` and `@volter/editor`
- * depends on both, so this cannot live in `@volter/editor-sdk` without a cycle —
- * and it does not belong in `@volter/game-runtime`, whose subject is a running game,
- * not an editor session's tabs.
+ * WHY IT LIVES HERE. This one shape crosses every compilation unit that speaks
+ * it — the page that samples it (`@volter/editor-sdk`'s kit), the editor server
+ * that files it and the session journal that prints it (`@volter/editor-core`'s
+ * node half), and the extension surface that describes the status response
+ * (`@volter/editor-sdk`'s types). `@volter/editor-sdk` is the one package all of
+ * them depend on. It does not belong in `@volter/game-runtime`, whose subject is
+ * a running game, not an editor session's tabs.
  *
- * Deliberately import-free so a browser bundle can take it: the census's other
- * `@volter/sdk` home, `project/session-journal.ts`, reads `node:fs`.
+ * Deliberately import-free so a browser bundle can take it: the census's
+ * journal, `editor-core/server/support/project/session-journal.ts`, reads
+ * `node:fs`.
  *
  * WHAT ELSE RIDES IT. The beat is the one channel that still moves when the
  * page's main thread or a lane's worker is blocked, so `workerCalls` — how long

@@ -194,7 +194,7 @@ export interface EditorEnvelopeObservation {
 /**
  * The GAME DEBUG PLANE, as a contribution's client sees it.
  *
- * Deliberately the same two words `@volter/live`'s session binding uses
+ * Deliberately the same two words `@volter/editor-live`'s session binding uses
  * (`game.state(name)` / `game.command(name, ...args)`), because it is the same
  * plane: whatever the running game registered through `ctx.debug` — a provider
  * read by name, a command invoked by name. A tool contribution that wants the
@@ -450,7 +450,7 @@ export class EditorClient {
    *  query engine. Omitted, the filename keeps its exact unnamed shape. */
   /*  `opts.record` (the editor's `play --record <name>` command) — NAMES this run's recording
    *  file. It does not ENABLE recording: every relayed play records, with no
-   *  flag (see `@volter/game`'s `src/play/play-recording.ts`). Omitted, the clip is named for
+   *  flag (see `@volter/editor-game`'s `src/play/play-recording.ts`). Omitted, the clip is named for
    *  the durable Gameplay Session; named, it becomes an explicit keepsake in
    *  `.volter/recordings/<name>.webm`. */
   async play(opts?: {
@@ -587,7 +587,7 @@ export class EditorClient {
   /**
    * Unit 4 (live-front-door wave) — capture the RUNNING GAME (the editor's
    * `screenshot`'s wire leg). Sends the SAME `bridge-screenshot` relay op
-   * `@volter/live`'s `RelayTransport.screenshot` (and therefore
+   * `@volter/game-live`'s `RelayTransport.screenshot` (and therefore
    * `game.screenshot()` on the relay path) already sends, so all three
    * surfaces composite the identical full game stack — canvas(es) plus the
    * HUD/react DOM layers — rather than any of them inventing a second,
@@ -605,7 +605,7 @@ export class EditorClient {
    * refuses it with `BRIDGE_SCREENSHOT_STALE` rather than pass it off as
    * current. Setting this asks the relay to render exactly ONE deterministic
    * tick (`runTicks(1, {render:'last'})`) first — the same escape
-   * `@volter/live`'s `RelayTransport.screenshot` has always used, which is why
+   * `@volter/game-live`'s `RelayTransport.screenshot` has always used, which is why
    * the editor's `eval` command could recover these frames while the editor's `screenshot` command could not.
    * Off by default: a caller who does not ask must never be handed a frame
    * that only exists because the capture drove the game.

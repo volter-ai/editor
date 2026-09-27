@@ -647,7 +647,7 @@ export function registerEditorShellHotkeys(
         // (the `when` above), so it is the deselect it always was; under the frame
         // it is also the Escape that ends a run, through the registry every lane
         // registers into — the same door `stop` reaches, never play-mode by name
-        // (the editor does not import `@volter/game`).
+        // (the editor does not import `@volter/editor-game`).
         if (store.playState !== 'stopped') {
           stopAllLiveSessions();
           return;

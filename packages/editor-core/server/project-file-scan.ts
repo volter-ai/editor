@@ -47,7 +47,7 @@ export function readRunningEngineVersion(engineRoot: string): string | null {
       // Try the next supported checkout/installed-package layout.
     }
   }
-  // Packaged mode passes the installed `@volter/editor` package as engineRoot.
+  // Packaged mode passes the installed `@volter/editor-core` package as engineRoot.
   // npm/pnpm may hoist its runtime-package dependencies to the PROJECT's
   // node_modules, outside both candidates above; reading that project copy
   // would merely echo the manifest pin and make every mismatch look healthy.

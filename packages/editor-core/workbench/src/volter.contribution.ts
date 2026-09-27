@@ -822,7 +822,7 @@ for (const { id, wholeGroup } of [
  * door.
  *
  * WHAT DECIDES: the open folder carries a `volter.project.json`. That file is the
- * project's own statement that it IS one (`@volter/project`'s manifest is spelled
+ * project's own statement that it IS one (`@volter/editor-project`'s manifest is spelled
  * in exactly one place and this is its name), so a folder that is not a volter
  * project opens as an ordinary workbench and nothing of ours runs.
  *

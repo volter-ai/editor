@@ -21,7 +21,7 @@
  * + `threejs-runtime` + `game-runtime`) returning `null` on every source
  * checkout in the estate, because its first line asked for
  * `packages/engine/package.json` and that package no longer exists — measured
- * with the five links present AND with `@volter/project`'s link deleted, both
+ * with the five links present AND with `@volter/editor-project`'s link deleted, both
  * `null`. A guard that can be switched off by a rename is not a guard, so the
  * question it asks is now the monorepo's own self-description.
  */

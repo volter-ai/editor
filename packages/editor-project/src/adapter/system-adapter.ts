@@ -754,7 +754,7 @@ export interface DebugCommandInfo {
  * over whatever a game registers via `ctx.debug`
  * (`registerStateProvider`/`registerCommand`/`emit`). NOT a gameplay API —
  * this is the one seam the debug bridge, the editor's Debug Console/State
- * Watch panels, and `@volter/live` all read/drive through.
+ * Watch panels, and `@volter/game-live` all read/drive through.
  */
 export interface DebugAdapter {
   providers(): { name: string; tier: 'observable' | 'assisted' }[];

@@ -2,7 +2,7 @@
  * Editor session registry — the file-backed ledger of live editor dev servers.
  * This module is the WRITER (dev.ts registers on listen, re-registers on
  * project switch, unregisters on shutdown). The FORMAT — entry shape, guards,
- * path, liveness-filtered read — lives once in `@volter/sdk`'s
+ * path, liveness-filtered read — lives once in the SDK's
  * `session-registry-format`, imported by every reader (this file, the CLI,
  * and both SDK transports) instead of copied.
  *

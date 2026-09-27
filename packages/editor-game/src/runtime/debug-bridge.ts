@@ -7,7 +7,7 @@
  * boot still only ever gets a handle when the gate below actually passes).
  *
  * D17: this is door (a) of the seam's three doors — the SAME `DebugAdapter`
- * names/JSON the editor relay (door b) and `@volter/live` (door c, which
+ * names/JSON the editor relay (door b) and `@volter/game-live` (door c, which
  * drives door (a) itself over Playwright) all read. D18: the bridge installs
  * only when the page opts in (`?volter-debug=1`) AND is either a dev build
  * (`import.meta.env.DEV`) or the project's manifest explicitly opts a
@@ -148,7 +148,7 @@ export interface VolterDebugHandle {
    * (`DebugRegistry.registerWorldSettledProbe`, declared by the game's `debug.settled` entry
    * export) — so a tick never races a scene remount's async commit, and WHICH tick first runs
    * a freshly reloaded world is a function of the sim rather than wall timing. Session tick
-   * drivers (`@volter/live`'s fastForward) prefer this door; with no probe registered it behaves
+   * drivers (`@volter/game-live`'s fastForward) prefer this door; with no probe registered it behaves
    * exactly like {@link runTicks}. Bounded: throws `WORLD_UNSETTLED_TIMEOUT` if a probe never
    * settles.
    */
@@ -159,7 +159,7 @@ export interface VolterDebugHandle {
    * this is the honest human-input-path proof) → `input.clearVirtualActions()`
    * into ONE async bridge call, as a TOP-LEVEL method (not under `input`)
    * because it needs the sim clock, not just the input target. Was 15+
-   * transport round trips over the editor relay (`@volter/live`'s old
+   * transport round trips over the editor relay (`@volter/game-live`'s old
    * `GameInput.hold`: set → a 150ms-interval `waitSimTime` snapshot poll loop
    * → clear); now one `page.evaluate`/relay call that runs the wait
    * in-process on the page.
@@ -231,13 +231,13 @@ export interface MaybeInstallDebugBridgeOptions {
 const PAGE_ERROR_CAP = 100;
 
 /** `holdFor`'s in-process poll interval — this loop never leaves the page
- *  (no transport round trip per poll, unlike `@volter/live`'s old
+ *  (no transport round trip per poll, unlike `@volter/game-live`'s old
  *  `waitSimTime`), so it can afford to be tighter than that loop's 150ms. */
 const HOLD_FOR_POLL_MS = 50;
 
 /** Consecutive `HOLD_FOR_POLL_MS` polls with the tick unchanged before
  *  `holdFor` gives up waiting and treats the game as stopped — mirrors
- *  `@volter/live`'s `WAIT_FOR_STALL_POLL_LIMIT` reasoning (`wait-for.ts`:
+ *  `@volter/game-live`'s `WAIT_FOR_STALL_POLL_LIMIT` reasoning (`wait-for.ts`:
  *  a genuinely frozen sim clock must never poll forever), scaled to this
  *  faster in-process interval so the wall-clock grace period (~5s) lands in
  *  the same neighborhood. */

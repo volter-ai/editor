@@ -7,7 +7,7 @@
  * into another checkout is what the worktree board does whether or not a
  * session is shared, and the only surface that ever called these is
  * `components/VersionControlSection.tsx`. The SHARE half of that file is the
- * collaboration lane's and lives in `@volter/collaboration`.
+ * collaboration lane's and lives in the collaboration package.
  *
  * The status shape is declared ONCE, in `api/git-wire.ts`, which the editor
  * server and the `volter` CLI read too.

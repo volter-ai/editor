@@ -23,7 +23,7 @@ point down.
 | Package | What it is |
 | --- | --- |
 | `@volter/game-editor` | The second product: entry composing `@volter/editor-game` and `@volter/editor-blender`, the `volter-game-editor` CLI (kit session verbs plus `play`, `stop`, `restart`, `add`/`remove`/`outdated`, `blender-mcp`), `create` with the game/prototype/full/website/empty presets, the template and capability catalog, its workbench half |
-| `@volter/editor-game` | The game side: volter's `@volter/game` (`src/`), `@volter/dom` (`src/react/`), `@volter/threejs` authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
+| `@volter/editor-game` | The game side: the predecessor's game package (`src/`), its DOM package (`src/react/`), its three.js authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
 | `@volter/game-live` | The game client over a session: `game`, `page`, recording; `eval` scope and tester scripts |
 | `@volter/game-runtime`, `@volter/threejs-runtime` | The Apache twins a shipped game carries |
 

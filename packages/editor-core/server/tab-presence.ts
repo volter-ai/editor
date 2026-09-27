@@ -90,7 +90,7 @@ export type TabSurface = 'editor' | 'vscode';
 
 /**
  * THE RESOURCE CENSUS — what the tab was holding, sampled by the page and
- * carried on the beat. Declared in `@volter/sdk/tab-census` (the one package
+ * carried on the beat. Declared in `@volter/editor-sdk/project/tab-census` (the one package
  * every unit that speaks this shape already depends on) and re-exported here,
  * because this file is where the server's readers look for it.
  *

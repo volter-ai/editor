@@ -11,7 +11,7 @@
  * install runs (`server/packaged.ts`), which
  * registers `uiOidPlugin()` and genuinely serves `/__ui-source/*` — while the
  * editor shell it serves is a PRODUCTION build, so `import.meta.env.DEV` is
- * `false` there. Net effect on every `npm i @volter/editor` install: gizmo and
+ * `false` there. Net effect on every `npm i @volter/editor-core` install: gizmo and
  * inspector edits mounted, applied to the running object, and were silently
  * discarded, because the recorder was reachable and nobody asked it.
  *

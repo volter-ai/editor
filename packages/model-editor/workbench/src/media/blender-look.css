@@ -1,7 +1,7 @@
 /* THE MODEL EDITOR'S LOOK — what a COLOR THEME cannot reach in Blender's, measured 2026-09-19:
    chrome typography, widget corner radii, and the uppercase section headers. A skin layer the
    workbench does not expose to extensions; the product's overlaid contribution imports it as
-   one stylesheet. Values from `@volter/blender`'s `blender.style.ts` (4px corners, 11-12px type)
+   one stylesheet. Values from `@volter/editor-blender`'s `blender.style.ts` (4px corners, 11-12px type)
    and `blender.palette.json`'s typography.
 
    The KIT's part-hosting rules are NOT here — they are `packages/editor-core/workbench/src/media/
