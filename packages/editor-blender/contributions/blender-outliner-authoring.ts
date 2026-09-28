@@ -220,6 +220,31 @@ export interface BlenderOutlinerHandle {
 const liveOutliners = new Set<BlenderOutlinerHandle>();
 
 /**
+ * A HANDLE ARRIVING IS NEWS. A header drawn before its document's stage made an Outliner has no
+ * subject and draws nothing; the tree's own version does not move when a handle registers, so
+ * without this it stayed empty until the next edit (measured: a cold load showed no View, Select,
+ * Add or Object until a script changed the tree). Notified on the next turn, never inside the
+ * render that made the handle.
+ */
+let liveOutlinersVersion = 0;
+const liveOutlinerListeners = new Set<() => void>();
+function liveOutlinersChanged(): void {
+  queueMicrotask(() => {
+    liveOutlinersVersion++;
+    for (const listener of liveOutlinerListeners) listener();
+  });
+}
+export function subscribeBlenderOutlinerHandles(listener: () => void): () => void {
+  liveOutlinerListeners.add(listener);
+  return () => {
+    liveOutlinerListeners.delete(listener);
+  };
+}
+export function blenderOutlinerHandlesVersion(): number {
+  return liveOutlinersVersion;
+}
+
+/**
  * The Outliner handle for a document, for the header that draws over it: the one its own stage
  * made (a stage's adapter names its document `object3d-document:<id>`).
  *
@@ -1754,6 +1779,7 @@ export function blenderOutlinerAuthoringFor(
     },
   };
   liveOutliners.add(handle);
+  liveOutlinersChanged();
 
   // THE ENGINE'S SELECTION ARRIVES ON ITS OWN, and this is what listens for
   // it: a frame (every present carries `selected`/`active`) and a tree read
@@ -1773,6 +1799,7 @@ export function blenderOutlinerAuthoringFor(
       stopEngineFrames();
       stopEngineTree();
       liveOutliners.delete(handle);
+      liveOutlinersChanged();
       listeners.clear();
     },
   };
