@@ -153,7 +153,7 @@ export function move_and_slide(owner: object): boolean {
   const to = { x: from.x + moved.x, y: from.y + moved.y, z: from.z + moved.z };
   body.setNextKinematicTranslation(to);
   // The node is where it moved at once, through its global transform (`set_global_transform`,
-  // physics_body_3d.cpp:159), so a top-level body and the node's observers see it as Godot's do.
+  // physics_body_3d.cpp:161), so a top-level body and the node's observers see it as Godot's do.
   set_global_position(self as Object3D, vector3(to.x, to.y, to.z));
   // A character moving away from the floor is not on it, whatever the controller's snap reports.
   const rising = dot(state.velocity, state.up_direction) > 0;

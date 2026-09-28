@@ -192,19 +192,22 @@ const position = new ThreeVector3();
 const rotation = new Quaternion();
 const scale = new ThreeVector3();
 
-// A script that places a node with a body places its body (`set_global_transform` on a
-// RigidBody3D or CharacterBody3D teleports it, `rigid_body_3d.cpp:170`).
+// A script that places a node with a body places its body: a dynamic body is teleported
+// (`rigid_body_3d.cpp:170`), a kinematic one (a CharacterBody3D, an AnimatableBody3D) moves there
+// over the next step, keeping the velocity that carries what rests on it (`GodotBody3D::set_state`,
+// godot_body_3d.cpp:354).
 godot_node_3d_observe_local((object) => {
   const body = context === undefined ? undefined : godot_collision_object_body(object);
   if (body === undefined) return;
   object.updateWorldMatrix(true, false);
   object.matrixWorld.decompose(position, rotation, scale);
-  body.setTranslation(position, true);
-  body.setRotation(rotation, true);
   if (body.isKinematic()) {
     body.setNextKinematicTranslation(position);
     body.setNextKinematicRotation(rotation);
+    return;
   }
+  body.setTranslation(position, true);
+  body.setRotation(rotation, true);
 });
 
 interface Layers {

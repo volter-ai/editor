@@ -19,6 +19,7 @@
  *   diffuse modes, toon specular, not receiving shadows) is `userData` compat reads back through
  *   the getters, and draws nothing.
  */
+import { hexColor } from './scene-light-idioms';
 import type { TargetGodotSceneSetterPlan, TargetGodotSceneValue } from './scene-document-plan';
 
 /** A three material element. */
@@ -59,12 +60,6 @@ export const GODOT_DEFAULT_MATERIAL_IDIOM: GodotSceneMaterialIdiom = {
     { name: 'metalness', value: { kind: 'literal', value: 0.2 } },
   ],
 };
-
-/** A Godot colour's components as the sRGB hex three reads (`#rrggbb`). */
-function hexColor(components: readonly number[]): string {
-  const channel = (value: number) => Math.round(Math.min(Math.max(value, 0), 1) * 255).toString(16).padStart(2, '0');
-  return `#${components.slice(0, 3).map(channel).join('')}`;
-}
 
 /** The Compatibility shader's `srgb_to_linear` (`tonemap_inc.glsl:22`), in single precision. */
 function srgbToLinear(value: number): number {

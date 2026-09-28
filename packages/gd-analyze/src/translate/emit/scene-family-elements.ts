@@ -25,7 +25,6 @@ import { godotSceneSubnodes } from '../data/scene-document-plan';
  * - An imported image is `useGodotTexture(url, importOptions, sampler)`: loaded and processed as
  *   Godot's importer does, sampled as the material's filter and repeat flag select.
  */
-import { hexColor } from '../data/scene-light-idioms';
 import * as path from 'node:path';
 import type {
   TargetTsExpression,
@@ -39,7 +38,6 @@ import type { GodotSceneNodeIdiomForm } from '../data/scene-node-idioms';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
-export { hexColor };
 import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
 
 const f32 = Math.fround;

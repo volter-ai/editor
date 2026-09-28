@@ -313,6 +313,8 @@ export function godot_window_canvas_size(canvas: HTMLCanvasElement): Vector2i {
 }
 
 const LAYERS = new WeakMap<HTMLCanvasElement, HTMLElement>();
+/** The canvas z-index style each layer's stacking was computed from. */
+const STACKED = new WeakMap<HTMLElement, string>();
 
 /**
  * The element the canvas items draw into (`godot_canvas_draw`): one absolutely placed layer over
@@ -334,23 +336,29 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
     layer.style.overflow = 'hidden';
     LAYERS.set(canvas, layer);
   }
+  // Every read before any write, so the frame costs no forced layout.
+  const left = canvas.offsetLeft;
+  const top = canvas.offsetTop;
+  const cssWidth = canvas.clientWidth;
   if (layer.parentElement !== parent) {
     parent.appendChild(layer);
-    layer.dataset['stacked'] = '0';
+    STACKED.delete(layer);
   }
-  layer.style.left = `${String(canvas.offsetLeft)}px`;
-  layer.style.top = `${String(canvas.offsetTop)}px`;
+  layer.style.left = `${String(left)}px`;
+  layer.style.top = `${String(top)}px`;
   layer.style.width = `${String(canvas.width)}px`;
   layer.style.height = `${String(canvas.height)}px`;
-  // Over the canvas whatever stacking the page gives it (a positioned canvas with a z-index), read
-  // when the layer joins its parent, not every frame.
-  if (layer.dataset['stacked'] !== '1') {
+  // Over the canvas whatever stacking the page gives it (a positioned canvas with a z-index),
+  // computed again only when the canvas's own z-index style changes.
+  const stacking = canvas.style.zIndex;
+  if (STACKED.get(layer) !== stacking) {
     const below = Number.parseInt(canvas.ownerDocument.defaultView?.getComputedStyle(canvas).zIndex ?? '', 10);
     layer.style.zIndex = Number.isNaN(below) ? '' : String(below + 1);
-    layer.dataset['stacked'] = '1';
+    STACKED.set(layer, stacking);
   }
-  // The canvas's CSS border box (`offsetWidth`, which its `offsetLeft` places), not its on-screen
-  // rect: the layer sits in the same parent, so a transform on an ancestor applies to both.
-  layer.style.transform = canvas.width > 0 ? `scale(${String(canvas.offsetWidth / canvas.width)})` : '';
+  // The canvas's CSS width in its own box (`clientWidth`; a canvas carries no border or padding
+  // here), not its on-screen rect: the layer sits in the same parent, so a transform on an ancestor
+  // (a scaled preview) already applies to both.
+  if (canvas.width > 0 && cssWidth > 0) layer.style.transform = `scale(${String(cssWidth / canvas.width)})`;
   return layer;
 }

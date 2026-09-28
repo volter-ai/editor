@@ -46,7 +46,7 @@ export interface GodotSceneLightPlan {
 const FOLLOWED_REACH = 20;
 
 const value = (setters: readonly TargetGodotSceneSetterPlan[], exportName: string, index?: number): TargetGodotSceneValue | undefined =>
-  setters.find((entry) => entry.setter.exportName === exportName && (index === undefined || entry.index === index))?.value;
+  setters.find((entry) => entry.setter.exportName === exportName && (index === undefined || Number(entry.index) === index))?.value;
 const number = (entry: TargetGodotSceneValue | undefined) => (entry?.kind === 'number' ? entry.value : undefined);
 const literal = (entry: number | boolean | string): GodotSceneLightPropValue => ({ kind: 'literal', value: entry });
 
