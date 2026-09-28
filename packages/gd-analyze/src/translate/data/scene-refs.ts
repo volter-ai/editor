@@ -40,7 +40,9 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
 
 /** Each scene with its refs planned, from every scene of the project. */
 export function planGodotSceneRefs(scenes: readonly Omit<DirectGodotSceneDocumentPlan, 'refs'>[]): DirectGodotSceneDocumentPlan[] {
-  const targets = new Map(scenes.map((scene) => [scene.sourceResPath, refTargets(scene)] as const));
+  // The component holds its root too, which `useGodotScene` seats: an inheriting scene holds its
+  // root, an instance of the scene it inherits, so that scene takes its instancer's ref.
+  const targets = new Map(scenes.map((scene) => [scene.sourceResPath, new Set([...refTargets(scene), scene.root.nodePath])] as const));
   const instancedBy = (scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>, holds: (entry: DirectGodotSceneNodePlan, other: Omit<DirectGodotSceneDocumentPlan, 'refs'>) => boolean): boolean =>
     scenes.some((other) =>
       (function visit(entry: DirectGodotSceneNodePlan): boolean {
@@ -50,8 +52,7 @@ export function planGodotSceneRefs(scenes: readonly Omit<DirectGodotSceneDocumen
   return scenes.map((scene) => ({
     ...scene,
     refs: {
-      // The component holds its root too, which `useGodotScene` seats.
-      targets: [...new Set([...(targets.get(scene.sourceResPath) ?? []), scene.root.nodePath])].sort(),
+      targets: [...(targets.get(scene.sourceResPath) ?? [])].sort(),
       rootRef: instancedBy(scene, (entry, other) => targets.get(other.sourceResPath)?.has(entry.nodePath) === true),
       rootExports: scene.root.scriptInstance !== undefined && instancedBy(scene, (entry) => (entry.instanceExports?.length ?? 0) > 0),
     },
