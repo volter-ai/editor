@@ -306,6 +306,31 @@ function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<str
 }
 
 /**
+ * What an instance's element needs of the scene it instances, so emit reads no other scene: its
+ * component (export name, module), its root's class and idiom (through inherited scenes), the
+ * instance's `userData` (the root's with the instance's own over it), and the setters the
+ * instance states on the root beside its visibility that differ from the root's own (a value the
+ * root already holds, the same literal or the same resource file, is its own).
+ */
+function instanceOf(node: DirectGodotSceneNodePlan, instanced: SceneWithoutRefs, scenes: ReadonlyMap<string, SceneWithoutRefs>): NonNullable<DirectGodotSceneNodePlan['instanceOf']> {
+  const own = instanced.root.setters;
+  const same = (entry: TargetGodotSceneSetterPlan) =>
+    own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
+  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency');
+  const rootClass = godotSceneRootClass(scenes, instanced.sourceResPath);
+  const rootIdiom = godotSceneRootIdiom(scenes, instanced.sourceResPath);
+  return {
+    exportName: instanced.exportName,
+    targetPath: instanced.targetPath,
+    ...(rootClass === undefined ? {} : { rootClass }),
+    ...(rootIdiom === undefined ? {} : { rootIdiom }),
+    data: instanceData(nodeData(instanced.root), nodeData(node)),
+    stated: stated.length,
+    changed: stated.filter((entry) => !same(entry)),
+  };
+}
+
+/**
  * The scenes with every node's Godot-only `data`, each body's props (`body`), and each instance of
  * a scene rooted in a body the props its overrides change (`bodyOverrides`); what has no form is a
  * composition diagnostic.
@@ -339,12 +364,14 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
           : undefined;
       const overrides = instanced === undefined ? [] : planned(() => bodyOverrides(scene, node, instanced, bySource, refuse), []);
       const collider = form?.kind === 'collider' && node.instance === undefined ? colliderPlan(node, resources, refuse) : undefined;
+      const instance = instanced === undefined ? undefined : instanceOf(node, instanced, bySource);
       return {
         ...node,
         data,
         ...(body === undefined ? {} : { body }),
         ...(overrides.length === 0 ? {} : { bodyOverrides: overrides }),
         ...(collider === undefined ? {} : { collider }),
+        ...(instance === undefined ? {} : { instanceOf: instance }),
         children,
         ...(placements === undefined ? {} : { placements }),
       };
@@ -353,7 +380,3 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
   });
 }
 
-/** The `userData` of an instance of a scene: the instanced root's with the instance's own over it. */
-export function godotSceneInstanceData(instanced: DirectGodotSceneNodePlan, node: DirectGodotSceneNodePlan): Record<string, unknown> {
-  return instanceData(instanced.data ?? {}, node.data ?? {});
-}

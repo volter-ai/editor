@@ -35,7 +35,7 @@ import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-life
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneRootClass, godotSceneRootIdiom, godotSceneSubnodes } from '../data/scene-document-plan';
-import { type GodotSceneBodyProp, godotSceneInstanceData } from '../data/scene-body-idioms';
+import type { GodotSceneBodyProp } from '../data/scene-body-idioms';
 import type { GodotSceneNodeIdiom } from '../data/scene-node-idioms';
 import { godotResolveNodePath } from '../data/scene-animation';
 import {
@@ -179,8 +179,6 @@ interface Emission {
   readonly nodeRefs: Map<string, string>;
   /** Types `@react-three/rapier` exports that the refs name. */
   readonly rapierTypes: Set<string>;
-  /** The composition's scenes, for an instance's prefab. */
-  readonly scenes: ReadonlyMap<string, DirectGodotSceneDocumentPlan>;
   /** The prefab components the scene instances, by name, with their modules. */
   readonly instances: Map<string, string>;
   /** The imported models' data files the scene reads, by local name. */
@@ -466,21 +464,21 @@ function withoutSpatial(node: DirectGodotSceneNodePlan): DirectGodotSceneNodePla
 
 /** An instanced scene's root as its prefab element, with the instance's overrides as props. */
 function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[], at: string): TargetTsJsxChild {
-  const instanced = emission.scenes.get(node.instance?.sourceResPath ?? '');
+  // What the plan found of the instanced scene (`scene-body-idioms.ts`): emit reads no other scene.
+  const instanced = node.instanceOf;
   if (instanced === undefined) throw new Error(`${at}: the instanced scene is absent from composition`);
   const local = instanced.exportName;
   emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
-  const rootClass = godotSceneRootClass(emission.scenes, instanced.sourceResPath) as string;
-  const rootIdiom = godotSceneRootIdiom(emission.scenes, instanced.sourceResPath);
+  const rootClass = instanced.rootClass as string;
+  const rootIdiom = instanced.rootIdiom;
   const overrides: TargetTsJsxAttribute[] = [];
   // The instance's groups join its scene root's (`SceneState::instantiate`, packed_scene.cpp:511).
   const ownData = nodeData(node);
-  const data = godotSceneInstanceData(instanced.root, node);
+  const data = instanced.data;
   // `visible` is the root element's three prop; `transparency` its `userData`'s.
-  const stated = withoutSpatial(node);
   overrides.push(...visibleProp(node.setters));
   const rootBody = rootIdiom?.form.kind === 'body' ? rootIdiom.form : undefined;
-  const familyProps = stated.setters.length > 0 && rootIdiom?.form.kind === 'element' ? familyInstanceProps(emission.family, stated, instanced.root.setters) : undefined;
+  const familyProps = instanced.stated > 0 && rootIdiom?.form.kind === 'element' ? familyInstanceProps(emission.family, node.nodePath, instanced.changed) : undefined;
   if (familyProps !== undefined) {
     overrides.push(...familyProps);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
@@ -488,7 +486,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     // The props the plan found the instance's overrides change (`scene-body-idioms.ts`).
     overrides.push(...(node.bodyOverrides ?? []).map((prop) => bodyProp(emission, prop)));
   } else {
-    if (stated.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
+    if (instanced.stated > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
   }
   // Its overrides of the instanced scene root script's fields, which that component's script takes.
@@ -767,7 +765,6 @@ export function idiomaticSceneSourceFile(
     needsRef: new Set(scene.refs.targets),
     nodeRefs: new Map(),
     rapierTypes: new Set(),
-    scenes: new Map(project.scenes.map((entry) => [entry.sourceResPath, entry] as const)),
     instances: new Map(),
     models: new Map(),
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),

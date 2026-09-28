@@ -16,10 +16,12 @@ import type {
   OfficialBoundScriptModulePlan,
 } from '../code/lower-official-bound';
 import { type DirectGodotInputActionPlan, planDirectGodotInputMap } from './input-map-plan';
+import type { GodotSceneNodeIdiom } from './scene-node-idioms';
 import type {
   GodotSceneDocumentPlan,
   TargetGodotSceneDocumentPlan,
   TargetGodotSceneNodePlan,
+  TargetGodotSceneSetterPlan,
   TargetGodotSceneValue,
 } from './scene-document-plan';
 import type {
@@ -84,6 +86,18 @@ export type DirectGodotSceneNodePlan = Omit<
   readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[]; readonly layers: number; readonly castShadow: boolean };
   /** A Camera3D's lens, cull mask and own environment (`scene-surface-idioms.ts`). */
   readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue };
+  /** An instance: what its element needs of the scene it instances (`scene-body-idioms.ts`). */
+  readonly instanceOf?: {
+    readonly exportName: string;
+    readonly targetPath: string;
+    readonly rootClass?: string;
+    readonly rootIdiom?: GodotSceneNodeIdiom;
+    readonly data: Readonly<Record<string, unknown>>;
+    /** How many setters the instance states on the root beside its visibility. */
+    readonly stated: number;
+    /** Those of them that differ from the root's own. */
+    readonly changed: readonly TargetGodotSceneSetterPlan[];
+  };
   /** A collision shape's Rapier collider (`scene-body-idioms.ts`). */
   readonly collider?: GodotSceneColliderPlan;
   /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */

@@ -2,7 +2,7 @@
   "counts": {
     "phase-call-outside-pipeline": 0,
     "emit-setter-name-decision": 0,
-    "emit-project-walk": 7,
+    "emit-project-walk": 6,
     "lowering-builtin-name": 3,
     "class-name-switch": 0,
     "class-name-lookup": 7,
@@ -40,7 +40,6 @@
     "emit-project-walk | packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts | composition.scenes #2",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts | project.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts | project.scenes #2",
-    "emit-project-walk | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | project.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/index.ts | composition.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/index.ts | composition.scenes #2",
     "lowering-builtin-name | packages/gd-analyze/src/translate/code/lower-official-expression.ts | case 'bool' #1",

@@ -871,13 +871,11 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
  */
 export function familyInstanceProps(
   emission: FamilyEmission,
-  node: DirectGodotSceneNodePlan,
-  own: readonly TargetGodotSceneSetterPlan[],
-): TargetTsJsxAttribute[] | undefined {
-  // A value the instanced scene's root already holds (the same resource file, the same literal) is its own.
-  const same = (entry: TargetGodotSceneSetterPlan) =>
-    own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
-  return elementProps(emission, node.nodePath, node.setters.filter((entry) => !same(entry)));
+  nodePath: string,
+  changed: readonly TargetGodotSceneSetterPlan[],
+): TargetTsJsxAttribute[] {
+  // The setters the plan found the instance changes on its root (`scene-body-idioms.ts`).
+  return elementProps(emission, nodePath, changed);
 }
 
 /**
