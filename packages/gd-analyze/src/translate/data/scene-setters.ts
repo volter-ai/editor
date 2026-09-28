@@ -203,6 +203,13 @@ export type TargetSceneValue =
   /** An `AABB`: its position's then its size's components. */
   | { readonly kind: 'AABB'; readonly components: readonly number[] }
   /**
+   * A `Transform3D` as the Object3D matrix three reads, column-major: `Transform3D(xx, xy, xz, yx,
+   * yy, yz, zx, zy, zz, ox, oy, oz)` is written row by row (`VariantWriter`,
+   * core/variant/variant_parser.cpp:2111) and parsed as `real_t`s into `Basis(rows)` (:894), so
+   * element (r, c) is `components[c * 4 + r]`, each rounded to float as Godot stores it.
+   */
+  | { readonly kind: 'Transform3D'; readonly components: readonly number[] }
+  /**
    * An untyped `Array` of numbers and vectors (a Curve's `_data` and `_limits`), flat: a vector's
    * components in its place.
    */
@@ -243,6 +250,12 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if (components.length % 3 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: 'PackedVector3Array', components };
+      }
+      if ((value.name === 'Transform3D' || value.name === 'Transform') && value.args.length === 12) {
+        const args = value.args.map((arg) => (arg.kind === 'number' ? Math.fround(arg.value) : undefined));
+        if (!args.every((entry): entry is number => entry !== undefined)) return undefined;
+        const [xx, xy, xz, yx, yy, yz, zx, zy, zz, ox, oy, oz] = args as [number, number, number, number, number, number, number, number, number, number, number, number];
+        return { kind: 'Transform3D', components: [xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, ox, oy, oz, 1] };
       }
       const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB'];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;

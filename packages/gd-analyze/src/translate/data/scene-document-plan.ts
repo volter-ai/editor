@@ -35,6 +35,7 @@ import {
   godotTrackPath,
 } from './scene-animation';
 import { type SceneSetterLookup, type TargetSceneValue, targetSceneValue } from './scene-setters';
+import { GODOT_4_7_SCRIPT_SIGNAL_RULE } from './authority/godot-4.7-scene-nodes';
 import {
   type GodotCompatExport,
   type GodotSceneNodeAuthority,
@@ -519,6 +520,8 @@ interface PlanContext {
   readonly scriptFields: (resPath: string) => ReadonlySet<string>;
   /** Functions a script (and its script ancestors) declares. */
   readonly scriptMethods: (resPath: string) => ReadonlySet<string>;
+  /** Signals a script (and its script ancestors) declares, by name: each one's parameter count. */
+  readonly scriptSignals: (resPath: string) => ReadonlyMap<string, number>;
   readonly authority: GodotSceneNodeAuthorityResolver;
   readonly scenes: ReadonlyMap<string, BoundGodotSceneDocument>;
   readonly diagnostics: GodotSceneDocumentDiagnostic[];
@@ -1517,10 +1520,10 @@ function planInstanceRoot(
     refuse(context, at, 'an instance root with its own script is not planned', 'structure');
     ok = false;
   }
-  if (JSON.stringify(node.groups) !== JSON.stringify(origin.groups)) {
-    refuse(context, at, 'groups authored on an instance root are not planned', 'structure');
-    ok = false;
-  }
+  // Groups authored on the instance join its scene root's (`SceneState::instantiate` adds them to
+  // the instantiated root, packed_scene.cpp:511).
+  const groups = groupsOf(context, { ...node, groups: node.groups.filter((group) => !origin.groups.includes(group)) });
+  if (groups === undefined) ok = false;
   if (node.nodePathProperties.some((name) => !origin.nodePathProperties.includes(name) && !fields.has(name))) {
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
@@ -1538,7 +1541,7 @@ function planInstanceRoot(
     // Its own script, where the base's root has none (the component's root carries it).
     ...(node.scriptResPath !== undefined && origin.scriptResPath === undefined ? { scriptResPath: node.scriptResPath } : {}),
     properties,
-    groups: [],
+    groups: groups ?? [],
     classes: [],
     setters,
     children: [],
@@ -1594,10 +1597,11 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     const underPlaced = [...placedUnderModels].some((placedPath) => isInside(node.nodePath, placedPath));
     if (enclosing !== undefined && importedEnclosing !== undefined && !underPlaced) {
       // Inside an imported model: an override of one of its nodes is that node's setters, a node
-      // placed under one of its nodes a portal into it.
+      // placed under one of its nodes a portal into it. A scene instanced there (its root copied
+      // from another scene's `.`) is neither.
       const relative = relativeTo(node.nodePath, enclosing);
       const origin =
-        node.inheritedNode === undefined
+        node.inheritedNode === undefined || node.inheritedNode.nodePath === '.'
           ? undefined
           : context.scenes
               .get(node.inheritedNode.documentPath)
@@ -1673,6 +1677,9 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         planned.push({ ...plannedNode, portal: { instanceNodePath: enclosing, at: target }, ...(moved === undefined ? {} : { siblingIndex: moved }) });
         continue;
       }
+      // A node this document adds under the model's root is the root's child, and its own children
+      // are ordinary (Godot adds them after instantiating the model, packed_scene.cpp:540).
+      if (authoredParent === enclosing && node.inheritedNode === undefined) placedUnderModels.add(node.nodePath);
     }
     if (enclosing !== undefined && importedEnclosing === undefined && !underPlaced) {
       // Inside an instanced scene: its component renders the copied nodes; what this document
@@ -1711,9 +1718,15 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
       refused = true;
       continue;
     }
-    // An explicit sibling position moves the node once added (`siblingIndex`, compat's `index`).
+    // An explicit sibling position moves the node once added (`siblingIndex`, compat's `index`),
+    // unless it is where the node was added: Godot moves it only to an index before its parent's
+    // last child (packed_scene.cpp:545), and under a node this document authors itself, the
+    // children before it are the ones planned before it.
+    const parentPath = node.placement.kind === 'child' ? node.placement.parentNodePath : undefined;
+    const ownParent = parentPath !== undefined && !instanceRoots.has(parentPath) && planned.some((entry) => entry.nodePath === parentPath && entry.instance === undefined && entry.model === undefined);
+    const addedAt = planned.filter((entry) => entry.parentNodePath === parentPath && entry.portal === undefined).length;
     const place = <Planned extends TargetGodotSceneNodePlan>(plannedNode: Planned): Planned =>
-      node.siblingIndex === undefined ? plannedNode : { ...plannedNode, siblingIndex: node.siblingIndex };
+      node.siblingIndex === undefined || (ownParent && node.siblingIndex >= addedAt) ? plannedNode : { ...plannedNode, siblingIndex: node.siblingIndex };
     const origin = node.inheritedNode;
     if (origin !== undefined && origin.nodePath === '.') {
       const instanced = context.scenes.get(origin.documentPath);
@@ -1902,6 +1915,8 @@ const MODEL_OVERRIDE_SETTERS = [
   'set_bone_pose_position',
   'set_bone_pose_rotation',
   'set_bone_pose_scale',
+  // A Node3D of the model moved (compat's imported-scene `transform` override).
+  'set_transform',
   // An imported AnimationPlayer's (`<GodotImportedScene overrides>`, compat's player props).
   'godot_animation_mixer_set_library',
   'set_autoplay',
@@ -2090,9 +2105,8 @@ function planConnections(
   planned: readonly TargetGodotSceneNodePlan[],
   instanceRoots: ReadonlyMap<string, BoundGodotSceneDocument>,
 ): readonly TargetGodotSceneConnectionPlan[] | undefined {
-  const mounted = new Map(
-    planned.filter((node) => node.instance === undefined).map((node) => [node.nodePath, node] as const),
-  );
+  // Either end may be an instanced scene's root: the ref its component forwards is that root.
+  const mounted = new Map(planned.map((node) => [node.nodePath, node] as const));
   const bound = new Map(scene.nodes.map((node) => [node.nodePath, node] as const));
   let ok = true;
   const result: TargetGodotSceneConnectionPlan[] = [];
@@ -2113,12 +2127,18 @@ function planConnections(
       ok = false;
       continue;
     }
-    if (to.scriptResPath === undefined || !context.scriptMethods(to.scriptResPath).has(connection.method)) {
+    // An instance's script is its scene root's, which the bound node carries.
+    const toScript = bound.get(connection.to)?.scriptResPath ?? to.scriptResPath;
+    if (toScript === undefined || !context.scriptMethods(toScript).has(connection.method)) {
       refuse(context, at, `the target has no script function ${connection.method}`, 'signal', 'connection target');
       ok = false;
       continue;
     }
-    const rule = context.authority.signalRule(fromClass.nativeAncestry, connection.signal);
+    const fromScript = bound.get(connection.from)?.scriptResPath;
+    const scripted = fromScript === undefined ? undefined : context.scriptSignals(fromScript).get(connection.signal);
+    const rule =
+      context.authority.signalRule(fromClass.nativeAncestry, connection.signal) ??
+      (scripted === undefined || context.authority.sourceRevision !== GODOT_4_7_SCRIPT_SIGNAL_RULE.sourceRevision ? undefined : { accessor: GODOT_4_7_SCRIPT_SIGNAL_RULE.accessor, arguments: scripted });
     if (rule === undefined) {
       refuse(
         context,
@@ -2219,6 +2239,19 @@ export function planGodotSceneDocuments(
         for (const method of byScript.get(scriptPath)?.class.methods ?? []) names.add(method.name);
       }
       return names;
+    },
+    scriptSignals: (resPath) => {
+      const script = byScript.get(resPath);
+      const signals = new Map<string, number>();
+      for (const scriptPath of [resPath, ...(script?.inheritance.scriptAncestors ?? [])]) {
+        const program = byScript.get(scriptPath)?.program;
+        for (const node of program?.nodes ?? []) {
+          if (node.kind !== 'SIGNAL') continue;
+          const name = program?.nodes[node.identifier];
+          if (name?.kind === 'IDENTIFIER' && !signals.has(name.name)) signals.set(name.name, node.parameters.length);
+        }
+      }
+      return signals;
     },
     authority,
     scenes: new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const)),

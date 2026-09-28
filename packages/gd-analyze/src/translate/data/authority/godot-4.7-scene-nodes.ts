@@ -121,3 +121,14 @@ export const GODOT_4_7_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly
     source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
   },
 ];
+
+/**
+ * A signal the source node's script declares (`signal name(...)`): `Object::connect` finds it
+ * through the script instance when the class has none of that name (object.cpp:1536), so an
+ * authored `[connection]` from it reaches the script's own Signal field (react-lifecycle.ts).
+ */
+export const GODOT_4_7_SCRIPT_SIGNAL_RULE: Omit<GodotSceneSignalRule, 'ownerClass' | 'signal' | 'arguments'> & { readonly source: Source } = {
+  sourceRevision: REVISION,
+  accessor: { module: 'lib/godot-compat/react-lifecycle', exportName: 'godot_node_script_signal', named: true },
+  source: { file: 'core/object/object.cpp', symbol: 'Object::connect (script signals)', line: 1536 },
+};

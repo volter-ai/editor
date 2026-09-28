@@ -33,7 +33,7 @@
 import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
 import { useGLTF } from '@react-three/drei';
 import { createPortal, type ThreeElements } from '@react-three/fiber';
-import { createContext, createElement, type ReactNode, useContext, useLayoutEffect, useMemo, useRef } from 'react';
+import { createContext, createElement, type ReactNode, type Ref, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
 import { Group, type Material, type Mesh, type Object3D, Texture } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
@@ -41,7 +41,9 @@ import { godot_animation_mixer_set_library } from './animation-mixer';
 import { godot_animation_player_apply_reset, godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
 import { godot_base_material_3d_model_map } from './base-material-3d';
 import { godot_node_adopt, godot_node_foreign } from './node';
+import { set_transform } from './node-3d';
 import { construct as quaternion } from './quaternion';
+import { construct as transform3d } from './transform-3d';
 import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
 import { construct as vector3 } from './vector3';
 import { set_layer_mask } from './visual-instance-3d';
@@ -103,7 +105,8 @@ const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/u;
  * One property the instancing scene sets on a node of the model, by its Godot name, through the
  * node's setter: a Skeleton3D's bone poses (`Skeleton3D::_set`, `skeleton_3d.cpp:118`), a
  * VisualInstance3D's render layers (`layers`, `visual_instance_3d.cpp:130`), a MeshInstance3D's
- * surface material override (`surface_material_override/N`, `mesh_instance_3d.cpp:73`). `adopted`
+ * surface material override (`surface_material_override/N`, `mesh_instance_3d.cpp:73`), a Node3D's
+ * `transform` (`node_3d.cpp:399`). `adopted`
  * is the model's Godot nodes: a mesh node's per-surface meshes, which the loader made below it and
  * Godot has no node for, draw as that node's instance does, so they take its layers too; the
  * importer's surfaces are the glTF mesh's primitives in order, which the loader makes the node's
@@ -113,6 +116,14 @@ function applyOverride(entity: Object3D, property: string, value: unknown, adopt
   // An AnimationPlayer's properties: its track bindings, libraries, autoplay (`animation-player.ts`).
   if (ANIMATION_PLAYERS.has(entity)) {
     godot_animation_player_set_prop(entity, property, value);
+    return;
+  }
+  // A Node3D's local transform (`Node3D::set_transform`, `node_3d.cpp:399`), given as the column-major
+  // matrix: its columns are the basis's axes and the origin.
+  if (property === 'transform') {
+    const m = value as readonly number[];
+    const column = (at: number) => vector3(m[at] as number, m[at + 1] as number, m[at + 2] as number);
+    set_transform(entity, transform3d(column(0), column(4), column(8), column(12)));
     return;
   }
   if (property === 'layers') {
@@ -293,8 +304,11 @@ export function GodotImportedScene({
   overrides = {},
   images,
   children,
+  ref,
   ...props
 }: GroupProps & {
+  /** The instancing scene's ref to the model's root (a scene's own root, a node it references). */
+  readonly ref?: Ref<Group>;
   readonly src: string;
   readonly tree: GodotImportedSceneTree;
   /** The instancing scene's properties on the model's nodes: by node path, by Godot name. */
@@ -313,6 +327,7 @@ export function GodotImportedScene({
     [gltf, nodes],
   );
   const root = useRef<Group | null>(null);
+  useImperativeHandle(ref, () => root.current as Group, []);
   // The instancing scene's values are set once, as the scene instantiates: a render that rebuilds
   // the `overrides` object with the same values sets nothing again.
   const authored = useRef(overrides);

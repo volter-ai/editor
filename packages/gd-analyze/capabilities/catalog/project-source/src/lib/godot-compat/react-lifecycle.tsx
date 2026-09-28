@@ -50,6 +50,7 @@ import { useGodotAdvance } from './advance';
 import { set_visible } from './node-3d';
 import { set_meta } from './object';
 import { godot_collision_object_node } from './collision-object-3d';
+import { type GodotSignal, isRetainedGodotSignal } from './signal';
 
 /**
  * The node an element's ref holds: its object, or for a `@react-three/rapier` body (whose ref is
@@ -133,6 +134,19 @@ export function useGodotConnection<Name extends string, Args extends unknown[]>(
     const connection = signal(from, name).connect((...args: Args) => (callee as (...values: Args) => unknown).apply(instance, args));
     return () => connection.disconnect();
   }, []);
+}
+
+/**
+ * A signal the node's script declares (`signal name(...)`), which an authored connection reaches
+ * when the node's class has no signal of that name: the script instance's Signal field.
+ *
+ * @godot Object.connect
+ * @source core/object/object.cpp:1536
+ */
+export function godot_node_script_signal(self: object, name: string): GodotSignal<unknown[]> {
+  const signal = (SCRIPT_OF.get(self) as Readonly<Record<string, unknown>> | undefined)?.[name];
+  if (!isRetainedGodotSignal(signal)) throw new Error(`godot-compat: the node's script declares no signal ${name}.`);
+  return signal as GodotSignal<unknown[]>;
 }
 
 /**

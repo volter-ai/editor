@@ -185,6 +185,10 @@ interface Emission {
   readonly autoloads: string | undefined;
   /** Whether a scene instancing this one overrides its root script's fields (its `exports` prop). */
   readonly rootExports: boolean;
+  /** Whether a scene instancing this one refers to its root (its `ref` prop, the root's handle). */
+  readonly rootRef: boolean;
+  /** Each ref's type as its `useRef` names it. */
+  readonly refTypes: Map<string, string>;
 }
 
 function useCompat(emission: Emission, module: string, name: string): string {
@@ -201,6 +205,19 @@ function pascalName(file: string): string {
   return camel.charAt(0).toUpperCase() + camel.slice(1);
 }
 
+/** The ref's local name of the node at `nodePath`, named once (a field may name it before its element). */
+function refLocal(emission: Emission, nodePath: string, nodeName: string): string {
+  const named = emission.nodeRefs.get(nodePath);
+  if (named !== undefined) return named;
+  const name = camelName(nodeName);
+  let refName = name;
+  for (let n = 2; emission.family.taken.has(refName); n += 1) refName = `${name}${String(n)}`;
+  emission.family.taken.add(refName);
+  emission.refNames.add(refName);
+  emission.nodeRefs.set(nodePath, refName);
+  return refName;
+}
+
 /**
  * A node's ref, when another statement refers to it (its script, a connection): `useRef<Type>(null)`
  * on its element, `type` the element's ref type (three's, or the Rapier body a `<RigidBody>`'s ref
@@ -208,12 +225,9 @@ function pascalName(file: string): string {
  */
 function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: string, from: 'three' | 'rapier' = 'three'): TargetTsJsxAttribute[] {
   if (!emission.needsRef.has(node.nodePath)) return [];
-  let refName = camelName(node.name);
-  for (let n = 2; emission.family.taken.has(refName); n += 1) refName = `${camelName(node.name)}${String(n)}`;
-  emission.family.taken.add(refName);
-  emission.refNames.add(refName);
-  emission.nodeRefs.set(node.nodePath, refName);
+  const refName = refLocal(emission, node.nodePath, node.name);
   (from === 'three' ? emission.three : emission.rapierTypes).add(type);
+  emission.refTypes.set(node.nodePath, from === 'three' ? threeLocal(type) : type);
   emission.hooks.push({
     kind: 'variable-statement',
     declaration: 'const',
@@ -292,7 +306,8 @@ function fieldValue(emission: Emission, node: DirectGodotSceneNodePlan, value: D
   if (value.kind !== 'node-reference') return { kind: 'literal-expression', value: value.value };
   const target = godotResolveNodePath(node.nodePath, value.value);
   if (target === undefined) return { kind: 'literal-expression', value: null };
-  const ref = emission.nodeRefs.get(target);
+  // A node its element mounts later in the scene is named now; its element declares the ref.
+  const ref = emission.nodeRefs.get(target) ?? (emission.needsRef.has(target) && target !== '.' ? refLocal(emission, target, target.slice(target.lastIndexOf('/') + 1)) : undefined);
   if (ref === undefined) throw new Error(`${emission.scene.sourceResPath}#${node.nodePath}: the referenced node ${target} mounts no ref`);
   return {
     kind: 'call-expression',
@@ -658,8 +673,9 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
   for (const override of model.overrides) {
     const bones = override.setters.filter((setter) => POSE[setter.setter.exportName] !== undefined);
     const layers = override.setters.find((setter) => setter.setter.exportName === 'set_layer_mask');
+    const moved = override.setters.find((setter) => setter.setter.exportName === 'set_transform');
     const surfaces = override.setters.filter((setter) => setter.setter.exportName === 'set_surface_override_material');
-    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined && setter !== layers && !surfaces.includes(setter));
+    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined && setter !== layers && setter !== moved && !surfaces.includes(setter));
     overrides.push({
       key: override.at,
       value: {
@@ -668,6 +684,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
           ...bones.map((setter) => ({ key: `bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`, value: dataExpression(plainValue(setter.value)) })),
           // A mesh of the model's render layers (compat's `set_layer_mask`).
           ...(layers === undefined ? [] : [{ key: 'layers', value: dataExpression(plainValue(layers.value)) }]),
+          // A node of the model placed anew (compat's `set_transform`), its matrix column-major.
+          ...(moved === undefined ? [] : [{ key: 'transform', value: dataExpression(plainValue(moved.value)) }]),
           // A mesh of the model's surface materials, the scene's own (three's materials).
           ...familyMaterialOverride(emission.family, surfaces),
           // An AnimationPlayer of the model: compat's player props (`familyAnimationOverride`).
@@ -939,6 +957,13 @@ export function idiomaticSceneSourceFile(
           return (entry.instance?.sourceResPath === scene.sourceResPath && (entry.instanceExports?.length ?? 0) > 0) || godotSceneSubnodes(entry).some(overrides);
         })(other.root),
       ),
+    rootRef: project.scenes.some((other) => {
+      const targets = refTargets(other);
+      return (function refers(entry: DirectGodotSceneNodePlan): boolean {
+        return (entry.instance?.sourceResPath === scene.sourceResPath && targets.has(entry.nodePath)) || godotSceneSubnodes(entry).some(refers);
+      })(other.root);
+    }),
+    refTypes: new Map(),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   emission.hooks.push(...emission.scriptHooks.flatMap((hook) => hook()));
@@ -986,7 +1011,7 @@ export function idiomaticSceneSourceFile(
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
     // Its instancers' overrides of its script's fields are the `exports` prop, not the root's.
-    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: emission.rootExports ? 'rest' : 'props' } }],
+    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: emission.rootExports || emission.rootRef ? 'rest' : 'props' } }],
     children: props.children
       ? [...node.children, { kind: 'jsx-expression-child', value: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'props' }, property: 'children' } }]
       : node.children,
@@ -1025,8 +1050,33 @@ export function idiomaticSceneSourceFile(
       },
     );
   }
+  // The root's handle for an instancing scene that refers to it (React's `ref` prop).
+  const rootRefType = emission.refTypes.get(scene.root.nodePath) ?? 'Object3D';
+  if (emission.rootRef) {
+    emission.hooks.push({
+      kind: 'expression-statement',
+      expression: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: 'useImperativeHandle' },
+        arguments: [
+          { kind: 'identifier-expression', name: 'ref' },
+          {
+            kind: 'arrow-expression',
+            parameters: [],
+            body: {
+              kind: 'as-expression',
+              expression: { kind: 'property-expression', object: { kind: 'identifier-expression', name: emission.nodeRefs.get(scene.root.nodePath) as string }, property: 'current' },
+              type: { kind: 'type-reference', name: rootRefType, arguments: [] },
+            },
+          },
+          { kind: 'array-expression', elements: [] },
+        ],
+      },
+    });
+  }
   const reactNames = [
     ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
+    ...(emission.rootRef ? ['useImperativeHandle'] : []),
     ...(emission.refNames.size === 0 ? [] : ['useRef']),
     ...[...emission.lifecycle.react].sort(),
   ];
@@ -1040,9 +1090,16 @@ export function idiomaticSceneSourceFile(
     ...(reactNames.length === 0
       ? []
       : [{ kind: 'import-statement' as const, module: 'react', namedBindings: reactNames.map((name) => ({ imported: name, local: name })) }]),
-    ...(emission.autoloads === undefined
+    ...(emission.autoloads === undefined && !emission.rootRef
       ? []
-      : [{ kind: 'import-statement' as const, module: 'react', namedBindings: [{ imported: 'RefObject', local: 'RefObject' }], typeOnly: true as const }]),
+      : [
+          {
+            kind: 'import-statement' as const,
+            module: 'react',
+            namedBindings: [...(emission.rootRef ? ['Ref'] : []), ...(emission.autoloads === undefined ? [] : ['RefObject'])].map((name) => ({ imported: name, local: name })),
+            typeOnly: true as const,
+          },
+        ]),
     ...(props.from === undefined
       ? []
       : [{ kind: 'import-statement' as const, module: props.from.module, namedBindings: [{ imported: props.from.name, local: props.from.name }], typeOnly: true as const }]),
@@ -1145,13 +1202,28 @@ export function idiomaticSceneSourceFile(
         parameters: [
           {
             name: 'props',
-            type: emission.rootExports
-              ? { kind: 'intersection-type', members: [props.type, { kind: 'object-type', properties: [{ name: 'exports', type: { kind: 'type-reference', name: 'Record', arguments: [{ kind: 'keyword-type', keyword: 'string' }, { kind: 'keyword-type', keyword: 'unknown' }] }, readonly: true, optional: true }] }] }
-              : props.type,
+            type:
+              emission.rootExports || emission.rootRef
+                ? {
+                    kind: 'intersection-type',
+                    members: [
+                      props.type,
+                      {
+                        kind: 'object-type',
+                        properties: [
+                          ...(emission.rootExports ? [{ name: 'exports', type: { kind: 'type-reference' as const, name: 'Record', arguments: [{ kind: 'keyword-type' as const, keyword: 'string' as const }, { kind: 'keyword-type' as const, keyword: 'unknown' as const }] }, readonly: true as const, optional: true as const }] : []),
+                          ...(emission.rootRef ? [{ name: 'ref', type: { kind: 'type-reference' as const, name: 'Ref', arguments: [{ kind: 'type-reference' as const, name: rootRefType, arguments: [] }] }, readonly: true as const, optional: true as const }] : []),
+                        ],
+                      },
+                    ],
+                  }
+                : props.type,
           },
         ],
         body: [
-          ...(emission.rootExports ? [{ kind: 'destructure-statement' as const, names: ['exports'], rest: 'rest', initializer: { kind: 'identifier-expression' as const, name: 'props' } }] : []),
+          ...(emission.rootExports || emission.rootRef
+            ? [{ kind: 'destructure-statement' as const, names: [...(emission.rootExports ? ['exports'] : []), ...(emission.rootRef ? ['ref'] : [])], rest: 'rest', initializer: { kind: 'identifier-expression' as const, name: 'props' } }]
+            : []),
           ...family.hooks,
           ...emission.hooks,
           {
