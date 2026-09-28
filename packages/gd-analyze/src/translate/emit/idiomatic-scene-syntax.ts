@@ -34,7 +34,7 @@ import type {
 import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-lifecycle-hooks';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
-import { godotImportedModelDataPath, godotSceneRootClass, godotSceneRootIdiom, godotSceneSubnodes } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import type { GodotSceneBodyProp } from '../data/scene-body-idioms';
 import type { GodotSceneNodeIdiom } from '../data/scene-node-idioms';
 import { godotResolveNodePath } from '../data/scene-animation';
