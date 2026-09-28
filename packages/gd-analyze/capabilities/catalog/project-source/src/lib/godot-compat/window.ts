@@ -203,6 +203,9 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
   if (canvas.tabIndex < 0) canvas.tabIndex = 0;
   const key = (pressed: boolean): EventListener => (raw) => {
     const event = raw as KeyboardEvent;
+    // Typing into a field on the page (the host's, or the game's own DOM) is the field's.
+    const target = event.target as HTMLElement | null;
+    if (target !== null && target !== canvas && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/u.test(target.tagName))) return;
     const c = [...event.key].length === 1 ? (event.key.codePointAt(0) as number) : 0;
     const keycode = domKey(event.code, event.key, false);
     const fixed = c >= 0x20 && c <= 0x7e ? upper(c) : keycode;
@@ -220,8 +223,10 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
     flush_buffered_events();
     event.preventDefault();
   };
-  on(canvas, 'keydown', key(true));
-  on(canvas, 'keyup', key(false));
+  // The page's keys, as a web game hears them: the canvas itself need not hold the focus (a game
+  // embedded in a host page, the editor's play view, never gives it one).
+  on(page, 'keydown', key(true));
+  on(page, 'keyup', key(false));
   const button = (pressed: boolean): EventListener => (raw) => {
     const event = raw as MouseEvent;
     if (pressed) canvas.focus();
