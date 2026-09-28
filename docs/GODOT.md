@@ -339,7 +339,8 @@ emitter prints:
    - `_process` and `_physics_process` run in tree order, by `process_priority`, gated by
      `set_process`, `set_physics_process` and `process_mode`, from the scene's own frame hook;
    - effects run once (no StrictMode double mount).
-   The adoption machinery (`useGodotScript`'s pending instances, bindings on the native) goes.
+   The adoption machinery (`useGodotScript`'s pending instances, bindings on the native) goes,
+   except for an instantiated scene's root, which takes the instance its instancer holds (step 7).
 4. **Values read as written.** A single-use temporary is inlined, so `__godot_value_N` appears only
    where evaluation order needs a statement.
 5. **An animation is three's.** AnimationPlayer's tracks are `AnimationClip`s on three's
@@ -382,10 +383,55 @@ emitter prints:
    object graph and React state, not a tree compat keeps, and only where a script uses them. The
    plan records which scenes need them; a scene that doesn't carries none of it. `add_child` of
    an instantiated scene renders into the parent scene's own state, found through the parent
-   scene's component, with no registry of spawners. The stand-in `instantiate` makes today (a
-   three `Group` before the scene mounts, which the ledger counts under row 4) is this step's to
-   remove: `instantiate` returns the root's script instance, which a script configures before
-   `add_child`, and the added scene takes that instance as its script when it mounts.
+   scene's component, with no registry of spawners.
+   The stand-in stays for now, decided 2026-09-28 by the lane's orchestrator under the owner's
+   standing "decide from the law"; it is row 4's residue, not a form the law endorses, and the
+   periodic review keeps counting it under row 4 until a form without it exists. The script holds the instantiated root in a variable before `add_child`, and
+   JavaScript cannot rebind that variable to the node React later mounts. `instantiate` cannot
+   hand out the mounted node either: the root is often one a library makes as it mounts (the
+   platformer's bullet is a `<RigidBody>`, whose Rapier body exists only then), and mounting at
+   `instantiate` would put that body in the physics world under a parent React does not know yet.
+   So `instantiate` makes the root's script instance over a stand-in (a three `Group` the Node
+   protocol adopts, which the script configures), `add_child` renders the scene (flushed at once,
+   as Godot's `add_child` returns with the child in the tree), and the mounted root claims the
+   stand-in:
+   - A scripted root's instance is re-seated on the mounted node (`$native`). A script-less root is
+     reached through the stand-in from then on (`STANDS_FOR`, an identity alias, with every
+     receiver resolving through `godot_node_entity`).
+   - The mounted root takes what the script set on the stand-in:
+     - the parts of its transform that differ from the identity;
+     - its name, made unique after mounting (`@Class@n`);
+     - its groups, process mode and priorities;
+     - a `queue_free`;
+     - connections to its `ready`, `tree_entered` and `tree_exiting` signals, which the mounted
+       root's signals re-emit.
+   - Differences stated, not ported. Before `add_child`:
+     - A transform part set to the identity (position (0, 0, 0), an identity basis, scale 1) does
+       not override the scene root's authored one; `set_transform` is merged part by part where
+       Godot replaces it whole.
+     - Anything else set on the stand-in is lost or throws, the stand-in being a 3D node of no
+       particular class: the root class's own properties and methods (`set_linear_velocity` on a
+       RigidBody3D root is dropped; a Control or Node2D setter throws, the stand-in having no
+       Control or 2D state; an AnimatedSprite3D's `play`), `set_meta`, `owner` and
+       `unique_name_in_owner`, a child added to it, a native class test (`as Node3D`) on a
+       script-less root.
+     - A script field the instanced scene authors is set again when the scene mounts, over the
+       value the spawning script gave it before `add_child` (Godot sets authored fields inside
+       `instantiate`, so the script's later value wins there).
+     - A script-set value equal to Godot's default (process mode INHERIT, priority 0) does not
+       override the scene's.
+     - A signal connection made before `add_child` cannot be disconnected through the node
+       afterwards (the name resolves to the mounted root's signal) and `is_connected` reads false.
+       It fires after the connections made as the scene mounted, compat's own among them, which
+       Godot does not have.
+     - An `add_child` of an instantiated scene while React commits (from a `_ready` or an effect)
+       throws, naming the scene.
+   In the corpus, the platformer's bullet sets only its transform before `add_child` (its velocity
+   and collision exception come after). Two sites configure a root the stand-in cannot be:
+   - `starter-kit-match-3/scripts/main.gd:175` sets a `GPUParticles2D` root's `position`;
+   - `starter-kit-fps/objects/player.gd:212` calls an `AnimatedSprite3D` root's `play`.
+   Neither game imports whole yet (their scripts' refusals); when they do, these sites need a form
+   without the stand-in, or are refused.
 
 The SceneTree's clock, what `useGodotTree` still runs after steps 6 and 7, goes the same way, from
 what the corpus uses (the seven Godot 4 games, 2026-09-28):

@@ -1554,8 +1554,8 @@ export function godot_node_add_unmounted(handler: (parent: object, child: object
  * set on the stand-in before `add_child`, which Godot's instantiated node already held: its name
  * (which `add_child` then makes unique among its siblings), groups (joining the scene's own),
  * process mode and priorities, a `queue_free` (freed with the stand-in's), and the connections to its `ready`, `tree_entered` and
- * `tree_exiting` signals, which fire after the scene's own (disconnecting one through the
- * mounted node does not reach it). Not carried: a native class test
+ * `tree_exiting` signals, which fire after the connections made as the scene mounted
+ * (disconnecting one through the node afterwards does not reach it). Not carried: a native class test
  * (`as Node3D`) on a script-less stand-in, which has no class until it mounts.
  *
  * @godot Node (protocol)
