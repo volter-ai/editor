@@ -2771,7 +2771,9 @@ export function lowerOfficialExpression(
         // what it emitted (`OPCODE_AWAIT`, `gdscript_vm.cpp:2563`; `GDScriptFunctionState::_signal_callback`,
         // `gdscript_function.cpp:256`): a promise that one-shot connection resolves.
         const awaitedNode = context.node(node.toAwait, node);
-        const requirements = context.structural(node, 'await', [awaitedNode]);
+        // A call of a coroutine (a script function that awaits) is its async method's promise,
+        // awaited whatever the function returns.
+        const requirements = context.structural(node, 'await', [awaitedNode], awaitedNode.datatype.coroutine ? 'await:coroutine' : 'await');
         const isSignal = godotAwaitsEmission(awaitedNode.datatype);
         return compose(
           context,
