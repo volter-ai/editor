@@ -812,6 +812,7 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(project);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
+  const bodied = planGodotSceneBodies(composedScenes, diagnostics);
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }
@@ -827,7 +828,7 @@ export function planDirectGodotProjectComposition(
       physicsWorld: physics,
       processDelta: processDelta(project),
       sourceModules: plannedSourceModules,
-      scenes: planGodotSceneRefs(planGodotSceneBodies(composedScenes).map(planGodotSceneSkyLights)),
+      scenes: planGodotSceneRefs(bodied.map(planGodotSceneSkyLights)),
       scriptAutoloads: autoloads,
     },
   };

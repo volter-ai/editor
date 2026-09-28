@@ -9,7 +9,8 @@
  * name, which compat reads back.
  */
 
-import type { DirectGodotSceneDocumentPlan, DirectGodotSceneNodePlan } from './direct-project-composition-plan';
+import type { DirectGodotCompositionDiagnostic, DirectGodotSceneDocumentPlan, DirectGodotSceneNodePlan } from './direct-project-composition-plan';
+import { godotSceneRootClass, godotSceneRootIdiom } from './scene-document-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from './scene-document-plan';
 
 /** A planned `<RigidBody>` prop's value: a literal, a plain value, or Rapier's combine rule. */
@@ -125,6 +126,7 @@ function shapeData(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<string
  * `shapes` its collision shapes' Godot-only settings and `node` its node data.
  */
 function bodyProps(
+  refuse: (message: string) => void,
   className: string,
   sensor: boolean,
   setters: readonly TargetGodotSceneSetterPlan[],
@@ -150,8 +152,8 @@ function bodyProps(
       if (material !== undefined) data['physics_material_override'] = materialData(material);
     } else {
       const key = BODY_DATA[name];
-      if (key === undefined) throw new Error(`${className}.${entry.propertyName} has no idiomatic form`);
-      data[key] = plainValue(entry.value);
+      if (key === undefined) refuse(`${className}.${entry.propertyName} has no idiomatic form`);
+      else data[key] = plainValue(entry.value);
     }
   }
   if (locks.linear.includes(false)) props.set('enabledTranslations', { kind: 'data', value: locks.linear });
@@ -162,8 +164,8 @@ function bodyProps(
   // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData` for compat: Rapier
   // merges it with the axis locks, which it then cannot report back, so the pair has no form.
   if (data['lock_rotation'] === true) {
-    if (locks.angular.includes(false)) throw new Error(`${className}.lock_rotation with an angular axis lock has no idiomatic form`);
-    props.set('lockRotations', literal(true));
+    if (locks.angular.includes(false)) refuse(`${className}.lock_rotation with an angular axis lock has no idiomatic form`);
+    else props.set('lockRotations', literal(true));
   }
   if (!sensor) {
     // Godot's friction is the smaller of the pair's, its bounce the larger (`combine_friction`,
@@ -202,55 +204,77 @@ const sameSetter = (left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSet
  * the instance's over them, where they differ from the prefab's, and Rapier's default for a prop
  * the prefab states that the instance's values leave out (an override back to Godot's default).
  */
-function bodyOverrides(scene: SceneWithoutRefs, node: DirectGodotSceneNodePlan, instanced: SceneWithoutRefs): readonly GodotSceneBodyProp[] {
+function bodyOverrides(
+  scene: SceneWithoutRefs,
+  node: DirectGodotSceneNodePlan,
+  instanced: SceneWithoutRefs,
+  scenes: ReadonlyMap<string, SceneWithoutRefs>,
+  refuse: (message: string) => void,
+): readonly GodotSceneBodyProp[] {
   const root = instanced.root;
-  const form = root.idiom?.form;
+  // The instanced scene's root may itself instance a scene (an inherited scene): its class and
+  // form are the chain's end's.
+  const form = godotSceneRootIdiom(scenes, instanced.sourceResPath)?.form;
   if (form?.kind !== 'body' || node.instance === undefined) return [];
-  const className = root.classes[0] as string;
-  const at = `${scene.sourceResPath}::${node.nodePath}`;
+  const className = godotSceneRootClass(scenes, instanced.sourceResPath) as string;
   const prefabResources = new Map(instanced.resources.map((resource) => [resource.key, resource] as const));
   const resources = new Map([...instanced.resources, ...scene.resources].map((resource) => [resource.key, resource] as const));
   const shapes = shapeData(root, prefabResources);
   const rootData = nodeData(root);
   const merged = [...root.setters.filter((own) => !node.setters.some((entry) => sameSetter(entry, own))), ...node.setters];
-  const own = bodyProps(className, form.sensor, root.setters, prefabResources, shapes, rootData);
-  const instance = bodyProps(className, form.sensor, merged, resources, shapes, instanceData(rootData, nodeData(node)));
+  const own = bodyProps(refuse, className, form.sensor, root.setters, prefabResources, shapes, rootData);
+  const instance = bodyProps(refuse, className, form.sensor, merged, resources, shapes, instanceData(rootData, nodeData(node)));
   const changed: GodotSceneBodyProp[] = [];
   for (const [name, value] of instance) {
     if (JSON.stringify(own.get(name)) !== JSON.stringify(value)) changed.push({ name, value });
   }
   // Rapier applies lockRotations after enabledRotations, and clearing it clears every rotation lock.
   if (own.has('lockRotations') && !instance.has('lockRotations') && instance.has('enabledRotations')) {
-    throw new Error(`${at}: clearing the instanced ${className}'s lock_rotation beside an angular axis lock has no idiomatic form`);
+    refuse(`clearing the instanced ${className}'s lock_rotation beside an angular axis lock has no idiomatic form`);
+    return [];
   }
   for (const name of own.keys()) {
     if (instance.has(name)) continue;
     const reset = RAPIER_BODY_DEFAULTS[name];
-    if (reset === undefined) throw new Error(`${at}: clearing the instanced ${className}'s ${name} has no idiomatic form`);
-    changed.push({ name, value: reset });
+    if (reset === undefined) refuse(`clearing the instanced ${className}'s ${name} has no idiomatic form`);
+    else changed.push({ name, value: reset });
   }
   return changed;
 }
 
 /**
  * The scenes with every node's Godot-only `data`, each body's props (`body`), and each instance of
- * a scene rooted in a body the props its overrides change (`bodyOverrides`).
+ * a scene rooted in a body the props its overrides change (`bodyOverrides`); what has no form is a
+ * composition diagnostic.
  */
-export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
+export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagnostics: DirectGodotCompositionDiagnostic[]): SceneWithoutRefs[] {
   const bySource = new Map(scenes.map((scene) => [scene.sourceResPath, scene] as const));
   return scenes.map((scene) => {
     const resources = new Map(scene.resources.map((resource) => [resource.key, resource] as const));
     const stamp = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => {
+      const at = `${scene.sourceResPath}#${node.nodePath}`;
+      const refuse = (message: string): void => {
+        diagnostics.push({ at, message });
+      };
       const children = node.children.map(stamp);
       const placements = node.placements?.map((placed) => ({ at: placed.at, node: stamp(placed.node) }));
       const data = nodeData(node);
       const form = node.idiom?.form;
       const instanced = node.instance === undefined ? undefined : bySource.get(node.instance.sourceResPath);
+      // A value with no plain form (`plainValue`) is refused as the rest are.
+      const planned = <T>(plan: () => T, fallback: T): T => {
+        try {
+          return plan();
+        } catch (error) {
+          refuse(error instanceof Error ? error.message : String(error));
+          return fallback;
+        }
+      };
       const body =
-        node.instance === undefined && form?.kind === 'body'
-          ? [...bodyProps(node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), data)].map(([name, value]) => ({ name, value }))
+        node.instance === undefined && node.model === undefined && form?.kind === 'body'
+          ? planned(() => [...bodyProps(refuse, node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), data)].map(([name, value]) => ({ name, value })), [])
           : undefined;
-      const overrides = instanced === undefined ? [] : bodyOverrides(scene, node, instanced);
+      const overrides = instanced === undefined ? [] : planned(() => bodyOverrides(scene, node, instanced, bySource, refuse), []);
       return {
         ...node,
         data,
