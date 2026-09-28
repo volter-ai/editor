@@ -432,13 +432,15 @@ export function Object3DDocumentToolbar({
         </ViewportDisplayModeMenu>
         {/* THE EYE WAS THE OVERLAYS CONTROL ALL ALONG — measured by what it
             toggles, which is Grid and Bounds, exactly Blender's Show Overlays
-            subject. It takes Blender's mark. It does NOT take Blender's split
-            toggle+chevron: that toggle binds to a MASTER overlays flag this
-            document's session does not have, and deriving one from "any
-            overlay is on" would silently drop the per-overlay state on the
-            first click. One button, one job, until the session has the flag. */}
+            subject. It takes Blender's mark, and Blender's split toggle+chevron:
+            the toggle is the MASTER flag, this stage's own helpers switch
+            (`StageHost` takes the grid, axis lines and selection marks down
+            with it), and each overlay below keeps its own choice under it. */}
         <ViewportOverlaysMenu
           glyph={<ViewportOverlaysGlyph />}
+          {...(stage === null
+            ? {}
+            : { master: { enabled: stage.showHelpers, onToggle: () => stage.toggleHelpers() } })}
           choices={[
             {
               id: 'grid',

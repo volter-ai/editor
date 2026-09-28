@@ -1244,8 +1244,14 @@ export function Object3DDocumentViewport({
             const rig = new StagePresentationRig(host.scene, invalidateStages);
             host.presentationRig = rig;
             bindViewPresentation(documentId, viewStageKind);
+            // THE STAGE'S SHOW OVERLAYS is its store's helpers switch (Blender's
+            // `View3DOverlay.show_overlays`, one per area): off, the grid, the axis lines and the
+            // selection's outline and origins go with the helpers, and each keeps its own choice
+            // for when it comes back on.
+            let overlaysShown = host.store.shell.showHelpers;
             const applyPresentation = () => {
               const presentation = viewPresentation(documentId);
+              overlaysShown = host.store.shell.showHelpers;
               rig.apply(presentation, renderer, dressingToneMapping);
               // The view's overlays: its selection marks and its grid's major step. The native
               // outline is also the stage's own switch (a shared preview draws none).
@@ -1255,7 +1261,7 @@ export function Object3DDocumentViewport({
               host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
               host.viewport?.setAxisLines(presentation.overlays.axes);
               host.viewport?.setNavigation(presentation.overlays.navigation);
-              host.viewport?.setGridVisible(presentation.overlays.grid.visible);
+              host.viewport?.setGridVisible(presentation.overlays.grid.visible && overlaysShown);
               if (host.session) {
                 // An X-ray with no surface draws no outline: the selection is its wires' colour.
                 const surfaceless =
@@ -1263,8 +1269,12 @@ export function Object3DDocumentViewport({
                   presentation.xray.enabled &&
                   presentation.xray.alpha <= 0;
                 host.session.selectionOutlineEnabled =
-                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline && !surfaceless;
-                host.session.selectionOriginsEnabled = !shared && presentation.overlays.selection.origins;
+                  !shared &&
+                  overlaysShown &&
+                  selectionOutlineRef.current &&
+                  presentation.overlays.selection.outline &&
+                  !surfaceless;
+                host.session.selectionOriginsEnabled = !shared && overlaysShown && presentation.overlays.selection.origins;
                 host.session.setXray(presentation.xray);
               }
               invalidateStages();
@@ -1272,6 +1282,11 @@ export function Object3DDocumentViewport({
             host.applyPresentation = applyPresentation;
             applyPresentation();
             host.cleanups.push(subscribeViewportPresentation(applyPresentation));
+            host.cleanups.push(
+              host.store.shell.subscribe(() => {
+                if (host.store.shell.showHelpers !== overlaysShown) applyPresentation();
+              }),
+            );
             // A view may name an environment image its integration registers later.
             host.cleanups.push(
               subscribeEnvironmentImages(() => {

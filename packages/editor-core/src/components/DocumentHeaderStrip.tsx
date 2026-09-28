@@ -113,7 +113,19 @@ export function DocumentHeaderStrip({
           ref={bindEnd}
           className="volter-dock-document-toolbar-area"
           data-testid={`document-header-area:${documentId}`}
-          style={{ flex: '0 0 auto', width: endWidth, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}
+          // Its own header, painted over the first area's row: controls that run past the first
+          // area's width go under it rather than over the second's, as a narrow Blender area's
+          // header runs out of room at its own edge.
+          style={{
+            flex: '0 0 auto',
+            width: endWidth,
+            alignSelf: 'stretch',
+            display: 'flex',
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 1,
+            background: 'var(--volter-surface-chrome)',
+          }}
         />
       )}
     </div>

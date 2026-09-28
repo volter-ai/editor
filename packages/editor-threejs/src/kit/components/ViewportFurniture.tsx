@@ -363,7 +363,10 @@ export function ViewportFurniture({
 
   return (
     <>
-      {chrome.viewName === 'text' ? (
+      {/* The view text is an overlay (Blender's `show_text`), gone with the stage's Show Overlays;
+          the camera's frame below is not (`drawviewborder`: "When overlays are disabled, only
+          show camera outline & passepartout"). */}
+      {chrome.viewName === 'text' && store.showHelpers ? (
       <div
         data-testid="viewport-view-text"
         aria-hidden="true"
