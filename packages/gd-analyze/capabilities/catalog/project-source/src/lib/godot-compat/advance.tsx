@@ -27,13 +27,20 @@ import { godot_window_canvas_layer, godot_window_process_events } from './window
  * (8/60 s by default). Godot never advances a frame by more (`main/main.cpp:4951`: a frame due more
  * steps than the maximum drops the excess from its process step), so a stall, such as a page's
  * first frames while it loads, never reaches a node as one long delta. The emitted scripts'
- * `_process` is handed the same bound, so it and `get_process_delta_time()` agree. The physics
- * step needs none: Rapier steps at its fixed `timeStep`, so a stall adds steps, never a longer one.
+ * `_process` is handed the same bound, so it and `get_process_delta_time()` agree. A setting that
+ * is missing or not positive takes Godot's default, as the engine rejects it (`engine.cpp:63`).
+ *
+ * The physics steps are not bounded the same way: Rapier steps at its fixed `timeStep` and runs
+ * every step due, up to its own half-second clamp (30 steps at 60 Hz), where Godot runs at most
+ * `max_physics_steps_per_frame` and drops the rest (`main.cpp:4954`). So after a stall the physics
+ * clock runs ahead of the process clock by up to the difference.
  */
 function processDelta(delta: number): number {
-  const steps = Number(get_setting('physics/common/max_physics_steps_per_frame', 8));
-  const ticks = Number(get_setting('physics/common/physics_ticks_per_second', 60));
-  return Math.min(delta, steps / ticks);
+  const setting = (name: string, fallback: number): number => {
+    const value = Number(get_setting(name, fallback));
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  };
+  return Math.min(delta, setting('physics/common/max_physics_steps_per_frame', 8) / setting('physics/common/physics_ticks_per_second', 60));
 }
 
 /**
