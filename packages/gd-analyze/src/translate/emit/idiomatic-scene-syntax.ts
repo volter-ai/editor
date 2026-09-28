@@ -416,9 +416,8 @@ function sensorChildren(emission: Emission, sensor: boolean, children: () => Tar
  * An area's sensor events: each collider pair Rapier reports starting or stopping to intersect the
  * sensor enters or leaves the area (`godot_area_3d_intersection`).
  */
-function sensorEvents(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
+function sensorEvents(emission: Emission): TargetTsJsxAttribute[] {
   const handler = useCompat(emission, 'area-3d', 'godot_area_3d_intersection');
-  const connected = handedConnections(emission, node, 'area-handler');
   return (['onIntersectionEnter', 'onIntersectionExit'] as const).map((prop) =>
     attribute(prop, {
       kind: 'arrow-expression',
@@ -426,22 +425,22 @@ function sensorEvents(emission: Emission, node: DirectGodotSceneNodePlan): Targe
       body: {
         kind: 'call-expression',
         callee: { kind: 'identifier-expression', name: handler },
-        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onIntersectionEnter' }, ...connected],
+        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onIntersectionEnter' }],
       },
     }),
   );
 }
 
 /**
- * The scene's connections a source's own handler delivers (`scene-signal-delivery.ts`), as the
+ * The scene's connections a script's own signal takes (`scene-signal-delivery.ts`), as the
  * callbacks it takes: one const, printed after the scene's scripts, with each signal's methods
- * called on their scripts in the scene's order. A callback passes what the handler hands it on as
- * it is (`any`), as a connection does: the method's own parameter type is its own.
+ * called on their scripts in the scene's order. A callback passes what the signal hands it on as it
+ * is (`any`), as a connection does: the method's own parameter type is its own.
  */
 function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, delivery: NonNullable<TargetGodotSceneConnectionPlan['delivery']>): TargetTsExpression[] {
   // A script's own signal takes them as its `useGodotScript` runs, so they are declared before it
-  // (its callbacks reach the other scripts only when called); a handler's or an instance's prop
-  // after every script.
+  // (its callbacks reach the other scripts only when called); an instance's prop after every
+  // script.
   const connections = emission.scene.connections.filter((connection) => connection.delivery === delivery && connection.fromNodePath === node.nodePath);
   if (connections.length === 0) return [];
   const base = `${camelName(node.name)}Connections`;
@@ -495,8 +494,8 @@ function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, d
 }
 
 /** A dynamic body's contacts, which compat reports as its `body_entered` and `body_exited` while monitoring. */
-function contactEvents(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
-  const connected = handedConnections(emission, node, 'contact-handler');
+function contactEvents(emission: Emission): TargetTsJsxAttribute[] {
+
   const handler = useCompat(emission, 'rigid-body-3d', 'godot_rigid_body_3d_contact');
   return (['onCollisionEnter', 'onCollisionExit'] as const).map((prop) =>
     attribute(prop, {
@@ -505,7 +504,7 @@ function contactEvents(emission: Emission, node: DirectGodotSceneNodePlan): Targ
       body: {
         kind: 'call-expression',
         callee: { kind: 'identifier-expression', name: handler },
-        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onCollisionEnter' }, ...connected],
+        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onCollisionEnter' }],
       },
     }),
   );
@@ -778,8 +777,8 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...nodeRef(emission, node, 'RapierRigidBody', 'rapier'),
       { kind: 'jsx-string-attribute', name: 'type', value: body.type },
       attribute('colliders', { kind: 'literal-expression', value: false }),
-      ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission, node)] : []),
-      ...(body.type === 'dynamic' ? contactEvents(emission, node) : []),
+      ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission)] : []),
+      ...(body.type === 'dynamic' ? contactEvents(emission) : []),
       ...transform,
       ...props.map((prop) => bodyProp(emission, prop)),
     ], sensorChildren(emission, body.sensor, children));

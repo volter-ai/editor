@@ -35,17 +35,6 @@ interface AreaState {
   locked: boolean;
   readonly bodyEntered: SignalHandle<[object]>;
   readonly bodyExited: SignalHandle<[object]>;
-  readonly scene: GodotAreaSceneConnections;
-}
-
-/**
- * The methods a scene connects to an area's body signals (`[connection]`), which the area's
- * element hands its intersection handler (`godot_area_3d_intersection`): called first at each
- * emission, as a scene's connections are made before any script's (`packed_scene.cpp:682`).
- */
-export interface GodotAreaSceneConnections {
-  body_entered?: (body: object) => void;
-  body_exited?: (body: object) => void;
 }
 
 const AREA = new Map<object, AreaState>();
@@ -55,14 +44,12 @@ const AREA = new Map<object, AreaState>();
  * whichever is first: a scene connects while it instantiates (`packed_scene.cpp:682`), before the
  * physics protocol meets a body its JSX declares.
  */
-type AreaSignals = { readonly bodyEntered: SignalHandle<[object]>; readonly bodyExited: SignalHandle<[object]>; readonly scene: GodotAreaSceneConnections };
+const SIGNALS = new WeakMap<object, { readonly bodyEntered: SignalHandle<[object]>; readonly bodyExited: SignalHandle<[object]> }>();
 
-const SIGNALS = new WeakMap<object, AreaSignals>();
-
-function signalsOf(entity: object): AreaSignals {
+function signalsOf(entity: object): { readonly bodyEntered: SignalHandle<[object]>; readonly bodyExited: SignalHandle<[object]> } {
   let signals = SIGNALS.get(entity);
   if (signals === undefined) {
-    signals = { bodyEntered: createSignal<[object]>(), bodyExited: createSignal<[object]>(), scene: {} };
+    signals = { bodyEntered: createSignal<[object]>(), bodyExited: createSignal<[object]>() };
     SIGNALS.set(entity, signals);
   }
   return signals;
@@ -76,20 +63,6 @@ function stateOf(object: object, _member: string): AreaState {
 
 /** `add_body_to_query` / `remove_body_from_query` (`godot_area_3d.cpp:195`). */
 /** `Area3D::_body_inout` (`area_3d.cpp:224`). */
-/** A body enters the area: the scene's connected method first, then the signal's connections. */
-function entered(area: AreaState, body: object): void {
-  const object = godot_node_object(body);
-  area.scene.body_entered?.(object);
-  area.bodyEntered.emit(object);
-}
-
-/** A body leaves the area: the scene's connected method first, then the signal's connections. */
-function exited(area: AreaState, body: object): void {
-  const object = godot_node_object(body);
-  area.scene.body_exited?.(object);
-  area.bodyExited.emit(object);
-}
-
 function bodyInout(area: AreaState, added: boolean, body: object): void {
   const entry = area.bodies.get(body);
   if (!added && entry === undefined) return;
@@ -101,14 +74,14 @@ function bodyInout(area: AreaState, added: boolean, body: object): void {
       created.connections.push(
         godot_node_tree_signal(body, 'tree_entered').connect(() => {
           created.inTree = true;
-          entered(area, body);
+          area.bodyEntered.emit(godot_node_object(body));
         }),
         godot_node_tree_signal(body, 'tree_exiting').connect(() => {
           created.inTree = false;
-          exited(area, body);
+          area.bodyExited.emit(godot_node_object(body));
         }),
       );
-      if (created.inTree) entered(area, body);
+      if (created.inTree) area.bodyEntered.emit(godot_node_object(body));
       created.rc += 1;
     } else entry.rc += 1;
   } else if (entry !== undefined) {
@@ -116,7 +89,7 @@ function bodyInout(area: AreaState, added: boolean, body: object): void {
     if (entry.rc === 0) {
       area.bodies.delete(body);
       for (const connection of entry.connections) connection.disconnect();
-      if (entry.inTree) exited(area, body);
+      if (entry.inTree) area.bodyExited.emit(godot_node_object(body));
     }
   }
   area.locked = false;
@@ -126,31 +99,22 @@ function bodyInout(area: AreaState, added: boolean, body: object): void {
 /**
  * A Rapier intersection event on the area's sensor (`onIntersectionEnter` / `onIntersectionExit`
  * of its `<RigidBody>`, whose `target` is the area's collider): the other collider's body enters or
- * leaves the area, if the area is monitoring and its mask takes the body's layer. `connections` are
- * the methods the scene connects to its body signals (`GodotAreaSceneConnections`).
+ * leaves the area, if the area is monitoring and its mask takes the body's layer.
  *
  * @godot Area3D (protocol)
  * @source scene/3d/physics/area_3d.cpp:224
  */
 export function godot_area_3d_intersection(
   event: { readonly target: { readonly collider: Collider }; readonly other: { readonly collider: Collider } },
-  added: boolean,
-  connections?: GodotAreaSceneConnections,
+  entered: boolean,
 ): void {
   const entity = godot_collision_object_of_collider(event.target.collider);
   const body = godot_collision_object_of_collider(event.other.collider);
   if (entity === undefined || body === undefined) return;
   const state = stateOf(entity, 'body_entered');
-  // The scene's connected methods, the element's current ones (a body is inside, and can leave or
-  // leave the tree, only after an intersection has handed them).
-  if (connections !== undefined) {
-    delete state.scene.body_entered;
-    delete state.scene.body_exited;
-    Object.assign(state.scene, connections);
-  }
   if (!state.monitoring || godot_collision_object_kind(body) === 'area') return;
   if ((godot_collision_object_layers(entity).mask & godot_collision_object_layers(body).layer) === 0) return;
-  bodyInout(state, added, body);
+  bodyInout(state, entered, body);
 }
 
 /**
@@ -220,7 +184,7 @@ export function set_monitoring(self: object, enable: boolean): void {
   state.bodies.clear();
   for (const [body, entry] of bodies) {
     for (const connection of entry.connections) connection.disconnect();
-    if (entry.inTree) exited(state, body);
+    if (entry.inTree) state.bodyExited.emit(godot_node_object(body));
   }
 }
 

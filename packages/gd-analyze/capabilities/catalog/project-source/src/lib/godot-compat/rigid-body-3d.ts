@@ -442,28 +442,13 @@ export function get_physics_material_override(self: object): PhysicsMaterial | n
 /** Each body's contact signals, and the shapes of each other body it touches. */
 const CONTACT_SIGNALS = new WeakMap<
   object,
-  {
-    readonly entered: ReturnType<typeof createSignal<[object]>>;
-    readonly exited: ReturnType<typeof createSignal<[object]>>;
-    readonly touching: Map<object, number>;
-    readonly scene: GodotBodySceneConnections;
-  }
+  { readonly entered: ReturnType<typeof createSignal<[object]>>; readonly exited: ReturnType<typeof createSignal<[object]>>; readonly touching: Map<object, number> }
 >();
-
-/**
- * The methods a scene connects to a body's contact signals (`[connection]`), which the body's
- * element hands its contact handler (`godot_rigid_body_3d_contact`): called first at each emission,
- * as a scene's connections are made before any script's (`packed_scene.cpp:682`).
- */
-export interface GodotBodySceneConnections {
-  body_entered?: (body: object) => void;
-  body_exited?: (body: object) => void;
-}
 
 function contactSignalsOf(entity: object) {
   let contacts = CONTACT_SIGNALS.get(entity);
   if (contacts === undefined) {
-    contacts = { entered: createSignal<[object]>(), exited: createSignal<[object]>(), touching: new Map(), scene: {} };
+    contacts = { entered: createSignal<[object]>(), exited: createSignal<[object]>(), touching: new Map() };
     CONTACT_SIGNALS.set(entity, contacts);
   }
   return contacts;
@@ -483,8 +468,7 @@ export function godot_rigid_body_3d_signal(self: object, name: 'body_entered' | 
 /**
  * A Rapier contact of the body's (`onCollisionEnter` / `onCollisionExit` of its `<RigidBody>`): with
  * contact monitoring on, the other body enters when its first shape touches and exits when its last
- * one parts (`RigidBody3D::_body_inout`). `connections` are the methods the scene connects to its
- * contact signals (`GodotBodySceneConnections`).
+ * one parts (`RigidBody3D::_body_inout`).
  *
  * @godot RigidBody3D (protocol)
  * @source scene/3d/physics/rigid_body_3d.cpp:81
@@ -492,34 +476,21 @@ export function godot_rigid_body_3d_signal(self: object, name: 'body_entered' | 
 export function godot_rigid_body_3d_contact(
   event: { readonly target: { readonly collider: Collider }; readonly other: { readonly collider: Collider } },
   entered: boolean,
-  connections?: GodotBodySceneConnections,
 ): void {
   const entity = godot_collision_object_of_collider(event.target.collider);
   const other = godot_collision_object_of_collider(event.other.collider);
   if (entity === undefined || other === undefined) return;
   const state = stateOf(entity);
-  const contacts = contactSignalsOf(entity);
-  // The scene's connected methods, the element's current ones.
-  if (connections !== undefined) {
-    delete contacts.scene.body_entered;
-    delete contacts.scene.body_exited;
-    Object.assign(contacts.scene, connections);
-  }
   if (!state.contact_monitor || state.max_contacts_reported <= 0) return;
+  const contacts = contactSignalsOf(entity);
   const shapes = contacts.touching.get(other) ?? 0;
   if (entered) {
     contacts.touching.set(other, shapes + 1);
-    if (shapes === 0) {
-      const object = godot_node_object(other);
-      contacts.scene.body_entered?.(object);
-      contacts.entered.emit(object);
-    }
+    if (shapes === 0) contacts.entered.emit(godot_node_object(other));
   } else if (shapes > 0) {
     if (shapes === 1) {
       contacts.touching.delete(other);
-      const object = godot_node_object(other);
-      contacts.scene.body_exited?.(object);
-      contacts.exited.emit(object);
+      contacts.exited.emit(godot_node_object(other));
     } else contacts.touching.set(other, shapes - 1);
   }
 }
