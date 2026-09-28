@@ -6,6 +6,7 @@ import {
   godotAwaitsEmission,
   godotBuiltinCopied,
   godotBuiltinSubscriptShape,
+  godotBuiltinTest,
   godotCallShape,
   godotLiteralIsText,
   godotNumericStoresAs,
@@ -658,6 +659,8 @@ function tweenedProperty(
       : nativeMemberReceiver(context, objectNode, property)
         ? objectNode.datatype.nativeType
         : undefined;
+  // An object only the run time knows: the property selected by name then.
+  if ((className === undefined || className === '') && namedAttribute(context, objectNode, property)) return namedAccess(context, node, property);
   if (className === undefined || className === '') {
     return context.refuse(node, `tween_property of ${property} on an object whose native class is not fixed (${objectNode.datatype.display})`);
   }
@@ -900,6 +903,216 @@ function variantElementPlace(
   };
 }
 
+const ANY: TargetTsType = { kind: 'keyword-type', keyword: 'any' };
+
+function namedImport(name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-named', imported: name, local: name, typeOnly: false };
+}
+
+/**
+ * The engine members a name can select on an untyped value at run time, as the array compat's
+ * `variant-named.ts` tries in turn: each class's or built-in type's accessor or method that compat
+ * binds, wrapped where the binding takes more than the call's own arguments (an indexed property's
+ * index, a tween's creator, a tweened property's accessors). `arity` is the call's argument count.
+ */
+function namedMembers(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  name: string,
+  use: 'get' | 'set' | 'call',
+  argumentNodes: readonly GodotBoundNode[] = [],
+): LoweredExpression {
+  const elements: TargetTsExpression[] = [];
+  const requirements: OfficialBoundLoweringRequirement[] = [];
+  const parameter = (parameterName: string): TargetTsParameter => ({ name: parameterName, type: ANY });
+  const id = (identifier: string): TargetTsExpression => ({ kind: 'identifier-expression', name: identifier });
+  for (const candidate of context.namedMembers(name, use)) {
+    const symbol: GodotOfficialSymbolIdentity = { sourceRevision: context.sourceRevision, ...candidate.symbol };
+    const target = context.bindings.resolve(symbol);
+    if (target.kind === 'refusal-binding' || target.use.kind !== 'call' || target.use.sourceReceiver !== 'first-argument') continue;
+    const shape = candidate.symbol.kind === 'native-member' && use === 'call' ? godotCallShape(candidate.owner, name) : undefined;
+    if (shape === 'script-chain-method') {
+      const argument = argumentNodes[0];
+      const method = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;
+      if (method === undefined || context.nativeMethod('*', method) !== undefined) continue;
+    }
+    const bound = boundTargetExpression(target);
+    const args = argumentNodes.map((_, index) => `a${String(index)}`);
+    let value: TargetTsExpression = bound;
+    if (candidate.index !== undefined) {
+      const index: TargetTsExpression = { kind: 'literal-expression', value: candidate.index };
+      value =
+        use === 'get'
+          ? { kind: 'arrow-expression', parameters: [parameter('self')], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), index] } }
+          : { kind: 'arrow-expression', parameters: [parameter('self'), parameter('value')], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), index, id('value')] } };
+    } else if (shape === 'creator-owned') {
+      value = { kind: 'arrow-expression', parameters: [parameter('self'), ...args.map(parameter)], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), { kind: 'this-expression' }, ...args.map(id)] } };
+    } else if (shape === 'tweened-property') {
+      const pathNode = argumentNodes[1];
+      const property = pathNode?.kind === 'LITERAL' && (pathNode.value.kind === 'string' || pathNode.value.kind === 'string-name') ? pathNode.value.value : undefined;
+      if (property === undefined) continue;
+      const access = namedAccess(context, node, property);
+      requirements.push(...access.requirements);
+      value = { kind: 'arrow-expression', parameters: [parameter('self'), ...args.map(parameter)], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), ...args.map(id), access.value] } };
+    }
+    // A built-in type's member applies to the values compat recognises as that type.
+    let test: TargetTsExpression | undefined;
+    if (candidate.builtin) {
+      const shape = godotBuiltinTest(candidate.owner);
+      if (shape === undefined) continue;
+      requirements.push(namedImport(shape.exportName));
+      test =
+        shape.members === undefined
+          ? id(shape.exportName)
+          : {
+              kind: 'arrow-expression',
+              parameters: [parameter('value')],
+              body: {
+                kind: 'call-expression',
+                callee: id(shape.exportName),
+                arguments: [id('value'), { kind: 'literal-expression', value: shape.members }, ...(shape.nested === true ? [{ kind: 'literal-expression' as const, value: true }] : [])],
+              },
+            };
+    }
+    requirements.push(...context.bindingUse(symbol, node).requirements);
+    elements.push({
+      kind: 'object-expression',
+      properties: [{ key: 'owner', value: { kind: 'literal-expression', value: candidate.owner } }, ...(test === undefined ? [] : [{ key: 'is', value: test }]), { key: use, value }],
+    });
+  }
+  return expression({ kind: 'array-expression', elements }, requirements);
+}
+
+/** A property's accessors on a value only known at run time, as a tweener reads and writes it. */
+function namedAccess(context: LoweringContext, node: GodotBoundNode, property: string): LoweredExpression {
+  const getters = namedMembers(context, node, property, 'get');
+  const setters = namedMembers(context, node, property, 'set');
+  const name: TargetTsExpression = { kind: 'literal-expression', value: property };
+  const object: TargetTsParameter = { name: 'object', type: ANY };
+  return expression(
+    {
+      kind: 'object-expression',
+      properties: [
+        { key: 'get', value: { kind: 'arrow-expression', parameters: [object], body: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_variant_get_named' }, arguments: [{ kind: 'identifier-expression', name: 'object' }, name, getters.value] } } },
+        {
+          key: 'set',
+          value: {
+            kind: 'arrow-expression',
+            parameters: [object, { name: 'value', type: ANY }],
+            body: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_variant_set_named' }, arguments: [{ kind: 'identifier-expression', name: 'object' }, name, { kind: 'identifier-expression', name: 'value' }, setters.value] },
+          },
+        },
+      ],
+    },
+    [...getters.requirements, ...setters.requirements, namedImport('godot_variant_get_named'), namedImport('godot_variant_set_named')],
+  );
+}
+
+/**
+ * Whether `base.name` is selected at run time: the base is untyped, or a native object whose
+ * declared class has no such property or signal (a subclass may: `Object::get` asks the object's
+ * own class, `object.cpp:333`).
+ */
+function namedAttribute(context: LoweringContext, baseNode: GodotBoundNode, name: string): boolean {
+  if (baseNode.kind === 'IDENTIFIER' && (baseNode.source === 'NATIVE_CLASS' || baseNode.datatype.metaType)) return false;
+  if (baseNode.datatype.kind === 'VARIANT') return godotBuiltinSubscriptShape(baseNode.datatype) === undefined;
+  if (!nativeMemberReceiver(context, baseNode, name)) return false;
+  const className = baseNode.datatype.nativeType;
+  return context.nativeProperty(className, name) === undefined && context.nativeSignalOwner?.(className, name) === undefined;
+}
+
+/** `base.name` read on a value only known at run time (`godot_variant_get_named`). */
+function namedRead(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  name: string,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): LoweredExpression {
+  const members = namedMembers(context, node, name, 'get');
+  return compose(
+    context,
+    [lower(context, baseNode)],
+    ([object]) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_variant_get_named' },
+      arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: name }, members.value],
+      span: span(context.script, node),
+    }),
+    [...members.requirements, namedImport('godot_variant_get_named')],
+  );
+}
+
+/**
+ * `base.name` as a place on a value only known at run time: read by name, and stored by name with
+ * the base written back where it came from when the base is a place (a built-in record the store
+ * copies), else stored on the object alone.
+ */
+function namedPlace(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  name: string,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+  needsRead: boolean,
+): AssignablePlace {
+  const getters = needsRead ? namedMembers(context, node, name, 'get') : undefined;
+  const setters = namedMembers(context, node, name, 'set');
+  const at = span(context.script, node);
+  const key: TargetTsExpression = { kind: 'literal-expression', value: name };
+  const placed = baseNode.kind === 'IDENTIFIER' ? baseNode.source === 'LOCAL_VARIABLE' || baseNode.source === 'MEMBER_VARIABLE' || baseNode.source === 'FUNCTION_PARAMETER' : baseNode.kind === 'SUBSCRIPT';
+  const base = placed ? assignablePlace(context, baseNode, lower) : undefined;
+  const object = base === undefined ? materialize(context, lower(context, baseNode)) : undefined;
+  const value = base?.read ?? (object as LoweredExpression).value;
+  const store = (assigned: TargetTsExpression): TargetTsExpression => ({
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: 'godot_variant_set_named' },
+    arguments: [value, key, assigned, setters.value],
+    span: at,
+  });
+  return {
+    before: base?.before ?? (object as LoweredExpression).before,
+    afterAssigned: base?.afterAssigned ?? [],
+    read:
+      getters === undefined
+        ? { kind: 'undefined-expression' }
+        : { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_variant_get_named' }, arguments: [value, key, getters.value], span: at },
+    // The store gives the base back (a copy for a record), which its own place takes.
+    write: (assigned) => (base === undefined ? store(assigned) : base.write(store(assigned))),
+    requirements: [
+      ...(base?.requirements ?? (object as LoweredExpression).requirements),
+      ...(getters?.requirements ?? []),
+      ...setters.requirements,
+      namedImport('godot_variant_get_named'),
+      namedImport('godot_variant_set_named'),
+    ],
+  };
+}
+
+/** `base.name(...)` on a value only known at run time (`godot_variant_call_named`). */
+function namedCall(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  baseNode: GodotBoundNode,
+  argumentNodes: readonly GodotBoundNode[],
+  lowered: readonly LoweredExpression[],
+  requirements: readonly OfficialBoundLoweringRequirement[],
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): LoweredExpression {
+  const members = namedMembers(context, node, node.functionName, 'call', argumentNodes);
+  return compose(
+    context,
+    [lower(context, baseNode), ...lowered],
+    ([object, ...values]) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_variant_call_named' },
+      arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: node.functionName }, members.value, { kind: 'array-expression', elements: values as TargetTsExpression[] }],
+      span: span(context.script, node),
+    }),
+    [...requirements, ...members.requirements, namedImport('godot_variant_call_named')],
+  );
+}
+
 /**
  * An element of a built-in array Godot copies (a PackedStringArray; `lowering-shapes.ts`). Its
  * value is copy-on-write (`Vector<T>`, core/templates/vector.h): `a[i] = e` writes the variable's
@@ -1063,6 +1276,11 @@ function assignablePlace(
   if (copiedElement !== undefined) return valueElementPlace(context, node, copiedElement, lower);
   const untypedElement = variantElement(context, node);
   if (untypedElement !== undefined) return variantElementPlace(context, node, untypedElement, lower);
+  if (node.kind === 'SUBSCRIPT' && node.isAttribute) {
+    const namedBase = context.node(node.base, node);
+    const name = officialBoundPropertyName(context, node.attribute, node);
+    if (namedAttribute(context, namedBase, name)) return namedPlace(context, node, namedBase, name, lower, needsRead);
+  }
   const attributeTarget = valueAttributeTarget(context, node);
   // The native base's own property as the base of a member write (`transform.basis = b`): read
   // through its getter, written back through its setter.
@@ -2223,8 +2441,22 @@ export function lowerOfficialExpression(
           'binding',
           'integer-negate',
           'object-truthy',
+          'variant-operator',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-operator') {
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            ([operand]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_variant_evaluate' },
+              arguments: [{ kind: 'literal-expression', value: node.variantOperatorId }, operand as TargetTsExpression],
+              span: span(context.script, node),
+            }),
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-operator', imported: 'godot_variant_evaluate', local: 'godot_variant_evaluate', typeOnly: false } as const],
+          );
+        }
         if (recipe.kind === 'object-truthy') {
           return compose(
             context,
@@ -2285,8 +2517,22 @@ export function lowerOfficialExpression(
           'integer-binary',
           'object-equal',
           'variant-equal',
+          'variant-operator',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-operator') {
+          return compose(
+            context,
+            [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
+            ([leftValue, rightValue]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_variant_evaluate' },
+              arguments: [{ kind: 'literal-expression', value: node.variantOperatorId }, leftValue as TargetTsExpression, rightValue as TargetTsExpression],
+              span: span(context.script, node),
+            }),
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-operator', imported: 'godot_variant_evaluate', local: 'godot_variant_evaluate', typeOnly: false } as const],
+          );
+        }
         if (recipe.kind === 'variant-equal') {
           return compose(
             context,
@@ -2427,9 +2673,25 @@ export function lowerOfficialExpression(
           node,
           node.operation === 'OP_NONE' ? [exactKey] : [exactKey, 'operator:variant-evaluate'],
           [assigneeNode, valueNode],
-          ['assignment', 'binding'],
+          ['assignment', 'binding', 'variant-operator'],
         );
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-operator') {
+          return assignment(
+            context,
+            node,
+            (read, value) =>
+              expression({
+                kind: 'call-expression',
+                callee: { kind: 'identifier-expression', name: 'godot_variant_evaluate' },
+                arguments: [{ kind: 'literal-expression', value: node.variantOperatorId }, read, value],
+              }),
+            assigneeNode,
+            lowerExpression(context, valueNode),
+            lowerExpression,
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-operator', imported: 'godot_variant_evaluate', local: 'godot_variant_evaluate', typeOnly: false } as const],
+          );
+        }
         if (recipe.kind === 'binding') {
           const use = operatorBinding(context, node, assigneeNode, valueNode);
           return assignment(
@@ -2502,6 +2764,10 @@ export function lowerOfficialExpression(
             { ...boundTargetExpression(use.target), span: span(context.script, node) },
             [...rule.requirements, ...use.requirements],
           );
+        }
+        // A member of a value whose class only the run time knows: selected by name then.
+        if (node.isAttribute && namedAttribute(context, baseNode, officialBoundPropertyName(context, node.attribute, node))) {
+          return namedRead(context, node, baseNode, officialBoundPropertyName(context, node.attribute, node), lowerExpression);
         }
         // On a native object, or a script instance whose script does not declare the name (its
         // native base's signal, as its properties are).
@@ -2706,6 +2972,17 @@ export function lowerOfficialExpression(
             after: [],
             requirements: [...requirements, ...path.requirements, ...table.requirements],
           };
+        }
+        // A method of a value whose class only the run time knows: selected by name then.
+        if (
+          (node.compilerTarget.kind === 'dynamic' || node.compilerTarget.kind === 'unresolved') &&
+          !context.callReceivers.has(node.id) &&
+          context.untypedCalls.has(node.id) &&
+          !context.scriptSwitches.has(node.id) &&
+          calleeNode.kind === 'SUBSCRIPT' &&
+          calleeNode.isAttribute
+        ) {
+          return namedCall(context, node, context.node(calleeNode.base, calleeNode), argumentNodes, lowered, requirements, lowerExpression);
         }
         const target = callTargetBinding(context, node);
         // `Object.has_method(name)` answers from the script chain first, then ClassDB. Compat answers

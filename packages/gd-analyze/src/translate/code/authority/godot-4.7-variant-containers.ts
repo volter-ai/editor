@@ -37,6 +37,12 @@ function rule(
   };
 }
 
+const OPERAND_CLASSES = ['VARIANT:*', 'BUILTIN:*', 'NATIVE:*', 'CLASS:*', 'SCRIPT:*', 'ENUM:*'];
+/** Every pair of operand classes with an untyped operand. */
+const VARIANT_OPERAND_PAIRS = OPERAND_CLASSES.flatMap((left) =>
+  OPERAND_CLASSES.flatMap((right) => (left === 'VARIANT:*' || right === 'VARIANT:*' ? [[left, right] as const] : [])),
+);
+
 const DICTIONARY_ENTRY_COUNTS = [4, 5, 6, 7, 8, 10, 12, 16];
 
 export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = [
@@ -52,6 +58,14 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   rule('IDENTIFIER', 'local-identifier:LOCAL_ITERATOR', [], 'BUILTIN:*', { kind: 'structural', construct: 'local-identifier' }),
   rule('SUBSCRIPT', 'subscript-element:array', ['*', '*'], '*', { kind: 'structural', construct: 'subscript-element' }),
   rule('SUBSCRIPT', 'subscript-element:dictionary', ['*', '*'], '*', { kind: 'binding' }),
+  // An operator (or a compound assignment's) with an untyped operand: `Variant::evaluate` on the
+  // values the operands hold at run time (`variant-operator.ts`).
+  ...VARIANT_OPERAND_PAIRS.flatMap(([left, right]) =>
+    (['BINARY_OPERATOR', 'ASSIGNMENT'] as const).flatMap((nodeKind) =>
+      ['VARIANT:*', 'BUILTIN:*', 'NATIVE:*', ''].map((result) => rule(nodeKind, 'operator:variant-evaluate', [left, right], result, { kind: 'variant-operator' })),
+    ),
+  ),
+  ...['VARIANT:*', 'BUILTIN:*'].map((result) => rule('UNARY_OPERATOR', 'operator:variant-evaluate', ['VARIANT:*'], result, { kind: 'variant-operator' })),
 ];
 
 export const GODOT_4_7_VARIANT_CONTAINER_DATATYPES: readonly GodotDatatypeRuleEntry[] = [

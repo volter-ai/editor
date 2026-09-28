@@ -290,3 +290,51 @@ const TEXT_LITERALS: ReadonlySet<string> = new Set(['NodePath']);
 export function godotLiteralIsText(type: string): boolean {
   return TEXT_LITERALS.has(type);
 }
+
+/**
+ * How a value of a built-in type is recognised at run time, where an untyped value's member is
+ * selected then (`variant-named.ts`): compat's predicate for the kind of JS value the type is held
+ * as, and for a record its members (a Basis's are vectors: `nested`).
+ */
+export interface GodotBuiltinTest {
+  readonly exportName: string;
+  readonly members?: string;
+  readonly nested?: true;
+}
+
+const PACKED_ARRAYS = ['PackedByteArray', 'PackedInt32Array', 'PackedInt64Array', 'PackedFloat32Array', 'PackedFloat64Array', 'PackedStringArray', 'PackedVector2Array', 'PackedVector3Array', 'PackedVector4Array', 'PackedColorArray'];
+const record = (members: string, nested?: true): GodotBuiltinTest => ({ exportName: 'godot_variant_is_record', members, ...(nested === undefined ? {} : { nested }) });
+
+const BUILTIN_TESTS: Readonly<Record<string, GodotBuiltinTest>> = {
+  Array: { exportName: 'godot_variant_is_array' },
+  ...Object.fromEntries(PACKED_ARRAYS.map((type) => [type, { exportName: 'godot_variant_is_array' }])),
+  Dictionary: { exportName: 'godot_variant_is_dictionary' },
+  String: { exportName: 'godot_variant_is_text' },
+  StringName: { exportName: 'godot_variant_is_text' },
+  NodePath: { exportName: 'godot_variant_is_text' },
+  int: { exportName: 'godot_variant_is_number' },
+  float: { exportName: 'godot_variant_is_number' },
+  Signal: { exportName: 'godot_variant_is_signal' },
+  Callable: { exportName: 'godot_variant_is_callable' },
+  Vector2: record('x,y'),
+  Vector2i: record('x,y'),
+  Vector3: record('x,y,z'),
+  Vector3i: record('x,y,z'),
+  Vector4: record('x,y,z,w'),
+  Vector4i: record('x,y,z,w'),
+  Quaternion: record('x,y,z,w'),
+  Color: record('r,g,b,a'),
+  Rect2: record('position,size'),
+  Rect2i: record('position,size'),
+  AABB: record('position,size'),
+  Plane: record('normal,d'),
+  Basis: record('x,y,z', true),
+  Transform2D: record('x,y,origin'),
+  Transform3D: record('basis,origin'),
+  Projection: record('x,y,z,w', true),
+};
+
+/** How a value of the built-in type `type` is recognised at run time, if compat can tell. */
+export function godotBuiltinTest(type: string): GodotBuiltinTest | undefined {
+  return Object.hasOwn(BUILTIN_TESTS, type) ? BUILTIN_TESTS[type] : undefined;
+}

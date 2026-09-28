@@ -184,6 +184,21 @@ export interface ImplicitReadyChain {
 
 export type NativePropertyLookup = (className: string, property: string) => NativeProperty | undefined;
 
+/**
+ * An engine member a name selects at run time on an untyped value (`variant-named.ts`): its class
+ * or built-in type, and the accessor or method its binding is.
+ */
+export interface NamedMemberCandidate {
+  readonly owner: string;
+  readonly builtin: boolean;
+  readonly symbol: { readonly kind: 'native-member' | 'builtin-member' | 'native-signal'; readonly owner: string; readonly member: string; readonly signature: string };
+  /** An indexed property's index (`ADD_PROPERTYI`), which its accessors take before the value. */
+  readonly index?: number;
+}
+
+/** Every engine member of a name, for a read, a store or a call, the most derived classes first. */
+export type NamedMemberLookup = (name: string, use: 'get' | 'set' | 'call') => readonly NamedMemberCandidate[];
+
 /** A native class's method, found up the ancestry the API dump states, or undefined. */
 export type NativeMethodLookup = (className: string, method: string) => NativePropertyAccessor | undefined;
 
@@ -213,6 +228,8 @@ export class LoweringContext {
   nodeFields: ReadonlyMap<string, string> = new Map();
   /** The `as Class` casts analysis proves always hold (`provenCasts`). */
   provenCasts: ReadonlySet<number> = new Set();
+  /** Every engine member of a name, for a member an untyped value selects at run time (`variant-named.ts`). */
+  namedMembers: NamedMemberLookup = () => [];
   /** The literal path each node reads from self (analyze's `selfNodePaths`), by node. */
   selfNodePaths: ReadonlyMap<number, string> = new Map();
   #temporaryIndex = 0;

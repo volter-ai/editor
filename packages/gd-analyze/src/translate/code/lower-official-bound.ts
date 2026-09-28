@@ -36,6 +36,8 @@ import {
   type ImplicitReadyChain,
   type GlobalEnumConstantLookup,
   type NativeConstantLookup,
+  type NamedMemberCandidate,
+  type NamedMemberLookup,
   type NativeMethodLookup,
   type NativePropertyAccessor,
   type NativePropertyLookup,
@@ -577,6 +579,7 @@ function lowerScript(
   nativeSignalOwner?: (className: string, signal: string) => string | undefined,
   globalEnumConstant?: GlobalEnumConstantLookup,
   nodePaths: GodotScriptNodePathsPlan = EMPTY_SCRIPT_NODE_PATHS,
+  namedMembers?: NamedMemberLookup,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -653,6 +656,7 @@ function lowerScript(
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
   context.provenCasts = new Set(source.provenCasts);
+  if (namedMembers !== undefined) context.namedMembers = namedMembers;
   context.selfNodePaths = new Map(source.selfNodePaths.map((entry) => [entry.nodeId, entry.path] as const));
   const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
   context.nodeFields = new Map(
@@ -840,6 +844,59 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
   };
 }
 
+/**
+ * Every engine member a name selects on an untyped value (`Object::get`, `Object::callp` and
+ * `Variant::callp` look the name up in the value's own class at run time): the classes that
+ * declare it themselves, the most derived first, then the built-in types.
+ */
+export function namedMemberLookup(apiDump: GodotApiDump): NamedMemberLookup {
+  const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  const depth = (name: string): number => {
+    let count = 0;
+    for (let current = classes.get(name); current !== undefined && current.base_class !== ''; current = classes.get(current.base_class)) count += 1;
+    return count;
+  };
+  const ordered = [...apiDump.classes].sort((left, right) => depth(right.name) - depth(left.name) || left.name.localeCompare(right.name));
+  const properties = nativePropertyLookup(apiDump);
+  const signature = (hash: number | undefined): string => (hash === undefined || hash === 0 ? 'unhashed' : `hash:${String(hash)}`);
+  const cache = new Map<string, readonly NamedMemberCandidate[]>();
+  return (name, use) => {
+    const key = `${use}\0${name}`;
+    const known = cache.get(key);
+    if (known !== undefined) return known;
+    const found: NamedMemberCandidate[] = [];
+    for (const entry of ordered) {
+      if (use === 'call') {
+        const method = entry.methods.find((candidate) => candidate.name === name);
+        if (method !== undefined) found.push({ owner: entry.name, builtin: false, symbol: { kind: 'native-member', owner: entry.name, member: name, signature: signature(method.hash) } });
+        continue;
+      }
+      if (use === 'get' && entry.signals.some((candidate) => candidate.name === name)) {
+        found.push({ owner: entry.name, builtin: false, symbol: { kind: 'native-signal', owner: entry.name, member: name, signature: 'signal' } });
+        continue;
+      }
+      if (!entry.properties.some((candidate) => candidate.name === name)) continue;
+      const property = properties(entry.name, name);
+      const accessor = use === 'get' ? property?.getter : property?.setter;
+      if (accessor === undefined) continue;
+      found.push({
+        owner: entry.name,
+        builtin: false,
+        symbol: { kind: 'native-member', owner: accessor.owner, member: accessor.name, signature: signature(accessor.hash) },
+        ...(property?.index === undefined ? {} : { index: property.index }),
+      });
+    }
+    if (use === 'call') {
+      for (const builtin of apiDump.builtinClasses ?? []) {
+        const method = builtin.methods.find((candidate) => candidate.name === name);
+        if (method !== undefined) found.push({ owner: builtin.name, builtin: true, symbol: { kind: 'builtin-member', owner: builtin.name, member: name, signature: signature(method.hash) } });
+      }
+    }
+    cache.set(key, found);
+    return found;
+  };
+}
+
 /** ClassDB integer constants and enum values (the dump folds enum values into constants). */
 export function nativeConstantLookup(apiDump: GodotApiDump): NativeConstantLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
@@ -878,6 +935,7 @@ export function lowerOfficialBoundProgram(
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
   const nativeSignalOwner = apiDump === undefined ? undefined : nativeSignalLookup(apiDump);
+  const namedMembers = apiDump === undefined ? undefined : namedMemberLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -900,6 +958,7 @@ export function lowerOfficialBoundProgram(
         nativeSignalOwner,
         globalEnumConstant,
         nodePaths,
+        namedMembers,
       );
       sourceFiles.push(inlineSingleUseTemporaries(sourceFile));
       scriptModules.push(module);
