@@ -54,6 +54,7 @@ import type {
   BlenderRnaView,
 } from '@volter/blender-engine/browser/rna';
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { ColorPicker, hexToRgb, parseAlpha, toHex } from '@volter/editor-sdk/widgets';
 import {
   type BlenderSubject,
   blenderPropertiesState,
@@ -414,10 +415,27 @@ function fieldName(row: BlenderRnaRow, index?: number): string {
   return index === undefined ? name : `${name} ${arrayItemChar(row.subtype, index) ?? index}`;
 }
 
-function colourOf(values: readonly number[]): string {
+/** A colour property's display bytes: a `COLOR` is scene-linear and is shown through the display
+ *  curve, a `COLOR_GAMMA` already holds display values. */
+function colourBytes(values: readonly number[], gamma: boolean): [number, number, number] {
   const byte = (channel: number) =>
-    Math.max(0, Math.min(255, Math.round((values[channel] ?? 0) ** (1 / 2.2) * 255)));
-  return `rgb(${byte(0)}, ${byte(1)}, ${byte(2)})`;
+    Math.max(0, Math.min(255, Math.round(Math.max(0, values[channel] ?? 0) ** (gamma ? 1 : 1 / 2.2) * 255)));
+  return [byte(0), byte(1), byte(2)];
+}
+
+function colourOf(values: readonly number[], gamma = false): string {
+  const [r, g, b] = colourBytes(values, gamma);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/** The picker's colour back as the property's values, alpha kept where the picker has none. */
+function colourValues(color: string, previous: readonly number[], gamma: boolean): number[] {
+  const channel = (byte: number) => (gamma ? byte / 255 : (byte / 255) ** 2.2);
+  const [r, g, b] = hexToRgb(toHex(color)).map(channel) as [number, number, number];
+  const next = [r, g, b];
+  const carriesAlpha = /^(rgba|hsla)\(/i.test(color) || /^#[0-9a-f]{8}$/i.test(color);
+  if (previous.length > 3) next.push(carriesAlpha ? parseAlpha(color) : (previous[3] ?? 1));
+  return next;
 }
 
 /** A property's widget, by RNA TYPE — the dispatcher is one `switch` and each
@@ -484,13 +502,44 @@ function StringWidget({ row, write }: WidgetProps) {
 
 /** A COLOR subtype is a swatch, not three numbers — `PropertyRNA.subtype` is
  *  exactly what says so, and it is why the door carries `subtype` at all. */
-function ColourWidget({ row }: WidgetProps) {
+/** BLENDER'S COLOUR FIELD: the whole-width swatch, and a click opens a picker under it
+ *  (`ui_block_colorpicker`); the colour is written when the pick ends, one step, as Blender's
+ *  popup pushes one undo when it closes. */
+function ColourWidget({ row, write }: WidgetProps) {
   const values = (row.value as readonly number[] | null) ?? [];
+  const gamma = row.subtype === 'COLOR_GAMMA';
+  const [open, setOpen] = useState(false);
+  const [r, g, b] = colourBytes(values, gamma);
+  const alpha = values.length > 3 ? (values[3] ?? 1) : 1;
+  const shown = alpha < 1 ? `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(2)})` : colourOf(values, gamma);
   return (
-    <span
-      style={{ ...fieldStyle, background: colourOf(values), display: 'block' }}
-      title={values.map((value) => value.toFixed(3)).join(', ')}
-    />
+    <span style={{ position: 'relative', display: 'block' }}>
+      <button
+        type="button"
+        aria-label={row.name}
+        aria-expanded={open}
+        disabled={row.readonly}
+        onClick={() => setOpen(!open)}
+        style={{
+          ...fieldStyle,
+          background: colourOf(values, gamma),
+          display: 'block',
+          width: '100%',
+          cursor: row.readonly ? 'default' : 'pointer',
+        }}
+        title={values.map((value) => value.toFixed(3)).join(', ')}
+      />
+      {open ? (
+        <div style={{ position: 'absolute', zIndex: 'var(--volter-z-dropdown)', top: '100%', right: 0, marginTop: 4 }}>
+          <ColorPicker
+            value={shown}
+            onChange={() => {}}
+            onChangeEnd={(color) => write(colourValues(color, values, gamma))}
+            onClose={() => setOpen(false)}
+          />
+        </div>
+      ) : null}
+    </span>
   );
 }
 

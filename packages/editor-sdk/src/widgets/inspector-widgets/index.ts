@@ -15,6 +15,7 @@ export * from './BorderEditor';
 export * from './ColorPicker';
 export * from './CurveEditor';
 export type { ColorFormat } from './color-utils';
+export { hexToRgb, parseAlpha, toHex } from './color-utils';
 export * from './curve-utils';
 export * from './FilterEditor';
 export * from './FontPicker';
