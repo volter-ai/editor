@@ -300,7 +300,9 @@ function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<str
       return { component: 'TrimeshCollider', args: { kind: 'nested', values: [faces, Array.from({ length: faces.length / 3 }, (_, index) => index)] } };
     }
   }
-  return undefined;
+  // A collider idiom this does not form fails the typecheck here.
+  const unformed: never = idiom.collider;
+  return refuse(`${String(unformed)} has no planned collider`), undefined;
 }
 
 /**
