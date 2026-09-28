@@ -181,7 +181,7 @@ function classifyFile(relativePath: string): { kind: GodotProjectInputKind; reas
   );
 }
 
-function readDeclaredEngine(projectBytes: Buffer): GodotProjectSnapshot['engine'] {
+export function readDeclaredEngine(projectBytes: Buffer): GodotProjectSnapshot['engine'] {
   const parsed = parseGodotTextFile(projectBytes.toString('utf8'), 'project.godot');
   const configVersion = asNumber(parsed.leading['config_version']);
   const major = configVersion === 4 ? 3 : configVersion === 5 ? 4 : undefined;

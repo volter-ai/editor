@@ -13,6 +13,7 @@ import {
   mkdirSync,
   mkdtempSync,
   rmSync,
+  readFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
@@ -27,6 +28,7 @@ import { readGodotProjectSnapshot } from './read/godot-project';
 import { bindGodotResources } from './read/resource-program';
 import {
   captureGodotProjectSnapshot,
+  readDeclaredEngine,
   materializeGodotProjectSnapshot,
 } from './snapshot/project-snapshot';
 import {
@@ -165,6 +167,14 @@ export function importGodotProject(
   withBoundGodotProject(sourceDir, options, (boundProject, toolchain) =>
     importCapturedGodotProject(sourceDir, targetDir, boundProject, toolchain),
   );
+}
+
+/**
+ * The engine a project declares (`config_version` and `config/features` in `project.godot`), as
+ * the import's snapshot reads it, without capturing the project.
+ */
+export function readGodotProjectEngine(sourceDir: string): ReturnType<typeof readDeclaredEngine> {
+  return readDeclaredEngine(readFileSync(path.join(sourceDir, 'project.godot')));
 }
 
 /** The project as the import captures it: its snapshot read, and the official frontend's program. */

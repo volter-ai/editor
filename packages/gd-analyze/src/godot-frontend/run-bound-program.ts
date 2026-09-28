@@ -225,18 +225,3 @@ export function captureGodotBoundProgramFromSnapshot(options: {
   }
 }
 
-/** Tooling convenience; production captures this into its toolchain snapshot first. */
-export function captureGodotBoundProgram(options: {
-  readonly godotBinary: string;
-  readonly projectDir: string;
-  readonly importer?: GodotOfficialImporter;
-}): GodotBoundProgram {
-  // The patch of the pinned release this exporter binary is (4.7's when it is none of them).
-  const executableSha256 = sha256(readFileSync(path.resolve(options.godotBinary)));
-  const release = Object.values(GODOT_4_SOURCE_AUTHORITIES).find((entry) => entry.boundExporter?.executableSha256 === executableSha256);
-  return captureGodotBoundProgramFromSnapshot({
-    exporter: captureGodotBoundExporterSnapshot(options.godotBinary, release?.officialSourcePatch ?? DEFAULT_OFFICIAL_SOURCE_PATCH),
-    projectDir: options.projectDir,
-    ...(options.importer === undefined ? {} : { importer: options.importer }),
-  });
-}

@@ -13,15 +13,16 @@
  * - every node class a scene authors, every resource and sub-resource type, every signal
  *   connected in a scene, and every external asset format.
  *
- * The project's declared engine version is reported, not enforced: the frontend here is a
- * measuring instrument, so a Godot 4.6 project is read with the pinned 4.7 frontend and marked.
- * Godot 3 projects are listed as unread, since no Godot 3 frontend exists.
+ * It reads through the import's own capture (`withCapturedGodotProject`), so it runs the pinned
+ * toolchain the import runs: a project the import's frontend selection refuses (an engine newer
+ * than the pinned one, a feature it does not know, unpinned binaries) is a `failed` row with the
+ * reason. Godot 3 projects are listed as unread, since no Godot 3 frontend exists.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withCapturedGodotProject } from '../import-project';
+import { readGodotProjectEngine, withCapturedGodotProject } from '../import-project';
 import type { SceneNode } from '../read/godot-types';
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -98,11 +99,8 @@ function sceneClasses(node: SceneNode | undefined, counts: Counts): void {
 }
 
 function engineOf(fixtureDir: string): { major: number; label: string } {
-  // `config_version=5` is Godot 4's project file, 4 Godot 3's (`project_settings.cpp`).
-  const text = readFileSync(path.join(fixtureDir, 'project.godot'), 'utf8');
-  const major = /^config_version=5/mu.test(text) ? 4 : 3;
-  const features = /^config\/features=PackedStringArray\(([^)]*)\)/mu.exec(text)?.[1]?.split(',').map((entry) => entry.trim().replace(/^"|"$/gu, '')) ?? [];
-  return { major, label: `${String(major)} [${features.join(', ')}]` };
+  const engine = readGodotProjectEngine(fixtureDir);
+  return { major: engine.major, label: `${String(engine.major)} [${engine.features.join(', ')}]` };
 }
 
 function readGame(fixture: string, exporter: string, official: string): GameClosure {
