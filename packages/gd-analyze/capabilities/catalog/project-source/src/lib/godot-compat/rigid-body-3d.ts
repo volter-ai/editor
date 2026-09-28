@@ -16,7 +16,7 @@
 import type { Collider, RigidBody } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_node, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
-import { godot_node_entity } from './node';
+import { godot_node_entity, godot_node_object } from './node';
 import { createSignal, type GodotSignal } from './signal';
 import { type BodyContact, type BodyServerState, godot_direct_body_state, type PhysicsDirectBodyState3D } from './physics-direct-body-state-3d';
 import { godot_physics_material_apply, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
@@ -153,7 +153,8 @@ export function godot_rigid_body_3d_integrate(object: object | null, integrate: 
       return transform3d(basis(...quaternionBasis(q)), vector3(p.x, p.y, p.z));
     },
     wakeup: () => body.wakeUp(),
-    object: (rid) => rid,
+    // The collider's node as the script sees it: its script instance, fields and all.
+    object: (rid) => godot_node_object(rid),
   };
   state.contact_count = server.contacts.length;
   // A script error aborts only `_integrate_forces`; the body takes what it set (GODOT.md §Order of work).
@@ -489,11 +490,11 @@ export function godot_rigid_body_3d_contact(
   const shapes = contacts.touching.get(other) ?? 0;
   if (entered) {
     contacts.touching.set(other, shapes + 1);
-    if (shapes === 0) contacts.entered.emit(other);
+    if (shapes === 0) contacts.entered.emit(godot_node_object(other));
   } else if (shapes > 0) {
     if (shapes === 1) {
       contacts.touching.delete(other);
-      contacts.exited.emit(other);
+      contacts.exited.emit(godot_node_object(other));
     } else contacts.touching.set(other, shapes - 1);
   }
 }
