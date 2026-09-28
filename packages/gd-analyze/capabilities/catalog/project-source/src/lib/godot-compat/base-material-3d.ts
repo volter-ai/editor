@@ -862,16 +862,21 @@ const SCENE_DEPTH = new WeakMap<WebGLRenderer, SceneDepth>();
 const depthSize = new Vector2();
 
 /**
- * Whether a drawn material writes depth in the depth pass: an opaque one that writes depth. A
- * transparent material never does, whatever its depth draw mode, as Godot copies the depth before
- * its alpha pass; nor does a soft material.
+ * Whether a drawn material writes depth in the depth pass, as Godot's depth copy has it before the
+ * alpha pass: an opaque material that writes depth, and a depth-pre-pass one, whose depth Godot
+ * draws in that pass (`uses_depth_in_alpha_pass`, scene_shader_forward_clustered.h:291); never an
+ * alpha one, whatever its depth draw mode, nor a soft material. A three material with no Godot
+ * state counts when it is opaque and writes depth.
  */
 function writesDepth(object: Object3D, group: unknown): boolean {
   const own = (object as Object3D & { readonly material?: Material | Material[] }).material;
   // A multi-material mesh draws each geometry group (`{ start, count, materialIndex }`) with its material.
   const material = Array.isArray(own) ? own[(group as { readonly materialIndex?: number } | null)?.materialIndex ?? 0] : own;
-  if (!(material instanceof Material) || !material.visible || !material.depthWrite || material.transparent) return false;
-  return (material.userData as Readonly<Record<string, unknown>>)['proximity_fade_enabled'] !== true;
+  if (!(material instanceof Material) || !material.visible) return false;
+  if ((material.userData as Readonly<Record<string, unknown>>)['proximity_fade_enabled'] === true) return false;
+  const godot = OF_THREE.get(material);
+  if (godot?.transparency === TRANSPARENCY_DEPTH_PRE_PASS) return true;
+  return material.depthWrite && !material.transparent;
 }
 
 /**
