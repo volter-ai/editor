@@ -102,7 +102,17 @@ export const BLENDER_WALI_RUNTIME = 'runtime';
  * clean (16 under 4; 8 under 4 trapped at boot), because Blender starts threads
  * of its own beyond the oneTBB workers `-t` buys.
  */
-export const BLENDER_WALI_WORKERS = { pool: 16, blender: 4 } as const;
+/*
+ * ONE, MEASURED 2026-09-27, as the standalone skew runs Blender. Through the
+ * editor's own worker, on the same work as the standalone skew: at `-t 4` the
+ * session held 870 MB after it against the standalone skew's 632, and a
+ * boolean of two 8k-polygon spheres took 2.2 s; at `-t 1`, 629 MB and 1.3 s
+ * (the standalone skew 3.7 s). On this runtime more `-t` has cost more than
+ * it returned, as the courtyard's 12 against 4 already showed above. The
+ * pool stays 16: its workers start on a thread's first use, and Blender's
+ * libraries start threads of their own.
+ */
+export const BLENDER_WALI_WORKERS = { pool: 16, blender: 1 } as const;
 
 /** The substrate packages the WALI engine imports, by the URL segment each is
  *  served under and the specifier prefix rewritten to it. */
