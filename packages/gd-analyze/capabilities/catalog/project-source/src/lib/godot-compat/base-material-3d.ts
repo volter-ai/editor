@@ -862,22 +862,16 @@ const SCENE_DEPTH = new WeakMap<WebGLRenderer, SceneDepth>();
 const depthSize = new Vector2();
 
 /**
- * Whether a drawn material writes depth in the depth pass, as Godot's depth copy has it before the
- * alpha pass: an opaque material that writes depth, and a depth-pre-pass one, whose depth Godot
- * draws in that pass (`uses_depth_in_alpha_pass`, scene_shader_forward_clustered.h:291); never an
- * alpha one, whatever its depth draw mode, nor a soft material. A three material with no Godot
- * state counts when it is opaque and writes depth.
+ * Whether a drawn material writes depth in the depth pass: what three draws into depth, an opaque
+ * material that writes depth. A transparent one, a soft one among them, never does. Godot's depth
+ * copy also holds a depth-pre-pass surface, which here is transparent and so left out: smoke through
+ * such foliage is not softened against it.
  */
 function writesDepth(object: Object3D, group: unknown): boolean {
   const own = (object as Object3D & { readonly material?: Material | Material[] }).material;
   // A multi-material mesh draws each geometry group (`{ start, count, materialIndex }`) with its material.
   const material = Array.isArray(own) ? own[(group as { readonly materialIndex?: number } | null)?.materialIndex ?? 0] : own;
-  if (!(material instanceof Material) || !material.visible) return false;
-  if ((material.userData as Readonly<Record<string, unknown>>)['proximity_fade_enabled'] === true) return false;
-  const godot = OF_THREE.get(material);
-  // `uses_depth_in_alpha_pass` holds unless depth draw is disabled (scene_shader_forward_clustered.h:294).
-  if (godot?.transparency === TRANSPARENCY_DEPTH_PRE_PASS) return extraOf(godot).depth_draw_mode !== DEPTH_DRAW_DISABLED;
-  return material.depthWrite && !material.transparent;
+  return material instanceof Material && material.visible && material.depthWrite && !material.transparent;
 }
 
 /**
@@ -886,10 +880,8 @@ function writesDepth(object: Object3D, group: unknown): boolean {
  * per frame, when the first soft material is about to draw, from that material's `onBeforeRender`
  * as three's `Reflector` and `Refractor` draw their views (the target cleared with depth writes
  * on, shadows and XR held, the render target, cube face and mip level restored). Each drawn object
- * writes depth only where Godot's depth copy has it: an opaque material that writes depth and a
- * depth-pre-pass one, never an alpha or a soft one. The depth material has no alpha test, so a
- * depth-pre-pass surface writes its whole shape where Godot's pre-pass discards below its opaque
- * threshold (a leaf card writes its quad). The depth material draws front faces of the mesh as posed: a
+ * writes depth only where three draws depth: an opaque material that writes depth, never a
+ * transparent or a soft one. The depth material draws front faces of the mesh as posed: a
  * double-sided or back-faced mesh seen from behind, an alpha-scissor cutout's cut-away part and a
  * billboard's camera-facing turn are not what it writes, so smoke beside them fades against the
  * mesh as posed. Null while the pass is drawing, so a soft material
