@@ -109,7 +109,7 @@ export type WorkerReply =
    *  as the record of what the session submitted — the second side a
    *  displayed-versus-submitted comparison otherwise does not have. */
   | { op: 'present'; id: number; frame: unknown; description: unknown; capture?: CaptureRequest }
-  | { op: 'log'; level: 'log' | 'error'; text: string }
+  | { op: 'log'; level: 'log' | 'warn' | 'error'; text: string }
   /**
    * HOW BIG THE MODULE'S LINEAR MEMORY IS, posted after every call.
    *

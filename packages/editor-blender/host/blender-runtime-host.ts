@@ -1033,7 +1033,7 @@ export function blenderRuntime(): BlenderRuntime {
     // resolve, and `blender_tools.py` deliberately keeps a failing SCRIPT's
     // traceback out of it.
     // biome-ignore lint/suspicious/noConsole: the Blender worker's log is page output by design.
-    log: (level, text) => (level === 'error' ? console.error : console.log)(`[blender] ${text}`),
+    log: (level, text) => console[level](`[blender] ${text}`),
   });
   const session = runtime;
   // MEASUREMENT, PUBLISHED THE MOMENT THE SESSION EXISTS. The worker cannot say

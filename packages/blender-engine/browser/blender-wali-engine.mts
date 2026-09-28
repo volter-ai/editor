@@ -52,6 +52,7 @@ import {
   PAGE_OWNED_DIRECTORIES,
   SESSION_ROOT,
   SESSION_SCRIPT,
+  sessionLevel,
   sleep,
 } from './blender-engine.mts';
 import sessionPython from './session.py?raw';
@@ -381,10 +382,7 @@ export async function startWaliBlenderEngine(
       // -- the same rule as the standalone engine, and for the same measured
       // reason: only the session's own named conditions belong in the set an
       // agent must drive to zero.
-      options.log(
-        line.startsWith('@@VOLTER-WARN') || line.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
-        line,
-      );
+      options.log(sessionLevel(line), line);
     }
   };
   // THE PROGRAM DOES NOT RETURN. `session.py` loops forever, so `run` settles

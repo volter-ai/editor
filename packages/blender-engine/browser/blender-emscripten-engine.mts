@@ -37,6 +37,7 @@ import {
   PAGE_OWNED_DIRECTORIES,
   SESSION_ROOT,
   SESSION_SCRIPT,
+  sessionLevel,
   sleep,
 } from './blender-engine.mts';
 import sessionPython from './session.py?raw';
@@ -195,10 +196,7 @@ export async function startEmscriptenBlenderEngine(
   // session's OWN named conditions go there.
   const say = (_level: 'log' | 'error', text: string) => {
     if (text.startsWith('@@VOLTER-READY ')) readyLine = text.slice('@@VOLTER-READY '.length);
-    options.log(
-      text.startsWith('@@VOLTER-WARN') || text.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
-      text,
-    );
+    options.log(sessionLevel(text), text);
   };
   const module = await factory({
     arguments: ['--background', '--factory-startup', '--python', SESSION_SCRIPT],

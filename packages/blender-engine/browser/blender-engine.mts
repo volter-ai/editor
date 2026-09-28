@@ -107,7 +107,7 @@ export interface BlenderFiles {
 export interface BlenderEngineOptions {
   /** The project's absolute path; the engine's filesystem mirrors it there. */
   project: string;
-  log(level: 'log' | 'error', text: string): void;
+  log(level: 'log' | 'warn' | 'error', text: string): void;
   /** What the session asks the TAB for, mid-call: a frame, and sometimes a
    *  photograph of it. Whatever this resolves to is what Python receives.
    *
@@ -160,6 +160,14 @@ export interface BlenderEngine {
 }
 
 export const ARTIFACT_BASE = '/__editor/blender-wasm';
+
+/** The console level of one line the session printed. Only the session's own named conditions
+ *  reach the editor's console, each at the severity it names; Blender's streams stay page output. */
+export function sessionLevel(line: string): 'log' | 'warn' | 'error' {
+  if (line.startsWith('@@VOLTER-ERROR')) return 'error';
+  if (line.startsWith('@@VOLTER-WARN')) return 'warn';
+  return 'log';
+}
 
 /**
  * An artifact URL, resolved against THE MODULE — never against `self.location`.

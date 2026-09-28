@@ -44,7 +44,7 @@ export interface BlenderRuntimeOptions {
     description: unknown,
     capture?: CaptureRequest,
   ): Promise<PresentAnswer> | PresentAnswer;
-  log?(level: 'log' | 'error', text: string): void;
+  log?(level: 'log' | 'warn' | 'error', text: string): void;
 }
 
 /**
