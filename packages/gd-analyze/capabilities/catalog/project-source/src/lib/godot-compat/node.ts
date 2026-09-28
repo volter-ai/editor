@@ -676,10 +676,12 @@ export function godot_node_is_freed(object: object): boolean {
 
 /**
  * Whether a three object is a Godot node's entity, as opposed to an object a node draws with (a
- * model's meshes, a helper): the tree's observers are told about each node, never about those.
+ * model's meshes, a helper): the tree's observers are told about each node, never about those. It
+ * answers whether the object has node state, which a node gets when it is adopted or first touched
+ * as a node, not only when it enters the tree.
  *
  * @godot Node (protocol)
- * @source scene/main/node.h:54
+ * @source scene/main/node.h:53
  */
 export function godot_node_is_node(entity: object): boolean {
   return NODE.has(entity);

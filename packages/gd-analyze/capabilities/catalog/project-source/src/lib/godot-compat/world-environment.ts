@@ -434,9 +434,11 @@ function holdsDirectionalLight(object: Object3D): boolean {
  * Bumped when a directional light enters, leaves or moves in the tree: a sky's held lights are
  * collected again. Entering, leaving and freeing notify the tree's observers once per node of the
  * subtree (`node.ts`), so each node answers only for itself and the non-node objects it draws with
- * (a model's own lights), and a subtree costs one visit per object. `move_child` notifies with the
- * moved child alone, so a moved node counts when anything below it is a light. Any other node's
- * coming and going collects nothing.
+ * (a model's own lights), and a subtree costs one visit per object when its nodes were adopted
+ * before they entered (a named chain first given node state during the enter is walked once per
+ * ancestor). `move_child` notifies with the moved child alone, so a moved node counts when anything
+ * below it is a light; that is the child-order observer's job, since the tree observer, told of the
+ * move too, sees only the moved node itself. Any other node's coming and going collects nothing.
  */
 let treeVersion = 0;
 godot_node_observe_tree((entity) => {
