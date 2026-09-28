@@ -1,5 +1,5 @@
 /**
- * Particles: `CPUParticles3D` nodes (compat's `<GodotCPUParticles3D>`, its simulation transcribed,
+ * Particles: `CPUParticles3D` nodes (compat's `<GodotCPUParticles3D>`, a three.js particle system
  * drawing its mesh as an `InstancedMesh`), the `Curve` and `Gradient` resources their parameters
  * take, a `GPUParticles3D`'s `ParticleProcessMaterial` and the `CurveTexture` and `GradientTexture1D`
  * it holds its curves and ramps in, the `GradientTexture2D` a material samples, and `ReflectionProbe` nodes (the game editor's

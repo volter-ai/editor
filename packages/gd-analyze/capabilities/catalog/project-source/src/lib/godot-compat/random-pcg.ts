@@ -4,7 +4,7 @@
  *
  * Godot 4.7's `RandomPCG` (`core/math/random_pcg.{h,cpp}` over `thirdparty/misc/pcg.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a PCG32 generator as an object, which a node's own
- * `RandomNumberGenerator` holds (`CPUParticles3D::rng`). The global generator is `global-scope.ts`'s.
+ * `RandomNumberGenerator` holds. The global generator is `global-scope.ts`'s.
  */
 
 const U64 = (1n << 64n) - 1n;

@@ -4,9 +4,8 @@
  *
  * Godot 4.7's `CurveTexture` (`scene/resources/curve_texture.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a curve held as a texture a particle process
- * material samples. Its one reader here is a GPUParticles3D converted to CPU particles
- * (`gpu-particles-3d.ts`), which takes the curve itself (`ctex->get_curve()`,
- * `cpu_particles_3d.cpp:1528`), so no image is baked.
+ * material samples. Its one reader here is a GPUParticles3D's emitter (`gpu-particles-3d.ts`),
+ * which samples the curve itself, so no image is baked.
  */
 
 import type { Curve } from './curve';

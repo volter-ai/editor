@@ -3,16 +3,17 @@
  * @role BINDING
  *
  * Godot 4.7's `ParticleProcessMaterial` (`scene/resources/particle_process_material.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) as the parameters it holds. Godot compiles them into
- * a particle shader the GPU runs; here nothing is compiled: a GPUParticles3D is drawn as the CPU
- * particle system Godot converts it to (`CPUParticles3D::convert_from_particles`,
- * `gpu-particles-3d.ts`), which reads these parameters. A change to one is handed to the systems
- * using the material, which convert it again.
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): what a GPUParticles3D's particles do over their life,
+ * held as plain values. Godot compiles them into a particle shader; nothing is compiled here: the
+ * node's emitter (`gpu-particles-3d.ts`, the three.js particle system of `cpu-particles-3d.ts`)
+ * reads them each frame, so a change is seen at once.
  *
- * Held: the parameters that conversion carries, and the alpha curve (`alpha_curve`), which the
- * converted system applies as the material's shader does. The rest (turbulence, collision,
- * sub-emitters, attractors, 3D scale and rotation, velocity limits, emission curves and textures)
- * has no member here: a scene that states one is refused by name at import.
+ * Read by the emitter: direction, spread, flatness, gravity, the initial velocity, angular velocity,
+ * linear acceleration, damping, angle and scale ranges and their curves, the colour, its ramps and
+ * alpha curve, the point, sphere and box emission shapes, lifetime randomness, and the align-Y and
+ * disable-Z flags. The rest (turbulence, collision, sub-emitters, attractors, 3D scale and rotation,
+ * velocity limits, emission curves and textures) has no member here: a scene that states one is
+ * refused by name at import.
  */
 
 import { type Color, construct as color } from './color';
@@ -20,7 +21,6 @@ import type { CurveTexture } from './curve-texture';
 import type { GradientTexture1D } from './gradient-texture-1d';
 import { construct as vector3, type Vector3 } from './vector3';
 
-const f32 = Math.fround;
 /** `ParticleProcessMaterial::PARAM_MAX` (`particle_process_material.h:69`). */
 const PARAM_MAX = 18;
 /** `PARAM_SCALE` and `PARAM_DIRECTIONAL_VELOCITY` (`particle_process_material.h:59`, `:67`). */
@@ -52,27 +52,6 @@ export interface ParticleProcessMaterial {
   lifetime_randomness: number;
 }
 
-/** The systems drawing with each material, told when one of its parameters changes. */
-const USERS = new WeakMap<ParticleProcessMaterial, Set<() => void>>();
-
-function changed(self: ParticleProcessMaterial): void {
-  for (const listener of [...(USERS.get(self) ?? [])]) listener();
-}
-
-/**
- * A particle system that draws with `self` hears of each change to it, as Godot's particles
- * take the material's recompiled shader (`_queue_shader_change`); the returned function stops that.
- *
- * @godot ParticleProcessMaterial (protocol)
- * @source scene/resources/particle_process_material.cpp:1387
- */
-export function godot_particle_process_material_listen(self: ParticleProcessMaterial, listener: () => void): () => void {
-  const listeners = USERS.get(self) ?? new Set();
-  listeners.add(listener);
-  USERS.set(self, listeners);
-  return () => listeners.delete(listener);
-}
-
 /**
  * Godot's defaults (`ParticleProcessMaterial::ParticleProcessMaterial`): direction +X, a 45°
  * spread, scale 1, directional velocity 1, turbulence influence 0.1, gravity -9.8 on Y, white,
@@ -88,8 +67,8 @@ export function construct(): ParticleProcessMaterial {
     params_min[param] = 1;
     params_max[param] = 1;
   }
-  params_min[PARAM_TURB_VEL_INFLUENCE] = f32(0.1);
-  params_max[PARAM_TURB_VEL_INFLUENCE] = f32(0.1);
+  params_min[PARAM_TURB_VEL_INFLUENCE] = 0.1;
+  params_max[PARAM_TURB_VEL_INFLUENCE] = 0.1;
   return {
     direction: vector3(1, 0, 0),
     spread: 45,
@@ -105,7 +84,7 @@ export function construct(): ParticleProcessMaterial {
     emission_shape: 0,
     emission_sphere_radius: 1,
     emission_box_extents: vector3(1, 1, 1),
-    gravity: vector3(0, f32(-9.8), 0),
+    gravity: vector3(0, -9.8, 0),
     lifetime_randomness: 0,
   };
 }
@@ -116,7 +95,6 @@ export function construct(): ParticleProcessMaterial {
  */
 export function set_direction(self: ParticleProcessMaterial, direction: Vector3): void {
   self.direction = vector3(direction);
-  changed(self);
 }
 
 /**
@@ -132,8 +110,7 @@ export function get_direction(self: ParticleProcessMaterial): Vector3 {
  * @source scene/resources/particle_process_material.cpp:1412
  */
 export function set_spread(self: ParticleProcessMaterial, spread: number): void {
-  self.spread = f32(spread);
-  changed(self);
+  self.spread = spread;
 }
 
 /**
@@ -149,8 +126,7 @@ export function get_spread(self: ParticleProcessMaterial): number {
  * @source scene/resources/particle_process_material.cpp:1421
  */
 export function set_flatness(self: ParticleProcessMaterial, flatness: number): void {
-  self.flatness = f32(flatness);
-  changed(self);
+  self.flatness = flatness;
 }
 
 /**
@@ -169,9 +145,8 @@ export function get_flatness(self: ParticleProcessMaterial): number {
  */
 export function set_param_min(self: ParticleProcessMaterial, param: number, value: number): void {
   if (param < 0 || param >= PARAM_MAX) return;
-  self.params_min[param] = f32(value);
-  if ((self.params_min[param] as number) > (self.params_max[param] as number)) self.params_max[param] = f32(value);
-  changed(self);
+  self.params_min[param] = value;
+  if ((self.params_min[param] as number) > (self.params_max[param] as number)) self.params_max[param] = value;
 }
 
 /**
@@ -190,9 +165,8 @@ export function get_param_min(self: ParticleProcessMaterial, param: number): num
  */
 export function set_param_max(self: ParticleProcessMaterial, param: number, value: number): void {
   if (param < 0 || param >= PARAM_MAX) return;
-  self.params_max[param] = f32(value);
-  if ((self.params_min[param] as number) > (self.params_max[param] as number)) self.params_min[param] = f32(value);
-  changed(self);
+  self.params_max[param] = value;
+  if ((self.params_min[param] as number) > (self.params_max[param] as number)) self.params_min[param] = value;
 }
 
 /**
@@ -204,9 +178,7 @@ export function get_param_max(self: ParticleProcessMaterial, param: number): num
 }
 
 /**
- * A parameter's curve. Godot fits an empty curve's range to the parameter here
- * (`_adjust_curve_range`); the converted system fits it as it takes the curve
- * (`CPUParticles3D::set_param_curve`), so the material keeps the curve as given.
+ * A parameter's curve over each particle's life (the scale curve, for one), kept as given.
  *
  * @godot ParticleProcessMaterial.set_param_texture
  * @source scene/resources/particle_process_material.cpp:1609
@@ -214,7 +186,6 @@ export function get_param_max(self: ParticleProcessMaterial, param: number): num
 export function set_param_texture(self: ParticleProcessMaterial, param: number, texture: CurveTexture | null): void {
   if (param < 0 || param >= PARAM_MAX) return;
   self.tex_parameters[param] = texture;
-  changed(self);
 }
 
 /**
@@ -231,7 +202,6 @@ export function get_param_texture(self: ParticleProcessMaterial, param: number):
  */
 export function set_color(self: ParticleProcessMaterial, value: Color): void {
   self.color = value;
-  changed(self);
 }
 
 /**
@@ -248,7 +218,6 @@ export function get_color(self: ParticleProcessMaterial): Color {
  */
 export function set_color_ramp(self: ParticleProcessMaterial, ramp: GradientTexture1D | null): void {
   self.color_ramp = ramp;
-  changed(self);
 }
 
 /**
@@ -265,7 +234,6 @@ export function get_color_ramp(self: ParticleProcessMaterial): GradientTexture1D
  */
 export function set_color_initial_ramp(self: ParticleProcessMaterial, ramp: GradientTexture1D | null): void {
   self.color_initial_ramp = ramp;
-  changed(self);
 }
 
 /**
@@ -285,7 +253,6 @@ export function get_color_initial_ramp(self: ParticleProcessMaterial): GradientT
 export function set_particle_flag(self: ParticleProcessMaterial, flag: number, enable: boolean): void {
   if (flag < 0 || flag >= PARTICLE_FLAG_MAX) return;
   self.particle_flags[flag] = enable;
-  changed(self);
 }
 
 /**
@@ -305,7 +272,6 @@ export function get_particle_flag(self: ParticleProcessMaterial, flag: number): 
  */
 export function set_alpha_curve(self: ParticleProcessMaterial, curve: CurveTexture | null): void {
   self.alpha_curve = curve;
-  changed(self);
 }
 
 /**
@@ -325,7 +291,6 @@ export function get_alpha_curve(self: ParticleProcessMaterial): CurveTexture | n
 export function set_emission_shape(self: ParticleProcessMaterial, shape: number): void {
   if (shape < 0 || shape >= EMISSION_SHAPE_MAX) return;
   self.emission_shape = shape;
-  changed(self);
 }
 
 /**
@@ -341,8 +306,7 @@ export function get_emission_shape(self: ParticleProcessMaterial): number {
  * @source scene/resources/particle_process_material.cpp:1792
  */
 export function set_emission_sphere_radius(self: ParticleProcessMaterial, radius: number): void {
-  self.emission_sphere_radius = f32(radius);
-  changed(self);
+  self.emission_sphere_radius = radius;
 }
 
 /**
@@ -359,7 +323,6 @@ export function get_emission_sphere_radius(self: ParticleProcessMaterial): numbe
  */
 export function set_emission_box_extents(self: ParticleProcessMaterial, extents: Vector3): void {
   self.emission_box_extents = vector3(extents);
-  changed(self);
 }
 
 /**
@@ -376,7 +339,6 @@ export function get_emission_box_extents(self: ParticleProcessMaterial): Vector3
  */
 export function set_gravity(self: ParticleProcessMaterial, gravity: Vector3): void {
   self.gravity = vector3(gravity);
-  changed(self);
 }
 
 /**
@@ -393,7 +355,6 @@ export function get_gravity(self: ParticleProcessMaterial): Vector3 {
  */
 export function set_lifetime_randomness(self: ParticleProcessMaterial, randomness: number): void {
   self.lifetime_randomness = randomness;
-  changed(self);
 }
 
 /**

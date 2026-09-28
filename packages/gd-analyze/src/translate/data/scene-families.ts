@@ -49,6 +49,13 @@ const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency'];
 // A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`); stored
 // (`node.ts`: nothing is interpolated between physics ticks).
 const NODE_ELEMENT = ['set_physics_interpolation_mode'];
+// The parameters a particle system's emitter reads (`cpu-particles-3d.ts`), by index, the same in
+// `CPUParticles3D::Parameter` and `ParticleProcessMaterial::Parameter`: initial velocity, angular
+// velocity, linear acceleration, damping, angle and scale. The rest (orbit, radial and tangential
+// acceleration, hue variation, animation) is not emitted and refuses the scene by name.
+const EMITTED_PARAMS = [0, 1, 3, 6, 7, 8];
+// Its particle flags: align Y to velocity and disable Z (rotate Y is not drawn).
+const EMITTED_FLAGS = ['set_particle_flag:0', 'set_particle_flag:2'];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
@@ -122,17 +129,15 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_emission_box_extents',
     'set_use_fixed_seed',
     'set_seed',
-    'set_param_min:*',
-    'set_param_max:*',
-    'set_param_curve:*',
-    'set_particle_flag:*',
+    ...EMITTED_PARAMS.flatMap((param) => [`set_param_min:${String(param)}`, `set_param_max:${String(param)}`, `set_param_curve:${String(param)}`]),
+    ...EMITTED_FLAGS,
     'set_cast_shadows_setting',
     'set_material_override',
     ...VISIBILITY_RANGE,
   ],
-  // `<GodotGPUParticles3D>`: the CPU particles Godot converts it to (`gpu-particles-3d.ts`). What
-  // the conversion does not carry has no prop: sub-emitters, trails, collision, transform
-  // alignment, the amount ratio, interpolation to the end, a skin.
+  // `<GodotGPUParticles3D>`: the three.js particle system reading its process material
+  // (`gpu-particles-3d.ts`). What the emitter does not do has no prop: sub-emitters, trails,
+  // collision, transform alignment, the amount ratio, interpolation to the end, a skin.
   GPUParticles3D: [
     ...GEOMETRY_INSTANCE_3D,
     ...NODE_ELEMENT,
@@ -319,6 +324,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   LabelSettings: [
     'set_line_spacing',
     'set_paragraph_spacing',
+    'set_font',
     'set_font_size',
     'set_font_color',
     'set_outline_size',
@@ -331,6 +337,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   CanvasTexture: ['set_diffuse_texture'],
   AudioStreamWAV: [],
   AudioStreamOggVorbis: [],
+  FontFile: [],
   // An environment's background, ambient light, tone mapping and fog (`environment.ts`, `world-environment.ts`).
   Environment: [
     'set_background',
@@ -388,22 +395,19 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],
   Shader: [],
   CompressedCubemap: [],
-  // The parameters `CPUParticles3D::convert_from_particles` carries (`cpu_particles_3d.cpp:1484`), the
-  // twelve shared parameters' ranges and curves (`:1532`), and the alpha curve; the rest (turbulence,
-  // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, emission curves,
-  // textures and offsets, ring axis) has no converted form.
+  // The parameters a GPUParticles3D's emitter reads (`gpu-particles-3d.ts`); the rest (turbulence,
+  // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other
+  // parameters, emission curves, textures and offsets, ring axis) is not emitted.
   ParticleProcessMaterial: [
     'set_direction',
     'set_spread',
     'set_flatness',
-    ...Array.from({ length: 12 }, (_, param) => [`set_param_min:${String(param)}`, `set_param_max:${String(param)}`, `set_param_texture:${String(param)}`]).flat(),
+    ...EMITTED_PARAMS.flatMap((param) => [`set_param_min:${String(param)}`, `set_param_max:${String(param)}`, `set_param_texture:${String(param)}`]),
     'set_color',
     'set_color_ramp',
     'set_color_initial_ramp',
     'set_alpha_curve',
-    'set_particle_flag:0',
-    'set_particle_flag:1',
-    'set_particle_flag:2',
+    ...EMITTED_FLAGS,
     'set_emission_shape',
     'set_emission_sphere_radius',
     'set_emission_box_extents',
@@ -492,9 +496,10 @@ export function godotFamilyRefusal(
       if (numberOf(setters, 'set_draw_passes', 1) !== 1) return 'draw_passes after the first are not drawn';
       return undefined;
     }
+    case 'CPUParticles3D':
     case 'ParticleProcessMaterial': {
-      // `EMISSION_SHAPE_POINTS`, `_DIRECTED_POINTS` (their points are textures the conversion does
-      // not carry) and `_RING` (`particle_process_material.h:88`), which the CPU system does not emit from.
+      // The emitter emits from a point, a sphere, a sphere's surface and a box; not from `_POINTS`,
+      // `_DIRECTED_POINTS` or `_RING` (`particle_process_material.h:88`, `cpu_particles_3d.h:75`).
       const shape = numberOf(setters, 'set_emission_shape', 0);
       return shape >= 4 ? `emission_shape=${String(shape)} is not emitted from` : undefined;
     }

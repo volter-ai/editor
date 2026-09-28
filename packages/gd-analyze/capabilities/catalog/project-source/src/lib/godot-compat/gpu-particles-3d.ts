@@ -3,93 +3,75 @@
  * @role BINDING
  *
  * Godot 4.7's `GPUParticles3D` (`scene/3d/gpu_particles_3d.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) as the CPU particle system Godot itself converts it to
- * (`CPUParticles3D::convert_from_particles`, `scene/3d/cpu_particles_3d.cpp:1460`): the node is a
- * `<GodotCPUParticles3D>`'s simulation (`cpu-particles-3d.ts`), its own properties set on it as the
- * conversion copies them, and its process material's parameters converted onto it as that function
- * converts them, again whenever the material or one of its parameters changes. The GPU's particle
- * storage and process shader are not ported.
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) as a three.js particle system: the same emitter a
+ * CPUParticles3D is (`cpu-particles-3d.ts`: an `InstancedMesh` of the first draw pass's mesh,
+ * updated from the node's own frame), its particles doing what its process material says
+ * (`particle-process-material.ts`), read each frame. Where Godot runs the material as a particle
+ * shader on the GPU, here a few hundred particles are moved on the CPU, as a three.js scene moves
+ * them.
  *
- * Carried beyond the conversion: the material override the node draws with (`GeometryInstance3D`)
- * and the process material's alpha curve. Not carried, and refused by name at import when a scene
- * states them: sub-emitters, trails, collision, transform alignment, the amount ratio, draw orders
- * other than by index and more than one draw pass. `interpolate` is stored and not drawn: the CPU
- * system, like the converted node, draws its last fixed step.
+ * Also drawn: the node's material override (`GeometryInstance3D`). Stored and not used: `interpolate`,
+ * `fixed_fps`, `fractional_delta`, the seed and the visibility AABB. Not drawn, and refused by name
+ * at import when a scene states them: sub-emitters, trails, collision, transform alignment, the
+ * amount ratio, draw orders other than by index and more than one draw pass.
  */
 
 import type { ReactElement } from 'react';
-import { type BufferGeometry, Group, type Material } from 'three';
+import { type BufferGeometry, Group, type Material, type Object3D } from 'three';
 import {
-  get_amount as cpu_get_amount,
-  get_explosiveness_ratio as cpu_get_explosiveness_ratio,
-  get_fixed_fps as cpu_get_fixed_fps,
-  get_fractional_delta as cpu_get_fractional_delta,
-  get_lifetime as cpu_get_lifetime,
-  get_one_shot as cpu_get_one_shot,
-  get_pre_process_time as cpu_get_pre_process_time,
-  get_randomness_ratio as cpu_get_randomness_ratio,
-  get_seed as cpu_get_seed,
-  get_speed_scale as cpu_get_speed_scale,
-  get_use_fixed_seed as cpu_get_use_fixed_seed,
-  get_use_local_coordinates as cpu_get_use_local_coordinates,
-  godot_cpu_particles_3d_adopt,
-  godot_cpu_particles_3d_alpha_curve,
+  get_amount as particles_get_amount,
+  get_explosiveness_ratio as particles_get_explosiveness_ratio,
+  get_fixed_fps as particles_get_fixed_fps,
+  get_fractional_delta as particles_get_fractional_delta,
+  get_lifetime as particles_get_lifetime,
+  get_one_shot as particles_get_one_shot,
+  get_pre_process_time as particles_get_pre_process_time,
+  get_randomness_ratio as particles_get_randomness_ratio,
+  get_seed as particles_get_seed,
+  get_speed_scale as particles_get_speed_scale,
+  get_use_fixed_seed as particles_get_use_fixed_seed,
+  get_use_local_coordinates as particles_get_use_local_coordinates,
+  get_visibility_aabb as particles_get_visibility_aabb,
+  finished as particles_finished,
   godot_cpu_particles_3d_cast_shadow,
   godot_cpu_particles_3d_draw_with,
-  is_emitting as cpu_is_emitting,
-  restart as cpu_restart,
-  set_amount as cpu_set_amount,
-  set_color as cpu_set_color,
-  set_color_initial_ramp as cpu_set_color_initial_ramp,
-  set_color_ramp as cpu_set_color_ramp,
-  set_direction as cpu_set_direction,
-  set_emission_box_extents as cpu_set_emission_box_extents,
-  set_emission_shape as cpu_set_emission_shape,
-  set_emission_sphere_radius as cpu_set_emission_sphere_radius,
-  set_emitting as cpu_set_emitting,
-  set_explosiveness_ratio as cpu_set_explosiveness_ratio,
-  set_fixed_fps as cpu_set_fixed_fps,
-  set_flatness as cpu_set_flatness,
-  set_fractional_delta as cpu_set_fractional_delta,
-  set_gravity as cpu_set_gravity,
-  set_lifetime as cpu_set_lifetime,
-  set_lifetime_randomness as cpu_set_lifetime_randomness,
-  set_mesh as cpu_set_mesh,
-  set_one_shot as cpu_set_one_shot,
-  set_param_curve as cpu_set_param_curve,
-  set_param_max as cpu_set_param_max,
-  set_param_min as cpu_set_param_min,
-  set_particle_flag as cpu_set_particle_flag,
-  set_pre_process_time as cpu_set_pre_process_time,
-  set_randomness_ratio as cpu_set_randomness_ratio,
-  set_seed as cpu_set_seed,
-  set_speed_scale as cpu_set_speed_scale,
-  set_spread as cpu_set_spread,
-  set_use_fixed_seed as cpu_set_use_fixed_seed,
-  set_use_local_coordinates as cpu_set_use_local_coordinates,
-  set_visibility_aabb as cpu_set_visibility_aabb,
+  godot_particles_3d_adopt,
+  is_emitting as particles_is_emitting,
+  type ParticleProcess,
+  restart as particles_restart,
+  set_amount as particles_set_amount,
+  set_emitting as particles_set_emitting,
+  set_explosiveness_ratio as particles_set_explosiveness_ratio,
+  set_fixed_fps as particles_set_fixed_fps,
+  set_fractional_delta as particles_set_fractional_delta,
+  set_lifetime as particles_set_lifetime,
+  set_mesh as particles_set_mesh,
+  set_one_shot as particles_set_one_shot,
+  set_pre_process_time as particles_set_pre_process_time,
+  set_randomness_ratio as particles_set_randomness_ratio,
+  set_seed as particles_set_seed,
+  set_speed_scale as particles_set_speed_scale,
+  set_use_fixed_seed as particles_set_use_fixed_seed,
+  set_use_local_coordinates as particles_set_use_local_coordinates,
+  set_visibility_aabb as particles_set_visibility_aabb,
 } from './cpu-particles-3d';
+import { get_curve } from './curve-texture';
 import { godot_geometry_instance_3d_material_override, set_transparency } from './geometry-instance-3d';
 import { get_gradient } from './gradient-texture-1d';
-import { get_curve } from './curve-texture';
-import { type ParticleProcessMaterial, godot_particle_process_material_listen } from './particle-process-material';
+import type { ParticleProcessMaterial } from './particle-process-material';
 import type { PrimitiveMesh } from './primitive-mesh';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
+import type { GodotSignal } from './signal';
 
-/** `CPUParticles3D::PARAM_ANIM_OFFSET` (`cpu_particles_3d.h:64`): the last parameter the conversion carries. */
-const PARAM_ANIM_OFFSET = 11;
 /** `GPUParticles3D::MAX_DRAW_PASSES` (`gpu_particles_3d.h:59`). */
 const MAX_DRAW_PASSES = 4;
 
-/** What the node holds that the CPU system does not. */
+/** What the node holds besides its emitter. */
 interface GPUParticles3DState {
   process_material: ParticleProcessMaterial | null;
-  /** Stops hearing the process material's changes. */
-  unlisten: (() => void) | null;
   draw_passes: (PrimitiveMesh | null)[];
   interpolate: boolean;
   draw_order: number;
-  visibility_aabb: unknown;
 }
 
 const STATE = new WeakMap<object, GPUParticles3DState>();
@@ -100,56 +82,64 @@ function stateOf(self: object, member: string): GPUParticles3DState {
   return state;
 }
 
-/**
- * The process material's parameters converted onto the CPU system
- * (`CPUParticles3D::convert_from_particles`, `cpu_particles_3d.cpp:1479`), plus its alpha curve. A
- * curve or ramp the material no longer holds is cleared, as a system converted afresh holds none.
- */
-function convert(self: object, material: ParticleProcessMaterial | null): void {
-  if (material === null) return;
-  cpu_set_direction(self, material.direction);
-  cpu_set_spread(self, material.spread);
-  cpu_set_flatness(self, material.flatness);
-  cpu_set_color(self, material.color);
-  cpu_set_color_ramp(self, material.color_ramp === null ? null : get_gradient(material.color_ramp));
-  cpu_set_color_initial_ramp(self, material.color_initial_ramp === null ? null : get_gradient(material.color_initial_ramp));
-  // Align Y, rotate Y, disable Z (`:1500`-`:1502`): the first three flags, the same in both classes.
-  for (let flag = 0; flag < 3; flag += 1) cpu_set_particle_flag(self, flag, material.particle_flags[flag] === true);
-  cpu_set_emission_shape(self, material.emission_shape);
-  cpu_set_emission_sphere_radius(self, material.emission_sphere_radius);
-  cpu_set_emission_box_extents(self, material.emission_box_extents);
-  cpu_set_gravity(self, material.gravity);
-  cpu_set_lifetime_randomness(self, material.lifetime_randomness);
-  // `CONVERT_PARAM` (`:1523`): the minimum, the curve, the maximum, for each shared parameter.
-  for (let param = 0; param <= PARAM_ANIM_OFFSET; param += 1) {
-    cpu_set_param_min(self, param, material.params_min[param] as number);
-    const texture = material.tex_parameters[param] ?? null;
-    cpu_set_param_curve(self, param, texture === null ? null : get_curve(texture));
-    cpu_set_param_max(self, param, material.params_max[param] as number);
-  }
-  godot_cpu_particles_3d_alpha_curve(self, material.alpha_curve === null ? null : get_curve(material.alpha_curve));
+/** The process material as the values the emitter reads: its curves and ramps are its textures'. */
+function processOf(material: ParticleProcessMaterial | null): ParticleProcess | null {
+  if (material === null) return null;
+  return {
+    direction: material.direction,
+    spread: material.spread,
+    flatness: material.flatness,
+    gravity: material.gravity,
+    params_min: material.params_min,
+    params_max: material.params_max,
+    curves: material.tex_parameters.map((texture) => (texture === null ? null : get_curve(texture))),
+    color: material.color,
+    color_ramp: material.color_ramp === null ? null : get_gradient(material.color_ramp),
+    color_initial_ramp: material.color_initial_ramp === null ? null : get_gradient(material.color_initial_ramp),
+    alpha_curve: material.alpha_curve === null ? null : get_curve(material.alpha_curve),
+    emission_shape: material.emission_shape,
+    emission_sphere_radius: material.emission_sphere_radius,
+    emission_box_extents: material.emission_box_extents,
+    lifetime_randomness: material.lifetime_randomness,
+    particle_flags: material.particle_flags,
+  };
 }
 
 /**
- * Makes `entity` a GPUParticles3D with Godot's defaults (`GPUParticles3D::GPUParticles3D`): the CPU
- * system it converts to, with the GPU node's 30 fixed frames a second (`:944`) and one draw pass.
+ * Makes `entity` a GPUParticles3D with Godot's defaults (`GPUParticles3D::GPUParticles3D`): the
+ * particle system, emitting 8 particles a second, reading its process material (none yet: nothing
+ * is emitted without one) and drawing one pass.
  *
  * @godot GPUParticles3D (protocol)
  * @source scene/3d/gpu_particles_3d.cpp:933
  */
-export function godot_gpu_particles_3d_adopt(entity: object): void {
+export function godot_gpu_particles_3d_adopt(entity: Object3D): void {
   if (STATE.has(entity)) return;
-  godot_cpu_particles_3d_adopt(entity);
-  cpu_set_fixed_fps(entity, 30);
-  STATE.set(entity, { process_material: null, unlisten: null, draw_passes: [null], interpolate: true, draw_order: 0, visibility_aabb: null });
+  const state: GPUParticles3DState = { process_material: null, draw_passes: [null], interpolate: true, draw_order: 0 };
+  STATE.set(entity, state);
+  godot_particles_3d_adopt(entity, () => processOf(state.process_material));
+  particles_set_fixed_fps(entity, 30);
 }
 
 /**
+ * Emitted once the system has stopped emitting and its last particle has died.
+ *
+ * @godot GPUParticles3D.finished
+ * @source scene/3d/gpu_particles_3d.cpp:867
+ */
+export function finished(self: object): GodotSignal<[]> {
+  return particles_finished(self);
+}
+
+/**
+ * Whether new particles are emitted. Starting a stopped system starts a new cycle (a one-shot
+ * system emits its burst again); stopping lets the live particles finish their lives.
+ *
  * @godot GPUParticles3D.set_emitting
  * @source scene/3d/gpu_particles_3d.cpp:49
  */
 export function set_emitting(self: object, emitting: boolean): void {
-  cpu_set_emitting(self, emitting);
+  particles_set_emitting(self, emitting);
 }
 
 /**
@@ -157,15 +147,17 @@ export function set_emitting(self: object, emitting: boolean): void {
  * @source scene/3d/gpu_particles_3d.cpp:189
  */
 export function is_emitting(self: object): boolean {
-  return cpu_is_emitting(self);
+  return particles_is_emitting(self);
 }
 
 /**
+ * How many particles one cycle emits.
+ *
  * @godot GPUParticles3D.set_amount
  * @source scene/3d/gpu_particles_3d.cpp:80
  */
 export function set_amount(self: object, amount: number): void {
-  cpu_set_amount(self, amount);
+  particles_set_amount(self, amount);
 }
 
 /**
@@ -173,15 +165,17 @@ export function set_amount(self: object, amount: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:193
  */
 export function get_amount(self: object): number {
-  return cpu_get_amount(self);
+  return particles_get_amount(self);
 }
 
 /**
+ * How long each particle lives, in seconds.
+ *
  * @godot GPUParticles3D.set_lifetime
  * @source scene/3d/gpu_particles_3d.cpp:86
  */
 export function set_lifetime(self: object, lifetime: number): void {
-  cpu_set_lifetime(self, lifetime);
+  particles_set_lifetime(self, lifetime);
 }
 
 /**
@@ -189,15 +183,17 @@ export function set_lifetime(self: object, lifetime: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:197
  */
 export function get_lifetime(self: object): number {
-  return cpu_get_lifetime(self);
+  return particles_get_lifetime(self);
 }
 
 /**
+ * Whether the system emits one cycle and stops.
+ *
  * @godot GPUParticles3D.set_one_shot
  * @source scene/3d/gpu_particles_3d.cpp:97
  */
 export function set_one_shot(self: object, one_shot: boolean): void {
-  cpu_set_one_shot(self, one_shot);
+  particles_set_one_shot(self, one_shot);
 }
 
 /**
@@ -205,15 +201,17 @@ export function set_one_shot(self: object, one_shot: boolean): void {
  * @source scene/3d/gpu_particles_3d.cpp:205
  */
 export function get_one_shot(self: object): boolean {
-  return cpu_get_one_shot(self);
+  return particles_get_one_shot(self);
 }
 
 /**
+ * Seconds the system has already run when it starts emitting.
+ *
  * @godot GPUParticles3D.set_pre_process_time
  * @source scene/3d/gpu_particles_3d.cpp:129
  */
 export function set_pre_process_time(self: object, time: number): void {
-  cpu_set_pre_process_time(self, time);
+  particles_set_pre_process_time(self, time);
 }
 
 /**
@@ -221,15 +219,17 @@ export function set_pre_process_time(self: object, time: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:209
  */
 export function get_pre_process_time(self: object): number {
-  return cpu_get_pre_process_time(self);
+  return particles_get_pre_process_time(self);
 }
 
 /**
+ * How much of a cycle's particles are emitted at once at its start.
+ *
  * @godot GPUParticles3D.set_explosiveness_ratio
  * @source scene/3d/gpu_particles_3d.cpp:134
  */
 export function set_explosiveness_ratio(self: object, ratio: number): void {
-  cpu_set_explosiveness_ratio(self, ratio);
+  particles_set_explosiveness_ratio(self, ratio);
 }
 
 /**
@@ -237,15 +237,17 @@ export function set_explosiveness_ratio(self: object, ratio: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:213
  */
 export function get_explosiveness_ratio(self: object): number {
-  return cpu_get_explosiveness_ratio(self);
+  return particles_get_explosiveness_ratio(self);
 }
 
 /**
+ * How much the particles' emission times are randomized.
+ *
  * @godot GPUParticles3D.set_randomness_ratio
  * @source scene/3d/gpu_particles_3d.cpp:139
  */
 export function set_randomness_ratio(self: object, ratio: number): void {
-  cpu_set_randomness_ratio(self, ratio);
+  particles_set_randomness_ratio(self, ratio);
 }
 
 /**
@@ -253,18 +255,17 @@ export function set_randomness_ratio(self: object, ratio: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:217
  */
 export function get_randomness_ratio(self: object): number {
-  return cpu_get_randomness_ratio(self);
+  return particles_get_randomness_ratio(self);
 }
 
 /**
- * The bounds the node reports to culling; the CPU system draws its instances unculled.
+ * Stored: the particles are drawn unculled.
  *
  * @godot GPUParticles3D.set_visibility_aabb
  * @source scene/3d/gpu_particles_3d.cpp:144
  */
 export function set_visibility_aabb(self: object, aabb: unknown): void {
-  stateOf(self, 'set_visibility_aabb').visibility_aabb = aabb;
-  cpu_set_visibility_aabb(self, aabb);
+  particles_set_visibility_aabb(self, aabb);
 }
 
 /**
@@ -272,15 +273,17 @@ export function set_visibility_aabb(self: object, aabb: unknown): void {
  * @source scene/3d/gpu_particles_3d.cpp:221
  */
 export function get_visibility_aabb(self: object): unknown {
-  return stateOf(self, 'get_visibility_aabb').visibility_aabb;
+  return particles_get_visibility_aabb(self);
 }
 
 /**
+ * Whether the particles move with the node (true) or stay in the world where they were emitted.
+ *
  * @godot GPUParticles3D.set_use_local_coordinates
  * @source scene/3d/gpu_particles_3d.cpp:150
  */
 export function set_use_local_coordinates(self: object, enable: boolean): void {
-  cpu_set_use_local_coordinates(self, enable);
+  particles_set_use_local_coordinates(self, enable);
 }
 
 /**
@@ -288,21 +291,18 @@ export function set_use_local_coordinates(self: object, enable: boolean): void {
  * @source scene/3d/gpu_particles_3d.cpp:225
  */
 export function get_use_local_coordinates(self: object): boolean {
-  return cpu_get_use_local_coordinates(self);
+  return particles_get_use_local_coordinates(self);
 }
 
 /**
- * The process material, converted onto the CPU system now and again at each change to it.
+ * What the particles do over their lives; read by the emitter each frame, so a change to the
+ * material is seen at once.
  *
  * @godot GPUParticles3D.set_process_material
  * @source scene/3d/gpu_particles_3d.cpp:155
  */
 export function set_process_material(self: object, material: ParticleProcessMaterial | null): void {
-  const state = stateOf(self, 'set_process_material');
-  state.unlisten?.();
-  state.process_material = material;
-  state.unlisten = material === null ? null : godot_particle_process_material_listen(material, () => convert(self, material));
-  convert(self, material);
+  stateOf(self, 'set_process_material').process_material = material;
 }
 
 /**
@@ -314,11 +314,13 @@ export function get_process_material(self: object): ParticleProcessMaterial | nu
 }
 
 /**
+ * How fast the system runs (1: real time).
+ *
  * @godot GPUParticles3D.set_speed_scale
  * @source scene/3d/gpu_particles_3d.cpp:179
  */
 export function set_speed_scale(self: object, scale: number): void {
-  cpu_set_speed_scale(self, scale);
+  particles_set_speed_scale(self, scale);
 }
 
 /**
@@ -326,11 +328,11 @@ export function set_speed_scale(self: object, scale: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:233
  */
 export function get_speed_scale(self: object): number {
-  return cpu_get_speed_scale(self);
+  return particles_get_speed_scale(self);
 }
 
 /**
- * Only drawing by index is drawn (`cpu-particles-3d.ts`): another order fails by name.
+ * The particles are drawn in index order; another order fails by name.
  *
  * @godot GPUParticles3D.set_draw_order
  * @source scene/3d/gpu_particles_3d.cpp:241
@@ -349,8 +351,7 @@ export function get_draw_order(self: object): number {
 }
 
 /**
- * Fewer than one fails; the conversion draws the first pass's mesh only, so more than one fails
- * by name.
+ * How many meshes each particle is drawn with: one is drawn, more fails by name.
  *
  * @godot GPUParticles3D.set_draw_passes
  * @source scene/3d/gpu_particles_3d.cpp:270
@@ -371,7 +372,7 @@ export function get_draw_passes(self: object): number {
 }
 
 /**
- * A pass outside the node's passes fails; the first pass's mesh is the CPU system's mesh (`:1477`).
+ * A pass's mesh; the first pass's is what each particle is drawn as.
  *
  * @godot GPUParticles3D.set_draw_pass_mesh
  * @source scene/3d/gpu_particles_3d.cpp:284
@@ -380,7 +381,7 @@ export function set_draw_pass_mesh(self: object, pass: number, mesh: PrimitiveMe
   const state = stateOf(self, 'set_draw_pass_mesh');
   if (pass < 0 || pass >= state.draw_passes.length) return;
   state.draw_passes[pass] = mesh;
-  if (pass === 0) cpu_set_mesh(self, mesh);
+  if (pass === 0) particles_set_mesh(self, mesh);
 }
 
 /**
@@ -392,11 +393,13 @@ export function get_draw_pass_mesh(self: object, pass: number): PrimitiveMesh | 
 }
 
 /**
+ * Stored: the emitter steps on the host's frame.
+ *
  * @godot GPUParticles3D.set_fixed_fps
  * @source scene/3d/gpu_particles_3d.cpp:314
  */
 export function set_fixed_fps(self: object, fps: number): void {
-  cpu_set_fixed_fps(self, fps);
+  particles_set_fixed_fps(self, fps);
 }
 
 /**
@@ -404,15 +407,17 @@ export function set_fixed_fps(self: object, fps: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:319
  */
 export function get_fixed_fps(self: object): number {
-  return cpu_get_fixed_fps(self);
+  return particles_get_fixed_fps(self);
 }
 
 /**
+ * Stored: the emitter steps on the host's frame.
+ *
  * @godot GPUParticles3D.set_fractional_delta
  * @source scene/3d/gpu_particles_3d.cpp:323
  */
 export function set_fractional_delta(self: object, enable: boolean): void {
-  cpu_set_fractional_delta(self, enable);
+  particles_set_fractional_delta(self, enable);
 }
 
 /**
@@ -420,11 +425,11 @@ export function set_fractional_delta(self: object, enable: boolean): void {
  * @source scene/3d/gpu_particles_3d.cpp:328
  */
 export function get_fractional_delta(self: object): boolean {
-  return cpu_get_fractional_delta(self);
+  return particles_get_fractional_delta(self);
 }
 
 /**
- * Stored; the CPU system draws its last step, as the converted node does.
+ * Stored: the emitter moves the particles every frame, so there is nothing to interpolate.
  *
  * @godot GPUParticles3D.set_interpolate
  * @source scene/3d/gpu_particles_3d.cpp:332
@@ -442,11 +447,13 @@ export function get_interpolate(self: object): boolean {
 }
 
 /**
+ * Stored: the emitter draws from `Math.random`.
+ *
  * @godot GPUParticles3D.set_use_fixed_seed
  * @source scene/3d/gpu_particles_3d.cpp:108
  */
 export function set_use_fixed_seed(self: object, use: boolean): void {
-  cpu_set_use_fixed_seed(self, use);
+  particles_set_use_fixed_seed(self, use);
 }
 
 /**
@@ -454,15 +461,17 @@ export function set_use_fixed_seed(self: object, use: boolean): void {
  * @source scene/3d/gpu_particles_3d.cpp:116
  */
 export function get_use_fixed_seed(self: object): boolean {
-  return cpu_get_use_fixed_seed(self);
+  return particles_get_use_fixed_seed(self);
 }
 
 /**
+ * Stored: the emitter draws from `Math.random`.
+ *
  * @godot GPUParticles3D.set_seed
  * @source scene/3d/gpu_particles_3d.cpp:120
  */
 export function set_seed(self: object, seed: number): void {
-  cpu_set_seed(self, seed);
+  particles_set_seed(self, seed);
 }
 
 /**
@@ -470,15 +479,17 @@ export function set_seed(self: object, seed: number): void {
  * @source scene/3d/gpu_particles_3d.cpp:125
  */
 export function get_seed(self: object): number {
-  return cpu_get_seed(self);
+  return particles_get_seed(self);
 }
 
 /**
+ * Kills every particle and starts emitting a new cycle.
+ *
  * @godot GPUParticles3D.restart
  * @source scene/3d/gpu_particles_3d.cpp:442
  */
 export function restart(self: object, keep_seed = false): void {
-  cpu_restart(self, keep_seed);
+  particles_restart(self, keep_seed);
 }
 
 // The node's class, for a GPUParticles3D its JSX declares.
@@ -520,8 +531,8 @@ const GPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
 };
 
 /**
- * A GPUParticles3D as a scene writes it (`gpu_particles_3d.cpp:869`: its properties): a group the
- * converted CPU system's state is kept on, drawing its particles as an `InstancedMesh` child.
+ * A GPUParticles3D as a scene writes it (`gpu_particles_3d.cpp:869`: its properties): a group
+ * holding the `InstancedMesh` its particles are drawn with, advancing from its own frame.
  *
  * @godot GPUParticles3D (protocol)
  * @source scene/3d/gpu_particles_3d.cpp:869
