@@ -532,44 +532,6 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   return local;
 }
 
-/**
- * A shadow-casting light's shadow as three's `shadow` props, converted from Godot's parameters by the
- * Compatibility renderer's own use of them (`shadow-mapping`: three draws one fixed shadow camera
- * where Godot fits its splits to the view camera):
- * - a directional light's bias is `SHADOW_BIAS / 100` of its shadow camera's depth range
- *   (`rasterizer_scene_gles3.cpp:2256`, the bias scale `z_max - z_min`, `renderer_scene_cull.cpp:2360`),
- *   which is three's bias in its normalized depth, towards the light; its normal bias
- *   `SHADOW_NORMAL_BIAS` shadow-map texels (`rasterizer_scene_gles3.cpp:1809`, a texel
- *   `2 * radius / size`, `renderer_scene_cull.cpp:2359`); its map the directional atlas (4096) or a
- *   quarter of it per split; its camera the box `SHADOW_MAX_DISTANCE` around the light;
- * - an omni light's bias is world distance added to the caster's (`scene.glsl:2751`), three's in its
- *   normalized distance between the shadow camera's near (0.5) and far (the light's range); its
- *   map a cube face of the positional atlas's first quadrant (2048, halved for a cube,
- *   `rasterizer_scene_gles3.cpp:2298`).
- * `SHADOW_BLUR` is not read by the Compatibility renderer; the fade start has no three form.
- */
-function shadowMapping(directional: boolean, param: (index: number, initial: number) => number, mode: number): TargetTsJsxAttribute[] {
-  // The shadow's opacity is three's shadow intensity (`light-3d.ts`).
-  const opacity = param(17, 1) === 1 ? [] : [attribute('shadow-intensity', literal(Math.fround(param(17, 1))))];
-  if (directional) {
-    const distance = param(9, 100);
-    const size = mode === 0 ? 4096 : 2048;
-    return [
-      attribute('shadow-bias', literal(-param(15, 0.1) / 100)),
-      attribute('shadow-normalBias', literal((param(14, 2) * 2 * distance) / size)),
-      attribute('shadow-mapSize', numbers([size, size])),
-      attribute('shadow-camera-left', literal(-distance)),
-      attribute('shadow-camera-right', literal(distance)),
-      attribute('shadow-camera-bottom', literal(-distance)),
-      attribute('shadow-camera-top', literal(distance)),
-      attribute('shadow-camera-near', literal(-distance)),
-      attribute('shadow-camera-far', literal(distance)),
-      ...opacity,
-    ];
-  }
-  const range = Math.max(0.001, param(4, 5));
-  return [attribute('shadow-bias', literal(-param(15, 0.1) / (range - 0.5))), attribute('shadow-mapSize', numbers([1024, 1024])), ...opacity];
-}
 
 /** A MeshInstance3D's mesh and, per surface, the material it draws (its override, else the mesh's own). */
 function meshSurfaces(emission: FamilyEmission, node: DirectGodotSceneNodePlan): {
@@ -969,20 +931,18 @@ export function familyElement(
       return { tag: 'mesh', attributes, children };
     }
     case 'light': {
-      const set = node.setters;
-      const param = (index: number, initial: number) => numberValue(setterValue(set, 'set_param', index)) ?? initial;
-      const color = componentsValue(setterValue(set, 'set_color'));
-      const shadow = boolValue(setterValue(set, 'set_shadow')) === true;
-      // `SKY_MODE_SKY_ONLY` lights nothing in the scene (`rasterizer_scene_gles3.cpp:1724`).
-      const energy = (numberValue(setterValue(set, 'set_sky_mode')) ?? 0) === 2 ? 0 : param(0, 1);
-      const directional = form.directional;
+      // The planner's three light (`scene-light-idioms.ts`), printed as it is.
+      const light = node.light;
+      if (light === undefined) throw new Error(`${node.nodePath}: a light node without its planned light`);
+      const authored = light.authored;
       return {
-        tag: directional ? 'directionalLight' : 'pointLight',
+        tag: light.element,
         attributes: [
           // Godot's directional light shines along its -Z; three's toward its target, which this
           // aims; its Godot state is the values the scene authors (the sky pass reads them).
-          ...(directional
-            ? [
+          ...(authored === undefined
+            ? []
+            : [
                 attribute('onUpdate', {
                   kind: 'call-expression',
                   callee: identifier(useCompat(emission, 'directional-light-3d', 'godot_directional_light_3d_authored_prop')),
@@ -990,33 +950,23 @@ export function familyElement(
                     {
                       kind: 'object-expression',
                       properties: [
-                        ...(color === undefined ? [] : [{ key: 'color', value: numbers(color) }]),
-                        {
-                          key: 'params',
-                          value: {
-                            kind: 'object-expression',
-                            properties: set
-                              .filter((setter) => setter.setter.exportName === 'set_param' && setter.index !== undefined)
-                              .map((setter) => ({ key: String(setter.index), value: literal(numberValue(setter.value) ?? 0) })),
-                          },
-                        },
-                        { key: 'shadow', value: literal(shadow) },
-                        { key: 'skyMode', value: literal(numberValue(setterValue(set, 'set_sky_mode')) ?? 0) },
-                        // Stored, not drawn: three's one shadow map has no splits to blend.
-                        ...(boolValue(setterValue(set, 'set_blend_splits')) === true ? [{ key: 'blendSplits', value: literal(true) }] : []),
+                        ...(authored.color === undefined ? [] : [{ key: 'color', value: numbers(authored.color) }]),
+                        { key: 'params', value: { kind: 'object-expression', properties: authored.params.map((entry) => ({ key: String(entry.index), value: literal(entry.value) })) } },
+                        { key: 'shadow', value: literal(authored.shadow) },
+                        { key: 'skyMode', value: literal(authored.skyMode) },
+                        ...(authored.blendSplits === true ? [{ key: 'blendSplits', value: literal(true) }] : []),
                       ],
                     },
                   ],
                 }),
-              ]
-            : []),
-          // Godot's shader divides the Lambert term by pi as three's does (`light-3d.ts`).
-          attribute('intensity', literal(f32(energy) * Math.PI)),
-          ...(color === undefined || color.slice(0, 3).every((value) => value === 1) ? [] : [attribute('color', literal(hexColor(color)))]),
-          // An omni light's range is the distance its attenuation reaches zero at, its attenuation
-          // three's decay exponent (`get_omni_spot_attenuation`, `scene.glsl:429`).
-          ...(directional ? [] : [attribute('distance', literal(Math.max(0.001, param(4, 5)))), attribute('decay', literal(param(6, 1)))]),
-          ...(shadow ? [flag('castShadow'), ...shadowMapping(directional, param, numberValue(setterValue(set, 'set_shadow_mode')) ?? 2)] : []),
+              ]),
+          ...light.props.map((prop) =>
+            prop.value.kind === 'numbers'
+              ? attribute(prop.name, numbers(prop.value.values))
+              : prop.name === 'castShadow' && prop.value.value === true
+                ? flag(prop.name)
+                : attribute(prop.name, literal(prop.value.value)),
+          ),
         ],
         children: [],
       };

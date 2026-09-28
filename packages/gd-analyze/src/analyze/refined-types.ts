@@ -708,12 +708,14 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       if (type !== undefined && (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType)))) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
-    } else if (node?.kind === 'VARIABLE' && node.datatype.kind === 'VARIANT' && isClassMember(node.id)) {
-      // An untyped `@onready` member is declared as the node it holds, as its reads are.
+    } else if (node?.kind === 'VARIABLE' && isClassMember(node.id) && (node.datatype.kind === 'VARIANT' || (node.datatype.kind === 'NATIVE' && node.datatype.typeSource === 'INFERRED' && !node.datatype.metaType))) {
+      // An `@onready` member without a declared type (Variant, or inferred from `get_node` as a
+      // Node) is declared as the node it holds, as its reads are.
       const identifier = nodes.get(node.identifier);
       const path = identifier?.kind === 'IDENTIFIER' ? onreadyPath(identifier.name) : undefined;
       const type = path === undefined ? undefined : sceneNode(path);
-      if (type !== undefined) result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      const own = node.datatype;
+      if (type !== undefined && (own.kind === 'VARIANT' || inherits(type.nativeType, own.nativeType))) result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
     } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && node.datatype.kind === 'NATIVE' && !node.datatype.metaType && exportedDeclaration(node.name)) {
       // An exported node reference holds the node every attached scene's NodePath names.
       const own = node.datatype;

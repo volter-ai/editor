@@ -1,3 +1,4 @@
+import { type GodotSceneLightPlan, godotSceneLightPlan } from './scene-light-idioms';
 import path from 'node:path';
 import type {
   BoundGodotProject,
@@ -59,6 +60,8 @@ export interface TargetGodotSceneNodePlan {
    * mounts `instance`'s generated component, or an imported model's tree (`model`).
    */
   readonly idiom?: GodotSceneNodeIdiom;
+  /** A light node's three light and its props (`scene-light-idioms.ts`), which emit prints. */
+  readonly light?: GodotSceneLightPlan;
   /** For an imported model: the importer's tree over the model file, and this scene's edits in it. */
   readonly model?: TargetGodotImportedModelPlan;
   /** A node this scene places under a node of an imported model: that instance and the path. */
@@ -141,7 +144,17 @@ export interface TargetGodotSceneSetterPlan {
    * `scene-families.ts`), and the element's prop is that file's import.
    */
   readonly written?: 'cells-file';
+  /** On an imported model's own node: the part of the model's element it sets (`MODEL_OVERRIDE_SLOTS`). */
+  readonly modelSlot?: GodotModelOverrideSlot;
 }
+
+/** What an authored property of an imported model's own node sets on the model's element. */
+export type GodotModelOverrideSlot =
+  | { readonly kind: 'bone-pose'; readonly component: 'position' | 'rotation' | 'scale' }
+  | { readonly kind: 'layers' }
+  | { readonly kind: 'transform' }
+  | { readonly kind: 'surface-material' }
+  | { readonly kind: 'player' };
 
 /** A resource the scene constructs once, then sets its authored properties on. */
 export interface TargetGodotSceneResourcePlan {
@@ -1360,6 +1373,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
     idiom,
+    ...(idiom.form.kind === 'light' ? { light: godotSceneLightPlan(setters, idiom.form.directional) } : {}),
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     properties,
     groups,
@@ -1641,7 +1655,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         const animation = mixer ? animationBindings(context, at, node.nodePath, setters, inModel) : undefined;
         if (animation === null) ok = false;
         if (!ok) refused = true;
-        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters, ...(animation === undefined || animation === null ? {} : { animation }) });
+        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters: setters.map((setter) => { const modelSlot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName]; return modelSlot === undefined ? setter : { ...setter, modelSlot }; }), ...(animation === undefined || animation === null ? {} : { animation }) });
         continue;
       }
       const authoredParent =
@@ -1911,28 +1925,29 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
 };
 const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 'Area3D']);
 
-/** The properties an imported model's element sets on the model's own nodes (bone poses, layers). */
-const MODEL_OVERRIDE_SETTERS = [
-  'set_layer_mask',
+/** The properties an imported model's element sets on the model's own nodes, and where each goes. */
+const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
+  // A mesh of the model's render layers (compat's `set_layer_mask`).
+  set_layer_mask: { kind: 'layers' },
   // A mesh of the model's surface materials (compat's imported-scene overrides).
-  'set_surface_override_material',
-  'set_bone_pose_position',
-  'set_bone_pose_rotation',
-  'set_bone_pose_scale',
+  set_surface_override_material: { kind: 'surface-material' },
+  set_bone_pose_position: { kind: 'bone-pose', component: 'position' },
+  set_bone_pose_rotation: { kind: 'bone-pose', component: 'rotation' },
+  set_bone_pose_scale: { kind: 'bone-pose', component: 'scale' },
   // A Node3D of the model moved (compat's imported-scene `transform` override).
-  'set_transform',
+  set_transform: { kind: 'transform' },
   // An imported AnimationPlayer's (`<GodotImportedScene overrides>`, compat's player props).
-  'godot_animation_mixer_set_library',
-  'set_autoplay',
-  'set_active',
-  'set_deterministic',
-  'set_callback_mode_process',
-  'set_callback_mode_method',
-  'set_callback_mode_discrete',
-  'set_speed_scale',
-  'set_default_blend_time',
-  'set_auto_capture',
-];
+  godot_animation_mixer_set_library: { kind: 'player' },
+  set_autoplay: { kind: 'player' },
+  set_active: { kind: 'player' },
+  set_deterministic: { kind: 'player' },
+  set_callback_mode_process: { kind: 'player' },
+  set_callback_mode_method: { kind: 'player' },
+  set_callback_mode_discrete: { kind: 'player' },
+  set_speed_scale: { kind: 'player' },
+  set_default_blend_time: { kind: 'player' },
+  set_auto_capture: { kind: 'player' },
+};
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
 const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scale']);
@@ -2006,7 +2021,7 @@ export function idiomaticRefusal(
       // An imported model: its root takes the transform only; the model's own nodes take the bone
       // poses its element states; the nodes placed under them are written as the scene's own.
       if (node.setters.length > 0 || node.properties.some((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName))) return `overrides on the imported model ${node.nodePath}`;
-      const override = node.model.overrides.flatMap((entry) => entry.setters).find((entry) => !MODEL_OVERRIDE_SETTERS.includes(entry.setter.exportName));
+      const override = node.model.overrides.flatMap((entry) => entry.setters).find((entry) => entry.modelSlot === undefined);
       if (override !== undefined) return `the imported model's ${override.propertyName}`;
       if (node.groups.length > 0 || node.unique === true) return `groups or a unique name on the imported model ${node.nodePath}`;
       for (const placed of node.placements ?? []) {
@@ -2248,12 +2263,7 @@ export function planGodotSceneDocuments(
       const script = byScript.get(resPath);
       const signals = new Map<string, number>();
       for (const scriptPath of [resPath, ...(script?.inheritance.scriptAncestors ?? [])]) {
-        const program = byScript.get(scriptPath)?.program;
-        for (const node of program?.nodes ?? []) {
-          if (node.kind !== 'SIGNAL') continue;
-          const name = program?.nodes[node.identifier];
-          if (name?.kind === 'IDENTIFIER' && !signals.has(name.name)) signals.set(name.name, node.parameters.length);
-        }
+        for (const signal of byScript.get(scriptPath)?.class.signals ?? []) if (!signals.has(signal.name)) signals.set(signal.name, signal.parameters);
       }
       return signals;
     },

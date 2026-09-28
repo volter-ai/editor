@@ -1,3 +1,4 @@
+import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -74,6 +75,8 @@ export type DirectGodotSceneNodePlan = Omit<
 
 export type DirectGodotSceneDocumentPlan = Omit<TargetGodotSceneDocumentPlan, 'root'> & {
   readonly root: DirectGodotSceneNodePlan;
+  /** The nodes the scene's component holds refs to, and what instancing scenes take (`scene-refs.ts`). */
+  readonly refs: GodotSceneRefsPlan;
 };
 
 export interface DirectGodotSourceModulePlan {
@@ -352,7 +355,7 @@ function validateAttachedScript(
  * for a path leaving the scene (it is not yet under a parent). A path by absolute path, unique name
  * or subpath, or into an instanced scene, is not planned.
  */
-function validateNodeReferences(scene: DirectGodotSceneDocumentPlan, diagnostics: DirectGodotCompositionDiagnostic[]): void {
+function validateNodeReferences(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>, diagnostics: DirectGodotCompositionDiagnostic[]): void {
   const own = new Set<string>();
   const collect = (node: DirectGodotSceneNodePlan): void => {
     own.add(node.nodePath);
@@ -382,7 +385,7 @@ function attachScriptInstances(
   scenes: readonly TargetGodotSceneDocumentPlan[],
   instances: readonly DirectGodotScriptInstancePlan[],
   diagnostics: DirectGodotCompositionDiagnostic[],
-): readonly DirectGodotSceneDocumentPlan[] {
+): readonly Omit<DirectGodotSceneDocumentPlan, 'refs'>[] {
   const boundNodes = new Map(
     project.documents.scenes.flatMap((scene) =>
       scene.nodes.map((node) => [nodeLocationKey(scene.resPath, node.nodePath), node] as const),
@@ -699,7 +702,7 @@ export function planDirectGodotProjectComposition(
       projectSettings: settings,
       inputMap,
       sourceModules: plannedSourceModules,
-      scenes: composedScenes,
+      scenes: planGodotSceneRefs(composedScenes),
       scriptAutoloads: autoloads,
     },
   };

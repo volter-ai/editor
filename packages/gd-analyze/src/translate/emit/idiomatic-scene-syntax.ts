@@ -669,19 +669,19 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
     emission.models.set(local, file);
   }
   const overrides: TargetTsObjectProperty[] = [];
-  const POSE: Readonly<Record<string, string>> = { set_bone_pose_position: 'position', set_bone_pose_rotation: 'rotation', set_bone_pose_scale: 'scale' };
   for (const override of model.overrides) {
-    const bones = override.setters.filter((setter) => POSE[setter.setter.exportName] !== undefined);
-    const layers = override.setters.find((setter) => setter.setter.exportName === 'set_layer_mask');
-    const moved = override.setters.find((setter) => setter.setter.exportName === 'set_transform');
-    const surfaces = override.setters.filter((setter) => setter.setter.exportName === 'set_surface_override_material');
-    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined && setter !== layers && setter !== moved && !surfaces.includes(setter));
+    const slot = (setter: (typeof override.setters)[number]) => setter.modelSlot?.kind;
+    const bones = override.setters.filter((setter) => slot(setter) === 'bone-pose');
+    const layers = override.setters.find((setter) => slot(setter) === 'layers');
+    const moved = override.setters.find((setter) => slot(setter) === 'transform');
+    const surfaces = override.setters.filter((setter) => slot(setter) === 'surface-material');
+    const others = override.setters.filter((setter) => slot(setter) === 'player');
     overrides.push({
       key: override.at,
       value: {
         kind: 'object-expression',
         properties: [
-          ...bones.map((setter) => ({ key: `bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`, value: dataExpression(plainValue(setter.value)) })),
+          ...bones.map((setter) => ({ key: `bones/${String(setter.index)}/${setter.modelSlot?.kind === 'bone-pose' ? setter.modelSlot.component : ''}`, value: dataExpression(plainValue(setter.value)) })),
           // A mesh of the model's render layers (compat's `set_layer_mask`).
           ...(layers === undefined ? [] : [{ key: 'layers', value: dataExpression(plainValue(layers.value)) }]),
           // A node of the model placed anew (compat's `set_transform`), its matrix column-major.
@@ -848,31 +848,6 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
   return { ...(first === undefined ? {} : { first }), ...(authored === undefined ? {} : { authored }) };
 }
 
-/** The nodes a statement refers to: each with a script, and each end of a connection. */
-function refTargets(scene: DirectGodotSceneDocumentPlan): ReadonlySet<string> {
-  const targets = new Set<string>();
-  let unique = false;
-  const walk = (node: DirectGodotSceneNodePlan): void => {
-    if (node.scriptInstance !== undefined) targets.add(node.nodePath);
-    if (node.unique === true) unique = true;
-    for (const child of godotSceneSubnodes(node)) walk(child);
-  };
-  walk(scene.root);
-  // A scene whose nodes its owner finds as `%Name` marks its root (`useGodotScene`).
-  if (unique) targets.add(scene.root.nodePath);
-  for (const connection of scene.connections) targets.add(connection.fromNodePath).add(connection.toNodePath);
-  // A script field's referenced node (`fieldValue`).
-  const referenced = (node: DirectGodotSceneNodePlan): void => {
-    for (const field of [...(node.scriptInstance?.fields ?? []), ...(node.instanceExports ?? [])]) {
-      const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
-      if (target !== undefined) targets.add(target);
-    }
-    for (const child of godotSceneSubnodes(node)) referenced(child);
-  };
-  referenced(scene.root);
-  return targets;
-}
-
 /** The props an instancing scene hands the root, by the root element. */
 function rootPropsType(
   tag: string,
@@ -943,26 +918,15 @@ export function idiomaticSceneSourceFile(
     sensor: { current: false },
     rapierCore: new Set(),
     refNames: new Set(),
-    needsRef: new Set([...refTargets(scene), scene.root.nodePath]),
+    needsRef: new Set(scene.refs.targets),
     nodeRefs: new Map(),
     rapierTypes: new Set(),
     scenes: new Map(project.scenes.map((entry) => [entry.sourceResPath, entry] as const)),
     instances: new Map(),
     models: new Map(),
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
-    rootExports:
-      scene.root.scriptInstance !== undefined &&
-      project.scenes.some((other) =>
-        (function overrides(entry: DirectGodotSceneNodePlan): boolean {
-          return (entry.instance?.sourceResPath === scene.sourceResPath && (entry.instanceExports?.length ?? 0) > 0) || godotSceneSubnodes(entry).some(overrides);
-        })(other.root),
-      ),
-    rootRef: project.scenes.some((other) => {
-      const targets = refTargets(other);
-      return (function refers(entry: DirectGodotSceneNodePlan): boolean {
-        return (entry.instance?.sourceResPath === scene.sourceResPath && targets.has(entry.nodePath)) || godotSceneSubnodes(entry).some(refers);
-      })(other.root);
-    }),
+    rootExports: scene.refs.rootExports,
+    rootRef: scene.refs.rootRef,
     refTypes: new Map(),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };

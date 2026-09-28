@@ -365,6 +365,8 @@ export interface BoundGodotScriptClass {
   readonly fqcn: string;
   readonly abstract: boolean;
   readonly methods: readonly BoundGodotScriptMethod[];
+  /** The signals the class declares (`signal name(args)`), with their parameter counts. */
+  readonly signals: readonly { readonly name: string; readonly parameters: number }[];
 }
 
 export type BoundGodotImmediateBase =
@@ -1025,11 +1027,16 @@ function scriptClass(script: GodotBoundScript): BoundGodotScriptClass {
       },
     ];
   });
+  const signals = root.members.flatMap((nodeId) => {
+    const node = script.nodes[nodeId];
+    return node?.kind === 'SIGNAL' ? [{ name: identifier(script, node.identifier).name, parameters: node.parameters.length }] : [];
+  });
   return {
     rootNodeId: root.id,
     fqcn: root.fqcn,
     abstract: root.abstract,
     methods,
+    signals,
   };
 }
 
