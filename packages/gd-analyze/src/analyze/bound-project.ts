@@ -1,4 +1,5 @@
-import { type BoundGodotInstancesMade, type BoundGodotSelfNodePath, instancesMade, selfNodePaths } from './self-node-paths';
+import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { type BoundGodotSelfNodePath, selfNodePaths } from './self-node-paths';
 import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
@@ -97,7 +98,7 @@ export interface BoundGodotSourceScript {
   readonly resourceLoads?: readonly BoundGodotResourceLoad[];
   /** The nodes reading a literal path from self (`self-node-paths.ts`). */
   readonly selfNodePaths: readonly BoundGodotSelfNodePath[];
-  /** The script instances the program makes or sets outside a scene (`self-node-paths.ts`). */
+  /** The script instances the program makes or sets outside a scene (`instances-made.ts`). */
   readonly instancesMade: BoundGodotInstancesMade;
   /** This script's variable declarations that hold null at some time (`nullable-variables.ts`). */
   readonly nullableDeclarations?: readonly number[];
