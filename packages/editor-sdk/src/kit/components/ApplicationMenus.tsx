@@ -131,9 +131,18 @@ export function ApplicationMenus() {
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open]);
 
+  // A command that FAILS says so in the console, as the same verb over the wire does: a click
+  // that changed nothing and said nothing reads as a dead menu.
   const choose = (action: () => unknown | Promise<unknown>) => () => {
     setOpen(null);
-    void action();
+    Promise.resolve()
+      .then(action)
+      .catch((error: unknown) =>
+        editorConsole.error(
+          `The menu command failed: ${error instanceof Error ? error.message : String(error)}`,
+          'editor',
+        ),
+      );
   };
   const panels: Record<MenuId, React.ReactNode> = {
     edit: (
@@ -304,6 +313,7 @@ export function ApplicationMenus() {
   return (
     <div
       ref={rootRef}
+      data-testid="app-menubar"
       style={{ display: 'flex', alignItems: 'stretch', marginLeft: 'var(--volter-space-2)' }}
     >
       {(['edit', 'view', 'window', 'debug', 'tools', 'help'] as const)

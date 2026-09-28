@@ -161,6 +161,7 @@ const SCOPE_NAMES: readonly DocumentProbeScope[] = [
   'outliner',
   'content',
   'utility',
+  'menubar',
 ];
 
 /** The two scopes that are VS Code views: the part id the contribution hands
@@ -244,8 +245,19 @@ function resolveUtilityScope(): Scope {
   return { container: showing, name: 'utility', id, title: id };
 }
 
+/** The application menu bar, by the stamp `ApplicationMenus` writes on its own root. The menus
+ *  its triggers open are portaled, and {@link scopeRoots} reaches them through their anchors. */
+function resolveMenubarScope(): Scope {
+  const bar = document.querySelector<HTMLElement>('[data-testid="app-menubar"]');
+  if (!bar) {
+    throw new Error("The application menus are not on screen, so scope 'menubar' has nothing to reach.");
+  }
+  return { container: bar, name: 'menubar', id: 'app-menubar', title: 'application menus' };
+}
+
 function resolveScope(name: DocumentProbeScope): Scope {
   if (name === 'utility') return resolveUtilityScope();
+  if (name === 'menubar') return resolveMenubarScope();
   const view =
     name === 'rail' || name === 'outliner' || name === 'content' ? VIEW_SCOPES[name] : null;
   if (view) {
