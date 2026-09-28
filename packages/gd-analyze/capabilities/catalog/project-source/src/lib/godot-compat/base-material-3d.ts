@@ -61,6 +61,7 @@ import {
   type Texture,
   Material,
   MeshBasicMaterial,
+  MeshDepthMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   MeshToonMaterial,
@@ -69,6 +70,7 @@ import {
   LinearSRGBColorSpace,
   Color as ThreeColor,
   NormalBlending,
+  type Object3D,
   type Scene,
   SubtractiveBlending,
   UnsignedIntType,
@@ -261,10 +263,13 @@ function apply(self: BaseMaterial3D, target: Material, model: boolean): void {
   );
   // `Transparency` (`material.h:198`): alpha and depth pre-pass are three's `transparent`, scissor
   // its `alphaTest` at the default threshold, hash its `alphaHash`.
-  target.transparent = self.transparency === TRANSPARENCY_ALPHA || self.transparency === TRANSPARENCY_DEPTH_PRE_PASS;
+  // Proximity fade reads the scene's depth, which draws the material in the alpha pass, its albedo's
+  // alpha applied (`material.cpp:1807`).
+  const proximity = extraOf(self).proximity_fade_enabled;
+  target.transparent = self.transparency === TRANSPARENCY_ALPHA || self.transparency === TRANSPARENCY_DEPTH_PRE_PASS || proximity;
   target.alphaTest = self.transparency === TRANSPARENCY_ALPHA_SCISSOR ? 0.5 : 0;
   target.alphaHash = self.transparency === TRANSPARENCY_ALPHA_HASH;
-  target.opacity = self.transparency !== 0 ? self.albedo.a : 1;
+  target.opacity = self.transparency !== 0 || proximity ? self.albedo.a : 1;
   target.blending = blending(self.blend_mode);
   applyExtra(self, target);
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
@@ -843,26 +848,48 @@ function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
 /** The scene's depth one renderer drew last, for the soft materials drawn after it. */
 interface SceneDepth {
   readonly target: WebGLRenderTarget;
+  readonly material: MeshDepthMaterial;
   frame: number;
   camera: Camera | null;
   drawing: boolean;
 }
 
+/**
+ * One depth target per renderer. It lives as long as the renderer does: the entry goes when the
+ * renderer is collected, and its GPU memory with the renderer's context.
+ */
 const SCENE_DEPTH = new WeakMap<WebGLRenderer, SceneDepth>();
 const depthSize = new Vector2();
 
+/** Whether a drawn material writes depth in the scene's own draw: a soft material never counts. */
+function writesDepth(object: Object3D, group: unknown): boolean {
+  const own = (object as Object3D & { readonly material?: Material | Material[] }).material;
+  // A multi-material mesh draws each geometry group (`{ start, count, materialIndex }`) with its material.
+  const material = Array.isArray(own) ? own[(group as { readonly materialIndex?: number } | null)?.materialIndex ?? 0] : own;
+  if (!(material instanceof Material) || !material.visible || !material.depthWrite) return false;
+  return (material.userData as Readonly<Record<string, unknown>>)['proximity_fade_enabled'] !== true;
+}
+
 /**
- * The scene's depth as `camera` sees it, drawn into a depth texture once per frame, when the first
- * soft material is about to draw: the soft-particles pass a three.js developer writes, drawn from
- * the material's `onBeforeRender` as three's `Reflector` draws its view (shadows kept as they are).
- * Null while that pass is drawing, so a soft material drawn in it never samples the texture being
- * written.
+ * The scene's depth as `camera` sees it, for soft particles as three.js draws them: a depth-only
+ * pass (`scene.overrideMaterial` a `MeshDepthMaterial` writing no colour) into a `DepthTexture`, once
+ * per frame, when the first soft material is about to draw, from that material's `onBeforeRender`
+ * as three's `Reflector` and `Refractor` draw their views (the target cleared as theirs are when the
+ * renderer does not clear itself, shadows and XR held, the render target, cube face and mip level
+ * restored). Each drawn object writes depth only where its own material would, so a transparent
+ * object and every soft material stay out of it. Null while the pass is drawing, so a soft material
+ * never samples the texture being written.
  */
 function sceneDepth(renderer: WebGLRenderer, scene: Scene, camera: Camera): DepthTexture | null {
   let depth = SCENE_DEPTH.get(renderer);
   if (depth === undefined) {
+    const material = new MeshDepthMaterial();
+    material.colorWrite = false;
+    material.onBeforeRender = (_renderer, _scene, _camera, _geometry, object, group) => {
+      material.depthWrite = writesDepth(object, group);
+    };
     const texture = new DepthTexture(1, 1, UnsignedIntType);
-    depth = { target: new WebGLRenderTarget(1, 1, { depthTexture: texture, depthBuffer: true }), frame: -1, camera: null, drawing: false };
+    depth = { target: new WebGLRenderTarget(1, 1, { depthTexture: texture, depthBuffer: true }), material, frame: -1, camera: null, drawing: false };
     SCENE_DEPTH.set(renderer, depth);
   }
   if (depth.drawing) return null;
@@ -870,17 +897,23 @@ function sceneDepth(renderer: WebGLRenderer, scene: Scene, camera: Camera): Dept
     renderer.getDrawingBufferSize(depthSize);
     if (depth.target.width !== depthSize.x || depth.target.height !== depthSize.y) depth.target.setSize(depthSize.x, depthSize.y);
     const current = renderer.getRenderTarget();
+    const face = renderer.getActiveCubeFace();
+    const level = renderer.getActiveMipmapLevel();
     const shadows = renderer.shadowMap.autoUpdate;
     const xr = renderer.xr.enabled;
+    const override = scene.overrideMaterial;
     renderer.shadowMap.autoUpdate = false;
     renderer.xr.enabled = false;
+    scene.overrideMaterial = depth.material;
     depth.drawing = true;
     try {
       renderer.setRenderTarget(depth.target);
+      if (renderer.autoClear === false) renderer.clear();
       renderer.render(scene, camera);
     } finally {
       depth.drawing = false;
-      renderer.setRenderTarget(current);
+      scene.overrideMaterial = override;
+      renderer.setRenderTarget(current, face, level);
       renderer.shadowMap.autoUpdate = shadows;
       renderer.xr.enabled = xr;
     }
@@ -890,9 +923,12 @@ function sceneDepth(renderer: WebGLRenderer, scene: Scene, camera: Camera): Dept
   return depth.target.depthTexture;
 }
 
-/** A soft material's uniforms: the scene's depth and the fade distance. */
+/** A soft material's uniforms: the scene's depth, the draw's size, the camera's range, the fade distance. */
 interface ProximityUniforms {
   readonly godotProximityDepth: { value: DepthTexture | null };
+  readonly godotProximityResolution: { value: Vector2 };
+  readonly godotProximityNear: { value: number };
+  readonly godotProximityFar: { value: number };
   readonly godotProximityDistance: { value: number };
 }
 
@@ -901,7 +937,13 @@ const PROXIMITY = new WeakMap<Material, ProximityUniforms>();
 function proximityOf(target: Material): ProximityUniforms {
   let uniforms = PROXIMITY.get(target);
   if (uniforms === undefined) {
-    uniforms = { godotProximityDepth: { value: null }, godotProximityDistance: { value: 1 } };
+    uniforms = {
+      godotProximityDepth: { value: null },
+      godotProximityResolution: { value: new Vector2(1, 1) },
+      godotProximityNear: { value: 0.1 },
+      godotProximityFar: { value: 1000 },
+      godotProximityDistance: { value: 1 },
+    };
     PROXIMITY.set(target, uniforms);
   }
   return uniforms;
@@ -920,19 +962,25 @@ function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billbo
     )}`;
   }
   if (proximity) {
-    // The fragment's screen position, its view depth, and the projection terms that turn the
-    // scene's depth back into view depth (a perspective or an orthographic camera alike).
+    // Soft particles as three.js writes them: the scene's view depth under this fragment
+    // (`perspectiveDepthToViewZ`, or `orthographicDepthToViewZ` for an orthographic camera, from
+    // three's `packing` chunk) against the fragment's own, faded over the distance.
     Object.assign(shader.uniforms, proximityOf(target));
-    const varyings = 'varying vec4 vGodotClip;\nvarying float vGodotViewZ;\nvarying vec4 vGodotProjection;\n';
-    vertex = `${varyings}${vertex.replace(
-      '#include <fog_vertex>',
-      'vGodotClip = gl_Position;\nvGodotViewZ = mvPosition.z;\nvGodotProjection = vec4( projectionMatrix[ 2 ][ 2 ], projectionMatrix[ 3 ][ 2 ], projectionMatrix[ 2 ][ 3 ], projectionMatrix[ 3 ][ 3 ] );\n#include <fog_vertex>',
-    )}`;
-    fragment = `uniform sampler2D godotProximityDepth;\nuniform float godotProximityDistance;\n${varyings}${fragment.replace(
+    vertex = `varying float vGodotViewZ;\n${vertex.replace('#include <fog_vertex>', 'vGodotViewZ = mvPosition.z;\n#include <fog_vertex>')}`;
+    const declarations = [
+      ...(fragment.includes('#include <packing>') ? [] : ['#include <packing>']),
+      'uniform sampler2D godotProximityDepth;',
+      'uniform vec2 godotProximityResolution;',
+      'uniform float godotProximityNear;',
+      'uniform float godotProximityFar;',
+      'uniform float godotProximityDistance;',
+      'varying float vGodotViewZ;',
+    ];
+    fragment = `${declarations.join('\n')}\n${fragment.replace(
       '#include <alphatest_fragment>',
       [
-        'float godotSceneNdc = texture2D( godotProximityDepth, vGodotClip.xy / vGodotClip.w * 0.5 + 0.5 ).r * 2.0 - 1.0;',
-        'float godotSceneZ = ( vGodotProjection.y - godotSceneNdc * vGodotProjection.w ) / ( godotSceneNdc * vGodotProjection.z - vGodotProjection.x );',
+        'float godotSceneDepth = texture2D( godotProximityDepth, gl_FragCoord.xy / godotProximityResolution ).x;',
+        'float godotSceneZ = isOrthographic ? orthographicDepthToViewZ( godotSceneDepth, godotProximityNear, godotProximityFar ) : perspectiveDepthToViewZ( godotSceneDepth, godotProximityNear, godotProximityFar );',
         'diffuseColor.a *= smoothstep( 0.0, 1.0, ( vGodotViewZ - godotSceneZ ) / godotProximityDistance );',
         '#include <alphatest_fragment>',
       ].join('\n'),
@@ -988,6 +1036,12 @@ export function godot_base_material_3d_scene_shader<M extends Material>(target: 
       if (data['proximity_fade_enabled'] !== true) return;
       const uniforms = proximityOf(target);
       uniforms.godotProximityDepth.value = sceneDepth(renderer, scene, camera);
+      const drawing = renderer.getRenderTarget();
+      if (drawing === null) renderer.getDrawingBufferSize(uniforms.godotProximityResolution.value);
+      else uniforms.godotProximityResolution.value.set(drawing.width, drawing.height);
+      const lens = camera as Camera & { readonly near?: number; readonly far?: number };
+      uniforms.godotProximityNear.value = lens.near ?? 0.1;
+      uniforms.godotProximityFar.value = lens.far ?? 1000;
       uniforms.godotProximityDistance.value = typeof data['proximity_fade_distance'] === 'number' ? data['proximity_fade_distance'] : 1;
     };
   }

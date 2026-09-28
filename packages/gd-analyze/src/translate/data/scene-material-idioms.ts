@@ -159,12 +159,15 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   const repeat = bool('set_flag', 16) ?? true;
   const texture = resource('set_texture', 0);
   if (texture !== undefined) props.push({ name: 'map', value: { kind: 'map', texture, filter, repeat, srgb: true } });
-  // `Transparency` (`material.h:198`): alpha and depth pre-pass, scissor, hash.
-  const transparent = transparency === 1 || transparency === 4;
+  // `Transparency` (`material.h:198`): alpha and depth pre-pass, scissor, hash. Proximity fade reads
+  // the scene's depth, which draws the material in the alpha pass, its albedo's alpha applied
+  // (`material.cpp:1807`).
+  const proximity = bool('set_proximity_fade_enabled') === true;
+  const transparent = transparency === 1 || transparency === 4 || proximity;
   if (transparent) literal('transparent', true);
   if (transparency === 2) literal('alphaTest', 0.5);
   if (transparency === 3) literal('alphaHash', true);
-  if (transparency !== 0) literal('opacity', albedo?.[3] ?? 1);
+  if (transparency !== 0 || proximity) literal('opacity', albedo?.[3] ?? 1);
   // `DepthDrawMode` (`material.h:235`): `ALWAYS` 1, `DISABLED` 2; three writes depth by default.
   const depthDraw = num('set_depth_draw_mode') ?? 0;
   if (depthDraw === 2 || (depthDraw === 0 && transparent)) literal('depthWrite', false);
@@ -209,7 +212,6 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   if (bool('set_flag', 5) === true) data.push({ key: 'billboard_keep_scale', value: true });
   if (coloured) data.push({ key: 'vertex_color_use_as_albedo', value: true });
   if (bool('set_flag', 2) === true) data.push({ key: 'vertex_color_is_srgb', value: true });
-  const proximity = bool('set_proximity_fade_enabled') === true;
   if (proximity) {
     data.push({ key: 'proximity_fade_enabled', value: true });
     data.push({ key: 'proximity_fade_distance', value: Math.max(f32(num('set_proximity_fade_distance') ?? 1), f32(0.01)) });
