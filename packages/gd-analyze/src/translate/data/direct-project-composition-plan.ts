@@ -20,6 +20,7 @@ import type {
   GodotSceneDocumentPlan,
   TargetGodotSceneDocumentPlan,
   TargetGodotSceneNodePlan,
+  TargetGodotSceneValue,
 } from './scene-document-plan';
 import type {
   ScriptAttachmentFieldInitializationPlan,
@@ -80,7 +81,9 @@ export type DirectGodotSceneNodePlan = Omit<
   /** The node's Godot-only state, its `userData` (`scene-body-idioms.ts`). */
   readonly data?: Readonly<Record<string, unknown>>;
   /** A MeshInstance3D's mesh and, per surface, the material it draws (`scene-surface-idioms.ts`). */
-  readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[] };
+  readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[]; readonly layers: number; readonly castShadow: boolean };
+  /** A Camera3D's lens, cull mask and own environment (`scene-surface-idioms.ts`). */
+  readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue };
   /** A collision shape's Rapier collider (`scene-body-idioms.ts`). */
   readonly collider?: GodotSceneColliderPlan;
   /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */

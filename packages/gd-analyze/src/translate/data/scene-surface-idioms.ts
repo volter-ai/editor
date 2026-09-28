@@ -31,10 +31,65 @@ function surfaceMaterials(resource: TargetGodotSceneResourcePlan): readonly (str
   return [resourceKey(resource.setters, 'set_material')];
 }
 
+const numberValue = (setters: readonly TargetGodotSceneSetterPlan[], exportName: string): number | undefined => {
+  const value = setters.find((entry) => entry.setter.exportName === exportName)?.value;
+  return value?.kind === 'number' ? value.value : undefined;
+};
+
+/**
+ * A primitive mesh's three geometry args (Godot's defaults where unauthored): a plane's size and,
+ * when subdivided, its segments; a sphere's radius, radial segments and rows (`rings + 1`); a
+ * cylinder's radii, height, radial segments and rows, and whether its top is open.
+ */
+function primitiveArgs(resource: TargetGodotSceneResourcePlan): TargetGodotSceneResourcePlan['primitive'] {
+  const idiom = resource.idiom;
+  const set = resource.setters;
+  const num = (name: string, initial: number) => numberValue(set, name) ?? initial;
+  switch (idiom?.kind) {
+    case 'plane': {
+      const value = set.find((entry) => entry.setter.exportName === 'set_size')?.value;
+      const size = value !== undefined && 'components' in value ? value.components : idiom.size;
+      const segments = [num('set_subdivide_width', 0) + 1, num('set_subdivide_depth', 0) + 1];
+      return { args: segments.some((entry) => entry !== 1) ? [size[0] as number, size[1] as number, ...segments] : [size[0] as number, size[1] as number] };
+    }
+    case 'sphere':
+      return { args: [num('set_radius', 0.5), num('set_radial_segments', 64), num('set_rings', 32) + 1] };
+    case 'cylinder': {
+      const cap = set.find((entry) => entry.setter.exportName === 'set_cap_top')?.value;
+      return {
+        args: [num('set_top_radius', 0.5), num('set_bottom_radius', 0.5), num('set_height', 2), num('set_radial_segments', 64), num('set_rings', 4) + 1],
+        ...(cap?.kind === 'bool' && !cap.value ? { open: true as const } : {}),
+      };
+    }
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * A Camera3D's lens (`camera_3d.h:68`, three's defaults differ, so every value is stated): its
+ * vertical angle, near and far, its cull mask (Godot's default all 20 layers, `camera_3d.h:83`), and
+ * its own environment.
+ */
+function cameraLens(node: DirectGodotSceneNodePlan): NonNullable<DirectGodotSceneNodePlan['lens']> {
+  const property = (name: string, initial: number) => node.properties.find((entry) => entry.propertyName === name)?.value[0] ?? initial;
+  const environment = node.setters.find((entry) => entry.setter.exportName === 'set_environment')?.value;
+  return {
+    fov: Number(property('fov', 75)),
+    near: Number(property('near', 0.05)),
+    far: Number(property('far', 4000)),
+    cullMask: numberValue(node.setters, 'set_cull_mask') ?? 0xfffff,
+    ...(environment === undefined ? {} : { environment }),
+  };
+}
+
 /** The scenes with each mesh resource's `surfaceMaterials` and each MeshInstance3D's `surfaces`. */
 export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
   return scenes.map((scene) => {
-    const resources = scene.resources.map((resource) => ({ ...resource, surfaceMaterials: surfaceMaterials(resource) }));
+    const resources = scene.resources.map((resource) => {
+      const primitive = primitiveArgs(resource);
+      return { ...resource, surfaceMaterials: surfaceMaterials(resource), ...(primitive === undefined ? {} : { primitive }) };
+    });
     const byKey = new Map(resources.map((resource) => [resource.key, resource] as const));
     const stamp = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => {
       const children = node.children.map(stamp);
@@ -46,11 +101,16 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
         surfaces = {
           ...(mesh === undefined ? {} : { mesh }),
           materials: own.map((material, surface) => resourceKey(node.setters, 'set_surface_override_material', surface) ?? material),
+          layers: numberValue(node.setters, 'set_layer_mask') ?? 1,
+          // Any setting but `SHADOW_CASTING_SETTING_OFF` casts (`geometry-instance-3d.ts`).
+          castShadow: (numberValue(node.setters, 'set_cast_shadows_setting') ?? 1) !== 0,
         };
       }
+      const lens = node.idiom?.form.kind === 'camera' ? cameraLens(node) : undefined;
       return {
         ...node,
         ...(surfaces === undefined ? {} : { surfaces }),
+        ...(lens === undefined ? {} : { lens }),
         children,
         ...(placements === undefined ? {} : { placements }),
       };

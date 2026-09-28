@@ -277,16 +277,12 @@ function geometryMade(emission: FamilyEmission, stamp: GodotSceneGeometryMade): 
 
 /** A primitive or array mesh resource as three's geometry element. */
 function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): TargetTsJsxChild {
-  const set = resource.setters;
-  const num = (name: string, initial: number) => numberValue(setterValue(set, name)) ?? initial;
   const idiom = resource.idiom;
+  // A primitive's args as the plan found them (`scene-surface-idioms.ts`).
+  const args = resource.primitive?.args ?? [];
   switch (idiom?.kind) {
-    case 'plane': {
-      const size = componentsValue(setterValue(set, 'set_size')) ?? idiom.size;
-      const segments = [num('set_subdivide_width', 0) + 1, num('set_subdivide_depth', 0) + 1];
-      const args = segments.some((value) => value !== 1) ? [size[0] as number, size[1] as number, ...segments] : [size[0] as number, size[1] as number];
+    case 'plane':
       return element('planeGeometry', [attribute('args', numbers(args)), ...(idiom.made === undefined ? [] : [attribute('onUpdate', identifier(geometryMade(emission, idiom.made)))])]);
-    }
     case 'sphere':
       // Godot's column `u` lies at (sin 2πu, cos 2πu) in XZ, three's at (-cos φ, sin φ): three's
       // sphere starts a quarter turn on (`phiStart` π/2) for its columns and UVs to be Godot's.
@@ -294,20 +290,20 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
         attribute('args', {
           kind: 'array-expression',
           elements: [
-            ...[num('set_radius', 0.5), num('set_radial_segments', 64), num('set_rings', 32) + 1].map((value) => literal(value)),
+            ...args.map((value) => literal(value)),
             { kind: 'binary-expression', operator: '/', left: { kind: 'property-expression', object: identifier('Math'), property: 'PI' }, right: literal(2) },
           ],
         }),
       ]);
     case 'cylinder': {
-      const open = boolValue(setterValue(set, 'set_cap_top')) === false;
+      const open = resource.primitive?.open === true;
       return element('cylinderGeometry', [
         attribute(
           'args',
           {
             kind: 'array-expression',
             elements: [
-              ...[num('set_top_radius', 0.5), num('set_bottom_radius', 0.5), num('set_height', 2), num('set_radial_segments', 64), num('set_rings', 4) + 1].map((value) => literal(value)),
+              ...args.map((value) => literal(value)),
               ...(open ? [literal(true)] : []),
             ],
           },
@@ -941,10 +937,9 @@ export function familyElement(
       return { tag, attributes: [{ kind: 'jsx-spread-attribute', value: { kind: 'call-expression', callee: identifier(props), arguments: [authored] } }], children: [] };
     }
     case 'mesh': {
-      const set = node.setters;
-      const layers = numberValue(setterValue(set, 'set_layer_mask')) ?? 1;
-      // Any setting but `SHADOW_CASTING_SETTING_OFF` casts (`geometry-instance-3d.ts`).
-      const castShadow = (numberValue(setterValue(set, 'set_cast_shadows_setting')) ?? 1) !== 0;
+      // Its layers and shadow casting as the plan found them (`scene-surface-idioms.ts`).
+      const layers = node.surfaces?.layers ?? 1;
+      const castShadow = node.surfaces?.castShadow ?? true;
       const attributes: TargetTsJsxAttribute[] = [
         ...(castShadow ? [flag('castShadow')] : []),
         flag('receiveShadow'),
@@ -1013,28 +1008,28 @@ export function familyElement(
     }
     case 'camera': {
       emission.drei.add('PerspectiveCamera');
-      // Godot's lens (`camera_3d.h:68`): three's own defaults differ, so every value is stated.
-      const property = (name: string, initial: number) => node.properties.find((entry) => entry.propertyName === name)?.value[0] ?? initial;
+      // Godot's lens as the plan found it (`scene-surface-idioms.ts`): three's own defaults differ, so every value is stated.
+      const lens = node.lens ?? { fov: 75, near: 0.05, far: 4000, cullMask: 0xfffff };
       return {
         tag: 'PerspectiveCamera',
         attributes: [
           ...(emission.currentCamera === node.nodePath ? [flag('makeDefault')] : []),
           // Its aspect and vertical angle are Godot's projection (`camera-3d.ts`), not drei's resize.
           flag('manual'),
-          attribute('fov', literal(property('fov', 75))),
-          attribute('near', literal(property('near', 0.05))),
-          attribute('far', literal(property('far', 4000))),
+          attribute('fov', literal(lens.fov)),
+          attribute('near', literal(lens.near)),
+          attribute('far', literal(lens.far)),
           // Its cull mask is three's camera layers (`camera-3d.ts`); three's default is layer 0
           // alone, Godot's all 20 (`camera_3d.h:83`), so the mask is always stated.
-          attribute('layers-mask', literal(numberValue(setterValue(node.setters, 'set_cull_mask')) ?? 0xfffff)),
+          attribute('layers-mask', literal(lens.cullMask)),
           // Its own environment, drawn in place of the world's while the viewport draws with it.
-          ...(setterValue(node.setters, 'set_environment') === undefined
+          ...(lens.environment === undefined
             ? []
             : [
                 attribute('onUpdate', {
                   kind: 'call-expression',
                   callee: identifier(useCompat(emission, 'camera-3d', 'godot_camera_3d_environment_prop')),
-                  arguments: [propValue(emission, setterValue(node.setters, 'set_environment') as TargetGodotSceneValue)],
+                  arguments: [propValue(emission, lens.environment)],
                 }),
               ]),
         ],

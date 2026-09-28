@@ -1,7 +1,7 @@
 {
   "counts": {
     "phase-call-outside-pipeline": 0,
-    "emit-setter-name-decision": 7,
+    "emit-setter-name-decision": 0,
     "emit-project-walk": 7,
     "lowering-builtin-name": 3,
     "class-name-switch": 0,
@@ -43,13 +43,6 @@
     "emit-project-walk | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | project.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/index.ts | composition.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/index.ts | composition.scenes #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #3",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #3",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #4",
     "lowering-builtin-name | packages/gd-analyze/src/translate/code/lower-official-expression.ts | case 'bool' #1",
     "lowering-builtin-name | packages/gd-analyze/src/translate/code/lower-official-expression.ts | case 'float' #1",
     "lowering-builtin-name | packages/gd-analyze/src/translate/code/lower-official-expression.ts | case 'int' #1"

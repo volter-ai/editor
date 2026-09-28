@@ -63,7 +63,6 @@ import {
   useCompat as familyUseCompat,
 } from './scene-family-elements';
 
-
 /**
  * A Transform3D (the plan's column-major matrix) as `position`, XYZ `rotation` and `scale` props,
  * each only when it differs from three's default. A basis whose columns are not orthogonal
@@ -369,7 +368,6 @@ function bodyProp(emission: Emission, prop: GodotSceneBodyProp): TargetTsJsxAttr
   return attribute(prop.name, { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'CoefficientCombineRule' }, property: value.rule });
 }
 
-
 /**
  * A body's children, its colliders told whether they are an area's sensors: a sensor also reports
  * kinematic and fixed bodies (Rapier leaves those pairs out by default; a CharacterBody3D is
@@ -453,8 +451,6 @@ function componentProp(entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute 
   const value = plainValue(entry.value);
   return attribute(camel, dataExpression(value));
 }
-
-/** The setters every Node3D element states the same way: `visible` (three's), `transparency` (`userData`'s). */
 
 /** A Node3D's authored `visible`, as three's own prop, which hides the subtree as Godot does (`node_3d.cpp:1120`). */
 function visibleProp(setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
@@ -596,7 +592,6 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
 function sameSetter(left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSetterPlan): boolean {
   return left.setter.exportName === right.setter.exportName && left.index === right.index;
 }
-
 
 /** The transform components a node authored as properties, which three's own props state. */
 const SPATIAL_COMPONENTS = new Set(['position', 'rotation', 'scale']);
