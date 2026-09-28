@@ -403,7 +403,7 @@ export class LiveEditor {
     // asset it fell to the extension guess's `json` and showed its bytes.
     if (kind === undefined && path.toLowerCase().endsWith('.blend'))
       throw new Error(
-        `${path} is a Blender Model document, not an asset: open it with editor.open("document:model:${path}").`,
+        `${path} is a Blender Model document, not an asset: open it with editor.open("model:${path}").`,
       );
     await this.#client.openAsset(path, kind ?? inferAssetKind(path));
   }
