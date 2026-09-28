@@ -8,7 +8,8 @@
  * draws it.
  */
 
-import { godot_primitive_mesh_describe, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
+import type { BufferGeometry } from 'three';
+import { godot_primitive_mesh_describe, godot_primitive_mesh_uv_top, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -197,12 +198,14 @@ const FACING_Y = new WeakSet<object>();
 /**
  * Turns three's plane (in XY, facing +Z) to face +Y as Godot's `PlaneMesh` does by default
  * (`ORIENTATION_FACE_Y`, `primitive_meshes.cpp`): a rotation of -90 degrees about X, applied
- * once to a geometry however often R3F reports its update; the geometry is returned.
+ * once to a geometry however often R3F reports its update, with its UV origin at the image's top
+ * row (`godot_primitive_mesh_uv_top`); the geometry is returned.
  *
  * @godot PlaneMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:1467
  */
-export function godot_plane_mesh_face_y<Geometry extends { rotateX(angle: number): unknown }>(geometry: Geometry): Geometry {
+export function godot_plane_mesh_face_y<Geometry extends BufferGeometry>(geometry: Geometry): Geometry {
+  godot_primitive_mesh_uv_top(geometry);
   if (!FACING_Y.has(geometry)) {
     FACING_Y.add(geometry);
     geometry.rotateX(-Math.PI / 2);
@@ -215,12 +218,14 @@ const FACING_X = new WeakSet<object>();
 /**
  * Turns three's plane (in XY, facing +Z) to face +X as Godot's `ORIENTATION_FACE_X` plane does
  * (`primitive_meshes.cpp:1465`: its width along Z, its height along Y): a rotation of 90 degrees
- * about Y, applied once to a geometry however often R3F reports its update; the geometry is returned.
+ * about Y, applied once to a geometry however often R3F reports its update, with its UV origin at
+ * the image's top row (`godot_primitive_mesh_uv_top`); the geometry is returned.
  *
  * @godot PlaneMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:1465
  */
-export function godot_plane_mesh_face_x<Geometry extends { rotateY(angle: number): unknown }>(geometry: Geometry): Geometry {
+export function godot_plane_mesh_face_x<Geometry extends BufferGeometry>(geometry: Geometry): Geometry {
+  godot_primitive_mesh_uv_top(geometry);
   if (!FACING_X.has(geometry)) {
     FACING_X.add(geometry);
     geometry.rotateY(Math.PI / 2);

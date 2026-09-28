@@ -3,7 +3,8 @@
  * @role BINDING
  *
  * Godot 4.7's `CSGBox3D` (`modules/csg/csg_shape.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) standing alone, as a three box mesh: its `size`
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) standing alone, as a three box mesh (its UV origin
+ * at the image's top row, `godot_primitive_mesh_uv_top`): its `size`
  * (1, 1, 1 by default, `csg_shape.h:290`) is the box's geometry, and with no material it draws with
  * the Compatibility renderer's default material (`rasterizer_scene_gles3.cpp:4628`: `ALBEDO` 0.6,
  * which the scene shader decodes from sRGB like any albedo, `scene.glsl:2398`; roughness 0.8,
@@ -12,6 +13,7 @@
 
 import type { ReactElement } from 'react';
 import { BoxGeometry, Color, Mesh, MeshStandardMaterial, SRGBColorSpace } from 'three';
+import { godot_primitive_mesh_uv_top } from './primitive-mesh';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -25,7 +27,7 @@ export function set_size(self: object, size: Vector3): void {
   SIZE.set(self, vector3(size.x, size.y, size.z));
   const mesh = self as Mesh;
   mesh.geometry.dispose();
-  mesh.geometry = new BoxGeometry(size.x, size.y, size.z);
+  mesh.geometry = godot_primitive_mesh_uv_top(new BoxGeometry(size.x, size.y, size.z));
 }
 
 /**
@@ -37,7 +39,7 @@ export function get_size(self: object): Vector3 {
 }
 
 const CSG_BOX_3D: GodotElementClass<Mesh> = {
-  create: () => new Mesh(new BoxGeometry(1, 1, 1), new MeshStandardMaterial({ color: new Color().setRGB(0.6, 0.6, 0.6, SRGBColorSpace), roughness: 0.8, metalness: 0.2 })),
+  create: () => new Mesh(godot_primitive_mesh_uv_top(new BoxGeometry(1, 1, 1)), new MeshStandardMaterial({ color: new Color().setRGB(0.6, 0.6, 0.6, SRGBColorSpace), roughness: 0.8, metalness: 0.2 })),
   classes: ['CSGBox3D', 'CSGPrimitive3D', 'CSGShape3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object'],
   spatial: true,
   mount: (entity) => {

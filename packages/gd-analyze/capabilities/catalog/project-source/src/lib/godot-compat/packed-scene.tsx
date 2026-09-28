@@ -40,7 +40,7 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
 import { godot_animation_mixer_set_library } from './animation-mixer';
 import { godot_animation_player_apply_reset, godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
-import { godot_base_material_3d_model_map } from './base-material-3d';
+import { godot_base_material_3d_map } from './base-material-3d';
 import { godot_node_adopt, godot_node_foreign } from './node';
 import { set_transform } from './node-3d';
 import { construct as quaternion } from './quaternion';
@@ -343,7 +343,7 @@ function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser:
         const shared = images[image] as Texture;
         const sampler = json.samplers?.[json.textures?.[standIn.userData['godotTexture'] as number]?.sampler ?? -1];
         const repeat = (sampler?.wrapS ?? 10497) === 10497 && (sampler?.wrapT ?? 10497) === 10497;
-        slots[slot] = godot_base_material_3d_model_map(shared, samplerFilter(sampler?.minFilter), repeat, srgb, standIn);
+        slots[slot] = godot_base_material_3d_map(shared, samplerFilter(sampler?.minFilter), repeat, srgb, standIn);
         material.needsUpdate = true;
       }
     }

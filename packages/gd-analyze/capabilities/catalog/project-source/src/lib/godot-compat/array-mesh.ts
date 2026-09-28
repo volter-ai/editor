@@ -103,7 +103,7 @@ export function godot_array_mesh_new(data: { readonly resource_name?: string; re
   return mesh;
 }
 
-/** An ArrayMesh's data file as the translation writes it (three's conventions, `scene-families.ts`). */
+/** An ArrayMesh's data file as the translation writes it (three's winding, Godot's UVs, `scene-families.ts`). */
 export interface GodotArrayMeshData {
   readonly position: readonly number[];
   readonly normal?: readonly number[];

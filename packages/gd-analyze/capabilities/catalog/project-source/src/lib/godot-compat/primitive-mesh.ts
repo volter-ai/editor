@@ -261,3 +261,27 @@ export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeomet
   geometry.setIndex(index);
   return geometry;
 }
+
+const UV_TOP = new WeakSet<object>();
+
+/**
+ * Puts a three primitive geometry's UV origin at the image's top row, as Godot's primitives put
+ * theirs (`primitive_meshes.cpp`: `v` runs from the top edge down; `PlaneMesh` stores `1 - v`
+ * for its far edge to be the image's top) and every other geometry the game draws does: three's
+ * `PlaneGeometry`, `BoxGeometry`, `SphereGeometry` and `CylinderGeometry` put it at the bottom
+ * row, so each `v` becomes `1 - v`, once for a geometry however often R3F reports its update. Every
+ * texture is then uploaded unflipped (`godot_base_material_3d_map`). The geometry is returned.
+ *
+ * @godot PrimitiveMesh (protocol)
+ * @source scene/resources/3d/primitive_meshes.cpp:1478
+ */
+export function godot_primitive_mesh_uv_top<Geometry extends BufferGeometry>(geometry: Geometry): Geometry {
+  if (UV_TOP.has(geometry)) return geometry;
+  UV_TOP.add(geometry);
+  const uv = geometry.getAttribute('uv') as BufferAttribute | undefined;
+  if (uv !== undefined) {
+    for (let i = 0; i < uv.count; i += 1) uv.setY(i, 1 - uv.getY(i));
+    uv.needsUpdate = true;
+  }
+  return geometry;
+}

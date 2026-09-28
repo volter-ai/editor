@@ -45,7 +45,6 @@ import {
   type SerializedScenePropertyIdentity,
   type TargetScenePropertyKind,
 } from './scene-node-authority';
-import { godotModelMaterialIdiom } from './scene-material-idioms';
 import { type GodotSceneNodeIdiom, godotSceneNodeIdiom } from './scene-node-idioms';
 import { type GodotSceneResourceIdiom, godotSceneResourceIdiom } from './scene-resource-idioms';
 
@@ -1488,7 +1487,7 @@ function planImportedInstance(
   for (const [materialName, resPath] of Object.entries(model.externalMaterials ?? {})) {
     const key = planResourceAt(context, `${at}(${imported.resPath} materials/${materialName})`, resPath);
     if (key === undefined) return undefined;
-    materials.push({ name: materialName, key: planModelMaterial(context, key) });
+    materials.push({ name: materialName, key });
   }
   const nodes: TargetGodotImportedModelNode[] = [];
   for (const member of imported.nodes) {
@@ -1709,7 +1708,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         const animation = mixer ? animationBindings(context, at, node.nodePath, setters, inModel) : undefined;
         if (animation === null) ok = false;
         if (!ok) refused = true;
-        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters: setters.map((setter) => modelOverride(context, setter)), ...(animation === undefined || animation === null ? {} : { animation }) });
+        else if (setters.length > 0) importedEnclosing.overrides.push({ at: relative, setters: setters.map((setter) => { const modelSlot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName]; return modelSlot === undefined ? setter : { ...setter, modelSlot }; }), ...(animation === undefined || animation === null ? {} : { animation }) });
         continue;
       }
       const authoredParent =
@@ -2022,37 +2021,6 @@ export function godotSceneRootClass(
   if (root.instance !== undefined) return godotSceneRootClass(scenes, root.instance.sourceResPath);
   if (root.model !== undefined) return root.model.rootClasses[0];
   return root.classes[0];
-}
-
-/**
- * A setter on an imported model's own node, with the part of the model's element it sets; a surface
- * material there draws on the model's geometry (`planModelMaterial`).
- */
-function modelOverride(context: PlanContext, setter: TargetGodotSceneSetterPlan): TargetGodotSceneSetterPlan {
-  const modelSlot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName];
-  if (modelSlot === undefined) return setter;
-  const value = modelSlot.kind === 'surface-material' && setter.value.kind === 'resource' ? { ...setter.value, key: planModelMaterial(context, setter.value.key) } : setter.value;
-  return { ...setter, value, modelSlot };
-}
-
-/**
- * The planned material at `key` as it draws on an imported model's own geometry: its textures
- * sampled as the model's own images are (`godotModelMaterialIdiom`), planned once beside it as
- * `<key>\0model`. The material itself when it samples no texture or is not a three material.
- */
-function planModelMaterial(context: PlanContext, key: string): string {
-  const document = context.document;
-  const planned = document?.planned.get(key);
-  if (document === undefined || planned === undefined || planned === null || planned.idiom?.kind !== 'material') return key;
-  const idiom = godotModelMaterialIdiom(planned.idiom);
-  if (idiom === planned.idiom) return key;
-  const modelKey = `${key}\0model`;
-  if (!document.planned.has(modelKey)) {
-    const variant = { ...planned, key: modelKey, idiom };
-    document.planned.set(modelKey, variant);
-    document.order.push(variant);
-  }
-  return modelKey;
 }
 
 /** Records a planned resource with its library idiom. */

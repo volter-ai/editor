@@ -32,12 +32,8 @@ export type GodotSceneMaterialPropValue =
   | { readonly kind: 'linear-color'; readonly components: readonly number[] }
   /** A three constant (`AdditiveBlending`, `DoubleSide`). */
   | { readonly kind: 'three'; readonly name: string }
-  /**
-   * A planned texture resource sampled with the material's filter and repeat; `model` when the
-   * material draws on an imported model's own geometry, whose UVs are the file's (glTF's origin is
-   * the image's top row), so the texture is sampled as the model's own images are.
-   */
-  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true }
+  /** A planned texture resource sampled with the material's filter and repeat. */
+  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean }
   /** The Godot-only values compat reads back, as `userData`. */
   | { readonly kind: 'user-data'; readonly entries: readonly { readonly key: string; readonly value: number | boolean | readonly number[] }[] }
   /** A compat function the material is handed once made (`onUpdate`). */
@@ -64,16 +60,6 @@ export const GODOT_DEFAULT_MATERIAL_IDIOM: GodotSceneMaterialIdiom = {
     { name: 'metalness', value: { kind: 'literal', value: 0.2 } },
   ],
 };
-
-/**
- * The material as it draws on an imported model's own geometry (an external material the importer
- * swaps in, a surface override on a model's mesh): its textures sampled as the model's own images
- * are. The same idiom when it samples no texture.
- */
-export function godotModelMaterialIdiom(idiom: GodotSceneMaterialIdiom): GodotSceneMaterialIdiom {
-  if (!idiom.props.some((prop) => prop.value.kind === 'map')) return idiom;
-  return { ...idiom, props: idiom.props.map((prop) => (prop.value.kind === 'map' ? { name: prop.name, value: { ...prop.value, model: true } } : prop)) };
-}
 
 /** The Compatibility shader's `srgb_to_linear` (`tonemap_inc.glsl:22`), in single precision. */
 function srgbToLinear(value: number): number {

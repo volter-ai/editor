@@ -7,7 +7,7 @@
  * its gradient sampled at the pixel's fill offset (linear, radial, square or conic from `fill_from`
  * to `fill_to`, clamped, repeated or mirrored), stored as 8-bit RGBA, drawn as a three
  * `DataTexture` of the image's rows in Godot's order, which a material samples as it samples any
- * image (`godot_base_material_3d_scene_map`). High-dynamic-range images are not transcribed.
+ * image (`godot_base_material_3d_map`). High-dynamic-range images are not transcribed.
  */
 
 import { DataTexture, RGBAFormat, SRGBColorSpace, UnsignedByteType } from 'three';

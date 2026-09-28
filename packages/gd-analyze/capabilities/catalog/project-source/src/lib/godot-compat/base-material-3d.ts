@@ -96,8 +96,6 @@ export interface BaseMaterial3D {
   textures: (Texture | null)[];
   texture_filter: number;
   anisotropy: number;
-  /** Drawn on three's own geometry (a scene's material): its maps' UV origin is three's. */
-  sceneUv?: boolean;
 }
 
 const THREE_MATERIAL = new WeakMap<BaseMaterial3D, Material>();
@@ -149,11 +147,22 @@ const MAPS = new WeakMap<Texture, Map<string, Texture>>();
 const VARIANT_OF = new WeakMap<Texture, Texture>();
 
 /**
- * The albedo texture as the material samples it: one three texture per sampler state over the
- * same image (`gl_set_filter`, `gl_set_repeat`; mipmaps only when the image has them).
+ * A texture as a material samples it: one three texture per sampler state over the same image (its
+ * `texture_filter`, `FLAG_USE_TEXTURE_REPEAT` and `gl_set_filter`/`gl_set_repeat`; mipmaps only when
+ * the image has them). A colour texture (`source_color`, the albedo) is decoded from sRGB; a data
+ * texture (roughness) is not.
+ *
+ * Every geometry the game draws puts its UV origin at the image's top row, as Godot's and glTF's do
+ * (an imported model's, an ArrayMesh's, and three's primitive geometries, whose UVs
+ * `godot_primitive_mesh_uv_top` flips as they are made), so every image is uploaded unflipped
+ * (`flipY` false, as three's GLTFLoader uploads a model's). With `view`, the loader's own view of
+ * the image in a model's material (a second UV set, a texture transform) is kept.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source drivers/gles3/storage/texture_storage.h:255
  */
-function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY = false, srgb = true): Texture {
-  const key = `${String(filter)}:${String(repeat)}:${String(flipY)}:${String(srgb)}`;
+export function godot_base_material_3d_map(texture: Texture, filter: number, repeat: boolean, srgb = true, view?: Texture): Texture {
+  const key = `${String(filter)}:${String(repeat)}:${String(srgb)}`;
   let variants = MAPS.get(texture);
   if (variants === undefined) {
     variants = new Map();
@@ -168,7 +177,7 @@ function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY = f
     // The variant is the same texture resource: its image is the texture's.
     godot_texture_2d_image(map, () => get_image(texture));
   }
-  map.flipY = flipY;
+  map.flipY = false;
   const mipmapped = texture.mipmaps !== undefined && texture.mipmaps.length > 1;
   const nearest = filter === 0 || filter === 2 || filter === 4;
   map.magFilter = nearest ? NearestFilter : LinearFilter;
@@ -178,32 +187,6 @@ function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY = f
   map.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
   map.generateMipmaps = false;
   map.needsUpdate = true;
-  return map;
-}
-
-/**
- * A texture sampled as a material of the scene samples it (its `texture_filter` and
- * `FLAG_USE_TEXTURE_REPEAT`), for three's own geometry: three's UVs put their origin at the image's
- * bottom row where Godot's put it at the top, so the image is uploaded flipped. A colour texture
- * (`source_color`, the albedo) is decoded from sRGB; a data texture (roughness) is not.
- *
- * @godot BaseMaterial3D (protocol)
- * @source drivers/gles3/storage/texture_storage.h:255
- */
-export function godot_base_material_3d_scene_map(texture: Texture, filter: number, repeat: boolean, srgb = true): Texture {
-  return sampledMap(texture, filter, repeat, true, srgb);
-}
-
-/**
- * A texture sampled as an imported model's material samples it (the `texture_filter` and
- * `FLAG_USE_TEXTURE_REPEAT` the importer set from the glTF sampler), for the model's own geometry,
- * whose UVs put their origin at the image's top row as Godot's do.
- *
- * @godot BaseMaterial3D (protocol)
- * @source modules/gltf/gltf_document.cpp:3056
- */
-export function godot_base_material_3d_model_map(texture: Texture, filter: number, repeat: boolean, srgb = true, view?: Texture): Texture {
-  const map = sampledMap(texture, filter, repeat, false, srgb);
   // A second UV set or a texture transform is the slot's own: its own view of the same image.
   if (view === undefined || (view.channel === 0 && view.offset.x === 0 && view.offset.y === 0 && view.rotation === 0 && view.repeat.x === 1 && view.repeat.y === 1)) return map;
   const own = map.clone();
@@ -249,7 +232,7 @@ function apply(self: BaseMaterial3D, target: Material): void {
   applyExtra(self, target);
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
   (target as MeshStandardMaterial).map =
-    albedo === null ? null : sampledMap(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true, self.sceneUv === true);
+    albedo === null ? null : godot_base_material_3d_map(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true);
   if (target instanceof MeshStandardMaterial) {
     target.metalness = self.metallic;
     target.roughness = self.roughness;
@@ -369,7 +352,6 @@ export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
     extra.specular = f32(physical.reflectivity);
     if (physical.specularIntensity === 0) extra.specular_mode = SPECULAR_DISABLED;
   }
-  self.sceneUv = true;
   THREE_MATERIAL.set(self, target);
   OF_THREE.set(target, self);
   return self;
