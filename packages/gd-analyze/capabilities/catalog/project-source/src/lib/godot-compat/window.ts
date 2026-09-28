@@ -402,11 +402,23 @@ const LAYERS = new WeakMap<HTMLCanvasElement, HTMLElement>();
 const STACKED = new WeakMap<HTMLElement, string>();
 
 /**
- * The element the canvas items draw into (`godot_canvas_draw`): one absolutely placed layer over
+ * The page element the root Window's canvas layer is, once its frame placed it
+ * (`godot_window_canvas_layer`): what each canvas item draws itself into.
+ *
+ * @godot Window (protocol)
+ * @source servers/rendering/renderer_canvas_cull.cpp:304
+ */
+export function godot_window_canvas_root(canvas: HTMLCanvasElement): HTMLElement | undefined {
+  return LAYERS.get(canvas);
+}
+
+/**
+ * The element the canvas items draw into (`useGodotCanvasItem`): one absolutely placed layer over
  * the canvas in the canvas's parent, laid out at the stretched size the 2D world is laid out at and
  * scaled by a CSS transform to the part of the canvas's CSS box the window shows it in, and
  * transparent to the pointer, so the page's input reaches the canvas as in the web export. It
- * stacks above the canvas, as the web export's canvas items draw over its 3D view.
+ * stacks above the canvas, as the web export's canvas items draw over its 3D view. The root Window
+ * places it each frame.
  *
  * @godot Window (protocol)
  * @source servers/rendering/renderer_canvas_cull.cpp:304

@@ -12,13 +12,14 @@
  * has no hook: it keeps no clock, and a delta is read from the host when asked (`scene-tree.ts`).
  */
 
+import type { Object3D } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useBeforePhysicsStep } from '@react-three/rapier';
-import { useRef } from 'react';
-import { godot_canvas_draw } from './canvas-item';
+import { useEffect, useRef } from 'react';
 import { get_physics_process_delta_time, godot_node_advance, is_inside_tree } from './node';
 import { godot_process_delta } from './scene-tree';
-import { godot_window_canvas_layer, godot_window_process_events } from './window';
+import { godot_window_canvas_layer, godot_window_canvas_root, godot_window_process_events } from './window';
+import { godot_canvas_item_draw, godot_canvas_item_undraw } from './canvas-item';
 
 /**
  * Runs one node's own internal processing from its component's frame and physics step.
@@ -49,21 +50,40 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
 }
 
 /**
+ * A canvas item's or layer's own drawing, from its own component: each frame it draws itself onto
+ * the root Window's canvas layer (`godot_canvas_item_draw`), and it takes its element off the page
+ * as it unmounts.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:469
+ */
+export function useGodotCanvasItem(entity: Object3D): void {
+  const viewport = useThree((state) => state.scene);
+  const gl = useThree((state) => state.gl);
+  useFrame(() => {
+    const root = godot_window_canvas_root(gl.domElement);
+    if (root !== undefined) godot_canvas_item_draw(entity, viewport, root);
+  });
+  useEffect(() => () => godot_canvas_item_undraw(entity), [entity]);
+}
+
+/**
  * The root Window's own processing, from its component's frame: at the start of each frame, before
  * the physics steps and the scripts' `_process` (its hook runs first, by its priority), the page's
  * buffered input becomes events (`OS_Web::main_loop_iterate` then
- * `DisplayServerWeb::process_events`), as Godot's iteration begins; and each frame it draws its
- * canvas items over the canvas, with the other frame work.
+ * `DisplayServerWeb::process_events`), as Godot's iteration begins; and it places its canvas layer
+ * over the canvas, which its canvas items draw themselves into.
  *
  * @godot Window (protocol)
  * @source platform/web/os_web.cpp:87
  */
 export function useGodotRootWindow(): void {
-  const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
   // The frame's identity is three's own count of the renderer's frames, its delta R3F's. A renderer
   // that keeps no count (a host's stand-in) gives each frame R3F's elapsed time as its identity,
   // which repeats while its clock is paused (a press then reads as just pressed until it moves).
   useFrame((state, delta) => godot_window_process_events({ id: state.gl.info?.render?.frame ?? state.clock.elapsedTime, delta }), -1);
-  useFrame(() => godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement)));
+  // The Window's own canvas layer, placed over the canvas each frame; each canvas item draws itself
+  // into it from its own component (`useGodotCanvasItem`).
+  useFrame(() => godot_window_canvas_layer(gl.domElement), -1);
 }

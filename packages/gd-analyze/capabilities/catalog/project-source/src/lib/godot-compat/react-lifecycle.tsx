@@ -46,7 +46,8 @@ import {
   godot_packed_scene_portals,
   godot_packed_scene_spawner,
 } from './packed-scene-instance';
-import { useGodotAdvance } from './advance';
+import { useGodotAdvance, useGodotCanvasItem } from './advance';
+import { godot_canvas_item_draws } from './canvas-item';
 import { set_visible } from './node-3d';
 import { set_meta } from './object';
 import { godot_collision_object_node } from './collision-object-3d';
@@ -372,8 +373,11 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     }
     return made;
   });
-  // A class's `advances` is fixed, so each element calls the same hooks every render.
+  // A class's `advances` is fixed, so each element calls the same hooks every render; so is whether
+  // its node is a canvas item, which draws itself.
   if (element.advances === true) useGodotAdvance(entity);
+  const [draws] = useState(() => godot_canvas_item_draws(entity));
+  if (draws) useGodotCanvasItem(entity);
   const transform = Object.fromEntries(
     Object.entries(properties).filter(([property]) => isUserData(property) || (element.spatial && THREE_TRANSFORM.has(property))),
   );
