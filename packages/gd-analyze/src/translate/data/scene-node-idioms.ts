@@ -28,6 +28,20 @@ export type GodotSceneNodeIdiomForm =
   /** A CollisionShape3D: the Rapier collider its shape resource is. */
   | { readonly kind: 'collider' };
 
+/**
+ * The props an instancing scene hands a scene rooted in the node (its name, transform, children,
+ * …), which the scene's component spreads onto its root element.
+ */
+export type GodotSceneRootPropsForm =
+  /** A compat type of props, with its children placed under the root (`GodotSceneRootProps`). */
+  | { readonly kind: 'compat'; readonly module: string; readonly name: string }
+  /** The root component's own props (`Parameters<typeof GodotMarker3D>[0]`), children included. */
+  | { readonly kind: 'component' }
+  /** A library's props type, less its ref where it takes one; children placed under it or not. */
+  | { readonly kind: 'library'; readonly module: string; readonly name: string; readonly omitRef: boolean; readonly children: boolean }
+  /** R3F's props of the root's intrinsic element (`ThreeElements['group']`), less its ref. */
+  | { readonly kind: 'three-element' };
+
 /** Where the pinned Godot source defines what the idiom reproduces. */
 export interface GodotSceneNodeIdiomSource {
   readonly file: string;
@@ -37,6 +51,8 @@ export interface GodotSceneNodeIdiomSource {
 
 export interface GodotSceneNodeIdiom {
   readonly form: GodotSceneNodeIdiomForm;
+  /** The props an instancing scene hands a scene rooted in the node (`ROOT_PROPS`, by its form). */
+  readonly rootProps: GodotSceneRootPropsForm;
   /** The three object (or Rapier body) the element mounts, which a script's ref holds. */
   readonly three: string;
   /**
@@ -61,19 +77,38 @@ const ctor = (className: string, file: string, line: number): GodotSceneNodeIdio
   line,
 });
 
+/** A compat element's or plain Node's own props, less its ref (`react-lifecycle.tsx`). */
+const COMPAT_ROOT_PROPS: GodotSceneRootPropsForm = { kind: 'compat', module: 'react-lifecycle', name: 'GodotSceneRootProps' };
+
+/** How each form of node takes its instancers' props when it roots a scene. */
+const ROOT_PROPS: { readonly [Kind in GodotSceneNodeIdiomForm['kind']]: GodotSceneRootPropsForm } = {
+  element: COMPAT_ROOT_PROPS,
+  'plain-node': COMPAT_ROOT_PROPS,
+  component: { kind: 'component' },
+  group: { kind: 'three-element' },
+  mesh: { kind: 'three-element' },
+  light: { kind: 'three-element' },
+  camera: { kind: 'library', module: '@react-three/drei', name: 'PerspectiveCameraProps', omitRef: false, children: false },
+  'reflection-probe': { kind: 'three-element' },
+  body: { kind: 'library', module: '@react-three/rapier', name: 'RigidBodyProps', omitRef: true, children: true },
+  collider: { kind: 'three-element' },
+};
+
+type GodotSceneNodeIdiomEntry = Omit<GodotSceneNodeIdiom, 'rootProps'>;
+
 const element = (
   module: string,
   className: string,
   source: GodotSceneNodeIdiomSource,
   three = 'Group',
-): GodotSceneNodeIdiom => ({
+): GodotSceneNodeIdiomEntry => ({
   form: { kind: 'element', module, exportName: `Godot${className}` },
   three,
   source,
 });
 
 /** Each node class the lane writes; a node of a class absent here is refused at plan time. */
-const IDIOMS: Readonly<Record<string, GodotSceneNodeIdiom>> = {
+const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   Node: {
     form: { kind: 'plain-node', module: 'react-lifecycle', exportName: 'GodotNode' },
     three: 'Group',
@@ -191,6 +226,10 @@ const IDIOMS: Readonly<Record<string, GodotSceneNodeIdiom>> = {
     line: 660,
   }),
 };
+
+const IDIOMS: Readonly<Record<string, GodotSceneNodeIdiom>> = Object.fromEntries(
+  Object.entries(ENTRIES).map(([className, entry]) => [className, { ...entry, rootProps: ROOT_PROPS[entry.form.kind] }]),
+);
 
 /** The idiom a node of `className` is written as, or undefined when the lane writes none. */
 export function godotSceneNodeIdiom(className: string): GodotSceneNodeIdiom | undefined {

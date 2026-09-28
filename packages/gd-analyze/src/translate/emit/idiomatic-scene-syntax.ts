@@ -879,45 +879,41 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
   return { ...(first === undefined ? {} : { first }), ...(authored === undefined ? {} : { authored }) };
 }
 
-/** The props an instancing scene hands the root, by the root element. */
+/** The props an instancing scene hands the root: the plan's root props for its idiom, printed. */
 function rootPropsType(
   tag: string,
   targetPath: string,
-  three: string | undefined,
   rootNode: DirectGodotSceneNodePlan,
 ): { readonly type: TargetTsType; readonly children: boolean; readonly from?: { readonly module: string; readonly name: string } } {
   const omitRef = (type: TargetTsType): TargetTsType => ({ kind: 'type-reference', name: 'Omit', arguments: [type, { kind: 'literal-type', value: 'ref' }] });
-  // An inherited scene (its root an instance of its base): the base component's own props.
-  if (rootNode.instance !== undefined) {
-    return { type: { kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'Parameters', arguments: [{ kind: 'type-query', name: tag }] }, index: { kind: 'literal-type', value: 0 } }, children: true };
-  }
-  // A scene inheriting an imported model: the model element's group props.
-  if (rootNode.model !== undefined) {
-    return {
-      type: omitRef({ kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'ThreeElements', arguments: [] }, index: { kind: 'literal-type', value: 'group' } }),
-      children: true,
-      from: { module: '@react-three/fiber', name: 'ThreeElements' },
-    };
-  }
-  // A compat element's own props (`useGodotElement`).
-  if (tag.startsWith('Godot') && three !== undefined) {
-    return {
-      type: { kind: 'type-reference', name: 'GodotSceneRootProps', arguments: [] },
-      children: true,
-      from: { module: moduleSpecifier(targetPath, 'src/lib/godot-compat/react-lifecycle.tsx'), name: 'GodotSceneRootProps' },
-    };
-  }
-  if (tag === 'PerspectiveCamera') {
-    return { type: { kind: 'type-reference', name: 'PerspectiveCameraProps', arguments: [] }, children: false, from: { module: '@react-three/drei', name: 'PerspectiveCameraProps' } };
-  }
-  if (tag === 'RigidBody') {
-    return { type: omitRef({ kind: 'type-reference', name: 'RigidBodyProps', arguments: [] }), children: true, from: { module: '@react-three/rapier', name: 'RigidBodyProps' } };
-  }
-  return {
-    type: omitRef({ kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'ThreeElements', arguments: [] }, index: { kind: 'literal-type', value: tag } }),
+  const ownParameters: TargetTsType = { kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'Parameters', arguments: [{ kind: 'type-query', name: tag }] }, index: { kind: 'literal-type', value: 0 } };
+  const threeElement = (element: string) => ({
+    type: omitRef({ kind: 'indexed-access-type', object: { kind: 'type-reference', name: 'ThreeElements', arguments: [] }, index: { kind: 'literal-type', value: element } }),
     children: true,
     from: { module: '@react-three/fiber', name: 'ThreeElements' },
-  };
+  });
+  // An inherited scene (its root an instance of its base): the base component's own props.
+  if (rootNode.instance !== undefined) return { type: ownParameters, children: true };
+  // A scene inheriting an imported model: the model element's group props.
+  if (rootNode.model !== undefined) return threeElement('group');
+  const props = rootNode.idiom?.rootProps;
+  if (props === undefined) throw new Error(`${rootNode.nodePath}: a scene root without its planned idiom`);
+  switch (props.kind) {
+    case 'compat':
+      return {
+        type: { kind: 'type-reference', name: props.name, arguments: [] },
+        children: true,
+        from: { module: moduleSpecifier(targetPath, `src/lib/godot-compat/${props.module}.tsx`), name: props.name },
+      };
+    case 'component':
+      return { type: ownParameters, children: true };
+    case 'library': {
+      const named: TargetTsType = { kind: 'type-reference', name: props.name, arguments: [] };
+      return { type: props.omitRef ? omitRef(named) : named, children: props.children, from: { module: props.module, name: props.name } };
+    }
+    case 'three-element':
+      return threeElement(tag);
+  }
 }
 
 export function idiomaticSceneSourceFile(
@@ -1002,8 +998,8 @@ export function idiomaticSceneSourceFile(
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
   // the scene's own: the prefab form.
   const rootThree = scene.root.instance === undefined && scene.root.model === undefined ? familyThree(scene.root.idiom) : undefined;
-  if (node.tag.startsWith('Godot') && rootThree !== undefined) emission.three.add(rootThree);
-  const props = rootPropsType(node.tag, scene.targetPath, rootThree, scene.root);
+  if (scene.root.idiom?.rootProps.kind === 'compat' && rootThree !== undefined) emission.three.add(rootThree);
+  const props = rootPropsType(node.tag, scene.targetPath, scene.root);
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
     // Its instancers' overrides of its script's fields are the `exports` prop, not the root's.
