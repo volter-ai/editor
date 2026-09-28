@@ -34,12 +34,17 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
 
 /** An area's body signals, connected by a scene (a coin connects `body_entered`). */
 export const GODOT_4_7_PHYSICS_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly source: Source })[] = (
-  ['body_entered', 'body_exited'] as const
-).map((signal) => ({
-  sourceRevision: REVISION,
-  ownerClass: 'Area3D',
-  signal,
-  accessor: { module: 'lib/godot-compat/area-3d', exportName: 'godot_area_3d_signal', named: true },
-  arguments: 1,
-  source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
-}));
+  [
+    ['Area3D', 'lib/godot-compat/area-3d', 'godot_area_3d_signal'],
+    ['RigidBody3D', 'lib/godot-compat/rigid-body-3d', 'godot_rigid_body_3d_signal'],
+  ] as const
+).flatMap(([ownerClass, module, exportName]) =>
+  (['body_entered', 'body_exited'] as const).map((signal) => ({
+    sourceRevision: REVISION,
+    ownerClass,
+    signal,
+    accessor: { module, exportName, named: true },
+    arguments: 1,
+    source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
+  })),
+);

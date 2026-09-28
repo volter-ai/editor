@@ -470,6 +470,22 @@ function sensorEvents(emission: Emission): TargetTsJsxAttribute[] {
   );
 }
 
+/** A dynamic body's contacts, which compat reports as its `body_entered` and `body_exited` while monitoring. */
+function contactEvents(emission: Emission): TargetTsJsxAttribute[] {
+  const handler = useCompat(emission, 'rigid-body-3d', 'godot_rigid_body_3d_contact');
+  return (['onCollisionEnter', 'onCollisionExit'] as const).map((prop) =>
+    attribute(prop, {
+      kind: 'arrow-expression',
+      parameters: [{ name: 'event' }],
+      body: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: handler },
+        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onCollisionEnter' }],
+      },
+    }),
+  );
+}
+
 /** A collision shape's collider element: three's shape of the Godot shape's data. */
 function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[], at: string): TargetTsJsxChild {
   if (node.scriptInstance !== undefined) throw new Error(`${at}: a script on a collision shape has no idiomatic form`);
@@ -754,6 +770,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       { kind: 'jsx-string-attribute', name: 'type', value: body.type },
       attribute('colliders', { kind: 'literal-expression', value: false }),
       ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission)] : []),
+      ...(body.type === 'dynamic' ? contactEvents(emission) : []),
       ...transform,
       ...[...props].map(([prop, value]) => attribute(prop, value)),
     ], sensorChildren(emission, body.sensor, children));

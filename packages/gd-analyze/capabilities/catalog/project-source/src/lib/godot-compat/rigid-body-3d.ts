@@ -17,6 +17,7 @@ import type { Collider, RigidBody } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_node, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity } from './node';
+import { createSignal, type GodotSignal } from './signal';
 import { type BodyContact, type BodyServerState, godot_direct_body_state, type PhysicsDirectBodyState3D } from './physics-direct-body-state-3d';
 import { godot_physics_material_computed, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 import { construct as basis } from './basis';
@@ -439,4 +440,60 @@ export function set_physics_material_override(self: object, physics_material_ove
  */
 export function get_physics_material_override(self: object): PhysicsMaterial | null {
   return stateOf(self).material;
+}
+
+/** Each body's contact signals, and the shapes of each other body it touches. */
+const CONTACT_SIGNALS = new WeakMap<
+  object,
+  { readonly entered: ReturnType<typeof createSignal<[object]>>; readonly exited: ReturnType<typeof createSignal<[object]>>; readonly touching: Map<object, number> }
+>();
+
+function contactSignalsOf(entity: object) {
+  let contacts = CONTACT_SIGNALS.get(entity);
+  if (contacts === undefined) {
+    contacts = { entered: createSignal<[object]>(), exited: createSignal<[object]>(), touching: new Map() };
+    CONTACT_SIGNALS.set(entity, contacts);
+  }
+  return contacts;
+}
+
+/**
+ * The body's `body_entered` or `body_exited` signal, whose argument is the other body's node.
+ *
+ * @godot RigidBody3D (protocol)
+ * @source scene/3d/physics/rigid_body_3d.cpp:804
+ */
+export function godot_rigid_body_3d_signal(self: object, name: 'body_entered' | 'body_exited'): GodotSignal<[object]> {
+  const contacts = contactSignalsOf(godot_node_entity(self));
+  return (name === 'body_entered' ? contacts.entered : contacts.exited).signal;
+}
+
+/**
+ * A Rapier contact of the body's (`onCollisionEnter` / `onCollisionExit` of its `<RigidBody>`): with
+ * contact monitoring on, the other body enters when its first shape touches and exits when its last
+ * one parts (`RigidBody3D::_body_inout`).
+ *
+ * @godot RigidBody3D (protocol)
+ * @source scene/3d/physics/rigid_body_3d.cpp:81
+ */
+export function godot_rigid_body_3d_contact(
+  event: { readonly target: { readonly collider: Collider }; readonly other: { readonly collider: Collider } },
+  entered: boolean,
+): void {
+  const entity = godot_collision_object_of_collider(event.target.collider);
+  const other = godot_collision_object_of_collider(event.other.collider);
+  if (entity === undefined || other === undefined) return;
+  const state = stateOf(entity);
+  if (!state.contact_monitor || state.max_contacts_reported <= 0) return;
+  const contacts = contactSignalsOf(entity);
+  const shapes = contacts.touching.get(other) ?? 0;
+  if (entered) {
+    contacts.touching.set(other, shapes + 1);
+    if (shapes === 0) contacts.entered.emit(other);
+  } else if (shapes > 0) {
+    if (shapes === 1) {
+      contacts.touching.delete(other);
+      contacts.exited.emit(other);
+    } else contacts.touching.set(other, shapes - 1);
+  }
 }
