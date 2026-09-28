@@ -436,6 +436,7 @@ const WORLD_ENVIRONMENT: GodotElementClass<Group> = {
 export function GodotWorldEnvironment(props: GodotElementProps<Group>): ReactElement {
   const element = useGodotElement(WORLD_ENVIRONMENT, props);
   const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
   // The node is made once (`useGodotElement`): a render of the scene registers nothing again.
   const node = (element.props as { object?: Group }).object;
   useLayoutEffect(() => {
@@ -451,7 +452,9 @@ export function GodotWorldEnvironment(props: GodotElementProps<Group>): ReactEle
     [env],
   );
   if (post === null) return element;
-  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, children: createElement('primitive', { object: post }) }));
+  // The composer draws the scene through the camera the viewport draws with now (its own default is
+  // R3F's camera when it mounts, before the scene's current camera is chosen).
+  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, scene, camera, children: createElement('primitive', { object: post }) }));
 }
 
 /** What a viewport's scene draws its environment from, and the environment it drew last. */
