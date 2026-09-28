@@ -9,8 +9,8 @@
 //   node scripts/check-godot-architecture.mjs          check, rewriting the baseline when it shrinks
 //   node scripts/check-godot-architecture.mjs --init   write the baseline (refused if any rule grew)
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const root = process.cwd();
 const BASELINE = 'release/godot-architecture-baseline.json';
@@ -33,37 +33,38 @@ const BUILTINS = (dump.builtin_classes ?? []).map((entry) => entry.name).join('|
 /** Each rule: the row it guards, where it looks, and the code it finds. */
 const RULES = [
   {
-    // The pipeline's phases called anywhere but `import-project.ts`: a report or runner observes
-    // through its entry points (`withCapturedGodotProject`, `withBoundGodotProject`, …).
+    // The pipeline's phases called anywhere in the lane but `import-project.ts` and the modules that
+    // define them: a report or runner observes through its entry points (`withCapturedGodotProject`, …).
     id: 'phase-call-outside-pipeline',
     row: 1,
-    dirs: [`${LANE}/src/report`, `${LANE}/src/run`],
-    files: [`${LANE}/src/cli.ts`],
+    dirs: [`${LANE}/src`, `${LANE}/scripts`],
+    exclude: [`${LANE}/src/import-project.ts`, `${LANE}/src/translate/plan.ts`, `${LANE}/src/translate/emit/index.ts`, `${LANE}/src/materialize.ts`, `${LANE}/src/read/godot-project.ts`, `${LANE}/src/snapshot/project-snapshot.ts`, `${LANE}/src/godot-frontend/run-bound-program.ts`, `${LANE}/src/analyze/bound-project.ts`],
     pattern: /\b(?:planGodotTranslation|emitGodotTranslation|materializeGodotProjectSnapshot|readGodotProjectSnapshot|captureGodotBoundProgram(?:FromSnapshot)?|bindGodotProject|captureGodotProjectSnapshot)\s*\(/g,
   },
   {
-    // Emit deciding by a setter's name: the plan stamps what a setter is (its idiom, slot or
-    // written form) and emit prints it.
+    // Emit deciding by a setter's name: comparing it, looking it up in a table or set, or reading a
+    // setter's value by name (`setterValue(setters, 'set_x')`). The plan stamps what a setter is
+    // (its idiom, slot, prop or written form) and emit prints it.
     id: 'emit-setter-name-decision',
     row: 2,
     dirs: [EMIT],
-    pattern: /exportName\s*[!=]==\s*'[^']+'|'[^']+'\s*[!=]==\s*[\w.?]*exportName\b/g,
+    pattern: /exportName\s*[!=]==\s*['"`][^'"`]+['"`]|['"`][^'"`]+['"`]\s*[!=]==\s*[\w.?]*exportName\b|\bsetterValue\([^,()]+,\s*['"`]|\.(?:has|includes)\([\w.?]*exportName\)|\[[\w.?]*exportName\]/g,
   },
   {
-    // Emit walking the project's other scenes to decide something about this one: the plan decides
-    // it (`scene-refs.ts`) and emit prints it.
+    // Emit reaching the project's scenes to decide something about the one it prints: the plan
+    // decides it (`scene-refs.ts`) and emit prints it.
     id: 'emit-project-walk',
     row: 2,
     dirs: [EMIT],
-    pattern: /\bproject\.scenes\.(?:some|filter|every|flatMap|reduce)\(/g,
+    pattern: /\b(?:project|composition)\.scenes\b/g,
   },
   {
-    // Lowering comparing a built-in type's name: which shape a type lowers to is rule data
-    // (`language-rules.json`, `lowering-shapes.ts`), not a branch in lowering.
+    // Lowering comparing a built-in type's name (a literal's own kind, `.kind === 'int'`, is not a
+    // type): which shape a type lowers to is rule data (`language-rules.json`, `lowering-shapes.ts`).
     id: 'lowering-builtin-name',
     row: 3,
     dirs: [LOWERING],
-    pattern: new RegExp(`[!=]==\\s*'(?:${BUILTINS})'|'(?:${BUILTINS})'\\s*[!=]==|\\bnew Set\\(\\[\\s*'(?:${BUILTINS})'`, 'g'),
+    pattern: new RegExp(`(?<!\\bkind\\s*)[!=]==\\s*['"](?:${BUILTINS})['"]|['"](?:${BUILTINS})['"]\\s*[!=]==|\\bcase\\s+['"](?:${BUILTINS})['"]|\\.includes\\(\\s*['"](?:${BUILTINS})['"]|\\bnew Set\\(\\[[^\\]]*['"](?:${BUILTINS})['"]`, 'g'),
   },
   {
     id: 'class-name-switch',
@@ -127,16 +128,22 @@ const RULES = [
   },
 ];
 
-const SKIP = new Set(['node_modules', 'authority']);
-const walk = (dir, out = []) => {
-  if (!existsSync(dir)) return out;
-  for (const name of readdirSync(dir)) {
-    if (SKIP.has(name)) continue;
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) walk(path, out);
-    else if (/\.(ts|tsx|mts|mjs)$/.test(name) && !/\.d\.ts$/.test(name)) out.push(path);
+const SKIP = /(^|\/)(node_modules|authority)(\/|$)/;
+/**
+ * What the check reads is the index, not the working tree: HEAD plus what a commit stages. Another
+ * author's uncommitted edits in the same checkout neither hide nor add a finding, and a baseline is
+ * only ever written from content that is committed or being committed.
+ */
+const indexed = (dir) =>
+  execFileSync('git', ['ls-files', '-z', '--', dir], { cwd: root, encoding: 'utf8' })
+    .split('\0')
+    .filter((file) => file !== '' && /\.(ts|tsx|mts|mjs)$/.test(file) && !/\.d\.ts$/.test(file) && !SKIP.test(file));
+const staged = (rel) => {
+  try {
+    return execFileSync('git', ['show', `:${rel}`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  } catch {
+    return undefined;
   }
-  return out;
 };
 // Comments are not code: a doc comment naming `MainTimerSync` is not a finding.
 const withoutComments = (code) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
@@ -144,18 +151,24 @@ const withoutComments = (code) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(
 /** Every finding as `rule | file | matched text #n`, n counting repeats of the same text in a file. */
 const findings = [];
 for (const rule of RULES) {
-  const files = [...(rule.files ?? []), ...(rule.dirs ?? []).flatMap((dir) => walk(join(root, dir)).map((file) => relative(root, file)))].filter((file) => !(rule.exclude ?? []).includes(file));
+  const files = [...new Set([...(rule.files ?? []), ...(rule.dirs ?? []).flatMap((dir) => indexed(dir))])].filter((file) => !(rule.exclude ?? []).includes(file));
   for (const rel of files) {
+    const text = staged(rel);
+    if (text === undefined) continue;
     const seen = new Map();
-    for (const match of withoutComments(readFileSync(join(root, rel), 'utf8')).matchAll(rule.pattern)) {
-      const text = match[0].trim().replace(/\s+/g, ' ');
-      const n = (seen.get(text) ?? 0) + 1;
-      seen.set(text, n);
-      findings.push(`${rule.id} | ${rel} | ${text} #${n}`);
+    for (const match of withoutComments(text).matchAll(rule.pattern)) {
+      const found = match[0].trim().replace(/\s+/g, ' ');
+      const n = (seen.get(found) ?? 0) + 1;
+      seen.set(found, n);
+      findings.push(`${rule.id} | ${rel} | ${found} #${n}`);
     }
   }
 }
 findings.sort();
+
+/** A rule's definition: its pattern and where it looks. A rule whose definition changes starts its count anew. */
+const signature = (rule) => JSON.stringify([rule.pattern.source, rule.pattern.flags, rule.dirs ?? [], rule.files ?? [], rule.exclude ?? []]);
+const SIGNATURES = new Map(RULES.map((rule) => [rule.id, signature(rule)]));
 
 const countByRule = (list) => {
   const counts = new Map(RULES.map((rule) => [rule.id, 0]));
@@ -177,7 +190,14 @@ const read = (json) => {
     const counts = countByRule(value);
     return { counts: new Map([...counts].filter(([id]) => value.some((finding) => finding.startsWith(`${id} |`)))), findings: value };
   }
-  return { counts: new Map(Object.entries(value.counts)), findings: value.findings };
+  // A rule whose definition changed since the baseline is new to it. A baseline written before rules
+  // carried signatures knows the eight original rules as they still are; the four rules added on
+  // 2026-09-28 were redefined when signatures came in, so it does not know them.
+  const signatures = value.signatures;
+  const REDEFINED_BEFORE_SIGNATURES = ['phase-call-outside-pipeline', 'emit-setter-name-decision', 'emit-project-walk', 'lowering-builtin-name'];
+  const knows = (id) => (signatures === undefined ? !REDEFINED_BEFORE_SIGNATURES.includes(id) : signatures[id] === SIGNATURES.get(id));
+  const counts = new Map(Object.entries(value.counts).filter(([id]) => knows(id)));
+  return { counts, findings: value.findings };
 };
 
 /** HEAD's committed baseline: the reference, whatever the working copy says. */
@@ -203,7 +223,7 @@ if (grown.length > 0) {
   process.exit(1);
 }
 
-const text = `${JSON.stringify({ counts: Object.fromEntries(now), findings }, null, 2)}\n`;
+const text = `${JSON.stringify({ counts: Object.fromEntries(now), signatures: Object.fromEntries(SIGNATURES), findings }, null, 2)}\n`;
 if (process.argv.includes('--init') || reference === undefined) {
   writeFileSync(BASELINE, text);
   console.log(`godot architecture baseline written: ${findings.length} findings.`);
