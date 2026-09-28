@@ -15,9 +15,11 @@
  * - the specular amount is the physical material's `reflectivity` (three's reflectivity and Godot's
  *   specular both make the dielectric F0 `0.16 * specular^2`), specular disabled its
  *   `specularIntensity` 0;
- * - a billboard, vertex colour as albedo and proximity fade (three's soft particles) are
- *   `userData` compat's `godot_base_material_3d_scene_shader` draws, handed the material once made;
- * - what three has no idiom for (rim, backlight, grow, distance fade, the other diffuse modes, toon
+ * - a billboard, vertex colour as albedo, proximity fade (three's soft particles) and distance
+ *   fade (the albedo's alpha faded by the view distance: `transparent` for pixel alpha, three's
+ *   `alphaHash` for the dithers) are `userData` compat's `godot_base_material_3d_scene_shader`
+ *   draws, handed the material once made;
+ * - what three has no idiom for (rim, backlight, grow, the other diffuse modes, toon
  *   specular, not receiving shadows) is `userData` compat reads back through the getters, and
  *   draws nothing;
  * - in a project that places a reflection probe, a standard or physical material is made by the
@@ -163,11 +165,14 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   // the scene's depth, which draws the material in the alpha pass, its albedo's alpha applied
   // (`material.cpp:1807`).
   const proximity = bool('set_proximity_fade_enabled') === true;
-  const transparent = transparency === 1 || transparency === 4 || proximity;
+  // `DistanceFadeMode` (`material.h:322`): pixel alpha draws in the alpha pass (`material.cpp:1807`);
+  // the dithers discard by the fade, which is three's hashed alpha.
+  const fade = num('set_distance_fade') ?? 0;
+  const transparent = transparency === 1 || transparency === 4 || proximity || fade === 1;
   if (transparent) literal('transparent', true);
   if (transparency === 2) literal('alphaTest', 0.5);
-  if (transparency === 3) literal('alphaHash', true);
-  if (transparency !== 0 || proximity) literal('opacity', albedo?.[3] ?? 1);
+  if (transparency === 3 || fade === 2 || fade === 3) literal('alphaHash', true);
+  if (transparency !== 0 || proximity || fade !== 0) literal('opacity', albedo?.[3] ?? 1);
   // `DepthDrawMode` (`material.h:235`): `ALWAYS` 1, `DISABLED` 2; three writes depth by default.
   const depthDraw = num('set_depth_draw_mode') ?? 0;
   if (depthDraw === 2 || (depthDraw === 0 && transparent)) literal('depthWrite', false);
@@ -218,7 +223,6 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   }
   if (depthDraw !== 0) data.push({ key: 'depth_draw_mode', value: depthDraw });
   if (bool('set_grow_enabled') === true) data.push({ key: 'grow', value: f32(num('set_grow') ?? 0) });
-  const fade = num('set_distance_fade') ?? 0;
   if (fade !== 0) {
     data.push({ key: 'distance_fade_mode', value: fade });
     data.push({ key: 'distance_fade_min', value: f32(num('set_distance_fade_min_distance') ?? 0) });
@@ -232,8 +236,8 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     if (bool('set_feature', 9) === true) data.push({ key: 'backlight', value: (components('set_backlight') ?? [0, 0, 0, 1]).slice(0, 3) });
   }
   if (data.length > 0) props.push({ name: 'userData', value: { kind: 'user-data', entries: data } });
-  // A billboard, vertex colour or proximity fade draws through compat (`godot_base_material_3d_scene_shader`).
-  if (billboard !== 0 || coloured || proximity) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
+  // A billboard, vertex colour, proximity or distance fade draws through compat (`godot_base_material_3d_scene_shader`).
+  if (billboard !== 0 || coloured || proximity || fade !== 0) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
 
   if (element === 'meshPhysicalMaterial') {
     // `godot_base_material_3d_anisotropy`: a negative ratio stretches the highlight across the tangent.

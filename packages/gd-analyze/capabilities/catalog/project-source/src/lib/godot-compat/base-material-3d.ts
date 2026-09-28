@@ -28,9 +28,11 @@
  * mode to `depthWrite` (`godot_base_material_3d_depth_write`). Three's lighting draws every lit
  * material: nothing patches its shader chunks. Proximity fade is three's soft particles: the
  * material fades by how far in front of the scene's depth it is
- * (`godot_base_material_3d_scene_shader`). Where three has no idiom (the Lambert, Lambert wrap and
- * Burley diffuse modes beside three's own Lambert, toon specular, rim, backlight, grow, distance
- * fade, not receiving shadows) the value is stored, read back by its getter, and draws nothing. The
+ * (`godot_base_material_3d_scene_shader`). Distance fade is the albedo's alpha faded over the view
+ * distance, `transparent` for pixel alpha and three's hashed alpha (`alphaHash`) for the dithers,
+ * which dither by three's hash, not Godot's interleaved gradient noise. Where three has no idiom
+ * (the Lambert, Lambert wrap and Burley diffuse modes beside three's own Lambert, toon specular,
+ * rim, backlight, grow, not receiving shadows) the value is stored, read back by its getter, and draws nothing. The
  * stencil effect parameters are stored: they draw only through `stencil_mode` (outline or x-ray,
  * `material.cpp:3151`), which is not bound, so a material's stencil is always disabled and draws
  * nothing (`material.cpp:887`).
@@ -265,11 +267,13 @@ function apply(self: BaseMaterial3D, target: Material, model: boolean): void {
   // its `alphaTest` at the default threshold, hash its `alphaHash`.
   // Proximity fade reads the scene's depth, which draws the material in the alpha pass, its albedo's
   // alpha applied (`material.cpp:1807`).
+  // Distance fade: pixel alpha draws in the alpha pass; the dithers are three's hashed alpha.
   const proximity = extraOf(self).proximity_fade_enabled;
-  target.transparent = self.transparency === TRANSPARENCY_ALPHA || self.transparency === TRANSPARENCY_DEPTH_PRE_PASS || proximity;
+  const fade = extraOf(self).distance_fade;
+  target.transparent = self.transparency === TRANSPARENCY_ALPHA || self.transparency === TRANSPARENCY_DEPTH_PRE_PASS || proximity || fade === DISTANCE_FADE_PIXEL_ALPHA;
   target.alphaTest = self.transparency === TRANSPARENCY_ALPHA_SCISSOR ? 0.5 : 0;
-  target.alphaHash = self.transparency === TRANSPARENCY_ALPHA_HASH;
-  target.opacity = self.transparency !== 0 || proximity ? self.albedo.a : 1;
+  target.alphaHash = self.transparency === TRANSPARENCY_ALPHA_HASH || fade === DISTANCE_FADE_PIXEL_DITHER || fade === DISTANCE_FADE_OBJECT_DITHER;
+  target.opacity = self.transparency !== 0 || proximity || fade !== 0 ? self.albedo.a : 1;
   target.blending = blending(self.blend_mode);
   applyExtra(self, target);
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
@@ -766,6 +770,9 @@ function applyExtra(self: BaseMaterial3D, target: Material): void {
     vertex_color_is_srgb: self.flags[FLAG_SRGB_VERTEX_COLOR] === true,
     proximity_fade_enabled: extra.proximity_fade_enabled,
     proximity_fade_distance: extra.proximity_fade_distance,
+    distance_fade_mode: extra.distance_fade,
+    distance_fade_min: extra.distance_fade_min,
+    distance_fade_max: extra.distance_fade_max,
   });
   godot_base_material_3d_scene_shader(target);
 }
@@ -775,6 +782,10 @@ const TRANSPARENCY_ALPHA = 1;
 const TRANSPARENCY_ALPHA_SCISSOR = 2;
 const TRANSPARENCY_ALPHA_HASH = 3;
 const TRANSPARENCY_DEPTH_PRE_PASS = 4;
+/** `BaseMaterial3D::DistanceFadeMode` (`material.h:322`). */
+const DISTANCE_FADE_PIXEL_ALPHA = 1;
+const DISTANCE_FADE_PIXEL_DITHER = 2;
+const DISTANCE_FADE_OBJECT_DITHER = 3;
 /** `BaseMaterial3D::DepthDrawMode` (`material.h:235`), `DiffuseMode` (`:244`), `SpecularMode` (`:252`) values read here. */
 const DEPTH_DRAW_ALWAYS = 1;
 const DEPTH_DRAW_DISABLED = 2;
@@ -834,14 +845,21 @@ interface SceneShading {
   readonly keepScale: boolean;
   readonly coloured: boolean;
   readonly proximity: boolean;
+  /** `DistanceFadeMode` with its distances, or undefined when disabled. */
+  readonly fade: readonly [mode: number, min: number, max: number] | undefined;
 }
 
 function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
+  const mode = typeof data['distance_fade_mode'] === 'number' ? data['distance_fade_mode'] : 0;
   return {
     billboard: typeof data['billboard_mode'] === 'number' ? data['billboard_mode'] : 0,
     keepScale: data['billboard_keep_scale'] === true,
     coloured: data['vertex_color_use_as_albedo'] === true,
     proximity: data['proximity_fade_enabled'] === true,
+    fade:
+      mode === 0
+        ? undefined
+        : [mode, typeof data['distance_fade_min'] === 'number' ? data['distance_fade_min'] : 0, typeof data['distance_fade_max'] === 'number' ? data['distance_fade_max'] : 10],
   };
 }
 
@@ -962,7 +980,7 @@ function proximityOf(target: Material): ProximityUniforms {
 }
 
 /** The scene draw's code in the program three compiles for a material (see below). */
-function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured, proximity }: SceneShading, target: Material): void {
+function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured, proximity, fade }: SceneShading, target: Material): void {
   let vertex = shader.vertexShader;
   let fragment = shader.fragmentShader;
   if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
@@ -998,8 +1016,31 @@ function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billbo
       ].join('\n'),
     )}`;
   }
+  if (fade !== undefined) {
+    // Distance fade: the albedo's alpha faded over the view distance (`material.cpp:1834`), the
+    // fragment's own for the pixel modes, the object's origin for object dither; three's hashed
+    // alpha then dithers it. A multimesh instance fades by its mesh's origin.
+    const [fadeMode, min, max] = fade;
+    const origin = fadeMode === 3 ? '( modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz' : 'mvPosition.xyz';
+    vertex = `varying vec3 vGodotFadeView;\n${vertex.replace('#include <fog_vertex>', `vGodotFadeView = ${origin};\n#include <fog_vertex>`)}`;
+    const span = Math.abs(max - min) < 1e-6 ? 1e-6 : max - min;
+    fragment = `varying vec3 vGodotFadeView;\n${fragment.replace(
+      '#include <alphatest_fragment>',
+      [
+        `float godotFade = clamp( ( length( vGodotFadeView ) - ${glslFloat(min)} ) / ${glslFloat(span)}, 0.0, 1.0 );`,
+        'diffuseColor.a *= godotFade * godotFade * ( 3.0 - 2.0 * godotFade );',
+        '#include <alphatest_fragment>',
+      ].join('\n'),
+    )}`;
+  }
   shader.vertexShader = vertex;
   shader.fragmentShader = fragment;
+}
+
+/** A number as a GLSL float literal. */
+function glslFloat(value: number): string {
+  const text = String(value);
+  return /[.e]/u.test(text) ? text : `${text}.0`;
 }
 
 /** The scene draw each material's program was last asked for (its cache key's part), once its hook is on. */
@@ -1032,7 +1073,7 @@ export function godot_base_material_3d_scene_shader<M extends Material>(target: 
   const shaded = SCENE_SHADED.get(target);
   if (shaded === key) return target;
   if (shaded === undefined) {
-    if (shading.billboard === 0 && !shading.coloured && !shading.proximity) return target;
+    if (shading.billboard === 0 && !shading.coloured && !shading.proximity && shading.fade === undefined) return target;
     const ownCompile = target.onBeforeCompile;
     const ownKey = target.customProgramCacheKey;
     const ownRender = target.onBeforeRender;
