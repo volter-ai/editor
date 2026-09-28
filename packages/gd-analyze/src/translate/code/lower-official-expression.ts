@@ -2854,7 +2854,9 @@ export function lowerOfficialExpression(
         // A call of a coroutine (a script function that awaits) is its async method's promise,
         // awaited whatever the function returns.
         const requirements = context.structural(node, 'await', [awaitedNode], awaitedNode.datatype.coroutine ? 'await:coroutine' : 'await');
-        const isSignal = godotAwaitsEmission(awaitedNode.datatype);
+        // A coroutine's call is awaited as its promise, even when it returns a Signal: Godot resumes
+        // with the returned value and does not also await it.
+        const isSignal = !awaitedNode.datatype.coroutine && godotAwaitsEmission(awaitedNode.datatype);
         return compose(
           context,
           [lowerExpression(context, awaitedNode)],
