@@ -1,5 +1,22 @@
 import { builtinDatatype } from '../../analyze/refined-types';
-import { godotCallShape, godotSubscriptsParameters } from '../data/lowering-shapes';
+import {
+  GODOT_NUMERIC_TYPES,
+  type GodotBuiltinSubscriptShape,
+  type GodotNumericTag,
+  godotAwaitsEmission,
+  godotBuiltinCopied,
+  godotBuiltinSubscriptShape,
+  godotCallShape,
+  godotLiteralIsText,
+  godotNumericStoresAs,
+  godotNumericTag,
+  godotStatedValueType,
+  godotSubscriptsParameters,
+  godotTweenInterpolates,
+  godotTypeDefault,
+  godotUtilitySelectsArgument,
+  godotUtilityStringifies,
+} from '../data/lowering-shapes';
 import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
@@ -17,6 +34,7 @@ import {
   type NativePropertyAccessor,
   type OfficialBoundBindingUse,
   type OfficialBoundLoweringRequirement,
+  type OfficialBoundResourceLoadTarget,
   officialBoundPropertyName,
   officialBoundSpan,
 } from './official-bound-lowering-context';
@@ -27,6 +45,7 @@ import type {
   TargetTsExpression,
   TargetTsParameter,
   TargetTsStatement,
+  TargetTsType,
 } from './target-ts-syntax';
 
 export type LoweredExpression = LoweredTargetTsExpression<OfficialBoundLoweringRequirement>;
@@ -114,8 +133,8 @@ function literal(
         value.value.map((entry) => [literal(context, node, entry.key), literal(context, node, entry.value)] as const),
       );
     case 'opaque':
-      // A NodePath is its path text (`NodePath::operator String`), which Node.get_node walks.
-      if (value.type === 'NodePath') {
+      // A NodePath is its path text (`lowering-shapes.ts`).
+      if (godotLiteralIsText(value.type)) {
         return { kind: 'literal-expression', value: value.text, span: span(context.script, node) };
       }
       return context.refuse(node, `opaque bound literal ${value.type} has no target binding`);
@@ -130,23 +149,6 @@ function expression(
 ): LoweredExpression {
   return { before: [], value, after: [], requirements };
 }
-
-/**
- * The members a built-in's integer index reads, in index order (`variant_setget.cpp:847-857`):
- * the numeric structs' components, and Basis's columns (`get_column`), each its member of that name.
- */
-/** The built-in containers compat holds as JS arrays, whose elements Variant indexing reads. */
-const ARRAY_INDEXED: ReadonlySet<string> = new Set(['Array', 'PackedStringArray']);
-
-const INDEXED_MEMBERS: Readonly<Record<string, readonly string[]>> = {
-  Vector2: ['x', 'y'],
-  Vector2i: ['x', 'y'],
-  Vector3: ['x', 'y', 'z'],
-  Vector3i: ['x', 'y', 'z'],
-  Quaternion: ['x', 'y', 'z', 'w'],
-  Color: ['r', 'g', 'b', 'a'],
-  Basis: ['x', 'y', 'z'],
-};
 
 /** Settle one child before its next sibling when it carries post-value work. */
 function settle(context: LoweringContext, plan: LoweredExpression): LoweredExpression {
@@ -380,14 +382,52 @@ function objectImport(name: string): OfficialBoundLoweringRequirement {
   return { kind: 'compat-import-requirement', module: 'lib/godot-compat/object', imported: name, local: name, typeOnly: false };
 }
 
-/** Built-in types whose values Godot copies; Array and Dictionary are shared references. */
-function builtinValueType(node: GodotBoundNode): boolean {
-  return (
-    node.datatype.kind === 'BUILTIN' &&
-    !node.datatype.metaType &&
-    node.datatype.builtinType !== 'Array' &&
-    node.datatype.builtinType !== 'Dictionary'
+/**
+ * The module-level record of the script's resolved loads (`resource-loads.ts`): each path string
+ * any `load(path)` of the script can be, to the resource it names. A file named by one string is
+ * loaded in its entry; one named by several is loaded once, as its own module constant the entries
+ * share, since Godot's resource cache hands back one resource per file
+ * (core/io/resource_loader.cpp:725).
+ */
+function resourceTable(context: LoweringContext): { readonly local: string; readonly requirements: readonly OfficialBoundLoweringRequirement[] } {
+  const local = '$resources';
+  const files = new Map<string, { target: OfficialBoundResourceLoadTarget; values: Set<string> }>();
+  for (const targets of context.resourceLoads.values()) {
+    for (const target of targets) {
+      const file = files.get(target.local) ?? { target, values: new Set<string>() };
+      for (const value of target.values) file.values.add(value);
+      files.set(target.local, file);
+    }
+  }
+  const ordered = [...files.values()].sort((a, b) => (a.target.local < b.target.local ? -1 : a.target.local > b.target.local ? 1 : 0));
+  const shared = ordered.filter((file) => file.values.size > 1);
+  const types = new Map(ordered.map((file) => [JSON.stringify(file.target.type), file.target.type] as const));
+  const valueType: TargetTsType = types.size === 1 ? ([...types.values()][0] as TargetTsType) : { kind: 'union-type', members: [...types.values()] };
+  const properties = ordered.flatMap((file) =>
+    [...file.values].sort().map((value) => ({
+      key: value,
+      value: file.values.size > 1 ? ({ kind: 'identifier-expression', name: file.target.local } as const) : file.target.initializer,
+    })),
   );
+  return {
+    local,
+    requirements: [
+      ...ordered.flatMap((file) => file.target.requirements),
+      // (`$load_…` sorts before `$resources`, so a shared file's constant is declared first.)
+      ...shared.map((file): OfficialBoundLoweringRequirement => ({ kind: 'module-constant-requirement', local: file.target.local, initializer: file.target.initializer })),
+      {
+        kind: 'module-constant-requirement',
+        local,
+        type: { kind: 'type-reference', name: 'Readonly', arguments: [{ kind: 'type-reference', name: 'Record', arguments: [{ kind: 'keyword-type', keyword: 'string' }, valueType] }] },
+        initializer: { kind: 'object-expression', properties },
+      },
+    ],
+  };
+}
+
+/** Built-in types whose values Godot copies (`lowering-shapes.ts`); Array and Dictionary are shared references. */
+function builtinValueType(node: GodotBoundNode): boolean {
+  return godotBuiltinCopied(node.datatype);
 }
 
 /**
@@ -476,9 +516,6 @@ function treeParameter(
   return { baseNode, indexNode, path };
 }
 
-/** The Variant types compat's Tween interpolates (`tween.ts`, `Animation::interpolate_variant`). */
-const TWEENED_TYPES: ReadonlySet<string> = new Set(['float', 'Vector2', 'Vector3', 'Color']);
-
 /**
  * `tween.tween_property(object, "property", …)`: the property Godot reaches through
  * `Object::get_indexed`/`set_indexed` by name (tween.cpp:104, :627, :671), resolved here to the
@@ -514,7 +551,7 @@ function tweenedProperty(
   const found = context.nativeProperty(className, property);
   if (found === undefined) return context.refuse(node, `tween_property of ${property}, which ${className} does not declare`);
   if (found.index !== undefined) return context.refuse(node, `tween_property of the indexed property ${found.owner}.${property}`);
-  if (found.type === undefined || !TWEENED_TYPES.has(found.type)) {
+  if (found.type === undefined || !godotTweenInterpolates(found.type)) {
     return context.refuse(node, `tween_property of ${found.owner}.${property}, a ${found.type ?? 'untyped'} property Tween's interpolation is not transcribed for`);
   }
   const accessor = (method: NativePropertyAccessor | undefined, which: string): OfficialBoundBindingUse => {
@@ -653,22 +690,32 @@ function bindingCall(
 function dictionaryElement(
   context: LoweringContext,
   node: GodotBoundNode,
-): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode } | undefined {
+): KeyedElement | undefined {
   if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
   const baseNode = context.node(node.base, node);
-  const datatype = baseNode.datatype;
-  if (datatype.kind !== 'BUILTIN' || datatype.metaType || datatype.builtinType !== 'Dictionary') return undefined;
-  return { baseNode, indexNode: context.node(node.index, node) };
+  const shape = godotBuiltinSubscriptShape(baseNode.datatype);
+  if (shape?.kind !== 'keyed-entry') return undefined;
+  return { baseNode, indexNode: context.node(node.index, node), shape };
 }
 
-function dictionaryMethod(context: LoweringContext, node: GodotBoundNode, member: 'get' | 'set'): OfficialBoundBindingUse {
-  const method = context.nativeMethod('Dictionary', member);
-  if (method === undefined) return context.refuse(node, `the API dump has no Dictionary.${member}`);
+type KeyedShape = Extract<GodotBuiltinSubscriptShape, { readonly kind: 'keyed-entry' }>;
+
+interface KeyedElement {
+  readonly baseNode: GodotBoundNode;
+  readonly indexNode: GodotBoundNode;
+  readonly shape: KeyedShape;
+}
+
+/** A keyed container's getter or setter method binding (`Dictionary.get` / `Dictionary.set`). */
+function dictionaryMethod(context: LoweringContext, node: GodotBoundNode, shape: KeyedShape, access: 'getter' | 'setter'): OfficialBoundBindingUse {
+  const member = shape[access];
+  const method = context.nativeMethod(shape.owner, member);
+  if (method === undefined) return context.refuse(node, `the API dump has no ${shape.owner}.${member}`);
   const use = context.bindingUse(
     {
       sourceRevision: context.sourceRevision,
       kind: 'builtin-member',
-      owner: 'Dictionary',
+      owner: shape.owner,
       member,
       signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
     },
@@ -684,12 +731,12 @@ function dictionaryMethod(context: LoweringContext, node: GodotBoundNode, member
 function dictionaryPlace(
   context: LoweringContext,
   node: GodotBoundNode,
-  element: { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode },
+  element: KeyedElement,
   lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
 ): AssignablePlace {
   const rule = context.selectRule(node, ['subscript-element:dictionary'], [element.baseNode, element.indexNode], ['binding']);
-  const getter = dictionaryMethod(context, node, 'get');
-  const setter = dictionaryMethod(context, node, 'set');
+  const getter = dictionaryMethod(context, node, element.shape, 'getter');
+  const setter = dictionaryMethod(context, node, element.shape, 'setter');
   const object = materialize(context, lower(context, element.baseNode));
   const key = materialize(context, lower(context, element.indexNode));
   return {
@@ -919,36 +966,24 @@ export function lowerTypeDefault(context: LoweringContext, node: GodotBoundNode)
   // The default depends on the datatype alone, not on the declaration's annotations.
   const requirements = context.selectRule(node, ['type-default'], [], ['structural'], true, false)
     .requirements;
-  const datatype = node.datatype;
-  const literalValue = (value: null | boolean | number): LoweredExpression =>
-    expression({ kind: 'literal-expression', value, span: span(context.script, node) }, requirements);
-  if (datatype.kind === 'ENUM') return literalValue(0);
-  if (datatype.kind !== 'BUILTIN' || datatype.metaType) return literalValue(null);
-  switch (datatype.builtinType) {
-    case 'Nil':
-      return literalValue(null);
-    case 'bool':
-      return literalValue(false);
-    case 'int':
-    case 'float':
-      return literalValue(0);
-    default: {
-      const use = context.bindingUse(
-        {
-          sourceRevision: context.sourceRevision,
-          kind: 'builtin-constructor',
-          owner: datatype.builtinType,
-          member: datatype.builtinType,
-          signature: 'unhashed',
-        },
-        node,
-      );
-      if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
-        return context.refuse(node, `constructor binding ${use.target.localName} is not a plain call`);
-      }
-      return expression(bindingCall(context, node, use, []), [...requirements, ...use.requirements]);
-    }
+  const initial = godotTypeDefault(node.datatype);
+  if (initial.kind === 'literal') {
+    return expression({ kind: 'literal-expression', value: initial.value, span: span(context.script, node) }, requirements);
   }
+  const use = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'builtin-constructor',
+      owner: initial.builtinType,
+      member: initial.builtinType,
+      signature: 'unhashed',
+    },
+    node,
+  );
+  if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
+    return context.refuse(node, `constructor binding ${use.target.localName} is not a plain call`);
+  }
+  return expression(bindingCall(context, node, use, []), [...requirements, ...use.requirements]);
 }
 
 function prepareCallReference(
@@ -1406,10 +1441,10 @@ function plainType(context: LoweringContext, node: GodotBoundNode): string | und
 /** A plain int or float stored into an int-or-float place: tagged by its type (`numeric-tag`). */
 export function numericTag(context: LoweringContext, site: GodotBoundNode, valueNode: GodotBoundNode, value: LoweredExpression): LoweredExpression {
   const type = plainType(context, valueNode);
-  if (type !== 'int' && type !== 'float') {
+  const name = godotNumericTag(type)?.tag;
+  if (name === undefined) {
     return context.refuse(valueNode, `a ${type ?? valueNode.datatype.display} value stored into an int-or-float variable: only an int or a float is tagged`);
   }
-  const name = type === 'int' ? 'godot_numeric_int' : 'godot_numeric_float';
   return {
     ...value,
     value: numericCall(name, value.value),
@@ -1468,7 +1503,7 @@ export function lowerOfficialExpression(
         wideBindingResult(context, lowered.value)) ||
       // An Array element is `unknown` (or `T | undefined`) to TS; the analysis states what it is.
       (node.kind === 'SUBSCRIPT' && arrayElementRead(lowered.value));
-    const known = datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil');
+    const known = godotStatedValueType(datatype);
     // (A built-in with no datatype rule of its own keeps the binding's type.)
     if (!typedValue || datatype.metaType || !known || !context.hasTargetType(node)) return lowered;
     const type = context.targetType(node);
@@ -1556,19 +1591,18 @@ export function lowerOfficialExpression(
     const walk = (prefix: readonly string[]): void => {
       if (prefix.length === taggedOperands.length) leaves.push({ choice: prefix, branch: branch(prefix) });
       else {
-        walk([...prefix, 'int']);
-        walk([...prefix, 'float']);
+        for (const type of GODOT_NUMERIC_TYPES) walk([...prefix, type]);
       }
     };
     walk([]);
     const types = new Set(leaves.map((leaf) => leaf.branch.type));
     const retag = types.size > 1;
-    if (retag && [...types].some((type) => type !== 'int' && type !== 'float')) {
+    if (retag && [...types].some((type) => godotNumericTag(type) === undefined)) {
       return context.refuse(node, `an int-or-float switch whose branches give ${[...types].join(' and ')}`);
     }
     const valueOf = (leaf: (typeof leaves)[number]): TargetTsExpression => {
       if (!retag) return leaf.branch.value;
-      const name = leaf.branch.type === 'int' ? 'godot_numeric_int' : 'godot_numeric_float';
+      const name = (godotNumericTag(leaf.branch.type) as GodotNumericTag).tag;
       requirements.push(numericImport(name));
       return numericCall(name, leaf.branch.value);
     };
@@ -1614,7 +1648,7 @@ export function lowerOfficialExpression(
 
   /** An operation or store that reads or writes an int-or-float variable. */
   function lowerNumeric(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
-    if (node.kind === 'CALL' && node.functionName === 'clamp' && node.compilerTarget.kind === 'variant-utility') return numericClamp(context, node);
+    if (node.kind === 'CALL' && node.compilerTarget.kind === 'variant-utility' && godotUtilitySelectsArgument(node.compilerTarget.member)) return numericClamp(context, node);
     if (node.kind !== 'ASSIGNMENT') return numericSwitch(context, node, operandsOf(node)).lowered;
     const assignee = context.rawNode(node.assignee, node);
     const valueNode = context.rawNode(node.assignedValue, node);
@@ -1648,10 +1682,10 @@ export function lowerOfficialExpression(
       // A tagged number into a typed place converts (`write_assign_with_conversion`): an int place
       // truncates a float (`Variant::operator int64_t`), a float place takes either as its value.
       const place = plainType(context, assignee);
-      if (place !== 'int' && place !== 'float') {
+      const name = godotNumericTag(place)?.read;
+      if (name === undefined) {
         return context.refuse(node, `an int-or-float value stored into a ${assignee.datatype.display} place, which no conversion takes`);
       }
-      const name = place === 'int' ? 'godot_numeric_to_int' : 'godot_numeric_value';
       stored = {
         ...value,
         value: numericCall(name, value.value),
@@ -1660,7 +1694,7 @@ export function lowerOfficialExpression(
     } else {
       const type = [...types][0];
       const place = plainType(context, assignee);
-      if (type !== place && !(place === 'float' && type === 'int')) {
+      if (!godotNumericStoresAs(type, place)) {
         return context.refuse(node, `a ${type ?? 'value'} from an int-or-float operation stored into a ${assignee.datatype.display} place`);
       }
       stored = value;
@@ -2152,31 +2186,13 @@ export function lowerOfficialExpression(
             );
           }
         }
-        if (
-          node.isAttribute &&
-          baseNode.datatype.kind === 'BUILTIN' &&
-          baseNode.datatype.builtinType === 'Dictionary' &&
-          node.datatype.kind !== 'VARIANT'
-        ) {
+        const keyed = godotBuiltinSubscriptShape(baseNode.datatype);
+        if (node.isAttribute && keyed?.kind === 'keyed-entry' && node.datatype.kind !== 'VARIANT') {
           // `d.key` on a Dictionary whose key schema the analysis fixed (`ray-result-schema`) reads
           // the key (`Variant::get_named`, variant_setget.cpp:291) through `Dictionary.get`. An
           // untyped Dictionary's named read stays refused (no rule takes a Variant result).
           const rule = context.selectRule(node, ['subscript-attribute:dictionary-key'], [baseNode], ['binding']);
-          const method = context.nativeMethod('Dictionary', 'get');
-          if (method === undefined) return context.refuse(node, 'the API dump has no Dictionary.get');
-          const use = context.bindingUse(
-            {
-              sourceRevision: context.sourceRevision,
-              kind: 'builtin-member',
-              owner: 'Dictionary',
-              member: 'get',
-              signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
-            },
-            node,
-          );
-          if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
-            return context.refuse(node, `binding ${use.target.localName} does not take its receiver first`);
-          }
+          const use = dictionaryMethod(context, node, keyed, 'getter');
           const key = officialBoundPropertyName(context, node.attribute, node);
           return compose(
             context,
@@ -2216,7 +2232,8 @@ export function lowerOfficialExpression(
           );
         }
         const indexNode = context.node(node.index, node);
-        const indexed = baseNode.datatype.kind === 'BUILTIN' ? INDEXED_MEMBERS[baseNode.datatype.builtinType] : undefined;
+        const shape = godotBuiltinSubscriptShape(baseNode.datatype);
+        const indexed = shape?.kind === 'indexed-member' ? shape.members : undefined;
         if (indexed !== undefined && indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int') {
           // A built-in's constant in-range index reads the member at that place
           // (`VariantIndexedSetGet_*`, variant_setget.cpp:847-857).
@@ -2238,7 +2255,7 @@ export function lowerOfficialExpression(
         const element = dictionaryElement(context, node);
         if (element !== undefined) {
           const rule = context.selectRule(node, ['subscript-element:dictionary'], [baseNode, indexNode], ['binding']);
-          const use = dictionaryMethod(context, node, 'get');
+          const use = dictionaryMethod(context, node, element.shape, 'getter');
           return compose(
             context,
             [base, lowerExpression(context, indexNode)],
@@ -2246,7 +2263,7 @@ export function lowerOfficialExpression(
             [...rule.requirements, ...use.requirements],
           );
         }
-        if (baseNode.datatype.kind === 'BUILTIN' && !baseNode.datatype.metaType && ARRAY_INDEXED.has(baseNode.datatype.builtinType)) {
+        if (shape?.kind === 'array-element') {
           // Variant indexing counts a negative index from the end, as `Array.prototype.at` does; a
           // constant non-negative index is the element itself.
           const rule = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:array');
@@ -2288,38 +2305,27 @@ export function lowerOfficialExpression(
           [calleeNode, ...argumentNodes],
           `call:${node.static ? 'static' : 'instance'}`,
         );
-        const stringifying = node.compilerTarget.kind === 'variant-utility' && node.compilerTarget.member === 'str';
+        const stringifying = node.compilerTarget.kind === 'variant-utility' && godotUtilityStringifies(node.compilerTarget.member);
         const lowered = argumentNodes.map((argument) =>
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );
         const loads = node.compilerTarget.kind === 'gdscript-utility' ? context.resourceLoads.get(node.id) : undefined;
         if (loads !== undefined && lowered.length === 1) {
-          // `load(path)` over the paths the program fixes: the module constant loading the file a
-          // path names, else null (`ResourceLoader::load` finds no file there).
+          // `load(path)` over the paths the program fixes: the module's record of every resolved
+          // load (`resourceTable`) looked up by the path, null where no file is there
+          // (`ResourceLoader::load` finds none).
           const path = materialize(context, lowered[0] as LoweredExpression);
-          let value: TargetTsExpression = { kind: 'literal-expression', value: null };
-          for (const target of [...loads].reverse()) {
-            const tests = target.values.map((text): TargetTsExpression => ({
-              kind: 'binary-expression',
-              operator: '===',
-              left: path.value,
-              right: { kind: 'literal-expression', value: text },
-            }));
-            const condition = tests.reduce((left, right) => ({ kind: 'binary-expression', operator: '||', left, right }));
-            value = { kind: 'conditional-expression', condition, whenTrue: { kind: 'identifier-expression', name: target.local }, whenFalse: value };
-          }
+          const table = resourceTable(context);
+          const lookup: TargetTsExpression = { kind: 'element-expression', object: { kind: 'identifier-expression', name: table.local }, index: path.value };
           return {
             before: path.before,
-            value: { kind: 'parenthesized-expression', expression: value, span: span(context.script, node) },
+            value: {
+              kind: 'parenthesized-expression',
+              expression: { kind: 'binary-expression', operator: '??', left: lookup, right: { kind: 'literal-expression', value: null } },
+              span: span(context.script, node),
+            },
             after: [],
-            requirements: [
-              ...requirements,
-              ...path.requirements,
-              ...loads.flatMap((target): OfficialBoundLoweringRequirement[] => [
-                ...target.requirements,
-                { kind: 'module-constant-requirement', local: target.local, initializer: target.initializer },
-              ]),
-            ],
+            requirements: [...requirements, ...path.requirements, ...table.requirements],
           };
         }
         const target = callTargetBinding(context, node);
@@ -2480,7 +2486,7 @@ export function lowerOfficialExpression(
         // `gdscript_function.cpp:256`): a promise that one-shot connection resolves.
         const awaitedNode = context.node(node.toAwait, node);
         const requirements = context.structural(node, 'await', [awaitedNode]);
-        const isSignal = awaitedNode.datatype.kind === 'BUILTIN' && awaitedNode.datatype.builtinType === 'Signal' && !awaitedNode.datatype.metaType;
+        const isSignal = godotAwaitsEmission(awaitedNode.datatype);
         return compose(
           context,
           [lowerExpression(context, awaitedNode)],

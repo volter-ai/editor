@@ -2,6 +2,7 @@ import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import { builtinDatatype } from '../../analyze/refined-types';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
+import { GODOT_NUMERIC_TYPES, godotUtilitySelectsArgument, godotUtilityStringifies } from '../data/lowering-shapes';
 import { safeIdent } from '../target-names';
 import type {
   GodotBindingResolver,
@@ -84,6 +85,8 @@ export type OfficialBoundLoweringRequirement =
       readonly kind: 'module-constant-requirement';
       readonly local: string;
       readonly initializer: TargetTsExpression;
+      /** The constant's declared type, where its initializer's inferred type is not the one it is read as. */
+      readonly type?: TargetTsType;
     };
 
 /** One resource a `load(path)` yields: the path strings naming it, and its module constant. */
@@ -91,6 +94,8 @@ export interface OfficialBoundResourceLoadTarget {
   readonly values: readonly string[];
   readonly local: string;
   readonly initializer: TargetTsExpression;
+  /** The type of the resource the initializer makes. */
+  readonly type: TargetTsType;
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
 }
 
@@ -467,7 +472,7 @@ export class LoweringContext {
       const type = override.datatype.kind === 'ENUM' ? 'int' : override.datatype.builtinType;
       return new Set([type]);
     }
-    if (node.kind === 'IDENTIFIER') return this.#numericVariables.has(node.id) ? new Set(['int', 'float']) : undefined;
+    if (node.kind === 'IDENTIFIER') return this.#numericVariables.has(node.id) ? new Set(GODOT_NUMERIC_TYPES) : undefined;
     const own = (child: GodotBoundNode): ReadonlySet<string> =>
       this.numericTypes(child) ?? new Set([child.datatype.kind === 'ENUM' ? 'int' : child.datatype.kind === 'BUILTIN' ? child.datatype.builtinType : 'unknown']);
     if (node.kind === 'BINARY_OPERATOR' || node.kind === 'UNARY_OPERATOR') {
@@ -487,13 +492,13 @@ export class LoweringContext {
       return results;
     }
     // `clamp(x, min, max)` returns x, min or max as it is (`variant_utility.cpp:730`).
-    if (node.kind === 'CALL' && node.functionName === 'clamp' && node.compilerTarget.kind === 'variant-utility' && node.arguments.length === 3) {
+    if (node.kind === 'CALL' && node.compilerTarget.kind === 'variant-utility' && godotUtilitySelectsArgument(node.compilerTarget.member) && node.arguments.length === 3) {
       const children = node.arguments.map((id) => this.script.nodes[id]);
       if (children.some((child) => child === undefined)) return undefined;
       if (!children.some((child) => this.numericTypes(child as GodotBoundNode) !== undefined)) return undefined;
       return new Set(children.flatMap((child) => [...own(child as GodotBoundNode)]));
     }
-    if (node.kind === 'CALL' && node.functionName === 'str' && node.compilerTarget.kind === 'variant-utility') {
+    if (node.kind === 'CALL' && node.compilerTarget.kind === 'variant-utility' && godotUtilityStringifies(node.compilerTarget.member)) {
       return node.arguments.some((id) => {
         const argument = this.script.nodes[id];
         return argument !== undefined && this.numericTypes(argument) !== undefined;
@@ -801,7 +806,11 @@ export class LoweringContext {
     return this.rules.datatype(node.datatype) !== undefined;
   }
 
-    /** Whether the node's datatype is one an `is T` test narrowed it to. */
+  /**
+   * Whether the analysis states the node's datatype beyond what its lowered value carries to TS: an
+   * `is T` narrowing, the scene node an exported node reference holds, or a loop variable typed
+   * from the elements its body reads.
+   */
   narrowed(node: GodotBoundNode): boolean {
     return this.narrowedNodes.has(node.id);
   }

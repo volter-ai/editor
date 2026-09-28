@@ -30,7 +30,9 @@
  *   or combined by `+ - *` with a float, holds the float: those read an int as its equal float.
  *
  * - `iterated-element-type`: the variable of a `for` over an array literal whose elements have one
- *   datatype holds that datatype (`OPCODE_ITERATE` assigns each element in turn, gdscript_vm.cpp).
+ *   datatype holds that datatype (`OPCODE_ITERATE` assigns each element in turn, gdscript_vm.cpp);
+ *   the variable of a `for` over an untyped Array whose every read in the body has one datatype
+ *   (a member container's elements, `container-element-type`) is that datatype.
  *
  * - `engine-virtual-parameter`, `signal-handler-parameter`, `call-site-parameter`: a read of an
  *   untyped parameter is the one datatype every caller of its function passes
@@ -889,5 +891,26 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
   }
 
   for (const node of program.nodes) refine(node.id);
+
+  // `iterated-element-type` for a loop over an untyped Array: the loop variable holds each element
+  // in turn (`OPCODE_ITERATE`), so where every read of it in the body has one datatype the rules
+  // above fixed (a member container's elements, `container-types.ts`), the variable itself is
+  // that datatype. The official analyzer's untyped variable (`for v in a`, no conversion) is Variant.
+  for (const loop of program.nodes) {
+    if (loop.kind !== 'FOR' || loop.useConversionAssign || refined.get(loop.variable)) continue;
+    const list = datatypeOf(loop.list);
+    if (list?.kind !== 'BUILTIN' || list.metaType || list.builtinType !== 'Array' || list.containerTypes.length > 0) continue;
+    const variable = nodes.get(loop.variable);
+    const body = nodes.get(loop.loop);
+    if (variable?.kind !== 'IDENTIFIER' || body === undefined) continue;
+    const reads = program.nodes
+      .filter((candidate) => candidate.kind === 'IDENTIFIER' && candidate.name === variable.name && candidate.source === 'LOCAL_ITERATOR' && within(candidate, body))
+      .map((candidate) => datatypeOf(candidate.id));
+    const first = reads[0];
+    const known = (type: GodotBoundDatatype | undefined): type is GodotBoundDatatype =>
+      type !== undefined && !type.metaType && (type.kind === 'NATIVE' || type.kind === 'CLASS' || (type.kind === 'BUILTIN' && type.builtinType !== 'Nil'));
+    if (!known(first) || !reads.every((type) => known(type) && type.kind === first.kind && type.display === first.display)) continue;
+    refined.set(loop.variable, { nodeId: loop.variable, datatype: first, rule: 'iterated-element-type' });
+  }
   return [...refined.values()].filter((entry): entry is BoundGodotRefinedType => entry !== null).sort((a, b) => a.nodeId - b.nodeId);
 }

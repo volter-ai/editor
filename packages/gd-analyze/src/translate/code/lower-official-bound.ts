@@ -241,7 +241,13 @@ function mergeOfficialBoundRequirements(
     ],
     imports: sorted(importsByLocal.values(), (entry) => `${entry.module}\0${entry.local}`),
     constants: sorted(constants.values(), (entry) => entry.local).map(
-      (entry): TargetTsStatement => ({ kind: 'variable-statement', declaration: 'const', name: entry.local, initializer: entry.initializer }),
+      (entry): TargetTsStatement => ({
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: entry.local,
+        ...(entry.type === undefined ? {} : { type: entry.type }),
+        initializer: entry.initializer,
+      }),
     ),
     autoloadReferences: sorted(autoloads.values(), (entry) => entry.name),
     requiredCompatSymbols: sorted(compatSymbols, (entry) => entry),
@@ -544,6 +550,7 @@ function resourceLoadTargets(
       targets.push({
         values,
         local: `$load_${resPath.slice('res://'.length).replace(/[^A-Za-z0-9_$]/gu, '_')}`,
+        type: { kind: 'type-reference', name: 'ReturnType', arguments: [{ kind: 'type-query', name: construct.exportName }] },
         initializer: {
           kind: 'call-expression',
           callee: { kind: 'identifier-expression', name: construct.exportName },
@@ -652,6 +659,9 @@ function lowerScript(
       source.refinedTypes
         .filter((entry) => {
           if (entry.rule === 'type-test-narrowing') return true;
+          // A loop variable the analysis typed from the elements its body reads: the loop states
+          // its list as an array of that type (`lowerOfficialStatement`'s FOR).
+          if (entry.rule === 'iterated-element-type') return source.program.nodes.some((node) => node.kind === 'FOR' && node.variable === entry.nodeId);
           // A member declared as a wider node type that the scenes fix (an exported node
           // reference): its reads are stated as the node it holds.
           const declared = source.program.nodes[entry.nodeId];

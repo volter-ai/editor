@@ -1,8 +1,9 @@
 /**
- * Godot members whose lowering takes a shape of its own beyond a bound call (docs/GODOT.md §The
- * lane's law, row 3): the plan-time table lowering reads, by the member's Godot identity, so
- * lowering itself never compares a class name.
+ * Godot members and built-in types whose lowering takes a shape of its own beyond a bound call
+ * (docs/GODOT.md §The lane's law, row 3): the plan-time table lowering reads, by the member's Godot
+ * identity or the value's datatype, so lowering itself never compares a class or type name.
  */
+import type { GodotBoundDatatype } from '../../godot-frontend/bound-program';
 
 /** How a call to a Godot method is lowered, beyond its binding. */
 export type GodotCallShape =
@@ -36,4 +37,166 @@ const PARAMETER_SUBSCRIPTS: ReadonlySet<string> = new Set(['AnimationTree']);
 /** Whether a subscript on a value of the native class `className` reads a tree parameter. */
 export function godotSubscriptsParameters(className: string): boolean {
   return PARAMETER_SUBSCRIPTS.has(className);
+}
+
+/**
+ * How a subscript on a value of a built-in type is lowered, by the built-in type (the value's
+ * datatype as analysis gives it), so lowering selects the shape without naming the type.
+ */
+export type GodotBuiltinSubscriptShape =
+  /**
+   * An Array or PackedStringArray, which compat holds as a JS array: `a[i]` is Variant indexing
+   * (`VariantIndexedSetGet`, core/variant/variant_setget.cpp), a negative index counting from the
+   * end as `Array.prototype.at` does.
+   */
+  | { readonly kind: 'array-element' }
+  /**
+   * A Dictionary: `d[k]` (and `d.key` where analysis fixed the key's type) is keyed Variant access
+   * (`Variant::get` / `Variant::set`, variant_setget.cpp), through the built-in's own getter and
+   * setter methods.
+   */
+  | { readonly kind: 'keyed-entry'; readonly owner: string; readonly getter: 'get'; readonly setter: 'set' }
+  /**
+   * A numeric struct or Basis: a constant in-range integer index reads the member at that place
+   * (`VariantIndexedSetGet_*`, variant_setget.cpp:847-857; Basis's columns, `get_column`).
+   */
+  | { readonly kind: 'indexed-member'; readonly members: readonly string[] };
+
+const ARRAY_ELEMENT: GodotBuiltinSubscriptShape = { kind: 'array-element' };
+
+const BUILTIN_SUBSCRIPT_SHAPES: Readonly<Record<string, GodotBuiltinSubscriptShape>> = {
+  Array: ARRAY_ELEMENT,
+  PackedStringArray: ARRAY_ELEMENT,
+  Dictionary: { kind: 'keyed-entry', owner: 'Dictionary', getter: 'get', setter: 'set' },
+  Vector2: { kind: 'indexed-member', members: ['x', 'y'] },
+  Vector2i: { kind: 'indexed-member', members: ['x', 'y'] },
+  Vector3: { kind: 'indexed-member', members: ['x', 'y', 'z'] },
+  Vector3i: { kind: 'indexed-member', members: ['x', 'y', 'z'] },
+  Quaternion: { kind: 'indexed-member', members: ['x', 'y', 'z', 'w'] },
+  Color: { kind: 'indexed-member', members: ['r', 'g', 'b', 'a'] },
+  Basis: { kind: 'indexed-member', members: ['x', 'y', 'z'] },
+};
+
+/** The subscript shape of a value of this datatype: a built-in value's, by its type. */
+export function godotBuiltinSubscriptShape(datatype: GodotBoundDatatype): GodotBuiltinSubscriptShape | undefined {
+  if (datatype.kind !== 'BUILTIN' || datatype.metaType) return undefined;
+  return BUILTIN_SUBSCRIPT_SHAPES[datatype.builtinType];
+}
+
+/** The built-in types Godot holds by shared reference; every other built-in value is copied. */
+const SHARED_BUILTINS: ReadonlySet<string> = new Set(['Array', 'Dictionary']);
+
+/** Whether a value of this datatype is a built-in Godot copies (not Array or Dictionary). */
+export function godotBuiltinCopied(datatype: GodotBoundDatatype): boolean {
+  return datatype.kind === 'BUILTIN' && !datatype.metaType && !SHARED_BUILTINS.has(datatype.builtinType);
+}
+
+/** Whether `await` on a value of this datatype awaits a Signal's next emission (`OPCODE_AWAIT`, gdscript_vm.cpp:2563), as a promise. */
+export function godotAwaitsEmission(datatype: GodotBoundDatatype): boolean {
+  return datatype.kind === 'BUILTIN' && !datatype.metaType && datatype.builtinType === 'Signal';
+}
+
+/** Whether `for v in x` over a value of this datatype counts from 0 below x (`OPCODE_ITERATE_BEGIN_INT`, gdscript_vm.cpp). */
+export function godotIteratesRange(datatype: GodotBoundDatatype): boolean {
+  return datatype.kind === 'BUILTIN' && datatype.builtinType === 'int';
+}
+
+/**
+ * The utility functions that return one of their arguments as it is, so over int-or-float values
+ * the result is an argument's own type (`clamp`, variant_utility.cpp:730).
+ */
+const ARGUMENT_SELECTING_UTILITIES: ReadonlySet<string> = new Set(['clamp']);
+
+/** Whether the Variant utility function `member` returns one of its arguments as it is. */
+export function godotUtilitySelectsArgument(member: string): boolean {
+  return ARGUMENT_SELECTING_UTILITIES.has(member);
+}
+
+/** The Variant types compat's Tween interpolates (`tween.ts`, `Animation::interpolate_variant`), by the property's API type. */
+const TWEENED_TYPES: ReadonlySet<string> = new Set(['float', 'Vector2', 'Vector3', 'Color']);
+
+/** Whether `tween_property` of a property of this API type is lowered (compat interpolates it). */
+export function godotTweenInterpolates(apiType: string): boolean {
+  return TWEENED_TYPES.has(apiType);
+}
+
+/**
+ * The value a typed variable of this datatype holds before anything is assigned: GDScript clears a
+ * built-in to its zero-argument construction (`constructed`), a few to a JS primitive, and an
+ * object or untyped variable to null (`gdscript_compiler.cpp:2365`, `:2235`).
+ */
+export type GodotTypeDefault = { readonly kind: 'literal'; readonly value: null | boolean | number } | { readonly kind: 'constructed'; readonly builtinType: string };
+
+const PRIMITIVE_DEFAULTS: Readonly<Record<string, null | boolean | number>> = { Nil: null, bool: false, int: 0, float: 0 };
+
+export function godotTypeDefault(datatype: GodotBoundDatatype): GodotTypeDefault {
+  if (datatype.kind === 'ENUM') return { kind: 'literal', value: 0 };
+  if (datatype.kind !== 'BUILTIN' || datatype.metaType) return { kind: 'literal', value: null };
+  const primitive = PRIMITIVE_DEFAULTS[datatype.builtinType];
+  return primitive === undefined ? { kind: 'constructed', builtinType: datatype.builtinType } : { kind: 'literal', value: primitive };
+}
+
+/**
+ * Built-in type pairs whose values are the same JS value under compat, so assigning one to a place
+ * of the other converts nothing: an int into a float, and a String into a StringName or back.
+ */
+const SAME_COMPAT_VALUE: ReadonlySet<string> = new Set(['int>float', 'String>StringName', 'StringName>String']);
+
+/** Whether a typed place of built-in type `to` converts a value of datatype `from` as it is bound. */
+export function godotBuiltinConverts(from: GodotBoundDatatype, to: GodotBoundDatatype): boolean {
+  if (to.kind !== 'BUILTIN' || to.metaType) return false;
+  const fromType = from.kind === 'ENUM' ? 'int' : from.kind === 'BUILTIN' ? from.builtinType : undefined;
+  return fromType !== to.builtinType && !SAME_COMPAT_VALUE.has(`${String(fromType)}>${to.builtinType}`);
+}
+
+/** The utility functions that stringify their arguments (`str`, variant_utility.cpp): an int-or-float argument is printed as its own type. */
+const STRINGIFYING_UTILITIES: ReadonlySet<string> = new Set(['str']);
+
+/** Whether the Variant utility function `member` stringifies its arguments. */
+export function godotUtilityStringifies(member: string): boolean {
+  return STRINGIFYING_UTILITIES.has(member);
+}
+
+/**
+ * How compat holds an int-or-float variable's value (`numeric-variant`), per numeric built-in type:
+ * the helper that tags a plain value of the type, and the one that reads a tagged value into a
+ * place of the type (an int place truncates, `Variant::operator int64_t`; a float place takes
+ * either as its value).
+ */
+export interface GodotNumericTag {
+  readonly tag: string;
+  readonly read: string;
+}
+
+const NUMERIC_TAGS: ReadonlyMap<string, GodotNumericTag> = new Map([
+  ['int', { tag: 'godot_numeric_int', read: 'godot_numeric_to_int' }],
+  ['float', { tag: 'godot_numeric_float', read: 'godot_numeric_value' }],
+]);
+
+/** The built-in types an int-or-float value can hold, in the order a switch over its tag branches. */
+export const GODOT_NUMERIC_TYPES: readonly string[] = [...NUMERIC_TAGS.keys()];
+
+/** The tag of a numeric built-in type, or undefined for any other type. */
+export function godotNumericTag(type: string | undefined): GodotNumericTag | undefined {
+  return type === undefined ? undefined : NUMERIC_TAGS.get(type);
+}
+
+/** Numeric stores that keep the value as it is into a place of a wider type: an int into a float. */
+const NUMERIC_WIDENING: ReadonlySet<string> = new Set(['int>float']);
+
+/** Whether a numeric result of type `from` is a place of type `to`'s value as it is. */
+export function godotNumericStoresAs(from: string | undefined, to: string | undefined): boolean {
+  return from === to || NUMERIC_WIDENING.has(`${String(from)}>${String(to)}`);
+}
+
+/** Whether a datatype names a value lowering can state as a TS type: an object, or a built-in other than Nil. */
+export function godotStatedValueType(datatype: GodotBoundDatatype): boolean {
+  return datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil');
+}
+
+/** Opaque literals written as their text: a NodePath is its path text (`NodePath::operator String`), which `Node.get_node` walks. */
+const TEXT_LITERALS: ReadonlySet<string> = new Set(['NodePath']);
+
+export function godotLiteralIsText(type: string): boolean {
+  return TEXT_LITERALS.has(type);
 }
