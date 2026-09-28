@@ -1,7 +1,7 @@
 {
   "counts": {
     "phase-call-outside-pipeline": 0,
-    "emit-setter-name-decision": 31,
+    "emit-setter-name-decision": 26,
     "emit-project-walk": 7,
     "lowering-builtin-name": 3,
     "class-name-switch": 0,
@@ -62,14 +62,9 @@
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | exportName === 'set_meta' #1",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | exportName === 'set_shader' #1",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | exportName === 'set_shader_parameter' #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(mesh.setters, ' #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(mesh.setters, ' #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(mesh.setters, ' #3",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #1",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #2",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #3",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #4",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #5",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #1",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #2",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(set, ' #3",

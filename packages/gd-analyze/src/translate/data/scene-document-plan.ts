@@ -179,6 +179,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly load?: TargetGodotImportedLoad;
   /** An `ArrayMesh`'s surfaces, decoded from its `_surfaces` (`read/godot4-surfaces.ts`). */
   readonly mesh?: TargetGodotArrayMeshPlan;
+  /** As a mesh draws it, its own material per surface, by resource key (`scene-surface-idioms.ts`). */
+  readonly surfaceMaterials?: readonly (string | undefined)[];
   /** A `MeshLibrary`'s items (`item/N/…`, `MeshLibrary::_set`), their meshes and shapes planned. */
   readonly library?: TargetGodotMeshLibraryPlan;
   /** An `AnimationLibrary`'s animations (`_data`, `AnimationLibrary::_set_data`) as data. */

@@ -2,6 +2,7 @@ import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
 import { type GodotSceneBodyProp, planGodotSceneBodies } from './scene-body-idioms';
+import { planGodotSceneSurfaces } from './scene-surface-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -78,6 +79,8 @@ export type DirectGodotSceneNodePlan = Omit<
   readonly instanceExports?: readonly ScriptFieldValuePlan[];
   /** The node's Godot-only state, its `userData` (`scene-body-idioms.ts`). */
   readonly data?: Readonly<Record<string, unknown>>;
+  /** A MeshInstance3D's mesh and, per surface, the material it draws (`scene-surface-idioms.ts`). */
+  readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[] };
   /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */
   readonly body?: readonly GodotSceneBodyProp[];
   /** An instance of a scene rooted in a body: the props its overrides change (`scene-body-idioms.ts`). */
@@ -812,7 +815,7 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(project);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
-  const bodied = planGodotSceneBodies(composedScenes, diagnostics);
+  const bodied = planGodotSceneBodies(planGodotSceneSurfaces(composedScenes), diagnostics);
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }

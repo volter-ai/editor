@@ -534,18 +534,11 @@ function meshSurfaces(emission: FamilyEmission, node: DirectGodotSceneNodePlan):
   readonly mesh: TargetGodotSceneResourcePlan | undefined;
   readonly materials: readonly (TargetGodotSceneResourcePlan | undefined)[];
 } {
-  const mesh = resourceOf(emission, setterValue(node.setters, 'set_mesh'));
+  // The plan's stamp (`scene-surface-idioms.ts`): the mesh, and per surface its override, else the mesh's own.
+  const byKey = (key: string | undefined) => (key === undefined ? undefined : emission.resources.get(key));
+  const mesh = byKey(node.surfaces?.mesh);
   if (mesh === undefined) return { mesh, materials: [] };
-  const surfaces = mesh.mesh?.surfaces.length ?? 1;
-  const own = (surface: number) => {
-    if (mesh.mesh === undefined) return resourceOf(emission, setterValue(mesh.setters, 'set_material'));
-    const key = mesh.mesh.surfaces[surface]?.material;
-    return key === undefined ? undefined : emission.resources.get(key);
-  };
-  return {
-    mesh,
-    materials: Array.from({ length: surfaces }, (_, surface) => resourceOf(emission, setterValue(node.setters, 'set_surface_override_material', surface)) ?? own(surface)),
-  };
+  return { mesh, materials: (node.surfaces?.materials ?? []).map(byKey) };
 }
 
 /**
@@ -716,7 +709,7 @@ function libraryLocal(emission: FamilyEmission, resource: TargetGodotSceneResour
   for (const item of library.items) {
     const mesh = item.mesh === undefined ? undefined : emission.resources.get(item.mesh);
     if (mesh === undefined) continue;
-    const surfaces = mesh.mesh?.surfaces.map((surface) => (surface.material === undefined ? undefined : emission.resources.get(surface.material))) ?? [resourceOf(emission, setterValue(mesh.setters, 'set_material'))];
+    const surfaces = (mesh.surfaceMaterials ?? []).map((key) => (key === undefined ? undefined : emission.resources.get(key)));
     const materials = surfaces.map((surface) => {
       const local = surface === undefined ? defaultMaterialLocal(emission) : sharedMaterial(emission, surface);
       if (emission.loaded.has(local)) uses.push(local);
@@ -913,8 +906,8 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
 function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePlan | undefined): TargetTsJsxAttribute[] {
   if (mesh === undefined) return [];
-  const surface = mesh.mesh?.surfaces[0]?.material;
-  const material = mesh.mesh === undefined ? resourceOf(emission, setterValue(mesh.setters, 'set_material')) : surface === undefined ? undefined : emission.resources.get(surface);
+  const surface = mesh.surfaceMaterials?.[0];
+  const material = surface === undefined ? undefined : emission.resources.get(surface);
   return [
     attribute('geometry', identifier(sharedGeometry(emission, mesh))),
     ...(material === undefined ? [] : [attribute('material', identifier(sharedMaterial(emission, material)))]),
