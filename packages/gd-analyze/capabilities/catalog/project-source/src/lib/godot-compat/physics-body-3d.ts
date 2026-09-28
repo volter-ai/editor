@@ -68,9 +68,10 @@ export function remove_collision_exception_with(self: object, body: object): voi
  */
 export function set_axis_lock(self: object, axis: number, lock: boolean): void {
   const entity = godot_node_entity(self);
-  const locked = lock ? (LOCKED.get(entity) ?? 0) | axis : (LOCKED.get(entity) ?? 0) & ~axis;
-  LOCKED.set(entity, locked);
   const body = godot_collision_object_body(entity);
+  const known = LOCKED.get(entity) ?? (body === undefined ? 0 : declaredLocks(body));
+  const locked = lock ? known | axis : known & ~axis;
+  LOCKED.set(entity, locked);
   if (body === undefined) return;
   body.setEnabledTranslations((locked & 1) === 0, (locked & 2) === 0, (locked & 4) === 0, true);
   body.setEnabledRotations((locked & 8) === 0, (locked & 16) === 0, (locked & 32) === 0, true);
@@ -84,13 +85,16 @@ export function get_axis_lock(self: object, axis: number): boolean {
   const entity = godot_node_entity(self);
   const known = LOCKED.get(entity);
   if (known !== undefined) return (known & axis) !== 0;
-  // A lock the scene declared (`enabledRotations` / `enabledTranslations`), read from the body.
   const body = godot_collision_object_body(entity);
-  if (body === undefined) return false;
+  return body !== undefined && (declaredLocks(body) & axis) !== 0;
+}
+
+/** The locks the scene declared (`enabledRotations` / `enabledTranslations`), read from the body. */
+function declaredLocks(body: NonNullable<ReturnType<typeof godot_collision_object_body>>): number {
   const inverse = body.effectiveInvMass();
   const inertia = body.effectiveWorldInvInertia();
-  const declared =
+  return (
     (inverse.x === 0 ? 1 : 0) | (inverse.y === 0 ? 2 : 0) | (inverse.z === 0 ? 4 : 0) |
-    (inertia.m11 === 0 ? 8 : 0) | (inertia.m22 === 0 ? 16 : 0) | (inertia.m33 === 0 ? 32 : 0);
-  return (declared & axis) !== 0;
+    (inertia.m11 === 0 ? 8 : 0) | (inertia.m22 === 0 ? 16 : 0) | (inertia.m33 === 0 ? 32 : 0)
+  );
 }
