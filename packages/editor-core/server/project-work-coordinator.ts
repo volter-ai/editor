@@ -1,14 +1,14 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import chokidar, { type FSWatcher } from 'chokidar';
-import { resolveProjectIdentity, resolveWorkTarget, trackerConfigPath } from 'ztrack';
-import { createZtrackSupercodeBridge, type ZtrackSupercodeBridge } from 'ztrack/supercode';
-import type { Payload } from 'ztrack/visualizer-kit';
+import { resolveProjectIdentity, resolveWorkTarget, trackerConfigPath } from '@volter/ztrack';
+import { createZtrackSupercodeBridge, type ZtrackSupercodeBridge } from '@volter/ztrack/supercode';
+import type { Payload } from '@volter/ztrack/visualizer-kit';
 import {
   buildVisualizerExtensionModule,
   loadVisualizerPayload,
   loadVisualizerTheme,
-} from 'ztrack/visualizer-node';
+} from '@volter/ztrack/visualizer-node';
 import type { ProjectWorkAssociation, ProjectWorkSnapshot } from '../src/project-work-types';
 import { unavailableProjectWorkSnapshot } from '../src/project-work-types';
 import type { HarnessChatService } from './harness-chat-service';

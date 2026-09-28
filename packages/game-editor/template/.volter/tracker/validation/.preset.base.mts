@@ -7,12 +7,12 @@
 // id) PLUS preset-specific strict fields (a status enum, AC `text`, evidence
 // `commit`). No passthrough, no unknown.
 
-// A STANDALONE preset: imports ONLY the public mechanism from `ztrack/preset-kit`.
+// A STANDALONE preset: imports ONLY the public mechanism from `@volter/ztrack/preset-kit`.
 import {
   z, toMdast, nodeText, type MdNode,
   check as runCheck, rule, gitWorld,
   type Context, type IssueColumns, type IssueRecord, type Preset, type VisualizerSpec,
-} from 'ztrack/preset-kit';
+} from '@volter/ztrack/preset-kit';
 
 // ── the hard schema (core + preset-specific, all strict) ────────────────────
 export const SpecEvidenceSchema = z.object({
@@ -145,7 +145,7 @@ const SPEC_RULES = [
 // with just id/text (no version, no proof, no image/acVersion-bearing evidence — see
 // SpecAcSchema/SpecEvidenceSchema above). Only map fields this schema actually has; a mapping
 // this preset can't back with a real field (pr, acProof, acEvidence) is simply omitted. Field
-// references and literal labels ONLY (see `VisualizerSpec`, `ztrack/preset-kit`) — no functions,
+// references and literal labels ONLY (see `VisualizerSpec`, `@volter/ztrack/preset-kit`) — no functions,
 // no markup. Installed into your repo verbatim: edit freely, keeping statusOrder in sync with
 // SpecIssueStatusSchema above (`boilerplates/presets/visualizerVocabulary.test.ts` checks that).
 const SPEC_VISUALIZER: VisualizerSpec = {
