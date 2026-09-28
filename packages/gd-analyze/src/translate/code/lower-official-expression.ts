@@ -12,6 +12,7 @@ import {
   godotNumericTag,
   godotStatedValueType,
   godotSubscriptsParameters,
+  godotTruthShape,
   godotTweenInterpolates,
   godotTypeDefault,
 } from '../data/lowering-shapes';
@@ -422,6 +423,55 @@ function objectCall(name: string, args: readonly TargetTsExpression[], negate: b
 
 function objectImport(name: string): OfficialBoundLoweringRequirement {
   return { kind: 'compat-import-requirement', module: 'lib/godot-compat/object', imported: name, local: name, typeOnly: false };
+}
+
+/**
+ * The truth of a value GDScript tests (`if v:`, `while v:`, a ternary's condition, `and`, `or`,
+ * `not`): `Variant::booleanize`, read as the truth shape of the value's datatype
+ * (`lowering-shapes.ts`) gives it, so `if count:` is `if (count !== 0)`.
+ */
+export function lowerTruth(context: LoweringContext, node: GodotBoundNode, lowered: LoweredExpression): LoweredExpression {
+  const shape = godotTruthShape(node.datatype);
+  if (shape === undefined) return context.refuse(node, `the truth of a ${node.datatype.display} value has no lowering`);
+  const at = span(context.script, node);
+  const compare = (value: TargetTsExpression, operator: TargetTsBinaryOperator, right: TargetTsExpression): TargetTsExpression => ({
+    kind: 'binary-expression',
+    operator,
+    left: value,
+    right,
+    span: at,
+  });
+  const zero: TargetTsExpression = { kind: 'literal-expression', value: 0 };
+  switch (shape.kind) {
+    case 'boolean':
+      return lowered;
+    case 'object':
+      return compose(context, [lowered], ([value]) => objectCall('godot_object_truthy', [value as TargetTsExpression], false, at), [objectImport('godot_object_truthy')]);
+    case 'variant':
+      return compose(context, [lowered], ([value]) => objectCall('godot_variant_truthy', [value as TargetTsExpression], false, at), [
+        { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-truth', imported: 'godot_variant_truthy', local: 'godot_variant_truthy', typeOnly: false },
+      ]);
+    case 'nonzero':
+      return compose(context, [lowered], ([value]) => compare(value as TargetTsExpression, '!==', zero));
+    case 'nonempty-text':
+      return compose(context, [lowered], ([value]) => compare(value as TargetTsExpression, '!==', { kind: 'literal-expression', value: '' }));
+    case 'nonempty-array':
+      return compose(context, [lowered], ([value]) => compare({ kind: 'property-expression', object: value as TargetTsExpression, property: 'length' }, '>', zero));
+    case 'nonempty-map':
+      return compose(context, [lowered], ([value]) => compare({ kind: 'property-expression', object: value as TargetTsExpression, property: 'size' }, '>', zero));
+    case 'nonzero-members': {
+      // The value is read once per member, so anything but a plain name is read once into a local.
+      const settled = settle(context, lowered);
+      const once = settled.value.kind === 'identifier-expression' ? settled : materialize(context, settled);
+      const members = shape.members.map((member) => compare({ kind: 'property-expression', object: once.value, property: member }, '!==', zero));
+      return {
+        ...once,
+        value: members.reduce((left, right) => ({ kind: 'binary-expression', operator: '||', left, right, span: at })),
+      };
+    }
+    default:
+      return shape satisfies never;
+  }
 }
 
 /**
@@ -2091,9 +2141,11 @@ export function lowerOfficialExpression(
           );
         }
         if (recipe.kind !== 'unary') return context.refuse(node, 'unreachable unary recipe');
+        const operand = lowerExpression(context, operandNode);
         return compose(
           context,
-          [lowerExpression(context, operandNode)],
+          // `not` tests its operand's truth (`Variant::booleanize`).
+          [recipe.operator === '!' ? lowerTruth(context, operandNode, operand) : operand],
           ([operand]) => ({
             kind: 'unary-expression',
             operator: recipe.operator,
@@ -2166,8 +2218,10 @@ export function lowerOfficialExpression(
           );
         }
         if (recipe.kind !== 'binary') return context.refuse(node, 'unreachable binary recipe');
-        const left = lowerExpression(context, leftNode);
-        const right = lowerExpression(context, rightNode);
+        // `and` and `or` test each operand's truth (`Variant::booleanize`) and yield a bool.
+        const logic = recipe.operator === '&&' || recipe.operator === '||';
+        const left = logic ? lowerTruth(context, leftNode, lowerExpression(context, leftNode)) : lowerExpression(context, leftNode);
+        const right = logic ? lowerTruth(context, rightNode, lowerExpression(context, rightNode)) : lowerExpression(context, rightNode);
         if (recipe.operator === '&&' || recipe.operator === '||' || recipe.operator === '??') {
           const settledLeft = settle(context, left);
           if ((recipe.operator === '&&' || recipe.operator === '||') && (right.before.length > 0 || right.after.length > 0)) {
@@ -2683,7 +2737,7 @@ export function lowerOfficialExpression(
           trueNode,
           falseNode,
         ]);
-        const condition = settle(context, lowerExpression(context, conditionNode));
+        const condition = settle(context, lowerTruth(context, conditionNode, lowerExpression(context, conditionNode)));
         const whenTrue = lowerExpression(context, trueNode);
         const whenFalse = lowerExpression(context, falseNode);
         return {

@@ -3780,6 +3780,175 @@
         "kind": "structural",
         "construct": "await"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IF",
+        "semanticKey": "if|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "if"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IF",
+        "semanticKey": "if|annotations:[]",
+        "inputDatatypes": [
+          "ENUM:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "if"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IF",
+        "semanticKey": "if|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "if"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "WHILE",
+        "semanticKey": "while|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "while"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "WHILE",
+        "semanticKey": "while|annotations:[]",
+        "inputDatatypes": [
+          "NATIVE:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "while"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "WHILE",
+        "semanticKey": "while|annotations:[]",
+        "inputDatatypes": [
+          "CLASS:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "while"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "WHILE",
+        "semanticKey": "while|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "while"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "TERNARY_OPERATOR",
+        "semanticKey": "ternary|annotations:[]",
+        "inputDatatypes": [
+          "*",
+          "*",
+          "*"
+        ],
+        "resultDatatype": "*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "ternary"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_LOGIC_AND:20|annotations:[]",
+        "inputDatatypes": [
+          "*",
+          "*"
+        ],
+        "resultDatatype": "*"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "&&"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_LOGIC_OR:21|annotations:[]",
+        "inputDatatypes": [
+          "*",
+          "*"
+        ],
+        "resultDatatype": "*"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "||"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "UNARY_OPERATOR",
+        "semanticKey": "operator:OP_LOGIC_NOT:23|annotations:[]",
+        "inputDatatypes": [
+          "*"
+        ],
+        "resultDatatype": "*"
+      },
+      "target": {
+        "kind": "unary",
+        "operator": "!"
+      }
     }
   ],
   "datatypes": [

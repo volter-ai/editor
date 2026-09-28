@@ -11,6 +11,7 @@ import {
   builtinConversion,
   convertedValue,
   lowerOfficialExpression,
+  lowerTruth,
   lowerTypeDefault,
   numericTag,
 } from './lower-official-expression';
@@ -344,23 +345,8 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
     case 'IF': {
       const conditionNode = context.node(node.condition, node);
       const structuralRequirements = context.structural(node, 'if', [conditionNode]);
-      const lowered = lowerExpression(context, conditionNode);
-      // An Object condition is its truth (`Variant::booleanize`): false when null or freed.
-      const objectCondition =
-        (conditionNode.datatype.kind === 'NATIVE' || conditionNode.datatype.kind === 'CLASS' || conditionNode.datatype.kind === 'SCRIPT') && !conditionNode.datatype.metaType;
-      const condition = settleForStatement(
-        context,
-        objectCondition
-          ? {
-              ...lowered,
-              value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_object_truthy' }, arguments: [lowered.value] },
-              requirements: [
-                ...lowered.requirements,
-                { kind: 'compat-import-requirement', module: 'lib/godot-compat/object', imported: 'godot_object_truthy', local: 'godot_object_truthy', typeOnly: false },
-              ],
-            }
-          : lowered,
-      );
+      // The condition is its truth (`Variant::booleanize`): an Object false when null or freed.
+      const condition = settleForStatement(context, lowerTruth(context, conditionNode, lowerExpression(context, conditionNode)));
       const whenTrue = lowerOfficialSuite(context, context.node(node.trueBlock, node));
       const whenFalse =
         node.falseBlock < 0
@@ -390,7 +376,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
     case 'WHILE': {
       const conditionNode = context.node(node.condition, node);
       const structuralRequirements = context.structural(node, 'while', [conditionNode]);
-      const condition = lowerExpression(context, conditionNode);
+      const condition = lowerTruth(context, conditionNode, lowerExpression(context, conditionNode));
       if (condition.before.length > 0 || condition.after.length > 0) {
         return context.refuse(
           conditionNode,

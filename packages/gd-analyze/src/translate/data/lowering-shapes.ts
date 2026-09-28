@@ -214,6 +214,67 @@ export function godotStatedValueType(datatype: GodotBoundDatatype): boolean {
   return datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && builtinShape(datatype)?.stated !== false);
 }
 
+/**
+ * How a value's truth is read where GDScript tests it (`if v:`, `while v:`, `c if v else d`, `and`,
+ * `or`, `not`): `Variant::booleanize`, which is `!is_zero()` (core/variant/variant.cpp:878), by the
+ * value's datatype as analysis gives it.
+ */
+export type GodotTruthShape =
+  /** A bool is its own truth. */
+  | { readonly kind: 'boolean' }
+  /** An Object: live is true, null or freed false (compat's `godot_object_truthy`). */
+  | { readonly kind: 'object' }
+  /** An int, float or enum: `v !== 0`. */
+  | { readonly kind: 'nonzero' }
+  /** A String or StringName: `v !== ''` (`String()` is empty). */
+  | { readonly kind: 'nonempty-text' }
+  /** An Array or packed array, which compat holds as a JS array: `v.length > 0`. */
+  | { readonly kind: 'nonempty-array' }
+  /** A Dictionary, which compat holds as a Map: `v.size > 0`. */
+  | { readonly kind: 'nonempty-map' }
+  /** A vector whose zero construction has every member 0: true when any member is not 0. */
+  | { readonly kind: 'nonzero-members'; readonly members: readonly string[] }
+  /** An untyped value: its truth by the type it holds at run time (compat's `godot_variant_truthy`). */
+  | { readonly kind: 'variant' };
+
+const NONZERO: GodotTruthShape = { kind: 'nonzero' };
+const NONEMPTY_TEXT: GodotTruthShape = { kind: 'nonempty-text' };
+const NONEMPTY_ARRAY: GodotTruthShape = { kind: 'nonempty-array' };
+
+const BUILTIN_TRUTH: Readonly<Record<string, GodotTruthShape>> = {
+  bool: { kind: 'boolean' },
+  int: NONZERO,
+  float: NONZERO,
+  String: NONEMPTY_TEXT,
+  StringName: NONEMPTY_TEXT,
+  Array: NONEMPTY_ARRAY,
+  PackedStringArray: NONEMPTY_ARRAY,
+  Dictionary: { kind: 'nonempty-map' },
+  Vector2: { kind: 'nonzero-members', members: ['x', 'y'] },
+  Vector2i: { kind: 'nonzero-members', members: ['x', 'y'] },
+  Vector3: { kind: 'nonzero-members', members: ['x', 'y', 'z'] },
+  Vector3i: { kind: 'nonzero-members', members: ['x', 'y', 'z'] },
+};
+
+/** How a value of this datatype is tested for truth, or undefined where the lane reads none. */
+export function godotTruthShape(datatype: GodotBoundDatatype): GodotTruthShape | undefined {
+  if (datatype.metaType) return undefined;
+  switch (datatype.kind) {
+    case 'NATIVE':
+    case 'CLASS':
+    case 'SCRIPT':
+      return { kind: 'object' };
+    case 'ENUM':
+      return NONZERO;
+    case 'VARIANT':
+      return { kind: 'variant' };
+    case 'BUILTIN':
+      return BUILTIN_TRUTH[datatype.builtinType];
+    default:
+      return undefined;
+  }
+}
+
 /** Opaque literals written as their text: a NodePath is its path text (`NodePath::operator String`), which `Node.get_node` walks. */
 const TEXT_LITERALS: ReadonlySet<string> = new Set(['NodePath']);
 
