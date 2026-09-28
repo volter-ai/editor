@@ -4,8 +4,8 @@
   "id": "blender",
   "packageJson": {
     "dependencies": {
-      "@volter/editor-blender": "0.1.22",
-      "@volter/blender-engine": "0.1.20"
+      "@volter/editor-blender": "0.1.24",
+      "@volter/blender-engine": "0.1.22"
     }
   },
   "requires": [

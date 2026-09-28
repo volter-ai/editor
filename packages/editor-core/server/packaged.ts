@@ -258,6 +258,7 @@ import {
 import { isProjectScratchPath } from './project-scratch-path';
 import { createProjectServingPlugins } from './project-serving-plugins';
 import {
+  editorAllowedHosts,
   friendlyListenError,
   resolveBindHost,
   resolveInstalledPackageSrcDir,
@@ -908,6 +909,10 @@ async function main(): Promise<void> {
     },
     server: {
       middlewareMode: true,
+      // The hosts this session's pages are served under, beyond loopback: Vite refuses any other
+      // Host with a 403 before a route sees it, and a session running in a browser tab is asked
+      // for as the page's own host (`editorAllowedHosts`).
+      allowedHosts: editorAllowedHosts(),
       // `overlay: false` for the same product reason as `dev.ts`'s instance:
       // this server's project modules load into the SAME page as the packaged
       // editor shell, so Vite's full-screen error overlay would cover the

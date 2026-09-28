@@ -399,6 +399,27 @@ export function isLoopbackHostname(host: string): boolean {
 }
 
 /**
+ * The hosts, beyond loopback, whose pages may call this session: `VOLTER_EDITOR_HOST` (the
+ * address it binds, when that is not loopback) and the origins its host names in
+ * `VOLTER_EDITOR_ORIGINS` (comma-separated). A session running inside a browser tab is reached
+ * only by the page that runs it, at whatever origin that page is served from; the page names
+ * that origin here, since a loopback rule cannot know it.
+ */
+export function editorAllowedHosts(env: NodeJS.ProcessEnv = process.env): string[] {
+  const hosts = env['VOLTER_EDITOR_HOST'] ? [env['VOLTER_EDITOR_HOST']] : [];
+  for (const origin of (env['VOLTER_EDITOR_ORIGINS'] ?? '').split(',')) {
+    const trimmed = origin.trim();
+    if (!trimmed) continue;
+    try {
+      hosts.push(new URL(trimmed).hostname);
+    } catch {
+      throw new Error(`VOLTER_EDITOR_ORIGINS names "${trimmed}", which is not an origin (https://host[:port]).`);
+    }
+  }
+  return hosts;
+}
+
+/**
  * CSRF / drive-by defense for mutating `/__editor/*` routes. A browser always
  * sends an `Origin` on cross-site POSTs; if present it must be a loopback origin,
  * the Code-OSS desktop frame ({@link DESKTOP_FRAME_ORIGIN}), or an

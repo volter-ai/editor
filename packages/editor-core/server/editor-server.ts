@@ -101,6 +101,7 @@ import { registerThemeRoutes } from './routes/themes';
 import { registerToolRoutes } from './routes/tools';
 import { registerWorktreeRoutes } from './routes/worktrees';
 import {
+  editorAllowedHosts,
   isAllowedEditorOrigin,
   isCanonicalPathInside,
   isCanonicalWritePathInside,
@@ -748,10 +749,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
    */
   const heartbeat = createTabHeartbeatServer({
     authorize: (request) =>
-      isAllowedEditorOrigin(
-        headerValue(request, 'origin'),
-        process.env['VOLTER_EDITOR_HOST'] ? [process.env['VOLTER_EDITOR_HOST']] : [],
-      )
+      isAllowedEditorOrigin(headerValue(request, 'origin'), editorAllowedHosts())
         ? null
         : 'Cross-origin request rejected.',
     beat: (beat) => {
@@ -1295,9 +1293,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     const isMutating =
       method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
     if (isMutating && req.path.startsWith('/__editor')) {
-      const host = process.env['VOLTER_EDITOR_HOST'];
-      const extra = host ? [host] : [];
-      if (!isAllowedEditorOrigin(req.headers.origin, extra)) {
+      if (!isAllowedEditorOrigin(req.headers.origin, editorAllowedHosts())) {
         res.status(403).json({ error: 'Cross-origin request rejected.' });
         return;
       }
