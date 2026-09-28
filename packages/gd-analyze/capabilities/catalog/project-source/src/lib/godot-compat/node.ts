@@ -1389,6 +1389,30 @@ export function godot_node_tree_signal(self: object, name: 'tree_entered' | 'tre
   return (name === 'tree_entered' ? state.treeEntered : state.treeExiting).signal;
 }
 
+/**
+ * @godot Node.ready
+ * @source scene/main/node.cpp:4026
+ */
+export function ready(self: object): GodotSignal<[]> {
+  return nodeState(self, 'ready').ready.signal;
+}
+
+/**
+ * @godot Node.tree_entered
+ * @source scene/main/node.cpp:4028
+ */
+export function tree_entered(self: object): GodotSignal<[]> {
+  return nodeState(self, 'tree_entered').treeEntered.signal;
+}
+
+/**
+ * @godot Node.tree_exiting
+ * @source scene/main/node.cpp:4029
+ */
+export function tree_exiting(self: object): GodotSignal<[]> {
+  return nodeState(self, 'tree_exiting').treeExiting.signal;
+}
+
 // --- The mounted scene forest.
 
 /**
@@ -1526,9 +1550,11 @@ export function godot_node_add_unmounted(handler: (parent: object, child: object
  * The node React mounted for an instantiated scene's root stands for the stand-in the script
  * held until then: every call through either reaches the mounted node. It takes what the script
  * set on the stand-in before `add_child`, which Godot's instantiated node already held: its name
- * (which `add_child` then makes unique among its siblings), groups (joining the scene's own), process mode and priorities.
- * Not carried: a native class test (`as Node3D`) on a script-less stand-in, which has no class
- * until it mounts.
+ * (which `add_child` then makes unique among its siblings), groups (joining the scene's own),
+ * process mode and priorities, and the connections to its `ready`, `tree_entered` and
+ * `tree_exiting` signals where the scene connected none of its own to that signal (where both
+ * did, the scene's are kept and the script's lost). Not carried: a native class test
+ * (`as Node3D`) on a script-less stand-in, which has no class until it mounts.
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:318
@@ -1544,6 +1570,9 @@ export function godot_node_stand_in(standIn: object, mounted: object): void {
   if (held.processMode !== PROCESS_MODE_INHERIT) state.processMode = held.processMode;
   if (held.processPriority !== 0) state.processPriority = held.processPriority;
   if (held.physicsProcessPriority !== 0) state.physicsProcessPriority = held.physicsProcessPriority;
+  if (held.ready.signal.hasConnections() && !state.ready.signal.hasConnections()) state.ready = held.ready;
+  if (held.treeEntered.signal.hasConnections() && !state.treeEntered.signal.hasConnections()) state.treeEntered = held.treeEntered;
+  if (held.treeExiting.signal.hasConnections() && !state.treeExiting.signal.hasConnections()) state.treeExiting = held.treeExiting;
 }
 
 // --- Input processing.
