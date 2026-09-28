@@ -93,7 +93,6 @@ interface NodeState {
   treeExiting: SignalHandle<[]>;
   internalPhysics: ((delta: number) => void) | undefined;
   internalProcess: ((delta: number) => void) | undefined;
-  internalDraw: (() => void) | undefined;
   /** The node's Godot class and its native ancestors, nearest first, as the scene records it. */
   classes: readonly string[] | undefined;
   /** The scene root that owns the node (`Node::data.owner`), when a scene placed it. */
@@ -161,7 +160,6 @@ function fresh(): NodeState {
     addedScenes: undefined,
     internalPhysics: undefined,
     internalProcess: undefined,
-    internalDraw: undefined,
   };
 }
 
@@ -601,31 +599,15 @@ export function godot_node_set_internal_process(entity: object, process: ((delta
 }
 
 /**
- * Sets (or clears) what a node hands the renderer each frame, which the node's own component runs
- * from the host's frame (`useGodotAdvance`) while the node is inside the tree, whatever its process
- * mode: Godot's rendering server draws the world as it stands each frame, paused or not
- * (`RenderingServerDefault::draw`).
- *
- * @godot Node (protocol)
- * @source servers/rendering/rendering_server_default.cpp:443
- */
-export function godot_node_set_internal_draw(entity: object, draw: (() => void) | undefined): void {
-  stateOf(entity).internalDraw = draw;
-}
-
-/**
  * Runs a node's own internal processing for one host frame or physics step, when it is inside the
- * tree and its process mode lets it run, and on a frame what it hands the renderer, whatever its
- * process mode. Called by the node's component, never by a list.
+ * tree and its process mode lets it run. Called by the node's component, never by a list.
  *
  * @godot Node (protocol)
  * @source scene/main/scene_tree.cpp:1219
  */
 export function godot_node_advance(entity: object, physics: boolean, delta: number): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree) return;
-  if (!physics) state.internalDraw?.();
-  if (!processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || !processModeAllows(entity, state, false)) return;
   (physics ? state.internalPhysics : state.internalProcess)?.(delta);
 }
 

@@ -6,16 +6,18 @@
  * component's hooks: the host's `useFrame` for its internal processing and `useBeforePhysicsStep`
  * for its internal physics processing, as a three.js component animates itself. The only hooks
  * compat takes from the host, each advancing one node: compat never drives other nodes' work from
- * the frame (docs/GODOT.md §The lane's law, row 4). The SceneTree advances the same way, from the
+ * the frame (docs/GODOT.md §The lane's law, row 4). A node that hands the renderer something each
+ * frame (a WorldEnvironment) does it from its own component too (`useGodotDraw`). The SceneTree
+ * advances the same way, from the
  * world's component (`useGodotTree`): its own frames, timers, tweens and deletion queue; and the
  * root Window, a node, from its own (`useGodotRootWindow`): the page's input and its canvas items.
  */
 
 import { useFrame, useThree } from '@react-three/fiber';
 import { useBeforePhysicsStep, useRapier } from '@react-three/rapier';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { godot_canvas_draw } from './canvas-item';
-import { get_physics_process_delta_time, godot_node_advance } from './node';
+import { get_physics_process_delta_time, godot_node_advance, is_inside_tree } from './node';
 import { godot_tree_physics_begin, godot_tree_physics_end, godot_tree_process_begin, godot_tree_process_end } from './scene-tree';
 import { godot_window_canvas_layer, godot_window_process_events } from './window';
 
@@ -28,6 +30,23 @@ import { godot_window_canvas_layer, godot_window_process_events } from './window
 export function useGodotAdvance(entity: object): void {
   useFrame((_, delta) => godot_node_advance(entity, false, delta));
   useBeforePhysicsStep(() => godot_node_advance(entity, true, get_physics_process_delta_time(entity)));
+}
+
+/**
+ * What one node hands the renderer each frame, from its component's frame while the node is inside
+ * the tree, whatever its process mode: Godot's rendering server draws the world as it stands each
+ * frame, paused or not (`RenderingServerDefault::draw`). A WorldEnvironment draws its environment
+ * this way.
+ *
+ * @godot Node (protocol)
+ * @source servers/rendering/rendering_server_default.cpp:443
+ */
+export function useGodotDraw(entity: object | undefined, draw: () => void): void {
+  const current = useRef(draw);
+  current.current = draw;
+  useFrame(() => {
+    if (entity !== undefined && is_inside_tree(entity)) current.current();
+  });
 }
 
 /**

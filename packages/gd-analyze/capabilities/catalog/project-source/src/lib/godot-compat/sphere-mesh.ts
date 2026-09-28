@@ -189,6 +189,7 @@ export function get_rings(self: SphereMesh): number {
  * @source scene/resources/3d/primitive_meshes.cpp:2167
  */
 export function set_is_hemisphere(self: SphereMesh, hemisphere: boolean): void {
+  if (hemisphere === self.is_hemisphere) return;
   godot_primitive_mesh_unchanged(self, 'SphereMesh.set_is_hemisphere');
   self.is_hemisphere = hemisphere;
 }

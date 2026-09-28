@@ -240,6 +240,7 @@ export function get_rings(self: CylinderMesh): number {
  * @source scene/resources/3d/primitive_meshes.cpp:1374
  */
 export function set_cap_top(self: CylinderMesh, cap: boolean): void {
+  if (cap === self.cap_top) return;
   godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_cap_top');
   self.cap_top = cap;
 }
@@ -257,6 +258,7 @@ export function is_cap_top(self: CylinderMesh): boolean {
  * @source scene/resources/3d/primitive_meshes.cpp:1387
  */
 export function set_cap_bottom(self: CylinderMesh, cap: boolean): void {
+  if (cap === self.cap_bottom) return;
   godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_cap_bottom');
   self.cap_bottom = cap;
 }

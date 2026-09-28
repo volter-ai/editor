@@ -204,6 +204,7 @@ export function get_mesh_arrays(self: PrimitiveMesh): MeshArrays {
  * @source scene/resources/3d/primitive_meshes.cpp:304
  */
 export function set_flip_faces(self: PrimitiveMesh, flip: boolean): void {
+  if (flip === self.flip_faces) return;
   godot_primitive_mesh_unchanged(self, 'PrimitiveMesh.set_flip_faces');
   self.flip_faces = flip;
 }
@@ -213,6 +214,7 @@ export function set_flip_faces(self: PrimitiveMesh, flip: boolean): void {
  * @source scene/resources/3d/primitive_meshes.cpp:270
  */
 export function set_material(self: PrimitiveMesh, material: object | null): void {
+  if (material === (self.material ?? null)) return;
   godot_primitive_mesh_unchanged(self, 'PrimitiveMesh.set_material');
   self.material = material;
 }
@@ -240,7 +242,11 @@ const DRAWN = new WeakSet<PrimitiveMesh>();
  * A property of a primitive mesh already drawn changes: Godot rebuilds its surface and every node
  * drawing it redraws (`request_update`, `primitive_meshes.cpp:139`). The drawn geometry is three's
  * and is not rebuilt from Godot's builders, so the change fails by name rather than leaving the
- * old shape on screen. A mesh not yet drawn takes its properties freely.
+ * old shape on screen; setting a value the mesh already has changes nothing and passes. A mesh not
+ * yet drawn takes its properties freely. Known gaps: a mesh is drawn as soon as a node takes it
+ * (`set_mesh`), where Godot defers the build to the frame, so `mesh = PlaneMesh.new()` followed by
+ * a setter in the same callback fails; and a drawn mesh's `material` or `flip_faces`, which Godot
+ * applies without a rebuild, fails the same way.
  *
  * @godot PrimitiveMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:139

@@ -41,8 +41,8 @@
  * Lighting and the output encoding are three's own: the scene is lit and encoded as three draws
  * any scene, and nothing here changes three's shader chunks.
  *
- * The environment drawn is resolved each frame by the WorldEnvironment's own processing, which its
- * component runs from the host's frame as any node that advances itself (`useGodotAdvance`); the
+ * The environment drawn is resolved each frame by the WorldEnvironment's own component, from its
+ * frame while the node is inside the tree (`useGodotDraw`); the
  * scene's first mounted one draws, for R3F's camera, as the renderer resolves it per camera
  * (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722): the camera's own
  * (`Camera3D.environment`), else the world's. Nothing is done from the scene's render hooks or the
@@ -69,9 +69,12 @@
  *   WorldEnvironment draws with three's defaults. Knowingly deferred: drawing it needs the camera's
  *   own component to draw it, which Camera3D's binding does not yet do;
  * - the environment is drawn each frame the node is inside the tree, whatever its process mode, as
- *   Godot's renderer draws it (`godot_node_set_internal_draw`); its sky lights are read in that
- *   frame's order among the scripts' hooks, so a light a script turns later in the same frame shows
- *   in the next;
+ *   Godot's renderer draws it (`useGodotDraw`); its sky lights are read in that frame's order among
+ *   the scripts' hooks, so a light a script turns later in the same frame shows in the next;
+ * - a WorldEnvironment taken out of the tree while its component stays mounted stops drawing but
+ *   stays registered, so the environment it drew stays on screen and another WorldEnvironment in
+ *   the tree does not take over; Godot unregisters it on leaving the tree (`world_environment.cpp`,
+ *   `NOTIFICATION_EXIT_TREE`);
  * - a sky light's energy is the light's `light_energy` alone: Godot negates it for a negative light,
  *   multiplies it by `light_intensity_lumens` with physical light units on, and by the camera
  *   attributes' exposure normalization (`rasterizer_scene_gles3.cpp:750-758`); none of these is
@@ -121,7 +124,8 @@ import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
 import { get_environment as get_camera_environment } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
-import { godot_node_foreign, godot_node_set_internal_draw } from './node';
+import { useGodotDraw } from './advance';
+import { godot_node_foreign } from './node';
 import { get_global_basis } from './node-3d';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
@@ -621,8 +625,6 @@ const WORLD_ENVIRONMENT: GodotElementClass<Group> = {
   spatial: false,
   mount: (entity) => set_environment(entity, null),
   props: new Map<string, GodotElementProp<Group>>([['environment', (self, value: Environment | null) => set_environment(self, value)]]),
-  // Its drawing, from its own component's frame (`useGodotAdvance`).
-  advances: true,
 };
 
 /** A WorldEnvironment's props: the node's, and the refs of the directional lights its sky reads. */
@@ -654,16 +656,14 @@ export function GodotWorldEnvironment({ skyLights = NO_SKY_LIGHTS, ...props }: G
   const node = (element.props as { object?: Group }).object;
   useLayoutEffect(() => {
     if (node === undefined) return undefined;
-    const withdraw = godot_world_environment_register(scene, node);
-    godot_node_set_internal_draw(node, () => {
-      const state = get();
-      drawFrame(scene, node, state.gl, state.camera, lights.current);
-    });
-    return () => {
-      godot_node_set_internal_draw(node, undefined);
-      withdraw();
-    };
-  }, [node, scene, get]);
+    return godot_world_environment_register(scene, node);
+  }, [node, scene]);
+  // Its drawing, from its own component's frame while it is inside the tree (`useGodotDraw`).
+  useGodotDraw(node, () => {
+    if (node === undefined) return;
+    const state = get();
+    drawFrame(scene, node, state.gl, state.camera, lights.current);
+  });
   // Glow, SSAO or the adjustments: the renderer's post pass (`environment-post.ts`), which
   // `postprocessing`'s composer renders in place of R3F's own frame, without MSAA as Godot's 3D
   // (`rendering/anti_aliasing/quality/msaa_3d`, 0).

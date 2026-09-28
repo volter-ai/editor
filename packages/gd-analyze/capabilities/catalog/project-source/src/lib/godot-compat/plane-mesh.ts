@@ -113,6 +113,7 @@ export function construct(): PlaneMesh {
  * @source scene/resources/3d/primitive_meshes.cpp:1531
  */
 export function set_size(self: PlaneMesh, size: Vector2): void {
+  if (equalApprox(size.x, self.size.x) && equalApprox(size.y, self.size.y)) return;
   godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_size');
   self.size = vector2(size);
 }
@@ -132,6 +133,7 @@ export function get_size(self: PlaneMesh): Vector2 {
  * @source scene/resources/3d/primitive_meshes.cpp:1544
  */
 export function set_subdivide_width(self: PlaneMesh, divisions: number): void {
+  if ((divisions > 0 ? divisions : 0) === self.subdivide_width) return;
   godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_subdivide_width');
   self.subdivide_width = divisions > 0 ? divisions : 0;
 }
@@ -149,6 +151,7 @@ export function get_subdivide_width(self: PlaneMesh): number {
  * @source scene/resources/3d/primitive_meshes.cpp:1556
  */
 export function set_subdivide_depth(self: PlaneMesh, divisions: number): void {
+  if ((divisions > 0 ? divisions : 0) === self.subdivide_depth) return;
   godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_subdivide_depth');
   self.subdivide_depth = divisions > 0 ? divisions : 0;
 }
@@ -185,6 +188,7 @@ export function get_center_offset(self: PlaneMesh): Vector3 {
  * @source scene/resources/3d/primitive_meshes.cpp:1580
  */
 export function set_orientation(self: PlaneMesh, orientation: number): void {
+  if (orientation === self.orientation) return;
   godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_orientation');
   self.orientation = orientation;
 }
