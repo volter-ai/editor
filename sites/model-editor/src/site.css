@@ -1,0 +1,77 @@
+/* The Model Editor's home page, drawn only with the brand's roles (brand/tokens.css): paper ground, ink type in Geist,
+   Geist Mono labels, hairline rules, nearly square corners; lime for the one emphasis. */
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--volter-surface-page);
+  color: var(--volter-text-primary);
+  font-family: var(--volter-font-ui);
+  font-size: var(--volter-font-size-md);
+  line-height: 1.55;
+}
+a { color: inherit; }
+code { font-family: var(--volter-font-data); font-size: 0.92em; }
+img { display: block; }
+
+.bar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--volter-space-4);
+  max-width: 1040px; margin: 0 auto; padding: var(--volter-space-5) var(--volter-space-6);
+}
+header.bar { border-bottom: var(--volter-line-hairline) solid var(--volter-border-subtle); }
+footer.bar { border-top: var(--volter-line-hairline) solid var(--volter-border-subtle); margin-top: var(--volter-space-16); }
+.product { display: flex; align-items: center; gap: var(--volter-space-3); text-decoration: none; font-weight: 500; }
+nav { display: flex; gap: var(--volter-space-5); }
+nav a { display: inline-flex; align-items: center; gap: var(--volter-space-2); text-decoration: none; color: var(--volter-text-muted); }
+nav a:hover { color: var(--volter-text-primary); }
+
+main { max-width: 1040px; margin: 0 auto; padding: 0 var(--volter-space-6); }
+.label {
+  font-family: var(--volter-font-data); font-size: var(--volter-font-size-xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--volter-text-muted); margin: 0 0 var(--volter-space-3);
+}
+
+.hero { padding: var(--volter-space-16) 0 var(--volter-space-12); max-width: 880px; }
+.hero .lede { max-width: 720px; }
+h1 {
+  font-size: var(--volter-font-size-display); line-height: 1.05; letter-spacing: -0.02em; font-weight: 600;
+  margin: 0 0 var(--volter-space-6);
+}
+h1 em { font-style: normal; background: var(--volter-accent-lime); color: var(--volter-text-on-bright-muted); padding: 0 0.12em; white-space: nowrap; }
+.lede { font-size: var(--volter-font-size-lg); color: var(--volter-text-muted); margin: 0 0 var(--volter-space-8); }
+.install {
+  display: inline-flex; align-items: center; gap: var(--volter-space-2);
+  border: var(--volter-line-hairline) solid var(--volter-border-default); border-radius: var(--volter-radius-control);
+  background: var(--volter-surface-raised); padding: var(--volter-space-2) var(--volter-space-2) var(--volter-space-2) var(--volter-space-4);
+}
+.install code { font-size: var(--volter-font-size-md); }
+.install button {
+  display: inline-flex; border: 0; background: none; color: var(--volter-text-muted); cursor: pointer;
+  padding: var(--volter-space-2); border-radius: var(--volter-radius-control);
+}
+.install button:hover { background: var(--volter-surface-subtle); color: var(--volter-text-primary); }
+.note { font-size: var(--volter-font-size-sm); color: var(--volter-text-muted); margin: var(--volter-space-3) 0 0; }
+
+.film { margin: 0 0 var(--volter-space-12); }
+.film video {
+  display: block; width: 100%; height: auto; background: var(--volter-surface-media);
+  border: var(--volter-line-hairline) solid var(--volter-border-default); border-radius: var(--volter-radius-panel);
+}
+.film figcaption { font-size: var(--volter-font-size-sm); color: var(--volter-text-muted); margin-top: var(--volter-space-3); }
+
+.points {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--volter-space-8);
+  border-top: var(--volter-line-hairline) solid var(--volter-border-subtle); padding-top: var(--volter-space-8);
+}
+.points p { margin: 0; }
+.points p + p { color: var(--volter-text-muted); }
+
+.limits { margin-top: var(--volter-space-12); border-top: var(--volter-line-hairline) solid var(--volter-border-subtle); padding-top: var(--volter-space-8); }
+.limits ul { margin: 0; padding-left: 1.1em; color: var(--volter-text-muted); }
+.limits li + li { margin-top: var(--volter-space-2); }
+
+@media (max-width: 720px) {
+  .points { grid-template-columns: 1fr; }
+  .hero { padding-top: var(--volter-space-12); }
+  nav { gap: var(--volter-space-3); }
+}

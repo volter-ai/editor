@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Volter Model Editor — Blender, driven by your coding agent</title>
+  <meta name="description" content="Blender 5.2, compiled to WebAssembly, in an editor your coding agent can drive. Open source. macOS on Apple Silicon.">
+  <meta property="og:title" content="Volter Model Editor">
+  <meta property="og:description" content="Blender, driven by your coding agent. Open source.">
+  <link rel="icon" href="brand/favicon.png">
+  <link rel="stylesheet" href="brand/tokens.css">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="product" href="./">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="brand/logo-dark.svg">
+        <img src="brand/logo.svg" width="28" height="28" alt="">
+      </picture>
+      <span>Volter Model Editor</span>
+    </a>
+    <nav>
+      <a href="https://github.com/volter-ai/editor/tree/main/packages/model-editor">GitHub</a>
+      <a href="https://www.npmjs.com/package/@volter/model-editor">npm</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="label">Open source · macOS on Apple Silicon</p>
+      <h1>Blender, driven by <em>your coding agent</em></h1>
+      <p class="lede">Blender 5.2, compiled to WebAssembly, inside an editor your coding agent can drive. Ask for a model; the agent builds it through Blender's own Python, photographs it, and every edit saves to the project's <code>.blend</code>.</p>
+      <div class="install">
+        <code id="command">npx @volter/model-editor create my-models</code>
+        <button type="button" id="copy" aria-label="Copy the command"><img src="brand/copy.svg" width="16" height="16" alt=""></button>
+      </div>
+      <p class="note">Node.js 24 on macOS with Apple Silicon. The command makes the project, installs the editor once, and opens it.</p>
+    </section>
+
+    <!-- video -->
+    <figure class="film">
+      <video src="launch.mp4" poster="launch-poster.png" controls playsinline muted preload="metadata"></video>
+      <figcaption>Claude Code, in the editor's Chat pane, replaces the starter cube with a desk lamp, photographs it, dims a blown-out light and shoots again. The middle part runs at four times its speed.</figcaption>
+    </figure>
+    <!-- /video -->
+
+    <section class="points">
+      <div>
+        <p class="label">Blender itself</p>
+        <p>Not a lookalike: Blender 5.2 built for the browser from its public source, the same <code>bpy</code> your scripts already use.</p>
+      </div>
+      <div>
+        <p class="label">Your agent</p>
+        <p>The Chat pane runs the coding agent you already use — Claude Code, Codex and others. Through Blender's Python and MCP it inspects, edits and photographs the model.</p>
+      </div>
+      <div>
+        <p class="label">A real .blend</p>
+        <p>Every edit saves to the project's <code>.blend</code> and survives reopening.</p>
+      </div>
+    </section>
+
+    <section class="limits">
+      <p class="label">Today</p>
+      <ul>
+        <li>macOS on Apple Silicon. Windows and Linux come later.</li>
+        <li>Rendering is not yet at parity with Blender's Cycles.</li>
+        <li>Open source: the editor under AGPL-3.0, Blender under the GPL. Licenses and notices are in <a href="https://github.com/volter-ai/editor/blob/main/LICENSE.md">the repository</a>.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="bar">
+    <a href="https://volter.ai"><img src="brand/wordmark.svg" height="20" alt="Volter"></a>
+    <span class="label">volter.ai</span>
+  </footer>
+  <script>
+    document.getElementById('copy').addEventListener('click', async (event) => {
+      await navigator.clipboard.writeText(document.getElementById('command').textContent);
+      event.currentTarget.setAttribute('aria-label', 'Copied');
+    });
+  </script>
+</body>
+</html>
