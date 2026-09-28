@@ -39,6 +39,8 @@ export interface SceneTree {
 
 const processFrame = createSignal<[]>();
 const physicsFrame = createSignal<[]>();
+/** A scene reload already deferred in the current task (`reload_current_scene`). */
+let reloadQueued = false;
 const TREE: SceneTree = Object.freeze({ process_frame: processFrame.signal, physics_frame: physicsFrame.signal });
 
 const clock = {
@@ -57,7 +59,6 @@ interface Owned {
   tweens: Tween[];
 }
 /** The creator's own record of what it made, held on the instance as a component holds its tweens. */
-let reloadQueued = false;
 const OWNED = Symbol('godot.owned');
 type Owner = { [OWNED]?: Owned };
 function ownedBy(creator: object): Owned {
@@ -352,7 +353,8 @@ export function get_frame(self: SceneTree): number {
  * With no current scene (no host reload registered) `ERR_UNCONFIGURED`; otherwise the scene is
  * reloaded once the current work is done, as JavaScript defers (a microtask, as `queue_delete`
  * is), where Godot swaps it in its next process pass (`scene/main/scene_tree.cpp:1673`), and `OK`
- * is returned. Two calls in one frame reload once.
+ * is returned. Calls in one task reload once; calls in two tasks before React swaps the scene (a
+ * DOM input handler and the next frame's `_process`) reload twice, where Godot changes it once.
  *
  * @godot SceneTree.reload_current_scene
  * @source scene/main/scene_tree.cpp:1747

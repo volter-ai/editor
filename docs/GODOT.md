@@ -359,7 +359,8 @@ emitter prints:
    caller with no component to own them is refused by name: a script no node or autoload runs (a
    RefCounted or Resource script) by the plan, a static function by compat. A node made by
    `Class.new()`, which React never renders, steps none of its own, which is stated where it is
-   bound. A tree-made timer or tween stops with its owner, where Godot's outlives a freed node; an
+   bound. A timer or tween, tree-made or bound to another live node, stops with its owner, where
+   Godot's outlives a freed node; an
    owner that unmounts with a timer still pending and connected reports it (`console.error`), so
    that difference is never silent. An owner steps its own after its `_process`, where Godot
    steps every timer after every node's, so a timeout's effect on another node's `_process` can

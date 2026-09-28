@@ -17,7 +17,7 @@
 
 import type { Object3D } from 'three';
 import { get_length as streamLength, godot_audio_context, godot_audio_stream_start } from './audio-stream';
-import { godot_node_adopt, godot_node_entity, godot_node_set_internal_process, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import type { ReactElement } from 'react';
 import { Group } from 'three';
@@ -68,11 +68,19 @@ function stateOf(self: object, member: string): GodotAudioPlayerState {
   return state;
 }
 
-/** `process` (`audio_stream_player_internal.cpp:66`): drop ended playbacks, then `finished`. */
-function process(state: GodotAudioPlayerState): void {
-  const ended = state.playbacks.filter((playback) => !playback.active);
-  for (const playback of ended) state.playbacks.splice(state.playbacks.indexOf(playback), 1);
-  if (ended.length > 0) state.finished.emit();
+/**
+ * A playback that ran to its end (`process`, `audio_stream_player_internal.cpp:66`): dropped, then
+ * `finished`. The page's own audio says when a source ends (`onended`), so no frame polls for it;
+ * `finished` is emitted then, between frames, where Godot emits it in its next process pass. One
+ * stopped or evicted first is already inactive and emits nothing, as in Godot.
+ */
+function ended(state: GodotAudioPlayerState, playback: Playback): void {
+  if (!playback.active) return;
+  playback.active = false;
+  const index = state.playbacks.indexOf(playback);
+  if (index < 0) return;
+  state.playbacks.splice(index, 1);
+  state.finished.emit();
 }
 
 /**
@@ -99,9 +107,6 @@ export function godot_audio_player_mount(entity: Object3D, output: GodotAudioPla
   godot_node_tree_signal(entity, 'tree_entered').connect(() => {
     if (state.autoplay) play(entity, 0);
   });
-  // Ended playbacks are noticed in the node's own internal processing (`NOTIFICATION_INTERNAL_PROCESS`,
-  // audio_stream_player_internal.cpp:107), which its component runs (`advances`).
-  godot_node_set_internal_process(entity, () => process(state));
   return state;
 }
 
@@ -181,9 +186,7 @@ export function play(self: object, from_position = 0.0): void {
         }
         source.playbackRate.value = playback.rate;
         source.connect(into);
-        source.onended = () => {
-          playback.active = false;
-        };
+        source.onended = () => ended(state, playback);
         source.start(0, from);
         return source;
       };
@@ -426,7 +429,6 @@ const AUDIO_STREAM_PLAYER = {
   classes: ['AudioStreamPlayer', 'Node', 'Object'],
   spatial: false,
   mount: godot_audio_stream_player_mount,
-  advances: true,
   props: new Map<string, GodotElementProp<Object3D>>(
     godot_audio_player_props({
       stream: (entity, value: object | null) => set_stream(entity, value),
