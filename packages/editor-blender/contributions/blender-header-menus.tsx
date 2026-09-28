@@ -8,20 +8,22 @@
  * draws four menu words in Object Mode, in this order: **View**
  * (`:1153`), **Select** (`:1166`, `VIEW3D_MT_select_object`), **Add**
  * (`:1169`, `VIEW3D_MT_add`) and **Object** (`:1210`, `VIEW3D_MT_object`).
- * Three of them are here.
+ * All four are here.
  *
- * VIEW IS NOT DRAWN, and that is a placement decision rather than an omission.
- * Its rows that this editor has are the CAMERA VIEW rows — Front / Right / Top
- * / Perspective 3/4, and the Perspective–Orthographic pair — and they are
- * already a menu in THIS SAME HEADER STRIP: the host draws
- * `Object3DDocumentToolbar` at the strip's trailing edge for every document
- * with a 3D session, which is exactly where Blender's viewport header carries
- * them too (`DocumentHeaderStrip`'s own note). A View menu here would be the
- * same control twice in one row, which is the defect the rule about a control
- * having ONE home exists to prevent. Every other row of Blender's View menu —
- * the sidebar and tool-shelf toggles, local view, the view-point and
- * view-axis submenus, Frame Selected, Viewport Render — is either a control
- * this unit does not act on or one that already has its own home in the strip.
+ * VIEW CARRIES ITS AREA ROWS AND NOTHING ELSE. Its camera-view rows — Front / Right / Top /
+ * Perspective 3/4, and the Perspective–Orthographic pair — are already a menu in THIS SAME HEADER
+ * STRIP: the host draws `Object3DDocumentToolbar` at the strip's trailing edge for every document
+ * with a 3D session, which is exactly where Blender's viewport header carries them too
+ * (`DocumentHeaderStrip`'s own note), so repeating them here would be the same control twice in
+ * one row. What View owns that no other control does is **Area** (`VIEW3D_MT_view`'s
+ * `layout.menu("INFO_MT_area")`, `space_view3d.py:1520`; `space_info.py`'s
+ * `INFO_MT_area`): the split that puts a second area beside
+ * this one. Blender's standard way to watch the render while modeling is exactly that — split the
+ * viewport and set the new area to Rendered shading through the camera — so Vertical Split opens
+ * the Render view beside the model (`blender-render-view.tsx`) and Close Area closes it. The other
+ * rows of `INFO_MT_area` (Horizontal Split, the new-window, maximize and fullscreen toggles) and
+ * the rest of View — the sidebar and tool-shelf toggles, local view, the view-point and view-axis
+ * submenus, Frame Selected, Viewport Render — are not drawn.
  *
  * WHAT IS DRAWN IS WHAT ACTS. A row Blender draws that this unit does not act
  * on is simply not here — never a row that opens a dialog we do not have, and
@@ -56,8 +58,9 @@ import {
   runBlenderObjectOperator,
 } from './blender-outliner-authoring';
 import { blenderOutlinerVersion, subscribeBlenderOutliner } from './blender-outliner-model';
+import { renderViewSplit, setRenderViewSplit, subscribeRenderViewSplit } from '../src/render-view-split';
 
-type MenuId = 'select' | 'add' | 'object';
+type MenuId = 'view' | 'select' | 'add' | 'object';
 
 /**
  * BLENDER'S OWN ROWS for the three transform submenus of `VIEW3D_MT_object`,
@@ -258,9 +261,15 @@ export function BlenderObjectModeHeader({
   useSyncExternalStore(subscribeBlenderOutliner, blenderOutlinerVersion, blenderOutlinerVersion);
   const [open, setOpen] = useState<MenuId | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef<HTMLDivElement>(null);
   const addRef = useRef<HTMLDivElement>(null);
   const objectRef = useRef<HTMLDivElement>(null);
+  const split = useSyncExternalStore(
+    subscribeRenderViewSplit,
+    () => (documentId === undefined ? false : renderViewSplit(documentId)),
+    () => false,
+  );
   const handle = blenderOutlinerHandle(documentId);
   // NOTHING RATHER THAN A DEAD BAR: with no Outliner published for this
   // document there is no subject for any of these rows, and a menu of rows
@@ -341,6 +350,35 @@ export function BlenderObjectModeHeader({
       data-testid="blender-object-mode-menus"
       ref={rootRef}
     >
+      {/* VIEW ▸ AREA — `INFO_MT_area`'s split and close, for the Render view beside the model
+          (this file's header). */}
+      <MenuWord id="view" open={open} setOpen={setOpen} anchorRef={viewRef}>
+        <MenuSubmenu label="Area" data-testid="blender-view-area">
+          <MenuItem
+            data-testid="blender-area-vertical-split"
+            disabled={split || documentId === undefined}
+            title={split ? 'The Render view is already beside this area.' : undefined}
+            onSelect={() => {
+              setOpen(null);
+              if (documentId !== undefined) setRenderViewSplit(documentId, true);
+            }}
+          >
+            Vertical Split
+          </MenuItem>
+          <MenuSeparator />
+          <MenuItem
+            data-testid="blender-area-close"
+            disabled={!split}
+            title={split ? undefined : 'There is no second area to close.'}
+            onSelect={() => {
+              setOpen(null);
+              if (documentId !== undefined) setRenderViewSplit(documentId, false);
+            }}
+          >
+            Close Area
+          </MenuItem>
+        </MenuSubmenu>
+      </MenuWord>
       {/* SELECT — `VIEW3D_MT_select_object`, `space_view3d.py:1713-1715`. The
           three rows are `object.select_all` with action SELECT / DESELECT /
           INVERT, and they act on THE PANEL'S selection rather than running that

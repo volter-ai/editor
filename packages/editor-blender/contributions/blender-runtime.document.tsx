@@ -48,6 +48,8 @@ import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../ho
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
+import { BlenderRenderView } from './blender-render-view';
+import { renderViewSplit, subscribeRenderViewSplit } from '../src/render-view-split';
 import { onViewportStages, viewportStages } from '@volter/editor-threejs/viewport-door';
 
 export const point = 'workspace.document';
@@ -236,6 +238,12 @@ function BlenderModelViewport({
     [documentId],
   );
   const subject = useSyncExternalStore(subscribeSubject, subjectOfView);
+  // VIEW ▸ AREA ▸ VERTICAL SPLIT: the Render view beside the model (`blender-render-view.tsx`).
+  const split = useSyncExternalStore(
+    subscribeRenderViewSplit,
+    () => (documentId ? renderViewSplit(documentId) : false),
+    () => false,
+  );
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).
@@ -395,8 +403,15 @@ function BlenderModelViewport({
   if (!documentId) return null;
   const Surface = surfaces.Object3DAuthoring;
   return (
+    // SPLIT, THE TWO AREAS SHARE THE SLOT the stage alone fills otherwise: the stage's own root
+    // bleeds 12 px past its positioned parent (`inset: -12px`), so the modeling area is that
+    // parent inset by 12 and the Render view starts 2 px past the stage's bleed, Blender's gap
+    // between areas. Unsplit, both wrappers are `contents` and the stage is placed as before.
     <div
-      style={{ display: 'contents' }}
+      style={split ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}
+    >
+    <div
+      style={split ? { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } : { display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}
       onPointerCancelCapture={dropCursorPress}
@@ -461,6 +476,8 @@ function BlenderModelViewport({
         viewLocked: view.studioLights(),
       }}
     />
+    </div>
+    {split && <BlenderRenderView />}
     </div>
   );
 }
