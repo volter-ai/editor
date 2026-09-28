@@ -171,6 +171,64 @@ async function stageRuntime(
   return { files: index.files.length, bytes: blob.byteLength, ms };
 }
 
+type LayerFromIndex = (
+  root: string,
+  files: RuntimeIndex['files'],
+  bytes: SharedArrayBuffer,
+  options: { mtimeMs: number; include?: (path: string) => boolean },
+) => unknown;
+
+/**
+ * Blender's runtime tree as a SHARED LAYER the program reads, never written
+ * into this page's filesystem (browser-substrate ADR-0044 §6): the blob is
+ * read once, straight into shared memory, and the index names where each file
+ * lies in it. Staged file by file, the tree was held twice -- in this page's
+ * filesystem and in the layer the substrate made of it for the program's
+ * workers -- and took 0.3-0.5 s of every boot (measured 2026-09-27). A
+ * substrate without the door (`sharedFileLayerFromIndex`) stages as before.
+ */
+async function sharedRuntime(
+  fromIndex: LayerFromIndex,
+  log: BlenderEngineOptions['log'],
+): Promise<unknown> {
+  const began = performance.now();
+  const indexAnswer = await fetch(artifactUrl('runtime.idx'));
+  if (!indexAnswer.ok)
+    throw new Error(`${ARTIFACT_BASE}/runtime.idx answered ${indexAnswer.status}`);
+  const index = (await indexAnswer.json()) as RuntimeIndex;
+  const total = index.files.reduce((sum, file) => sum + file.size, 0);
+  const blobAnswer = await fetch(artifactUrl('runtime.bin'));
+  if (!blobAnswer.ok || !blobAnswer.body)
+    throw new Error(`${ARTIFACT_BASE}/runtime.bin answered ${blobAnswer.status}`);
+  const shared = new SharedArrayBuffer(total);
+  const bytes = new Uint8Array(shared);
+  let filled = 0;
+  const reader = blobAnswer.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    // The index and the blob must agree to the byte, or Python reads truncated files.
+    if (filled + value.byteLength > total)
+      throw new Error(`Blender runtime blob is longer than the ${total} bytes its index accounts for`);
+    bytes.set(value, filled);
+    filled += value.byteLength;
+  }
+  if (filled !== total)
+    throw new Error(`Blender runtime index accounts for ${total} bytes; the blob served ${filled}`);
+  const layer = fromIndex(RESOURCES, index.files, shared, {
+    mtimeMs: Date.now(),
+    // THE PACK'S RENDER OVERRIDE IS LEFT OUT: it is the delivery for a bare
+    // `blender -b` with no session, and at startup it asks a presenter at its
+    // own directory and waits two seconds for one. This session registers the
+    // same override itself (`session.py`, `VolterRenderEngine`) and answers
+    // through its own channel, so here the module could only wait (measured
+    // 2026-09-27: every boot printed "no presenter answered ... within 2 s").
+    include: (path) => !PACK_RENDER_OVERRIDES.has(path),
+  });
+  log('log', `blender: shared Blender's ${index.files.length}-file runtime tree in ${Math.round(performance.now() - began)} ms`);
+  return layer;
+}
+
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
   return {
@@ -198,9 +256,10 @@ export async function startWaliBlenderEngine(
   status: BlenderArtifactStatus,
 ): Promise<BlenderEngine> {
   const started = performance.now();
-  const [wali, runtime] = await Promise.all([
+  const [wali, runtime, layers] = await Promise.all([
     substrate('browser-wali/worker-program.js'),
     substrate('browser-runtime/browser-memory-filesystem.js'),
+    substrate('browser-wali/shared-file-layer.js').catch((): Record<string, unknown> => ({})),
   ]);
   const WaliWorkerProgram = wali['BrowserWaliWorkerProgram'] as
     | (new (
@@ -232,7 +291,9 @@ export async function startWaliBlenderEngine(
     options.project,
   ])
     filesystem.mkdirSync(directory, { recursive: true });
-  await stageRuntime(filesystem, options.log);
+  const fromIndex = layers['sharedFileLayerFromIndex'] as LayerFromIndex | undefined;
+  const runtimeLayer = fromIndex ? await sharedRuntime(fromIndex, options.log) : undefined;
+  if (!runtimeLayer) await stageRuntime(filesystem, options.log);
   filesystem.writeFileSync(SESSION_SCRIPT, sessionPython);
 
   const workers = status.workers ?? { pool: 16, blender: 4 };
@@ -264,6 +325,7 @@ export async function startWaliBlenderEngine(
       // THE ARENA'S DOOR ON THIS SKEW. See `readArena`.
       VOLTER_EXPORT_BUFFER_PATH: ARENA_PATH,
     },
+    ...(runtimeLayer ? { layers: [runtimeLayer] } : {}),
     threadPoolSize: workers.pool,
     // Blender talks to nothing. The editor's own routes are this worker's, not
     // the program's.
