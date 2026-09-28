@@ -21,8 +21,8 @@
  *   three material. So an override slot Godot leaves empty reads back filled, and a mesh's own
  *   material is the first read-back node's, where nodes sharing the mesh drew different ones. A
  *   surface with neither reads back a default-grey StandardMaterial3D where Godot's is null; it
- *   draws the same. What a script sees: `get_surface_override_material` is never null for a
- *   read-back node, and a material assigned to the scene mesh's `material` does not show, since
+ *   draws the same. What a script sees: `get_surface_override_material` starts non-null (the
+ *   scene's material) on a read-back node, and a material assigned to the scene mesh's `material` does not show, since
  *   the kept override draws over it. Telling them apart needs the plan to stamp which slot each
  *   surface's material came from.
  * - Nodes share a read-back resource only where they share a three geometry, and the scene
@@ -183,7 +183,8 @@ function draw(self: Mesh, state: MeshInstanceState): void {
 
 /**
  * A mesh instance with no mesh draws nothing (`set_base(RID())`); its surface overrides resize to
- * the mesh's surfaces (`_mesh_changed`), one for a primitive mesh.
+ * the mesh's surfaces (`_mesh_changed`), one for a primitive mesh, and a null mesh leaves them as
+ * they were.
  *
  * @godot MeshInstance3D.set_mesh
  * @source scene/3d/mesh_instance_3d.cpp:120
