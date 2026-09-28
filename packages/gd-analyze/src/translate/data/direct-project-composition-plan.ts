@@ -609,17 +609,18 @@ function projectSettings(
 }
 
 /**
- * The contact penetration the 3D physics server leaves uncorrected: the project's
- * `physics/3d/solver/contact_max_allowed_penetration`, registered at 0.01
- * (`servers/physics_3d/physics_server_3d.cpp:1154`). Rapier's `allowedLinearError` is the same
- * tolerance: at Rapier's own 0.001 a ball pressed against a wall stays wedged there, its push out of
- * the wall bounding a friction that stops it rolling away, where Godot's engines let it go. Jolt's
- * larger slop (0.02, `modules/jolt_physics/jolt_project_settings.cpp:41`) is not taken: Rapier
- * settles a resting body to its tolerance's depth in the floor.
+ * Rapier's `allowedLinearError`: the host's own contact tolerance, not a translation of a Godot
+ * setting. Godot's engines leave a small penetration uncorrected (GodotPhysics3D its
+ * `contact_max_allowed_penetration`, 0.01, `godot_body_pair_3d.cpp:341`; Jolt its
+ * `penetration_slop`, 0.02, `jolt_project_settings.cpp:41`, ignoring the other,
+ * `jolt_space_3d.cpp:278`), and at Rapier's own 0.001 a ball pressed against a wall stays wedged,
+ * its push out bounding a friction that stops it rolling away, where both let it go. Rapier's
+ * tolerance is not either engine's slop: it settles a resting body to its depth in the floor, so
+ * Jolt's 0.02 sinks a walking enemy's floor probe where Jolt does not. 0.01 frees the wedged
+ * ball and keeps resting bodies on their floors, whichever engine the project names.
  */
-function physicsWorld(project: BoundGodotProject): DirectGodotPhysicsWorldPlan {
-  const value = project.read.authoredSettings.get('physics/3d/solver/contact_max_allowed_penetration');
-  return { allowedLinearError: value?.kind === 'number' ? value.value : 0.01 };
+function physicsWorld(_project: BoundGodotProject): DirectGodotPhysicsWorldPlan {
+  return { allowedLinearError: 0.01 };
 }
 
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
