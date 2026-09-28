@@ -48,3 +48,32 @@ export function godot_callable_method(object: object, method: string): (...args:
   }
   return callable;
 }
+
+const NATIVE_CALLABLES = new WeakMap<object, Map<string, (...args: readonly unknown[]) => unknown>>();
+
+/**
+ * `Callable(object, method)` of an engine method named as a value (`timeout.connect(queue_free)`):
+ * one function per object and method, as `godot_callable_method` is, calling the method's binding
+ * with the object's native entity first.
+ *
+ * @godot Callable (protocol)
+ * @source core/variant/callable.cpp:392 (Callable(Object *, StringName))
+ */
+export function godot_callable_native(
+  object: object,
+  method: string,
+  bound: (self: never, ...args: never[]) => unknown,
+): (...args: readonly unknown[]) => unknown {
+  let methods = NATIVE_CALLABLES.get(object);
+  if (methods === undefined) {
+    methods = new Map();
+    NATIVE_CALLABLES.set(object, methods);
+  }
+  let callable = methods.get(method);
+  if (callable === undefined) {
+    const call = bound as (self: object, ...args: readonly unknown[]) => unknown;
+    callable = (...args) => call(object, ...args);
+    methods.set(method, callable);
+  }
+  return callable;
+}

@@ -2061,6 +2061,33 @@ export function lowerOfficialExpression(
             );
           }
         }
+        if (node.source === 'INHERITED_VARIABLE' && node.datatype.kind === 'BUILTIN' && context.nativeBase !== undefined) {
+          // An engine method of the script's native base named as a value (`queue_free`) is
+          // `Callable(self, name)`: its binding called on the instance's native entity.
+          const method = context.nativeMethod(context.nativeBase, node.name);
+          if (method !== undefined) {
+            const use = context.bindingUse(
+              { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
+              node,
+            );
+            if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+              return context.refuse(node, `${method.owner}.${method.name} is not bound as a method of an object`);
+            }
+            return expression(
+              {
+                kind: 'call-expression',
+                callee: { kind: 'identifier-expression', name: 'godot_callable_native' },
+                arguments: [selfNative(context, node), { kind: 'literal-expression', value: node.name }, boundTargetExpression(use.target)],
+                span: span(context.script, node),
+              },
+              [
+                ...context.structural(node, 'member-identifier', [], 'member-identifier:native-method'),
+                ...use.requirements,
+                { kind: 'compat-import-requirement', module: 'lib/godot-compat/callable', imported: 'godot_callable_native', local: 'godot_callable_native', typeOnly: false },
+              ],
+            );
+          }
+        }
         if (node.source === 'MEMBER_FUNCTION') {
           // A script function named as a value is `Callable(self, name)` (`callable.ts`).
           return expression(
