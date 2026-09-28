@@ -89,9 +89,9 @@ const ROOT_PROPS: { readonly [Kind in GodotSceneNodeIdiomForm['kind']]: GodotSce
   mesh: { kind: 'three-element' },
   light: { kind: 'three-element' },
   camera: { kind: 'library', module: '@react-three/drei', name: 'PerspectiveCameraProps', omitRef: false, children: false },
-  'reflection-probe': { kind: 'three-element' },
+  'reflection-probe': { kind: 'component' },
   body: { kind: 'library', module: '@react-three/rapier', name: 'RigidBodyProps', omitRef: true, children: true },
-  collider: { kind: 'three-element' },
+  collider: { kind: 'component' },
 };
 
 type GodotSceneNodeIdiomEntry = Omit<GodotSceneNodeIdiom, 'rootProps'>;
