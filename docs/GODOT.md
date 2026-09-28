@@ -343,13 +343,29 @@ emitter prints:
    `AnimationMixer` (drei's `useAnimations` idiom) over real object properties. The
    `animationBindings` dispatch table goes.
 6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
-   events. The world is `<Physics>` holding the main scene. The SceneTree's timers, tweens and
-   deletion queue stay with the world's component, which is the SceneTree's (ruled in §Order of
-   work).
+   events. The world is `<Physics>` holding the main scene, with no hooks of compat's in it.
+   Timers and tweens are owned by what creates them (the owner, 2026-09-28, superseding the
+   ruling that they stay with the world's component): `node.create_tween()` by that node, and a
+   script's `get_tree().create_tween()` or `create_timer()` by that script's node. The plan
+   records which scripts create them; the owner's component steps them from its own `useFrame`
+   (and physics step), as a three.js component calls a tween library's `update`, and the binding
+   takes its owner as an argument, never from a "current script" held in compat. So there is no
+   tree-wide list and no per-frame scheduler. A tree-created tween or timer therefore stops with
+   its owner, where Godot's outlives a freed node; that is stated where it is bound. `queue_free`
+   of an instantiated scene is React's own deferral, a batched state update committed after the
+   frame's callbacks; there is no deletion queue.
 7. **What stays dynamic is bindings.** A path computed at run time, groups, `add_child` of an
    instantiated scene, `queue_free` and `get_tree()` stay compat's, as bindings over three's
    object graph and React state, not a tree compat keeps, and only where a script uses them. The
-   plan records which scenes need them; a scene that doesn't carries none of it.
+   plan records which scenes need them; a scene that doesn't carries none of it. `add_child` of
+   an instantiated scene renders into the parent scene's own state, found through the parent
+   scene's component, with no registry of spawners.
+
+The emitted game is idiomatic three.js, which can still use libraries at its edges (the owner,
+2026-09-28). Compat is such a library, never plumbing: what the game's code calls (a
+Tween, a Timer, a Vector3, a binding over three's objects) is allowed, and so is a node's own
+component advancing that node; what drives the game from outside it (a clock over every node, a
+scheduler, a spawn host, a mirrored tree, hooks the emitted world is written against) is not.
 Each step lands as its own lane under §How a lane lands. The ratchet gains a rule per step once
 the step removes its pattern (compat hooks per emitted scene, `__godot_value_` temporaries,
 `animationBindings` tables), so the output only moves one way. Each step is checked cheaply:
