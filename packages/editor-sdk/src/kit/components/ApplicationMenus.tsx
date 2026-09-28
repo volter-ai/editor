@@ -28,15 +28,6 @@ import {
 } from '@volter/editor-sdk/kit/editor-hotkeys';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import { editorKeymapsVersion, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
-import {
-  LEARN_MANUAL_URL,
-  LEARN_QUICK_STARTS_URL,
-  LEARN_SITE_URL,
-  learnReferenceUrl,
-  openLearnLink,
-  referenceVersionPin,
-} from '../learn-links';
-import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/project-manager';
 import { getProjectTools, subscribeProjectTools } from '@volter/editor-sdk/kit/project-tools';
 import { getSurfaceToolContributions, subscribeToolContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { openUndoHistory } from '@volter/editor-sdk/kit/workspace-aux-commands';
@@ -116,12 +107,6 @@ export function ApplicationMenus() {
     activeEditorWorkspace,
     activeEditorWorkspace,
   );
-  // Help/Learn menu (G6): the Reference link pins to the open project's
-  // engine version, so re-render on project change. `getCurrentProject`
-  // returns a stable reference between changes.
-  const project = useSyncExternalStore(onProjectChange, getCurrentProject, getCurrentProject);
-  const engineVersion = project?.config.engine.version ?? null;
-  const referencePin = referenceVersionPin(engineVersion);
   const [open, setOpen] = useState<MenuId | null>(null);
   // A contributed item's `disabled` (and dynamic label) is asked at render,
   // and the point promises it may follow session state — which needs
@@ -311,46 +296,9 @@ export function ApplicationMenus() {
         {contributed('tools')}
       </>
     ),
-    help: (
-      <>
-        {/* Learning lives on the Learn SITE — the editor links out (new tab), it
-            never embeds lessons. Reference pins to the project's engine
-            version (`/reference/<major>.<minor>/`, the zero-base immutable
-            snapshot routes); with no parseable version it falls back to the
-            unpinned reference root. URL shapes: `learn-links.ts`. */}
-        <MenuItem
-          data-testid="help-learn-home"
-          onSelect={choose(() => openLearnLink(LEARN_SITE_URL))}
-        >
-          Volter Learn
-        </MenuItem>
-        <MenuItem
-          data-testid="help-quick-starts"
-          onSelect={choose(() => openLearnLink(LEARN_QUICK_STARTS_URL))}
-        >
-          Quick-starts
-        </MenuItem>
-        <MenuItem
-          data-testid="help-manual"
-          onSelect={choose(() => openLearnLink(LEARN_MANUAL_URL))}
-        >
-          Manual
-        </MenuItem>
-        <Separator />
-        <MenuItem
-          data-testid="help-reference"
-          title={
-            referencePin
-              ? `API/schema reference pinned to this project's engine (v${engineVersion})`
-              : 'API/schema reference (no engine version pin available)'
-          }
-          onSelect={choose(() => openLearnLink(learnReferenceUrl(engineVersion)))}
-        >
-          {referencePin ? `Reference for v${engineVersion}` : 'Reference'}
-        </MenuItem>
-        {contributed('help')}
-      </>
-    ),
+    // Help holds what packages contribute to it; with nothing contributed the
+    // bar shows no Help menu rather than an empty one.
+    help: contributedMenuItems('help').length > 0 ? contributed('help') : null,
   };
 
   return (
@@ -358,7 +306,9 @@ export function ApplicationMenus() {
       ref={rootRef}
       style={{ display: 'flex', alignItems: 'stretch', marginLeft: 'var(--volter-space-2)' }}
     >
-      {(['edit', 'view', 'window', 'debug', 'tools', 'help'] as const).map((id) => (
+      {(['edit', 'view', 'window', 'debug', 'tools', 'help'] as const)
+        .filter((id) => panels[id] !== null)
+        .map((id) => (
         <div key={id} ref={anchorRef(id)} style={{ position: 'relative' }}>
           <MenuTrigger
             data-testid={`app-menu-${id}`}

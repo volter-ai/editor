@@ -454,7 +454,6 @@
     "./kit/inspection/game-subject": "./src/kit/inspection/game-subject.ts",
     "./kit/inspection/serialize": "./src/kit/inspection/serialize.ts",
     "./kit/inspection/use-active-inspection": "./src/kit/inspection/use-active-inspection.ts",
-    "./kit/learn-links": "./src/kit/learn-links.ts",
     "./kit/project-ready": "./src/kit/project-ready.ts",
     "./kit/reported-play-state": "./src/kit/reported-play-state.ts",
     "./kit/resolve-contributed-command": "./src/kit/resolve-contributed-command.ts",
