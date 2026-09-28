@@ -106,10 +106,16 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 Two conventions hold throughout (the orchestrator's, from the law, 2026-09-28). Where Godot's debug
 and release builds differ, the lane follows the release build, which the originals ship as: an Array
 store outside the array is dropped, since only a debug build reports it (`gdscript_vm.cpp:1084-1098`).
-A script error aborts only the function it is in, and the caller carries on
-(`gdscript_vm.cpp:3963-3993`). So each place that runs a script's callback (a frame or physics hook,
-`_enter_tree`, `_ready`, `_exit_tree`, an input callback, `_integrate_forces`, a signal handler)
-catches what the callback throws and reports it with `console.error`; one failing callback never
+A script error in Godot aborts the function it is in and its caller carries on
+(`gdscript_vm.cpp:3963-3993`). The lane approximates that per callback, not per function: each place
+that runs a script's callback catches what it throws, so a throw deep in a helper aborts the whole
+callback, where Godot would abort only the helper. The places are:
+- the emitted scene's own `useFrame`/`useBeforePhysicsStep` running `_process`/`_physics_process`,
+  which are the game's own hooks, so the catch is written there;
+- compat's `_enter_tree`, `_ready` and `_exit_tree`, input, `_gui_input` and `_integrate_forces`;
+- signal handlers, tween callbacks, `call_deferred` targets and animation method tracks.
+It reports the error with `console.error`: release Godot prints nothing (the report is under
+`DEBUG_ENABLED`), and the developer console is the web's place for it. One failing callback never
 skips the frame or unmounts the game.
 
 1. Retire the evidence gate from the import: bindings are what compat implements, and the plan

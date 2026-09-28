@@ -1023,7 +1023,12 @@ function callObject(state: MixerState, track: TrackCacheMethod, method: string, 
     const object = track.object as Record<string, unknown>;
     const entity = godot_node_entity(track.object);
     if (entity !== track.object && typeof object[method] === 'function') {
-      (object[method] as (...args: unknown[]) => unknown).apply(object, params);
+      // A script error aborts only this call (docs/GODOT.md §Order of work).
+      try {
+        (object[method] as (...args: unknown[]) => unknown).apply(object, params);
+      } catch (error) {
+        console.error(error);
+      }
       return;
     }
     const bound = state.bindings.methods?.[track.path]?.[method] as ((self: object, ...args: unknown[]) => unknown) | undefined;

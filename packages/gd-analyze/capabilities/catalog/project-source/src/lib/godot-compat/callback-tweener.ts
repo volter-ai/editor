@@ -49,7 +49,12 @@ function step(tweener: CallbackTweener, state: CallbackTweenerState, r_delta: nu
   const elapsed_time = godot_tweener_elapsed(tweener) + r_delta;
   godot_tweener_set_elapsed(tweener, elapsed_time);
   if (elapsed_time >= state.delay) {
-    (state.callback as () => unknown)();
+    // A script error aborts only this callback (docs/GODOT.md §Order of work).
+    try {
+      (state.callback as () => unknown)();
+    } catch (error) {
+      console.error(error);
+    }
     const left = elapsed_time - state.delay;
     godot_tweener_finish(tweener);
     return [false, left];

@@ -31,7 +31,13 @@ function defer(target: object, run: () => void): void {
 export function call_deferred(self: object, method: string, ...args: readonly unknown[]): void {
   defer(self, () => {
     const fn = (self as Record<string, unknown>)[method];
-    if (typeof fn === 'function') (fn as (...values: unknown[]) => unknown).apply(self, [...args]);
+    if (typeof fn !== 'function') return;
+    // A script error aborts only this call (docs/GODOT.md §Order of work).
+    try {
+      (fn as (...values: unknown[]) => unknown).apply(self, [...args]);
+    } catch (error) {
+      console.error(error);
+    }
   });
 }
 

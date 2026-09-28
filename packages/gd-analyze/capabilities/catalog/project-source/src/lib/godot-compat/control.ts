@@ -1370,7 +1370,14 @@ export function godot_control_call_gui_input(
     if (state !== undefined) {
       if (state.mouseFilter !== MOUSE_FILTER_IGNORE) {
         // `Control::_call_gui_input` (`control.cpp:2518`): the script's, then the class's.
-        if (!handled()) state.guiInput?.(ev);
+        if (!handled()) {
+          // A script error aborts only its `_gui_input` (docs/GODOT.md §Order of work).
+          try {
+            state.guiInput?.(ev);
+          } catch (error) {
+            console.error(error);
+          }
+        }
         if (is_inside_tree(item) && !handled()) state.nativeGuiInput?.(ev);
       }
       if (!is_inside_tree(item) || is_set_as_top_level(item)) break;
