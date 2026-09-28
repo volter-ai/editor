@@ -422,43 +422,18 @@ function contactEvents(emission: Emission): TargetTsJsxAttribute[] {
 
 /** A collision shape's collider element: three's shape of the Godot shape's data. */
 function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[], at: string): TargetTsJsxChild {
-  if (node.scriptInstance !== undefined) throw new Error(`${at}: a script on a collision shape has no idiomatic form`);
-  if (Object.keys(nodeData(node)).length > 0) throw new Error(`${at}: groups or a unique name on a collision shape have no idiomatic form`);
-  if (node.children.length > 0) throw new Error(`${at}: children of a collision shape have no idiomatic form`);
-  const shape = resourceOf(emission, setterValue(node.setters, 'set_shape'));
-  if (shape === undefined) throw new Error(`${at}: a collision shape without a shape has no idiomatic form`);
-  const set = shape.setters;
-  const tag = (component: string, args: TargetTsExpression): TargetTsJsxChild => {
-    emission.rapier.add(component);
-    const sensorTypes: TargetTsJsxAttribute[] = [];
-    if (emission.sensor.current) {
-      emission.rapierCore.add('ActiveCollisionTypes');
-      const types = (member: string): TargetTsExpression => ({ kind: 'property-expression', object: { kind: 'identifier-expression', name: 'ActiveCollisionTypes' }, property: member });
-      sensorTypes.push(attribute('activeCollisionTypes', { kind: 'binary-expression', operator: '|', left: { kind: 'binary-expression', operator: '|', left: types('DEFAULT'), right: types('KINEMATIC_FIXED') }, right: types('FIXED_FIXED') }));
-    }
-    return element(component, [name, attribute('args', args), ...sensorTypes, ...transform]);
-  };
-  const idiom = shape.idiom;
-  if (idiom?.kind !== 'collider') throw new Error(`${at}: ${shape.className} has no idiomatic collider`);
-  switch (idiom.collider) {
-    case 'CuboidCollider':
-      return tag('CuboidCollider', numbers((componentsValue(setterValue(set, 'set_size')) ?? [1, 1, 1]).map((value) => value / 2)));
-    case 'BallCollider':
-      return tag('BallCollider', numbers([numberValue(setterValue(set, 'set_radius')) ?? 0.5]));
-    case 'CapsuleCollider': {
-      // Godot's height spans the caps (`capsule_shape_3d.cpp:100`); Rapier's half height does not.
-      const radius = numberValue(setterValue(set, 'set_radius')) ?? 0.5;
-      const height = numberValue(setterValue(set, 'set_height')) ?? 2;
-      return tag('CapsuleCollider', numbers([height / 2 - radius, radius]));
-    }
-    case 'ConvexHullCollider':
-      return tag('ConvexHullCollider', { kind: 'array-expression', elements: [numbers(componentsValue(setterValue(set, 'set_points')) ?? [])] });
-    case 'TrimeshCollider': {
-      const faces = componentsValue(setterValue(set, 'set_faces')) ?? [];
-      const indices = Array.from({ length: faces.length / 3 }, (_, index) => index);
-      return tag('TrimeshCollider', { kind: 'array-expression', elements: [numbers(faces), { kind: 'array-expression', elements: indices.map((index) => ({ kind: 'literal-expression' as const, value: index })) }] });
-    }
+  // The plan's collider (`scene-body-idioms.ts`), which refuses what has no form.
+  const planned = node.collider;
+  if (planned === undefined) throw new Error(`${at}: a collision shape the plan did not form`);
+  emission.rapier.add(planned.component);
+  const sensorTypes: TargetTsJsxAttribute[] = [];
+  if (emission.sensor.current) {
+    emission.rapierCore.add('ActiveCollisionTypes');
+    const types = (member: string): TargetTsExpression => ({ kind: 'property-expression', object: { kind: 'identifier-expression', name: 'ActiveCollisionTypes' }, property: member });
+    sensorTypes.push(attribute('activeCollisionTypes', { kind: 'binary-expression', operator: '|', left: { kind: 'binary-expression', operator: '|', left: types('DEFAULT'), right: types('KINEMATIC_FIXED') }, right: types('FIXED_FIXED') }));
   }
+  const args: TargetTsExpression = planned.args.kind === 'flat' ? numbers(planned.args.values) : { kind: 'array-expression', elements: planned.args.values.map((values) => numbers(values)) };
+  return element(planned.component, [name, attribute('args', args), ...sensorTypes, ...transform]);
 }
 
 /** A node's Godot-only state, as the plan stamps it (`scene-body-idioms.ts`). */

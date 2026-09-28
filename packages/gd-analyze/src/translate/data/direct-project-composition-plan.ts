@@ -1,7 +1,7 @@
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
-import { type GodotSceneBodyProp, planGodotSceneBodies } from './scene-body-idioms';
+import { type GodotSceneBodyProp, type GodotSceneColliderPlan, planGodotSceneBodies } from './scene-body-idioms';
 import { planGodotSceneCollectedSetters, planGodotSceneSurfaces } from './scene-surface-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
@@ -81,6 +81,8 @@ export type DirectGodotSceneNodePlan = Omit<
   readonly data?: Readonly<Record<string, unknown>>;
   /** A MeshInstance3D's mesh and, per surface, the material it draws (`scene-surface-idioms.ts`). */
   readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[] };
+  /** A collision shape's Rapier collider (`scene-body-idioms.ts`). */
+  readonly collider?: GodotSceneColliderPlan;
   /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */
   readonly body?: readonly GodotSceneBodyProp[];
   /** An instance of a scene rooted in a body: the props its overrides change (`scene-body-idioms.ts`). */

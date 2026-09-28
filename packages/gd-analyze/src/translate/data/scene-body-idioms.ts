@@ -260,6 +260,49 @@ function bodyOverrides(
   return changed;
 }
 
+/** A collision shape as Rapier's collider component and its `args`: flat numbers, or number lists. */
+export interface GodotSceneColliderPlan {
+  readonly component: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
+  readonly args: { readonly kind: 'flat'; readonly values: readonly number[] } | { readonly kind: 'nested'; readonly values: readonly (readonly number[])[] };
+}
+
+const numberOf = (value: TargetGodotSceneValue | undefined): number | undefined => (value?.kind === 'number' ? value.value : undefined);
+const componentsOf = (value: TargetGodotSceneValue | undefined): readonly number[] | undefined =>
+  value !== undefined && 'components' in value ? value.components : undefined;
+
+/** A collision shape's collider: Rapier's shape of the Godot shape's data. */
+function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>, refuse: (message: string) => void): GodotSceneColliderPlan | undefined {
+  if (node.scriptInstance !== undefined) return refuse('a script on a collision shape has no idiomatic form'), undefined;
+  if (Object.keys(nodeData(node)).length > 0) return refuse('groups or a unique name on a collision shape have no idiomatic form'), undefined;
+  if (node.children.length > 0) return refuse('children of a collision shape have no idiomatic form'), undefined;
+  const value = setterValue(node.setters, 'set_shape');
+  const shape = value?.kind === 'resource' ? resources.get(value.key) : undefined;
+  if (shape === undefined) return refuse('a collision shape without a shape has no idiomatic form'), undefined;
+  const idiom = shape.idiom;
+  if (idiom?.kind !== 'collider') return refuse(`${shape.className} has no idiomatic collider`), undefined;
+  const set = shape.setters;
+  const flat = (values: readonly number[]) => ({ kind: 'flat' as const, values });
+  switch (idiom.collider) {
+    case 'CuboidCollider':
+      return { component: 'CuboidCollider', args: flat((componentsOf(setterValue(set, 'set_size')) ?? [1, 1, 1]).map((entry) => entry / 2)) };
+    case 'BallCollider':
+      return { component: 'BallCollider', args: flat([numberOf(setterValue(set, 'set_radius')) ?? 0.5]) };
+    case 'CapsuleCollider': {
+      // Godot's height spans the caps (`capsule_shape_3d.cpp:100`); Rapier's half height does not.
+      const radius = numberOf(setterValue(set, 'set_radius')) ?? 0.5;
+      const height = numberOf(setterValue(set, 'set_height')) ?? 2;
+      return { component: 'CapsuleCollider', args: flat([height / 2 - radius, radius]) };
+    }
+    case 'ConvexHullCollider':
+      return { component: 'ConvexHullCollider', args: { kind: 'nested', values: [componentsOf(setterValue(set, 'set_points')) ?? []] } };
+    case 'TrimeshCollider': {
+      const faces = componentsOf(setterValue(set, 'set_faces')) ?? [];
+      return { component: 'TrimeshCollider', args: { kind: 'nested', values: [faces, Array.from({ length: faces.length / 3 }, (_, index) => index)] } };
+    }
+  }
+  return undefined;
+}
+
 /**
  * The scenes with every node's Godot-only `data`, each body's props (`body`), and each instance of
  * a scene rooted in a body the props its overrides change (`bodyOverrides`); what has no form is a
@@ -293,11 +336,13 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
           ? planned(() => [...bodyProps(refuse, node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), data)].map(([name, value]) => ({ name, value })), [])
           : undefined;
       const overrides = instanced === undefined ? [] : planned(() => bodyOverrides(scene, node, instanced, bySource, refuse), []);
+      const collider = form?.kind === 'collider' && node.instance === undefined ? colliderPlan(node, resources, refuse) : undefined;
       return {
         ...node,
         data,
         ...(body === undefined ? {} : { body }),
         ...(overrides.length === 0 ? {} : { bodyOverrides: overrides }),
+        ...(collider === undefined ? {} : { collider }),
         children,
         ...(placements === undefined ? {} : { placements }),
       };

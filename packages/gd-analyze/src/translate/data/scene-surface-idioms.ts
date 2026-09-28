@@ -1,4 +1,8 @@
 /**
+ * Two plan passes over the composed scenes, each a stamp emit reads instead of a setter's name:
+ * which setters an element or resource collects into one prop (`planGodotSceneCollectedSetters`),
+ * and what each mesh surface draws (`planGodotSceneSurfaces`).
+ *
  * What each mesh surface draws, planned: a mesh resource's own material per surface (an
  * `ArrayMesh`'s surfaces' materials, a primitive mesh's one `material`), and a MeshInstance3D's mesh
  * with, per surface, its override, else the mesh's own (`MeshInstance3D::get_active_material`,
@@ -61,17 +65,17 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
  * (`parameters/<path>`), an Object's metadata (`metadata/NAME`, `Object::_set`), and a
  * ShaderMaterial's shader and its parameters (`shader_parameter/NAME`).
  */
-const COLLECTED: Readonly<Record<string, NonNullable<TargetGodotSceneSetterPlan['collect']>>> = {
-  godot_animation_mixer_set_library: 'libraries',
-  godot_animation_tree_set: 'parameters',
-  set_meta: 'meta',
-  set_shader: 'shader',
-  set_shader_parameter: 'shader-parameter',
-};
+const COLLECTED: ReadonlyMap<string, NonNullable<TargetGodotSceneSetterPlan['collect']>> = new Map([
+  ['godot_animation_mixer_set_library', 'libraries'],
+  ['godot_animation_tree_set', 'parameters'],
+  ['set_meta', 'meta'],
+  ['set_shader', 'shader'],
+  ['set_shader_parameter', 'shader-parameter'],
+]);
 
 const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>
   setters.map((entry) => {
-    const collect = COLLECTED[entry.setter.exportName];
+    const collect = COLLECTED.get(entry.setter.exportName);
     return collect === undefined ? entry : { ...entry, collect };
   });
 
