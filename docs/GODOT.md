@@ -369,11 +369,22 @@ emitter prints:
    first at each emission, as
    Godot calls a scene's connections before any script's; the area's bookkeeping (monitoring,
    masks, a body's shape count, a body inside leaving or entering the tree) still decides when.
-   Still a connection: a script's own signal (an instance's root script's, which the instancing
-   scene connects), a signal of an element the scene does not write, a method whose script is an
-   instanced scene's (its component runs it), and a signal any script looks at as connections
+   A script's own signal takes the scene's methods as its `useGodotScript` attaches it, before
+   any of the script's code runs: its own node's in this scene directly, an instance's root
+   script's through the instance's `connections` prop (`<PlayerScene
+   connections={playerConnections}/>`), the scene's own before an instancer's. A callback takes
+   the method's parameters (analysis counts them) and passes each on, as Godot calls the method
+   with that many of the signal's arguments. Still a connection: a signal of an element the scene
+   does not write, a method whose script is an instanced scene's (its component runs it), a
+   method taking the rest in an array, and a signal any script looks at as connections
    (analysis's `signalIntrospection`: `disconnect`, `is_connected`, a connection list, or one it
-   cannot name), since the callback is not one of the signal's connections.
+   cannot name), since the callback is not one of the signal's connections, and a signal some of
+   whose connections stay (callbacks run before the signal's connections, which would reorder
+   the mix). Differences from Godot: a method is called with as many of the signal's arguments as
+   it takes, where Godot refuses a call with more; a script connecting the same method again is
+   called twice, where Godot refuses the second connection; and a scene made at run time
+   (`instantiate()`) whose caller connects to its root script before `add_child` is connected
+   ahead of the scene's own, where Godot's come first.
 3. **A script is the component's own state.** The script class stays a class. The scene makes it
    with `useMemo`/`useRef` and hands it its refs. Godot's orders are kept by the scene, which owns
    its nodes as Godot instantiates a scene as a unit:

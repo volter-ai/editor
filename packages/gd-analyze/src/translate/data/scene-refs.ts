@@ -17,6 +17,8 @@ export interface GodotSceneRefsPlan {
   readonly rootRef: boolean;
   /** Whether a scene that instances this one overrides its root script's fields. */
   readonly rootExports: boolean;
+  /** Whether a scene that instances this one connects to its root script's signals (`connections`). */
+  readonly rootConnections: boolean;
   /** The targets that are an imported model's own nodes: the model's node and the path in it. */
   readonly modelNodes: readonly { readonly nodePath: string; readonly holder: string; readonly at: string }[];
 }
@@ -71,6 +73,9 @@ export function planGodotSceneRefs(scenes: readonly Omit<DirectGodotSceneDocumen
         modelNodes,
         rootRef: instancedBy(scene, (entry, other) => targets.get(other.sourceResPath)?.has(entry.nodePath) === true),
         rootExports: scene.root.scriptInstance !== undefined && instancedBy(scene, (entry) => (entry.instanceExports?.length ?? 0) > 0),
+        rootConnections:
+          scene.root.scriptInstance !== undefined &&
+          instancedBy(scene, (entry, other) => other.connections.some((connection) => connection.delivery === 'instance-prop' && connection.fromNodePath === entry.nodePath)),
       },
     };
   });

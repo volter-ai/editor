@@ -149,7 +149,8 @@ export function familyEmission(
     loaded: new Set(),
     hookLocals: new Map(),
     data: new Map(),
-    taken: new Set(),
+    // The component's own locals: its props and what it takes out of them.
+    taken: new Set(['props', 'exports', 'connections', 'ref', 'rest']),
     uses: new Map(),
     shared: new Map(),
   };

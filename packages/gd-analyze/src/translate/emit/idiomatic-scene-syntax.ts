@@ -189,6 +189,8 @@ interface Emission {
   readonly autoloads: string | undefined;
   /** Whether a scene instancing this one overrides its root script's fields (its `exports` prop). */
   readonly rootExports: boolean;
+  /** Whether an instancer connects methods to the root script's signals (`connections`). */
+  readonly rootConnections: boolean;
   /** Whether a scene instancing this one refers to its root (its `ref` prop, the root's handle). */
   readonly rootRef: boolean;
   /** Each ref's type as its `useRef` names it. */
@@ -272,6 +274,37 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
       });
     }
     const scriptName = `${refName}Script`;
+    // The scene's methods on the script's own signals: its own connections', then an instancer's.
+    const connections: TargetTsExpression[] = [
+      ...handedConnections(emission, node, 'script-connections'),
+      ...(node.nodePath === emission.scene.root.nodePath && emission.rootConnections ? [{ kind: 'identifier-expression' as const, name: 'connections' }] : []),
+    ];
+    const scriptArguments = (): TargetTsExpression[] => {
+      const own: TargetTsExpression = {
+        kind: 'object-expression',
+        properties: values.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+      };
+      // A scene root whose instancers override its script's fields: theirs over its own.
+      const exported: TargetTsExpression =
+        node.nodePath === emission.scene.root.nodePath && emission.rootExports
+          ? { kind: 'call-expression', callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'assign' }, arguments: [own, { kind: 'identifier-expression', name: 'exports' }] }
+          : own;
+      // The autoloads the script reads, each its field and the ref the world mounts it into.
+      const autoloads: TargetTsExpression = {
+        kind: 'object-expression',
+        properties:
+          emission.autoloads === undefined
+            ? []
+            : script.autoloadReferences.map((reference) => ({
+                key: reference.fieldName,
+                value: { kind: 'property-expression' as const, object: { kind: 'identifier-expression' as const, name: 'autoloads' }, property: reference.name },
+              })),
+      };
+      const hasAutoloads = script.autoloadReferences.length > 0 && emission.autoloads !== undefined;
+      if (connections.length > 0) return [exported, autoloads, { kind: 'array-expression', elements: connections }];
+      if (hasAutoloads) return [exported, autoloads];
+      return exported === own && values.length === 0 ? [] : [exported];
+    };
     // A field holding a node is handed once every script of the scene is attached, so a scripted
     // node is its script instance wherever it is in the scene.
     const values = script.fields.filter((field) => field.value.kind !== 'node-reference');
@@ -287,33 +320,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
         arguments: [
           { kind: 'identifier-expression', name: refName },
           { kind: 'identifier-expression', name: local },
-          ...((): TargetTsExpression[] => {
-            const own: TargetTsExpression = {
-              kind: 'object-expression',
-              properties: values.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
-            };
-            // A scene root whose instancers override its script's fields: theirs over its own.
-            if (node.nodePath === emission.scene.root.nodePath && emission.rootExports) {
-              return [{ kind: 'call-expression', callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'assign' }, arguments: [own, { kind: 'identifier-expression', name: 'exports' }] }];
-            }
-            return values.length === 0 && script.autoloadReferences.length === 0 ? [] : [own];
-          })(),
-          // The autoloads the script reads, each its field and the ref the world mounts it into.
-          ...(script.autoloadReferences.length === 0 || emission.autoloads === undefined
-            ? []
-            : [
-                {
-                  kind: 'object-expression' as const,
-                  properties: script.autoloadReferences.map((reference) => ({
-                    key: reference.fieldName,
-                    value: {
-                      kind: 'property-expression' as const,
-                      object: { kind: 'identifier-expression' as const, name: 'autoloads' },
-                      property: reference.name,
-                    },
-                  })),
-                },
-              ]),
+          ...scriptArguments(),
         ],
       },
     }, ...scriptLifecycleHooks(scriptName, refName, script.lifecycle, emission.lifecycle, emission.processDelta, script.ownsTimed)]);
@@ -432,6 +439,9 @@ function sensorEvents(emission: Emission, node: DirectGodotSceneNodePlan): Targe
  * it is (`any`), as a connection does: the method's own parameter type is its own.
  */
 function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, delivery: NonNullable<TargetGodotSceneConnectionPlan['delivery']>): TargetTsExpression[] {
+  // A script's own signal takes them as its `useGodotScript` runs, so they are declared before it
+  // (its callbacks reach the other scripts only when called); a handler's or an instance's prop
+  // after every script.
   const connections = emission.scene.connections.filter((connection) => connection.delivery === delivery && connection.fromNodePath === node.nodePath);
   if (connections.length === 0) return [];
   const base = `${camelName(node.name)}Connections`;
@@ -441,7 +451,7 @@ function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, d
   // The targets' refs are planned (`scene-refs.ts`); a target later in the tree is named now.
   const scriptOf = (target: string) => `${emission.nodeRefs.get(target) ?? refLocal(emission, target, target === '.' ? emission.scene.root.name : target.slice(target.lastIndexOf('/') + 1))}Script`;
   const scripts = new Map(connections.map((connection) => [connection.toNodePath, scriptOf(connection.toNodePath)] as const));
-  emission.referenceHooks.push(() => {
+  const declare = (): TargetTsStatement[] => {
     const signals = [...new Set(connections.map((connection) => connection.signal))];
     return [
       {
@@ -452,8 +462,10 @@ function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, d
           kind: 'object-expression',
           properties: signals.map((signal) => {
             const called = connections.filter((connection) => connection.signal === signal);
-            const count = Math.max(...called.map((connection) => connection.arguments));
-            const parameters = Array.from({ length: count }, (_, index) => ({ name: index === 0 ? 'body' : `argument${String(index)}`, type: { kind: 'keyword-type' as const, keyword: 'any' as const } }));
+            // The method's parameters, each of the signal's arguments passed on as it comes, as a
+            // connection calls the method with that many of them.
+            const count = Math.max(...called.map((connection) => connection.methodParameters ?? 0));
+            const parameters = Array.from({ length: count }, (_, index) => ({ name: count === 1 ? 'value' : `value${String(index + 1)}`, type: { kind: 'keyword-type' as const, keyword: 'any' as const } }));
             const calls: TargetTsExpression[] = called.map((connection) => ({
               kind: 'call-expression',
               callee: {
@@ -462,7 +474,7 @@ function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, d
                 property: connection.method,
                 optional: true,
               },
-              arguments: parameters.slice(0, connection.arguments).map((parameter) => ({ kind: 'identifier-expression' as const, name: parameter.name })),
+              arguments: parameters.slice(0, connection.methodParameters ?? 0).map((parameter) => ({ kind: 'identifier-expression' as const, name: parameter.name })),
             }));
             return {
               key: signal,
@@ -476,7 +488,9 @@ function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, d
         },
       },
     ];
-  });
+  };
+  if (delivery === 'script-connections') emission.hooks.push(...declare());
+  else emission.referenceHooks.push(declare);
   return [{ kind: 'identifier-expression', name: local }];
 }
 
@@ -583,6 +597,9 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     );
   }
   if (exportedNodes.length > 0) referenceHook(emission, node, node.nodePath, exportedNodes);
+  // The methods this scene connects to the instance's root script's signals.
+  const connected = handedConnections(emission, node, 'instance-prop');
+  if (connected.length > 0) overrides.push(attribute('connections', connected[0] as TargetTsExpression));
   const children = node.children.map((child) => nodeElement(emission, child));
   const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
@@ -876,6 +893,7 @@ export function idiomaticSceneSourceFile(
     models: new Map(),
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
     rootExports: scene.refs.rootExports,
+    rootConnections: scene.refs.rootConnections,
     rootRef: scene.refs.rootRef,
     refTypes: new Map(),
   };
@@ -926,7 +944,7 @@ export function idiomaticSceneSourceFile(
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
     // Its instancers' overrides of its script's fields are the `exports` prop, not the root's.
-    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: emission.rootExports || emission.rootRef ? 'rest' : 'props' } }],
+    attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: emission.rootExports || emission.rootRef || emission.rootConnections ? 'rest' : 'props' } }],
     children: props.children
       ? [...node.children, { kind: 'jsx-expression-child', value: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'props' }, property: 'children' } }]
       : node.children,
@@ -1094,7 +1112,7 @@ export function idiomaticSceneSourceFile(
           {
             name: 'props',
             type:
-              emission.rootExports || emission.rootRef
+              emission.rootExports || emission.rootRef || emission.rootConnections
                 ? {
                     kind: 'intersection-type',
                     members: [
@@ -1103,6 +1121,30 @@ export function idiomaticSceneSourceFile(
                         kind: 'object-type',
                         properties: [
                           ...(emission.rootExports ? [{ name: 'exports', type: { kind: 'type-reference' as const, name: 'Record', arguments: [{ kind: 'keyword-type' as const, keyword: 'string' as const }, { kind: 'keyword-type' as const, keyword: 'unknown' as const }] }, readonly: true as const, optional: true as const }] : []),
+                          ...(emission.rootConnections
+                            ? [
+                                {
+                                  name: 'connections',
+                                  // The methods an instancer connects to the root script's signals (`useGodotScript`).
+                                  type: {
+                                    kind: 'type-reference' as const,
+                                    name: 'Readonly',
+                                    arguments: [
+                                      {
+                                        kind: 'type-reference' as const,
+                                        name: 'Record',
+                                        arguments: [
+                                          { kind: 'keyword-type' as const, keyword: 'string' as const },
+                                          { kind: 'function-type' as const, parameters: [{ name: 'args', rest: true as const, type: { kind: 'keyword-type' as const, keyword: 'any' as const } }], result: { kind: 'keyword-type' as const, keyword: 'void' as const } },
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                  readonly: true as const,
+                                  optional: true as const,
+                                },
+                              ]
+                            : []),
                           ...(emission.rootRef ? [{ name: 'ref', type: { kind: 'type-reference' as const, name: 'RefObject', arguments: [{ kind: 'union-type' as const, members: [{ kind: 'type-reference' as const, name: rootRefType, arguments: [] }, { kind: 'literal-type' as const, value: null }] }] }, readonly: true as const, optional: true as const }] : []),
                         ],
                       },
@@ -1112,8 +1154,8 @@ export function idiomaticSceneSourceFile(
           },
         ],
         body: [
-          ...(emission.rootExports || emission.rootRef
-            ? [{ kind: 'destructure-statement' as const, names: [...(emission.rootExports ? ['exports'] : []), ...(emission.rootRef ? ['ref'] : [])], rest: 'rest', initializer: { kind: 'identifier-expression' as const, name: 'props' } }]
+          ...(emission.rootExports || emission.rootRef || emission.rootConnections
+            ? [{ kind: 'destructure-statement' as const, names: [...(emission.rootExports ? ['exports'] : []), ...(emission.rootConnections ? ['connections'] : []), ...(emission.rootRef ? ['ref'] : [])], rest: 'rest', initializer: { kind: 'identifier-expression' as const, name: 'props' } }]
             : []),
           ...family.hooks,
           ...emission.hooks,

@@ -387,6 +387,9 @@ export interface BoundGodotScriptMethod {
   readonly name: string;
   readonly static: boolean;
   readonly coroutine: boolean;
+  /** Its declared parameters' count, and whether it takes the rest in an array (`...args`). */
+  readonly parameters: number;
+  readonly rest: boolean;
 }
 
 export interface BoundGodotScriptClass {
@@ -1060,6 +1063,8 @@ function scriptClass(script: GodotBoundScript): BoundGodotScriptClass {
         name: identifier(script, fn.identifier).name,
         static: fn.static,
         coroutine: fn.coroutine,
+        parameters: fn.parameters.length,
+        rest: fn.restParameter >= 0,
       },
     ];
   });

@@ -392,7 +392,9 @@ export interface TargetGodotSceneConnectionPlan {
    * Whose handler calls the method (`scene-signal-delivery.ts`): the source element's own event
    * handler, which takes it as a callback; else a connection to the signal (`useGodotConnection`).
    */
-  readonly delivery?: 'area-handler' | 'contact-handler';
+  readonly delivery?: 'area-handler' | 'contact-handler' | 'script-connections' | 'instance-prop';
+  /** For a delivered connection: the method's parameters, which its callback takes and passes on. */
+  readonly methodParameters?: number;
 }
 
 export interface TargetGodotSceneDocumentPlan {

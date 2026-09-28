@@ -125,6 +125,9 @@ function GodotAddedScenes({ root }: { readonly root: RefObject<object | null> })
   return godot_packed_scene_portals(spawns);
 }
 
+/** The methods a scene connects to a script's own signals, by signal (`useGodotScript`). */
+export type GodotScriptConnections = Readonly<Record<string, (...args: any) => void>>;
+
 /** Each node's script instance, as `useGodotScript` makes it. */
 const SCRIPT_OF = new WeakMap<object, object>();
 
@@ -187,6 +190,7 @@ export function useGodotScript<Instance extends object>(
   ScriptClass: new (native: object) => Instance,
   exported?: { readonly [Field in keyof Instance]?: Instance[Field] },
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
+  connections?: readonly (GodotScriptConnections | undefined)[],
 ): RefObject<Instance | null> {
   const script = useRef<Instance | null>(null);
   const pending = useContext(GodotPendingSceneContext);
@@ -201,6 +205,14 @@ export function useGodotScript<Instance extends object>(
     SCRIPT_OF.set(native, instance);
     // Its authored values (a node reference is handed by `useGodotNodeReferences`).
     for (const [field, value] of Object.entries(exported ?? {})) (instance as Record<string, unknown>)[field] = value;
+    // The methods the scene connects to the script's own signals, its own before an instancer's
+    // (`SceneState::instantiate` connects each scene's as it instantiates, packed_scene.cpp:682):
+    // the signal's first connections, made before any of the script's code runs.
+    const methods = (connections ?? []).flatMap((record) => Object.entries(record ?? {}));
+    for (const [name] of methods) {
+      if (!isRetainedGodotSignal((instance as Readonly<Record<string, unknown>>)[name])) throw new Error(`godot-compat: the script declares no signal ${name}.`);
+    }
+    const connected = methods.map(([name, method]) => ((instance as Readonly<Record<string, unknown>>)[name] as GodotSignal<unknown[]>).connect(method));
     for (const [field, singleton] of Object.entries(autoloads ?? {})) {
       const value = singleton?.current;
       if (value === null || value === undefined) throw new Error(`godot-compat: the autoload ${field} reads was not mounted.`);
@@ -210,6 +222,7 @@ export function useGodotScript<Instance extends object>(
     godot_node_adopt(native, { binding: { owner: instance } });
     script.current = instance;
     return () => {
+      for (const connection of connected) connection.disconnect();
       script.current = null;
       // What the script made (its timers and tweens) goes with it.
       godot_owned_release(instance);
