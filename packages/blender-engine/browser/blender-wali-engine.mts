@@ -247,7 +247,8 @@ function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
       waiting.add(done);
     }) } : {}),
     readFile: (path) => filesystem.readFile(path),
-    writeFile: async (path, data) => filesystem.writeFileSync(path, data),
+    // Not `async`: a write that throws throws here, so `request` never starts `.done` after a failed `.json`.
+    writeFile: (path, data) => { filesystem.writeFileSync(path, data); return Promise.resolve(); },
     mkdirTree: async (path) => filesystem.mkdirSync(path, { recursive: true }),
     readdir: async (path) => filesystem.readdirSync(path),
     stat: async (path) => {

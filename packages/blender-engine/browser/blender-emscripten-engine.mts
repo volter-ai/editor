@@ -112,7 +112,8 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
   const FS = module.FS;
   return {
     readFile: async (path) => FS.readFile(path),
-    writeFile: async (path, data) => FS.writeFile(path, data),
+    // Not `async`: a write that throws throws here, so `request` never starts `.done` after a failed `.json`.
+    writeFile: (path, data) => { FS.writeFile(path, data); return Promise.resolve(); },
     mkdirTree: async (path) => FS.mkdirTree(path),
     readdir: async (path) => FS.readdir(path),
     stat: async (path) => {

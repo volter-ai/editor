@@ -388,7 +388,8 @@ export function openSessionChannel(
   async function request(payload: Record<string, unknown>): Promise<unknown> {
     const id = String(++sequence);
     // BOTH WRITES BEGIN IN ONE TURN, `.done` second. Both engines write
-    // synchronously inside `writeFile`, so the order is kept; and the WALI
+    // synchronously inside `writeFile` and throw from it, so the order is kept
+    // and a failed `.json` never leaves a `.done` behind; and the WALI
     // engine carries one turn's writes to the program as one patch, where an
     // await between them sent the request as two imports in series, the
     // second waiting for the first's acknowledgement (measured 2026-09-28:
