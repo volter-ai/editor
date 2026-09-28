@@ -162,11 +162,19 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    is the SceneTree's component. `add_child` keeps `flushSync` and the stand-in: Godot's
    `add_child` returns with the child in the tree and readied, and a script configures an
    instantiated root before adding it.
+   After the `5c36cca7` review: no compat module patches three's shared shader chunks (the gles3
+   light passes and `scene.glsl`'s material modes are gone, `3241f28c`); a material's settings map
+   to three's own materials in the plan (`scene-material-idioms.ts`, `0920ce53`: unshaded is
+   `MeshBasicMaterial`, toon `MeshToonMaterial`, `metallic_specular` a physical material's
+   `reflectivity`; rim, backlight, grow and the fades are stored), and emit prints them; CPU and
+   GPU particles are one three.js `InstancedMesh` emitter advanced from the node's own component
+   (`7c3f0e5d`); and a reachability phase between emit and materialize keeps the compat modules
+   the game's own files reach (`5260df45`).
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 
 Parked by these rulings: the GPUParticles3D branch (`godot-particles`, a transcription of gles3's
-particle storage; redo it as a three.js particle system), the Sprite3D branch (`godot-sprite3d`;
+particle storage; superseded by the three.js emitter, `7c3f0e5d`), the Sprite3D branch (`godot-sprite3d`;
 its members carry over, its emitter wiring waits for step 2), and `evidence --refresh --stale`
 (`godot-stale`, moot once the gate goes).
 
