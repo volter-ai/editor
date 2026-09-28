@@ -262,3 +262,16 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     [emittedArtifactSetBrand]: true,
   };
 }
+
+/**
+ * The emitted set without the capability copies `drop` names, and the accepted plan without them,
+ * so the set stays complete against its plan (`reachability.ts` drops what the game never reaches).
+ */
+export function withoutCapabilityCopies(set: GodotEmittedArtifactSet, drop: ReadonlySet<string>): GodotEmittedArtifactSet {
+  const dropped = (artifact: { readonly kind: string; readonly path: string }) => artifact.kind === 'capability-copy' && (drop.has(artifact.path) || drop.has(artifact.path.replace(/\.map$/u, '')));
+  return {
+    artifacts: set.artifacts.filter((artifact) => !dropped(artifact)),
+    acceptedPlan: { ...set.acceptedPlan, artifacts: set.acceptedPlan.artifacts.filter((artifact) => !dropped(artifact)) },
+    [emittedArtifactSetBrand]: true,
+  };
+}
