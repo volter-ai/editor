@@ -89,6 +89,8 @@ export type DirectGodotSceneNodePlan = Omit<
   readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[]; readonly layers: number; readonly castShadow: boolean };
   /** A Camera3D's lens, cull mask and own environment (`scene-surface-idioms.ts`). */
   readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue };
+  /** A camera, light or probe whose element states no scale (`scene-surface-idioms.ts`). */
+  readonly scaleless?: true;
   /** An instance: what its element needs of the scene it instances (`scene-body-idioms.ts`). */
   readonly instanceOf?: {
     readonly exportName: string;
@@ -113,8 +115,14 @@ export type DirectGodotSceneNodePlan = Omit<
 
 export type DirectGodotSceneDocumentPlan = Omit<TargetGodotSceneDocumentPlan, 'root'> & {
   readonly root: DirectGodotSceneNodePlan;
-  /** The scene's first Camera3D and the one authored current (`scene-surface-idioms.ts`). */
-  readonly cameras?: { readonly first?: string; readonly authored?: string };
+  /**
+   * The scene's first Camera3D, the one authored current (`scene-surface-idioms.ts`), and the one
+   * current as the scene mounts: the authored one, else the main scene's first (Godot makes the
+   * first camera to enter the viewport current when none is authored so).
+   */
+  readonly cameras?: { readonly first?: string; readonly authored?: string; readonly current?: string };
+  /** The autoloads the scene's scripts read, by name (`sceneAutoloadReferences`). */
+  readonly autoloadReferences?: readonly DirectGodotAutoloadReferencePlan[];
   /** The nodes the scene's component holds refs to, and what instancing scenes take (`scene-refs.ts`). */
   readonly refs: GodotSceneRefsPlan;
 };
@@ -442,6 +450,23 @@ function scriptInstances(
     });
   }
   return instances;
+}
+
+/** The autoloads a scene's scripts read, by name; one name resolving to two scripts is refused. */
+function sceneAutoloadReferences(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>, diagnostics: DirectGodotCompositionDiagnostic[]): readonly DirectGodotAutoloadReferencePlan[] {
+  const references = new Map<string, DirectGodotAutoloadReferencePlan>();
+  const visit = (node: DirectGodotSceneNodePlan): void => {
+    for (const reference of node.scriptInstance?.autoloadReferences ?? []) {
+      const prior = references.get(reference.name);
+      if (prior !== undefined && prior.resPath !== reference.resPath) {
+        diagnostics.push({ at: `${scene.sourceResPath}#${node.nodePath}`, message: `autoload ${reference.name} resolves to both ${prior.resPath} and ${reference.resPath}` });
+      }
+      references.set(reference.name, reference);
+    }
+    for (const child of godotSceneSubnodes(node)) visit(child);
+  };
+  visit(scene.root);
+  return [...references.values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
 function nodeLocationKey(documentPath: string, nodePath: string): string {
@@ -890,7 +915,11 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(project);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
-  const bodied = planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics);
+  const bodied = planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics).map((scene) => {
+    const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);
+    const autoloadReferences = sceneAutoloadReferences(scene, diagnostics);
+    return { ...scene, ...(current === undefined ? {} : { cameras: { ...scene.cameras, current } }), ...(autoloadReferences.length === 0 ? {} : { autoloadReferences }) };
+  });
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }

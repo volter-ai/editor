@@ -33,7 +33,7 @@ import type {
 } from '../data/direct-project-composition-plan';
 import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-lifecycle-hooks';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
-import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
+import { directGodotSceneAutoloadContextName } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import type { GodotSceneBodyProp } from '../data/scene-body-idioms';
 import type { GodotSceneNodeIdiom } from '../data/scene-node-idioms';
@@ -509,9 +509,8 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   } else if (rootBody !== undefined) {
     // The props the plan found the instance's overrides change (`scene-body-idioms.ts`).
     overrides.push(...(node.bodyOverrides ?? []).map((prop) => bodyProp(emission, prop)));
-  } else {
-    if (instanced.stated > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
-    if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
+  } else if (Object.keys(ownData).length > 0) {
+    overrides.push(attribute('userData', dataExpression(data)));
   }
   // Its overrides of the instanced scene root script's fields, which that component's script takes.
   // Its node references are handed here, after this scene's scripts attach and after the instance's
@@ -674,11 +673,8 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
   const matrix = node.properties.find((entry) => entry.propertyName === 'transform')?.value;
   const name: TargetTsJsxAttribute = { kind: 'jsx-string-attribute', name: 'name', value: node.name };
-  // A camera, light or reflection probe draws with its scale removed (`disable_scale`,
-  // node_3d.cpp:655; set by Camera3D, Light3D and ReflectionProbe): with no children and no script
-  // to read it back, its authored scale (the rounding a `.tscn` rotation carries) changes nothing,
-  // and the element states none.
-  const scaleless = idiom?.scaleless === true && node.children.length === 0 && node.scriptInstance === undefined;
+  // A camera, light or probe the plan found states no scale (`scene-surface-idioms.ts`).
+  const scaleless = node.scaleless === true;
   // A node authored with position, rotation and scale (Godot's YXZ Euler) states them as they are.
   // (A class's own properties, a camera's lens, are its element's.)
   const components = node.properties.filter((entry) => SPATIAL_COMPONENTS.has(entry.propertyName)).flatMap((entry): TargetTsJsxAttribute[] => {
@@ -725,8 +721,6 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...children(),
     ]);
     if (range.length === 0) return drawn;
-    // A root's instancer props and children are the drawn element's, which the range would hold.
-    if (node.nodePath === emission.scene.root.nodePath) throw new Error(`${at}: a scene root with a visibility range has no idiomatic form`);
     return element(
       useCompat(emission, 'geometry-instance-3d', 'GodotVisibilityRange'),
       range.map((entry) => attribute(entry.role?.kind === 'visibility-range' ? entry.role.prop : '', dataExpression(plainValue(entry.value)))),
@@ -792,17 +786,15 @@ export function idiomaticSceneSourceFile(
   project: DirectGodotProjectCompositionPlan,
   scene: DirectGodotSceneDocumentPlan,
 ): TargetTsSourceFile {
-  // The scene's first Camera3D and the one authored current, as the plan found them.
+  // The camera current as the scene mounts, as the plan found it.
   const cameras = scene.cameras ?? {};
-  const autoloadReferences = directGodotSceneAutoloadReferences(scene.root);
+  const autoloadReferences = scene.autoloadReferences ?? [];
   const referencedAutoloads = autoloadReferences.map((reference) => {
     const autoload = project.scriptAutoloads.find((candidate) => candidate.name === reference.name && candidate.scriptResPath === reference.resPath);
     if (autoload === undefined) throw new Error(`${reference.name}: singleton ${reference.resPath} is absent from composition`);
     return autoload;
   });
-  // Godot makes the first camera to enter the viewport current when none is authored so: the
-  // main scene's first.
-  const current = cameras.authored ?? (scene.sourceResPath === project.mainScene ? cameras.first : undefined);
+  const current = cameras.current;
   const family = familyEmission(scene.targetPath, scene.resources, current);
   familyCountUses(family, scene.root);
   const emission: Emission = {

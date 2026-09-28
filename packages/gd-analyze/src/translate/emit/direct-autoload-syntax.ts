@@ -1,9 +1,7 @@
-import { godotSceneSubnodes } from '../data/scene-document-plan';
 import type { TargetTsExpression, TargetTsStatement } from '../code/target-ts-syntax';
 import type {
   DirectGodotAutoloadReferencePlan,
   DirectGodotProjectCompositionPlan,
-  DirectGodotSceneNodePlan,
 } from '../data/direct-project-composition-plan';
 
 function property(object: string | TargetTsExpression, member: string): TargetTsExpression {
@@ -48,26 +46,6 @@ function mountedGuard(reference: string, name: string): TargetTsStatement {
 
 export function directGodotSceneAutoloadContextName(sceneExportName: string): string {
   return `${sceneExportName}Autoloads`;
-}
-
-export function directGodotSceneAutoloadReferences(
-  node: DirectGodotSceneNodePlan,
-): readonly DirectGodotAutoloadReferencePlan[] {
-  const references = new Map<string, DirectGodotAutoloadReferencePlan>();
-  const visit = (candidate: DirectGodotSceneNodePlan): void => {
-    for (const reference of candidate.scriptInstance?.autoloadReferences ?? []) {
-      const prior = references.get(reference.name);
-      if (prior !== undefined && prior.resPath !== reference.resPath) {
-        throw new Error(
-          `autoload ${reference.name} resolves to both ${prior.resPath} and ${reference.resPath}`,
-        );
-      }
-      references.set(reference.name, reference);
-    }
-    for (const child of godotSceneSubnodes(candidate)) visit(child);
-  };
-  visit(node);
-  return [...references.values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
 export function directGodotAutoloadIndex(

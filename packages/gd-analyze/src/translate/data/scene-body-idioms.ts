@@ -365,6 +365,16 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       const overrides = instanced === undefined ? [] : planned(() => bodyOverrides(scene, node, instanced, bySource, refuse), []);
       const collider = form?.kind === 'collider' && node.instance === undefined ? colliderPlan(node, resources, refuse) : undefined;
       const instance = instanced === undefined ? undefined : instanceOf(node, instanced, bySource);
+      // An instance's overrides on its root are a family element's props or a body's; any other
+      // root has no form for them.
+      const rootForm = instance?.rootIdiom?.form.kind;
+      if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
+      // A root drawn as a family element: its instancer props and children are the element's, which
+      // a range would hold. (An instance's or a body's range is its props'.)
+      const family = form?.kind === 'element' || form?.kind === 'mesh' || form?.kind === 'light' || form?.kind === 'camera' || form?.kind === 'reflection-probe';
+      if (node.nodePath === scene.root.nodePath && node.instance === undefined && node.model === undefined && family && node.setters.some((entry) => entry.role?.kind === 'visibility-range')) {
+        refuse('a scene root with a visibility range has no idiomatic form');
+      }
       return {
         ...node,
         data,

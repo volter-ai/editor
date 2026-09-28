@@ -20,7 +20,6 @@ import {
   directGodotAutoloadIndex,
   directGodotAutoloadPreparation,
   directGodotSceneAutoloadContextName,
-  directGodotSceneAutoloadReferences,
 } from './direct-autoload-syntax';
 
 /** The project's settings file: each setting its scripts read, a built-in value as `{ Vector3: [...] }`. */
@@ -205,10 +204,10 @@ export function emitDirectGodotWorldSyntax(
     namedBindings: [...new Set(names)].sort().map((name) => ({ imported: name, local: name })),
     ...(typeOnly ? { typeOnly: true as const } : {}),
   });
-  const mainAutoloadReferences = directGodotSceneAutoloadReferences(scene.root);
+  const mainAutoloadReferences = scene.autoloadReferences ?? [];
   const otherScenes = composition.scenes
     .filter((candidate) => candidate !== scene)
-    .map((candidate) => ({ candidate, references: directGodotSceneAutoloadReferences(candidate.root) }))
+    .map((candidate) => ({ candidate, references: candidate.autoloadReferences ?? [] }))
     .filter((entry) => entry.references.length > 0);
   const hooks: ScriptLifecycleImports = { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() };
   const autoloadComponents = composition.scriptAutoloads.map((autoload, index) => autoloadComponent(autoload, index, hooks, composition.processDelta));

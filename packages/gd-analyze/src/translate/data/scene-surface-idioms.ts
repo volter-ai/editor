@@ -107,10 +107,15 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
         };
       }
       const lens = node.idiom?.form.kind === 'camera' ? cameraLens(node) : undefined;
+      // A camera, light or reflection probe draws with its scale removed (`disable_scale`,
+      // node_3d.cpp:655): with no children and no script to read it back, its authored scale (the
+      // rounding a `.tscn` rotation carries) changes nothing, and its element states none.
+      const scaleless = node.idiom?.scaleless === true && node.children.length === 0 && node.scriptInstance === undefined;
       return {
         ...node,
         ...(surfaces === undefined ? {} : { surfaces }),
         ...(lens === undefined ? {} : { lens }),
+        ...(scaleless ? { scaleless: true as const } : {}),
         children,
         ...(placements === undefined ? {} : { placements }),
       };
