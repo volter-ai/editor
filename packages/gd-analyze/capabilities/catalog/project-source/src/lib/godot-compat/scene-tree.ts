@@ -58,7 +58,8 @@ let host: { readonly clock: GodotHostClock; readonly world: { readonly timestep:
  * the two, tracked when read. The root Window reads it at every frame's start (the Input
  * library's edges, `input.ts`), so it is never more than a frame behind.
  */
-const read = { start: Number.NaN, previous: 0 };
+/** The host frame the root Window's flush last opened: its id, its clock start and the one before. */
+const read = { id: 0, start: 0, previous: 0 };
 
 /** What one creator owns: the timers and tweens its script made. */
 interface Owned {
@@ -138,20 +139,30 @@ export function godot_tree_attach_host(clock: GodotHostClock, world: { readonly 
 }
 
 /**
- * The host frame as its clock reads now: when the current frame started (its clock's elapsed
- * seconds, which identifies the frame) and its delta, the time since the frame before it started.
- * Before the host's first frame both are 0.
+ * Opens the host's next frame, as the root Window's flush does at the start of each one
+ * (`Input.flush_buffered_events`): a fresh id whatever the clock says, so a frame the host draws
+ * without advancing its clock (the editor's paused game) is still a frame of its own, and its
+ * delta is 0.
  *
  * @godot SceneTree (protocol)
  * @source main/main.cpp:4951
  */
-export function godot_tree_frame(): { readonly start: number; readonly delta: number } {
-  const start = host?.clock.elapsedTime ?? 0;
-  if (start !== read.start) {
-    read.previous = Number.isNaN(read.start) ? 0 : read.start;
-    read.start = start;
-  }
-  return { start, delta: Math.max(0, start - read.previous) };
+export function godot_tree_open_frame(): number {
+  read.id += 1;
+  read.previous = read.start;
+  read.start = host?.clock.elapsedTime ?? 0;
+  return read.id;
+}
+
+/**
+ * The host frame open now: its id and its delta, the clock time since the frame before it opened
+ * (0 before the host's first frame, and while its clock does not advance).
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4951
+ */
+export function godot_tree_frame(): { readonly id: number; readonly delta: number } {
+  return { id: read.id, delta: Math.max(0, read.start - read.previous) };
 }
 
 /**

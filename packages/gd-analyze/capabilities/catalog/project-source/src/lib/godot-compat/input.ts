@@ -15,12 +15,12 @@
  *
  * `is_action_just_pressed` and `_released` are the library's own edges, not frames the tree counts
  * (docs/GODOT.md §The emitted game's shape, "The SceneTree's clock"): an action records when it
- * changed, as the host frame it changed in, identified by the frame's start on R3F's clock
- * (`godot_tree_frame`), and "just" is a change since the host's current frame began. A change
+ * changed, as the host frame it changed in, identified by the id the root Window's flush opens it
+ * with (`godot_tree_open_frame`), and "just" is a change in the host's current frame. A change
  * made between frames (a script's `action_press` in `_ready` or a deferred call, the debug door)
  * belongs to the next frame, as Godot's next iteration sees it. A frame is open from the window's
- * flush, first in every frame, which reads the clock and finds a new start, until the task that
- * runs it ends: R3F runs a frame's callbacks, physics steps and draw in one task, so a microtask
+ * flush, first in every frame, which opens it whether or not the host's clock advanced (the
+ * editor's paused game draws frames without advancing it), until the task that runs it ends: R3F runs a frame's callbacks, physics steps and draw in one task, so a microtask
  * then closes it. Where Godot counts physics frames and process frames apart, one host
  * frame holds both, so:
  * - where several physics steps run in one frame, a change holds for each of them, where Godot
@@ -36,7 +36,7 @@
  */
 
 import { get_device as deviceOf, godot_input_event_accumulate, type InputEventRecord } from './input-event';
-import { godot_tree_frame } from './scene-tree';
+import { godot_tree_open_frame } from './scene-tree';
 import { construct as vector2, type Vector2 } from './vector2';
 
 const f32 = Math.fround;
@@ -93,8 +93,8 @@ const inputMap = new Map<string, Action>();
 const actionStates = new Map<string, ActionState>();
 const buffered: InputEventRecord[] = [];
 const customCursors = new Map<number, { readonly cursor: unknown; readonly hotspot: Vector2 }>();
-/** The host frame as Input last read it: its start, and whether it is still running. */
-const frame = { start: Number.NaN, open: false };
+/** The host frame Input's flush last opened: its id, and whether it is still running. */
+const frame = { id: 0, open: false };
 
 function newState(): ActionState {
   return {
@@ -422,25 +422,25 @@ export function godot_input_map_load_json(actions: readonly GodotInputMapActionJ
 }
 
 /**
- * The flush reads the host's clock: a frame start it has not seen opens a new frame. The changes
+ * Each flush opens the host's next frame (`godot_tree_open_frame`), whether or not the host's clock
+ * advanced, so the editor's paused game still ends one frame's edges before the next. The changes
  * made between frames take it as their time, the debug door's taps pressed in an earlier frame are
  * released in it (`godot_input_debug`), and it stays open until the task running it ends (a
  * microtask closes it).
  */
 function openFrame(): void {
-  const start = godot_tree_frame().start;
-  if (start === frame.start) return;
-  frame.start = start;
+  const id = godot_tree_open_frame();
+  frame.id = id;
   frame.open = true;
   queueMicrotask(() => {
-    if (frame.start === start) frame.open = false;
+    if (frame.id === id) frame.open = false;
   });
   for (const state of actionStates.values()) {
-    if (state.pressedAt === NEXT) state.pressedAt = start;
-    if (state.releasedAt === NEXT) state.releasedAt = start;
+    if (state.pressedAt === NEXT) state.pressedAt = id;
+    if (state.releasedAt === NEXT) state.releasedAt = id;
   }
   for (const [action, state] of [...debugTaps]) {
-    if (state.pressedAt === start) continue;
+    if (state.pressedAt === id) continue;
     debugTaps.delete(action);
     action_release(action);
   }
@@ -448,7 +448,7 @@ function openFrame(): void {
 
 /** When a change made now happened: the running frame's start, or `NEXT` between frames. */
 function changedAt(): number {
-  return frame.open ? frame.start : NEXT;
+  return frame.open ? frame.id : NEXT;
 }
 
 /** The debug door's taps: action → its state, released in the first frame after the one it was pressed in. */
@@ -551,7 +551,7 @@ export function is_action_just_pressed(action: string, exact_match = false): boo
   const state = actionStates.get(action);
   if (state === undefined) return false;
   if (exact_match && !state.exact) return false;
-  return state.pressedAt === frame.start;
+  return state.pressedAt === frame.id;
 }
 
 /**
@@ -565,7 +565,7 @@ export function is_action_just_released(action: string, exact_match = false): bo
   const state = actionStates.get(action);
   if (state === undefined) return false;
   if (exact_match && !state.exact) return false;
-  return state.releasedAt === frame.start;
+  return state.releasedAt === frame.id;
 }
 
 /**
