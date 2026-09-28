@@ -768,6 +768,17 @@ function familyThree(idiom: GodotSceneNodeIdiom | undefined): string | undefined
   return kind === 'element' || kind === 'mesh' || kind === 'light' || kind === 'camera' || kind === 'reflection-probe' ? idiom?.three : undefined;
 }
 
+/** The planned sky lights' refs, handed to the environment that reads them (`skyLights={[sun]}`). */
+function skyLightsAttribute(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
+  if (node.skyLights === undefined) return [];
+  return [
+    attribute('skyLights', {
+      kind: 'array-expression',
+      elements: node.skyLights.map((light) => ({ kind: 'identifier-expression' as const, name: refLocal(emission, light.nodePath, light.name) })),
+    }),
+  ];
+}
+
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
   const idiom = node.idiom;
@@ -820,7 +831,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const range = own.setters.filter((entry) => VISIBILITY_RANGE_PROPS[entry.setter.exportName] !== undefined);
   const family = familyElement(emission.family, form, range.length === 0 ? own : { ...own, setters: own.setters.filter((entry) => !range.includes(entry)) });
   if (family !== undefined) {
-    const drawn = element(family.tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...family.attributes, ...nodeDataAttribute(node)], [
+    const drawn = element(family.tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...family.attributes, ...skyLightsAttribute(emission, node), ...nodeDataAttribute(node)], [
       ...family.children,
       ...children(),
     ]);

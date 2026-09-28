@@ -46,6 +46,10 @@ export interface GodotSceneNodeIdiom {
   readonly scaleless?: true;
   /** three's object starts off the origin (a DirectionalLight at `Object3D.DEFAULT_UP`); Godot's does not. */
   readonly origin?: true;
+  /** A sky pass may read it (`_setup_sky`): a WorldEnvironment of its scene takes it (`scene-sky-lights.ts`). */
+  readonly skyLight?: true;
+  /** Its element takes its scene's sky lights as refs, the `skyLights` prop (`scene-sky-lights.ts`). */
+  readonly skyLights?: true;
   /** The pinned Godot 4.7 source the idiom answers to: documentation, which nothing reads. */
   readonly source?: GodotSceneNodeIdiomSource;
 }
@@ -96,6 +100,7 @@ const IDIOMS: Readonly<Record<string, GodotSceneNodeIdiom>> = {
     three: 'DirectionalLight',
     scaleless: true,
     origin: true,
+    skyLight: true,
     source: ctor('DirectionalLight3D', 'scene/3d/light_3d.cpp', 612),
   },
   OmniLight3D: {
@@ -171,11 +176,10 @@ const IDIOMS: Readonly<Record<string, GodotSceneNodeIdiom>> = {
   GPUParticles3D: element('gpu-particles-3d', 'GPUParticles3D', ctor('GPUParticles3D', 'scene/3d/gpu_particles_3d.cpp', 933)),
   Decal: element('decal', 'Decal', ctor('Decal', 'scene/3d/decal.cpp', 294)),
   CSGBox3D: element('csg-box-3d', 'CSGBox3D', { file: 'modules/csg/csg_shape.cpp', symbol: 'CSGBox3D::_bind_methods', line: 1820 }, 'Mesh'),
-  WorldEnvironment: element(
-    'world-environment',
-    'WorldEnvironment',
-    ctor('WorldEnvironment', 'scene/3d/world_environment.cpp', 226),
-  ),
+  WorldEnvironment: {
+    ...element('world-environment', 'WorldEnvironment', ctor('WorldEnvironment', 'scene/3d/world_environment.cpp', 226)),
+    skyLights: true,
+  },
   AnimationPlayer: element('animation-player', 'AnimationPlayer', {
     file: 'scene/animation/animation_mixer.cpp',
     symbol: 'AnimationMixer::_update_caches',

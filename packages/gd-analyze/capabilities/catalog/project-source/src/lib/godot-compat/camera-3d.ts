@@ -335,21 +335,6 @@ function enterWorld(camera: PerspectiveCamera): void {
   const cameras = camerasOf(viewport);
   if (!cameras.set.includes(camera)) cameras.set.push(camera);
   if (state.current || cameras.set.length === 1) cameraSet(viewport, camera);
-  for (const listener of WORLD_LISTENERS) listener(camera, viewport);
-}
-
-/** Who draws a viewport's environment, told when a camera joins a viewport or changes environment. */
-const WORLD_LISTENERS: ((camera: PerspectiveCamera, viewport: Object3D) => void)[] = [];
-
-/**
- * Registers what the renderer does for a camera in a viewport (its environment drawn when the
- * viewport renders with it, `world-environment.ts`).
- *
- * @godot Camera3D (protocol)
- * @source servers/rendering/renderer_scene_cull.cpp:3722
- */
-export function godot_camera_3d_world_listener(listener: (camera: PerspectiveCamera, viewport: Object3D) => void): void {
-  if (!WORLD_LISTENERS.includes(listener)) WORLD_LISTENERS.push(listener);
 }
 
 const ENVIRONMENTS = new WeakMap<object, Environment | null>();
@@ -357,14 +342,14 @@ const ENVIRONMENTS = new WeakMap<object, Environment | null>();
 /**
  * The camera's own environment, which the renderer draws in place of the world's while it draws
  * with this camera (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722).
+ * The scene's WorldEnvironment draws it, reading it from R3F's camera in its own processing
+ * (`world-environment.ts`).
  *
  * @godot Camera3D.set_environment
  * @source scene/3d/camera_3d.cpp:531
  */
 export function set_environment(self: PerspectiveCamera, p_environment: Environment | null): void {
   ENVIRONMENTS.set(self, p_environment);
-  const viewport = stateOf(self).viewport;
-  if (viewport !== null) for (const listener of WORLD_LISTENERS) listener(self, viewport);
 }
 
 /**

@@ -1,4 +1,5 @@
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
+import { planGodotSceneSkyLights } from './scene-sky-lights';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -726,7 +727,7 @@ export function planDirectGodotProjectComposition(
       inputMap,
       physicsWorld: physics,
       sourceModules: plannedSourceModules,
-      scenes: planGodotSceneRefs(composedScenes),
+      scenes: planGodotSceneRefs(composedScenes.map(planGodotSceneSkyLights)),
       scriptAutoloads: autoloads,
     },
   };

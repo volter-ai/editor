@@ -62,6 +62,8 @@ export interface TargetGodotSceneNodePlan {
   readonly idiom?: GodotSceneNodeIdiom;
   /** A light node's three light and its props (`scene-light-idioms.ts`), which emit prints. */
   readonly light?: GodotSceneLightPlan;
+  /** The directional lights of the scene a WorldEnvironment's sky reads (`scene-sky-lights.ts`), which emit prints as refs. */
+  readonly skyLights?: readonly { readonly nodePath: string; readonly name: string }[];
   /** For an imported model: the importer's tree over the model file, and this scene's edits in it. */
   readonly model?: TargetGodotImportedModelPlan;
   /** A node this scene places under a node of an imported model: that instance and the path. */

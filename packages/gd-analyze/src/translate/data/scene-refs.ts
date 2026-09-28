@@ -1,7 +1,8 @@
 /**
  * Which nodes of each scene a component holds a ref to, decided at plan time (docs/GODOT.md §The
  * lane's law, row 2: emit prints the plan). A node needs a ref when a script is attached to it, when
- * a connection or a script field names it, and its scene root when its nodes are found as `%Name`;
+ * a connection or a script field names it, when a WorldEnvironment's sky reads it
+ * (`scene-sky-lights.ts`), and its scene root when its nodes are found as `%Name`;
  * a scene's root is exposed to the scene that instances it when that scene refers to the instance
  * (`rootRef`), and its script's fields when that scene overrides them (`rootExports`).
  */
@@ -24,6 +25,7 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
   const walk = (node: DirectGodotSceneNodePlan): void => {
     if (node.scriptInstance !== undefined) targets.add(node.nodePath);
     if (node.unique === true) unique = true;
+    for (const light of node.skyLights ?? []) targets.add(light.nodePath);
     for (const field of [...(node.scriptInstance?.fields ?? []), ...(node.instanceExports ?? [])]) {
       const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
       if (target !== undefined) targets.add(target);
