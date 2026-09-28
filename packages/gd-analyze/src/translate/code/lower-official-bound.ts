@@ -1,3 +1,4 @@
+import { EMPTY_SCRIPT_NODE_PATHS, type GodotScriptNodePath, type GodotScriptNodePathsPlan, type GodotScriptNodeSite } from '../data/script-node-paths';
 import { inlineSingleUseTemporaries } from './inline-temporaries';
 import { type GodotNativeTypePart, godotNativeTypeParts } from './native-types';
 import * as path from 'node:path';
@@ -59,6 +60,11 @@ export interface OfficialBoundCodePlan {
   readonly sourceFiles: readonly TargetTsSourceFile[];
   readonly scriptModules: readonly OfficialBoundScriptModulePlan[];
   readonly requiredCompatSymbols: readonly string[];
+  /** The static node paths each script reads as fields its scenes hand over (`script-node-paths.ts`). */
+  readonly scriptNodePaths: {
+    readonly scripts: readonly { readonly scriptResPath: string; readonly paths: readonly GodotScriptNodePath[] }[];
+    readonly sites: readonly GodotScriptNodeSite[];
+  };
 }
 
 /** Composition-facing identity for one generated class; bodies remain TargetTsSyntax only. */
@@ -570,6 +576,7 @@ function lowerScript(
   nativeType: ((className: string) => readonly GodotNativeTypePart[]) | undefined,
   nativeSignalOwner?: (className: string, signal: string) => string | undefined,
   globalEnumConstant?: GlobalEnumConstantLookup,
+  nodePaths: GodotScriptNodePathsPlan = EMPTY_SCRIPT_NODE_PATHS,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -645,6 +652,10 @@ function lowerScript(
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
+  const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
+  context.nodeFields = new Map(
+    [...source.inheritance.scriptAncestors.flatMap((ancestor) => nodePaths.scripts.get(ancestor) ?? []), ...ownNodePaths].map((entry) => [entry.path, entry.field] as const),
+  );
   if (root.abstract) {
     context.recover(undefined, () =>
       context.refuse(root, 'abstract script classes need a target declaration recipe'),
@@ -696,6 +707,13 @@ function lowerScript(
     members: [
       ...(carrierRoot === source.resPath ? nativeCarrierMembers() : []),
       ...autoloadReferenceMembers(requirements.autoloadReferences),
+      // The nodes its scene hands over (`useGodotScript`), once they all exist.
+      ...ownNodePaths.map((entry): TargetTsClassMember => {
+        const stated = context.nodeFieldTypes.get(entry.field)?.type;
+        return stated === undefined
+          ? { kind: 'field-member', name: entry.field, type: { kind: 'keyword-type', keyword: 'unknown' } }
+          : { kind: 'field-member', name: entry.field, type: stated, definite: true };
+      }),
       ...sourceMembers.members,
     ],
     span: officialBoundSpan(script, root),
@@ -853,6 +871,7 @@ export function lowerOfficialBoundProgram(
   project: BoundGodotProject,
   authority: GodotCodeTranslationAuthority,
   apiDump?: GodotApiDump,
+  nodePaths?: GodotScriptNodePathsPlan,
 ): OfficialBoundCodeResult {
   const resolved = new GodotCodeTranslationAuthorityResolver(authority);
   const nativeProperties = apiDump === undefined ? undefined : nativePropertyLookup(apiDump);
@@ -882,6 +901,7 @@ export function lowerOfficialBoundProgram(
         nativeType,
         nativeSignalOwner,
         globalEnumConstant,
+        nodePaths,
       );
       sourceFiles.push(inlineSingleUseTemporaries(sourceFile));
       scriptModules.push(module);
@@ -902,6 +922,10 @@ export function lowerOfficialBoundProgram(
       sourceFiles,
       scriptModules,
       requiredCompatSymbols: [...compatSymbols].sort(),
+      scriptNodePaths: {
+        scripts: [...(nodePaths ?? EMPTY_SCRIPT_NODE_PATHS).scripts].map(([scriptResPath, paths]) => ({ scriptResPath, paths })),
+        sites: (nodePaths ?? EMPTY_SCRIPT_NODE_PATHS).sites,
+      },
     },
   };
 }

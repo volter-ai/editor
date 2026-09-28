@@ -1,3 +1,4 @@
+import { godotSelfNodePath } from '../../analyze/self-node-paths';
 import { builtinDatatype } from '../../analyze/refined-types';
 import {
   GODOT_NUMERIC_TYPES,
@@ -1774,6 +1775,8 @@ export function lowerOfficialExpression(
     const typedValue =
       node.kind === 'GET_NODE' ||
       node.kind === 'CAST' ||
+      // A node the scene handed over for `get_node("Path")`, stated as `$Path` is.
+      (node.kind === 'CALL' && context.nodeFields.has(godotSelfNodePath(context.script, node) ?? '')) ||
       (context.narrowed(node) && node.kind === 'IDENTIFIER') ||
       // A binding's result (a call, an operator or a read through a binding) is what it returns;
       // the analysis may know it more exactly (`get_setting` of a known setting, a ray's `position`).
@@ -1786,6 +1789,13 @@ export function lowerOfficialExpression(
     // (A built-in with no datatype rule of its own keeps the binding's type.)
     if (!typedValue || datatype.metaType || !known || !context.hasTargetType(node)) return lowered;
     const type = context.targetType(node);
+    // A handed node's field is declared as what its reads state (`lowerScript`).
+    const read = lowered.value;
+    if (read.kind === 'property-expression' && read.object.kind === 'this-expression' && [...context.nodeFields.values()].includes(read.property)) {
+      const seen = context.nodeFieldTypes.get(read.property);
+      const same = seen === undefined || (seen !== null && JSON.stringify(seen.type) === JSON.stringify(type.type));
+      context.nodeFieldTypes.set(read.property, same ? type : null);
+    }
     return {
       ...lowered,
       value: { kind: 'as-expression', expression: lowered.value, type: type.type },
@@ -2675,6 +2685,13 @@ export function lowerOfficialExpression(
           [calleeNode, ...argumentNodes],
           `call:${node.static ? 'static' : 'instance'}`,
         );
+        // `get_node("Path")` on self for a path the plan resolved is the node its scene handed
+        // over (`script-node-paths.ts`), as `$Path` is.
+        const selfPath = godotSelfNodePath(context.script, node);
+        const handed = selfPath === undefined ? undefined : context.nodeFields.get(selfPath);
+        if (handed !== undefined) {
+          return expression({ kind: 'property-expression', object: { kind: 'this-expression' }, property: handed, span: span(context.script, node) }, requirements);
+        }
         const stringifying = context.utilityShapes.get(node.id) === 'stringifies';
         const lowered = argumentNodes.map((argument) =>
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
@@ -3001,9 +3018,15 @@ export function lowerOfficialExpression(
         );
       }
       case 'GET_NODE': {
+        const requirements = context.structural(node, 'get-node', [], 'get-node');
+        // A path the plan resolved in every scene running the script is the node its scene handed
+        // over (`script-node-paths.ts`).
+        const field = context.nodeFields.get(node.fullPath);
+        if (field !== undefined) {
+          return expression({ kind: 'property-expression', object: { kind: 'this-expression' }, property: field, span: span(context.script, node) }, requirements);
+        }
         // `$Path` is `get_node(NodePath("Path"))` on self (`GDScriptCompiler::_parse_expression`
         // GET_NODE): the Node.get_node binding, the path a string the binding walks.
-        const requirements = context.structural(node, 'get-node', [], 'get-node');
         const method = context.nativeMethod('Node', 'get_node');
         if (method === undefined) return context.refuse(node, 'the API dump declares no Node.get_node');
         const use = context.bindingUse(

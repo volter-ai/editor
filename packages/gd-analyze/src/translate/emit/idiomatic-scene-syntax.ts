@@ -165,6 +165,8 @@ interface Emission {
   readonly hooks: TargetTsStatement[];
   /** The scripts' attachments, after every ref (a field may reference another node's). */
   readonly scriptHooks: (() => TargetTsStatement[])[];
+  /** The scripts' node fields, handed after every script is attached (`useGodotNodeReferences`). */
+  readonly referenceHooks: (() => TargetTsStatement[])[];
   /** What the scripts' lifecycle hooks import (`script-lifecycle-hooks.ts`). */
   readonly lifecycle: ScriptLifecycleImports;
   /** The plan's bound on the delta a frame hands `_process`. */
@@ -270,6 +272,11 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
       });
     }
     const scriptName = `${refName}Script`;
+    // A field holding a node is handed once every script of the scene is attached, so a scripted
+    // node is its script instance wherever it is in the scene.
+    const values = script.fields.filter((field) => field.value.kind !== 'node-reference');
+    const nodes = script.fields.filter((field) => field.value.kind === 'node-reference');
+    if (nodes.length > 0) referenceHook(emission, node, node.nodePath, nodes);
     emission.scriptHooks.push(() => [{
       kind: 'variable-statement',
       declaration: 'const',
@@ -283,13 +290,13 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
           ...((): TargetTsExpression[] => {
             const own: TargetTsExpression = {
               kind: 'object-expression',
-              properties: script.fields.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+              properties: values.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
             };
             // A scene root whose instancers override its script's fields: theirs over its own.
             if (node.nodePath === emission.scene.root.nodePath && emission.rootExports) {
               return [{ kind: 'call-expression', callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'assign' }, arguments: [own, { kind: 'identifier-expression', name: 'exports' }] }];
             }
-            return script.fields.length === 0 && script.autoloadReferences.length === 0 ? [] : [own];
+            return values.length === 0 && script.autoloadReferences.length === 0 ? [] : [own];
           })(),
           // The autoloads the script reads, each its field and the ref the world mounts it into.
           ...(script.autoloadReferences.length === 0 || emission.autoloads === undefined
@@ -315,21 +322,38 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
 }
 
 /**
- * A script field's authored value: a literal, or a node reference as the referenced node's ref
- * (`godot_node_reference`), null for a path leaving the scene (`validateNodeReferences`).
+ * The hook handing a script's node fields (`useGodotNodeReferences`), on the ref of the node running
+ * it, printed after every script of the scene attaches (`referenceHooks`).
  */
-function fieldValue(emission: Emission, node: DirectGodotSceneNodePlan, value: DirectGodotScriptInstancePlan['fields'][number]['value']): TargetTsExpression {
-  if (value.kind !== 'node-reference') return { kind: 'literal-expression', value: value.value };
-  const target = godotResolveNodePath(node.nodePath, value.value);
+function referenceHook(emission: Emission, node: DirectGodotSceneNodePlan, holder: string, fields: DirectGodotScriptInstancePlan['fields']): void {
+  emission.referenceHooks.push(() => [{
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotNodeReferences') },
+      arguments: [
+        { kind: 'identifier-expression', name: emission.nodeRefs.get(holder) as string },
+        { kind: 'object-expression', properties: fields.map((field) => ({ key: field.fieldName, value: nodeReference(emission, node, field.value.value as string) })) },
+      ],
+    },
+  }]);
+}
+
+/** A node a script's field holds, as its ref from the node running the script; null where it leaves the scene. */
+function nodeReference(emission: Emission, node: DirectGodotSceneNodePlan, path: string): TargetTsExpression {
+  // An empty NodePath names no node (`Node::get_node_or_null` of an empty path is null).
+  const target = path === '' ? undefined : godotResolveNodePath(node.nodePath, path);
   if (target === undefined) return { kind: 'literal-expression', value: null };
   // A node its element mounts later in the scene is named now; its element declares the ref.
   const ref = emission.nodeRefs.get(target) ?? (emission.needsRef.has(target) && target !== '.' ? refLocal(emission, target, target.slice(target.lastIndexOf('/') + 1)) : undefined);
   if (ref === undefined) throw new Error(`${emission.scene.sourceResPath}#${node.nodePath}: the referenced node ${target} mounts no ref`);
-  return {
-    kind: 'call-expression',
-    callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'godot_node_reference') },
-    arguments: [{ kind: 'identifier-expression', name: ref }],
-  };
+  return { kind: 'identifier-expression', name: ref };
+}
+
+/** A script field's authored value; a node reference is handed by `useGodotNodeReferences` instead. */
+function fieldValue(emission: Emission, node: DirectGodotSceneNodePlan, value: DirectGodotScriptInstancePlan['fields'][number]['value']): TargetTsExpression {
+  if (value.kind === 'node-reference') throw new Error(`${emission.scene.sourceResPath}#${node.nodePath}: a node reference is handed by its hook, not as a value`);
+  return { kind: 'literal-expression', value: value.value };
 }
 
 /** A three type's local name: drei's components share some names (`PerspectiveCamera`). */
@@ -490,14 +514,19 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
   }
   // Its overrides of the instanced scene root script's fields, which that component's script takes.
-  if (node.instanceExports !== undefined) {
+  // Its node references are handed here, after this scene's scripts attach and after the instance's
+  // own (its component is a child), so they are script instances and override the instance's own.
+  const exportedValues = (node.instanceExports ?? []).filter((field) => field.value.kind !== 'node-reference');
+  const exportedNodes = (node.instanceExports ?? []).filter((field) => field.value.kind === 'node-reference');
+  if (exportedValues.length > 0) {
     overrides.push(
       attribute('exports', {
         kind: 'object-expression',
-        properties: node.instanceExports.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+        properties: exportedValues.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
       }),
     );
   }
+  if (exportedNodes.length > 0) referenceHook(emission, node, node.nodePath, exportedNodes);
   const children = node.children.map((child) => nodeElement(emission, child));
   const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
@@ -757,6 +786,7 @@ export function idiomaticSceneSourceFile(
     scripts: new Map(),
     hooks: [],
     scriptHooks: [],
+    referenceHooks: [],
     lifecycle: { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() },
     processDelta: project.processDelta,
     sensor: { current: false },
@@ -774,6 +804,7 @@ export function idiomaticSceneSourceFile(
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   emission.hooks.push(...emission.scriptHooks.flatMap((hook) => hook()));
+  emission.hooks.push(...emission.referenceHooks.flatMap((hook) => hook()));
   for (const [name, module] of emission.lifecycle.compat) useCompat(emission, module, name);
   for (const name of emission.lifecycle.rapier) emission.rapier.add(name);
   // The scene's connections, made once its scripts are attached (`packed_scene.cpp:682`).

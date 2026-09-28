@@ -10,6 +10,7 @@ import { planDirectGodotProjectData } from './data/direct-project-data-plan';
 import { planDirectGodotSceneModules } from './data/direct-scene-module-plan';
 import { planGodotSceneDocuments } from './data/scene-document-plan';
 import { sceneSetterLookup } from './data/scene-setters';
+import { EMPTY_SCRIPT_NODE_PATHS, planGodotScriptNodePaths } from './data/script-node-paths';
 import { planScriptFieldInitializations } from './data/script-field-initialization-plan';
 import { assembleGodotTranslationPlan, type GodotTranslationResult } from './translation-plan';
 
@@ -57,17 +58,19 @@ export function planGodotTranslation(
 ): GodotTranslationResult {
   const diagnostics = [...validateInputs(project, toolchain)];
   if (diagnostics.length > 0) return { kind: 'refused-translation', diagnostics };
-  const code = lowerOfficialBoundProgram(
-    project,
-    toolchain.frontend.codeAuthority,
-    toolchain.frontend.apiDump.parsed,
-  );
-  const fields = planScriptFieldInitializations(project, toolchain.frontend.fieldValueAuthority);
   const scenes = planGodotSceneDocuments(
     project,
     toolchain.frontend.sceneNodeAuthority,
     sceneSetterLookup(toolchain.frontend.codeAuthority, toolchain.frontend.apiDump.parsed),
   );
+  // The scenes decide which of a script's node paths are the nodes they hand it.
+  const code = lowerOfficialBoundProgram(
+    project,
+    toolchain.frontend.codeAuthority,
+    toolchain.frontend.apiDump.parsed,
+    scenes.kind === 'accepted-scene-documents' ? planGodotScriptNodePaths(project, scenes.plan.scenes) : EMPTY_SCRIPT_NODE_PATHS,
+  );
+  const fields = planScriptFieldInitializations(project, toolchain.frontend.fieldValueAuthority);
   if (code.kind === 'refused-code') {
     diagnostics.push(
       ...code.diagnostics.map((entry) => ({

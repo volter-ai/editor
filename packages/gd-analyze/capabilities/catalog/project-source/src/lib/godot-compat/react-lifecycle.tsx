@@ -185,7 +185,7 @@ export function godot_node_script_signal(self: object, name: string): GodotSigna
 export function useGodotScript<Instance extends object>(
   ref: RefObject<object | null>,
   ScriptClass: new (native: object) => Instance,
-  exported?: { readonly [Field in keyof Instance]?: Instance[Field] extends object | null ? Instance[Field] | GodotNodeReference : Instance[Field] },
+  exported?: { readonly [Field in keyof Instance]?: Instance[Field] },
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
 ): RefObject<Instance | null> {
   const script = useRef<Instance | null>(null);
@@ -199,19 +199,8 @@ export function useGodotScript<Instance extends object>(
     const instance = adopted ? (made as Instance) : new ScriptClass(native);
     if (adopted && '$native' in instance) (instance as { $native: object }).$native = native;
     SCRIPT_OF.set(native, instance);
-    for (const [field, value] of Object.entries(exported ?? {})) {
-      // An authored node reference: the node, once every node of the commit exists.
-      if (value instanceof GodotNodeReference) {
-        const set = () => {
-          const node = nodeOf(value.ref.current);
-          (instance as Record<string, unknown>)[field] = node === null ? null : godot_node_object(node);
-        };
-        if (value.ref.current !== null) set();
-        else queueMicrotask(set);
-      } else {
-        (instance as Record<string, unknown>)[field] = value;
-      }
-    }
+    // Its authored values (a node reference is handed by `useGodotNodeReferences`).
+    for (const [field, value] of Object.entries(exported ?? {})) (instance as Record<string, unknown>)[field] = value;
     for (const [field, singleton] of Object.entries(autoloads ?? {})) {
       const value = singleton?.current;
       if (value === null || value === undefined) throw new Error(`godot-compat: the autoload ${field} reads was not mounted.`);
@@ -258,26 +247,32 @@ export function useGodotInput(
 }
 
 /**
- * A script field's authored node reference, as the scene states it: the referenced node's ref.
- *
- * @godot Node (protocol)
- * @source scene/resources/packed_scene.cpp:390
- */
-export class GodotNodeReference {
-  constructor(readonly ref: RefObject<object | null>) {}
-}
-
-/**
- * A script field authored as a node path to a node of the same scene (`@export var target: Node`,
- * `node_paths`): set to that node, or its script instance, once the scene's nodes all exist
- * (`SceneState::instantiate`, packed_scene.cpp:597). A path the scene cannot resolve is null, which
- * the scene states as `null`.
+ * A script's fields that hold nodes of its scene: an authored node reference (`@export var target:
+ * Node`, `node_paths`) and a static path the plan handed over (`$Path`, `script-node-paths.ts`),
+ * each set to the node, or its script instance, as `get_node` finds it; and an instancing scene's
+ * overrides of those on an instance's root script. The scene calls it on the node running the
+ * script, after every `useGodotScript`, so its effect runs once the scene's scripts, and its
+ * instanced scenes' (its children), are all attached, an instancer's after the instance's own
+ * (`SceneState::instantiate` sets node paths once the scene's nodes all exist, packed_scene.cpp:597).
+ * A field whose path leaves the scene is null.
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:597
  */
-export function godot_node_reference(ref: RefObject<object | null>): GodotNodeReference {
-  return new GodotNodeReference(ref);
+export function useGodotNodeReferences(node: RefObject<object | null>, references: Readonly<Record<string, RefObject<object | null> | null>>): void {
+  useEffect(() => {
+    const held = nodeOf(node.current);
+    const instance = held === null ? undefined : SCRIPT_OF.get(held);
+    if (instance === undefined) throw new Error('godot-compat: the node whose script takes node references has no script attached.');
+    for (const [field, ref] of Object.entries(references) as [string, RefObject<object | null> | null][]) {
+      const set = () => {
+        const node = ref === null ? null : nodeOf(ref.current);
+        (instance as Record<string, unknown>)[field] = node === null ? null : godot_node_object(node);
+      };
+      if (ref === null || ref.current !== null) set();
+      else queueMicrotask(set);
+    }
+  }, []);
 }
 
 /**

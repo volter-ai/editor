@@ -1,3 +1,4 @@
+import type { GodotScriptNodeSite } from './script-node-paths';
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
@@ -17,12 +18,13 @@ import type {
 } from '../code/lower-official-bound';
 import { type DirectGodotInputActionPlan, planDirectGodotInputMap } from './input-map-plan';
 import type { GodotSceneNodeIdiom } from './scene-node-idioms';
-import type {
-  GodotSceneDocumentPlan,
-  TargetGodotSceneDocumentPlan,
-  TargetGodotSceneNodePlan,
-  TargetGodotSceneSetterPlan,
-  TargetGodotSceneValue,
+import {
+  type GodotSceneDocumentPlan,
+  godotSceneSubnodes,
+  type TargetGodotSceneDocumentPlan,
+  type TargetGodotSceneNodePlan,
+  type TargetGodotSceneSetterPlan,
+  type TargetGodotSceneValue,
 } from './scene-document-plan';
 import type {
   ScriptAttachmentFieldInitializationPlan,
@@ -314,6 +316,51 @@ function unownedTimed(project: BoundGodotProject, modules: readonly OfficialBoun
   }
 }
 
+/**
+ * The nodes a script's scene hands it for its static paths (`script-node-paths.ts`), its own and its
+ * ancestors', as node references from the node running it: what the plan recorded for that node. A
+ * node running the script of the scene it instances has none: that scene's component hands them.
+ */
+function nodePathFields(
+  project: BoundGodotProject,
+  module: OfficialBoundScriptModulePlan,
+  attachment: BoundGodotScriptAttachment,
+  nodePaths: NodePathSites,
+  diagnostics: DirectGodotCompositionDiagnostic[],
+): readonly ScriptFieldValuePlan[] {
+  const site = nodePaths.sites.get(nodeLocationKey(attachment.documentPath, attachment.nodePath));
+  if (site === undefined) {
+    const expected = scriptChain(project, module.resPath).some((resPath) => nodePaths.scripts.has(resPath));
+    if (expected && nodePaths.ownScripted(attachment.documentPath, attachment.nodePath)) {
+      diagnostics.push({ at: `${attachment.documentPath}#${attachment.nodePath}`, message: `${module.resPath} reads nodes its scene hands it, and the plan hands this node none` });
+    }
+    return [];
+  }
+  return site.fields.map((entry) => ({ fieldName: entry.field, application: 'script-property-set', value: { kind: 'node-reference', value: entry.path } }));
+}
+
+/** The code plan's handed nodes by the node running the script, and which nodes run their own. */
+interface NodePathSites {
+  readonly scripts: ReadonlySet<string>;
+  readonly sites: ReadonlyMap<string, GodotScriptNodeSite>;
+  readonly ownScripted: (documentPath: string, nodePath: string) => boolean;
+}
+
+function nodePathSites(code: OfficialBoundCodePlan, scenes: GodotSceneDocumentPlan): NodePathSites {
+  const own = new Set<string>();
+  for (const scene of scenes.scenes) {
+    (function collect(node: TargetGodotSceneNodePlan): void {
+      if (node.scriptResPath !== undefined) own.add(nodeLocationKey(scene.sourceResPath, node.nodePath));
+      for (const child of godotSceneSubnodes(node)) collect(child);
+    })(scene.root);
+  }
+  return {
+    scripts: new Set(code.scriptNodePaths.scripts.map((entry) => entry.scriptResPath)),
+    sites: new Map(code.scriptNodePaths.sites.map((site) => [nodeLocationKey(site.documentPath, site.nodePath), site] as const)),
+    ownScripted: (documentPath, nodePath) => own.has(nodeLocationKey(documentPath, nodePath)),
+  };
+}
+
 function scriptInstance(
   module: OfficialBoundScriptModulePlan,
   attachment: BoundGodotScriptAttachment,
@@ -321,6 +368,7 @@ function scriptInstance(
   autoloadReferences: readonly DirectGodotAutoloadReferencePlan[],
   ownsTimed: boolean,
   diagnostics: DirectGodotCompositionDiagnostic[],
+  handed: readonly ScriptFieldValuePlan[],
 ): DirectGodotScriptInstancePlan | undefined {
   const at = `${attachment.documentPath}#${attachment.nodePath}`;
   const targetClass = generatedClass(module);
@@ -345,7 +393,7 @@ function scriptInstance(
     nodePath: attachment.nodePath,
     nodeClass: attachment.nodeClass,
     generatedClass: targetClass,
-    fields: fields.get(key)?.fields ?? [],
+    fields: [...(fields.get(key)?.fields ?? []), ...handed],
     lifecycle: module.lifecycle,
     ownsTimed,
     autoloadReferences,
@@ -358,6 +406,7 @@ function scriptInstances(
   modulesByPath: ReadonlyMap<string, OfficialBoundScriptModulePlan>,
   fields: ReadonlyMap<string, ScriptAttachmentFieldInitializationPlan>,
   diagnostics: DirectGodotCompositionDiagnostic[],
+  nodePaths: NodePathSites,
 ): readonly DirectGodotScriptInstancePlan[] {
   const instances: DirectGodotScriptInstancePlan[] = [];
   const seen = new Set<string>();
@@ -379,6 +428,7 @@ function scriptInstances(
         autoloadReferenceClosure(project, module, modulesByPath, diagnostics),
         ownsTimedChain(project, modulesByPath, module.resPath),
         diagnostics,
+        nodePathFields(project, module, attachment, nodePaths, diagnostics),
       );
       if (planned !== undefined) instances.push(planned);
     }
@@ -828,7 +878,14 @@ export function planDirectGodotProjectComposition(
   }
   const fieldPlans = indexFieldPlans(fields, diagnostics);
   const plannedSourceModules = sourceModules(code, diagnostics);
-  const instances = scriptInstances(project, code.scriptModules, modules, fieldPlans, diagnostics);
+  const instances = scriptInstances(
+    project,
+    code.scriptModules,
+    modules,
+    fieldPlans,
+    diagnostics,
+    nodePathSites(code, scenes),
+  );
   unownedTimed(project, code.scriptModules, diagnostics);
   const composedScenes = attachScriptInstances(project, scenes.scenes, instances, diagnostics);
   const autoloads = scriptAutoloads(project, modules, diagnostics);

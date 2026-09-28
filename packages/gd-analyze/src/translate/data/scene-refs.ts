@@ -26,6 +26,8 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
     if (node.scriptInstance !== undefined) targets.add(node.nodePath);
     if (node.unique === true) unique = true;
     for (const light of node.skyLights ?? []) targets.add(light.nodePath);
+    // An instance whose root script's node fields this scene hands (`useGodotNodeReferences`).
+    if ((node.instanceExports ?? []).some((field) => field.value.kind === 'node-reference')) targets.add(node.nodePath);
     for (const field of [...(node.scriptInstance?.fields ?? []), ...(node.instanceExports ?? [])]) {
       const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
       if (target !== undefined) targets.add(target);
