@@ -1898,7 +1898,7 @@ def _vertical_extent(cam, width, height):
     return math.degrees(2.0 * math.atan(extent / (2.0 * float(cam.lens))))
 
 
-def _photograph(depsgraph, width, height):
+def _photograph(depsgraph, width, height, linear=False):
     """three.js IS the renderer: the render is a photograph of the scene the
     engine holds, taken through the scene's own camera at `scene.render`'s
     exact resolution. `bpy.ops.render.render` semantics are the contract."""
@@ -1946,13 +1946,17 @@ def _photograph(depsgraph, width, height):
     # refused BY NAME on the other side (`blender-runtime-host.ts`).
     if look not in ("None", "AgX - Base Contrast"):
         render["look"] = look
+    # The capture's scene-referred frame rides along when asked for: a render
+    # result is what a render leaves, and it holds scene-linear pixels.
+    if linear:
+        render["linear"] = True
     answer = SESSION.present(
         {"position": position, "target": target, "up": up, "render": render}
     )
     if not isinstance(answer, dict) or "base64" not in answer:
         raise RuntimeError("The renderer did not answer with a photograph")
     _assert_photographed_from(answer.get("camera"), position, target, up)
-    return base64.b64decode(answer["base64"]), render
+    return base64.b64decode(answer["base64"]), render, answer
 
 
 def _assert_photographed_from(reported, position, target, up):
@@ -2013,19 +2017,54 @@ class VolterRenderEngine(bpy.types.RenderEngine):
         width = max(1, int(scene.render.resolution_x * scale))
         height = max(1, int(scene.render.resolution_y * scale))
         try:
-            png, _render = _photograph(depsgraph, width, height)
+            png, _render, answer = _photograph(depsgraph, width, height, linear=True)
         except Exception as error:  # noqa: BLE001 - reported to Blender as a render error
             self.report({"ERROR"}, str(error))
             return
-        path = os.path.join(ROOT, "render-%d.png" % int(time.time() * 1000))
-        with open(path, "wb") as fh:
-            fh.write(png)
         result = self.begin_result(0, 0, width, height)
         try:
-            result.layers[0].load_from_file(path)
-        except (RuntimeError, AttributeError) as error:
+            _fill_result(self, result, answer, png, width, height)
+        except (RuntimeError, AttributeError, ValueError) as error:
             self.report({"ERROR"}, "Render result could not take the photograph: %s" % error)
         self.end_result(result)
+
+
+def _fill_result(engine, result, answer, png, width, height):
+    """THE RENDER RESULT HOLDS SCENE-LINEAR PIXELS, and Blender runs the scene's
+    view transform over them wherever it shows or saves one (`write_still`, the
+    Image Editor), as it does over Cycles'. The photograph's PNG is the display
+    image -- the transform already ran -- so loading it put every render
+    through AgX or Filmic twice. Measured 2026-09-28 by the model editor's
+    render view: a background 53 against the viewport's 59, a shadow's blue 2
+    against 7. The same capture's linear frame goes in instead: half floats,
+    RGBA, bottom row first, which is Blender's own row order. Linear 0.005,
+    0.05, 0.5 and 4.0 then save under AgX as 8, 58, 170 and 234 (the PNG
+    path saved 3, 53, 160 and 190), and under Standard as 15, 64, 188 and 255,
+    as the PNG path did.
+
+    A renderer that sends no linear frame gets the old path, and says so."""
+    linear = answer.get("linearBase64") if isinstance(answer, dict) else None
+    if linear and answer.get("linearWidth") == width and answer.get("linearHeight") == height:
+        import numpy
+
+        pixels = numpy.frombuffer(base64.b64decode(linear), dtype=numpy.float16)
+        if pixels.size != width * height * 4:
+            raise ValueError(
+                "the linear frame holds %d values for a %dx%d render" % (pixels.size, width, height)
+            )
+        result.layers[0].passes["Combined"].rect.foreach_set(pixels.astype(numpy.float32))
+        return
+    engine.report(
+        {"WARNING"},
+        "The renderer sent no scene-linear frame; the render result is its display image, "
+        "which the view transform will run over again",
+    )
+    path = os.path.join(ROOT, "render-%d.png" % int(time.time() * 1000))
+    with open(path, "wb") as fh:
+        fh.write(png)
+    try:
+        result.layers[0].load_from_file(path)
+    finally:
         try:
             os.unlink(path)
         except OSError:
