@@ -136,6 +136,9 @@ export interface BlenderCallMetrics {
 export class BlenderRuntime {
   readonly #worker: Worker;
   readonly #options: BlenderRuntimeOptions;
+  /** Blender's own last output lines, which are what says why it died when it dies: they reach
+   *  the page as ordinary output, so the failure below carries them. */
+  readonly #lastLines: string[] = [];
   readonly #pending = new Map<
     number,
     { resolve: (value: unknown) => void; reject: (error: Error) => void }
@@ -180,8 +183,12 @@ export class BlenderRuntime {
       const thrown = event.error as Error | undefined;
       const where = event.filename ? ` at ${event.filename}:${event.lineno}:${event.colno}` : '';
       const said = thrown?.stack ?? thrown?.message ?? event.message;
+      // AND BLENDER'S OWN LAST WORDS: a thread that dies throws whatever it threw, often not an
+      // Error ("Uncaught [object Object]"), while the reason (an allocation that failed, the file
+      // it was reading) is the last thing Blender printed.
+      const last = this.#lastLines.length > 0 ? `\nBlender's last output:\n${this.#lastLines.join('\n')}` : '';
       const error = new Error(
-        `Blender worker failed: ${said || 'the worker script did not load'}${where}`,
+        `Blender worker failed: ${said || 'the worker script did not load'}${where}${last}`,
       );
       // The page console is the editor's ledger (`installEditorConsoleReporting`
       // captures it, source-blind), and this package may import nothing of the
@@ -551,6 +558,8 @@ export class BlenderRuntime {
         return;
       }
       if (reply.op === 'log') {
+        this.#lastLines.push(reply.text);
+        if (this.#lastLines.length > 12) this.#lastLines.shift();
         this.#options.log?.(reply.level, reply.text);
         return;
       }
