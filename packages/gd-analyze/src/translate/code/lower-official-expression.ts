@@ -2496,8 +2496,10 @@ export function lowerOfficialExpression(
             [...rule.requirements, ...use.requirements],
           );
         }
+        // On a native object, or a script instance whose script does not declare the name (its
+        // native base's signal, as its properties are).
         const signalOwner =
-          node.isAttribute && nativeObjectType(baseNode)
+          node.isAttribute && nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node))
             ? context.nativeSignalOwner?.(baseNode.datatype.nativeType, officialBoundPropertyName(context, node.attribute, node))
             : undefined;
         if (signalOwner !== undefined) {

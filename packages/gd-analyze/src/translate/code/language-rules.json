@@ -3323,6 +3323,20 @@
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-attribute:native-signal|annotations:[]",
+        "inputDatatypes": [
+          "CLASS:*"
+        ],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "binding"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
         "semanticKey": "literal:native-constant|annotations:[]",
         "inputDatatypes": [],
         "resultDatatype": "ENUM:*"
