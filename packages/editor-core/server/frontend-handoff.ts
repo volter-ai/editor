@@ -22,7 +22,7 @@
  * instead asks the runtime's loopback mint door for a credential scoped to its
  * own client id and grant, and gives it back on the way out. That door's reader
  * and caller are supercode's, not ours —
- * `@volter-ai-dev/supercode-harness-sdk/live-runtime`, extracted there from
+ * `@volter/supercode-harness-sdk/live-runtime`, extracted there from
  * `sdk/teams`'s HTTP door when this became its second consumer.
  *
  * WHAT THE SESSION NEVER DOES is read the credential file back. It receives 64
@@ -40,7 +40,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { FrontendClient } from '@volter-ai-dev/supercode-frontend';
+import { FrontendClient } from '@volter/supercode-frontend';
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -118,7 +118,7 @@ async function importLiveRuntimeDoor(engineRoot: string): Promise<LiveRuntimeDoo
   const failures: string[] = [];
   for (const candidate of [
     ...moduleCandidate(process.env['SUPERCODE_SDK_PATH'], 'live-runtime.mjs'),
-    '@volter-ai-dev/supercode-harness-sdk/live-runtime',
+    '@volter/supercode-harness-sdk/live-runtime',
     sibling,
     cwdSibling,
   ]) {

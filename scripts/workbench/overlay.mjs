@@ -98,7 +98,7 @@ const MARKER = '.volter-overlay.json';
  * and degrades per part, so this list is a grant and not a promise.
  */
 export const CHAT_EXTENSION = {
-	package: '@volter-ai-dev/supercode-frontend-vscode',
+	package: '@volter/supercode-frontend-vscode',
 	directory: 'supercode-chat',
 	id: 'volter-ai-dev.supercode-frontend-vscode',
 	proposals: [

@@ -1,5 +1,5 @@
-import { normalizeUiState, type SupercodeUiState } from '@volter-ai-dev/supercode-ui/core';
-import type { RemoteUiFrame } from '@volter-ai-dev/supercode-ui/host';
+import { normalizeUiState, type SupercodeUiState } from '@volter/supercode-ui/core';
+import type { RemoteUiFrame } from '@volter/supercode-ui/host';
 
 /**
  * Browser/server contract for the permanent coding-agent surface.

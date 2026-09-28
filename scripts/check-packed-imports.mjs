@@ -3,7 +3,7 @@
 // including declarations and bundles; source-tree success alone is insufficient.
 import { execFileSync } from 'node:child_process';
 import { isBuiltin } from 'node:module';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -11,6 +11,11 @@ import ts from 'typescript';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const list = process.argv[2] ?? 'release/modeling.json';
 const release = new Set(JSON.parse(readFileSync(join(root, list))).packages);
+// This repository's own packages: one outside the release list is excluded from it. Other
+// @volter packages (Volter Harness's) are ordinary dependencies.
+const own = new Set(readdirSync(join(root, 'packages'))
+  .filter((folder) => existsSync(join(root, 'packages', folder, 'package.json')))
+  .map((folder) => JSON.parse(readFileSync(join(root, 'packages', folder, 'package.json'))).name));
 const failures = new Set();
 let fileCount = 0;
 for (const folder of readdirSync(join(root, 'packages'))) {
@@ -72,7 +77,7 @@ for (const folder of readdirSync(join(root, 'packages'))) {
       if (specifier.startsWith('@editor/') || /^(?:volter|virtual):/.test(specifier) || specifier.startsWith('\0')) return;
       if (/^(https?:|data:)/.test(specifier)) return;
       const name = specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
-      if (name.startsWith('@volter/') && !release.has(name))
+      if (own.has(name) && !release.has(name))
         failures.add(`${manifest.name}/${path}: excluded package ${specifier}`);
       else if (!(project ?? declared).has(name)) failures.add(`${manifest.name}/${path}: undeclared import ${specifier}`);
     }
