@@ -76,6 +76,7 @@ import type {
 } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
+import { viewportStages } from '@volter/editor-threejs/viewport-door';
 import { blenderExecute, blenderRnaSet, beginBlenderGesture, endBlenderGesture } from '../host/blender-runtime-host';
 import {
   blenderEngineSelection,
@@ -1602,6 +1603,29 @@ export function blenderOutlinerAuthoringFor(
    * callback in Code-OSS. These operators are undone by restoring Blender's
    * state, never by constructing an inverse operator or replaying the script.
    */
+  /**
+   * ADD ▸ CAMERA LOOKS THE WAY THE VIEW LOOKS, AND IS THE SCENE'S CAMERA WHEN THERE IS NONE: what
+   * `object_camera_add_exec` does with the 3D View it runs in (`object_add.cc`: `align` forced to
+   * VIEW; `v3d->scenelock && scene->camera == nullptr` gives `scene->camera = ob`). This engine
+   * runs the operator with no View3D, so both come from here: the area's own view, set on the new
+   * camera the way the gizmo writes a pose (`blenderWorldMatrixRows`) with the operator's
+   * location (the 3D cursor) kept, and the scene camera after it.
+   */
+  const cameraAddCall = (): string => {
+    const areaId = (defaultAdapter as { documentId?: string }).documentId?.replace(/^object3d-document:/, '');
+    const camera = viewportStages().find((one) => one.documentId === areaId)?.rig().drawCamera() ?? null;
+    const view = presented();
+    const lines = ['bpy.ops.object.camera_add()', 'added = bpy.context.view_layer.objects.active'];
+    if (camera !== null && view !== null)
+      lines.push(
+        'kept = added.location.copy()',
+        `added.matrix_world = ${JSON.stringify(blenderWorldMatrixRows(camera, view.root))}`,
+        'added.location = kept',
+      );
+    lines.push('if bpy.context.scene.camera is None:', '    bpy.context.scene.camera = added');
+    return lines.join('\n');
+  };
+
   const structure: StructureProvider = {
     /**
      * BLENDER'S ADD MENU, FOR EVERY PARENT — `parentId` is deliberately not
@@ -1633,7 +1657,7 @@ export function blenderOutlinerAuthoringFor(
       // with this same sentence, so this arm is what answers a caller reaching
       // the kind through the door instead of the menu.
       if (entry.refusal !== undefined) return { id: '', ack: refuse(entry.refusal) };
-      const call = addCall(entry);
+      const call = entry.call === 'object.camera_add' ? cameraAddCall() : addCall(entry);
       return {
         id: '',
         ack: (async (): Promise<WriteAck> => {
