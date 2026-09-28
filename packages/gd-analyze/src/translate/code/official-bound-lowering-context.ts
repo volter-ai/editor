@@ -2,7 +2,7 @@ import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import { builtinDatatype } from '../../analyze/refined-types';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
-import type { NumericNodeTypes, ScriptNumericVariants } from '../../analyze/numeric-variants';
+import type { NumericNodeTypes, ScriptNumericVariants, VariantUtilityShape } from '../../analyze/numeric-variants';
 import { safeIdent } from '../target-names';
 import type {
   GodotBindingResolver,
@@ -199,8 +199,12 @@ export const NATIVE_CLASS_TYPE = '$NativeClass';
 export class LoweringContext {
   /** The resources each resolved `load(path)` yields (`resource-loads.ts`), by call node. */
   resourceLoads: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> = new Map();
-  /** The reads of variables Godot clears to null, which TS types `T | null` (`nullable-variables.ts`). */
+  /** The reads of variables that hold null at some time, which TS types `T | null` (`nullable-variables.ts`). */
   nullableReads: ReadonlySet<number> = new Set();
+  /** The variable declarations that hold null at some time (`nullable-variables.ts`). */
+  nullableDeclarations: ReadonlySet<number> = new Set();
+  /** The shape of each call to a Variant utility whose result depends on the function (`VariantUtilityShape`). */
+  utilityShapes: ReadonlyMap<number, VariantUtilityShape> = new Map();
   #temporaryIndex = 0;
   #instanceAutoloadAccess = 0;
   readonly #reservedTargetNames: Set<string>;

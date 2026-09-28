@@ -262,7 +262,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
               context,
               convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode)),
             );
-      const targetType = nullableWhenDefaulted(context.targetType(node), node, initializerNode === undefined);
+      const targetType = nullableDeclaration(context, context.targetType(node), node);
       return {
         statements: [
           ...(initializer?.before ?? []),
@@ -548,13 +548,14 @@ function listAsVariableElements(context: LoweringContext, variable: GodotBoundNo
 }
 
 /**
- * An object-typed variable Godot clears to null (no initializer, or an `@onready` one before
- * ready) holds `T | null`; a use that calls on it goes through `godot_node_entity`, which raises
- * Godot's null-instance error.
+ * An object-typed variable that holds null at some time, as analysis found it
+ * (`nullable-variables.ts`: cleared to null, `@onready`, or initialized or assigned `null`), is
+ * stated `T | null`; a use that calls on it goes through `godot_node_entity`, which raises Godot's
+ * null-instance error.
  */
-function nullableWhenDefaulted(type: OfficialBoundTypeUse, node: GodotBoundNode, defaulted: boolean): OfficialBoundTypeUse {
+function nullableDeclaration(context: LoweringContext, type: OfficialBoundTypeUse, node: GodotBoundNode): OfficialBoundTypeUse {
   const datatype = node.datatype;
-  if (!defaulted || datatype.metaType || (datatype.kind !== 'NATIVE' && datatype.kind !== 'CLASS')) return type;
+  if (!context.nullableDeclarations.has(node.id) || datatype.metaType || (datatype.kind !== 'NATIVE' && datatype.kind !== 'CLASS')) return type;
   return { ...type, type: { kind: 'union-type', members: [type.type, { kind: 'type-reference', name: 'null', arguments: [] }] } };
 }
 
@@ -589,7 +590,7 @@ function lowerField(
       node.inferDatatype ? 'inferred' : 'declared'
     }:${classFieldScope(node)}${conversion ? ':conversion' : ''}`,
   );
-  const targetType = nullableWhenDefaulted(context.targetType(node), node, initializerNode === undefined || onready);
+  const targetType = nullableDeclaration(context, context.targetType(node), node);
   const name = officialBoundPropertyName(context, node.identifier, node);
   const isStatic = node.kind === 'CONSTANT' || node.static;
   assertDirectClassElementName(context, context.node(node.identifier, node), name, isStatic);

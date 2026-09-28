@@ -8,7 +8,6 @@ import type {
   BoundGodotScriptField,
   BoundGodotSourceScript,
 } from '../../analyze/bound-project';
-import { refinedProgram } from '../../analyze/refined-types';
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode } from '../../godot-frontend/bound-program';
 import type { ImportedSoundKind } from '../../analyze/resource-loads';
@@ -570,7 +569,7 @@ function lowerScript(
   readonly module: OfficialBoundScriptModulePlan;
   readonly requirements: ClosedOfficialBoundRequirements;
 } {
-  const script = refinedProgram(source.program, source.settingTypes, source.refinedTypes);
+  const script = source.refinedProgram;
   const sceneNodes = new Map(source.refinedTypes.flatMap((entry) => (entry.sceneNodes === undefined ? [] : [[entry.nodeId, entry.sceneNodes] as const])));
   const root = script.nodes[script.rootNodeId];
   if (root?.kind !== 'CLASS') {
@@ -637,6 +636,8 @@ function lowerScript(
   );
   context.resourceLoads = resourceLoadTargets(project, source);
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
+  context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
+  context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
   if (root.abstract) {
     context.recover(undefined, () =>
       context.refuse(root, 'abstract script classes need a target declaration recipe'),

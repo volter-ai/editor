@@ -44,8 +44,8 @@ export interface NumericVariantInputs {
   readonly memberType?: (resPath: string, name: string) => GodotBoundDatatype | undefined;
 }
 
-/** What one script lowers as tagged numbers. */
-export interface ScriptNumericVariants {
+/** The variables and calls one script lowers as tagged numbers (`numericVariants`). */
+export interface ScriptNumericVariables {
   /** IDENTIFIER reads and writes of a tagged variable, and its VARIABLE or PARAMETER declaration. */
   readonly variables: readonly number[];
   /** Calls whose arguments at these indexes reach a tagged parameter: the caller tags them. */
@@ -56,8 +56,12 @@ export interface ScriptNumericVariants {
    * (`variant_construct.cpp:264`) and converts each (`Variant::operator double`, `variant.cpp:1535`).
    */
   readonly floatArguments?: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
+}
+
+/** What one script lowers as tagged numbers, with the types of the values they reach. */
+export interface ScriptNumericVariants extends ScriptNumericVariables {
   /** The built-in types of the values the tagged variables reach and of the plain values stored or passed among them (`numericNodeTypes`). */
-  readonly nodeTypes?: readonly NumericNodeTypes[];
+  readonly nodeTypes: readonly NumericNodeTypes[];
 }
 
 /**
@@ -96,7 +100,7 @@ function builtinOf(datatype: GodotBoundDatatype): string | undefined {
   return datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil' ? datatype.builtinType : undefined;
 }
 
-export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<string, ScriptNumericVariants> {
+export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<string, ScriptNumericVariables> {
   const builtins = new Map((inputs.apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
   const operatorResult = operatorResultTable(inputs.apiDump);
   const identifierName = (program: GodotBoundScript, id: number): string | undefined => {
@@ -207,7 +211,7 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
       return results;
     }
     // `clamp(x, min, max)` returns x, min or max as it is (`variant_utility.cpp:730`).
-    if (node.kind === 'CALL' && node.functionName === 'clamp' && node.compilerTarget.kind === 'variant-utility' && node.arguments.length === 3) {
+    if (node.kind === 'CALL' && variantUtilityShape(node) === 'selects-argument' && node.arguments.length === 3) {
       const results = new Set<string>();
       for (const argument of node.arguments) {
         const types = valueTypes(program, argument, depth + 1);
@@ -312,7 +316,7 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
     return undefined;
   };
 
-  const out = new Map<string, ScriptNumericVariants>();
+  const out = new Map<string, ScriptNumericVariables>();
   for (const program of inputs.programs) {
     const variables: number[] = [];
     for (const node of program.nodes) {
@@ -361,15 +365,36 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
   return out;
 }
 
-/** The utility functions that return one of their arguments as it is (`clamp`, variant_utility.cpp:730). */
-const ARGUMENT_SELECTING_UTILITIES: ReadonlySet<string> = new Set(['clamp']);
-/** The utility functions that stringify their arguments (`str`, variant_utility.cpp). */
-const STRINGIFYING_UTILITIES: ReadonlySet<string> = new Set(['str']);
+/**
+ * The Variant utility functions whose result over int-or-float values depends on the function
+ * itself (`VariantUtilityShape`): `clamp` returns one of its arguments as it is
+ * (`variant_utility.cpp:730`), so its result is an argument's own type; `str` stringifies its
+ * arguments (`VariantUtilityFunctions::str`), each printed as its own type.
+ */
+export type VariantUtilityShape = 'selects-argument' | 'stringifies';
+
+const UTILITY_SHAPES: ReadonlyMap<string, VariantUtilityShape> = new Map([
+  ['clamp', 'selects-argument'],
+  ['str', 'stringifies'],
+]);
+
+/** A call's utility shape: the Variant utility it calls, where the table gives it one. */
+export function variantUtilityShape(node: GodotBoundNode): VariantUtilityShape | undefined {
+  return node.kind === 'CALL' && node.compilerTarget.kind === 'variant-utility' ? UTILITY_SHAPES.get(node.compilerTarget.member) : undefined;
+}
+
+/** Each call in a script to a utility with a shape, for lowering to select its rule by. */
+export function variantUtilityCalls(program: GodotBoundScript): readonly { readonly nodeId: number; readonly shape: VariantUtilityShape }[] {
+  return program.nodes.flatMap((node) => {
+    const shape = variantUtilityShape(node);
+    return shape === undefined ? [] : [{ nodeId: node.id, shape }];
+  });
+}
 
 export interface NumericNodeTypeInputs {
   /** The program as the analysis refined its datatypes (the one lowering reads, `refinedProgram`). */
   readonly program: GodotBoundScript;
-  readonly variants: ScriptNumericVariants;
+  readonly variants: ScriptNumericVariables;
   readonly operatorResult: OperatorResult;
 }
 
@@ -389,8 +414,7 @@ export function numericNodeTypes(inputs: NumericNodeTypeInputs): readonly Numeri
     if (datatype.kind === 'ENUM') return 'int';
     return datatype.kind === 'BUILTIN' && !datatype.metaType ? datatype.builtinType : undefined;
   };
-  const utility = (node: GodotBoundNode, names: ReadonlySet<string>): boolean =>
-    node.kind === 'CALL' && node.compilerTarget.kind === 'variant-utility' && names.has(node.compilerTarget.member);
+  const stringifies = (node: GodotBoundNode): boolean => variantUtilityShape(node) === 'stringifies';
   const operandsOf = (node: GodotBoundNode): readonly number[] | undefined => {
     if (node.kind === 'BINARY_OPERATOR') return [node.leftOperand, node.rightOperand];
     if (node.kind === 'UNARY_OPERATOR') return [node.operand];
@@ -412,13 +436,13 @@ export function numericNodeTypes(inputs: NumericNodeTypeInputs): readonly Numeri
   const types = (node: GodotBoundNode): readonly string[] => reached(node.id) ?? [own(node.datatype)];
   const reach = (node: GodotBoundNode): readonly string[] | undefined => {
     if (node.kind === 'IDENTIFIER') return variables.has(node.id) ? ['int', 'float'] : undefined;
-    const argumentSelecting = utility(node, ARGUMENT_SELECTING_UTILITIES) && node.kind === 'CALL' && node.arguments.length === 3;
-    if (node.kind !== 'BINARY_OPERATOR' && node.kind !== 'UNARY_OPERATOR' && !argumentSelecting && !utility(node, STRINGIFYING_UTILITIES)) return undefined;
+    const argumentSelecting = variantUtilityShape(node) === 'selects-argument' && node.kind === 'CALL' && node.arguments.length === 3;
+    if (node.kind !== 'BINARY_OPERATOR' && node.kind !== 'UNARY_OPERATOR' && !argumentSelecting && !stringifies(node)) return undefined;
     const children = (operandsOf(node) ?? []).map((id) => program.nodes[id]);
     if (children.some((child) => child === undefined)) return undefined;
     const operands = children as GodotBoundNode[];
     if (!operands.some((child) => reached(child.id) !== undefined)) return undefined;
-    if (utility(node, STRINGIFYING_UTILITIES)) return ['String'];
+    if (stringifies(node)) return ['String'];
     if (argumentSelecting) return [...new Set(operands.flatMap(types))];
     if (logical(node)) return ['bool'];
     const [left, right] = operands.map(types);
@@ -434,7 +458,7 @@ export function numericNodeTypes(inputs: NumericNodeTypeInputs): readonly Numeri
   // and a compound store (`a op= b` reads as `a op b`) with a tagged side.
   const branchesOf = (node: GodotBoundNode): NumericNodeTypes['branches'] => {
     const switching =
-      node.kind === 'BINARY_OPERATOR' || node.kind === 'UNARY_OPERATOR' || utility(node, STRINGIFYING_UTILITIES) || (node.kind === 'ASSIGNMENT' && node.operation !== 'OP_NONE');
+      node.kind === 'BINARY_OPERATOR' || node.kind === 'UNARY_OPERATOR' || stringifies(node) || (node.kind === 'ASSIGNMENT' && node.operation !== 'OP_NONE');
     const operandIds = switching ? (operandsOf(node) ?? []) : [];
     const operands = operandIds.map((id) => program.nodes[id]);
     if (operands.some((operand) => operand === undefined) || !operandIds.some(tagged)) return undefined;
@@ -450,7 +474,7 @@ export function numericNodeTypes(inputs: NumericNodeTypeInputs): readonly Numeri
         return index >= 0 ? choice[index] : types(operand)[0];
       };
       let type: string;
-      if (utility(node, STRINGIFYING_UTILITIES)) type = 'String';
+      if (stringifies(node)) type = 'String';
       else if (logical(node)) type = 'bool';
       else {
         const [left, right] = (operands as GodotBoundNode[]).map(typeOf);

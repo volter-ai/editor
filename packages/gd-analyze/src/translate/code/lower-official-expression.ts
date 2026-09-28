@@ -14,8 +14,6 @@ import {
   godotSubscriptsParameters,
   godotTweenInterpolates,
   godotTypeDefault,
-  godotUtilitySelectsArgument,
-  godotUtilityStringifies,
 } from '../data/lowering-shapes';
 import { godotCompatReturnType } from './native-types';
 import type {
@@ -270,6 +268,32 @@ function fromEnd(array: TargetTsExpression, index: TargetTsExpression): TargetTs
   };
 }
 
+/**
+ * `if (place < 0 || place >= a.length) throw new RangeError(…)`: a store outside the array is
+ * Godot's script error, not a growth (`VariantIndexedSetGet_Array::set`,
+ * core/variant/variant_setget.cpp:690; "Out of bounds set index", gdscript_vm.cpp:1095). A place
+ * known non-negative checks only the upper bound.
+ */
+function arrayStoreBoundsCheck(array: TargetTsExpression, index: TargetTsExpression, place: TargetTsExpression, nonNegative: boolean): TargetTsStatement {
+  const above: TargetTsExpression = { kind: 'binary-expression', operator: '>=', left: place, right: { kind: 'property-expression', object: array, property: 'length' } };
+  return {
+    kind: 'if-statement',
+    condition: nonNegative
+      ? above
+      : { kind: 'binary-expression', operator: '||', left: { kind: 'binary-expression', operator: '<', left: place, right: { kind: 'literal-expression', value: 0 } }, right: above },
+    then: [
+      {
+        kind: 'throw-statement',
+        expression: {
+          kind: 'new-expression',
+          callee: { kind: 'identifier-expression', name: 'RangeError' },
+          arguments: [{ kind: 'binary-expression', operator: '+', left: { kind: 'literal-expression', value: 'Out of bounds set index ' }, right: index }],
+        },
+      },
+    ],
+  };
+}
+
 function prepareAssignmentTarget(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -312,14 +336,17 @@ function prepareAssignmentTarget(
     }
     const indexNode = context.node(node.index, node);
     const index = materialize(context, lower(context, indexNode));
-    if (godotBuiltinSubscriptShape(baseNode.datatype)?.kind === 'array-element' && !(indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0)) {
-      // Variant indexing counts a negative index from the end (`VariantIndexedSetGet_Array::set`,
-      // core/variant/variant_setget.cpp): the index, evaluated once, is settled to its place.
+    if (godotBuiltinSubscriptShape(baseNode.datatype)?.kind === 'array-element') {
+      // Variant indexing counts a negative index from the end and refuses one outside the array
+      // (`VariantIndexedSetGet_Array::set`, core/variant/variant_setget.cpp:690): after the base,
+      // then the value, the index is evaluated once, settled to its place against the array's
+      // length, and checked before the store.
       const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:array');
-      const place = materialize(context, expression(fromEnd(base.value, index.value)));
+      const nonNegative = indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0;
+      const place = nonNegative ? index : materialize(context, expression(fromEnd(base.value, index.value)));
       return {
         beforeAssigned: base.before,
-        afterAssigned: [...index.before, ...place.before],
+        afterAssigned: [...index.before, ...(nonNegative ? [] : place.before), arrayStoreBoundsCheck(base.value, index.value, place.value, nonNegative)],
         target: { kind: 'element-expression', object: base.value, index: place.value, span: span(context.script, node) },
         requirements: [...requirements, ...base.requirements, ...index.requirements],
       };
@@ -1664,7 +1691,7 @@ export function lowerOfficialExpression(
 
   /** An operation or store that reads or writes an int-or-float variable. */
   function lowerNumeric(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
-    if (node.kind === 'CALL' && node.compilerTarget.kind === 'variant-utility' && godotUtilitySelectsArgument(node.compilerTarget.member)) return numericClamp(context, node);
+    if (node.kind === 'CALL' && context.utilityShapes.get(node.id) === 'selects-argument') return numericClamp(context, node);
     if (node.kind !== 'ASSIGNMENT') return numericSwitch(context, node, operandsOf(node)).lowered;
     const assignee = context.rawNode(node.assignee, node);
     const valueNode = context.rawNode(node.assignedValue, node);
@@ -2321,7 +2348,7 @@ export function lowerOfficialExpression(
           [calleeNode, ...argumentNodes],
           `call:${node.static ? 'static' : 'instance'}`,
         );
-        const stringifying = node.compilerTarget.kind === 'variant-utility' && godotUtilityStringifies(node.compilerTarget.member);
+        const stringifying = context.utilityShapes.get(node.id) === 'stringifies';
         const lowered = argumentNodes.map((argument) =>
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );

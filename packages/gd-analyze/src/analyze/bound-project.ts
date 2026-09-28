@@ -6,7 +6,7 @@ import { containerProjectIndex } from './container-types';
 import { type BoundGodotResourceLoad, type ImportedSoundKind, resourceLoads } from './resource-loads';
 import { type BoundGodotNullableVariable, nullableVariables } from './nullable-variables';
 import { memberKey, typeMembers } from './member-types';
-import { numericNodeTypes, numericVariants, operatorResultTable, type ScriptNumericVariants } from './numeric-variants';
+import { numericNodeTypes, numericVariants, operatorResultTable, type ScriptNumericVariants, type VariantUtilityShape, variantUtilityCalls } from './numeric-variants';
 import type { GltfExternalImage } from '../read/gltf-document';
 import { parameterKey, type ParameterTypeInputs, typeFunctionParameters } from './parameter-types';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes, refinedProgram } from './refined-types';
@@ -79,11 +79,17 @@ export interface BoundGodotSourceScript {
   readonly settingTypes: readonly BoundGodotTypedValue[];
   /** Datatypes the project fixes where the analyzer left a node untyped (`refineDatatypes`). */
   readonly refinedTypes: readonly BoundGodotRefinedType[];
+  /** The program with `settingTypes` and `refinedTypes` in place (`refinedProgram`): the one lowering reads. */
+  readonly refinedProgram: GodotBoundScript;
+  /** Calls to the Variant utilities whose result depends on the function (`VariantUtilityShape`). */
+  readonly utilityCalls: readonly { readonly nodeId: number; readonly shape: VariantUtilityShape }[];
   /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
   readonly numericVariants?: ScriptNumericVariants;
   /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
   readonly resourceLoads?: readonly BoundGodotResourceLoad[];
-  /** The variables Godot clears to null that this script reads (`nullable-variables.ts`). */
+  /** This script's variable declarations that hold null at some time (`nullable-variables.ts`). */
+  readonly nullableDeclarations?: readonly number[];
+  /** The variables holding null at some time that this script reads (`nullable-variables.ts`). */
   readonly nullableVariables?: readonly BoundGodotNullableVariable[];
 }
 
@@ -1499,13 +1505,13 @@ export function bindGodotProject(
       projectSettings: decoded.authoredSettings,
       apiDump: apiDump.parsed,
     });
-    // The types of the values the script's int-or-float variables reach, over the program as refined.
+    // The program as refined, built once; the types of the values the script's int-or-float
+    // variables reach are read over it.
+    const refined = refinedProgram(program, settingTypes, refinedTypes);
     const variants = numericByScript.get(program.resPath);
-    const refined = variants === undefined ? undefined : refinedProgram(program, settingTypes, refinedTypes);
     const scriptNumericVariants: ScriptNumericVariants | undefined =
-      variants === undefined || refined === undefined
-        ? undefined
-        : { ...variants, nodeTypes: numericNodeTypes({ program: refined, variants, operatorResult }) };
+      variants === undefined ? undefined : { ...variants, nodeTypes: numericNodeTypes({ program: refined, variants, operatorResult }) };
+    const nullable = nullableByScript.get(program.resPath);
     const callReceiverFacts = (
       bound: GodotBoundScript,
       placed: readonly BoundGodotScriptAttachment[],
@@ -1562,9 +1568,11 @@ export function bindGodotProject(
       fields: scriptFields(program, attachments),
       ...callReceiverFacts(program, attachments),
       refinedTypes,
+      refinedProgram: refined,
+      utilityCalls: variantUtilityCalls(refined),
       ...(scriptNumericVariants === undefined ? {} : { numericVariants: scriptNumericVariants }),
       ...(loadsByScript.has(program.resPath) ? { resourceLoads: loadsByScript.get(program.resPath) as readonly BoundGodotResourceLoad[] } : {}),
-      ...(nullableByScript.has(program.resPath) ? { nullableVariables: nullableByScript.get(program.resPath) as readonly BoundGodotNullableVariable[] } : {}),
+      ...(nullable === undefined ? {} : { nullableDeclarations: nullable.declarations, nullableVariables: nullable.variables }),
       settingTypes,
     };
   });

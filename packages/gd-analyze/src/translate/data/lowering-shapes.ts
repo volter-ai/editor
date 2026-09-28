@@ -101,7 +101,7 @@ interface GodotBuiltinShape {
   readonly awaits?: true;
   /** `for v in x` counts from 0 below x (`OPCODE_ITERATE_BEGIN_INT`, gdscript_vm.cpp). */
   readonly iteratesRange?: true;
-  /** False where the type names no value lowering can state as a TS type (Nil, an untyped value). */
+  /** False where the built-in type names no value lowering can state as a TS type (Nil). An untyped value is not a built-in and never reaches this table (`godotStatedValueType`). */
   readonly stated?: false;
 }
 
@@ -123,17 +123,6 @@ export function godotAwaitsEmission(datatype: GodotBoundDatatype): boolean {
 /** Whether `for v in x` over a value of this datatype counts from 0 below x. */
 export function godotIteratesRange(datatype: GodotBoundDatatype): boolean {
   return builtinShape(datatype)?.iteratesRange === true;
-}
-
-/**
- * The utility functions that return one of their arguments as it is, so over int-or-float values
- * the result is an argument's own type (`clamp`, variant_utility.cpp:730).
- */
-const ARGUMENT_SELECTING_UTILITIES: ReadonlySet<string> = new Set(['clamp']);
-
-/** Whether the Variant utility function `member` returns one of its arguments as it is. */
-export function godotUtilitySelectsArgument(member: string): boolean {
-  return ARGUMENT_SELECTING_UTILITIES.has(member);
 }
 
 /** The Variant types compat's Tween interpolates (`tween.ts`, `Animation::interpolate_variant`), by the property's API type. */
@@ -171,14 +160,6 @@ export function godotBuiltinConverts(from: GodotBoundDatatype, to: GodotBoundDat
   if (to.kind !== 'BUILTIN' || to.metaType) return false;
   const fromType = from.kind === 'ENUM' ? 'int' : from.kind === 'BUILTIN' ? from.builtinType : undefined;
   return fromType !== to.builtinType && !SAME_COMPAT_VALUE.has(`${String(fromType)}>${to.builtinType}`);
-}
-
-/** The utility functions that stringify their arguments (`str`, variant_utility.cpp): an int-or-float argument is printed as its own type. */
-const STRINGIFYING_UTILITIES: ReadonlySet<string> = new Set(['str']);
-
-/** Whether the Variant utility function `member` stringifies its arguments. */
-export function godotUtilityStringifies(member: string): boolean {
-  return STRINGIFYING_UTILITIES.has(member);
 }
 
 /**
