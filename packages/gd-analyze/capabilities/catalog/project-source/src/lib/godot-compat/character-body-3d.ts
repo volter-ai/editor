@@ -14,10 +14,10 @@
  */
 
 import type { Collider, KinematicCharacterController } from '@dimforge/rapier3d-compat';
-import { type Object3D, Vector3 as ThreeVector3 } from 'three';
+import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity } from './node';
-import { get_global_transform } from './node-3d';
+import { get_global_transform, set_global_position } from './node-3d';
 import { construct as vector3, dot, length, normalized, op_add, op_divide, op_equal, op_multiply, op_subtract, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
@@ -152,13 +152,9 @@ export function move_and_slide(owner: object): boolean {
   const moved = controller.computedMovement();
   const to = { x: from.x + moved.x, y: from.y + moved.y, z: from.z + moved.z };
   body.setNextKinematicTranslation(to);
-  const place = new ThreeVector3(to.x, to.y, to.z);
-  const parent = (self as Object3D).parent;
-  if (parent !== null) {
-    parent.updateWorldMatrix(true, false);
-    parent.worldToLocal(place);
-  }
-  (self as Object3D).position.copy(place);
+  // The node is where it moved at once, through its global transform (`set_global_transform`,
+  // physics_body_3d.cpp:159), so a top-level body and the node's observers see it as Godot's do.
+  set_global_position(self as Object3D, vector3(to.x, to.y, to.z));
   // A character moving away from the floor is not on it, whatever the controller's snap reports.
   const rising = dot(state.velocity, state.up_direction) > 0;
   const flags: CollisionState = { floor: controller.computedGrounded() && !rising && state.motion_mode === MOTION_MODE_GROUNDED, wall: false, ceiling: false };

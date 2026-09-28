@@ -334,16 +334,23 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
     layer.style.overflow = 'hidden';
     LAYERS.set(canvas, layer);
   }
-  if (layer.parentElement !== parent) parent.appendChild(layer);
+  if (layer.parentElement !== parent) {
+    parent.appendChild(layer);
+    layer.dataset['stacked'] = '0';
+  }
   layer.style.left = `${String(canvas.offsetLeft)}px`;
   layer.style.top = `${String(canvas.offsetTop)}px`;
   layer.style.width = `${String(canvas.width)}px`;
   layer.style.height = `${String(canvas.height)}px`;
-  // Over the canvas whatever stacking the page gives it (a positioned canvas with a z-index).
-  const below = Number.parseInt(canvas.ownerDocument.defaultView?.getComputedStyle(canvas).zIndex ?? '', 10);
-  layer.style.zIndex = Number.isNaN(below) ? '' : String(below + 1);
-  // The canvas's CSS width in its own box (`clientWidth`), not its on-screen rect: the layer sits in
-  // the same parent, so a transform on an ancestor (a scaled preview) already applies to both.
-  layer.style.transform = canvas.width > 0 ? `scale(${String(canvas.clientWidth / canvas.width)})` : '';
+  // Over the canvas whatever stacking the page gives it (a positioned canvas with a z-index), read
+  // when the layer joins its parent, not every frame.
+  if (layer.dataset['stacked'] !== '1') {
+    const below = Number.parseInt(canvas.ownerDocument.defaultView?.getComputedStyle(canvas).zIndex ?? '', 10);
+    layer.style.zIndex = Number.isNaN(below) ? '' : String(below + 1);
+    layer.dataset['stacked'] = '1';
+  }
+  // The canvas's CSS border box (`offsetWidth`, which its `offsetLeft` places), not its on-screen
+  // rect: the layer sits in the same parent, so a transform on an ancestor applies to both.
+  layer.style.transform = canvas.width > 0 ? `scale(${String(canvas.offsetWidth / canvas.width)})` : '';
   return layer;
 }
