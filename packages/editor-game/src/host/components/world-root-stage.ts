@@ -934,6 +934,8 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     if (!container.checkVisibility({ visibilityProperty: true, checkVisibilityCSS: true })) {
       lastTime = now;
       sceneNeedsFirstFrame = true;
+      // The rig's objects are in the world the Game view draws: its lights follow the scene's.
+      viewport.resolvePresentation();
       return;
     }
 
