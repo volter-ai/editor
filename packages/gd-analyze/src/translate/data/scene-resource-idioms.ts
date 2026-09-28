@@ -3,18 +3,23 @@
  * (docs/GODOT.md §The lane's law, row 3): the plan-time table the planner reads to give each
  * planned resource its idiom. Emit writes the idiom and never looks at the class.
  */
+import type { TargetGodotSceneSetterPlan } from './scene-document-plan';
+import { type GodotSceneMaterialIdiom, godotSceneMaterialIdiom } from './scene-material-idioms';
 
 export type GodotSceneResourceIdiom =
-  /** A PlaneMesh or QuadMesh: three's `planeGeometry`, with the class's default size and facing. */
-  | { readonly kind: 'plane'; readonly size: readonly [number, number]; readonly orientation: number }
+  /**
+   * A PlaneMesh or QuadMesh: three's `planeGeometry`, with the class's default size and facing. A
+   * mesh drawn as a three geometry (`geometry`) is an element's `geometry` and `material` props.
+   */
+  | { readonly kind: 'plane'; readonly geometry: true; readonly size: readonly [number, number]; readonly orientation: number }
   /** A SphereMesh: three's `sphereGeometry`. */
-  | { readonly kind: 'sphere' }
+  | { readonly kind: 'sphere'; readonly geometry: true }
   /** A CylinderMesh: three's `cylinderGeometry`. */
-  | { readonly kind: 'cylinder' }
+  | { readonly kind: 'cylinder'; readonly geometry: true }
   /** An ArrayMesh: a `bufferGeometry` over its surfaces' data file. */
-  | { readonly kind: 'array-mesh' }
-  /** A StandardMaterial3D: three's `meshStandardMaterial`. */
-  | { readonly kind: 'standard-material' }
+  | { readonly kind: 'array-mesh'; readonly geometry: true }
+  /** A StandardMaterial3D: the three material and props `scene-material-idioms.ts` plans for it. */
+  | GodotSceneMaterialIdiom
   /** A GradientTexture2D: a texture drawn from its gradient. */
   | { readonly kind: 'gradient-texture' }
   /** A CompressedTexture2D: the imported image, loaded by the scene's texture hook. */
@@ -35,14 +40,14 @@ export type GodotSceneResourceIdiom =
       readonly collider: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
     };
 
-const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom>> = {
+const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   // `Orientation` (`primitive_meshes.h:240`): FACE_X 0, FACE_Y 1 (PlaneMesh's), FACE_Z 2 (QuadMesh's).
-  PlaneMesh: { kind: 'plane', size: [2, 2], orientation: 1 },
-  QuadMesh: { kind: 'plane', size: [1, 1], orientation: 2 },
-  SphereMesh: { kind: 'sphere' },
-  CylinderMesh: { kind: 'cylinder' },
-  ArrayMesh: { kind: 'array-mesh' },
-  StandardMaterial3D: { kind: 'standard-material' },
+  PlaneMesh: { kind: 'plane', geometry: true, size: [2, 2], orientation: 1 },
+  QuadMesh: { kind: 'plane', geometry: true, size: [1, 1], orientation: 2 },
+  SphereMesh: { kind: 'sphere', geometry: true },
+  CylinderMesh: { kind: 'cylinder', geometry: true },
+  ArrayMesh: { kind: 'array-mesh', geometry: true },
+  StandardMaterial3D: 'material',
   GradientTexture2D: { kind: 'gradient-texture' },
   CompressedTexture2D: { kind: 'texture' },
   MeshLibrary: { kind: 'mesh-library' },
@@ -60,7 +65,11 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom>> = {
   ConcavePolygonShape3D: { kind: 'collider', collider: 'TrimeshCollider' },
 };
 
-/** The idiom a resource of `className` is written as, or undefined when it is constructed (`construct`). */
-export function godotSceneResourceIdiom(className: string): GodotSceneResourceIdiom | undefined {
-  return IDIOMS[className];
+/**
+ * The idiom a resource of `className` with these authored setters is written as, or undefined when
+ * it is constructed (`construct`).
+ */
+export function godotSceneResourceIdiom(className: string, setters: readonly TargetGodotSceneSetterPlan[]): GodotSceneResourceIdiom | undefined {
+  const idiom = IDIOMS[className];
+  return idiom === 'material' ? godotSceneMaterialIdiom(setters) : idiom;
 }

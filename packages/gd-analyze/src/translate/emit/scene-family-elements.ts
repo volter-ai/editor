@@ -14,10 +14,9 @@ import { godotSceneSubnodes } from '../data/scene-document-plan';
  *   and gives a sphere's pole vertices the `u` half a segment on (`sphere-pole-u`).
  * - An `ArrayMesh` is a `<bufferGeometry>` whose attributes come from the mesh's data file
  *   (`data/scene-families.ts` writes it in three's conventions), a group per surface.
- * - A `StandardMaterial3D` is `<meshStandardMaterial>` (`<meshBasicMaterial>` unshaded), a surface
- *   without one Godot's Compatibility default material; the albedo as its sRGB hex (a colour
- *   beyond 1 as linear components), the emission as the linear colour the Compatibility shader
- *   computes from it and its energy (`scene.glsl:2399`, `tonemap_inc.glsl:22`).
+ * - A `StandardMaterial3D` is the three material element and props the plan gives it
+ *   (`data/scene-material-idioms.ts`), printed as they are; a surface without one Godot's
+ *   Compatibility default material.
  * - A `DirectionalLight3D` is a `<directionalLight>` aimed along the node's -Z, an `OmniLight3D` a
  *   `<pointLight>`: Godot's energy times pi as three's intensity, the colour as its sRGB hex, an
  *   omni light's range and attenuation as three's distance and decay (`light-3d.ts`).
@@ -39,6 +38,7 @@ import type { GodotSceneNodeIdiomForm } from '../data/scene-node-idioms';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
+import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
 
 const f32 = Math.fround;
 
@@ -81,14 +81,6 @@ function identifier(name: string): TargetTsExpression {
 export function hexColor(components: readonly number[]): string {
   const channel = (value: number) => Math.round(Math.min(Math.max(value, 0), 1) * 255).toString(16).padStart(2, '0');
   return `#${components.slice(0, 3).map(channel).join('')}`;
-}
-
-/**
- * The Compatibility shader's `srgb_to_linear` (`drivers/gles3/shaders/tonemap_inc.glsl:22`), a
- * polynomial approximation, in the GPU's single precision.
- */
-function srgbToLinear(value: number): number {
-  return f32(value * f32(f32(value * f32(f32(value * 0.305306011) + 0.682171111)) + 0.012522878));
 }
 
 export function numberValue(value: TargetGodotSceneValue | undefined): number | undefined {
@@ -355,152 +347,46 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
   }
 }
 
-/** Three's blending constant for a `BaseMaterial3D::BlendMode` (`material.h:226`), mix excepted. */
-const BLENDING = ['', 'AdditiveBlending', 'SubtractiveBlending', 'MultiplyBlending'] as const;
-
-/** A colour prop: the sRGB hex, or linear components where a channel is beyond hex's range. */
-function colourProp(components: readonly number[]): TargetTsExpression {
-  const rgb = components.slice(0, 3);
-  if (rgb.every((value) => value >= 0 && value <= 1)) return literal(hexColor(rgb));
-  return numbers(rgb.map(srgbToLinear));
-}
-
 /**
- * A surface's material element: a `StandardMaterial3D`, or none (the Compatibility renderer's
- * default material, `rasterizer_scene_gles3.cpp:4624`: albedo 0.6, roughness 0.8, metallic 0.2).
+ * A material's props as the plan states them (`data/scene-material-idioms.ts`), each printed as it
+ * is: a colour's linear components as an array (`shared`: three's `Color`), a three constant
+ * imported, a map sampled by its texture's hook, a compat function by name.
  */
+function materialProps(emission: FamilyEmission, idiom: GodotSceneMaterialIdiom, shared: boolean): { readonly name: string; readonly value: TargetTsExpression }[] {
+  return idiom.props.map(({ name, value }) => {
+    switch (value.kind) {
+      case 'literal':
+        return { name, value: literal(value.value) };
+      case 'linear-color':
+        if (!shared) return { name, value: numbers(value.components) };
+        emission.three.add('Color');
+        return { name, value: { kind: 'new-expression', callee: identifier('Color'), arguments: value.components.map((component) => literal(component)) } };
+      case 'three':
+        emission.three.add(value.name);
+        return { name, value: identifier(value.name) };
+      case 'map': {
+        const texture = emission.resources.get(value.texture);
+        if (texture === undefined) throw new Error(`${value.texture}: a texture the scene does not plan`);
+        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb };
+        return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat) : textureHook(emission, texture, sampler)) };
+      }
+      case 'user-data':
+        return {
+          name,
+          value: { kind: 'object-expression', properties: value.entries.map((entry) => ({ key: entry.key, value: typeof entry.value === 'object' ? numbers(entry.value) : literal(entry.value) })) },
+        };
+      case 'compat':
+        return { name, value: identifier(useCompat(emission, value.module, value.exportName)) };
+    }
+  });
+}
+
+/** A surface's material element: the planned material, or none (Godot's default material). */
 function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan | undefined, attach: readonly TargetTsJsxAttribute[]): TargetTsJsxChild {
-  if (resource === undefined) {
-    // The shader's albedo is converted from sRGB like any material's (`scene.glsl:2398`).
-    return element('meshStandardMaterial', [
-      ...attach,
-      attribute('color', literal(hexColor([0.6, 0.6, 0.6]))),
-      attribute('roughness', literal(0.8)),
-      attribute('metalness', literal(0.2)),
-    ]);
-  }
-  if (resource.idiom?.kind !== 'standard-material') throw new Error(`${resource.key}: ${resource.className} has no three material`);
-  const set = resource.setters;
-  const albedo = componentsValue(setterValue(set, 'set_albedo'));
-  const transparency = numberValue(setterValue(set, 'set_transparency')) ?? 0;
-  const blend = numberValue(setterValue(set, 'set_blend_mode')) ?? 0;
-  const unshaded = (numberValue(setterValue(set, 'set_shading_mode')) ?? 1) === 0;
-  const metallic = numberValue(setterValue(set, 'set_metallic'));
-  const roughness = numberValue(setterValue(set, 'set_roughness'));
-  const texture = resourceOf(emission, setterValue(set, 'set_texture', 0));
-  // `TEXTURE_ROUGHNESS` (`material.h:149`): three samples its green channel where Godot samples the
-  // material's `roughness_texture_channel` (red by default); a grey image reads the same.
-  const roughnessTexture = resourceOf(emission, setterValue(set, 'set_texture', 2));
-  const emissionOn = boolValue(setterValue(set, 'set_feature', 0)) === true;
-  const props: TargetTsJsxAttribute[] = [...attach];
-  if (albedo !== undefined && albedo.slice(0, 3).some((value) => value !== 1)) props.push(attribute('color', colourProp(albedo)));
-  const filter = numberValue(setterValue(set, 'set_texture_filter')) ?? 3;
-  const repeat = boolValue(setterValue(set, 'set_flag', 16)) ?? true;
-  if (texture !== undefined) {
-    const map = texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, filter, repeat) : textureHook(emission, texture, { filter, repeat, srgb: true });
-    props.push(attribute('map', identifier(map)));
-  }
-  // Proximity fade draws through the alpha pass (`material.cpp:1807`); its fade is not drawn
-  // (`proximity-fade`, base-material-3d.ts). Distance fade's pixel alpha draws through it too, as
-  // does a material that draws no depth (`rasterizer_scene_gles3.cpp:257`).
-  const proximity = boolValue(setterValue(set, 'set_proximity_fade_enabled')) === true;
-  const fade = numberValue(setterValue(set, 'set_distance_fade')) ?? 0;
-  const depthDraw = numberValue(setterValue(set, 'set_depth_draw_mode')) ?? 0;
-  const transparent = transparency !== 0 || proximity || fade === 1 || depthDraw === 2;
-  if (transparent) props.push(flag('transparent'), attribute('opacity', literal(transparency !== 0 ? (albedo?.[3] ?? 1) : 1)));
-  if (transparency === 2) props.push(attribute('alphaTest', literal(0.5)));
-  // The depth draw mode as three's `depthWrite` (`godot_base_material_3d_depth_write`): only the
-  // opaque pass writes depth unless the mode is `ALWAYS`.
-  if (depthDraw === 2 || (transparent && depthDraw !== 1)) props.push(attribute('depthWrite', literal(false)));
-  const blending = BLENDING[blend];
-  if (blending !== undefined && blending !== '') {
-    emission.three.add(blending);
-    props.push(attribute('blending', identifier(blending)));
-  }
-  if (!unshaded) {
-    if (metallic !== undefined) props.push(attribute('metalness', literal(metallic)));
-    if (roughness !== undefined) props.push(attribute('roughness', literal(roughness)));
-    if (roughnessTexture !== undefined) {
-      props.push(attribute('roughnessMap', identifier(textureHook(emission, roughnessTexture, { filter, repeat, srgb: false }))));
-    }
-    if (emissionOn) {
-      const colour = componentsValue(setterValue(set, 'set_emission')) ?? [0, 0, 0, 1];
-      const energy = numberValue(setterValue(set, 'set_emission_energy_multiplier')) ?? 1;
-      props.push(attribute('emissive', numbers(colour.slice(0, 3).map((value) => srgbToLinear(f32(value * energy))))));
-    }
-  }
-  // `CULL_FRONT` and `CULL_DISABLED` as the side three draws (`material.h:296`).
-  const cull = numberValue(setterValue(set, 'set_cull_mode')) ?? 0;
-  if (cull !== 0) {
-    const side = cull === 1 ? 'BackSide' : 'DoubleSide';
-    emission.three.add(side);
-    props.push(attribute('side', identifier(side)));
-  }
-  // The Godot-only parameters the draw reads back: vertex colour (a particle system's instance
-  // colour), the billboard, proximity fade.
-  const data: TargetTsObjectProperty[] = [];
-  const billboard = numberValue(setterValue(set, 'set_billboard_mode')) ?? 0;
-  if (billboard !== 0) data.push({ key: 'billboard_mode', value: literal(billboard) });
-  if (boolValue(setterValue(set, 'set_flag', 5)) === true) data.push({ key: 'billboard_keep_scale', value: literal(true) });
-  if (boolValue(setterValue(set, 'set_flag', 1)) === true) data.push({ key: 'vertex_color_use_as_albedo', value: literal(true) });
-  if (boolValue(setterValue(set, 'set_flag', 2)) === true) data.push({ key: 'vertex_color_is_srgb', value: literal(true) });
-  if (proximity) {
-    data.push({ key: 'proximity_fade_enabled', value: literal(true) });
-    data.push({ key: 'proximity_fade_distance', value: literal(Math.max(f32(numberValue(setterValue(set, 'set_proximity_fade_distance')) ?? 1), f32(0.01))) });
-  }
-  // What the scene shader draws beyond three's own material (`godot_base_material_3d_scene_shader`):
-  // grow, distance fade, and, on a shaded material, the diffuse and specular modes, the specular
-  // amount, rim and backlight. Values the draw ignores (a grow amount without grow, rim or backlight
-  // parameters without their feature, the stencil effect) are not written.
-  const shading: TargetTsObjectProperty[] = [];
-  if (depthDraw !== 0) data.push({ key: 'depth_draw_mode', value: literal(depthDraw) });
-  if (boolValue(setterValue(set, 'set_grow_enabled')) === true) shading.push({ key: 'grow', value: literal(f32(numberValue(setterValue(set, 'set_grow')) ?? 0)) });
-  if (fade !== 0) {
-    shading.push({ key: 'distance_fade_mode', value: literal(fade) });
-    shading.push({ key: 'distance_fade_min', value: literal(f32(numberValue(setterValue(set, 'set_distance_fade_min_distance')) ?? 0)) });
-    shading.push({ key: 'distance_fade_max', value: literal(f32(numberValue(setterValue(set, 'set_distance_fade_max_distance')) ?? 10)) });
-  }
-  const specular = f32(numberValue(setterValue(set, 'set_specular')) ?? 0.5);
-  if (!unshaded) {
-    const diffuseMode = numberValue(setterValue(set, 'set_diffuse_mode')) ?? 0;
-    const specularMode = numberValue(setterValue(set, 'set_specular_mode')) ?? 0;
-    if (diffuseMode !== 0) shading.push({ key: 'diffuse_mode', value: literal(diffuseMode) });
-    if (specularMode !== 0) shading.push({ key: 'specular_mode', value: literal(specularMode) });
-    if (specular !== 0.5) shading.push({ key: 'specular', value: literal(specular) });
-    if (boolValue(setterValue(set, 'set_feature', 2)) === true) {
-      shading.push({ key: 'rim', value: numbers([f32(numberValue(setterValue(set, 'set_rim')) ?? 1), f32(numberValue(setterValue(set, 'set_rim_tint')) ?? 0.5)]) });
-    }
-    if (boolValue(setterValue(set, 'set_flag', 13)) === true) shading.push({ key: 'dont_receive_shadows', value: literal(true) });
-    if (boolValue(setterValue(set, 'set_feature', 9)) === true) {
-      const backlight = componentsValue(setterValue(set, 'set_backlight')) ?? [0, 0, 0, 1];
-      shading.push({ key: 'backlight', value: numbers(backlight.slice(0, 3).map(srgbToLinear)) });
-    }
-  }
-  data.push(...shading);
-  if (data.length > 0) props.push(attribute('userData', { kind: 'object-expression', properties: data }));
-  // A billboard, vertex colour or the shading above draws through Godot's code (`godot_base_material_3d_scene_shader`).
-  if (billboard !== 0 || boolValue(setterValue(set, 'set_flag', 1)) === true || shading.length > 0) {
-    props.push(attribute('onUpdate', identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_shader'))));
-  }
-  // Anisotropy (`FEATURE_ANISOTROPY`) draws on three's physical material (`godot_base_material_3d_anisotropy`).
-  const anisotropic = !unshaded && boolValue(setterValue(set, 'set_feature', 4)) === true;
-  if (anisotropic) {
-    const ratio = numberValue(setterValue(set, 'set_anisotropy')) ?? 0;
-    const { anisotropy, rotation } = godotAnisotropy(ratio);
-    props.push(attribute('anisotropy', literal(anisotropy)));
-    if (rotation !== 0) props.push(attribute('anisotropyRotation', literal(rotation)));
-    // Three's physical F0 is 0.04 times its specular intensity (`godot_base_material_3d_specular_intensity`).
-    if (specular !== 0.5) props.push(attribute('specularIntensity', literal(f32(4 * specular * specular))));
-  }
-  return element(unshaded ? 'meshBasicMaterial' : anisotropic ? 'meshPhysicalMaterial' : 'meshStandardMaterial', props);
+  const idiom = resource === undefined ? GODOT_DEFAULT_MATERIAL_IDIOM : resource.idiom;
+  if (idiom?.kind !== 'material') throw new Error(`${resource?.key ?? ''}: ${resource?.className ?? ''} has no three material`);
+  return element(idiom.element, [...attach, ...materialProps(emission, idiom, false).map((prop) => attribute(prop.name, prop.value))]);
 }
-
-/** `godot_base_material_3d_anisotropy` (`base-material-3d.ts`): the strength and the rotation from the tangent. */
-function godotAnisotropy(ratio: number): { readonly anisotropy: number; readonly rotation: number } {
-  const value = f32(ratio);
-  return { anisotropy: Math.abs(value), rotation: value < 0 ? Math.PI / 2 : 0 };
-}
-
 
 /** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
 export function godotPropName(property: string): string {
@@ -781,29 +667,27 @@ function sharedGeometry(emission: FamilyEmission, resource: TargetGodotSceneReso
   return declareShared(emission, resource.key, `${stemOf(resource.key)} geometry`, made, []);
 }
 
-/** A shared material: three's material made once from the element's own props. */
+/** A shared material: three's material made once from the planned props. */
 function sharedMaterial(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
-  const child = material(emission, resource, []) as TargetTsJsxChild & { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[] };
-  const three = child.tag.charAt(0).toUpperCase() + child.tag.slice(1);
+  return declareMaterial(emission, resource.key, stemOf(resource.key), resource.idiom?.kind === 'material' ? resource.idiom : undefined, resource);
+}
+
+/** A planned material declared once: `new` its three class with its props, handed to its `onUpdate`. */
+function declareMaterial(emission: FamilyEmission, key: string, base: string, idiom: GodotSceneMaterialIdiom | undefined, resource?: TargetGodotSceneResourcePlan): string {
+  if (idiom === undefined) throw new Error(`${resource?.key ?? key}: ${resource?.className ?? ''} has no three material`);
+  const three = idiom.element.charAt(0).toUpperCase() + idiom.element.slice(1);
   emission.three.add(three);
   const uses: string[] = [];
-  const properties = child.attributes.flatMap((entry) => {
-    if (entry.kind !== 'jsx-expression-attribute') return [];
-    let value = entry.value;
-    if (value.kind === 'identifier-expression' && emission.loaded.has(value.name)) uses.push(value.name);
-    // A colour's linear components are three's `Color`.
-    if ((entry.name === 'color' || entry.name === 'emissive') && value.kind === 'array-expression') {
-      emission.three.add('Color');
-      value = { kind: 'new-expression', callee: identifier('Color'), arguments: value.elements };
-    }
-    return [{ key: entry.name, value }];
+  const properties = materialProps(emission, idiom, true).map((prop) => {
+    if (prop.value.kind === 'identifier-expression' && emission.loaded.has(prop.value.name)) uses.push(prop.value.name);
+    return { key: prop.name, value: prop.value };
   });
   const onUpdate = properties.find((property) => property.key === 'onUpdate');
   const own = properties.filter((property) => property !== onUpdate);
   const constructed: TargetTsExpression = { kind: 'new-expression', callee: identifier(three), arguments: own.length === 0 ? [] : [{ kind: 'object-expression', properties: own }] };
   // What an element's `onUpdate` does to its material, done once to the declared one.
   const made: TargetTsExpression = onUpdate === undefined ? constructed : { kind: 'call-expression', callee: onUpdate.value, arguments: [constructed] };
-  return declareShared(emission, resource.key, stemOf(resource.key), made, uses);
+  return declareShared(emission, key, base, made, uses);
 }
 
 /** A data file the scene imports, once: its local. */
@@ -817,12 +701,9 @@ function dataImport(emission: FamilyEmission, file: string, base: string): strin
   return local;
 }
 
-/** Godot's Compatibility default material (`rasterizer_scene_gles3.cpp:4624`), declared once. */
+/** Godot's Compatibility default material (`GODOT_DEFAULT_MATERIAL_IDIOM`), declared once. */
 function defaultMaterialLocal(emission: FamilyEmission): string {
-  const made = material(emission, undefined, []) as TargetTsJsxChild & { readonly attributes: readonly TargetTsJsxAttribute[] };
-  emission.three.add('MeshStandardMaterial');
-  const properties = made.attributes.flatMap((entry) => (entry.kind === 'jsx-expression-attribute' ? [{ key: entry.name, value: entry.value }] : []));
-  return declareShared(emission, '\0default-material', 'default material', { kind: 'new-expression', callee: identifier('MeshStandardMaterial'), arguments: [{ kind: 'object-expression', properties }] }, []);
+  return declareMaterial(emission, '\0default-material', 'default material', GODOT_DEFAULT_MATERIAL_IDIOM);
 }
 
 /**
@@ -970,14 +851,14 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
       ? []
       : [attribute('libraries', { kind: 'object-expression', properties: libraries.map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) })) })]),
     ...own.flatMap((setter) => {
-      if (setter.setter.exportName === 'godot_grid_map_set_data') {
+      if (setter.written === 'cells-file') {
         return [attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))];
       }
       const resource = resourceOf(emission, setter.value);
       // A mesh an element draws (a particle system's) is three's geometry and its surface's material.
-      if (resource !== undefined && DRAWN_MESH_IDIOMS.has(resource.idiom?.kind ?? '')) return particleMesh(emission, resource);
+      if (resource?.idiom !== undefined && 'geometry' in resource.idiom) return particleMesh(emission, resource);
       // A material an element draws with (a material override) is three's material, as a mesh's is.
-      if (resource?.idiom?.kind === 'standard-material') return [attribute(godotPropName(setter.propertyName), identifier(sharedMaterial(emission, resource)))];
+      if (resource?.idiom?.kind === 'material') return [attribute(godotPropName(setter.propertyName), identifier(sharedMaterial(emission, resource)))];
       return [attribute(godotPropName(setter.propertyName), propValue(emission, setter.value))];
     }),
     ...(meta.length === 0
@@ -1021,9 +902,6 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
   };
   return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}`, `${stemOf(texture.key)} map`, made, []);
 }
-
-/** The mesh idioms three draws as a geometry, which an element takes as its `geometry` and `material`. */
-const DRAWN_MESH_IDIOMS: ReadonlySet<string> = new Set(['plane', 'sphere', 'cylinder', 'array-mesh']);
 
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
 function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePlan | undefined): TargetTsJsxAttribute[] {

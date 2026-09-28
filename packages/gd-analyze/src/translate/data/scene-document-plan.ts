@@ -135,6 +135,11 @@ export interface TargetGodotSceneSetterPlan {
   readonly setter: { readonly module: string; readonly exportName: string; readonly localName: string };
   readonly index?: number | string;
   readonly value: TargetGodotSceneValue;
+  /**
+   * `'cells-file'`: the value is written to the node's cells data file (a GridMap's `data`,
+   * `scene-families.ts`), and the element's prop is that file's import.
+   */
+  readonly written?: 'cells-file';
 }
 
 /** A resource the scene constructs once, then sets its authored properties on. */
@@ -1291,6 +1296,7 @@ function gridMapData(context: PlanContext, at: string, value: GodotValue): Targe
     propertyName: 'data',
     setter: { module: 'lib/godot-compat/grid-map', exportName: 'godot_grid_map_set_data', localName: 'godot_grid_map_set_data' },
     value: { kind: 'PackedInt32Array', components: ints },
+    written: 'cells-file',
   };
 }
 
@@ -1936,7 +1942,7 @@ function recordResource(
   key: string,
   resource: TargetGodotSceneResourcePlan,
 ): void {
-  const idiom = godotSceneResourceIdiom(resource.className);
+  const idiom = godotSceneResourceIdiom(resource.className, resource.setters);
   const planned = idiom === undefined ? resource : { ...resource, idiom };
   document.planned.set(key, planned);
   document.order.push(planned);

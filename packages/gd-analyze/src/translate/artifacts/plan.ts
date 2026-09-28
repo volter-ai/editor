@@ -157,7 +157,7 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
     // A GridMap's cells, as written (a node's own `data`, or an instance's override of it).
     const walk = (node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
       for (const setter of node.setters) {
-        if (setter.setter.exportName !== 'godot_grid_map_set_data' || setter.value.kind !== 'PackedInt32Array') continue;
+        if (setter.written !== 'cells-file' || setter.value.kind !== 'PackedInt32Array') continue;
         const file = godotGridMapDataPath(scene.targetPath, node.nodePath);
         written.set(file, projectDataJsonArtifact(file, [...setter.value.components], [scene.sourceResPath]));
       }
