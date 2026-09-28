@@ -389,8 +389,9 @@ export interface TargetGodotSceneConnectionPlan {
   /** The signal's argument count, each passed on to the method. */
   readonly arguments: number;
   /**
-   * Whose handler calls the method (`scene-signal-delivery.ts`): the source element's own event
-   * handler, which takes it as a callback; else a connection to the signal (`useGodotConnection`).
+   * Who connects the method as a callback (`scene-signal-delivery.ts`): the script's own
+   * `useGodotScript` (`script-connections`) or the instance's `connections` prop (`instance-prop`);
+   * else a connection to the signal (`useGodotConnection`).
    */
   readonly delivery?: 'script-connections' | 'instance-prop';
   /** For a delivered connection: the method's parameters, which its callback takes and passes on. */

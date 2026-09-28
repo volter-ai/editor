@@ -433,8 +433,9 @@ function sensorEvents(emission: Emission): TargetTsJsxAttribute[] {
 
 /**
  * The scene's connections a script's own signal takes (`scene-signal-delivery.ts`), as the
- * callbacks it takes: one const, printed after the scene's scripts, with each signal's methods
- * called on their scripts in the scene's order. A callback passes what the signal hands it on as it
+ * callbacks it takes: one const (before the scripts for the script's own `useGodotScript`, after
+ * them for an instance's prop), with each signal's methods called on their scripts in the scene's
+ * order. A callback passes what the signal hands it on as it
  * is (`any`), as a connection does: the method's own parameter type is its own.
  */
 function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, delivery: NonNullable<TargetGodotSceneConnectionPlan['delivery']>): TargetTsExpression[] {
@@ -495,7 +496,6 @@ function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, d
 
 /** A dynamic body's contacts, which compat reports as its `body_entered` and `body_exited` while monitoring. */
 function contactEvents(emission: Emission): TargetTsJsxAttribute[] {
-
   const handler = useCompat(emission, 'rigid-body-3d', 'godot_rigid_body_3d_contact');
   return (['onCollisionEnter', 'onCollisionExit'] as const).map((prop) =>
     attribute(prop, {

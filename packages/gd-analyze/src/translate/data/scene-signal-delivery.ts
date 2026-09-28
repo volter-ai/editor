@@ -15,11 +15,8 @@ import { godotSceneSubnodes, type TargetGodotSceneConnectionPlan } from './scene
 
 type Delivery = NonNullable<TargetGodotSceneConnectionPlan['delivery']>;
 
-/** The signals each accessor's source raises from its own handler or script, by the accessor. */
-const DELIVERED: ReadonlyMap<string, { readonly source: 'script'; readonly signals?: ReadonlySet<string> }> = new Map([
-  // A script's own signal (every name its script declares).
-  ['godot_node_script_signal', { source: 'script' }],
-]);
+/** The accessors of a script's own signals (every name its script declares), whose script takes the scene's methods. */
+const DELIVERED: ReadonlySet<string> = new Set(['godot_node_script_signal']);
 
 type SceneWithoutRefs = Omit<DirectGodotSceneDocumentPlan, 'refs'>;
 
@@ -42,22 +39,15 @@ export function planGodotSceneSignalDelivery(scenes: readonly SceneWithoutRefs[]
       nodes.set(node.nodePath, node);
       for (const child of godotSceneSubnodes(node)) collect(child);
     })(scene.root);
-    // Who delivers the source's signal: its own element's handler (an area's sensor, a dynamic
-    // body), its own script, or the instance's scene's root script; a source this scene instances
-    // otherwise is that scene's component, whose element this scene does not write.
+    // Who takes the scene's methods on the source's script signal: a node that runs its own script
+    // here (an instance that sets one included) on that script; an instance running its scene's
+    // root script through the instance's prop.
     const deliveryOf = (connection: TargetGodotSceneConnectionPlan): Delivery | undefined => {
-      const row = DELIVERED.get(connection.accessor.exportName);
       const node = nodes.get(connection.fromNodePath);
-      if (row === undefined || node === undefined || node.model !== undefined) return undefined;
-      if (row.signals !== undefined && !row.signals.has(connection.signal)) return undefined;
-      switch (row.source) {
-        case 'script':
-          // A node that runs its own script here (an instance that sets one included) takes them on
-          // it; an instance running its scene's root script, through the instance's prop.
-          if (node.scriptInstance !== undefined) return 'script-connections';
-          if (node.instance === undefined) return undefined;
-          return bySource.get(node.instance.sourceResPath)?.root.scriptInstance === undefined ? undefined : 'instance-prop';
-      }
+      if (!DELIVERED.has(connection.accessor.exportName) || node === undefined || node.model !== undefined) return undefined;
+      if (node.scriptInstance !== undefined) return 'script-connections';
+      if (node.instance === undefined) return undefined;
+      return bySource.get(node.instance.sourceResPath)?.root.scriptInstance === undefined ? undefined : 'instance-prop';
     };
     // The method the connection calls, on the target's script or the nearest ancestor declaring it:
     // a callback takes and passes on its parameters (Godot calls it with that many of the signal's
