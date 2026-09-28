@@ -202,7 +202,7 @@ function assetUrl(resPath: string): string {
 function textureHook(
   emission: FamilyEmission,
   texture: TargetGodotSceneResourcePlan,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
 ): string {
   const load = texture.load;
   if (load === undefined) throw new Error(`${texture.key}: a texture that is not an imported image`);
@@ -217,9 +217,9 @@ export function importedTextureHook(
   emission: FamilyEmission,
   resourceKey: string,
   load: NonNullable<TargetGodotSceneResourcePlan['load']>,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
 ): string {
-  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}`}`;
+  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}:${String(sampler.model === true)}`}`;
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
@@ -244,6 +244,7 @@ export function importedTextureHook(
                   { key: 'filter', value: literal(sampler.filter) },
                   { key: 'repeat', value: literal(sampler.repeat) },
                   ...(sampler.srgb ? [] : [{ key: 'srgb', value: literal(false) }]),
+                  ...(sampler.model === true ? [{ key: 'model', value: literal(true) }] : []),
                 ],
               },
             ]),
@@ -362,8 +363,8 @@ function materialProps(emission: FamilyEmission, idiom: GodotSceneMaterialIdiom,
       case 'map': {
         const texture = emission.resources.get(value.texture);
         if (texture === undefined) throw new Error(`${value.texture}: a texture the scene does not plan`);
-        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb };
-        return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat) : textureHook(emission, texture, sampler)) };
+        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb, ...(value.model === true ? { model: true as const } : {}) };
+        return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat, value.model === true) : textureHook(emission, texture, sampler)) };
       }
       case 'user-data':
         return {
@@ -856,9 +857,10 @@ export function familyInstanceProps(
 
 /**
  * A GradientTexture2D a material samples: its image made from the properties the scene states, as
- * three's texture sampled with the material's filter and repeat, declared once in the module.
+ * three's texture sampled with the material's filter and repeat (as a model's own images are, on a
+ * model's geometry), declared once in the module.
  */
-function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResourcePlan, filter: number, repeat: boolean): string {
+function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResourcePlan, filter: number, repeat: boolean, model: boolean): string {
   const image: TargetTsExpression = {
     kind: 'call-expression',
     callee: identifier(useCompat(emission, 'gradient-texture-2d', 'godot_gradient_texture_2d_texture')),
@@ -866,10 +868,10 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
   };
   const made: TargetTsExpression = {
     kind: 'call-expression',
-    callee: identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_map')),
+    callee: identifier(useCompat(emission, 'base-material-3d', model ? 'godot_base_material_3d_model_map' : 'godot_base_material_3d_scene_map')),
     arguments: [image, literal(filter), literal(repeat)],
   };
-  return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}`, `${stemOf(texture.key)} map`, made, []);
+  return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}:${String(model)}`, `${stemOf(texture.key)} map`, made, []);
 }
 
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */

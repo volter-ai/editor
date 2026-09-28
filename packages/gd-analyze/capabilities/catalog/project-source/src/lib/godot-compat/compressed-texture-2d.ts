@@ -21,7 +21,7 @@
 
 import { use } from 'react';
 import { DataTexture, RGBAFormat, type Texture, UnsignedByteType } from 'three';
-import { godot_base_material_3d_scene_map } from './base-material-3d';
+import { godot_base_material_3d_model_map, godot_base_material_3d_scene_map } from './base-material-3d';
 import { godot_image_decode, godot_image_fix_alpha_edges, godot_image_generate_mipmaps, godot_image_premultiply_alpha, type Image } from './image';
 import { godot_resource_loader_track } from './resource-loader';
 import { godot_texture_2d_emit_changed, godot_texture_2d_image, godot_texture_2d_size } from './texture-2d';
@@ -152,7 +152,8 @@ const SCENE_LOADS = new Map<string, SceneLoad>();
 /**
  * A scene's imported image, as a component loads it: the texture of the copied file at `url`,
  * imported with the importer's options once for every scene that uses it (Godot's resource cache),
- * the component suspended until it is; with `sampler`, the variant a material samples.
+ * the component suspended until it is; with `sampler`, the variant a material samples (with
+ * `model`, on an imported model's own geometry).
  *
  * @godot CompressedTexture2D (protocol)
  * @source core/io/resource_loader.cpp:725
@@ -160,7 +161,7 @@ const SCENE_LOADS = new Map<string, SceneLoad>();
 export function useGodotTexture(
   url: string,
   options: GodotTextureImport,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean; readonly model?: boolean },
 ): Texture {
   const key = `${url}\0${String(options.fixAlphaBorder)}:${String(options.premultAlpha)}:${String(options.mipmaps)}`;
   let load = SCENE_LOADS.get(key);
@@ -176,5 +177,8 @@ export function useGodotTexture(
     SCENE_LOADS.set(key, load);
   }
   use(load.loaded);
-  return sampler === undefined ? load.texture : godot_base_material_3d_scene_map(load.texture, sampler.filter, sampler.repeat, sampler.srgb ?? true);
+  if (sampler === undefined) return load.texture;
+  // A material on an imported model's own geometry samples the texture as the model's images are.
+  const sampled = sampler.model === true ? godot_base_material_3d_model_map : godot_base_material_3d_scene_map;
+  return sampled(load.texture, sampler.filter, sampler.repeat, sampler.srgb ?? true);
 }
