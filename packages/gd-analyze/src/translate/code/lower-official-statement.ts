@@ -789,12 +789,16 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
       : godotReturnsNothing(returnTypeNode.datatype)
         ? { type: { kind: 'keyword-type', keyword: 'void' } as const, requirements: [] }
         : context.targetType(returnTypeNode);
+  // A coroutine (the bound function awaits, `GDScriptFunction` state) is an async method, whose
+  // declared type is the promise of what it returns: `-> void` is `Promise<void>`.
+  const resultType =
+    result === undefined || !node.coroutine ? result?.type : ({ kind: 'type-reference', name: 'Promise', arguments: [result.type] } as const);
   return {
     member: {
       kind: 'method-member',
       name,
       parameters: parameters.parameters,
-      ...(result === undefined ? {} : { result: result.type }),
+      ...(resultType === undefined ? {} : { result: resultType }),
       body: body.statements,
       modifiers: [
         ...(node.static ? ['static' as const] : []),
