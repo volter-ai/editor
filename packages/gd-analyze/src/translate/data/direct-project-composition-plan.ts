@@ -1,4 +1,5 @@
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
+import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
@@ -621,6 +622,17 @@ function projectSettings(
   const stretchMode = project.read.authoredSettings.get('display/window/stretch/mode');
   if (stretchMode?.kind === 'string' && stretchMode.value === 'viewport') {
     diagnostics.push({ at: 'project.godot#display/window/stretch/mode', message: 'the viewport stretch mode is not translated' });
+  }
+  // The keep aspects (keep, the default, keep_width, keep_height) letterbox the whole viewport in
+  // Godot, 3D included (`window.cpp` `_update_viewport_size`); compat letterboxes only the 2D layer,
+  // so a project that draws 3D through a camera under them is not translated.
+  const aspect = project.read.authoredSettings.get('display/window/stretch/aspect');
+  const aspectValue = aspect?.kind === 'string' ? aspect.value : 'keep';
+  const drawsThreeD = project.documents.scenes.some((scene) =>
+    scene.nodes.some((node) => node.class.nativeAncestry.some((name) => godotSceneNodeIdiom(name)?.form?.kind === 'camera')),
+  );
+  if (stretchMode?.kind === 'string' && stretchMode.value === 'canvas_items' && ['keep', 'keep_width', 'keep_height'].includes(aspectValue) && drawsThreeD) {
+    diagnostics.push({ at: 'project.godot#display/window/stretch/aspect', message: `the ${aspectValue} stretch aspect with a 3D camera (a letterboxed 3D view) is not translated` });
   }
   const scaleMode = project.read.authoredSettings.get('display/window/stretch/scale_mode');
   if (scaleMode?.kind === 'string' && scaleMode.value === 'integer') {
