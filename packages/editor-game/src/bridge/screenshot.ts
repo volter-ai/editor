@@ -6,6 +6,7 @@
  * `@editor/*` alias until those modules move too. Nothing here is host API.
  */
 
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import {
   type CaptureFlatness,
@@ -230,6 +231,7 @@ export async function handleBridgeScreenshot(
     try {
       const composite = await capturePlayComposite(container, {
         canvasFrame: captureLiveCanvasFrame,
+        projectRoot: getCurrentProject()?.rootPath,
         // The DECLARED medium, from the adapter's region table. `undefined`
         // (no table loaded yet) leaves the compositor-settle heuristic on its
         // own canvas count, exactly as before.
