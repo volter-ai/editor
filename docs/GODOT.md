@@ -83,34 +83,6 @@ same commit that removes a pattern. The reviewer judges; the ratchet stops the s
 reviewer run only at milestones misses: the 09-26 regrowth was about 300 commits, each locally
 reasonable.
 
-**How a lane lands** (owner, 2026-09-28, after three regressed reviews in a row: new findings
-arrived faster than reviews cleared them, because lanes were briefed to clear refusals and merged
-without a check of the shapes the review hunts).
-
-1. Every lane's brief carries the law and this checklist, and the lane checks its own diff
-   against it before committing:
-   - read, analyze, plan, emit and materialize each own their concern: analysis types values,
-     the plan decides every idiom, prop, ref and artifact, lowering selects rules for the types
-     analysis gives, and emit prints; none of them re-derives what an earlier phase decided;
-   - no Godot class or built-in type name selects behaviour in emit, lowering or compat, and no
-     setter name selects it in emit; a mapping is a plan-time data table;
-   - nothing of Godot's implementation is ported (its servers, renderer, particle, text or
-     physics internals, update order or storage); the library's own idiom gives the behaviour,
-     and looking like three.js rather than like Godot's renderer is acceptable;
-   - compat keeps no clock, scheduler, registry, spawn host or mirrored tree, and never drives
-     other nodes' work from the frame;
-   - the output is what a three.js or R3F developer would write: no generated dispatchers or
-     helpers, nothing for tooling;
-   - no record, capture or comparison of Godot's output is kept.
-2. Before a lane's commits merge to `godot`, one read-only skeptic who did not write the diff
-   reviews that lane's diff alone against §The lane's law with the brief's checklist
-   (`docs/GODOT-REVIEW.md` §The brief, its diff scoped to the lane's commits). A finding is fixed
-   before the merge, not after.
-3. A `regressed` verdict of the periodic review holds new game work: its findings are fixed and
-   the review re-run until the verdict is `holds` or `pass`, then game work resumes.
-4. The rows that fail by the emitted game's shape (the compat hooks a scene is written against,
-   rows 4 and 5) are their own track with their own plan (below), not a lane's side effect.
-
 **Decide from the law.** A design question the law answers is decided by whoever meets it,
 without asking: the answer is what the rulings and rows imply. Only a genuine conflict between
 them goes to the owner. The composition-site design below was built on an author's ruling that
@@ -209,34 +181,70 @@ its members carry over, its emitter wiring waits for step 2), and `evidence --re
 (`godot-stale`, moot once the gate goes).
 
 
+## How a lane lands (2026-09-28, owner-approved: "go")
+
+This is how the lane's work reaches `godot`. It adds no standard: the standard is §The lane's law
+and its rows. It exists because three periodic reviews in a row came back `regressed`: new findings
+arrived faster than reviews cleared them. The lanes were briefed to clear refusals, and they merged
+with no check of the shapes the review hunts.
+
+1. Every lane's brief carries §The lane's law and this reading of how its rows apply. The lane
+   checks its own diff against it before committing:
+   - Row 2: each phase owns its concern. Analysis types values. The plan decides every idiom,
+     prop, ref and artifact. Lowering selects rules for the types analysis gives. Emit prints.
+     None of them re-derives what an earlier phase decided, so emit reading a setter by its name
+     is emit deciding what the plan should have stamped.
+   - Row 3: a mapping from a Godot class, a built-in type or a setter to an idiom is a
+     plan-time data table, not a branch.
+   - Ruling 1: nothing of Godot's implementation is ported (its servers, renderer, particle,
+     text or physics internals, update order or storage). The library's idiom gives the
+     behaviour. A rendering detail may look like three.js rather than Godot's renderer, where a
+     player would not take it for a different game.
+   - Row 4: compat keeps no clock, scheduler, registry, spawn host or mirrored tree, and never
+     drives other nodes' work from the frame.
+   - Row 5: the output is what a three.js or R3F developer would write, with no generated
+     dispatchers or helpers and nothing for tooling.
+   - Ruling 2: no record, capture or comparison of Godot's output is kept.
+2. Before a lane's commits merge to `godot`, one read-only skeptic who did not write them reviews
+   that lane's commits alone, with this brief: "Review commits `<a>..<b>` in this repository
+   against the section '## The lane's law' of docs/GODOT.md and ARCHITECTURE.md rule 4, read-only.
+   For each finding: file:line, severity (blocker, should-fix or nit) and a one-line fix. End with
+   `MERGE` (no blockers) or `HOLD`." A blocker is fixed before the merge. The merge's first
+   commit on `godot` carries the trailer `Lane-review: MERGE` with the skeptic's should-fixes
+   listed or fixed.
+3. A periodic review's `regressed` verdict means the change does not land (docs/GODOT-REVIEW.md).
+   Its findings are fixed and the review re-run before more of the lane lands. New game work waits
+   until the verdict is `holds` or `pass`.
+4. The rows that fail by the emitted game's shape (rows 4 and 5) are their own track
+   (§The emitted game's shape), not a lane's side effect.
+
 ## The emitted game's shape: the track for rows 4 and 5 (2026-09-28)
 
 Rows 4 and 5 fail because of the shape every scene is emitted in, not because of any one lane.
 The platformer's coin is the smallest whole example:
-- `coin.gd` is ten lines;
+- `coin.gd` is thirteen lines;
 - the emitted script reaches its node through
   `godot_node_entity(Node_get_node(this.$native, "Animation"))`, in `__godot_value_N` temporaries;
 - the emitted scene is written against compat's scene machinery: `useGodotScript` adopting a
   script instance, `useGodotConnection` with a signal accessor for its own `body_entered`,
   `useGodotScene` entering the tree, and an `animationBindings` dispatch table.
 
-What a three.js developer would write for the same coin:
+What a three.js developer would write for the same coin keeps the script a class and gives it
+refs, not tree lookups:
 
 ```tsx
-export function Coin(props: RigidBodyProps) {
-  const animation = useRef<AnimationPlayer>(null);
-  const taken = useRef(false);
+export function CoinScene(props: RigidBodyProps) {
+  const body = useRef<RapierRigidBody>(null);
+  const { actions } = useAnimations(coinClips, body);          // three's AnimationMixer
+  const coin = useMemo(() => new Coin({ animation: actions }), [actions]);
   return (
-    <RigidBody type="fixed" sensor colliders={false} {...props}
+    <RigidBody ref={body} type="fixed" sensor colliders={false} {...props}
       onIntersectionEnter={({ other }) => {
-        const player = other.rigidBodyObject?.userData.player;
-        if (taken.current || !player) return;
-        animation.current?.play('take');
-        taken.current = true;
-        player.coins += 1;
+        const script = scriptOf(other.rigidBodyObject);        // the body's script instance
+        if (other.collider.isSensor()) return;                 // body_entered: bodies, not areas
+        coin.onBodyEntered(script);                             // `body is Player` is `instanceof Player`
       }}>
       …meshes, particles, the sound…
-      <AnimationPlayer ref={animation} clips={coinClips} autoplay="spin" />
     </RigidBody>
   );
 }
@@ -253,26 +261,32 @@ emitter prints:
    event prop, or a callback the element takes, calling the method directly. Only
    `connect()` with a computed target keeps the signal object.
 3. **A script is the component's own state.** The script class stays a class. The scene makes it
-   with `useMemo`/`useRef`, calls its `_ready` from `useEffect` and its `_process` from `useFrame`
-   directly. The adoption machinery (`useGodotScript`'s pending instances, bindings on the
-   native) goes.
+   with `useMemo`/`useRef` and hands it its refs. Godot's orders are kept by the scene, which owns
+   its nodes as Godot instantiates a scene as a unit:
+   - `_enter_tree` runs parent-first and `_ready` children-first, from the scene root's effect in
+     tree order (React effects alone run children-first);
+   - `_process` and `_physics_process` run in tree order, by `process_priority`, gated by
+     `set_process`, `set_physics_process` and `process_mode`, from the scene's own frame hook;
+   - effects run once (no StrictMode double mount).
+   The adoption machinery (`useGodotScript`'s pending instances, bindings on the native) goes.
 4. **Values read as written.** A single-use temporary is inlined, so `__godot_value_N` appears only
    where evaluation order needs a statement.
 5. **An animation is three's.** AnimationPlayer's tracks are `AnimationClip`s on three's
    `AnimationMixer` (drei's `useAnimations` idiom) over real object properties. The
    `animationBindings` dispatch table goes.
 6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
-   events. The world is `<Physics>` holding the main scene, with no per-world hooks beyond what
-   a node advancing itself needs.
-7. **What stays a runtime is small and named.** The dynamic tree (`get_node` of a computed path,
-   groups, `add_child` of an instantiated scene, `queue_free`, `get_tree()`) stays compat's,
-   only where a script uses it. The plan records which scenes need it, and a scene that doesn't
-   use it carries none of it.
-
+   events. The world is `<Physics>` holding the main scene. The SceneTree's timers, tweens and
+   deletion queue stay with the world's component, which is the SceneTree's (ruled in §Order of
+   work).
+7. **What stays dynamic is bindings.** A path computed at run time, groups, `add_child` of an
+   instantiated scene, `queue_free` and `get_tree()` stay compat's, as bindings over three's
+   object graph and React state, not a tree compat keeps, and only where a script uses them. The
+   plan records which scenes need them; a scene that doesn't carries none of it.
 Each step lands as its own lane under §How a lane lands. The ratchet gains a rule per step once
 the step removes its pattern (compat hooks per emitted scene, `__godot_value_` temporaries,
-`animationBindings` tables), so the output only moves one way. The platformer and basic-scene walks
-are re-run after each step: the behaviour must not change, only the shape.
+`animationBindings` tables), so the output only moves one way. Each step is checked cheaply:
+typecheck, the imports of every game that imports, and the headless probe. The behaviour must not
+change, only the shape, and the games are walked once when the track is done.
 
 ## Where it lives
 
