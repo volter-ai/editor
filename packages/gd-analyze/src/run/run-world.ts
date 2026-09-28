@@ -90,7 +90,7 @@ type WorkerReport =
 
 /** The driver the worker runs, in the copied project (its imports resolve against it). */
 const DRIVER = `import { parentPort, workerData } from 'node:worker_threads';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createElement } from 'react';
 import * as THREE from 'three';
@@ -133,9 +133,12 @@ try {
   const toData = (url) => (url.startsWith('/godot/') ? 'data:application/octet-stream;base64,' + readFileSync('./public' + url).toString('base64') : url);
   THREE.DefaultLoadingManager.setURLModifier(toData);
   require('three').DefaultLoadingManager.setURLModifier(toData);
-  // The page compiles the WebP decoder from its asset URL; here it is handed over.
-  const image = await import('./src/lib/godot-compat/image');
-  image.godot_image_webp_module(await WebAssembly.compile(readFileSync(require.resolve('@jsquash/webp/codec/dec/webp_dec.wasm'))));
+  // The page compiles the WebP decoder from its asset URL; here it is handed over, to a project
+  // that ships the image binding (compat ships only the modules a project reaches).
+  if (existsSync('./src/lib/godot-compat/image.ts')) {
+    const image = await import('./src/lib/godot-compat/image');
+    image.godot_image_webp_module(await WebAssembly.compile(readFileSync(require.resolve('@jsquash/webp/codec/dec/webp_dec.wasm'))));
+  }
   globalThis.createImageBitmap ??= async () => ({ width: 1, height: 1, close() {} });
   // three's FileLoader reports progress with the page's ProgressEvent.
   globalThis.ProgressEvent ??= class extends Event {
