@@ -75,10 +75,11 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@volter/editor-sdk": "0.5.82",
     "@volter/editor-live": "0.5.82",
     "@volter/editor-project": "0.5.82",
+    "@volter/editor-sdk": "0.5.82",
     "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "three": "^0.180.0",
     "vite": "^6.4.3"
   },
