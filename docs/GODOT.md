@@ -182,6 +182,13 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    retired `vgai.*` protocol, so its re-pin is open. The frozen import lock resolves `@volter/*`
    at `^0.5.74`. `main` publishes every push (`38bfb751`), so landing `godot` on `main` publishes
    the editor packages it changes (`editor-game`, `editor-threejs`).
+   Walks compare with Godot's web exports, which render with the Compatibility renderer, while
+   the lane draws with three, which lights as Forward+ does. So compat reports `forward_plus` from
+   `get_current_rendering_method()`. A game's own Compatibility-only branch (the 3D platformer kit's
+   `main.gd` sets its sun to 0.24 and its background energy to 0.25 on `gl_compatibility`) then takes the look its
+   author made for Forward+, as the kit's own screenshots show. A difference that comes only from
+   the renderer (the Compatibility renderer's brighter additive light passes, a sky the
+   Compatibility branch darkens) is accepted in a walk, not ported (ruling 1).
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 
