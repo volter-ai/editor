@@ -1415,8 +1415,13 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
 
 const IDENTITY_MATRIX = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] as const;
 
-/** The importer's clips as an AnimationLibrary's data, in the importer's (glTF) order. */
-function importedLibrary(clips: readonly ImportedClip[]): TargetGodotAnimationLibraryPlan {
+/**
+ * The importer's clips as an AnimationLibrary's data, in the importer's (glTF) order. `rootScale`
+ * is the root scale the importer bakes into its animations: `_rescale_animation`
+ * (`resource_importer_scene.cpp:587`) multiplies each position track's keys by it, and no other
+ * track's.
+ */
+function importedLibrary(clips: readonly ImportedClip[], rootScale: number): TargetGodotAnimationLibraryPlan {
   const TYPES = { 1: 'position_3d', 2: 'rotation_3d', 3: 'scale_3d' } as const;
   return {
     animations: [...clips].sort((a, b) => a.gltfIndex - b.gltfIndex).map((clip) => ({
@@ -1433,7 +1438,11 @@ function importedLibrary(clips: readonly ImportedClip[]): TargetGodotAnimationLi
           enabled: true,
           imported: true,
           update: 0,
-          keys: track.keys.map(([time, transition, value]) => [time, transition, value.length === 3 ? { Vector3: value } : { Quaternion: value }] as const),
+          keys: track.keys.map(([time, transition, value]) => {
+            if (value.length !== 3) return [time, transition, { Quaternion: value }] as const;
+            const scaled = track.type === 1 && rootScale !== 1 ? (value.map((component) => component * rootScale) as unknown as typeof value) : value;
+            return [time, transition, { Vector3: scaled }] as const;
+          }),
         })),
       },
     })),
@@ -1514,11 +1523,14 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath}: ${keys}`, 'resource', 'imported animations');
     return undefined;
   }
-  const animations = Array.isArray(keys) ? importedLibrary(keys as readonly ImportedClip[]) : undefined;
-  // The importer bakes its root scale into the meshes, skins and animations; the meshes are scaled
-  // as they load, while bones and animation keys are not, so such a model refuses.
-  if (model.meshScale !== undefined && (Object.keys(model.bonesByPath).length > 0 || animations !== undefined)) {
-    refuse(context, at, `${imported.resPath}: the root scale of a skinned or animated model is not baked`, 'resource', 'imported .glb');
+  const animations = Array.isArray(keys) ? importedLibrary(keys as readonly ImportedClip[], model.meshScale ?? 1) : undefined;
+  // The importer bakes its root scale into the nodes, bones, meshes, skins and animations
+  // (`_apply_scale_to_scalable_node_collection`, `resource_importer_scene.cpp:599`). The reader
+  // scales the nodes' positions and the bones' rest origins, the meshes are scaled as the file
+  // loads and the position tracks' keys above; the skins' inverse bind matrices and the bones'
+  // poses are the file's, unscaled, so a model with a skeleton and a root scale refuses.
+  if (model.meshScale !== undefined && Object.keys(model.bonesByPath).length > 0) {
+    refuse(context, at, `${imported.resPath}: the root scale of a model with a skeleton is not baked into its skins and bone poses`, 'resource', 'imported .glb');
     return undefined;
   }
   const properties = planProperties(context, node, node.authoredProperties);

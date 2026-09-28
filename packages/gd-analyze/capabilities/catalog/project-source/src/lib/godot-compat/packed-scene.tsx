@@ -4,9 +4,10 @@
  *
  * Godot 4.7's imported scene (`editor/import/3d/resource_importer_scene.cpp` over
  * `modules/gltf/gltf_document.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) bound onto
- * drei's `useGLTF`. Godot's importer builds its own node tree from the file: it synthesizes a
- * root, a `Skeleton3D` per skin (the joints become its bones, not nodes) and an `AnimationPlayer`,
- * reparents skinned meshes under their skeleton, and names every node with its own uniquifier.
+ * three's `GLTFLoader` through R3F's `useLoader`. Godot's importer builds its own node tree from
+ * the file: it synthesizes a root, a `Skeleton3D` per skin (the joints become its bones, not
+ * nodes) and an `AnimationPlayer`, reparents skinned meshes under their skeleton, and names every
+ * node with its own uniquifier.
  * three's loader keeps the file's tree. The translated scene hands this component Godot's tree (the
  * importer model in `read/gltf-godot-scene.ts`, as the model's data file: each node's Godot name,
  * class chain, local transform and, for a node the file backs, its glTF `nodes[]` index); the
@@ -31,10 +32,10 @@
  */
 
 import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
-import { useGLTF } from '@react-three/drei';
-import { createPortal, type ThreeElements } from '@react-three/fiber';
+import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, type Ref, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
 import { type BufferGeometry, Group, type Material, type Mesh, type Object3D, Texture } from 'three';
+import { type GLTF, GLTFLoader, type GLTFLoaderPlugin } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
 import { godot_animation_mixer_set_library } from './animation-mixer';
@@ -91,17 +92,48 @@ export interface GodotImportedSceneTree {
   readonly meshScale?: number;
 }
 
-/** The loaded files' geometries already scaled by their model's `meshScale`: the loader shares them. */
-const SCALED = new WeakSet<BufferGeometry>();
+/**
+ * The importer's root scale baked into the loaded file's meshes, as the file loads: each geometry
+ * the loader made is scaled once, so the cached file, every clone of it and every instance that
+ * shares it draw the importer's mesh.
+ */
+function rootScale(scale: number): GLTFLoaderPlugin {
+  return {
+    name: 'godot_root_scale',
+    afterRoot: (result: GLTF) => {
+      const scaled = new Set<BufferGeometry>();
+      for (const scene of result.scenes) {
+        scene.traverse((object) => {
+          const geometry = (object as Mesh).isMesh === true ? (object as Mesh).geometry : undefined;
+          if (geometry === undefined || scaled.has(geometry)) return;
+          geometry.scale(scale, scale, scale);
+          scaled.add(geometry);
+        });
+      }
+      return Promise.resolve();
+    },
+  };
+}
 
-/** Scales each mesh's geometry the loader made, once however many instances share it. */
-function scaleMeshes(loaded: readonly Object3D[], scale: number): void {
-  for (const object of loaded) {
-    const geometry = (object as Mesh).isMesh === true ? (object as Mesh).geometry : undefined;
-    if (geometry === undefined || SCALED.has(geometry)) continue;
-    geometry.scale(scale, scale, scale);
-    SCALED.add(geometry);
+/**
+ * Each model's own loader, with the file's plugins (its external images, its root scale), like its
+ * library below: a loader runs every load through it with its plugins by name, so a plugin that
+ * belongs to one file cannot sit on a loader other files load through. The loader and the file are
+ * the load cache's key, so every instance of a model shares one load, and a reloaded model (a new
+ * tree) or a reload of this module loads the file afresh.
+ */
+const LOADERS = new WeakMap<GodotImportedSceneTree, GLTFLoader>();
+
+function loaderOf(tree: GodotImportedSceneTree, images: Readonly<Record<number, Texture>> | undefined): GLTFLoader {
+  let loader = LOADERS.get(tree);
+  if (loader === undefined) {
+    loader = new GLTFLoader();
+    if (images !== undefined) loader.register((parser) => externalImages(parser, images));
+    const scale = tree.meshScale;
+    if (scale !== undefined) loader.register(() => rootScale(scale));
+    LOADERS.set(tree, loader);
   }
+  return loader;
 }
 
 /** A model's library, loaded once for all its instances (the imported scene's shared resources). */
@@ -339,7 +371,7 @@ export function GodotImportedScene({
   readonly materials?: Readonly<Record<string, Material>>;
   readonly children?: ReactNode;
 }) {
-  const gltf = useGLTF(src, undefined, undefined, images === undefined ? undefined : (loader) => loader.register((parser) => externalImages(parser, images)));
+  const gltf = useLoader(loaderOf(model, images), src);
   useMemo(() => {
     if (images !== undefined) sampleExternalImages(gltf, images);
   }, [gltf, images]);
@@ -348,7 +380,6 @@ export function GodotImportedScene({
   const external = useRef(materials);
   const tree = useMemo(() => {
     const built = buildTree(gltf.scene, gltf.parser.associations as ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes);
-    if (model.meshScale !== undefined) scaleMeshes(built.loaded, model.meshScale);
     const swap = external.current;
     if (swap !== undefined) {
       for (const object of built.loaded) {
@@ -360,7 +391,7 @@ export function GodotImportedScene({
       }
     }
     return built;
-  }, [gltf, nodes, model.meshScale]);
+  }, [gltf, nodes]);
   const root = useRef<Group | null>(null);
   useImperativeHandle(ref, () => root.current as Group, []);
   // The instancing scene's values are set once, as the scene instantiates: a render that rebuilds
