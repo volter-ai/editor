@@ -761,7 +761,8 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const children = () => node.children.map((child) => nodeElement(emission, child));
   if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);
-  if (idiom === undefined) throw new Error(`${at}: ${className} has no idiomatic element`);
+  // The plan refuses a node with no idiom (`scene-body-idioms.ts`).
+  if (idiom === undefined) throw new Error(`${at}: ${className} reached emit without its planned idiom`);
   const form = idiom.form;
   if (form.kind === 'body') {
     const body = form;

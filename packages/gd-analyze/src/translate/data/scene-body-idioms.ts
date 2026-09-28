@@ -378,6 +378,9 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       // root has no form for them.
       const rootForm = instance?.rootIdiom?.form.kind;
       if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
+      // A node the plan maps to no idiom (not an instance's or a model's, which their component or
+      // the model's element draws) has no element.
+      if (node.idiom === undefined && node.instance === undefined && node.model === undefined) refuse(`${node.classes[0] ?? 'a node'} has no idiomatic element`);
       // A node's transform is three's position, rotation and scale: one with shear has none.
       const matrix = node.properties.find((entry) => entry.propertyName === 'transform')?.value as readonly number[] | undefined;
       if (matrix !== undefined && sheared(matrix)) refuse('a transform with shear has no position, rotation and scale');
