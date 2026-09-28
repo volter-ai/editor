@@ -31,6 +31,7 @@ import {
   viewPresentationBinding,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { threeStoreForHost } from './three-state';
+import { viewportStages } from '../viewport-door';
 import { threeStateOf } from './three-state';
 
 function activeObject3DDocumentSession() {
@@ -179,6 +180,34 @@ export const viewportCommands: CommandContribution['commands'] = {
     }
     return { ok: true, data: { ...documentSession.cameraPose() } };
   }),
+  /**
+   * WHAT A FRAME OF A 3D DOCUMENT'S STAGE COSTS WHEN NOTHING CAPS IT (`ViewportRig.frameCost`):
+   * the active document's stage, or the one `stage` names by its id (a split's second area is
+   * `<documentId>#area-2`). The frame is the stage's own, so a draw mode, a split or a scene
+   * changes it the way it changes what a person sees; the reading says which it measured.
+   */
+  'document-frame-cost': verb((_store, cmd) => {
+    const frames = cmd['frames'] ?? 60;
+    if (typeof frames !== 'number' || !Number.isInteger(frames) || frames < 1 || frames > 600)
+      return { ok: false, error: 'document-frame-cost: "frames" must be a whole number in 1..600.' };
+    const named = cmd['stage'];
+    if (named !== undefined && typeof named !== 'string')
+      return { ok: false, error: 'document-frame-cost: "stage" names a stage by its document id.' };
+    const documentId = named ?? activeWorkspaceDocumentId();
+    const stages = viewportStages();
+    const stage = stages.find((one) => one.documentId === documentId);
+    if (!stage)
+      return {
+        ok: false,
+        error:
+          `document-frame-cost: no 3D stage draws ${documentId === null ? 'the active document' : JSON.stringify(documentId)}. ` +
+          `The mounted stages are: ${stages.map((one) => one.documentId).join(', ') || 'none'}.`,
+      };
+    const measure = stage.rig().frameCost;
+    if (!measure)
+      return { ok: false, error: `document-frame-cost: the stage for ${JSON.stringify(stage.documentId)} has no frame of its own to measure.` };
+    return { ok: true, data: { stage: stage.documentId, ...measure(frames) } };
+  }, 120_000),
   'capture-viewport': verb(async (store, cmd) => {
     // Fresh, unthrottled on-demand capture (see EditorShellStore.captureViewportImage).
     const requested = captureSizeFromCommand(cmd);

@@ -206,6 +206,15 @@ export interface DocumentDragStep extends ScopedStep {
    *  drags a 10 px resize handle outward. The press stays inside, and the
    *  element keeps receiving the moves, as pointer capture delivers them. */
   leave?: boolean;
+  /** Press and move, and KEEP THE BUTTON DOWN: the gesture stays open for readings taken in the
+   *  middle of it (what another area draws while a gizmo is dragged), until a `release` step
+   *  lets go at `to`. */
+  hold?: boolean;
+}
+
+/** Lets go of the drag a `hold` left pressed, where it was left. */
+export interface DocumentReleaseStep extends ScopedStep {
+  action: 'release';
 }
 
 /** A real key on the explicit target, else whatever inside the document has focus. */
@@ -259,6 +268,7 @@ export type DocumentProbeStep =
   | DocumentQueryStep
   | DocumentClickStep
   | DocumentDragStep
+  | DocumentReleaseStep
   | DocumentKeyStep
   | DocumentPasteStep
   | DocumentSelectStep

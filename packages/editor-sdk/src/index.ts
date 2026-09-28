@@ -55,6 +55,7 @@ export type {
   CaptureDimensions,
   DocumentCameraPose,
   DocumentLookOutcome,
+  StageFrameCostReading,
   DocumentTableEntryProjection,
   DocumentTableProjection,
   EditorCameraState,

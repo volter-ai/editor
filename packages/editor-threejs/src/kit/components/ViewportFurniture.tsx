@@ -363,7 +363,10 @@ export function ViewportFurniture({
 
   return (
     <>
-      {chrome.viewName === 'text' ? (
+      {/* The view text is an overlay (Blender's `show_text`), gone with the stage's Show Overlays;
+          the camera's frame below is not (`drawviewborder`: "When overlays are disabled, only
+          show camera outline & passepartout"). */}
+      {chrome.viewName === 'text' && store.showHelpers ? (
       <div
         data-testid="viewport-view-text"
         aria-hidden="true"
@@ -469,7 +472,7 @@ export function ViewportFurniture({
           header's view control and the Home and numpad-period keys, as Blender's is its View
           menu. The Camera button is not drawn yet: looking through a scene camera is not a
           view this stage has. */}
-      {navigationControls ? (
+      {navigationControls && store.showGizmos ? (
       <div
         data-testid="viewport-navigation"
         role="toolbar"

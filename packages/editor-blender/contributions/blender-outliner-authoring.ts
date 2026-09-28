@@ -76,6 +76,7 @@ import type {
 } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
+import { viewportStages } from '@volter/editor-threejs/viewport-door';
 import { blenderExecute, blenderRnaSet, beginBlenderGesture, endBlenderGesture } from '../host/blender-runtime-host';
 import {
   blenderEngineSelection,
@@ -218,6 +219,31 @@ export interface BlenderOutlinerHandle {
  * under at that moment.
  */
 const liveOutliners = new Set<BlenderOutlinerHandle>();
+
+/**
+ * A HANDLE ARRIVING IS NEWS. A header drawn before its document's stage made an Outliner has no
+ * subject and draws nothing; the tree's own version does not move when a handle registers, so
+ * without this it stayed empty until the next edit (measured: a cold load showed no View, Select,
+ * Add or Object until a script changed the tree). Notified on the next turn, never inside the
+ * render that made the handle.
+ */
+let liveOutlinersVersion = 0;
+const liveOutlinerListeners = new Set<() => void>();
+function liveOutlinersChanged(): void {
+  queueMicrotask(() => {
+    liveOutlinersVersion++;
+    for (const listener of liveOutlinerListeners) listener();
+  });
+}
+export function subscribeBlenderOutlinerHandles(listener: () => void): () => void {
+  liveOutlinerListeners.add(listener);
+  return () => {
+    liveOutlinerListeners.delete(listener);
+  };
+}
+export function blenderOutlinerHandlesVersion(): number {
+  return liveOutlinersVersion;
+}
 
 /**
  * The Outliner handle for a document, for the header that draws over it: the one its own stage
@@ -831,24 +857,81 @@ function py(name: string): string {
   return JSON.stringify(name);
 }
 
-/** Blender's own name for each operator, as its undo history labels the step (`ot->name`). */
-const operatorNames = new Map<string, string>();
-
 /**
  * THE STEP'S LABEL IS THE OPERATOR'S OWN NAME, the one Blender's Edit menu shows: Add › Cone is
- * "Undo Add Cone", not "Undo Blender Python". Asked of Blender, not kept in a table here, because
- * its names do not follow the menu rows (a Point light is "Add Light").
+ * "Undo Add Cone", not "Undo Blender Python". Blender's names do not follow the menu rows (a Point
+ * light is "Add Light"), so they are Blender's, read from this build with
+ * `bpy.ops.<id>.get_rna_type().name` (`ot->name`) for every operator these menus run and every
+ * `object.*_add`. An id not here keeps the script door's label.
+ *
+ * A TABLE, NOT A QUESTION PER CLICK: asking Blender before every operator cost a round trip each
+ * time for a name that never changes within a build.
  */
-async function operatorLabel(body: string): Promise<string> {
+const OPERATOR_NAMES: Readonly<Record<string, string>> = {
+  'curve.primitive_bezier_circle_add': "Add B\u00e9zier Circle",
+  'curve.primitive_bezier_curve_add': "Add B\u00e9zier",
+  'curve.primitive_nurbs_circle_add': "Add Nurbs Circle",
+  'curve.primitive_nurbs_curve_add': "Add Nurbs Curve",
+  'curve.primitive_nurbs_path_add': "Add Path",
+  'image.import_as_mesh_planes': "Import Images as Planes",
+  'mesh.primitive_circle_add': "Add Circle",
+  'mesh.primitive_cone_add': "Add Cone",
+  'mesh.primitive_cube_add': "Add Cube",
+  'mesh.primitive_cylinder_add': "Add Cylinder",
+  'mesh.primitive_grid_add': "Add Grid",
+  'mesh.primitive_ico_sphere_add': "Add Ico Sphere",
+  'mesh.primitive_monkey_add': "Add Monkey",
+  'mesh.primitive_plane_add': "Add Plane",
+  'mesh.primitive_torus_add': "Add Torus",
+  'mesh.primitive_uv_sphere_add': "Add UV Sphere",
+  'object.armature_add': "Add Armature",
+  'object.camera_add': "Add Camera",
+  'object.collection_add': "Add to Collection",
+  'object.collection_instance_add': "Add Collection Instance",
+  'object.constraint_add': "Add Constraint",
+  'object.curves_empty_hair_add': "Add Empty Curves",
+  'object.curves_random_add': "Add Random Curves",
+  'object.data_instance_add': "Add Object Data Instance",
+  'object.delete': "Delete",
+  'object.duplicate': "Duplicate Objects",
+  'object.effector_add': "Add Effector",
+  'object.empty_add': "Add Empty",
+  'object.empty_image_add': "Add Empty Image/Drop Image to Empty",
+  'object.grease_pencil_add': "Add Grease Pencil",
+  'object.grease_pencil_dash_modifier_segment_add': "Add Segment",
+  'object.grease_pencil_time_modifier_segment_add': "Add Segment",
+  'object.lattice_add_to_selected': "Add Lattice Deformer",
+  'object.light_add': "Add Light",
+  'object.lightprobe_add': "Add Light Probe",
+  'object.location_clear': "Clear Location",
+  'object.material_slot_add': "Add Material Slot",
+  'object.metaball_add': "Add Metaball",
+  'object.modifier_add': "Add Modifier",
+  'object.origin_set': "Set Origin",
+  'object.particle_system_add': "Add Particle System Slot",
+  'object.pointcloud_random_add': "Add Point Cloud",
+  'object.quick_fur': "Quick Fur",
+  'object.rotation_clear': "Clear Rotation",
+  'object.scale_clear': "Clear Scale",
+  'object.shaderfx_add': "Add Effect",
+  'object.shape_key_add': "Add Shape Key",
+  'object.speaker_add': "Add Speaker",
+  'object.text_add': "Add Text",
+  'object.transform_apply': "Apply Object Transform",
+  'object.vertex_group_add': "Add Vertex Group",
+  'object.volume_add': "Add Volume",
+  'object.volume_import': "Import OpenVDB Volume",
+  'surface.primitive_nurbs_surface_circle_add': "Add Surface Circle",
+  'surface.primitive_nurbs_surface_curve_add': "Add Surface Curve",
+  'surface.primitive_nurbs_surface_cylinder_add': "Add Surface Cylinder",
+  'surface.primitive_nurbs_surface_sphere_add': "Add Surface Sphere",
+  'surface.primitive_nurbs_surface_surface_add': "Add Surface Patch",
+  'surface.primitive_nurbs_surface_torus_add': "Add Surface Torus",
+};
+
+function operatorLabel(body: string): string | undefined {
   const id = /bpy\.ops\.([a-z_]+\.[a-z0-9_]+)\(/.exec(body)?.[1];
-  if (id === undefined) return 'Blender Python';
-  const known = operatorNames.get(id);
-  if (known !== undefined) return known;
-  const answer = await blenderExecute(`import bpy\nprint(bpy.ops.${id}.get_rna_type().name)`, false);
-  const name = answer.error === null ? answer.result.trim() : '';
-  if (name === '') return 'Blender Python';
-  operatorNames.set(id, name);
-  return name;
+  return id === undefined ? undefined : OPERATOR_NAMES[id];
 }
 
 /**
@@ -877,7 +960,7 @@ async function runBlenderOperator(
     'made = [o.name for o in bpy.data.objects if o.name not in before]',
     'print("\\n".join(made))',
   ].join('\n');
-  const answer = await blenderExecute(code, true, label ?? (await operatorLabel(body)));
+  const answer = await blenderExecute(code, true, label ?? operatorLabel(body));
   // THE ENGINE'S REFUSAL, VERBATIM. `session.py::execute` answers with the
   // traceback in `error` rather than raising, and a paraphrase here is how a
   // refusal becomes a shrug.
@@ -1428,6 +1511,8 @@ export function blenderOutlinerAuthoringFor(
       // `matrixWorld`, would sit still with them.
       object.updateMatrix();
       object.updateMatrixWorld(true);
+      // And every other area drawing the model moves with it, as Blender redraws them all.
+      presented()?.mirrorPose?.(object);
     },
     endEdit: async (id): Promise<WriteAck | undefined> => {
       const object = gestureObjects.get(id) ?? objectFor(id);
@@ -1520,6 +1605,29 @@ export function blenderOutlinerAuthoringFor(
    * callback in Code-OSS. These operators are undone by restoring Blender's
    * state, never by constructing an inverse operator or replaying the script.
    */
+  /**
+   * ADD ▸ CAMERA LOOKS THE WAY THE VIEW LOOKS, AND IS THE SCENE'S CAMERA WHEN THERE IS NONE: what
+   * `object_camera_add_exec` does with the 3D View it runs in (`object_add.cc`: `align` forced to
+   * VIEW; `v3d->scenelock && scene->camera == nullptr` gives `scene->camera = ob`). This engine
+   * runs the operator with no View3D, so both come from here: the area's own view, set on the new
+   * camera the way the gizmo writes a pose (`blenderWorldMatrixRows`) with the operator's
+   * location (the 3D cursor) kept, and the scene camera after it.
+   */
+  const cameraAddCall = (): string => {
+    const areaId = (defaultAdapter as { documentId?: string }).documentId?.replace(/^object3d-document:/, '');
+    const camera = viewportStages().find((one) => one.documentId === areaId)?.rig().drawCamera() ?? null;
+    const view = presented();
+    const lines = ['bpy.ops.object.camera_add()', 'added = bpy.context.view_layer.objects.active'];
+    if (camera !== null && view !== null)
+      lines.push(
+        'kept = added.location.copy()',
+        `added.matrix_world = ${JSON.stringify(blenderWorldMatrixRows(camera, view.root))}`,
+        'added.location = kept',
+      );
+    lines.push('if bpy.context.scene.camera is None:', '    bpy.context.scene.camera = added');
+    return lines.join('\n');
+  };
+
   const structure: StructureProvider = {
     /**
      * BLENDER'S ADD MENU, FOR EVERY PARENT — `parentId` is deliberately not
@@ -1551,7 +1659,7 @@ export function blenderOutlinerAuthoringFor(
       // with this same sentence, so this arm is what answers a caller reaching
       // the kind through the door instead of the menu.
       if (entry.refusal !== undefined) return { id: '', ack: refuse(entry.refusal) };
-      const call = addCall(entry);
+      const call = entry.call === 'object.camera_add' ? cameraAddCall() : addCall(entry);
       return {
         id: '',
         ack: (async (): Promise<WriteAck> => {
@@ -1754,6 +1862,7 @@ export function blenderOutlinerAuthoringFor(
     },
   };
   liveOutliners.add(handle);
+  liveOutlinersChanged();
 
   // THE ENGINE'S SELECTION ARRIVES ON ITS OWN, and this is what listens for
   // it: a frame (every present carries `selected`/`active`) and a tree read
@@ -1773,6 +1882,7 @@ export function blenderOutlinerAuthoringFor(
       stopEngineFrames();
       stopEngineTree();
       liveOutliners.delete(handle);
+      liveOutlinersChanged();
       listeners.clear();
     },
   };

@@ -746,6 +746,38 @@ export class BlenderRuntimeView {
   private readonly frameListeners = new Set<() => void>();
   /** The views drawing this one's frames in a second area ({@link follow}). */
   private readonly followers = new Set<BlenderRuntimeView>();
+  /** The view this one follows ({@link follow}), or null for a view that leads. */
+  private leader: BlenderRuntimeView | null = null;
+
+  /**
+   * A POSE MOVED HERE MID-GESTURE, DRAWN BY EVERY OTHER VIEW OF THE MODEL NOW. The gizmo moves a
+   * presented object in the view whose area it is dragged in (`blender-outliner-authoring.ts`,
+   * `apply`), and Blender's frame for the move comes only when the gesture ends; without this the
+   * other area — a Rendered one, as Blender's always-on render preview is — stood still until the
+   * release, where Blender redraws every area on every move. Each view holds its own object for
+   * the same Blender object (the frame's id) under the same parent, so the local matrix carries.
+   */
+  mirrorPose(object: THREE.Object3D): void {
+    let id: string | null = null;
+    for (const [key, held] of this.objects)
+      if (held === object) {
+        id = key;
+        break;
+      }
+    if (id === null) return;
+    const views = this.leader ? [this.leader, ...this.leader.followers] : [...this.followers];
+    let moved = false;
+    for (const view of views) {
+      if (view === this) continue;
+      const twin = view.objects.get(id);
+      if (twin === undefined) continue;
+      twin.matrix.copy(object.matrix);
+      twin.matrix.decompose(twin.position, twin.quaternion, twin.scale);
+      twin.updateMatrixWorld(true);
+      moved = true;
+    }
+    if (moved) presenterChanged();
+  }
 
   /** Subscribe to frames. Returns the unsubscribe. */
   subscribeFrames(listener: () => void): () => void {
@@ -2005,6 +2037,7 @@ export class BlenderRuntimeView {
     const follower = new BlenderRuntimeView();
     if (this.frame) follower.applyFrame(this.fullFrame());
     this.followers.add(follower);
+    follower.leader = this;
     let disposed = false;
     return {
       view: follower,
@@ -2012,6 +2045,7 @@ export class BlenderRuntimeView {
         if (disposed) return;
         disposed = true;
         this.followers.delete(follower);
+        follower.leader = null;
         follower.dispose();
         follower.root.removeFromParent();
       },

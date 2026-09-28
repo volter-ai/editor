@@ -14,6 +14,7 @@ import type {
   CaptureDimensions,
   DocumentCameraPose,
   DocumentLookOutcome,
+  StageFrameCostReading,
   DocumentTableProjection,
   EditorChromeCapture,
   EditorChromeCaptureOptions,
@@ -546,6 +547,11 @@ export class EditorClient {
     duration?: number;
   }): Promise<DocumentLookOutcome> {
     return this.command<DocumentLookOutcome>({ type: 'document-orbit', ...options });
+  }
+
+  /** What a frame of a 3D document's stage costs, uncapped (`document-frame-cost`). */
+  async frameCostDocument(options?: { readonly frames?: number; readonly stage?: string }): Promise<StageFrameCostReading> {
+    return this.command<StageFrameCostReading>({ type: 'document-frame-cost', ...options });
   }
 
   /** A slow full revolution around the open document's subject, at a constant rate. */

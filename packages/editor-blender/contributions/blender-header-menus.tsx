@@ -54,6 +54,8 @@ import {
   type BlenderOutlinerHandle,
   blenderCreatableKinds,
   blenderOutlinerHandle,
+  blenderOutlinerHandlesVersion,
+  subscribeBlenderOutlinerHandles,
   runBlenderObjectOperator,
 } from './blender-outliner-authoring';
 import { blenderOutlinerVersion, subscribeBlenderOutliner } from './blender-outliner-model';
@@ -258,6 +260,8 @@ export function BlenderObjectModeHeader({
   // The tree is what says which objects exist and which are selected, and both
   // menus read it, so the bar re-renders on the Outliner's own version.
   useSyncExternalStore(subscribeBlenderOutliner, blenderOutlinerVersion, blenderOutlinerVersion);
+  // And on the set of live Outliners: the handle this bar acts through may arrive after its first render.
+  useSyncExternalStore(subscribeBlenderOutlinerHandles, blenderOutlinerHandlesVersion, blenderOutlinerHandlesVersion);
   const [open, setOpen] = useState<MenuId | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);

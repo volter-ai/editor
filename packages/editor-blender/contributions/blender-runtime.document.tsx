@@ -73,6 +73,10 @@ import {
   subscribeObject3DDocumentSessions,
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
+import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
+
+/** The second areas' stage stores whose overlays have been opened off (`BlenderViewportArea`). */
+const overlaysOpened = new WeakSet<object>();
 
 export const point = 'workspace.document';
 export const title = 'Blender Model';
@@ -427,6 +431,25 @@ function BlenderViewportArea({
       stopFrames();
     };
   }, [main, documentId, view]);
+  /**
+   * AND WITH THE AREA'S SHOW OVERLAYS OFF, the switch that makes a camera view read as the render
+   * does: no grid, no camera or light wires, no selection marks, no view text — and still the
+   * camera's outline and passepartout (`drawviewborder`: "When overlays are disabled, only show
+   * camera outline & passepartout"). Set once per stage store, which outlives the area's remounts,
+   * so turning them back on is the person's and stays.
+   */
+  useEffect(() => {
+    if (main || !documentId) return;
+    const opened = (): void => {
+      const store = stageStore(documentId);
+      if (store === null || overlaysOpened.has(store)) return;
+      overlaysOpened.add(store);
+      if (store.showHelpers) store.toggleHelpers();
+      if (store.showGizmos) store.toggleGizmos();
+    };
+    opened();
+    return subscribeStageStores(opened);
+  }, [main, documentId]);
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).

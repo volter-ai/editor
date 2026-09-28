@@ -132,6 +132,32 @@ export interface DocumentLookOutcome {
   seconds: number;
 }
 
+/**
+ * What a frame of a 3D document's stage costs when nothing caps it (`document-frame-cost`): the
+ * stage's own frame run back to back, each waited out on the GPU, the first one warming.
+ */
+export interface StageFrameCostReading {
+  /** The stage measured, by the document id it draws. */
+  readonly stage: string;
+  /** Frames measured, after one that warms. */
+  readonly frames: number;
+  readonly medianMs: number;
+  readonly p95Ms: number;
+  readonly minMs: number;
+  /** The canvas as drawn: device pixels, its CSS size and the ratio between them. */
+  readonly width: number;
+  readonly height: number;
+  readonly cssWidth: number;
+  readonly cssHeight: number;
+  readonly devicePixelRatio: number;
+  /** What the last frame DREW, after culling, every pass counted (`renderer.info.render`)... */
+  readonly drawn: { readonly calls: number; readonly triangles: number };
+  /** ...and what the scene holds visible, drawn or not. */
+  readonly scene: { readonly meshes: number; readonly triangles: number };
+  /** The view's draw mode (`solid`, `rendered`, …). */
+  readonly drawMode: string;
+}
+
 /** Where the open document's camera is standing and what it is aimed at. */
 export interface DocumentCameraPose {
   position: [number, number, number];

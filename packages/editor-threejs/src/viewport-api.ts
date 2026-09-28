@@ -6,6 +6,7 @@
  */
 import type { MountedRoot } from '@volter/editor-project/adapter/root-adapter';
 import type * as THREE from 'three';
+import type { StageFrameCostReading } from '@volter/editor-sdk';
 
 /** A live instance's roots, presented as the authored viewport's subject. */
 export interface ViewportPresentation {
@@ -15,12 +16,23 @@ export interface ViewportPresentation {
   dispose(): void;
 }
 
+/** What a frame of a stage costs, uncapped ({@link ViewportRig.frameCost}): the wire's reading
+ *  without the stage's id, which the door adds. */
+export type StageFrameCost = Omit<StageFrameCostReading, 'stage'>;
+
 /** The authored viewport's camera rig, while a viewport is mounted. */
 export interface ViewportRig {
   readonly camera: THREE.PerspectiveCamera;
   /** The camera the stage draws with NOW: {@link camera}, or the orthographic one in an
    *  orthographic view. What a document lighting or picking in step with the picture needs. */
   drawCamera(): THREE.Camera;
+  /**
+   * WHAT A FRAME OF THIS STAGE COSTS WHEN NOTHING CAPS IT: the stage's own frame (its update,
+   * its hooks, its render and view cube) run `frames` times back to back outside
+   * `requestAnimationFrame`, each waited out on the GPU, so the number is the frame's cost and
+   * not the display's refresh. Absent on a stage with no frame of its own.
+   */
+  frameCost?(frames: number): StageFrameCost;
   readonly orbit: { readonly target: THREE.Vector3; enabled: boolean; update(): void };
   /** The editor's own scene (helpers live on its editor layer). */
   readonly scene: THREE.Scene;

@@ -188,6 +188,8 @@ export class LiveEditorDocument {
       button?: 0 | 1 | 2;
       /** `via`/`to` may leave the element's box after the press (a handle drag). */
       leave?: boolean;
+      /** Keep the button down at `to`, for readings taken mid-gesture; {@link release} lets go. */
+      hold?: boolean;
     },
   ): Promise<DocumentProbeResult> {
     return this.#probe({
@@ -205,7 +207,13 @@ export class LiveEditorDocument {
       ...(options.shiftKey === undefined ? {} : { shiftKey: options.shiftKey }),
       ...(options.button === undefined ? {} : { button: options.button }),
       ...(options.leave === undefined ? {} : { leave: options.leave }),
+      ...(options.hold === undefined ? {} : { hold: options.hold }),
     });
+  }
+
+  /** Lets go of the drag `hold: true` left pressed, where it was left. */
+  async release(options?: DocumentGestureOptions): Promise<DocumentProbeResult> {
+    return this.#probe({ action: 'release', ...(options?.scope === undefined ? {} : { scope: options.scope }) });
   }
 
   /** A real keydown/keyup on the target, or on whatever inside the document has focus. */

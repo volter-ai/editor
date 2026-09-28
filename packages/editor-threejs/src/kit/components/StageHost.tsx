@@ -80,6 +80,7 @@ import {
   recordViewportFirstFrame,
 } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { bindViewportRig, runViewportFrame } from '../../viewport-door';
+import type { StageFrameCost } from '../../viewport-api';
 import {
   notifyWorkspaceDocumentSelectionChanged,
   openWorkspaceDocuments,
@@ -1244,8 +1245,14 @@ export function Object3DDocumentViewport({
             const rig = new StagePresentationRig(host.scene, invalidateStages);
             host.presentationRig = rig;
             bindViewPresentation(documentId, viewStageKind);
+            // THE STAGE'S SHOW OVERLAYS is its store's helpers switch (Blender's
+            // `View3DOverlay.show_overlays`, one per area): off, the grid, the axis lines and the
+            // selection's outline and origins go with the helpers, and each keeps its own choice
+            // for when it comes back on.
+            let overlaysShown = host.store.shell.showHelpers;
             const applyPresentation = () => {
               const presentation = viewPresentation(documentId);
+              overlaysShown = host.store.shell.showHelpers;
               rig.apply(presentation, renderer, dressingToneMapping);
               // The view's overlays: its selection marks and its grid's major step. The native
               // outline is also the stage's own switch (a shared preview draws none).
@@ -1255,7 +1262,7 @@ export function Object3DDocumentViewport({
               host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
               host.viewport?.setAxisLines(presentation.overlays.axes);
               host.viewport?.setNavigation(presentation.overlays.navigation);
-              host.viewport?.setGridVisible(presentation.overlays.grid.visible);
+              host.viewport?.setGridVisible(presentation.overlays.grid.visible && overlaysShown);
               if (host.session) {
                 // An X-ray with no surface draws no outline: the selection is its wires' colour.
                 const surfaceless =
@@ -1263,8 +1270,12 @@ export function Object3DDocumentViewport({
                   presentation.xray.enabled &&
                   presentation.xray.alpha <= 0;
                 host.session.selectionOutlineEnabled =
-                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline && !surfaceless;
-                host.session.selectionOriginsEnabled = !shared && presentation.overlays.selection.origins;
+                  !shared &&
+                  overlaysShown &&
+                  selectionOutlineRef.current &&
+                  presentation.overlays.selection.outline &&
+                  !surfaceless;
+                host.session.selectionOriginsEnabled = !shared && overlaysShown && presentation.overlays.selection.origins;
                 host.session.setXray(presentation.xray);
               }
               invalidateStages();
@@ -1272,6 +1283,11 @@ export function Object3DDocumentViewport({
             host.applyPresentation = applyPresentation;
             applyPresentation();
             host.cleanups.push(subscribeViewportPresentation(applyPresentation));
+            host.cleanups.push(
+              host.store.shell.subscribe(() => {
+                if (host.store.shell.showHelpers !== overlaysShown) applyPresentation();
+              }),
+            );
             // A view may name an environment image its integration registers later.
             host.cleanups.push(
               subscribeEnvironmentImages(() => {
@@ -2074,6 +2090,54 @@ export function Object3DDocumentViewport({
         };
 
         host.frame = animate;
+        /**
+         * THE FRAME WITHOUT THE DISPLAY'S CAP (`ViewportRig.frameCost`): this stage's own `animate`,
+         * resumed so it draws, run back to back and each waited out on the GPU with a one-pixel
+         * read, which a real frame never does; the first frame warms and is not counted.
+         */
+        const measureFrameCost = (frames: number): StageFrameCost => {
+          if (!renderer) throw new Error('This stage has no renderer yet.');
+          const activeRenderer = renderer;
+          const gl = activeRenderer.getContext();
+          const pixel = new Uint8Array(4);
+          const times: number[] = [];
+          for (let index = 0; index <= frames; index++) {
+            const start = performance.now();
+            animate(start, true);
+            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+            if (index > 0) times.push(performance.now() - start);
+          }
+          const drawn = { calls: activeRenderer.info.render.calls, triangles: activeRenderer.info.render.triangles };
+          let meshes = 0;
+          let sceneTriangles = 0;
+          host.scene.traverseVisible((object) => {
+            const mesh = object as THREE.Mesh;
+            if (!mesh.isMesh || !mesh.geometry) return;
+            meshes++;
+            const index = mesh.geometry.getIndex();
+            const count = index ? index.count : (mesh.geometry.getAttribute('position')?.count ?? 0);
+            sceneTriangles += Math.floor(count / 3) * ((mesh as THREE.InstancedMesh).count ?? 1);
+          });
+          const sorted = [...times].sort((a, b) => a - b);
+          const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+          const size = activeRenderer.getDrawingBufferSize(new THREE.Vector2());
+          const ratio = activeRenderer.getPixelRatio();
+          const round = (value: number) => Math.round(value * 100) / 100;
+          return {
+            frames,
+            medianMs: round(at(0.5)),
+            p95Ms: round(at(0.95)),
+            minMs: round(sorted[0] ?? 0),
+            width: size.x,
+            height: size.y,
+            cssWidth: round(size.x / ratio),
+            cssHeight: round(size.y / ratio),
+            devicePixelRatio: ratio,
+            drawn,
+            scene: { meshes, triangles: sceneTriangles },
+            drawMode: viewPresentation(documentId).drawMode,
+          };
+        };
         rendererSessionRef.current = host.rendererSession;
         if (!host.initialized) {
           if (!chromeless) {
@@ -2095,6 +2159,7 @@ export function Object3DDocumentViewport({
                   drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
+                  frameCost: (frames) => measureFrameCost(frames),
                 },
                 () => null,
                 (kind, object) => viewport.setHelper(kind, object),
