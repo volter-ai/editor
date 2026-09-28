@@ -205,6 +205,7 @@ export function get_mesh_arrays(self: PrimitiveMesh): MeshArrays {
  */
 export function set_flip_faces(self: PrimitiveMesh, flip: boolean): void {
   self.flip_faces = flip;
+  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -231,9 +232,41 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
   return self.flip_faces;
 }
 
+/** The geometry each primitive mesh resource is drawn with, shared by every node that draws it. */
+const GEOMETRY = new WeakMap<PrimitiveMesh, BufferGeometry>();
+
+/** An attribute holding `values`: the current one refilled when it is the same length, else a new one. */
+function attribute(geometry: BufferGeometry, name: string, values: Float32Array, size: number): void {
+  const current = geometry.getAttribute(name) as BufferAttribute | undefined;
+  if (current !== undefined && current.itemSize === size && current.array.length === values.length) {
+    (current.array as Float32Array).set(values);
+    current.needsUpdate = true;
+    return;
+  }
+  geometry.setAttribute(name, new BufferAttribute(values, size));
+}
+
+/** A geometry's data made the stored surface's, in place: whatever draws the geometry draws the new surface. */
+function fill(geometry: BufferGeometry, stored: PrimitiveMeshArrays): BufferGeometry {
+  attribute(geometry, 'position', new Float32Array(stored.vertices.flatMap((v) => [v.x, v.y, v.z])), 3);
+  attribute(geometry, 'normal', new Float32Array(stored.normals.flatMap((v) => [v.x, v.y, v.z])), 3);
+  attribute(geometry, 'tangent', new Float32Array(stored.tangents), 4);
+  attribute(geometry, 'uv', new Float32Array(stored.uvs.flatMap((v) => [v.x, v.y])), 2);
+  const index: number[] = [];
+  for (let i = 0; i + 2 < stored.indices.length; i += 3) {
+    index.push(stored.indices[i] as number, stored.indices[i + 2] as number, stored.indices[i + 1] as number);
+  }
+  geometry.setIndex(index);
+  geometry.clearGroups();
+  geometry.boundingBox = null;
+  geometry.boundingSphere = null;
+  return geometry;
+}
+
 /**
- * The stored surface as a three `BufferGeometry`. Godot's front faces wind clockwise on screen:
- * the Compatibility renderer draws right-side up with `glFrontFace(GL_CW)`
+ * The stored surface as a three `BufferGeometry`, one per resource and shared by every node that
+ * draws it, as Godot's one mesh RID is. Godot's front faces wind clockwise on screen: the
+ * Compatibility renderer draws right-side up with `glFrontFace(GL_CW)`
  * (`drivers/gles3/rasterizer_scene_gles3.cpp:2557`), and three's front faces wind
  * counter-clockwise, so each triangle is drawn with its last two indices exchanged; the vertex data
  * is Godot's stored data unchanged.
@@ -242,24 +275,38 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
  * @source servers/rendering/rendering_server.cpp:1511
  */
 export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeometry {
-  const stored = storedSurface(self);
-  const geometry = new BufferGeometry();
-  geometry.setAttribute(
-    'position',
-    new BufferAttribute(new Float32Array(stored.vertices.flatMap((v) => [v.x, v.y, v.z])), 3),
-  );
-  geometry.setAttribute(
-    'normal',
-    new BufferAttribute(new Float32Array(stored.normals.flatMap((v) => [v.x, v.y, v.z])), 3),
-  );
-  geometry.setAttribute('tangent', new BufferAttribute(new Float32Array(stored.tangents), 4));
-  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(stored.uvs.flatMap((v) => [v.x, v.y])), 2));
-  const index: number[] = [];
-  for (let i = 0; i + 2 < stored.indices.length; i += 3) {
-    index.push(stored.indices[i] as number, stored.indices[i + 2] as number, stored.indices[i + 1] as number);
+  let geometry = GEOMETRY.get(self);
+  if (geometry === undefined) {
+    geometry = fill(new BufferGeometry(), storedSurface(self));
+    GEOMETRY.set(self, geometry);
   }
-  geometry.setIndex(index);
   return geometry;
+}
+
+/**
+ * A primitive mesh's property changed: its drawn geometry, where it has one, is rebuilt in place
+ * (`request_update` then `_update`, `primitive_meshes.cpp:51`, which replace the surface on the
+ * mesh's one RID), so every node drawing the resource draws the new surface. Each setter of a
+ * property its builder reads calls this.
+ *
+ * @godot PrimitiveMesh (protocol)
+ * @source scene/resources/3d/primitive_meshes.cpp:139
+ */
+export function godot_primitive_mesh_changed(self: PrimitiveMesh): void {
+  const geometry = GEOMETRY.get(self);
+  if (geometry !== undefined) fill(geometry, storedSurface(self));
+}
+
+/**
+ * A resource read back from a scene's geometry (`mesh-instance-3d.ts`) is drawn with that
+ * geometry: a change to the resource rebuilds the scene's geometry in place.
+ *
+ * @godot PrimitiveMesh (protocol)
+ * @source scene/resources/3d/primitive_meshes.cpp:51
+ */
+export function godot_primitive_mesh_drawn_with<Mesh extends PrimitiveMesh>(self: Mesh, geometry: BufferGeometry): Mesh {
+  GEOMETRY.set(self, geometry);
+  return self;
 }
 
 const UV_TOP = new WeakSet<object>();

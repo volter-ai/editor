@@ -9,15 +9,19 @@
  * with a group per surface; each surface's material is its override, else the mesh's own, else the
  * Compatibility renderer's default material (`rasterizer_scene_gles3.cpp:4624`: albedo 0.6,
  * roughness 0.8, metallic 0.2). A scene's `<mesh>` reads its surface materials back as its
- * overrides (three does not tell an override from the mesh's own material).
+ * overrides (three does not tell an override from the mesh's own material), and its mesh resource
+ * back from its three primitive geometry the first time it is asked for, drawn with that geometry.
  */
 
-import { BufferAttribute, BufferGeometry, type Material, type Mesh } from 'three';
+import { BufferAttribute, BufferGeometry, CylinderGeometry, type Material, type Mesh, PlaneGeometry, SphereGeometry } from 'three';
 import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_of, godot_base_material_3d_three } from './base-material-3d';
 import { construct as color } from './color';
 import type { ArrayMesh } from './array-mesh';
+import { godot_cylinder_mesh_of } from './cylinder-mesh';
 import { godot_mesh_surfaces, type GodotMeshSurface } from './mesh';
+import { godot_plane_mesh_of } from './plane-mesh';
 import { godot_primitive_mesh_geometry, type PrimitiveMesh } from './primitive-mesh';
+import { godot_sphere_mesh_of } from './sphere-mesh';
 
 /** A mesh resource a MeshInstance3D draws. */
 type MeshResource = PrimitiveMesh | ArrayMesh;
@@ -25,12 +29,16 @@ type MeshResource = PrimitiveMesh | ArrayMesh;
 interface MeshInstanceState {
   mesh: MeshResource | null;
   overrides: (BaseMaterial3D | null)[];
-  /** A scene's `<mesh>`: its geometry is the scene's, its surface materials the scene's materials. */
-  scene?: true;
+  /**
+   * A scene's `<mesh>` whose mesh resource is not yet read back: its geometry is the scene's, its
+   * surface materials the scene's materials.
+   */
+  unread?: BufferGeometry | undefined;
 }
 
 const STATE = new WeakMap<Mesh, MeshInstanceState>();
-const GEOMETRY = new WeakMap<object, BufferGeometry>();
+/** An ArrayMesh's surfaces joined into the one geometry its instances draw. */
+const JOINED = new WeakMap<object, BufferGeometry>();
 
 /** The surfaces' geometries as one, a group per surface in order (each surface's own attributes). */
 function joined(surfaces: readonly GodotMeshSurface[]): BufferGeometry {
@@ -76,15 +84,42 @@ function stateOf(self: Mesh): MeshInstanceState {
     const materials = self.material === undefined ? [] : Array.isArray(self.material) ? self.material : [self.material];
     const scene = self.geometry !== undefined && Object.keys(self.geometry.attributes).length > 0;
     state = scene
-      ? { mesh: null, overrides: materials.map((material) => godot_base_material_3d_of(material)), scene: true }
+      ? { mesh: null, overrides: materials.map((material) => godot_base_material_3d_of(material)), unread: self.geometry }
       : { mesh: null, overrides: [] };
     STATE.set(self, state);
   }
   return state;
 }
 
+/** The resource each scene geometry was read back as: nodes sharing a geometry share the resource, as nodes sharing a three material share its Godot material (`godot_base_material_3d_of`). */
+const READ = new WeakMap<BufferGeometry, PrimitiveMesh>();
+
+/**
+ * The mesh resource a scene's three primitive geometry draws, read back from it (as a collision
+ * shape reads its shape from its collider), or undefined for a geometry with no primitive form (an
+ * ArrayMesh's `bufferGeometry`), whose resource is not read back.
+ */
+function sceneMesh(geometry: BufferGeometry): PrimitiveMesh | undefined {
+  let mesh = READ.get(geometry);
+  if (mesh !== undefined) return mesh;
+  if (geometry instanceof PlaneGeometry) mesh = godot_plane_mesh_of(geometry);
+  else if (geometry instanceof SphereGeometry) mesh = godot_sphere_mesh_of(geometry);
+  else if (geometry instanceof CylinderGeometry) mesh = godot_cylinder_mesh_of(geometry);
+  if (mesh !== undefined) READ.set(geometry, mesh);
+  return mesh;
+}
+
+/** A scene's `<mesh>` takes the resource its geometry draws, where one can be read back. */
+function readBack(state: MeshInstanceState): void {
+  if (state.unread === undefined) return;
+  const mesh = sceneMesh(state.unread);
+  if (mesh === undefined) return;
+  state.mesh = mesh;
+  state.unread = undefined;
+}
+
 function draw(self: Mesh, state: MeshInstanceState): void {
-  if (state.scene === true && state.mesh === null) {
+  if (state.unread !== undefined) {
     const current = Array.isArray(self.material) ? self.material : [self.material];
     const materials = state.overrides.map((material, surface) => (material === null ? (current[surface] as Material) : godot_base_material_3d_three(material)));
     self.material = materials.length === 1 ? (materials[0] as Material) : materials;
@@ -95,10 +130,10 @@ function draw(self: Mesh, state: MeshInstanceState): void {
     return;
   }
   const surfaces = godot_mesh_surfaces(state.mesh);
-  let geometry = GEOMETRY.get(state.mesh);
+  let geometry = surfaces === undefined ? godot_primitive_mesh_geometry(state.mesh as PrimitiveMesh) : JOINED.get(state.mesh);
   if (geometry === undefined) {
-    geometry = surfaces === undefined ? godot_primitive_mesh_geometry(state.mesh as PrimitiveMesh) : joined(surfaces);
-    GEOMETRY.set(state.mesh, geometry);
+    geometry = joined(surfaces as readonly GodotMeshSurface[]);
+    JOINED.set(state.mesh, geometry);
   }
   self.geometry = geometry;
   const own = surfaces === undefined ? [(state.mesh as PrimitiveMesh & { material?: BaseMaterial3D | null }).material ?? null] : surfaces.map((surface) => surface.material);
@@ -119,8 +154,10 @@ function draw(self: Mesh, state: MeshInstanceState): void {
  */
 export function set_mesh(self: Mesh, mesh: MeshResource | null): void {
   const state = stateOf(self);
-  if (state.mesh === mesh) return;
+  readBack(state);
+  if (state.mesh === mesh && state.unread === undefined) return;
   state.mesh = mesh;
+  state.unread = undefined;
   // `_mesh_changed` (`mesh_instance_3d.cpp:412`): one override per surface of the new mesh.
   const count = mesh === null ? 0 : (godot_mesh_surfaces(mesh)?.length ?? 1);
   state.overrides = Array.from({ length: count }, (_, surface) => state.overrides[surface] ?? null);
@@ -132,7 +169,9 @@ export function set_mesh(self: Mesh, mesh: MeshResource | null): void {
  * @source scene/3d/mesh_instance_3d.cpp:148
  */
 export function get_mesh(self: Mesh): MeshResource | null {
-  return stateOf(self).mesh;
+  const state = stateOf(self);
+  readBack(state);
+  return state.mesh;
 }
 
 /**
