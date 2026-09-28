@@ -17,7 +17,8 @@
  *   built-in indexed by an int is its indexed getter's type (`indexing_return_type`).
  * - `type-test-narrowing`: a local used where `local is T` has held (the true branch of the `if`,
  *   or the right operand of the `and`, when nothing reassigns it) is a T; `and`, `or` and `not`
- *   over booleans are booleans (`OperatorEvaluatorAnd`, core/variant/variant_op.cpp).
+ *   are booleans whatever their operands (they compile to jumps over each operand's truth), and so
+ *   is `==` or `!=` with an untyped operand (every equality evaluator yields a bool).
  *
  * - `utility-argument-type`: a Variant-returning utility function that returns its argument's type
  *   (`abs`, `sign`, `floor`, `ceil`, `round`, `clamp`, `lerp`, `snapped`, `wrap`, `min`, `max`,
@@ -198,6 +199,9 @@ const RAY_RESULT_KEYS: Readonly<Record<string, string>> = {
 const OP_AND = 20;
 const OP_OR = 21;
 const OP_NOT = 23;
+/** `Variant::OP_EQUAL` / `OP_NOT_EQUAL`. */
+const OP_EQUAL = 0;
+const OP_NOT_EQUAL = 1;
 // `Variant::Operator` (core/variant/variant.h): OP_EQUAL through OP_GREATER_EQUAL, then OP_ADD,
 // OP_SUBTRACT and OP_MULTIPLY.
 const COMPARISON_OPERATORS: ReadonlySet<number> = new Set([0, 1, 2, 3, 4, 5]);
@@ -812,9 +816,13 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       const leftType = left?.kind === 'BUILTIN' ? left.builtinType : left?.kind === 'ENUM' ? 'int' : undefined;
       const rightType = right?.kind === 'BUILTIN' ? right.builtinType : right?.kind === 'ENUM' ? 'int' : undefined;
       if (node.variantOperatorId === OP_AND || node.variantOperatorId === OP_OR) {
-        if (leftType === 'bool' && rightType === 'bool') {
-          result = { datatype: builtinDatatype('bool'), rule: 'type-test-narrowing' };
-        }
+        // `and` / `or` compile to jumps that yield true or false whatever the operands
+        // (`GDScriptCompiler::_parse_expression`), each operand read as its truth.
+        result = { datatype: builtinDatatype('bool'), rule: 'type-test-narrowing' };
+      } else if ((node.variantOperatorId === OP_EQUAL || node.variantOperatorId === OP_NOT_EQUAL) && (left?.kind === 'VARIANT' || right?.kind === 'VARIANT')) {
+        // `==` / `!=` with an untyped operand: every equality evaluator yields a bool
+        // (`OperatorEvaluatorEqual*`, core/variant/variant_op.h).
+        result = { datatype: builtinDatatype('bool'), rule: 'type-test-narrowing' };
       } else if (leftType !== undefined && rightType !== undefined) {
         // An operator over values the refinement typed has the result type Godot's operator table
         // states for those operand types (`Variant::get_operator_return_type`).
@@ -856,10 +864,8 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         result = { datatype: builtinDatatype(returnType), rule: 'type-test-narrowing' };
       }
     } else if (node?.kind === 'UNARY_OPERATOR' && node.variantOperatorId === OP_NOT && node.datatype.kind === 'VARIANT') {
-      const operand = datatypeOf(node.operand);
-      if (operand?.kind === 'BUILTIN' && operand.builtinType === 'bool') {
-        result = { datatype: builtinDatatype('bool'), rule: 'type-test-narrowing' };
-      }
+      // `not` yields the falsehood of its operand's truth, a bool, whatever the operand.
+      result = { datatype: builtinDatatype('bool'), rule: 'type-test-narrowing' };
     } else if (node?.kind === 'UNARY_OPERATOR' && node.datatype.kind === 'VARIANT') {
       // A negation (`-event.relative.x`) of a value the refinement typed has the result type
       // Godot's operator table states for it (`unary-`, no right operand).

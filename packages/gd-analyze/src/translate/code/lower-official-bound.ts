@@ -823,14 +823,21 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
 /** ClassDB integer constants and enum values (the dump folds enum values into constants). */
 export function nativeConstantLookup(apiDump: GodotApiDump): NativeConstantLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  const globalEnumConstant = globalEnumConstantLookup(apiDump);
   return (className, name) => {
     for (let current = classes.get(className); current !== undefined; ) {
       const value = current.constants[name];
       if (value !== undefined) return value;
       current = current.base_class === '' ? undefined : classes.get(current.base_class);
     }
-    return undefined;
+    return globalEnumConstant(className, name);
   };
+}
+
+/** A global enum's constant (`MouseButton`'s `MOUSE_BUTTON_LEFT`), by the enum's name: no class chain holds it. */
+function globalEnumConstantLookup(apiDump: GodotApiDump): (enumName: string, name: string) => number | undefined {
+  const enums = new Map(apiDump.globalEnums.map((entry) => [entry.name, entry.values] as const));
+  return (enumName, name) => enums.get(enumName)?.[name];
 }
 
 /** The native class at the root of a script's chain. */

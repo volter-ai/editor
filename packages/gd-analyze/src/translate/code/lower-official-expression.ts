@@ -2076,6 +2076,15 @@ export function lowerOfficialExpression(
             autoload.requirements,
           );
         }
+        if (node.source === 'UNDEFINED_SOURCE' && node.datatype.kind === 'ENUM' && !node.datatype.metaType) {
+          // A global enum's constant (`MOUSE_BUTTON_LEFT`, of @GlobalScope's `MouseButton`) is its
+          // value, as a ClassDB constant is.
+          const value = context.nativeConstant(node.datatype.enumType, node.name);
+          if (value !== undefined) {
+            const rule = context.structural(node, 'literal', [], 'literal:native-constant');
+            return expression({ kind: 'literal-expression', value, span: span(context.script, node) }, rule);
+          }
+        }
         // The binding is what the identifier means; resolve it before its structural rule so an
         // absent binding is what refuses.
         const use = nativeClassBinding(context, node);
@@ -2203,8 +2212,17 @@ export function lowerOfficialExpression(
           'binding',
           'integer-binary',
           'object-equal',
+          'variant-equal',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-equal') {
+          return compose(
+            context,
+            [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
+            ([leftValue, rightValue]) => objectCall('godot_variant_equal', [leftValue as TargetTsExpression, rightValue as TargetTsExpression], recipe.negate, span(context.script, node)),
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-equal', imported: 'godot_variant_equal', local: 'godot_variant_equal', typeOnly: false }],
+          );
+        }
         if (recipe.kind === 'object-equal') {
           return compose(
             context,

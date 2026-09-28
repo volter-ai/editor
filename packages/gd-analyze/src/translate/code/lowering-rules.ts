@@ -40,6 +40,11 @@ export type GodotCodeRuleRecipe =
    * (`OperatorEvaluatorEqualObject`, core/variant/variant_op.h:471).
    */
   | { readonly kind: 'object-equal'; readonly negate: boolean }
+  /**
+   * `==` / `!=` with an untyped operand: compat's `godot_variant_equal`, which compares by the kinds
+   * of value the operands hold at run time (`Variant::evaluate`, core/variant/variant_op.cpp:1041).
+   */
+  | { readonly kind: 'variant-equal'; readonly negate: boolean }
   /** An Object's truth (`not obj`, `if obj:`): compat's `godot_object_truthy` (`Variant::booleanize`). */
   | { readonly kind: 'object-truthy'; readonly negate: boolean }
   | { readonly kind: 'refusal'; readonly reason: string };

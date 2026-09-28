@@ -54,3 +54,15 @@ function vectorTruth(record: object): boolean {
   }
   return entries.some(([, member]) => member !== 0);
 }
+
+/**
+ * `bool(value)`, as a typed bool place converts an untyped value into it (a bool return or
+ * variable given an untyped value): Godot constructs a bool from a bool, int or float, as its truth
+ * (`VariantConstructor<bool, int64_t>`, `<bool, double>`), which is what this gives for those.
+ *
+ * @godot bool.bool
+ * @source core/variant/variant_construct.cpp:63
+ */
+export function construct_bool(value: unknown): boolean {
+  return godot_variant_truthy(value);
+}

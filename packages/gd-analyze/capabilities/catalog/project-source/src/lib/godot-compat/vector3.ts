@@ -48,6 +48,12 @@ export function construct(...args: readonly [] | readonly [Vector3] | readonly [
 export const ZERO: Vector3 = make(0, 0, 0);
 
 /**
+ * @godot Vector3.ONE
+ * @source core/variant/variant_call.cpp:3096
+ */
+export const ONE: Vector3 = make(1, 1, 1);
+
+/**
  * @godot Vector3.UP
  * @source core/math/vector3.h:232
  */
