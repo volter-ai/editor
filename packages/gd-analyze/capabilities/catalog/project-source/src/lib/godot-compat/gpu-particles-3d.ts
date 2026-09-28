@@ -132,8 +132,8 @@ export function finished(self: object): GodotSignal<[]> {
 }
 
 /**
- * Whether new particles are emitted. Starting a stopped system starts a new cycle (a one-shot
- * system emits its burst again); stopping lets the live particles finish their lives.
+ * Whether new particles are emitted, as a CPUParticles3D's: a one-shot or finished system starts a
+ * new cycle, a running one carries on its cycle; stopping lets the live particles finish their lives.
  *
  * @godot GPUParticles3D.set_emitting
  * @source scene/3d/gpu_particles_3d.cpp:49
