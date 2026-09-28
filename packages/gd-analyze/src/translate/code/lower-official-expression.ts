@@ -1035,6 +1035,9 @@ function assignablePlace(
   context: LoweringContext,
   node: GodotBoundNode,
   lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+  // Whether the place's old value is read: by a compound write, or as the base of a member write.
+  // A plain `obj.prop = v` only sets (`SET_NAMED`), so its getter is not called.
+  needsRead = true,
 ): AssignablePlace {
   const parameter = treeParameter(context, node);
   if (parameter !== undefined) {
@@ -1097,23 +1100,24 @@ function assignablePlace(
       );
       return use.target.use.kind === 'call' && use.target.use.sourceReceiver === 'absent' ? use : context.refuse(node, `${method.owner}.${method.name} is not bound on the singleton`);
     };
-    const getter = accessor(found?.getter);
+    const getter = needsRead ? accessor(found?.getter) : undefined;
     const setter = accessor(found?.setter);
-    if (getter === undefined || setter === undefined) return context.refuse(node, `${baseNode.name}.${attribute} is not a singleton property the API dump declares`);
+    if ((needsRead && getter === undefined) || setter === undefined) return context.refuse(node, `${baseNode.name}.${attribute} is not a singleton property the API dump declares`);
     const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
-    const read = materialize(context, expression(bindingCall(context, node, getter, [])));
+    const read = getter === undefined ? undefined : materialize(context, expression(bindingCall(context, node, getter, [])));
     return {
-      before: read.before,
+      before: read?.before ?? [],
       afterAssigned: [],
-      read: read.value,
+      // Read only when `needsRead` resolved the getter above.
+      read: read?.value ?? { kind: 'undefined-expression' },
       write: (value) => bindingCall(context, node, setter, [value]),
-      requirements: [...rule.requirements, ...getter.requirements, ...setter.requirements],
+      requirements: [...rule.requirements, ...(getter?.requirements ?? []), ...setter.requirements],
     };
   }
   if (nativeMemberReceiver(context, baseNode, attribute)) {
-    const getter = nativeAccessorUse(context, node, baseNode, attribute, 'getter');
+    const getter = needsRead ? nativeAccessorUse(context, node, baseNode, attribute, 'getter') : undefined;
     const setter = nativeAccessorUse(context, node, baseNode, attribute, 'setter');
-    if (getter === undefined || setter === undefined) {
+    if ((needsRead && getter === undefined) || setter === undefined) {
       return context.refuse(
         node,
         `${baseNode.datatype.nativeType}.${attribute} is not a property the API dump declares`,
@@ -1121,16 +1125,17 @@ function assignablePlace(
     }
     const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
     const object = materialize(context, nativeEntity(lower(context, baseNode)));
-    const read = materialize(context, expression(bindingCall(context, node, getter, [object.value])));
+    const read = getter === undefined ? undefined : materialize(context, expression(bindingCall(context, node, getter, [object.value])));
     return {
-      before: [...object.before, ...read.before],
+      before: [...object.before, ...(read?.before ?? [])],
       afterAssigned: [],
-      read: read.value,
+      // Read only when `needsRead` resolved the getter above.
+      read: read?.value ?? { kind: 'undefined-expression' },
       write: (value) => bindingCall(context, node, setter, [object.value, value]),
       requirements: [
         ...rule.requirements,
         ...object.requirements,
-        ...getter.requirements,
+        ...(getter?.requirements ?? []),
         ...setter.requirements,
       ],
     };
@@ -1308,7 +1313,7 @@ function assignment(
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
     (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined || variantElement(context, targetNode) !== undefined
-      ? assignablePlace(context, targetNode, lower)
+      ? assignablePlace(context, targetNode, lower, combine !== undefined)
       : undefined);
   if (place !== undefined) {
     const value = materialize(context, assigned);

@@ -313,12 +313,14 @@ function expression(value: TargetTsExpression): ts.Expression {
       );
     case 'unary-expression':
       return unary(value.operator, value.operand);
-    case 'binary-expression':
-      return ts.factory.createBinaryExpression(
-        expression(value.left),
-        binaryToken(value.operator),
-        expression(value.right),
-      );
+    case 'binary-expression': {
+      // What TypeScript's parenthesizer leaves bare: an arrow operand (`() => x || y` is one arrow),
+      // and a unary, `await` or negative base of `**` (`-2 ** y` is a syntax error).
+      const signed = value.left.kind === 'unary-expression' || value.left.kind === 'await-expression' || (value.left.kind === 'literal-expression' && typeof value.left.value === 'number' && (value.left.value < 0 || Object.is(value.left.value, -0)));
+      const exponent = value.operator === '**' && signed;
+      const operand = (entry: TargetTsExpression, bare: boolean) => (bare || entry.kind === 'arrow-expression' ? ts.factory.createParenthesizedExpression(expression(entry)) : expression(entry));
+      return ts.factory.createBinaryExpression(operand(value.left, exponent), binaryToken(value.operator), operand(value.right, false));
+    }
     case 'assignment-expression':
       return ts.factory.createBinaryExpression(
         expression(value.target),
@@ -353,8 +355,12 @@ function expression(value: TargetTsExpression): ts.Expression {
       );
     case 'parenthesized-expression':
       return ts.factory.createParenthesizedExpression(expression(value.expression));
-    case 'as-expression':
-      return ts.factory.createAsExpression(expression(value.expression), typeNode(value.type));
+    case 'as-expression': {
+      // `as` binds tighter than a binary, conditional, assignment or arrow operand.
+      const loose = ['binary-expression', 'conditional-expression', 'assignment-expression', 'arrow-expression'].includes(value.expression.kind);
+      const operand = expression(value.expression);
+      return ts.factory.createAsExpression(loose ? ts.factory.createParenthesizedExpression(operand) : operand, typeNode(value.type));
+    }
     case 'non-null-expression':
       return ts.factory.createNonNullExpression(expression(value.expression));
     case 'jsx-element-expression': {

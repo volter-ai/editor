@@ -1,3 +1,4 @@
+import { inlineSingleUseTemporaries } from './inline-temporaries';
 import { type GodotNativeTypePart, godotNativeTypeParts } from './native-types';
 import * as path from 'node:path';
 import type {
@@ -882,7 +883,7 @@ export function lowerOfficialBoundProgram(
         nativeSignalOwner,
         globalEnumConstant,
       );
-      sourceFiles.push(sourceFile);
+      sourceFiles.push(inlineSingleUseTemporaries(sourceFile));
       scriptModules.push(module);
       collectRequirements(requirements, compatSymbols);
     } catch (error) {

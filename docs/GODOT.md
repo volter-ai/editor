@@ -344,7 +344,13 @@ emitter prints:
    The adoption machinery (`useGodotScript`'s pending instances, bindings on the native) goes,
    except for an instantiated scene's root, which takes the instance its instancer holds (step 7).
 4. **Values read as written.** A single-use temporary is inlined, so `__godot_value_N` appears only
-   where evaluation order needs a statement.
+   where evaluation order needs a statement. Lowering settles each child in GDScript's order;
+   `inline-temporaries.ts` folds a temporary into the statement after it when that keeps the
+   order: its one read is unconditional and everything evaluated before it is stateless (literals,
+   `this`, readonly fields, locals no closure assigns), or the temporary itself is. What stays is
+   an order JavaScript's differs from (GDScript evaluates a call's arguments before its receiver's
+   getter) or a value read twice. A plain store to a native property calls only its setter
+   (`SET_NAMED`); its getter runs for a compound store or a member write's base.
 5. **An animation is three's.** AnimationPlayer's tracks are `AnimationClip`s on three's
    `AnimationMixer` (drei's `useAnimations` idiom) over real object properties. The
    `animationBindings` dispatch table goes.
