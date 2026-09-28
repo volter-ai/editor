@@ -52,6 +52,7 @@
     "src/lib/godot-compat/environment-post.ts",
     "src/lib/godot-compat/environment.ts",
     "src/lib/godot-compat/float.ts",
+    "src/lib/godot-compat/font-file.ts",
     "src/lib/godot-compat/font.ts",
     "src/lib/godot-compat/geometry-3d.ts",
     "src/lib/godot-compat/geometry-instance-3d.ts",

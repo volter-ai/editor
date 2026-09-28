@@ -621,6 +621,8 @@ function planResource(
   const cubemap = data === undefined && texture === undefined && sound === undefined ? context.project?.documents.cubemaps.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   // A sound the ogg_vorbis importer imports: an `AudioStreamOggVorbis` the browser decodes from its copy.
   const ogg = data === undefined ? context.project?.documents.oggVorbis.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  // A font the `font_data_dynamic` importer imports: a `FontFile` of its copied file's bytes.
+  const font = data === undefined ? context.project?.documents.fonts.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   const imported =
     texture !== undefined
       ? { className: 'CompressedTexture2D', load: textureLoad(texture) }
@@ -630,7 +632,9 @@ function planResource(
           ? { className: 'CompressedCubemap', load: cubemapLoad(cubemap) }
           : ogg !== undefined
             ? { className: 'AudioStreamOggVorbis', load: { sourceResPath: ogg.resPath, options: { loop: ogg.loop, loopOffset: ogg.loopOffset } } }
-            : undefined;
+            : font !== undefined
+              ? { className: 'FontFile', load: { sourceResPath: font.resPath, options: {} } }
+              : undefined;
   // A `.gdshader`: the official shader frontend's tree, lowered.
   const boundShader = data === undefined && imported === undefined ? context.project?.documents.shaders.find((entry) => `ext:${entry.path}` === key) : undefined;
   if (boundShader !== undefined) {

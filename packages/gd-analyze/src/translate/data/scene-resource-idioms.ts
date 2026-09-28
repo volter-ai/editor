@@ -28,7 +28,7 @@ export type GodotSceneResourceIdiom =
   | { readonly kind: 'mesh-library' }
   | { readonly kind: 'animation-library' }
   | { readonly kind: 'animation-tree' }
-  /** A CompressedCubemap, AudioStreamWAV or AudioStreamOggVorbis: the imported file, loaded by compat's hook. */
+  /** A CompressedCubemap, AudioStreamWAV, AudioStreamOggVorbis or FontFile: the imported file, loaded by compat's hook. */
   | { readonly kind: 'loaded'; readonly module: string; readonly exportName: string }
   /** A Shader: its lowered code, made once. */
   | { readonly kind: 'shader' }
@@ -56,6 +56,7 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   CompressedCubemap: { kind: 'loaded', module: 'compressed-cubemap', exportName: 'useGodotCubemap' },
   AudioStreamWAV: { kind: 'loaded', module: 'audio-stream-wav', exportName: 'useGodotAudioStreamWav' },
   AudioStreamOggVorbis: { kind: 'loaded', module: 'audio-stream-ogg-vorbis', exportName: 'useGodotAudioStreamOggVorbis' },
+  FontFile: { kind: 'loaded', module: 'font-file', exportName: 'useGodotFontFile' },
   Shader: { kind: 'shader' },
   ShaderMaterial: { kind: 'shader-material' },
   BoxShape3D: { kind: 'collider', collider: 'CuboidCollider' },

@@ -9,8 +9,8 @@
  * `get_layout_data`, `_get_line_rect`). It is bound onto the page as SVG text: each line drawn by
  * the browser in the same font, its baseline where Godot puts it.
  *
- * The font is the default theme's (`font.ts`); `LabelSettings` gives the size, colours, spacing and
- * outline. Not bound: `uppercase`, visible characters, `max_lines_visible`, `lines_skipped`,
+ * The font is the settings' font file, else the default theme's (`font.ts`, `label.cpp:118`);
+ * `LabelSettings` gives the size, colours, spacing and outline. Not bound: `uppercase`, visible characters, `max_lines_visible`, `lines_skipped`,
  * clipping and overrun trimming, tab stops, `HORIZONTAL_ALIGNMENT_FILL` justification and
  * right-to-left text.
  */
@@ -35,9 +35,11 @@ import {
   godot_font_shape,
   godot_font_substr,
   godot_font_width,
+  type GodotFont,
   type ShapedText,
 } from './font';
 import type { LabelSettings } from './label-settings';
+import { godot_font_file_face } from './font-file';
 import { godot_node_entity, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { construct as vector2, type Vector2 } from './vector2';
@@ -81,6 +83,12 @@ function stateOf(self: object, member: string): LabelState {
   return state;
 }
 
+/** The settings' font, else the theme's (`label.cpp:118`). */
+function font(state: LabelState): GodotFont {
+  const file = state.settings?.font ?? null;
+  return file === null ? godot_font_default() : godot_font_file_face(file);
+}
+
 function fontSize(state: LabelState): number {
   return state.settings?.fontSize ?? 16;
 }
@@ -94,7 +102,7 @@ function paragraphSpacing(entity: Object3D, state: LabelState): number {
 }
 
 function fontHeight(state: LabelState): number {
-  return Math.trunc(get_height(godot_font_default(), fontSize(state)));
+  return Math.trunc(get_height(font(state), fontSize(state)));
 }
 
 /** A line's height as the Label spaces lines: its ascent and descent raised to the font height. */
@@ -109,11 +117,11 @@ function shape(entity: Object3D, state: LabelState): Paragraph[] {
   const maxWidth = godot_control_maximum_size(entity).x;
   if (state.autowrapMode !== AUTOWRAP_OFF && maxWidth > 0) width = Math.max(1, Math.trunc(maxWidth));
   const flags = godot_font_autowrap_flags(state.autowrapMode);
-  const font = godot_font_default();
+  const face = font(state);
   const paragraphs: Paragraph[] = [];
   let start = 0;
   for (const part of state.text.split('\n')) {
-    const shaped = godot_font_shape(font, `${part}​`, fontSize(state));
+    const shaped = godot_font_shape(face, `${part}​`, fontSize(state));
     const breaks = godot_font_line_breaks(shaped, width, flags);
     const lines: ShapedText[] = [];
     for (let i = 0; i < breaks.length; i += 2) lines.push(godot_font_substr(shaped, breaks[i] as number, breaks[i + 1] as number));
@@ -479,7 +487,7 @@ function draw(entity: Object3D, element: HTMLElement): void {
     const node = document.createElementNS(namespace, 'text');
     node.setAttribute('x', String(rect.position.x));
     node.setAttribute('y', String(rect.position.y + ascent));
-    node.setAttribute('font-family', 'godot-default-font');
+    node.setAttribute('font-family', state.settings?.font?.family ?? 'godot-default-font');
     node.setAttribute('font-size', String(fontSize(state)));
     node.setAttribute('fill', css(color));
     node.setAttribute('xml:space', 'preserve');

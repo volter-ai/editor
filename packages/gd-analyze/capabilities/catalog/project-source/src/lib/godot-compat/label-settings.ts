@@ -5,15 +5,17 @@
  * Godot 4.7's `LabelSettings` resource (`scene/resources/label_settings.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a Label's font size, colours, spacing, outline and
  * shadow, stored as set; a change emits `changed`, which the Labels using the settings listen to.
- * The font is the default theme's (`font` is not bound). Its native entity is a plain object.
+ * A null `font` is the default theme's (`label.cpp:118`). Its native entity is a plain object.
  */
 
 import { construct as color, type Color } from './color';
+import type { FontFile } from './font-file';
 import { construct as vector2, type Vector2 } from './vector2';
 
 const f32 = Math.fround;
 
 export interface LabelSettings {
+  font: FontFile | null;
   lineSpacing: number;
   paragraphSpacing: number;
   fontSize: number;
@@ -45,6 +47,7 @@ export function godot_label_settings_new(properties: Readonly<Record<string, unk
 
 function made(): LabelSettings {
   return {
+    font: null,
     lineSpacing: 3,
     paragraphSpacing: 0,
     fontSize: 16,
@@ -96,6 +99,24 @@ export function set_paragraph_spacing(self: LabelSettings, p_value: number): voi
  */
 export function get_paragraph_spacing(self: LabelSettings): number {
   return self.paragraphSpacing;
+}
+
+/**
+ * @godot LabelSettings.set_font
+ * @source scene/resources/label_settings.cpp:156
+ */
+export function set_font(self: LabelSettings, p_font: FontFile | null): void {
+  if (self.font === p_font) return;
+  self.font = p_font;
+  changed(self);
+}
+
+/**
+ * @godot LabelSettings.get_font
+ * @source scene/resources/label_settings.cpp:169
+ */
+export function get_font(self: LabelSettings): FontFile | null {
+  return self.font;
 }
 
 /**
@@ -225,6 +246,7 @@ export function get_shadow_offset(self: LabelSettings): Vector2 {
 }
 
 const PROPS = new Map<string, (self: LabelSettings, value: never) => void>([
+  ['font', (self, value: FontFile | null) => set_font(self, value)],
   ['lineSpacing', (self, value: number) => set_line_spacing(self, value)],
   ['paragraphSpacing', (self, value: number) => set_paragraph_spacing(self, value)],
   ['fontSize', (self, value: number) => set_font_size(self, value)],
