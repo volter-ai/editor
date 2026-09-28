@@ -211,8 +211,8 @@ export class LoweringContext {
   globalEnumConstant: GlobalEnumConstantLookup = () => undefined;
   /** The field the scene hands each static node path in (`script-node-paths.ts`), by path; own and inherited. */
   nodeFields: ReadonlyMap<string, string> = new Map();
-  /** The type each read of a handed node states, by field; null where reads state different ones. */
-  readonly nodeFieldTypes = new Map<string, { readonly type: TargetTsType; readonly requirements: readonly OfficialBoundLoweringRequirement[] } | null>();
+  /** The literal path each node reads from self (analyze's `selfNodePaths`), by node. */
+  selfNodePaths: ReadonlyMap<number, string> = new Map();
   #temporaryIndex = 0;
   #instanceAutoloadAccess = 0;
   readonly #reservedTargetNames: Set<string>;

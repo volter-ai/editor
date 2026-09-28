@@ -1,3 +1,4 @@
+import { type BoundGodotInstancesMade, type BoundGodotSelfNodePath, instancesMade, selfNodePaths } from './self-node-paths';
 import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
@@ -94,6 +95,10 @@ export interface BoundGodotSourceScript {
   readonly numericVariants?: ScriptNumericVariants;
   /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
   readonly resourceLoads?: readonly BoundGodotResourceLoad[];
+  /** The nodes reading a literal path from self (`self-node-paths.ts`). */
+  readonly selfNodePaths: readonly BoundGodotSelfNodePath[];
+  /** The script instances the program makes or sets outside a scene (`self-node-paths.ts`). */
+  readonly instancesMade: BoundGodotInstancesMade;
   /** This script's variable declarations that hold null at some time (`nullable-variables.ts`). */
   readonly nullableDeclarations?: readonly number[];
   /** The variables holding null at some time that this script reads (`nullable-variables.ts`). */
@@ -1580,6 +1585,8 @@ export function bindGodotProject(
       refinedTypes,
       refinedProgram: refined,
       utilityCalls: variantUtilityCalls(refined),
+      selfNodePaths: selfNodePaths(refined),
+      instancesMade: instancesMade(refined),
       ...(scriptNumericVariants === undefined ? {} : { numericVariants: scriptNumericVariants }),
       ...(loadsByScript.has(program.resPath) ? { resourceLoads: loadsByScript.get(program.resPath) as readonly BoundGodotResourceLoad[] } : {}),
       ...(nullable === undefined ? {} : { nullableDeclarations: nullable.declarations, nullableVariables: nullable.variables }),

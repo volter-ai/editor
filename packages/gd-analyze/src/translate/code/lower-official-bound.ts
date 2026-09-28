@@ -652,6 +652,7 @@ function lowerScript(
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
+  context.selfNodePaths = new Map(source.selfNodePaths.map((entry) => [entry.nodeId, entry.path] as const));
   const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
   context.nodeFields = new Map(
     [...source.inheritance.scriptAncestors.flatMap((ancestor) => nodePaths.scripts.get(ancestor) ?? []), ...ownNodePaths].map((entry) => [entry.path, entry.field] as const),
@@ -708,12 +709,8 @@ function lowerScript(
       ...(carrierRoot === source.resPath ? nativeCarrierMembers() : []),
       ...autoloadReferenceMembers(requirements.autoloadReferences),
       // The nodes its scene hands over (`useGodotScript`), once they all exist.
-      ...ownNodePaths.map((entry): TargetTsClassMember => {
-        const stated = context.nodeFieldTypes.get(entry.field)?.type;
-        return stated === undefined
-          ? { kind: 'field-member', name: entry.field, type: { kind: 'keyword-type', keyword: 'unknown' } }
-          : { kind: 'field-member', name: entry.field, type: stated, definite: true };
-      }),
+      // Each read states the node's type as analysis gives it; the field holds any node.
+      ...ownNodePaths.map((entry): TargetTsClassMember => ({ kind: 'field-member', name: entry.field, type: { kind: 'keyword-type', keyword: 'unknown' } })),
       ...sourceMembers.members,
     ],
     span: officialBoundSpan(script, root),

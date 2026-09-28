@@ -1,6 +1,6 @@
 /**
  * Static node access is a ref (GODOT.md, the emitted game's shape, step 1): a script's `$Path`,
- * `%Unique` and `get_node("literal")` on self (`godotSelfNodePath`) resolve at plan time to nodes
+ * `%Unique` and `get_node("literal")` on self (analyze's `selfNodePaths`) resolve at plan time to nodes
  * of the scene the script is attached in, handed to the script as fields, so its code reads
  * `this.$Path` where Godot looks the node up by name.
  *
@@ -13,7 +13,6 @@
  */
 
 import type { BoundGodotProject } from '../../analyze/bound-project';
-import { godotSelfNodePath } from '../../analyze/self-node-paths';
 import { godotResolveNodePath } from './scene-animation';
 import { type GodotSceneHeldNode, godotSceneHeldNodes, godotSceneSubnodes, type TargetGodotSceneDocumentPlan, type TargetGodotSceneNodePlan } from './scene-document-plan';
 
@@ -97,7 +96,7 @@ function relativeNodePath(from: string, to: string): string {
 /**
  * The scripts something runs outside a scene, with their ancestors: an autoload of the bare
  * script, a `new()` of it, and every script when any code stores a node's script or makes an
- * instance of a script it does not know.
+ * instance of a script it does not know (analyze's `instancesMade`).
  */
 function scriptsOutsideScenes(project: BoundGodotProject): ReadonlySet<string> {
   const outside = new Set<string>();
@@ -105,28 +104,10 @@ function scriptsOutsideScenes(project: BoundGodotProject): ReadonlySet<string> {
   const add = (resPath: string) => {
     for (const path of [resPath, ...(ancestors.get(resPath) ?? [])]) outside.add(path);
   };
-  const every = new Set(project.scripts.map((entry) => entry.resPath));
   for (const script of project.scripts) {
     if (script.autoloads.length > 0) add(script.resPath);
-    const nodes = script.refinedProgram.nodes;
-    const literal = (id: number | undefined) => {
-      const entry = id === undefined ? undefined : nodes[id];
-      return entry?.kind === 'LITERAL' && (entry.value.kind === 'string' || entry.value.kind === 'string-name') ? entry.value.value : undefined;
-    };
-    for (const node of nodes) {
-      // A store to a node's script (`node.script = s`, `set("script", s)`, `set_script(s)`).
-      if (node.kind === 'ASSIGNMENT') {
-        const assignee = nodes[node.assignee];
-        const attribute = assignee?.kind === 'SUBSCRIPT' && assignee.isAttribute ? nodes[assignee.attribute] : undefined;
-        if (attribute?.kind === 'IDENTIFIER' && attribute.name === 'script') return every;
-      }
-      if (node.kind !== 'CALL') continue;
-      // `set(name, value)` with a name known only at run time may store the script too.
-      if (node.functionName === 'set_script' || (node.functionName === 'set' && [undefined, 'script'].includes(literal(node.arguments[0])))) return every;
-      if (node.functionName !== 'new') continue;
-      if (node.datatype.scriptPath !== '') add(node.datatype.scriptPath);
-      else if (node.datatype.kind !== 'NATIVE' && node.datatype.kind !== 'BUILTIN') return every;
-    }
+    if (script.instancesMade.anyScript) return new Set(project.scripts.map((entry) => entry.resPath));
+    for (const made of script.instancesMade.scripts) add(made);
   }
   return outside;
 }
@@ -149,12 +130,7 @@ export function planGodotScriptNodePaths(project: BoundGodotProject, scenes: rea
     if (at.length === 0 || outside.has(script.resPath)) continue;
     const taken = new Set(script.inheritance.scriptAncestors.flatMap((ancestor) => (scripts.get(ancestor) ?? []).map((entry) => entry.field)));
     const fields: GodotScriptNodePath[] = [];
-    const paths = new Set<string>();
-    for (const node of script.refinedProgram.nodes) {
-      const path = godotSelfNodePath(script.refinedProgram, node);
-      if (path !== undefined) paths.add(path);
-    }
-    for (const path of [...paths].sort()) {
+    for (const path of [...new Set(script.selfNodePaths.map((entry) => entry.path))].sort()) {
       const field = fieldName(path);
       // Two paths spelled alike as fields: the second keeps its lookup.
       if (field === undefined || taken.has(field)) continue;
