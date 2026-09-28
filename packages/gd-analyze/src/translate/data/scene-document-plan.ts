@@ -98,6 +98,8 @@ export interface TargetGodotImportedModelNode {
   readonly nonSpatial?: true;
   /** The importer's AnimationPlayer, which plays the model's clips. */
   readonly animationPlayer?: true;
+  /** A GeometryInstance3D (a mesh): it casts and receives shadows as Godot makes it. */
+  readonly geometryInstance?: true;
   readonly gltfNode?: number;
   readonly matrix: readonly number[];
   /** A Skeleton3D's bones in Godot's order: names, the glTF joints they bind to, imported poses. */
@@ -1411,6 +1413,7 @@ function planImportedInstance(
       classes: member.class.nativeAncestry,
       ...(member.class.nativeAncestry.includes('Node3D') ? {} : { nonSpatial: true as const }),
       ...(member.class.nativeAncestry.includes('AnimationPlayer') ? { animationPlayer: true as const } : {}),
+      ...(member.class.nativeAncestry.includes('GeometryInstance3D') ? { geometryInstance: true as const } : {}),
       ...(gltfNode === undefined ? {} : { gltfNode }),
       matrix: matrix ?? IDENTITY_MATRIX,
       ...(bones === undefined ? {} : { bones }),

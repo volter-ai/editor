@@ -95,6 +95,7 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 | Date | Commit | Reviewed against | Verdict |
 | --- | --- | --- | --- |
 | 2026-09-27 | `69edd5ae` | vgai-engine's ten rows (before these rulings) | baseline: all ten fail. Compat owns the main loop and physics stepping (`scene-tree.ts` `godot_main_iteration`, the paused `<Physics>` in `main.tsx`), class-name registries (`CLASS_MOUNTS`, `godot_node_class_mount`), a spawn host and a mirrored canvas tree; emit dispatches on class names (`switch (className)` in `idiomatic-scene-syntax.ts`, `GODOT_ELEMENTS[className]`); lowering special-cases `AnimationTree`; the emitted `world.tsx` exports `debug`; claim records store one digest as both sides. The baseline the conformance work starts from. |
+| 2026-09-27 | `d3afcb62` | §The lane's law | regressed: every row and both rulings still fail; new since `69edd5ae`: the SceneTree's timers, tweens and deletion queue driven per frame from `useGodotTree` (`advance.tsx`, which the ratchet's scheduler rule skips); the emitted world's `useFrame` running input, camera and canvas work; spawning's `SPAWNERS` registry, stand-ins, `flushSync` in `add_child` and the emitted `rootScript` static; reachability decided in emit (`reachable-capabilities.ts`). |
 
 **Order of work.**
 

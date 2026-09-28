@@ -30,6 +30,7 @@
  * importer's skeleton gives it (`skin_tool.cpp:636`), which the RESET keys can differ from.
  */
 
+import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
 import { useGLTF } from '@react-three/drei';
 import { createPortal, type ThreeElements } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, useContext, useLayoutEffect, useMemo, useRef } from 'react';
@@ -59,6 +60,8 @@ export interface GodotImportedSceneNode {
   /** Godot's local transform, column-major (the Object3D matrix). */
   /** The importer's AnimationPlayer, which plays the model's clips. */
   readonly animationPlayer?: true;
+  /** A GeometryInstance3D (a mesh): it casts and receives shadows as Godot makes it. */
+  readonly geometryInstance?: true;
   readonly matrix: readonly number[];
   /** A Skeleton3D's bones in Godot's bone order: name, glTF joint node and the imported pose. */
   readonly bones?: readonly {
@@ -324,6 +327,12 @@ export function GodotImportedScene({
         ...(node.nonSpatial === true ? { kind: 'node' as const } : {}),
       });
       // The importer's AnimationPlayer is the class's node, which the instancing scene may set up.
+      // A mesh casts and receives shadows as Godot makes it, through the loader's primitives under it.
+      if (node.geometryInstance === true) {
+        member.traverse((object) => {
+          if (object === member || !members.has(object)) godot_geometry_instance_3d_mount(object);
+        });
+      }
       if (node.animationPlayer === true && !ANIMATION_PLAYERS.has(member)) {
         godot_animation_player_mount(member);
         ANIMATION_PLAYERS.add(member);

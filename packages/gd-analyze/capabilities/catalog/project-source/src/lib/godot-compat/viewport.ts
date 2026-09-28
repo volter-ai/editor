@@ -52,6 +52,8 @@ function shadowMapType(quality: number): ShadowMapType {
 }
 
 function apply(renderer: WebGLRenderer): void {
+  // Lights that cast shadows draw them (`Light3D.shadow_enabled`); three draws none unless enabled.
+  renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = shadowMapType(directionalShadowQuality);
   renderer.shadowMap.needsUpdate = true;
 }
