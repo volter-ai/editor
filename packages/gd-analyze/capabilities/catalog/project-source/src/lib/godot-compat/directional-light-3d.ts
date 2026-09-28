@@ -8,7 +8,8 @@
  * from the light toward its target, so the light's target is a child one unit down its -Z.
  */
 
-import { DirectionalLight, Object3D } from 'three';
+import { DirectionalLight, Object3D, Vector3 } from 'three';
+import { godot_camera_3d_of_viewport } from './camera-3d';
 import { type GodotLight3DAuthored, godot_light_3d_authored, godot_light_3d_mount, godot_light_3d_sky_mode } from './light-3d';
 import { godot_node_duplicate_state } from './node';
 
@@ -41,6 +42,53 @@ export function godot_directional_light_3d_aim(self: DirectionalLight): void {
   target.position.set(0, 0, -1);
   self.add(target);
   self.target = target;
+  followView(self);
+}
+
+/**
+ * How far around what the camera sees the shadow reaches sharply: Godot's split shadow keeps its
+ * nearest splits (10% and 20% of the shadow's max distance, `light_3d.cpp:499`) at full resolution,
+ * which one map over the whole distance would blur; the map follows the view instead.
+ */
+const FOLLOW_REACH = 20;
+const VIEW = new Vector3();
+const AHEAD = new Vector3();
+const FROM = new Vector3();
+const TO = new Vector3();
+
+/**
+ * The light's shadow is drawn around what the viewport's camera sees, as three's own scenes keep a
+ * directional shadow sharp: before each shadow render its box is centred just ahead of the camera,
+ * along the light's own direction.
+ */
+function followView(light: DirectionalLight): void {
+  const shadow = light.shadow;
+  const base = shadow.updateMatrices.bind(shadow);
+  shadow.updateMatrices = (lit) => {
+    let viewport: Object3D | null = light.parent;
+    while (viewport !== null && (viewport as { readonly isScene?: boolean }).isScene !== true) viewport = viewport.parent;
+    const view = viewport === null ? null : godot_camera_3d_of_viewport(viewport);
+    if (view === null) {
+      base(lit);
+      return;
+    }
+    const box = shadow.camera;
+    if (box.right !== FOLLOW_REACH) {
+      Object.assign(box, { left: -FOLLOW_REACH, right: FOLLOW_REACH, bottom: -FOLLOW_REACH, top: FOLLOW_REACH });
+      box.updateProjectionMatrix();
+    }
+    light.getWorldPosition(FROM);
+    light.target.getWorldPosition(TO);
+    const direction = TO.sub(FROM).normalize();
+    const centre = view.getWorldPosition(VIEW).addScaledVector(view.getWorldDirection(AHEAD), FOLLOW_REACH * 0.75);
+    const own = light.matrixWorld.elements.slice(12, 15);
+    const aimed = light.target.matrixWorld.elements.slice(12, 15);
+    light.matrixWorld.setPosition(centre.x - direction.x, centre.y - direction.y, centre.z - direction.z);
+    light.target.matrixWorld.setPosition(centre);
+    base(lit);
+    light.matrixWorld.setPosition(own[0] as number, own[1] as number, own[2] as number);
+    light.target.matrixWorld.setPosition(aimed[0] as number, aimed[1] as number, aimed[2] as number);
+  };
 }
 
 /**
