@@ -856,24 +856,82 @@ function py(name: string): string {
   return JSON.stringify(name);
 }
 
-/** Blender's own name for each operator, as its undo history labels the step (`ot->name`). */
-const operatorNames = new Map<string, string>();
-
 /**
  * THE STEP'S LABEL IS THE OPERATOR'S OWN NAME, the one Blender's Edit menu shows: Add › Cone is
- * "Undo Add Cone", not "Undo Blender Python". Asked of Blender, not kept in a table here, because
- * its names do not follow the menu rows (a Point light is "Add Light").
+ * "Undo Add Cone", not "Undo Blender Python". Blender's names do not follow the menu rows (a Point
+ * light is "Add Light"), so they are Blender's, read from this build with
+ * `bpy.ops.<id>.get_rna_type().name` (`ot->name`) for every operator these menus run and every
+ * `object.*_add`. An id not here keeps the script door's label.
+ *
+ * A TABLE, NOT A QUESTION PER CLICK. Asking Blender first (a history-free execute before the
+ * operator) never answered on the browser-substrate page, so Add and Apply did nothing there
+ * (measured 2026-09-28 in the hosted tab; why that execute hangs there is not established).
  */
-async function operatorLabel(body: string): Promise<string> {
+const OPERATOR_NAMES: Readonly<Record<string, string>> = {
+  'curve.primitive_bezier_circle_add': "Add B\u00e9zier Circle",
+  'curve.primitive_bezier_curve_add': "Add B\u00e9zier",
+  'curve.primitive_nurbs_circle_add': "Add Nurbs Circle",
+  'curve.primitive_nurbs_curve_add': "Add Nurbs Curve",
+  'curve.primitive_nurbs_path_add': "Add Path",
+  'image.import_as_mesh_planes': "Import Images as Planes",
+  'mesh.primitive_circle_add': "Add Circle",
+  'mesh.primitive_cone_add': "Add Cone",
+  'mesh.primitive_cube_add': "Add Cube",
+  'mesh.primitive_cylinder_add': "Add Cylinder",
+  'mesh.primitive_grid_add': "Add Grid",
+  'mesh.primitive_ico_sphere_add': "Add Ico Sphere",
+  'mesh.primitive_monkey_add': "Add Monkey",
+  'mesh.primitive_plane_add': "Add Plane",
+  'mesh.primitive_torus_add': "Add Torus",
+  'mesh.primitive_uv_sphere_add': "Add UV Sphere",
+  'object.armature_add': "Add Armature",
+  'object.camera_add': "Add Camera",
+  'object.collection_add': "Add to Collection",
+  'object.collection_instance_add': "Add Collection Instance",
+  'object.constraint_add': "Add Constraint",
+  'object.curves_empty_hair_add': "Add Empty Curves",
+  'object.curves_random_add': "Add Random Curves",
+  'object.data_instance_add': "Add Object Data Instance",
+  'object.delete': "Delete",
+  'object.duplicate': "Duplicate Objects",
+  'object.effector_add': "Add Effector",
+  'object.empty_add': "Add Empty",
+  'object.empty_image_add': "Add Empty Image/Drop Image to Empty",
+  'object.grease_pencil_add': "Add Grease Pencil",
+  'object.grease_pencil_dash_modifier_segment_add': "Add Segment",
+  'object.grease_pencil_time_modifier_segment_add': "Add Segment",
+  'object.lattice_add_to_selected': "Add Lattice Deformer",
+  'object.light_add': "Add Light",
+  'object.lightprobe_add': "Add Light Probe",
+  'object.location_clear': "Clear Location",
+  'object.material_slot_add': "Add Material Slot",
+  'object.metaball_add': "Add Metaball",
+  'object.modifier_add': "Add Modifier",
+  'object.origin_set': "Set Origin",
+  'object.particle_system_add': "Add Particle System Slot",
+  'object.pointcloud_random_add': "Add Point Cloud",
+  'object.quick_fur': "Quick Fur",
+  'object.rotation_clear': "Clear Rotation",
+  'object.scale_clear': "Clear Scale",
+  'object.shaderfx_add': "Add Effect",
+  'object.shape_key_add': "Add Shape Key",
+  'object.speaker_add': "Add Speaker",
+  'object.text_add': "Add Text",
+  'object.transform_apply': "Apply Object Transform",
+  'object.vertex_group_add': "Add Vertex Group",
+  'object.volume_add': "Add Volume",
+  'object.volume_import': "Import OpenVDB Volume",
+  'surface.primitive_nurbs_surface_circle_add': "Add Surface Circle",
+  'surface.primitive_nurbs_surface_curve_add': "Add Surface Curve",
+  'surface.primitive_nurbs_surface_cylinder_add': "Add Surface Cylinder",
+  'surface.primitive_nurbs_surface_sphere_add': "Add Surface Sphere",
+  'surface.primitive_nurbs_surface_surface_add': "Add Surface Patch",
+  'surface.primitive_nurbs_surface_torus_add': "Add Surface Torus",
+};
+
+function operatorLabel(body: string): string | undefined {
   const id = /bpy\.ops\.([a-z_]+\.[a-z0-9_]+)\(/.exec(body)?.[1];
-  if (id === undefined) return 'Blender Python';
-  const known = operatorNames.get(id);
-  if (known !== undefined) return known;
-  const answer = await blenderExecute(`import bpy\nprint(bpy.ops.${id}.get_rna_type().name)`, false);
-  const name = answer.error === null ? answer.result.trim() : '';
-  if (name === '') return 'Blender Python';
-  operatorNames.set(id, name);
-  return name;
+  return id === undefined ? undefined : OPERATOR_NAMES[id];
 }
 
 /**
@@ -902,7 +960,7 @@ async function runBlenderOperator(
     'made = [o.name for o in bpy.data.objects if o.name not in before]',
     'print("\\n".join(made))',
   ].join('\n');
-  const answer = await blenderExecute(code, true, label ?? (await operatorLabel(body)));
+  const answer = await blenderExecute(code, true, label ?? operatorLabel(body));
   // THE ENGINE'S REFUSAL, VERBATIM. `session.py::execute` answers with the
   // traceback in `error` rather than raising, and a paraphrase here is how a
   // refusal becomes a shrug.
