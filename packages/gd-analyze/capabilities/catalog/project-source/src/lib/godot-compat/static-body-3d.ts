@@ -11,7 +11,7 @@
 import type { Object3D } from 'three';
 import { godot_collision_object_colliders } from './collision-object-3d';
 import { godot_node_entity } from './node';
-import { godot_physics_material_computed, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
+import { godot_physics_material_apply, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 
 const MATERIAL = new WeakMap<object, PhysicsMaterial | null>();
 
@@ -32,11 +32,7 @@ export function set_physics_material_override(self: object, physics_material_ove
   const entity = godot_node_entity(self);
   MATERIAL.set(entity, physics_material_override);
   if (physics_material_override === null) return;
-  const { friction, bounce } = godot_physics_material_computed(physics_material_override);
-  for (const collider of godot_collision_object_colliders(entity)) {
-    collider.setFriction(friction);
-    collider.setRestitution(bounce);
-  }
+  for (const collider of godot_collision_object_colliders(entity)) godot_physics_material_apply(physics_material_override, collider);
 }
 
 /**

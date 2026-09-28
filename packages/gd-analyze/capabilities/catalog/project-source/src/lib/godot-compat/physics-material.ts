@@ -8,6 +8,8 @@
  * (their friction and bounce are the Rapier colliders' friction and restitution).
  */
 
+import { CoefficientCombineRule, type Collider } from '@dimforge/rapier3d-compat';
+
 export interface PhysicsMaterial {
   friction: number;
   rough: boolean;
@@ -26,13 +28,46 @@ export function construct(): PhysicsMaterial {
 }
 
 /**
- * `rough ? -friction : friction` (`physics_material.h:55`).
+ * The material as a Rapier collider's surface. Godot signs its coefficients so that one rule per
+ * pair can read them: a rough material's friction is negative (`computed_friction`,
+ * `physics_material.h:56`) so that it wins the pair's `abs(min(a, b))`, and an absorbent material's
+ * bounce is negative (`computed_bounce`, `physics_material.h:66`) so that it takes from the pair's
+ * sum clamped to [0, 1] (`combine_friction`, `combine_bounce`, `godot_body_pair_3d.cpp:255`).
+ * Rapier's coefficients are never negative (a negative friction makes its solver's velocities NaN,
+ * and the next step panics); each collider instead names how a pair combines them, the higher rule
+ * winning (Average < Min < Multiply < Max). So a rough material's friction combines by Max and
+ * wins over a smooth collider's Min, a smooth one's by Min; bounce is clamped to [0, 1] and
+ * combines by Max, and an absorbent material's by Min, taking the pair's bounce away.
  *
  * @godot PhysicsMaterial (protocol)
- * @source scene/resources/physics_material.h:55
+ * @source modules/godot_physics_3d/godot_body_pair_3d.cpp:255
  */
-export function godot_physics_material_computed(self: PhysicsMaterial): { readonly friction: number; readonly bounce: number } {
-  return { friction: self.rough ? -self.friction : self.friction, bounce: self.absorbent ? -self.bounce : self.bounce };
+export function godot_physics_material_surface(self: PhysicsMaterial): {
+  readonly friction: number;
+  readonly frictionCombineRule: CoefficientCombineRule;
+  readonly restitution: number;
+  readonly restitutionCombineRule: CoefficientCombineRule;
+} {
+  return {
+    friction: Math.abs(self.friction),
+    frictionCombineRule: self.rough ? CoefficientCombineRule.Max : CoefficientCombineRule.Min,
+    restitution: self.absorbent ? 0 : Math.min(Math.max(self.bounce, 0), 1),
+    restitutionCombineRule: self.absorbent ? CoefficientCombineRule.Min : CoefficientCombineRule.Max,
+  };
+}
+
+/**
+ * Sets a Rapier collider's surface to the material's.
+ *
+ * @godot PhysicsMaterial (protocol)
+ * @source modules/godot_physics_3d/godot_body_pair_3d.cpp:255
+ */
+export function godot_physics_material_apply(self: PhysicsMaterial, collider: Collider): void {
+  const surface = godot_physics_material_surface(self);
+  collider.setFriction(surface.friction);
+  collider.setFrictionCombineRule(surface.frictionCombineRule);
+  collider.setRestitution(surface.restitution);
+  collider.setRestitutionCombineRule(surface.restitutionCombineRule);
 }
 
 /**

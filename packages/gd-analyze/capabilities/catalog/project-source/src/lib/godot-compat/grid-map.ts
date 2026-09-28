@@ -20,7 +20,7 @@ import { construct as basis, type Basis } from './basis';
 import { godot_collision_object_stand_in, set_collision_layer as setBodyLayer, set_collision_mask as setBodyMask } from './collision-object-3d';
 import { godot_mesh_library_connect_changed, godot_mesh_library_item, type MeshLibrary } from './mesh-library';
 import { godot_node_entity } from './node';
-import { godot_physics_material_computed, type PhysicsMaterial } from './physics-material';
+import { godot_physics_material_surface, type PhysicsMaterial } from './physics-material';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { construct as transform3d, op_multiply, type Transform3D } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
@@ -609,8 +609,8 @@ function CellBody({ state, entity }: { readonly state: GridMapState; readonly en
     return release;
   }, []);
   // Without a material Godot's octant bodies keep the server's defaults; with one, its computed
-  // friction and bounce (`grid_map.cpp:429`) are each collider's friction and restitution.
-  const surface = state.material === null ? {} : (({ friction, bounce }) => ({ friction, restitution: bounce }))(godot_physics_material_computed(state.material));
+  // friction and bounce (`grid_map.cpp:429`) are each collider's surface.
+  const surface = state.material === null ? {} : godot_physics_material_surface(state.material);
   const colliders: ReactElement[] = [];
   for (const cell of state.cells.values()) {
     const entry = state.library === null ? undefined : godot_mesh_library_item(state.library, cell.item);

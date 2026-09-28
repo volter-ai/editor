@@ -19,7 +19,7 @@ import { godot_collision_object_body, godot_collision_object_node, godot_collisi
 import { godot_node_entity } from './node';
 import { createSignal, type GodotSignal } from './signal';
 import { type BodyContact, type BodyServerState, godot_direct_body_state, type PhysicsDirectBodyState3D } from './physics-direct-body-state-3d';
-import { godot_physics_material_computed, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
+import { godot_physics_material_apply, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 import { construct as basis } from './basis';
 import { construct as transform3d, type Transform3D } from './transform-3d';
 import { construct as vector3, op_multiply, type Vector3 } from './vector3';
@@ -83,12 +83,7 @@ function apply(entity: object, state: RigidState): void {
   body.enableCcd(state.continuous_cd);
   body.lockRotations(state.lock_rotation, true);
   if (state.material !== null) {
-    const { friction, bounce } = godot_physics_material_computed(state.material);
-    for (let index = 0; index < body.numColliders(); index += 1) {
-      const collider = body.collider(index);
-      collider.setFriction(friction);
-      collider.setRestitution(bounce);
-    }
+    for (let index = 0; index < body.numColliders(); index += 1) godot_physics_material_apply(state.material, body.collider(index));
   }
 }
 
