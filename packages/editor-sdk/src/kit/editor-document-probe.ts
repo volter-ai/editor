@@ -728,6 +728,22 @@ function withoutPointerCapture(element: HTMLElement, dispatch: () => void): void
  *  all in the element's own box fractions — `dispatchClick`'s sequence with
  *  the moves a mouse makes between press and release. Moves carry
  *  `buttons: 1` (the primary button is held), the release `buttons: 0`. */
+/** THE DRAG A `hold` LEFT PRESSED, until a `release` step lets go of it where it was left. */
+let heldDrag: { element: HTMLElement; end: MouseEventInit; button: 0 | 1 | 2 } | null = null;
+
+function releaseDrag(): HTMLElement {
+  const held = heldDrag;
+  if (held === null)
+    throw new Error('Nothing is held: release lets go of a drag that `hold: true` left pressed, and none is.');
+  heldDrag = null;
+  withoutPointerCapture(held.element, () => {
+    held.element.dispatchEvent(new PointerEvent('pointerup', { ...held.end, pointerType: 'mouse' }));
+    held.element.dispatchEvent(new MouseEvent('mouseup', held.end));
+    if (held.button === 2) held.element.dispatchEvent(new MouseEvent('contextmenu', held.end));
+  });
+  return held.element;
+}
+
 function dispatchDrag(
   element: HTMLElement,
   from: readonly [number, number],
@@ -736,6 +752,7 @@ function dispatchDrag(
   modifiers: { altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean } = {},
   via: readonly (readonly [number, number])[] = [],
   button: 0 | 1 | 2 = 0,
+  hold = false,
 ): void {
   const rect = element.getBoundingClientRect();
   // `buttons` is a bitmask in a different order from `button`: primary 1,
@@ -807,6 +824,10 @@ function dispatchDrag(
       }
     }
     const end = { ...at(to[0], to[1]), buttons: 0 };
+    if (hold) {
+      heldDrag = { element, end, button };
+      return;
+    }
     element.dispatchEvent(new PointerEvent('pointerup', { ...end, pointerType: 'mouse' }));
     element.dispatchEvent(new MouseEvent('mouseup', end));
     // A released primary button clicks; a released secondary one asks for the
@@ -929,7 +950,7 @@ function setSelectValue(element: HTMLSelectElement, value: string): void {
   element.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
 }
 
-const PROBE_ACTIONS = ['query', 'click', 'drag', 'key', 'paste', 'select', 'type'] as const;
+const PROBE_ACTIONS = ['query', 'click', 'drag', 'release', 'key', 'paste', 'select', 'type'] as const;
 
 /**
  * THE WIRE'S TWO FREE-FORM FIELDS, both refused by name.
@@ -1056,9 +1077,12 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
         },
         step.via ?? [],
         step.button ?? 0,
+        step.hold === true,
       );
       return drove(element);
     }
+    case 'release':
+      return drove(releaseDrag());
     case 'key': {
       const target = gestureTarget(scope, step);
       // A person's keystroke lands where their click put focus; what the workbench decides a
