@@ -211,19 +211,37 @@ function bodyOverrides(
   scenes: ReadonlyMap<string, SceneWithoutRefs>,
   refuse: (message: string) => void,
 ): readonly GodotSceneBodyProp[] {
-  const root = instanced.root;
   // The instanced scene's root may itself instance a scene (an inherited scene): its class and
   // form are the chain's end's.
   const form = godotSceneRootIdiom(scenes, instanced.sourceResPath)?.form;
   if (form?.kind !== 'body' || node.instance === undefined) return [];
   const className = godotSceneRootClass(scenes, instanced.sourceResPath) as string;
-  const prefabResources = new Map(instanced.resources.map((resource) => [resource.key, resource] as const));
-  const resources = new Map([...instanced.resources, ...scene.resources].map((resource) => [resource.key, resource] as const));
-  const shapes = shapeData(root, prefabResources);
-  const rootData = nodeData(root);
-  const merged = [...root.setters.filter((own) => !node.setters.some((entry) => sameSetter(entry, own))), ...node.setters];
-  const own = bodyProps(refuse, className, form.sensor, root.setters, prefabResources, shapes, rootData);
-  const instance = bodyProps(refuse, className, form.sensor, merged, resources, shapes, instanceData(rootData, nodeData(node)));
+  // The prefab is the chain folded from its base: the base scene's root, then each inheriting
+  // scene's root overrides over it, each setter's resources its own document's (keyed by document).
+  const chain: SceneWithoutRefs[] = [];
+  for (let at: SceneWithoutRefs | undefined = instanced; at !== undefined; at = at.root.instance === undefined ? undefined : scenes.get(at.root.instance.sourceResPath)) {
+    chain.unshift(at);
+  }
+  const resources = new Map<string, TargetGodotSceneResourcePlan>();
+  const keyed = (document: SceneWithoutRefs, setters: readonly TargetGodotSceneSetterPlan[]): TargetGodotSceneSetterPlan[] => {
+    for (const resource of document.resources) resources.set(`${document.sourceResPath}|${resource.key}`, { ...resource, key: `${document.sourceResPath}|${resource.key}` });
+    return setters.map((entry) => (entry.value.kind === 'resource' ? { ...entry, value: { ...entry.value, key: `${document.sourceResPath}|${entry.value.key}` } } : entry));
+  };
+  const over = (base: readonly TargetGodotSceneSetterPlan[], top: readonly TargetGodotSceneSetterPlan[]): TargetGodotSceneSetterPlan[] => [
+    ...base.filter((own) => !top.some((entry) => sameSetter(entry, own))),
+    ...top,
+  ];
+  let prefab: TargetGodotSceneSetterPlan[] = [];
+  let prefabData: Record<string, unknown> = {};
+  const shapes: Record<string, Record<string, unknown>> = {};
+  for (const document of chain) {
+    prefab = over(prefab, keyed(document, document.root.setters));
+    prefabData = instanceData(prefabData, nodeData(document.root));
+    Object.assign(shapes, shapeData(document.root, new Map(document.resources.map((resource) => [resource.key, resource] as const))));
+  }
+  const merged = over(prefab, keyed(scene, node.setters));
+  const own = bodyProps(refuse, className, form.sensor, prefab, resources, shapes, prefabData);
+  const instance = bodyProps(refuse, className, form.sensor, merged, resources, shapes, instanceData(prefabData, nodeData(node)));
   const changed: GodotSceneBodyProp[] = [];
   for (const [name, value] of instance) {
     if (JSON.stringify(own.get(name)) !== JSON.stringify(value)) changed.push({ name, value });
