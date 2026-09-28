@@ -93,6 +93,8 @@ export type DirectGodotSceneNodePlan = Omit<
 
 export type DirectGodotSceneDocumentPlan = Omit<TargetGodotSceneDocumentPlan, 'root'> & {
   readonly root: DirectGodotSceneNodePlan;
+  /** The scene's first Camera3D and the one authored current (`scene-surface-idioms.ts`). */
+  readonly cameras?: { readonly first?: string; readonly authored?: string };
   /** The nodes the scene's component holds refs to, and what instancing scenes take (`scene-refs.ts`). */
   readonly refs: GodotSceneRefsPlan;
 };

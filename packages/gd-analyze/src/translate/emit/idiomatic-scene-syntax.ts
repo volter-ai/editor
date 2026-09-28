@@ -455,19 +455,17 @@ function componentProp(entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute 
 }
 
 /** The setters every Node3D element states the same way: `visible` (three's), `transparency` (`userData`'s). */
-const SPATIAL_SETTERS = new Set(['set_visible', 'set_transparency']);
 
 /** A Node3D's authored `visible`, as three's own prop, which hides the subtree as Godot does (`node_3d.cpp:1120`). */
 function visibleProp(setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
-  const visible = setterValue(setters, 'set_visible');
+  const visible = setters.find((entry) => entry.role?.kind === 'visible')?.value;
   return visible?.kind === 'bool' ? [attribute('visible', { kind: 'literal-expression', value: visible.value })] : [];
 }
 
-/** A node with the setters `SPATIAL_SETTERS` states taken out, for the element's own props. */
+/** A node with its visible and transparency setters (their planned roles) taken out, for the element's own props. */
 function withoutSpatial(node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan {
-  return node.setters.some((entry) => SPATIAL_SETTERS.has(entry.setter.exportName))
-    ? { ...node, setters: node.setters.filter((entry) => !SPATIAL_SETTERS.has(entry.setter.exportName)) }
-    : node;
+  const spatial = (entry: TargetGodotSceneSetterPlan) => entry.role?.kind === 'visible' || entry.role?.kind === 'transparency';
+  return node.setters.some(spatial) ? { ...node, setters: node.setters.filter((entry) => !spatial(entry)) } : node;
 }
 
 /** An instanced scene's root as its prefab element, with the instance's overrides as props. */
@@ -599,14 +597,6 @@ function sameSetter(left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSet
   return left.setter.exportName === right.setter.exportName && left.index === right.index;
 }
 
-/** A GeometryInstance3D's visibility range setters, by the `<GodotVisibilityRange>` prop each states. */
-const VISIBILITY_RANGE_PROPS: Readonly<Record<string, string>> = {
-  set_visibility_range_begin: 'begin',
-  set_visibility_range_begin_margin: 'beginMargin',
-  set_visibility_range_end: 'end',
-  set_visibility_range_end_margin: 'endMargin',
-  set_visibility_range_fade_mode: 'fadeMode',
-};
 
 /** The transform components a node authored as properties, which three's own props state. */
 const SPATIAL_COMPONENTS = new Set(['position', 'rotation', 'scale']);
@@ -677,7 +667,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const visible = visibleProp(node.setters);
   const own = withoutSpatial(node);
   // A carried family's element (`scene-family-elements.ts`), inside its visibility range when it has one.
-  const range = own.setters.filter((entry) => VISIBILITY_RANGE_PROPS[entry.setter.exportName] !== undefined);
+  const range = own.setters.filter((entry) => entry.role?.kind === 'visibility-range');
   const family = familyElement(emission.family, form, range.length === 0 ? own : { ...own, setters: own.setters.filter((entry) => !range.includes(entry)) });
   if (family !== undefined) {
     const drawn = element(family.tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...family.attributes, ...skyLightsAttribute(emission, node), ...nodeDataAttribute(node)], [
@@ -689,7 +679,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     if (node.nodePath === emission.scene.root.nodePath) throw new Error(`${at}: a scene root with a visibility range has no idiomatic form`);
     return element(
       useCompat(emission, 'geometry-instance-3d', 'GodotVisibilityRange'),
-      range.map((entry) => attribute(VISIBILITY_RANGE_PROPS[entry.setter.exportName] as string, dataExpression(plainValue(entry.value)))),
+      range.map((entry) => attribute(entry.role?.kind === 'visibility-range' ? entry.role.prop : '', dataExpression(plainValue(entry.value)))),
       [drawn],
     );
   }
@@ -709,22 +699,6 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     default:
       throw new Error(`${at}: ${className} has no idiomatic element`);
   }
-}
-
-/** The first Camera3D the scene holds, in tree order, or the one authored current. */
-function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: string; readonly authored?: string } {
-  let first: string | undefined;
-  let authored: string | undefined;
-  const walk = (entry: DirectGodotSceneNodePlan) => {
-    if (entry.idiom?.form.kind === 'camera') {
-      first ??= entry.nodePath;
-      const current = setterValue(entry.setters, 'set_current');
-      if (current?.kind === 'bool' && current.value) authored ??= entry.nodePath;
-    }
-    for (const child of godotSceneSubnodes(entry)) walk(child);
-  };
-  walk(node);
-  return { ...(first === undefined ? {} : { first }), ...(authored === undefined ? {} : { authored }) };
 }
 
 /** The props an instancing scene hands the root: the plan's root props for its idiom, printed. */
@@ -768,7 +742,8 @@ export function idiomaticSceneSourceFile(
   project: DirectGodotProjectCompositionPlan,
   scene: DirectGodotSceneDocumentPlan,
 ): TargetTsSourceFile {
-  const cameras = currentCamera(scene.root);
+  // The scene's first Camera3D and the one authored current, as the plan found them.
+  const cameras = scene.cameras ?? {};
   const autoloadReferences = directGodotSceneAutoloadReferences(scene.root);
   const referencedAutoloads = autoloadReferences.map((reference) => {
     const autoload = project.scriptAutoloads.find((candidate) => candidate.name === reference.name && candidate.scriptResPath === reference.resPath);

@@ -1,7 +1,7 @@
 {
   "counts": {
     "phase-call-outside-pipeline": 0,
-    "emit-setter-name-decision": 13,
+    "emit-setter-name-decision": 7,
     "emit-project-walk": 7,
     "lowering-builtin-name": 3,
     "class-name-switch": 0,
@@ -43,12 +43,6 @@
     "emit-project-walk | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | project.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/index.ts | composition.scenes #1",
     "emit-project-walk | packages/gd-analyze/src/translate/emit/index.ts | composition.scenes #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | .has(entry.setter.exportName) #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | .has(entry.setter.exportName) #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | [entry.setter.exportName] #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | [entry.setter.exportName] #2",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | setterValue(entry.setters, ' #1",
-    "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts | setterValue(setters, ' #1",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #1",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #2",
     "emit-setter-name-decision | packages/gd-analyze/src/translate/emit/scene-family-elements.ts | setterValue(node.setters, ' #3",

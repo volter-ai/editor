@@ -11,7 +11,7 @@
  */
 
 import type { DirectGodotSceneDocumentPlan, DirectGodotSceneNodePlan } from './direct-project-composition-plan';
-import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan } from './scene-document-plan';
+import { godotSceneSubnodes, type TargetGodotSceneResourcePlan, type TargetGodotSceneSetterPlan } from './scene-document-plan';
 
 type SceneWithoutRefs = Omit<DirectGodotSceneDocumentPlan, 'refs'>;
 
@@ -73,11 +73,44 @@ const COLLECTED: ReadonlyMap<string, NonNullable<TargetGodotSceneSetterPlan['col
   ['set_shader_parameter', 'shader-parameter'],
 ]);
 
+/**
+ * The setters an element states apart from its own props, by the part they play: a Node3D's
+ * `visible` (three's own prop) and a GeometryInstance3D's `transparency` (its `userData`), a
+ * GeometryInstance3D's visibility range (`GodotVisibilityRange`'s props), a Camera3D's `current`.
+ */
+const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<string, TargetGodotSceneSetterPlan['role']>([
+  ['set_visible', { kind: 'visible' }],
+  ['set_transparency', { kind: 'transparency' }],
+  ['set_visibility_range_begin', { kind: 'visibility-range', prop: 'begin' }],
+  ['set_visibility_range_begin_margin', { kind: 'visibility-range', prop: 'beginMargin' }],
+  ['set_visibility_range_end', { kind: 'visibility-range', prop: 'end' }],
+  ['set_visibility_range_end_margin', { kind: 'visibility-range', prop: 'endMargin' }],
+  ['set_visibility_range_fade_mode', { kind: 'visibility-range', prop: 'fadeMode' }],
+  ['set_current', { kind: 'current' }],
+]);
+
 const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>
   setters.map((entry) => {
     const collect = COLLECTED.get(entry.setter.exportName);
-    return collect === undefined ? entry : { ...entry, collect };
+    const role = ROLES.get(entry.setter.exportName);
+    return collect === undefined && role === undefined ? entry : { ...entry, ...(collect === undefined ? {} : { collect }), ...(role === undefined ? {} : { role }) };
   });
+
+/** The first Camera3D the scene holds, in tree order, and the one authored current. */
+function sceneCameras(root: DirectGodotSceneNodePlan): { readonly first?: string; readonly authored?: string } {
+  let first: string | undefined;
+  let authored: string | undefined;
+  const walk = (entry: DirectGodotSceneNodePlan) => {
+    if (entry.idiom?.form.kind === 'camera') {
+      first ??= entry.nodePath;
+      const current = entry.setters.find((setter) => setter.role?.kind === 'current')?.value;
+      if (current?.kind === 'bool' && current.value) authored ??= entry.nodePath;
+    }
+    for (const child of godotSceneSubnodes(entry)) walk(child);
+  };
+  walk(root);
+  return { ...(first === undefined ? {} : { first }), ...(authored === undefined ? {} : { authored }) };
+}
 
 /** The scenes with each collected setter (`COLLECTED`) stamped with the prop it joins. */
 export function planGodotSceneCollectedSetters(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
@@ -90,6 +123,7 @@ export function planGodotSceneCollectedSetters(scenes: readonly SceneWithoutRefs
       children: node.children.map(stamp),
       ...(node.placements === undefined ? {} : { placements: node.placements.map((placed) => ({ at: placed.at, node: stamp(placed.node) })) }),
     });
-    return { ...scene, resources: scene.resources.map((resource) => ({ ...resource, setters: collected(resource.setters) })), root: stamp(scene.root) };
+    const root = stamp(scene.root);
+    return { ...scene, resources: scene.resources.map((resource) => ({ ...resource, setters: collected(resource.setters) })), root, cameras: sceneCameras(root) };
   });
 }
