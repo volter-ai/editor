@@ -863,9 +863,8 @@ function py(name: string): string {
  * `bpy.ops.<id>.get_rna_type().name` (`ot->name`) for every operator these menus run and every
  * `object.*_add`. An id not here keeps the script door's label.
  *
- * A TABLE, NOT A QUESTION PER CLICK. Asking Blender first (a history-free execute before the
- * operator) never answered on the browser-substrate page, so Add and Apply did nothing there
- * (measured 2026-09-28 in the hosted tab; why that execute hangs there is not established).
+ * A TABLE, NOT A QUESTION PER CLICK: asking Blender before every operator cost a round trip each
+ * time for a name that never changes within a build.
  */
 const OPERATOR_NAMES: Readonly<Record<string, string>> = {
   'curve.primitive_bezier_circle_add': "Add B\u00e9zier Circle",

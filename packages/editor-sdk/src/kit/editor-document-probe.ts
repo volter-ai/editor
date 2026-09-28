@@ -568,30 +568,46 @@ function pressedInFrame(element: HTMLElement, at?: readonly [number, number]): H
   return (hit as HTMLElement | null) ?? element;
 }
 
-function dispatchClick(
+async function dispatchClick(
   element: HTMLElement,
   clicks = 1,
   at?: readonly [number, number],
   modifiers: { altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean } = {},
   point?: { clientX: number; clientY: number },
-): void {
+): Promise<void> {
   const init = { ...pointerInit(element, at), ...point, ...modifiers };
   const total = Math.max(1, Math.round(clicks));
-  withoutPointerCapture(element, () => {
-    for (let n = 1; n <= total; n++) {
-      const down = { ...init, detail: n };
-      const up = { ...init, buttons: 0, detail: n };
+  const doc = element.ownerDocument;
+  for (let n = 1; n <= total; n++) {
+    const down = { ...init, detail: n };
+    const up = { ...init, buttons: 0, detail: n };
+    withoutPointerCapture(element, () => {
       element.dispatchEvent(new PointerEvent('pointerdown', { ...down, pointerType: 'mouse' }));
       element.dispatchEvent(new MouseEvent('mousedown', down));
       focusAsPressed(element);
-      element.dispatchEvent(new PointerEvent('pointerup', { ...up, pointerType: 'mouse' }));
-      element.dispatchEvent(new MouseEvent('mouseup', up));
-      element.dispatchEvent(new MouseEvent('click', up));
-    }
-    if (total >= 2) {
-      element.dispatchEvent(new MouseEvent('dblclick', { ...init, buttons: 0, detail: total }));
-    }
-  });
+    });
+    // A MOUSE'S PRESS AND RELEASE ARE TWO TASKS, and the page renders between them. Dispatched
+    // in one, a press that unmounts its own target (a menu closing on an outside `pointerdown`)
+    // still delivered its click, so this door passed Edit › Undo while a person's click did
+    // nothing (measured 2026-09-28 with a real click on the browser-substrate page). The release
+    // goes where a mouse's would: the pressed element if it is still there, else what is under
+    // the point, and a vanished element gets no click.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    const released = element.isConnected
+      ? element
+      : ((doc.elementFromPoint(init.clientX ?? 0, init.clientY ?? 0) as HTMLElement | null) ?? doc.body);
+    withoutPointerCapture(released, () => {
+      released.dispatchEvent(new PointerEvent('pointerup', { ...up, pointerType: 'mouse' }));
+      released.dispatchEvent(new MouseEvent('mouseup', up));
+      if (released === element) element.dispatchEvent(new MouseEvent('click', up));
+    });
+    if (released !== element) return;
+  }
+  if (total >= 2) {
+    withoutPointerCapture(element, () =>
+      element.dispatchEvent(new MouseEvent('dblclick', { ...init, buttons: 0, detail: total })),
+    );
+  }
 }
 
 /**
@@ -991,7 +1007,7 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       // Inside a framed page the press lands where a mouse would: on whatever the page
       // hit-tests at that point (its stacking and `pointer-events` decide), which the answer names.
       const pressed = element.ownerDocument === document ? element : pressedInFrame(element, at);
-      dispatchClick(pressed, step.clicks ?? 1, at && pressed === element ? at : undefined, {
+      await dispatchClick(pressed, step.clicks ?? 1, at && pressed === element ? at : undefined, {
         ...(step.altKey ? { altKey: true } : {}),
         ...(step.ctrlKey ? { ctrlKey: true } : {}),
         ...(step.metaKey ? { metaKey: true } : {}),

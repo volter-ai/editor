@@ -40,6 +40,27 @@ export function focusFirstMenuItem(menu: HTMLDivElement): void {
   enabledItems(menu)[0]?.focus();
 }
 
+/**
+ * WHETHER A PRESS LANDED IN THIS MENU, counting the menus it opened. A submenu is PORTALED to the
+ * theme root, so its rows are not DOM descendants of the menu that opened it: asked plainly, a
+ * press on a submenu row was "outside", the whole tree closed on `pointerdown`, and the row's
+ * `click` never came (Add › Mesh › Cone and Object › Apply › Location did nothing for a person,
+ * measured 2026-09-28). `ThemeRootPortal` stamps both ends of a portal with one id, so the press
+ * is followed back from what the portal wrote to where it was written, as many levels as it took.
+ */
+function containsThroughPortals(root: HTMLElement | null, target: Node): boolean {
+  if (!root) return false;
+  let node: Node | null = target;
+  while (node) {
+    if (root.contains(node)) return true;
+    const content: Element | null = (node instanceof Element ? node : node.parentElement)?.closest('[data-volter-portal-content]') ?? null;
+    const id: string | null | undefined = content?.getAttribute('data-volter-portal-content');
+    if (!id) return false;
+    node = document.querySelector(`[data-volter-portal="${CSS.escape(id)}"]`);
+  }
+  return false;
+}
+
 export const Menu = forwardRef<HTMLDivElement, MenuProps>(function Menu(
   {
     className,
@@ -61,7 +82,7 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(function Menu(
     if (!onDismiss) return;
     const dismissOutside = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (!localRef.current?.contains(target) && !dismissBoundaryRef?.current?.contains(target)) {
+      if (!containsThroughPortals(localRef.current, target) && !containsThroughPortals(dismissBoundaryRef?.current ?? null, target)) {
         onDismiss('outside');
       }
     };

@@ -6,7 +6,7 @@ import {
   MenuTrigger,
   MenuSeparator as Separator,
 } from '@volter/editor-sdk/widgets';
-import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { type RefObject, useRef, useState, useSyncExternalStore } from 'react';
 import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { selectAllAuthoringNodes } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
@@ -122,14 +122,11 @@ export function ApplicationMenus() {
   const anchorRef = (id: MenuId): RefObject<HTMLDivElement | null> =>
     (anchorRefs.current[id] ??= { current: null });
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(null);
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [open]);
+  // NO OUTSIDE-POINTER LISTENER OF ITS OWN. `AnchoredMenu` dismisses on a press outside the open
+  // menu and its trigger (`onDismiss` below), and the menu is PORTALED out of this bar: a listener
+  // asking whether the press was inside the bar answered no for the menu's own rows and closed it
+  // on `pointerdown`, before the row's `click`. Every Edit, View and Window item then did nothing
+  // for a person (measured 2026-09-28 with a real click on the browser-substrate page).
 
   // A command that FAILS says so in the console, as the same verb over the wire does: a click
   // that changed nothing and said nothing reads as a dead menu.
