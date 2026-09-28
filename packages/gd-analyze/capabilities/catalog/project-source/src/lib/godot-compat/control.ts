@@ -37,7 +37,7 @@ import {
   is_visible,
   is_visible_in_tree,
 } from './canvas-item';
-import { godot_node_adopt, godot_node_entity, godot_node_is_leaving, godot_node_observe_child_order, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_adopt, godot_node_entity, godot_node_is_queued, godot_node_observe_child_order, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
 import { get_size as subViewportSize } from './sub-viewport';
@@ -1368,8 +1368,8 @@ export function godot_control_call_gui_input(
   while (item !== null) {
     const state = CONTROLS.get(item);
     if (state !== undefined) {
-      // A Control that has left play (queued for deletion) takes no more input; the event goes on.
-      if (state.mouseFilter !== MOUSE_FILTER_IGNORE && !godot_node_is_leaving(item)) {
+      // A Control queued for deletion takes no more input; the event goes on.
+      if (state.mouseFilter !== MOUSE_FILTER_IGNORE && !godot_node_is_queued(item)) {
         // `Control::_call_gui_input` (`control.cpp:2518`): the script's, then the class's.
         if (!handled()) {
           // A script error aborts only its `_gui_input` (docs/GODOT.md §Order of work).

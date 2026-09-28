@@ -27,7 +27,7 @@
  * `root` as Godot's root Window is. Pause is not transcribed (the tree never pauses).
  */
 
-import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_leaving, godot_node_leave, godot_node_set_queued } from './node';
+import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -245,7 +245,7 @@ export function godot_owned_step(creator: object | null, delta: number, physics:
   if (creator === null) return;
   const owned = (creator as Owner)[OWNED];
   // A creator that has left play steps nothing more, as Godot frees it and its tweens.
-  if (owned === undefined || godot_node_is_leaving(creator)) return;
+  if (owned === undefined || godot_node_is_queued(creator)) return;
   processTimers(owned, delta, physics);
   processTweens(owned, delta, physics);
 }
@@ -319,14 +319,12 @@ export function create_tween(self: SceneTree, creator: object): Tween {
 }
 
 /**
- * Queues an object for deletion: marked queued (`is_queued_for_deletion`), and it and its subtree
- * take no further part at once (`godot_node_leave`: no more callbacks, their colliders off), as
- * Godot frees it at the end of the physics step or process frame it was queued in
- * (`scene/main/scene_tree.cpp:660`, `:725`) and so never calls or collides it again. It is freed
- * once the current work is done, as JavaScript defers (a microtask, as `call_deferred` is,
- * `object.ts`), unless it was freed first. There is no deletion queue of the tree's own. R3F runs
- * a frame's callbacks, physics steps and draw in one task, so the node is freed after the frame's
- * draw, where Godot frees it before: it is drawn one more frame.
+ * Queues an object for deletion: marked queued (`is_queued_for_deletion`), which takes it out of
+ * play at once (`godot_node_is_queued`), and freed once the current work is done, as JavaScript
+ * defers (a microtask, as `call_deferred` is, `object.ts`), unless it was freed first. There is no
+ * deletion queue of the tree's own. R3F runs a frame's callbacks, physics steps and draw in one
+ * task, so the node is freed after the frame's draw, where Godot frees it before: it is drawn one
+ * more frame, and its colliders take part in the frame's later physics steps.
  *
  * @godot SceneTree.queue_delete
  * @source scene/main/scene_tree.cpp:1638
@@ -334,7 +332,6 @@ export function create_tween(self: SceneTree, creator: object): Tween {
 export function queue_delete(self: SceneTree, object: object): void {
   void self;
   godot_node_set_queued(object);
-  godot_node_leave(object);
   queueMicrotask(() => {
     if (!godot_node_is_freed(object)) godot_node_free(object);
   });

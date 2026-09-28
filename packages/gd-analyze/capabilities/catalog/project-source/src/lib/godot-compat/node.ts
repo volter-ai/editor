@@ -76,8 +76,6 @@ interface NodeState {
   readyFirst: boolean;
   readyNotified: boolean;
   queued: boolean;
-  /** Queued for deletion, itself or an ancestor: it takes no further part until it is freed. */
-  leaving: boolean;
   freed: boolean;
   process: boolean;
   physicsProcess: boolean;
@@ -142,7 +140,6 @@ function fresh(): NodeState {
     readyFirst: true,
     readyNotified: false,
     queued: false,
-    leaving: false,
     freed: false,
     process: false,
     physicsProcess: false,
@@ -610,7 +607,7 @@ export function godot_node_set_internal_process(entity: object, process: ((delta
  */
 export function godot_node_advance(entity: object, physics: boolean, delta: number): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || state.leaving || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.queued || !processModeAllows(entity, state, false)) return;
   (physics ? state.internalPhysics : state.internalProcess)?.(delta);
 }
 
@@ -1109,48 +1106,16 @@ export function godot_node_set_queued(object: object): void {
   stateOf(entityOf(object)).queued = true;
 }
 
-/**
- * A node queued for deletion and its subtree take no further part until they are freed: no more
- * callbacks, input, advancing or owned timers and tweens (`godot_node_processes`,
- * `godot_node_call_input`, `godot_node_advance`, `godot_owned_step`), as Godot, which frees the
- * node at the end of the physics step or process frame it was queued in
- * (`scene/main/scene_tree.cpp:660`, `:725`), never calls them again; each class takes its own part
- * out (`godot_node_observe_leave`). It leaves at once: for the rest of the step or frame it was
- * queued in, where Godot still runs its later callbacks, lets it collide and delivers it input
- * (to a node queued by an earlier receiver of the same event), here it does none of these. A
- * collider re-enabled under a leaving body (a shape set or a CollisionShape3D added after the
- * queue) is not switched off again.
- *
- * @godot Node (protocol)
- * @source scene/main/scene_tree.cpp:660
- */
-export function godot_node_leave(object: object): void {
-  const visit = (entity: object): void => {
-    const state = NODE.get(entity);
-    if (state !== undefined && !state.leaving) {
-      state.leaving = true;
-      for (const observer of LEAVE_OBSERVERS) observer(entity);
-    }
-    for (const child of (entity as Object3D).children ?? []) visit(child);
-  };
-  visit(entityOf(object));
-}
-
-const LEAVE_OBSERVERS: ((entity: object) => void)[] = [];
-
-/**
- * Tells `observer` of each node that leaves play (`godot_node_leave`), so a class can take its own
- * part out (a collision object its colliders).
- *
- * @godot Node (protocol)
- * @source scene/main/scene_tree.cpp:660
- */
-export function godot_node_observe_leave(observer: (entity: object) => void): void {
-  if (!LEAVE_OBSERVERS.includes(observer)) LEAVE_OBSERVERS.push(observer);
-}
 
 /**
  * Whether a node is queued for deletion (`_is_queued_for_deletion`).
+ *
+ * A queued node takes no further part until it is freed: no more callbacks, input, advancing or
+ * owned timers and tweens (`godot_node_processes`, `godot_node_call_input`, `godot_node_advance`,
+ * `godot_owned_step`), as Godot, which frees it at the end of the physics step or process frame it
+ * was queued in, never calls it again; at once, where Godot still runs it for the rest of that
+ * step or frame. Only the node itself: its children, and its colliders, carry on until it is
+ * freed, so a queued body can still collide in the frame's later physics steps.
  *
  * @godot Node (protocol)
  * @source core/object/object.h:813
@@ -1159,16 +1124,6 @@ export function godot_node_is_queued(object: object): boolean {
   return NODE.get(entityOf(object))?.queued ?? false;
 }
 
-/**
- * Whether a node (by entity or script instance) has left play, queued for deletion itself or under
- * an ancestor that is (`godot_node_leave`).
- *
- * @godot Node (protocol)
- * @source scene/main/scene_tree.cpp:660
- */
-export function godot_node_is_leaving(object: object): boolean {
-  return NODE.get(entityOf(object))?.leaving ?? false;
-}
 
 /**
  * The tree record when the node is inside the tree; outside it Godot reports an error and returns
@@ -1351,7 +1306,7 @@ export function godot_node_processes(script: object | null, kind: 'process' | 'p
   const own = script === null ? undefined : NATIVE_OF_OWNER.get(script);
   const entity = own === undefined ? undefined : entityOf(own);
   const state = entity === undefined ? undefined : NODE.get(entity);
-  if (entity === undefined || state === undefined || !state.insideTree || state.leaving) return false;
+  if (entity === undefined || state === undefined || !state.insideTree || state.queued) return false;
   return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state, false);
 }
 
@@ -1701,7 +1656,7 @@ export function godot_node_listen_input(entity: object, kind: GodotInputKind, li
  */
 export function godot_node_call_input(entity: object, kind: GodotInputKind, event: unknown, handled: () => boolean): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || state.leaving || !state[kind] || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.queued || !state[kind] || !processModeAllows(entity, state, false)) return;
   state.binding?.[kind]?.(event);
   if (!state.insideTree || handled()) return;
   state.internalInput[kind]?.(event);
