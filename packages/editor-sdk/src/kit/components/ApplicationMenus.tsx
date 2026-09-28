@@ -93,7 +93,7 @@ export function ApplicationMenus() {
             key={item.id}
             {...(item.testId ? { 'data-testid': item.testId } : {})}
             disabled={item.disabled?.({}) ?? false}
-            onSelect={choose(() => void item.execute({}))}
+            onSelect={choose(() => item.execute({}))}
           >
             {typeof item.label === 'function' ? item.label() : item.label}
           </MenuItem>

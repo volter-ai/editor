@@ -76,6 +76,7 @@ import {
   nextHierarchyPanelSnapshot,
   serializeHierarchyPanel,
 } from './hierarchy-panel-view';
+import { announcePhotograph } from '@volter/editor-sdk/kit/photograph-notice';
 import type { HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import {
   anyLiveSessionMounted,
@@ -1559,6 +1560,7 @@ export async function handleCommand(
       try {
         if (cmd['view']) await presentEditorView(store, cmd['view'] as EditorView);
         const capture = await captureActiveEditorDocument(store, requested.size);
+        announcePhotograph(capture.base64);
         return { ok: true, data: { ...capture } };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };

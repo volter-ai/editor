@@ -442,6 +442,7 @@
     "./kit/editor-chrome-capture": "./src/kit/editor-chrome-capture.ts",
     "./kit/editor-current-view": "./src/kit/editor-current-view.ts",
     "./kit/editor-document-probe": "./src/kit/editor-document-probe.ts",
+    "./kit/photograph-notice": "./src/kit/photograph-notice.ts",
     "./kit/editor-git-client": "./src/kit/editor-git-client.ts",
     "./kit/editor-presentation-notice": "./src/kit/editor-presentation-notice.ts",
     "./kit/editor-view-presentation": "./src/kit/editor-view-presentation.ts",

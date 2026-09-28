@@ -36,6 +36,7 @@
       "./contributions/blender-timeline.document.tsx",
       "./contributions/blender-uv-editor.document.tsx",
       "./contributions/blender-runtime.document.tsx",
+      "./contributions/blender-screenshot.menu.ts",
       "./contributions/blender-version.status.tsx",
       "./contributions/blender.command.ts",
       "./contributions/blender.environment.ts",
