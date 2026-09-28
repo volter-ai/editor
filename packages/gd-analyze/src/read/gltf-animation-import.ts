@@ -249,7 +249,7 @@ function optimizeTrack(track: ImportedTrack, velocityError: number, angularError
  * Each clip of the importer's AnimationPlayer, keyed as Godot's scene importer leaves it, in the
  * reader's clip and track order (`GlbScene`'s AnimationPlayer).
  */
-export function importGltfAnimations(doc: GltfDocument, scene: GlbScene, fps: number, trimming: boolean): readonly ImportedClip[] {
+export function importGltfAnimations(doc: GltfDocument, scene: GlbScene, fps: number, trimming: boolean, rootScale = 1): readonly ImportedClip[] {
   if (trimming) throw new GltfParseError(`${scene.resPath}: animation trimming is not translated`);
   const player = scene.nodes.find((node) => node.animations !== undefined);
   if (player === undefined) return [];
@@ -310,7 +310,13 @@ export function importGltfAnimations(doc: GltfDocument, scene: GlbScene, fps: nu
       const own = resampled.get(`${track.path}\0${String(track.type)}`);
       const channel = animation.channels.find((entry) => channelNode.get(track.path)?.node === entry.node && (entry.path === 'translation' ? 1 : entry.path === 'rotation' ? 2 : 3) === track.type);
       const interp = channel?.interpolation === 'STEP' ? 0 : 1;
-      if (own !== undefined) return { type: track.type, path: track.path, interp, keys: own };
+      // The root scale the importer bakes: each position key of the file's own tracks, before the
+      // optimizer (`_rescale_animation`, resource_importer_scene.cpp:587, runs before
+      // `_optimize_animations`, :3313). A held key is the node's position, which is already scaled.
+      if (own !== undefined) {
+        const keys = track.type === 1 && rootScale !== 1 ? own.map(([time, transition, value]): ImportedKey => [time, transition, [f(value[0] * rootScale), f(value[1] * rootScale), f(value[2] * rootScale)] as V3]) : own;
+        return { type: track.type, path: track.path, interp, keys };
+      }
       const held = channelNode.get(track.path);
       if (held === undefined) throw new GltfParseError(`${scene.resPath}: the track ${track.path} names no imported node`);
       const value = track.type === 1 ? held.position : track.type === 2 ? held.rotation : held.scale;

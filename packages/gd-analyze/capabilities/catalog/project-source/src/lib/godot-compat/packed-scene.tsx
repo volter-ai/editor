@@ -107,6 +107,14 @@ function rootScale(scale: number): GLTFLoaderPlugin {
           const geometry = (object as Mesh).isMesh === true ? (object as Mesh).geometry : undefined;
           if (geometry === undefined || scaled.has(geometry)) return;
           geometry.scale(scale, scale, scale);
+          // Its blend shapes' vertices too (`_rescale_importer_mesh`, resource_importer_scene.cpp:532);
+          // three's `scale` moves only the base attributes.
+          for (const target of geometry.morphAttributes['position'] ?? []) {
+            for (let index = 0; index < target.count; index += 1) {
+              target.setXYZ(index, target.getX(index) * scale, target.getY(index) * scale, target.getZ(index) * scale);
+            }
+            target.needsUpdate = true;
+          }
           scaled.add(geometry);
         });
       }

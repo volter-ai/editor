@@ -668,7 +668,7 @@ function importedModelUrl(resPath: string): string {
 }
 
 /**
- * An instanced imported model: compat's `<GodotImportedScene>` over drei's `useGLTF`, with the
+ * An instanced imported model: compat's `<GodotImportedScene>` over three's `GLTFLoader` through R3F's `useLoader`, with the
  * importer's tree from its data file, the bone poses the scene sets on its nodes as `overrides`,
  * the instance's own children as JSX children, and the nodes placed under a model node inside
  * `<GodotPlaced at>`.

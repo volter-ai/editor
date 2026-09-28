@@ -966,7 +966,7 @@ export function readGltfAsGodotScene(
   // The AnimationPlayer's keys (`read/gltf-animation-import.ts`); a model whose animations this
   // does not model keeps its tree, and says why.
   try {
-    return { ...scene, animationKeys: importGltfAnimations(doc, scene, importParams.animationFps, importParams.animationTrimming) };
+    return { ...scene, animationKeys: importGltfAnimations(doc, scene, importParams.animationFps, importParams.animationTrimming, importParams.applyRootScale ? importParams.rootScale : 1) };
   } catch (error) {
     if (!(error instanceof GltfParseError)) throw error;
     return { ...scene, animationKeys: error.message };
