@@ -51,10 +51,7 @@
  *    takes rows while its `makeBasis` takes columns — a convention a reader is free to get wrong
  *    in a way that transposes every rotation in the level and still renders something.
  *
- * The table and the composition are both checked against Godot 3.6 itself:
- * `test/ground-truth/probe-gridmap.gd` recovers `_ortho_bases` through the engine's own bound
- * inverse (`Basis.get_orthogonal_index`) and dumps `GridMap.get_meshes()`'s composed transform for
- * every one of the 2,598 cells; the generated native fixture preserves the complete array.
+ * The table is Godot's own (`_ortho_bases`, read through `Basis.get_orthogonal_index`).
  *
  * ## What it refuses
  *
@@ -97,9 +94,6 @@ export interface Vec3 {
  * the basis sends `(1, 0, 0)`. Godot's own table lists each basis by ROWS
  * (`Basis(xx, xy, xz, yx, …)`, and `elements[0]` is the first row), so entry `i`'s `xImage` here is
  * the first COLUMN of Godot's entry `i` — transposed once, in one place, with the transpose stated.
- *
- * All 24 are recovered from the engine in `test/ground-truth/godot36-gridmap.json` and compared
- * entry by entry in the generated fixture; this table is never the only witness to itself.
  *
  * The runtime's `Basis` module (`godot-compat/basis.ts`, rebuilt from Godot's source) will hold
  * its own copy for `Basis.get_orthogonal_index` / `set_orthogonal_index`: the translator must not

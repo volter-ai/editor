@@ -26,14 +26,11 @@
  *  - every node name goes through a uniquifier whose STATE is shared with the scene name, the bone
  *    names and the mesh resource names, so the answer for one name depends on the others.
  *
- * ## Ground truth: measured, not inferred
+ * ## Source
  *
- * Every rule here is cited to `godotengine/godot` at tag `4.7-stable` AND checked against a dump of
- * what a real Godot 4.7 produced for this package's own fixtures
- * (`test/ground-truth/probe-glb-scene.gd`, `godot47-glb-scene-*.json`,
- * the generated native scene). The two together are the bar, because either alone is
- * insufficient: the C++ describes intent and has version-keyed branches whose live value is not
- * visible in it, and a dump alone cannot tell a rule from a coincidence.
+ * Every rule here is cited to `godotengine/godot` at tag `4.7-stable`. Where the C++ has
+ * version-keyed branches whose live value is not visible in it, running the importer in official
+ * Godot is how the rule was found (a building tool, never a record: docs/GODOT.md, ruling 2).
  *
  * The naming rule is the worked example of why. Three of the 15 `.glb` files in
  * `starter-kit-3d-platformer` import with root `X2` above a child `X`, and the other twelve with

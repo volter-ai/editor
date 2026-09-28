@@ -44,7 +44,7 @@ import { GltfParseError, readGlbContainer } from './glb-container';
 
 /**
  * A Godot `Transform3D`: a 3×3 `Basis` plus an origin. Stored as the basis's three COLUMNS, which
- * is what GDScript's `Basis.x`/`.y`/`.z` return and therefore what the ground-truth dump records.
+ * is what GDScript's `Basis.x`/`.y`/`.z` return.
  * (Godot stores a Basis internally as rows; the column accessors are the public surface, and the
  * two conventions are transposes of each other — a distinction `grid-map.ts` records getting wrong
  * being an easy and silent error.)
@@ -102,7 +102,7 @@ export function basisFromQuaternion(
   const yz = f(y * zs);
   const zz = f(z * zs);
   // `Basis::set` takes ROWS; the columns below are its transpose, which is what `Basis.x/.y/.z`
-  // return and what the ground-truth dump records.
+  // return.
   const col = (a: number, b: number, c: number, k: number): [number, number, number] => [
     f(a * k),
     f(b * k),
