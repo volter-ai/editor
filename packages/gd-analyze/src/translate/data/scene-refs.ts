@@ -38,7 +38,11 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
   };
   walk(scene.root);
   if (unique) targets.add(scene.root.nodePath);
-  for (const connection of scene.connections) targets.add(connection.fromNodePath).add(connection.toNodePath);
+  // A connection its source's handler delivers needs only the target's script (`scene-signal-delivery.ts`).
+  for (const connection of scene.connections) {
+    if (connection.delivery === undefined) targets.add(connection.fromNodePath);
+    targets.add(connection.toNodePath);
+  }
   return targets;
 }
 

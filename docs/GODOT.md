@@ -361,6 +361,19 @@ emitter prints:
    raises (`body_entered`, `area_entered`, `timeout`, `animation_finished`) become the element's
    event prop, or a callback the element takes, calling the method directly. Only
    `connect()` with a computed target keeps the signal object.
+   Landed for the signals a body raises from its own event handler
+   (`scene-signal-delivery.ts`, a table by the signal's accessor): an area's `body_entered` and
+   `body_exited` from its sensor's intersection handler, a dynamic body's from its contact
+   handler. The handler takes the scene's methods as callbacks (`const coinConnections = {
+   body_entered: (body) => coinScript.current?._on_coin_body_enter(body) }`) and calls them
+   first at each emission, as
+   Godot calls a scene's connections before any script's; the area's bookkeeping (monitoring,
+   masks, a body's shape count, a body inside leaving or entering the tree) still decides when.
+   Still a connection: a script's own signal (an instance's root script's, which the instancing
+   scene connects), a signal of an element the scene does not write, a method whose script is an
+   instanced scene's (its component runs it), and a signal any script looks at as connections
+   (analysis's `signalIntrospection`: `disconnect`, `is_connected`, a connection list, or one it
+   cannot name), since the callback is not one of the signal's connections.
 3. **A script is the component's own state.** The script class stays a class. The scene makes it
    with `useMemo`/`useRef` and hands it its refs. Godot's orders are kept by the scene, which owns
    its nodes as Godot instantiates a scene as a unit:

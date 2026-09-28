@@ -32,7 +32,7 @@ import type {
   DirectGodotScriptInstancePlan,
 } from '../data/direct-project-composition-plan';
 import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-lifecycle-hooks';
-import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
+import type { TargetGodotSceneConnectionPlan, TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import type { GodotSceneBodyProp } from '../data/scene-body-idioms';
@@ -409,8 +409,9 @@ function sensorChildren(emission: Emission, sensor: boolean, children: () => Tar
  * An area's sensor events: each collider pair Rapier reports starting or stopping to intersect the
  * sensor enters or leaves the area (`godot_area_3d_intersection`).
  */
-function sensorEvents(emission: Emission): TargetTsJsxAttribute[] {
+function sensorEvents(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
   const handler = useCompat(emission, 'area-3d', 'godot_area_3d_intersection');
+  const connected = handedConnections(emission, node, 'area-handler');
   return (['onIntersectionEnter', 'onIntersectionExit'] as const).map((prop) =>
     attribute(prop, {
       kind: 'arrow-expression',
@@ -418,14 +419,70 @@ function sensorEvents(emission: Emission): TargetTsJsxAttribute[] {
       body: {
         kind: 'call-expression',
         callee: { kind: 'identifier-expression', name: handler },
-        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onIntersectionEnter' }],
+        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onIntersectionEnter' }, ...connected],
       },
     }),
   );
 }
 
+/**
+ * The scene's connections a source's own handler delivers (`scene-signal-delivery.ts`), as the
+ * callbacks it takes: one const, printed after the scene's scripts, with each signal's methods
+ * called on their scripts in the scene's order. A callback passes what the handler hands it on as
+ * it is (`any`), as a connection does: the method's own parameter type is its own.
+ */
+function handedConnections(emission: Emission, node: DirectGodotSceneNodePlan, delivery: NonNullable<TargetGodotSceneConnectionPlan['delivery']>): TargetTsExpression[] {
+  const connections = emission.scene.connections.filter((connection) => connection.delivery === delivery && connection.fromNodePath === node.nodePath);
+  if (connections.length === 0) return [];
+  const base = `${camelName(node.name)}Connections`;
+  let local = base;
+  for (let n = 2; emission.family.taken.has(local); n += 1) local = `${base}${String(n)}`;
+  emission.family.taken.add(local);
+  // The targets' refs are planned (`scene-refs.ts`); a target later in the tree is named now.
+  const scriptOf = (target: string) => `${emission.nodeRefs.get(target) ?? refLocal(emission, target, target === '.' ? emission.scene.root.name : target.slice(target.lastIndexOf('/') + 1))}Script`;
+  const scripts = new Map(connections.map((connection) => [connection.toNodePath, scriptOf(connection.toNodePath)] as const));
+  emission.referenceHooks.push(() => {
+    const signals = [...new Set(connections.map((connection) => connection.signal))];
+    return [
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: local,
+        initializer: {
+          kind: 'object-expression',
+          properties: signals.map((signal) => {
+            const called = connections.filter((connection) => connection.signal === signal);
+            const count = Math.max(...called.map((connection) => connection.arguments));
+            const parameters = Array.from({ length: count }, (_, index) => ({ name: index === 0 ? 'body' : `argument${String(index)}`, type: { kind: 'keyword-type' as const, keyword: 'any' as const } }));
+            const calls: TargetTsExpression[] = called.map((connection) => ({
+              kind: 'call-expression',
+              callee: {
+                kind: 'property-expression',
+                object: { kind: 'property-expression', object: { kind: 'identifier-expression', name: scripts.get(connection.toNodePath) as string }, property: 'current' },
+                property: connection.method,
+                optional: true,
+              },
+              arguments: parameters.slice(0, connection.arguments).map((parameter) => ({ kind: 'identifier-expression' as const, name: parameter.name })),
+            }));
+            return {
+              key: signal,
+              value: {
+                kind: 'arrow-expression' as const,
+                parameters,
+                body: calls.length === 1 ? (calls[0] as TargetTsExpression) : calls.map((call): TargetTsStatement => ({ kind: 'expression-statement', expression: call })),
+              },
+            };
+          }),
+        },
+      },
+    ];
+  });
+  return [{ kind: 'identifier-expression', name: local }];
+}
+
 /** A dynamic body's contacts, which compat reports as its `body_entered` and `body_exited` while monitoring. */
-function contactEvents(emission: Emission): TargetTsJsxAttribute[] {
+function contactEvents(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
+  const connected = handedConnections(emission, node, 'contact-handler');
   const handler = useCompat(emission, 'rigid-body-3d', 'godot_rigid_body_3d_contact');
   return (['onCollisionEnter', 'onCollisionExit'] as const).map((prop) =>
     attribute(prop, {
@@ -434,7 +491,7 @@ function contactEvents(emission: Emission): TargetTsJsxAttribute[] {
       body: {
         kind: 'call-expression',
         callee: { kind: 'identifier-expression', name: handler },
-        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onCollisionEnter' }],
+        arguments: [{ kind: 'identifier-expression', name: 'event' }, { kind: 'literal-expression', value: prop === 'onCollisionEnter' }, ...connected],
       },
     }),
   );
@@ -704,8 +761,8 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...nodeRef(emission, node, 'RapierRigidBody', 'rapier'),
       { kind: 'jsx-string-attribute', name: 'type', value: body.type },
       attribute('colliders', { kind: 'literal-expression', value: false }),
-      ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission)] : []),
-      ...(body.type === 'dynamic' ? contactEvents(emission) : []),
+      ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission, node)] : []),
+      ...(body.type === 'dynamic' ? contactEvents(emission, node) : []),
       ...transform,
       ...props.map((prop) => bodyProp(emission, prop)),
     ], sensorChildren(emission, body.sensor, children));
@@ -828,7 +885,7 @@ export function idiomaticSceneSourceFile(
   for (const [name, module] of emission.lifecycle.compat) useCompat(emission, module, name);
   for (const name of emission.lifecycle.rapier) emission.rapier.add(name);
   // The scene's connections, made once its scripts are attached (`packed_scene.cpp:682`).
-  for (const connection of scene.connections) {
+  for (const connection of scene.connections.filter((entry) => entry.delivery === undefined)) {
     const accessor = useCompat(emission, connection.accessor.module.replace(/^lib\/godot-compat\//u, ''), connection.accessor.exportName);
     emission.hooks.push({
       kind: 'expression-statement',

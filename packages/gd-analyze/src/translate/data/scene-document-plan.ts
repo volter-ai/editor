@@ -388,6 +388,11 @@ export interface TargetGodotSceneConnectionPlan {
   readonly accessor: { readonly module: string; readonly exportName: string; readonly named: boolean };
   /** The signal's argument count, each passed on to the method. */
   readonly arguments: number;
+  /**
+   * Whose handler calls the method (`scene-signal-delivery.ts`): the source element's own event
+   * handler, which takes it as a callback; else a connection to the signal (`useGodotConnection`).
+   */
+  readonly delivery?: 'area-handler' | 'contact-handler';
 }
 
 export interface TargetGodotSceneDocumentPlan {

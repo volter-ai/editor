@@ -1,4 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { type BoundGodotSignalIntrospection, signalIntrospection } from './signal-introspection';
 import { type BoundGodotSelfNodePath, selfNodePaths } from './self-node-paths';
 import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
@@ -98,6 +99,8 @@ export interface BoundGodotSourceScript {
   readonly resourceLoads?: readonly BoundGodotResourceLoad[];
   /** The nodes reading a literal path from self (`self-node-paths.ts`). */
   readonly selfNodePaths: readonly BoundGodotSelfNodePath[];
+  /** The signals the program looks at as connections (`signal-introspection.ts`). */
+  readonly signalIntrospection: BoundGodotSignalIntrospection;
   /** The script instances the program makes or sets outside a scene (`instances-made.ts`). */
   readonly instancesMade: BoundGodotInstancesMade;
   /** This script's variable declarations that hold null at some time (`nullable-variables.ts`). */
@@ -1588,6 +1591,7 @@ export function bindGodotProject(
       utilityCalls: variantUtilityCalls(refined),
       selfNodePaths: selfNodePaths(refined),
       instancesMade: instancesMade(refined),
+      signalIntrospection: signalIntrospection(refined),
       ...(scriptNumericVariants === undefined ? {} : { numericVariants: scriptNumericVariants }),
       ...(loadsByScript.has(program.resPath) ? { resourceLoads: loadsByScript.get(program.resPath) as readonly BoundGodotResourceLoad[] } : {}),
       ...(nullable === undefined ? {} : { nullableDeclarations: nullable.declarations, nullableVariables: nullable.variables }),

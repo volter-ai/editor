@@ -1,3 +1,4 @@
+import { planGodotSceneSignalDelivery } from './scene-signal-delivery';
 import type { GodotScriptNodeSite } from './script-node-paths';
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { godotSceneNodeIdiom } from './scene-node-idioms';
@@ -915,7 +916,7 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(project);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
-  const bodied = planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics).map((scene) => {
+  const bodied = planGodotSceneSignalDelivery(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), project).map((scene) => {
     const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);
     const autoloadReferences = sceneAutoloadReferences(scene, diagnostics);
     return { ...scene, ...(current === undefined ? {} : { cameras: { ...scene.cameras, current } }), ...(autoloadReferences.length === 0 ? {} : { autoloadReferences }) };
