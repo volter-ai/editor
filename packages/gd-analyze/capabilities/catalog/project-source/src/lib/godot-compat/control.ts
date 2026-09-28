@@ -41,7 +41,7 @@ import { godot_node_adopt, godot_node_entity, godot_node_observe_child_order, go
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
 import { get_size as subViewportSize } from './sub-viewport';
-import { get_size as windowSize, godot_window_connect_size_changed, godot_window_has_size } from './window';
+import { godot_window_connect_size_changed, godot_window_has_size, godot_window_visible_size } from './window';
 import { basis_xform, construct as transform2d, get_scale as transformScale, affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
 import type { ReactElement } from 'react';
@@ -419,7 +419,7 @@ function parentAnchorableRect(entity: Object3D): Rect2 {
   if (parent !== null) return CONTROLS.has(parent) ? rect2(vector2(), (CONTROLS.get(parent) as ControlState).sizeCache) : rect2();
   const viewport = viewportOf(entity);
   if (viewport === null) return rect2();
-  const size = godot_window_has_size(viewport) ? windowSize(viewport) : subViewportSize(viewport);
+  const size = godot_window_has_size(viewport) ? godot_window_visible_size(viewport) : subViewportSize(viewport);
   return rect2(0, 0, size.x, size.y);
 }
 

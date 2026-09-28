@@ -12,7 +12,7 @@
  * processing `_input` from the last in tree order, the GUI (the Control under the pointer and its
  * parents, `_gui_input_event`), shortcut input, unhandled key input and unhandled input, each stage
  * skipped once the event is handled. The root viewport's events are the root window's, so the event
- * is already in its coordinates (no stretch transform is bound). The GUI stage covers mouse buttons,
+ * is already in its coordinates (the root window maps the page's pointer through the stretch). The GUI stage covers mouse buttons,
  * mouse motion, screen touches and drags; focus, drag and drop, tooltips and the cursor shape are
  * not bound.
  */
@@ -23,8 +23,11 @@ import { godot_control_call_gui_input, godot_control_find } from './control';
 import { godot_input_set_dispatch } from './input';
 import type { InputEventRecord } from './input-event';
 import { type GodotInputKind, can_process, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
+import { construct as rect2, type Rect2 } from './rect2';
 import { type GodotSignal, godot_object_signal } from './signal';
+import { get_size as subViewportSize } from './sub-viewport';
 import { affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
+import { godot_window_has_size, godot_window_visible_size } from './window';
 
 const renderers = new Set<WebGLRenderer>();
 
@@ -247,6 +250,19 @@ export function push_input(self: object, p_event: InputEventRecord, p_local_coor
   if (event.type === 'key' || event.type === 'joypad_button') callStage(viewport, state, 'shortcutInput', event);
   if (!state.handled && event.type === 'key') callStage(viewport, state, 'unhandledKeyInput', event);
   if (!state.handled) callStage(viewport, state, 'unhandledInput', event);
+}
+
+/**
+ * The rect the viewport's 2D world is laid out in: the root window's stretched size
+ * (`display/window/stretch/*`), or a SubViewport's size.
+ *
+ * @godot Viewport.get_visible_rect
+ * @source scene/main/viewport.cpp:1238
+ */
+export function get_visible_rect(self: object): Rect2 {
+  const viewport = viewportOf(self);
+  const size = godot_window_has_size(viewport) ? godot_window_visible_size(viewport) : subViewportSize(viewport);
+  return rect2(0, 0, size.x, size.y);
 }
 
 /**

@@ -21,6 +21,7 @@ import type { Object3D } from 'three';
 import { godot_object_signal } from './signal';
 import { godot_audio_resume } from './audio-stream';
 import { flush_buffered_events, godot_input_attach_canvas, parse_input_event } from './input';
+import { get_setting } from './project-settings';
 import type { InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector2i, type Vector2i } from './vector2i';
@@ -68,6 +69,75 @@ export function godot_window_connect_size_changed(self: Object3D, listener: () =
  */
 export function get_size(self: Object3D): Vector2i {
   return SIZES.get(self) ?? vector2i(100, 100);
+}
+
+/**
+ * Where a window of `width` by `height` pixels shows the 2D world under the project's stretch
+ * settings: `visible`, the size the 2D world is laid out at (the viewport's visible rect), shown
+ * in the window's `screen` rect, `margin` in from its top-left corner.
+ */
+interface Stretch {
+  readonly visible: Vector2;
+  readonly screen: Vector2;
+  readonly margin: Vector2;
+}
+
+/**
+ * The project's stretch (`display/window/stretch/*`, `Window::_update_viewport_size`,
+ * `window.cpp:1302`). In `canvas_items` mode the 2D world is laid out at the base size
+ * (`display/window/size/viewport_*`) grown to the window's aspect as the aspect rule allows and
+ * divided by the scale; the window shows it scaled to fit, centred when the rule keeps an aspect
+ * the window does not have. `disabled` lays it out at the window's own size. `viewport` mode is
+ * refused at import. The 3D world always renders at the window's size.
+ */
+function stretch(width: number, height: number): Stretch {
+  const whole = vector2(width, height);
+  const factor = Number(get_setting('display/window/stretch/scale', 1)) || 1;
+  const base = vector2(Number(get_setting('display/window/size/viewport_width', 1152)), Number(get_setting('display/window/size/viewport_height', 648)));
+  if (get_setting('display/window/stretch/mode', 'disabled') !== 'canvas_items' || base.x <= 0 || base.y <= 0 || width <= 0 || height <= 0) {
+    return { visible: vector2(width / factor, height / factor), screen: whole, margin: vector2() };
+  }
+  const aspect = String(get_setting('display/window/stretch/aspect', 'keep'));
+  const baseAspect = base.x / base.y;
+  const windowAspect = width / height;
+  let visible = base;
+  let screen = whole;
+  if (aspect !== 'ignore' && Math.abs(baseAspect - windowAspect) > 1e-5) {
+    const wider = baseAspect < windowAspect;
+    if (wider && (aspect === 'keep_height' || aspect === 'expand')) visible = vector2(base.y * windowAspect, base.y);
+    else if (!wider && (aspect === 'keep_width' || aspect === 'expand')) visible = vector2(base.x, base.x / windowAspect);
+    else screen = wider ? vector2(height * baseAspect, height) : vector2(width, width / baseAspect);
+  }
+  screen = vector2(Math.floor(screen.x), Math.floor(screen.y));
+  visible = vector2(Math.floor(visible.x), Math.floor(visible.y));
+  const margin = vector2(Math.round((width - screen.x) / 2), Math.round((height - screen.y) / 2));
+  return { visible: vector2(visible.x / factor, visible.y / factor), screen, margin };
+}
+
+/**
+ * The size the window's 2D world is laid out at: the window's size stretched by the project's
+ * stretch settings (`size_2d_override`, `window.cpp:1428`); a Control anchored to the root viewport
+ * anchors to it.
+ *
+ * @godot Window (protocol)
+ * @source scene/main/viewport.cpp:1238
+ */
+export function godot_window_visible_size(self: Object3D): Vector2 {
+  const size = get_size(self);
+  return stretch(size.x, size.y).visible;
+}
+
+/**
+ * A point in the window's 2D world in the window's own pixels, where the 3D world renders
+ * (`Viewport::get_camera_coords`, `viewport.cpp:3705`, through the stretch).
+ *
+ * @godot Window (protocol)
+ * @source scene/main/viewport.cpp:3705
+ */
+export function godot_window_camera_coords(self: Object3D, p_pos: Vector2): Vector2 {
+  const size = get_size(self);
+  const { visible, screen, margin } = stretch(size.x, size.y);
+  return vector2(margin.x + (p_pos.x * screen.x) / visible.x, margin.y + (p_pos.y * screen.y) / visible.y);
 }
 
 /**
@@ -173,11 +243,16 @@ const web = {
 
 /**
  * `GodotInput.computePosition` (`platform/web/js/libs/library_godot_input.js:492`): the client
- * point in the canvas's drawing-buffer pixels.
+ * point in the canvas's drawing-buffer pixels, then in the root viewport's 2D world through the
+ * stretch (`Viewport::push_input` with `_get_input_pre_xform`, `viewport.cpp:3489`).
  */
 function canvasPoint(canvas: HTMLCanvasElement, event: { readonly clientX: number; readonly clientY: number }): Vector2 {
   const rect = canvas.getBoundingClientRect();
-  return vector2((event.clientX - rect.x) * (canvas.width / rect.width), (event.clientY - rect.y) * (canvas.height / rect.height));
+  const { visible, screen, margin } = stretch(canvas.width, canvas.height);
+  const x = (event.clientX - rect.x) * (canvas.width / rect.width);
+  const y = (event.clientY - rect.y) * (canvas.height / rect.height);
+  if (screen.x <= 0 || screen.y <= 0) return vector2(x, y);
+  return vector2(((x - margin.x) * visible.x) / screen.x, ((y - margin.y) * visible.y) / screen.y);
 }
 
 /**
@@ -246,11 +321,13 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
   on(page, 'pointermove', (raw) => {
     const event = raw as PointerEvent;
     if (!web.insideCanvas && web.mask === 0) return;
-    // The movement scaled from CSS pixels to canvas pixels (`platform/web/js/libs/library_godot_input.js:528`).
+    // The movement scaled from CSS pixels to canvas pixels (`platform/web/js/libs/library_godot_input.js:528`),
+    // then through the stretch as the position is.
     const rect = canvas.getBoundingClientRect();
+    const { visible, screen } = stretch(canvas.width, canvas.height);
     const relative = vector2(
-      rect.width === 0 ? 0 : (event.movementX * canvas.width) / rect.width,
-      rect.height === 0 ? 0 : (event.movementY * canvas.height) / rect.height,
+      rect.width === 0 || screen.x <= 0 ? 0 : (event.movementX * canvas.width * visible.x) / (rect.width * screen.x),
+      rect.height === 0 || screen.y <= 0 ? 0 : (event.movementY * canvas.height * visible.y) / (rect.height * screen.y),
     );
     parse_input_event({ type: 'mouse_motion', position: canvasPoint(canvas, event), relative, button_mask: web.mask, ...modifiers(event, 0) });
   });
@@ -318,7 +395,8 @@ const STACKED = new WeakMap<HTMLElement, string>();
 
 /**
  * The element the canvas items draw into (`godot_canvas_draw`): one absolutely placed layer over
- * the canvas in the canvas's parent, scaled from drawing-buffer pixels to the canvas's CSS box and
+ * the canvas in the canvas's parent, laid out at the stretched size the 2D world is laid out at and
+ * scaled by a CSS transform to the part of the canvas's CSS box the window shows it in, and
  * transparent to the pointer, so the page's input reaches the canvas as in the web export. It
  * stacks above the canvas, as the web export's canvas items draw over its 3D view.
  *
@@ -344,10 +422,14 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
     parent.appendChild(layer);
     STACKED.delete(layer);
   }
-  layer.style.left = `${String(left)}px`;
-  layer.style.top = `${String(top)}px`;
-  layer.style.width = `${String(canvas.width)}px`;
-  layer.style.height = `${String(canvas.height)}px`;
+  // Laid out at the stretched size and scaled to the rect the window shows it in, from
+  // drawing-buffer pixels to the canvas's CSS box.
+  const { visible, screen, margin } = stretch(canvas.width, canvas.height);
+  const css = canvas.width > 0 ? cssWidth / canvas.width : 1;
+  layer.style.left = `${String(left + margin.x * css)}px`;
+  layer.style.top = `${String(top + margin.y * css)}px`;
+  layer.style.width = `${String(visible.x)}px`;
+  layer.style.height = `${String(visible.y)}px`;
   // Over the canvas whatever stacking the page gives it (a positioned canvas with a z-index),
   // computed again only when the canvas's own z-index style changes.
   const stacking = canvas.style.zIndex;
@@ -359,6 +441,8 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
   // The canvas's CSS width in its own box (`clientWidth`; a canvas carries no border or padding
   // here), not its on-screen rect: the layer sits in the same parent, so a transform on an ancestor
   // (a scaled preview) already applies to both.
-  if (canvas.width > 0 && cssWidth > 0) layer.style.transform = `scale(${String(cssWidth / canvas.width)})`;
+  if (canvas.width > 0 && cssWidth > 0 && visible.x > 0 && visible.y > 0) {
+    layer.style.transform = `scale(${String((css * screen.x) / visible.x)}, ${String((css * screen.y) / visible.y)})`;
+  }
   return layer;
 }

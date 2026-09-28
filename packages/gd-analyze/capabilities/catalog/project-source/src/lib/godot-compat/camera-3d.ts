@@ -35,7 +35,7 @@ import type { Environment } from './environment';
 import { godot_node_observe_tree, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { get_size } from './sub-viewport';
-import { get_size as windowSize, godot_window_has_size } from './window';
+import { get_size as windowSize, godot_window_camera_coords, godot_window_has_size } from './window';
 import {
   construct as vector3,
   dot,
@@ -259,8 +259,9 @@ export function get_keep_aspect_mode(self: PerspectiveCamera): number {
 
 /**
  * `project_local_ray_normal` (`scene/3d/camera_3d.cpp:411`) rotated by the camera transform's
- * basis and normalized. The viewport's camera coordinates are the position itself (a SubViewport
- * has identity stretch and canvas transforms, `scene/main/viewport.cpp:3705`).
+ * basis and normalized. The viewport's camera coordinates are the position through the root
+ * window's stretch, and the position itself in a SubViewport (identity stretch and canvas
+ * transforms, `scene/main/viewport.cpp:3705`).
  *
  * @godot Camera3D.project_ray_normal
  * @source scene/3d/camera_3d.cpp:406
@@ -268,8 +269,10 @@ export function get_keep_aspect_mode(self: PerspectiveCamera): number {
 export function project_ray_normal(self: PerspectiveCamera, p_pos: Vector2): Vector3 {
   const state = stateOf(self);
   const [width, height] = viewportSize(self);
-  const cx = f32(p_pos.x) + 0;
-  const cy = f32(p_pos.y) + 0;
+  const viewport = viewportOf(self);
+  const coords = godot_window_has_size(viewport) ? godot_window_camera_coords(viewport, p_pos) : p_pos;
+  const cx = f32(coords.x) + 0;
+  const cy = f32(coords.y) + 0;
   const cm = cameraProjection(self, state);
   const zNear = f32(f32(cm.c33 + cm.c32) / f32(cm.c23 + cm.c22));
   const w = f32(f32(-zNear * cm.c23) + cm.c33);

@@ -573,11 +573,17 @@ function directGodotSettingValue(value: GodotValue): DirectGodotSettingValue | u
 /**
  * Engine settings compat reads while the game runs, carried when `project.godot` authors them
  * (compat holds each one's registered default): the main loop's clock (`main/main.cpp:2247`,
- * `:2262`), the default space's gravity and damping (`servers/physics_server_3d.cpp`), and
- * Input's touch/mouse emulation (`main/main.cpp`).
+ * `:2262`), the default space's gravity and damping (`servers/physics_server_3d.cpp`),
+ * Input's touch/mouse emulation (`main/main.cpp`), and the root window's base size and stretch
+ * (`window.ts`, `scene/main/window.cpp:1302`).
  */
 const ENGINE_SETTINGS = [
   'application/run/delta_smoothing',
+  'display/window/size/viewport_height',
+  'display/window/size/viewport_width',
+  'display/window/stretch/aspect',
+  'display/window/stretch/mode',
+  'display/window/stretch/scale',
   'input_devices/pointing/emulate_mouse_from_touch',
   'physics/3d/default_angular_damp',
   'physics/3d/default_gravity',
@@ -609,6 +615,16 @@ function projectSettings(
       }
       planned.set(entry.setting.key, { key: entry.setting.key, value });
     }
+  }
+  // Compat lays the 2D world out at the stretched size in `canvas_items` mode; `viewport` mode
+  // (the whole game rendered at the base size and scaled) and integer scaling are not translated.
+  const stretchMode = project.read.authoredSettings.get('display/window/stretch/mode');
+  if (stretchMode?.kind === 'string' && stretchMode.value === 'viewport') {
+    diagnostics.push({ at: 'project.godot#display/window/stretch/mode', message: 'the viewport stretch mode is not translated' });
+  }
+  const scaleMode = project.read.authoredSettings.get('display/window/stretch/scale_mode');
+  if (scaleMode?.kind === 'string' && scaleMode.value === 'integer') {
+    diagnostics.push({ at: 'project.godot#display/window/stretch/scale_mode', message: 'integer stretch scaling is not translated' });
   }
   for (const key of ENGINE_SETTINGS) {
     const authored = project.read.authoredSettings.get(key);
