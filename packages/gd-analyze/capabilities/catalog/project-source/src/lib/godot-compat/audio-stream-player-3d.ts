@@ -10,9 +10,9 @@
  * (`_get_attenuation_db`, `:233`) maps onto the panner's model beyond `unit_size`, where the two
  * agree: inverse distance is `inverse` with `refDistance` the unit size, inverse square is
  * `exponential` with rolloff 2, logarithmic is `exponential` with rolloff `ln 10`; disabled is no
- * distance gain. Past `max_distance` (when set) the player is silent, as Godot skips it. Named
- * deviations (`web-audio-attenuation`): within `unit_size` Godot's gain rises above 1 up to
- * `max_db`, the panner's stays at 1; Godot pans by its speaker mix and `panning_strength`, the
+ * distance gain. Past `max_distance` (when set) the player is silent, as Godot skips it. Where the
+ * panner differs: within `unit_size` Godot's gain rises above 1 up to `max_db`, the panner's stays
+ * at 1; Godot pans by its speaker mix and `panning_strength`, the
  * panner by `equalpower`; doppler, emission angles, area reverb and the attenuation filter are not
  * bound.
  */

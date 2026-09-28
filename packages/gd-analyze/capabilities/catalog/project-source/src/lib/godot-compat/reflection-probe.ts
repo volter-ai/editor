@@ -11,13 +11,13 @@
  * the box is the probe's `size`, the capture point its `origin_offset`, the near plane 0.01 and the
  * far plane the largest of `max_distance` and the distances from the capture point to the box's
  * faces; box projection projects onto the same box; `UPDATE_ONCE` captures on a change,
- * `UPDATE_ALWAYS` every frame. Named deviations:
- * - `reflection-probe-receivers`: Godot draws every geometry inside the box with the probe's
+ * `UPDATE_ALWAYS` every frame. Where it differs:
+ * - Godot draws every geometry inside the box with the probe's
  *   reflection (at most two probes each, `rasterizer_scene_gles3.cpp:1406`); the capability publishes
  *   the capture and binds no material, so the imported scene's materials do not reflect it.
- * - `reflection-probe-far`: Godot's faces are captured in turn with the far plane grown to each
+ * - Godot's faces are captured in turn with the far plane grown to each
  *   face's distance so far; the capability captures every face with the largest.
- * - `reflection-probe-ambient`: the probe's ambient (interior, ambient mode and colour) is not drawn.
+ * - the probe's ambient (interior, ambient mode and colour) is not drawn.
  */
 
 import type { Object3D } from 'three';

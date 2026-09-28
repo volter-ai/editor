@@ -9,8 +9,7 @@
  * floats, the rate limit, normalization, trimming with its fade-out, the loop mode, mono. The
  * stream's length, rate, channels, format and loop points are Godot's. Its samples are played as
  * they are before Godot's compression (`compress/mode` 1 IMA-ADPCM, 2 QOA): the compressed
- * encoding is not reproduced, so a compressed stream sounds as its source (a named deviation,
- * `audio-compression`); what is played is not compared.
+ * encoding is not reproduced, so a compressed stream sounds as its source.
  */
 
 import { use } from 'react';
