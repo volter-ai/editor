@@ -267,7 +267,14 @@ async function installedRuntime(
   const projectId = `${RUNTIME_STORE_FAMILY}${tag}`;
   // THIS PAGE HOLDS ITS TREE IN USE from before it is installed to the end of the session, so
   // another tab installing another version never removes it under this one's runs (ADR-0048).
-  if (hold) await hold(projectId);
+  if (hold) {
+    try {
+      await hold(projectId);
+    } catch (error) {
+      log('log', `blender: the runtime tree stays in memory: it cannot be held in use (${error instanceof Error ? error.message : String(error)})`);
+      return undefined;
+    }
+  }
   let worker: Worker;
   try {
     worker = new Worker(artifactUrl('wali/browser-wali/tree-store-worker.js'), { type: 'module' });
@@ -275,12 +282,30 @@ async function installedRuntime(
     log('log', `blender: the runtime tree stays in memory: no installer worker (${error instanceof Error ? error.message : String(error)})`);
     return undefined;
   }
-  // A BOUNDED WAIT: an install stalled in another tab (a slow network, a throttled background tab)
-  // holds this tree's installer lock, and this boot takes the shared layer rather than wait on it.
+  // A BOUNDED STALL, NOT A BOUNDED INSTALL: an install stalled in another tab (a throttled background
+  // tab) holds this tree's installer lock, or the network stops. Each batch written restarts the wait,
+  // so a slow link still installs. On a stall this boot carries the tree in memory, and the installer
+  // is left to finish for the next boot rather than stopped halfway.
   const answer = await new Promise<{ ok: boolean; installed?: boolean; bytes?: number; error?: string }>((resolve) => {
-    const timer = setTimeout(() => resolve({ ok: false, error: `no answer in ${INSTALL_WAIT_MS / 1000} s` }), INSTALL_WAIT_MS);
-    worker.onmessage = (event) => { clearTimeout(timer); resolve(event.data); };
-    worker.onerror = (event) => resolve({ ok: false, error: event.message || 'the installer worker failed to start' });
+    let settled = false;
+    const settle = (value: { ok: boolean; installed?: boolean; bytes?: number; error?: string }): void => {
+      if (!settled) { settled = true; resolve(value); }
+    };
+    let timer = setTimeout(() => settle({ ok: false, error: `no progress in ${INSTALL_STALL_MS / 1000} s` }), INSTALL_STALL_MS);
+    worker.onmessage = (event) => {
+      clearTimeout(timer);
+      if (typeof event.data?.progress === 'number') {
+        if (!settled) timer = setTimeout(() => settle({ ok: false, error: `no progress in ${INSTALL_STALL_MS / 1000} s` }), INSTALL_STALL_MS);
+        return;
+      }
+      worker.terminate();
+      settle(event.data);
+    };
+    worker.onerror = (event) => {
+      clearTimeout(timer);
+      worker.terminate();
+      settle({ ok: false, error: event.message || 'the installer worker failed to start' });
+    };
     worker.postMessage({
       projectId,
       family: RUNTIME_STORE_FAMILY,
@@ -290,7 +315,6 @@ async function installedRuntime(
       mtimeMs: Date.now(),
     });
   });
-  worker.terminate();
   if (!answer.ok) {
     log('log', `blender: the runtime tree stays in memory: it could not be installed (${answer.error})`);
     return undefined;
@@ -305,11 +329,12 @@ async function installedRuntime(
 
 /**
  * Installed runtime trees' store names begin so; installing one removes the others that no tab
- * reads. `tree-` is the substrate's mark of an installed tree (`TREE_STORE_PREFIX`).
+ * reads. `host-tree.` is the substrate's mark of an installed tree (`TREE_STORE_PREFIX`), which no
+ * project may take.
  */
-const RUNTIME_STORE_FAMILY = 'tree-blender-runtime-';
-/** How long a boot waits on the installer before it carries the tree in memory instead. */
-const INSTALL_WAIT_MS = 90_000;
+const RUNTIME_STORE_FAMILY = 'host-tree.blender-runtime-';
+/** How long a boot waits on an installer that writes nothing before it carries the tree in memory. */
+const INSTALL_STALL_MS = 20_000;
 
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
