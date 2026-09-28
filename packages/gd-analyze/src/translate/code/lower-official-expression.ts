@@ -1021,6 +1021,12 @@ function namedAttribute(context: LoweringContext, baseNode: GodotBoundNode, name
   return context.nativeProperty(className, name) === undefined && context.nativeSignalOwner?.(className, name) === undefined;
 }
 
+/** Whether a store's target is a member selected by name at run time (`namedPlace`). */
+function namedTarget(context: LoweringContext, node: GodotBoundNode): boolean {
+  if (node.kind !== 'SUBSCRIPT' || !node.isAttribute) return false;
+  return namedAttribute(context, context.node(node.base, node), officialBoundPropertyName(context, node.attribute, node));
+}
+
 /** `base.name` read on a value only known at run time (`godot_variant_get_named`). */
 function namedRead(
   context: LoweringContext,
@@ -1087,6 +1093,41 @@ function namedPlace(
       namedImport('godot_variant_set_named'),
     ],
   };
+}
+
+/** `Script.new(...)`: `godot_script_new` over the native root class's constructor. */
+function scriptNew(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  resPath: string,
+  lowered: readonly LoweredExpression[],
+  requirements: readonly OfficialBoundLoweringRequirement[],
+): LoweredExpression {
+  const found = context.scriptClass?.(resPath);
+  if (found === undefined) return context.refuse(node, `${resPath} names no generated script class`);
+  const root = context.scriptNativeRoot(resPath);
+  if (root === undefined) return context.refuse(node, `${resPath} has no native class at the root of its chain`);
+  const construct = context.bindingUse({ sourceRevision: context.sourceRevision, kind: 'native-class', owner: root, member: root, signature: 'GDScriptNativeClass' }, node);
+  return compose(
+    context,
+    lowered,
+    (values) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_script_new' },
+      arguments: [
+        { kind: 'identifier-expression', name: found.name },
+        { kind: 'call-expression', callee: boundTargetExpression(construct.target), arguments: [] },
+        { kind: 'array-expression', elements: [...values] },
+      ],
+      span: span(context.script, node),
+    }),
+    [
+      ...requirements,
+      ...construct.requirements,
+      { kind: 'compat-import-requirement', module: 'lib/godot-compat/node', imported: 'godot_script_new', local: 'godot_script_new', typeOnly: false },
+      ...(found.module === undefined ? [] : [{ kind: 'project-import-requirement' as const, module: found.module, imported: found.name, local: found.name, typeOnly: false }]),
+    ],
+  );
 }
 
 /** `base.name(...)` on a value only known at run time (`godot_variant_call_named`). */
@@ -1530,7 +1571,7 @@ function assignment(
 ): LoweredExpression {
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
-    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined || variantElement(context, targetNode) !== undefined
+    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined || variantElement(context, targetNode) !== undefined || namedTarget(context, targetNode)
       ? assignablePlace(context, targetNode, lower, combine !== undefined)
       : undefined);
   if (place !== undefined) {
@@ -2972,6 +3013,14 @@ export function lowerOfficialExpression(
             after: [],
             requirements: [...requirements, ...path.requirements, ...table.requirements],
           };
+        }
+        // `Script.new(...)`: the script's instance over a new object of its native root class.
+        if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute && node.functionName === 'new') {
+          const classNode = context.node(calleeNode.base, calleeNode);
+          const datatype = classNode.datatype;
+          if ((datatype.kind === 'CLASS' || datatype.kind === 'SCRIPT') && datatype.metaType && datatype.scriptPath !== '') {
+            return scriptNew(context, node, datatype.scriptPath, lowered, requirements);
+          }
         }
         // A method of a value whose class only the run time knows: selected by name then.
         if (

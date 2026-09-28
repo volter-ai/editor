@@ -228,6 +228,8 @@ export class LoweringContext {
   nodeFields: ReadonlyMap<string, string> = new Map();
   /** The `as Class` casts analysis proves always hold (`provenCasts`). */
   provenCasts: ReadonlySet<number> = new Set();
+  /** The native class at the root of a project script's chain (`extends Resource`). */
+  scriptNativeRoot: (resPath: string) => string | undefined = () => undefined;
   /** Every engine member of a name, for a member an untyped value selects at run time (`variant-named.ts`). */
   namedMembers: NamedMemberLookup = () => [];
   /** The literal path each node reads from self (analyze's `selfNodePaths`), by node. */

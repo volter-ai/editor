@@ -657,6 +657,15 @@ function lowerScript(
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
   context.provenCasts = new Set(source.provenCasts);
   if (namedMembers !== undefined) context.namedMembers = namedMembers;
+  context.scriptNativeRoot = (resPath) => {
+    for (let current = project.scripts.find((entry) => entry.resPath === resPath); current !== undefined; ) {
+      const immediate = current.inheritance.immediate;
+      if (immediate.kind === 'native') return immediate.className;
+      if (immediate.kind !== 'script') return undefined;
+      current = project.scripts.find((entry) => entry.resPath === immediate.resPath);
+    }
+    return undefined;
+  };
   context.selfNodePaths = new Map(source.selfNodePaths.map((entry) => [entry.nodeId, entry.path] as const));
   const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
   context.nodeFields = new Map(

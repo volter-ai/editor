@@ -375,6 +375,23 @@ export function godot_script_call(value: unknown, method: string, scripts: reado
 }
 
 /**
+ * `Script.new(...)` (`GDScript::_new`): the script's instance over a new object of its native class
+ * (`native`, made by that class's constructor), bound as that object's script, then its `_init`
+ * run with the arguments (`GDScriptInstance` construction calls the implicit initializer, then
+ * `_init`, gdscript.cpp:151).
+ *
+ * @godot Node (protocol)
+ * @source modules/gdscript/gdscript.cpp:151
+ */
+export function godot_script_new<Instance extends object>(ScriptClass: new (native: object) => Instance, native: object, args: readonly unknown[]): Instance {
+  const instance = new ScriptClass(native);
+  godot_node_adopt(native, { binding: { owner: instance } });
+  const init = (instance as Record<string, unknown>)['_init'];
+  if (typeof init === 'function') (init as (...values: unknown[]) => unknown).apply(instance, [...args]);
+  return instance;
+}
+
+/**
  * `value as ScriptClass`: the object when its script is the script or derives from it, else null
  * (`OPCODE_CAST_TO_SCRIPT`).
  *
