@@ -11,6 +11,7 @@
  * (`advance.tsx`) delivers the page's input and draws its canvas items, and Rapier steps the physics.
  */
 
+import { SolverFlags } from '@dimforge/rapier3d-compat';
 import { useThree } from '@react-three/fiber';
 import { godot_camera_3d_attach_renderer, godot_camera_3d_viewport_resized } from './camera-3d';
 import { useRapier } from '@react-three/rapier';
@@ -64,11 +65,13 @@ export function useGodotWorld(): void {
   useLayoutEffect(() => {
     const releasePhysics = godot_physics_attach(rapier);
     // A pair of bodies one of which excepts the other never touches (`add_collision_exception_with`).
+    // Rapier skips a pair whose filter answers `null` and solves one it answers `COMPUTE_IMPULSE`, so
+    // every other pair a filtered collider meets answers `COMPUTE_IMPULSE`.
     const exceptions = {
       current: (collider1: number, collider2: number) => {
         const a = godot_collision_object_of_collider(rapier.world.getCollider(collider1));
         const b = godot_collision_object_of_collider(rapier.world.getCollider(collider2));
-        return a !== undefined && b !== undefined && !godot_physics_body_3d_collides(a, b) ? 0 : null;
+        return a !== undefined && b !== undefined && !godot_physics_body_3d_collides(a, b) ? null : SolverFlags.COMPUTE_IMPULSE;
       },
     };
     rapier.filterContactPairHooks.add(exceptions as never);
