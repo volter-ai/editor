@@ -171,7 +171,9 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   // (`perturbNormal2Arb`), and with every geometry's `v` running down the image and textures
   // uploaded unflipped (`flipY` false) it points down the image, the opposite of Godot's. That
   // is GLTFLoader's rule for the same convention (`normalScale.y *= -1`); a geometry with tangents
-  // carries their sign and needs no flip.
+  // carries their sign and needs no flip. `normalScale` is the material's and the tangents are the
+  // geometry's, so one Godot material drawn on geometries of both kinds is two three materials,
+  // split by whether the geometry has tangents (or every geometry is given tangents).
   if (!unshaded && bool('set_feature', 0) === true) {
     const emission = components('set_emission') ?? [0, 0, 0, 1];
     const energy = num('set_emission_energy_multiplier') ?? 1;
