@@ -861,12 +861,16 @@ interface SceneDepth {
 const SCENE_DEPTH = new WeakMap<WebGLRenderer, SceneDepth>();
 const depthSize = new Vector2();
 
-/** Whether a drawn material writes depth in the scene's own draw: a soft material never counts. */
+/**
+ * Whether a drawn material writes depth in the depth pass: an opaque one that writes depth. A
+ * transparent material never does, whatever its depth draw mode, as Godot copies the depth before
+ * its alpha pass; nor does a soft material.
+ */
 function writesDepth(object: Object3D, group: unknown): boolean {
   const own = (object as Object3D & { readonly material?: Material | Material[] }).material;
   // A multi-material mesh draws each geometry group (`{ start, count, materialIndex }`) with its material.
   const material = Array.isArray(own) ? own[(group as { readonly materialIndex?: number } | null)?.materialIndex ?? 0] : own;
-  if (!(material instanceof Material) || !material.visible || !material.depthWrite) return false;
+  if (!(material instanceof Material) || !material.visible || !material.depthWrite || material.transparent) return false;
   return (material.userData as Readonly<Record<string, unknown>>)['proximity_fade_enabled'] !== true;
 }
 
@@ -874,10 +878,13 @@ function writesDepth(object: Object3D, group: unknown): boolean {
  * The scene's depth as `camera` sees it, for soft particles as three.js draws them: a depth-only
  * pass (`scene.overrideMaterial` a `MeshDepthMaterial` writing no colour) into a `DepthTexture`, once
  * per frame, when the first soft material is about to draw, from that material's `onBeforeRender`
- * as three's `Reflector` and `Refractor` draw their views (the target cleared as theirs are when the
- * renderer does not clear itself, shadows and XR held, the render target, cube face and mip level
- * restored). Each drawn object writes depth only where its own material would, so a transparent
- * object and every soft material stay out of it. Null while the pass is drawing, so a soft material
+ * as three's `Reflector` and `Refractor` draw their views (the target cleared with depth writes
+ * on, shadows and XR held, the render target, cube face and mip level restored). Each drawn object
+ * writes depth only where its own opaque material would, so a transparent object and every soft
+ * material stay out of it. The depth material draws front faces of the mesh as posed: a
+ * double-sided or back-faced mesh seen from behind, an alpha-scissor cutout's cut-away part and a
+ * billboard's camera-facing turn are not what it writes, so smoke beside them fades against the
+ * mesh as posed. Null while the pass is drawing, so a soft material
  * never samples the texture being written.
  */
 function sceneDepth(renderer: WebGLRenderer, scene: Scene, camera: Camera): DepthTexture | null {
@@ -908,7 +915,12 @@ function sceneDepth(renderer: WebGLRenderer, scene: Scene, camera: Camera): Dept
     depth.drawing = true;
     try {
       renderer.setRenderTarget(depth.target);
-      if (renderer.autoClear === false) renderer.clear();
+      // Cleared whatever `autoClear` says, with depth writes and tests on first: a transparent draw
+      // earlier in the frame can leave the depth mask off, and `clear` clears depth only through it
+      // (three's own clear turns it on the same way, WebGLBackground).
+      renderer.state.buffers.depth.setTest(true);
+      renderer.state.buffers.depth.setMask(true);
+      renderer.clear();
       renderer.render(scene, camera);
     } finally {
       depth.drawing = false;
