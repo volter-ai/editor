@@ -1,13 +1,13 @@
 # Public release status
 
-Volter Editor 0.5.69 (editor-blender 0.1.12, blender-engine 0.1.10) is the first release published by CI:
+Volter Editor 0.5.72 (editor-blender 0.1.13, blender-engine 0.1.11) is published by CI:
 `.github/workflows/publish.yml` builds the game release on every push to main, runs `check:release:game` and
 `check:packed-imports:game`, and publishes with npm provenance every package of
-[release/game.json](release/game.json) whose version npm lacks, so a release is the version commit. It carries
-the vgai retirement. From the registry, with no credentials and a fresh home,
-`npx @volter/game-editor@0.5.69 create reg-game --with canvas` installed the runtime image, downloaded its pinned
-workbench (sha256 matching) and started a session whose `status` read no console errors and no mount failures.
-Not re-walked for 0.5.69: music, scene launch and render, last walked on 0.5.68
+[release/game.json](release/game.json) whose version npm lacks, so a release is the version commit; a version npm
+is still processing counts as released. From the registry, `npx @volter/game-editor@0.5.72 create reg-game --with
+three,ui` scaffolded a project whose first commit carries no `node_modules` link, and its session read connected,
+no console errors and no mount failures; Play ran and `screenshot` photographed the world with its styled HUD.
+Not re-walked since 0.5.68: music, scene launch and render
 ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
 
 ## Game editor (branch `game-editor`)
