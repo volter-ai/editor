@@ -4,6 +4,7 @@
     "src/lib/godot-compat/LICENSE.OpenSans.txt",
     "src/lib/godot-compat/OpenSans_SemiBold.woff2",
     "src/lib/godot-compat/advance.tsx",
+    "src/lib/godot-compat/animation-clips.ts",
     "src/lib/godot-compat/animation-library.ts",
     "src/lib/godot-compat/animation-mixer.ts",
     "src/lib/godot-compat/animation-player.ts",

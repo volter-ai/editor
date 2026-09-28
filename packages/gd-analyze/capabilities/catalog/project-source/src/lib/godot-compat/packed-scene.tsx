@@ -32,6 +32,8 @@
  * importer's skeleton gives it (`skin_tool.cpp:636`), which the RESET keys can differ from.
  */
 
+import { godot_animation_clips_mount } from './animation-clips';
+import { useGodotClips } from './advance';
 import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
 import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, type Ref, type RefObject, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
@@ -365,6 +367,7 @@ export function GodotImportedScene({
   images,
   materials,
   refs,
+  clipPlayers,
   children,
   ref,
   ...props
@@ -379,6 +382,8 @@ export function GodotImportedScene({
   readonly images?: Readonly<Record<number, Texture>>;
   /** The importer's external materials: the project's material for each of the file's, by name. */
   readonly materials?: Readonly<Record<string, Material>>;
+  /** The model's AnimationPlayers that play the glTF's own clips on three's mixer, by path (`animation-clips.ts`). */
+  readonly clipPlayers?: readonly string[];
   /** The instancing scene's refs to the model's own nodes, by their path in the model, set as the tree mounts. */
   readonly refs?: Readonly<Record<string, RefObject<Object3D | null>>>;
   readonly children?: ReactNode;
@@ -412,6 +417,8 @@ export function GodotImportedScene({
   }, [gltf, nodes]);
   const root = useRef<Group | null>(null);
   useImperativeHandle(ref, () => root.current as Group, []);
+  // The model's clip players advance from its own frame.
+  useGodotClips(root);
   // The instancing scene's values are set once, as the scene instantiates: a render that rebuilds
   // the `overrides` object with the same values sets nothing again.
   const authored = useRef(overrides);
@@ -443,7 +450,13 @@ export function GodotImportedScene({
           if (object === member || !members.has(object)) godot_geometry_instance_3d_mount(object);
         });
       }
-      if (node.animationPlayer === true && !ANIMATION_PLAYERS.has(member)) {
+      if (node.animationPlayer === true && !ANIMATION_PLAYERS.has(member) && clipPlayers?.includes(node.path) === true) {
+        // The player plays the glTF's own clips, looped as the importer set each animation.
+        const library = libraryOf(model);
+        const loops = new Map(gltf.animations.map((clip) => [clip.name, library === undefined ? 0 : ((get_animation(library, clip.name) as { readonly loop_mode?: number } | null)?.loop_mode ?? 0)] as const));
+        godot_animation_clips_mount(member, entity, gltf.animations, loops);
+        ANIMATION_PLAYERS.add(member);
+      } else if (node.animationPlayer === true && !ANIMATION_PLAYERS.has(member)) {
         godot_animation_player_mount(member);
         ANIMATION_PLAYERS.add(member);
         const library = libraryOf(model);

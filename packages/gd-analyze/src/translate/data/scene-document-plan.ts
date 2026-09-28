@@ -128,6 +128,11 @@ export interface TargetGodotImportedModelPlan {
   readonly materials?: readonly { readonly name: string; readonly key: string }[];
   /** The importer's AnimationPlayer library (its clips as the importer keys them), with its RESET. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
+  /**
+   * The model's AnimationPlayers that play the glTF's own clips on three's mixer, by path in the
+   * model (`scene-surface-idioms.ts`): ones no AnimationTree drives and the scene adds nothing to.
+   */
+  readonly clipPlayers?: readonly string[];
   /** The importer's root scale baked into the model's meshes, when not 1. */
   readonly meshScale?: number;
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */

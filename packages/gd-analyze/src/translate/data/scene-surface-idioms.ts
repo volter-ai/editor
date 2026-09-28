@@ -83,9 +83,19 @@ function cameraLens(node: DirectGodotSceneNodePlan): NonNullable<DirectGodotScen
   };
 }
 
+/** The setters a scene may state on a model's AnimationPlayer that plays the glTF's clips (`animation-clips.ts`). */
+const CLIP_PLAYER_SETTERS: ReadonlySet<string> = new Set(['set_default_blend_time', 'set_deterministic']);
+
 /** The scenes with each mesh resource's `surfaceMaterials` and each MeshInstance3D's `surfaces`. */
 export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
   return scenes.map((scene) => {
+    // A model's AnimationPlayer plays the glTF's own clips when no AnimationTree of the scene can
+    // drive it and the scene adds no library or animation to it.
+    let tree = false;
+    (function find(node: DirectGodotSceneNodePlan): void {
+      if (node.classes.includes('AnimationTree')) tree = true;
+      for (const child of godotSceneSubnodes(node)) find(child);
+    })(scene.root);
     const resources = scene.resources.map((resource) => {
       const primitive = primitiveArgs(resource);
       return { ...resource, surfaceMaterials: surfaceMaterials(resource), ...(primitive === undefined ? {} : { primitive }) };
@@ -107,6 +117,16 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
         };
       }
       const lens = node.idiom?.form.kind === 'camera' ? cameraLens(node) : undefined;
+      const model = node.model;
+      const clipPlayers =
+        model === undefined || tree || model.animations === undefined
+          ? []
+          : model.nodes
+              .filter((entry) => entry.animationPlayer === true)
+              .map((entry) => entry.path)
+              // (An override's `animation` is its own tracks' bindings, which the clips do not need; a
+              // library the scene adds is a setter.)
+              .filter((path) => !model.overrides.some((override) => override.at === path && override.setters.some((entry) => !CLIP_PLAYER_SETTERS.has(entry.setter.exportName))));
       // A camera, light or reflection probe draws with its scale removed (`disable_scale`,
       // node_3d.cpp:655): with no children and no script to read it back, its authored scale (the
       // rounding a `.tscn` rotation carries) changes nothing, and its element states none.
@@ -116,6 +136,7 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
         ...(surfaces === undefined ? {} : { surfaces }),
         ...(lens === undefined ? {} : { lens }),
         ...(scaleless ? { scaleless: true as const } : {}),
+        ...(model !== undefined && clipPlayers.length > 0 ? { model: { ...model, clipPlayers } } : {}),
         children,
         ...(placements === undefined ? {} : { placements }),
       };

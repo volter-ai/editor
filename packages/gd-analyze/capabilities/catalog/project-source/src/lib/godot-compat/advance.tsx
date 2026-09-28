@@ -15,11 +15,12 @@
 import type { Object3D } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useBeforePhysicsStep } from '@react-three/rapier';
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import { get_physics_process_delta_time, godot_node_advance, is_inside_tree } from './node';
 import { godot_process_delta } from './scene-tree';
 import { godot_window_canvas_layer, godot_window_canvas_root, godot_window_process_events } from './window';
 import { godot_canvas_item_draw, godot_canvas_item_undraw } from './canvas-item';
+import { godot_animation_clips_advance } from './animation-clips';
 
 /**
  * Runs one node's own internal processing from its component's frame and physics step.
@@ -46,6 +47,19 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
   current.current = draw;
   useFrame(() => {
     if (entity !== undefined && is_inside_tree(entity)) current.current();
+  });
+}
+
+/**
+ * A model's AnimationPlayers that play its glTF's clips, advanced from the model's own frame
+ * (`animation-clips.ts`).
+ *
+ * @godot AnimationMixer (protocol)
+ * @source scene/animation/animation_mixer.cpp:2283
+ */
+export function useGodotClips(model: RefObject<Object3D | null>): void {
+  useFrame((_, delta) => {
+    if (model.current !== null) godot_animation_clips_advance(model.current, delta);
   });
 }
 
