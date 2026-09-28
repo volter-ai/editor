@@ -212,6 +212,9 @@ with no check of the shapes the review hunts.
    `MERGE` (no blockers) or `HOLD`." A blocker is fixed before the merge. The merge's first
    commit on `godot` carries the trailer `Lane-review: MERGE` with the skeptic's should-fixes
    listed or fixed.
+   Lanes share one checkout and branch, so a push carries every commit on it: before pushing,
+   `git log origin/godot..HEAD` is read and each commit in the range is one whose review said
+   `MERGE` (on 2026-09-28 a push of reviewed commits carried `c83f124c` ahead of its review).
 3. A periodic review's `regressed` verdict means the change does not land (docs/GODOT-REVIEW.md).
    Its findings are fixed and the review re-run before more of the lane lands. New game work waits
    until the verdict is `holds` or `pass`.
