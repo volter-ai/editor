@@ -3,6 +3,10 @@
 # version, the release is built and every version npm lacks is published, and
 # the version commit goes back to main. Auth is the repository secret NPM_TOKEN
 # (an npm automation token with write on the @volter scope).
+# npm may accept a publish ("+ pkg@ver") and hold it as STAGED until an owner
+# approves it with 2FA (`npm stage list|approve`); a staged version isn't on
+# the registry. The last step reads every published version back and fails
+# the run, naming each one npm doesn't serve.
 name: publish
 on:
   push:
@@ -82,4 +86,20 @@ jobs:
             if git pull -q --rebase origin main; then git push -q origin HEAD:main && exit 0; else git rebase --abort; fi
             sleep 5
           done
+          exit 1
+      - if: steps.check.outputs.new
+        name: npm serves every version this run published
+        run: |
+          specs=""
+          for dir in ${{ steps.check.outputs.new }}; do
+            specs="$specs $(node -p "const p=require('./$dir/package.json'); p.name+'@'+p.version")"
+          done
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            missing=""
+            for spec in $specs; do [ -n "$(npm view "$spec" version 2>/dev/null)" ] || missing="$missing $spec"; done
+            [ -z "$missing" ] && exit 0
+            specs="$missing"
+            [ "$attempt" = 10 ] || sleep 15
+          done
+          echo "::error::npm accepted but does not serve:$missing. They are likely staged: an owner lists them with npx npm@latest stage list <pkg> and approves each with npx npm@latest stage approve <id> (2FA), unless a newer version has gone out since."
           exit 1
