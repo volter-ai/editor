@@ -148,7 +148,8 @@ function apply(self: Light, state: LightState): void {
     LinearSRGBColorSpace,
   );
   self.intensity = state.skyMode === 2 ? 0 : f32((state.params[PARAM_ENERGY] as number) * Math.PI);
-  self.castShadow = state.shadow;
+  // A light that lights nothing draws no shadow map: three would render one for it every frame.
+  self.castShadow = state.shadow && state.skyMode !== 2;
   if (self instanceof PointLight) {
     self.distance = Math.max(0.001, state.params[PARAM_RANGE] as number);
     self.decay = state.params[PARAM_ATTENUATION] as number;

@@ -799,6 +799,18 @@ export function familyMaterialOverride(emission: FamilyEmission, setters: readon
   });
 }
 
+/**
+ * An imported model's external materials (`<GodotImportedScene materials>`): each the project's
+ * material, declared once, by the glTF material name it stands in for.
+ */
+export function familyModelMaterials(emission: FamilyEmission, materials: readonly { readonly name: string; readonly key: string }[]): TargetTsObjectProperty[] {
+  return materials.flatMap(({ name, key }) => {
+    const resource = emission.resources.get(key);
+    if (resource === undefined) return [];
+    return [{ key: name, value: identifier(sharedMaterial(emission, resource)) }];
+  });
+}
+
 /** A compat element's props for a node's authored properties (a GridMap's `data` its cells file). */
 function elementProps(emission: FamilyEmission, nodePath: string, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
   // A mixer's libraries, one `libraries` prop by name (`libraries/NAME`, `AnimationMixer::_set`).

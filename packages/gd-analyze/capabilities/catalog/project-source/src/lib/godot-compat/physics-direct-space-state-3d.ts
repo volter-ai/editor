@@ -9,7 +9,7 @@
  */
 
 import { type Collider, Ray, ShapeType } from '@dimforge/rapier3d-compat';
-import { godot_collision_object_kind, godot_collision_object_layers, godot_collision_object_of_collider } from './collision-object-3d';
+import { godot_collision_object_layers, godot_collision_object_of_collider } from './collision-object-3d';
 import { godot_node_object } from './node';
 import type { PhysicsRayQueryParameters3D } from './physics-ray-query-parameters-3d';
 import { construct as vector3, type Vector3 } from './vector3';
@@ -63,7 +63,9 @@ export function intersect_ray(self: PhysicsDirectSpaceState3D, parameters: Physi
     const node = godot_collision_object_of_collider(collider);
     if (node === undefined || parameters.exclude.includes(node)) return false;
     if ((godot_collision_object_layers(node).layer & parameters.collision_mask) === 0) return false;
-    return godot_collision_object_kind(node) === 'area' ? parameters.collide_with_areas : parameters.collide_with_bodies;
+    // An area's shapes are Rapier sensors and a body's are not: the collider in hand says which,
+    // without walking the node's body for its kind on every candidate the cast tests.
+    return collider.isSensor() ? parameters.collide_with_areas : parameters.collide_with_bodies;
   };
   if (parameters.hit_from_inside) {
     let inside: Collider | undefined;

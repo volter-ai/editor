@@ -192,6 +192,8 @@ export interface BoundGodotSceneDocument {
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImages: readonly GltfExternalImage[];
+    /** The `.import`'s external materials: the project's material resource by glTF material name. */
+    readonly externalMaterials?: Readonly<Record<string, string>>;
     /** The importer's AnimationPlayer clips, keyed as it leaves them, or why they are not modelled. */
     readonly animationKeys?: readonly ImportedClip[] | string;
   };
@@ -491,6 +493,11 @@ function sceneClassResolver(
   };
 }
 
+/** An imported model's external materials as its bound model states them: none when it names none. */
+function externalMaterialsOf(materials: Readonly<Record<string, string>> | undefined): { readonly externalMaterials?: Readonly<Record<string, string>> } {
+  return materials === undefined || Object.keys(materials).length === 0 ? {} : { externalMaterials: materials };
+}
+
 function parentNodePath(nodePath: string): string {
   const separator = nodePath.lastIndexOf('/');
   return separator < 0 ? '.' : nodePath.slice(0, separator);
@@ -640,6 +647,7 @@ function boundDocuments(
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImages: document.gltfOrigin.externalImages,
+                  ...externalMaterialsOf(decoded.imports.find((sidecar) => sidecar.sourceFile === document.resPath)?.externalMaterials),
                   ...(document.gltfOrigin.animationKeys === undefined ? {} : { animationKeys: document.gltfOrigin.animationKeys }),
                 },
               }),

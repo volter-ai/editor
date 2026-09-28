@@ -117,6 +117,12 @@ export interface TargetGodotImportedModelPlan {
   readonly nodes: readonly TargetGodotImportedModelNode[];
   /** The file's external images (`images[index].uri`): each the project's imported texture. */
   readonly images?: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[];
+  /**
+   * The importer's external materials (`_subresources.materials.<name>.use_external/path` in the
+   * file's `.import`): each of the file's materials by its glTF name, drawn as the project's
+   * material resource (planned as the scene's own) in its place.
+   */
+  readonly materials?: readonly { readonly name: string; readonly key: string }[];
   /** The importer's AnimationPlayer library (its clips as the importer keys them), with its RESET. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
@@ -624,6 +630,26 @@ function planResource(
       nestedScope = ext?.resPath ?? '';
     }
   }
+  return planResolvedResource(context, at, key, data, nestedScope);
+}
+
+/** Plans the `.tres` resource document at `resPath` (a resource no `ExtResource` names, such as an
+ * imported model's external material), keyed as an `ExtResource` naming it is. */
+function planResourceAt(context: PlanContext, at: string, resPath: string): string | undefined {
+  const data = context.project?.documents.resources.find((entry) => entry.resPath === resPath)?.resource;
+  return planResolvedResource(context, at, `ext:${resPath}`, data, resPath);
+}
+
+/** Plans a resource resolved to its key, its data (none for an imported file) and its own scope. */
+function planResolvedResource(
+  context: PlanContext,
+  at: string,
+  key: string,
+  data: BoundGodotResourceData | undefined,
+  nestedScope: string,
+): string | undefined {
+  const document = context.document;
+  if (document === undefined) return undefined;
   if (document.planned.has(key)) return document.planned.get(key) === null ? undefined : key;
   document.planned.set(key, null);
   // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file.
@@ -1447,6 +1473,14 @@ function planImportedInstance(
     }
     images.push({ index: image.index, load });
   }
+  // The importer's external materials: the project's `.tres` in place of the file's own material
+  // of that name, as the scene importer swaps it in (`resource_importer_scene.cpp`, `use_external`).
+  const materials: { readonly name: string; readonly key: string }[] = [];
+  for (const [materialName, resPath] of Object.entries(model.externalMaterials ?? {})) {
+    const key = planResourceAt(context, `${at}(${imported.resPath} materials/${materialName})`, resPath);
+    if (key === undefined) return undefined;
+    materials.push({ name: materialName, key });
+  }
   const nodes: TargetGodotImportedModelNode[] = [];
   for (const member of imported.nodes) {
     if (member.nodePath === '.') continue;
@@ -1493,6 +1527,7 @@ function planImportedInstance(
       rootClasses: root.class.nativeAncestry,
       nodes,
       ...(images.length === 0 ? {} : { images }),
+      ...(materials.length === 0 ? {} : { materials }),
       ...(animations === undefined ? {} : { animations }),
       overrides: [],
     },

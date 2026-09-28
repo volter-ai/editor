@@ -22,7 +22,8 @@
  *   `BRDF_Lambert = albedo / PI`, so the light's intensity is `PI * energy`;
  * - the tone mapper is three's own of the same name on the renderer (`toneMapping`, its exposure
  *   `toneMappingExposure`; `environment.h:66`: linear, Reinhard, filmic (three's Cineon, a
- *   filmic curve), ACES and AgX), where the post pass does not tone-map (`environment-post.ts`);
+ *   filmic curve), ACES, and AgX as three's Neutral, `TONE_MAPPINGS`), where the post pass does
+ *   not tone-map (`environment-post.ts`);
  * - fog is three's `FogExp2` of the fog colour (linear, times its energy) and density.
  *
  * Lighting and the output encoding are three's own: the scene is lit and encoded as three draws
@@ -56,7 +57,6 @@ import {
   type DirectionalLight,
   type CubeTexture,
   ACESFilmicToneMapping,
-  AgXToneMapping,
   CineonToneMapping,
   FogExp2,
   Group,
@@ -64,6 +64,7 @@ import {
   Mesh,
   type Object3D,
   LinearToneMapping,
+  NeutralToneMapping,
   NoToneMapping,
   type PerspectiveCamera,
   ReinhardToneMapping,
@@ -215,10 +216,14 @@ export function godot_environment_tonemapping_glsl(env: Environment): string {
 }
 
 /**
- * `Environment::ToneMapper` (`environment.h:66`) as three's tone mapping of the same name: linear,
- * Reinhard, filmic (three's Cineon, a filmic curve), ACES, AgX.
+ * `Environment::ToneMapper` (`environment.h:66`) as three's tone mapping that draws it: linear,
+ * Reinhard, filmic (three's Cineon, a filmic curve), ACES, and for AgX three's Neutral. Godot's
+ * AgX (`tonemap_inc.glsl`, 4.5 on) is a curve of its own, linear through the mid-tones with a toe
+ * and a shoulder, that keeps a colour's saturation; three's AgX is Blender's, which encodes in log
+ * space and greys lit colours out. Three's Neutral (Khronos PBR Neutral) is the curve of its own
+ * that draws Godot's AgX: linear through the mid-tones, compressing only the highlights.
  */
-const TONE_MAPPINGS: readonly ToneMapping[] = [LinearToneMapping, ReinhardToneMapping, CineonToneMapping, ACESFilmicToneMapping, AgXToneMapping];
+const TONE_MAPPINGS: readonly ToneMapping[] = [LinearToneMapping, ReinhardToneMapping, CineonToneMapping, ACESFilmicToneMapping, NeutralToneMapping];
 
 /** The sky pass's code around the shader's `sky()` body (`sky.glsl:159`), `COLOR` in sRGB terms. */
 function skyFragment(shader: Shader): string {

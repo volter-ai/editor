@@ -303,6 +303,7 @@ export function GodotImportedScene({
   tree: model,
   overrides = {},
   images,
+  materials,
   children,
   ref,
   ...props
@@ -315,6 +316,8 @@ export function GodotImportedScene({
   readonly overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   /** The project's imported textures for the file's external images, by `images[]` index. */
   readonly images?: Readonly<Record<number, Texture>>;
+  /** The importer's external materials: the project's material for each of the file's, by name. */
+  readonly materials?: Readonly<Record<string, Material>>;
   readonly children?: ReactNode;
 }) {
   const gltf = useGLTF(src, undefined, undefined, images === undefined ? undefined : (loader) => loader.register((parser) => externalImages(parser, images)));
@@ -322,10 +325,22 @@ export function GodotImportedScene({
     if (images !== undefined) sampleExternalImages(gltf, images);
   }, [gltf, images]);
   const { rootClasses, nodes } = model;
-  const tree = useMemo(
-    () => buildTree(gltf.scene, gltf.parser.associations as ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes),
-    [gltf, nodes],
-  );
+  // The external materials are the instance's as it mounts, as the importer bakes them in.
+  const external = useRef(materials);
+  const tree = useMemo(() => {
+    const built = buildTree(gltf.scene, gltf.parser.associations as ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes);
+    const swap = external.current;
+    if (swap !== undefined) {
+      for (const object of built.loaded) {
+        const mesh = object as Mesh;
+        if (mesh.material === undefined) continue;
+        mesh.material = Array.isArray(mesh.material)
+          ? mesh.material.map((material) => swap[material.name] ?? material)
+          : (swap[mesh.material.name] ?? mesh.material);
+      }
+    }
+    return built;
+  }, [gltf, nodes]);
   const root = useRef<Group | null>(null);
   useImperativeHandle(ref, () => root.current as Group, []);
   // The instancing scene's values are set once, as the scene instantiates: a render that rebuilds

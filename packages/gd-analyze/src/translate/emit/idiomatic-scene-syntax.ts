@@ -49,6 +49,7 @@ import {
   familyImports,
   familyInstanceProps,
   familyMaterialOverride,
+  familyModelMaterials,
   flag,
   float32Literal,
   importedTextureHook,
@@ -712,6 +713,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
       attribute('tree', { kind: 'identifier-expression', name: local }),
       ...transform,
       ...(overrides.length === 0 ? [] : [attribute('overrides', { kind: 'object-expression', properties: overrides })]),
+      // The importer's external materials: the project's own, by the file's material names.
+      ...(model.materials === undefined ? [] : [attribute('materials', { kind: 'object-expression', properties: familyModelMaterials(emission.family, model.materials) })]),
       // The file's external images: the project's imported textures, shared with every other use.
       ...(model.images === undefined
         ? []
