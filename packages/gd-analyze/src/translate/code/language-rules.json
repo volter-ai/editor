@@ -4099,6 +4099,54 @@
         "kind": "structural",
         "construct": "stringify"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "FOR",
+        "semanticKey": "for-range:call|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "for-range"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "FOR",
+        "semanticKey": "for-range:call|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "for-range"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "FOR",
+        "semanticKey": "for-range:call|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "BUILTIN:int",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "for-range"
+      }
     }
   ],
   "datatypes": [

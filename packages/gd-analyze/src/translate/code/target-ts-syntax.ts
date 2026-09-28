@@ -194,6 +194,15 @@ export type TargetTsStatement =
       readonly body: readonly TargetTsStatement[];
     })
   | (TargetTsStatementBase & {
+      /** `for (let binding = initializer; condition; update) { body }`. */
+      readonly kind: 'for-statement';
+      readonly binding: string;
+      readonly initializer: TargetTsExpression;
+      readonly condition: TargetTsExpression;
+      readonly update: TargetTsExpression;
+      readonly body: readonly TargetTsStatement[];
+    })
+  | (TargetTsStatementBase & {
       readonly kind: 'for-of-statement';
       readonly binding: string;
       readonly iterable: TargetTsExpression;

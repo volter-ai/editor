@@ -23,7 +23,8 @@ import {
   officialBoundPropertyName,
   officialBoundSpan,
 } from './official-bound-lowering-context';
-import type { TargetTsClassMember, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
+import type { TargetTsClassMember, TargetTsExpression, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
+import { godotCountsLoopCall } from '../data/counted-loops';
 import { godotBuiltinConverts, godotIteratesRange, godotReturnsNothing } from '../data/lowering-shapes';
 
 export interface LoweredClassMembers {
@@ -217,6 +218,93 @@ function lowerIntegerRange(
   };
 }
 
+/** An int literal's value, through a unary minus: the sign of a constant step, known when lowering. */
+function constantInt(context: LoweringContext, node: GodotBoundNode): number | undefined {
+  if (node.kind === 'LITERAL') {
+    const value = node.reduced ? node.reducedValue : node.value;
+    return value.kind === 'int' ? Number(value.value) : undefined;
+  }
+  if (node.kind === 'UNARY_OPERATOR' && node.operation === 'OP_NEGATIVE') {
+    const operand = constantInt(context, context.node(node.operand, node));
+    return operand === undefined ? undefined : -operand;
+  }
+  return undefined;
+}
+
+/**
+ * `for i in range(...)`: the counted loop Godot compiles (gdscript_compiler.cpp:2070-2076), from
+ * `begin` (0) while below `end` (above it for a negative step), `step` (1) apart, with `end`
+ * evaluated once before the loop. The step's sign decides the comparison, so a step that is not a
+ * constant is refused by name, as is a body that assigns the loop variable (Godot counts on a
+ * hidden counter the variable is copied from).
+ */
+function lowerCountedRange(
+  context: LoweringContext,
+  node: Extract<GodotBoundNode, { kind: 'FOR' }>,
+  call: Extract<GodotBoundNode, { kind: 'CALL' }>,
+): LoweredStatements {
+  const argumentNodes = call.arguments.map((id) => context.node(id, call));
+  const structuralRequirements = context.structural(node, 'for-range', argumentNodes, 'for-range:call');
+  const [beginNode, endNode, stepNode] = argumentNodes.length === 1 ? [undefined, argumentNodes[0], undefined] : argumentNodes;
+  if (endNode === undefined) return context.refuse(call, 'range() takes one to three arguments');
+  const step = stepNode === undefined ? 1 : constantInt(context, stepNode);
+  if (step === undefined) return context.refuse(stepNode ?? call, 'a range() loop whose step is known only at run time: its comparison depends on the sign');
+  if (step === 0) return context.refuse(stepNode ?? call, 'a range() loop with a zero step makes nothing (Godot reports "Step argument is zero!")');
+  const name = officialBoundIdentifier(context, node.variable, node);
+  const variable = context.node(node.variable, node);
+  const loopNode = context.node(node.loop, node);
+  const within = (inner: GodotBoundNode) =>
+    (inner.startLine > loopNode.startLine || (inner.startLine === loopNode.startLine && inner.startColumn >= loopNode.startColumn)) &&
+    (inner.endLine < loopNode.endLine || (inner.endLine === loopNode.endLine && inner.endColumn <= loopNode.endColumn));
+  const assignsVariable = context.script.nodes.some((candidate) => {
+    if (candidate.kind !== 'ASSIGNMENT' || !within(candidate)) return false;
+    const assignee = context.script.nodes[candidate.assignee];
+    return assignee?.kind === 'IDENTIFIER' && variable.kind === 'IDENTIFIER' && assignee.name === variable.name;
+  });
+  if (assignsVariable) return context.refuse(node, 'a range() loop whose body assigns its variable, which Godot copies from a hidden counter');
+  const begin = beginNode === undefined ? undefined : settleForStatement(context, lowerExpression(context, beginNode));
+  const end = settleForStatement(context, lowerExpression(context, endNode));
+  const body = lowerOfficialSuite(context, loopNode);
+  const span = officialBoundSpan(context.script, node);
+  // A literal end is read in place; any other end is read once, before the loop, as Godot does.
+  const endInPlace = endNode.kind === 'LITERAL' && end.before.length === 0 && end.after.length === 0;
+  const limit = endInPlace ? undefined : context.temporary();
+  // An end read before the loop would run ahead of a begin that is not a literal: that begin is
+  // read first, into its own local, keeping Godot's argument order.
+  const start = limit !== undefined && beginNode !== undefined && beginNode.kind !== 'LITERAL' ? context.temporary() : undefined;
+  const read: TargetTsExpression = { kind: 'identifier-expression', name };
+  return {
+    statements: [
+      ...(begin?.before ?? []),
+      ...(start === undefined || begin === undefined ? [] : [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: start, initializer: begin.value }]),
+      ...(begin?.after ?? []),
+      ...end.before,
+      ...(limit === undefined ? [] : [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: limit, initializer: end.value }]),
+      ...end.after,
+      {
+        kind: 'for-statement',
+        binding: name,
+        initializer: start !== undefined ? { kind: 'identifier-expression', name: start } : (begin?.value ?? { kind: 'literal-expression', value: 0 }),
+        condition: {
+          kind: 'binary-expression',
+          operator: step > 0 ? '<' : '>',
+          left: read,
+          right: limit === undefined ? end.value : { kind: 'identifier-expression', name: limit },
+        },
+        update: { kind: 'assignment-expression', operator: step > 0 ? '+=' : '-=', target: read, value: { kind: 'literal-expression', value: Math.abs(step) } },
+        body: body.statements,
+        span,
+      },
+    ],
+    requirements: [
+      ...structuralRequirements,
+      ...(begin?.requirements ?? []),
+      ...end.requirements,
+      ...body.requirements,
+    ],
+  };
+}
+
 /** A declared variable whose initializer has another type converts it on assignment. */
 function declaredConversion(
   node: Extract<GodotBoundNode, { kind: 'VARIABLE' | 'CONSTANT' }>,
@@ -400,6 +488,14 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
       const iterableNode = context.node(node.list, node);
       if (!node.useConversionAssign && godotIteratesRange(iterableNode.datatype)) {
         return lowerIntegerRange(context, node, iterableNode);
+      }
+      if (
+        !node.useConversionAssign &&
+        iterableNode.kind === 'CALL' &&
+        iterableNode.compilerTarget.kind === 'gdscript-utility' &&
+        godotCountsLoopCall(iterableNode.compilerTarget.owner, iterableNode.compilerTarget.member)
+      ) {
+        return lowerCountedRange(context, node, iterableNode);
       }
       // A typed loop variable over elements of another type converts each element as it is
       // assigned (`GDScriptByteCodeGenerator::write_for`, gdscript_byte_codegen.cpp:1607, from gdscript_compiler.cpp:2101): the element bound

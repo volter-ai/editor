@@ -528,6 +528,16 @@ function statement(value: TargetTsStatement): ts.Statement {
         expression(value.condition),
         ts.factory.createBlock(value.body.map(statement), true),
       );
+    case 'for-statement':
+      return ts.factory.createForStatement(
+        ts.factory.createVariableDeclarationList(
+          [ts.factory.createVariableDeclaration(value.binding, undefined, undefined, expression(value.initializer))],
+          ts.NodeFlags.Let,
+        ),
+        expression(value.condition),
+        expression(value.update),
+        ts.factory.createBlock(value.body.map(statement), true),
+      );
     case 'for-of-statement':
       return ts.factory.createForOfStatement(
         undefined,
