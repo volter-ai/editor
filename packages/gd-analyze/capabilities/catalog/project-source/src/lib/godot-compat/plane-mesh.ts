@@ -8,8 +8,8 @@
  * draws it.
  */
 
-import type { BufferGeometry, PlaneGeometry } from 'three';
-import { godot_primitive_mesh_changed, godot_primitive_mesh_describe, godot_primitive_mesh_drawn_with, godot_primitive_mesh_uv_top, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
+import type { BufferGeometry } from 'three';
+import { godot_primitive_mesh_describe, godot_primitive_mesh_uv_top, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -115,7 +115,6 @@ export function construct(): PlaneMesh {
  */
 export function set_size(self: PlaneMesh, size: Vector2): void {
   self.size = vector2(size);
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -134,7 +133,6 @@ export function get_size(self: PlaneMesh): Vector2 {
  */
 export function set_subdivide_width(self: PlaneMesh, divisions: number): void {
   self.subdivide_width = divisions > 0 ? divisions : 0;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -151,7 +149,6 @@ export function get_subdivide_width(self: PlaneMesh): number {
  */
 export function set_subdivide_depth(self: PlaneMesh, divisions: number): void {
   self.subdivide_depth = divisions > 0 ? divisions : 0;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -170,7 +167,6 @@ export function set_center_offset(self: PlaneMesh, offset: Vector3): void {
   const current = self.center_offset;
   if (equalApprox(offset.x, current.x) && equalApprox(offset.y, current.y) && equalApprox(offset.z, current.z)) return;
   self.center_offset = offset;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -187,7 +183,6 @@ export function get_center_offset(self: PlaneMesh): Vector3 {
  */
 export function set_orientation(self: PlaneMesh, orientation: number): void {
   self.orientation = orientation;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -236,23 +231,4 @@ export function godot_plane_mesh_face_x<Geometry extends BufferGeometry>(geometr
     geometry.rotateY(Math.PI / 2);
   }
   return geometry;
-}
-
-/**
- * The PlaneMesh a scene's plane geometry draws, read back from it: its size and subdivisions are
- * the geometry's, its orientation the facing the scene made it with (`godot_plane_mesh_face_x`,
- * `godot_plane_mesh_face_y`, else three's own facing, FACE_Z, which a QuadMesh is too). It is drawn
- * with that geometry, so setting its properties changes what the scene shows.
- *
- * @godot PlaneMesh (protocol)
- * @source scene/resources/3d/primitive_meshes.cpp:1417
- */
-export function godot_plane_mesh_of(geometry: PlaneGeometry): PlaneMesh {
-  const { width, height, widthSegments, heightSegments } = geometry.parameters;
-  const mesh = construct();
-  mesh.size = vector2(width, height);
-  mesh.subdivide_width = widthSegments - 1;
-  mesh.subdivide_depth = heightSegments - 1;
-  mesh.orientation = FACING_X.has(geometry) ? FACE_X : FACING_Y.has(geometry) ? FACE_Y : FACE_Z;
-  return godot_primitive_mesh_drawn_with(mesh, geometry);
 }

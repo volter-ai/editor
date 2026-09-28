@@ -8,8 +8,7 @@
  * angles in double (`Math::sin(Math::PI * v)`); `primitive-mesh.ts` stores and draws it.
  */
 
-import type { SphereGeometry } from 'three';
-import { godot_primitive_mesh_changed, godot_primitive_mesh_describe, godot_primitive_mesh_drawn_with, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
+import { godot_primitive_mesh_describe, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { normalized, construct as vector3, type Vector3 } from './vector3';
 
@@ -115,7 +114,6 @@ export function set_radius(self: SphereMesh, radius: number): void {
   const value = f32(radius);
   if (equalApprox(value, self.radius)) return;
   self.radius = value;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -134,7 +132,6 @@ export function set_height(self: SphereMesh, height: number): void {
   const value = f32(height);
   if (equalApprox(self.height, value)) return;
   self.height = value;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -154,7 +151,6 @@ export function get_height(self: SphereMesh): number {
 export function set_radial_segments(self: SphereMesh, segments: number): void {
   if (segments === self.radial_segments || (self.radial_segments === 4 && segments < 4)) return;
   self.radial_segments = segments > 4 ? segments : 4;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -174,7 +170,6 @@ export function get_radial_segments(self: SphereMesh): number {
 export function set_rings(self: SphereMesh, rings: number): void {
   if (rings === self.rings || rings < 1) return;
   self.rings = rings;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -191,7 +186,6 @@ export function get_rings(self: SphereMesh): number {
  */
 export function set_is_hemisphere(self: SphereMesh, hemisphere: boolean): void {
   self.is_hemisphere = hemisphere;
-  godot_primitive_mesh_changed(self);
 }
 
 /**
@@ -200,22 +194,4 @@ export function set_is_hemisphere(self: SphereMesh, hemisphere: boolean): void {
  */
 export function get_is_hemisphere(self: SphereMesh): boolean {
   return self.is_hemisphere;
-}
-
-/**
- * The SphereMesh a scene's sphere geometry draws, read back from it: its radius, a height of twice
- * the radius, its columns as radial segments and its rows less one as rings. It is drawn with that
- * geometry, so setting its properties changes what the scene shows.
- *
- * @godot SphereMesh (protocol)
- * @source scene/resources/3d/primitive_meshes.cpp:1988
- */
-export function godot_sphere_mesh_of(geometry: SphereGeometry): SphereMesh {
-  const { radius, widthSegments, heightSegments } = geometry.parameters;
-  const mesh = construct();
-  mesh.radius = f32(radius);
-  mesh.height = f32(radius * 2);
-  mesh.radial_segments = widthSegments;
-  mesh.rings = heightSegments - 1;
-  return godot_primitive_mesh_drawn_with(mesh, geometry);
 }
