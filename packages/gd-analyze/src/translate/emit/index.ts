@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-import { reachableCapabilityArtifacts } from './reachable-capabilities';
 import { structuralDigest } from '../artifacts/identity';
 import type {
   GodotArtifactOrigin,
@@ -248,8 +247,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     sceneInputs,
     projectModules,
   };
-  // The capability copies the game's own files reach, as its bundler follows their imports.
-  const artifacts = reachableCapabilityArtifacts(accepted.plan.artifacts.flatMap((artifact) => emitArtifact(artifact, context)));
+  const artifacts = accepted.plan.artifacts.flatMap((artifact) => emitArtifact(artifact, context));
   if (
     codeSyntax.size > 0 ||
     sceneSyntax.size > 0 ||

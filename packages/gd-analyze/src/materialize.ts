@@ -68,10 +68,8 @@ function assertArtifactSet(
     }
     planned.delete(artifact.path);
   }
-  // A capability copy the game never reaches is not emitted (`reachable-capabilities.ts`).
-  const absent = [...planned].filter(([, expected]) => expected.kind !== 'capability-copy').map(([path]) => path);
-  if (absent.length > 0) {
-    throw new Error(`accepted artifacts are absent: ${absent.join(', ')}`);
+  if (planned.size > 0) {
+    throw new Error(`accepted artifacts are absent: ${[...planned.keys()].join(', ')}`);
   }
 }
 
