@@ -198,6 +198,12 @@ export interface GlbScene {
   readonly externalImages: readonly GltfExternalImage[];
   /** The AnimationPlayer's clips as the importer keys them, or why they are not modelled. */
   readonly animationKeys?: readonly ImportedClip[] | string;
+  /**
+   * `nodes/root_scale` with `nodes/apply_root_scale` on, when not 1: the importer bakes it into the
+   * mesh resources (`_apply_scale_to_scalable_node_collection`, `resource_importer_scene.cpp:599`),
+   * which the file's loader reads unscaled; the nodes' positions here already carry it.
+   */
+  readonly meshScale?: number;
   /** Exact source material identities and alpha modes needed by renderer planning. */
   readonly sourceMaterials: readonly {
     readonly name?: string;
@@ -298,6 +304,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       sourceMaterials: scene.sourceMaterials,
       ...(animationPlayer === undefined ? {} : { animationPlayer }),
       ...(scene.animationKeys === undefined ? {} : { animationKeys: scene.animationKeys }),
+      ...(scene.meshScale === undefined ? {} : { meshScale: scene.meshScale }),
     },
   };
 }
@@ -949,6 +956,7 @@ export function readGltfAsGodotScene(
     nodes,
     sceneRootPaths,
     externalImages: doc.externalImages,
+    ...(importParams.applyRootScale && importParams.rootScale !== 1 ? { meshScale: importParams.rootScale } : {}),
     sourceMaterials: doc.materials.map((material) => ({
       ...(material.sourceName === undefined ? {} : { name: material.sourceName }),
       ...(material.alphaMode === undefined ? {} : { alphaMode: material.alphaMode }),

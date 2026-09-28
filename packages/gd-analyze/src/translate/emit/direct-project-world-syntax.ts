@@ -260,6 +260,7 @@ export function emitDirectGodotWorldSyntax(
         attributes: [
           { kind: 'jsx-expression-attribute', name: 'timeStep', value: { kind: 'binary-expression', operator: '/', left: { kind: 'literal-expression', value: 1 }, right: { kind: 'literal-expression', value: ticks } } },
           { kind: 'jsx-expression-attribute', name: 'gravity', value: numbers(gravity) },
+          { kind: 'jsx-expression-attribute', name: 'allowedLinearError', value: { kind: 'literal-expression', value: composition.physicsWorld.allowedLinearError } },
           { kind: 'jsx-expression-attribute', name: 'colliders', value: { kind: 'literal-expression', value: false } },
         ],
         children: [{ kind: 'jsx-element-child', ...provided }],

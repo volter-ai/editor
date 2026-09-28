@@ -205,6 +205,8 @@ export interface BoundGodotSceneDocument {
     readonly externalMaterials?: Readonly<Record<string, string>>;
     /** The importer's AnimationPlayer clips, keyed as it leaves them, or why they are not modelled. */
     readonly animationKeys?: readonly ImportedClip[] | string;
+    /** The importer's root scale baked into the model's meshes, when not 1 (`GlbScene.meshScale`). */
+    readonly meshScale?: number;
   };
   /** The document's `[sub_resource]`s and `[ext_resource]`s (an instance's copied under its ids). */
   readonly subResources: readonly BoundGodotResourceData[];
@@ -658,6 +660,7 @@ function boundDocuments(
                   externalImages: document.gltfOrigin.externalImages,
                   ...externalMaterialsOf(decoded.imports.find((sidecar) => sidecar.sourceFile === document.resPath)?.externalMaterials),
                   ...(document.gltfOrigin.animationKeys === undefined ? {} : { animationKeys: document.gltfOrigin.animationKeys }),
+                  ...(document.gltfOrigin.meshScale === undefined ? {} : { meshScale: document.gltfOrigin.meshScale }),
                 },
               }),
           nodes: boundSceneNodes(

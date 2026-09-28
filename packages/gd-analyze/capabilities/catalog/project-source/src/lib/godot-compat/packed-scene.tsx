@@ -34,7 +34,7 @@ import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
 import { useGLTF } from '@react-three/drei';
 import { createPortal, type ThreeElements } from '@react-three/fiber';
 import { createContext, createElement, type ReactNode, type Ref, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
-import { Group, type Material, type Mesh, type Object3D, Texture } from 'three';
+import { type BufferGeometry, Group, type Material, type Mesh, type Object3D, Texture } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
 import { godot_animation_mixer_set_library } from './animation-mixer';
@@ -83,6 +83,25 @@ export interface GodotImportedSceneTree {
   readonly nodes: readonly GodotImportedSceneNode[];
   /** The importer's AnimationPlayer library: its clips as the importer keyed them. */
   readonly animations?: GodotAnimationLibraryData;
+  /**
+   * The `.import`'s `nodes/root_scale` with `nodes/apply_root_scale` on: the importer bakes it into
+   * the model's meshes (`_apply_scale_to_scalable_node_collection`, `resource_importer_scene.cpp:599`),
+   * and the nodes' positions in `nodes` already carry it.
+   */
+  readonly meshScale?: number;
+}
+
+/** The loaded files' geometries already scaled by their model's `meshScale`: the loader shares them. */
+const SCALED = new WeakSet<BufferGeometry>();
+
+/** Scales each mesh's geometry the loader made, once however many instances share it. */
+function scaleMeshes(loaded: readonly Object3D[], scale: number): void {
+  for (const object of loaded) {
+    const geometry = (object as Mesh).isMesh === true ? (object as Mesh).geometry : undefined;
+    if (geometry === undefined || SCALED.has(geometry)) continue;
+    geometry.scale(scale, scale, scale);
+    SCALED.add(geometry);
+  }
 }
 
 /** A model's library, loaded once for all its instances (the imported scene's shared resources). */
@@ -329,6 +348,7 @@ export function GodotImportedScene({
   const external = useRef(materials);
   const tree = useMemo(() => {
     const built = buildTree(gltf.scene, gltf.parser.associations as ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes);
+    if (model.meshScale !== undefined) scaleMeshes(built.loaded, model.meshScale);
     const swap = external.current;
     if (swap !== undefined) {
       for (const object of built.loaded) {
@@ -340,7 +360,7 @@ export function GodotImportedScene({
       }
     }
     return built;
-  }, [gltf, nodes]);
+  }, [gltf, nodes, model.meshScale]);
   const root = useRef<Group | null>(null);
   useImperativeHandle(ref, () => root.current as Group, []);
   // The instancing scene's values are set once, as the scene instantiates: a render that rebuilds

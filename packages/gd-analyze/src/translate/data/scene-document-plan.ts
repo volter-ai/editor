@@ -125,6 +125,8 @@ export interface TargetGodotImportedModelPlan {
   readonly materials?: readonly { readonly name: string; readonly key: string }[];
   /** The importer's AnimationPlayer library (its clips as the importer keys them), with its RESET. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
+  /** The importer's root scale baked into the model's meshes, when not 1. */
+  readonly meshScale?: number;
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
   readonly overrides: readonly {
     readonly at: string;
@@ -1513,6 +1515,12 @@ function planImportedInstance(
     return undefined;
   }
   const animations = Array.isArray(keys) ? importedLibrary(keys as readonly ImportedClip[]) : undefined;
+  // The importer bakes its root scale into the meshes, skins and animations; the meshes are scaled
+  // as they load, while bones and animation keys are not, so such a model refuses.
+  if (model.meshScale !== undefined && (Object.keys(model.bonesByPath).length > 0 || animations !== undefined)) {
+    refuse(context, at, `${imported.resPath}: the root scale of a skinned or animated model is not baked`, 'resource', 'imported .glb');
+    return undefined;
+  }
   const properties = planProperties(context, node, node.authoredProperties);
   const placed = placement(context, node);
   if (properties === undefined || placed === undefined) return undefined;
@@ -1529,6 +1537,7 @@ function planImportedInstance(
       ...(images.length === 0 ? {} : { images }),
       ...(materials.length === 0 ? {} : { materials }),
       ...(animations === undefined ? {} : { animations }),
+      ...(model.meshScale === undefined ? {} : { meshScale: model.meshScale }),
       overrides: [],
     },
     properties,

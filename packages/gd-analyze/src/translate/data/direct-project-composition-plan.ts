@@ -98,6 +98,12 @@ export interface DirectGodotProjectSettingPlan {
   readonly value: DirectGodotSettingValue;
 }
 
+/** The `<Physics>` world's settings the plan fixes from the project. */
+export interface DirectGodotPhysicsWorldPlan {
+  /** The contact penetration the solver leaves uncorrected (Rapier's `allowedLinearError`). */
+  readonly allowedLinearError: number;
+}
+
 export interface DirectGodotProjectCompositionPlan {
   readonly version: typeof DIRECT_GODOT_COMPOSITION_PLAN_VERSION;
   readonly snapshotDigest: string;
@@ -107,6 +113,7 @@ export interface DirectGodotProjectCompositionPlan {
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
   readonly inputMap: readonly DirectGodotInputActionPlan[];
+  readonly physicsWorld: DirectGodotPhysicsWorldPlan;
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
@@ -601,6 +608,20 @@ function projectSettings(
   return [...planned.values()].sort((left, right) => left.key.localeCompare(right.key));
 }
 
+/**
+ * The contact penetration the 3D physics server leaves uncorrected: the project's
+ * `physics/3d/solver/contact_max_allowed_penetration`, registered at 0.01
+ * (`servers/physics_3d/physics_server_3d.cpp:1154`). Rapier's `allowedLinearError` is the same
+ * tolerance: at Rapier's own 0.001 a ball pressed against a wall stays wedged there, its push out of
+ * the wall bounding a friction that stops it rolling away, where Godot's engines let it go. Jolt's
+ * larger slop (0.02, `modules/jolt_physics/jolt_project_settings.cpp:41`) is not taken: Rapier
+ * settles a resting body to its tolerance's depth in the floor.
+ */
+function physicsWorld(project: BoundGodotProject): DirectGodotPhysicsWorldPlan {
+  const value = project.read.authoredSettings.get('physics/3d/solver/contact_max_allowed_penetration');
+  return { allowedLinearError: value?.kind === 'number' ? value.value : 0.01 };
+}
+
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
 /** The classes whose methods take an action by name. */
 const ACTION_CLASSES = new Set(['Input', 'InputMap', 'InputEvent', 'InputEventAction', 'InputEventKey', 'InputEventMouseButton', 'InputEventJoypadButton', 'InputEventJoypadMotion', 'InputEventScreenTouch', 'InputEventMouseMotion', 'InputEventScreenDrag', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEventMouse']);
@@ -688,6 +709,7 @@ export function planDirectGodotProjectComposition(
   const autoloads = scriptAutoloads(project, modules, diagnostics);
   validateAutoloadReferences(instances, autoloads, diagnostics);
   const settings = projectSettings(project, diagnostics);
+  const physics = physicsWorld(project);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
@@ -701,6 +723,7 @@ export function planDirectGodotProjectComposition(
       mainScene,
       projectSettings: settings,
       inputMap,
+      physicsWorld: physics,
       sourceModules: plannedSourceModules,
       scenes: planGodotSceneRefs(composedScenes),
       scriptAutoloads: autoloads,

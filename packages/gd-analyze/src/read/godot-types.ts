@@ -211,6 +211,8 @@ export interface InstancedParentOrigin {
 export interface GltfSceneOrigin {
   /** Godot node path → exact glTF `nodes[]` index. Unlike a name, this cannot collide. */
   readonly nodeIndexByPath: ReadonlyMap<string, number>;
+  /** The importer's root scale baked into the model's meshes (`GlbScene.meshScale`), when not 1. */
+  readonly meshScale?: number;
   /**
    * Godot node path → the RAW `nodes[i].name`. A path absent from this map is a node Godot
    * SYNTHESIZED (the root, the `AnimationPlayer`, a per-skin `Skeleton3D`) or a glTF node the file

@@ -131,6 +131,7 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan, type
               nodes: node.model.nodes,
               // The importer's AnimationPlayer library, which the model's player holds.
               ...(node.model.animations === undefined ? {} : { animations: node.model.animations }),
+              ...(node.model.meshScale === undefined ? {} : { meshScale: node.model.meshScale }),
             },
             [scene.sourceResPath],
             { module: 'packed-scene', name: 'GodotImportedSceneTree' },
