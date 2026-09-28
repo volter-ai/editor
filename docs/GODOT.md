@@ -34,14 +34,6 @@ passed by reproducing Godot's implementation, so the evidence gate is what drove
 `MainTimerSync`, the spawn host, class-mount registries, gles3's particle storage. Retiring the
 gate is what makes idiomatic translation possible.
 
-**Acceptance is a blind walk.** A game is ported when a fresh subagent, told only what a player
-would do, plays the imported game in the game editor through a Playwright REPL one action at a
-time, side by side with the original running in official Godot, and reports that it plays like the
-original (the workspace's standing directive). The walk reports what a player sees and whether it
-plays the same; it never measures or compares values, so it cannot become a comparator again. One walk per game when its work is done, never per
-change. Changes in between are checked cheaply: typecheck, import, `gd-analyze run`, a look in
-the editor.
-
 **The architecture review gate.** The structural bar is ARCHITECTURE.md (rule 4 especially) and
 these rows, judged by a context-free reviewer who is given only this section, ARCHITECTURE.md and
 the code, including an emitted game:
@@ -262,8 +254,7 @@ and its rows. It exists because three periodic reviews in a row came back `regre
 arrived faster than reviews cleared them. The lanes were briefed to clear refusals, and they merged
 with no check of the shapes the review hunts.
 
-1. Every lane's brief carries §The lane's law and this reading of how its rows apply. The lane
-   checks its own diff against it before committing:
+1. Every lane's brief carries §The lane's law and this reading of how its rows apply:
    - Row 2: each phase owns its concern. Analysis types values. The plan decides every idiom,
      prop, ref and artifact. Lowering selects rules for the types analysis gives. Emit prints.
      None of them re-derives what an earlier phase decided, so emit reading a setter by its name
@@ -279,13 +270,9 @@ with no check of the shapes the review hunts.
    - Row 5: the output is what a three.js or R3F developer would write, with no generated
      dispatchers or helpers and nothing for tooling.
    - Ruling 2: no record, capture or comparison of Godot's output is kept.
-2. A lane lands on `godot` unverified: while any code of the slate remains to be written, nothing
-   is tested or reviewed (company AGENTS.md, "test and review only at the very end", owner
-   2026-09-28, which overrides the per-lane checks this section once set; see
-   `company-layer/games/log/2026-09-28-godot-lane-postmortem.md`). The pre-commit hooks (the
-   compat contract, the ratchet) still run, as they take seconds. When the slate is written,
-   verification runs once: the imports of every game, the headless probe, one review by
-   docs/GODOT-REVIEW.md, then the blind walks. Their findings reopen the slate.
+2. No tests and no reviews (owner, 2026-09-28: "NO TESTS NO REVIEWS", "under any circumstance you
+   may not test"): a lane lands on `godot` as written. The one review is the regular regression
+   check, docs/GODOT-REVIEW.md after 30 lane commits.
 3. The slate is the board card's done-when (the games walked blind, the lane merged, its fixes on
    main and released). Work that does not serve it, the emitted game's shape track included, waits
    for the owner to ask for it.
@@ -530,9 +517,7 @@ component advancing that node; what drives the game from outside it (a clock ove
 scheduler, a spawn host, a mirrored tree, hooks the emitted world is written against) is not.
 Each step lands as its own lane under §How a lane lands. The ratchet gains a rule per step once
 the step removes its pattern (compat hooks per emitted scene, `__godot_value_` temporaries,
-`animationBindings` tables), so the output only moves one way. Each step is checked cheaply:
-typecheck, the imports of every game that imports, and the headless probe. The behaviour must not
-change, only the shape, and the games are walked once when the track is done.
+`animationBindings` tables), so the output only moves one way. There are no tests and no reviews of a step; the regression check is the one review.
 
 ## Where it lives
 
