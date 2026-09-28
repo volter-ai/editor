@@ -174,7 +174,8 @@ export function godot_reflection_probe_props(authored: Readonly<Record<string, u
   const state = initial(authored);
   // `set_size` and `set_origin_offset` keep the capture point inside the box.
   clampOffset(state);
-  return { ...config(state), userData: { godot: authored } };
+  // The probe states its Godot classes with its authored state (the Node protocol's `is`).
+  return { ...config(state), userData: { godot: authored, classes: ['ReflectionProbe', 'VisualInstance3D', 'Node3D', 'Node', 'Object'] } };
 }
 
 /** The capture point kept 0.01 inside each half of the box (`reflection_probe.cpp:103`). */

@@ -89,13 +89,8 @@ const CLIP_PLAYER_SETTERS: ReadonlySet<string> = new Set(['set_default_blend_tim
 /** The scenes with each mesh resource's `surfaceMaterials` and each MeshInstance3D's `surfaces`. */
 export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
   return scenes.map((scene) => {
-    // A model's AnimationPlayer plays the glTF's own clips when no AnimationTree of the scene can
-    // drive it and the scene adds no library or animation to it.
-    let tree = false;
-    (function find(node: DirectGodotSceneNodePlan): void {
-      if (node.classes.includes('AnimationTree')) tree = true;
-      for (const child of godotSceneSubnodes(node)) find(child);
-    })(scene.root);
+    // A model's AnimationPlayer plays the glTF's own clips when the scene adds no library or
+    // animation to it (an AnimationTree over it drives the clips, `animation-tree.ts`).
     const resources = scene.resources.map((resource) => {
       const primitive = primitiveArgs(resource);
       return { ...resource, surfaceMaterials: surfaceMaterials(resource), ...(primitive === undefined ? {} : { primitive }) };
@@ -119,7 +114,7 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
       const lens = node.idiom?.form.kind === 'camera' ? cameraLens(node) : undefined;
       const model = node.model;
       const clipPlayers =
-        model === undefined || tree || model.animations === undefined
+        model === undefined || model.animations === undefined
           ? []
           : model.nodes
               .filter((entry) => entry.animationPlayer === true)

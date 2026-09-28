@@ -14,7 +14,8 @@
  * loops and root motion.
  */
 
-import { Group, type Object3D } from 'three';
+import { godot_animation_clips_drive, godot_animation_clips_loop, godot_animation_clips_of } from './animation-clips';
+import { AnimationClip, type AnimationAction, Group, type KeyframeTrack, type Object3D } from 'three';
 import type { ReactElement } from 'react';
 import type { Animation } from './animation';
 import {
@@ -473,6 +474,12 @@ function setupAnimationPlayer(state: TreeState): void {
     return;
   }
   const player = get_node_or_null(entity, state.animationPlayer);
+  // A model's player of its glTF's clips: the tree drives the clips on the player's own mixer.
+  if (player !== null && player !== undefined && godot_animation_clips_of(godot_node_entity(player as object))) {
+    godot_animation_mixer_set_process(entity, false);
+    driveClips(state, godot_node_entity(player as object));
+    return;
+  }
   if (player !== null && player !== undefined && godot_is_native(player, 'AnimationPlayer')) {
     const playerEntity = godot_node_entity(player as object);
     if (state.playerHooked !== playerEntity) {
@@ -491,6 +498,118 @@ function setupAnimationPlayer(state: TreeState): void {
     }
   }
   clear_caches(entity);
+}
+
+/** The clip player each tree drives (`driveClips`). */
+const DRIVEN = new WeakMap<TreeState, object>();
+
+/** A weight along a path from the output to an animation: a number, or a filtered Blend2's split. */
+type ClipFactor = number | { readonly filter: ReadonlySet<string>; readonly inside: number; readonly outside: number };
+
+/** The node a track animates: a bone's (`Skeleton3D:bone`) or a node's name, before the property. */
+function trackNode(track: string): string {
+  return track.slice(0, track.indexOf('.') < 0 ? track.length : track.indexOf('.'));
+}
+
+/** The node a filter names: the bone after `:`, else the path's last node. */
+function filterNode(path: string): string {
+  const colon = path.lastIndexOf(':');
+  return colon >= 0 ? path.slice(colon + 1) : path.slice(path.lastIndexOf('/') + 1);
+}
+
+/**
+ * The blend tree over a player's glTF clips (`animation-clips.ts`): each frame, before the player's
+ * mixer advances, the tree is walked from its output with its parameters as they are, each animation
+ * node reached with the weight and speed its path gives it. A Blend2 splits its weight by its
+ * amount (a filtered one only on the tracks its filters name, the rest going wholly to its first
+ * input); a TimeScale scales its subtree's speed. An animation's action is its clip, split by the
+ * filters on its path into parts of the tracks each takes the same weight on; what the walk does not
+ * reach weighs nothing.
+ */
+function driveClips(state: TreeState, player: object): void {
+  // The tree drives a player once, however often its setup runs.
+  if (DRIVEN.get(state) === player) return;
+  DRIVEN.set(state, player);
+  const parts = new Map<string, AnimationAction>();
+  const drive = godot_animation_clips_drive(player, () => {
+    updateProperties(state);
+    const reached = new Set<AnimationAction>();
+    const parameter = (path: string, name: string, fallback: number) => Number(state.properties.get(`parameters/${path}${name}`)?.value ?? fallback);
+    const visit = (node: AnimationNode, path: string, factors: readonly ClipFactor[], speed: number): void => {
+      switch (node.kind) {
+        case 'blend-tree': {
+          const output = node.nodes.get('output');
+          const input = output?.connections[0];
+          const entry = input === undefined ? undefined : node.nodes.get(input);
+          if (entry !== undefined && input !== undefined) visitIn(node, input, entry.node, path, factors, speed);
+          return;
+        }
+        case 'animation': {
+          const clip = drive.clip(node.animation);
+          if (clip === undefined) return;
+          const filters = factors.flatMap((factor) => (typeof factor === 'number' ? [] : [factor.filter]));
+          const groups = new Map<string, KeyframeTrack[]>();
+          for (const track of clip.clip.tracks) {
+            const key = filters.map((filter) => (filter.has(trackNode(track.name)) ? '1' : '0')).join('');
+            groups.set(key, [...(groups.get(key) ?? []), track]);
+          }
+          for (const [key, tracks] of groups) {
+            const id = `${node.animation}#${key}`;
+            let action = parts.get(id);
+            if (action === undefined) {
+              action = drive.mixer.clipAction(key === '' ? clip.clip : new AnimationClip(id, clip.clip.duration, tracks));
+              action.setLoop(godot_animation_clips_loop(clip.loopMode), Infinity);
+              action.clampWhenFinished = true;
+              action.play();
+              parts.set(id, action);
+            }
+            let weight = 1;
+            let index = 0;
+            for (const factor of factors) {
+              if (typeof factor === 'number') weight *= factor;
+              else weight *= key[index++] === '1' ? factor.inside : factor.outside;
+            }
+            action.setEffectiveWeight(weight);
+            action.setEffectiveTimeScale(speed);
+            reached.add(action);
+          }
+          return;
+        }
+        default:
+          return;
+      }
+    };
+    const visitIn = (tree: Extract<AnimationNode, { kind: 'blend-tree' }>, name: string, node: AnimationNode, path: string, factors: readonly ClipFactor[], speed: number): void => {
+      const own = `${path}${name}/`;
+      const input = (index: number) => {
+        const source = tree.nodes.get(name)?.connections[index];
+        const entry = source === undefined ? undefined : tree.nodes.get(source);
+        return entry === undefined || source === undefined ? undefined : { name: source, node: entry.node };
+      };
+      switch (node.kind) {
+        case 'blend2': {
+          const amount = parameter(own, 'blend_amount', 0);
+          const [first, second] = [input(0), input(1)];
+          const filter = node.filterEnabled ? new Set([...node.filters].map(filterNode)) : undefined;
+          if (first !== undefined) visitIn(tree, first.name, first.node, path, [...factors, filter === undefined ? 1 - amount : { filter, inside: 1 - amount, outside: 1 }], speed);
+          if (second !== undefined) visitIn(tree, second.name, second.node, path, [...factors, filter === undefined ? amount : { filter, inside: amount, outside: 0 }], speed);
+          return;
+        }
+        case 'time-scale': {
+          const first = input(0);
+          if (first !== undefined) visitIn(tree, first.name, first.node, path, factors, speed * parameter(own, 'scale', 1));
+          return;
+        }
+        case 'blend-tree':
+          visit(node, own, factors, speed);
+          return;
+        default:
+          visit(node, path, factors, speed);
+      }
+    };
+    if (state.root !== null && is_active(state.entity)) visit(state.root, '', [], 1);
+    for (const action of parts.values()) if (!reached.has(action)) action.setEffectiveWeight(0);
+  });
 }
 
 /**

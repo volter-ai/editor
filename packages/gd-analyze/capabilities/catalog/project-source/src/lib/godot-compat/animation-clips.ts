@@ -27,6 +27,8 @@ interface ClipPlayer {
   speedScale: number;
   defaultBlendTime: number;
   queue: string[];
+  /** An AnimationTree driving the player's clips: it sets its actions each frame, before the mixer advances. */
+  driver: ((delta: number) => void) | undefined;
   readonly signals: {
     readonly animation_started: SignalHandle<[string]>;
     readonly animation_finished: SignalHandle<[string]>;
@@ -55,6 +57,7 @@ export function godot_animation_clips_mount(player: object, model: Object3D, cli
     speedScale: 1,
     defaultBlendTime: 0,
     queue: [],
+    driver: undefined,
     signals: { animation_started: createSignal<[string]>(), animation_finished: createSignal<[string]>(), current_animation_changed: createSignal<[string]>() },
   };
   state.mixer.addEventListener('finished', (event) => {
@@ -265,5 +268,36 @@ export function godot_animation_clips_signal(player: object, name: string): Godo
  * @source scene/animation/animation_mixer.cpp:2283
  */
 export function godot_animation_clips_advance(model: object, delta: number): void {
-  for (const state of MODELS.get(model) ?? []) state.mixer.update(delta);
+  for (const state of MODELS.get(model) ?? []) {
+    state.driver?.(delta);
+    state.mixer.update(delta);
+  }
+}
+
+/**
+ * Hands a player's clips to an AnimationTree, which drives them (`driver` sets its actions' weights
+ * and speeds each frame, before the mixer advances): the tree's own view of the player's mixer and
+ * clips. Undefined stops the drive.
+ *
+ * @godot AnimationTree (protocol)
+ * @source scene/animation/animation_tree.cpp:979
+ */
+export function godot_animation_clips_drive(
+  player: object,
+  driver: ((delta: number) => void) | undefined,
+): { readonly mixer: AnimationMixer; readonly clip: (name: string) => { readonly clip: AnimationClip; readonly loopMode: number } | undefined } {
+  const state = stateOf(player);
+  state.driver = driver;
+  if (driver !== undefined) godot_animation_clips_stop(player, true);
+  return { mixer: state.mixer, clip: (name) => state.clips.get(name) };
+}
+
+/**
+ * The loop a clip's action takes for the importer's loop mode.
+ *
+ * @godot Animation (protocol)
+ * @source scene/resources/animation.h:74
+ */
+export function godot_animation_clips_loop(loopMode: number): typeof LoopOnce | typeof LoopRepeat | typeof LoopPingPong {
+  return loopMode === LOOP_LINEAR ? LoopRepeat : loopMode === LOOP_PINGPONG ? LoopPingPong : LoopOnce;
 }
