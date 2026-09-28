@@ -383,6 +383,21 @@ emitter prints:
    remove: `instantiate` returns the root's script instance, which a script configures before
    `add_child`, and the added scene takes that instance as its script when it mounts.
 
+The SceneTree's clock, what `useGodotTree` still runs after steps 6 and 7, goes the same way, from
+what the corpus uses (the seven Godot 4 games, 2026-09-28):
+- a delta is read from the host, never kept: `get_physics_process_delta_time()` is the physics
+  world's own timestep (Rapier's), `get_process_delta_time()` R3F's frame delta, bounded as a
+  script's `_process` delta is (racing's `vehicle.gd` reads the first);
+- `is_action_just_pressed` and `_released` (eight scripts) are the Input library's own edges:
+  an action records when it changed, in the page's time, and "just" is a change since the host's
+  current frame began, read from R3F's clock, not from frames the tree counts; where several
+  physics steps run in one frame, it holds for each of them, where Godot holds it for the first;
+- the frame counters (`Engine.get_process_frames`, `get_physics_frames`, `is_in_physics_frame`)
+  and the `process_frame` and `physics_frame` signals, which no corpus game uses, are refused by
+  name until one does, and then are owned as timers are (the script awaiting or connecting to one
+  is its owner);
+- with nothing left to run, `useGodotTree` goes from the emitted world.
+
 The emitted game is idiomatic three.js, which can still use libraries at its edges (the owner,
 2026-09-28). Compat is such a library, never plumbing: what the game's code calls (a
 Tween, a Timer, a Vector3, a binding over three's objects) is allowed, and so is a node's own
