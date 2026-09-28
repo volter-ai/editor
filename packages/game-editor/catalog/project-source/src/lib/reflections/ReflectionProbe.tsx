@@ -199,8 +199,8 @@ export function ReflectionProbe({
     unobserve.current = acquired.registry.observe((probes: readonly ReflectionProbeRuntime[]) => {
       const self = probes.find((probe) => probe.node === object);
       const published = self?.ready ? self.texture : null;
-      // Runs every update; React re-renders only when the published texture
-      // actually changes identity, which is once per capture at most.
+      // Runs whenever the registry changes; React re-renders only when the
+      // published texture actually changes identity, once per capture at most.
       setEnvMap((current) => (current === published ? current : published));
     });
     return () => {

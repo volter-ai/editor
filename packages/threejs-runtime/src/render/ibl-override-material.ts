@@ -103,9 +103,11 @@ export interface IblOverrideOptions {
   /**
    * The GLSL that replaces `#include <envmap_physical_pars_fragment>`. Read at
    * COMPILE time, not at install time, so a caller whose probe count is still
-   * settling does not have to reinstall to change it.
+   * settling does not have to reinstall to change it. `null` leaves this
+   * program as three's own: nothing is spliced and `onCompile` is not called
+   * (a caller with no probes to light, say).
    */
-  readonly fragment: () => string;
+  readonly fragment: () => string | null;
   /**
    * Appended to the material's own `customProgramCacheKey`, after a `|`. Must
    * distinguish every shape of {@link IblOverrideOptions.fragment} the caller
@@ -131,10 +133,12 @@ export interface IblOverride {
   readonly shader: IblOverrideShader | null;
   /**
    * Put the material's own `onBeforeCompile`/`customProgramCacheKey` back, if
-   * they are still this override's; once something else has installed its
-   * hooks over it, the override stays (restoring would remove theirs).
+   * they are still this override's, and return `true`. Once something else has
+   * installed its hooks over it, restoring would remove theirs too, so the
+   * override stays and this returns `false`: the caller then still owns an
+   * override that is live.
    */
-  restore(): void;
+  restore(): boolean;
 }
 
 /**
@@ -143,7 +147,10 @@ export interface IblOverride {
  * (in particular this never assigns `envMap`, which stays the caller's).
  *
  * The caller's own `onBeforeCompile` runs FIRST and its result is what gets
- * spliced, so an override composes over a material that already had one.
+ * spliced, so an override composes over a material that already had one. If
+ * that hook has already consumed a chunk the splice needs, the program keeps
+ * three's own lighting and the material warns once, rather than failing the
+ * draw.
  */
 export function overrideMaterialIbl(
   material: MeshStandardMaterial,
@@ -152,11 +159,23 @@ export function overrideMaterialIbl(
   const previousCompile = material.onBeforeCompile;
   const previousCacheKey = material.customProgramCacheKey;
   let compiled: IblOverrideShader | null = null;
+  let warned = false;
 
   const compile: MeshStandardMaterial['onBeforeCompile'] = (shader, renderer) => {
     previousCompile.call(material, shader, renderer);
-    requireChunk(shader.vertexShader, '#include <worldpos_vertex>');
-    requireChunk(shader.fragmentShader, '#include <envmap_physical_pars_fragment>');
+    const fragment = options.fragment();
+    if (fragment === null) return;
+    const missing = missingChunk(shader);
+    if (missing !== null) {
+      if (!warned) {
+        warned = true;
+        // biome-ignore lint/suspicious/noConsole: a hook before this one took a chunk the splice needs; say why the override is not drawn.
+        console.warn(
+          `[overrideMaterialIbl] material "${material.name}" keeps three's own lighting: its program no longer contains ${missing}, which an earlier onBeforeCompile replaced.`,
+        );
+      }
+      return;
+    }
     shader.vertexShader = `varying vec3 ${IBL_WORLD_POSITION};\n${shader.vertexShader.replace(
       '#include <worldpos_vertex>',
       `#include <worldpos_vertex>
@@ -166,7 +185,7 @@ export function overrideMaterialIbl(
     )}`;
     shader.fragmentShader = `varying vec3 ${IBL_WORLD_POSITION};\n${shader.fragmentShader.replace(
       '#include <envmap_physical_pars_fragment>',
-      options.fragment(),
+      fragment,
     )}`;
     compiled = shader;
     options.onCompile?.(shader);
@@ -184,28 +203,29 @@ export function overrideMaterialIbl(
     restore() {
       // A hook installed after this one wraps it: putting the earlier hooks back
       // would remove that one too, so the override then stays.
-      if (material.onBeforeCompile !== compile || material.customProgramCacheKey !== cacheKey) return;
+      if (material.onBeforeCompile !== compile || material.customProgramCacheKey !== cacheKey) return false;
       material.onBeforeCompile = previousCompile;
       material.customProgramCacheKey = previousCacheKey;
       material.needsUpdate = true;
       compiled = null;
+      return true;
     },
   };
 }
 
 /**
- * A missing chunk is a NAMED error rather than a silent no-op.
+ * The chunk the splice needs that `shader` no longer contains, or null.
  *
  * `String.replace` with no match returns the string unchanged, which would
  * leave the varying declared and never assigned — a shader that links and
- * renders the wrong thing. The only way to reach this today is a preceding
+ * renders the wrong thing. The way to reach this is a preceding
  * `onBeforeCompile` in the same chain having already replaced the chunk (two
- * IBL overrides stacked on one material), and that is worth a message naming
- * the chunk instead of a black frame.
+ * IBL overrides stacked on one material).
  */
-function requireChunk(source: string, chunk: string): void {
-  if (source.includes(chunk)) return;
-  throw new Error(
-    `overrideMaterialIbl needs three's ${chunk} shader chunk, and this material's program no longer contains it.`,
-  );
+function missingChunk(shader: IblOverrideShader): string | null {
+  if (!shader.vertexShader.includes('#include <worldpos_vertex>')) return '#include <worldpos_vertex>';
+  if (!shader.fragmentShader.includes('#include <envmap_physical_pars_fragment>')) {
+    return '#include <envmap_physical_pars_fragment>';
+  }
+  return null;
 }

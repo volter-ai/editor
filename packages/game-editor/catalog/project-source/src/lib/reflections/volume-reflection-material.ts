@@ -37,6 +37,7 @@ import {
 import {
   type Camera,
   type Material,
+  Matrix4,
   MeshPhysicalMaterial,
   type MeshPhysicalMaterialParameters,
   MeshStandardMaterial,
@@ -98,15 +99,15 @@ function cubeUvSamplingFunctions(): string {
 }
 
 /**
- * `(texelWidth, texelHeight, maxMip)` for one PMREM atlas — three's own
- * `generateCubeUVSize`, which reads the installed envMap's image height, asked
- * per texture instead.
+ * `(texelWidth, texelHeight, maxMip)` for one PMREM atlas, written into
+ * `target` — three's own `generateCubeUVSize`, which reads the installed
+ * envMap's image height, asked per texture instead.
  */
-function atlasSizeOf(texture: Texture | null): Vector3 {
+function atlasSizeInto(texture: Texture | null, target: Vector3): Vector3 {
   const height = (texture?.image as { height?: number } | undefined)?.height ?? 0;
-  if (height <= 0) return new Vector3(0, 0, 0);
+  if (height <= 0) return target.set(0, 0, 0);
   const maxMip = Math.log2(height) - 2;
-  return new Vector3(1 / (3 * Math.max(2 ** maxMip, 7 * 16)), 1 / height, maxMip);
+  return target.set(1 / (3 * Math.max(2 ** maxMip, 7 * 16)), 1 / height, maxMip);
 }
 
 function probeWeight(index: number): string {
@@ -263,14 +264,8 @@ ${each((index) => probeSampleBlock(index, 'radiance'))}
 /** Every uniform the chunk declares, by name: one object each, for the material's whole life. */
 type ProbeUniforms = Readonly<Record<string, { value: unknown }>>;
 
-const ARRAY_UNIFORMS = [
+const FLOAT_UNIFORMS = [
   'volterProbeReady',
-  'volterProbeWorldToLocal',
-  'volterProbeExtents',
-  'volterProbeParallaxExtents',
-  'volterProbeParallaxOffset',
-  'volterProbeCaptureOffset',
-  'volterProbeAtlasSize',
   'volterProbeShape',
   'volterProbeRadius',
   'volterProbeBlendDistance',
@@ -278,15 +273,53 @@ const ARRAY_UNIFORMS = [
   'volterProbeIntensity',
   'volterProbeDiffuseMode',
   'volterProbeDiffuseIntensity',
-  'volterProbeDiffuseColor',
   'volterProbeParallax',
 ] as const;
 
+const VECTOR_UNIFORMS = [
+  'volterProbeExtents',
+  'volterProbeParallaxExtents',
+  'volterProbeParallaxOffset',
+  'volterProbeCaptureOffset',
+  'volterProbeAtlasSize',
+  'volterProbeDiffuseColor',
+] as const;
+
 function createProbeUniforms(): ProbeUniforms {
-  const uniforms: Record<string, { value: unknown }> = { volterBaseEnvironment: { value: 0 } };
-  for (const name of ARRAY_UNIFORMS) uniforms[name] = { value: [] };
+  const uniforms: Record<string, { value: unknown }> = {
+    volterBaseEnvironment: { value: 0 },
+    volterProbeWorldToLocal: { value: null },
+  };
+  for (const name of [...FLOAT_UNIFORMS, ...VECTOR_UNIFORMS]) uniforms[name] = { value: null };
   for (let index = 0; index < MAX_PROBES; index += 1) uniforms[`volterProbeMap${index}`] = { value: null };
   return uniforms;
+}
+
+/**
+ * One binding's probe values, allocated once and rewritten in place. Every
+ * array is {@link MAX_PROBES} long whatever the program declares, the entries
+ * past the selected probes neutral (not ready, identity, zero), so a program
+ * compiled for more probes than are selected still uploads in full and
+ * lights nothing from the extra ones.
+ */
+interface ProbeValues {
+  readonly floats: Readonly<Record<(typeof FLOAT_UNIFORMS)[number], Float32Array>>;
+  readonly vectors: Readonly<Record<(typeof VECTOR_UNIFORMS)[number], readonly Vector3[]>>;
+  readonly worldToLocal: readonly Matrix4[];
+  readonly maps: (Texture | null)[];
+}
+
+function createProbeValues(): ProbeValues {
+  const floats = {} as Record<(typeof FLOAT_UNIFORMS)[number], Float32Array>;
+  for (const name of FLOAT_UNIFORMS) floats[name] = new Float32Array(MAX_PROBES);
+  const vectors = {} as Record<(typeof VECTOR_UNIFORMS)[number], readonly Vector3[]>;
+  for (const name of VECTOR_UNIFORMS) vectors[name] = Array.from({ length: MAX_PROBES }, () => new Vector3());
+  return {
+    floats,
+    vectors,
+    worldToLocal: Array.from({ length: MAX_PROBES }, () => new Matrix4()),
+    maps: Array.from({ length: MAX_PROBES }, () => null),
+  };
 }
 
 /** The probe's diffuse term: 0 none, 1 its capture, 2 its constant colour. */
@@ -295,48 +328,57 @@ function diffuseModeOf(config: ReflectionProbeDiffuse): number {
   return config.diffuse === 'color' ? 2 : 1;
 }
 
-/**
- * Write `probes` into the material's uniform objects. Only `.value` changes:
- * every program compiled for the material, in any renderer, holds these same
- * objects, so the next draw uploads what is written here.
- */
-function writeProbeUniforms(
-  uniforms: ProbeUniforms,
+/** Rewrite `values` in place for `probes`, padding the rest with neutral entries. */
+function fillProbeValues(
+  values: ProbeValues,
   probes: readonly ReflectionProbeRuntime[],
-  baseEnvironment: boolean,
   capturing: boolean,
 ): void {
+  const { floats, vectors } = values;
+  for (let index = 0; index < MAX_PROBES; index += 1) {
+    const probe = probes[index];
+    if (!probe) {
+      for (const name of FLOAT_UNIFORMS) floats[name][index] = 0;
+      for (const name of VECTOR_UNIFORMS) vectors[name][index]!.set(0, 0, 0);
+      values.worldToLocal[index]!.identity();
+      values.maps[index] = null;
+      continue;
+    }
+    const config = probe.mark.config as typeof probe.mark.config & ReflectionProbeDiffuse;
+    floats.volterProbeReady[index] = Number(probe.ready && !capturing);
+    floats.volterProbeShape[index] = Number(config.shape === 'sphere');
+    floats.volterProbeRadius[index] = Math.max(0.01, config.radius);
+    floats.volterProbeBlendDistance[index] = Math.max(0, config.blendDistance);
+    floats.volterProbePriority[index] = config.priority;
+    floats.volterProbeIntensity[index] = Math.max(0, config.intensity);
+    floats.volterProbeDiffuseMode[index] = diffuseModeOf(config);
+    floats.volterProbeDiffuseIntensity[index] = Math.max(0, config.diffuseIntensity ?? config.intensity);
+    floats.volterProbeParallax[index] = Number(config.parallaxProjection);
+    vectors.volterProbeExtents[index]!.copy(probe.extents);
+    vectors.volterProbeParallaxExtents[index]!.copy(probe.parallaxExtents);
+    vectors.volterProbeParallaxOffset[index]!.copy(probe.parallaxOffset);
+    vectors.volterProbeCaptureOffset[index]!.copy(probe.captureOffset);
+    atlasSizeInto(probe.texture, vectors.volterProbeAtlasSize[index]!);
+    const color = config.diffuseColor;
+    vectors.volterProbeDiffuseColor[index]!.set(color?.[0] ?? 0, color?.[1] ?? 0, color?.[2] ?? 0);
+    values.worldToLocal[index]!.copy(probe.worldToLocal);
+    values.maps[index] = probe.texture;
+  }
+}
+
+/**
+ * Point the material's uniform objects at `values`. Only `.value` changes:
+ * every program compiled for the material, in any renderer, holds these same
+ * objects, so the next draw uploads what they point at.
+ */
+function pointProbeUniforms(uniforms: ProbeUniforms, values: ProbeValues): void {
   const set = (name: string, value: unknown) => {
     (uniforms[name] as { value: unknown }).value = value;
   };
-  const config = (probe: ReflectionProbeRuntime) =>
-    probe.mark.config as typeof probe.mark.config & ReflectionProbeDiffuse;
-  set('volterProbeReady', probes.map((probe) => Number(probe.ready && !capturing)));
-  set('volterProbeWorldToLocal', probes.map((probe) => probe.worldToLocal));
-  set('volterProbeExtents', probes.map((probe) => probe.extents));
-  set('volterProbeParallaxExtents', probes.map((probe) => probe.parallaxExtents));
-  set('volterProbeParallaxOffset', probes.map((probe) => probe.parallaxOffset));
-  set('volterProbeCaptureOffset', probes.map((probe) => probe.captureOffset));
-  set('volterProbeAtlasSize', probes.map((probe) => atlasSizeOf(probe.texture)));
-  set('volterProbeShape', probes.map((probe) => Number(config(probe).shape === 'sphere')));
-  set('volterProbeRadius', probes.map((probe) => Math.max(0.01, config(probe).radius)));
-  set('volterProbeBlendDistance', probes.map((probe) => Math.max(0, config(probe).blendDistance)));
-  set('volterProbePriority', probes.map((probe) => config(probe).priority));
-  set('volterProbeIntensity', probes.map((probe) => Math.max(0, config(probe).intensity)));
-  set('volterProbeDiffuseMode', probes.map((probe) => diffuseModeOf(config(probe))));
-  set(
-    'volterProbeDiffuseIntensity',
-    probes.map((probe) => Math.max(0, config(probe).diffuseIntensity ?? config(probe).intensity)),
-  );
-  set(
-    'volterProbeDiffuseColor',
-    probes.map((probe) => new Vector3(...(config(probe).diffuseColor ?? [0, 0, 0]))),
-  );
-  set('volterProbeParallax', probes.map((probe) => Number(config(probe).parallaxProjection)));
-  set('volterBaseEnvironment', baseEnvironment ? 1 : 0);
-  for (let index = 0; index < MAX_PROBES; index += 1) {
-    set(`volterProbeMap${index}`, probes[index]?.texture ?? null);
-  }
+  for (const name of FLOAT_UNIFORMS) set(name, values.floats[name]);
+  for (const name of VECTOR_UNIFORMS) set(name, values.vectors[name]);
+  set('volterProbeWorldToLocal', values.worldToLocal);
+  for (let index = 0; index < MAX_PROBES; index += 1) set(`volterProbeMap${index}`, values.maps[index]);
 }
 
 /** Texture units a program three compiles with `parameters` binds before any probe's. */
@@ -383,6 +425,8 @@ function texturesBeforeProbes(parameters: Readonly<Record<string, unknown>>): nu
     // A batched mesh's matrices and ids, a geometry's morph targets.
     (parameters['batching'] ? 2 : 0) +
     (count('morphTargetsCount') > 0 ? 1 : 0) +
+    // A rect area light's two LTC lookup textures.
+    (count('numRectAreaLights') > 0 ? 2 : 0) +
     count('numDirLightShadows') +
     count('numPointLightShadows') +
     count('numSpotLightShadows') +
@@ -419,13 +463,15 @@ function splitArguments<O>(
  * assigned map. Where the scene has no probes the material draws as three's
  * own.
  *
- * `onBeforeCompile` and `customProgramCacheKey` may be assigned afterwards as
- * on any three material, and compose with the volume lighting rather than
- * replace it: the assigned hook runs first (a hook that wraps the value it
- * read calls back into this one harmlessly) and the probe chunk is spliced
- * into what it leaves; the assigned cache key is kept in front of the
- * material's own. Reading them back returns the composed functions. The volume
- * lighting cannot be removed by assignment: make a plain material for that.
+ * `onBeforeCompile`, `customProgramCacheKey` and `onBeforeRender` are the
+ * material's own hooks, and compose as three's hooks do: reading one returns
+ * exactly what was last assigned (the material's own before that), and a hook
+ * that wraps the value it read and calls it keeps the volume lighting, however
+ * many wrap it in turn. The probe chunk is spliced once per program, where the
+ * chain reaches the material's own hook; with no probes to light nothing is
+ * spliced, so a hook that takes three's IBL chunk for itself still finds it.
+ * A hook assigned without calling the one it replaces replaces the volume
+ * lighting too, as on any three material.
  *
  * Given no `renderer` and `scene` — a material made before either exists, as
  * a module-level resource is — the material reads the probes of whichever
@@ -444,9 +490,17 @@ function splitArguments<O>(
  * With more probes in the scene than `maxProbes` (at most eight), the ones
  * nearest the camera are blended, reselected as it moves, and the registry
  * warns once. A program blends no more probes than the texture units the
- * renderer has left once the material's maps, environment and shadow maps are
- * bound (`capabilities.maxTextures`); the farthest are dropped from that
- * program, and the renderer warns once.
+ * renderer has left once the material's maps, environment, shadow maps and
+ * area-light tables are bound (`capabilities.maxTextures`); the farthest are
+ * dropped from that program, and the renderer warns once.
+ *
+ * A program compiled without a draw (`renderer.compile`) takes the probe count
+ * of the binding that drew last; the renderer's next draw recompiles it if its
+ * own probes differ, and until then the program's extra probe slots light
+ * nothing.
+ *
+ * `clone()` and `toJSON()` see the author's `envMap` (null if none), never the
+ * black texture that stands in for it while probes apply.
  */
 export function createVolumeReflectionMaterial(
   options?: VolumeReflectionMaterialOptions,
@@ -503,10 +557,15 @@ interface ProbeBinding extends Binding {
   probes: readonly ReflectionProbeRuntime[];
   capturing: boolean;
   /** The probes blended, nearest the camera first; its length is the program's probe count. */
-  selected: readonly ReflectionProbeRuntime[];
-  /** The registry reported since the last selection and write. */
+  readonly selected: ReflectionProbeRuntime[];
+  /** The registry reported, or the selection changed, since `values` were last filled. */
   dirty: boolean;
   readonly camera: Vector3;
+  /** This binding's uniform values, rewritten in place. */
+  readonly values: ProbeValues;
+  /** Scratch for selection: the nearest probes so far and their distances. */
+  readonly nearest: (ReflectionProbeRuntime | undefined)[];
+  readonly nearestDistance: Float64Array;
 }
 
 /**
@@ -543,7 +602,34 @@ function distanceToProbe(probe: ReflectionProbeRuntime, camera: Vector3, local: 
   return Math.hypot(dx, dy, dz);
 }
 
+/** The chunks the probe splice reads from three's program, or the first missing. */
+function missingChunk(shader: { vertexShader: string; fragmentShader: string }): string | null {
+  if (!shader.vertexShader.includes('#include <worldpos_vertex>')) return '#include <worldpos_vertex>';
+  if (!shader.fragmentShader.includes('#include <envmap_physical_pars_fragment>')) {
+    return '#include <envmap_physical_pars_fragment>';
+  }
+  return null;
+}
+
 type CompileHook = Material['onBeforeCompile'];
+type RenderHook = Material['onBeforeRender'];
+
+/**
+ * Make `name` an accessor that reads back exactly what was last assigned, or
+ * `own` before anything was (or once `own` is assigned back). Three calls
+ * what it reads, so a hook that wraps the value it read chains to `own`.
+ */
+function ownHook<F>(material: Material, name: string, own: F): void {
+  let assigned: F | null = null;
+  Object.defineProperty(material, name, {
+    configurable: true,
+    enumerable: true,
+    get: () => assigned ?? own,
+    set: (value: F) => {
+      assigned = value === own ? null : value;
+    },
+  });
+}
 
 function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
   material: T,
@@ -560,10 +646,15 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
   let pinned: ProbeBinding | null = null;
   /** The binding of the draw in progress: the program three compiles next is its. */
   let current: ProbeBinding | null = null;
-  /** The binding whose values the uniform objects hold. */
+  /** The binding whose values the uniform objects point at. */
   let written: ProbeBinding | null = null;
+  /** Per renderer, the probe count of the program it last resolved for this material. */
+  let resolved = new WeakMap<WebGLRenderer, number>();
   /** The samplers the program being compiled declares (its texture units allowing). */
   let sampled = 0;
+  /** Inside `clone()`/`toJSON()`, which see the author's envMap. */
+  let plain = 0;
+  let warnedChunk = false;
   const cameraPosition = new Vector3();
   const scratch = new Vector3();
 
@@ -577,10 +668,30 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
     configurable: true,
     enumerable: true,
     get: () =>
-      authoredEnvMap ?? (probeCount() === 0 || current?.scene.environment ? null : sentinel),
+      authoredEnvMap ??
+      (plain > 0 || probeCount() === 0 || current?.scene.environment ? null : sentinel),
     set: (value: Texture | null) => {
       authoredEnvMap = value;
     },
+  });
+  const prototype = Object.getPrototypeOf(material) as T;
+  const plainly = <R>(run: () => R): R => {
+    plain += 1;
+    try {
+      return run();
+    } finally {
+      plain -= 1;
+    }
+  };
+  Object.defineProperty(material, 'clone', {
+    configurable: true,
+    writable: true,
+    value: () => plainly(() => prototype.clone.call(material)),
+  });
+  Object.defineProperty(material, 'toJSON', {
+    configurable: true,
+    writable: true,
+    value: (meta?: Parameters<T['toJSON']>[0]) => plainly(() => prototype.toJSON.call(material, meta)),
   });
 
   const bind = (renderer: WebGLRenderer, scene: Scene): ProbeBinding => {
@@ -607,6 +718,9 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
       selected: [],
       dirty: true,
       camera: new Vector3(Number.NaN, 0, 0),
+      values: createProbeValues(),
+      nearest: Array.from({ length: MAX_PROBES }, () => undefined),
+      nearestDistance: new Float64Array(MAX_PROBES),
     };
     binding.stop = observeWeakly(lease, new WeakRef(binding.observer));
     for (const reference of made) if (!reference.deref()) made.delete(reference);
@@ -635,7 +749,8 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
 
   /**
    * The `limit` probes nearest the camera, nearest first (a program short of
-   * texture units samples the first ones); a changed count is another program.
+   * texture units samples the first ones), chosen without allocating: again
+   * whenever the registry reports, and as the camera moves.
    */
   const select = (binding: ProbeBinding, camera: Camera) => {
     // A capture window zeroes every probe: nothing to choose between.
@@ -644,41 +759,53 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
     const moved = !cameraPosition.equals(binding.camera);
     if (!binding.dirty && !(moved && binding.probes.length > 1)) return;
     binding.camera.copy(cameraPosition);
-    const next =
-      binding.probes.length <= 1
-        ? binding.probes
-        : binding.probes
-            .map((probe) => ({ probe, distance: distanceToProbe(probe, cameraPosition, scratch) }))
-            .sort((a, b) => a.distance - b.distance)
-            .slice(0, limit)
-            .map((entry) => entry.probe);
-    const previous = binding.selected;
-    if (next.length === previous.length && next.every((probe, index) => probe === previous[index])) return;
-    if (next.length !== previous.length) material.needsUpdate = true;
-    binding.selected = next.slice();
-    binding.dirty = true;
-  };
-
-  const write = (binding: ProbeBinding) => {
-    writeProbeUniforms(
-      uniforms,
-      binding.selected,
-      Boolean(authoredEnvMap ?? binding.scene.environment),
-      binding.capturing,
-    );
-    written = binding;
-    binding.dirty = false;
+    const { nearest, nearestDistance: distance } = binding;
+    let count = 0;
+    for (const probe of binding.probes) {
+      const d = binding.probes.length === 1 ? 0 : distanceToProbe(probe, cameraPosition, scratch);
+      if (count === limit && d >= distance[count - 1]!) continue;
+      let slot = count < limit ? count++ : count - 1;
+      for (; slot > 0 && distance[slot - 1]! > d; slot -= 1) {
+        distance[slot] = distance[slot - 1]!;
+        nearest[slot] = nearest[slot - 1];
+      }
+      distance[slot] = d;
+      nearest[slot] = probe;
+    }
+    const selected = binding.selected;
+    let same = count === selected.length;
+    for (let index = 0; same && index < count; index += 1) same = nearest[index] === selected[index];
+    if (!same) {
+      selected.length = count;
+      for (let index = 0; index < count; index += 1) selected[index] = nearest[index]!;
+      binding.dirty = true;
+    }
+    nearest.fill(undefined);
   };
 
   // Before every draw, in whichever renderer: its probes are the ones the
-  // uniform objects hold for this draw. Three uploads a material's uniforms
-  // whenever its program or the material drawn changes, and at the start of
-  // every render, so a value written here reaches this draw.
-  material.onBeforeRender = (renderer, scene, camera) => {
+  // uniform objects point at for this draw. Three uploads a material's
+  // uniforms whenever its program or the material drawn changes, and at the
+  // start of every render, so a value written here reaches this draw.
+  const render: RenderHook = (renderer, scene, camera) => {
     const binding = bindingFor(renderer, scene);
     current = binding;
     select(binding, camera);
-    if (written !== binding || binding.dirty) write(binding);
+    // The program this renderer resolved last may be for another binding's
+    // count (one compiled by `renderer.compile`, which draws nothing and so
+    // never comes here first): have three resolve it again.
+    const count = resolved.get(renderer);
+    if (count !== undefined && count !== binding.selected.length) material.needsUpdate = true;
+    if (binding.dirty) {
+      fillProbeValues(binding.values, binding.selected, binding.capturing);
+      binding.dirty = false;
+      written = null;
+    }
+    if (written !== binding) {
+      pointProbeUniforms(uniforms, binding.values);
+      written = binding;
+    }
+    (uniforms['volterBaseEnvironment'] as { value: unknown }).value = (authoredEnvMap ?? scene.environment) ? 1 : 0;
   };
 
   // The IBL override goes on ONCE, for the material's whole life: its
@@ -697,22 +824,27 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
   const volumeCompile: CompileHook = material.onBeforeCompile;
   const volumeKey = material.customProgramCacheKey;
 
-  // Hooks an author (or another library) assigns later compose with the
-  // volume lighting instead of replacing it. One that wraps the value it read
-  // calls back into `compile` from inside itself; that inner call does
-  // nothing, so its own work runs once and the volume splice follows it.
-  let laterCompile: CompileHook | null = null;
-  let laterKey: (() => string) | null = null;
-  let inside = false;
+  // Where a chain of hooks reaches the material's own: the probe splice, once
+  // per program three compiles (a wrapper that calls it twice splices once).
+  const spliced = new WeakSet<object>();
   const compile: CompileHook = (shader, renderer) => {
-    if (inside) return;
-    inside = true;
-    try {
-      laterCompile?.call(material, shader, renderer);
-    } finally {
-      inside = false;
-    }
+    if (spliced.has(shader)) return;
+    spliced.add(shader);
     const count = probeCount();
+    resolved.set(renderer, count);
+    // No probes: three's own program, whose chunks a later hook may still take.
+    if (count === 0) return;
+    const missing = missingChunk(shader);
+    if (missing !== null) {
+      if (!warnedChunk) {
+        warnedChunk = true;
+        // biome-ignore lint/suspicious/noConsole: a hook took a chunk the probe splice needs; say why no probe lights this material.
+        console.warn(
+          `[reflections] volume reflection material "${material.name}" draws without its probes: an onBeforeCompile hook replaced ${missing}, which the probe lighting is spliced into.`,
+        );
+      }
+      return;
+    }
     const free = renderer.capabilities.maxTextures - texturesBeforeProbes(shader as unknown as Record<string, unknown>);
     sampled = Math.max(0, Math.min(count, free));
     if (sampled < count && !warnedRenderers.has(renderer)) {
@@ -724,33 +856,15 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
     }
     volumeCompile.call(material, shader, renderer);
   };
+  // Three asks for the key each time it resolves a program: during a draw,
+  // for the drawing renderer.
   const cacheKey = (): string => {
-    if (inside) return '';
-    inside = true;
-    let later: string;
-    try {
-      later = laterKey ? laterKey.call(material) : laterCompile ? laterCompile.toString() : '';
-    } finally {
-      inside = false;
-    }
-    return `${later}|${volumeKey.call(material)}`;
+    if (current) resolved.set(current.renderer, probeCount());
+    return volumeKey.call(material);
   };
-  Object.defineProperty(material, 'onBeforeCompile', {
-    configurable: true,
-    enumerable: true,
-    get: () => compile,
-    set: (value: CompileHook) => {
-      laterCompile = value === compile ? null : value;
-    },
-  });
-  Object.defineProperty(material, 'customProgramCacheKey', {
-    configurable: true,
-    enumerable: true,
-    get: () => cacheKey,
-    set: (value: () => string) => {
-      laterKey = value === cacheKey ? null : value;
-    },
-  });
+  ownHook(material, 'onBeforeCompile', compile);
+  ownHook(material, 'customProgramCacheKey', cacheKey);
+  ownHook(material, 'onBeforeRender', render);
 
   const release = () => {
     for (const reference of made) {
@@ -761,6 +875,7 @@ function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
     }
     made = new Set();
     bindings = new WeakMap();
+    resolved = new WeakMap();
     pinned = null;
     current = null;
     written = null;

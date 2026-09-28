@@ -71,9 +71,17 @@ interface ProbeState extends ReflectionProbeRuntime {
   ready: boolean;
   capturedRevision: number;
   readonly capturedTransform: Matrix4;
+  /** The node's world matrix and the mark's config as observers were last told them. */
+  readonly publishedTransform: Matrix4;
+  publishedConfig: ReflectionProbeMark['config'] | null;
 }
 
-/** Called every update, and again the moment a capture window opens/closes. */
+/**
+ * Called when an observer starts observing, and again whenever what it reads
+ * changes: a probe added or removed, a capture window opening or closing (and
+ * the result it published), a probe's node moved or its config changed. A
+ * frame in which nothing changed calls no observer.
+ */
 export type ReflectionProbeObserver = (
   probes: readonly ReflectionProbeRuntime[],
   capturing: boolean,
@@ -129,6 +137,8 @@ function makeProbe(node: Object3D, mark: ReflectionProbeMark): ProbeState {
     parallaxOffset: new Vector3(),
     captureOffset: new Vector3(),
     capturedTransform: new Matrix4().makeScale(0, 0, 0),
+    publishedTransform: new Matrix4().makeScale(0, 0, 0),
+    publishedConfig: null,
     filtered: null,
     atlases: new Map(),
     texture: null,
@@ -174,6 +184,10 @@ function releaseProbeResources(probe: ProbeState): void {
   probe.ready = false;
 }
 
+/**
+ * Bring the probe's volume up to date with its node and config; true when
+ * that changed what an observer reads since it was last told.
+ */
 function refreshProbe(probe: ProbeState): boolean {
   const config = probe.mark.config;
   const cubeSize = cubeSizeOf(probe.mark);
@@ -194,9 +208,15 @@ function refreshProbe(probe: ProbeState): boolean {
   probe.parallaxExtents.fromArray(config.parallaxSize).multiplyScalar(0.5);
   probe.parallaxOffset.fromArray(config.parallaxOffset);
   probe.captureOffset.fromArray(config.captureOffset);
-  const moved = !probe.capturedTransform.equals(probe.node.matrixWorld);
-  if (moved && config.captureMode === 'on-change') probe.ready = false;
-  return moved;
+  if (config.captureMode === 'on-change' && movedSinceCapture(probe)) probe.ready = false;
+  const changed = probe.publishedConfig !== config || !probe.publishedTransform.equals(probe.node.matrixWorld);
+  probe.publishedConfig = config;
+  probe.publishedTransform.copy(probe.node.matrixWorld);
+  return changed;
+}
+
+function movedSinceCapture(probe: ProbeState): boolean {
+  return !probe.capturedTransform.equals(probe.node.matrixWorld);
 }
 
 /** The cube target and camera, created here because only a capture needs them. */
@@ -300,7 +320,7 @@ export function createReflectionProbeRegistry(
     for (let offset = 0; offset < probes.length; offset += 1) {
       const index = (cursor + offset) % probes.length;
       const probe = probes[index]!;
-      const moved = refreshProbe(probe);
+      const moved = movedSinceCapture(probe);
       const mode = probe.mark.config.captureMode;
       const due =
         mode === 'realtime' ||
@@ -336,10 +356,15 @@ export function createReflectionProbeRegistry(
     update(frameToken) {
       if (disposed || frameToken === lastFrame || !canCaptureEnvironment(renderer)) return;
       lastFrame = frameToken;
-      for (const probe of probes) refreshProbe(probe);
+      let changed = false;
+      for (const probe of probes) {
+        const ready = probe.ready;
+        if (refreshProbe(probe) || probe.ready !== ready) changed = true;
+      }
       const due = nextCapture();
       if (due) capture(due);
-      notify(false);
+      // A capture opened a window (and published a result): closing it tells every observer.
+      if (due || changed) notify(false);
     },
     dispose() {
       if (disposed) return;

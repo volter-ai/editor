@@ -31,12 +31,26 @@ export interface MutableReflectionProbeMark extends ReflectionProbeMark {
   setCaptureStatus(snapshot: ReflectionProbeSnapshot): void;
 }
 
-/** One live projection of a component's JSX props and capture state. */
+/**
+ * The config as a capture sees it: everything but the diffuse fields, which
+ * only the volume material reads (from the probe's uniforms, not its capture).
+ */
+function captureSignature(config: ReflectionProbeConfig): string {
+  const { diffuse, diffuseIntensity, diffuseColor, ...captured } = config as VolumeReflectionProbeConfig;
+  return JSON.stringify(captured);
+}
+
+/**
+ * One live projection of a component's JSX props and capture state. A config
+ * change that a capture sees queues a recapture (outside Manual); one that
+ * only changes the diffuse fields takes effect without one.
+ */
 export function createReflectionProbeMark(
   initial: ReflectionProbeConfig,
 ): MutableReflectionProbeMark {
   let config = initial;
   let configSignature = JSON.stringify(initial);
+  let capturedSignature = captureSignature(initial);
   let revision = 0;
   let snapshot: ReflectionProbeSnapshot = {
     status: initial.captureMode === 'manual' ? 'idle' : 'queued',
@@ -69,9 +83,14 @@ export function createReflectionProbeMark(
       const signature = JSON.stringify(next);
       if (signature === configSignature) return;
       const previousMode = config.captureMode;
+      const nextCaptured = captureSignature(next);
+      const recapture = nextCaptured !== capturedSignature;
       config = next;
       configSignature = signature;
-      if (next.captureMode !== 'manual') {
+      capturedSignature = nextCaptured;
+      // A diffuse-only change needs no capture: the registry sees the new config
+      // and the volume material rewrites its uniforms.
+      if (recapture && next.captureMode !== 'manual') {
         revision += 1;
         snapshot = { status: 'queued', lastCapturedAt: snapshot.lastCapturedAt };
       } else if (previousMode !== 'manual' && snapshot.status !== 'ready') {
