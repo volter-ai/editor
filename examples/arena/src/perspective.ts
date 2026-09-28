@@ -17,7 +17,7 @@
  *   - whether the first-person weapon VIEW MODEL renders.
  *
  * It is an ordinary module store with an ordinary subscribe, like
- * `arena-state.ts` beside it — no volter runtime, no context, no provider. The
+ * `arena-state.ts` beside it — no Volter runtime, no context, no provider. The
  * initial value comes from `?perspective=` on the page the game is mounted in
  * (the URL-parameter pattern a game's boot options have always used here), so
  * a link, a `volter-game-editor edit` URL or a run configuration can open the arena already

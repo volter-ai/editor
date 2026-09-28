@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
 import manifest from './volter.project.json';
 
-/** A volter runtime package served as SOURCE, the way the editor serves it. */
+/** A Volter runtime package served as SOURCE, the way the editor serves it. */
 const packageSource = (name: string) =>
   path.join(path.dirname(createRequire(import.meta.url).resolve(`${name}/package.json`)), 'src');
 

@@ -42,7 +42,7 @@
  *
  *  A user value on an adapter-declared key is therefore VISIBLE but INEFFECTIVE in that
  *  project, and the product says so rather than leaving a person to discover it: ONE
- *  notification per key per session, through the volter editor's own `notify()` door (under
+ *  notification per key per session, through the Volter editor's own `notify()` door (under
  *  this frame that IS `INotificationService`, `volterNotifications.ts`), naming the key, the
  *  user's value, the adapter's value, and that a workspace value would win.
  *
@@ -56,7 +56,7 @@
  *  follows it (`write`), and a change that arrived mid-pass is read by the pass after.
  *
  *  WHAT THE EDITOR SEES. The provider handed back through the bridge answers `get`, `inspect`
- *  and `set` per key, in the volter editor's own four-layer vocabulary — default / user /
+ *  and `set` per key, in the Volter editor's own four-layer vocabulary — default / user /
  *  adapter / project / effective — mapped onto `IConfigurationValue`'s `defaultValue`,
  *  `userValue`, `memoryValue`, `workspaceValue ?? workspaceFolderValue` and `value`. A
  *  person's write on an adapter-declared key routes to WORKSPACE, so the gesture lands where
@@ -85,17 +85,17 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 /**
  * THE WORKBENCH KEYS A volter PROJECT NEEDS, carried by the SAME adapter layer.
  *
- * These are VS Code's own settings, not volter's, so they are not in the generated
+ * These are VS Code's own settings, not Volter's, so they are not in the generated
  * contribution above and never will be — the workbench declares them, with its own
  * descriptions, and the Settings editor already shows them. What is ours is the CLAIM
- * that a project the volter editor is editing needs these values, and that claim belongs in
+ * that a project the Volter editor is editing needs these values, and that claim belongs in
  * exactly the layer every other project-scoped claim lives in: the MEMORY target, above the
  * user and below the workspace.
  *
  * `files.autoSave`. THE DEFECT IT CLOSES, and it is a real one: `volterFiles.write` REFUSES a
  * write to a file whose text model is DIRTY, because the editor computes its new source from
  * the file ON DISK and writing that over unsaved keystrokes would destroy them with no event
- * anywhere. Under the volter editor unsaved state does not exist — "unsaved changes are handled
+ * anywhere. Under the Volter editor unsaved state does not exist — "unsaved changes are handled
  * by autosave" (the repo's CLAUDE.md, §Dialogs) — so a person who types one character into
  * `MainScene.tsx` in Monaco and then drags the gizmo got their drag refused, with no
  * indication that the fix was ⌘S. With autoSave the dirty window shrinks from UNBOUNDED to
@@ -197,7 +197,7 @@ export interface VolterSettingsBridge {
 	/** Fires when the adapter's declaration changes — a project opening, an adapter module
 	 *  loading or unloading, the active look changing. Returns the unsubscribe. */
 	subscribe(listener: () => void): () => void;
-	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
+	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 	/** Show one EVENT-shaped message to the person, through the editor's `notify()` door —
 	 *  which under this frame is `INotificationService` (`volterNotifications.ts`). Not

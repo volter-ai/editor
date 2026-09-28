@@ -1,7 +1,7 @@
 /**
  * The ONE ordered plugin list every editor host serves an opened PROJECT
  * through — `dev.ts` (checkout, one shared Vite instance) and `packaged.ts`
- * (a `@volter/editor` npm package, a second Vite instance rooted at the project).
+ * (a `@volter/editor-core` npm package, a second Vite instance rooted at the project).
  *
  * Both hosts answer the same question — "how does this Vite instance serve the
  * project's own code?" — and the two lists had drifted apart three separate

@@ -1,7 +1,7 @@
 /**
  * THE JS HEAP READING — the editor's one browser-side memory signal, read by
  * the tab census (`tab-census.ts`: the heartbeat's sample, the death line's
- * quote) and by the Frame debugger's tile (`@volter/game`). A browser
+ * quote) and by the Frame debugger's tile (`@volter/editor-game`). A browser
  * property, not a scene property (M1 kept it out of the engine's
  * render-memory on purpose), and Chromium-only: feature-detected, with the
  * REASON returned when the global is absent — never a fabricated 0.

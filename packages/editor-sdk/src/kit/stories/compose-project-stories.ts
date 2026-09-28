@@ -95,7 +95,7 @@ export interface ComposedProjectStory {
    *  tags to project one project registry into distinct design boards; the
    *  story module remains the sole source of truth. */
   tags?: readonly string[];
-  /** Fully-composed Storybook parameters. VOLTER only reads the namespaced
+  /** Fully-composed Storybook parameters. Volter only reads the namespaced
    * `parameters.volter` association; every other parameter remains Storybook's. */
   parameters: Record<string, unknown>;
   /** Storybook's fully-composed globals. Viewport selection is read from

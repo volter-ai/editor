@@ -1,16 +1,14 @@
 # Public release status
 
-Volter Editor 0.5.68 (editor-blender 0.1.11, blender-engine 0.1.9 unchanged) is published from the tag
-`release-0.5.68-source`, both lists ([release/modeling.json](release/modeling.json),
-[release/game.json](release/game.json)), carrying the music layer (automation, LFOs, groups, sidechain, audio
-tracks, the clip launcher, recording and comping). All seventeen versions are live, each registry digest matching its tested
-archive and each tarball downloading without credentials byte-identical to it (`@volter/model-editor` sat staged
-for about an hour, then went live without approval). From the registry, with no credentials and a fresh
-home, `npx @volter/game-editor@0.5.68 create` installed the runtime image, downloaded its workbench anonymously, took
-`add music`, launched a scene of a two-scene piece (its slots playing, the scene's strips metering and the stopped
-track reading −inf), rendered it through `project.music.render` with both scene loops and provenance, and undid an
-added scene byte-identically. Packed acceptance found and fixed one defect the checkout could not show: the game
-template imported `pixi.js` and `@pixi/react` undeclared ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
+Volter Editor 0.5.72 (editor-blender 0.1.13, blender-engine 0.1.11) is published by CI:
+`.github/workflows/publish.yml` builds the game release on every push to main, runs `check:release:game` and
+`check:packed-imports:game`, moves every package of [release/game.json](release/game.json) together to its next
+patch version when any changed, publishes them with npm provenance and commits the versions back to main, so every
+push is released; a version npm is still processing counts as released. From the registry, `npx @volter/game-editor@0.5.72 create reg-game --with
+three,ui` scaffolded a project whose first commit carries no `node_modules` link, and its session read connected,
+no console errors and no mount failures; Play ran and `screenshot` photographed the world with its styled HUD.
+Not re-walked since 0.5.68: music, scene launch and render
+([provenance/public-npm-release.json](provenance/public-npm-release.json)).
 
 ## Game editor (branch `game-editor`)
 
@@ -23,7 +21,7 @@ point down.
 | Package | What it is |
 | --- | --- |
 | `@volter/game-editor` | The second product: entry composing `@volter/editor-game` and `@volter/editor-blender`, the `volter-game-editor` CLI (kit session verbs plus `play`, `stop`, `restart`, `add`/`remove`/`outdated`, `blender-mcp`), `create` with the game/prototype/full/website/empty presets, the template and capability catalog, its workbench half |
-| `@volter/editor-game` | The game side: volter's `@volter/game` (`src/`), `@volter/dom` (`src/react/`), `@volter/threejs` authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
+| `@volter/editor-game` | The game side: the predecessor's game package (`src/`), its DOM package (`src/react/`), its three.js authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
 | `@volter/game-live` | The game client over a session: `game`, `page`, recording; `eval` scope and tester scripts |
 | `@volter/game-runtime`, `@volter/threejs-runtime` | The Apache twins a shipped game carries |
 
@@ -52,7 +50,7 @@ Profiles work; `website` opens its page source in Design.
 
 On the runtime image: a game whose `node_modules` links the checkout's image
 plays (`screenshot` shows the rendered scene), and an Inspector edit writes
-`src/scenes/MainScene.tsx` and undo/redo round-trip it. volter's `arena` example,
+`src/scenes/MainScene.tsx` and undo/redo round-trip it. Volter's `arena` example,
 ported with registry pins and linked to the image, opened on the published
 pinned workbench (hash matched): its `.blend` model and its World (59 entities)
 render; Play runs the three.js world under its React HUD with enemies engaging;
@@ -323,7 +321,7 @@ Open, with what closes each:
   (CC0) is the finished palette and the General MIDI SoundFont the sketch palette, as the skill
   teaches: VSCO is recorded orchestral instruments with their own articulations and round-robin
   repetitions, which a General MIDI preset has none of; no listening test was run, and a
-  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project VOLTER Hosted
+  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project Volter Hosted
   Editor; Harbor on each palette, loudness matched, unlabeled, one play order per job;
   volter-listening.aaron-0ed.workers.dev, `/a/` General MIDI first, `/b/` VSCO first): the one verdict in (order a)
   heard the two as "almost the same", both like real musicians, and mildly preferred General MIDI. The renders differ

@@ -4,7 +4,7 @@ Use this reference to decide whether a task needs Blender, direct Three.js, a
 small project helper, or a specialist geometry library.
 
 **MODELING IS BLENDER'S, and this catalog no longer lists a TypeScript
-alternative.** It used to open with ~370 lines of `@volter/mesh` — the BMesh
+alternative.** It used to open with ~370 lines of the retired BMesh kit — the BMesh
 substrate, edit-mode ops, modifiers, morph targets, skinning fields, UV and
 atlas unwrap, bakers, and two worked recipes — carrying Blender's modeling
 vocabulary name-for-name into three.js. That package is DELETED (2026-09-19,
@@ -76,7 +76,7 @@ curve pipes, per-material anime profiles, pixel-width silhouette ink,
 distance-faded creases, rigid bone chains, exact-time gait validation, stepped
 pose timing, hard shadows, environment lighting, limited AO/bloom, a subtle
 color composite, and SMAA. Treat these as proven craft techniques and
-candidate copyable helpers, not automatic VOLTER runtime APIs.
+candidate copyable helpers, not automatic Volter runtime APIs.
 
 Its accepted typed source lived in `src/lib/stylized/` and `src/lib/castle/`;
 only `stylized` remains (`volter-game-editor add stylized`, and none of it is in a fresh

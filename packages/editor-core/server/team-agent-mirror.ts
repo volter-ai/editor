@@ -1,4 +1,4 @@
-import type { TranscriptEntryModel } from '@volter-ai-dev/supercode-ui/core';
+import type { TranscriptEntryModel } from '@volter/supercode-ui/core';
 import { type HarnessChatSnapshot, harnessChatUiState } from '../src/harness-chat-types';
 
 /**

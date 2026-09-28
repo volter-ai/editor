@@ -310,7 +310,7 @@ registerWorkspaceDocumentRestorer({
 /**
  * THE `asset` ADDRESS (`document-open-registry.ts`) — an asset at a path, or
  * the Asset Editor over a live scene entity. Registered at module load, the
- * shape `packages/game/src/story-documents/three-story-documents.tsx:239`
+ * shape `packages/editor-game/src/three/story-documents/three-story-documents.tsx:239`
  * uses; what an extension means, and what `@volter/editor-sdk`'s published view
  * kinds map onto internally, are this module's rules and the presenter no
  * longer holds either.

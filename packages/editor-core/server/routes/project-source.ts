@@ -231,7 +231,7 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
   // (defense in depth — it is not a general project-file API), mirroring the
   // editor-state route's mkdir-on-write / read-or-empty shape. Today's readers
   // are the provenance ledger (`src/project-provenance.ts`) and the
-  // asset-budget optimize pass (`@volter/game/src/asset-budget/`).
+  // asset-budget optimize pass (`@volter/editor-game/src/asset-budget/`).
   router.get('/__editor/volter-file', async (req: Request, res: Response) => {
     const relPath = (req.query['path'] as string) ?? '';
     if (!isReadableVolterPath(relPath)) {

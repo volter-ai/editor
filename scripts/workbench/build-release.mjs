@@ -11,7 +11,7 @@
  *  tarball and its `BUILD.json` as a GitHub Release on the fork's own repository, tagged
  *  `<product>-<fork sha 12>-<editor sha 12>-<platform>` — both source revisions,
  *  immutable, refused by name on a tag that exists. That tag and the tarball's sha256 are what a
- *  product declares in `package.json#volter.product.workbench`, and what `npx @volter/editor
+ *  product declares in `package.json#volter.product.workbench`, and what `npx @volter/editor-core
  *  create <name>` fetches when the machine has no workbench at all. The publish step prints the
  *  declaration to paste.
  *

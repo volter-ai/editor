@@ -14,7 +14,7 @@
  *  both sides import it. The contribution still RE-EXPORTS the class, so an existing
  *  `import { VolterDocumentInput } from './volter.contribution.js'` keeps working.
  *
- *  IT HOSTS ANY VOLTER DOCUMENT, and is named for it (P3, 2026-09-21). It was
+ *  IT HOSTS ANY Volter DOCUMENT, and is named for it (P3, 2026-09-21). It was
  *  `VolterModelInput` while the fork carried one contribution and that contribution was
  *  the Blender one — but the game editor's Game document has always ridden this same
  *  input and the same pane, so the name was a product's word on the kit's class.

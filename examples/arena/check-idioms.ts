@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 // checklist shipped alongside this file as IDIOMS.md — read that first, it's
 // the one-page human-readable version of every rule below (⚙ = checked here,
 // 👁 = review-only, not machine-checkable). Shipped IN the project template,
-// mirroring validate-assets.ts/validate-manifest.ts's shape (same
+// mirroring validate-manifest.ts's shape (same
 // project-root-arg convention, same fs-walk-and-report style, zero deps
 // beyond node:fs/node:path — plus node:child_process for the git history
 // queries of W7 and W9, the only rules here asking a question the file tree
@@ -110,12 +110,11 @@ import { fileURLToPath } from 'node:url';
 //
 // E9 is the one rule that does NOT answer its question from the file tree
 // alone: the R3F00x codes come from the editor's own source analyzer
-// (`ui-source/r3f-project-contracts.ts`), the same pass validate-on-save and
+// (`@volter/editor-react`'s `src/source/r3f-project-contracts.ts`), the same pass validate-on-save and
 // `volter-game-editor status` report from. It is loaded OFFLINE — the analyzer is a pure
 // `(code, file) => diagnostics` function over `typescript`, with no dev
-// server, browser or editor session anywhere in it — through this project's
-// own `@editor/*` tsconfig mapping, so check-idioms never requires a running
-// editor. See `loadR3fAnalyzer`.
+// server, browser or editor session anywhere in it — from the installed
+// package, so check-idioms never requires a running editor. See `loadR3fAnalyzer`.
 //
 // Suppression: put `// idioms-ignore <rule-id> <reason>` on the flagged
 // line. The reason is REQUIRED — an empty/missing reason does not suppress
@@ -836,11 +835,6 @@ function checkDetachedComponentInitialization(): void {
 // ---------------------------------------------------------------------------
 // git-history plumbing shared by slice-proxy rules (W9)
 // ---------------------------------------------------------------------------
-// The volter CLI mirrors this exact measurement (source path, gameplay
-// pathspecs, threshold, silent-on-unaskable) as `volter-game-editor status`'s ambient
-// bot-drift line — engine repo, packages/volter-cli/src/instrumentation-signal.ts.
-// If you change any of the three constants below, change them there too, or
-// the ambient signal and this rule will disagree about whether a bot drifted.
 
 /** The files that ARE the game, for slice-proxy measurements (W9). Deliberately
  *  NOT all of src/ — churn in src/ui/, src/tools/ or src/data/ is not by
@@ -959,7 +953,7 @@ function checkUseFramePriority(): void {
 
 /** The one way a project shows that Play has actually run: `logs/play-*.jsonl`
  *  — the editor server opens one per Play session
- *  (packages/editor/server/editor-server.ts, POST /__editor/log-session).
+ *  (packages/editor-core/server/editor-server.ts, POST /__editor/log-session).
  *  A working-tree fact, not a git fact (`logs/` is gitignored), written by
  *  the tool itself, so it cannot be produced by intending to play. This
  *  receipt is also the playtest's proof (owner ruling 2026-08-21). */
@@ -974,7 +968,7 @@ function hasPlayEvidence(): boolean {
 }
 
 /** The scaffolder's own record of where this project came from
- *  (packages/create-volter-project/src/baseline.ts). W9's history ANCHOR.
+ *  (packages/game-editor/node/scaffold/baseline.ts). W9's history ANCHOR.
  *
  *  W7 anchors its window on a file's last commit; W9 does the same, and this
  *  is the file that means "this project began here". Anchoring matters: an
@@ -1159,8 +1153,8 @@ type R3fAnalyzer = (
 ) => R3fDiagnostic[];
 
 /**
- * The editor's OWN R3F source analyzer, resolved from this project's
- * `@editor/*` tsconfig mapping and loaded synchronously.
+ * The editor's OWN R3F source analyzer, resolved from the installed
+ * `@volter/editor-react` package and loaded synchronously.
  *
  * Why not re-implement the codes here: they are a real TypeScript AST pass
  * over the project's import graph (relative imports, re-exports, shared prop
@@ -1170,49 +1164,28 @@ type R3fAnalyzer = (
  * pure (`(code, file) => diagnostics`, `typescript` + `node:fs` and nothing
  * else), so nothing about reusing it needs a server or a session.
  *
- * The mapping is read from the project's own `tsconfig.json` instead of
- * hardcoding a path because it is exactly what the scaffolder rewrites per
- * dependency mode: an in-checkout project points at the engine checkout's
- * `packages/editor/src`, an installed one at
- * `node_modules/@volter/editor-core/src` (the published package ships `src/`).
- * Reading the alias means one code path serves both without knowing which.
- * A node_modules target uses Node's package resolution as a fallback so the
- * same mapping also works when a workspace manager hoists the package.
+ * The published packages ship `src/`, so a module is found as
+ * `node_modules/<package>/<file>` in the project or any directory above it
+ * (a workspace manager may hoist the package).
  *
  * Returns null when the analyzer genuinely cannot be reached. E9 reports that
  * as a finding of its own rather than passing silently — a floor rule that
  * disappears when its instrument is missing reads as a clean bill of health,
  * which is the one thing an analyzer must never produce.
  */
-function resolveEditorModule(relative: string): string | null {
-  const tsconfig = join(rootDir, 'tsconfig.json');
-  if (!existsSync(tsconfig)) return null;
-  let mapped: string;
-  try {
-    const raw = readFileSync(tsconfig, 'utf-8');
-    // Deliberately a text match, not JSON.parse: tsconfigs legitimately carry
-    // comments, and this needs one string out of a known key.
-    const alias = raw.match(/"@editor\/\*"\s*:\s*\[\s*"([^"]+)"/);
-    if (!alias) return null;
-    const baseUrl = raw.match(/"baseUrl"\s*:\s*"([^"]+)"/)?.[1] ?? '.';
-    const aliasTarget = alias[1]!.replace('*', relative);
-    mapped = resolve(rootDir, baseUrl, aliasTarget);
-    if (!existsSync(mapped)) {
-      const nodeModulesMarker = 'node_modules/';
-      const normalizedTarget = aliasTarget.replaceAll('\\', '/');
-      const markerIndex = normalizedTarget.lastIndexOf(nodeModulesMarker);
-      if (markerIndex < 0) return null;
-      const packageTarget = normalizedTarget.slice(markerIndex + nodeModulesMarker.length);
-      mapped = createRequire(join(rootDir, 'package.json')).resolve(packageTarget);
-    }
-  } catch {
-    return null;
+function resolvePackageModule(packageName: string, relative: string): string | null {
+  let dir = rootDir;
+  for (;;) {
+    const candidate = join(dir, 'node_modules', packageName, relative);
+    if (existsSync(candidate)) return candidate;
+    const parent = dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
   }
-  return existsSync(mapped) ? mapped : null;
 }
 
 function loadR3fAnalyzer(): R3fAnalyzer | null {
-  const mapped = resolveEditorModule('ui-source/r3f-project-contracts.ts');
+  const mapped = resolvePackageModule('@volter/editor-react', 'src/source/r3f-project-contracts.ts');
   if (!mapped) return null;
   try {
     const loaded = createRequire(import.meta.url)(mapped) as {
@@ -1248,7 +1221,10 @@ interface RegionSurfaces {
 }
 
 function loadRegionSurfaces(): RegionSurfaces | null {
-  const mapped = resolveEditorModule('asset-workflow/project-content.ts');
+  const mapped = resolvePackageModule(
+    '@volter/editor-sdk',
+    'src/kit/asset-workflow/project-source-index.ts',
+  );
   if (!mapped) return null;
   try {
     const loaded = createRequire(import.meta.url)(mapped) as {
@@ -1303,8 +1279,8 @@ function checkAuthoringWarnings(): void {
       'E9',
       'warn',
       'authoring-warnings-zero',
-      'the R3F authoring analyzer could not be loaded, so authoring warnings were NOT checked — this run says nothing about them. It resolves through this project\'s tsconfig.json "@editor/*" path mapping.',
-      'Restore the "@editor/*" mapping in tsconfig.json (it points at the engine checkout, or at node_modules/@volter/editor-core/src) and re-run. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
+      'the R3F authoring analyzer could not be loaded, so authoring warnings were NOT checked — this run says nothing about them. It resolves from the installed `@volter/editor-react` package.',
+      'Install the project\'s dependencies (`npm install`): the analyzer is `@volter/editor-react`\'s source and the region resolver `@volter/editor-sdk`\'s. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
     );
     return;
   }
@@ -1317,7 +1293,7 @@ function checkAuthoringWarnings(): void {
       'warn',
       'authoring-warnings-zero',
       "the region resolver could not be loaded, so no file could be attributed to this project's `three` region and authoring warnings were NOT checked — this run says nothing about them.",
-      'Restore the "@editor/*" mapping in tsconfig.json (it points at the engine checkout, or at node_modules/@volter/editor-core/src) and re-run. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
+      'Install the project\'s dependencies (`npm install`): the analyzer is `@volter/editor-react`\'s source and the region resolver `@volter/editor-sdk`\'s. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
     );
     return;
   }

@@ -123,7 +123,7 @@ export interface ChromeRegions {
  * against), `@volter/editor-project`'s `ChromeRegionsSettingsSchema`, which is
  * `.strict()`, and the FRAME's own configuration contribution
  * (`node scripts/workbench/generate-settings.mjs --write`, which rewrites
- * `packages/editor/workbench/src/volterGeneratedSettings.ts` from the JSON
+ * `packages/editor-core/workbench/src/volterGeneratedSettings.ts` from the JSON
  * Schema).
  *
  * Miss the fourth and NOTHING fails to compile: a region value the person sets is

@@ -117,7 +117,7 @@ import mathutils
 import _blender_web
 
 # The presenter's refusals, spelled in
-# `packages/mesh/contributions/blender-runtime-frame.ts`. This is the only
+# `packages/blender-engine/browser/three/blender-runtime-frame.ts`. This is the only
 # place Python reads them, and `Session.present` is what answers them.
 _UNKNOWN_GEOMETRY = "RUNTIME_FRAME_UNKNOWN_GEOMETRY"
 _UNKNOWN_IMAGE = "RUNTIME_FRAME_UNKNOWN_IMAGE"

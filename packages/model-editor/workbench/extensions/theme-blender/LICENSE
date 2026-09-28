@@ -26,7 +26,7 @@ re-strokes and re-centres nothing. A traced glyph IS Blender's drawing, and
 baking it into an OpenType font does not change that: the outlines in this OTF
 are Blender's outlines, and they are a derivative work of GPL-2.0-or-later
 artwork. Per-glyph provenance — `ICON_*` name, source SVG path and sha256 — is
-`packages/blender/contributions/blender.icons.traced.json`.
+`packages/editor-blender/contributions/blender.icons.traced.json`.
 
 THE LICENCE THAT APPLIES. Exercising Blender's "or later", the traced artwork in
 `producticons/blender-icons.otf` is conveyed under the GNU General Public

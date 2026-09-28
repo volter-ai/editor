@@ -9,7 +9,7 @@
  * `/__editor/open-project`.
  *
  * `inspect-project` deliberately precedes open/create in this file and in the
- * user's flow: selecting an arbitrary game folder must never make it a VOLTER
+ * user's flow: selecting an arbitrary game folder must never make it a Volter
  * project or touch its source as a side effect. Adaptation is a separate,
  * explicit action with its own consent boundary.
  */
@@ -104,7 +104,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
   });
   // ---- Read-only first-contact inspection ----
   // This route deliberately precedes open/create. Selecting an arbitrary game
-  // folder must never make it a VOLTER project or touch its source as a side
+  // folder must never make it a Volter project or touch its source as a side
   // effect; adaptation is a separate, explicit action.
   router.post('/__editor/inspect-project', async (req: Request, res: Response) => {
     const candidate = (req.body as { path?: unknown }).path;

@@ -109,7 +109,7 @@ Completion:
 
 Status: proposed; after the first launch, by the owner's launch rule
 Source: volter-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/volter-engine` and comes back from it, never re-derived:
-- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into VOLTER: Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`); Godot has come back (§godot-lane)
+- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into Volter: Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`); Godot has come back (§godot-lane)
 - the example games (`archive/examples-2026-09-19`); `arena` has already come back
 - the built capabilities held out of the first launch's scope (`archive/launch-scope-2026-09-20`), not unfinished work: several are back in this repository (game audio, the ingest door, collaboration, the asset library, the multiplayer template's Colyseus server); back in scope is the netcode (`netcode` above); still only at the tag are the IK, ragdoll, terrain, HUD, sprite and stylized capabilities, the AI generation providers (Fal, Tripo, World Labs, OpenRouter) and the learn site
 Completion:

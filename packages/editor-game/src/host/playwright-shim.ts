@@ -61,7 +61,7 @@ export class PageShimUnsupportedError extends Error {
       `playwright-shim: ${objectName}.${member} is not supported by the in-page shim. ` +
         `Supported ${objectName} members: ${supported.join(', ')}. ` +
         'This shim is DOM-only — canvas gameplay input must use game.input.*, while React-only ' +
-        'DOM games may use Page keyboard/locator input. See packages/editor/src/playwright-shim.ts for ' +
+        'DOM games may use Page keyboard/locator input. See packages/editor-game/src/host/playwright-shim.ts for ' +
         "the full supported subset and the wire's closure-capture limitation.",
     );
     this.name = 'PageShimUnsupportedError';

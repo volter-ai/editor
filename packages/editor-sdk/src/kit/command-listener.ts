@@ -395,7 +395,7 @@ function collectPresence(): {
  *
  * THE HOST'S HALF ONLY. The four capability-GRADING families
  * (`rootCoverage`, `systemCoverage`, `projectCoverage`, `authoringCoverage`)
- * used to be listed here; they are `@volter/game`'s now
+ * used to be listed here; they are `@volter/editor-game`'s now
  * (`contributions/coverage.service.ts`) and declare their own reusable keys
  * on `session.reportFacet`, which {@link reusableFacetKeys} reads back. Both
  * blockers P5b measured against that move are gone: the facet registry
@@ -636,7 +636,7 @@ function inPlayRun(timestamp: number): boolean {
 }
 
 /** #146 — uncaught page errors from the CURRENT play run, for the editor's `status` command
- *  and for `@volter/game`'s `bridge-call` snapshot, which imports it from here
+ *  and for `@volter/editor-game`'s `bridge-call` snapshot, which imports it from here
  *  (the two must report the same set; the facet moves when Play does).
  *  Reads the editor console's 'runtime'-source error entries
  *  (fed by `installEditorConsoleCapture`'s window error/unhandledrejection
@@ -815,7 +815,7 @@ export async function handleCommand(
   // A video export OWNS the paused run it is stepping frame by frame, so no
   // other command may touch it mid-export. `stop` is the one exception and
   // falls THROUGH: the export's cancel handle lives with the verb that
-  // started it (`@volter/game`'s `play.command.ts`), and its `stop` handler
+  // started it (`@volter/editor-game`'s `play.command.ts`), and its `stop` handler
   // aborts the controller before tearing the run down. The FLAG stays host
   // state (`gameplay-export-state.ts`) because two surfaces outside that verb
   // read it — this prologue and the PlayBar's transport ownership.
@@ -1050,16 +1050,16 @@ export async function handleCommand(
     case 'toggle-console':
       toggleConsoleUtility();
       break;
-    // RELOAD THIS PAGE — `@volter/live`'s `page.reload()` and P20's prescribed
+    // RELOAD THIS PAGE — `@volter/game-live`'s `page.reload()` and P20's prescribed
     // recovery. Deliberately NOT routed through `page-script`: that verb is
     // gated on a mounted game surface, and the one thing a reload has to fix —
     // a page whose module-scope loaders and page-lifetime asset caches hold
     // bytes that have since changed on disk — is just as real with play
     // stopped, and just as real in a product that has no game at all.
     //
-    // It is the HOST's for that last reason. It was a `@volter/game` command
+    // It is the HOST's for that last reason. It was a `@volter/editor-game` command
     // contribution until walk 5, so `page.reload()` answered `unknown command
-    // type "page-reload"` in the model editor, which declares no `@volter/game`.
+    // type "page-reload"` in the model editor, which declares no `@volter/editor-game`.
     //
     // Scheduled for the NEXT task rather than run inline, so this handler can
     // return and the caller's ack can travel before the navigation tears the
@@ -1391,7 +1391,7 @@ export async function handleCommand(
     // inspector's identity row, and a dozen structure icons there would be
     // either a UI redesign or a list of actions nobody can see — both worse
     // than transcribing what the component verbs already established for
-    // exactly this gap (`@volter/game/contributions/component-verbs.command.ts`,
+    // exactly this gap (`@volter/editor-game/contributions/component-verbs.command.ts`,
     // which is where `extract-component`/`fork-component` live now).
     //
     // `id`/`ids` default to the current selection, the menu's own subject. An

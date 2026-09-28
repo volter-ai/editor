@@ -214,7 +214,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
       () => false,
     );
     // `packaged`: true iff this server is the no-monorepo-checkout runtime
-    // (`packages/editor/server/packaged.ts`) — same `isMonorepoScaffoldRoot`
+    // (`packages/editor-core/server/packaged.ts`) — same `isMonorepoScaffoldRoot`
     // check the "New Project" packaged-mode guard already uses server-side
     // (server-utils.ts). Client-side, `binding-resolver.ts`'s react-world
     // mount reads this to decide whether it must resolve its

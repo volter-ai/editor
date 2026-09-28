@@ -1,13 +1,13 @@
-# AGENTS.md — VOLTER Game Project
+# AGENTS.md — Volter Game Project
 
-A standalone game built with VOLTER — work here, not in the engine repo.
+A standalone game built with Volter — work here, not in the engine repo.
 The editor is the authoring and verification surface.
 
 ## Route the request first
 
 | Intent | First action |
 | --- | --- |
-| Build or change this game | This file + the relevant section of the engine checkout's `packages/editor/template/.agents/references/project-manual.md` |
+| Build or change this game | This file + the relevant section of the engine checkout's `packages/game-editor/template/.agents/references/project-manual.md` |
 | Open, play, or verify it | `.agents/skills/editor/SKILL.md` |
 | Model a shape — a prop, a piece, a module in `src/models/` | `.agents/skills/volter-3d-models/SKILL.md` |
 | The game needs a 3D asset placed, rigged, or baked | `.agents/skills/volter-3d-assets/SKILL.md` |
@@ -45,7 +45,7 @@ the installed source is project-owned and editable. A doc naming
    human via handoff; never a second browser or synthetic player.
 
 Everything else is in the engine checkout's
-`packages/editor/template/.agents/references/project-manual.md`; read only
+`packages/game-editor/template/.agents/references/project-manual.md`; read only
 the sections the request needs.
 
 ## Non-negotiable rules
@@ -123,7 +123,7 @@ the sections the request needs.
 Games are fundamentally unpredictable; pre-written assertions enter an
 endless rewrite cycle. Playtest live; the play log is the receipt.
 
-1. Run `check-idioms`, `typecheck`, `validate`, and `validate-manifest`.
+1. Run `check-idioms`, `typecheck`, and `validate-manifest`.
    **`npm run typecheck` is the gate, never bare `tsc`** (bare `tsc`
    skips `src/tools`).
 2. The ONLY approved slice test is LIVE: a REPL-style manual session in
@@ -159,7 +159,6 @@ npm run volter -- restart       # remount after init-time edits
 npm run volter -- screenshot    # visible evidence
 npm run volter -- eval '<js>'   # THE door onto the running game
 npm run check-idioms          # every slice
-npm run validate              # manifest/files + React design states
 npm run typecheck             # THE gate: src + src/tools + server
 npm run dev:standalone        # EXPORTED builds only
 ```

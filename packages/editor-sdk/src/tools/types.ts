@@ -13,7 +13,7 @@ export type ToolNamespace = (typeof TOOL_NAMESPACES)[number];
  *    long-running jobs like `cinematic.render`, launches its own browser).
  *  - `editor-browser` — invoked through the existing
  *    `POST /__editor/command` SSE relay in
- *    `packages/editor/server/editor-server.ts`, which broadcasts to the
+ *    `packages/editor-core/server/editor-server.ts`, which broadcasts to the
  *    connected browser editor and awaits its callback under a short timeout
  *    (~5s; 120s for `play`). The projection generates the relay stub.
  *  - `runtime-page` — invoked through the play/render harness in a launched

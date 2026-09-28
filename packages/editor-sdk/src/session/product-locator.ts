@@ -9,7 +9,7 @@
  * names Blender.
  *
  * So the resolution is a DEPENDENCY resolution, exactly as
- * `assertEditorProjectInstalled` resolves `@volter/editor`: the project's
+ * `assertEditorProjectInstalled` resolves `@volter/editor-core`: the project's
  * `dependencies` ∪ `devDependencies` are read, each `@volter/*` among them is
  * resolved from the project, and the one whose `package.json` carries
  * `volter.product` is the product. A project's `package.json` naming a product as
@@ -103,7 +103,7 @@ export interface ProductIdentity {
    * landed. The supported door is `IWorkbenchConstructionOptions
    * .initialColorTheme`, which is read out of the PAGE CONFIG, before any
    * extension or setting is available; the session's proxy injects it
-   * (`packages/editor/server/frame-proxy.ts`).
+   * (`packages/editor-core/server/frame-proxy.ts`).
    *
    * It is a DECLARATION and not a setting (ARCHITECTURE-CORE §The target
    * shape, rule 8): it says what the product IS, the same way `entry` does, and
@@ -135,7 +135,7 @@ export const PRODUCT_INSTALL_LINES = [
  * This is the ONE place the two product names are spelled outside the products
  * themselves; the CLI and the session quote it rather than keeping a copy.
  */
-export const PRODUCT_CREATE_LINES = ['  npx @volter/editor create <name>'] as const;
+export const PRODUCT_CREATE_LINES = ['  npx @volter/editor-core create <name>'] as const;
 
 interface ProductManifestShape {
   private?: unknown;

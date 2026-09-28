@@ -12,7 +12,7 @@
  *
  * ## Why a doorway exists at all
  *
- * Under the PACKAGED runtime (`server/packaged.ts` — a `@volter/editor` npm
+ * Under the PACKAGED runtime (`server/packaged.ts` — a `@volter/editor-core` npm
  * package with no monorepo checkout) the editor shell is a prebuilt production
  * bundle with its own React, three, `@react-three/fiber`, `pixi.js`,
  * `@pixi/react` and `@storybook/react` inlined, while the opened project's
@@ -148,7 +148,7 @@
  * invariant in `adapter/ingest/scene-capture.ts`'s own header — "every trap
  * must be installed on the SAME `three` module/addon instance the game uses" —
  * and says exactly what a violation looks like. MEASURED on a packaged build
- * (published `@volter/editor@0.5.20`, real npm install) against a ~30-line
+ * (a published editor at 0.5.20, real npm install) against a ~30-line
  * unmodified three.js game declared as a `{ surface: 'three', ingest: {} }`
  * root:
  *

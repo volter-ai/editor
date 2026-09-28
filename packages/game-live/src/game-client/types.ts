@@ -23,7 +23,7 @@ export interface DebugCommandInfo {
 /** Run-4 friction #5: `seq` is a registry-lifetime monotonic counter (never
  *  reset, never shared by two events — unlike `tick`, which a debug-command
  *  emission and a fenced consumer's snapshot can legitimately collide on).
- *  Mirrors `@volter/project`'s `TickStampedEvent` (`adapter/system-adapter.ts`)
+ *  Mirrors `@volter/editor-project`'s `TickStampedEvent` (`adapter/system-adapter.ts`)
  *  — this package never imports the engine (see the module doc above), so
  *  the shape is declared here from the same contract. */
 export interface TickStampedEvent {

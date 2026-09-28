@@ -59,7 +59,7 @@ export interface VolterCommandsBridge {
 	 * other by name — which is also exactly what standalone the editor's `edit` command does.
 	 */
 	setCommandExecutor?(run: (id: string, args?: unknown) => Promise<unknown>): void;
-	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
+	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
 

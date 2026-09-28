@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------------------------
- *  THE KEYMAP GENERATOR — volter's chords, as a built-in extension's `contributes.keybindings`.
+ *  THE KEYMAP GENERATOR — Volter's chords, as a built-in extension's `contributes.keybindings`.
  *
  *  WORK.md §The core is Code-OSS U6b, and it is what RETIRED the fork's third core edit.
- *  U6 registered the volter editor's keybinding rules at RUNTIME, from the keymap tables the
+ *  U6 registered the Volter editor's keybinding rules at RUNTIME, from the keymap tables the
  *  bridge read out of the open project's session — and an upstream rule registered after
  *  `workbench.common.main.ts` has loaded is INERT, so it cost a four-line emitter on
  *  `KeybindingsRegistry` wired to the workbench keybinding service's `updateResolver()`.
@@ -16,7 +16,7 @@
  *  WHAT IT READS, and why THIS way. Three files of the volter-engine checkout it is pointed at:
  *
  *    packages/editor-sdk/src/kit/keymap-presets.ts        the `volter` table — the editor's own chords
- *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@volter/blender`'s G/R/S)
+ *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@volter/editor-blender`'s G/R/S)
  *    packages/editor-sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
  *  It reads them STATICALLY, with the TypeScript compiler API, rather than importing them
@@ -505,7 +505,7 @@ async function main() {
 	const manifest = {
 		name: 'volter-keymaps',
 		displayName: 'volter keymaps',
-		description: "GENERATED — do not edit. The volter editor's keyboard actions as keybinding sets, one per keymap, gated on the `volter.keymap` context key the frame publishes from the open project's own choice. Regenerate with `node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write`.",
+		description: "GENERATED — do not edit. The Volter editor's keyboard actions as keybinding sets, one per keymap, gated on the `volter.keymap` context key the frame publishes from the open project's own choice. Regenerate with `node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write`.",
 		categories: ['Keymaps'],
 		version: '0.0.1',
 		publisher: 'vscode',
@@ -534,7 +534,7 @@ ${Object.entries(hashes).map(([file, hash]) => ` *    ${hash}  ${file}`).join('\
 /** Every keymap the generated extension carries chords for. */
 export const CARRIED_KEYMAP_IDS: readonly string[] = [${keymaps.map(k => `'${k.id}'`).join(', ')}];
 
-/** Every volter editor action the generated extension binds, without the \`volter.\` prefix. */
+/** Every Volter editor action the generated extension binds, without the \`volter.\` prefix. */
 export const CARRIED_ACTION_IDS: readonly string[] = [
 ${[...carriedActions].sort().map(id => `\t'${id}',`).join('\n')}
 ];

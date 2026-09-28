@@ -1,11 +1,11 @@
 /**
- * VOLTER host adapter for Supercode's headless client.
+ * Volter host adapter for Supercode's headless client.
  *
  * Supercode owns harness/session/runtime semantics, lifecycle normalization,
- * transcript projection, retries, reconciliation, and concurrency. VOLTER owns
+ * transcript projection, retries, reconciliation, and concurrency. Volter owns
  * authenticated local launch controls and the HTTP/SSE boundary. Native Chat
  * owns presentation and conversation-scoped approval choices. Keep this file as a mapping layer; reusable agent logic
- * belongs in @volter-ai-dev/supercode-client.
+ * belongs in @volter/supercode-client.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -14,18 +14,18 @@ import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import type { NormalizedSession, SessionDescriptor } from '@volter-ai-dev/supercode-harness-sdk';
+import type { NormalizedSession, SessionDescriptor } from '@volter/supercode-harness-sdk';
 import {
   type projectClientSnapshot,
   projectSubagentInventory,
   projectSubagentTranscript,
-} from '@volter-ai-dev/supercode-ui/controller';
-import type { SupercodeUiIntent, SupercodeUiState } from '@volter-ai-dev/supercode-ui/core';
+} from '@volter/supercode-ui/controller';
+import type { SupercodeUiIntent, SupercodeUiState } from '@volter/supercode-ui/core';
 import {
   createRemoteControllerHost,
   type RemoteControllerHost,
   type RemoteUiFrame,
-} from '@volter-ai-dev/supercode-ui/host';
+} from '@volter/supercode-ui/host';
 import type {
   HarnessChatCapabilities,
   HarnessChatHarness,
@@ -49,9 +49,9 @@ import type { HarnessChatCallerSession } from './harness-chat-caller';
 
 type HeadlessUiSnapshot = Parameters<typeof projectClientSnapshot>[0];
 
-// @volter-ai-dev/supercode-client is an optional runtime peer. The mandatory UI
+// @volter/supercode-client is an optional runtime peer. The mandatory UI
 // package already declares its exact frontend snapshot contract, so do not
-// shadow that contract with a partial VOLTER interface. The validator loaded
+// shadow that contract with a partial Volter interface. The validator loaded
 // atomically from the runtime peer remains the authority for production data.
 type RuntimeCapabilities = HeadlessUiSnapshot['harnesses'][number]['effective_capabilities'];
 type StructuredLaunch = Omit<NonNullable<HeadlessUiSnapshot['terminalLaunch']>, 'env'> & {
@@ -192,7 +192,7 @@ type SupercodeClientConstructor = new (options?: {
  * supercode's: the literal is in supercode, the `policy` that selects it was set here.
  *
  * IT HAS A VERSION FLOOR, and that floor is why `packages/editor/package.json` asks for
- * `@volter-ai-dev/supercode` `^0.4.36`. `--permission-prompt-tool stdio` joined the Claude
+ * `@volter/supercode` `^0.4.36`. `--permission-prompt-tool stdio` joined the Claude
  * backend's own prefix on 2026-09-04 (`6ef3be26`); the binary an older install resolved here,
  * 0.4.11, is built from 2026-08-24 and predates it. MEASURED on the child of a real session
  * against 0.4.11: `claude --print … --verbose --session-id …` with NO permission handler at
@@ -534,14 +534,14 @@ async function importSupercodePackages(engineRoot: string): Promise<{
   const cwdSibling = join(dirname(resolve(process.cwd())), 'supercode', 'sdk');
   const controllerCandidates = [
     ...moduleCandidate(process.env['SUPERCODE_CLIENT_PATH'], 'client.mjs'),
-    '@volter-ai-dev/supercode-client',
+    '@volter/supercode-client',
     join(sibling, 'client', 'client.mjs'),
     join(cwdSibling, 'client', 'client.mjs'),
   ];
   const [SupercodeHarnessClient, clientModule] = await Promise.all([
     importOptional<SupercodeClientConstructor>('Volter Harness SDK', 'SupercodeHarnessClient', [
       ...moduleCandidate(process.env['SUPERCODE_SDK_PATH'], 'client.mjs'),
-      '@volter-ai-dev/supercode-harness-sdk',
+      '@volter/supercode-harness-sdk',
       join(sibling, 'typescript', 'client.mjs'),
       join(cwdSibling, 'typescript', 'client.mjs'),
     ]),
@@ -587,7 +587,7 @@ async function importSupercodeController(engineRoot: string): Promise<{
   );
   const candidates = [
     ...moduleCandidate(process.env['SUPERCODE_CLIENT_PATH'], 'client.mjs'),
-    '@volter-ai-dev/supercode-client',
+    '@volter/supercode-client',
     sibling,
     cwdSibling,
   ];
@@ -617,7 +617,7 @@ async function importSupercodeController(engineRoot: string): Promise<{
 function findSourceLinkedSupercodeCommand(): string | undefined {
   let clientRoot: string;
   try {
-    clientRoot = dirname(fileURLToPath(import.meta.resolve('@volter-ai-dev/supercode-client')));
+    clientRoot = dirname(fileURLToPath(import.meta.resolve('@volter/supercode-client')));
   } catch {
     return undefined;
   }
@@ -644,7 +644,7 @@ export function findSupercodeCommand(engineRoot: string): string | undefined {
   if (sourceCommand) return sourceCommand;
   const require = createRequire(import.meta.url);
   try {
-    const packageRoot = dirname(require.resolve('@volter-ai-dev/supercode/package.json'));
+    const packageRoot = dirname(require.resolve('@volter/supercode/package.json'));
     const installedCommand = join(packageRoot, 'bin', 'supercode.js');
     if (existsSync(installedCommand) && statSync(installedCommand).isFile())
       return installedCommand;
@@ -979,7 +979,7 @@ export class HarnessChatService {
 
 
   /** Dispatch the package-owned messenger intent without translating it into
-   * a second VOLTER action vocabulary. */
+   * a second Volter action vocabulary. */
   async actIntent(intent: SupercodeUiIntent): Promise<HarnessChatSnapshot> {
     await this.ensureController();
     const host = this.remoteHost;

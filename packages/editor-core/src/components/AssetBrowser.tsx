@@ -2790,7 +2790,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
             </MenuItem>
             {/* A package's own items on this asset (`@volter/editor-sdk/chrome`,
                 menu `asset`): invoked with the asset's project path. `Open in
-                Asset Budget` is one of them (`@volter/game`'s
+                Asset Budget` is one of them (`@volter/editor-game`'s
                 `asset-budget-asset.menu.ts`) — it was a built-in row here
                 until the budget became that package's document. */}
             {contributedMenuItems('asset').map((item) => {

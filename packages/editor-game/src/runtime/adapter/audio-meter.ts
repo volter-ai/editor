@@ -2,7 +2,7 @@
  * Meter arithmetic over an `AudioAdapter`'s `AudioMeterFrame.level` — the one
  * place a linear RMS level becomes dBFS and a bar fill. Lives beside the
  * adapter because both readers of a level (the editor's header meter and the
- * `@volter/game` audio debugger) are consumers of the adapter, and neither may
+ * `@volter/editor-game` audio debugger) are consumers of the adapter, and neither may
  * import the other.
  */
 

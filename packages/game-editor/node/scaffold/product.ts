@@ -3,7 +3,7 @@
  *
  * CREATION IS THE PRODUCT'S (ARCHITECTURE-CORE §The target shape, rule 1: the
  * kit knows no package and no product by name). This scaffolder is a LIBRARY:
- * it owns the base template under `packages/editor/template/`, the additions
+ * it owns the base template under `packages/game-editor/template/`, the additions
  * (`three`, `ui`, `server`, `blender`, `studio`) and every rewrite that turns
  * one into a project — and it knows nothing about which compositions exist,
  * what they are called, which editor-side packages a project declares, or

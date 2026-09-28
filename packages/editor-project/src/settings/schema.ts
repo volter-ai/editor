@@ -11,7 +11,7 @@
  * key by key (`mergeEditorSettings`). Neither layer holds authored content —
  * an unreadable file is reported by name and falls back to defaults, never
  * migrated. The generated JSON Schema (`npm run generate-schema` →
- * `packages/project/schemas/volter-settings.schema.json`) is what an editor
+ * `packages/editor-project/schemas/volter-settings.schema.json`) is what an editor
  * autocompletes against when a person edits either file by hand.
  *
  * Every field here has a runtime reader in the editor's settings store

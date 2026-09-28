@@ -11,7 +11,7 @@
  * depends on the project contract and its medium's libraries).
  *
  * `scripts/generate-engine-manifest.ts` renders this file into
- * `packages/project/schemas/engine-api.json`.
+ * `packages/editor-project/schemas/engine-api.json`.
  */
 
 /**

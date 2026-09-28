@@ -37,7 +37,7 @@ import {
  * spelling fails `RootAdapterSchema` loudly at load, naming the canonical
  * value — so there is nothing for this probe to translate.
  *
- * Deliberately dependency-light (no Zod, no `@volter/project/manifest/load`) — same
+ * Deliberately dependency-light (no Zod, no `@volter/editor-project/manifest/load`) — same
  * bar a vite-config-time file holds: a best-effort identity probe, not
  * manifest validation. A malformed manifest never crashes a transform/HMR
  * hook; it degrades to "no declared regions", which the resolver answers as

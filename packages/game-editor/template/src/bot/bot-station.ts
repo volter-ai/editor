@@ -6,7 +6,7 @@
  * holds what it is doing so the game's Tester surface and `volter-game-editor eval`
  * both watch one run, and it implements the operator controls the tester
  * honors between steps. This module is plain application state and imports no
- * volter API; its exports are the whole control surface.
+ * Volter API; its exports are the whole control surface.
  *
  * `getBotStatus()` reads `{active, seat, goal, step, phase, progress,
  * waitingOn, note, seed, directive}`. `pauseBot()`, `resumeBot()`,

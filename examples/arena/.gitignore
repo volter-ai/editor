@@ -47,7 +47,7 @@ dist-server/
 # src/models/arena-weapons.blend silently.
 /models/
 
-# `volter-game-editor play`'s run logs (logs/play-*.jsonl — see packages/volter-cli/src/index.ts)
+# `volter-game-editor play`'s run logs (logs/play-*.jsonl)
 logs/
 *.jsonl
 

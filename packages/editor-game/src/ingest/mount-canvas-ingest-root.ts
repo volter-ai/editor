@@ -89,6 +89,7 @@ import { LOOP_PROBE_ABSENT, recordMountCoverage } from './mount-coverage';
 import { resolveIngest2DDescriptor } from './resolve-canvas';
 import { getIngestGame2D } from './surface-canvas';
 import { exitActiveIngest } from './unmount-ingest-root';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** How this mount reached the game's runtime, in the words a capability
  *  warning hands the reader. Mechanism only — never a grade. */
@@ -148,10 +149,10 @@ function publishCanvasIngestSystems(
   setActiveSystems(systems);
   editorConsole.log(
     contractSystems
-      ? `canvas ingest: "${gameName}" declares the volter game contract — ` +
+      ? `canvas ingest: "${gameName}" declares the Volter game contract — ` +
           `${contractSystems.commands?.length ?? 0} commands, ` +
           `${contractSystems.state?.length ?? 0} state providers`
-      : `canvas ingest: "${gameName}" declares no volter game contract — game.commands()/` +
+      : `canvas ingest: "${gameName}" declares no Volter game contract — game.commands()/` +
           'game.state() have nothing to answer and will refuse by naming that',
     'ingest',
   );
@@ -460,6 +461,7 @@ async function mountCanvasIngestRootInner(
   const hostEl = document.createElement('div');
   hostEl.id = 'container';
   hostEl.style.cssText = `position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;${GAME_SURFACE_CONTAINMENT_CSS}`;
+  markGameSurface(hostEl);
   gameContainer.appendChild(hostEl);
   setGameSurface(hostEl);
   // Same scoped-CSS contract the three lane holds (ingest-root-adapter.ts):

@@ -65,7 +65,7 @@ export type TabRoute = 'project' | 'no-project' | 'unknown';
 /**
  * WHAT KIND OF PAGE this tab is.
  *
- * - `'editor'`  — the volter editor's own page, which is every tab this session
+ * - `'editor'`  — the Volter editor's own page, which is every tab this session
  *   opens itself.
  * - `'vscode'`  — a Code-OSS workbench window running the editor through the
  *   frame (docs/CODE-OSS.md §Boot, DESKTOP). It is a tab like any other under
@@ -90,7 +90,7 @@ export type TabSurface = 'editor' | 'vscode';
 
 /**
  * THE RESOURCE CENSUS — what the tab was holding, sampled by the page and
- * carried on the beat. Declared in `@volter/sdk/tab-census` (the one package
+ * carried on the beat. Declared in `@volter/editor-sdk/project/tab-census` (the one package
  * every unit that speaks this shape already depends on) and re-exported here,
  * because this file is where the server's readers look for it.
  *

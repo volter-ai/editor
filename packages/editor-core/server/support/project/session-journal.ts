@@ -73,7 +73,7 @@ export type SessionJournalEvent =
    * ONE RESOURCE THE SHUTDOWN COULD NOT STOP, by name.
    *
    * The host's shutdown list runs each task independently and bounds each one
-   * (`packages/editor/server/process-shutdown.ts`); this is what a task writes
+   * (`packages/editor-core/server/process-shutdown.ts`); this is what a task writes
    * when its bound expires or it throws. Measured 2026-09-21 under load average
    * ~30: a the editor's `close` command died inside the tab notify before the workbench's
    * children were stopped, and the ONLY evidence was a journal that stopped —
@@ -122,7 +122,7 @@ export type SessionJournalEvent =
    * READ `loopDelayP99Ms` FIRST. It is what separates "the server was busy" —
    * where every slow response in the window is queueing, not work — from "the
    * server was idle and the browser was the wait". See
-   * `packages/editor/server/boot-timings.ts`.
+   * `packages/editor-core/server/boot-timings.ts`.
    */
   | {
       readonly kind: 'boot';
@@ -419,7 +419,7 @@ export type SessionJournalEvent =
   /**
    * One batch of occurrences of ONE console error/warning condition, as the
    * server's unresolved-console ledger recorded it
-   * (`packages/editor/server/console-ledger.ts`).
+   * (`packages/editor-core/server/console-ledger.ts`).
    *
    * This is the DURABLE half of the loudness convention, and the reason it is
    * a row per observation rather than a row per distinct message: `count` is

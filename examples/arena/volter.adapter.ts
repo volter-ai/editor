@@ -23,7 +23,7 @@
  *
  * When this game grows something else the native bindings do not cover, state it
  * HERE rather than letting the host guess; see
- * `packages/editor/template/volter.adapter.ts` for the worked `defineAdapter`
+ * `packages/game-editor/template/volter.adapter.ts` for the worked `defineAdapter`
  * shape. Unknown keys are rejected by name — this file is validated the moment
  * it is evaluated, so a typo fails here rather than becoming silence in the
  * editor.
@@ -58,7 +58,7 @@ export default defineAdapter({
   // selection names it, and `nativeAdapter` takes extra scenes and region
   // includes but not extra finders. Restating the native pair is what a
   // scaffolded project with the `mesh` addition ships
-  // (`packages/create-volter-project/src/additions.ts`), so this is the shape
+  // (`packages/game-editor/node/scaffold/additions.ts`), so this is the shape
   // rather than a local invention.
   documents: {
     find: [

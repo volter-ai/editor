@@ -1,6 +1,6 @@
 /**
  * `StorageBackend` side of the asset provenance ledger (D-AP3) — the
- * browser/isomorphic sibling of `packages/editor/server/asset-ledger-store.ts`,
+ * browser/isomorphic sibling of `packages/editor-core/server/asset-ledger-store.ts`,
  * which reads/writes `.volter/assets.json` via `node:fs` for the local
  * (HttpStorage-backed) Node editor. Every environment materializes through the
  * SAME record shape (`../asset-workflow/asset-ledger.ts`'s pure schema) — only

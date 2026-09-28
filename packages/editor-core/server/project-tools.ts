@@ -175,12 +175,12 @@ async function locatePackageJson(fromDir: string, name: string): Promise<string 
  *
  * WHAT A PROJECT NEEDS TO RUN IS THE PROJECT'S OWN DECLARATION and nothing
  * else. A list here used to IMPLY a lane from the manifest's roots —
- * `@volter/game` and `@volter/dom` — resolved out of the EDITOR's own `node_modules` when the
+ * `@volter/editor-game` and `@volter/editor-game` — resolved out of the EDITOR's own `node_modules` when the
  * project declared none. It is deleted: the kit names no package (ARCHITECTURE-
  * CORE §The target shape, rule 1), and the packages a session mounts beyond the
  * project's own are the PRODUCT's, already in its bundle.
  *
- * `@volter/asset-library` joins it on the same test and for the same reason
+ * the asset-library package joins it on the same test and for the same reason
  * (2026-09-18, phase 1 unit 10). The Library panel is a STOREFRONT the editor
  * carries: it reaches our hosted catalog and it opens with a project that has
  * no content at all, so no manifest can imply it — importing a result into the
@@ -196,14 +196,14 @@ async function locatePackageJson(fromDir: string, name: string): Promise<string 
  * gives. This list is the SESSION's own answer, for chrome that is about the
  * worktree rather than about the project.
  *
- * `@volter/collaboration` joined on the same test (2026-09-19, phase 1 unit 15).
+ * the collaboration package joined on the same test (2026-09-19, phase 1 unit 15).
  * Who is in a live editor SESSION is a fact about the session, not about the
  * project: the people control and the presence publisher are wanted by a
  * modeling-only worktree exactly as much as by a game, and no manifest could
  * imply them.
  */
 // Empty since the launch-scope sweep (2026-09-20): `@volter/agents`,
-// `@volter/asset-library` and `@volter/collaboration` are archived at
+// the asset-library package and the collaboration package are archived at
 // `archive/launch-scope-2026-09-20`; a session package returns here with them.
 const SESSION_PACKAGES: readonly string[] = [];
 

@@ -57,7 +57,7 @@ export interface EditorServerOptions {
    * must precede the one intentional editor reload. */
   onProjectOpened?: ((projectPath: string) => void | Promise<void>) | undefined;
   /**
-   * The import URL THIS host serves `packages/editor/src/frame/bridge.tsx` at —
+   * The import URL THIS host serves `packages/editor-core/src/frame/bridge.tsx` at —
    * the editor's entry point under the Code-OSS frame.
    *
    * The one caller is `/__editor/served-modules` (routes/served-modules.ts),

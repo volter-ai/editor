@@ -52,7 +52,7 @@ export interface ReactStoryBoardStory {
    * A canvas story supplies the content-bounds frame resolved by its native
    * board — so the shared substrate uses that exact authored-space rectangle
    * rather than scaling it into a default UI viewport. See
-   * `@volter/canvas`'s `canvas-board/CanvasBoardDocument.tsx`.
+   * `@volter/editor-game`'s `src/canvas/canvas-board/CanvasBoardDocument.tsx`.
    */
   readonly frameSize?: { readonly width: number; readonly height: number } | undefined;
 }
@@ -365,7 +365,7 @@ export function zoomReactStoryFrameAtPoint(
  * (`design-time-layers.ts`) mount each dom story's React render into
  * `frames.get(id).content`, and Play tears that whole board down before
  * mounting the root's real manifest entry; the `2D` board
- * (`@volter/canvas`'s `canvas-board/CanvasBoardDocument.tsx`) puts each canvas story's own mounted
+ * (`@volter/editor-game`'s `src/canvas/canvas-board/CanvasBoardDocument.tsx`) puts each canvas story's own mounted
  * Pixi host in the same place, cropped to the mounted stage's content bounds.
  * A frame is DOM either way — a canvas story renders a `<canvas>`, which is
  * why it is an ordinary frame here and not a second board engine.

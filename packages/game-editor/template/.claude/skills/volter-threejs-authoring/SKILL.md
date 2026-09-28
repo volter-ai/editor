@@ -3,7 +3,7 @@ name: volter-threejs-authoring
 description: Build, rig, animate, diagnose, and visually refine polished native Three.js scenes and procedural assets with direct Object3D code, reusable construction helpers, geometry libraries, and an inspect-render-critique loop. Use for procedural models, rigid mechanical armatures, environments, static props, stylized materials, lighting, cameras, scene composition, or an agent-focused Blender-like workflow. Use volter-3d-models when the result should be a Blender source document with an exported GLB. Do not use for Blender bpy work or imported skeletal retargeting.
 ---
 
-# VOLTER Three.js Authoring
+# Volter Three.js Authoring
 
 Author ordinary project source against Three.js. Treat the source module and
 live `Object3D` graph as truth. Use helpers for leverage, not as a replacement
@@ -14,7 +14,7 @@ scene language.
 1. Read the project instructions and architecture.
 2. Locate the Three root or modeling build entry, existing helpers,
    renderer setup, and verification commands.
-3. Start or reuse the VOLTER editor immediately and keep it open.
+3. Start or reuse the Volter editor immediately and keep it open.
 4. Capture a fixed-camera visual baseline.
 5. Inspect the live hierarchy, selected-object facts, renderer state, and
    console before changing code.
@@ -67,7 +67,7 @@ Use raw Three.js whenever a helper becomes awkward.
 Keep shader source in ordinary `.vert`, `.frag`, or `.glsl` files and bind it
 with `THREE.ShaderMaterial` directly. A sibling `name.vert.glsl` +
 `name.frag.glsl` pair is the portable convention Asset Lab recognizes; it is
-not a VOLTER format. Keep authored uniform defaults, defines, textures, and
+not a Volter format. Keep authored uniform defaults, defines, textures, and
 material composition beside the owning material in TS/TSX, where the runtime
 actually reads them. Never add a `.shader.json`, uniform sidecar, or generated
 shader graph to duplicate those facts.
@@ -86,7 +86,7 @@ postprocessing, or the game's actual texture bindings.
 ## Compose postprocessing directly
 
 When a game needs postprocessing, add `@react-three/postprocessing` to that
-project and import its components directly. Do not create a VOLTER chain file,
+project and import its components directly. Do not create a Volter chain file,
 effect registry, wrapper component, or JSON descriptor. The owning scene's JSX
 is already the ordered chain; conditionally render one effect to bypass it and
 move its JSX child to reorder it. Keep the finishing order restrained: render,
@@ -272,7 +272,7 @@ is `npx volter-game-editor screenshot`, and the module lane is the asset loop:
    lighting).
 
 > Engine-repo aside — not for game projects. When you are working inside the
-> volter engine checkout itself (no game project, no editor session), the
+> Volter engine checkout itself (no game project, no editor session), the
 > equivalent is `node packages/engine/e2e/turntable/capture.mjs <subject>`,
 > run from the checkout root; it boots and tears down its own server. Point
 > it at your own builder with `capture.mjs file --module

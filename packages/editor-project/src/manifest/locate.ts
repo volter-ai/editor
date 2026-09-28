@@ -3,7 +3,7 @@
 //
 // Deliberately dependency-light — `node:fs` + `node:path` + `./filename` and
 // NOTHING else (no Zod, no `./load`). Several callers are explicitly
-// schema-free by design (`packages/editor/server/project-root-surface.ts`,
+// schema-free by design (`packages/editor-core/server/project-root-surface.ts`,
 // `packages/editor/vite-plugin-ui-oid.ts`) and must be able to locate a
 // manifest without dragging the validator in.
 

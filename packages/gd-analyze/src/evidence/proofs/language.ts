@@ -64,7 +64,7 @@ static func evaluate(seed: int = 4) -> Array[int]:
 const PROJECT_SOURCE = `config_version=5
 
 [application]
-config/name="VOLTER language semantics authority"
+config/name="Volter language semantics authority"
 run/main_scene="res://main.tscn"
 
 [rendering]

@@ -284,7 +284,7 @@ export function EditorServerStatus() {
 // `AssetImportStatus` stood here until phase 1 unit 21. Its ledger's only
 // writers are the online catalog's browser and its detail view, and the
 // status registry it filled is a CONTRIBUTION point — so the item registers
-// from `@volter/asset-library` now, beside the progress-event connection that
+// from the asset-library package now, beside the progress-event connection that
 // feeds it.
 
 /**

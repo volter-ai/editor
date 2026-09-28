@@ -5,7 +5,7 @@
  *
  * WHY A TAB IS A SECTION, and not a rail of our own: under the `properties`
  * presentation the inspector's sections ARE the vertical icon rail, 1:1
- * (`packages/editor/src/components/InspectionProjection.tsx`,
+ * (`packages/editor-sdk/src/kit/components/InspectionProjection.tsx`,
  * `PropertiesColumn`). So the way to make Blender's tab rail appear is to
  * contribute Blender's tabs as sections — which is also exactly the shape I2
  * needs, because each of these modules then grows a CURATED body over the same

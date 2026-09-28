@@ -82,7 +82,7 @@ export interface VolterGameScene {
  * vocabulary for "the design-time states a world can be put into": stories.
  * So this is projected onto the ordinary `StoriesProvider`
  * (`adapter/authoring.ts`) by the host's canvas ingest mount
- * (`packages/editor/src/authoring/contract-scenes-stories.ts`), WORLD-LEVEL —
+ * (`packages/editor-game/src/host/authoring/contract-scenes-stories.ts`), WORLD-LEVEL —
  * the same scope the react world adapter's stories have — so the inspector's
  * story picker lists a game's screens and switching one runs the game's own
  * navigation call. Nothing else is invented: there is no host-side scene model,
@@ -297,7 +297,7 @@ export interface VolterGameContract {
    * about authoring order, and the game's author knows the real answer.
    *
    * Declaring nothing keeps the measured answer, reported as `measured` (see
-   * `packages/editor/src/presentation-surface.ts`, the one reader).
+   * `packages/editor-sdk/src/kit/presentation-surface.ts`, the one reader).
    */
   presentation?: HTMLCanvasElement;
   /**

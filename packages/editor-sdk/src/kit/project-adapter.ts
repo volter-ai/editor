@@ -568,7 +568,7 @@ export type ProjectAdapterProbe =
  * `import.meta.glob` over `src/ingest/games/*` — every repo-vendored game's
  * manifest and adapter module in every editor boot, a `models` build that
  * mounts no unmodified game included. The lane that OWNS those declarations is
- * `@volter/game`, which already imports that registry from three of its own
+ * `@volter/editor-game`, which already imports that registry from three of its own
  * ingest modules; it registers here from `contributions/ingest.service.ts`.
  *
  * NOTHING REGISTERED IS A REAL ANSWER, AND IT IS A LOUD ONE — see
@@ -719,7 +719,7 @@ export function selectAdapterDefinition(
         `volter.project.json declares the ingest root \`${registry.rootId}\`, and no registered ` +
         `adapter-definition source holds a declaration for it ` +
         `(${registry.sources} source${registry.sources === 1 ? '' : 's'} registered). The lane ` +
-        `that owns a vendored game's declaration is \`@volter/game\`, which registers through ` +
+        `that owns a vendored game's declaration is \`@volter/editor-game\`, which registers through ` +
         `its \`ingest.service.ts\` contribution — so either this product does not compose that ` +
         `package, ` +
         `or its contribution pass did not load it. The declared native default is standing in, ` +
@@ -978,7 +978,7 @@ let registeredModules = new WeakSet<object>();
 // This file is the ONE sanctioned importer of the engine's finder namespace
 // (`@editor/finders`'s header states the rule), so the registration is
 // here rather than beside the rest of the lane in `stories/story-lane.ts`.
-registerContributedFinder(storyPrefabsFinder, 'packages/editor/src/stories/prefabs-finder.ts');
+registerContributedFinder(storyPrefabsFinder, 'packages/editor-sdk/src/kit/stories/prefabs-finder.ts');
 
 // A contribution pass that changed the finder set re-resolves the table.
 subscribeToolContributions(() => {

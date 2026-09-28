@@ -6,7 +6,7 @@
  * No modeling happens in this process. `execute_blender_code`,
  * `get_scene_info`, `get_object_info` and `get_viewport_screenshot` become
  * `blender-*` control commands answered by the tab's worker
- * (`packages/blender/contributions/blender.command.ts`, the engine's own
+ * (`packages/editor-blender/contributions/blender.command.ts`, the engine's own
  * `workspace.command` contribution); the screenshot is the tab
  * photographing its own Model document. The 24 integration tools answer as
  * an add-on with no integrations, exactly as the Python server did.

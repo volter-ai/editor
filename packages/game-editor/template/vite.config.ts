@@ -6,13 +6,13 @@ import { defineConfig } from 'vite';
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
 import manifest from './volter.project.json';
 
-/** A volter runtime package served as SOURCE, the way the editor serves it. */
+/** A Volter runtime package served as SOURCE, the way the editor serves it. */
 const packageSource = (name: string) =>
   path.join(path.dirname(createRequire(import.meta.url).resolve(`${name}/package.json`)), 'src');
 
 /**
  * Run-4 dry-run friction #2 — auto-detect drvfs the SAME way the editor dev
- * server does (`packages/editor/server/server-utils.ts`'s
+ * server does (`packages/editor-core/server/server-utils.ts`'s
  * `resolveWatcherPollOptions`, and `dev.ts`'s own `projectOnDrvfs` check):
  * on WSL, a project living on a Windows drive (`/mnt/<drive>/…`) never fires
  * inotify, so without polling this standalone server (`npm run dev:standalone`)
@@ -68,7 +68,7 @@ export default defineConfig({
   //
   // This project has no `@vitejs/plugin-react`; Vite's built-in esbuild does
   // the JSX transform, and it picks the runtime from the tsconfig nearest the
-  // FILE. That covers `src/**`, but the volter runtime packages are served as
+  // FILE. That covers `src/**`, but the Volter runtime packages are served as
   // source out of their installed directories (see the aliases below), where
   // the project's tsconfig does not reach — so their `.tsx` compiled with the CLASSIC runtime, emitting
   // bare `React.createElement` calls into a module that never imports React.

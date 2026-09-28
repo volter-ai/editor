@@ -38,7 +38,7 @@
  *
  *  WHERE THE VALUE COMES FROM. The LOOK, through the layer U7 already built. The editor's
  *  chrome density carries a top-bar height per look — `theme.ts`'s `chromeSize.commandBar`
- *  (36, Classic's) and `@volter/blender`'s `blender.style.ts` `chrome.commandBar` (26, traced
+ *  (36, Classic's) and `@volter/editor-blender`'s `blender.style.ts` `chrome.commandBar` (26, traced
  *  from Blender 5.2's own frames at 1x) — published as the `--volter-command-bar-height` custom
  *  property `.volter-project-header`'s own CSS reads for its `height`. The bridge hands that
  *  resolved number over and `volterSettings.ts` writes it at `ConfigurationTarget.MEMORY` with

@@ -1,6 +1,6 @@
 /**
  * Runtime detection of the PACKAGED editor server (`packages/editor/server/
- * packaged.ts` — a `@volter/editor` npm package with NO monorepo checkout on
+ * packaged.ts` — a `@volter/editor-core` npm package with NO monorepo checkout on
  * disk) from editor CLIENT code. Needed because a react world's mount
  * (`react-mount-runtime.ts`'s `resolveReactRootMountRuntime`) must resolve its
  * `react`/`react-dom/client` from the

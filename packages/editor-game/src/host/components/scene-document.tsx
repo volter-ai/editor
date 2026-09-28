@@ -3,7 +3,7 @@
  * `Scene` (the subject, not its entry file — see SCENE_DOCUMENT_TITLE),
  * closeable and discoverable in Content, content = the world root's stage.
  *
- * Transcribed from the Scene half of volter's `components/CenterDocuments.tsx`.
+ * Transcribed from the Scene half of Volter's `components/CenterDocuments.tsx`.
  * The kit keeps the other half (`@volter/editor-core/components/CenterDocuments`
  * `useCenterDocuments`): it binds the Game document's tab, reports the
  * live/stopped edge and closes every document on session teardown. What moved

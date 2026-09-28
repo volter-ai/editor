@@ -241,7 +241,7 @@ export interface CaptureOptions {
    * Same-frame pixels for a canvas this process cannot read back late.
    *
    * A WebGL canvas is only `drawImage`-able after its frame if its context was
-   * created with `preserveDrawingBuffer: true`. Every canvas the volter runtime
+   * created with `preserveDrawingBuffer: true`. Every canvas the Volter runtime
    * mounts sets it; a canvas an INGESTED game created does not, so reading it
    * here — several paint boundaries after its frame — yields black. The caller
    * supplies this when it has a seam that can copy the buffer inside the
@@ -261,6 +261,15 @@ export interface CaptureOptions {
    * language, so omitting them turns a styled panel into browser-default HTML.
    */
   readonly includeDocumentStyles?: boolean | undefined;
+  /**
+   * The open project's root. A native game styles its DOM with CSS its modules
+   * import, and Vite serves each of those as a `<style>` in the EDITOR document,
+   * outside the container the clone is taken from; the game path re-inlines the
+   * ones whose source file is under this root. Absent, every served stylesheet
+   * outside `node_modules` counts (in the packaged editor that is only project
+   * CSS; a source checkout also serves its own).
+   */
+  readonly projectRoot?: string | undefined;
   /**
    * Crop the photograph to the union of painted pixels plus padding, on a
    * backdrop of the container's own background.
@@ -353,7 +362,7 @@ function canvasDataUrl(document: Document, pixels: CanvasImageSource): string | 
  * dynamically installed scoped game CSS all present the same interface.
  * Cross-origin sheets refuse `cssRules`; skipping those preserves the normal
  * browser security boundary instead of making capture itself fail. */
-function documentStylesCssText(document: Document): string {
+function sheetsCssText(document: Document, sheets: Iterable<CSSStyleSheet>): string {
   const seen = new Set<CSSStyleSheet>();
   const read = (sheet: CSSStyleSheet): string => {
     if (seen.has(sheet)) return '';
@@ -376,7 +385,27 @@ function documentStylesCssText(document: Document): string {
       return '';
     }
   };
-  return Array.from(document.styleSheets, read).filter(Boolean).join('\n');
+  return Array.from(sheets, read).filter(Boolean).join('\n');
+}
+
+function documentStylesCssText(document: Document): string {
+  return sheetsCssText(document, Array.from(document.styleSheets));
+}
+
+/** The project's own module stylesheets as Vite serves them: a sheet whose
+ *  owner carries `data-vite-dev-id` naming a source file outside `node_modules`
+ *  (and under `projectRoot`, when given). See {@link CaptureOptions.projectRoot}. */
+function projectModuleStylesCssText(document: Document, projectRoot: string | undefined): string {
+  const root = projectRoot?.replace(/\\/g, '/').replace(/\/$/, '');
+  const sheets = Array.from(document.styleSheets).filter((sheet) => {
+    const owner = sheet.ownerNode;
+    const id = owner instanceof Element ? owner.getAttribute('data-vite-dev-id') : null;
+    if (!id) return false;
+    const file = (id.split('?')[0] ?? id).replace(/\\/g, '/');
+    if (file.includes('/node_modules/')) return false;
+    return root ? file.startsWith(`${root}/`) : true;
+  });
+  return sheets.length === 0 ? '' : sheetsCssText(document, sheets);
 }
 
 /** SVG images cannot fetch external fonts, even ones already loaded by the page.
@@ -825,6 +854,17 @@ export function buildOverlaySvg(
     const gameStyles = container.ownerDocument.createElement('style');
     gameStyles.textContent = gameCss;
     wrapper.appendChild(gameStyles);
+  }
+  // …and the stylesheets the game's own MODULES imported, for the same reason:
+  // Vite serves each one as a `<style>` in the editor document, so the detached
+  // clone of a HUD styled by an imported `.css` file would photograph unstyled.
+  if (!includeDocumentStyles) {
+    const moduleCss = projectModuleStylesCssText(container.ownerDocument, options?.projectRoot);
+    if (moduleCss) {
+      const moduleStyles = container.ownerDocument.createElement('style');
+      moduleStyles.textContent = moduleCss;
+      wrapper.appendChild(moduleStyles);
+    }
   }
   for (const el of overlays) {
     const clone = el.cloneNode(true) as Element;
@@ -1639,6 +1679,7 @@ export async function drawPlayCompositeFrame(
       // text in a doubled box. See {@link buildOverlaySvg}'s `rasterSize`.
       const overlay = buildOverlaySvg(container, width / scaleX, height / scaleY, {
         includeDocumentStyles: options?.includeDocumentStyles,
+        projectRoot: options?.projectRoot,
         documentCssText: options?.includeDocumentStyles
           ? await embeddedDocumentStyles(container.ownerDocument)
           : undefined,

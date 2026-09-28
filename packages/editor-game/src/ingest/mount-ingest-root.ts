@@ -719,7 +719,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     isActive: () => activeIngest()?.kind === 'dom',
   };
   // Headless-readable mount outcomes —
-  // `packages/editor/src/authoring/mount-failure-report.ts`'s multi-entry
+  // `packages/editor-sdk/src/kit/mount-failure-report.ts`'s multi-entry
   // list is otherwise only ever read by the status bar's `mount-failure`
   // contribution (a React component), invisible to `page.evaluate()`. This is
   // a plain function returning the LIVE list — a probe's browser

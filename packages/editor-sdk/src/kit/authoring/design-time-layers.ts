@@ -28,7 +28,7 @@
  * failure/teardown/play lifecycle was "the SAME for both media", and it
  * hard-coded each medium's staleness rule besides (canvas remounted on a
  * storage write, dom re-projected on a story publish). The contract is the
- * seam; `@volter/dom` and `@volter/canvas` register against it now, and the play
+ * seam; `@volter/editor-game`'s react and canvas lanes register against it now, and the play
  * handoff below tears every layer down and restores its Boundary node the
  * instant play starts exactly as it always did — which is why the LIFECYCLE
  * stays here rather than moving with either mount.
@@ -73,13 +73,14 @@ import {
 } from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden, isRootInteractive } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** D20: Play tears the design-time adapter down, so the selected CSF state
  * must live one level above that adapter to survive Stop's rebuild. Keyed by
  * project + root so equal root ids in different projects never bleed.
  *
  * IT IS STILL HERE, and it is the one lane word this module has left: the
- * board's mount lives in `@volter/dom` now, but `components/world-documents.tsx`
+ * board's mount lives in `@volter/editor-game` now, but `components/world-documents.tsx`
  * reads the remembered frame for the UI board document's `presentation()`
  * round-trip, and the host may not import a package. Closing it is the
  * world-documents unit's, which is where the rest of that file's `dom`/
@@ -242,9 +243,7 @@ function createLayerElement(
   layer.style.contain = 'layout paint';
   // A project's root renders as it ships: its inherited text properties start from a page's
   // defaults, not the editor's own typography, which would otherwise inherit into it.
-  layer.style.cssText +=
-    'font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
-    ' text-align: start; text-indent: 0; text-transform: none; white-space: normal; direction: ltr;';
+  markGameSurface(layer);
   applySessionStyle(layer, worldId, candidate.kind);
   // D4 (spec27 §8 "space-pan" row) — seed this layer with whatever pan is
   // currently in effect (normally none — `mountDesignTimeLayers` resets pan

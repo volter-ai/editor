@@ -272,7 +272,7 @@
 }
 /* Contiguous means ONE border between two tools, not two — in EVERY strip the
    rail carries, which is what `.volter-document-shelf-tools` is: a contribution's
-   own column of operators (`@volter/blender`'s Model document, whose own
+   own column of operators (`@volter/editor-blender`'s Model document, whose own
    comment already said the host states this pitch once and here). Listed here
    rather than restated there, because the pitch is the RAIL's: measured live
    before this line existed, the transform group ran at Blender's 35 and the

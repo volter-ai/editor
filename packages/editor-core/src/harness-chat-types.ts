@@ -1,12 +1,12 @@
-import { normalizeUiState, type SupercodeUiState } from '@volter-ai-dev/supercode-ui/core';
-import type { RemoteUiFrame } from '@volter-ai-dev/supercode-ui/host';
+import { normalizeUiState, type SupercodeUiState } from '@volter/supercode-ui/core';
+import type { RemoteUiFrame } from '@volter/supercode-ui/host';
 
 /**
  * Browser/server contract for the permanent coding-agent surface.
  *
  * Supercode owns harness, session, transcript, and runtime semantics. This
  * wire mirrors its frontend state instead of inventing a second state
- * machine; VOLTER adds only editor-specific presentation and context.
+ * machine; Volter adds only editor-specific presentation and context.
  */
 
 export type JsonValue =
@@ -185,7 +185,7 @@ export interface HarnessChatSnapshot {
   terminalCommand: string | null;
 }
 
-/** VOLTER's one editor-host extension. Every reusable messenger mutation uses
+/** Volter's one editor-host extension. Every reusable messenger mutation uses
  * SupercodeUiIntent unchanged through the intent route. */
 export type HarnessChatHostAction = {
   type: 'restore';

@@ -10,7 +10,7 @@
  */
 
 import type { Room } from '@colyseus/sdk';
-import { useFrame } from '@react-three/fiber';
+import { type ThreeElements, useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import { actionPressed } from '../input';
 import { joinGameRoom } from './game-room';
@@ -42,7 +42,7 @@ interface StateShape {
   orbs: { forEach(fn: (orb: OrbView, id: string) => void): void };
 }
 
-export function NetworkedPlayers({ name = 'Networked Players' }: { readonly name?: string }) {
+export function NetworkedPlayers({ name = 'Networked Players', ...props }: ThreeElements['group']) {
   const [room, setRoom] = useState<Room | null>(null);
   const [running, setRunning] = useState(false);
   const [players, setPlayers] = useState<readonly PlayerView[]>([]);
@@ -115,7 +115,7 @@ export function NetworkedPlayers({ name = 'Networked Players' }: { readonly name
   });
 
   return (
-    <group name={name}>
+    <group {...props} name={name}>
       {players.map((player) => (
         <mesh key={player.id} name={player.name || player.id} position={[player.x, 0.45, player.z]} castShadow>
           <sphereGeometry args={[0.45, 24, 16]} />

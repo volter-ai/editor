@@ -146,7 +146,7 @@ export interface ResolvedGameManifest {
     | undefined;
   /** Learner-facing metadata on shipped example projects; read by the editor
    *  server's registry surface (`GET /__editor/examples`,
-   *  packages/editor/server/editor-server.ts) to generate the
+   *  packages/editor-core/server/editor-server.ts) to generate the
    *  gallery/wizard/Learn-catalog registries. */
   readonly learn: LearnMetadata | undefined;
 }
@@ -257,7 +257,7 @@ function checkEngineVersionPin(version: string): void {
  * carried through as-is (their consumers are the runtime/CLI, T3.2/T3.3);
  * `description` (T3.3
  * slice 3) is carried through as-is — its consumer today is
- * `resolveIngestDescriptor` (packages/editor/src/ingest/resolve-three.ts), which
+ * `resolveIngestDescriptor` (packages/editor-game/src/ingest/resolve-three.ts), which
  * threads an ingest-three root's description into `IngestGame.description`.
  */
 function resolveRoot(root: AdapterRoot): ResolvedAdapterRoot {

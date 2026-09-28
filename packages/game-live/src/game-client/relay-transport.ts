@@ -49,7 +49,7 @@ export interface RelayTransportOptions {
 }
 
 /** The `/__editor/command` wire shape for a relayed command — see
- *  `commandResponseFor` (`packages/editor/server/server-utils.ts`): `data`'s
+ *  `commandResponseFor` (`packages/editor-core/server/server-utils.ts`): `data`'s
  *  fields are spread at the TOP level of the JSON body, not nested — this
  *  interface reflects that verbatim, it is not a transcription error. */
 interface RelayCommandBody {
@@ -104,7 +104,7 @@ export class RelayTransport implements BridgeTransport {
 
   /**
    * Deliberately NOT guarded against a page-fallback answer the way the browser
-   * (`packages/editor/src/editor-server-response.ts`) and the CLI client
+   * (`packages/editor-sdk/src/kit/editor-server-response.ts`) and the CLI client
    * (`@volter/editor-sdk`'s `EditorClient.readJson`) are. Those two can be pointed
    * at an arbitrary URL — a share tunnel, a static host — where a `200
    * text/html` for an unserved route is real. This `baseUrl` is

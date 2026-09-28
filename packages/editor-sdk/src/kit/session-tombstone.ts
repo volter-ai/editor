@@ -3,7 +3,7 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
  * THE PAGE'S OWN DEATH CERTIFICATE — one latch, read by everything that would
  * otherwise let a dead page keep impersonating a live editor.
  *
- * A volter editor page is a client-side SPA. When its session ends — gracefully
+ * A Volter editor page is a client-side SPA. When its session ends — gracefully
  * (the editor's `close` command pushes `tab-close`) or ungracefully (the process was killed, or
  * a DIFFERENT server took the port) — the page keeps running: it keeps its
  * control channel's reconnect loop, keeps POSTing state snapshots, and keeps

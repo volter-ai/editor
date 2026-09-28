@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------------------------
  *  THE PRODUCT'S LOADING COVER — what this page shows between the workbench's first paint and
- *  the volter editor mounting over it.
+ *  the Volter editor mounting over it.
  *
  *  THIS FILE LIVES IN THE volter-engine REPOSITORY (`packages/editor/workbench/src/`) and is
  *  OVERLAID on a Code-OSS checkout at a pin by `scripts/workbench/overlay.mjs`
@@ -8,7 +8,7 @@
  *  is build output.
  *
  *  WHY IT EXISTS (owner, 2026-09-21, watching their own first open after creating a project
- *  with `--workbench <release>`): *"why does it first show vscode?"* the editor's `edit` command IS the volter editor —
+ *  with `--workbench <release>`): *"why does it first show vscode?"* the editor's `edit` command IS the Volter editor —
  *  a person who typed it asked for THIS product — and for the seconds between the page load and
  *  `mountVolter` resolving they were shown somebody else's application instead: VS Code's
  *  menubar, an empty editor group, its trust modal. The frame cannot make the mount instant, so

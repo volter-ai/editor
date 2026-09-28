@@ -129,6 +129,7 @@ import { bindPlayRecordingStop, endPlayRecording } from './play-recording';
 import { createReactPlayAuthoringAdapter } from './react-play-live-authoring';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
 import { presentViewportRoots } from '@volter/editor-threejs/viewport-door';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** Context needed by the orchestrator (passed from the world root's stage). */
 export interface PlayModeContext {
@@ -1306,7 +1307,7 @@ export function resizeGame(width: number, height: number, pixelRatio?: number): 
  * size exceeded` — not a hypothetical). In the field this window is entered
  * whenever a caller re-issues `play` before the browser has acked the first
  * (a slow scene boot outliving the relay's/SDK's own `play.start` timeout is
- * the documented trigger — `packages/volter-sdk/src/play/transport.ts`'s
+ * the documented trigger — `packages/editor-sdk/src/transport.ts`'s
  * `PLAY_START_TIMEOUT_MS`/`editor-server.ts`'s `PLAY_COMMAND_TIMEOUT_MS` —
  * and `play.start`'s own contract is explicitly "start (or restart)", so a
  * caller retrying after a timeout is using the API as documented, not
@@ -1603,6 +1604,7 @@ async function enterPlayModeInner(
   if (!gameContainer.style.contain) {
     gameContainer.style.cssText += GAME_SURFACE_CONTAINMENT_CSS;
   }
+  markGameSurface(gameContainer);
   markGameCssScope(gameContainer);
   setGameSurface(gameContainer);
 
@@ -1967,6 +1969,7 @@ export async function mountAdditionalInstance(
   if (!container.style.contain) {
     container.style.cssText += GAME_SURFACE_CONTAINMENT_CSS;
   }
+  markGameSurface(container);
   markGameCssScope(container);
   setGameSurface(container, mountId);
   const { mountManifestRoots } = await import('../runtime/mount-manifest');

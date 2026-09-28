@@ -274,14 +274,14 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
     const url = new URL(req.url ?? '/', selfOrigin);
     const pathname = url.pathname;
     // THE ONE HOSTED BOOT PARAM, ONTO THE WORKBENCH'S OWN. `?project=<id>` is
-    // what a link to the volter editor carries; the workbench's own boot contract
+    // what a link to the Volter editor carries; the workbench's own boot contract
     // is `?folder=<path>` (`WorkspaceProvider.create`, which reads a bare path
     // against `remoteAuthority`). This is a REDIRECT and not an injected
     // `folderUri`, and the reason was measured (2026-09-19): under this shape
-    // the workbench page is ALSO the volter editor's page, and the editor's boot
+    // the workbench page is ALSO the Volter editor's page, and the editor's boot
     // refuses `?project=` on a session-backed surface by name — "project
     // identity does NOT live in the URL on a local editor"
-    // (`assertNoRemovedBootParams`, packages/editor/src/boot-routing.ts). The
+    // (`assertNoRemovedBootParams`, packages/editor-sdk/src/kit/boot-routing.ts). The
     // redirect hands the page a url both halves accept.
     if (pathname === '/') {
       const id = url.searchParams.get('project');
@@ -326,14 +326,17 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         const csp = headers['content-security-policy'];
         if (typeof csp === 'string' && csp.includes('frame-src')) {
           // GLTFLoader fetches local blob textures; img-src alone cannot
-          // authorize that fetch. Media previews use local blobs as well.
+          // authorize that fetch. Media previews use local blobs as well. A
+          // glTF may also carry its buffers and images as `data:` URIs (the
+          // spec's embedded form), which the loader fetches too: reading bytes
+          // already in the page, so `data:` reaches no network.
           // A game running in this page talks to the processes its project
           // runs beside it on this machine (a Colyseus room server's
           // matchmaking is plain http on its own port): loopback http, any
           // port, and nothing beyond this machine.
           headers['content-security-policy'] = csp
             .replace(/frame-src([^;]*)/, `frame-src$1 ${webviewOriginPattern}`)
-            .replace(/connect-src([^;]*)/, 'connect-src$1 blob: http://127.0.0.1:* http://localhost:*')
+            .replace(/connect-src([^;]*)/, 'connect-src$1 blob: data: http://127.0.0.1:* http://localhost:*')
             .replace(/media-src([^;]*)/, 'media-src$1 blob:');
         }
         const type = String(headers['content-type'] ?? '');

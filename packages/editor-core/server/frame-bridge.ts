@@ -101,7 +101,7 @@ export function readBuiltProductEntry(
 export function builtFrameBridgeModule(built: BuiltProductEntry): string {
   const sheets = JSON.stringify(built.css);
   return (
-    '// Generated per request by packages/editor/server/frame-bridge.ts — the\n' +
+    '// Generated per request by packages/editor-core/server/frame-bridge.ts — the\n' +
     "// product's production build entry, with the stylesheets no HTML of ours injects.\n" +
     `for (const href of ${sheets}) {\n` +
     '  if (document.head.querySelector(`link[href="${href}"]`)) continue;\n' +

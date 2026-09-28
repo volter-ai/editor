@@ -1,7 +1,7 @@
 /**
  * The session verbs every product's CLI runs against its project's live
  * editor session: `sessions`, `project`, `projects`, `open`, `screenshot` and
- * `restart`. Transferred from volter's CLI (`packages/volter-cli/src/index.ts`'s
+ * `restart`. Transferred from Volter's CLI (`packages/volter-cli/src/index.ts`'s
  * cases of the same names); each reaches the page through the same
  * `EditorClient` member volter used. The product only says who it is
  * (`command`, the name a person types).
@@ -182,7 +182,7 @@ const TRANSIENT_RELAY_ERRORS = [
 ] as const;
 
 /** A page reload landing mid-`play` drops the command; re-issue it against the
- *  reconnected tab (volter's `play-retry.ts`). Every other failure is final. */
+ *  reconnected tab (Volter's `play-retry.ts`). Every other failure is final. */
 async function playWithRelayReloadRetry(client: EditorClient, onRetry: (attempt: number, max: number) => void): Promise<unknown> {
   const maxAttempts = 5;
   for (let attempt = 1; ; attempt++) {
@@ -318,7 +318,7 @@ export async function screenshot(target: string | undefined, options: Screenshot
 
 /**
  * No target: what the session is showing. While play runs that is the running
- * game — the composited game stack (`bridge-screenshot`, volter's no-target
+ * game — the composited game stack (`bridge-screenshot`, Volter's no-target
  * lane); otherwise the active document as the editor presents it
  * (`capture-active-document`).
  */

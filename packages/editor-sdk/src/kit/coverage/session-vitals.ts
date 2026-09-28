@@ -451,7 +451,7 @@ export function installSessionVitals(): () => void {
     if (!playing) _playStartedAt = null;
     // EVERY periodic derivation about this session runs on THIS pass, the
     // host's and a lane's alike. The capability-coverage union used to be a
-    // direct call here; it is `@volter/game`'s now and subscribes through
+    // direct call here; it is `@volter/editor-game`'s now and subscribes through
     // {@link onSessionSample}, which is why the door exists at all: one
     // session, one cadence, one instant — a package timer beside this one
     // would sample the same session a fraction of a second later and publish

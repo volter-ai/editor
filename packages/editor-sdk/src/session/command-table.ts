@@ -93,7 +93,7 @@ const alwaysRefresh = (timeoutMs = DEFAULT_RELAY_COMMAND_TIMEOUT_MS): RelayComma
  *   the caller was told "no editor answered" about a write that was merely
  *   slow, which is the failure mode this whole table exists to stop.
  * The PLAY verbs and the whole page-bridge family carry their budgets in
- * `@volter/game`'s own contributed rows now, for the same reasons and with the
+ * `@volter/editor-game`'s own contributed rows now, for the same reasons and with the
  * same numbers: `play` waits on the project's entire async `setup()`; `stop`
  * waits on a teardown chain; `bridge-recording-export` steps a paused game
  * frame by frame and encodes a video; `bridge-call` runs GAME code;
@@ -101,7 +101,7 @@ const alwaysRefresh = (timeoutMs = DEFAULT_RELAY_COMMAND_TIMEOUT_MS): RelayComma
  * `bridge-screenshot` rasterizes the whole game stack.
  *
  * That family is the reason this table exists as a named thing. Their
- * client (`@volter/live`'s `RelayTransport`) already applies its own per-leg
+ * client (`@volter/game-live`'s `RelayTransport`) already applies its own per-leg
  * `AbortSignal.timeout` — 60s for invoke/page-script, 15s for screenshot —
  * and the server's generic 5s was UNDERCUTTING it, so the server's timer won
  * every race. That mattered for the message, not just the duration: the
@@ -135,11 +135,11 @@ export const RELAY_COMMANDS = {
   'close-asset-tab': alwaysRefresh(),
   'toggle-command-palette': noDerivedRefresh(),
   'toggle-console': noDerivedRefresh(),
-  // RELOAD THE EDITOR PAGE — `@volter/live`'s `page.reload()`, the one page verb
+  // RELOAD THE EDITOR PAGE — `@volter/game-live`'s `page.reload()`, the one page verb
   // no step can express. It is the HOST's, not a package's: reloading the tab
-  // is what the tab is, and until walk 5 it was a `@volter/game` command
+  // is what the tab is, and until walk 5 it was a `@volter/editor-game` command
   // contribution, so a project without that package — every model project —
-  // answered `unknown command type "page-reload"` for a door `@volter/live`
+  // answered `unknown command type "page-reload"` for a door `@volter/game-live`
   // documents as general (measured on a `model-editor create` scaffold,
   // 2026-09-21). The handler schedules the navigation for the next task so
   // this ack can travel before the channel is torn down; the client waits for
@@ -174,7 +174,7 @@ export const RELAY_COMMANDS = {
   'set-inspection-field': alwaysRefresh(30_000),
   'remove-inspection-field': alwaysRefresh(30_000),
   // `extract-component` and `fork-component` left this table with their menus
-  // (`@volter/game/contributions/component-verbs.command.ts`), which carries
+  // (`@volter/editor-game/contributions/component-verbs.command.ts`), which carries
   // both budgets forward row for row.
   // The hierarchy context menu's structure verbs, over the control door. Every
   // one of them rewrites the game's own source, so they refresh like a write.
@@ -217,7 +217,7 @@ export const RELAY_COMMANDS = {
   // display and transform toggles — are its own command contribution
   // (`viewport-commands.ts`), each budget on its contributed row.
 
-  // The BLENDER lane's ten verbs are `@volter/blender`'s
+  // The BLENDER lane's ten verbs are `@volter/editor-blender`'s
   // `contributions/blender.command.ts` (WORK.md §The workbench, item D) —
   // each row's budget travelled with it, onto the contributed spec the page
   // reports to the server. `capture-story-variants` made the same move, to the
@@ -261,7 +261,7 @@ export function relayCommandDerivedRefresh(type: unknown): RelayCommandDerivedRe
  * its mount down; these five are dispatched against the ingest surface instead.
  *
  * Plain strings, not `RelayCommandType`: the five verbs left this table for
- * `@volter/game`'s `play.command.ts` when Play left the host (WORK.md §The
+ * `@volter/editor-game`'s `play.command.ts` when Play left the host (WORK.md §The
  * workbench, P3b), and the ingest latch runs in `handleCommand`'s PROLOGUE —
  * before any contributed handler is looked up — so a captured ingest still
  * answers them first. The latch moves with ingest in P4.

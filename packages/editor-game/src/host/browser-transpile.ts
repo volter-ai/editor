@@ -213,7 +213,7 @@ function unregisteredRuntimeModules(specifiers: readonly string[]): Error {
       'import to a dependency it ships; a package outside that list needs a dev server. Open ' +
       `the project locally with ${commandLine('edit')} (which resolves the project’s own node_modules), ` +
       'or add the package to a capability so it joins the list ' +
-      '(packages/editor/src/served-bundle-runtime-modules.ts, gated by ' +
+      '(packages/editor-game/src/host/served-bundle-runtime-modules.ts, gated by ' +
       '`npm run validate-browser-runtime-modules`).',
   );
 }

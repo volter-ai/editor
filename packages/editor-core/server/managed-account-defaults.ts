@@ -1,7 +1,7 @@
 export const DEFAULT_VOLTER_ACCOUNT_URL = 'https://auth.videogame.ai';
 
 /**
- * The editor ships with VOLTER's managed identity boundary configured. The
+ * The editor ships with Volter's managed identity boundary configured. The
  * account portal, the OAuth issuer, and the auth worker are ONE deployment, so
  * pointing the editor at a non-production instance (a dev Clerk-keyed worker, a
  * self-host) must move all three together.

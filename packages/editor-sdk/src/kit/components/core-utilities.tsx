@@ -13,10 +13,10 @@
  * center document (animation inside its owning Asset Lab; an XState machine as
  * its own Machine document), not a global debugger drawer instrument.
  * The Profiler bench and State Watch are deliberately absent: both moved to
- * `@volter/game` as the `profiler.utility` / `state-watch.utility`
+ * `@volter/editor-game` as the `profiler.utility` / `state-watch.utility`
  * contributions (WORKBENCH.md §The invariants — the host imports no package).
  * GENERATIONS is absent for the same reason: the paid-provider lane's gallery
- * is `@volter/game`'s `generation.service.ts`, which registers the tab (badge and
+ * is `@volter/editor-game`'s `generation.service.ts`, which registers the tab (badge and
  * all) through this same registry.
  * *
  * PROBLEMS (§4.1 mock's `Problems` tab) is deliberately NOT registered —

@@ -1,6 +1,6 @@
-# VOLTER game project
+# Volter game project
 
-This is a standalone game project created by VOLTER. Describe the game you want
+This is a standalone game project created by Volter. Describe the game you want
 to a coding agent, or open the shared visual editor directly:
 
 ```bash
@@ -17,7 +17,6 @@ exported builds only.
 npm run dev               # open/reuse this project's editor
 npm run check-idioms      # project architecture and completion diagnostics
 npm run typecheck         # game, editor contributions, Node config, and server
-npm run validate          # project files and React design states
 npm run validate-manifest # volter.project.json
 npm run build             # production game bundle
 ```
@@ -78,6 +77,3 @@ game is its own code. `package.json` still declares what the game uses, so
 replacing the link with `npm install` gives a standalone installation.
 `npm run volter -- status` reports the product serving the active session.
 
-Learn and manual: https://volter-learn.pages.dev
-
-Hosted editor: https://volter-editor.pages.dev

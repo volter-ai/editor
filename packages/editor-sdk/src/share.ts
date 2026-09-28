@@ -17,10 +17,10 @@
  *   - the browser panel had no `audit` at all, and re-declared the tunnel
  *     health shape inline instead of naming it.
  *
- * This package is the right home for all three: `@volter/editor` and `@volter/cli`
+ * This package is the right home for all three: `@volter/editor-core` and the product CLIs
  * both already depend on it, it depends on neither, and the CLI's esbuild
  * bundle inlines it. (The CLI's standing "no editor-package dependency" rule is
- * about `@volter/editor` — the server+UI package whose express/vite/chokidar
+ * about `@volter/editor-core` — the server+UI package whose express/vite/chokidar
  * graph the standalone bundle must not drag in. This is a types-only module.)
  *
  * Two things deliberately stay OFF this wire, and stay off it structurally
@@ -68,7 +68,7 @@ export type ShareCapability =
   | 'maintain'
   | 'never-share';
 
-/** A verified VOLTER account, as a share participant projects onto the wire. */
+/** A verified Volter account, as a share participant projects onto the wire. */
 export interface ShareAccount {
   id: string;
   email: string;

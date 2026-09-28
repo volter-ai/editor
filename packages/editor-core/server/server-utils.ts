@@ -1120,7 +1120,7 @@ export function commandResponseFor(
  * distribution. The result selects link-vs-registry scaffold dependencies and
  * the packaged React runtime path; both distributions can create projects.
  *
- * A packaged (`node_modules`-installed) `@volter/editor`'s `engineRoot` is the
+ * A packaged (`node_modules`-installed) `@volter/editor-core`'s `engineRoot` is the
  * EDITOR PACKAGE's own root instead of a monorepo checkout root (see
  * `packaged.ts` is constructed with `engineRoot: editorPackageRoot`; its
  * separate `scaffoldRoot` points at the npm installation that contains the

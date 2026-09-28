@@ -6,7 +6,7 @@
  * drift. A server restart reconstructs the complete catalog from disk.
  *
  * The PARSE RULES live in the browser-safe core
- * (`@volter/sdk`'s `play/session-record.ts`), and this module is the Node
+ * (editor-core's `server/support/play/session-record.ts`), and this module is the Node
  * wiring: the stat-keyed cache, the directory walk, and the recording
  * route/paths only a server has.
  */

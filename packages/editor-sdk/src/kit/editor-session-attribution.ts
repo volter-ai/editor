@@ -23,8 +23,8 @@
  * under 'collaboration and presence' and named a door for it that the host
  * does not need, because nothing here is a lane's: a page identifies itself
  * and stamps its writes whether or not anyone else is connected. TWO sibling
- * packages read it (`@volter/collaboration` takes the guest flag,
- * `@volter/game` takes the write stamp), which by the rule `@volter/dom` was
+ * packages read it (the collaboration package takes the guest flag,
+ * `@volter/editor-game` takes the write stamp), which by the rule `@volter/editor-game` was
  * landed on means it lives in neither. `WORK.md` §THE FINAL AUDIT.
  */
 const participantKey = 'volter.collaboration.participant.v1';

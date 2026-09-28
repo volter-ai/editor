@@ -1,5 +1,5 @@
 /**
- * Canonical design-token module for the volter editor (editor-style-polish U0).
+ * Canonical design-token module for the Volter editor (editor-style-polish U0).
  * Every color/spacing/radius/type/shadow/z-index value the editor's ~98 React
  * components currently hand-roll as inline hex literals gets one home here. This module installs the variables consumed by `theme.css` and
  * supplies plain TS/TSX call sites that still build inline `style`

@@ -12,7 +12,7 @@ export const CORE_WORKSPACE_UTILITIES = {
  * space (`EDITOR_VIEW_BUILT_IN_UTILITY_IDS` in `@volter/editor-sdk`, which this
  * list must equal), so the address is the host's even when the surface is not:
  * the package imports its row from here rather than spelling the id twice.
- * `@volter/game` registers all four — the story trio through
+ * `@volter/editor-game` registers all four — the story trio through
  * `story-documents.service.ts`, Generations through `generation.service.ts`.
  * Build Output is NOT here: it is a `workspace.utility` CONTRIBUTION, so the
  * loader namespaces its id as `tool:build-output.utility` and no host

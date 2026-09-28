@@ -433,9 +433,9 @@ export function withEditorDeclaration(
  * `src/models/cube.py`'s docstring; this contract routes there and to the
  * doors that show a model.
  */
-export const MODELS_AGENTS_CONTRACT = `# AGENTS.md — VOLTER Models Project
+export const MODELS_AGENTS_CONTRACT = `# AGENTS.md — Volter Models Project
 
-A standalone modeling project built with VOLTER — Blender itself, compiled to
+A standalone modeling project built with Volter — Blender itself, compiled to
 WebAssembly and running headless in the editor tab's worker, over this
 project's own \`.blend\` files. Work here, not in the engine repo. The editor
 is the authoring and verification surface; nothing here plays.

@@ -3842,6 +3842,16 @@ export class EditorViewport {
     // every draw. Nothing here should shadow that with a second source.
   }
 
+  /**
+   * The presentation rig's lighting source for what the scene now holds: a view whose lighting is
+   * `auto` gives way to an adopted scene's own lights. Every draw runs it; a stage whose document
+   * is hidden (the game world during Play, drawn by the Game view) runs it too, so the editor's
+   * studio lights never light the game.
+   */
+  resolvePresentation(): void {
+    this._presentation?.rig.resolveSource({ light: this._store.isAdoptedSceneActive });
+  }
+
   update(dt = 0): void {
     this._ensureSparkRenderer();
     this._syncLookBackground();
@@ -3883,7 +3893,7 @@ export class EditorViewport {
     }
 
     if (this._presentation) {
-      this._presentation.rig.resolveSource({ light: this._store.isAdoptedSceneActive });
+      this.resolvePresentation();
       this._presentation.rig.update(this.camera);
     }
     for (const helper of this._boxHelpers.values()) {

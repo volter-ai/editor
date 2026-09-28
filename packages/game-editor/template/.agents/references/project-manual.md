@@ -1,4 +1,4 @@
-# Detailed VOLTER game project reference
+# Detailed Volter game project reference
 
 This is the procedural reference behind the compact project `AGENTS.md`
 router. Load only the section the current decision needs. The source files
@@ -266,7 +266,7 @@ captures.
 
 `src/main.ts` mounts the roots the manifest declares for the standalone game,
 and the editor mounts the same entries itself. The source component itself
-stays free of volter runtime context.
+stays free of Volter runtime context.
 
 ## Capabilities and assets
 
@@ -322,7 +322,6 @@ After every slice:
 ```bash
 npm run check-idioms
 npm run typecheck
-npm run validate
 npm run validate-manifest
 npm run --silent volter -- status
 ```

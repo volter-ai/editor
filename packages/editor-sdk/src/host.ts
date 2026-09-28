@@ -36,7 +36,7 @@ import type { ActiveDocumentCapture, CaptureDimensions } from './types';
  *
  * It is here because it is the host's statement about what it serves, and a
  * package may not reach into the host's build tier to read it: the address
- * lived in `packages/editor/vite-plugin-module-doorways.ts`, which serves it,
+ * lived in `packages/editor-core/vite-plugin-module-doorways.ts`, which serves it,
  * and the story runtime imported it back out through a specifier that stepped
  * out of the editor's `src/` entirely. The plugin still OWNS the
  * doorway — what it serves, and why the mount would otherwise get a second
@@ -154,8 +154,8 @@ export interface EditorHostDocuments {
    * door), or `undefined` when that document published none.
    *
    * NEW (2026-09-19) because the document a package DRIVES is not always the
-   * document it opened: `@volter/blender` presents every Blender frame into the
-   * Model document, which `@volter/blender` contributes and publishes — so the two
+   * document it opened: `@volter/editor-blender` presents every Blender frame into the
+   * Model document, which `@volter/editor-blender` contributes and publishes — so the two
    * packages meet at this registry and neither may reach the host's
    * `@editor/document-context-registry` to find it. The value is `unknown` on
    * purpose: what a document publishes is an agreement between the package
@@ -176,7 +176,7 @@ export interface EditorHostDocuments {
    * document, which is not always the package that published it.
    *
    * NEW (2026-09-19, WORK.md §Blender in the tab is Blender, "Inspection
-   * parity", I1) because a context object is a LIVE HANDLE: `@volter/blender`
+   * parity", I1) because a context object is a LIVE HANDLE: `@volter/editor-blender`
    * reads the engine through its RNA door, and that answer decides which
    * Properties tabs exist for the selected datablock — an armature has a Bone
    * tab, a cube does not. Nothing in the host's own stores moves when the
@@ -486,7 +486,7 @@ export interface EditorHostSession {
    * shell that edits it, so a document can be opened and something can be
    * presented into it.
    *
-   * NEW (2026-09-19). `@volter/blender` refuses every verb but its own status
+   * NEW (2026-09-19). `@volter/editor-blender` refuses every verb but its own status
    * read without one, so that a call arriving at a session-less page answers at
    * once instead of booting a Blender worker (gigabytes) into a page with
    * nowhere to show it. It took the same answer from the host's
@@ -575,7 +575,7 @@ export interface EditorHostProject {
    *
    * A primitive rather than the project object on purpose: `ActiveProject`
    * is a host internal, and the SDK's door grows one member per
-   * contribution that needs it (`@volter/blender`'s `workspace.status` version
+   * contribution that needs it (`@volter/editor-blender`'s `workspace.status` version
    * item is the reader). Paired with {@link subscribe}, this is the whole
    * "current project + change" the door owes a contribution — and it is
    * stable enough for `useSyncExternalStore` without a snapshot cache.
@@ -810,7 +810,7 @@ export interface EditorHostKeyAction {
 
 /**
  * ONE RECORDED EDIT, as whoever owns undo sees it — the SDK's spelling of
- * `packages/editor/src/history/history-delegate.ts`'s `HistoryElement`.
+ * `packages/editor-sdk/src/kit/history/history-delegate.ts`'s `HistoryElement`.
  *
  * It is deliberately an `IResourceUndoRedoElement` (one file) or an
  * `IWorkspaceUndoRedoElement` (several) without naming either: the frame does
@@ -1119,7 +1119,7 @@ export interface EditorHost {
  * a package's contribution is served from the project's own installed SDK —
  * two module instances, so plain module state would be an empty registry on
  * the contribution's side (measured 2026-09-17: "No editor host is
- * registered" from `@volter/game`'s connection pill on a registry install).
+ * registered" from `@volter/editor-game`'s connection pill on a registry install).
  * The layout host (`layouts.tsx`) solved the same split with a `Symbol.for`
  * key on `globalThis`; this door does the same.
  */

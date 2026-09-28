@@ -149,8 +149,8 @@ export class ArenaRoom extends Room {
     const npcCount = Math.max(0, Math.min(MAX_NPCS, options?.botCount ?? 2));
     this.spawnNPCs(npcCount);
 
-    // Off by default (FROZEN DECISION: env-var OR room-option) — the loopback harness/
-    // the loopback harness (`../loopback.ts`) opt in via the room option; a
+    // Off by default (FROZEN DECISION: env-var OR room-option) — a caller that
+    // creates the room with `allowDebugCommands: true` opts in; a
     // plain `npm run server` boot never accepts debug commands unless
     // VOLTER_ALLOW_DEBUG_COMMANDS is set in its environment.
     const debugCommandsAllowed =

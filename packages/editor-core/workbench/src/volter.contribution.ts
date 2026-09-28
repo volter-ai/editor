@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  THE EDITOR KIT'S WORKBENCH HALF — the volter editor hosted in Code-OSS PARTS.
+ *  THE EDITOR KIT'S WORKBENCH HALF — the Volter editor hosted in Code-OSS PARTS.
  *
  *  THIS FILE LIVES IN THE volter-engine REPOSITORY (`packages/editor/workbench/src/`) and is
  *  OVERLAID on a Code-OSS checkout at a pin by `scripts/workbench/overlay.mjs`
@@ -7,7 +7,7 @@
  *  it there; a copy inside a fork checkout is build output.
  *
  *  ADDITIVE ONLY in the fork: two overlaid directories plus two import lines in
- *  workbench.common.main.ts — this one and the PRODUCT's (`volterProduct.ts`). The volter editor
+ *  workbench.common.main.ts — this one and the PRODUCT's (`volterProduct.ts`). The Volter editor
  *  itself is served by the the editor's `edit` command SESSION, which also runs the one-origin proxy this page
  *  is behind; the session's frame entry swaps the SDK layout host so the project's own layout
  *  renders its header, document, hierarchy and inspector into the parts this file hands over:
@@ -94,7 +94,7 @@ import { resolveCommandsContext } from '../../../browser/parts/editor/editorComm
 const product = volterProduct();
 
 /**
- * `center:<n>` is a SECOND (third, …) volter editor pane — the pane VS Code builds for the group
+ * `center:<n>` is a SECOND (third, …) Volter editor pane — the pane VS Code builds for the group
  * an AREA document opened in (WORK.md's Timeline item 1). It is a part for the purpose of
  * FOCUS ONLY: `volter.stage.focused` must be true when the caret is in the Timeline exactly as
  * it is when the caret is in the Model pane, because both are our stage and neither is Monaco.
@@ -297,7 +297,7 @@ export class VolterDocumentPane extends EditorPane {
 		// container reaches the bridge as the SLOT of whatever document it is showing.
 		//
 		// A LIVE centre is the test, not "has one ever been offered" (W12): closing the last
-		// volter editor disposes that pane with its group, and the pane that opens the document
+		// Volter editor disposes that pane with its group, and the pane that opens the document
 		// again must BECOME the centre rather than take `center:<n>` beside a dead one.
 		this.partId = parts.has('center') ? `center:${VolterDocumentPane.panes++}` : 'center';
 		offerPart(this.partId, this.container);
@@ -426,7 +426,7 @@ if (product) {
 	}
 }
 
-// ---- The command that assembles the parts and mounts the volter editor over them.
+// ---- The command that assembles the parts and mounts the Volter editor over them.
 
 // WHAT THE FRAME READS OF THE OPEN DOCUMENTS is `volterDocuments.ts`'s
 // `VolterDocumentsBridge` — declared there rather than here since the open SET became
@@ -613,12 +613,12 @@ registerAction2(class extends Action2 {
 					// the session is already serving.
 					const doorUrl = `${sessionOrigin}/__editor/served-modules`;
 					const door = await fetch(doorUrl, { headers: { accept: 'application/json' } });
-					if (!door.ok) { throw new Error(`the volter session's serving door answered ${door.status} at ${doorUrl}`); }
+					if (!door.ok) { throw new Error(`the Volter session's serving door answered ${door.status} at ${doorUrl}`); }
 					const served = await door.json() as { modules: { id: string; url: string }[]; refusals?: { id: string | null; message: string }[] };
 					const bridge = served.modules.find(m => m.id === 'vscode-bridge');
 					if (!bridge) {
 						const refused = (served.refusals ?? []).map(r => `${r.id ?? '(document)'}: ${r.message}`).join('; ');
-						throw new Error(`the volter session at ${sessionOrigin} serves no "vscode-bridge" module, so there is no editor to mount. Its serving door is /__editor/served-modules (packages/editor/server/routes/served-modules.ts)${refused ? ` and it refused: ${refused}` : ''}`);
+						throw new Error(`the Volter session at ${sessionOrigin} serves no "vscode-bridge" module, so there is no editor to mount. Its serving door is /__editor/served-modules (packages/editor-core/server/routes/served-modules.ts)${refused ? ` and it refused: ${refused}` : ''}`);
 					}
 					const bridgeUrl = `${sessionOrigin}${bridge.url}`;
 					// The serving host owns any development preamble. A packaged product
@@ -800,7 +800,7 @@ for (const { id, wholeGroup } of [
 				? [...editorGroupsService.activeGroup.editors]
 				: resolveCommandsContext(args, editorService, editorGroupsService, listService).groupedEditors.flatMap(entry => entry.editors);
 			if (editors.some(editor => editor instanceof VolterDocumentInput)) {
-				notifications.warn(localize('volterNoAuxWindow', "The volter Model document stays in this window. Its parts and the React portals into them live here, so an auxiliary window would show an empty pane and this window would lose the document; the auxiliary window is also not one of the volter session's tabs. Split it beside another editor instead."));
+				notifications.warn(localize('volterNoAuxWindow', "The volter Model document stays in this window. Its parts and the React portals into them live here, so an auxiliary window would show an empty pane and this window would lose the document; the auxiliary window is also not one of the Volter session's tabs. Split it beside another editor instead."));
 				return;
 			}
 			return original.handler(accessor, ...args);
@@ -809,12 +809,12 @@ for (const { id, wholeGroup } of [
 }
 
 /**
- * A VOLTER PROJECT OPENS AS THE VOLTER EDITOR, with no gesture.
+ * A Volter PROJECT OPENS AS THE Volter EDITOR, with no gesture.
  *
  * the editor's `edit` command IS this workbench: it starts the session, starts this server on
  * the project folder and opens the one tab at it. A person who ran that
  * command has already said which project they are editing and what they want
- * to edit it in — asking them to then find `VOLTER: Open Workspace` in the
+ * to edit it in — asking them to then find `Volter: Open Workspace` in the
  * palette is asking twice, and until the mount runs the page is not one of the
  * session's TABS at all (the bootstrap loads with the mount), so the editor's `status` command
  * reads "no tab", the editor's `eval` command has nothing to reach and the editor's `edit` command reports that
@@ -822,7 +822,7 @@ for (const { id, wholeGroup } of [
  * door.
  *
  * WHAT DECIDES: the open folder carries a `volter.project.json`. That file is the
- * project's own statement that it IS one (`@volter/project`'s manifest is spelled
+ * project's own statement that it IS one (`@volter/editor-project`'s manifest is spelled
  * in exactly one place and this is its name), so a folder that is not a volter
  * project opens as an ordinary workbench and nothing of ours runs.
  *
@@ -846,7 +846,7 @@ class VolterProjectAutoOpen implements IWorkbenchContribution {
 		if (!folder) { return; }
 		(async () => {
 			if (!await fileService.exists(joinPath(folder, 'volter.project.json'))) {
-				// NOT A VOLTER PROJECT, so nothing of ours is coming and the product's cover has
+				// NOT A Volter PROJECT, so nothing of ours is coming and the product's cover has
 				// nothing to cover. This contribution is the one that decides that, so it is
 				// the one that takes the cover away — the alternative is a second reader of
 				// `volter.project.json`, and a cover with no owner left over a bare workbench.
@@ -907,7 +907,7 @@ class VolterSessionTab implements IWorkbenchContribution {
 		if (!folder) { return; }
 		cover = raiseOpeningCover(basename(folder));
 		connectSessionTab(fileService, workspaceService, workspaceTrust).catch(() => {
-			// A folder with no live volter session is an ordinary workbench on an
+			// A folder with no live Volter session is an ordinary workbench on an
 			// ordinary folder — so the cover comes down and VS Code's own trust
 			// prompt is left exactly as it is. The mount command is where a
 			// person asking for the editor learns that there is none, in its own

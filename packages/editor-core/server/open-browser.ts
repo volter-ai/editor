@@ -5,7 +5,7 @@
  * ensure-driven opens) long after any launching CLI process has exited. The
  * CLI imports this module; it does not carry its own copy — the old
  * "no editor-package dependency" premise stopped being true when the CLI
- * grew six editor-server imports and an `@volter/editor` dependency, and the
+ * grew six editor-server imports and an `@volter/editor-core` dependency, and the
  * two ladders had already drifted (`-g` background support on one side
  * only).
  */

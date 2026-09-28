@@ -929,11 +929,14 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     // this stage's loop alive so Edit resumes naturally AND so the play-entry
     // camera flight keeps its clock through the cross-fade — but do
     // absolutely no editor presentation/update/profiling work while that
-    // document is hidden.
+    // document is hidden, beyond resolving the rig's lighting source (its
+    // objects light the world the Game view draws).
     if (resumed) lastTime = now;
     if (!container.checkVisibility({ visibilityProperty: true, checkVisibilityCSS: true })) {
       lastTime = now;
       sceneNeedsFirstFrame = true;
+      // The rig's objects are in the world the Game view draws: its lights follow the scene's.
+      viewport.resolvePresentation();
       return;
     }
 

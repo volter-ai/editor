@@ -345,7 +345,7 @@ export async function prepareRepositoryWorktree(
   // The WORKTREE's copy of the shim, not the donor's: the donor is a parked
   // checkout that drifts by sitting there, so its shim can predate repairs the
   // current script carries (measured 2026-08-21: a donor shim without the
-  // stale-workspace-shadow guard mirrored `@volter/sdk` 0.5.5 into a fresh
+  // stale-workspace-shadow guard mirrored the SDK at 0.5.5 into a fresh
   // worktree and one config typechecked red over correct source). The worktree
   // is checked out at the branch being worked, so its script is the one whose
   // repairs match its own lockfile; the donor's is only the fallback for a
