@@ -19,17 +19,14 @@ export function projectDataGeneratedModuleArtifact(
   sourcePaths: readonly string[],
 ): GodotPlannedProjectDataArtifact {
   const artifactOrigin = origin(sourcePaths);
-  const sourceMapPath = `${path}.map`;
   return {
     kind: 'project-data',
     path,
     content: { kind: 'generated-target-ts', module, inputDigest },
-    sourceMapPath,
     origin: artifactOrigin,
     planIdentity: plannedArtifactIdentity(
       'project-data',
       path,
-      sourceMapPath,
       structuralDigest({ module, inputDigest }),
       artifactOrigin,
     ),
@@ -52,7 +49,6 @@ export function projectDataJsonArtifact(
     planIdentity: plannedArtifactIdentity(
       'project-data',
       path,
-      undefined,
       structuralDigest(value),
       artifactOrigin,
     ),
@@ -89,6 +85,6 @@ export function projectDataBytesArtifact(
     content: { kind: 'bytes', bytes },
     digest,
     origin: artifactOrigin,
-    planIdentity: plannedArtifactIdentity('project-data', path, undefined, digest, artifactOrigin),
+    planIdentity: plannedArtifactIdentity('project-data', path, digest, artifactOrigin),
   };
 }

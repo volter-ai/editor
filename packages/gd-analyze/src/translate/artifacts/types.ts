@@ -39,7 +39,6 @@ export interface GodotCapabilityCopyOrigin {
 export interface GodotPlannedSourceTranslationArtifact {
   readonly kind: 'source-translation';
   readonly path: string;
-  readonly sourceMapPath: string;
   readonly emission:
     | {
         readonly kind: 'code-module';
@@ -64,7 +63,6 @@ export type GodotPlannedProjectDataArtifact =
         readonly module: 'world';
         readonly inputDigest: string;
       };
-      readonly sourceMapPath: string;
       readonly origin: GodotProjectDataOrigin;
       readonly planIdentity: string;
     }
@@ -120,7 +118,6 @@ export interface GodotEmittedArtifact {
   readonly bytes: Uint8Array;
   readonly digest: string;
   readonly origin: GodotArtifactOrigin;
-  readonly role: 'primary' | 'source-map';
   readonly planIdentity: string;
 }
 

@@ -566,55 +566,7 @@ function printTargetTsSourceFile(source: TargetTsSourceFile): string {
   return ts.createPrinter({ newLine: ts.NewLineKind.LineFeed }).printFile(sourceFile);
 }
 
-export interface EmittedTargetTsSourceFile {
-  readonly text: string;
-  readonly sourceMap: string;
-}
-
-const SOURCE_MAP_BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
-function sourceMapVlq(value: number): string {
-  let remaining = value < 0 ? (-value << 1) | 1 : value << 1;
-  let encoded = '';
-  do {
-    let digit = remaining & 31;
-    remaining >>>= 5;
-    if (remaining > 0) digit |= 32;
-    encoded += SOURCE_MAP_BASE64[digit];
-  } while (remaining > 0);
-  return encoded;
-}
-
-/** Print one planned source file and its already-named source map without reparsing target text. */
-export function emitTargetTsSourceFile(
-  source: TargetTsSourceFile,
-  targetPath: string,
-  sourceMapPath: string,
-  originalSourcePaths: readonly string[],
-): EmittedTargetTsSourceFile {
-  const mapName = sourceMapPath.split('/').at(-1);
-  if (mapName === undefined || mapName === '')
-    throw new Error(`${sourceMapPath}: invalid map path`);
-  const printed = printTargetTsSourceFile(source);
-  const firstSpan = source.statements.find((statement) => statement.span !== undefined)?.span;
-  const sourcePaths = [...new Set(originalSourcePaths)].sort();
-  if (sourcePaths.length === 0) throw new Error(`${targetPath}: source map has no original source`);
-  const originalSource = firstSpan?.sourcePath ?? sourcePaths[0]!;
-  const sourceIndex = sourcePaths.indexOf(originalSource);
-  if (sourceIndex < 0) {
-    throw new Error(`${targetPath}: source span names unplanned source ${originalSource}`);
-  }
-  const originalLine = Math.max(0, (firstSpan?.startLine ?? 1) - 1);
-  const originalColumn = Math.max(0, (firstSpan?.startColumn ?? 1) - 1);
-  return {
-    text: `${printed.trimEnd()}\n//# sourceMappingURL=${mapName}\n`,
-    sourceMap: `${JSON.stringify({
-      version: 3,
-      file: targetPath,
-      sourceRoot: '',
-      sources: sourcePaths,
-      names: [],
-      mappings: `A${sourceMapVlq(sourceIndex)}${sourceMapVlq(originalLine)}${sourceMapVlq(originalColumn)}`,
-    })}\n`,
-  };
+/** Print one planned source file without reparsing target text. */
+export function emitTargetTsSourceFile(source: TargetTsSourceFile): string {
+  return `${printTargetTsSourceFile(source).trimEnd()}\n`;
 }

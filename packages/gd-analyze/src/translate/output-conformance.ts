@@ -21,7 +21,7 @@ const decoder = new TextDecoder();
 export function godotOutputViolations(artifacts: readonly GodotOutputArtifact[]): readonly string[] {
   const found = new Set<string>();
   for (const artifact of artifacts) {
-    if (artifact.role !== 'primary' || !/^src\/.*\.(ts|tsx)$/u.test(artifact.path) || artifact.path.startsWith('src/lib/')) continue;
+    if (!/^src\/.*\.(ts|tsx)$/u.test(artifact.path) || artifact.path.startsWith('src/lib/')) continue;
     const text = decoder.decode(artifact.bytes);
     for (const match of text.matchAll(/import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*["'][^"']*lib\/godot-compat\/[^"']*["']/gu)) {
       for (const name of (match[1] ?? '').split(',').map((part) => part.trim().split(/\s+as\s+/u)[0]?.trim() ?? '')) {

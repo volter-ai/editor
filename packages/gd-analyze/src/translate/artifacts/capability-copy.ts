@@ -16,6 +16,6 @@ export function capabilityCopyArtifact(
     bytes: copy.bytes,
     digest,
     origin,
-    planIdentity: plannedArtifactIdentity('capability-copy', copy.path, undefined, digest, origin),
+    planIdentity: plannedArtifactIdentity('capability-copy', copy.path, digest, origin),
   };
 }

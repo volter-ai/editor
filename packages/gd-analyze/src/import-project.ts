@@ -33,7 +33,6 @@ import {
   captureGodotImportToolchainSnapshot,
   type GodotImportToolchainSnapshot,
 } from './snapshot/toolchain-snapshot';
-import { reachableGodotTranslation } from './reachability';
 import { emitGodotTranslation } from './translate/emit';
 import { assertGodotOutputConformance } from './translate/output-conformance';
 import { planGodotTranslation } from './translate/plan';
@@ -122,8 +121,7 @@ function importCapturedGodotProject(
         .join('')}`,
     );
   }
-  // The game carries the capability modules its own files reach (row 6).
-  const emitted = reachableGodotTranslation(emitGodotTranslation(translation));
+  const emitted = emitGodotTranslation(translation);
   // The game itself may not be written against compat's framework (row 5).
   assertGodotOutputConformance(emitted.artifacts);
   const parentDir = path.dirname(targetDir);

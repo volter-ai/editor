@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import * as path from 'node:path';
 import { structuralDigest } from '../artifacts/identity';
 import type {
   GodotArtifactOrigin,
@@ -30,7 +31,6 @@ function emitted(
   bytes: Uint8Array,
   origin: GodotArtifactOrigin,
   planIdentity: string,
-  role: GodotEmittedArtifact['role'] = 'primary',
 ): GodotEmittedArtifact {
   return {
     kind,
@@ -38,32 +38,37 @@ function emitted(
     bytes,
     digest: createHash('sha256').update(bytes).digest('hex'),
     origin,
-    role,
     planIdentity,
   };
 }
 
+/**
+ * A generated module's imports of capability files name only files the plan carries: the plan
+ * decided which capability files the game reaches (`artifacts/capability-reach.ts`), and emit
+ * prints no import of one it left out.
+ */
+function assertPlannedCapabilityImports(file: string, syntax: TargetTsSourceFile, capabilityFiles: ReadonlySet<string>): void {
+  for (const statement of syntax.statements) {
+    if (statement.kind !== 'import-statement' || !statement.module.startsWith('.')) continue;
+    const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), statement.module));
+    if (!target.startsWith('src/lib/')) continue;
+    const candidates = [target, `${target}.ts`, `${target}.tsx`, `${target}/index.ts`, `${target}/index.tsx`];
+    if (!candidates.some((candidate) => capabilityFiles.has(candidate))) {
+      throw new Error(`${file}: imports ${statement.module}, a capability file the accepted plan does not carry`);
+    }
+  }
+}
+
 function emitSyntax(
   kind: GodotPlannedArtifact['kind'],
-  path: string,
-  sourceMapPath: string,
-  syntax: Parameters<typeof emitTargetTsSourceFile>[0],
+  file: string,
+  syntax: TargetTsSourceFile,
   origin: GodotSourceTranslationOrigin | GodotProjectDataOrigin,
   planIdentity: string,
+  capabilityFiles: ReadonlySet<string>,
 ): readonly GodotEmittedArtifact[] {
-  const sourcePaths = 'sourcePath' in origin ? [origin.sourcePath] : origin.sourcePaths;
-  const result = emitTargetTsSourceFile(syntax, path, sourceMapPath, sourcePaths);
-  return [
-    emitted(kind, path, Buffer.from(result.text, 'utf8'), origin, planIdentity),
-    emitted(
-      kind,
-      sourceMapPath,
-      Buffer.from(result.sourceMap, 'utf8'),
-      origin,
-      planIdentity,
-      'source-map',
-    ),
-  ];
+  assertPlannedCapabilityImports(file, syntax, capabilityFiles);
+  return [emitted(kind, file, Buffer.from(emitTargetTsSourceFile(syntax), 'utf8'), origin, planIdentity)];
 }
 
 interface EmissionContext {
@@ -72,6 +77,8 @@ interface EmissionContext {
   readonly sceneSyntax: Map<string, ReturnType<typeof emitDirectGodotSceneSyntax>[number]>;
   readonly sceneInputs: Map<string, GodotTranslationPlan['composition']['scenes'][number]>;
   readonly projectModules: Map<'world', string>;
+  /** The capability files the plan carries. */
+  readonly capabilityFiles: ReadonlySet<string>;
 }
 
 function sourceSyntax(
@@ -147,24 +154,21 @@ function emitArtifact(
       return emitSyntax(
         artifact.kind,
         artifact.path,
-        artifact.sourceMapPath,
         sourceSyntax(artifact, context),
         artifact.origin,
         artifact.planIdentity,
+        context.capabilityFiles,
       );
     case 'project-data':
       switch (artifact.content.kind) {
         case 'generated-target-ts':
-          if (!('sourceMapPath' in artifact)) {
-            throw new Error(`${artifact.path}: TypeScript project data has no source-map path`);
-          }
           return emitSyntax(
             artifact.kind,
             artifact.path,
-            artifact.sourceMapPath,
-            projectSyntax(artifact, context),
+            projectSyntax(artifact as Parameters<typeof projectSyntax>[0], context),
             artifact.origin,
             artifact.planIdentity,
+            context.capabilityFiles,
           );
         case 'json':
           return [
@@ -246,6 +250,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     sceneSyntax,
     sceneInputs,
     projectModules,
+    capabilityFiles: new Set(accepted.plan.artifacts.flatMap((artifact) => (artifact.kind === 'capability-copy' ? [artifact.path] : []))),
   };
   const artifacts = accepted.plan.artifacts.flatMap((artifact) => emitArtifact(artifact, context));
   if (
@@ -259,19 +264,6 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
   return {
     artifacts,
     acceptedPlan: accepted.plan,
-    [emittedArtifactSetBrand]: true,
-  };
-}
-
-/**
- * The emitted set without the capability copies `drop` names, and the accepted plan without them,
- * so the set stays complete against its plan (`reachability.ts` drops what the game never reaches).
- */
-export function withoutCapabilityCopies(set: GodotEmittedArtifactSet, drop: ReadonlySet<string>): GodotEmittedArtifactSet {
-  const dropped = (artifact: { readonly kind: string; readonly path: string }) => artifact.kind === 'capability-copy' && (drop.has(artifact.path) || drop.has(artifact.path.replace(/\.map$/u, '')));
-  return {
-    artifacts: set.artifacts.filter((artifact) => !dropped(artifact)),
-    acceptedPlan: { ...set.acceptedPlan, artifacts: set.acceptedPlan.artifacts.filter((artifact) => !dropped(artifact)) },
     [emittedArtifactSetBrand]: true,
   };
 }

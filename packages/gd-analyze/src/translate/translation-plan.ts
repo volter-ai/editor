@@ -178,6 +178,8 @@ function validateCapabilityClosure(
       ),
     ),
   );
+  // The plan carries the capability files the game reaches (`artifacts/capability-reach.ts`),
+  // each one the frozen toolchain's own bytes.
   const diagnostics: DirectGodotCompositionDiagnostic[] = [];
   for (const artifact of artifacts) {
     if (artifact.kind !== 'capability-copy') continue;
@@ -188,10 +190,6 @@ function validateCapabilityClosure(
         message: 'capability bytes have no matching requirement',
       });
     }
-    expected.delete(artifact.path);
-  }
-  for (const path of expected.keys()) {
-    diagnostics.push({ at: path, message: 'capability requirement has no frozen copy bytes' });
   }
   return diagnostics;
 }

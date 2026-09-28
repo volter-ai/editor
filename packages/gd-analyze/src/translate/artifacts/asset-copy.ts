@@ -16,7 +16,7 @@ export function licenseCopyArtifact(relativePath: string, sourceDigest: string, 
     sourceDigest,
     operation: { kind: 'byte-identical-copy' },
   };
-  return { kind: 'asset-copy', path, bytes, digest, origin, planIdentity: plannedArtifactIdentity('asset-copy', path, undefined, digest, origin) };
+  return { kind: 'asset-copy', path, bytes, digest, origin, planIdentity: plannedArtifactIdentity('asset-copy', path, digest, origin) };
 }
 
 /** A source asset copied byte for byte beside the app (`public/godot/<res path>`). */
@@ -30,5 +30,5 @@ export function assetCopyArtifact(resPath: string, sourceDigest: string, bytes: 
     sourceDigest,
     operation: { kind: 'byte-identical-copy' },
   };
-  return { kind: 'asset-copy', path, bytes, digest, origin, planIdentity: plannedArtifactIdentity('asset-copy', path, undefined, digest, origin) };
+  return { kind: 'asset-copy', path, bytes, digest, origin, planIdentity: plannedArtifactIdentity('asset-copy', path, digest, origin) };
 }

@@ -21,12 +21,13 @@ import {
 } from '../data/scene-families';
 import { assetCopyArtifact, licenseCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
+import { godotCapabilityRequirements, reachedGodotCapabilityCopies } from './capability-reach';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
 import {
   projectDataBytesArtifact,
   projectDataGeneratedModuleArtifact,
   projectDataJsonArtifact,
-  projectDataTypedModuleArtifact,
+  projectDataTypedModuleArtifact as typedModuleArtifact,
 } from './project-data';
 import { sourceTranslationArtifact } from './source-translation';
 import type { GodotPlannedArtifact } from './types';
@@ -101,8 +102,20 @@ function sourceArtifacts(
   return [...plannedCode, ...plannedScenes];
 }
 
+/** The compat modules the planned data files are typed by (`export default value satisfies T`), as the plan names them. */
+type TypedDataModules = Set<string>;
+
+/** A data file typed by a compat interface, its module recorded as one the game requires. */
+function typedData(
+  typed: TypedDataModules,
+  ...args: Parameters<typeof typedModuleArtifact>
+): GodotPlannedArtifact {
+  typed.add(args[3].module);
+  return typedModuleArtifact(...args);
+}
+
 /** Each imported model's data file (the importer's tree), once however many scenes instance it. */
-function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
+function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan, typed: TypedDataModules): readonly GodotPlannedArtifact[] {
   const written = new Map<string, GodotPlannedArtifact>();
   const visit = (scene: DirectGodotProjectCompositionPlan['scenes'][number], node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
     if (node.model !== undefined) {
@@ -110,7 +123,8 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): rea
       if (!written.has(file)) {
         written.set(
           file,
-          projectDataTypedModuleArtifact(
+          typedData(
+            typed,
             file,
             {
               rootClasses: node.model.rootClasses,
@@ -132,7 +146,7 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): rea
 }
 
 /** Each `ArrayMesh`'s, `MeshLibrary`'s and `AnimationLibrary`'s data file, once however many scenes use it, and each GridMap's cells. */
-function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
+function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan, typed: TypedDataModules): readonly GodotPlannedArtifact[] {
   const written = new Map<string, GodotPlannedArtifact>();
   for (const scene of composition.scenes) {
     const resources = new Map(scene.resources.map((resource) => [resource.key, resource] as const));
@@ -143,15 +157,15 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
       }
       if (resource.animationTree !== undefined) {
         const file = godotAnimationTreeDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataTypedModuleArtifact(file, resource.animationTree, [scene.sourceResPath], { module: 'animation-tree', name: 'GodotAnimationNodeData' }));
+        if (!written.has(file)) written.set(file, typedData(typed, file, resource.animationTree, [scene.sourceResPath], { module: 'animation-tree', name: 'GodotAnimationNodeData' }));
       }
       if (resource.animations !== undefined) {
         const file = godotAnimationLibraryDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataTypedModuleArtifact(file, resource.animations, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
+        if (!written.has(file)) written.set(file, typedData(typed, file, resource.animations, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
       }
       if (resource.library !== undefined) {
         const file = godotMeshLibraryDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataTypedModuleArtifact(file, godotMeshLibraryData(resource.library, resources), [scene.sourceResPath], { module: 'mesh-library', name: 'GodotMeshLibraryData' }));
+        if (!written.has(file)) written.set(file, typedData(typed, file, godotMeshLibraryData(resource.library, resources), [scene.sourceResPath], { module: 'mesh-library', name: 'GodotMeshLibraryData' }));
       }
     }
     // A GridMap's cells, as written (a node's own `data`, or an instance's override of it).
@@ -171,6 +185,7 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
 function projectArtifacts(
   plan: DirectGodotProjectDataPlan,
   composition: DirectGodotProjectCompositionPlan,
+  typed: TypedDataModules,
 ): readonly GodotPlannedArtifact[] {
   const sourcePaths = plan.worldModule.sourcePaths;
   return [
@@ -180,16 +195,16 @@ function projectArtifacts(
       structuralDigest({ composition, module: plan.worldModule }),
       sourcePaths,
     ),
-    projectDataTypedModuleArtifact(DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition), sourcePaths, { module: 'project-settings', name: 'GodotProjectSettingsJson' }),
+    // The settings the scripts read, which the world loads only when there are any.
+    ...(composition.projectSettings.length === 0
+      ? []
+      : [typedData(typed, DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition), sourcePaths, { module: 'project-settings', name: 'GodotProjectSettingsJson' })]),
     projectDataJsonArtifact(DIRECT_GODOT_INPUT_MAP_PATH, directGodotInputMapJson(composition) as DirectJsonValue, sourcePaths),
-    ...meshDataArtifacts(composition),
-    ...modelDataArtifacts(composition),
+    ...meshDataArtifacts(composition, typed),
+    ...modelDataArtifacts(composition, typed),
     projectDataJsonArtifact('vgai.project.json', plan.manifest, sourcePaths),
     projectDataJsonArtifact('package.json', plan.packageManifest, sourcePaths),
     projectDataJsonArtifact('package-lock.json', plan.packageLock, sourcePaths),
-    ...plan.capabilityStamps.map((stamp) =>
-      projectDataJsonArtifact(stamp.targetPath, stamp.value, [], [stamp.toolchainSource]),
-    ),
     ...plan.shellFiles.map((file) => projectDataBytesArtifact(file.targetPath, file.bytes, file.sourcePaths)),
   ];
 }
@@ -198,9 +213,6 @@ function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-function artifactPaths(artifact: GodotPlannedArtifact): readonly string[] {
-  return 'sourceMapPath' in artifact ? [artifact.path, artifact.sourceMapPath] : [artifact.path];
-}
 
 function finalBinaryBytes(artifact: GodotPlannedArtifact): Uint8Array | undefined {
   if (artifact.kind === 'project-data') {
@@ -228,20 +240,16 @@ function artifactPayloadDigest(artifact: GodotPlannedArtifact): string {
 }
 
 function validateArtifact(artifact: GodotPlannedArtifact, paths: Set<string>): void {
-  for (const path of artifactPaths(artifact)) {
-    if (paths.has(path)) throw new Error(`${path}: artifact has two origins`);
-    paths.add(path);
-  }
+  if (paths.has(artifact.path)) throw new Error(`${artifact.path}: artifact has two origins`);
+  paths.add(artifact.path);
   const binary = finalBinaryBytes(artifact);
   if (binary !== undefined && 'digest' in artifact && sha256(binary) !== artifact.digest) {
     throw new Error(`${artifact.path}: planned final bytes do not match their digest`);
   }
   const payloadDigest = artifactPayloadDigest(artifact);
-  const sourceMapPath = 'sourceMapPath' in artifact ? artifact.sourceMapPath : undefined;
   const expectedIdentity = plannedArtifactIdentity(
     artifact.kind,
     artifact.path,
-    sourceMapPath,
     payloadDigest,
     artifact.origin,
   );
@@ -260,10 +268,14 @@ export function planDirectGodotArtifacts(
   models: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
   licenses: readonly { readonly relativePath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
 ): readonly GodotPlannedArtifact[] {
+  const typed: TypedDataModules = new Set();
+  const projectFiles = projectArtifacts(project, composition, typed);
+  // Only the capability files the game reaches (`capability-reach.ts`).
+  const reached = reachedGodotCapabilityCopies(capabilities, godotCapabilityRequirements(composition, code, typed));
   const artifacts = [
     ...sourceArtifacts(composition, code, scenes),
-    ...projectArtifacts(project, composition),
-    ...capabilities.map(capabilityCopyArtifact),
+    ...projectFiles,
+    ...reached.map(capabilityCopyArtifact),
     ...models.map((model) => assetCopyArtifact(model.resPath, model.sourceDigest, model.bytes)),
     ...licenses.map((license) => licenseCopyArtifact(license.relativePath, license.sourceDigest, license.bytes)),
   ];

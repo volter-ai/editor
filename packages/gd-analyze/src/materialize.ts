@@ -36,23 +36,11 @@ function assertArtifactSet(
     string,
     {
       readonly kind: GodotOutputArtifact['kind'];
-      readonly role: GodotOutputArtifact['role'];
       readonly planIdentity: string;
     }
   >();
   for (const artifact of plan.artifacts) {
-    planned.set(artifact.path, {
-      kind: artifact.kind,
-      role: 'primary',
-      planIdentity: artifact.planIdentity,
-    });
-    if ('sourceMapPath' in artifact) {
-      planned.set(artifact.sourceMapPath, {
-        kind: artifact.kind,
-        role: 'source-map',
-        planIdentity: artifact.planIdentity,
-      });
-    }
+    planned.set(artifact.path, { kind: artifact.kind, planIdentity: artifact.planIdentity });
   }
   const emitted = new Set<string>();
   for (const artifact of artifacts) {
@@ -61,7 +49,6 @@ function assertArtifactSet(
     const expected = planned.get(artifact.path);
     if (
       expected?.kind !== artifact.kind ||
-      expected.role !== artifact.role ||
       expected.planIdentity !== artifact.planIdentity
     ) {
       throw new Error(`${artifact.path}: artifact is absent from the accepted translation plan`);

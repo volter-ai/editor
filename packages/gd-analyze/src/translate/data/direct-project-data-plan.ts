@@ -1,7 +1,4 @@
-import {
-  capabilityStampPath,
-  planCapabilityPackageJson,
-} from '../../../../game-editor/node/scaffold/catalog.js';
+import { planCapabilityPackageJson } from '../../../../game-editor/node/scaffold/catalog.js';
 import type { BoundGodotProject } from '../../analyze/bound-project';
 import type { GodotImportToolchainSnapshot } from '../../snapshot/toolchain-snapshot';
 import type { DirectGodotProjectCompositionPlan } from './direct-project-composition-plan';
@@ -44,12 +41,6 @@ export interface DirectGodotCapabilityRequirement {
   readonly artifacts: readonly { readonly path: string; readonly digest: string }[];
 }
 
-export interface DirectGodotCapabilityStampPlan {
-  readonly targetPath: string;
-  readonly toolchainSource: { readonly path: string; readonly digest: string };
-  readonly value: { readonly id: string; readonly version: string };
-}
-
 export interface DirectGodotProjectDataPlan {
   readonly version: typeof DIRECT_GODOT_PROJECT_DATA_PLAN_VERSION;
   readonly snapshotDigest: string;
@@ -59,7 +50,6 @@ export interface DirectGodotProjectDataPlan {
   readonly packageManifest: DirectJsonValue;
   readonly packageLock: DirectJsonValue;
   readonly shellFiles: readonly DirectGodotProjectShellFilePlan[];
-  readonly capabilityStamps: readonly DirectGodotCapabilityStampPlan[];
   readonly requirements: {
     readonly engine: {
       readonly packageName: '@volter/game-runtime';
@@ -168,6 +158,14 @@ function applyFrozenDependencyDeclarations(
   }
 }
 
+/**
+ * The template's packages an imported game neither runs nor builds with: its multiplayer server's
+ * (`server/`, which an import does not carry) and its manifest validator's schema library.
+ */
+const TEMPLATE_PACKAGES_NOT_CARRIED = ['@colyseus/schema', '@colyseus/sdk', '@colyseus/ws-transport', 'colyseus', 'zod'] as const;
+/** The template's packages only the editor's files use (`vgai.adapter.ts`, `vite.config.ts`): development dependencies. */
+const EDITOR_FILE_PACKAGES = ['@volter/editor-project'] as const;
+
 function plannedPackageManifest(
   project: BoundGodotProject,
   toolchain: GodotImportToolchainSnapshot,
@@ -177,8 +175,18 @@ function plannedPackageManifest(
   ) as MutablePackageManifest;
   manifest.name = slugify(project.projectName);
   manifest.dependencies ??= {};
-  manifest.dependencies['@volter/game-runtime'] = `^${installedPackageVersion(toolchain, '@volter/game-runtime')}`;
   manifest.devDependencies ??= {};
+  for (const name of TEMPLATE_PACKAGES_NOT_CARRIED) {
+    delete manifest.dependencies[name];
+    delete manifest.devDependencies[name];
+  }
+  for (const name of EDITOR_FILE_PACKAGES) {
+    const range = manifest.dependencies[name];
+    if (range === undefined) continue;
+    delete manifest.dependencies[name];
+    manifest.devDependencies[name] = range;
+  }
+  manifest.dependencies['@volter/game-runtime'] = `^${installedPackageVersion(toolchain, '@volter/game-runtime')}`;
   // The template names the product's packages; each is pinned to the installed build.
   for (const field of [manifest.dependencies, manifest.devDependencies]) {
     for (const name of Object.keys(field)) {
@@ -249,46 +257,6 @@ function capabilityRequirements(
       .map((artifact) => ({ path: artifact.path, digest: artifact.digest }))
       .sort((left, right) => left.path.localeCompare(right.path)),
   }));
-}
-
-function capabilityStampPlans(
-  toolchain: GodotImportToolchainSnapshot,
-): readonly DirectGodotCapabilityStampPlan[] {
-  const catalogArtifacts = new Map(
-    toolchain.catalogArtifacts.map((artifact) => [artifact.path, artifact] as const),
-  );
-  if (catalogArtifacts.size !== toolchain.catalogArtifacts.length) {
-    throw new Error('toolchain snapshot contains duplicate catalog artifact paths');
-  }
-  return toolchain.capabilities.map((capability) => {
-    const path = `catalog/entries/${capability.id}.json`;
-    const artifact = catalogArtifacts.get(path);
-    if (artifact === undefined) {
-      throw new Error(`${path}: capability stamp has no captured catalog source`);
-    }
-    let source: unknown;
-    try {
-      source = JSON.parse(Buffer.from(artifact.bytes).toString('utf8'));
-    } catch (error) {
-      throw new Error(
-        `${path}: captured capability catalog source is not JSON: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-    if (
-      typeof source !== 'object' ||
-      source === null ||
-      Array.isArray(source) ||
-      (source as Record<string, unknown>)['id'] !== capability.id ||
-      (source as Record<string, unknown>)['version'] !== capability.version
-    ) {
-      throw new Error(`${path}: captured capability identity does not match the toolchain entry`);
-    }
-    return {
-      targetPath: capabilityStampPath(capability),
-      toolchainSource: { path, digest: artifact.digest },
-      value: { id: capability.id, version: capability.version },
-    };
-  });
 }
 
 function worldModule(composition: DirectGodotProjectCompositionPlan): DirectGodotProjectModulePlan {
@@ -363,7 +331,6 @@ export function planDirectGodotProjectData(
         packageManifest: packageManifest as DirectJsonValue,
         packageLock: packageLock as DirectJsonValue,
         shellFiles: planDirectGodotProjectShell(project.projectName, toolchain),
-        capabilityStamps: capabilityStampPlans(toolchain),
         requirements: {
           engine: {
             packageName: '@volter/game-runtime',
