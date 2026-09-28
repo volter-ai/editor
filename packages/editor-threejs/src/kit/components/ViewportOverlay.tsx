@@ -41,7 +41,7 @@ import { stageViewName } from './stage-view-name';
  * GRID is the stage's VIEW's switch (`overlays.grid.visible` in
  * `kit/viewport-presentation`, keyed by `documentId`): the one flag this
  * button, the document's header, the `toggle.grid` action, `set-grid` and
- * `vgai status`'s `showGrid` all read and write.
+ * the editor's `status` command's `showGrid` all read and write.
  */
 export function ViewportOverlay({
   store,
@@ -71,8 +71,8 @@ export function ViewportOverlay({
   const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
   const findSlot = (): HTMLElement | null =>
     anchor
-      ?.closest('.vgai-dock-document-content')
-      ?.querySelector<HTMLElement>(':scope > .vgai-stage-bar [data-stage-bar-slot="display"]') ?? null;
+      ?.closest('.volter-dock-document-content')
+      ?.querySelector<HTMLElement>(':scope > .volter-stage-bar [data-stage-bar-slot="display"]') ?? null;
   // ONE OVERLAY PER SLOT: a document hosting two stages has one bar, so the first overlay to
   // claim its slot draws there and any other keeps its own place.
   const owner = useId();
@@ -96,7 +96,7 @@ export function ViewportOverlay({
   const toolbar = (
     <FloatingToolbar
       label="Viewport display"
-      className="vgai-viewport-toolbar vgai-viewport-toolbar-right vgai-stage-display"
+      className="volter-viewport-toolbar volter-viewport-toolbar-right volter-stage-display"
     >
       {chrome.viewName === 'bar' && session ? (
         <ViewportViewMenu

@@ -1,6 +1,6 @@
 /**
  * The source questions the kit asks of a source-authoring integration on the server, answered
- * by whichever composed package's `vgai.serving` module provides them
+ * by whichever composed package's `volter.serving` module provides them
  * (`@volter/editor-sdk/session/project-serving`). With none composed, a source proves no dialect
  * and carries no authoring diagnostics: a product with no such integration authors no JSX.
  */

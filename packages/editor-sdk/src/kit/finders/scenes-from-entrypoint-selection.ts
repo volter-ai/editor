@@ -27,12 +27,12 @@
  *     composition, opened by mounting the region.
  *
  * ON `typescript`: this module parses the entrypoint's own TSX with the
- * TypeScript compiler API — the same parser `packages/editor/src/ui-source/
- * oid-transform.ts` and `packages/editor/src/asset-workflow/project-content.ts`
- * already use for exactly this kind of question (vgai has `typescript`; it does
+ * TypeScript compiler API — the same parser `packages/editor-sdk/src/kit/ui-source/
+ * oid-transform.ts` and `packages/editor-sdk/src/kit/asset-workflow/project-content.ts`
+ * already use for exactly this kind of question (volter has `typescript`; it does
  * NOT have @babel/*). It is a HOST-SIDE-ONLY dependency: finders are importable
  * only by the adapter loader, `adapter-module.ts` imports nothing from this
- * directory, and a game's `vgai.adapter.ts` therefore never pulls a parser into
+ * directory, and a game's `volter.adapter.ts` therefore never pulls a parser into
  * its own bundle.
  */
 

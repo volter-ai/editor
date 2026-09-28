@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import test from 'node:test';
 import ts from 'typescript';
 
-const source=fs.readFileSync(new URL('../workbench/src/vgaiSidebarRestore.ts',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../workbench/src/volterSidebarRestore.ts',import.meta.url),'utf8');
 function harness({saved='model',visible=true,exists=true,location=0,active=true}={}) {
   let Contribution,restore;
   const opened=[],errors=[];

@@ -193,7 +193,7 @@ export function AssetEditorShell({
 }) {
   return (
     <section
-      className="vgai-asset-editor"
+      className="volter-asset-editor"
       data-testid={`asset-editor:${type}`}
       aria-label={`${title} Asset Editor`}
     >
@@ -207,7 +207,7 @@ export function AssetEditorShell({
         selection={selection}
       />
       <main
-        className={`vgai-asset-editor__viewport${fill ? ' vgai-asset-editor__viewport--fill' : ''}`}
+        className={`volter-asset-editor__viewport${fill ? ' volter-asset-editor__viewport--fill' : ''}`}
       >
         {children}
       </main>

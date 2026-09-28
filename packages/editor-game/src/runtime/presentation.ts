@@ -1,7 +1,7 @@
 /**
  * runtime/presentation.ts — how a game with a DECLARED resolution is presented in a host panel.
  *
- * `vgai.project.json`'s `resolution` is the game's own LOGICAL size: the coordinate space its
+ * `volter.project.json`'s `resolution` is the game's own LOGICAL size: the coordinate space its
  * cameras frame, its DOM overlay lays out in, and its 2D worlds author positions against. A host
  * panel is whatever size the user dragged it to, and the two are not the same number.
  *

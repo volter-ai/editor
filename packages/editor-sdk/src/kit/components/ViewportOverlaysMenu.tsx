@@ -38,7 +38,7 @@ export function ViewportOverlaysGlyph() {
   return (
     <svg
       viewBox="0 0 16 16"
-      className="vgai-viewport-overlays-glyph"
+      className="volter-viewport-overlays-glyph"
       aria-hidden="true"
       focusable="false"
     >
@@ -84,7 +84,7 @@ export function ViewportOverlaysMenu({
   }, [open]);
 
   const menu = open ? (
-    <Menu className="vgai-helpers-menu" onDismiss={() => setOpen(false)}>
+    <Menu className="volter-helpers-menu" onDismiss={() => setOpen(false)}>
       {master ? (
         <>
           <MenuItem
@@ -92,7 +92,7 @@ export function ViewportOverlaysMenu({
             aria-checked={master.enabled}
             onSelect={master.onToggle}
           >
-            <span className="vgai-menu-check">
+            <span className="volter-menu-check">
               {master.enabled && <EditorIcon icon={faCheck} size="xs" />}
             </span>
             Show {label}
@@ -108,7 +108,7 @@ export function ViewportOverlaysMenu({
           disabled={choice.disabled}
           onSelect={choice.onToggle}
         >
-          <span className="vgai-menu-check">
+          <span className="volter-menu-check">
             {choice.enabled && <EditorIcon icon={faCheck} size="xs" />}
           </span>
           {choice.label}
@@ -119,7 +119,7 @@ export function ViewportOverlaysMenu({
 
   if (word !== undefined) {
     return (
-      <div ref={ref} className="vgai-viewport-popover-anchor">
+      <div ref={ref} className="volter-viewport-popover-anchor">
         <Button
           variant="ghost"
           size="comfortable"
@@ -136,7 +136,7 @@ export function ViewportOverlaysMenu({
   }
 
   return (
-    <div ref={ref} className="vgai-viewport-popover-anchor">
+    <div ref={ref} className="volter-viewport-popover-anchor">
       {master ? (
         <SplitButtonGroup>
           <Tooltip text={`${label}: ${active ? 'On' : 'Off'}`}>

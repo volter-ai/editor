@@ -7,7 +7,7 @@
  * It is PRESENTATION-ONLY. A group never affects story↔component
  * association, default-story picking, mounting, or any other runtime
  * meaning — it decides layout and labels and nothing else. Nothing here is
- * a new authored vgai parameter either: the two inputs are facts the story
+ * a new authored volter parameter either: the two inputs are facts the story
  * already carries.
  *
  * The group path is Storybook's own convention, in Storybook's own order of

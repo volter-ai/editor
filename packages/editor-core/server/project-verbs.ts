@@ -5,7 +5,7 @@
  * Two files the browser cannot read for itself, and neither is served as part
  * of the project's asset tree: the project's `package.json` (the dev server
  * serves `public/`-scoped assets, and a root-level read there returns the SPA
- * fallback — the same trap that once hid `vgai.project.json` from a manifest
+ * fallback — the same trap that once hid `volter.project.json` from a manifest
  * reader), and the resolved manifest's root adapters.
  *
  * FACTS ONLY. Nothing here decides whether a verb is present: it reports the
@@ -114,7 +114,7 @@ export async function readProjectVerbFacts(
     }));
   } catch (error) {
     reasons.push(
-      `this project's vgai.project.json could not be resolved (${error instanceof Error ? error.message : String(error)})`,
+      `this project's volter.project.json could not be resolved (${error instanceof Error ? error.message : String(error)})`,
     );
   }
   return {

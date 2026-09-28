@@ -1,6 +1,6 @@
 /**
  * Viewport pick context (B4, D12) — the camera/canvas seam that
- * `VgaiSceneAuthoringAdapter.pickable.pick` needs but cannot own itself: both
+ * `VolterSceneAuthoringAdapter.pickable.pick` needs but cannot own itself: both
  * live on `EditorViewport`, not on the adapter (the adapter only ever held a
  * `store` — see its own doc comment). A tiny module-level slot, same shape as
  * `./active-systems.ts`: `EditorViewport`'s constructor sets it once its

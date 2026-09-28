@@ -122,10 +122,10 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
   // ---- Current project info ----
   /**
    * Who is answering — the server's own pid, and whether it is a throwaway
-   * probe (`VGAI_EPHEMERAL_SESSION`, today `vgai doctor`) rather than a
+   * probe (`VOLTER_EPHEMERAL_SESSION`) rather than a
    * session anyone owns.
    *
-   * FX-1: `vgai edit` decided "this project's editor is already open" from the
+   * FX-1: the editor's `edit` command decided "this project's editor is already open" from the
    * `project.path` above alone, and a probe server answers with exactly that
    * path for the few seconds it lives — so an attach could succeed, exit 0,
    * and leave every control command with nothing to talk to. The CLI now ASKS
@@ -214,7 +214,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
       () => false,
     );
     // `packaged`: true iff this server is the no-monorepo-checkout runtime
-    // (`packages/editor/server/packaged.ts`) — same `isMonorepoScaffoldRoot`
+    // (`packages/editor-core/server/packaged.ts`) — same `isMonorepoScaffoldRoot`
     // check the "New Project" packaged-mode guard already uses server-side
     // (server-utils.ts). Client-side, `binding-resolver.ts`'s react-world
     // mount reads this to decide whether it must resolve its
@@ -223,7 +223,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
     // separate react copy, so a react world would dual-instance otherwise)
     // or keep the existing static-import path (dev: one shared Vite
     // instance + root `vite.config.ts`'s `resolve.dedupe` — including
-    // `@vgai/game-runtime` itself, so its registries are one module instance —
+    // `@volter/game-runtime` itself, so its registries are one module instance —
     // already collapses them, so this flag is `false` there and
     // that path stays unchanged).
     const packaged = !isMonorepoScaffoldRoot(engineRoot);
@@ -248,7 +248,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
   });
   // ---- Manifest write (A4, D8 — the ONE manifest-write verb) ----
   // Unlike every other write route above, this one HARD-CODES its
-  // destination: `join(ctx.projectRoot, 'vgai.project.json')`, NEVER derived from
+  // destination: `join(ctx.projectRoot, 'volter.project.json')`, NEVER derived from
   // `req.body`. `validateManifestWrite` (server-utils.ts, unit-tested there)
   // rejects anything else (a different filename, a traversal path, a
   // non-string/non-JSON body) before this handler ever touches the

@@ -1,8 +1,8 @@
 /**
- * VGAI host adapter for Supercode's headless client.
+ * Volter host adapter for Supercode's headless client.
  *
  * Supercode owns harness/session/runtime semantics, lifecycle normalization,
- * transcript projection, retries, reconciliation, and concurrency. VGAI owns
+ * transcript projection, retries, reconciliation, and concurrency. Volter owns
  * authenticated local launch controls and the HTTP/SSE boundary. Native Chat
  * owns presentation and conversation-scoped approval choices. Keep this file as a mapping layer; reusable agent logic
  * belongs in @volter-ai-dev/supercode-client.
@@ -51,7 +51,7 @@ type HeadlessUiSnapshot = Parameters<typeof projectClientSnapshot>[0];
 
 // @volter-ai-dev/supercode-client is an optional runtime peer. The mandatory UI
 // package already declares its exact frontend snapshot contract, so do not
-// shadow that contract with a partial VGAI interface. The validator loaded
+// shadow that contract with a partial Volter interface. The validator loaded
 // atomically from the runtime peer remains the authority for production data.
 type RuntimeCapabilities = HeadlessUiSnapshot['harnesses'][number]['effective_capabilities'];
 type StructuredLaunch = Omit<NonNullable<HeadlessUiSnapshot['terminalLaunch']>, 'env'> & {
@@ -272,7 +272,7 @@ export interface HarnessChatServiceOptions {
   initializeTimeoutMs?: number;
   /** Test seam; production periodically discovers sessions launched after editor boot. */
   discoveryPollMs?: number;
-  /** Sessions that invoked vgai for this project from outside its workspace. */
+  /** Sessions that invoked volter for this project from outside its workspace. */
   callerSessions?: readonly HarnessChatCallerSession[];
   /** Trusted account route resolved only when Supercode launches a process. */
   resolveCodingInference?: (workspace: string) => Promise<ResolvedCodingInference | null>;
@@ -760,7 +760,7 @@ function toSnapshot(snapshot: HeadlessSnapshot, frame: RemoteUiFrame): HarnessCh
     workspace: snapshot.workspace,
     status: snapshotStatus(snapshot),
     mode: snapshotMode(snapshot),
-    schema: 'vgai.harness-chat.v4',
+    schema: 'volter.harness-chat.v4',
     serverInstanceId: frame.hostInstanceId,
     revision: snapshot.revision,
     workspaceGeneration: frame.generation,
@@ -884,8 +884,8 @@ export class HarnessChatService {
 
   constructor(private readonly options: HarnessChatServiceOptions) {
     const workspace = resolve(options.getProjectRoot());
-    try { this.chatSelection = validateChatSelection(JSON.parse(readFileSync(join(workspace, '.vgai', 'chat-selection.json'), 'utf8'))); } catch { /* no saved selection */ }
-    this.chatCatalog = new ChatSessionCatalog(join(workspace, '.vgai', 'chat-sessions.json'));
+    try { this.chatSelection = validateChatSelection(JSON.parse(readFileSync(join(workspace, '.volter', 'chat-selection.json'), 'utf8'))); } catch { /* no saved selection */ }
+    this.chatCatalog = new ChatSessionCatalog(join(workspace, '.volter', 'chat-sessions.json'));
     if (this.chatCatalog.invalid) {
       console.warn(`[chat] Saved conversations were not loaded and are left as they are: ${this.chatCatalog.invalid}`);
     }
@@ -979,7 +979,7 @@ export class HarnessChatService {
 
 
   /** Dispatch the package-owned messenger intent without translating it into
-   * a second VGAI action vocabulary. */
+   * a second Volter action vocabulary. */
   async actIntent(intent: SupercodeUiIntent): Promise<HarnessChatSnapshot> {
     await this.ensureController();
     const host = this.remoteHost;
@@ -1148,12 +1148,12 @@ export class HarnessChatService {
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) throw new Error('The selected harness did not start.');
       const handoff = await mintFrontendHandoff({ engineRoot: this.options.engineRoot, runtimeSessionId: runtimeId,
-        directory: join(homedir(), '.vgai', 'runtime', `frontend-${process.pid}-${randomUUID()}`) });
+        directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}-${randomUUID()}`) });
       const old = this.frontendHandoffValue;
       this.frontendHandoffValue = handoff;
       this.frontendRefusalValue = null;
       await old?.dispose();
-      const folder = join(this.options.getProjectRoot(), '.vgai');
+      const folder = join(this.options.getProjectRoot(), '.volter');
       mkdirSync(folder, { recursive: true });
       writeFileSync(join(folder, 'chat-selection.json'), JSON.stringify(selection, null, 2) + '\n');
       this.capture();
@@ -1212,7 +1212,7 @@ export class HarnessChatService {
       if (!controller) throw new Error('Volter Harness is unavailable.');
       if (!this.managedRuntime || this.managedRuntime.closed) {
         // REOPENING A PROJECT RESUMES ITS LAST SESSION, it does not start a second one.
-        // `vgai close` ends the runtime with the session, so without this every reopen
+        // the editor's `close` command ends the runtime with the session, so without this every reopen
         // handed the panel a FRESH Claude session and the person's own conversation was
         // gone — measured: close, reopen, and the Chat view came back empty while the
         // extension's status door listed a brand new runtime id.
@@ -1220,7 +1220,7 @@ export class HarnessChatService {
         // Both doors are the controller's own and both ask readiness first, so a harness
         // that is not signed in is still refused BY NAME with its own login command —
         // which is the sentence a person needs, and the one that travels to the cover,
-        // `.vgai/session.json` and the console ledger.
+        // `.volter/session.json` and the console ledger.
         this.capture();
         if (this.lastSnapshot.harnesses.length === 0) {
           await controller.dispatch({ type: 'refresh', autoObserve: false });
@@ -1260,7 +1260,7 @@ export class HarnessChatService {
       const handoff = await mintFrontendHandoff({
         engineRoot: this.options.engineRoot,
         runtimeSessionId: runtimeId,
-        directory: join(homedir(), '.vgai', 'runtime', `frontend-${process.pid}`),
+        directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}`),
       });
       this.frontendHandoffValue = handoff;
       this.frontendRefusalValue = null;
@@ -1427,7 +1427,7 @@ export class HarnessChatService {
     workspace: string,
     autoObserve: boolean,
   ): Promise<HeadlessController> {
-    const piExtensionPath = join(homedir(), '.vgai', 'runtime', 'pi-openrouter-extension.mjs');
+    const piExtensionPath = join(homedir(), '.volter', 'runtime', 'pi-openrouter-extension.mjs');
     // Every managed-runtime start passes through here. By default it injects nothing and
     // the stock CLI runs on the person's own login, so readiness is asked for FIRST and a
     // harness that is not signed in is refused by name (ARCHITECTURE-CORE §Managed
@@ -1839,7 +1839,7 @@ export class HarnessChatService {
       } else if (presentationFingerprint !== this.renderedInventoryFingerprint) {
         // Presentation evidence belongs in the controller snapshot too. Feed
         // the changed inventory back through Supercode instead of joining raw
-        // descriptors into a second VGAI-owned list projection.
+        // descriptors into a second VOLTER-owned list projection.
         await controller.dispatch({
           type: 'refresh',
           autoObserve: false,

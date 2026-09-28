@@ -5,7 +5,7 @@
  * progress snapshot and compare it with the previous snapshot in the same history directory.
  *
  * Coverage remains generated evidence, never checked-in truth. The history directory therefore
- * belongs under ignored `.vgai/tmp/` (or another explicit scratch volume), and every snapshot
+ * belongs under ignored `.volter/tmp/` (or another explicit scratch volume), and every snapshot
  * records its time, engine revision, input digest, and complete input report. Stable
  * game×requirement keys distinguish actual compat closure from denominator growth.
  *
@@ -63,7 +63,7 @@ function assertReport(report) {
   if (
     report === null ||
     typeof report !== 'object' ||
-    !['vgai-godot-cohort-v1', 'vgai-godot-cohort-v2'].includes(report.protocol) ||
+    !['volter-godot-cohort-v1', 'volter-godot-cohort-v2'].includes(report.protocol) ||
     !Array.isArray(report.games) ||
     !Array.isArray(report.openUnion)
   ) {
@@ -351,7 +351,7 @@ if (priorNames.length > 0) {
 const capturedAt = new Date().toISOString();
 const sourceSha256 = createHash('sha256').update(sourceBytes).digest('hex');
 const snapshot = {
-  protocol: 'vgai-godot-cohort-progress-v1',
+  protocol: 'volter-godot-cohort-progress-v1',
   capturedAt,
   // The report may have been generated in another worktree. In that case the caller MUST name
   // its revision; silently recording this snapshot command's checkout would be precise-looking

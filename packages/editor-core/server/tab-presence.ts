@@ -65,11 +65,11 @@ export type TabRoute = 'project' | 'no-project' | 'unknown';
 /**
  * WHAT KIND OF PAGE this tab is.
  *
- * - `'editor'`  — the vgai editor's own page, which is every tab this session
+ * - `'editor'`  — the Volter editor's own page, which is every tab this session
  *   opens itself.
  * - `'vscode'`  — a Code-OSS workbench window running the editor through the
  *   frame (docs/CODE-OSS.md §Boot, DESKTOP). It is a tab like any other under
- *   the bijection; the only difference is that vgai does not author its HTML,
+ *   the bijection; the only difference is that volter does not author its HTML,
  *   so the things a page does for itself — minting an identity, beating,
  *   saying goodbye — arrive from a script the session serves it
  *   (`server/tab-bootstrap.ts`).
@@ -90,7 +90,7 @@ export type TabSurface = 'editor' | 'vscode';
 
 /**
  * THE RESOURCE CENSUS — what the tab was holding, sampled by the page and
- * carried on the beat. Declared in `@vgai/sdk/tab-census` (the one package
+ * carried on the beat. Declared in `@volter/editor-sdk/project/tab-census` (the one package
  * every unit that speaks this shape already depends on) and re-exported here,
  * because this file is where the server's readers look for it.
  *
@@ -173,7 +173,7 @@ export interface TabCloseBeacon {
    * with nothing waiting for or recording whether any page heard it — and a
    * page that did not hear it kept its Blender engine worker (one engine
    * thread plus a 16-thread pool) running at 100%+ CPU for minutes after
-   * `vgai close`. This is the page's half of that fact; `tab-lifecycle.ts`'s
+   * the editor's `close` command. This is the page's half of that fact; `tab-lifecycle.ts`'s
    * `notifySessionEnded` is the half that waits for it.
    */
   readonly reason: 'pagehide' | 'session-ended';
@@ -249,7 +249,7 @@ export interface TabRecord {
    * that is merely slow stays visible — which means a page whose module graph
    * never evaluates at all opens a channel and then does nothing forever.
    * That tab used to read as fully healthy here: blessed in the same
-   * millisecond its socket connected, `vgai edit` reporting a live session,
+   * millisecond its socket connected, the editor's `edit` command reporting a live session,
    * and every command buffered in the bootstrap's replay queue with no
    * consumer that would ever arrive. Measured 2026-08-13 in a session journal
    * left behind by a real boot failure — `client-connected` and `tab-blessed`
@@ -445,7 +445,7 @@ export interface TabPresenceState {
   /**
    * Auto-open has given up and said so. Set once the budget is spent with
    * still nothing in the table, cleared the moment any tab appears (or a
-   * fresh `vgai edit` mandate arrives).
+   * fresh the editor's `edit` command mandate arrives).
    */
 }
 
@@ -480,7 +480,7 @@ function graceFor(tab: TabRecord, config: TabPresenceConfig): number {
  * cold module graph, control POSTs starved in the browser's connection pool —
  * is still visibly here, which is the whole failure this replaces. A gap in
  * the beats of a tab that is otherwise connected does not evict it; it gets
- * journaled loudly and shows up in `vgai status` as `lastBeatAgo`, which is
+ * journaled loudly and shows up in the editor's `status` command as `lastBeatAgo`, which is
  * the owner's "if they DO get disconnected, make it clear".
  */
 export function tabPresent(tab: TabRecord, now: number, config: TabPresenceConfig): boolean {
@@ -1101,7 +1101,7 @@ export function reconcile(
   // them would be told to go away.
   //
   // MEASURED 2026-09-19, reproducing the wedge in WORK.md §"The editor tab can
-  // wedge in a state `vgai edit` cannot self-heal". A page that stalls before
+  // wedge in a state the editor's `edit` command cannot self-heal". A page that stalls before
   // React mounts beats forever with no command listener; at
   // `listenerBudgetMs` `partitionEligible` drops it from `eligible`,
   // `chooseBlessed` releases the blessing, and the filter below then named the
@@ -1116,7 +1116,7 @@ export function reconcile(
   // to navigating away to the yield page — so the bijection destroyed the one
   // tab it exists to keep, and `ensure`'s heal (`tab-reload`, the one message a
   // page with no module graph can still act on) never got the chance: the yield
-  // fires on the reconcile TICK, before any `vgai edit` can reach the heal.
+  // fires on the reconcile TICK, before any the editor's `edit` command can reach the heal.
   const yieldTabIds =
     blessedTabId === null
       ? []
@@ -1146,7 +1146,7 @@ export function tabArriving(
 }
 
 /**
- * WHAT IS TRUE OF THIS TAB, in one word — the first thing every `vgai` verb
+ * WHAT IS TRUE OF THIS TAB, in one word — the first thing every `volter` verb
  * says about a tab, and the reason this file exists in its current form.
  *
  * MEASURED 2026-09-17. One symptom — "the battery stopped" — had four causes
@@ -1349,7 +1349,7 @@ export function tabState(
   };
 }
 
-/** What `vgai status` prints per tab, and what a refusal quotes. */
+/** What the editor's `status` command prints per tab, and what a refusal quotes. */
 export interface TabPresenceReport {
   readonly tabId8: string;
   readonly presentFor: number;

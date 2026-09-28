@@ -1,6 +1,6 @@
 /**
  * THE PROJECT-LOCAL SETTINGS LAYER — one in-memory document mirroring
- * `.vgai/editor-state.json`, the git-ignored file the scaffold already
+ * `.volter/editor-state.json`, the git-ignored file the scaffold already
  * reserves for "editor autosaved UI state" (ARCHITECTURE-CORE §Editor chrome,
  * "Settings have four layers with named homes").
  *
@@ -19,7 +19,7 @@
  * UNDER THE CODE-OSS FRAME THE DOCUMENT IS ONE KEY OF THE WORKBENCH'S WORKSPACE
  * STORAGE (`kit/workspace-storage`): the frame hands that scope over at mount,
  * and the web workbench keeps it in the same folder
- * (`.vgai/workbench-storage.json`), beside the workbench's own layout. A host
+ * (`.volter/workbench-storage.json`), beside the workbench's own layout. A host
  * without the frame keeps the file above.
  */
 
@@ -33,7 +33,7 @@ type Sections = Record<string, unknown>;
 const WRITE_DEBOUNCE_MS = 400;
 
 /** The workspace storage key the whole document lives under when the frame provides the scope. */
-const STORAGE_KEY = 'vgai.projectLocalState';
+const STORAGE_KEY = 'volter.projectLocalState';
 
 let loadedFor: string | null = null;
 let loading: Promise<void> | null = null;

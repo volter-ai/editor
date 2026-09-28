@@ -21,7 +21,7 @@
  * `relayCommandTimeoutMs`), so the caller gets
  * "Command timed out — editor connected but did not respond" — a message that
  * names nothing, points at nothing, and hides the one remedy that works
- * (foreground the tab; the very next `vgai play` then starts in seconds).
+ * (foreground the tab; the very next `volter-game-editor play` then starts in seconds).
  *
  * ## What this does, and deliberately does not do
  *

@@ -17,7 +17,7 @@ import { dispatchBridgeMethod, hasLiveDebugPlane } from './dispatch';
  *  this package); everything else is `dispatchBridgeMethod`'s own structured
  *  failure, caught here and shipped back via `structuredErrorResult` so
  *  `code`/`data` survive the relay round trip byte-equivalent to the
- *  page-transport's `unwrap()` path (`packages/vgai-live/src/game-client/client.ts`). */
+ *  page-transport's `unwrap()` path (`packages/volter-live/src/game-client/client.ts`). */
 export async function handleBridgeCall(cmd: EditorCommandMessage): Promise<EditorCommandResult> {
   // The precondition is "no plane at all", not "not playing" — see
   // `hasLiveDebugPlane`. The per-method preconditions inside
@@ -28,7 +28,7 @@ export async function handleBridgeCall(cmd: EditorCommandMessage): Promise<Edito
   // the still edit world can be driven.
   if (!isPlayModeActive() && !hasLiveDebugPlane()) {
     // A LIVE INGEST that publishes no plane is a third state, and answering it
-    // with "not in play mode" sends the reader to `vgai play` over a game that
+    // with "not in play mode" sends the reader to `volter-game-editor play` over a game that
     // is already running and visible. MEASURED on the `flappy` canvas ingest:
     // `game.waitSimTime(...)` refused with the play sentence while the mount's
     // own play state read `playing`. The mount is what is missing a plane, so
@@ -43,7 +43,7 @@ export async function handleBridgeCall(cmd: EditorCommandMessage): Promise<Edito
             'this ingest mount is live, but it publishes no debug plane — the mount installs no ' +
             'SystemAdapters.debug, so there is nothing to enumerate, read or drive through the ' +
             'game seam. Starting play will not change that; the game itself must declare the ' +
-            'vgai game contract (or carry a contract shim beside it) for these calls to have an ' +
+            'volter game contract (or carry a contract shim beside it) for these calls to have an ' +
             'answer.',
         }
       : notPlayingResult();

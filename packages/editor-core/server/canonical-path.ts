@@ -17,7 +17,7 @@
  *
  * The fix is upstream of any one `/@fs/` string: canonicalize the project
  * root ONCE, at the points a project path enters server state (dev/prod
- * boot from `VGAI_PROJECT`, and the `/__editor/open-project` route) — every
+ * boot from `VOLTER_PROJECT`, and the `/__editor/open-project` route) — every
  * `/@fs/${projectRoot}` string built anywhere afterwards (browser-side,
  * repo-wide, not just the react-world resolver) then already matches
  * whatever Vite's own resolver would independently arrive at for that same

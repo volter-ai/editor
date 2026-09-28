@@ -82,7 +82,7 @@ export function resolveCanvasSceneWheel(view: RootPan, input: ReactCanvasWheelIn
 function isNavigationChrome(target: EventTarget | null): boolean {
   return (
     target instanceof Element &&
-    target.closest('[data-vgai-canvas-navigation-ignore="true"]') !== null
+    target.closest('[data-volter-canvas-navigation-ignore="true"]') !== null
   );
 }
 

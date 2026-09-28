@@ -143,7 +143,7 @@ const rows =
 for (const [file, text] of sources) rows.push(...ruleRows(text, file));
 const unique = new Map(rows.map((row) => [row.id, row]));
 const manifest = {
-  protocol: 'vgai.godot-frontend-surface',
+  protocol: 'volter.godot-frontend-surface',
   protocolVersion: 1,
   engineMajor: major,
   engineVersion: authority.version,

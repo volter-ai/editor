@@ -1,5 +1,5 @@
 /**
- * `@volter/editor-threejs`'s server half (`package.json#vgai.serving`): the animation stamp that
+ * `@volter/editor-threejs`'s server half (`package.json#volter.serving`): the animation stamp that
  * lets the editor drive the mixers a project's own code makes, and the conversion of source model
  * formats to runtime GLB for the asset library's imports.
  */

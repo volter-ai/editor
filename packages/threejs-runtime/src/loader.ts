@@ -41,7 +41,7 @@ export const textureLoader = new THREE.TextureLoader(loadingManager);
  * Shared DRACOLoader for decoding DRACO-compressed GLTF/GLB meshes.
  *
  * The decoder wasm/js is vendored under
- * packages/editor/template/public/jsm/libs/draco/gltf/ and served at the
+ * packages/game-editor/template/public/jsm/libs/draco/gltf/ and served at the
  * absolute runtime path '/jsm/libs/draco/gltf/' (DRACOLoader appends
  * draco_wasm_wrapper.js / draco_decoder.wasm to this path). This is an
  * absolute path, so it deliberately does NOT go through the asset prefix —
@@ -55,7 +55,7 @@ dracoLoader.setDecoderPath('/jsm/libs/draco/gltf/');
  *
  * Vendored and served EXACTLY like the DRACO decoder above — the Basis
  * transcoder js/wasm live in repo-root `public/jsm/libs/basis/` (the editor)
- * and `packages/editor/template/public/jsm/libs/basis/` (a scaffolded game's
+ * and `packages/game-editor/template/public/jsm/libs/basis/` (a scaffolded game's
  * own build), pinned in `vendor/upstream-assets.lock.json`, and KTX2Loader
  * appends `basis_transcoder.js` / `.wasm` to this absolute path.
  *

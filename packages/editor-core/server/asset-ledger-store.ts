@@ -3,7 +3,7 @@
  *
  * The shape, validation and merge rules live in the pure module
  * `../src/asset-workflow/asset-ledger.ts`; this file is only read-modify-write
- * of `<projectRoot>/.vgai/assets.json`.
+ * of `<projectRoot>/.volter/assets.json`.
  *
  * That read-modify-write is CONCURRENT-SAFE, and both halves are load-bearing
  * (see `../src/asset-workflow/ledger-write-lock.ts` for why neither alone is
@@ -13,7 +13,7 @@
  *     `recordAssetMaterialization` calls do not both read the pre-write object
  *     and lose the earlier record.
  *   - Other processes: an exclusive `assets.json.lock` beside the ledger.
- *     Two `vgai edit` sessions, or `asset-packs:sync` racing an editor, are
+ *     Two the editor's `edit` command sessions, or `asset-packs:sync` racing an editor, are
  *     separate processes and the in-process chain cannot see them.
  *
  * The write itself is ATOMIC — staging file then `rename` — so a crash or a
@@ -100,8 +100,8 @@ export async function withAssetLedgerFileLock<T>(
  * `withAssetLedgerFileLock`.
  *
  * Nothing in it is asset-specific: it takes the lock PATH. The project's
- * central provenance ledger (`.vgai/provenance.json`, another whole-document
- * read-modify-write, now written by the editor server AND by `vgai blender-mcp`)
+ * central provenance ledger (`.volter/provenance.json`, another whole-document
+ * read-modify-write, now written by the editor server AND by `volter blender-mcp`)
  * takes the same lock through `server/project-output-writer.ts`.
  */
 export function ledgerLockIo(lockFile: string): ExclusiveLockIO {
@@ -158,7 +158,7 @@ export function ledgerLockIo(lockFile: string): ExclusiveLockIO {
 }
 
 export interface MaterializationRecord {
-  /** Project root — the directory that owns `.vgai/`. */
+  /** Project root — the directory that owns `.volter/`. */
   readonly projectRoot: string;
   /** Project-relative destination, e.g. `public/asset-library/local/x/y.glb`. */
   readonly destPath: string;

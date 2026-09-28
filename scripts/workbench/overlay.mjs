@@ -2,29 +2,29 @@
 /*---------------------------------------------------------------------------------------------
  *  THE OVERLAY — our workbench tier, copied onto a Code-OSS checkout at the pin.
  *
- *  TRIGGER: you are about to compile, run or package a workbench that has to contain the vgai
+ *  TRIGGER: you are about to compile, run or package a workbench that has to contain the volter
  *  editor — `scripts/workbench/dev.mjs` (a sources boot) and `scripts/workbench/build-release.mjs`
- *  (a release) both run this first, and it is the only thing that ever writes vgai files into a
+ *  (a release) both run this first, and it is the only thing that ever writes volter files into a
  *  fork checkout.
  *
  *    node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor>
  *
  *  WHY IT EXISTS. ARCHITECTURE-CORE §The target shape, rule 6: *"Nothing of ours is built inside
  *  a fork: the product build OVERLAYS the tier on the fork at a pin."* Until 2026-09-21 the tier
- *  WAS the fork — 3,395 lines under `src/vs/workbench/contrib/vgaiBlender/`, a file named
- *  `vgaiGameSkew.ts`, two generated artifacts and two extensions — so every edit to our own
+ *  WAS the fork — 3,395 lines under `src/vs/workbench/contrib/volterBlender/`, a file named
+ *  `volterGameSkew.ts`, two generated artifacts and two extensions — so every edit to our own
  *  workbench code was a commit in another repository, and the fork's diff against upstream was
  *  ours as much as it was patches. Now the three homes are here:
  *
- *    packages/editor-core/workbench/        the KIT's half         → contrib/vgai/browser/
- *    packages/<product>/workbench/     the PRODUCT's half     → contrib/vgaiProduct/browser/
+ *    packages/editor-core/workbench/        the KIT's half         → contrib/volter/browser/
+ *    packages/<product>/workbench/     the PRODUCT's half     → contrib/volterProduct/browser/
  *
  *  and what the fork carries is upstream plus patches.
  *
  *  A THIRD HOME, ONLY WHEN NAMED: LOOK TIERS. A package outside this repository may carry the
- *  frame half of a look, declared as `package.json#vgai.workbench`:
+ *  frame half of a look, declared as `package.json#volter.workbench`:
  *
- *    { "contrib": "vgaiBrand", "root": "./editor/workbench", "media": { "fonts": "./fonts" } }
+ *    { "contrib": "volterBrand", "root": "./editor/workbench", "media": { "fonts": "./fonts" } }
  *
  *  and a build carries it only when its directory is passed, `--look <package dir>` (repeatable):
  *  `<root>/src` → `contrib/<contrib>/browser/` (its `look.contribution.ts` is imported after the
@@ -33,12 +33,12 @@
  *  so a build of this repository never carries a look package's code unless its builder named
  *  it — the Volter brand's private package (`volter-ai/brand`, its Plotter look) in particular.
  *
- *  WHY THE PRODUCT'S DIRECTORY IS ONE FIXED NAME. `vgaiProduct` rather than `vgaiModelEditor`:
+ *  WHY THE PRODUCT'S DIRECTORY IS ONE FIXED NAME. `volterProduct` rather than `volterModelEditor`:
  *  the registration import line, the build's resource glob and the product's own
- *  `FileAccess.asBrowserUri('vs/workbench/contrib/vgaiProduct/browser/media/Inter.woff2')` are
+ *  `FileAccess.asBrowserUri('vs/workbench/contrib/volterProduct/browser/media/Inter.woff2')` are
  *  then the same strings for every product, so the patch this writes is one shape and a product
  *  swap in the same checkout cannot leave a path behind. WHICH product a build is, is recorded
- *  in `.vgai-overlay.json` and in the release's `BUILD.json`, never in a path.
+ *  in `.volter-overlay.json` and in the release's `BUILD.json`, never in a path.
  *
  *  THE AI IN THE TAB RIDES HERE TOO (B9b). ARCHITECTURE-CORE §The core is Code-OSS rule 7: the
  *  workbench's own Chat view is the agent's front end, and what fills the default-participant
@@ -73,18 +73,18 @@ const PIN_PATH = join(KIT_DIR, 'FORK.json');
 
 /** Where each half lands inside the fork. Both are four levels under `src/vs/`, which is what
  *  makes the `../../../../base/...` imports our files carry resolve unchanged. */
-const KIT_TARGET = 'src/vs/workbench/contrib/vgai/browser';
-const PRODUCT_TARGET = 'src/vs/workbench/contrib/vgaiProduct/browser';
+const KIT_TARGET = 'src/vs/workbench/contrib/volter/browser';
+const PRODUCT_TARGET = 'src/vs/workbench/contrib/volterProduct/browser';
 /** The two registration lines, in this order: the product registers itself at module scope and
  *  the kit reads it at module scope, so the product's import has to be evaluated first. */
-const PRODUCT_IMPORT = "import './contrib/vgaiProduct/browser/product.contribution.js';";
-const KIT_IMPORT = "import './contrib/vgai/browser/vgai.contribution.js';";
+const PRODUCT_IMPORT = "import './contrib/volterProduct/browser/product.contribution.js';";
+const KIT_IMPORT = "import './contrib/volter/browser/volter.contribution.js';";
 const MAIN_FILE = 'src/vs/workbench/workbench.common.main.ts';
 const WEB_GULPFILE = 'build/gulpfile.vscode.web.ts';
 const REH_GULPFILE = 'build/gulpfile.reh.ts';
 const NPM_DIRS_FILE = 'build/npm/dirs.ts';
 const PRODUCT_FILE = 'product.json';
-const MARKER = '.vgai-overlay.json';
+const MARKER = '.volter-overlay.json';
 
 /**
  * THE CHAT EXTENSION — bundled from npm, never vendored and never forked.
@@ -190,7 +190,7 @@ function replaceTree(from, to) {
 }
 
 /**
- * The registration imports, as an idempotent rewrite: every vgai contribution import is
+ * The registration imports, as an idempotent rewrite: every volter contribution import is
  * stripped and the two are appended after the LAST upstream contribution import — last, so our
  * command shadowing (the auxiliary-window refusal) is registered after the commands it shadows,
  * which `CommandsRegistry`'s most-recent-wins list is what makes work.
@@ -199,15 +199,15 @@ function patchRegistrationImports(checkout, tiers) {
 	const path = join(checkout, MAIN_FILE);
 	const lines = readFileSync(path, 'utf8')
 		.split('\n')
-		.filter((line) => !/^import '\.\/contrib\/vgai[^']*';$/.test(line))
-		.filter((line, index, all) => !line.startsWith('// VGAI (overlaid tier') && !(line === '' && all[index + 1]?.startsWith('// VGAI (overlaid tier')));
+		.filter((line) => !/^import '\.\/contrib\/volter[^']*';$/.test(line))
+		.filter((line, index, all) => !line.startsWith('// VOLTER (overlaid tier') && !(line === '' && all[index + 1]?.startsWith('// VOLTER (overlaid tier')));
 	let last = -1;
 	for (let i = 0; i < lines.length; i++) {
 		if (/^import '\.\/contrib\/.*\.js';$/.test(lines[i])) { last = i; }
 	}
 	if (last === -1) { fail(`${path} carries no \`import './contrib/….js';\` line to register beside.`); }
 	const tierImports = tiers.map((tier) => `import './contrib/${tier.contrib}/browser/look.contribution.js';`);
-	lines.splice(last + 1, 0, '', '// VGAI (overlaid tier — scripts/workbench/overlay.mjs; the product and its look tiers register, then the kit reads them)', PRODUCT_IMPORT, ...tierImports, KIT_IMPORT);
+	lines.splice(last + 1, 0, '', '// VOLTER (overlaid tier — scripts/workbench/overlay.mjs; the product and its look tiers register, then the kit reads them)', PRODUCT_IMPORT, ...tierImports, KIT_IMPORT);
 	writeFileSync(path, lines.join('\n'));
 }
 
@@ -233,7 +233,7 @@ function patchWebResources(checkout, tiers) {
 	const body = source
 		.slice(start + startMarker.length, end)
 		.split('\n')
-		.filter((line) => !line.includes('contrib/vgai') && !line.includes('// VGAI'))
+		.filter((line) => !line.includes('contrib/volter') && !line.includes('// VOLTER'))
 		.join('\n')
 		.replace(/,?\s*$/, ',');
 	// `out-build` IS the compiled `src/`, so the glob drops that prefix: a path with it in
@@ -242,7 +242,7 @@ function patchWebResources(checkout, tiers) {
 	const ours = [
 		'',
 		'',
-		'\t// VGAI (overlaid tier — scripts/workbench/overlay.mjs)',
+		'\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs)',
 		...[KIT_TARGET, PRODUCT_TARGET, ...tiers.map((tier) => `src/vs/workbench/contrib/${tier.contrib}/browser`)]
 			.map((target, index, all) => `\t'${outBuild(target)}/media/**'${index === all.length - 1 ? '' : ','}`),
 	].join('\n');
@@ -371,9 +371,9 @@ function patchNativeChat(checkout) {
 		'status entry without a provider');
 
 	// The editor owns agent runtimes through Supercode: its service choice registers after the
-	// web defaults (packages/editor-core/workbench/src/vgaiChat.services.ts).
+	// web defaults (packages/editor-core/workbench/src/volterChat.services.ts).
 	const webMain = join(checkout, 'src/vs/workbench/workbench.web.main.ts');
-	const servicesImport = "import './contrib/vgai/browser/vgaiChat.services.js';";
+	const servicesImport = "import './contrib/volter/browser/volterChat.services.js';";
 	writeFileSync(webMain, `${readFileSync(webMain, 'utf8').replaceAll(servicesImport, '').trimEnd()}\n\n${servicesImport}\n`);
 }
 
@@ -444,15 +444,15 @@ function patchRehCopilotShim(checkout) {
 	const path = join(checkout, REH_GULPFILE);
 	const source = readFileSync(path, 'utf8')
 		.split('\n')
-		.filter((line) => !line.includes('// VGAI (overlaid tier') && !line.includes('VGAI_NO_BUILTIN_COPILOT'))
+		.filter((line) => !line.includes('// VOLTER (overlaid tier') && !line.includes('VOLTER_NO_BUILTIN_COPILOT'))
 		.join('\n');
 	const anchor = "\t\tconst builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');\n";
 	if (!source.includes(anchor)) {
 		fail(`${path} has no \`${anchor.trim()}\` — upstream moved the Copilot ripgrep shim and this patch needs re-aiming.`);
 	}
 	const guard =
-		'\t\t// VGAI (overlaid tier — scripts/workbench/overlay.mjs): extensions/copilot is not in\n' +
-		'\t\t// this release, so there is no built-in Copilot SDK to shim. VGAI_NO_BUILTIN_COPILOT.\n' +
+		'\t\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): extensions/copilot is not in\n' +
+		'\t\t// this release, so there is no built-in Copilot SDK to shim. VOLTER_NO_BUILTIN_COPILOT.\n' +
 		'\t\tif (!fs.existsSync(builtInCopilotExtensionDir)) { return; }\n';
 	writeFileSync(path, source.replace(anchor, anchor + guard));
 }
@@ -473,26 +473,26 @@ function patchNpmDirs(checkout) {
 	const path = join(checkout, NPM_DIRS_FILE);
 	const source = readFileSync(path, 'utf8');
 	const entry = `\t'extensions/${COPILOT_EXTENSION}',\n`;
-	const marker = `\t// VGAI (overlaid tier — scripts/workbench/overlay.mjs): 'extensions/${COPILOT_EXTENSION}' is not in this build.\n`;
+	const marker = `\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): 'extensions/${COPILOT_EXTENSION}' is not in this build.\n`;
 	if (source.includes(marker)) { return; }
 	if (!source.includes(entry)) {
-		fail(`${path} has no \`${entry.trim()}\` entry and no vgai marker — upstream moved the install-directory list and this patch needs re-aiming. Leaving it would die later as \`spawn /bin/sh ENOENT\`, which names neither the file nor the cause.`);
+		fail(`${path} has no \`${entry.trim()}\` entry and no volter marker — upstream moved the install-directory list and this patch needs re-aiming. Leaving it would die later as \`spawn /bin/sh ENOENT\`, which names neither the file nor the cause.`);
 	}
 	writeFileSync(path, source.replace(entry, marker));
 }
 
 /** The look tiers the builder named (`--look <package dir>`), read from each package's own
- *  `package.json#vgai.workbench`. */
+ *  `package.json#volter.workbench`. */
 function lookTiers(dirs) {
 	const tiers = [];
 	for (const dir of dirs) {
 		if (!existsSync(join(dir, 'package.json'))) { fail(`--look ${dir} is not a package directory.`); }
 		const manifest = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
-		const where = `${manifest.name ?? dir}'s package.json#vgai.workbench`;
-		const declared = manifest.vgai?.workbench;
+		const where = `${manifest.name ?? dir}'s package.json#volter.workbench`;
+		const declared = manifest.volter?.workbench;
 		if (declared === undefined) { fail(`--look ${dir}: ${where} is not declared, so it carries no look tier.`); }
-		if (typeof declared?.contrib !== 'string' || !/^vgai[A-Z][A-Za-z0-9]*$/.test(declared.contrib) || declared.contrib === 'vgaiProduct') {
-			fail(`${where} must name its "contrib" directory as vgai<Name> (not vgaiProduct), e.g. "vgaiBrand".`);
+		if (typeof declared?.contrib !== 'string' || !/^volter[A-Z][A-Za-z0-9]*$/.test(declared.contrib) || declared.contrib === 'volterProduct') {
+			fail(`${where} must name its "contrib" directory as volter<Name> (not volterProduct), e.g. "volterBrand".`);
 		}
 		if (tiers.some((tier) => tier.contrib === declared.contrib)) { fail(`two --look packages name the contrib directory ${declared.contrib}.`); }
 		if (typeof declared.root !== 'string') { fail(`${where} must name its "root", the directory holding src/ and extensions/.`); }
@@ -611,7 +611,7 @@ function main() {
 
 	// THE MARKER IS WHAT MAKES A SOURCES WORKBENCH SELF-DESCRIBING. A release says what it is in
 	// `BUILD.json`; a checkout has no such file, and "which product is this workbench" is not a
-	// question `git rev-parse` can answer. `@vgai/editor-sdk/session/workbench-locator` reads it
+	// question `git rev-parse` can answer. `@volter/editor-sdk/session/workbench-locator` reads it
 	// and refuses a workbench built for another product than the project's own.
 	writeFileSync(join(checkout, MARKER), `${JSON.stringify({
 		product,

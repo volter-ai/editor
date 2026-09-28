@@ -70,7 +70,7 @@ function SortHeader({
       type="button"
       variant="ghost"
       size="compact"
-      className="vgai-light-explorer-sort"
+      className="volter-light-explorer-sort"
       aria-label={`Sort lights by ${label}`}
       onClick={() => onSort(sortKey)}
     >
@@ -83,7 +83,7 @@ function SortHeader({
 }
 
 function UnsupportedCell() {
-  return <span className="vgai-light-explorer-unavailable">—</span>;
+  return <span className="volter-light-explorer-unavailable">—</span>;
 }
 
 function EnabledCell({
@@ -113,7 +113,7 @@ function ColorCell({
 }) {
   if (!row.color.supported || !row.color.value) return <UnsupportedCell />;
   return (
-    <div className="vgai-light-explorer-color">
+    <div className="volter-light-explorer-color">
       <ColorSwatchInput
         aria-label={`Color for ${row.name}`}
         value={row.color.value}
@@ -193,7 +193,7 @@ function LightTableRow({
           type="button"
           variant="ghost"
           size="compact"
-          className="vgai-light-explorer-name"
+          className="volter-light-explorer-name"
           aria-pressed={selected.has(row.id)}
           onClick={(event) => {
             selectRow(
@@ -210,7 +210,7 @@ function LightTableRow({
           {row.name}
         </Button>
       </td>
-      <td className="vgai-light-explorer-type">{row.type}</td>
+      <td className="volter-light-explorer-type">{row.type}</td>
       <td>
         <ColorCell row={row} edit={editRow} />
       </td>
@@ -324,8 +324,8 @@ export function LightExplorerPanel() {
   };
 
   return (
-    <section className="vgai-light-explorer" aria-label="Light Explorer">
-      <div className="vgai-light-explorer-toolbar">
+    <section className="volter-light-explorer" aria-label="Light Explorer">
+      <div className="volter-light-explorer-toolbar">
         <TextInput
           aria-label="Search lights"
           placeholder="Search lights…"
@@ -344,21 +344,21 @@ export function LightExplorerPanel() {
             </option>
           ))}
         </Select>
-        <span className="vgai-light-explorer-summary">
+        <span className="volter-light-explorer-summary">
           {rows.length} {rows.length === 1 ? 'light' : 'lights'}
           {selectedLightCount > 0 ? ` · ${selectedLightCount} selected` : ''}
         </span>
       </div>
       {rows.length === 0 ? (
-        <div className="vgai-light-explorer-empty">
+        <div className="volter-light-explorer-empty">
           The active document does not expose any lights.
         </div>
       ) : (
-        <div className="vgai-light-explorer-scroll">
-          <table className="vgai-light-explorer-table">
+        <div className="volter-light-explorer-scroll">
+          <table className="volter-light-explorer-table">
             <thead>
               <tr>
-                <th className="vgai-light-explorer-check-column" scope="col">
+                <th className="volter-light-explorer-check-column" scope="col">
                   On
                 </th>
                 <th scope="col">
@@ -424,7 +424,7 @@ export function LightExplorerPanel() {
             </tbody>
           </table>
           {visibleRows.length === 0 ? (
-            <div className="vgai-light-explorer-empty">No lights match the current filters.</div>
+            <div className="volter-light-explorer-empty">No lights match the current filters.</div>
           ) : null}
         </div>
       )}

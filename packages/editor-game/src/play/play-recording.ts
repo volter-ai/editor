@@ -2,15 +2,15 @@
  * EVERY RELAYED PLAY RECORDS, AND AN IDLE RUN STOPS ITSELF.
  *
  * The defect this closes is not a missing feature — the recorder
- * (`gameplay-recording.ts`) already existed, behind `vgai eval
+ * (`gameplay-recording.ts`) already existed, behind `volter-game-editor eval
  * 'editor.recording.start()'`. The defect is that verifying a game through a
  * single screenshot answers a temporal question by luck, and a capability an
  * agent has to remember to switch on is one it does not use. So there is no
- * flag: `vgai play` starts a recording, full stop, and the evidence exists
+ * flag: `volter-game-editor play` starts a recording, full stop, and the evidence exists
  * whether or not anyone thought to ask for it.
  *
  * WHY THE RELAYED PLAY AND NOT THE PLAY BUTTON. The binding is in
- * `play.command.ts`'s `'play'` handler, so it covers `vgai play`, the SDK's
+ * `play.command.ts`'s `'play'` handler, so it covers `volter-game-editor play`, the SDK's
  * `play.start`, and nothing else. Clicking Play in the editor is a HUMAN at
  * the surface: they are the witness, the idle rule below ("no session
  * commands and no player input") is meaningless for them, and auto-stopping
@@ -21,11 +21,11 @@
  * script threw — leaves a growing file that nobody can open. The idle window
  * is what converts an abandoned run into finished evidence.
  *
- * WHAT RECORDING DOES *NOT* DO: gate the still (2026-08-29). `vgai screenshot`
+ * WHAT RECORDING DOES *NOT* DO: gate the still (2026-08-29). `volter-game-editor screenshot`
  * used to REFUSE while a recording was live, on the argument that a single
  * frame answers a temporal question by luck. The argument is right and the
- * refusal was still the defect: because play always records, one `vgai play`
- * killed `vgai screenshot` for the rest of the session — and "what does it
+ * refusal was still the defect: because play always records, one `volter-game-editor play`
+ * killed `volter-game-editor screenshot` for the rest of the session — and "what does it
  * look like" is a question a still answers exactly, and the one the whole
  * look/modeling lane asks (measured, cold fox #3: the loop is play → look).
  * Discouraging a wrong question by making a right one impossible is not a
@@ -56,7 +56,7 @@ import type { AudioRecordingHandle } from '@volter/editor-project/adapter';
  *
  * ONE constant, editor-side, and deliberately generous: the thing it must
  * never do is cut a run that someone is still working with. Two minutes is
- * longer than any gap between an agent's own commands (`vgai eval` round
+ * longer than any gap between an agent's own commands (`volter-game-editor eval` round
  * trips are seconds) and longer than a human's pause at the keyboard, while
  * still being short enough that an abandoned run becomes a readable file
  * inside the same working session rather than the next day.
@@ -100,7 +100,7 @@ let live: LivePlayRecording | null = null;
  * The recorder's own "already active" guard is released at the END of
  * `stopGameplayRecording` (it awaits the in-flight frame, the recorder's stop
  * event, and the chunk uploads). `live` is cleared at the START. So a restart —
- * `vgai play` over a running play, which tears down through `exitPlayMode`'s
+ * `volter-game-editor play` over a running play, which tears down through `exitPlayMode`'s
  * fire-and-forget teardown and then starts the next recording — would look
  * finished to this module while the recorder was still busy, and the next start
  * would refuse. This handle is what a start waits on; without it the second
@@ -169,7 +169,7 @@ export function lastPlayRecording(): GameplayRecordingCapture | null {
  * Two callers, and the pair is the whole definition of "idle": every relayed
  * session command (`host.session.onCommandDispatched`, subscribed below) and
  * every player input event (the listeners installed below). A run is idle only
- * when BOTH have gone quiet — an agent driving through `vgai eval` and a human
+ * when BOTH have gone quiet — an agent driving through `volter-game-editor eval` and a human
  * holding a movement key are each, alone, enough to keep it alive.
  */
 export function notePlayActivity(): void {
@@ -194,7 +194,7 @@ function installInputListeners(): () => void {
  *
  * Never throws: a browser that cannot record must not be a browser that cannot
  * PLAY. The failure is reported to the editor console (which is what
- * `vgai console` and every command's trailing console summary read) and play
+ * `volter-game-editor console` and every command's trailing console summary read) and play
  * continues with no clip, rather than an ack that refuses a working game
  * because its evidence path is unavailable.
  */
@@ -291,7 +291,7 @@ export async function endPlayRecording(
   return stop;
 }
 
-/** One sentence, used by both the auto-stop note and the `vgai screenshot`
+/** One sentence, used by both the auto-stop note and the `volter-game-editor screenshot`
  *  refusal, so the two doors cannot describe the same clip differently. */
 export function describeCapture(capture: GameplayRecordingCapture): string {
   const seconds = Math.round(capture.durationMs / 100) / 10;
@@ -329,7 +329,7 @@ async function autoStopIdlePlay(): Promise<void> {
 
 // HALF OF "IS THIS RUN IDLE" — the other half is player input, watched
 // above. Every relayed command counts: an agent that is still driving a game
-// through `vgai eval` is not idle, whatever the command was, and a stamp
+// through `volter-game-editor eval` is not idle, whatever the command was, and a stamp
 // filed per verb would quietly exclude whichever verb someone forgot.
 // No-op unless a recording is live.
 editorHost().session.onCommandDispatched(() => notePlayActivity());

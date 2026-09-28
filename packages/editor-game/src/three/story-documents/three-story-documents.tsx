@@ -520,7 +520,7 @@ function ThreeStoryArgsSection() {
           </span>
           {descriptor.type === 'boolean' ? (
             <Checkbox
-              className="vgai-checkbox"
+              className="volter-checkbox"
               data-testid={`three-story-arg-${descriptor.label}`}
               checked={args[descriptor.label] === true}
               onChange={(e) =>
@@ -530,7 +530,7 @@ function ThreeStoryArgsSection() {
           ) : descriptor.type === 'number' ? (
             <TextInput
               type="number"
-              className="vgai-input"
+              className="volter-input"
               data-testid={`three-story-arg-${descriptor.label}`}
               value={args[descriptor.label] as number}
               onChange={(e) => {
@@ -549,7 +549,7 @@ function ThreeStoryArgsSection() {
           ) : descriptor.type === 'string' ? (
             <TextInput
               type="text"
-              className="vgai-input"
+              className="volter-input"
               data-testid={`three-story-arg-${descriptor.label}`}
               value={args[descriptor.label] as string}
               onChange={(e) =>

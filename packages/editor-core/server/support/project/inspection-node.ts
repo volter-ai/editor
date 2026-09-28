@@ -57,7 +57,7 @@ export async function adaptProjectFolderPath(
     surface?: SuggestedAdapterSurface | undefined;
     entry?: string | undefined;
   },
-): Promise<{ path: string; writes: ['vgai.project.json']; manifest: Record<string, unknown> }> {
+): Promise<{ path: string; writes: ['volter.project.json']; manifest: Record<string, unknown> }> {
   const preview = await previewAdaptProjectFolderPath(path, options);
   await writeFile(
     resolveManifestPath(preview.path),
@@ -67,7 +67,7 @@ export async function adaptProjectFolderPath(
       flag: 'wx',
     },
   );
-  return { path: preview.path, writes: ['vgai.project.json'], manifest: preview.manifest };
+  return { path: preview.path, writes: ['volter.project.json'], manifest: preview.manifest };
 }
 
 /** Build the exact proposed sidecar without writing it. */
@@ -88,7 +88,7 @@ export async function previewAdaptProjectFolderPath(
   const rootStat = await stat(root);
   if (!rootStat.isDirectory()) throw new Error(`Project path is not a directory: ${root}`);
   const report = await inspectProject(nodeProjectInspectionReader(root));
-  if (report.hasManifest) throw new Error('This folder already has a vgai.project.json manifest.');
+  if (report.hasManifest) throw new Error('This folder already has a volter.project.json manifest.');
   let name = basename(root);
   try {
     const packageJson = JSON.parse(

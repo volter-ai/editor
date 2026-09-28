@@ -20,7 +20,7 @@
  *    board's exhibits open on); anything else opens on the isolated story
  *    document (`story:isolated`). Both are ADDRESSES
  *    (`@editor/document-open-registry`): the documents themselves are
- *    `@vgai/game`'s, and a build without it opens neither.
+ *    `@volter/editor-game`'s, and a build without it opens neither.
  */
 
 import type {

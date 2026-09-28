@@ -1,5 +1,5 @@
 /**
- * Canonical design-token module for the vgai editor (editor-style-polish U0).
+ * Canonical design-token module for the Volter editor (editor-style-polish U0).
  * Every color/spacing/radius/type/shadow/z-index value the editor's ~98 React
  * components currently hand-roll as inline hex literals gets one home here. This module installs the variables consumed by `theme.css` and
  * supplies plain TS/TSX call sites that still build inline `style`
@@ -73,50 +73,50 @@ const GRAPHITE_SHADOW = {
  */
 export const bg = {
   /** App shell / loading screen (`AppRoot.tsx`, root `index.html` body). */
-  0: 'var(--vgai-surface-shell)',
+  0: 'var(--volter-surface-shell)',
   /** Panel body (`Panel.tsx`'s content area, THEME.bg). */
-  1: 'var(--vgai-surface-panel)',
+  1: 'var(--volter-surface-panel)',
   /** Surface: header / menu / dropdown / popover (THEME.surface). */
-  2: 'var(--vgai-surface-chrome)',
+  2: 'var(--volter-surface-chrome)',
   /** Raised / hover surface (THEME.surfaceHover). */
-  3: 'var(--vgai-surface-raised)',
+  3: 'var(--volter-surface-raised)',
   /** Input well / recessed field background (THEME.inputBg). */
-  inset: 'var(--vgai-surface-inset)',
+  inset: 'var(--volter-surface-inset)',
 } as const;
 
 /** Border ramp — same literal as `bg[3]` for `border[1]` by design (distinguished by CSS property, not value). */
 export const border = {
   /** Default border. */
-  1: 'var(--vgai-boundary-default)',
+  1: 'var(--volter-boundary-default)',
   /** Hover / emphasis border. */
-  2: 'var(--vgai-boundary-strong)',
+  2: 'var(--volter-boundary-strong)',
 } as const;
 
 /** Text ramp — primary → tertiary/dim. */
 export const text = {
   /** Primary text (THEME.text). */
-  1: 'var(--vgai-content-primary)',
+  1: 'var(--volter-content-primary)',
   /** Secondary / muted text (THEME.textMuted). */
-  2: 'var(--vgai-content-muted)',
+  2: 'var(--volter-content-muted)',
   /** Tertiary / dim text. */
-  3: 'var(--vgai-content-dim)',
+  3: 'var(--volter-content-dim)',
 } as const;
 
 /** Canonical action/focus accent. Selection chrome uses `selection` below. */
-export const accent = 'var(--vgai-accent)';
+export const accent = 'var(--volter-accent)';
 /** Semantic tint behind accent-colored actions, status, and information. */
-export const accentMuted = 'var(--vgai-accent-muted)';
+export const accentMuted = 'var(--volter-accent-muted)';
 /** Material selection roles: accent in Classic, adaptive neutral in Glass. */
 export const selection = {
-  background: 'var(--vgai-selection-bg)',
-  border: 'var(--vgai-selection-border)',
-  indicator: 'var(--vgai-selection-indicator)',
+  background: 'var(--volter-selection-bg)',
+  border: 'var(--volter-selection-border)',
+  indicator: 'var(--volter-selection-indicator)',
 } as const;
 
 /** Semantic tones. */
-export const danger = 'var(--vgai-danger)';
-export const warn = 'var(--vgai-warn)';
-export const success = 'var(--vgai-success)';
+export const danger = 'var(--volter-danger)';
+export const warn = 'var(--volter-warn)';
+export const success = 'var(--volter-success)';
 
 /**
  * Semantic background tints (U6, punch-list #1) — one family alpha (0.15,
@@ -126,10 +126,10 @@ export const success = 'var(--vgai-success)';
  * ConsolePanel (entity chip), AudioSection
  * (stop state), and the unsaved-document treatment.
  */
-export const successMuted = 'var(--vgai-success-muted)';
-export const dangerMuted = 'var(--vgai-danger-muted)';
+export const successMuted = 'var(--volter-success-muted)';
+export const dangerMuted = 'var(--volter-danger-muted)';
 /** Resting warning surface used for unsaved/attention states. */
-export const warnMuted = 'var(--vgai-warn-muted)';
+export const warnMuted = 'var(--volter-warn-muted)';
 /**
  * Deliberately fainter danger tint for RESTING full-row backgrounds
  * (ConsolePanel error rows): a run of consecutive error
@@ -137,17 +137,17 @@ export const warnMuted = 'var(--vgai-warn-muted)';
  * point-emphasis chips/bands use `dangerMuted`. Two files independently
  * converged on this exact value — tokenized so they can't drift apart.
  */
-export const dangerFaint = 'var(--vgai-danger-faint)';
+export const dangerFaint = 'var(--volter-danger-faint)';
 
 /**
  * The one modal/backdrop dimming scrim. The canonical Dialog pattern and
  * non-dialog modal surfaces share this semantic value.
  */
-export const scrim = 'var(--vgai-scrim)';
+export const scrim = 'var(--volter-scrim)';
 
 /** Kit-specific "reactive/bound value" indicator (inspector-widgets only — not otherwise contested). */
-export const dynamic = 'var(--vgai-dynamic)';
-export const dynamicBg = 'var(--vgai-dynamic-muted)';
+export const dynamic = 'var(--volter-dynamic)';
+export const dynamicBg = 'var(--volter-dynamic-muted)';
 
 /** 4/8-based spacing scale — compose padding/margin/gap from these instead of ad hoc shorthand strings. */
 export const space = {
@@ -365,14 +365,14 @@ export const motion = {
  * no `@font-face`/`<link>` for it exists anywhere in `packages/editor`, so it
  * only ever silently fell back to this same chain.
  */
-export const fontSans = 'var(--vgai-font-sans)';
+export const fontSans = 'var(--volter-font-sans)';
 
 /**
  * Canonical mono stack — replaces `FONT_MONO`/`MONO`/18 bare `'monospace'`
  * sites. This spelling had 2 independent votes in the codebase vs. 1 each
  * for the others.
  */
-export const fontMono = 'var(--vgai-font-mono)';
+export const fontMono = 'var(--volter-font-mono)';
 
 const DEFAULT_RADIUS = {
   small: '3px',
@@ -387,20 +387,20 @@ const DEFAULT_RADIUS = {
  * custom theme instead of freezing the Graphite defaults into inline styles.
  */
 export const radius = {
-  sm: 'var(--vgai-radius-sm)',
-  md: 'var(--vgai-radius-md)',
-  lg: 'var(--vgai-radius-lg)',
-  full: 'var(--vgai-radius-full)',
+  sm: 'var(--volter-radius-sm)',
+  md: 'var(--volter-radius-md)',
+  lg: 'var(--volter-radius-lg)',
+  full: 'var(--volter-radius-full)',
 } as const;
 
 /** Drop-shadow tiers. */
 export const shadow = {
   /** Tooltip tier. */
-  sm: 'var(--vgai-shadow-sm)',
+  sm: 'var(--volter-shadow-sm)',
   /** Dropdown / menu tier — already the dominant value pre-token. */
-  md: 'var(--vgai-shadow-md)',
+  md: 'var(--volter-shadow-md)',
   /** Modal tier. */
-  lg: 'var(--vgai-shadow-lg)',
+  lg: 'var(--volter-shadow-lg)',
 } as const;
 
 /**
@@ -410,44 +410,44 @@ export const shadow = {
  * place a theme cannot reach; these keep inline styles on the token.
  */
 export const fontSizeVar = {
-  xs: 'var(--vgai-font-xs)',
-  sm: 'var(--vgai-font-sm)',
-  base: 'var(--vgai-font-base)',
-  md: 'var(--vgai-font-md)',
-  lg: 'var(--vgai-font-lg)',
-  xl: 'var(--vgai-font-xl)',
-  '2xl': 'var(--vgai-font-2xl)',
-  heading: 'var(--vgai-font-heading)',
+  xs: 'var(--volter-font-xs)',
+  sm: 'var(--volter-font-sm)',
+  base: 'var(--volter-font-base)',
+  md: 'var(--volter-font-md)',
+  lg: 'var(--volter-font-lg)',
+  xl: 'var(--volter-font-xl)',
+  '2xl': 'var(--volter-font-2xl)',
+  heading: 'var(--volter-font-heading)',
 } as const;
 
 export const spaceVar = {
-  1: 'var(--vgai-space-1)',
-  2: 'var(--vgai-space-2)',
-  3: 'var(--vgai-space-3)',
-  4: 'var(--vgai-space-4)',
-  5: 'var(--vgai-space-5)',
-  6: 'var(--vgai-space-6)',
-  8: 'var(--vgai-space-8)',
-  10: 'var(--vgai-space-10)',
-  12: 'var(--vgai-space-12)',
+  1: 'var(--volter-space-1)',
+  2: 'var(--volter-space-2)',
+  3: 'var(--volter-space-3)',
+  4: 'var(--volter-space-4)',
+  5: 'var(--volter-space-5)',
+  6: 'var(--volter-space-6)',
+  8: 'var(--volter-space-8)',
+  10: 'var(--volter-space-10)',
+  12: 'var(--volter-space-12)',
 } as const;
 
 export const lineHeightVar = {
-  tight: 'var(--vgai-leading-tight)',
-  snug: 'var(--vgai-leading-snug)',
-  normal: 'var(--vgai-leading-normal)',
-  relaxed: 'var(--vgai-leading-relaxed)',
+  tight: 'var(--volter-leading-tight)',
+  snug: 'var(--volter-leading-snug)',
+  normal: 'var(--volter-leading-normal)',
+  relaxed: 'var(--volter-leading-relaxed)',
 } as const;
 
 export const motionVar = {
   duration: {
-    fast: 'var(--vgai-duration-fast)',
-    base: 'var(--vgai-duration-base)',
-    slow: 'var(--vgai-duration-slow)',
+    fast: 'var(--volter-duration-fast)',
+    base: 'var(--volter-duration-base)',
+    slow: 'var(--volter-duration-slow)',
   },
   easing: {
-    standard: 'var(--vgai-ease-standard)',
-    out: 'var(--vgai-ease-out)',
+    standard: 'var(--volter-ease-standard)',
+    out: 'var(--volter-ease-out)',
   },
 } as const;
 
@@ -457,7 +457,7 @@ export const motionVar = {
  * `onFocus`/`onBlur` handler for inline-`style` components that can't
  * express the pseudo-class directly (out of scope for U0 — later units).
  */
-export const focusRing = 'var(--vgai-focus-ring)';
+export const focusRing = 'var(--volter-focus-ring)';
 
 /**
  * The EDITOR AREAS a palette may paint separately (`EditorTheme.color.region`,
@@ -566,7 +566,7 @@ export interface EditorTheme {
        * carries no chevron and no guide beneath it — measured, x 0..48 is
        * clear for the whole Collection row. What a row THREE levels deep
        * carries is therefore not photographed; `theme.css`'s
-       * `.vgai-tree-indent-guide` records the reading taken and why.
+       * `.volter-tree-indent-guide` records the reading taken and why.
        */
       readonly indent?: string;
       /**
@@ -587,9 +587,9 @@ export interface EditorTheme {
        * between the bar's own 23 and the tab strip's 28. Ours painted
        * `boundary.default` #3c3c3c (60), lighter than the strip it borders.
        *
-       * ONE SITE, and the scope is the measurement's: `.vgai-project-menu-rule`
+       * ONE SITE, and the scope is the measurement's: `.volter-project-menu-rule`
        * is the only divider in either frame I measured. The token is read
-       * there and nowhere else; widening it to every `.vgai-divider` is a
+       * there and nowhere else; widening it to every `.volter-divider` is a
        * later unit's, with its own frames.
        */
       readonly divider?: string;
@@ -622,7 +622,7 @@ export interface EditorTheme {
        * IT REMOVES A SPLIT. Ours drew the two sites at two different members —
        * 229 `content.primary` in the top bar and 194 `content.muted` in the
        * area header (measured live before this member existed) — because the
-       * area header's words inherit `.vgai-menu-trigger`'s base ink and only
+       * area header's words inherit `.volter-menu-trigger`'s base ink and only
        * the top bar carried an override. One role, one member, one rule.
        *
        * WHERE THE EVIDENCE STOPS: no reference frame photographs a HOVERED or
@@ -636,7 +636,7 @@ export interface EditorTheme {
        * it reads at one level regardless of what put them there.
        *
        * Optional, falling back to {@link dim} in the emitter, which is what
-       * `.vgai-editor-bottom-bar` already inherits — a palette naming none
+       * `.volter-editor-bottom-bar` already inherits — a palette naming none
        * paints exactly what it painted before.
        *
        * MEASURED, Blender 5.2 at native 2x: the whole status band of
@@ -696,7 +696,7 @@ export interface EditorTheme {
        * opens in EDIT mode, where no object-mode selection exists to paint. In
        * `modeling-object-selected.png` the same Cube row carries a #324c7f band
        * inside a #5a74a7 hairline. The name is one of three marks, not the only
-       * one; the other two are on `--vgai-tree-row-selected-bg` below.
+       * one; the other two are on `--volter-tree-row-selected-bg` below.
        *
        * It is NOT `viewport.active`, and that is Blender's own distinction
        * rather than ours: its 3D View paints the active object's outline
@@ -877,7 +877,7 @@ export interface EditorTheme {
      * Only stacked widgets in one group escape the rule entirely: Blender's
      * Location X/Y/Z share outlines and the emboss lands under the GROUP.
      *
-     * A palette that names no `emboss` emits `--vgai-widget-emboss-shadow:
+     * A palette that names no `emboss` emits `--volter-widget-emboss-shadow:
      * none` and every widget paints exactly what it painted before this
      * member existed.
      */
@@ -1055,7 +1055,7 @@ export interface EditorTheme {
      * from its body: the 3D viewport's header is #343434 over a #3f3f3f back
      * (`modeling.png` y=108 is 52, y=109 is 63). That area is not a dock
      * panel — it is the document surface, whose fill is `viewport.background`
-     * and whose header is `--vgai-surface-header` — so it takes no region
+     * and whose header is `--volter-surface-header` — so it takes no region
      * claim and the "one colour, header and body" rule above stands for
      * everything this member can reach.
      */
@@ -1079,7 +1079,7 @@ export interface EditorTheme {
    * Optional: absent means no backdrop treatment, matching every existing
    * theme's opaque panels. Extensible record for future treatment axes;
    * only backdrop blur/ saturation are defined for now. A "glass" look is
-   * entirely DATA here — no `[data-vgai-theme=…]` CSS special-casing
+   * entirely DATA here — no `[data-volter-theme=…]` CSS special-casing
    * exists or should be added; `editorThemeVariables` is the only place
    * this is consumed.
    */
@@ -1100,7 +1100,7 @@ export interface EditorTheme {
      * Liquid Glass Tier-1 edge-specular intensity (0–1; report §2.24). Drives
      * the alphas of the pure-CSS "light catching the edge" trio — the 1.5px
      * gradient border ring, the 1px inset rim catches, and the diagonal
-     * sheen — all emitted as `--vgai-card-specular-*` variables and painted
+     * sheen — all emitted as `--volter-card-specular-*` variables and painted
      * by `workspace-dock.css`'s card-chrome pseudo-elements. 0/absent means
      * none of the three paint. Calibrated so 0.6 reproduces the committed
      * prototype's variant-B alphas exactly
@@ -1140,14 +1140,14 @@ export interface EditorTheme {
      * (`components/glass-refraction.ts`): it only ever paints when Chromium
      * supports `backdrop-filter: url(#…)` AND the GPU is not a software
      * rasterizer; everywhere else the plain
-     * `--vgai-surface-backdrop-filter` list paints instead, automatically.
+     * `--volter-surface-backdrop-filter` list paints instead, automatically.
      * Distinct from `thickness` (the Tier-1 inset-shadow depth cue), which
      * survives as an independent axis.
      */
     readonly refractionThickness?: number;
     /**
      * Content-legibility text shadow opacity (0–1): emits
-     * `--vgai-content-text-shadow: 0 1px 2px rgba(0,0,0,<v>)` inherited by
+     * `--volter-content-text-shadow: 0 1px 2px rgba(0,0,0,<v>)` inherited by
      * all editor chrome. The §2.32 legibility finding: near-white text +
      * concentrated text-shadow is the correct default over a predominantly dark
      * viewport when the surface itself is a ≤15% white whisper (a full
@@ -1158,7 +1158,7 @@ export interface EditorTheme {
     /**
      * Maximum body/content frost blur in px (0–24; §2.31 P2 owner
      * amendment). On the SVG path the lens blends from its clear rim toward
-     * this blur with optical depth. `.vgai-content-frost` also applies the
+     * this blur with optical depth. `.volter-content-frost` also applies the
      * same value locally behind text-dense zones, using a colorless/light
      * material lift rather than black paint. 0/absent emits
      * `none`/`transparent`, so treatment-less themes stay byte-identical.
@@ -1171,7 +1171,7 @@ export interface EditorTheme {
      * clear glass still reads as a surface over a pure-black void —
      * physically a glass sheet over black IS invisible, and the owner
      * chose a subtle ambient light response over accepting the physics.
-     * Emitted as the `--vgai-ambient-lift` background-image layer
+     * Emitted as the `--volter-ambient-lift` background-image layer
      * (gradient geometry is a design constant here; this axis is only the
      * intensity). 0/absent emits `none` — every pre-existing theme and
      * every lite/reduced-transparency fallback paints byte-identically.
@@ -1386,7 +1386,7 @@ export const glassDarkEditorTheme: EditorTheme = {
       active: 'color-mix(in srgb, currentColor 14%, transparent)',
     },
     // Lighter dim than the opaque themes — the modal scrim's blur
-    // (`--vgai-scrim-backdrop-filter`, emitted for every treatment theme)
+    // (`--volter-scrim-backdrop-filter`, emitted for every treatment theme)
     // does the separation work, the macOS read (P6-U6 owner taste
     // decision 3). The lite fallback pins the original heavy dim.
     scrim: 'rgba(0,0,0,0.35)',
@@ -1433,7 +1433,7 @@ export const glassDarkEditorTheme: EditorTheme = {
  * no-filter treatment must ship as a first-class fallback — not just a
  * theoretical escape hatch — for hardware where the backdrop filter is
  * unaffordable. Derived from `glassDarkEditorTheme` with NO `treatment` key
- * (so `editorThemeVariables` emits `--vgai-surface-backdrop-filter: none`)
+ * (so `editorThemeVariables` emits `--volter-surface-backdrop-filter: none`)
  * and surface alphas raised to compensate for the legibility that blur would
  * otherwise have provided: panel 0.62->0.78, chrome 0.68->0.82, raised
  * 0.74->0.86, inset 0.70->0.82; shell/overlay are unchanged since they were
@@ -1547,7 +1547,7 @@ export const liquidGlassEditorTheme: EditorTheme = {
       instance: '#3ad2ea',
     },
     neutralOverlay: GLASS_MATERIAL.color.neutralOverlay,
-    // Lighter dim + scrim blur (`--vgai-scrim-backdrop-filter`) — the macOS
+    // Lighter dim + scrim blur (`--volter-scrim-backdrop-filter`) — the macOS
     // modal read, P6-U6 owner taste decision 3; lite pins the heavier dim.
     scrim: GLASS_MATERIAL.color.scrim,
   },
@@ -1569,8 +1569,8 @@ export const liquidGlassEditorTheme: EditorTheme = {
  * Liquid-glass degrade tier (reduced transparency / no-treatment
  * environments), following the `glass-dark-lite` precedent: the SAME
  * palette family with NO `treatment` key (so
- * `--vgai-surface-backdrop-filter` emits `none` and
- * `--vgai-card-refraction-thickness` emits `0`) and — U6.5 F8 — SOLID
+ * `--volter-surface-backdrop-filter` emits `none` and
+ * `--volter-card-refraction-thickness` emits `0`) and — U6.5 F8 — SOLID
  * fills: the audit (shot 25) caught the scene reading through the former
  * `rgba(255,255,255,0.14)` card fills with no backdrop-filter to earn the
  * translucency, defeating the reduced-transparency request outright ("the
@@ -1619,78 +1619,78 @@ export function isEditorThemeId(value: unknown): value is EditorThemeId {
 /** Semantic CSS-variable references for rendered editor chrome. */
 export const themeVars = {
   surface: {
-    shell: 'var(--vgai-surface-shell)',
-    panel: 'var(--vgai-surface-panel)',
-    chrome: 'var(--vgai-surface-chrome)',
-    raised: 'var(--vgai-surface-raised)',
-    inset: 'var(--vgai-surface-inset)',
-    overlay: 'var(--vgai-surface-overlay)',
+    shell: 'var(--volter-surface-shell)',
+    panel: 'var(--volter-surface-panel)',
+    chrome: 'var(--volter-surface-chrome)',
+    raised: 'var(--volter-surface-raised)',
+    inset: 'var(--volter-surface-inset)',
+    overlay: 'var(--volter-surface-overlay)',
   },
   boundary: {
-    default: 'var(--vgai-boundary-default)',
-    strong: 'var(--vgai-boundary-strong)',
+    default: 'var(--volter-boundary-default)',
+    strong: 'var(--volter-boundary-strong)',
   },
   content: {
-    primary: 'var(--vgai-content-primary)',
-    muted: 'var(--vgai-content-muted)',
-    dim: 'var(--vgai-content-dim)',
-    onAccent: 'var(--vgai-content-on-accent)',
+    primary: 'var(--volter-content-primary)',
+    muted: 'var(--volter-content-muted)',
+    dim: 'var(--volter-content-dim)',
+    onAccent: 'var(--volter-content-on-accent)',
     /** The ACTIVE subject's own ink; EMPTY under a palette that names none,
      *  so a site reading it must write its own fallback. */
-    active: 'var(--vgai-content-active)',
+    active: 'var(--volter-content-active)',
     /** The SELECTED-but-not-active subject's ink; EMPTY the same way, and the
      *  emitter already falls it back to {@link active}, so a palette naming
      *  only an active ink resolves this to that. (The fallback is in the
      *  EMITTER and not in a `var(…, …)` default, because every variable is
      *  always emitted — as `''` when absent — so a CSS fallback would never
      *  fire.) */
-    selected: 'var(--vgai-content-selected)',
+    selected: 'var(--volter-content-selected)',
   },
   accent: {
-    default: 'var(--vgai-accent)',
-    muted: 'var(--vgai-accent-muted)',
+    default: 'var(--volter-accent)',
+    muted: 'var(--volter-accent-muted)',
   },
   selection: {
-    background: 'var(--vgai-selection-bg)',
-    border: 'var(--vgai-selection-border)',
-    indicator: 'var(--vgai-selection-indicator)',
+    background: 'var(--volter-selection-bg)',
+    border: 'var(--volter-selection-border)',
+    indicator: 'var(--volter-selection-indicator)',
   },
   semantic: {
-    danger: 'var(--vgai-danger)',
-    dangerMuted: 'var(--vgai-danger-muted)',
-    dangerFaint: 'var(--vgai-danger-faint)',
-    warning: 'var(--vgai-warn)',
-    warningMuted: 'var(--vgai-warn-muted)',
-    success: 'var(--vgai-success)',
-    successMuted: 'var(--vgai-success-muted)',
-    dynamic: 'var(--vgai-dynamic)',
-    dynamicMuted: 'var(--vgai-dynamic-muted)',
-    instance: 'var(--vgai-instance)',
+    danger: 'var(--volter-danger)',
+    dangerMuted: 'var(--volter-danger-muted)',
+    dangerFaint: 'var(--volter-danger-faint)',
+    warning: 'var(--volter-warn)',
+    warningMuted: 'var(--volter-warn-muted)',
+    success: 'var(--volter-success)',
+    successMuted: 'var(--volter-success-muted)',
+    dynamic: 'var(--volter-dynamic)',
+    dynamicMuted: 'var(--volter-dynamic-muted)',
+    instance: 'var(--volter-instance)',
   },
   neutralOverlay: {
-    hover: 'var(--vgai-neutral-hover)',
-    active: 'var(--vgai-neutral-active)',
+    hover: 'var(--volter-neutral-hover)',
+    active: 'var(--volter-neutral-active)',
   },
-  scrim: 'var(--vgai-scrim)',
+  scrim: 'var(--volter-scrim)',
   typography: {
-    sans: 'var(--vgai-font-sans)',
-    mono: 'var(--vgai-font-mono)',
+    sans: 'var(--volter-font-sans)',
+    mono: 'var(--volter-font-mono)',
   },
   shape: {
-    small: 'var(--vgai-radius-sm)',
-    medium: 'var(--vgai-radius-md)',
-    large: 'var(--vgai-radius-lg)',
-    full: 'var(--vgai-radius-full)',
+    small: 'var(--volter-radius-sm)',
+    medium: 'var(--volter-radius-md)',
+    large: 'var(--volter-radius-lg)',
+    full: 'var(--volter-radius-full)',
   },
   elevation: {
-    small: 'var(--vgai-shadow-sm)',
-    medium: 'var(--vgai-shadow-md)',
-    large: 'var(--vgai-shadow-lg)',
+    small: 'var(--volter-shadow-sm)',
+    medium: 'var(--volter-shadow-md)',
+    large: 'var(--volter-shadow-lg)',
   },
-  focusRing: 'var(--vgai-focus-ring)',
+  focusRing: 'var(--volter-focus-ring)',
 } as const;
 
-export type EditorThemeVariable = `--vgai-${string}`;
+export type EditorThemeVariable = `--volter-${string}`;
 
 /** Theme-derived native-select artwork; data URIs cannot inherit CSS `color`. */
 function chevronDataUri(color: string): string {
@@ -1705,7 +1705,7 @@ function chevronDataUri(color: string): string {
  * Compose the treatment vocabulary's `backdrop-filter` value: `blur(..px)
  * saturate(..)` when either axis is set, else `'none'`. Treatment-less
  * themes (graphite, classic, and the `-lite` reduced-transparency tiers)
- * emit `'none'` — no `[data-vgai-theme=…]` CSS special-casing anywhere;
+ * emit `'none'` — no `[data-volter-theme=…]` CSS special-casing anywhere;
  * this function is the single place a theme's treatment becomes a real
  * filter string.
  */
@@ -1723,25 +1723,25 @@ function backdropFilterValue(treatment: EditorTheme['treatment']): string {
 }
 
 /**
- * Structural header surfaces (`--vgai-surface-sticky`/`-panel`). Glass
+ * Structural header surfaces (`--volter-surface-sticky`/`-panel`). Glass
  * themes leave title/table rails transparent: the owner-reopened acceptance
  * explicitly reserves frost for significant text floors, not headers.
  * Classic themes retain the old occluding layered stack. Reduced Glass keeps
  * Glass morphology even though it intentionally has no optical treatment.
  */
 function stickySurfaceValue(
-  token: '--vgai-surface-chrome' | '--vgai-surface-panel',
+  token: '--volter-surface-chrome' | '--volter-surface-panel',
   glassMaterial: boolean,
 ): string {
   if (glassMaterial) return 'transparent';
   return (
     `linear-gradient(var(${token}), var(${token})), ` +
-    `linear-gradient(var(--vgai-surface-shell), var(--vgai-surface-shell))`
+    `linear-gradient(var(--volter-surface-shell), var(--volter-surface-shell))`
   );
 }
 
 /**
- * Content-zone frost (`--vgai-content-frost-filter`/`-bg`, §2.31 P2 owner
+ * Content-zone frost (`--volter-content-frost-filter`/`-bg`, §2.31 P2 owner
  * amendment): the local frosted-blur layer behind text-dense interior zones.
  * Filter reuses the theme's own saturation term so the frost and the plain
  * surface treatment cannot drift; bg is a fixed light tint — NEVER a dark
@@ -1769,19 +1769,19 @@ function contentFrostBgValue(treatment: EditorTheme['treatment']): string {
  * recipe. Reduced Glass is safe because its parent surfaces are solid. */
 function inputSurfaceValue(glassMaterial: boolean): string {
   // A text field is its own WIDGET CLASS (Blender's `wcol_text`, measured
-  // #1c1c1c), which is why this reads `--vgai-widget-field` rather than
-  // `--vgai-surface-inset` directly — that token resolves to `surface.inset`
+  // #1c1c1c), which is why this reads `--volter-widget-field` rather than
+  // `--volter-surface-inset` directly — that token resolves to `surface.inset`
   // for every palette that does not name the class, so this is the same value
   // it has always been.
   return glassMaterial
     ? 'color-mix(in srgb, currentColor 7%, transparent)'
-    : 'var(--vgai-widget-field)';
+    : 'var(--volter-widget-field)';
 }
 
 function inputBorderValue(glassMaterial: boolean): string {
   return glassMaterial
     ? 'color-mix(in srgb, currentColor 26%, transparent)'
-    : 'var(--vgai-boundary-default)';
+    : 'var(--volter-boundary-default)';
 }
 
 function inputShadowValue(glassMaterial: boolean, embossShadow: string): string {
@@ -1789,7 +1789,7 @@ function inputShadowValue(glassMaterial: boolean, embossShadow: string): string 
   // (`EditorTheme.color.widget.emboss`) like every other one. It composes
   // here rather than in the four stylesheet rules that read this token
   // because `none` is not a legal member of a `box-shadow` LIST: a rule
-  // written `var(--vgai-widget-emboss-shadow), var(--vgai-input-shadow)`
+  // written `var(--volter-widget-emboss-shadow), var(--volter-input-shadow)`
   // would be invalid for every palette that names neither.
   const emboss = embossShadow === 'none' ? '' : embossShadow;
   const glass = glassMaterial
@@ -1819,7 +1819,7 @@ function specularWhite(base: number, edgeSpecular: number): string {
 }
 
 /**
- * The 1.5px edge ring's gradient (`--vgai-card-specular-ring`): brightest at
+ * The 1.5px edge ring's gradient (`--volter-card-specular-ring`): brightest at
  * the light-facing corner, falling to a faint trace on the far side, so the
  * rim reads as light catching a polished edge rather than a drawn border.
  * `'none'` when the treatment carries no specular — the ring pseudo-element
@@ -1837,7 +1837,7 @@ function specularRingValue(treatment: EditorTheme['treatment']): string {
 }
 
 /**
- * The interior sheen wash (`--vgai-card-specular-sheen`): a soft diagonal
+ * The interior sheen wash (`--volter-card-specular-sheen`): a soft diagonal
  * gradient from the lit corner across ~40% of the card, painted BELOW card
  * content (negative-z pseudo) so text never sits on a brightened band edge.
  */
@@ -1850,12 +1850,12 @@ function specularSheenValue(treatment: EditorTheme['treatment']): string {
 }
 
 /**
- * The card's full box-shadow stack (`--vgai-card-specular-shadow`):
+ * The card's full box-shadow stack (`--volter-card-specular-shadow`):
  * `edgeSpecular` contributes the 1px inset rim catches; `thickness` scales
  * the glass-depth pair (upper inner glow + lower inner shadow) plus the
  * matching drop shadow, replacing the theme's stock elevation. Either axis
  * absent → its terms drop out; both absent → exactly the pre-existing
- * `var(--vgai-shadow-lg)` card shadow, so treatment-less themes and the
+ * `var(--volter-shadow-lg)` card shadow, so treatment-less themes and the
  * reduced-transparency fallback paint byte-identical cards.
  */
 function specularShadowValue(treatment: EditorTheme['treatment']): string {
@@ -1873,15 +1873,15 @@ function specularShadowValue(treatment: EditorTheme['treatment']): string {
     parts.push(`inset 0 ${depth(-14)} ${depth(28)} ${depth(-18)} rgba(0,0,0,0.55)`);
     parts.push(`0 ${depth(18)} ${depth(40)} ${depth(-18)} rgba(0,0,0,0.55)`);
   } else {
-    parts.push('var(--vgai-shadow-lg)');
+    parts.push('var(--volter-shadow-lg)');
   }
   return parts.join(', ');
 }
 
 /**
- * Floating glass-island chrome (`--vgai-island-*`, P6 glass-native chrome
+ * Floating glass-island chrome (`--volter-island-*`, P6 glass-native chrome
  * U1/U2): free-standing chrome that floats over the canvas —
- * `.vgai-floating-toolbar` (the viewport toolstrip and its siblings), and
+ * `.volter-floating-toolbar` (the viewport toolstrip and its siblings), and
  * the header/footer clusters in later P6 units. A theme WITH a glass
  * treatment paints islands as REAL glass, the same material as cards: the
  * panel-whisper fill (never an opaque or color-mix slab), the theme's own
@@ -1906,8 +1906,8 @@ export function usesGlassMaterial(theme: EditorTheme): boolean {
 
 function islandSurfaceValue(theme: EditorTheme): string {
   return usesGlassMaterial(theme)
-    ? 'var(--vgai-surface-panel)'
-    : 'color-mix(in srgb, var(--vgai-surface-panel) 90%, transparent)';
+    ? 'var(--volter-surface-panel)'
+    : 'color-mix(in srgb, var(--volter-surface-panel) 90%, transparent)';
 }
 
 function islandBackdropFilterValue(theme: EditorTheme): string {
@@ -1915,7 +1915,7 @@ function islandBackdropFilterValue(theme: EditorTheme): string {
   // the island fallback and the card plain list cannot drift — and the
   // refraction manager parses that same var for its in-chain frost/sat.
   if (usesGlassMaterial(theme)) {
-    return theme.treatment ? 'var(--vgai-surface-backdrop-filter)' : 'none';
+    return theme.treatment ? 'var(--volter-surface-backdrop-filter)' : 'none';
   }
   return 'blur(8px)';
 }
@@ -1923,15 +1923,15 @@ function islandBackdropFilterValue(theme: EditorTheme): string {
 function islandRadiusValue(glassMaterial: boolean): string {
   // 17px is the P6 reference demo toolbar's committed radius — a design
   // constant of the glass chrome, not a shape token.
-  return glassMaterial ? '17px' : 'var(--vgai-radius-md)';
+  return glassMaterial ? '17px' : 'var(--volter-radius-md)';
 }
 
 function islandBorderColorValue(glassMaterial: boolean): string {
-  return glassMaterial ? 'var(--vgai-boundary-default)' : 'var(--vgai-boundary-strong)';
+  return glassMaterial ? 'var(--volter-boundary-default)' : 'var(--volter-boundary-strong)';
 }
 
 function islandShadowValue(glassMaterial: boolean): string {
-  return glassMaterial ? 'var(--vgai-shadow-lg)' : 'var(--vgai-shadow-sm)';
+  return glassMaterial ? 'var(--volter-shadow-lg)' : 'var(--volter-shadow-sm)';
 }
 
 function accentAlphaValue(theme: EditorTheme, alpha: number): string | null {
@@ -1952,7 +1952,7 @@ function usesNeutralSelection(theme: EditorTheme): boolean {
 }
 
 function selectionBackgroundValue(theme: EditorTheme): string {
-  return usesNeutralSelection(theme) ? 'var(--vgai-neutral-active)' : 'var(--vgai-accent-muted)';
+  return usesNeutralSelection(theme) ? 'var(--volter-neutral-active)' : 'var(--volter-accent-muted)';
 }
 
 /**
@@ -2005,7 +2005,7 @@ function isBrightSurface(value: string): boolean {
 }
 
 /**
- * The ink that reads ON `--vgai-selection-bg` — and it is DERIVED, because
+ * The ink that reads ON `--volter-selection-bg` — and it is DERIVED, because
  * the fill it has to read on is different per skin.
  *
  * Blender's pressed fill is the solid accent (`accent.muted` = `#4772b3`),
@@ -2020,10 +2020,10 @@ function isBrightSurface(value: string): boolean {
  */
 
 function selectionInkValue(theme: EditorTheme): string {
-  if (usesNeutralSelection(theme)) return 'var(--vgai-content-primary)';
+  if (usesNeutralSelection(theme)) return 'var(--volter-content-primary)';
   return isOpaqueColor(theme.color.accent.muted)
-    ? 'var(--vgai-content-on-accent)'
-    : 'var(--vgai-content-primary)';
+    ? 'var(--volter-content-on-accent)'
+    : 'var(--volter-content-primary)';
 }
 
 function selectionBorderValue(theme: EditorTheme): string {
@@ -2032,13 +2032,13 @@ function selectionBorderValue(theme: EditorTheme): string {
   // control is a hard black box; the selection there is the fill alone, so the
   // border is the fill's own colour.
   if (isBrightSurface(theme.color.surface.panel)) return `rgb(from ${theme.color.accent.muted} r g b / 1)`;
-  return 'var(--vgai-accent)';
+  return 'var(--volter-accent)';
 }
 
 function selectionIndicatorValue(theme: EditorTheme): string {
   return usesNeutralSelection(theme)
     ? 'color-mix(in srgb, currentColor 76%, transparent)'
-    : 'var(--vgai-accent)';
+    : 'var(--volter-accent)';
 }
 
 /**
@@ -2049,12 +2049,12 @@ function selectionIndicatorValue(theme: EditorTheme): string {
  * themes keep the flat design's small radius and solid accent.
  */
 function islandControlRadiusValue(glassMaterial: boolean): string {
-  return glassMaterial ? 'var(--vgai-radius-full)' : 'var(--vgai-radius-sm)';
+  return glassMaterial ? 'var(--volter-radius-full)' : 'var(--volter-radius-sm)';
 }
 
 function islandPrimaryBgValue(theme: EditorTheme): string {
-  if (!usesGlassMaterial(theme) || !theme.treatment) return 'var(--vgai-accent)';
-  return accentAlphaValue(theme, 0.82) ?? 'var(--vgai-accent)';
+  if (!usesGlassMaterial(theme) || !theme.treatment) return 'var(--volter-accent)';
+  return accentAlphaValue(theme, 0.82) ?? 'var(--volter-accent)';
 }
 
 /**
@@ -2074,7 +2074,7 @@ function islandSpecularRingValue(treatment: EditorTheme['treatment']): string {
 }
 
 /**
- * Faint ambient lift (`--vgai-ambient-lift`, P6-U6 taste decision 2): a
+ * Faint ambient lift (`--volter-ambient-lift`, P6-U6 taste decision 2): a
  * top-lit white wash — full alpha at the top edge, ~a third at the
  * midline, gone by the bottom — layered over the translucent color fill
  * (an extra background-image layer) on cards and islands, so clear glass
@@ -2093,7 +2093,7 @@ function ambientLiftValue(treatment: EditorTheme['treatment']): string {
 }
 
 /**
- * Content-legibility text shadow (`--vgai-content-text-shadow`, §2.32):
+ * Content-legibility text shadow (`--volter-content-text-shadow`, §2.32):
  * `none` for every theme without the axis, so pre-existing themes paint
  * byte-identically; the liquid-glass value is the demo's proven
  * `0 1px 2px rgba(0,0,0,0.72)`.
@@ -2108,12 +2108,12 @@ function contentTextShadowValue(treatment: EditorTheme['treatment']): string {
 }
 
 /**
- * Adaptive bright-backdrop content ramp (P3): the `--vgai-content-*-on-bright`
- * values `theme.css` flips to under a measured `data-vgai-backdrop="bright"`
+ * Adaptive bright-backdrop content ramp (P3): the `--volter-content-*-on-bright`
+ * values `theme.css` flips to under a measured `data-volter-backdrop="bright"`
  * classification. Themes without adaptive material physics emit their normal
  * content values here — the values must be LITERALS (mirroring, not
- * `var(--vgai-content-…)` references), or the CSS flip
- * `--vgai-content-primary: var(--vgai-content-primary-on-bright)` would be a
+ * `var(--volter-content-…)` references), or the CSS flip
+ * `--volter-content-primary: var(--volter-content-primary-on-bright)` would be a
  * self-referential cycle; mirroring makes the flip inert instead. The
  * bright-side text shadow defaults to `none` only when the axis exists
  * (dark ink needs no shadow); without the axis it mirrors the normal shadow.
@@ -2145,8 +2145,8 @@ function contentOnBrightValues(theme: EditorTheme): {
 
 /**
  * REGULAR Liquid Glass (menus / popovers / dialogs / palette / tooltips —
- * `.vgai-menu` / `.vgai-popover` / `.vgai-dialog` in theme.css; P3 overlay
- * chrome formalized as `--vgai-glass-regular-*` in P6-U6 per the owner's
+ * `.volter-menu` / `.volter-popover` / `.volter-dialog` in theme.css; P3 overlay
+ * chrome formalized as `--volter-glass-regular-*` in P6-U6 per the owner's
  * taste decision): Apple's REGULAR variant is the "more solid" material —
  * adaptive, self-legible, used for transient chrome that must obscure
  * whatever it covers; Clear is the refractive card/island family, and the
@@ -2236,7 +2236,7 @@ function areaBoundaryValue(theme: EditorTheme): string {
  * (the fill every unclaimed group has); the workspace host re-emits
  * it on a group whose panel CLAIMS a region, against that region's fill.
  *
- * It cannot simply read an inherited `--vgai-surface-region`: a custom
+ * It cannot simply read an inherited `--volter-surface-region`: a custom
  * property's `var()` references are substituted at computed-value time ON THE
  * ELEMENT THAT DECLARES IT, so a root-declared expression would have baked in
  * the root's panel fill before any descendant could override it — measured, and
@@ -2295,7 +2295,7 @@ export function regionRowAltValue(areaFill: string, ink: string): string {
  * which is Blender's own structure, not a second constant.
  */
 export function areaEmbossValue(areaFill: string): string {
-  return `color-mix(in srgb, var(--vgai-area-emboss-mix), ${areaFill})`;
+  return `color-mix(in srgb, var(--volter-area-emboss-mix), ${areaFill})`;
 }
 
 /**
@@ -2341,7 +2341,7 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
   // opaque colours is `A*p + B*(1-p)`, so `p = (B - target)/(B - A)`; with
   // Blender's `widget.regular` 0x53=83 as A, `content.primary` 0xe6=230 as B
   // and the hover target 0x65=101, p = 129/147 = 87.755%. At the 86% this
-  // was, `--vgai-widget-regular-hover` rendered #686868.
+  // was, `--volter-widget-regular-hover` rendered #686868.
   //
   // HONEST LABEL: #656565 is the only number here that is NOT measurable
   // from the reference frames — none of the eighteen captures in
@@ -2353,33 +2353,33 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
   const lift = (fill: string) =>
     `color-mix(in srgb, ${fill} 87.8%, ${theme.color.content.primary})`;
   // The AREA HEADER's fill, stated once here because two variables need it —
-  // `--vgai-surface-header` paints it and `--vgai-area-emboss-stage-header`
+  // `--volter-surface-header` paints it and `--volter-area-emboss-stage-header`
   // lightens it. The solve is documented with the other derived surfaces below.
   const surfaceHeader = `color-mix(in srgb, ${theme.color.surface.panel} 86.5%, ${theme.color.surface.raised})`;
   return {
-    '--vgai-surface-shell': theme.color.surface.shell,
-    '--vgai-surface-panel': theme.color.surface.panel,
-    '--vgai-surface-chrome': theme.color.surface.chrome,
-    '--vgai-surface-raised': theme.color.surface.raised,
-    '--vgai-surface-inset': theme.color.surface.inset,
-    '--vgai-surface-overlay': theme.color.surface.overlay,
-    '--vgai-surface-backdrop-filter': backdropFilterValue(theme.treatment),
-    '--vgai-surface-sticky': stickySurfaceValue('--vgai-surface-chrome', glassMaterial),
-    '--vgai-surface-sticky-panel': stickySurfaceValue('--vgai-surface-panel', glassMaterial),
-    '--vgai-surface-sticky-backdrop-filter': 'none',
+    '--volter-surface-shell': theme.color.surface.shell,
+    '--volter-surface-panel': theme.color.surface.panel,
+    '--volter-surface-chrome': theme.color.surface.chrome,
+    '--volter-surface-raised': theme.color.surface.raised,
+    '--volter-surface-inset': theme.color.surface.inset,
+    '--volter-surface-overlay': theme.color.surface.overlay,
+    '--volter-surface-backdrop-filter': backdropFilterValue(theme.treatment),
+    '--volter-surface-sticky': stickySurfaceValue('--volter-surface-chrome', glassMaterial),
+    '--volter-surface-sticky-panel': stickySurfaceValue('--volter-surface-panel', glassMaterial),
+    '--volter-surface-sticky-backdrop-filter': 'none',
     // Optical body frost is independent from nested content-floor paint.
     // The refraction host reads this stable token even when a Regular panel
-    // locally disables `--vgai-content-frost-filter` to enforce one filter.
-    '--vgai-surface-body-frost-filter': contentFrostFilterValue(theme.treatment),
-    '--vgai-content-frost-filter': contentFrostFilterValue(theme.treatment),
-    '--vgai-content-frost-bg': contentFrostBgValue(theme.treatment),
-    '--vgai-input-surface': inputSurfaceValue(glassMaterial),
-    '--vgai-input-border': inputBorderValue(glassMaterial),
-    '--vgai-input-shadow': inputShadowValue(glassMaterial, widgetEmbossShadow),
-    '--vgai-structural-divider': glassMaterial ? 'transparent' : theme.color.boundary.default,
-    '--vgai-card-specular-ring': specularRingValue(theme.treatment),
-    '--vgai-card-specular-sheen': specularSheenValue(theme.treatment),
-    '--vgai-card-specular-shadow': specularShadowValue(theme.treatment),
+    // locally disables `--volter-content-frost-filter` to enforce one filter.
+    '--volter-surface-body-frost-filter': contentFrostFilterValue(theme.treatment),
+    '--volter-content-frost-filter': contentFrostFilterValue(theme.treatment),
+    '--volter-content-frost-bg': contentFrostBgValue(theme.treatment),
+    '--volter-input-surface': inputSurfaceValue(glassMaterial),
+    '--volter-input-border': inputBorderValue(glassMaterial),
+    '--volter-input-shadow': inputShadowValue(glassMaterial, widgetEmbossShadow),
+    '--volter-structural-divider': glassMaterial ? 'transparent' : theme.color.boundary.default,
+    '--volter-card-specular-ring': specularRingValue(theme.treatment),
+    '--volter-card-specular-sheen': specularSheenValue(theme.treatment),
+    '--volter-card-specular-shadow': specularShadowValue(theme.treatment),
     // Liquid Glass refraction (report §2.31/§2.32): unitless numbers,
     // consumed by the surface host's refraction manager
     // (`components/glass-refraction.ts`) via getComputedStyle — never by
@@ -2387,84 +2387,84 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // keeps the degrade ladder data-driven: the reduced-transparency paint
     // path strips `treatment`, which zeroes this var, which removes every
     // per-surface url() filter automatically.
-    '--vgai-card-refraction-thickness': String(theme.treatment?.refractionThickness ?? 0),
-    '--vgai-card-refraction-bezel': String(theme.treatment?.refractionBezelPx ?? 28),
-    '--vgai-card-refraction-angle': String(theme.treatment?.specularAngleDeg ?? 120),
+    '--volter-card-refraction-thickness': String(theme.treatment?.refractionThickness ?? 0),
+    '--volter-card-refraction-bezel': String(theme.treatment?.refractionBezelPx ?? 28),
+    '--volter-card-refraction-angle': String(theme.treatment?.specularAngleDeg ?? 120),
     // Floating glass-island chrome (P6 U1/U2): real-glass material for
     // treatment themes, the exact pre-P6 floating-toolbar recipe otherwise
     // (see the island*Value functions above for the ladder rationale).
-    '--vgai-ambient-lift': ambientLiftValue(theme.treatment),
-    '--vgai-island-surface': islandSurfaceValue(theme),
-    '--vgai-island-backdrop-filter': islandBackdropFilterValue(theme),
-    '--vgai-island-radius': islandRadiusValue(glassMaterial),
-    '--vgai-island-border-color': islandBorderColorValue(glassMaterial),
-    '--vgai-island-shadow': islandShadowValue(glassMaterial),
-    '--vgai-island-specular-ring': islandSpecularRingValue(theme.treatment),
-    '--vgai-selection-bg': selectionBackgroundValue(theme),
-    '--vgai-content-on-selection': selectionInkValue(theme),
-    '--vgai-selection-border': selectionBorderValue(theme),
-    '--vgai-selection-indicator': selectionIndicatorValue(theme),
-    '--vgai-island-control-radius': islandControlRadiusValue(glassMaterial),
-    '--vgai-island-primary-bg': islandPrimaryBgValue(theme),
-    '--vgai-content-text-shadow': contentTextShadowValue(theme.treatment),
+    '--volter-ambient-lift': ambientLiftValue(theme.treatment),
+    '--volter-island-surface': islandSurfaceValue(theme),
+    '--volter-island-backdrop-filter': islandBackdropFilterValue(theme),
+    '--volter-island-radius': islandRadiusValue(glassMaterial),
+    '--volter-island-border-color': islandBorderColorValue(glassMaterial),
+    '--volter-island-shadow': islandShadowValue(glassMaterial),
+    '--volter-island-specular-ring': islandSpecularRingValue(theme.treatment),
+    '--volter-selection-bg': selectionBackgroundValue(theme),
+    '--volter-content-on-selection': selectionInkValue(theme),
+    '--volter-selection-border': selectionBorderValue(theme),
+    '--volter-selection-indicator': selectionIndicatorValue(theme),
+    '--volter-island-control-radius': islandControlRadiusValue(glassMaterial),
+    '--volter-island-primary-bg': islandPrimaryBgValue(theme),
+    '--volter-content-text-shadow': contentTextShadowValue(theme.treatment),
     // Adaptive bright-backdrop ramp (P3): consumed only by theme.css's
-    // `[data-vgai-backdrop="bright"]` / Regular-glass scopes. Themes without
+    // `[data-volter-backdrop="bright"]` / Regular-glass scopes. Themes without
     // adaptive material physics mirror their normal values here, so those
-    // scopes are inert for them. `--vgai-content-adaptive` is the unitless
+    // scopes are inert for them. `--volter-content-adaptive` is the unitless
     // classifier gate (components/backdrop-luminance.ts reads it via
-    // getComputedStyle, same idiom as `--vgai-card-refraction-thickness`):
+    // getComputedStyle, same idiom as `--volter-card-refraction-thickness`):
     // '0' means no surface is ever classified — today's dark default.
-    '--vgai-content-primary-on-bright': onBright.primary,
-    '--vgai-content-muted-on-bright': onBright.muted,
-    '--vgai-content-dim-on-bright': onBright.dim,
-    '--vgai-content-text-shadow-on-bright': onBright.textShadow,
-    '--vgai-content-frost-bg-on-bright': onBright.frostBg,
-    '--vgai-content-adaptive': theme.treatment?.adaptiveContent ? '1' : '0',
-    '--vgai-glass-regular-bg': glassRegularBgValue(theme),
-    '--vgai-glass-regular-backdrop-filter': glassRegularBackdropFilterValue(theme.treatment),
-    '--vgai-glass-regular-panel-bg': glassRegularPanelBgValue(theme),
-    '--vgai-glass-regular-panel-backdrop-filter': glassRegularBackdropFilterValue(theme.treatment),
-    '--vgai-glass-dark-frost-panel-bg': 'rgba(5,8,13,0.74)',
-    '--vgai-glass-dark-frost-content-bg': 'rgba(5,8,13,0.84)',
+    '--volter-content-primary-on-bright': onBright.primary,
+    '--volter-content-muted-on-bright': onBright.muted,
+    '--volter-content-dim-on-bright': onBright.dim,
+    '--volter-content-text-shadow-on-bright': onBright.textShadow,
+    '--volter-content-frost-bg-on-bright': onBright.frostBg,
+    '--volter-content-adaptive': theme.treatment?.adaptiveContent ? '1' : '0',
+    '--volter-glass-regular-bg': glassRegularBgValue(theme),
+    '--volter-glass-regular-backdrop-filter': glassRegularBackdropFilterValue(theme.treatment),
+    '--volter-glass-regular-panel-bg': glassRegularPanelBgValue(theme),
+    '--volter-glass-regular-panel-backdrop-filter': glassRegularBackdropFilterValue(theme.treatment),
+    '--volter-glass-dark-frost-panel-bg': 'rgba(5,8,13,0.74)',
+    '--volter-glass-dark-frost-content-bg': 'rgba(5,8,13,0.84)',
     // Modal scrim (P6-U6 owner taste decision 3): glass themes read like
     // macOS — a LIGHTER dim plus a blur doing the separation work; opaque
     // themes keep their heavy dim and `none`, byte-identically.
-    '--vgai-scrim-backdrop-filter': theme.treatment ? 'blur(8px)' : 'none',
-    '--vgai-boundary-default': theme.color.boundary.default,
-    '--vgai-boundary-strong': theme.color.boundary.strong,
+    '--volter-scrim-backdrop-filter': theme.treatment ? 'blur(8px)' : 'none',
+    '--volter-boundary-default': theme.color.boundary.default,
+    '--volter-boundary-strong': theme.color.boundary.strong,
     // The AREA seam. Never emitted empty — a seam that stops being painted
     // fuses two areas into one field — so an absent member resolves to the
     // boundary its call sites already read (`EditorTheme.color.boundary.area`).
-    '--vgai-boundary-area': areaBoundaryValue(theme),
+    '--volter-boundary-area': areaBoundaryValue(theme),
     // THE TREE'S INDENT GUIDE (`color.boundary.indent`). Emitted EMPTY —
     // `transparent` — when the palette names none, because no skin but
     // Blender's drew one and a fallback to any other boundary would put a rule
-    // into every tree in the editor. `.vgai-tree-indent-guide` paints this and
+    // into every tree in the editor. `.volter-tree-indent-guide` paints this and
     // nothing else, so absent means the guide's spans are there and invisible.
-    '--vgai-tree-indent-guide': theme.color.boundary.indent ?? 'transparent',
+    '--volter-tree-indent-guide': theme.color.boundary.indent ?? 'transparent',
     // THE DIVIDER RULE (`color.boundary.divider`). Same optional shape, a
     // different fallback for a stated reason: no skin drew an indent guide, so
     // absent means `transparent` above; every skin draws this rule, so absent
     // means the boundary it already drew.
-    '--vgai-boundary-divider': theme.color.boundary.divider ?? theme.color.boundary.default,
+    '--volter-boundary-divider': theme.color.boundary.divider ?? theme.color.boundary.default,
     // THE EMBOSS beside that groove (`areaEmbossValue`). Three values because
     // three fills meet a groove: an ordinary docked area (a group with no
     // region claim takes `surface.panel`; one that claims a region re-emits
     // this against its own fill in the workspace host, the same
-    // way `--vgai-surface-row-alt` is re-emitted there and for the same
+    // way `--volter-surface-row-alt` is re-emitted there and for the same
     // substitution reason), and the STAGE area, whose sides are the viewport's
     // fill and whose top edge is its own header band — both of them lifted
     // TWICE, which is what the 3D View's overlapping region does in Blender.
-    '--vgai-area-emboss-mix': areaEmbossMixValue(theme),
-    '--vgai-area-emboss': areaEmbossValue(theme.color.surface.panel),
-    '--vgai-area-emboss-stage': areaEmbossValue(
+    '--volter-area-emboss-mix': areaEmbossMixValue(theme),
+    '--volter-area-emboss': areaEmbossValue(theme.color.surface.panel),
+    '--volter-area-emboss-stage': areaEmbossValue(
       areaEmbossValue(theme.color.viewport?.background ?? theme.color.surface.panel),
     ),
-    '--vgai-area-emboss-stage-header': areaEmbossValue(areaEmbossValue(surfaceHeader)),
-    '--vgai-content-primary': theme.color.content.primary,
-    '--vgai-content-muted': theme.color.content.muted,
-    '--vgai-content-dim': theme.color.content.dim,
-    '--vgai-content-on-accent': theme.color.content.onAccent,
+    '--volter-area-emboss-stage-header': areaEmbossValue(areaEmbossValue(surfaceHeader)),
+    '--volter-content-primary': theme.color.content.primary,
+    '--volter-content-muted': theme.color.content.muted,
+    '--volter-content-dim': theme.color.content.dim,
+    '--volter-content-on-accent': theme.color.content.onAccent,
     // THE MENU WORD (`color.content.menu`). Falls back in the EMITTER — not in
     // a `var(…, …)` default, for the reason `content.selected` states: every
     // variable here is always emitted, so a CSS fallback would never fire.
@@ -2472,34 +2472,34 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // menu words already paint, so a palette naming no menu ink leaves that
     // bar bit-identical; the area header's words, which read `content.muted`
     // only because nothing had overridden the base rule, converge onto it.
-    '--vgai-content-menu': theme.color.content.menu ?? theme.color.content.primary,
+    '--volter-content-menu': theme.color.content.menu ?? theme.color.content.primary,
     // THE STATUS BAND'S INK and THE PLACEHOLDER'S, both falling back to
     // `content.dim` in the EMITTER for the reason above. The band already
     // inherited dim, so its fallback is bit-identical; the placeholder had no
     // rule at all and inherited CHROME's fixed rgb(117,117,117), so a palette
     // naming none moves onto the palette's own quiet ink — which is the whole
     // point of the member (see its docblock).
-    '--vgai-content-status': theme.color.content.status ?? theme.color.content.dim,
-    '--vgai-content-placeholder': theme.color.content.placeholder ?? theme.color.content.dim,
+    '--volter-content-status': theme.color.content.status ?? theme.color.content.dim,
+    '--volter-content-placeholder': theme.color.content.placeholder ?? theme.color.content.dim,
     // Emitted EMPTY when the palette names none — the `viewport` group's
     // answer. Its one reader inherits the row's ink through the fallback.
-    '--vgai-content-active': theme.color.content.active ?? '',
-    '--vgai-content-selected': theme.color.content.selected ?? theme.color.content.active ?? '',
-    '--vgai-accent': theme.color.accent.default,
-    '--vgai-accent-muted': theme.color.accent.muted,
-    '--vgai-danger': theme.color.semantic.danger,
-    '--vgai-danger-muted': theme.color.semantic.dangerMuted,
-    '--vgai-danger-faint': theme.color.semantic.dangerFaint,
-    '--vgai-warn': theme.color.semantic.warning,
-    '--vgai-warn-muted': theme.color.semantic.warningMuted,
-    '--vgai-success': theme.color.semantic.success,
-    '--vgai-success-muted': theme.color.semantic.successMuted,
-    '--vgai-dynamic': theme.color.semantic.dynamic,
-    '--vgai-dynamic-muted': theme.color.semantic.dynamicMuted,
-    '--vgai-instance': theme.color.semantic.instance,
-    '--vgai-neutral-hover': theme.color.neutralOverlay.hover,
-    '--vgai-neutral-active': theme.color.neutralOverlay.active,
-    '--vgai-scrim': theme.color.scrim,
+    '--volter-content-active': theme.color.content.active ?? '',
+    '--volter-content-selected': theme.color.content.selected ?? theme.color.content.active ?? '',
+    '--volter-accent': theme.color.accent.default,
+    '--volter-accent-muted': theme.color.accent.muted,
+    '--volter-danger': theme.color.semantic.danger,
+    '--volter-danger-muted': theme.color.semantic.dangerMuted,
+    '--volter-danger-faint': theme.color.semantic.dangerFaint,
+    '--volter-warn': theme.color.semantic.warning,
+    '--volter-warn-muted': theme.color.semantic.warningMuted,
+    '--volter-success': theme.color.semantic.success,
+    '--volter-success-muted': theme.color.semantic.successMuted,
+    '--volter-dynamic': theme.color.semantic.dynamic,
+    '--volter-dynamic-muted': theme.color.semantic.dynamicMuted,
+    '--volter-instance': theme.color.semantic.instance,
+    '--volter-neutral-hover': theme.color.neutralOverlay.hover,
+    '--volter-neutral-active': theme.color.neutralOverlay.active,
+    '--volter-scrim': theme.color.scrim,
     // DERIVED surfaces — relationships every skin keeps, computed from its own
     // palette (Blender's measured steps: a panel header is a slab #3c3c3c
     // over #2f2f2f, an area header #343434, outliner rows alternate by three
@@ -2542,10 +2542,10 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     //
     // Each is carried to one decimal because the integer next to it misses:
     // 98% renders 0x33, and `lift`'s 88% renders 0x66.
-    '--vgai-surface-section': `color-mix(in srgb, ${theme.color.surface.panel} 64.9%, ${theme.color.surface.raised})`,
-    '--vgai-surface-section-edge': `color-mix(in srgb, ${theme.color.surface.panel} 29.7%, ${theme.color.surface.raised})`,
-    '--vgai-surface-header': surfaceHeader,
-    '--vgai-surface-row-alt': regionRowAltValue(
+    '--volter-surface-section': `color-mix(in srgb, ${theme.color.surface.panel} 64.9%, ${theme.color.surface.raised})`,
+    '--volter-surface-section-edge': `color-mix(in srgb, ${theme.color.surface.panel} 29.7%, ${theme.color.surface.raised})`,
+    '--volter-surface-header': surfaceHeader,
+    '--volter-surface-row-alt': regionRowAltValue(
       theme.color.surface.panel,
       theme.color.content.primary,
     ),
@@ -2563,7 +2563,7 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     //
     // Both bands are the same 18-of-20 px box: device rows 135-170 and 177-208
     // inside a 40 px pitch, so ONE ordinary stripe row shows above and below
-    // each. `theme.css`'s `.vgai-tree-row` rules paint that inset.
+    // each. `theme.css`'s `.volter-tree-row` rules paint that inset.
     //
     // The derivations, and their residual against the measurement. The palette
     // carries the accent (#4772b3, Blender's own widget blue) and both bands
@@ -2590,22 +2590,22 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // computes exactly what it did before.
     ...(isBrightSurface(theme.color.surface.panel)
       ? {
-          '--vgai-tree-row-selected-bg': theme.color.accent.muted,
+          '--volter-tree-row-selected-bg': theme.color.accent.muted,
           // Opaque: the active band is painted OVER its hairline layer, so a
           // wash would let the hairline show through the whole row.
-          '--vgai-tree-row-active-bg': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
-          '--vgai-tree-row-active-border': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
-          '--vgai-tree-datablock-fill': 'color-mix(in srgb, var(--vgai-category-data, currentColor) 14%, transparent)',
-          '--vgai-tree-datablock-border': 'color-mix(in srgb, var(--vgai-content-primary) 14%, transparent)',
+          '--volter-tree-row-active-bg': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
+          '--volter-tree-row-active-border': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
+          '--volter-tree-datablock-fill': 'color-mix(in srgb, var(--volter-category-data, currentColor) 14%, transparent)',
+          '--volter-tree-datablock-border': 'color-mix(in srgb, var(--volter-content-primary) 14%, transparent)',
         }
       : {
-          '--vgai-tree-row-selected-bg': `color-mix(in srgb, ${theme.color.accent.default} 42%, #000)`,
-          '--vgai-tree-row-active-bg': `color-mix(in srgb, ${theme.color.accent.default} 70%, #000)`,
-          '--vgai-tree-row-active-border':
-            'rgb(from var(--vgai-tree-row-active-bg) calc(r + 40) calc(g + 40) calc(b + 40))',
-          // The datablock plate's transcription (theme.css `.vgai-tree-datablock`), unchanged.
-          '--vgai-tree-datablock-fill': 'color-mix(in srgb, color-mix(in srgb, var(--vgai-category-data, currentColor) 60%, black) 26%, transparent)',
-          '--vgai-tree-datablock-border': 'color-mix(in srgb, var(--vgai-content-primary) 24%, transparent)',
+          '--volter-tree-row-selected-bg': `color-mix(in srgb, ${theme.color.accent.default} 42%, #000)`,
+          '--volter-tree-row-active-bg': `color-mix(in srgb, ${theme.color.accent.default} 70%, #000)`,
+          '--volter-tree-row-active-border':
+            'rgb(from var(--volter-tree-row-active-bg) calc(r + 40) calc(g + 40) calc(b + 40))',
+          // The datablock plate's transcription (theme.css `.volter-tree-datablock`), unchanged.
+          '--volter-tree-datablock-fill': 'color-mix(in srgb, color-mix(in srgb, var(--volter-category-data, currentColor) 60%, black) 26%, transparent)',
+          '--volter-tree-datablock-border': 'color-mix(in srgb, var(--volter-content-primary) 24%, transparent)',
         }),
     // WHO GETS THE ROW'S ONE TEXT MARK when a palette declares an ACTIVE ink.
     // The instance rule (`semantic.instance`, owner 2026-07-31) and the active
@@ -2616,168 +2616,168 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // palette that names no active ink re-states what the row already drew and
     // its instance rows are untouched. Derived rather than declared: the
     // emitter is the one place that knows what the palette said.
-    '--vgai-tree-active-name-underline': theme.color.content.active ? 'none' : 'underline',
+    '--volter-tree-active-name-underline': theme.color.content.active ? 'none' : 'underline',
     // The viewport group, empty when the palette carries none (readers treat
     // an empty token as "the editor's own").
-    '--vgai-viewport-background': theme.color.viewport?.background ?? '',
-    '--vgai-viewport-grid': theme.color.viewport?.grid ?? '',
-    '--vgai-viewport-axis-x': theme.color.viewport?.axisX ?? '',
-    '--vgai-viewport-axis-y': theme.color.viewport?.axisY ?? '',
-    '--vgai-viewport-axis-z': theme.color.viewport?.axisZ ?? '',
-    '--vgai-viewport-wire': theme.color.viewport?.wire ?? '',
-    '--vgai-viewport-wire-opacity': numberToken(theme.stage?.wireOpacity),
-    '--vgai-viewport-axis-line-width': numberToken(theme.stage?.axisLineWidth),
-    '--vgai-viewport-selection': theme.color.viewport?.selection ?? '',
-    '--vgai-viewport-active': theme.color.viewport?.active ?? '',
-    '--vgai-gizmo-x': theme.color.gizmo?.x ?? '',
-    '--vgai-gizmo-y': theme.color.gizmo?.y ?? '',
-    '--vgai-gizmo-z': theme.color.gizmo?.z ?? '',
-    '--vgai-gizmo-navigation-x': theme.color.gizmo?.navigationX ?? '',
-    '--vgai-gizmo-navigation-y': theme.color.gizmo?.navigationY ?? '',
-    '--vgai-gizmo-navigation-z': theme.color.gizmo?.navigationZ ?? '',
-    '--vgai-gizmo-hover': theme.color.gizmo?.hover ?? '',
-    '--vgai-gizmo-drag': theme.color.gizmo?.drag ?? '',
-    '--vgai-viewport-gizmo-opacity': numberToken(theme.stage?.gizmoOpacity),
-    '--vgai-viewport-gizmo-arrow-length': numberToken(theme.stage?.gizmoArrowLength),
-    '--vgai-viewport-gizmo-arrow-head': numberToken(theme.stage?.gizmoArrowHead),
-    '--vgai-viewport-gizmo-ring-width': numberToken(theme.stage?.gizmoRingWidth),
-    '--vgai-viewport-navigation-gizmo': theme.stage?.navigationGizmo ?? '',
-    '--vgai-viewport-navigation-corner': theme.stage?.navigationCorner ?? '',
-    '--vgai-viewport-navigation-size': numberToken(theme.stage?.navigationSize),
-    '--vgai-viewport-gizmo-highlight-saturation': numberToken(
+    '--volter-viewport-background': theme.color.viewport?.background ?? '',
+    '--volter-viewport-grid': theme.color.viewport?.grid ?? '',
+    '--volter-viewport-axis-x': theme.color.viewport?.axisX ?? '',
+    '--volter-viewport-axis-y': theme.color.viewport?.axisY ?? '',
+    '--volter-viewport-axis-z': theme.color.viewport?.axisZ ?? '',
+    '--volter-viewport-wire': theme.color.viewport?.wire ?? '',
+    '--volter-viewport-wire-opacity': numberToken(theme.stage?.wireOpacity),
+    '--volter-viewport-axis-line-width': numberToken(theme.stage?.axisLineWidth),
+    '--volter-viewport-selection': theme.color.viewport?.selection ?? '',
+    '--volter-viewport-active': theme.color.viewport?.active ?? '',
+    '--volter-gizmo-x': theme.color.gizmo?.x ?? '',
+    '--volter-gizmo-y': theme.color.gizmo?.y ?? '',
+    '--volter-gizmo-z': theme.color.gizmo?.z ?? '',
+    '--volter-gizmo-navigation-x': theme.color.gizmo?.navigationX ?? '',
+    '--volter-gizmo-navigation-y': theme.color.gizmo?.navigationY ?? '',
+    '--volter-gizmo-navigation-z': theme.color.gizmo?.navigationZ ?? '',
+    '--volter-gizmo-hover': theme.color.gizmo?.hover ?? '',
+    '--volter-gizmo-drag': theme.color.gizmo?.drag ?? '',
+    '--volter-viewport-gizmo-opacity': numberToken(theme.stage?.gizmoOpacity),
+    '--volter-viewport-gizmo-arrow-length': numberToken(theme.stage?.gizmoArrowLength),
+    '--volter-viewport-gizmo-arrow-head': numberToken(theme.stage?.gizmoArrowHead),
+    '--volter-viewport-gizmo-ring-width': numberToken(theme.stage?.gizmoRingWidth),
+    '--volter-viewport-navigation-gizmo': theme.stage?.navigationGizmo ?? '',
+    '--volter-viewport-navigation-corner': theme.stage?.navigationCorner ?? '',
+    '--volter-viewport-navigation-size': numberToken(theme.stage?.navigationSize),
+    '--volter-viewport-gizmo-highlight-saturation': numberToken(
       theme.stage?.gizmoHighlightSaturation,
     ),
-    '--vgai-viewport-gizmo-highlight-value': numberToken(theme.stage?.gizmoHighlightValue),
+    '--volter-viewport-gizmo-highlight-value': numberToken(theme.stage?.gizmoHighlightValue),
     // THE TRANSFORM GIZMO'S SCREEN SIZE, in px per gizmo unit, emitted the
     // same way and read the same way (`native-selection-style.ts`): a look
     // that names none emits empty, and the viewport keeps three's own
     // viewport-relative handle. Blender's is `U.gizmo_size` — see
     // `StageContribution.gizmoSize` for the derivation.
-    '--vgai-viewport-gizmo-size':
+    '--volter-viewport-gizmo-size':
       theme.stage?.gizmoSize === undefined ? '' : `${theme.stage.gizmoSize}`,
     // THE FLOOR GRID'S LINE WIDTHS AND MAJOR CONTRAST, emitted empty when the look states none,
     // so the stage keeps its own hairline floor (`StageContribution.gridLineWidth`).
-    '--vgai-viewport-grid-line-width': numberToken(theme.stage?.gridLineWidth),
-    '--vgai-viewport-grid-major-width': numberToken(theme.stage?.gridMajorWidth),
-    '--vgai-viewport-grid-major-contrast': numberToken(theme.stage?.gridMajorContrast),
-    '--vgai-viewport-selection-box': theme.stage?.selectionBox ?? '',
-    '--vgai-viewport-selection-box-frame': theme.stage?.selectionBoxFrame ?? '',
-    '--vgai-viewport-outline-style': theme.stage?.outlineStyle ?? '',
-    '--vgai-viewport-outline-width': numberToken(theme.stage?.outlineWidth),
-    '--vgai-viewport-outline-hidden':
+    '--volter-viewport-grid-line-width': numberToken(theme.stage?.gridLineWidth),
+    '--volter-viewport-grid-major-width': numberToken(theme.stage?.gridMajorWidth),
+    '--volter-viewport-grid-major-contrast': numberToken(theme.stage?.gridMajorContrast),
+    '--volter-viewport-selection-box': theme.stage?.selectionBox ?? '',
+    '--volter-viewport-selection-box-frame': theme.stage?.selectionBoxFrame ?? '',
+    '--volter-viewport-outline-style': theme.stage?.outlineStyle ?? '',
+    '--volter-viewport-outline-width': numberToken(theme.stage?.outlineWidth),
+    '--volter-viewport-outline-hidden':
       theme.stage?.outlineHidden === undefined ? '' : `${theme.stage.outlineHidden}`,
-    '--vgai-viewport-selection-box-width': numberToken(theme.stage?.selectionBoxWidth),
+    '--volter-viewport-selection-box-width': numberToken(theme.stage?.selectionBoxWidth),
     // THE STAGE'S OWN CHROME (`StageContribution.chrome`), empty when the look places nothing:
     // the stage keeps the editor's own arrangement then (`nativeViewportChrome`).
-    '--vgai-viewport-chrome-bar': theme.stage?.chrome?.bar ?? '',
-    '--vgai-viewport-chrome-view-name': theme.stage?.chrome?.viewName ?? '',
-    '--vgai-viewport-chrome-tools': theme.stage?.chrome?.tools ?? '',
-    '--vgai-viewport-chrome-display': theme.stage?.chrome?.display ?? '',
-    '--vgai-viewport-chrome-transform-controls': theme.stage?.chrome?.transformControls ?? '',
+    '--volter-viewport-chrome-bar': theme.stage?.chrome?.bar ?? '',
+    '--volter-viewport-chrome-view-name': theme.stage?.chrome?.viewName ?? '',
+    '--volter-viewport-chrome-tools': theme.stage?.chrome?.tools ?? '',
+    '--volter-viewport-chrome-display': theme.stage?.chrome?.display ?? '',
+    '--volter-viewport-chrome-transform-controls': theme.stage?.chrome?.transformControls ?? '',
     // THE STAGE'S WORDS (`StageContribution.words`), each empty where the look names none.
     ...Object.fromEntries(
-      STAGE_WORD_MODES.map((mode) => [`--vgai-viewport-word-${mode}`, theme.stage?.words?.shading?.[mode] ?? '']),
+      STAGE_WORD_MODES.map((mode) => [`--volter-viewport-word-${mode}`, theme.stage?.words?.shading?.[mode] ?? '']),
     ),
-    '--vgai-viewport-word-helpers': theme.stage?.words?.helpers ?? '',
+    '--volter-viewport-word-helpers': theme.stage?.words?.helpers ?? '',
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.
-    '--vgai-widget-regular': widgetRegular,
-    '--vgai-widget-regular-hover': lift(widgetRegular),
-    '--vgai-widget-menu': widgetMenu,
-    '--vgai-widget-menu-hover': lift(widgetMenu),
-    '--vgai-widget-field': widgetField,
-    '--vgai-widget-emboss-shadow': widgetEmbossShadow,
+    '--volter-widget-regular': widgetRegular,
+    '--volter-widget-regular-hover': lift(widgetRegular),
+    '--volter-widget-menu': widgetMenu,
+    '--volter-widget-menu-hover': lift(widgetMenu),
+    '--volter-widget-field': widgetField,
+    '--volter-widget-emboss-shadow': widgetEmbossShadow,
     // The CATEGORY inks. Emitted as `currentColor` when the palette names
     // none, which is the whole compatibility story: a toned glyph paints
-    // `var(--vgai-category-object, currentColor)`, so under a palette
+    // `var(--volter-category-object, currentColor)`, so under a palette
     // without the group it paints exactly what a monochrome glyph paints.
     // The literal is used rather than an empty string (the `viewport` group's
     // answer) because these tokens are read by a `fill`, where empty is not
     // a colour and the fallback must therefore be a real one.
     ...Object.fromEntries(
-      EDITOR_CATEGORY_NAMES.map((name) => [`--vgai-category-${name}`, theme.color.category?.[name] ?? 'currentColor']),
+      EDITOR_CATEGORY_NAMES.map((name) => [`--volter-category-${name}`, theme.color.category?.[name] ?? 'currentColor']),
     ),
     // The REGION fills, a pair per area. Never emitted empty (the `widget`
     // group's answer, not the `viewport` group's): each falls back to the
     // surface its call site already reads, so the dock can point a group at
-    // `var(--vgai-region-<name>)` unconditionally and a palette that names no
+    // `var(--volter-region-<name>)` unconditionally and a palette that names no
     // region paints exactly what it painted before.
-    '--vgai-region-outliner': theme.color.region?.outliner ?? theme.color.surface.panel,
-    '--vgai-region-outliner-header': theme.color.region?.outliner ?? theme.color.surface.chrome,
-    '--vgai-region-properties': theme.color.region?.properties ?? theme.color.surface.panel,
-    '--vgai-region-properties-header': theme.color.region?.properties ?? theme.color.surface.chrome,
-    '--vgai-font-sans': theme.typography.sans,
-    '--vgai-font-mono': theme.typography.mono,
-    '--vgai-radius-sm': theme.shape.small,
-    '--vgai-radius-md': theme.shape.medium,
-    '--vgai-radius-lg': theme.shape.large,
-    '--vgai-radius-full': theme.shape.full,
-    '--vgai-shadow-sm': theme.elevation.small,
-    '--vgai-shadow-md': theme.elevation.medium,
-    '--vgai-shadow-lg': theme.elevation.large,
-    '--vgai-focus-ring': `${strokeWidth.active}px solid ${theme.color.accent.default}`,
-    '--vgai-select-chevron': chevronDataUri(theme.color.content.muted),
-    '--vgai-space-1': `${space[1]}px`,
-    '--vgai-space-2': `${space[2]}px`,
-    '--vgai-space-3': `${space[3]}px`,
-    '--vgai-space-4': `${space[4]}px`,
-    '--vgai-space-5': `${space[5]}px`,
-    '--vgai-space-6': `${space[6]}px`,
-    '--vgai-space-8': `${space[8]}px`,
-    '--vgai-space-10': `${space[10]}px`,
-    '--vgai-space-12': `${space[12]}px`,
-    '--vgai-command-bar-height': `${density(theme).chrome.commandBar}px`,
-    '--vgai-panel-header-height': `${density(theme).chrome.panelHeader}px`,
-    '--vgai-local-toolbar-height': `${density(theme).chrome.localToolbar}px`,
-    '--vgai-tree-row-height': `${density(theme).chrome.treeRow}px`,
-    '--vgai-tree-indent': `${density(theme).chrome.treeIndent}px`,
-    '--vgai-status-bar-height': `${density(theme).chrome.statusBar}px`,
-    '--vgai-tool-size': `${density(theme).chrome.toolSize}px`,
-    '--vgai-tool-width': `${density(theme).chrome.toolWidth}px`,
-    '--vgai-tool-gap': `${density(theme).chrome.toolGap}px`,
-    '--vgai-area-seam-width': `${density(theme).chrome.areaSeam}px`,
-    '--vgai-control-compact-height': `${density(theme).control.compact}px`,
-    '--vgai-control-default-height': `${density(theme).control.default}px`,
-    '--vgai-control-comfortable-height': `${density(theme).control.comfortable}px`,
-    '--vgai-stroke-resting': `${strokeWidth.resting}px`,
-    '--vgai-stroke-active': `${strokeWidth.active}px`,
-    '--vgai-font-xs': `${density(theme).font.xs}px`,
-    '--vgai-font-sm': `${density(theme).font.sm}px`,
-    '--vgai-font-base': `${density(theme).font.base}px`,
-    '--vgai-font-md': `${density(theme).font.md}px`,
-    '--vgai-font-lg': `${density(theme).font.lg}px`,
-    '--vgai-font-xl': `${density(theme).font.xl}px`,
-    '--vgai-font-2xl': `${density(theme).font['2xl']}px`,
-    '--vgai-icon-xs': `${density(theme).icon.xs}px`,
-    '--vgai-icon-sm': `${density(theme).icon.sm}px`,
-    '--vgai-icon-md': `${density(theme).icon.md}px`,
-    '--vgai-icon-lg': `${density(theme).icon.lg}px`,
-    '--vgai-icon-xl': `${density(theme).icon.xl}px`,
-    '--vgai-icon-2xl': `${density(theme).icon['2xl']}px`,
-    '--vgai-font-heading': `${density(theme).font.heading}px`,
-    '--vgai-font-weight-regular': String(fontWeight.regular),
-    '--vgai-font-weight-semibold': String(fontWeight.semibold),
-    '--vgai-font-weight-bold': String(fontWeight.bold),
-    '--vgai-leading-tight': String(lineHeight.tight),
-    '--vgai-leading-snug': String(lineHeight.snug),
-    '--vgai-leading-normal': String(lineHeight.normal),
-    '--vgai-leading-relaxed': String(lineHeight.relaxed),
-    '--vgai-duration-fast': `${motion.duration.fast}ms`,
-    '--vgai-duration-base': `${motion.duration.base}ms`,
-    '--vgai-duration-slow': `${motion.duration.slow}ms`,
-    '--vgai-ease-standard': motion.easing.standard,
-    '--vgai-ease-out': motion.easing.out,
-    '--vgai-z-base': String(zIndex.base),
-    '--vgai-z-overlay-low': String(zIndex.overlayLow),
-    '--vgai-z-sticky': String(zIndex.sticky),
-    '--vgai-z-dropdown': String(zIndex.dropdown),
-    '--vgai-z-toast': String(zIndex.toast),
-    '--vgai-z-modal': String(zIndex.modal),
+    '--volter-region-outliner': theme.color.region?.outliner ?? theme.color.surface.panel,
+    '--volter-region-outliner-header': theme.color.region?.outliner ?? theme.color.surface.chrome,
+    '--volter-region-properties': theme.color.region?.properties ?? theme.color.surface.panel,
+    '--volter-region-properties-header': theme.color.region?.properties ?? theme.color.surface.chrome,
+    '--volter-font-sans': theme.typography.sans,
+    '--volter-font-mono': theme.typography.mono,
+    '--volter-radius-sm': theme.shape.small,
+    '--volter-radius-md': theme.shape.medium,
+    '--volter-radius-lg': theme.shape.large,
+    '--volter-radius-full': theme.shape.full,
+    '--volter-shadow-sm': theme.elevation.small,
+    '--volter-shadow-md': theme.elevation.medium,
+    '--volter-shadow-lg': theme.elevation.large,
+    '--volter-focus-ring': `${strokeWidth.active}px solid ${theme.color.accent.default}`,
+    '--volter-select-chevron': chevronDataUri(theme.color.content.muted),
+    '--volter-space-1': `${space[1]}px`,
+    '--volter-space-2': `${space[2]}px`,
+    '--volter-space-3': `${space[3]}px`,
+    '--volter-space-4': `${space[4]}px`,
+    '--volter-space-5': `${space[5]}px`,
+    '--volter-space-6': `${space[6]}px`,
+    '--volter-space-8': `${space[8]}px`,
+    '--volter-space-10': `${space[10]}px`,
+    '--volter-space-12': `${space[12]}px`,
+    '--volter-command-bar-height': `${density(theme).chrome.commandBar}px`,
+    '--volter-panel-header-height': `${density(theme).chrome.panelHeader}px`,
+    '--volter-local-toolbar-height': `${density(theme).chrome.localToolbar}px`,
+    '--volter-tree-row-height': `${density(theme).chrome.treeRow}px`,
+    '--volter-tree-indent': `${density(theme).chrome.treeIndent}px`,
+    '--volter-status-bar-height': `${density(theme).chrome.statusBar}px`,
+    '--volter-tool-size': `${density(theme).chrome.toolSize}px`,
+    '--volter-tool-width': `${density(theme).chrome.toolWidth}px`,
+    '--volter-tool-gap': `${density(theme).chrome.toolGap}px`,
+    '--volter-area-seam-width': `${density(theme).chrome.areaSeam}px`,
+    '--volter-control-compact-height': `${density(theme).control.compact}px`,
+    '--volter-control-default-height': `${density(theme).control.default}px`,
+    '--volter-control-comfortable-height': `${density(theme).control.comfortable}px`,
+    '--volter-stroke-resting': `${strokeWidth.resting}px`,
+    '--volter-stroke-active': `${strokeWidth.active}px`,
+    '--volter-font-xs': `${density(theme).font.xs}px`,
+    '--volter-font-sm': `${density(theme).font.sm}px`,
+    '--volter-font-base': `${density(theme).font.base}px`,
+    '--volter-font-md': `${density(theme).font.md}px`,
+    '--volter-font-lg': `${density(theme).font.lg}px`,
+    '--volter-font-xl': `${density(theme).font.xl}px`,
+    '--volter-font-2xl': `${density(theme).font['2xl']}px`,
+    '--volter-icon-xs': `${density(theme).icon.xs}px`,
+    '--volter-icon-sm': `${density(theme).icon.sm}px`,
+    '--volter-icon-md': `${density(theme).icon.md}px`,
+    '--volter-icon-lg': `${density(theme).icon.lg}px`,
+    '--volter-icon-xl': `${density(theme).icon.xl}px`,
+    '--volter-icon-2xl': `${density(theme).icon['2xl']}px`,
+    '--volter-font-heading': `${density(theme).font.heading}px`,
+    '--volter-font-weight-regular': String(fontWeight.regular),
+    '--volter-font-weight-semibold': String(fontWeight.semibold),
+    '--volter-font-weight-bold': String(fontWeight.bold),
+    '--volter-leading-tight': String(lineHeight.tight),
+    '--volter-leading-snug': String(lineHeight.snug),
+    '--volter-leading-normal': String(lineHeight.normal),
+    '--volter-leading-relaxed': String(lineHeight.relaxed),
+    '--volter-duration-fast': `${motion.duration.fast}ms`,
+    '--volter-duration-base': `${motion.duration.base}ms`,
+    '--volter-duration-slow': `${motion.duration.slow}ms`,
+    '--volter-ease-standard': motion.easing.standard,
+    '--volter-ease-out': motion.easing.out,
+    '--volter-z-base': String(zIndex.base),
+    '--volter-z-overlay-low': String(zIndex.overlayLow),
+    '--volter-z-sticky': String(zIndex.sticky),
+    '--volter-z-dropdown': String(zIndex.dropdown),
+    '--volter-z-toast': String(zIndex.toast),
+    '--volter-z-modal': String(zIndex.modal),
   };
 }
 
-export const EDITOR_THEME_CLASS = 'vgai-editor-theme';
+export const EDITOR_THEME_CLASS = 'volter-editor-theme';
 
 /** Install or switch a theme on one editor-chrome root. */
 export function applyEditorTheme(
@@ -2785,15 +2785,15 @@ export function applyEditorTheme(
   theme: EditorTheme = graphiteDarkEditorTheme,
 ): void {
   root.classList.add(EDITOR_THEME_CLASS);
-  root.dataset['vgaiTheme'] = theme.id;
+  root.dataset['volterTheme'] = theme.id;
   // Chrome mode (P6 glass-native chrome, U3/U4): under the Glass material
   // there are no header/footer BARS — those surfaces dissolve into floating
   // glass clusters ("islands", the macOS liquid-glass model). Classic themes
   // keep bars. Reduced-transparency Glass strips optical treatment but
   // remains islands. Derived from explicit material identity, never from
   // theme identity (the theme-id ban holds: CSS scopes on this attribute,
-  // not on [data-vgai-theme]).
-  root.dataset['vgaiChrome'] = usesGlassMaterial(theme) ? 'islands' : 'bars';
+  // not on [data-volter-theme]).
+  root.dataset['volterChrome'] = usesGlassMaterial(theme) ? 'islands' : 'bars';
   for (const [name, value] of Object.entries(editorThemeVariables(theme))) {
     root.style.setProperty(name, value);
   }

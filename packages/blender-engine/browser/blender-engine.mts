@@ -29,7 +29,7 @@
  * and that IS the answer. There is no manifest field, no setting and no flag,
  * because nothing a user does should depend on the skew -- if it did, the
  * skews would be answering differently, which the ruling forbids.
- * `VGAI_BLENDER_WASM_DIR` is the existing door for pointing the editor at a
+ * `VOLTER_BLENDER_WASM_DIR` is the existing door for pointing the editor at a
  * different build and is how the substrate skew is reached in development.
  *
  * WHAT DIFFERS, and it is four things, all below this line:
@@ -43,7 +43,7 @@
  * implementation over {@link BlenderFiles}.
  */
 
-export const SESSION_ROOT = '/work/.vgai-session';
+export const SESSION_ROOT = '/work/.volter-session';
 export const SESSION_SCRIPT = `${SESSION_ROOT}/session.py`;
 
 /**
@@ -137,7 +137,7 @@ export interface BlenderEngine {
   readonly bootMs: number;
   /** The engine's memory in bytes, now. Linear memory on the standalone skew;
    *  null where the skew cannot see the module's memory from the host, which
-   *  is the WALI case and is why `vgai status` prints "unreported" rather than
+   *  is the WALI case and is why `volter-model-editor status` prints "unreported" rather than
    *  a zero. */
   memoryBytes(): number | null;
   /** Bytes of packed `.data` payload handed back after boot, or null when the
@@ -303,7 +303,7 @@ export function openSessionChannel(
    *
    * The loop below waits for `out/<id>.done` and nothing else. When the
    * program behind the directory DIES, that file is never written, so the
-   * call waits forever: `vgai status` reports it IN FLIGHT for as long as
+   * call waits forever: `volter-model-editor status` reports it IN FLIGHT for as long as
    * anyone looks, `blender-start` keeps answering from the host's cached
    * banner, and the harness has no answer to time out against. MEASURED
    * 2026-09-19 three times on the WALI skew -- 507 s, 621 s and 964 s of a
@@ -404,7 +404,7 @@ export function openSessionChannel(
           `Blender is gone, so this call will never be answered: ${ended}. ` +
             'The session keeps its directory and its cached banner, so every later call would ' +
             'wait on the same missing answer; start a new program with `blender-start {fresh: true}` ' +
-            '(`VGAI_BLENDER_FRESH_SESSION=1` for the battery harness).',
+            '(`VOLTER_BLENDER_FRESH_SESSION=1` for the battery harness).',
         );
       await sleep(pollDelay(performance.now() - began));
     }

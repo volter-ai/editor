@@ -415,7 +415,7 @@ function GradientRow({ prop, raw, disabled, testId, commit }: KindRowProps): Rea
         <Button
           type="button"
           variant="secondary"
-          className="vgai-field-trigger"
+          className="volter-field-trigger"
           data-testid={testId}
           disabled={disabled}
           onClick={() => commit(prop.path, composeGradient(DEFAULT_GRADIENT))}
@@ -601,7 +601,7 @@ function CheckboxRow({ prop, raw, disabled, testId, commit }: KindRowProps): Rea
       }}
     >
       <Checkbox
-        className="vgai-checkbox"
+        className="volter-checkbox"
         data-testid={testId}
         checked={raw !== false}
         disabled={disabled}

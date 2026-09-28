@@ -56,13 +56,13 @@ function CameraPreview({ previewRef }: CameraAuthoringOverlayProps) {
       : 16 / 9;
 
   return (
-    <div className="vgai-camera-preview" data-testid="camera-preview">
-      <Inline className="vgai-camera-preview-header" gap={4} align="center">
+    <div className="volter-camera-preview" data-testid="camera-preview">
+      <Inline className="volter-camera-preview-header" gap={4} align="center">
         <EditorIcon icon={faCamera} size="sm" />
         <Text
           variant="label"
           truncate
-          className="vgai-camera-preview-title"
+          className="volter-camera-preview-title"
           title={`${preview.name} · ${preview.lens}`}
         >
           {preview.name}
@@ -77,7 +77,7 @@ function CameraPreview({ previewRef }: CameraAuthoringOverlayProps) {
             <EditorIcon icon={faThumbtack} size="sm" />
           </IconButton>
         </Tooltip>
-        <div ref={menuRef} className="vgai-camera-preview-menu-anchor">
+        <div ref={menuRef} className="volter-camera-preview-menu-anchor">
           <Tooltip text="Camera actions">
             <IconButton
               aria-label="Camera actions"
@@ -89,7 +89,7 @@ function CameraPreview({ previewRef }: CameraAuthoringOverlayProps) {
             </IconButton>
           </Tooltip>
           {menuOpen ? (
-            <EditorPopover className="vgai-camera-preview-menu">
+            <EditorPopover className="volter-camera-preview-menu">
               <Button
                 variant="ghost"
                 size="compact"
@@ -130,7 +130,7 @@ function CameraPreview({ previewRef }: CameraAuthoringOverlayProps) {
       </Inline>
       <div
         ref={previewRef}
-        className="vgai-camera-preview-image"
+        className="volter-camera-preview-image"
         style={{ aspectRatio: String(Math.max(0.5, Math.min(3, aspect))) }}
         role="img"
         aria-label={`Live view through ${preview.name}`}
@@ -142,13 +142,13 @@ function CameraPreview({ previewRef }: CameraAuthoringOverlayProps) {
 
 function CompositionGuides() {
   return (
-    <div className="vgai-camera-guides" aria-hidden="true">
-      <div className="vgai-camera-guide vgai-camera-guide-v1" />
-      <div className="vgai-camera-guide vgai-camera-guide-v2" />
-      <div className="vgai-camera-guide vgai-camera-guide-h1" />
-      <div className="vgai-camera-guide vgai-camera-guide-h2" />
-      <div className="vgai-camera-safe-frame" />
-      <div className="vgai-camera-center-mark" />
+    <div className="volter-camera-guides" aria-hidden="true">
+      <div className="volter-camera-guide volter-camera-guide-v1" />
+      <div className="volter-camera-guide volter-camera-guide-v2" />
+      <div className="volter-camera-guide volter-camera-guide-h1" />
+      <div className="volter-camera-guide volter-camera-guide-h2" />
+      <div className="volter-camera-safe-frame" />
+      <div className="volter-camera-center-mark" />
     </div>
   );
 }
@@ -163,7 +163,7 @@ function CameraViewBanner() {
       <EditorSurface
         variant="overlay"
         border
-        className="vgai-camera-view-banner vgai-chrome-island vgai-glass-island"
+        className="volter-camera-view-banner volter-chrome-island volter-glass-island"
         data-testid="camera-view-banner"
       >
         <Inline gap={6} align="center">

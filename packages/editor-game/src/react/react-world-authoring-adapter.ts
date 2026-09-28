@@ -1052,7 +1052,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     this.matchedCssRules =
       opts.matchedCssRules ??
       ((el) => getMatchedCssRules(el as MatchableElement) as CssRuleTarget[]);
-    // Game CSS is SCOPED (`@scope ([data-vgai-game-styles])`, measured:
+    // Game CSS is SCOPED (`@scope ([data-volter-game-styles])`, measured:
     // a project stylesheet's `:root { --x }` never reaches the editor page's
     // root), so the document root sees no game token — the adapter's OWN
     // mounted root is inside the scope and inherits them all. Fall back to
@@ -1060,13 +1060,13 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     const tokenStyle = () => {
       const root = this.root as unknown as Element;
       // Tokens inherit DOWNWARD from each game-CSS scope root
-      // (`[data-vgai-game-styles]`), which sits BELOW this adapter's layer —
+      // (`[data-volter-game-styles]`), which sits BELOW this adapter's layer —
       // so read the first scope root's computed style, not the layer's
       // (measured: the layer sees none of the game's custom properties).
       const el =
         typeof Element !== 'undefined' && root instanceof Element
-          ? (root.querySelector('[data-vgai-game-styles]') ??
-            root.closest?.('[data-vgai-game-styles]') ??
+          ? (root.querySelector('[data-volter-game-styles]') ??
+            root.closest?.('[data-volter-game-styles]') ??
             root)
           : typeof document !== 'undefined'
             ? document.documentElement
@@ -1422,8 +1422,8 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
   private elementLabel(n: OidNode, tree: OidTree): string {
     // Preserve the explicit escape hatch, but make ordinary DOM semantics
     // sufficient by default. Authored React should not need component splits
-    // or `data-vgai-name` merely to produce a legible hierarchy.
-    const editorLabel = normalizeElementText(n.el.getAttribute('data-vgai-name'));
+    // or `data-volter-name` merely to produce a legible hierarchy.
+    const editorLabel = normalizeElementText(n.el.getAttribute('data-volter-name'));
     if (editorLabel) return editorLabel;
 
     const labelledBy = n.el.getAttribute('aria-labelledby');
@@ -1489,10 +1489,10 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     const parent = n.parentId ? tree.nodes.get(n.parentId) : null;
     const parentComponent = parent ? this.componentName(parent) : null;
     const isComponentBoundary = component !== null && component !== parentComponent;
-    const crossSurfaceId = n.el.getAttribute('data-vgai-hierarchy-id');
-    const crossSurfaceParentId = n.el.getAttribute('data-vgai-hierarchy-parent-id');
-    const crossSurfaceOrderAttribute = n.el.getAttribute('data-vgai-hierarchy-order');
-    const crossSurfaceGroupLabel = n.el.getAttribute('data-vgai-hierarchy-group-label');
+    const crossSurfaceId = n.el.getAttribute('data-volter-hierarchy-id');
+    const crossSurfaceParentId = n.el.getAttribute('data-volter-hierarchy-parent-id');
+    const crossSurfaceOrderAttribute = n.el.getAttribute('data-volter-hierarchy-order');
+    const crossSurfaceGroupLabel = n.el.getAttribute('data-volter-hierarchy-group-label');
     const crossSurfaceOrder =
       crossSurfaceOrderAttribute === null ? undefined : Number(crossSurfaceOrderAttribute);
     const node: EditorNode = {
@@ -1525,10 +1525,10 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     const semanticIds = new Set<string>();
     for (const node of tree.nodes.values()) {
       if (
-        node.el.getAttribute('data-vgai-hierarchy-id') !== null ||
-        node.el.getAttribute('data-vgai-hierarchy-parent-id') !== null ||
-        node.el.getAttribute('data-vgai-hierarchy-order') !== null ||
-        node.el.getAttribute('data-vgai-hierarchy-group-label') !== null
+        node.el.getAttribute('data-volter-hierarchy-id') !== null ||
+        node.el.getAttribute('data-volter-hierarchy-parent-id') !== null ||
+        node.el.getAttribute('data-volter-hierarchy-order') !== null ||
+        node.el.getAttribute('data-volter-hierarchy-group-label') !== null
       ) {
         semanticIds.add(node.id);
       }
@@ -1545,10 +1545,10 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
           [
             node.id,
             parentId,
-            node.el.getAttribute('data-vgai-hierarchy-id'),
-            node.el.getAttribute('data-vgai-hierarchy-parent-id'),
-            node.el.getAttribute('data-vgai-hierarchy-order'),
-            node.el.getAttribute('data-vgai-hierarchy-group-label'),
+            node.el.getAttribute('data-volter-hierarchy-id'),
+            node.el.getAttribute('data-volter-hierarchy-parent-id'),
+            node.el.getAttribute('data-volter-hierarchy-order'),
+            node.el.getAttribute('data-volter-hierarchy-group-label'),
           ],
         ];
       }),
@@ -2653,7 +2653,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     // boundary the scoped stylesheet paints — falling back to the document
     // for a fixture element outside any scope.
     const scope =
-      (typeof el.closest === 'function' ? el.closest('[data-vgai-game-styles]') : null) ??
+      (typeof el.closest === 'function' ? el.closest('[data-volter-game-styles]') : null) ??
       el.ownerDocument;
     return tokens.map((name) => {
       let count = 0;
@@ -3592,7 +3592,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
   }
 
   // A class GETTER, not a field initializer — see `ui-authoring-adapter.ts`/
-  // `vgai-scene-authoring-adapter.ts` for why (field initializers run before the
+  // `volter-scene-authoring-adapter.ts` for why (field initializers run before the
   // constructor body assigns `this.writeBackend`).
   get persistence(): PersistenceProvider {
     const backend = this.writeBackend;

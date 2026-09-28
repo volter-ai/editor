@@ -8,7 +8,7 @@
  * render while its tab is hidden, because the browser parks `requestAnimation
  * Frame` for a backgrounded document. The two facts together make one
  * deterministic failure: a tab that opens in the BACKGROUND (the normal human
- * path — `vgai edit` auto-opens a tab that routinely lands behind the current
+ * path — `volter-game-editor edit` auto-opens a tab that routinely lands behind the current
  * window) burns its whole capture window unable to draw, the deadline fires,
  * the mount dies terminally, and foregrounding the tab later changes nothing.
  * Agents, whose tabs happen to be visible, never saw it.
@@ -26,7 +26,7 @@
  * budget is not a failure — a human returning to the tab is what spends it —
  * and a cap would be exactly the boot-time clock this module exists to
  * remove. The parked wait is reported instead of being silent: see
- * `CaptureWaitObserver` in `scene-capture.ts` and `vgai status`'s
+ * `CaptureWaitObserver` in `scene-capture.ts` and `volter-game-editor status`'s
  * `ingestCaptureWait`.
  *
  * The state machine is a pure function of (banked segments, now, hidden) so
@@ -223,7 +223,7 @@ export interface CaptureWaitOptions {
    *
    * A wait parked on a hidden tab is otherwise indistinguishable from a hung
    * mount: nothing renders, nothing fails, and every door reports silence.
-   * This is the seam the editor publishes to `vgai status` so the answer is
+   * This is the seam the editor publishes to `volter-game-editor status` so the answer is
    * "waiting for the first visible frame — the tab is hidden", not a countdown
    * that is not running.
    */

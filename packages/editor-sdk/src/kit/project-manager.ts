@@ -6,7 +6,7 @@
  *
  *  - LOCAL (server-backed) — it ASKS the server. The editor server holds
  *    "which project is open" as session state, re-rooted live by
- *    `POST /__editor/open-project` (the project browser, `vgai edit <path>`).
+ *    `POST /__editor/open-project` (the project browser, the editor's `edit <path>` command).
  *    The URL carries no project identity at all, so a
  *    refresh or a tab-heal navigation back to the bare origin lands in the
  *    same project — a VS Code window, not a deep link. A `?project=` on a
@@ -69,11 +69,11 @@ function describeManifestError(error: unknown): string {
 /** Open a project by its root path. Fetches the sole v2 project manifest. */
 export async function openProject(rootPath: string): Promise<ActiveProject> {
   const compatibility = await requireEditorCompatibility();
-  const res = await fetch('/vgai.project.json');
+  const res = await fetch('/volter.project.json');
   if (!res.ok) {
     throw new Error(
       `Could not open project at ${rootPath}.\n` +
-        `Failed to load vgai.project.json: ${res.status} ${res.statusText}`,
+        `Failed to load volter.project.json: ${res.status} ${res.statusText}`,
     );
   }
   let rawManifest: unknown;
@@ -82,7 +82,7 @@ export async function openProject(rootPath: string): Promise<ActiveProject> {
   } catch (error) {
     throw new Error(
       `Could not open project at ${rootPath}.\n` +
-        `vgai.project.json is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+        `volter.project.json is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
   assertProjectCompatibility(
@@ -101,7 +101,7 @@ export async function openProject(rootPath: string): Promise<ActiveProject> {
   } catch (error) {
     throw new Error(
       `Could not open project at ${rootPath}.\n` +
-        `vgai.project.json does not match the current project format:\n${describeManifestError(error)}`,
+        `volter.project.json does not match the current project format:\n${describeManifestError(error)}`,
     );
   }
   const config: ProjectConfig = {
@@ -129,7 +129,7 @@ export const SERVER_PROJECT_PROBE_RETRY_MS = 300;
 
 /**
  * Detect and open whatever project the server currently has active.
- * Used in production where __VGAI_PROJECT_PATH__ isn't available at build time.
+ * Used in production where __VOLTER_PROJECT_PATH__ isn't available at build time.
  *
  * Returns null ONLY when the server said it has no project open — that is the
  * one answer the launcher is a truthful response to. A server that is serving
@@ -185,7 +185,7 @@ export async function detectProject(): Promise<ActiveProject | null> {
   assertNoRemovedBootParams(window.location.search);
 
   // 1. ASK THE SESSION. This is the one explicit target —
-  //    `vgai edit <path>`, `VGAI_PROJECT`, and the project browser all reach
+  //    the editor's `edit <path>` command, `VOLTER_PROJECT`, and the project browser all reach
   //    the client the same way, because they all move the SERVER's project
   //    and the client reads it from there. There is no URL param and no
   //    boot-time Vite define snapshot in this path: the define is a
@@ -226,7 +226,7 @@ async function reopenLastProjectIfEnabled(): Promise<ActiveProject | null> {
   } catch (err) {
     // biome-ignore lint/suspicious/noConsole: a failed auto-reopen must be visible; the editor console isn't mounted yet at boot.
     console.warn(
-      `[vgai] "Reopen last project on launch" could not open ${target.path}; showing the project browser instead.`,
+      `[volter] "Reopen last project on launch" could not open ${target.path}; showing the project browser instead.`,
       err,
     );
     return null;

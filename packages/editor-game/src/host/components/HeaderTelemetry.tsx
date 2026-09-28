@@ -172,13 +172,13 @@ function AudioTelemetry() {
         : 'Audio quiet';
 
   return (
-    <div className="vgai-header-audio" data-muted={muted || undefined} data-available={!!adapter}>
+    <div className="volter-header-audio" data-muted={muted || undefined} data-available={!!adapter}>
       <Button
         ref={buttonRef}
         type="button"
         variant="ghost"
         size="compact"
-        className="vgai-header-telemetry-button"
+        className="volter-header-telemetry-button"
         data-testid="header-audio-telemetry"
         aria-label={`${stateLabel}; open audio controls`}
         aria-haspopup="menu"
@@ -187,7 +187,7 @@ function AudioTelemetry() {
         onClick={() => setMenuOpen((open) => !open)}
       >
         <EditorIcon icon={muted ? faVolumeXmark : faVolumeHigh} size="sm" />
-        <span className="vgai-audio-vu" aria-hidden="true">
+        <span className="volter-audio-vu" aria-hidden="true">
           {Array.from({ length: AUDIO_METER_SEGMENTS }, (_, index) => (
             <i key={index} data-filled={index < filled || undefined} />
           ))}
@@ -268,7 +268,7 @@ function PerformanceTelemetry() {
       type="button"
       variant="ghost"
       size="compact"
-      className="vgai-header-telemetry-button vgai-header-performance"
+      className="volter-header-telemetry-button volter-header-performance"
       data-testid="header-performance-telemetry"
       data-performance-tone={tone}
       disabled={!source}
@@ -277,24 +277,24 @@ function PerformanceTelemetry() {
       onClick={() => profilerView.open('profiler')}
     >
       <svg
-        className="vgai-performance-graph"
+        className="volter-performance-graph"
         aria-hidden="true"
         viewBox="0 0 72 18"
         width="72"
         height="18"
       >
         <line
-          className="vgai-performance-budget"
+          className="volter-performance-budget"
           x1="0"
           x2="72"
           y1={18 - (FRAME_BUDGET_60_FPS_MS / 50) * 18}
           y2={18 - (FRAME_BUDGET_60_FPS_MS / 50) * 18}
         />
-        {points && <polyline className="vgai-performance-sparkline" points={points} />}
+        {points && <polyline className="volter-performance-sparkline" points={points} />}
       </svg>
-      <span className="vgai-performance-readout">
-        <strong className="vgai-header-fps">{fps ?? '—'} FPS</strong>
-        <span className="vgai-header-frame-ms">{frameMs?.toFixed(1) ?? '—'} ms</span>
+      <span className="volter-performance-readout">
+        <strong className="volter-header-fps">{fps ?? '—'} FPS</strong>
+        <span className="volter-header-frame-ms">{frameMs?.toFixed(1) ?? '—'} ms</span>
       </span>
     </Button>
   );
@@ -322,7 +322,7 @@ export function HeaderTelemetry() {
   if (activeChromeRegions().telemetry === 'hidden') return null;
   return (
     <Inline
-      className="vgai-header-telemetry vgai-chrome-island vgai-glass-island"
+      className="volter-header-telemetry volter-chrome-island volter-glass-island"
       data-island-scale="compact"
       align="center"
       gap={1}

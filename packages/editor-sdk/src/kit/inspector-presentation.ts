@@ -29,7 +29,7 @@
  * The layout host consumes the resolution physically (column present vs
  * overlay card vs neither); `components/Inspector.tsx` consumes it visually
  * (narrow column vs mini card). Overrides are the person's own, kept in their
- * UI state (`@volter/editor-sdk/kit/user-local-state`, `~/.vgai/editor-state.json`), global
+ * UI state (`@volter/editor-sdk/kit/user-local-state`, `~/.volter/editor-state.json`), global
  * across projects — how you like your inspector is not a property of any one game.
  */
 
@@ -108,7 +108,7 @@ export function setInspectorPresentationOverride(
   // THE COLUMN LIVES IN A WORKBENCH VIEW. Under the Code-OSS frame the inspector column is the
   // Properties view, which may be closed or behind another tab; asking for the column reveals it,
   // also when the preference already says column (the card showed because the view was hidden).
-  if (value === 'column') revealWorkbenchView('vgai.properties');
+  if (value === 'column') revealWorkbenchView('volter.properties');
   if (inspectorPresentationOverride(surface) === value) return;
   _overrides = { ...overrides(), [surface]: value };
   _version++;

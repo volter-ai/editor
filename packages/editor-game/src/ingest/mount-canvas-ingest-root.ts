@@ -89,6 +89,7 @@ import { LOOP_PROBE_ABSENT, recordMountCoverage } from './mount-coverage';
 import { resolveIngest2DDescriptor } from './resolve-canvas';
 import { getIngestGame2D } from './surface-canvas';
 import { exitActiveIngest } from './unmount-ingest-root';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** How this mount reached the game's runtime, in the words a capability
  *  warning hands the reader. Mechanism only — never a grade. */
@@ -148,10 +149,10 @@ function publishCanvasIngestSystems(
   setActiveSystems(systems);
   editorConsole.log(
     contractSystems
-      ? `canvas ingest: "${gameName}" declares the vgai game contract — ` +
+      ? `canvas ingest: "${gameName}" declares the Volter game contract — ` +
           `${contractSystems.commands?.length ?? 0} commands, ` +
           `${contractSystems.state?.length ?? 0} state providers`
-      : `canvas ingest: "${gameName}" declares no vgai game contract — game.commands()/` +
+      : `canvas ingest: "${gameName}" declares no Volter game contract — game.commands()/` +
           'game.state() have nothing to answer and will refuse by naming that',
     'ingest',
   );
@@ -361,7 +362,7 @@ function publishStructuralCanvasRuntime(
     'ingest',
   );
 
-  publishIngestHook('__vgaiIngest2D', {
+  publishIngestHook('__volterIngest2D', {
     gameId: sessionId,
     ...ingestHookEvidence(adapter),
     runtime: recognized.runtime,
@@ -460,6 +461,7 @@ async function mountCanvasIngestRootInner(
   const hostEl = document.createElement('div');
   hostEl.id = 'container';
   hostEl.style.cssText = `position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;${GAME_SURFACE_CONTAINMENT_CSS}`;
+  markGameSurface(hostEl);
   gameContainer.appendChild(hostEl);
   setGameSurface(hostEl);
   // Same scoped-CSS contract the three lane holds (ingest-root-adapter.ts):
@@ -481,7 +483,7 @@ async function mountCanvasIngestRootInner(
   // F26: same cold-mount announcement the three adapter makes
   // (ingest-root-adapter.ts) — a pixi game may declare the game contract and
   // defer its session until ▶; games that ignore the flag behave as before.
-  (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
+  (window as unknown as { __volterMountCold?: boolean }).__volterMountCold = true;
   // THE namespace the game's own modules will resolve `pixi.js` to.
   //
   // `installSceneCapture2D` wraps `Application.prototype.render` on the
@@ -518,7 +520,7 @@ async function mountCanvasIngestRootInner(
       // unfocused editor window).
       preferStructuralRuntime: async () => {
         const realm = ingestGameRealmWindow() as unknown as PhaserRealmLike & BabylonRealmLike;
-        await realm.__vgaiBabylon?.ready;
+        await realm.__volterBabylon?.ready;
         return recognizeStructuralCanvasRuntime(store, realm) !== null;
       },
     });
@@ -578,8 +580,8 @@ async function mountCanvasIngestRootInner(
   const stage = mount.stage as Container;
   // The game's async setup may add display objects after its first captured frame —
   // wait for the stage to settle. `nextPaint()` rather than a bare rAF because
-  // this mount is awaited by `vgai play`: in a hidden tab (every agent-worktree
-  // `vgai edit` opens one — see `after-paint.ts`) no frame ever arrives, so a
+  // this mount is awaited by `volter-game-editor play`: in a hidden tab (every agent-worktree
+  // `volter-game-editor edit` opens one — see `after-paint.ts`) no frame ever arrives, so a
   // bare chain hangs this bounded loop on iteration 1 and play stalls in its
   // boot phase with nothing to report.
   for (let i = 0; i < 90 && (stage.children?.length ?? 0) === 0; i++) {
@@ -776,7 +778,7 @@ async function mountCanvasIngestRootInner(
   // PD-3: the mount stood — but `contract-ready` may only be recorded when the
   // declared promise actually ANSWERED. The three lane's `awaitWorldReady`
   // (`authoring/ingest-root-adapter.ts`) is the precedent: a game that declares
-  // `window.vgaiGame.ready` is awaited exactly once, and a declared signal that
+  // `window.volterGame.ready` is awaited exactly once, and a declared signal that
   // REJECTS does not fail the mount (the frame is already captured) — it
   // degrades to the measured wait, LOUDLY, and the row then reports `measured`,
   // which is the truth about which answer stood. Recording `contract-ready`
@@ -789,7 +791,7 @@ async function mountCanvasIngestRootInner(
       readinessStood = 'declared';
     } catch (err) {
       editorConsole.error(
-        `Ingest game "${game.id}" declared \`window.vgaiGame.ready\` and it REJECTED ` +
+        `Ingest game "${game.id}" declared \`window.volterGame.ready\` and it REJECTED ` +
           `(${String(err)}) — the frame was already captured, so the host fell back to the ` +
           'measured settle wait. This root now reports readiness as measured.',
         'ingest',
@@ -828,7 +830,7 @@ async function mountCanvasIngestRootInner(
     'ingest',
   );
 
-  publishIngestHook('__vgaiIngest2D', {
+  publishIngestHook('__volterIngest2D', {
     gameId: sessionId,
     ...ingestHookEvidence(adapter),
     drawCount: () => mount.capture.getDrawCount(),

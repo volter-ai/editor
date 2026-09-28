@@ -12,7 +12,7 @@
  * the file on disk.
  *
  * `typescript` is the same parser the finder already uses. This module is
- * host-side only — a game's `vgai.adapter.ts` must not import it.
+ * host-side only — a game's `volter.adapter.ts` must not import it.
  */
 
 import ts from 'typescript';

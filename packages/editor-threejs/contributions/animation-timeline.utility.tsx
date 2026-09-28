@@ -32,7 +32,7 @@ export default function AnimationTimeline() {
         data-testid="animation-timeline-empty"
         data-document={activeId ?? ''}
         data-transport={handle ? 'yes' : 'no'}
-        style={{ padding: 'var(--vgai-space-2) var(--vgai-space-3)' }}
+        style={{ padding: 'var(--volter-space-2) var(--volter-space-3)' }}
       >
         {handle
           ? 'Nothing in the active document plays an animation.'

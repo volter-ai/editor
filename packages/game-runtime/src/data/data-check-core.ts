@@ -1,10 +1,9 @@
 /**
  * Data-asset integrity core — the PURE half of W5 enforcement ("dangling
  * `file#key` ref" / §6.7 build-path validation). No filesystem, no vite, no
- * zod: plain parsed-JSON in, findings out, so BOTH consumers — `vgai
- * doctor`'s data checks (`packages/editor/src/doctor/data-checks.ts`) and the
- * build-time plugin (`./vite-plugin-data.ts`) — share one definition of "what
- * is a ref" and "what counts as dangling" and can never drift apart.
+ * zod: plain parsed-JSON in, findings out, so its consumers (the build-time
+ * plugin, `./vite-plugin-data.ts`, through `./data-ref.ts`) share one
+ * definition of "what is a ref" and "what counts as dangling".
  *
  * What is a ref (§2.2): a cross-asset reference is a plain string
  * `"file#key"` — optionally with a field path, `"tuning#economy.slotGrowth"`
@@ -22,7 +21,7 @@
  *
  * `dataRef` (`./data-ref.ts`) now exists, closing that flip side for anyone
  * who adopts it: a `dataRef(target)` field's EMITTED schema carries
- * `"x-vgai-ref": target` — a declared intent, independent of whether the
+ * `"x-volter-ref": target` — a declared intent, independent of whether the
  * target file currently exists. {@link collectDeclaredRefFields} /
  * {@link findMissingRefTargets} below walk that (zod-free — plain emitted
  * JSON Schema in, findings out, same purity contract as the rest of this
@@ -176,7 +175,7 @@ export interface MissingRefTargetFinding {
 interface JsonSchemaNode {
   properties?: Record<string, unknown>;
   additionalProperties?: unknown;
-  'x-vgai-ref'?: unknown;
+  'x-volter-ref'?: unknown;
 }
 
 function asSchemaNode(value: unknown): JsonSchemaNode | null {
@@ -188,7 +187,7 @@ function asSchemaNode(value: unknown): JsonSchemaNode | null {
 /**
  * Walk an emitted data-asset JSON Schema (`toDataJsonSchema`'s output, or the
  * committed `.schema.json` twin — same shape either way) and collect every
- * field stamped `"x-vgai-ref": <target>` by `dataRef` (`./data-ref.ts`).
+ * field stamped `"x-volter-ref": <target>` by `dataRef` (`./data-ref.ts`).
  * Handles both blessed shapes (spec §2.1): a singleton's `properties`, and a
  * table's `additionalProperties` row schema — walked with the SAME field
  * path (a table's declared ref applies uniformly to every row, there is no
@@ -206,8 +205,8 @@ function walkForDeclaredRefs(raw: unknown, path: string, out: DeclaredRefField[]
   const node = asSchemaNode(raw);
   if (!node) return;
 
-  if (typeof node['x-vgai-ref'] === 'string') {
-    out.push({ fieldPath: path || '(root)', targetStem: node['x-vgai-ref'] });
+  if (typeof node['x-volter-ref'] === 'string') {
+    out.push({ fieldPath: path || '(root)', targetStem: node['x-volter-ref'] });
     return; // a ref leaf — nothing further to walk under it
   }
 

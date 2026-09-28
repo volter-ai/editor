@@ -111,7 +111,7 @@ export async function openLiveSceneEntry(
           code: 'SCENE_CONTRACT_UNAVAILABLE',
           error:
             `open: "${entry.id}" is reached through the running game's own scenes contract, ` +
-            'and the game running in this session publishes none (`window.vgaiGame.scenes`).',
+            'and the game running in this session publishes none (`window.volterGame.scenes`).',
         };
       }
       const switched = scenes.goToScene(entry.reach.sceneId);

@@ -125,7 +125,7 @@ export function activeInspectionSurface(store: ShellStore): InspectionSurfaceKin
    * INGEST lane's own adapter — pulling `dom-authoring-adapter.ts` (and the
    * ephemeral-persistence provider and the JSON history resource only it
    * reaches) into every shell closure, in a build that may not even ship
-   * `@vgai/game` (measured 2026-09-18, phase 1 of the open-source launch:
+   * `@volter/editor-game` (measured 2026-09-18, phase 1 of the open-source launch:
    * three files).
    *
    * The lane already answers this question through a door the host owns:

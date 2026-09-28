@@ -4,7 +4,7 @@
  *
  * A game is a native program plus a declaration of itself; the editor is a
  * universal client of that declaration. This module is where the declaration
- * is READ: the manifest root, the project's parsed `vgai.adapter.ts`, and the
+ * is READ: the manifest root, the project's parsed `volter.adapter.ts`, and the
  * entry module's own static surface, resolved against ONE realm
  * (`realm-services.ts` — dev or packaged).
  *
@@ -85,7 +85,7 @@ export interface ResolveRootBindingOptions {
  * Resolve one manifest root against one realm.
  *
  * `adapterDef` is an INPUT, never something this function goes and fetches:
- * `vgai.adapter.ts` loading stays in `project-adapter.ts`, and the binding is
+ * `volter.adapter.ts` loading stays in `project-adapter.ts`, and the binding is
  * the hand-off's shape rather than a second loader.
  */
 export async function resolveRootBinding(
@@ -252,7 +252,7 @@ function rejectCapturedIngestAsRootAdapter(root: ResolvedAdapterRoot): never {
 export interface ResolveAllRootEntriesOptions {
   /**
    * Remount the named region's entrypoint at this swap-slot key. Only that
-   * world's entry URL carries the override; siblings share `?vgai-mount=`
+   * world's entry URL carries the override; siblings share `?volter-mount=`
    * alone so the module graph stays one instance.
    */
   readonly selectionOverride?:
@@ -276,7 +276,7 @@ interface ResolvedComposition {
  * resolvers would give each root its own generation, which is the defect.
  *
  * The COMPOSITION level is likewise where the project's two ambient inputs are
- * fetched — the realm's services and the parsed `vgai.adapter.ts` — because
+ * fetched — the realm's services and the parsed `volter.adapter.ts` — because
  * both are properties of the open project rather than of any one root, and
  * asking once per composition is what keeps every root of a game bound to the
  * same declaration. `resolveRootBinding` itself still fetches neither: it is
@@ -302,7 +302,7 @@ async function resolveComposition(
     out.push({ world, resolved });
   }
   // Stringified because that is the form the id travels in everywhere else:
-  // the entry url's `?vgai-mount=` value, and therefore the key
+  // the entry url's `?volter-mount=` value, and therefore the key
   // `gated-globals.ts` reads back off a module url.
   return { roots: out, mountId: String(epoch) };
 }
@@ -351,7 +351,7 @@ export async function resolveAllRoots(
  *
  * It also returns this composition's `mountId` — the identity the whole
  * isolation layer is keyed by. It is minted here (one epoch per composition),
- * rides every project module url as `?vgai-mount=`, and is what
+ * rides every project module url as `?volter-mount=`, and is what
  * `gated-globals.ts` resolves a realm and an input gate under.
  *
  * It does NOT return the entry modules' harvested `debug`/`systems` bindings.

@@ -193,9 +193,9 @@ export async function startEmscriptenBlenderEngine(
   // editor's console door is for conditions somebody must resolve, so only the
   // session's OWN named conditions go there.
   const say = (_level: 'log' | 'error', text: string) => {
-    if (text.startsWith('@@VGAI-READY ')) readyLine = text.slice('@@VGAI-READY '.length);
+    if (text.startsWith('@@VOLTER-READY ')) readyLine = text.slice('@@VOLTER-READY '.length);
     options.log(
-      text.startsWith('@@VGAI-WARN') || text.startsWith('@@VGAI-ERROR') ? 'error' : 'log',
+      text.startsWith('@@VOLTER-WARN') || text.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
       text,
     );
   };
@@ -224,11 +224,11 @@ export async function startEmscriptenBlenderEngine(
           BLENDER_SYSTEM_PYTHON: '/bw/python',
           BLENDER_SYSTEM_SCRIPTS: '/bw/scripts',
           BLENDER_SYSTEM_DATAFILES: '/bw/datafiles',
-          VGAI_SESSION_ROOT: SESSION_ROOT,
+          VOLTER_SESSION_ROOT: SESSION_ROOT,
           HOME: '/root',
           TMPDIR: '/tmp',
         });
-        // VGAI_EXPORT_BUFFER_PATH IS DELIBERATELY UNSET. This engine reads the
+        // VOLTER_EXPORT_BUFFER_PATH IS DELIBERATELY UNSET. This engine reads the
         // arena off `HEAPU8`; asking the door to also write it to a file would
         // cost this skew a megabyte-scale write per present for bytes it
         // already has (`session.py`, EXPORT_BUFFER_PATH).

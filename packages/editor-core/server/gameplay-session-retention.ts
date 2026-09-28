@@ -72,11 +72,11 @@ export async function pruneGameplaySessionLogs(
   for (const value of sized.slice(0, -1)) {
     if (total <= budgetBytes) break;
     const clipRemoved = await unlinkIfPresent(
-      join(projectRoot, '.vgai', 'recordings', `${value.file.slice(0, -'.jsonl'.length)}.webm`),
+      join(projectRoot, '.volter', 'recordings', `${value.file.slice(0, -'.jsonl'.length)}.webm`),
     );
     if (!clipRemoved) continue;
     await removeReplaySidecar(
-      join(projectRoot, '.vgai', 'recordings'),
+      join(projectRoot, '.volter', 'recordings'),
       value.file.slice(0, -'.jsonl'.length),
     );
     const logRemoved = await unlinkIfPresent(join(logsDir, value.file));
@@ -95,7 +95,7 @@ export async function pruneGameplaySessionClips(
   budgetBytes = GAMEPLAY_SESSION_CLIP_BUDGET_BYTES,
 ): Promise<string[]> {
   const logsDir = join(projectRoot, 'logs');
-  const recordingsDir = join(projectRoot, '.vgai', 'recordings');
+  const recordingsDir = join(projectRoot, '.volter', 'recordings');
   const logStems = new Set(
     (await readdir(logsDir).catch(() => []))
       .filter((file) => file.startsWith('play-') && file.endsWith('.jsonl'))

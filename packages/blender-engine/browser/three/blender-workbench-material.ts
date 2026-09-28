@@ -48,7 +48,7 @@ vec4 wbWrapped(vec4 NL, vec4 w) {
   return clamp((NL + w) / (w1 * w1), 0.0, 1.0);
 }
 
-vec3 vgaiWorkbenchLighting(vec3 baseColor, vec3 N, vec3 I) {
+vec3 volterWorkbenchLighting(vec3 baseColor, vec3 N, vec3 I) {
   vec3 diffuseColor = mix(baseColor, vec3(0.0), wbMetallic);
   vec3 specularColor = mix(vec3(0.05), baseColor, wbMetallic);
   vec3 R = -reflect(I, N);
@@ -94,7 +94,7 @@ export function workbenchMaterial(display: ViewportDisplay, side: THREE.Side): T
   const [r, g, b] = display.color;
   const material = new THREE.MeshLambertMaterial({ side });
   material.color.setRGB(r, g, b, THREE.LinearSRGBColorSpace);
-  material.name = 'vgai:blender-solid';
+  material.name = 'volter:blender-solid';
   material.onBeforeCompile = (shader) => {
     shader.uniforms['wbDir'] = { value: LIGHT_DIRECTIONS };
     shader.uniforms['wbDiffuse'] = { value: LIGHT_DIFFUSE };
@@ -107,9 +107,9 @@ export function workbenchMaterial(display: ViewportDisplay, side: THREE.Side): T
       .replace(
         '#include <opaque_fragment>',
         // The view direction toward the eye, as Blender's `I`: constant in an orthographic view.
-        'outgoingLight = vgaiWorkbenchLighting(diffuseColor.rgb, normal, isOrthographic ? vec3(0.0, 0.0, 1.0) : normalize(vViewPosition));\n#include <opaque_fragment>',
+        'outgoingLight = volterWorkbenchLighting(diffuseColor.rgb, normal, isOrthographic ? vec3(0.0, 0.0, 1.0) : normalize(vViewPosition));\n#include <opaque_fragment>',
       );
   };
-  material.customProgramCacheKey = () => 'vgai-blender-workbench';
+  material.customProgramCacheKey = () => 'volter-blender-workbench';
   return material;
 }

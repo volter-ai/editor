@@ -1,5 +1,5 @@
 /**
- * `vgai:contributions/<package>` — a package's DECLARED contributions, read at
+ * `volter:contributions/<package>` — a package's DECLARED contributions, read at
  * build/serve time and served as a module of static `import()`s.
  *
  * A PRODUCT is code (ARCHITECTURE-CORE §The target shape, rule 8: "Compositions
@@ -8,14 +8,14 @@
  * name the packages they mount, in TypeScript, and each name is spelled as an
  * import of this virtual module:
  *
- *   import blender from 'vgai:contributions/@vgai/blender';
+ *   import blender from 'volter:contributions/@volter/editor-blender';
  *
  * whose body this plugin synthesizes from that package's own
- * `package.json#vgai.contributions`:
+ * `package.json#volter.contributions`:
  *
  *   export default [
- *     { entryPath: '@vgai/blender/contributions/blender.command.ts',
- *       load: () => import('@vgai/blender/contributions/blender.command') },
+ *     { entryPath: '@volter/editor-blender/contributions/blender.command.ts',
+ *       load: () => import('@volter/editor-blender/contributions/blender.command') },
  *     …
  *   ];
  *
@@ -42,7 +42,7 @@
  * package's contribution by the manifest's own `./contributions/x.ts` spelling)
  * and `tool-loader.ts` dedupes a package the product bundles against one the
  * open project declares BY THAT STRING. The `load` import drops the extension
- * for the same reason the old generator did: `@vgai/x/contributions/*` is an
+ * for the same reason the old generator did: `@volter/x/contributions/*` is an
  * export-map wildcard, and the bundler resolves the extension.
  *
  * WHERE THE MANIFEST IS FOUND. From the IMPORTER — the product module doing the
@@ -60,7 +60,7 @@ import type { Plugin } from 'vite';
 /** The specifier prefix a product writes. Part of the kit's public surface: a
  *  product package's source contains this string and nothing else about how a
  *  contribution is found. */
-export const PRODUCT_CONTRIBUTIONS_PREFIX = 'vgai:contributions/';
+export const PRODUCT_CONTRIBUTIONS_PREFIX = 'volter:contributions/';
 
 /** One contribution a product bundles: the package specifier `tool-loader.ts`
  *  records as the module's `file`, and the lazy import the bundler follows. */
@@ -86,7 +86,7 @@ export function productContributionsModuleSource(
     );
   });
   return [
-    `// ${packageName}'s package.json#vgai.contributions, read at build time by`,
+    `// ${packageName}'s package.json#volter.contributions, read at build time by`,
     '// packages/editor/vite-plugin-product-contributions.ts.',
     'export default [',
     ...rows,
@@ -97,7 +97,7 @@ export function productContributionsModuleSource(
 
 /** A package's declared contribution modules, or a throw naming the package. */
 export function readDeclaredContributions(manifestPath: string, packageName: string): string[] {
-  let manifest: { vgai?: { contributions?: unknown } };
+  let manifest: { volter?: { contributions?: unknown } };
   try {
     manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as typeof manifest;
   } catch (error) {
@@ -106,16 +106,16 @@ export function readDeclaredContributions(manifestPath: string, packageName: str
         `so ${packageName}'s contributions cannot be composed into this product.`,
     );
   }
-  const declared = manifest.vgai?.contributions;
+  const declared = manifest.volter?.contributions;
   if (declared === undefined)
     throw new Error(
-      `${packageName} declares no package.json#vgai.contributions, so there is nothing for a ` +
+      `${packageName} declares no package.json#volter.contributions, so there is nothing for a ` +
         'product to mount from it. A package that contributes declares its modules there; a ' +
         'package that only exports code is imported by name instead.',
     );
   if (!Array.isArray(declared) || declared.some((entry) => typeof entry !== 'string'))
     throw new Error(
-      `${packageName}'s package.json#vgai.contributions must be an array of ./-relative modules.`,
+      `${packageName}'s package.json#volter.contributions must be an array of ./-relative modules.`,
     );
   return declared as string[];
 }
@@ -158,7 +158,7 @@ function locateManifest(packageName: string, importer: string | undefined): stri
 }
 
 /**
- * The ONE plugin serving every `vgai:contributions/<package>` a product names.
+ * The ONE plugin serving every `volter:contributions/<package>` a product names.
  *
  * Registered on the repo-root `vite.config.ts` — which is both the product
  * BUILD's config and the dev session's `configFile`
@@ -169,7 +169,7 @@ function locateManifest(packageName: string, importer: string | undefined): stri
 export function productContributionsPlugin(): Plugin {
   const manifests = new Map<string, string>();
   return {
-    name: 'vgai-product-contributions',
+    name: 'volter-product-contributions',
     resolveId(id, importer) {
       if (!id.startsWith(PRODUCT_CONTRIBUTIONS_PREFIX)) return null;
       const packageName = id.slice(PRODUCT_CONTRIBUTIONS_PREFIX.length);

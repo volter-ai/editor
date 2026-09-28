@@ -1,8 +1,8 @@
 // The game editor's callsite stamp, reproduced for every `gd-analyze run` mount: its source transform gives
-// each component callsite in a served scene `__vgaiOid` and `__vgaiLabel` props. The emitted
+// each component callsite in a served scene `__volterOid` and `__volterLabel` props. The emitted
 // scenes are JSX (compat itself calls `createElement`), so every compat component a scene calls (a `Godot*` function; those with no native root excepted) is called here
 // with them, and the mount fails unless each such component's native root ends up holding its
-// `__vgaiOid` (the editor's forwarding convention) and nothing throws.
+// `__volterOid` (the editor's forwarding convention) and nothing throws.
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
@@ -12,14 +12,14 @@ const received = new Set();
 
 function watch(three) {
   const proto = three?.Object3D?.prototype;
-  if (proto === undefined || Object.getOwnPropertyDescriptor(proto, '__vgaiOid') !== undefined) return;
-  Object.defineProperty(proto, '__vgaiOid', {
+  if (proto === undefined || Object.getOwnPropertyDescriptor(proto, '__volterOid') !== undefined) return;
+  Object.defineProperty(proto, '__volterOid', {
     configurable: true,
     get() {
-      return this.__vgaiOidValue;
+      return this.__volterOidValue;
     },
     set(value) {
-      this.__vgaiOidValue = value;
+      this.__volterOidValue = value;
       received.add(value);
     },
   });
@@ -36,7 +36,7 @@ function stampedProps(type, props) {
   if (typeof type !== 'function' || !/^Godot[A-Z]/u.test(type.name) || ROOTLESS.has(type.name)) return props;
   const oid = `callsite:${type.name}`;
   stamped.add(oid);
-  return { ...props, __vgaiOid: oid, __vgaiLabel: type.name };
+  return { ...props, __volterOid: oid, __volterLabel: type.name };
 }
 
 for (const runtime of ['react/jsx-runtime', 'react/jsx-dev-runtime']) {

@@ -68,7 +68,7 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
       },
     }, null, 2) + '\n');
-    await write('vgai.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
+    await write('volter.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
 import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
@@ -84,7 +84,7 @@ export default defineAdapter({
     await write('.mcp.json', JSON.stringify({
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
-    await write('.gitignore', 'node_modules\n.vgai/\nlogs/\n');
+    await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
     for (const file of ['cube.blend', 'cube.py']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
     }

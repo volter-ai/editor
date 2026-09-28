@@ -173,7 +173,7 @@ registerEditorStateFacet(() => ({
  * mount is attempted (that flag is what swaps the viewport onto the live
  * scene). When the mount then throws, that flag, plus any authoring
  * adapter/adopted scene a partial mount installed, used to survive — so
- * `vgai status` reported `playing`, the hierarchy kept presenting whatever tree
+ * `volter-game-editor status` reported `playing`, the hierarchy kept presenting whatever tree
  * was underneath, and the only trace of the failure was one console line. This
  * is the single teardown every failure path runs: drop the partial session,
  * reset the play surface, and record + broadcast the failure so the status item
@@ -509,7 +509,7 @@ async function tryManifestIngestRoute2D(
  * DOM sibling of {@link tryManifestIngestRoute}/{@link tryManifestIngestRoute2D}
  * (D-Y2, slice S2): a manifest-backed project declaring an `ingest-react` root
  * mounts the native-React ingest session straight from that root (external
- * folder — `vgai edit <folder>` — not the in-tree `ingest/games/<id>` fixture
+ * folder — `volter-game-editor edit <folder>` — not the in-tree `ingest/games/<id>` fixture
  * registry). Same "applied or not" contract, same D-V2 composite scan/
  * route-selection/sibling-mount shape as its three/canvas siblings above.
  */
@@ -689,7 +689,7 @@ async function autoLaunchIngestInner(store: EditorShellStore): Promise<void> {
 // and several of that module's suites run under the Node vitest environment
 // where a bare top-level `window` write is a load-time ReferenceError.
 if (import.meta.env.DEV && typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>)['__vgaiIngestApi'] = {
+  (window as unknown as Record<string, unknown>)['__volterIngestApi'] = {
     enter: (gameId: string) => {
       if (!_boundStore) throw new Error('ingest roots not bound');
       return mountThreeIngestRootById(_boundStore, gameId);
@@ -700,7 +700,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     isActive: () => activeIngest()?.kind === 'three',
   };
   // Canvas sibling (T6.1 slice 4) — same shape, over the canvas ingest session.
-  (window as unknown as Record<string, unknown>)['__vgaiIngestApi2D'] = {
+  (window as unknown as Record<string, unknown>)['__volterIngestApi2D'] = {
     enter: (gameId: string) => {
       if (!_boundStore) throw new Error('ingest roots not bound');
       return mountCanvasIngestRootById(_boundStore, gameId);
@@ -710,7 +710,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
   };
   // DOM sibling (Track N, N2) — same shape, over the native-React ingest
   // session.
-  (window as unknown as Record<string, unknown>)['__vgaiIngestApiReact'] = {
+  (window as unknown as Record<string, unknown>)['__volterIngestApiReact'] = {
     enter: (folderId: string) => {
       if (!_boundStore) throw new Error('ingest roots not bound');
       return mountDomIngestRoot(_boundStore, folderId);
@@ -719,22 +719,22 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     isActive: () => activeIngest()?.kind === 'dom',
   };
   // Headless-readable mount outcomes —
-  // `packages/editor/src/authoring/mount-failure-report.ts`'s multi-entry
+  // `packages/editor-sdk/src/kit/mount-failure-report.ts`'s multi-entry
   // list is otherwise only ever read by the status bar's `mount-failure`
   // contribution (a React component), invisible to `page.evaluate()`. This is
-  // a plain function returning the LIVE list — `vgai doctor`'s browser
+  // a plain function returning the LIVE list — a probe's browser
   // phase is this surface's first consumer, but any other dev/e2e caller can
-  // poll it the same way `__vgaiIngestApi*` are already polled.
-  (window as unknown as Record<string, unknown>)['__vgaiMountFailureReports'] = () =>
+  // poll it the same way `__volterIngestApi*` are already polled.
+  (window as unknown as Record<string, unknown>)['__volterMountFailureReports'] = () =>
     getMountFailureReports();
   // D-H1 (Slice B): headless-readable per-sibling signal — the live slot's
   // `siblings` (D-V2's composite-sibling handles, `ingest-siblings.ts`'s
   // `SiblingMount[]`) is otherwise invisible to `page.evaluate()`, same blind spot
-  // `__vgaiMountFailureReports` closed for mount failures. A plain function
+  // `__volterMountFailureReports` closed for mount failures. A plain function
   // returning a LIVE view (never a snapshot, re-reads the slot on every call) of
   // honest per-sibling flags only — no capture/draw proof, see
   // `DoctorSiblingEvidence`'s doc comment (`packages/editor/src/doctor/report.ts`).
-  (window as unknown as Record<string, unknown>)['__vgaiSiblingMounts'] = () =>
+  (window as unknown as Record<string, unknown>)['__volterSiblingMounts'] = () =>
     (activeIngest()?.siblings ?? []).map((s) => ({
       worldId: s.worldId,
       setPausedPresent: typeof s.setPaused === 'function',

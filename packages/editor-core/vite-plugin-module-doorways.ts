@@ -4,7 +4,7 @@
  * OPENED PROJECT's Vite graph instead of through its own prebuilt bundle.
  *
  * One plugin, one declarative table per doorway. Everything below is the same
- * two-line mechanism — `resolveId` maps `/__vgai-<name>` to a `\0`-prefixed
+ * two-line mechanism — `resolveId` maps `/__volter-<name>` to a `\0`-prefixed
  * virtual id, `load` answers with a literal string of `export … from '<bare
  * specifier>'` lines — and the ONLY thing that ever differed between the five
  * was the specifier table, so the tables are the module's data and the plugin
@@ -12,7 +12,7 @@
  *
  * ## Why a doorway exists at all
  *
- * Under the PACKAGED runtime (`server/packaged.ts` — a `@vgai/editor` npm
+ * Under the PACKAGED runtime (`server/packaged.ts` — a `@volter/editor-core` npm
  * package with no monorepo checkout) the editor shell is a prebuilt production
  * bundle with its own React, three, `@react-three/fiber`, `pixi.js`,
  * `@pixi/react` and `@storybook/react` inlined, while the opened project's
@@ -44,7 +44,7 @@
  *    not boot the packaged editor without installing an unrelated renderer
  *    stack), nor a three-only project `@pixi/react`;
  *  - an INGEST root's whole premise is a game that brought its OWN stack, so
- *    the three-ingest doorway does not borrow `/__vgai-r3f-runtime` even though
+ *    the three-ingest doorway does not borrow `/__volter-r3f-runtime` even though
  *    that module already publishes `projectThree` and reusing it would be one
  *    line: a vendored plain-three game has no Fiber installed, and demanding it
  *    would break the exact case the doorway closes;
@@ -58,7 +58,7 @@
  * These are the failures each row set was bought with. None of them reproduce
  * from a checkout — every one needs a real packaged build.
  *
- * ### `/__vgai-react-world-runtime` (`REACT_WORLD_DOORWAY`)
+ * ### `/__volter-react-world-runtime` (`REACT_WORLD_DOORWAY`)
  *
  * Mounting a react world with `createRoot` from the editor's own bundle while
  * the entry component's hooks ran against the project's `react` produced two
@@ -92,7 +92,7 @@
  * hooks must resolve `react` through the SAME graph, whatever that graph points
  * at.
  *
- * ### `/__vgai-canvas-runtime` (`CANVAS_DOORWAY`)
+ * ### `/__volter-canvas-runtime` (`CANVAS_DOORWAY`)
  *
  * The editor's canvas root mount (`editor-game/src/host/roots/canvas-root.tsx`)
  * is SHELL code. Built with the shell's own `@pixi/react`, it called
@@ -138,7 +138,7 @@
  * import, which is the project's once this doorway resolves it), so the MOUNT
  * needs nothing further.
  *
- * ### `/__vgai-three-ingest-runtime` (`THREE_INGEST_DOORWAY`)
+ * ### `/__volter-three-ingest-runtime` (`THREE_INGEST_DOORWAY`)
  *
  * `src/authoring/ingest-root-adapter.ts` is SHELL code, and it installed the
  * render accessor trap on the `three` it statically imported — while the
@@ -148,7 +148,7 @@
  * invariant in `adapter/ingest/scene-capture.ts`'s own header — "every trap
  * must be installed on the SAME `three` module/addon instance the game uses" —
  * and says exactly what a violation looks like. MEASURED on a packaged build
- * (published `@vgai/editor@0.5.20`, real npm install) against a ~30-line
+ * (a published editor at 0.5.20, real npm install) against a ~30-line
  * unmodified three.js game declared as a `{ surface: 'three', ingest: {} }`
  * root:
  *
@@ -164,7 +164,7 @@
  * resolves to the copy beside its own `three`, and trapping the shell's would
  * miss a composer-driven or CSS3D-driven game for precisely that reason.
  *
- * ### `/__vgai-story-runtime` (`STORY_DOORWAY`)
+ * ### `/__volter-story-runtime` (`STORY_DOORWAY`)
  *
  * A CSF module is dynamically imported through the project's Vite graph
  * (`src/stories/story-discovery.ts`'s `/@fs/` import), so its components' hooks
@@ -173,10 +173,10 @@
  * bundled `react-dom`, and `compose-project-stories.ts` composed them with the
  * editor's own bundled `@storybook/react`. Two React module instances: every
  * story render died on "Invalid hook call" — confirmed live in a package-native
- * project, where the Stories panel and the `vgai screenshot` story lane were
+ * project, where the Stories panel and the the editor's `screenshot` command story lane were
  * both dead.
  *
- * ### `/__vgai-r3f-runtime` (`R3F_DOORWAY`)
+ * ### `/__volter-r3f-runtime` (`R3F_DOORWAY`)
  *
  * The three lane's original doorway, and the pattern the canvas and
  * three-ingest ones were transcribed from: the React and Fiber members the
@@ -227,7 +227,7 @@ export interface ModuleDoorwayRow {
 
 /** A synthetic module the editor shell imports by URL to reach the project's graph. */
 export interface ModuleDoorway {
-  /** The URL shell code imports (`/__vgai-r3f-runtime`). Part of the public API. */
+  /** The URL shell code imports (`/__volter-r3f-runtime`). Part of the public API. */
   readonly path: string;
   readonly rows: readonly ModuleDoorwayRow[];
 }
@@ -348,7 +348,7 @@ export function doorwayModuleSource(doorway: ModuleDoorway): string {
 
 /** A doorway's private virtual id — `\0`-prefixed so no other plugin claims it. */
 function virtualIdOf(doorway: ModuleDoorway): string {
-  return `\0vgai${doorway.path.replace(/^\/__vgai/, '')}`;
+  return `\0volter${doorway.path.replace(/^\/__volter/, '')}`;
 }
 
 /**
@@ -364,7 +364,7 @@ export function moduleDoorwaysPlugin(doorways: readonly ModuleDoorway[]): Plugin
     doorways.map((doorway) => [virtualIdOf(doorway), doorwayModuleSource(doorway)]),
   );
   return {
-    name: 'vgai-module-doorways',
+    name: 'volter-module-doorways',
     resolveId(id) {
       return byPath.get(id);
     },

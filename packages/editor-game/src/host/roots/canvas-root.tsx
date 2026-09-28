@@ -134,7 +134,7 @@ function canvasWorldAdapter(
         throw new Error(
           `canvas world "${id}": this lane has already mounted this canvas. @pixi/react keys ` +
             'its reconciler roots off the canvas element, so re-using one would resurrect a ' +
-            'root whose Application is destroyed. Hand each mount a fresh canvas (every vgai ' +
+            'root whose Application is destroyed. Hand each mount a fresh canvas (every volter ' +
             'host already does).',
         );
       }

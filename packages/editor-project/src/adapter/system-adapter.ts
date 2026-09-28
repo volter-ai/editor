@@ -627,7 +627,7 @@ export interface AudioAdapter {
    * `[start, end)` OFFLINE and deterministically — the fixed-step sibling of
    * `acquireRecordingStream` above. That one taps the speakers in WALL time,
    * which is exactly what the editor's fixed-step video export
-   * (`packages/editor/src/gameplay-export.ts`) may not do: a paused run that
+   * (`packages/editor-game/src/host/gameplay-export.ts`) may not do: a paused run that
    * is stepped frame by frame emits no real-time audio at all, and anything
    * captured from a live context would vary run to run. This returns PCM for
    * a sim window instead, so identical `(start, end)` on an unchanged score
@@ -651,7 +651,7 @@ export interface AudioAdapter {
    * reports — means the export writes a video-only file and says `audio:
    * false` in its result. A live Web Audio graph cannot be re-rendered
    * offline by a bus wrapper; a world that wants export audio owns a
-   * deterministic score and binds this through `vgai.adapter.ts` (with the
+   * deterministic score and binds this through `volter.adapter.ts` (with the
    * `music` capability that is one line over `renderToneOffline`).
    */
   renderOffline?: OfflineAudioRenderer;
@@ -754,7 +754,7 @@ export interface DebugCommandInfo {
  * over whatever a game registers via `ctx.debug`
  * (`registerStateProvider`/`registerCommand`/`emit`). NOT a gameplay API —
  * this is the one seam the debug bridge, the editor's Debug Console/State
- * Watch panels, and `@vgai/live` all read/drive through.
+ * Watch panels, and `@volter/game-live` all read/drive through.
  */
 export interface DebugAdapter {
   providers(): { name: string; tier: 'observable' | 'assisted' }[];

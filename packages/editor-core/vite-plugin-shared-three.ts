@@ -3,7 +3,7 @@
  *
  * ## The defect this closes (WORK.md P2, "Packaged shell loads three.js twice")
  *
- * Under the PACKAGED runtime (`server/packaged.ts`: a `@vgai/editor` npm
+ * Under the PACKAGED runtime (`server/packaged.ts`: a `@volter/editor-core` npm
  * package with no monorepo checkout) the page runs two module graphs at once:
  *
  *  - the editor shell, a PREBUILT production bundle (`dist/assets/index-*.js`)
@@ -17,7 +17,7 @@
  * three's own module body runs `if (window.__THREE__) console.warn('WARNING:
  * Multiple instances of Three.js being imported.')` on evaluation, so the
  * SECOND graph's copy trips the guard. That warning is not cosmetic: it keeps
- * `vgai console` from reaching exit-0, a hard gate. `dev.ts` never sees it —
+ * the editor's `console` command from reaching exit-0, a hard gate. `dev.ts` never sees it —
  * one Vite instance, and the repo-root `vite.config.ts`'s
  * `resolve.dedupe: ['three', …]` already collapses the project's copy onto the
  * editor's — so nothing in a checkout ever reproduced it.
@@ -30,7 +30,7 @@
  * and the shell import: it is not a copy of three, it is a doorway onto the
  * shell's instance. At serve time {@link sharedThreePlugin} resolves the bare
  * `three` specifier, for the whole PROJECT graph, to a stable doorway module that
- * re-exports that built chunk's URL (`/assets/vgai-shared-three-<hash>.js`) — the
+ * re-exports that built chunk's URL (`/assets/volter-shared-three-<hash>.js`) — the
  * SAME absolute URL the shell's own bundle imports, so the browser's module map
  * hands both sides the one instance and three's body evaluates exactly once.
  *
@@ -89,21 +89,21 @@ import { installedExportNames, sharedReactEntryModule } from './vite-plugin-shar
 export const SHARED_THREE_SPECIFIER = 'three';
 
 /** The rollup chunk NAME the shell's three is emitted under. */
-export const SHARED_THREE_ENTRY_NAME = 'vgai-shared-three';
+export const SHARED_THREE_ENTRY_NAME = 'volter-shared-three';
 
 /**
  * The emitted map, written beside the built shell — the sibling of
- * `vgai-shared-react.json`, kept a SEPARATE file so an editor build that
+ * `volter-shared-react.json`, kept a SEPARATE file so an editor build that
  * predates one manifest but not the other degrades one lane at a time.
  */
-export const SHARED_THREE_MANIFEST_FILE = 'vgai-shared-three.json';
+export const SHARED_THREE_MANIFEST_FILE = 'volter-shared-three.json';
 
 export interface SharedThreeManifest {
   /** outDir-relative built chunk file (`assets/…js`) for `three`. */
   file: string;
 }
 
-const VIRTUAL_PREFIX = '\0vgai-shared-three:';
+const VIRTUAL_PREFIX = '\0volter-shared-three:';
 
 /**
  * BUILD side: emit the `three` entry chunk and the manifest naming it.
@@ -118,7 +118,7 @@ const VIRTUAL_PREFIX = '\0vgai-shared-three:';
 export function sharedThreeBuildPlugin(fromDir: string): Plugin {
   let referenceId: string | null = null;
   return {
-    name: 'vgai-shared-three-build',
+    name: 'volter-shared-three-build',
     apply: 'build',
     buildStart() {
       referenceId = this.emitFile({
@@ -182,7 +182,7 @@ export function sharedThreeUrl(manifest: SharedThreeManifest, base = '/'): strin
  *  chunk. Browsers keep prebundled chunks naming this id for as long as their `?v=` stands, so
  *  renaming it must rename the plugin too (which moves `?v=`), or those chunks import a module
  *  that no longer answers. */
-const SHARED_THREE_DOORWAY = '\0vgai-shared-three-doorway';
+const SHARED_THREE_DOORWAY = '\0volter-shared-three-doorway';
 
 /**
  * SERVE side: point every project-graph `three` import at the shell's built
@@ -207,7 +207,7 @@ export function sharedThreePlugin(url: string): Plugin {
   return {
     // Vite hashes plugin names into the dependency version, so this name also moves every
     // prebundled chunk a browser cached before the doorway existed onto a new `?v=`.
-    name: 'vgai-shared-three-doorway',
+    name: 'volter-shared-three-doorway',
     enforce: 'pre',
     load(id) {
       // The chunk also has a default export (the namespace, `sharedReactEntryModule`), which

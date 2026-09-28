@@ -11,7 +11,7 @@
  * pass 146, a session that straddled a promotion). One ordinary reload picks
  * up the current build; the guard keeps a genuinely broken host from looping.
  */
-const RELOAD_GUARD_KEY = 'vgai:stale-chunk-reload';
+const RELOAD_GUARD_KEY = 'volter:stale-chunk-reload';
 
 export function installStaleChunkRecovery(): void {
   if (typeof window === 'undefined') return;

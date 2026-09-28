@@ -42,7 +42,7 @@ const ROOT_UID = '#root';
  *  `AuthoringAdapter2D` uses for `__authId`, for the same reason (there is no
  *  side table that survives the object outliving one walk). */
 interface StructureStamped {
-  __vgaiStructUid?: string;
+  __volterStructUid?: string;
 }
 
 /** A node's own local pose, as plain numbers. Recorded because `reparent`
@@ -185,10 +185,10 @@ export class CanvasStructureHistory {
   private uidOf(object: Container): string {
     if (object === this.root) return ROOT_UID;
     const stamped = object as Container & StructureStamped;
-    const existing = stamped.__vgaiStructUid;
+    const existing = stamped.__volterStructUid;
     if (existing && this.byUid.get(existing) === object) return existing;
     const uid = existing ?? `s${crypto.randomUUID()}`;
-    stamped.__vgaiStructUid = uid;
+    stamped.__volterStructUid = uid;
     this.byUid.set(uid, object);
     return uid;
   }

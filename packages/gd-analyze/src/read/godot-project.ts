@@ -649,7 +649,7 @@ export function readGodotProjectDocuments(
     // Godot frontend can execute the native exporter. It is not project source (and its
     // GDScriptFrontendExporter type exists only in that custom exporter binary). A cancelled
     // capture may leave the dotfile behind; never turn that tool residue into a game's API row.
-    if (resPath === 'res://.vgai-bound-capture.gd') continue;
+    if (resPath === 'res://.volter-bound-capture.gd') continue;
     const ext = path.posix.extname(resPath).toLowerCase();
     if (
       ext === '.gd' &&
@@ -972,7 +972,7 @@ export function readGodotProjectDocuments(
     uids: projectResourceUidIndex,
     diagnostics,
     scripts: projectFiles
-      .filter((resPath) => resPath.toLowerCase().endsWith('.gd') && resPath !== 'res://.vgai-bound-capture.gd' && !(templateDirectory !== undefined && (resPath === templateDirectory || resPath.startsWith(`${templateDirectory}/`))))
+      .filter((resPath) => resPath.toLowerCase().endsWith('.gd') && resPath !== 'res://.volter-bound-capture.gd' && !(templateDirectory !== undefined && (resPath === templateDirectory || resPath.startsWith(`${templateDirectory}/`))))
       .map((resPath) => ({ resPath, text: source.text(resPath) })),
   });
 

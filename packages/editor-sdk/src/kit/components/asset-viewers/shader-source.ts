@@ -1,5 +1,5 @@
 /** Native GLSL document helpers. GLSL remains the artifact; these functions
- * only describe it for Asset Lab and never serialize a VGAI shader shape. */
+ * only describe it for Asset Lab and never serialize a Volter shader shape. */
 
 export type ShaderStage = 'vertex' | 'fragment';
 

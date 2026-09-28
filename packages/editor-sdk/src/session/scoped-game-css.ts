@@ -45,7 +45,7 @@
  *    `@import` and friends define global names rather than matching elements;
  *    they are lifted out of the `@scope` block and emitted ahead of it.
  *    Keyframe names are deliberately NOT namespaced: measured on this repo,
- *    all 17 of the editor's own `@keyframes` are `vgai-`-prefixed while
+ *    all 17 of the editor's own `@keyframes` are `volter-`-prefixed while
  *    racing's two are `boostBlink`/`hideSoundIcon`, so the collision the
  *    namespacing would prevent does not exist — and buying it would require a
  *    correct `animation` shorthand rewriter, which is real machinery paid for
@@ -104,7 +104,7 @@ export interface ScopeGameCssOptions {
  * asset is on whatever origin the editor is on, and baking one in would break
  * the moment a session moves port.
  */
-const REBASE_ORIGIN = 'http://vgai.invalid';
+const REBASE_ORIGIN = 'http://volter.invalid';
 
 /**
  * Rewrite one stylesheet so it applies only inside `scopeSelector`. Pure: no
@@ -405,7 +405,7 @@ export function buildScopedGameStyles(options: {
       sources: [],
       note: replacesGamePage
         ? 'unstyled — this project ingests a game whose page-level stylesheet it never declared. ' +
-          'Add it as `styles` on that root in vgai.project.json and the editor will serve it ' +
+          'Add it as `styles` on that root in volter.project.json and the editor will serve it ' +
           'scoped to the game.'
         : null,
     };

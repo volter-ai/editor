@@ -24,7 +24,7 @@
  *     case: it is a dev session by definition even when the editor SPA it
  *     runs inside is a production build.
  *  2. A dev build — `import.meta.env.DEV`. The ordinary local/editor case.
- *  3. A production build's EXPLICIT opt-in — `VITE_VGAI_DEV_BUILD=true`.
+ *  3. A production build's EXPLICIT opt-in — `VITE_VOLTER_DEV_BUILD=true`.
  *     Instrumenting a production bundle is a real, legitimate choice (an
  *     internal playtest build, a QA build), and it must be an opt-in someone
  *     had to type, never something a default drifts into.
@@ -40,8 +40,8 @@ export function devBuildEnabled(override?: boolean | undefined): boolean {
   // of the dev answer importable from ANY program rather than forcing every
   // downstream tsconfig to adopt Vite's ambient types.
   const env = (import.meta as unknown as { env?: unknown }).env as
-    | { DEV?: boolean | undefined; VITE_VGAI_DEV_BUILD?: string | undefined }
+    | { DEV?: boolean | undefined; VITE_VOLTER_DEV_BUILD?: string | undefined }
     | undefined;
   if (env?.DEV === true) return true;
-  return env?.VITE_VGAI_DEV_BUILD === 'true';
+  return env?.VITE_VOLTER_DEV_BUILD === 'true';
 }

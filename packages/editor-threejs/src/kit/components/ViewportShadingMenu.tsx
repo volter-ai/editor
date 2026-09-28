@@ -130,7 +130,7 @@ function ViewportShadingGlyph({
   return (
     <svg
       viewBox="0 0 16 16"
-      className="vgai-viewport-shading-glyph"
+      className="volter-viewport-shading-glyph"
       aria-hidden="true"
       focusable="false"
     >
@@ -148,7 +148,7 @@ function ViewportShadingGlyph({
       ) : null}
       {glyph === 'rendered' ? (
         // Blender's Rendered mark is a lit ball: the filled disc with a highlight up and left.
-        <circle cx="5.6" cy="5.6" r="2.3" fill="var(--vgai-surface-overlay, #ffffff)" fillOpacity="0.7" />
+        <circle cx="5.6" cy="5.6" r="2.3" fill="var(--volter-surface-overlay, #ffffff)" fillOpacity="0.7" />
       ) : null}
       {glyph === 'preview' ? (
         <path
@@ -185,7 +185,7 @@ export function ViewportDisplayModeMenu<T extends string>({
   const menu =
     open && !disabled ? (
       <AnchoredMenu
-        id="vgai-viewport-shading-menu"
+        id="volter-viewport-shading-menu"
         anchorRef={ref}
         aria-label="Viewport shading modes"
         onDismiss={() => setOpen(false)}
@@ -224,7 +224,7 @@ export function ViewportDisplayModeMenu<T extends string>({
         {children ? (
           <>
             <MenuSeparator />
-            <div className="vgai-viewport-shading-options">{children}</div>
+            <div className="volter-viewport-shading-options">{children}</div>
           </>
         ) : null}
       </AnchoredMenu>
@@ -237,8 +237,8 @@ export function ViewportDisplayModeMenu<T extends string>({
     // corners and a shared border — so the five read as one widget with one
     // cell lit, and `aria-pressed` is the only thing that paints the lit one.
     return (
-      <div className="vgai-viewport-popover-anchor">
-        <span className="vgai-viewport-shading-segments" role="group" aria-label="Viewport shading">
+      <div className="volter-viewport-popover-anchor">
+        <span className="volter-viewport-shading-segments" role="group" aria-label="Viewport shading">
           {segments.map((segment) => (
             <Tooltip key={segment.mode} text={`Viewport shading: ${segment.label}`}>
               <IconButton
@@ -263,7 +263,7 @@ export function ViewportDisplayModeMenu<T extends string>({
               aria-label="Shading options"
               aria-haspopup="menu"
               aria-expanded={open}
-              aria-controls={open ? 'vgai-viewport-shading-menu' : undefined}
+              aria-controls={open ? 'volter-viewport-shading-menu' : undefined}
               disabled={disabled}
               onClick={() => setOpen((value) => !value)}
             >
@@ -286,7 +286,7 @@ export function ViewportDisplayModeMenu<T extends string>({
             a bordered well: measured in `modeling-object-none.png`, `Object
             Mode v` is #272727 inside a 1px #3c3c3c border, 20px tall, on a
             #343434 header. `secondary` is this estate's select-like trigger
-            already (FontPicker's `.vgai-field-trigger`), so no new variant. */}
+            already (FontPicker's `.volter-field-trigger`), so no new variant. */}
         <Button
           ref={ref}
           type="button"
@@ -295,7 +295,7 @@ export function ViewportDisplayModeMenu<T extends string>({
           aria-label={`Viewport shading: ${active.label}`}
           aria-haspopup="menu"
           aria-expanded={open}
-          aria-controls={open ? 'vgai-viewport-shading-menu' : undefined}
+          aria-controls={open ? 'volter-viewport-shading-menu' : undefined}
           disabled={disabled}
           onClick={() => setOpen((value) => !value)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 66 }}

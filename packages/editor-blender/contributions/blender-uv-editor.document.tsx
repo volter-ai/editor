@@ -93,8 +93,8 @@ const REFUSALS = {
 } as const;
 
 /** THE VIEW'S VERBS, published once, here — U8's ruling 1 (2026-09-19). Under
- *  the Code-OSS frame each becomes a `vgai.blender-uv-view.<verb>` command the
- *  bridge dispatches into the view, and standalone `vgai edit` reaches the
+ *  the Code-OSS frame each becomes a `volter.blender-uv-view.<verb>` command the
+ *  bridge dispatches into the view, and standalone `volter-model-editor edit` reaches the
  *  SAME table through the session. **This view adds no `blender-*` session
  *  verb at all**, which is exactly what the ruling asked the remaining I5
  *  views to stop paying for. */
@@ -381,8 +381,8 @@ export default function BlenderUvEditor() {
         // MEASURED difference between a drawer panel and an EDITOR GROUP. In
         // the drawer this view's `height: '100%'` worked, because the drawer
         // group imposes a height on its panel. As a `workspace.document` in
-        // `vgai:area:uv` it resolved to ZERO against an auto-height content
-        // box — measured live 2026-09-19, `vgai.blender-uv-view.state`
+        // `volter:area:uv` it resolved to ZERO against an auto-height content
+        // box — measured live 2026-09-19, `volter.blender-uv-view.state`
         // answered `size: {w: 782, h: 0}` with a fully READ subject beneath
         // it (24 corners, 6 faces, the ProbeChecker backdrop found), which is
         // a view that has everything to draw and nowhere to draw it. The node

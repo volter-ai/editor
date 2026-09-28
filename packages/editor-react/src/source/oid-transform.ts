@@ -1,7 +1,7 @@
 /**
  * OID instrumentation (C1/C2) — the visual-edit "stamp every JSX element with a
- * stable source id" trick, ported to vgai using the TypeScript compiler API
- * (vgai has `typescript`; it does NOT have @babel/*). Hand-authored React UI
+ * stable source id" trick, ported to volter using the TypeScript compiler API
+ * (volter has `typescript`; it does NOT have @babel/*). Hand-authored React UI
  * component source is transformed at build/dev time to carry a `data-oid` on every
  * JSX element, and an OID -> {file,line,col,component,tag} index is built so the
  * editor can map a clicked element back to its exact source location.
@@ -168,7 +168,7 @@ interface SourceEdit {
 const R3F_TRANSFORM_PROPS = ['position', 'rotation', 'scale'] as const;
 
 /**
- * Contracts for components vgai does NOT own, keyed by package specifier and
+ * Contracts for components volter does NOT own, keyed by package specifier and
  * export name. The project resolver reads a local component's contract out of
  * its own source; an installed package has no source to walk from the browser
  * tier and no reason to expect one, so the few whose native root is part of the
@@ -1067,7 +1067,7 @@ export function sourceProvesR3f(evidence: SourceDialectEvidence): boolean {
  *    the HMR half of this same decision, so the two cannot drift apart by hand.
  *
  * 2. **The DEFAULT.** When `surface` is `undefined` — no region placed the
- *    file (an ad-hoc file with no `vgai.project.json` above it, or a module no
+ *    file (an ad-hoc file with no `volter.project.json` above it, or a module no
  *    region's import closure reaches and none declares) — the answer is
  *    `data-oid`, the documented default, and the CALLER says so out loud
  *    (`server/project-root-surface.ts`'s `OID001`/`OID002`). There is
@@ -1075,7 +1075,7 @@ export function sourceProvesR3f(evidence: SourceDialectEvidence): boolean {
  *    for a file it could not place, silently, and being wrong that way is
  *    indistinguishable from being right. Zero inference (ARCHITECTURE-CORE
  *    §The editor protocol) makes the fix a declaration — an `include` glob or
- *    a `mounts` entry in `vgai.adapter.ts` — not a better heuristic.
+ *    a `mounts` entry in `volter.adapter.ts` — not a better heuristic.
  *
  * Nothing about a file's own bytes outranks the region — not even a file that
  * renders THREE host elements while its region says `dom`. That disagreement is
@@ -1209,7 +1209,7 @@ function dreiHtmlLocalNames(sf: ts.SourceFile): Set<string> {
  * `r3f-project-contracts.ts`'s `resolveRelativeModule` already draws between
  * "source this editor walks" and "a dependency it never guesses about".
  *
- * Why the callsite stamp must skip them: `__vgaiOid`/`__vgaiLabel` are a
+ * Why the callsite stamp must skip them: `__volterOid`/`__volterLabel` are a
  * CONTRACT BETWEEN TWO HALVES OF THIS TRANSFORM. The callsite half writes
  * them; the only thing that ever reads them is the callee half —
  * `componentInstanceExpressions` destructuring them out of the component's own
@@ -1223,8 +1223,8 @@ function dreiHtmlLocalNames(sf: ts.SourceFile): Set<string> {
  * MIXED file (an R3F `Scene` and a DOM `Hud` in one module, so the file's one
  * dialect is `userData-oid`), and its `<Canvas>` — `@react-three/fiber`'s own,
  * which spreads its rest props onto the `<div>` it wraps the canvas in — put
- * `__vgaiOid` and `__vgaiLabel` straight into the DOM, for two permanent
- * `React does not recognize the \`__vgaiOid\` prop on a DOM element` errors on
+ * `__volterOid` and `__volterLabel` straight into the DOM, for two permanent
+ * `React does not recognize the \`__volterOid\` prop on a DOM element` errors on
  * every mount of a real game. Nothing was lost by not stamping it, because
  * nothing was reading it.
  *
@@ -1285,7 +1285,7 @@ function dreiCameraLocalNames(sf: ts.SourceFile): Set<string> {
  * tag's callee is unknowable at transform time, and the same hazard as
  * {@link packageImportedLocalNames} for exactly the same reason.
  *
- * `__vgaiOid`/`__vgaiLabel` are a contract between two halves of this
+ * `__volterOid`/`__volterLabel` are a contract between two halves of this
  * transform: the callsite half writes them, the callee half destructures them
  * out of the component's own parameters. A tag bound to a parameter names
  * WHATEVER the caller passed, so this module cannot know whether the callee
@@ -1297,7 +1297,7 @@ function dreiCameraLocalNames(sf: ts.SourceFile): Set<string> {
  * is a parameter — drei's `Stats`/`OrbitControls`, cannon's `Debug`, or a
  * project component, depending on the call) and every R3F `*.stories.tsx`
  * decorator's `<Story />`. Two standing
- * `React does not recognize the \`__vgaiOid\` prop on a DOM element` errors on
+ * `React does not recognize the \`__volterOid\` prop on a DOM element` errors on
  * every run of the acceptance portfolio.
  *
  * Nothing is lost by not stamping, and identity actually IMPROVES: a forwarder
@@ -1437,42 +1437,42 @@ export function transformSource(
       // Default the whole binding. Isolation/preview/bake call a stamped
       // export as a factory (`MainScene()` / `WOOD()`) with no args; a
       // required destructure of `undefined` is `Cannot destructure property
-      // '__vgaiOid'`. React still passes `{}` at a real callsite.
-      sourceEdits.push({ pos: parameters.pos, text: '{ __vgaiOid, __vgaiLabel } = {}' });
-      return { instanceExpression: '__vgaiOid', labelExpression: '__vgaiLabel' };
+      // '__volterOid'`. React still passes `{}` at a real callsite.
+      sourceEdits.push({ pos: parameters.pos, text: '{ __volterOid, __volterLabel } = {}' });
+      return { instanceExpression: '__volterOid', labelExpression: '__volterLabel' };
     }
     if (ts.isObjectBindingPattern(first.name)) {
       sourceEdits.push({
         pos: first.name.getStart(sf) + 1,
-        text: '__vgaiOid, __vgaiLabel, ',
+        text: '__volterOid, __volterLabel, ',
       });
       // After the WHOLE parameter, including a type annotation:
-      // `({ name, ...props }: T)` must become `({ __vgaiOid, …, name, ...props }: T = {})`.
+      // `({ name, ...props }: T)` must become `({ __volterOid, …, name, ...props }: T = {})`.
       // Inserting at the binding's end produced `} = {}: T`, which is not
       // TypeScript and broke every typed scene export the look verb imports.
       if (!first.initializer) {
         sourceEdits.push({ pos: first.getEnd(), text: ' = {}' });
       }
-      return { instanceExpression: '__vgaiOid', labelExpression: '__vgaiLabel' };
+      return { instanceExpression: '__volterOid', labelExpression: '__volterLabel' };
     }
     if (ts.isIdentifier(first.name) && !first.dotDotDotToken) {
       // Preserve the authored identifier as the REST binding. Code below the
       // parameter continues to read `props`, but it now sees only game props:
       // `function Card(props: Props)` becomes
-      // `function Card({ __vgaiOid, __vgaiLabel, ...props }: Props)`.
+      // `function Card({ __volterOid, __volterLabel, ...props }: Props)`.
       // Remove an optional marker while replacing the identifier; a binding
       // pattern cannot itself be optional, so its equivalent is a `{}` default.
       sourceEdits.push({
         pos: first.name.getStart(sf),
         end: first.questionToken?.end ?? first.name.getEnd(),
-        text: `{ __vgaiOid, __vgaiLabel, ...${first.name.text} }`,
+        text: `{ __volterOid, __volterLabel, ...${first.name.text} }`,
       });
       if (!first.initializer) {
         sourceEdits.push({ pos: first.getEnd(), text: ' = {}' });
       }
-      return { instanceExpression: '__vgaiOid', labelExpression: '__vgaiLabel' };
+      return { instanceExpression: '__volterOid', labelExpression: '__volterLabel' };
     }
-    return { instanceExpression: '__vgaiOid', labelExpression: '__vgaiLabel' };
+    return { instanceExpression: '__volterOid', labelExpression: '__volterLabel' };
   };
 
   const pushComponent = (
@@ -1584,7 +1584,7 @@ export function transformSource(
         const element = ts.isJsxOpeningElement(node) ? node.parent : node;
         if (ts.isJsxElement(element) || ts.isJsxSelfClosingElement(element)) {
           // An installed package's module never passes through this transform,
-          // so the callee half of the `__vgaiOid` contract never runs for it and
+          // so the callee half of the `__volterOid` contract never runs for it and
           // the props can only escape (into the DOM, via any package component
           // that spreads its rest props onto a host element). The callsite is
           // still INDEXED above — the source entry, its parent and its contract
@@ -1619,11 +1619,11 @@ export function transformSource(
               : tag;
           const labelAttribute =
             authoredName?.initializer && ts.isJsxExpression(authoredName.initializer)
-              ? `__vgaiLabel={${authoredName.initializer.expression?.getText(sf) ?? JSON.stringify(tag)}}`
-              : `__vgaiLabel=${JSON.stringify(label)}`;
+              ? `__volterLabel={${authoredName.initializer.expression?.getText(sf) ?? JSON.stringify(tag)}}`
+              : `__volterLabel=${JSON.stringify(label)}`;
           sourceEdits.push({
             pos: node.attributes.end,
-            text: ` __vgaiOid="${oid}" ${labelAttribute}`,
+            text: ` __volterOid="${oid}" ${labelAttribute}`,
           });
         }
       } else {

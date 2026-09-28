@@ -24,7 +24,7 @@
  *    DIRECTLY and record the same write into an in-memory
  *    {@link DomStyleEdits} document that is never saved anywhere. (Until
  *    2026-08-02 that document was flushed to a per-world JSON sidecar under
- *    the project's `.vgai/`; the owner deleted that system outright — no
+ *    the project's `.volter/`; the owner deleted that system outright — no
  *    compat read, no replacement.) There is NO `SourceWriteBackend` import
  *    anywhere in this file and NO `/__ui-source` traffic of any kind, ever —
  *    this is the one hard invariant the design doc's §4 NOTs pin (AC-K7).
@@ -328,8 +328,8 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
    * root: a fresh snapshot every call (same "the DOM is live and may
    * re-render, never cached" discipline as
    * `hierarchy.roots()`/`hierarchy.node()` above), not a count taken once at
-   * construction. Backs `__vgaiIngestReact.domEvidence().hierarchyNodeCount`
-   * — one of the four legs `vgai doctor`'s react-ingest MOUNTED bar requires
+   * construction. Backs `__volterIngestReact.domEvidence().hierarchyNodeCount`
+   * — one of the four legs the react-ingest MOUNTED bar requires
    * (`clearsReactIngestMountedBar`, `packages/editor/src/doctor/report.ts`).
    */
   nodeCount(): number {

@@ -3,8 +3,8 @@
  *
  * The editor package ships the catalog, project-owned source payloads, and
  * canonical skills. A scaffold installs the capabilities selected by its
- * template; `vgai capabilities add` uses the same code later. The project keeps
- * only a small catalog plus an ownership file under `.vgai/catalog/`.
+ * template; `volter capabilities add` uses the same code later. The project keeps
+ * only a small catalog plus an ownership file under `.volter/catalog/`.
  */
 
 import {
@@ -20,14 +20,14 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
 import { type FinderAddition, mergeAdapterFinders, mergeAdapterRegionIncludes, type RegionIncludeAddition } from './adapter-region-merge.js';
 
-export const PROJECT_CATALOG_DIR = join('.vgai', 'catalog');
+export const PROJECT_CATALOG_DIR = join('.volter', 'catalog');
 
 /** The neutral Three starter deliberately installs no game-specific capability. */
 export const DEFAULT_THREEJS_CAPABILITIES = [] as const;
 
 /**
  * One library binary a capability's SOURCE reads at runtime, in the exact shape
- * `asset-manifest.json` declares (`packages/editor/src/asset-workflow/asset-pack-manifest.ts`).
+ * `asset-manifest.json` declares (`packages/editor-sdk/src/kit/asset-workflow/asset-pack-manifest.ts`).
  *
  * Why a capability declares this at all: a capability is source, and source can
  * be copied. Its reference BINARIES cannot — they are 7 MB library objects that
@@ -35,7 +35,7 @@ export const DEFAULT_THREEJS_CAPABILITIES = [] as const;
  * So the capability declares the pack, `addCapabilities` merges the declaration
  * into the project's own `asset-manifest.json`, and the bytes arrive through the
  * one materialization contract (D-AP1/D-AP3: pinned digest, verified fetch,
- * `.vgai/assets.json` ledger). Without this, adding such a capability landed
+ * `.volter/assets.json` ledger). Without this, adding such a capability landed
  * source that fetched a URL nothing had ever delivered.
  */
 export interface CatalogAssetPackEntry {
@@ -67,10 +67,10 @@ export interface CatalogEntry {
    * source-id attribute per file, and which one is right is a fact about the
    * FILE — `ground-projection.tsx` renders `<group>`/`<mesh>`, on any project,
    * forever. What the project decides is only WHICH of its roots owns them, and
-   * `addCapabilities` reads that off `vgai.project.json`. Without this the
+   * `addCapabilities` reads that off `volter.project.json`. Without this the
    * declaration existed only where somebody had typed it by hand (the starter
    * template's adapter names `src/lib/reflections/**` and
-   * `src/lib/static-batch/**` and nothing else), so every `vgai add` of a
+   * `src/lib/static-batch/**` and nothing else), so every `volter-game-editor add` of a
    * capability with a `.tsx` in it left a fresh project's console RED with
    * `OID001` and no automatic repair — measured on a cold run, 2026-08-29.
    *
@@ -83,7 +83,7 @@ export interface CatalogEntry {
   regions?: Partial<Record<CatalogSurface, string[]>>;
   /**
    * THE DOCUMENT FINDERS THIS CAPABILITY'S DOCUMENTS NEED, selected in the project's
-   * `vgai.adapter.ts` document table (`documents.find`) when it is added. Same reason as
+   * `volter.adapter.ts` document table (`documents.find`) when it is added. Same reason as
    * `regions`: the copied source works only once the adapter declares it, and a declaration
    * left to the person was a step every project missed (music's pieces opened nowhere).
    */
@@ -92,7 +92,7 @@ export interface CatalogEntry {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     scripts?: Record<string, string>;
-    vgaiTools?: Array<string | Record<string, unknown>>;
+    volterTools?: Array<string | Record<string, unknown>>;
   };
   requires: string[];
   skills: string[];
@@ -153,7 +153,7 @@ export interface CatalogAddReport {
   /**
    * Every pack entry the added capabilities declare, after the merge — i.e.
    * what the project's `asset-manifest.json` now says its capability source
-   * needs on disk. The CALLER materializes these (`vgai add` does); this
+   * needs on disk. The CALLER materializes these (`volter-game-editor add` does); this
    * function only writes the declaration, so `addCapabilities` stays
    * filesystem-only and offline.
    */
@@ -200,7 +200,7 @@ function stringArray(value: unknown, field: string, manifestPath: string): strin
  * Capability ids that were RENAMED, mapped to what they are called now.
  *
  * A renamed id is read by NOTHING. Its only job is this error message — the
- * `vgai.game.json` precedent exactly (`packages/project/src/manifest/filename.ts`):
+ * `volter.game.json` precedent exactly (`packages/editor-project/src/manifest/filename.ts`):
  * the removed spelling REJECTS LOUDLY with the one-line fix spelled out, and is
  * deliberately never silently mapped onto the new one, because a second
  * accepted name is the defect rather than the convenience. Both get written,
@@ -218,10 +218,10 @@ export function renamedCapabilityIdMessage(where: string, oldId: string, newId: 
     `${where}: capability id \`${oldId}\` was RENAMED to \`${newId}\` (2026-09-19). ` +
     `Nothing reads \`${oldId}\` any more, and it is deliberately NOT mapped onto ` +
     `\`${newId}\`, because a second accepted name is the defect.\n` +
-    `Fix: in this project, rename the file — \`git mv .vgai/catalog/${oldId}.json ` +
-    `.vgai/catalog/${newId}.json\` — and change its \`"id"\` to \`"${newId}"\`. ` +
+    `Fix: in this project, rename the file — \`git mv .volter/catalog/${oldId}.json ` +
+    `.volter/catalog/${newId}.json\` — and change its \`"id"\` to \`"${newId}"\`. ` +
     `If a stamp file names the old id, rename that too (\`src/tools/${oldId}.*\` -> ` +
-    `\`src/tools/${newId}.*\`). Then \`vgai outdated\` will report against the ` +
+    `\`src/tools/${newId}.*\`). Then \`volter-game-editor outdated\` will report against the ` +
     `current entry. Nothing else about the capability changed.`
   );
 }
@@ -265,22 +265,22 @@ function readCatalogEntry(path: string): CatalogEntry {
       path,
     );
     const scripts = readStringRecord(packageJson['scripts'], 'scripts', path);
-    const vgaiTools = packageJson['vgaiTools'];
+    const volterTools = packageJson['volterTools'];
     // A tool entry is a plain module path. The object form survives only for
     // entries that still carry extra keys; contributions are no longer among
     // them (they are discovered by scanning), so most entries are strings now.
     if (
-      vgaiTools !== undefined &&
-      (!Array.isArray(vgaiTools) ||
-        vgaiTools.some((entry) => typeof entry !== 'string' && !isRecord(entry)))
+      volterTools !== undefined &&
+      (!Array.isArray(volterTools) ||
+        volterTools.some((entry) => typeof entry !== 'string' && !isRecord(entry)))
     ) {
-      throw new Error(`${path}: packageJson.vgaiTools must be an array of module paths`);
+      throw new Error(`${path}: packageJson.volterTools must be an array of module paths`);
     }
     manifest.packageJson = {
       ...(dependencies ? { dependencies } : {}),
       ...(devDependencies ? { devDependencies } : {}),
       ...(scripts ? { scripts } : {}),
-      ...(vgaiTools ? { vgaiTools: vgaiTools as Array<string | Record<string, unknown>> } : {}),
+      ...(volterTools ? { volterTools: volterTools as Array<string | Record<string, unknown>> } : {}),
     };
   }
   const assetPacks = readAssetPacks(parsed['assetPacks'], path);
@@ -330,7 +330,7 @@ function readRegions(
 }
 
 /**
- * The GLOB DIALECT the region resolver reads (`packages/editor/src/ui-source/
+ * The GLOB DIALECT the region resolver reads (`packages/editor-sdk/src/kit/ui-source/
  * file-region-resolver.ts`'s `globToRegExp`), restated here because this
  * package deliberately depends on neither the editor nor a glob library, and
  * the check below has to agree with the reader that will consume what we write.
@@ -595,7 +595,7 @@ function dependencyOrder(ids: string[], byId: Map<string, CatalogEntry>): Catalo
     const manifest = byId.get(id);
     // Name the alternatives rather than dead-ending. A bare id is easy to
     // mistype and easy to guess wrong, and the listing lives behind a bare
-    // `vgai add` that nothing else advertises — so this error is one of the few
+    // `volter-game-editor add` that nothing else advertises — so this error is one of the few
     // places a caller learns the real vocabulary.
     if (!manifest) {
       // A RENAMED id is not an unknown one, and must not be answered as if it
@@ -641,7 +641,7 @@ const SPEC_WIDTH: Record<string, number> = { '^': 2, '~': 1, '': 0 };
  * Two specs CONFLICT only when they name different versions. `4.3.6` and
  * `^4.3.6` name the same one and differ only in how much newer they accept, so
  * refusing the pair is a false conflict — and a load-bearing one. It throws
- * during the dependency merge, which aborts `vgai upgrade` outright, and a
+ * during the dependency merge, which aborts a template re-sync outright, and a
  * project that cannot upgrade keeps whatever vendored copies it was scaffolded
  * with. `check-idioms.ts` is one of those: rules added upstream since then
  * never run, and nothing announces that they are not running, because a lint
@@ -764,32 +764,32 @@ export function planCapabilityPackageJson(
       resolveSpec,
     );
     mergeStringDependencies(parsed, 'scripts', patch.scripts, manifest.id, origins);
-    if (patch.vgaiTools) {
-      const vgai = parsed['vgai'] === undefined ? {} : parsed['vgai'];
-      if (!isRecord(vgai)) throw new Error(`${label}: vgai must be an object`);
-      const currentTools = vgai['tools'] === undefined ? [] : vgai['tools'];
+    if (patch.volterTools) {
+      const volter = parsed['volter'] === undefined ? {} : parsed['volter'];
+      if (!isRecord(volter)) throw new Error(`${label}: volter must be an object`);
+      const currentTools = volter['tools'] === undefined ? [] : volter['tools'];
       if (
         !Array.isArray(currentTools) ||
         currentTools.some((tool) => typeof tool !== 'string' && !isRecord(tool))
       ) {
-        throw new Error(`${label}: vgai.tools must be an array of strings or objects`);
+        throw new Error(`${label}: volter.tools must be an array of strings or objects`);
       }
       const tools = (currentTools as ProjectToolEntry[]).map((tool) =>
         typeof tool === 'string' ? tool : { ...tool },
       );
-      for (const tool of patch.vgaiTools) {
+      for (const tool of patch.volterTools) {
         const id = toolIdentity(tool);
         const existing = tools.find((candidate) => toolIdentity(candidate) === id);
         if (existing && JSON.stringify(existing) !== JSON.stringify(tool)) {
           throw new Error(
-            `Capability ${manifest.id} conflicts with existing vgai.tools entry ${id}`,
+            `Capability ${manifest.id} conflicts with existing volter.tools entry ${id}`,
           );
         }
         if (!existing) tools.push(tool);
       }
       tools.sort((a, b) => toolIdentity(a).localeCompare(toolIdentity(b)));
-      vgai['tools'] = tools;
-      parsed['vgai'] = vgai;
+      volter['tools'] = tools;
+      parsed['volter'] = volter;
     }
   }
   return Buffer.from(`${JSON.stringify(parsed, null, 2)}\n`);
@@ -811,7 +811,7 @@ function mergedPackageJson(
 }
 
 /** Project-relative name of the asset-pack declaration (D-AP1), the sibling of
- *  `vgai.project.json`. Spelled here because this package deliberately does not
+ *  `volter.project.json`. Spelled here because this package deliberately does not
  *  depend on the editor; `hosted-asset-materialization.ts` owns the reader. */
 const ASSET_MANIFEST_FILE = 'asset-manifest.json';
 
@@ -874,10 +874,10 @@ function mergedAssetManifest(
   return { bytes, changed: !original.equals(bytes), declared: merged };
 }
 
-/** The game's adapter module lives beside `vgai.project.json`, by contract. */
-const ADAPTER_MODULE_FILE = 'vgai.adapter.ts';
+/** The game's adapter module lives beside `volter.project.json`, by contract. */
+const ADAPTER_MODULE_FILE = 'volter.adapter.ts';
 
-/** Root id -> the surface it renders on, read off `vgai.project.json`'s
+/** Root id -> the surface it renders on, read off `volter.project.json`'s
  *  `roots[]`. `adapter` is the sole discriminator: a builtin adapter names the
  *  surface outright, and a module/ingest root carries a `surface` field. */
 function rootSurfaces(projectDir: string): Map<string, CatalogSurface> {
@@ -916,10 +916,10 @@ export interface UnplacedCapabilityRegion {
 
 /**
  * Declare every added capability's `regions` in the project's own
- * `vgai.adapter.ts` — see `adapter-region-merge.ts` for why the capability
+ * `volter.adapter.ts` — see `adapter-region-merge.ts` for why the capability
  * states the surface and the project states the root.
  *
- * A surface with exactly ONE root in `vgai.project.json` is unambiguous and
+ * A surface with exactly ONE root in `volter.project.json` is unambiguous and
  * merges. Anything else is REPORTED, never guessed: two `three` roots is a real
  * choice only the game can make, and no `three` root at all means the
  * capability's components have nowhere to render.
@@ -1002,7 +1002,7 @@ function mergedAdapterModule(
 }
 
 /**
- * Select every added capability's `documents` finders in the project's own `vgai.adapter.ts`,
+ * Select every added capability's `documents` finders in the project's own `volter.adapter.ts`,
  * over what the region merge produced (`regionMerge`), so both land as one write.
  */
 function mergedAdapterFinders(
@@ -1193,7 +1193,7 @@ export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddRepo
 
 /**
  * Every project-relative path a catalog unit declares, for the units present
- * in this project. `vgai upgrade` uses it to keep unit-owned files out of the
+ * in this project. A template re-sync uses it to keep unit-owned files out of the
  * generic template-file pass: those files are ordinary project source, and the
  * project — not a shadow baseline — owns what happens to them.
  */
@@ -1260,7 +1260,7 @@ export interface CatalogRemovalReport {
   keptDivergedFiles: DivergedCapabilityFile[];
   /** Files left because another installed capability still provides them. */
   keptSharedFiles: string[];
-  /** `vgai.tools` registration identities removed from package.json. */
+  /** `volter.tools` registration identities removed from package.json. */
   removedToolEntries: string[];
   /** Dependencies the removed capabilities had contributed — left installed. */
   orphanedDependencyNames: string[];
@@ -1300,7 +1300,7 @@ function stampedCapabilityVersion(projectDir: string, entry: CatalogEntry): stri
  * one record of. Measured on a minutes-old scaffold (2026-08-19): the project
  * vendored `static-batch` 0.1.2 from the checkout's template while its own
  * `npm install` pulled `@volter/editor-core` from the registry, whose catalog ships
- * `static-batch` 0.1.1 with two files genuinely different. `vgai remove
+ * `static-batch` 0.1.1 with two files genuinely different. `volter-game-editor remove
  * static-batch` then told the user they had edited two files they had never
  * opened, kept them, and left the capability half-removed.
  *
@@ -1417,19 +1417,19 @@ export function removeCapabilities(options: RemoveCapabilitiesOptions): CatalogR
   if (existsSync(packagePath)) {
     const original = readFileSync(packagePath);
     const parsed = JSON.parse(original.toString('utf8')) as Record<string, unknown>;
-    const vgai = parsed['vgai'];
-    if (isRecord(vgai) && Array.isArray(vgai['tools'])) {
+    const volter = parsed['volter'];
+    if (isRecord(volter) && Array.isArray(volter['tools'])) {
       const doomed = new Set(
         removing.flatMap((id) =>
-          (byId.get(id)?.packageJson?.vgaiTools ?? []).map((tool) => toolIdentity(tool)),
+          (byId.get(id)?.packageJson?.volterTools ?? []).map((tool) => toolIdentity(tool)),
         ),
       );
-      const tools = (vgai['tools'] as ProjectToolEntry[]).filter(
+      const tools = (volter['tools'] as ProjectToolEntry[]).filter(
         (tool) => !doomed.has(toolIdentity(tool)),
       );
       report.removedToolEntries = [...doomed].sort();
-      if (tools.length !== (vgai['tools'] as ProjectToolEntry[]).length) {
-        vgai['tools'] = tools;
+      if (tools.length !== (volter['tools'] as ProjectToolEntry[]).length) {
+        volter['tools'] = tools;
         if (!dryRun) {
           writeFileSync(packagePath, Buffer.from(`${JSON.stringify(parsed, null, 2)}\n`));
         }
@@ -1452,7 +1452,7 @@ export function removeCapabilities(options: RemoveCapabilitiesOptions): CatalogR
 
 export interface CatalogToolProvider {
   capabilityId: string;
-  /** The manifest's vgai.tools entry path, e.g. `./src/tools/humanoid-bake.tool.ts` — the registration identity in a project's package.json. */
+  /** The manifest's volter.tools entry path, e.g. `./src/tools/humanoid-bake.tool.ts` — the registration identity in a project's package.json. */
   entry: string;
 }
 
@@ -1465,7 +1465,7 @@ function declaredToolName(sourcePath: string): string | undefined {
 }
 
 /**
- * Every catalog capability whose shipped `vgai.tools` contribution declares
+ * Every catalog capability whose shipped `volter.tools` contribution declares
  * `toolName`. Multiple providers means the trigger is ambiguous — callers
  * must not auto-add in that case.
  */
@@ -1476,7 +1476,7 @@ export function findEntriesProvidingTool(
   const resolved = resolve(catalogDir);
   const providers: CatalogToolProvider[] = [];
   for (const manifest of readCatalog(resolved)) {
-    for (const tool of manifest.packageJson?.vgaiTools ?? []) {
+    for (const tool of manifest.packageJson?.volterTools ?? []) {
       const entry = typeof tool === 'string' ? tool : tool['entry'];
       if (typeof entry !== 'string' || entry.length === 0) continue;
       const sourcePath = join(resolved, 'project-source', entry.replace(/^\.\//, ''));

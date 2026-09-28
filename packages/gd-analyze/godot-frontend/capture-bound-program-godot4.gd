@@ -3,7 +3,7 @@ extends SceneTree
 # This script is only a process adapter. GDScriptFrontendExporter is compiled directly against the
 # pinned Godot frontend and supplies every token, node, binding, type, and compiler outcome.
 
-const PROTOCOL := "vgai.godot-bound-program"
+const PROTOCOL := "volter.godot-bound-program"
 const PROTOCOL_VERSION := 12
 
 var _out_path := ""

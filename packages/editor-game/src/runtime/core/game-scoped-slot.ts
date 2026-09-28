@@ -11,7 +11,7 @@ export function createGameScopedSlot<T>(name: string): {
   set(owner: object, value: T): void;
   get(owner: object): T | null;
 } {
-  const key = Symbol.for(`@vgai/game-runtime/game-scoped/${name}`);
+  const key = Symbol.for(`@volter/game-runtime/game-scoped/${name}`);
 
   return {
     set(owner, value) {

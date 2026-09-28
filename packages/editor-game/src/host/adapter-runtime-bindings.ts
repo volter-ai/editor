@@ -1,5 +1,5 @@
 /**
- * Installs the loaded `vgai.adapter.ts` runtime bindings onto one mounted
+ * Installs the loaded `volter.adapter.ts` runtime bindings onto one mounted
  * Game. Game modules stay native: adapter closures close over app-owned stores
  * and functions, while this host-side file projects them onto the existing
  * session command/state/input doors.
@@ -188,7 +188,7 @@ function installObservations(
 function actionMap(binding: AdapterInputBinding, game: Game): Map<string, AdapterInputValueType> {
   const actions = binding.actions(game);
   if (!Array.isArray(actions)) {
-    throw new Error('vgai.adapter.ts input.actions must return an array.');
+    throw new Error('volter.adapter.ts input.actions must return an array.');
   }
   const out = new Map<string, AdapterInputValueType>();
   for (const candidate of actions as readonly Partial<AdapterInputAction>[]) {
@@ -198,13 +198,13 @@ function actionMap(binding: AdapterInputBinding, game: Game): Map<string, Adapte
       !ADAPTER_INPUT_VALUE_TYPES.includes(candidate.valueType as AdapterInputValueType)
     ) {
       throw new Error(
-        'vgai.adapter.ts input.actions returned an invalid action; each action needs a non-empty ' +
+        'volter.adapter.ts input.actions returned an invalid action; each action needs a non-empty ' +
           '`name` and a supported `valueType`.',
       );
     }
     if (out.has(candidate.name)) {
       throw new Error(
-        `vgai.adapter.ts input.actions returned duplicate action "${candidate.name}".`,
+        `volter.adapter.ts input.actions returned duplicate action "${candidate.name}".`,
       );
     }
     out.set(candidate.name, candidate.valueType as AdapterInputValueType);
@@ -228,7 +228,7 @@ function valueMatches(type: AdapterInputValueType, value: AdapterInputValue): bo
 function installInput(game: Game, registry: DebugRegistry, binding: AdapterInputBinding): void {
   if (!game.world(binding.root)) {
     throw new Error(
-      `vgai.adapter.ts input.root names "${binding.root}", which is not a mounted manifest root.`,
+      `volter.adapter.ts input.root names "${binding.root}", which is not a mounted manifest root.`,
     );
   }
 

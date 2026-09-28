@@ -5,15 +5,15 @@
  *
  * The documented rule is "game input only fires while play is running AND the
  * Game tab is active" (the repo's CLAUDE.md, §Play-mode input isolation), and
- * standalone `vgai edit` those two clauses are the whole truth: the editor page
+ * standalone the editor's `edit` command those two clauses are the whole truth: the editor page
  * IS the surface, so a keystroke that reaches it was meant for it. Under the
  * frame (WORK.md §The core is Code-OSS, U2) the page is a VS Code workbench and
  * our stage is ONE EDITOR PANE in it. A person typing into Monaco in the group
  * beside a running game is typing into the same `document` the game's listeners
  * are on, and both clauses above are still true — the game is playing and the
- * Game document is still the active vgai document, because activating another
+ * Game document is still the active volter document, because activating another
  * EDITOR did not close it. So the keystroke lands in the file AND moves the
- * game. That is U6's incident (keys typed into Monaco reaching the vgai
+ * game. That is U6's incident (keys typed into Monaco reaching the volter
  * viewport as hotkeys, twice measured) repeated one layer down, on the GAME's
  * input rather than the editor's, and U6's fix does not cover it: keyboard
  * OWNERSHIP decides which dispatcher owns a chord, while this decides whether a
@@ -38,7 +38,7 @@
  * nothing installs one and every predicate reads exactly as it did before this
  * module existed — the same "an unset value is upstream's own behaviour"
  * discipline U9's core edit follows. The frame installs one from the workbench's
- * own notion of the active editor (`ActiveEditorContext` over the vgai pane's
+ * own notion of the active editor (`ActiveEditorContext` over the volter pane's
  * type id), which is the right question rather than DOM focus: clicking a game
  * canvas that carries no `tabindex` moves focus to `body` while the pane stays
  * the active editor, and gating on focus would have killed input on the first

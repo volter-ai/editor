@@ -67,7 +67,7 @@ function SaveRegimeIndicator({ regime }: { regime: 'ephemeral' | null }) {
     <span
       role="img"
       aria-label={label}
-      className="vgai-play-edit-regime"
+      className="volter-play-edit-regime"
       data-testid="play-edit-regime"
       data-regime={regime}
       title={label}
@@ -141,7 +141,7 @@ export function PlayBarView({
     <Inline
       role="toolbar"
       aria-label="Game transport"
-      className="vgai-playbar"
+      className="volter-playbar"
       gap={2}
       align="center"
     >
@@ -231,7 +231,7 @@ export function PlayBar({ placement = 'launcher' }: { placement?: 'launcher' | '
       <Inline
         role="toolbar"
         aria-label="Game transport"
-        className="vgai-playbar"
+        className="volter-playbar"
         gap={2}
         align="center"
       >
@@ -336,7 +336,7 @@ function PlayOptions() {
   const { settings } = editorHost();
   const keepPanelsVisible = useSyncExternalStore(
     settings.subscribe,
-    () => settings.get('vgai.play.keepPanelsVisible') === true,
+    () => settings.get('volter.play.keepPanelsVisible') === true,
   );
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement>(null);
@@ -358,7 +358,7 @@ function PlayOptions() {
             role="menuitemcheckbox"
             aria-checked={keepPanelsVisible}
             onSelect={() => {
-              settings.set('vgai.play.keepPanelsVisible', !keepPanelsVisible);
+              settings.set('volter.play.keepPanelsVisible', !keepPanelsVisible);
               setOpen(false);
             }}
           >
@@ -420,14 +420,14 @@ function RunPicker({ run, disabled }: { readonly run: RunState; readonly disable
   const selected = run.configurations.find((c) => c.id === run.selectedId);
   const label = selected?.id === PLAY_ID ? 'Play' : (selected?.id ?? 'Play');
   return (
-    <div className="vgai-playbar-popover-anchor">
+    <div className="volter-playbar-popover-anchor">
       <Button
         ref={ref}
         variant="ghost"
         size="compact"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? 'vgai-run-configuration-menu' : undefined}
+        aria-controls={open ? 'volter-run-configuration-menu' : undefined}
         data-testid="run-configuration-picker"
         disabled={disabled}
         onClick={() => setOpen((value) => !value)}
@@ -438,7 +438,7 @@ function RunPicker({ run, disabled }: { readonly run: RunState; readonly disable
       </Button>
       {open && (
         <AnchoredMenu
-          id="vgai-run-configuration-menu"
+          id="volter-run-configuration-menu"
           anchorRef={ref}
           align="start"
           gap={4}

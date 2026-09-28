@@ -8,8 +8,8 @@
  *
  * Identity (§7.1 stable ids): document ids keep the exact key vocabulary the
  * old store tabs used, so the control-API surface (`open-asset-tab` /
- * `close-asset-tab` / `active-tab` in `command-listener.ts`, `vgai
- * open-asset`) keeps its meaning unchanged:
+ * `close-asset-tab` / `active-tab` in `command-listener.ts`, the editor's
+ * `open-asset`) keeps its meaning unchanged:
  *
  *   - project asset  → the serving path itself (`/textures/crate.png`)
  *   - Asset Editor → `asset-editor:entity:<entityId>`
@@ -121,18 +121,18 @@ export interface AssetDocumentMutation {
 // Vite's HMR context when a dev server serves this module; the SDK carries no bundler types.
 const hotData = (import.meta as ImportMeta & { hot?: { data: Record<string, unknown> } }).hot?.data;
 const _specs =
-  (hotData?.['vgai:asset-document-specs'] as Map<string, AssetDocumentSpec> | undefined) ??
+  (hotData?.['volter:asset-document-specs'] as Map<string, AssetDocumentSpec> | undefined) ??
   new Map<string, AssetDocumentSpec>();
 const _pathAliases =
-  (hotData?.['vgai:asset-document-path-aliases'] as Map<string, string> | undefined) ??
+  (hotData?.['volter:asset-document-path-aliases'] as Map<string, string> | undefined) ??
   new Map<string, string>();
 const _focusReturnTargets = new Map<string, HTMLElement>();
 if (hotData) {
   // Workspace descriptors intentionally survive compatible Fast Refreshes.
   // Their specs must survive with them or the next persistence snapshot drops
   // the open document and leaves a titled-but-empty tab on reload.
-  hotData['vgai:asset-document-specs'] = _specs;
-  hotData['vgai:asset-document-path-aliases'] = _pathAliases;
+  hotData['volter:asset-document-specs'] = _specs;
+  hotData['volter:asset-document-path-aliases'] = _pathAliases;
 }
 let _version = 0;
 const _listeners = new Set<() => void>();
@@ -310,7 +310,7 @@ registerWorkspaceDocumentRestorer({
 /**
  * THE `asset` ADDRESS (`document-open-registry.ts`) — an asset at a path, or
  * the Asset Editor over a live scene entity. Registered at module load, the
- * shape `packages/game/src/story-documents/three-story-documents.tsx:239`
+ * shape `packages/editor-game/src/three/story-documents/three-story-documents.tsx:239`
  * uses; what an extension means, and what `@volter/editor-sdk`'s published view
  * kinds map onto internally, are this module's rules and the presenter no
  * longer holds either.

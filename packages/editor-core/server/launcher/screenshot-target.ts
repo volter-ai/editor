@@ -1,6 +1,6 @@
 /**
  * `screenshot [<target>]` — target classification, kept pure. Transferred
- * from vgai's `packages/vgai-cli/src/screenshot-target.ts`, narrowed to the
+ * from Volter's `packages/volter-cli/src/screenshot-target.ts`, narrowed to the
  * readings the project guides teach.
  *
  *   (none)              what the session is showing: the running game while

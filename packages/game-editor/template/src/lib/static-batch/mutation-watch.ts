@@ -82,7 +82,7 @@ export interface FrozenMutationWatch {
 }
 
 function warnOnConsole(message: string): void {
-  // biome-ignore lint/suspicious/noConsole: console is this tripwire's vgai-status channel.
+  // biome-ignore lint/suspicious/noConsole: console is this tripwire's volter-status channel.
   console.warn(message);
 }
 

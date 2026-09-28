@@ -792,7 +792,7 @@ function BrowserEntryCard({
 
   return (
     <div
-      className="vgai-selectable vgai-project-asset-entry"
+      className="volter-selectable volter-project-asset-entry"
       data-selected={selected || undefined}
       data-view={viewMode}
       role="option"
@@ -846,7 +846,7 @@ function BrowserEntryCard({
       }}
     >
       <div
-        className="vgai-project-asset-entry__preview"
+        className="volter-project-asset-entry__preview"
         data-testid="asset-entry-preview"
         style={{
           ...(grid
@@ -878,7 +878,7 @@ function BrowserEntryCard({
         />
         {grid && (
           <span
-            className="vgai-project-asset-entry__kind"
+            className="volter-project-asset-entry__kind"
             data-testid="asset-entry-kind"
             title={`${kind} asset`}
           >
@@ -1035,8 +1035,8 @@ function AssetBrowserToolbar({
   }, [currentPath, searchOpen]);
 
   return (
-    <div className="vgai-project-assets-toolbar">
-      <EditorToolbar label="Content display" compact className="vgai-project-assets-toolbar__row">
+    <div className="volter-project-assets-toolbar">
+      <EditorToolbar label="Content display" compact className="volter-project-assets-toolbar__row">
         <ToolbarGroup>
           <Tooltip text="Content grid" position="top">
             <IconButton
@@ -1090,7 +1090,7 @@ function AssetBrowserToolbar({
             onKeyDown={(event) => {
               if (event.key === 'Escape') closeSearch();
             }}
-            className="vgai-input"
+            className="volter-input"
             autoFocus
             style={{ flex: '0 1 160px', minWidth: 60 }}
           />
@@ -1112,7 +1112,7 @@ function AssetBrowserToolbar({
       <EditorToolbar
         label={scope === 'content' ? 'Content types' : 'Folder navigation'}
         compact
-        className="vgai-project-assets-toolbar__row"
+        className="volter-project-assets-toolbar__row"
       >
         {scope === 'files' && (
           <>
@@ -1198,12 +1198,12 @@ function AssetBrowserToolbar({
           </>
         )}
         {scope === 'content' && (
-          <ToolbarGroup className="vgai-content-filter-inline" aria-label="Content types">
+          <ToolbarGroup className="volter-content-filter-inline" aria-label="Content types">
             {searchOpen && (
               <Button
                 variant="ghost"
                 size="compact"
-                className="vgai-content-filter-chip"
+                className="volter-content-filter-chip"
                 data-testid="content-filter-all"
                 aria-pressed={facets.length === 0}
                 onClick={onFacetsClear}
@@ -1233,7 +1233,7 @@ function AssetBrowserToolbar({
                 key={facet}
                 variant="ghost"
                 size="compact"
-                className="vgai-content-filter-chip"
+                className="volter-content-filter-chip"
                 data-testid={`content-filter-${facet}`}
                 aria-pressed={facets.includes(facet)}
                 onClick={() => onFacetToggle(facet)}
@@ -1243,7 +1243,7 @@ function AssetBrowserToolbar({
             ))}
           </ToolbarGroup>
         )}
-        <div ref={actionsRef} className="vgai-project-assets-toolbar__more">
+        <div ref={actionsRef} className="volter-project-assets-toolbar__more">
           <Tooltip text="More asset actions" position="top">
             <IconButton
               aria-label="More asset actions"
@@ -1257,7 +1257,7 @@ function AssetBrowserToolbar({
           {actionsOpen && (
             <Menu
               autoFocusFirst
-              className="vgai-project-assets-toolbar__menu"
+              className="volter-project-assets-toolbar__menu"
               onDismiss={() => setActionsOpen(false)}
             >
               <MenuItem
@@ -1280,7 +1280,7 @@ function AssetBrowserToolbar({
               </MenuItem>
               {generationTools.length > 0 && (
                 <>
-                  <hr className="vgai-menu-separator" />
+                  <hr className="volter-menu-separator" />
                   <MenuItem
                     onSelect={() => {
                       setActionsOpen(false);
@@ -1373,9 +1373,9 @@ function ProjectAssetTree(props: {
     const name = path.split('/').pop() || root;
     return (
       <div key={key}>
-        <div className="vgai-asset-tree-row" style={{ paddingLeft: 6 + depth * 14 }}>
+        <div className="volter-asset-tree-row" style={{ paddingLeft: 6 + depth * 14 }}>
           <IconButton
-            className="vgai-asset-tree-toggle"
+            className="volter-asset-tree-toggle"
             aria-label={`${open ? 'Collapse' : 'Expand'} ${name}`}
             aria-expanded={open}
             onClick={() => props.onExpanded(key)}
@@ -1388,7 +1388,7 @@ function ProjectAssetTree(props: {
           <Button
             variant="ghost"
             size="compact"
-            className="vgai-asset-tree-target"
+            className="volter-asset-tree-target"
             aria-current={
               props.currentRoot === root && props.currentPath === path ? 'page' : undefined
             }
@@ -1409,16 +1409,16 @@ function ProjectAssetTree(props: {
   return (
     <aside
       id="project-asset-tree"
-      className="vgai-asset-tree"
+      className="volter-asset-tree"
       aria-label="Project asset sources"
       hidden={props.hidden}
     >
-      <div className="vgai-asset-facet-title">Project</div>
+      <div className="volter-asset-facet-title">Project</div>
       {renderFolder('public', '', 0)}
       <Button
         variant="ghost"
         size="compact"
-        className="vgai-asset-tree-target"
+        className="volter-asset-tree-target"
         onClick={() => props.onNavigate('public', 'asset-library/local')}
       >
         Imported
@@ -1426,7 +1426,7 @@ function ProjectAssetTree(props: {
       <Button
         variant="ghost"
         size="compact"
-        className="vgai-asset-tree-target"
+        className="volter-asset-tree-target"
         onClick={() => props.onNavigate('public', '.generated')}
       >
         Generated
@@ -1434,7 +1434,7 @@ function ProjectAssetTree(props: {
       {/* The project's own reference material — a real folder beside public/,
           browsed the same way. It is listed even when empty so the place to put
           a moodboard is discoverable, and it is never exported. */}
-      <div className="vgai-asset-facet-title">References</div>
+      <div className="volter-asset-facet-title">References</div>
       {renderFolder(REFERENCE_ROOT, '', 0)}
     </aside>
   );
@@ -2388,7 +2388,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
   return (
     <div
       ref={browserRef}
-      className="vgai-asset-browser"
+      className="volter-asset-browser"
       data-tree-visible={scope === 'files' && treeVisible}
       onPointerDown={() => setActiveScope('asset-browser')}
       onKeyDown={(event) => {
@@ -2495,13 +2495,13 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
         />
 
         {operationError && (
-          <div role="alert" className="vgai-asset-operation-error">
+          <div role="alert" className="volter-asset-operation-error">
             {operationError}
           </div>
         )}
         {prompt && (
           <form
-            className="vgai-asset-inline-prompt"
+            className="volter-asset-inline-prompt"
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px' }}
             onSubmit={(event) => {
               event.preventDefault();
@@ -2547,7 +2547,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
 
         {/* One file-browser surface; grid/list are presentation modes, not navigation. */}
         <div
-          className="vgai-project-assets-results"
+          className="volter-project-assets-results"
           data-view={viewMode}
           data-testid="project-asset-results"
           role="listbox"
@@ -2573,12 +2573,12 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
               key={section.id}
               role="group"
               aria-label={section.label ?? undefined}
-              className="vgai-content-result-section"
+              className="volter-content-result-section"
             >
               {section.label && (
                 <div
                   role="presentation"
-                  className="vgai-content-section-heading"
+                  className="volter-content-section-heading"
                   data-level={section.headingLevel ?? undefined}
                   data-testid={`content-section-${section.id}`}
                 >
@@ -2656,7 +2656,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
         <ThemeRootPortal>
           <Menu
             autoFocusFirst
-            className="vgai-asset-context-menu"
+            className="volter-asset-context-menu"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             onDismiss={() => setContextMenu(null)}
           >
@@ -2724,7 +2724,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
         <ThemeRootPortal>
           <Menu
             autoFocusFirst
-            className="vgai-asset-context-menu"
+            className="volter-asset-context-menu"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             onDismiss={() => setContextMenu(null)}
           >
@@ -2790,7 +2790,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
             </MenuItem>
             {/* A package's own items on this asset (`@volter/editor-sdk/chrome`,
                 menu `asset`): invoked with the asset's project path. `Open in
-                Asset Budget` is one of them (`@vgai/game`'s
+                Asset Budget` is one of them (`@volter/editor-game`'s
                 `asset-budget-asset.menu.ts`) — it was a built-in row here
                 until the budget became that package's document. */}
             {contributedMenuItems('asset').map((item) => {

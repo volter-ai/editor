@@ -24,7 +24,7 @@ export function loadGameManifestFile(
   return loadGameManifest(raw, options);
 }
 
-/** {@link loadGameManifestFile} against `dir`'s `vgai.project.json`. */
+/** {@link loadGameManifestFile} against `dir`'s `volter.project.json`. */
 export function loadGameManifestDir(
   dir: string,
   options: LoadGameManifestOptions = {},

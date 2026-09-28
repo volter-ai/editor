@@ -64,7 +64,7 @@ export function Frozen({ name = 'Frozen', children, ...props }: FrozenProps) {
     const batch = freezeSubtree(root, name);
     // Degrade LOUDLY — a wrapper that silently declined most of its subtree
     // looks identical to one that worked. Under the dev gate, though: this is
-    // an authoring signal (`vgai status` reports console warnings, which is
+    // an authoring signal (`volter-game-editor status` reports console warnings, which is
     // where the building agent already looks), and a player's console is not
     // where it belongs.
     if (import.meta.env.DEV) {

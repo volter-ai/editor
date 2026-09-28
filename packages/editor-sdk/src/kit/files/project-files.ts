@@ -4,7 +4,7 @@
  *
  * Under the FRAME this is VS Code's `IFileService`/`ITextFileService` over the
  * workspace folder, installed as a provider by the Code-OSS bridge. Under the
- * HOST — standalone `vgai edit`, and the hosted browser build — it is today's
+ * HOST — standalone the editor's `edit` command, and the hosted browser build — it is today's
  * transports, and this module is the ONE place that says which transport owns
  * which path. That statement used to be spread across five files' doc
  * comments; it is written down once, here, because the fragmentation is the
@@ -14,7 +14,7 @@
  *   |-----------------------|------------------------------|
  *   | read, anything        | Vite `/@fs/<root>/<path>`    |
  *   | write `public/**`     | `POST /__editor/save-file`   |
- *   | write `.vgai/**`      | `POST /__editor/vgai-file`   |
+ *   | write `.volter/**`      | `POST /__editor/volter-file`   |
  *   | write `src/**` source | `POST /__ui-source/apply`    | the storage source-write backend |
  *   | list `public/**`      | `GET /__editor/assets`       | StorageBackend |
  *   | watch                 | `EventSource /__editor/events` | StorageBackend.watch |
@@ -22,7 +22,7 @@
  * A path class with no host transport is REFUSED BY NAME, naming the route
  * that does own it. It is not this door's business to invent a general
  * project-root write route on the session: each of those routes is
- * deliberately narrow (`/__editor/vgai-file` accepts only `.vgai/**`,
+ * deliberately narrow (`/__editor/volter-file` accepts only `.volter/**`,
  * `/__editor/data-file` only `src/data/**\/*.data.json`), and their own header
  * comments record that as defence in depth. Under the frame the question does
  * not arise — the workbench's file service owns the whole folder.
@@ -92,8 +92,8 @@ function noHostWriteRoute(path: string): Error {
   return new Error(
     `projectFiles.write("${path}"): the standalone editor has no general project-root write route, ` +
       'and this door does not invent one. Source files are written through `/__ui-source/apply` ' +
-      '(`ui-source/source-write-backend.ts`), `public/**` through `/__editor/save-file`, `.vgai/**` ' +
-      'through `/__editor/vgai-file`. Under the Code-OSS frame the workbench file service owns the ' +
+      '(`ui-source/source-write-backend.ts`), `public/**` through `/__editor/save-file`, `.volter/**` ' +
+      'through `/__editor/volter-file`. Under the Code-OSS frame the workbench file service owns the ' +
       'whole folder and this refusal cannot occur.',
   );
 }
@@ -134,7 +134,7 @@ async function hostWrite(path: string, data: string | Uint8Array): Promise<void>
     if (!res.ok) throw new Error(`projectFiles.write "${path}": HTTP ${res.status}`);
     return;
   }
-  if (path.startsWith('.vgai/')) {
+  if (path.startsWith('.volter/')) {
     const body =
       typeof data === 'string'
         ? { path, content: data, ...sourceMutationAttribution() }
@@ -144,7 +144,7 @@ async function hostWrite(path: string, data: string | Uint8Array): Promise<void>
             encoding: 'base64' as const,
             ...sourceMutationAttribution(),
           };
-    const res = await fetch(`${BASE}/vgai-file`, {
+    const res = await fetch(`${BASE}/volter-file`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

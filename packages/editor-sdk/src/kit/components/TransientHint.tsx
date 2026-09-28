@@ -31,7 +31,7 @@ export function TransientHintOverlay() {
         border: `1px solid ${themeVars.boundary.strong}`,
         background: themeVars.surface.overlay,
         color: themeVars.content.primary,
-        fontSize: 'var(--vgai-font-base)',
+        fontSize: 'var(--volter-font-base)',
         lineHeight: 1.4,
         textAlign: 'center',
         pointerEvents: 'none',

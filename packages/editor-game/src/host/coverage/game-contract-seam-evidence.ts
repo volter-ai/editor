@@ -7,9 +7,9 @@ import {
   type SeamEvidenceVerdict,
 } from '@volter/editor-project/adapter';
 import type {
-  VgaiGameContract,
-  VgaiGameLifecycle,
-  VgaiGameSystems,
+  VolterGameContract,
+  VolterGameLifecycle,
+  VolterGameSystems,
 } from '@volter/editor-project/adapter/ingest/game-contract';
 import {
   GAME_CONTRACT_SHAPE,
@@ -21,7 +21,7 @@ import { liveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 const EPOCHS = new WeakMap<object, string>();
 let nextEpoch = 1;
 
-export function gameContractEpoch(contract: VgaiGameContract): string {
+export function gameContractEpoch(contract: VolterGameContract): string {
   const found = EPOCHS.get(contract);
   if (found) return found;
   const epoch = `contract-${nextEpoch++}`;
@@ -38,7 +38,7 @@ export interface GameContractEvidence {
 }
 
 export function inspectGameContractSeams(options: {
-  readonly contract: VgaiGameContract;
+  readonly contract: VolterGameContract;
   readonly subject?: string | undefined;
   readonly epoch?: string | undefined;
   readonly receipts?: readonly SeamEvidenceReceipt[] | undefined;
@@ -46,21 +46,21 @@ export function inspectGameContractSeams(options: {
   const subject = options.subject ?? 'game';
   const epoch = options.epoch ?? gameContractEpoch(options.contract);
   const receipts: SeamEvidenceReceipt[] = [
-    ...inspectSeamShape<VgaiGameContract>({
+    ...inspectSeamShape<VolterGameContract>({
       prefix: 'contract',
       value: options.contract,
       shape: GAME_CONTRACT_SHAPE,
       subject,
       epoch,
     }),
-    ...inspectSeamShape<VgaiGameLifecycle>({
+    ...inspectSeamShape<VolterGameLifecycle>({
       prefix: 'contract.lifecycle',
       value: options.contract.lifecycle,
       shape: GAME_LIFECYCLE_SHAPE,
       subject,
       epoch,
     }),
-    ...inspectSeamShape<VgaiGameSystems>({
+    ...inspectSeamShape<VolterGameSystems>({
       prefix: 'contract.systems',
       value: options.contract.systems,
       shape: GAME_SYSTEMS_SHAPE,

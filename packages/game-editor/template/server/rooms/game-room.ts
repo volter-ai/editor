@@ -7,7 +7,7 @@
  *
  * Messages (client → server only):
  *   position  { x, y, z }   — client movement input
- *   __vgai:debugCommand { name, args, requestId } — a `locus: 'server'`
+ *   __volter:debugCommand { name, args, requestId } — a `locus: 'server'`
  *     debug command's client leg (the "Multiplayer locus" note,
  *     build plan Task 4.2); see
  *     `DEBUG_COMMANDS`/`onCreate` below.
@@ -152,12 +152,12 @@ export class GameRoom extends Room {
   private orbRespawnTicks: number[] = [];
 
   onCreate(options?: { allowDebugCommands?: boolean }) {
-    // Off by default (FROZEN DECISION: env-var OR room-option) — the loopback harness/
-    // the loopback harness (`../loopback.ts`) opt in via the room option; a
+    // Off by default (FROZEN DECISION: env-var OR room-option) — a caller that
+    // creates the room with `allowDebugCommands: true` opts in; a
     // plain `npm run server` boot never accepts debug commands unless
-    // VGAI_ALLOW_DEBUG_COMMANDS is set in its environment.
+    // VOLTER_ALLOW_DEBUG_COMMANDS is set in its environment.
     const debugCommandsAllowed =
-      options?.allowDebugCommands === true || Boolean(process.env['VGAI_ALLOW_DEBUG_COMMANDS']);
+      options?.allowDebugCommands === true || Boolean(process.env['VOLTER_ALLOW_DEBUG_COMMANDS']);
 
     // Handle client messages
     this.onMessage('position', (client, position: { x: number; y: number; z: number }) => {
@@ -170,10 +170,10 @@ export class GameRoom extends Room {
     });
 
     this.onMessage(
-      '__vgai:debugCommand',
+      '__volter:debugCommand',
       (client, message: { name: string; args?: unknown[]; requestId: string }) => {
         if (!debugCommandsAllowed) {
-          client.send('__vgai:debugCommandResult', {
+          client.send('__volter:debugCommandResult', {
             requestId: message.requestId,
             ok: false,
             error: 'debug commands disabled',
@@ -182,7 +182,7 @@ export class GameRoom extends Room {
         }
         const handler = DEBUG_COMMANDS[message.name];
         if (!handler) {
-          client.send('__vgai:debugCommandResult', {
+          client.send('__volter:debugCommandResult', {
             requestId: message.requestId,
             ok: false,
             error: `debug: no server command registered under "${message.name}"`,
@@ -191,13 +191,13 @@ export class GameRoom extends Room {
         }
         try {
           const result = handler(this, client, message.args ?? []);
-          client.send('__vgai:debugCommandResult', {
+          client.send('__volter:debugCommandResult', {
             requestId: message.requestId,
             ok: true,
             result,
           });
         } catch (err) {
-          client.send('__vgai:debugCommandResult', {
+          client.send('__volter:debugCommandResult', {
             requestId: message.requestId,
             ok: false,
             error: err instanceof Error ? err.message : String(err),

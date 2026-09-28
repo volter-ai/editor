@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {...props}
       ref={ref}
       type={type}
-      className={className ? `vgai-btn ${className}` : 'vgai-btn'}
+      className={className ? `volter-btn ${className}` : 'volter-btn'}
       data-variant={variant}
       data-size={size}
       data-shape={shape}
@@ -56,7 +56,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       data-label-placement={visibleLabel === undefined ? undefined : 'below'}
     >
       {children}
-      {visibleLabel !== undefined && <span className="vgai-icon-button-label">{visibleLabel}</span>}
+      {visibleLabel !== undefined && <span className="volter-icon-button-label">{visibleLabel}</span>}
     </Button>
   );
 });

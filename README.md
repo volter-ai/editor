@@ -64,7 +64,7 @@ compiled node set and its limits. It also keeps
 Properties on screen while an edit re-reads them, removes the empty header
 strips above the model, timeline and side panels, and restores a view's
 orientation after a tab switch. Projects pinned to 0.5.63 update their
-`@volter` pins and `vgai.project.json`'s engine version to open in 0.5.64.
+`@volter` pins and `volter.project.json`'s engine version to open in 0.5.64.
 Release 0.5.65 publishes the game editor beside modeling from the same
 source revision, and every bundled dependency notice names its source.
 Projects pinned to 0.5.64 update their `@volter` pins and engine version the
@@ -75,7 +75,7 @@ hang remains unexplained; see the acceptance limits in [WORK.md](WORK.md).
 Existing projects keep their machine-local workbench declaration. Updating npm
 packages alone does not replace that explicit choice. To use the newly pinned
 workbench, close the editor, update the project's declared `@volter` packages,
-and move `.vgai/workbench.json` aside before reopening; the product downloads and
+and move `.volter/workbench.json` aside before reopening; the product downloads and
 records its matching release. Preserve an intentional source-checkout declaration.
 
 ## Game editor
@@ -95,7 +95,7 @@ template and the capability catalog use (React, Three.js and its React
 bindings, Rapier, Colyseus, Storybook, Vite, TypeScript and the rest). The
 first `create` of a version installs the image into
 `~/.volter/images/game-editor-<version>` (or `$VOLTER_HOME/images/...`); every
-later game of that version installs nothing. `vgai.project.json`'s
+later game of that version installs nothing. `volter.project.json`'s
 `engine.version` names the image a game opens with. A game that needs a
 package outside the image installs its own dependencies into a real
 `node_modules` directory instead of the link.
@@ -210,7 +210,7 @@ Building the separate Code-OSS workbench is described in
 
 Products are named for their purpose: `@volter/model-editor` and
 `@volter/game-editor`, run as `volter-model-editor` and `volter-game-editor`.
-Projects keep `vgai.project.json`, `vgai.adapter.ts`, `.vgai/` and the existing
+Projects keep `volter.project.json`, `volter.adapter.ts`, `.volter/` and the existing
 internal protocol identifiers. Their filenames are not aliases: keep the existing names. A full
 format/protocol rename is a separate coordinated migration; existing games are
 not automatically converted into modeling projects.

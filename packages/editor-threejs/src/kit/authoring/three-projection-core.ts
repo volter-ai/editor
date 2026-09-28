@@ -138,7 +138,7 @@ export function isTransparentWrapper(object: THREE.Object3D): boolean {
     object.userData['oid'] === undefined &&
     getUserData(object, 'authoringInstance') === undefined &&
     getUserData(object, 'authoringRoot') !== true &&
-    getUserData(object, 'vgaiComponentRoot') === undefined
+    getUserData(object, 'volterComponentRoot') === undefined
   );
 }
 

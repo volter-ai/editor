@@ -118,7 +118,7 @@ export async function handleAssetPreviewCommand(
     };
   }
   if (compare !== undefined) {
-    // B8.4 — the compare mode (`vgai screenshot <model.glb> --compare <ref.glb>`).
+    // B8.4 — the compare mode (the editor's `screenshot <model.glb> --compare <ref.glb>` command).
     // Validated here at the relay boundary so a malformed payload fails with
     // a named reason instead of a deep three.js error.
     if (shots !== undefined || shotSetDefinition !== undefined) {
@@ -142,7 +142,7 @@ export async function handleAssetPreviewCommand(
   // Wire-carried GLB bytes stand NOWHERE, so they take no scene stage and no
   // compare (whose reference is named some other way). An explicit `shotSet`
   // definition is a different matter and is served: a shot set stages the
-  // subject itself, which is what lets `vgai screenshot <module> --orbit <n>`
+  // subject itself, which is what lets the editor's `screenshot <module> --orbit <n>` command
   // circle a model that only ever existed as bytes. `shots: 'source'` stays
   // out — it is the asset-path review set, keyed to a stored forward vector.
   if (typeof glbBase64 === 'string') {

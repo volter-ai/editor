@@ -3,7 +3,7 @@
  * to attach something to a stage's transport and to draw a look over it.
  *
  * Declared HERE rather than beside the implementation
- * (`@editor/animation/stage-transport`) so `@vgai/blender` — and any other
+ * (`@editor/animation/stage-transport`) so `@volter/editor-blender` — and any other
  * skew package — reaches them through `@volter/editor-sdk/host` with no
  * dependency on the editor's own source and no engine value import. The
  * implementation imports these; nothing imports the implementation.

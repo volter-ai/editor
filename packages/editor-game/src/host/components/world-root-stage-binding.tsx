@@ -3,7 +3,7 @@
  * (`@volter/editor-threejs/kit/components/world-root-binding`): the world's surface,
  * its stage, and the overlays the stage shows only over a world.
  *
- * `Overlays` is the world-root half of vgai's `stage-overlay-set.tsx` — every
+ * `Overlays` is the world-root half of Volter's `stage-overlay-set.tsx` — every
  * part it rendered only when `worldRoot` held (the root selection layer, the
  * camera-authoring pin, the scene's
  * surface-state card). The rest of that overlay set is the kit's

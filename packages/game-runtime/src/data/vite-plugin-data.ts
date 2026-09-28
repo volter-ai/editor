@@ -1,8 +1,8 @@
 /**
- * `vgaiDataCheck` — build-path validation for data assets and project tools (the
+ * `volterDataCheck` — build-path validation for data assets and project tools (the
  * enforcement half of W5). A Vite plugin for the PROJECT's own `vite.config.ts`
  * (the template wires it; the editor dev server boots Vite from the ENGINE's
- * config and never runs this — its surface is covered by `vgai doctor` instead).
+ * config and never runs this — its surface is covered by a probe instead).
  * Build-only (`apply: 'build'`): in dev, `defineData`'s parse-on-load already
  * fails loud in the console.
  *
@@ -19,7 +19,7 @@
  *    place project Zod schemas can run.
  * 2. **Ref integrity** (`buildStart`): every `file#key(.field)*` string in
  *    every `src/data/*.data.json` (registered or not) must resolve — shared
- *    definition with `vgai doctor` via {@link findDanglingDataRefs}, so the
+ *    definition with a probe via {@link findDanglingDataRefs}, so the
  *    two surfaces can never disagree about what "dangling" means. A second,
  *    narrower ref check runs alongside it for REGISTERED assets only: any
  *    field declared with `dataRef(target)` (`./data-ref.ts`) whose `target`
@@ -62,7 +62,7 @@ export interface DataCheckAsset {
   readonly sourcePath: string;
 }
 
-export interface VgaiDataCheckOptions {
+export interface VolterDataCheckOptions {
   readonly assets: readonly DataCheckAsset[];
   /** Project root the `sourcePath`s resolve against. Default: `process.cwd()` (vite build's cwd). */
   readonly root?: string;
@@ -194,7 +194,7 @@ function parseAllDataFiles(
  * The fs half of checks 1 + 2, extracted from the plugin hook so it is
  * directly unit-testable against a fixture folder (no rollup context needed).
  */
-export async function collectDataCheckProblems(options: VgaiDataCheckOptions): Promise<{
+export async function collectDataCheckProblems(options: VolterDataCheckOptions): Promise<{
   errors: string[];
   warnings: string[];
 }> {
@@ -278,19 +278,19 @@ export function isToolModuleId(id: string): boolean {
  * `vite.config.ts`, passing the data-asset registry:
  *
  * ```ts
- * import { vgaiDataCheck } from './vite-plugin-data';
+ * import { volterDataCheck } from './vite-plugin-data';
  * import { dataAssets } from './src/data/assets';
  * export default defineConfig({
- *   plugins: [vgaiDataCheck({
+ *   plugins: [volterDataCheck({
  *     root: __dirname,
  *     assets: dataAssets.map((a) => ({ schema: a.schema, sourcePath: `src/data/${a.name}.data.json` })),
  *   })],
  * });
  * ```
  */
-export function vgaiDataCheck(options: VgaiDataCheckOptions): Plugin {
+export function volterDataCheck(options: VolterDataCheckOptions): Plugin {
   return {
-    name: 'vgai:data-check',
+    name: 'volter:data-check',
     apply: 'build',
     async buildStart() {
       const { errors, warnings } = await collectDataCheckProblems(options);

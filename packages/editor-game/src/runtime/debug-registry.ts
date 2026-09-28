@@ -31,8 +31,8 @@ import type { Game } from './game';
 
 /**
  * The minimal structural shape `ctx.debug.attachRoom` needs from a joined
- * Colyseus room: just enough to send the reserved `__vgai:debugCommand`
- * message and listen for its `__vgai:debugCommandResult` reply. Structural,
+ * Colyseus room: just enough to send the reserved `__volter:debugCommand`
+ * message and listen for its `__volter:debugCommandResult` reply. Structural,
  * not a Colyseus type import — the same seam-boundary style every other
  * `DebugCtxSurface` member uses (no wrapper around Colyseus itself, D2).
  * `onMessage`'s return type is `unknown` because Colyseus's own return shape
@@ -99,15 +99,15 @@ export interface DebugCtxSurface {
   /**
    * Task 2.2 — server-locus command routing (client leg). Call once your
    * game code has joined its Colyseus room, so `locus: 'server'` commands
-   * have somewhere to send `__vgai:debugCommand`. Returns a detach function
+   * have somewhere to send `__volter:debugCommand`. Returns a detach function
    * (call on room leave/dispose) — game-scoped, last-attached room wins.
    */
   attachRoom(room: DebugRoomHandle): () => void;
 }
 
 /** Engine-local error for the debug seam — mirrors the `code` + `data` shape
- *  `packages/vgai-sdk/src/errors.ts` uses (no import: the engine does not
- *  depend on `@vgai/sdk`). `code` is always machine-readable; nothing reading
+ *  `packages/volter-sdk/src/errors.ts` uses (no import: the engine does not
+ *  depend on the SDK). `code` is always machine-readable; nothing reading
  *  this error may key off `message` prose. */
 export class DebugError extends Error {
   readonly code: string;
@@ -129,7 +129,7 @@ const REGISTRATION_HINT =
  *  (`POST /__editor/command`) and `page.evaluate` both serialize the error's
  *  `data` bag — and an `Error` stringifies to `{}` there, so a command's own
  *  refusal text ("no such waypoint") vanished and the developer at
- *  `vgai eval` saw only `debug: command "x" threw`. The text has to travel as
+ *  `volter-game-editor eval` saw only `debug: command "x" threw`. The text has to travel as
  *  plain strings, and in the `message` above all: that is the one field every
  *  client (`SessionError`, the CLI's own error print) actually surfaces. */
 function describeCause(cause: unknown): {
@@ -145,12 +145,12 @@ function describeCause(cause: unknown): {
 }
 
 /** Task 2.2 — how long `invoke()` waits for a `locus: 'server'` command's
- *  `__vgai:debugCommandResult` reply before failing loudly. */
+ *  `__volter:debugCommandResult` reply before failing loudly. */
 const SERVER_COMMAND_TIMEOUT_MS = 10_000;
 
 /** The virtual-input surface the debug bridge (`runtime/debug-bridge.ts`)
  *  actuates through: a root's input door — its entry's `debug.input`
- *  (`adapter/native-debug-module.ts`) or a `vgai.adapter.ts` input binding
+ *  (`adapter/native-debug-module.ts`) or a `volter.adapter.ts` input binding
  *  (`host/adapter-runtime-bindings.ts`), wired once per root when its bindings
  *  install, at the same spot as `setInputActionsSource` — absent until then. */
 export interface DebugVirtualInputTarget {
@@ -200,7 +200,7 @@ export interface InputTraceSnapshot {
  *  (`runtime/game.ts`, D15/T-D15.3-.4) for full semantics. Named here (not
  *  re-declared per-caller) so the bridge (`runtime/debug-bridge.ts`), the
  *  editor relay (`command-listener.ts`'s `run-ticks` case), and
- *  `play.runTicks` (`@vgai/sdk`) all reference the SAME type. */
+ *  `play.runTicks` (the SDK) all reference the SAME type. */
 export interface RunTicksOptions {
   /** `'last'` (default) — skip `preRender`/`render` for every tick except
    *  the final one. `'all'` — render every tick. `'none'` — never render,
@@ -295,7 +295,7 @@ export interface DebugRegistry {
    * Every world's target is kept, keyed by `worldId`, and
    * {@link getVirtualInputTarget} resolves ONE of them via
    * {@link resolveInputRootId} — the SAME resolution the debug bridge
-   * (`window.__vgai.input.*`) and the editor relay both call through, so they
+   * (`window.__volter.input.*`) and the editor relay both call through, so they
    * can never disagree about which root an unaddressed actuation reaches. An
    * explicit `worldId` reaches that world specifically. */
   setVirtualInputTarget(worldId: string, target: DebugVirtualInputTarget): void;
@@ -318,7 +318,7 @@ export interface DebugRegistry {
    * actuation target — called ONCE by `createGame`, immediately (unlike
    * {@link setVirtualInputTarget}, which waits for a per-world mount, a
    * `Game`'s own `runTicks` exists the instant the Game shell does). The
-   * SAME target backs `runtime/debug-bridge.ts`'s `window.__vgai.runTicks`
+   * SAME target backs `runtime/debug-bridge.ts`'s `window.__volter.runTicks`
    * (door a) and the editor relay's `run-ticks` case → `play.runTicks`
    * (door b) — one implementation, byte-identical semantics across doors
    * (D17).
@@ -605,8 +605,8 @@ export function createDebugRegistry(opts: {
   /**
    * Task 2.2 — server-locus command routing (client leg). A `locus: 'server'`
    * command never calls its own registered `fn` locally: `invoke()` instead
-   * sends the reserved room message `__vgai:debugCommand` and resolves on the
-   * matching `__vgai:debugCommandResult` reply, so a fixture mutates the
+   * sends the reserved room message `__volter:debugCommand` and resolves on the
+   * matching `__volter:debugCommandResult` reply, so a fixture mutates the
    * AUTHORITATIVE (server) copy of state, not client prediction. Request ids
    * are a monotonic per-registry counter (`dbg-<n>`), not `Math.random`/
    * `Date.now`, so two in-flight commands never collide and correlation is
@@ -635,14 +635,14 @@ export function createDebugRegistry(opts: {
         );
       }, SERVER_COMMAND_TIMEOUT_MS);
       pendingServerCommands.set(requestId, { resolve, reject, timer });
-      room.send('__vgai:debugCommand', { name, args, requestId });
+      room.send('__volter:debugCommand', { name, args, requestId });
     });
   }
 
   // Defect 8 fix — the live detach() for whatever room is CURRENTLY attached
   // (or null if none). `attachRoom` calls this itself before attaching a new
   // room: without it, a second `attachRoom` call (no explicit `detach()` in
-  // between) left the first room's `__vgai:debugCommandResult` subscription
+  // between) left the first room's `__volter:debugCommandResult` subscription
   // live forever (a leak — the old room keeps getting messages dispatched to
   // a handler nothing reads anymore) and stranded any of ITS in-flight
   // commands riding the full 10s timeout with no way to ever be answered.
@@ -652,7 +652,7 @@ export function createDebugRegistry(opts: {
    *  surface (game-scoped, last-attached room wins — and, since Defect 8,
    *  actually CLEANS UP the previous attachment rather than merely
    *  overwriting the pointer). Subscribes to the reserved
-   *  `__vgai:debugCommandResult` reply and resolves/rejects the matching
+   *  `__volter:debugCommandResult` reply and resolves/rejects the matching
    *  in-flight {@link invokeServerCommand} promise by `requestId`. */
   function attachRoom(room: DebugRoomHandle): () => void {
     // Last-wins, but with cleanup: detach whatever room was attached before
@@ -661,7 +661,7 @@ export function createDebugRegistry(opts: {
     detachCurrentRoom?.();
 
     attachedRoom = room;
-    const unsubscribe = room.onMessage('__vgai:debugCommandResult', (message) => {
+    const unsubscribe = room.onMessage('__volter:debugCommandResult', (message) => {
       const reply = message as
         | { requestId?: string; ok?: boolean; result?: unknown; error?: unknown }
         | undefined;

@@ -14,7 +14,7 @@ type JsonRoute =
 /** Content-routed JSON document. A format with no extension of its own (a
  * three.quarks particle system is plain Object3D JSON) is recognized by the
  * medium that renders it (`@volter/editor-sdk/kit/asset-viewers`), which is more
- * honest than inventing a vgai filename convention. */
+ * honest than inventing a volter filename convention. */
 export function JsonAssetDocument({
   documentId,
   assetPath,

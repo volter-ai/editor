@@ -28,7 +28,7 @@
  * failure/teardown/play lifecycle was "the SAME for both media", and it
  * hard-coded each medium's staleness rule besides (canvas remounted on a
  * storage write, dom re-projected on a story publish). The contract is the
- * seam; `@vgai/dom` and `@vgai/canvas` register against it now, and the play
+ * seam; `@volter/editor-game`'s react and canvas lanes register against it now, and the play
  * handoff below tears every layer down and restores its Boundary node the
  * instant play starts exactly as it always did — which is why the LIFECYCLE
  * stays here rather than moving with either mount.
@@ -73,13 +73,14 @@ import {
 } from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden, isRootInteractive } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** D20: Play tears the design-time adapter down, so the selected CSF state
  * must live one level above that adapter to survive Stop's rebuild. Keyed by
  * project + root so equal root ids in different projects never bleed.
  *
  * IT IS STILL HERE, and it is the one lane word this module has left: the
- * board's mount lives in `@vgai/dom` now, but `components/world-documents.tsx`
+ * board's mount lives in `@volter/editor-game` now, but `components/world-documents.tsx`
  * reads the remembered frame for the UI board document's `presentation()`
  * round-trip, and the host may not import a package. Closing it is the
  * world-documents unit's, which is where the rest of that file's `dom`/
@@ -209,7 +210,7 @@ function applySessionStyle(
   // overlay so they remain clickable. Mirror the owning world's eye state
   // onto that synchronized sibling.
   for (const child of Array.from(layer.parentElement?.children ?? [])) {
-    if (child instanceof HTMLElement && child.dataset['vgaiStoryBoardChromeFor'] === worldId) {
+    if (child instanceof HTMLElement && child.dataset['volterStoryBoardChromeFor'] === worldId) {
       child.style.display = display;
     }
   }
@@ -224,8 +225,8 @@ function createLayerElement(
   const { worldId } = candidate;
   const layer = document.createElement('div');
   layer.dataset['worldId'] = worldId;
-  layer.dataset['vgaiRootSurface'] = 'true';
-  if (canvasScene) layer.dataset['vgaiCanvasScene'] = 'true';
+  layer.dataset['volterRootSurface'] = 'true';
+  if (canvasScene) layer.dataset['volterCanvasScene'] = 'true';
   layer.style.position = 'absolute';
   layer.style.top = '0';
   layer.style.left = '0';
@@ -242,9 +243,7 @@ function createLayerElement(
   layer.style.contain = 'layout paint';
   // A project's root renders as it ships: its inherited text properties start from a page's
   // defaults, not the editor's own typography, which would otherwise inherit into it.
-  layer.style.cssText +=
-    'font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
-    ' text-align: start; text-indent: 0; text-transform: none; white-space: normal; direction: ltr;';
+  markGameSurface(layer);
   applySessionStyle(layer, worldId, candidate.kind);
   // D4 (spec27 §8 "space-pan" row) — seed this layer with whatever pan is
   // currently in effect (normally none — `mountDesignTimeLayers` resets pan
@@ -266,7 +265,7 @@ function applyPanTransform(layer: HTMLElement): void {
   // A native Canvas Scene renders through its own editor-camera matrix inside
   // a viewport-sized Pixi surface. CSS-transforming that surface would turn
   // it back into the fixed artboard the Scene document is replacing.
-  if (layer.dataset['vgaiCanvasScene'] === 'true') {
+  if (layer.dataset['volterCanvasScene'] === 'true') {
     layer.style.transform = '';
     layer.style.width = '100%';
     layer.style.height = '100%';
@@ -278,7 +277,7 @@ function applyPanTransform(layer: HTMLElement): void {
   // sizes the layer to its complete grid. Responsive viewport changes resize
   // each frame through `react-story-board.ts`; do not collapse that board back
   // to the single-runtime-surface dimensions used by React/Pixi roots.
-  if (layer.dataset['vgaiReactStoryBoard'] === 'true') return;
+  if (layer.dataset['volterReactStoryBoard'] === 'true') return;
   const viewport = getRootCanvasViewport();
   layer.style.width = viewport.width === null ? '100%' : `${viewport.width}px`;
   layer.style.height = viewport.height === null ? '100%' : `${viewport.height}px`;
@@ -370,7 +369,7 @@ export function mountDesignTimeLayers(
   //
   // That ordering is reachable. `the world root's stage`'s `installAll()` (the only
   // caller) runs at the tail of an async chain that fetches
-  // `vgai.project.json` on the way here, so a Play issued the moment the
+  // `volter.project.json` on the way here, so a Play issued the moment the
   // editor shell is interactive wins the race on a slow or contended host and
   // `store.playState` is already `'playing'` on arrival. Without this guard we
   // mount a design-time react layer anyway — rendering the project's REAL

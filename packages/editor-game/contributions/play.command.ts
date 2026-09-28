@@ -116,7 +116,7 @@ export const commands: CommandContribution['commands'] = {
       // guard here: `play` on an already-playing (or still-booting) session
       // is a RESTART, not a no-op, matching the SDK's own documented contract
       // (`play.start`'s summary: "Start (or restart) play mode" —
-      // `packages/vgai-sdk/src/play/lifecycle-operations.ts`). What used to
+      // `packages/volter-sdk/src/play/lifecycle-operations.ts`). What used to
       // make a restart unsafe was `enterPlayMode()` having no reentrancy
       // guard for the async-boot window before it assigns `_session` — two
       // overlapping calls ran their entire prologues concurrently and
@@ -127,11 +127,11 @@ export const commands: CommandContribution['commands'] = {
       // SDK, a UI Play-button click racing a relayed command — gets a safe,
       // clean restart for free without needing a guard here too.
       try {
-        // D15/T-D15.6 (objection-4 fix) — `vgai play --seed <n>` relays as
+        // D15/T-D15.6 (objection-4 fix) — `volter-game-editor play --seed <n>` relays as
         // `cmd['seed']`; `enterPlayMode`'s explicit-config seed leg (beats
-        // manifest.determinism.defaultSeed/?vgai-seed=).
+        // manifest.determinism.defaultSeed/?volter-seed=).
         const seed = cmd['seed'];
-        // `vgai play --name <text>` rides the same wire as `--seed`: a plain
+        // `volter-game-editor play --name <text>` rides the same wire as `--seed`: a plain
         // field on the relayed command, slugified server-side into this run's
         // log filename and journal line. Absent, everything is unchanged.
         const runName = cmd['name'];
@@ -173,11 +173,11 @@ export const commands: CommandContribution['commands'] = {
       // EVERY PLAY RECORDS. There is no flag and no opt-in — see
       // `play-recording.ts` for why the capability had to stop being one an
       // agent must remember to switch on. `cmd['record']` only NAMES the file
-      // (`vgai play --record <name>`); its absence names the clip after the
+      // (`volter-game-editor play --record <name>`); its absence names the clip after the
       // durable Gameplay Session.
       //
       // Started here rather than inside `enterPlayMode` on purpose: this
-      // handler is the RELAYED play (`vgai play`, the SDK's `play.start`),
+      // handler is the RELAYED play (`volter-game-editor play`, the SDK's `play.start`),
       // which is exactly the population the recording exists for. A human
       // clicking the editor's own Play button is their own witness and gets
       // play unchanged.

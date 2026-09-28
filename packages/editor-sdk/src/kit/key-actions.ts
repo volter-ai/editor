@@ -4,7 +4,7 @@
  * THERE IS ONE KEYBOARD AND IT IS VS CODE'S (ARCHITECTURE-CORE §The core is
  * Code-OSS rule 3). The editor installs no `keydown` dispatcher of its own;
  * what it publishes is this table, and the frame turns each entry into a
- * `vgai.<id>` command with a `when` clause over our panes' context keys
+ * `volter.<id>` command with a `when` clause over our panes' context keys
  * (`scripts/workbench/generate-keymaps.mjs` writes one keybinding rule per
  * (action, chord, keymap) into a built-in extension, read from this repo's own
  * keymap tables — so a chord is written in ONE place whichever keyboard is

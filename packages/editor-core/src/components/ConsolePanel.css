@@ -1,55 +1,55 @@
-.vgai-console {
+.volter-console {
   display: flex;
   height: 100%;
   flex-direction: column;
 }
-.vgai-console .vgai-toolbar {
+.volter-console .volter-toolbar {
   flex: 0 0 auto;
 }
-.vgai-console-filter {
+.volter-console-filter {
   width: 140px;
   margin-left: auto;
 }
-.vgai-console-list {
+.volter-console-list {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  font-family: var(--vgai-font-mono);
-  font-size: var(--vgai-font-base);
+  font-family: var(--volter-font-mono);
+  font-size: var(--volter-font-base);
   line-height: 18px;
 }
-.vgai-console-empty {
-  padding: var(--vgai-space-6) var(--vgai-space-4);
-  color: var(--vgai-content-dim);
+.volter-console-empty {
+  padding: var(--volter-space-6) var(--volter-space-4);
+  color: var(--volter-content-dim);
   font-style: italic;
 }
-.vgai-console-row {
+.volter-console-row {
   display: flex;
   align-items: flex-start;
-  padding: 1px var(--vgai-space-4);
-  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  padding: 1px var(--volter-space-4);
+  border-bottom: var(--volter-stroke-resting) solid var(--volter-boundary-default);
 }
-.vgai-console-row[data-level="error"] {
-  background: var(--vgai-danger-faint);
+.volter-console-row[data-level="error"] {
+  background: var(--volter-danger-faint);
 }
-.vgai-console-row:hover {
-  background: var(--vgai-neutral-hover);
+.volter-console-row:hover {
+  background: var(--volter-neutral-hover);
 }
-.vgai-console-count {
+.volter-console-count {
   flex: 0 0 auto;
-  margin-left: var(--vgai-space-3);
-  padding: 0 var(--vgai-space-2);
-  color: var(--vgai-content-muted);
-  background: var(--vgai-surface-raised);
-  border-radius: var(--vgai-radius-lg);
-  font-size: var(--vgai-font-sm);
+  margin-left: var(--volter-space-3);
+  padding: 0 var(--volter-space-2);
+  color: var(--volter-content-muted);
+  background: var(--volter-surface-raised);
+  border-radius: var(--volter-radius-lg);
+  font-size: var(--volter-font-sm);
 }
-.vgai-console [data-console-level="info"][aria-pressed="true"] {
-  color: var(--vgai-content-primary);
+.volter-console [data-console-level="info"][aria-pressed="true"] {
+  color: var(--volter-content-primary);
 }
-.vgai-console [data-console-level="warn"][aria-pressed="true"] {
-  color: var(--vgai-warn);
+.volter-console [data-console-level="warn"][aria-pressed="true"] {
+  color: var(--volter-warn);
 }
-.vgai-console [data-console-level="error"][aria-pressed="true"] {
-  color: var(--vgai-danger);
+.volter-console [data-console-level="error"][aria-pressed="true"] {
+  color: var(--volter-danger);
 }

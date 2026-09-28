@@ -3,7 +3,7 @@
  * reflection helper that rides along with it) the editor's three authoring
  * adapter uses to address the objects of a world whose source carries no
  * serve-time identity stamps
- * (`packages/editor/src/projection/three.ts`, `structuralIdentity`).
+ * (`packages/editor-threejs/src/kit/projection/three.ts`, `structuralIdentity`).
  *
  * Identity: each object gets a **structural-path id** — deterministic from the
  * scene's shape (position in the tree + three.js type + name), so the SAME id
@@ -28,7 +28,7 @@ export const CAMERA_ID = 'ingest:camera';
 /**
  * The editor parks its OWN objects — grid, its two lights, the particle
  * BatchedRenderer, every TransformControls/gizmo helper — on layer 31
- * (`@vgai/threejs/viewport/editor-layers`'s `EDITOR_LAYER`) so the game camera
+ * (`@volter/editor-threejs/viewport/editor-layers`'s `EDITOR_LAYER`) so the game camera
  * never sees them. On an ingest root those objects are added to the GAME'S OWN
  * scene, which is the same tree this walk indexes.
  */

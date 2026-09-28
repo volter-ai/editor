@@ -1,7 +1,7 @@
 /**
  * `volter-game-editor add [id...]` / `remove <id...>` / `outdated` — the
- * capability verbs, transferred from vgai's `runCapabilityCommand`
- * (`packages/vgai-cli/src/index.ts`). What you add is a CAPABILITY from this
+ * capability verbs, transferred from Volter's `runCapabilityCommand`
+ * (`packages/volter-cli/src/index.ts`). What you add is a CAPABILITY from this
  * product's catalog (`catalog/`); it becomes ordinary project source on
  * arrival. Bare `add` LISTS every available capability and marks which are
  * already installed — there is no separate `list` or `status` verb.
@@ -65,7 +65,7 @@ export function runCapabilityCommand(verb: CapabilityVerb, ids: string[], option
     return;
   }
 
-  if (!projectDir) throw new Error('No vgai.project.json found. Run this command inside a game or pass --project.');
+  if (!projectDir) throw new Error('No volter.project.json found. Run this command inside a game or pass --project.');
 
   if (verb === 'outdated') {
     if (ids.length > 0) throw new Error('Usage: volter-game-editor outdated [--project <path>] [--json]');
@@ -152,18 +152,18 @@ export function runCapabilityCommand(verb: CapabilityVerb, ids: string[], option
     }
     if (report.alreadyInstalled.length > 0) log(`Already present: ${report.alreadyInstalled.join(', ')}`);
   }
-  // A capability's JSX needs a region declaration in `vgai.adapter.ts`, or the
+  // A capability's JSX needs a region declaration in `volter.adapter.ts`, or the
   // editor stamps the wrong source-id attribute on it.
   for (const unplaced of report.unplacedFinders) {
     const include = unplaced.finder.include ? `, include: [${unplaced.finder.include.map((glob) => `'${glob}'`).join(', ')}]` : '';
     console.error(`Warning: ${unplaced.capability}'s documents are found by \`${unplaced.finder.finder}\`, but ${unplaced.reason}. ` +
-      `Until vgai.adapter.ts selects it in \`documents.find\` (\`{ finder: '${unplaced.finder.finder}'${include} }\`), none of them opens.`);
+      `Until volter.adapter.ts selects it in \`documents.find\` (\`{ finder: '${unplaced.finder.finder}'${include} }\`), none of them opens.`);
   }
   for (const unplaced of report.unplacedRegions) {
     console.error(`Warning: ${unplaced.capability} renders on the \`${unplaced.surface}\` surface ` +
       `(${unplaced.globs.join(', ')}), but ${unplaced.reason}. The editor will report \`OID001\` for those files until this project declares them.`);
   }
-  // vgai materialized declared asset packs here (`asset-packs.ts`). No entry in
+  // volter materialized declared asset packs here (`asset-packs.ts`). No entry in
   // this catalog declares one, and nothing in this product delivers their
   // bytes, so a declaration is refused loudly rather than left unfetched.
   if (!dryRun && report.declaredAssets.length > 0) {

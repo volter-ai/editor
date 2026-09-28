@@ -1,5 +1,5 @@
 /**
- * `vgai-creation-site-write` — the `/__ingest-source/*` dev-server
+ * `volter-creation-site-write` — the `/__ingest-source/*` dev-server
  * routes that let an ingest edit be written into the game's OWN source at the
  * line the creation-site index anchored it to.
  *
@@ -11,7 +11,7 @@
  * server.
  *
  * `getProjectRoot` is a THUNK, exactly like `uiOidPlugin`'s: `server/dev.ts`
- * keeps `process.env.VGAI_PROJECT` current as projects open and close
+ * keeps `process.env.VOLTER_PROJECT` current as projects open and close
  * (`onProjectOpened`), so a route resolved per request follows the switch and a
  * snapshot taken at config time would not.
  *
@@ -129,7 +129,7 @@ async function respondTo(
  * declaring the same fact a second time. `SOURCE_WRITE_ROUTES_PLUGIN`
  * (`@volter/editor-sdk/session/project-serving`) is the sibling.
  */
-export const CREATION_SITE_WRITE_PLUGIN_NAME = 'vgai-creation-site-write';
+export const CREATION_SITE_WRITE_PLUGIN_NAME = 'volter-creation-site-write';
 
 /**
  * Does this Vite instance serve the `/__ingest-source/*` ownership + write

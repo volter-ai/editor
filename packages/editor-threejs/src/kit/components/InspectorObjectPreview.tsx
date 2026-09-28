@@ -39,7 +39,7 @@ export function InspectorObjectPreview({
               width: '100%',
               height: 220,
               minHeight: 220,
-              borderBottom: '1px solid var(--vgai-structural-divider)',
+              borderBottom: '1px solid var(--volter-structural-divider)',
               overflow: 'hidden',
               position: 'relative',
             }

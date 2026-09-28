@@ -202,7 +202,7 @@ function projectArtifacts(
     projectDataJsonArtifact(DIRECT_GODOT_INPUT_MAP_PATH, directGodotInputMapJson(composition) as DirectJsonValue, sourcePaths),
     ...meshDataArtifacts(composition, typed),
     ...modelDataArtifacts(composition, typed),
-    projectDataJsonArtifact('vgai.project.json', plan.manifest, sourcePaths),
+    projectDataJsonArtifact('volter.project.json', plan.manifest, sourcePaths),
     projectDataJsonArtifact('package.json', plan.packageManifest, sourcePaths),
     projectDataJsonArtifact('package-lock.json', plan.packageLock, sourcePaths),
     ...plan.shellFiles.map((file) => projectDataBytesArtifact(file.targetPath, file.bytes, file.sourcePaths)),

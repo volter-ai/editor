@@ -27,7 +27,7 @@
  * picks up BETWEEN calls, never mid-call), and carries the bytes to the
  * project through `/__editor/blender-document` BEFORE acknowledging the edit.
  *
- * WHY THE CARRY IS NOT THE MIRROR'S JOB (`vgai blender-mcp`, class Mirror):
+ * WHY THE CARRY IS NOT THE MIRROR'S JOB (`volter blender-mcp`, class Mirror):
  * the Mirror is pull-based and runs only after an `execute_blender_code`, so
  * a document saved after the LAST call of a modeling session
  * would never leave the worker — which is exactly the state this closes
@@ -172,7 +172,7 @@ async function saveDocument(): Promise<void> {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   setDocumentDirty(false);
-  log('log', `@@VGAI-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length })}`);
+  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length })}`);
 }
 
 async function startBlender(project: string, document?: string): Promise<unknown> {
@@ -286,7 +286,7 @@ async function start(project: string, document?: string): Promise<unknown> {
     throw new Error(
       'Headless Blender is not served by this editor, so there is no modeling engine: ' +
         `${served.missing.join('; ')}. The engine is Blender compiled to WebAssembly ` +
-        '(packages/blender-engine/wasm, or the directory VGAI_BLENDER_WASM_DIR names); nothing stands in for it.',
+        '(packages/blender-engine/wasm, or the directory VOLTER_BLENDER_WASM_DIR names); nothing stands in for it.',
     );
   projectRoot = project;
   return startBlender(project, document);

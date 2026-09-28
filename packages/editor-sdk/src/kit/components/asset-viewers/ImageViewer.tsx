@@ -220,7 +220,7 @@ function ImageStage({
   return (
     <div
       ref={stageRef}
-      className="vgai-asset-transparency-well"
+      className="volter-asset-transparency-well"
       data-testid="sprite-stage"
       style={{
         flex: 1,

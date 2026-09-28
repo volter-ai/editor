@@ -69,7 +69,7 @@ export async function reportCommandReceived(requestId: string): Promise<void> {
  * The receipt above answers that question one command at a time, and only
  * after somebody sends a command. This answers it standing, at the two moments
  * that change the answer — `connectCommandListener` attaching, and its
- * teardown running — so `vgai status` can name a dead page on the FIRST read
+ * teardown running — so the editor's `status` command can name a dead page on the FIRST read
  * instead of it being inferable only from a command that hangs.
  *
  * It is worth its own message because presence cannot carry it: the control

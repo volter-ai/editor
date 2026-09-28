@@ -136,8 +136,8 @@ export function IngestCanvasSceneContent({
     <div
       ref={containerRef}
       data-testid="world-document:ingest-canvas-scene"
-      data-vgai-backdrop-color={active ? CANVAS_SCENE_BACKGROUND : undefined}
-      data-vgai-backdrop-policy={active ? 'dark-frost' : undefined}
+      data-volter-backdrop-color={active ? CANVAS_SCENE_BACKGROUND : undefined}
+      data-volter-backdrop-policy={active ? 'dark-frost' : undefined}
       style={{
         position: 'absolute',
         inset: 0,

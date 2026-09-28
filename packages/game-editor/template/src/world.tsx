@@ -74,7 +74,7 @@ function World() {
       <GameKeyboard />
       {/* The resident QA tester's hands on the frame — everything else about
           the playtesting loop (the seat, the repertoire, pause/handoff) is
-          plain application code in src/bot/, reached from `vgai eval` via
+          plain application code in src/bot/, reached from `volter-game-editor eval` via
           `game.run(({ modules }) => …)` like every other module. */}
       <QaTester />
       <Scene name="Main Scene" />

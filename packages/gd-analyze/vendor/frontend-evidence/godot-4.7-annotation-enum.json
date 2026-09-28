@@ -1,5 +1,5 @@
 {
-  "protocol": "vgai.godot-bound-program-seed-report",
+  "protocol": "volter.godot-bound-program-seed-report",
   "protocolVersion": 1,
   "rows": [
     "ast:ANNOTATION",

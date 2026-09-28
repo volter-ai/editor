@@ -5,7 +5,7 @@
  * Sibling of `hierarchy-marks.ts`, and the same shape of idea. That module's
  * marks answer "what IS this node" for the panel; this one answers "who WRITES
  * this node's pose" for an edit. Both are written by GAME code at the seam that
- * knows the answer, read generically by the host, and namespaced `vgai*` because
+ * knows the answer, read generically by the host, and namespaced `volter*` because
  * they are the host's namespace on a node the game owns.
  *
  * ## Why it exists
@@ -37,7 +37,7 @@
  * ## What to mark
  *
  * The node whose pose the body writes — normally the body's own root node. Not
- * subtree-scoped (unlike `vgaiBuiltInternal`): a child of a body-driven node
+ * subtree-scoped (unlike `volterBuiltInternal`): a child of a body-driven node
  * inherits its parent's motion through the transform chain, and its own local
  * pose is still the node's to keep. Mark exactly the node the sync writes.
  */
@@ -57,13 +57,13 @@ import type { RapierEditableBody } from './rapier-physics-adapter';
  * `RigidBody` classes are unrelated nominal types.
  */
 export function markBodyOwnedNode(node: THREE.Object3D, body: RapierEditableBody): void {
-  setUserData(node, 'vgaiBodyOwner', body);
+  setUserData(node, 'volterBodyOwner', body);
 }
 
 /** The body that owns `node`'s pose, or `undefined` for a node that owns its own. */
 export function bodyOwningNode(
   node: THREE.Object3D | null | undefined,
 ): RapierEditableBody | undefined {
-  const body = getUserData(node, 'vgaiBodyOwner');
+  const body = getUserData(node, 'volterBodyOwner');
   return body ?? undefined;
 }

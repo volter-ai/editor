@@ -9,7 +9,7 @@ const MIN_PORT = 1_024;
 const MAX_PORT = 65_535;
 export const WORKTREE_EDITOR_PORT_MIN = 20_200;
 export const WORKTREE_EDITOR_PORT_MAX = 29_999;
-const DEFAULT_PORT_REGISTRY = join(homedir(), '.vgai', 'worktree-ports.json');
+const DEFAULT_PORT_REGISTRY = join(homedir(), '.volter', 'worktree-ports.json');
 const LOCK_STALE_MS = 10_000;
 const lockWait = new Int32Array(new SharedArrayBuffer(4));
 
@@ -122,7 +122,7 @@ function withRegistryLock<T>(registryFile: string, action: () => T): T {
 
 /**
  * A project needs MORE THAN ONE reserved port in the web + server shape: the
- * `vgai edit` session, the Code-OSS remote extension host that frames it, and the
+ * the editor's `edit` command session, the Code-OSS remote extension host that frames it, and the
  * one-origin proxy in front of both (docs/CODE-OSS.md §Boot, WEB + SERVER). Each is
  * a ROLE, and each role gets its own reservation in this same registry under the
  * same worktree/project key — so the whole set is stable per worktree, refuses
@@ -132,7 +132,7 @@ function withRegistryLock<T>(registryFile: string, action: () => T): T {
  *
  * `'editor'` is spelled as the BARE key, with no role suffix, and that is
  * deliberate: it is the key every existing reservation in every developer's
- * `~/.vgai/worktree-ports.json` was written under, and a project's editor port
+ * `~/.volter/worktree-ports.json` was written under, and a project's editor port
  * must not move because a second role was added beside it.
  */
 export type WorktreePortRole = 'editor' | 'frame' | 'frame-proxy';
@@ -189,7 +189,7 @@ export function releaseWorktreeEditorPorts(
 /** Explicit environment overrides remain useful for CI and parallel test workers. */
 export function readEditorPortEnv(value: string | undefined): number | undefined {
   if (value === undefined || value.trim() === '') return undefined;
-  return assertPort(Number(value), 'VGAI_EDITOR_PORT');
+  return assertPort(Number(value), 'VOLTER_EDITOR_PORT');
 }
 
 /** Resolve launcher precedence: CLI flag, environment, then worktree-local allocation. */

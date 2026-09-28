@@ -21,7 +21,7 @@ const meta = {
   render: (args) => <ArenaHud {...args} />,
   parameters: {
     layout: 'fullscreen',
-    vgai: { defaultStory: 'Playing' },
+    volter: { defaultStory: 'Playing' },
   },
   decorators: [
     (Story) => (

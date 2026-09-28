@@ -75,14 +75,14 @@ export function DocumentHeaderStrip({
     <div
       className={
         island
-          ? 'vgai-dock-document-toolbar vgai-chrome-island vgai-glass-island'
-          : 'vgai-dock-document-toolbar'
+          ? 'volter-dock-document-toolbar volter-chrome-island volter-glass-island'
+          : 'volter-dock-document-toolbar'
       }
       data-runtime-toolbar={runtime || undefined}
       data-island-scale="compact"
       data-testid={`document-header:${documentId}`}
     >
-      {children ? <div className="vgai-dock-document-toolbar-own">{children}</div> : null}
+      {children ? <div className="volter-dock-document-toolbar-own">{children}</div> : null}
       {transformControls}
       {HeaderControls ? (
         <Suspense fallback={null}>

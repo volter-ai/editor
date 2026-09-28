@@ -761,11 +761,11 @@ void GDScriptFrontendExporter::_bind_methods() {
 
 Dictionary GDScriptFrontendExporter::get_build_identity() const {
 	Dictionary result;
-	result["sourceRevision"] = VGAI_GODOT_SOURCE_REVISION;
-	result["sourceTreeSha256"] = VGAI_GODOT_SOURCE_TREE_SHA256;
-	result["sourceArchiveSha256"] = VGAI_GODOT_SOURCE_ARCHIVE_SHA256;
-	result["exporterSourceSha256"] = VGAI_GODOT_EXPORTER_SOURCE_SHA256;
-	result["buildOptions"] = VGAI_GODOT_EXPORTER_BUILD_OPTIONS;
+	result["sourceRevision"] = VOLTER_GODOT_SOURCE_REVISION;
+	result["sourceTreeSha256"] = VOLTER_GODOT_SOURCE_TREE_SHA256;
+	result["sourceArchiveSha256"] = VOLTER_GODOT_SOURCE_ARCHIVE_SHA256;
+	result["exporterSourceSha256"] = VOLTER_GODOT_EXPORTER_SOURCE_SHA256;
+	result["buildOptions"] = VOLTER_GODOT_EXPORTER_BUILD_OPTIONS;
 	return result;
 }
 

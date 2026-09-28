@@ -6,7 +6,7 @@
  *
  * The contract owns the SHAPE and no three.js code: the function that applies
  * it to a live `WebGLRenderer` (and restores what it found on dispose) is the
- * three.js twin's, `@vgai/threejs-runtime/adapter/renderer-config`. The host
+ * three.js twin's, `@volter/threejs-runtime/adapter/renderer-config`. The host
  * owns the `WebGLRenderer` (`ThreeHostContext.renderer`) and configures it
  * with this engine's defaults: ACES tone mapping, sRGB output, PCF-soft
  * shadows. Those defaults are right for a world authored against them and

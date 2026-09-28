@@ -144,19 +144,19 @@ export function reducePlayTransition(
  * They are published as custom properties by
  * {@link publishPlayTransitionDurations}, from {@link installPlayTransitionDock}
  * — which is also what makes an unpublished property unreachable rather than a
- * silent failure: nothing ever adds `vgai-play-chrome-exit`,
- * `vgai-play-chrome-enter` or `vgai-play-crossfade` except this module, and
+ * silent failure: nothing ever adds `volter-play-chrome-exit`,
+ * `volter-play-chrome-enter` or `volter-play-crossfade` except this module, and
  * this module cannot act before the host is installed.
  */
 
-/** Chrome dissolve. CSS: `--vgai-play-dissolve-duration`. */
+/** Chrome dissolve. CSS: `--volter-play-dissolve-duration`. */
 export const PLAY_DISSOLVE_MS = 450;
 /** Fast, unstaggered re-materialization after a reveal request. CSS:
- *  `--vgai-play-materialize-duration`. */
+ *  `--volter-play-materialize-duration`. */
 export const PLAY_MATERIALIZE_MS = 220;
-/** Per-element stagger step, published as `--vgai-play-stagger`. */
+/** Per-element stagger step, published as `--volter-play-stagger`. */
 export const PLAY_DISSOLVE_STAGGER_MS = 50;
-/** Scene→Game opacity cross-fade. CSS: `--vgai-play-crossfade-duration`. */
+/** Scene→Game opacity cross-fade. CSS: `--volter-play-crossfade-duration`. */
 export const PLAY_CROSSFADE_MS = 250;
 
 /**
@@ -165,9 +165,9 @@ export const PLAY_CROSSFADE_MS = 250;
  * surface in a top-level overlay outside the root it handed us.
  */
 function publishPlayTransitionDurations(root: HTMLElement): void {
-  root.style.setProperty('--vgai-play-dissolve-duration', `${PLAY_DISSOLVE_MS}ms`);
-  root.style.setProperty('--vgai-play-materialize-duration', `${PLAY_MATERIALIZE_MS}ms`);
-  root.style.setProperty('--vgai-play-crossfade-duration', `${PLAY_CROSSFADE_MS}ms`);
+  root.style.setProperty('--volter-play-dissolve-duration', `${PLAY_DISSOLVE_MS}ms`);
+  root.style.setProperty('--volter-play-materialize-duration', `${PLAY_MATERIALIZE_MS}ms`);
+  root.style.setProperty('--volter-play-crossfade-duration', `${PLAY_CROSSFADE_MS}ms`);
 }
 
 /** What the LAYOUT HOST registers: chrome hide/show plus the root element the
@@ -269,11 +269,11 @@ function dispatch(event: PlayTransitionEvent): void {
   if (next === prev) return;
   active.state = next;
   if (next.phase === 'crossfade' && prev.phase !== 'crossfade') {
-    _dock?.root.classList.add('vgai-play-crossfade');
+    _dock?.root.classList.add('volter-play-crossfade');
     later(active, PLAY_CROSSFADE_MS + 30, () => dispatch('crossfade-done'));
   }
   if (next.phase === 'playing' && prev.phase !== 'playing') {
-    _dock?.root.classList.remove('vgai-play-flight', 'vgai-play-crossfade');
+    _dock?.root.classList.remove('volter-play-flight', 'volter-play-crossfade');
     if (active.flying) playCameraFlight()?.settle();
     flushSettleListeners();
   }
@@ -331,7 +331,7 @@ export function beginPlayEntryTransition(options: PlayEntryTransitionOptions): v
     dispatch('flight-done');
     return;
   }
-  _dock?.root.classList.add('vgai-play-flight');
+  _dock?.root.classList.add('volter-play-flight');
 }
 
 /**
@@ -375,7 +375,7 @@ export function endPlayTransition(): void {
   // onPlayTransitionSettled) must run, and its store-state guards decide
   // whether there is anything left to do.
   flushSettleListeners();
-  _dock?.root.classList.remove('vgai-play-flight', 'vgai-play-crossfade');
+  _dock?.root.classList.remove('volter-play-flight', 'volter-play-crossfade');
 
   if (active.flying) playCameraFlight()?.end();
 
@@ -385,7 +385,7 @@ export function endPlayTransition(): void {
 
 // Dev/e2e handle: lets specs observe the transition phase deterministically.
 if (typeof window !== 'undefined' && (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV) {
-  (window as unknown as Record<string, unknown>)['__vgaiPlayTransition'] = {
+  (window as unknown as Record<string, unknown>)['__volterPlayTransition'] = {
     phase: playTransitionPhase,
   };
 }

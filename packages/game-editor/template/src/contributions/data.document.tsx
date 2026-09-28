@@ -4,7 +4,7 @@
  * An OBLIGATION, not an implementation: the game's numbers and content
  * tables (`src/data/` — plain typed TS literals) must be viewable, with
  * their derived picture, by the humans collaborating on this game. How is
- * yours. REWRITE THIS FILE WHOLE; the error below holds `vgai console`
+ * yours. REWRITE THIS FILE WHOLE; the error below holds `volter-game-editor console`
  * red until you do.
  *
  * The method: render the data modules as tables (a plain `<table>` until a
@@ -25,7 +25,7 @@ export const title = 'Data';
 
 // Module-scope on purpose — the demand is visible from editor boot.
 const unfinished =
-  "VGAI_STUB_UNIMPLEMENTED: src/contributions/data.document.tsx — render this game's data (src/data/) with its derived columns, or delete this file if the game truly has no content tables (its header says how).";
+  "VOLTER_STUB_UNIMPLEMENTED: src/contributions/data.document.tsx — render this game's data (src/data/) with its derived columns, or delete this file if the game truly has no content tables (its header says how).";
 
 // biome-ignore lint/suspicious/noConsole: unopened starter obligations remain visible in the editor console
 console.error(unfinished);

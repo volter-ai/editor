@@ -107,7 +107,7 @@ export function ConsolePanel() {
   const counts = editorConsole.counts;
 
   return (
-    <EditorSurface className="vgai-console">
+    <EditorSurface className="volter-console">
       {/* Toolbar */}
       <EditorToolbar label="Console filters" compact>
         {/* Clear button */}
@@ -156,19 +156,19 @@ export function ConsolePanel() {
         ))}
 
         {/* Search filter */}
-        {/* B-4: the one dock text-input style (`.vgai-input` — real hover/focus
+        {/* B-4: the one dock text-input style (`.volter-input` — real hover/focus
             states from the U0 sheet) instead of this file's own variant. */}
         <TextInput
           placeholder="Filter..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="vgai-console-filter"
+          className="volter-console-filter"
         />
       </EditorToolbar>
 
       {/* Message list */}
-      <div ref={listRef} onScroll={handleScroll} className="vgai-console-list vgai-selectable-text">
-        {filtered.length === 0 && <div className="vgai-console-empty">No messages</div>}
+      <div ref={listRef} onScroll={handleScroll} className="volter-console-list volter-selectable-text">
+        {filtered.length === 0 && <div className="volter-console-empty">No messages</div>}
         {filtered.map((entry) => {
           const entityId =
             entry.metadata?.['entityId'] != null ? String(entry.metadata['entityId']) : null;
@@ -191,7 +191,7 @@ export function ConsolePanel() {
           return (
             <div
               key={entry.id}
-              className="vgai-console-row"
+              className="volter-console-row"
               data-level={entry.level}
               style={{ color: LEVEL_COLORS[entry.level] }}
             >
@@ -263,7 +263,7 @@ export function ConsolePanel() {
                   </span>
                 )}
               </span>
-              {entry.count > 1 && <span className="vgai-console-count">{entry.count}</span>}
+              {entry.count > 1 && <span className="volter-console-count">{entry.count}</span>}
             </div>
           );
         })}

@@ -22,7 +22,7 @@
  * itself when the same server answers again.
  *
  * This is the UNGRACEFUL counterpart to the graceful `tab-close` path
- * (tab-lifecycle-client.ts): a clean `vgai close` pushes an event the tab acts
+ * (tab-lifecycle-client.ts): a clean the editor's `close` command pushes an event the tab acts
  * on, but a killed/crashed server sends nothing.
  *
  * ## Why this watchdog is not (only) a timer

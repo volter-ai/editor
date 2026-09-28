@@ -55,14 +55,14 @@ export function InstanceCountPicker() {
 
   const count = playerCountFromExtras(extra);
   return (
-    <div className="vgai-playbar-popover-anchor">
+    <div className="volter-playbar-popover-anchor">
       <Button
         ref={ref}
         variant="ghost"
         size="comfortable"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? 'vgai-player-count-menu' : undefined}
+        aria-controls={open ? 'volter-player-count-menu' : undefined}
         onClick={() => setOpen((value) => !value)}
         title={`${instanceLabel(count)} — choose how many runtimes Play mounts side by side`}
       >
@@ -73,7 +73,7 @@ export function InstanceCountPicker() {
       </Button>
       {open && (
         <AnchoredMenu
-          id="vgai-player-count-menu"
+          id="volter-player-count-menu"
           anchorRef={ref}
           gap={4}
           onDismiss={() => setOpen(false)}

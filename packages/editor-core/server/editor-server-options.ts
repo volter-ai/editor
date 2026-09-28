@@ -57,7 +57,7 @@ export interface EditorServerOptions {
    * must precede the one intentional editor reload. */
   onProjectOpened?: ((projectPath: string) => void | Promise<void>) | undefined;
   /**
-   * The import URL THIS host serves `packages/editor/src/frame/bridge.tsx` at —
+   * The import URL THIS host serves `packages/editor-core/src/frame/bridge.tsx` at —
    * the editor's entry point under the Code-OSS frame.
    *
    * The one caller is `/__editor/served-modules` (routes/served-modules.ts),
@@ -82,7 +82,7 @@ export interface EditorServerOptions {
    * {@link workbench} is one: `open-project` can switch the project under a
    * live session, and which product opens it is a fact about the project.
    *
-   * `vgai status` prints it on the workbench's line: the two together are what
+   * the editor's `status` command prints it on the workbench's line: the two together are what
    * the running product IS — this code, in that workbench.
    */
   product?: (() => EditorState['product']) | undefined;
@@ -93,7 +93,7 @@ export interface EditorServerOptions {
    * taken here would report `null` forever.
    *
    * The session's children are the session's to report, exactly as its run
-   * configurations are (`routes/configurations.ts`). `vgai status` prints it.
+   * configurations are (`routes/configurations.ts`). the editor's `status` command prints it.
    */
   workbench?: (() => EditorState['workbench']) | undefined;
   /** Dev checkout only: mark this long-running process stale when server-loaded source changes. */
@@ -126,7 +126,7 @@ export interface EditorServerOptions {
    * Supplied by the bundler-owning hosts as
    * `vite.environments.ssr.moduleGraph.invalidateAll()`; the editor calls it
    * when the project's dependency manifests move, so a package installed under
-   * a LIVE session (`vgai add <capability>`, or a hand-run `npm install`) is
+   * a LIVE session (the editor's `add <capability>` command, or a hand-run `npm install`) is
    * visible to the very next tool call. Without it, Vite's SSR module runner
    * replays the rejected load forever — see
    * `project-dependency-invalidation.ts` for the measured mechanism.
@@ -137,7 +137,7 @@ export interface EditorServerOptions {
   /**
    * Does this session write the PERSON's launcher memory (recent projects)?
    * Defaults to `writesRecentProjects()` — false for an ephemeral probe or a
-   * headless (`VGAI_NO_OPEN`) session, which has no human at a launcher. See
+   * headless (`VOLTER_NO_OPEN`) session, which has no human at a launcher. See
    * that predicate's doc comment for why an agent's transient
    * session must not seed the owner's Recents.
    */
@@ -148,7 +148,7 @@ export interface EditorServerOptions {
    * Tab-bijection maintenance (see tab-lifecycle.ts): one blessed browser tab
    * per session — duplicates yield, a lost tab self-heals, shutdown closes it.
    * Omitted (or `enabled: false`) for headless sessions (`--no-open` /
-   * `VGAI_NO_OPEN`), embedded hosts, and test servers — that disables the
+   * `VOLTER_NO_OPEN`), embedded hosts, and test servers — that disables the
    * WHOLE loop for the session, not just the first open.
    */
   tabBijection?:
@@ -164,11 +164,11 @@ export interface EditorServerOptions {
 
 /**
  * What a caller is told when a relayed command finds NO browser tab on this
- * session — every rasterizing lane (`vgai screenshot`, story/asset/module
+ * session — every rasterizing lane (the editor's `screenshot` command, story/asset/module
  * previews), every play control, every inspect.
  *
  * A live server with no tab is a state a person cannot see and a session list
- * cannot show: `vgai sessions` reports the session, `vgai edit` reports it
+ * cannot show: the editor's `sessions` command reports the session, the editor's `edit` command reports it
  * ready, and the capture then fails for a reason none of that mentions. So the
  * message names the missing TAB (not the session), the URL that fixes it, and —
  * when the session was launched headless — that fact, since a `--no-open`
@@ -184,7 +184,7 @@ export function noEditorConnectedMessage(
     return `No editor connected — this session has no browser tab attached. ${open} (or run ${commandLine('edit')} for this project, which converges on its one tab), then retry.`;
   }
   return (
-    'No editor connected — this session runs headless (--no-open / VGAI_NO_OPEN), so it never ' +
+    'No editor connected — this session runs headless (--no-open / VOLTER_NO_OPEN), so it never ' +
     `opens or maintains a browser tab, and a relayed command needs one. ${open}, or restart ` +
     `the session with ${commandLine('edit')} (no --no-open), then retry.`
   );

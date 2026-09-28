@@ -9,7 +9,7 @@
  * ## WHO SHOWS IT: the workbench, and only the workbench
  *
  * A notification is the workbench's own toast, raised through
- * `INotificationService` by the fork's `vgaiNotifications.ts`. This module is
+ * `INotificationService` by the fork's `volterNotifications.ts`. This module is
  * the door every caller already uses — `notify()`, which is also what
  * `EditorHost.notify` delegates to — plus the by-id replace and dismiss
  * contract both sides honour. It draws nothing itself, and there is no second

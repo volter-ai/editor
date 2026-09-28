@@ -9,15 +9,15 @@ export interface ShareGatewayClaims {
 }
 
 const CLAIM_HEADERS = [
-  'x-vgai-share-participant-id',
-  'x-vgai-share-invitation-id',
-  'x-vgai-share-credential-id',
-  'x-vgai-share-role',
-  'x-vgai-share-account-id',
-  'x-vgai-share-account-email',
-  'x-vgai-share-account-name',
-  'x-vgai-share-signed-at',
-  'x-vgai-share-signature',
+  'x-volter-share-participant-id',
+  'x-volter-share-invitation-id',
+  'x-volter-share-credential-id',
+  'x-volter-share-role',
+  'x-volter-share-account-id',
+  'x-volter-share-account-email',
+  'x-volter-share-account-name',
+  'x-volter-share-signed-at',
+  'x-volter-share-signature',
 ] as const;
 
 export const shareClaimHeaders: readonly string[] = CLAIM_HEADERS;
@@ -55,17 +55,17 @@ export function signedShareClaimHeaders(
 ): Record<string, string> {
   const signedAt = String(now);
   return {
-    'x-vgai-share-participant-id': claims.participantId,
-    'x-vgai-share-invitation-id': claims.invitationId,
-    'x-vgai-share-credential-id': claims.credentialId,
-    'x-vgai-share-role': claims.role,
-    'x-vgai-share-account-id': claims.account.id,
-    'x-vgai-share-account-email': claims.account.email,
+    'x-volter-share-participant-id': claims.participantId,
+    'x-volter-share-invitation-id': claims.invitationId,
+    'x-volter-share-credential-id': claims.credentialId,
+    'x-volter-share-role': claims.role,
+    'x-volter-share-account-id': claims.account.id,
+    'x-volter-share-account-email': claims.account.email,
     ...(claims.account.name
-      ? { 'x-vgai-share-account-name': encodeURIComponent(claims.account.name) }
+      ? { 'x-volter-share-account-name': encodeURIComponent(claims.account.name) }
       : {}),
-    'x-vgai-share-signed-at': signedAt,
-    'x-vgai-share-signature': signature(secret, payload(method, url, claims, signedAt)),
+    'x-volter-share-signed-at': signedAt,
+    'x-volter-share-signature': signature(secret, payload(method, url, claims, signedAt)),
   };
 }
 
@@ -79,15 +79,15 @@ export function verifyShareClaimHeaders(
   const values = Object.fromEntries(CLAIM_HEADERS.map((name) => [name, read(name)?.trim()]));
   const any = CLAIM_HEADERS.some((name) => values[name]);
   if (!any) return null;
-  const participantId = values['x-vgai-share-participant-id'];
-  const invitationId = values['x-vgai-share-invitation-id'];
-  const credentialId = values['x-vgai-share-credential-id'];
-  const role = values['x-vgai-share-role'];
-  const accountId = values['x-vgai-share-account-id'];
-  const accountEmail = values['x-vgai-share-account-email'];
-  const encodedName = values['x-vgai-share-account-name'];
-  const signedAt = values['x-vgai-share-signed-at'];
-  const supplied = values['x-vgai-share-signature'];
+  const participantId = values['x-volter-share-participant-id'];
+  const invitationId = values['x-volter-share-invitation-id'];
+  const credentialId = values['x-volter-share-credential-id'];
+  const role = values['x-volter-share-role'];
+  const accountId = values['x-volter-share-account-id'];
+  const accountEmail = values['x-volter-share-account-email'];
+  const encodedName = values['x-volter-share-account-name'];
+  const signedAt = values['x-volter-share-signed-at'];
+  const supplied = values['x-volter-share-signature'];
   if (
     !participantId ||
     participantId.length > 200 ||

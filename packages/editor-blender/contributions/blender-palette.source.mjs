@@ -5,7 +5,7 @@
  * ARCHITECTURE-CORE §Blender north star, "The reference is Blender's SOURCE as
  * well as its frames").
  *
- * Run `node packages/blender/contributions/blender-palette.source.mjs` to
+ * Run `node packages/editor-blender/contributions/blender-palette.source.mjs` to
  * rewrite the JSON; `--check` reports what would change and exits non-zero if
  * anything would. It reads
  * `release/datafiles/userdef/userdef_default_theme.c` from a Blender checkout

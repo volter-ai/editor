@@ -3,7 +3,7 @@
  * editor's realm, preceded by the host-added contract module the manifest names
  * in `ingest.contractShim` when it declares one.
  *
- * ORDER IS THE WHOLE CONTRACT. The shim assigns `window.vgaiGame` synchronously
+ * ORDER IS THE WHOLE CONTRACT. The shim assigns `window.volterGame` synchronously
  * at top level (see the field's schema description), so it must be evaluated
  * BEFORE the game's entry — a game that reads the declaration during its own
  * module evaluation would otherwise see nothing, and a shim that lazily

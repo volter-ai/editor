@@ -49,17 +49,11 @@
  * pane — the one CSS primitive that does this without the side effects of the alternatives
  * (`transform`/`filter` also create the containing block but force a compositing layer and,
  * on the ADOPTED element itself, are exactly the stamp {@link claimHostSurfaceBox} exists to
- * clear).
- *
- * The inherited text properties start from a page's defaults, as the game's `<body>` does
- * when it ships: otherwise the editor's own typography (11px, its line height and colour)
- * inherited into the game's DOM, and a game's text rendered smaller in the editor than in
- * its build.
+ * clear). The inherited text defaults are `markGameSurface`'s
+ * (`@volter/editor-sdk/kit/game-surface-defaults`), at zero specificity so the game's own
+ * page rules win.
  */
-export const GAME_SURFACE_CONTAINMENT_CSS =
-  'contain: layout; font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
-  ' text-align: start; text-indent: 0; text-transform: none; white-space: normal;' +
-  ' direction: ltr; cursor: auto; visibility: visible;';
+export const GAME_SURFACE_CONTAINMENT_CSS = 'contain: layout; visibility: visible;';
 
 /** `EventTarget`'s own listener identity is (type, callback, capture) — read
  *  the capture flag out of either options form so the page's registration
@@ -70,7 +64,7 @@ function captureOf(options?: boolean | AddEventListenerOptions | EventListenerOp
 
 /** Mark carrying the text this observer last wrote, so its own write is not
  *  re-scoped and a game's next rewrite is. */
-export const SCOPED_STYLE_MARK = 'vgaiScopedCss';
+export const SCOPED_STYLE_MARK = 'volterScopedCss';
 
 /**
  * The `@scope` rewriter, loaded on FIRST USE — the one page-side door to the
@@ -128,7 +122,7 @@ export function loadGameCssScoper(): Promise<(css: string) => string> {
  * `url.fileURLToPath/pathToFileURL`,
  * `source-map-js.SourceMapConsumer/SourceMapGenerator` — straight into the
  * game realm's console, which made the console-silence contract unreachable in
- * a fresh scaffold and every `vgai` verb exit non-zero (measured three times:
+ * a fresh scaffold and every `volter` verb exit non-zero (measured three times:
  * the donut, cold-barrel and lit-lanes probes). The chain was
  * `play-mode.enterPlayModeInner` -> `gated-globals.setGameSurface` ->
  * `GameRealmPage.surface` -> `observeInjectedStyles` -> `import('../server/
@@ -356,7 +350,7 @@ export class GameRealmPage {
     if (!surface) return null;
     if (!this.headElement || this.headElement.parentElement !== surface) {
       const head = document.createElement('div');
-      head.dataset['vgaiGameHead'] = '';
+      head.dataset['volterGameHead'] = '';
       head.hidden = true;
       surface.prepend(head);
       this.headElement = head;

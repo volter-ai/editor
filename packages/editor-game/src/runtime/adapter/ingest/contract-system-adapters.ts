@@ -1,6 +1,6 @@
 /**
- * Projects a game's declared {@link VgaiGameSystemAdapters}
- * (`window.vgaiGame.systems.systemAdapters`) onto the host's ordinary
+ * Projects a game's declared {@link VolterGameSystemAdapters}
+ * (`window.volterGame.systems.systemAdapters`) onto the host's ordinary
  * {@link SystemAdapters} bag — the ingest-realm counterpart of a first-party
  * world's `ctx.registerSystemAdapter`, and the sibling of
  * `contract-debug-adapter.ts` (which owns the `debug` slot).
@@ -55,9 +55,9 @@ export type {
 } from '@volter/editor-project/adapter/ingest/contract-system-slots';
 
 import type {
-  VgaiGameSystemAdapters,
-  VgaiGameSystemEmpty,
-  VgaiGameSystems,
+  VolterGameSystemAdapters,
+  VolterGameSystemEmpty,
+  VolterGameSystems,
 } from '@volter/editor-project/adapter/ingest/game-contract';
 import { GAME_SYSTEM_ADAPTERS_SHAPE } from '@volter/editor-project/adapter/ingest/game-contract-seams';
 import {
@@ -70,7 +70,7 @@ import {
 } from '@volter/editor-project/adapter/system-seam-contract';
 
 /** The slots a game may declare through the contract (`debug` is projected from
- *  `commands`/`state` instead — see {@link VgaiGameSystemAdapters}). */
+ *  `commands`/`state` instead — see {@link VolterGameSystemAdapters}). */
 export type { ContractSystemSlot } from '@volter/editor-project/adapter/ingest/contract-system-slots';
 
 /**
@@ -132,7 +132,7 @@ const EMPTY_PROJECTION: ContractSystemAdapterProjection = {
   malformed: [],
 };
 
-function isEmptyRecord(value: object): value is VgaiGameSystemEmpty {
+function isEmptyRecord(value: object): value is VolterGameSystemEmpty {
   return (value as { present?: unknown }).present === false;
 }
 
@@ -198,7 +198,7 @@ function classifyDeclaredSlot(
     };
   }
   if (isEmptyRecord(value)) {
-    const evidence = (value as VgaiGameSystemEmpty).evidence;
+    const evidence = (value as VolterGameSystemEmpty).evidence;
     // An empty claim with no evidence is exactly the "wrong empty claim" the
     // bar calls a defect — it asserts an absence nobody can re-check.
     if (typeof evidence !== 'string' || evidence.trim() === '') {
@@ -231,7 +231,7 @@ function classifyDeclaredSlot(
  * header for what it buys and why its absence checks nothing.
  */
 export function projectContractSystemAdapters(
-  systems: VgaiGameSystems | undefined | null,
+  systems: VolterGameSystems | undefined | null,
   surface?: ContractSurface | undefined,
 ): ContractSystemAdapterProjection {
   const declared = systems?.systemAdapters;

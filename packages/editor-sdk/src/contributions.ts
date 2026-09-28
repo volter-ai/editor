@@ -156,7 +156,7 @@ export interface ToolGameplaySessions {
  * A dev-GUI contribution's whole subject is the RUNNING game — its stats,
  * cheats, tuning handles and event stream all hang off the live `Game`, and
  * there is no other door to it from a contribution (the editor's own state is
- * not the game's). It is `unknown` deliberately: `@vgai/game-runtime`'s `Game` is
+ * not the game's). It is `unknown` deliberately: `@volter/game-runtime`'s `Game` is
  * the project's dependency, not this package's, so a contribution narrows it
  * with its own import rather than making every consumer of this SDK carry the
  * engine's types.
@@ -240,7 +240,7 @@ export interface ToolContributionProps {
   /**
    * Present with `documentId`. Hand the host the ONE object this document
    * edits through — its live session — and `editor.document.run(ctx => …)`
-   * (`vgai eval`) runs a step against it in Edit mode, without play: the
+   * (the editor's `eval` command) runs a step against it in Edit mode, without play: the
    * agent's REPL over the document. Re-publish whenever that object changes
    * (a reload that swaps a session); the return value unpublishes.
    */
@@ -460,7 +460,7 @@ export interface ProjectModuleLoader {
 /** ONE loader across every copy of this module — see `host.ts` for why the
  *  packaged runtime holds two SDK instances, and `layouts.tsx` for the
  *  `Symbol.for` precedent. */
-const LOADER_KEY = Symbol.for('vgai.editor.project-module-loader');
+const LOADER_KEY = Symbol.for('volter.editor.project-module-loader');
 const loaders = globalThis as typeof globalThis & {
   [LOADER_KEY]?: ProjectModuleLoader | null;
 };
@@ -566,7 +566,7 @@ interface StageTransformRegistry {
 
 /** ONE registry across every copy of this module, for the same reason
  *  {@link registerProjectModuleLoader} needs one — see its note. */
-const STAGE_TRANSFORM_KEY = Symbol.for('vgai.editor.stage-transform-doors');
+const STAGE_TRANSFORM_KEY = Symbol.for('volter.editor.stage-transform-doors');
 const stageTransforms = globalThis as typeof globalThis & {
   [STAGE_TRANSFORM_KEY]?: StageTransformRegistry;
 };

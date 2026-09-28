@@ -41,7 +41,7 @@ export interface EditorAction {
   /**
    * The printed hint, resolved from the ACTIVE keymap (`keymap-presets.ts`)
    * rather than spelled here — so the palette tells the truth under `blender`
-   * as well as `vgai`. Explicitly `| undefined` because a keymap may leave an
+   * as well as `volter`. Explicitly `| undefined` because a keymap may leave an
    * action deliberately unbound, and printing a stale key would be worse than
    * printing none.
    */
@@ -297,7 +297,7 @@ export function buildStaticActions(
  *  THE NO-AUTHORING FLOOR IS A MESSAGE, NOT AN ENTITY. `makeNoAuthoringAdapter`
  *  publishes one `role: 'boundary'` row so the panels can say "no authoring
  *  surface" honestly; mapping it like a node put a command literally called
- *  **VGAI Entity: No authoring adapter** in the palette, whose whole effect is
+ *  **Volter Entity: No authoring adapter** in the palette, whose whole effect is
  *  to select and focus nothing (measured under the frame on a Model document,
  *  U8 walk 3, 2026-09-20). */
 export function buildEntityActions(store: ShellStore): EditorAction[] {

@@ -332,7 +332,7 @@ export function assetSubjectApplies(ctx: StageContext): boolean {
  *
  * The one condition on the data arm is the LOOK, and it is a condition rather
  * than a kind: the studio's backdrop is the EDITOR'S (the alpha canvas over the
- * `.vgai-object3d-studio-stage` bloom), and a look that declares its own
+ * `.volter-object3d-studio-stage` bloom), and a look that declares its own
  * `color.viewport` group has already said what the 3D viewport is painted —
  * Blender's flat #3f3f3f — so painting the studio over it would be the editor
  * overruling the skew.

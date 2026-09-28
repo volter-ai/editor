@@ -16,8 +16,8 @@
  * consumer's module graph. A seam that ships its implementers is not a
  * seam. Import an implementer from its OWN path instead:
  *
- *   `@vgai/threejs-runtime/adapter/rapier-physics-adapter`    createRapierPhysicsAdapter
- *   `@vgai/threejs-runtime/adapter/first-party-navigation-system`       createNavigationAdapter
+ *   `@volter/threejs-runtime/adapter/rapier-physics-adapter`    createRapierPhysicsAdapter
+ *   `@volter/threejs-runtime/adapter/first-party-navigation-system`       createNavigationAdapter
  */
 
 export type { AdapterSurface } from './adapter-surface';

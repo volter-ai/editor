@@ -1,13 +1,13 @@
 import { gameRealmForMountId } from '../host/gated-globals';
 import {
   readGameContract,
-  type VgaiGameContract,
+  type VolterGameContract,
 } from '@volter/editor-project/adapter/ingest/game-contract';
 
 /**
  * The browser realm used by the singleton ingest routes.
  *
- * Vendored ingest entry graphs deliberately carry no `?vgai-mount=` query:
+ * Vendored ingest entry graphs deliberately carry no `?volter-mount=` query:
  * they share the editor's Pixi/Three packages and run in the default gated
  * realm. Realm hardening keeps game-owned expandos on that realm's window
  * proxy, so host code must read the contract from the same proxy rather than
@@ -28,7 +28,7 @@ export function ingestGameRealmWindow(): Window {
  * reached by every `bridge-call`) degrading instead of throwing
  * `window is not defined` at them.
  */
-export function readIngestGameContract(): VgaiGameContract | null {
+export function readIngestGameContract(): VolterGameContract | null {
   if (typeof window === 'undefined') return null;
   return readGameContract(ingestGameRealmWindow());
 }

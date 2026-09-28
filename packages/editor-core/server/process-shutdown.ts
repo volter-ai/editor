@@ -125,11 +125,11 @@ export function closeHttpServer(server: Server): Promise<void> {
  *
  * EVERY TASK RUNS INDEPENDENTLY AND EVERY TASK IS BOUNDED BY ITSELF. Both
  * halves were bought by one measurement (2026-09-21, load average ~30, one
- * `vgai close`): the session's journal had no `session-shutdown` line, the
+ * the editor's `close` command): the session's journal had no `session-shutdown` line, the
  * Code-OSS server survived as PPID 1 still holding its reserved `frame` port,
- * and the next `vgai edit` refused by name. A shared bound is what makes one
+ * and the next the editor's `edit` command refused by name. A shared bound is what makes one
  * slow resource spend everybody's window, and the arithmetic has to close:
- * `vgai close` SIGTERMs, waits 5.5 s and SIGKILLs the session's process GROUP —
+ * the editor's `close` command SIGTERMs, waits 5.5 s and SIGKILLs the session's process GROUP —
  * which never reaches the Code-OSS server, because that child is spawned
  * detached into a group of its own. So the last of these tasks has to have
  * FINISHED by then, not merely started, or a child outlives its parent with
@@ -141,8 +141,8 @@ export function closeHttpServer(server: Server): Promise<void> {
 export function createProcessShutdown(
   options: ProcessShutdownOptions,
 ): (why: string) => Promise<void> {
-  // 4 s per task, 4.8 s for the list: the whole shutdown fits inside `vgai
-  // close`'s 5.5 s grace with room for the process's own exit, which the old
+  // 4 s per task, 4.8 s for the list: the whole shutdown fits inside the editor's
+  // `close`'s 5.5 s grace with room for the process's own exit, which the old
   // 2 s tab wait plus a 5 s shared cleanup budget did not. The 4 s is sized so
   // a task that must follow the tab-close notice (whose own budget is 2 s)
   // still has ~2 s of its own — see dev.ts's list.
@@ -193,7 +193,7 @@ export function createProcessShutdown(
       if (timeout) clearTimeout(timeout);
 
       if (result.type === 'timeout') {
-        log(`[vgai-editor] cleanup timed out after ${timeoutMs}ms (${why}); forcing exit`);
+        log(`[volter-editor] cleanup timed out after ${timeoutMs}ms (${why}); forcing exit`);
         exit(1);
         return;
       }
@@ -202,7 +202,7 @@ export function createProcessShutdown(
       );
       if (failures.length > 0) {
         log(
-          `[vgai-editor] cleanup failed (${why}): ${failures
+          `[volter-editor] cleanup failed (${why}): ${failures
             .map((item) =>
               item.reason instanceof Error ? item.reason.message : String(item.reason),
             )

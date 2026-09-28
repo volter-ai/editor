@@ -33,7 +33,7 @@ export type SessionListingTransport = SessionDiscoveryTransport;
 export interface ResolvedSession {
   /** Editor dev-server port the resolved session is listening on. */
   port: number;
-  /** Absolute project root — the nearest ancestor of the requested directory containing `vgai.project.json`. */
+  /** Absolute project root — the nearest ancestor of the requested directory containing `volter.project.json`. */
   projectRoot: string;
 }
 
@@ -42,7 +42,7 @@ export interface SessionResolutionDeps {
   transport?: SessionListingTransport;
   /** Project-root discovery — defaults to the real fs walk (`findProjectRootFrom` above). Overridable for tests. */
   findProjectRootFrom?: (dir: string) => string | null;
-  /** Project-local session hint reader. Defaults to `.vgai/session.json`. */
+  /** Project-local session hint reader. Defaults to `.volter/session.json`. */
   readProjectSession?: (projectRoot: string) => ProjectSessionHint | null;
   /** Exact-session verifier. Defaults to GET /__editor/project + canonical project matching. */
   verifyProjectSession?: (hint: ProjectSessionHint, projectRoot: string) => Promise<boolean>;
@@ -66,7 +66,7 @@ function canonicalPath(path: string): string {
 function readProjectSession(projectRoot: string): ProjectSessionHint | null {
   try {
     const value: unknown = JSON.parse(
-      readFileSync(join(projectRoot, '.vgai', 'session.json'), 'utf8'),
+      readFileSync(join(projectRoot, '.volter', 'session.json'), 'utf8'),
     );
     if (typeof value !== 'object' || value === null) return null;
     const hint = value as Record<string, unknown>;
@@ -133,7 +133,7 @@ async function probeServedProject(
  */
 function manifestRefusal(projectRoot: string, manifestError: string): Error {
   return new Error(
-    `@volter/editor-live: the editor session for ${projectRoot} is live, but its vgai.project.json does ` +
+    `@volter/editor-live: the editor session for ${projectRoot} is live, but its volter.project.json does ` +
       'not load, so there is no editor or game to drive — the editor page is showing this same ' +
       `error. Fix the manifest and retry; the session recovers on save, no restart needed.\n${manifestError}`,
   );
@@ -141,15 +141,15 @@ function manifestRefusal(projectRoot: string, manifestError: string): Error {
 
 /**
  * Resolve `projectDir` (default `process.cwd()`) to the port of its already-
- * running `vgai edit` session. Throws a descriptive error (never hangs
+ * running the editor's `edit` command session. Throws a descriptive error (never hangs
  * indefinitely — bounded by `EDITOR_SESSION_DISCOVERY_TIMEOUT_MS`, and never
  * silently attaches to an unrelated project's session — see the module doc
- * above) when no vgai.project.json is found, or no live session covers it.
+ * above) when no volter.project.json is found, or no live session covers it.
  */
 /**
  * THE REFUSAL WHEN NOTHING MATCHED — and it says WHICH nothing.
  *
- * "No live editor session found … run `vgai edit`" used to be the answer to
+ * "No live editor session found … run the editor's `edit` command" used to be the answer to
  * four different states, only one of which it described. The other three sent
  * the operator to start an editor that was already running:
  *
@@ -212,7 +212,7 @@ export async function resolveSession(
   const projectRoot = findRoot(projectDir);
   if (projectRoot === null) {
     throw new Error(
-      `@volter/editor-live: no vgai.project.json found in ${projectDir} or any parent directory — is this a project?`,
+      `@volter/editor-live: no volter.project.json found in ${projectDir} or any parent directory — is this a project?`,
     );
   }
 
@@ -243,7 +243,7 @@ export async function resolveSession(
   let sessions: EditorSessionInfo[];
   // A FAILED discovery is not an empty one. Collapsing the two into `[]` is
   // what made this door answer "no live editor session found" — and prescribe
-  // `vgai edit` — for a probe that merely timed out under load, sending the
+  // the editor's `edit` command — for a probe that merely timed out under load, sending the
   // operator to start an editor that was already running while the real defect
   // went unnamed. The same collapse the manifest refusal above was added for.
   let discoveryFailure: string | null = null;

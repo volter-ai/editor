@@ -1,6 +1,6 @@
 /**
- * B8.4 — the Asset Lab COMPARE surface (`vgai screenshot <model.glb>
- * --compare <ref.glb>`): renders the project asset AND a caller-supplied reference GLB
+ * B8.4 — the Asset Lab COMPARE surface (the editor's `screenshot <model.glb>
+ * --compare <ref.glb>` command): renders the project asset AND a caller-supplied reference GLB
  * with matched orthographic front + side framing, then scores their
  * silhouettes (IoU) and composes review overlays, so an agent can
  * numerically converge a procedural character toward a reference.

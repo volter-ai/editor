@@ -10,7 +10,7 @@ export type ProjectView = Record<string, unknown>;
 export type ProjectViewResult = { ok: true; view: ProjectView } | { ok: false; error: string };
 
 /**
- * Read `vgai.project.json`, keeping the REASON a read failed.
+ * Read `volter.project.json`, keeping the REASON a read failed.
  *
  * Boot routing needs that reason: a server serving a project whose manifest it
  * cannot read is not the same thing as a server with no project open, and
@@ -20,9 +20,9 @@ export type ProjectViewResult = { ok: true; view: ProjectView } | { ok: false; e
  * just a loud one.
  *
  * The reason is rendered by `project-validation.ts`'s `errorsFor` — the same
- * `path.to.field: message` form the watcher's terminal/console/`vgai status`
+ * `path.to.field: message` form the watcher's terminal/console/the editor's `status` command
  * legs already print — because this string is read by people and by agents:
- * the editor's startup-error screen, `vgai sessions`, and `@vgai/live`'s
+ * the editor's startup-error screen, the editor's `sessions` command, and `@volter/editor-live`'s
  * refusal all quote it. A bare `ZodError.message` is a pretty-printed JSON
  * array of issue objects; it contains the failing key and hides it.
  */

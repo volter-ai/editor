@@ -3,9 +3,9 @@
  * synchronously everywhere (ARCHITECTURE-CORE §Editor chrome, "Settings have
  * four layers with named homes"):
  *
- *   user     ~/.vgai/settings.json            every project, this person
- *   adapter  <project>/vgai.adapter.ts        this project's own CODE
- *   project  <project>/.vgai/settings.json    this project, everyone (committed)
+ *   user     ~/.volter/settings.json            every project, this person
+ *   adapter  <project>/volter.adapter.ts        this project's own CODE
+ *   project  <project>/.volter/settings.json    this project, everyone (committed)
  *
  * `effectiveSettings()` is project over adapter over user, key by key.
  *
@@ -15,7 +15,7 @@
  * and contributions are code, not configs). It sits above the USER layer
  * because it is a fact about THIS project and the user layer is one person's
  * cross-project default: a skew's Blender greys must not be undone by the
- * graphite a game project left in `~/.vgai/settings.json`. It sits below the
+ * graphite a game project left in `~/.volter/settings.json`. It sits below the
  * PROJECT layer because that file is this project's own explicit override, so
  * an appearance gesture still lands somewhere that wins. Appearance and
  * keymap choices write WHERE THE KEY IS DECLARED (`updatePreferenceSettings`):
@@ -30,7 +30,7 @@
  * before React mounts), so a consumer's first synchronous read already sees
  * the person's palette; the project layer reloads whenever the active
  * project changes. A file that does not parse is reported to the editor
- * console by path — an unresolved condition, so `vgai console` carries it —
+ * console by path — an unresolved condition, so the editor's `console` command carries it —
  * and that layer reads as empty until it is fixed.
  *
  * ## UNDER THE CODE-OSS FRAME THIS MODULE IS THE FALLBACK, not the truth
@@ -114,7 +114,7 @@ export function adapterSettings(): EditorSettings {
   return settingsProvider() ? adapter : declaredAdapterSettings();
 }
 
-/** The adapter's declaration as dotted `vgai.*` keys — what the frame writes
+/** The adapter's declaration as dotted `volter.*` keys — what the frame writes
  *  to the MEMORY target. */
 export function declaredAdapterSettingEntries(): ReadonlyMap<string, unknown> {
   return flattenSettings(declaredAdapterSettings());
@@ -218,7 +218,7 @@ export function projectSettings(): EditorSettings {
   return project;
 }
 
-/** Every layer's own value for one `vgai.*` key, plus the effective one —
+/** Every layer's own value for one `volter.*` key, plus the effective one —
  *  the door's `inspect`, answered from whichever side owns the settings. */
 export function inspectSetting(key: string): EditorHostSettingsInspection {
   const provider = settingsProvider();
@@ -235,7 +235,7 @@ export function inspectSetting(key: string): EditorHostSettingsInspection {
   };
 }
 
-/** The effective value of one `vgai.*` key. */
+/** The effective value of one `volter.*` key. */
 export function getSetting(key: string): unknown {
   const provider = settingsProvider();
   return provider ? provider.get(key) : flattenSettings(effective).get(key);
@@ -249,7 +249,7 @@ export function getSetting(key: string): unknown {
  * One rule, one implementation, both shapes — writing `appearance` to the
  * user layer in a project whose adapter declares a style is a gesture that
  * silently does nothing, and that is as true of the configuration service's
- * MEMORY target as it is of `.vgai/settings.json`.
+ * MEMORY target as it is of `.volter/settings.json`.
  */
 function targetFor(key: string): EditorHostSettingsTarget {
   if (!getCurrentProject()) return 'user';
@@ -258,7 +258,7 @@ function targetFor(key: string): EditorHostSettingsTarget {
 }
 
 /**
- * Write a set of `vgai.*` keys, grouped so each LAYER is written once.
+ * Write a set of `volter.*` keys, grouped so each LAYER is written once.
  *
  * The grouping is not a micro-optimisation: standalone, a layer write is a
  * whole-document POST, so a two-key patch sent as two writes is two POSTs of
@@ -288,13 +288,13 @@ function applySettings(
   return Promise.resolve();
 }
 
-/** Write one `vgai.*` key. With no target, {@link targetFor} picks the layer
+/** Write one `volter.*` key. With no target, {@link targetFor} picks the layer
  *  that wins. */
 export function setSetting(key: string, value: unknown, target?: EditorHostSettingsTarget): void {
   void applySettings([[key, value]], target);
 }
 
-/** Merge `patch` into the USER layer and write `~/.vgai/settings.json`. */
+/** Merge `patch` into the USER layer and write `~/.volter/settings.json`. */
 function writeUserLayer(patch: EditorSettings): void {
   user = mergeEditorSettings(user, patch);
   recompute();

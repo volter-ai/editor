@@ -139,7 +139,7 @@ export function hasAuthoringOverride(): boolean {
  * `setActiveAuthoring(null)` clears the slot (the predicate checks the CURRENT
  * `_override`'s identity), so no separate lifecycle state can go stale.
  */
-const EDIT_MODE_BRAND = Symbol('vgai.editModeComposite');
+const EDIT_MODE_BRAND = Symbol('volter.editModeComposite');
 
 /** Mark `adapter` as the edit-mode composite. */
 export function markEditModeOverride(adapter: AuthoringAdapter): void {

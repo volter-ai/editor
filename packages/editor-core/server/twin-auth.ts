@@ -1,6 +1,6 @@
 // Editor-side client for the managed Clerk TWIN's Backend API — the placeholder IdP
-// behind the managed relay/generation lane (see packages/vgai-auth). A developer signs
-// in by minting a real, RS256-signed twin session token that `vgai-auth` verifies with
+// behind the managed relay/generation lane (see packages/volter-auth). A developer signs
+// in by minting a real, RS256-signed twin session token that `volter-auth` verifies with
 // its pinned key (`CLERK_JWT_KEY`); that token then authorizes managed generation
 // (`/verify`) and relay-token bakes (`/relay/token`).
 //

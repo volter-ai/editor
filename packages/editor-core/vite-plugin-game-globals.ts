@@ -1,5 +1,5 @@
 /**
- * The `vgai-game-globals` transform — prepends the game-globals prelude to game
+ * The `volter-game-globals` transform — prepends the game-globals prelude to game
  * source so raw `window`/`document` input listeners resolve to the gated proxies
  * (`gated-globals.ts`) instead of the real globals, making them focus-gated.
  *
@@ -42,7 +42,7 @@ export function gameGlobalsShadowPlugin(
   getRoots: () => Iterable<string>,
 ): Plugin {
   return {
-    name: 'vgai-game-globals',
+    name: 'volter-game-globals',
     transform(code: string, id: string) {
       if (new URLSearchParams(id.split('?')[1]).has(EDITOR_TREE_QUERY)) return null;
       const file = id.split('?')[0]!;
@@ -63,7 +63,7 @@ export function gameGlobalsShadowPlugin(
       // whole-string check would re-prepend for every mounted module and
       // shadow the shadow (`const` redeclaration in one scope is a SyntaxError
       // besides, which is how the original check earned its comment).
-      if (code.startsWith("const __vgaiHost=({}).constructor.constructor('return globalThis')()"))
+      if (code.startsWith("const __volterHost=({}).constructor.constructor('return globalThis')()"))
         return null;
       // Bake the module's own mount id in, so its game globals resolve to the
       // realm of the INSTANCE it belongs to. No id selects the default realm

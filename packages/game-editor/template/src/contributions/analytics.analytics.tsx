@@ -16,7 +16,7 @@ export const point = 'workspace.analytics';
 export const title = 'Analytics';
 
 const unfinished =
-  'VGAI_STUB_UNIMPLEMENTED: src/contributions/analytics.analytics.tsx — replace this stub with game-specific analysis of recorded Gameplay Sessions; playback is provided by the editor.';
+  'VOLTER_STUB_UNIMPLEMENTED: src/contributions/analytics.analytics.tsx — replace this stub with game-specific analysis of recorded Gameplay Sessions; playback is provided by the editor.';
 
 // biome-ignore lint/suspicious/noConsole: unopened starter obligations remain visible in the editor console
 console.error(unfinished);

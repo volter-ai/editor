@@ -69,7 +69,7 @@ export interface PresentAnswer {
  * Read by anything that has to say WHERE a byte came from rather than merely
  * display it — `blender-list-files` answers with it, so the CLI's write-back
  * door can record which session's model a mirrored file was exported from
- * (`packages/vgai-cli/src/blender-mcp.ts`, class Mirror). Null until the
+ * (`packages/editor-blender/node/blender-mcp.ts`, class Mirror). Null until the
  * session's first present.
  */
 export interface PresentedState {
@@ -186,7 +186,7 @@ export class BlenderRuntime {
       // The page console is the editor's ledger (`installEditorConsoleReporting`
       // captures it, source-blind), and this package may import nothing of the
       // editor to say it any other way. Without this line the failure reached
-      // a toast and `vgai console` read 0/0 while no Model document could open
+      // a toast and `volter-model-editor console` read 0/0 while no Model document could open
       // (measured 2026-09-20 from a registry install).
       console.error(error.message);
       for (const id of [...this.#pending.keys()]) this.#settled(id);

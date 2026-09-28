@@ -130,7 +130,7 @@ export interface MountManifestOptions {
    *  never a real host. See `RootsRuntimeConfig.headless`. */
   readonly headless?: boolean | undefined;
   /**
-   * Task 2.1: overrides for the `?vgai-debug=1` bridge `mountManifestRoots`
+   * Task 2.1: overrides for the `?volter-debug=1` bridge `mountManifestRoots`
    * installs at the tail of every mount — the engine-owned install point so
    * every standalone project gets it with zero template edits. Omit both in
    * a real host (defaults to `window.location`/ `window`); a headless test
@@ -145,7 +145,7 @@ export interface MountManifestOptions {
     | undefined;
   /**
    * D15 (T-D15.1) — the "explicit config" leg of the boot-time seed
-   * precedence (`manifest.determinism.defaultSeed` → `?vgai-seed=` → this),
+   * precedence (`manifest.determinism.defaultSeed` → `?volter-seed=` → this),
    * highest-precedence, for a caller that already knows the exact seed it
    * wants (a future CLI `--seed`/probe fixture `seed` option, T-D15.6).
    * Ignored entirely unless the manifest declares
@@ -154,7 +154,7 @@ export interface MountManifestOptions {
   readonly seed?: number | undefined;
   /** Host identity for a private play run or coordinated Team Test. */
   readonly playtest?: PlaytestContext | null | undefined;
-  /** Where to read `?vgai-seed=` from for the boot-time seed reader. Same
+  /** Where to read `?volter-seed=` from for the boot-time seed reader. Same
    *  override precedent as `debugBridge.url` (defaults to `window.location`
    *  when a real `window` exists; a headless caller with no override gets no
    *  query-param seed, same as `maybeInstallDebugBridge`'s own url default). */
@@ -166,13 +166,13 @@ export interface MountManifestOptions {
  * `mountManifestRoots` threads into `createGameRuntime` (and therefore
  * `createGame`, BEFORE any world's `mount()`/`setup()` runs). Returns
  * `undefined` when the manifest doesn't declare `determinism.seededRandom`
- * at all — `?vgai-seed=` and `defaultSeed` are both ignored in that case
+ * at all — `?volter-seed=` and `defaultSeed` are both ignored in that case
  * (§2.a: "the mount path seeds ctx.random ... iff declared"; an undeclared
  * project's `ctx.random` still exists, just boots from `createGame`'s own
  * fixed default, unaffected by the manifest or the URL).
  *
  * Precedence when declared (highest wins): `explicitSeed` (a caller-supplied
- * config value) → `?vgai-seed=<int>` on `url` → `manifest.determinism
+ * config value) → `?volter-seed=<int>` on `url` → `manifest.determinism
  * .defaultSeed`.
  */
 export function resolveDeterminismSeed(opts: {
@@ -250,7 +250,7 @@ export function resolveManifest(raw: unknown): ResolvedGameManifest {
 
 // ---------------------------------------------------------------------------
 // Per-kind entry -> adapter resolution (mirrors `resolveRootBinding`'s
-// per-identity dispatch, `packages/editor/src/binding-resolver.ts`)
+// per-identity dispatch, `packages/editor-game/src/host/binding-resolver.ts`)
 // ---------------------------------------------------------------------------
 
 function resolveThreeAdapter(
@@ -341,7 +341,7 @@ function buildRootMountSpec(
     zOrder: world.zOrder,
     pausable: world.pausable,
     // `root` is this file's own resolved manifest record; the rest — the
-    // parsed `vgai.adapter.ts`, the entry namespace, the entry's declared
+    // parsed `volter.adapter.ts`, the entry namespace, the entry's declared
     // debug/systems bindings — only the caller who loaded the entry can know.
     ...(entry?.declaration === undefined
       ? {}
@@ -376,7 +376,7 @@ function buildRootMountSpec(
 // ---------------------------------------------------------------------------
 
 /**
- * Mount every world declared by a `vgai.project.json` manifest onto `container`,
+ * Mount every world declared by a `volter.project.json` manifest onto `container`,
  * standalone — no editor, no dev server. The generalization of
  * `examples/tri-world/src/main.ts`'s hand-built `RootMountSpec[]` (D-Z2). Reuses
  * the pure `loadGameManifest` + `createGameRuntime({ roots })` and mirrors
@@ -441,7 +441,7 @@ export async function mountManifestRoots(opts: MountManifestOptions): Promise<Ga
     getGameplayRngTrapControl(session.game)?.setEnabled(true);
   }
 
-  // Task 2.1 — install the `?vgai-debug=1` bridge at the TAIL of every
+  // Task 2.1 — install the `?volter-debug=1` bridge at the TAIL of every
   // manifest mount (engine-owned, so a standalone project gets it with zero
   // template edits). `getDebugRegistry` returns `null` only for a bare
   // `Game`-shaped test stand-in predating T7.1 — real mounts always have one.
@@ -458,7 +458,7 @@ export async function mountManifestRoots(opts: MountManifestOptions): Promise<Ga
       debugRegistry.setRoomDeclared(true);
     }
     // Defect 5 fix: `maybeInstallDebugBridge` adds `window` listeners and
-    // publishes `window.__vgai` with no way to undo either — wire its
+    // publishes `window.__volter` with no way to undo either — wire its
     // `uninstall()` into THIS session's own `stop()` so a caller that tears
     // this mount down doesn't leave the bridge (and its listeners) live.
     const bridgeHandle = maybeInstallDebugBridge({

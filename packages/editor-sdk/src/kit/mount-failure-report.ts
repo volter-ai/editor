@@ -129,7 +129,7 @@ export function clearMountFailureReports(): void {
  * dedupes on, and a no-op when that world has no entry.
  *
  * Not clearing at all is what PD-1 measured: an R3F world that failed to mount
- * once kept reporting that failure through `vgai status`'s "MOUNT FAILED —
+ * once kept reporting that failure through the editor's `status` command's "MOUNT FAILED —
  * THIS WORLD IS NOT RUNNING" line (and the in-editor surface) for the rest of
  * the page's life, including while the very same world was mounted and
  * PLAYING. A diagnostic that cannot go back to healthy is worse than none.

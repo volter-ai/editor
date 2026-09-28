@@ -4,7 +4,7 @@
  */
 
 export type ProjectWorkspaceState =
-  | 'vgai-project'
+  | 'volter-project'
   | 'adaptable-project'
   | 'empty-folder'
   | 'unknown-project';
@@ -45,7 +45,7 @@ export interface IngestManifestOptions {
 
 const IGNORED_DIRECTORIES = new Set([
   '.git',
-  '.vgai',
+  '.volter',
   'build',
   'coverage',
   'dist',
@@ -111,10 +111,10 @@ async function collectSourceFiles(reader: ProjectInspectionReader): Promise<stri
 
 function candidateEntries(files: string[]): string[] {
   const preferredNames = [
-    'src/vgai-entry.tsx',
-    'src/vgai-entry.ts',
-    'src/vgai-host.tsx',
-    'src/vgai-host.ts',
+    'src/volter-entry.tsx',
+    'src/volter-entry.ts',
+    'src/volter-host.tsx',
+    'src/volter-host.ts',
     'src/adapter.tsx',
     'src/adapter.ts',
     'src/main.tsx',
@@ -132,12 +132,12 @@ function candidateEntries(files: string[]): string[] {
   return [...preferred, ...files.filter((name) => !preferred.includes(name))].slice(0, 8);
 }
 
-/** Inspect a folder without mutating it or assuming that it is already VGAI-shaped. */
+/** Inspect a folder without mutating it or assuming that it is already VOLTER-shaped. */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: one ordered evidence-to-recommendation decision table.
 export async function inspectProject(reader: ProjectInspectionReader): Promise<ProjectInspection> {
-  if (await reader.exists('vgai.project.json')) {
+  if (await reader.exists('volter.project.json')) {
     return {
-      workspaceState: 'vgai-project',
+      workspaceState: 'volter-project',
       detectedTechnologies: ['Volter Editor'],
       suggestedSurface: null,
       entryCandidates: [],

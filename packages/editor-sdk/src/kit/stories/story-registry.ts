@@ -121,8 +121,8 @@ export function whenProjectStoriesReady(): Promise<void> {
   });
 }
 
-function vgaiParameters(story: ComposedProjectStory): Record<string, unknown> | null {
-  const value = story.parameters['vgai'];
+function volterParameters(story: ComposedProjectStory): Record<string, unknown> | null {
+  const value = story.parameters['volter'];
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
 }
 
@@ -167,14 +167,14 @@ export function getProjectPreviewStories(): ProjectPreviewStory[] {
 }
 
 /** Whether a CSF module declares this story as its component's default:
- *  `parameters.vgai.default === true` on the story itself, or a
- *  `vgai.defaultStory` naming it (a meta-level parameter, which Storybook
+ *  `parameters.volter.default === true` on the story itself, or a
+ *  `volter.defaultStory` naming it (a meta-level parameter, which Storybook
  *  composes down onto every story in the module). */
 export function isDeclaredDefaultStory(story: ComposedProjectStory): boolean {
-  const vgai = vgaiParameters(story);
-  if (!vgai) return false;
-  if (vgai['default'] === true) return true;
-  return typeof vgai['defaultStory'] === 'string' && vgai['defaultStory'] === story.name;
+  const volter = volterParameters(story);
+  if (!volter) return false;
+  if (volter['default'] === true) return true;
+  return typeof volter['defaultStory'] === 'string' && volter['defaultStory'] === story.name;
 }
 
 /** The directory portion of a project-relative source path, normalized. */

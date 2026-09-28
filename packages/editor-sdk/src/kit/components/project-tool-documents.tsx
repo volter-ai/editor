@@ -73,7 +73,7 @@ export function openProjectToolDocument(
  * the other half of a `presentation()` above: the CATALOG is a workspace
  * document (`{ kind: 'workspace', id: 'project-tools' }`), one named tool is
  * its own kind (`{ kind: 'project-tool', name }`). Registered at module load,
- * the shape `packages/game/src/story-documents/three-story-documents.tsx:239`
+ * the shape `packages/editor-game/src/three/story-documents/three-story-documents.tsx:239`
  * uses; the presenter addresses both without importing this file.
  */
 registerDocumentOpener<{ readonly id: string }>({
@@ -164,7 +164,7 @@ export function ProjectToolDocumentContent({ documentId }: WorkspaceDocumentCont
       <div style={rootStyle} data-testid="project-tools-catalog">
         <h2 style={headingStyle}>Project Tools</h2>
         <p style={{ ...mutedStyle, margin: '0 0 18px', maxWidth: 720, lineHeight: 1.5 }}>
-          Explicitly registered in <code>package.json#vgai.tools</code>. Each tool is an ordinary
+          Explicitly registered in <code>package.json#volter.tools</code>. Each tool is an ordinary
           project function; a registration may pair it with optional editor contributions.
         </p>
         <div style={{ display: 'grid', gap: 8 }}>
@@ -172,7 +172,7 @@ export function ProjectToolDocumentContent({ documentId }: WorkspaceDocumentCont
             <Button
               key={entry.name}
               variant="ghost"
-              className="vgai-project-tool-card"
+              className="volter-project-tool-card"
               onClick={() => openProjectToolDocument(entry.name)}
               data-testid={`project-command-card:${entry.name}`}
             >
@@ -180,7 +180,7 @@ export function ProjectToolDocumentContent({ documentId }: WorkspaceDocumentCont
                 <strong style={{ color: text[1], fontWeight: 600 }}>{entry.summary}</strong>
                 <span style={openLabelStyle}>Open</span>
               </span>
-              <code style={{ color: text[2], fontSize: 'var(--vgai-font-sm)' }}>{entry.name}</code>
+              <code style={{ color: text[2], fontSize: 'var(--volter-font-sm)' }}>{entry.name}</code>
               <span style={cardMetaRowStyle}>
                 <span>
                   {entry.host} · {entry.permission.risk} · {entry.sourcePath}
@@ -268,7 +268,7 @@ function ProjectToolRunner({
               <Button
                 key={presentation.id}
                 variant="ghost"
-                className="vgai-project-tool-card"
+                className="volter-project-tool-card"
                 onClick={() => openToolDocument(presentation.id)}
               >
                 <span style={cardTitleRowStyle}>
@@ -359,10 +359,10 @@ const rootStyle: React.CSSProperties = {
   overflow: 'auto',
   pointerEvents: 'auto',
   color: text[1],
-  fontSize: 'var(--vgai-font-base)',
+  fontSize: 'var(--volter-font-base)',
 };
 const headingStyle: React.CSSProperties = { margin: '0 0 6px', fontSize: 20 };
-const mutedStyle: React.CSSProperties = { color: text[2], fontSize: 'var(--vgai-font-sm)' };
+const mutedStyle: React.CSSProperties = { color: text[2], fontSize: 'var(--volter-font-sm)' };
 const labelStyle: React.CSSProperties = { display: 'block', margin: '14px 0 6px', color: text[1] };
 const cardTitleRowStyle: React.CSSProperties = {
   display: 'flex',
@@ -373,7 +373,7 @@ const cardTitleRowStyle: React.CSSProperties = {
 };
 const openLabelStyle: React.CSSProperties = {
   color: text[2],
-  fontSize: 'var(--vgai-font-sm)',
+  fontSize: 'var(--volter-font-sm)',
   fontWeight: 500,
 };
 const cardMetaRowStyle: React.CSSProperties = {
@@ -384,7 +384,7 @@ const cardMetaRowStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   gap: 12,
   color: text[2],
-  fontSize: 'var(--vgai-font-sm)',
+  fontSize: 'var(--volter-font-sm)',
 };
 const errorStyle: React.CSSProperties = { marginTop: 10, color: danger, whiteSpace: 'pre-wrap' };
 const textareaStyle: React.CSSProperties = {

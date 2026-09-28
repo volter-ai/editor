@@ -1,5 +1,5 @@
 /**
- * The STORY lane of `vgai screenshot` — a `.stories.tsx`/`.stories.ts` file's
+ * The STORY lane of the editor's `screenshot` command — a `.stories.tsx`/`.stories.ts` file's
  * CSF exports rendered in the live session's DOM and captured as one variant
  * sheet (ARCHITECTURE-CORE §Agent surface, the look-verb decision).
  *

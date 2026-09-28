@@ -9,14 +9,14 @@
  *
  * That is enforced MECHANICALLY, not by policy: everything under this
  * directory has exactly ONE sanctioned importer — the editor's adapter loader
- * (`packages/editor/src/project-adapter.ts`) — and
+ * (`packages/editor-sdk/src/kit/project-adapter.ts`) — and
  * `packages/engine/test/finder-import-boundary.test.ts` fails by name when any
  * other engine/editor file imports it. Do not add a second importer; make the
  * loader answer instead.
  *
  * Dependency direction is one-way: finders import their parameter types from
  * `../adapter-module`, and `adapter-module.ts` imports nothing from here. That
- * is what keeps a game's `vgai.adapter.ts` free of finder implementations.
+ * is what keeps a game's `volter.adapter.ts` free of finder implementations.
  */
 
 import {
@@ -75,7 +75,7 @@ export type FinderInput = ScenesFromEntrypointSelectionInput & {
    * an engine finder whose story registrations the EDITOR filled, which is how
    * the editor's adapter loader came to import the story registry and, through
    * it, Storybook. It is a registered finder that reads its own ledger now
-   * (`packages/editor/src/stories/prefabs-finder.ts`): a finder's data arrives
+   * (`packages/editor-sdk/src/kit/stories/prefabs-finder.ts`): a finder's data arrives
    * with the finder.
    */
   readonly components?: readonly ProjectComponentRef[];

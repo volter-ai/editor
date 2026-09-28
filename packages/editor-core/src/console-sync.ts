@@ -27,7 +27,7 @@ import { EDITOR_CLIENT_ID, sendControl } from '@volter/editor-sdk/kit/editor-pre
  * called `installEditorConsoleCapture()` WITHOUT the `installConsoleSync()`
  * line that stood next to it. So 44 React duplicate-key
  * errors filled the page console and the bottom bar's counter while
- * `vgai console` reported a clean session — the one outcome the loudness
+ * the editor's `console` command reported a clean session — the one outcome the loudness
  * convention exists to prevent, arrived at by a single omitted line in a
  * two-line sequence. Two lines a caller must remember to write together are a
  * defect in the door, not in the caller; there is now one door, and it cannot
@@ -107,7 +107,19 @@ export function installConsoleSync(): () => void {
   }
 
   const unsubscribe = editorConsole.subscribe(() => {
-    if (released || timer !== null) return;
+    if (released) return;
+    // A NEW error goes out before anything else runs: the error that explains a hang is followed by
+    // the hang, and a debounced report of it would wait behind the spinning main thread for good.
+    // Repeats of an error already sent keep the debounce, so a per-frame throw is not a per-frame send.
+    const entries = editorConsole.getEntries() as readonly ConsoleEntry[];
+    const last = entries[entries.length - 1];
+    if (last && last.level === 'error' && !reported.has(last.id)) {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+      queueMicrotask(flush);
+      return;
+    }
+    if (timer !== null) return;
     timer = setTimeout(flush, FLUSH_MS);
   });
 

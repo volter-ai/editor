@@ -38,7 +38,7 @@ export function registerSessionTabRoutes(
 
   // ---- The tab bootstrap (tab-bootstrap.ts) ----
   //
-  // What makes a PAGE a TAB, for a page vgai does not author: the Code-OSS
+  // What makes a PAGE a TAB, for a page volter does not author: the Code-OSS
   // frame loads this exact script — index.html's own inline bootstrap, read
   // out of index.html, never copied — and from there it mints an identity,
   // beats, and departs like any other tab. See tab-bootstrap.ts's header.
@@ -105,7 +105,7 @@ export function registerSessionTabRoutes(
 
   // ---- Tab bijection (one browser tab per edited game — tab-lifecycle.ts) ----
   //
-  // POST /__editor/tab/ensure — `vgai edit`/`create`'s idempotent
+  // POST /__editor/tab/ensure — the editor's `edit` command/`create`'s idempotent
   // convergence: focus/retarget the blessed tab, wait for an arriving one,
   // or open exactly one. `{ open: false }` (the caller's --no-open) never
   // opens. When bijection is off for this session, answer honestly from the

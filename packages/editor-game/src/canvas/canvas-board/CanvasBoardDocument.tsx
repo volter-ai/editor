@@ -552,8 +552,8 @@ function CanvasBoardContent({ active }: WorkspaceDocumentContentProps) {
   return (
     <div
       data-testid="canvas-board"
-      data-vgai-backdrop-color={active ? REACT_DESIGN_CANVAS_COLOR : undefined}
-      data-vgai-backdrop-policy={active ? 'dark-frost' : undefined}
+      data-volter-backdrop-color={active ? REACT_DESIGN_CANVAS_COLOR : undefined}
+      data-volter-backdrop-policy={active ? 'dark-frost' : undefined}
       style={{
         position: 'absolute',
         inset: 0,

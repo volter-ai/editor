@@ -491,7 +491,7 @@ def bake(asset, dry_run=False):
     """Build one weapon into an empty scene and export it where the prefabs
     already look for it. Called by `scripts/bake-arena-weapons.mjs`.
 
-    `dry_run` writes to `.vgai/tmp/` instead, which is outside the project's
+    `dry_run` writes to `.volter/tmp/` instead, which is outside the project's
     shipped output root and therefore outside the ledger — the door only
     records what lands under `public/`, so a build being iterated on does not
     leave a trail of superseded records behind it.
@@ -499,7 +499,7 @@ def bake(asset, dry_run=False):
     _reset()
     ASSETS[asset]()
     out = (
-        os.path.join(os.getcwd(), '.vgai', 'tmp', f'{asset}.glb')
+        os.path.join(os.getcwd(), '.volter', 'tmp', f'{asset}.glb')
         if dry_run
         else os.path.join(os.getcwd(), 'public', 'models', 'generated', f'{asset}.glb')
     )
@@ -528,7 +528,7 @@ def document(dry_run=False):
     _reset()
     build_arena_weapon_kit()
     out = (
-        os.path.join(os.getcwd(), '.vgai', 'tmp', f'{DOCUMENT}.blend')
+        os.path.join(os.getcwd(), '.volter', 'tmp', f'{DOCUMENT}.blend')
         if dry_run
         else os.path.join(os.getcwd(), 'src', 'models', f'{DOCUMENT}.blend')
     )

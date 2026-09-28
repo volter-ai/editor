@@ -4,7 +4,7 @@
  *
  * WHY THIS MODULE EXISTS: PD-3, a SILENT CROSS-ROOT MODULE SPLIT
  * -------------------------------------------------------------
- * A vgai project declares several adapter roots, and two of them routinely
+ * A Volter project declares several adapter roots, and two of them routinely
  * import the SAME project module (the worked reference is a three root
  * writing `arena-state.ts`'s module-level `let snapshot` each frame while a
  * `dom` root's HUD reads it). Browser ES-module identity is per-URL, so the
@@ -13,7 +13,7 @@
  * dev server — see the PR body's probe):
  *
  *  1. The three root's entry was imported with a monotonic cache-buster
- *     (`?vgai-play=<n>`) so a remount re-runs edited code. Every mount is
+ *     (`?volter-play=<n>`) so a remount re-runs edited code. Every mount is
  *     therefore a url the browser has never fetched → a fresh transform.
  *  2. The `dom` root's entry was imported at a BARE url with no buster at
  *     all. A remount re-issues the identical string, so `import()` resolves
@@ -97,41 +97,41 @@ export function viteUpdateImportPath(
 }
 
 /** The query key every project ENTRY url carries. One name for every root's
- *  entry (it replaced the per-caller `?vgai-play=` / `?vgai-reload=` names,
+ *  entry (it replaced the per-caller `?volter-play=` / `?volter-reload=` names,
  *  whose divergence was never meaningful and whose ABSENCE on the react route
  *  was PD-3 itself). */
-export const PROJECT_MOUNT_QUERY = 'vgai-mount';
+export const PROJECT_MOUNT_QUERY = 'volter-mount';
 
 /**
  * The INGEST remount buster — deliberately NOT {@link PROJECT_MOUNT_QUERY}.
  *
- * `vgai-mount` is the whole mount-instance machinery: the server rewrites the
+ * `volter-mount` is the whole mount-instance machinery: the server rewrites the
  * module's relative specifiers to carry the same stamp (a per-mount subgraph)
  * and the gated-globals prelude keys the GAME REALM by its value. An ingest
  * remount wants exactly one of those effects — a fresh evaluation of the
  * entry, so its top-level boot re-runs — and none of the others: the ingest
- * lane's readers (the contract shim's `window.vgaiGame`, the live plane, the
+ * lane's readers (the contract shim's `window.volterGame`, the live plane, the
  * evidence surface) all read the DEFAULT realm. Busting the ingest entry with
- * `vgai-mount` moved the shim's assignment into a per-epoch realm nobody
- * reads: the game played while `vgai status` said "idle — commands/providers
+ * `volter-mount` moved the shim's assignment into a per-epoch realm nobody
+ * reads: the game played while the editor's `status` command said "idle — commands/providers
  * enumerate while playing" and the doctor read "declares no game-state
  * providers" — measured on racing-game, 2026-08-22. A key the server does not
  * interpret busts the URL and changes nothing else.
  */
-export const INGEST_REMOUNT_QUERY = 'vgai-ingest-remount';
+export const INGEST_REMOUNT_QUERY = 'volter-ingest-remount';
 
 /**
  * Optional play remount: serve this entry with its swap-slot const rewritten
  * to `key`. Only the targeted region's entry carries these — siblings keep
- * the shared `?vgai-mount=` so PD-3 still holds. Kept in sync with the
+ * the shared `?volter-mount=` so PD-3 still holds. Kept in sync with the
  * server plugin's literals by `project-module-instance.test.ts`.
  */
-export const PROJECT_SELECTION_QUERY = 'vgai-selection';
-export const PROJECT_SCENE_QUERY = 'vgai-scene';
+export const PROJECT_SELECTION_QUERY = 'volter-selection';
+export const PROJECT_SCENE_QUERY = 'volter-scene';
 
 /** Isolation imports a screen CLASS. The matching server key is
  *  `ISOLATE_QUERY_KEY` — tripwired in `project-module-instance.test.ts`. */
-export const PROJECT_ISOLATE_QUERY = 'vgai-isolate';
+export const PROJECT_ISOLATE_QUERY = 'volter-isolate';
 
 /** Host-owned mount parameter: remount the entrypoint at a declared table key. */
 export interface EntrypointSelectionOverride {
@@ -195,7 +195,7 @@ export function isolationImportUrl(projectRoot: string, relativePath: string): s
  * (`components/asset-viewers/LiveModuleDocument.tsx`).
  *
  * Deliberately NOT {@link PROJECT_MOUNT_QUERY}, for the reason
- * {@link INGEST_REMOUNT_QUERY} states: `vgai-mount` is the whole
+ * {@link INGEST_REMOUNT_QUERY} states: `volter-mount` is the whole
  * mount-instance machinery (per-mount specifier rewriting, gated-globals
  * realm keying). A model module is EDITOR-side content — it builds an
  * `Object3D` for a document, it does not mount a game — so it wants exactly
@@ -215,7 +215,7 @@ export function liveModuleImportUrl(
   relativePath: string,
   revision: number,
 ): string {
-  return `${fsImportPath(projectRoot, relativePath)}?vgai-live-module=${revision}`;
+  return `${fsImportPath(projectRoot, relativePath)}?volter-live-module=${revision}`;
 }
 
 let liveModuleRevision = Date.now();

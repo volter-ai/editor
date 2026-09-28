@@ -100,7 +100,7 @@ function keyringApi(module: unknown): KeyringEntryFactory | null {
  * turns a missing credential manager into a plaintext file.
  */
 export function createNativeCredentialStore(
-  service = 'ai.vgai.editor',
+  service = 'ai.volter.editor',
   loadKeyring: KeyringLoader = () => import('@napi-rs/keyring'),
 ): NativeCredentialStore {
   const memory = new Map<string, string>();

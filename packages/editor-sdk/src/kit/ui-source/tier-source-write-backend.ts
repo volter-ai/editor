@@ -11,7 +11,7 @@
  * install runs (`server/packaged.ts`), which
  * registers `uiOidPlugin()` and genuinely serves `/__ui-source/*` — while the
  * editor shell it serves is a PRODUCTION build, so `import.meta.env.DEV` is
- * `false` there. Net effect on every `npm i @vgai/editor` install: gizmo and
+ * `false` there. Net effect on every `npm i @volter/editor-core` install: gizmo and
  * inspector edits mounted, applied to the running object, and were silently
  * discarded, because the recorder was reachable and nobody asked it.
  *
@@ -90,7 +90,7 @@ let settledSourceWriteRoutes: SourceWriteRoutes | null = null;
  * memo exists because the runtime a server process runs under cannot change
  * without a restart — but a probe that failed to reach the server learned
  * nothing about that runtime, and latching its fallback would turn one
- * unlucky fetch (a design mount landing in the window while `vgai edit`
+ * unlucky fetch (a design mount landing in the window while the editor's `edit` command
  * restarts its dev server — a routine event, it restarts on any server-file
  * change) into a page whose authoring is live-only until someone reloads.
  * `packaged-runtime.ts` drops a failed probe for the same reason — its own
@@ -169,13 +169,13 @@ export function primeSourceWriteRuntime(): void {
  * real remedy because the caller kicked the prime on the way out.
  *
  * The console IS the loud leg: capture feeds editorConsole and console-sync
- * forwards it to `vgai console`, without this module importing the editor-api
+ * forwards it to the editor's `console` command, without this module importing the editor-api
  * graph a headless design mount must not pull in.
  */
 function warnUnprimed(surface: string): void {
   // biome-ignore lint/suspicious/noConsole: see this function's doc comment
   console.warn(
-    `[vgai-editor] ${surface} mounted before this session's source-write route was ` +
+    `[volter-editor] ${surface} mounted before this session's source-write route was ` +
       'confirmed, so its edits are live-only. Remount the surface (reopen the project) ' +
       'to author against the game’s own source.',
   );
@@ -190,7 +190,7 @@ function primedRoutes(surface: string): SourceWriteRoutes | null {
   if (settledSourceWriteRoutes === null) {
     // ASK AGAIN, so the remedy this warning names is a real one. The boot prime
     // is ONE probe, and a probe that never reached the server (a mount landing
-    // while `vgai edit` restarts its dev server) settles nothing — after which
+    // while the editor's `edit` command restarts its dev server) settles nothing — after which
     // only `ingest-root-adapter.ts`'s `readServedOidIndex` re-asks, and it is on
     // the three lane alone. Without this kick the canvas-ingest and ingest-DOM
     // surfaces warn for the LIFE OF THE PAGE and "remount the surface" changes
@@ -224,7 +224,7 @@ function primedRoutes(surface: string): SourceWriteRoutes | null {
  *    `undefined`. This can only happen when a surface mounts inside the boot
  *    probe's own round trip (or while a restarting dev server is unreachable),
  *    and the cost is one mount's edits being live-only, so it is said out loud
- *    on the channel `console-sync.ts` forwards to `vgai console` — the same
+ *    on the channel `console-sync.ts` forwards to the editor's `console` command — the same
  *    place every other unresolved editor condition lands — naming the surface
  *    and the remedy. It also RE-ASKS on the way out, which is what makes that
  *    remedy true rather than advice: a boot probe that never reached the server

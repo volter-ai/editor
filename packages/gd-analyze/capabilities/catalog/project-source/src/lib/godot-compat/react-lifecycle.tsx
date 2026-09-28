@@ -307,7 +307,7 @@ function isUserData(property: string): boolean {
  * @source scene/resources/packed_scene.cpp:400
  */
 export function useGodotElement<Entity extends Object3D>(element: GodotElementClass<Entity>, props: GodotElementProps<Entity>): ReactElement {
-  const { name, ref, children, __vgaiOid: callsite, __vgaiLabel: _label, ...properties } = props;
+  const { name, ref, children, __volterOid: callsite, __volterLabel: _label, ...properties } = props;
   const [entity] = useState(() => {
     const made = element.create();
     if (name !== undefined) made.name = name;

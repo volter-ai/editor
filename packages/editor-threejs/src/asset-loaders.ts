@@ -128,7 +128,7 @@ export async function loadSplat(url: string, providedBytes?: Uint8Array): Promis
       const size = bounds.getSize(new THREE.Vector3()).multiplyScalar(1.5);
       const center = bounds.getCenter(new THREE.Vector3());
       const proxy = new THREE.Mesh(new THREE.BoxGeometry(size.x, size.y, size.z));
-      proxy.name = '__vgai_splat_bounds';
+      proxy.name = '__volter_splat_bounds';
       proxy.position.copy(center);
       proxy.visible = false;
       proxy.raycast = () => {};

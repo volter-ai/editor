@@ -40,10 +40,10 @@ export function stampAnimation(code: string, file: string, relativeFile: string)
   if (!code.includes('AnimationMixer') && !code.includes('useAnimations')) return null;
   const kind = file.endsWith('.tsx') ? ts.ScriptKind.TSX : file.endsWith('.jsx') ? ts.ScriptKind.JSX : ts.ScriptKind.TS;
   const source = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true, kind);
-  const sites: { start: number; end: number; wrapper: '__vgaiMixer' | '__vgaiAnimations' }[] = [];
+  const sites: { start: number; end: number; wrapper: '__volterMixer' | '__volterAnimations' }[] = [];
   const visit = (node: ts.Node): void => {
-    if (isMixerConstruction(node)) sites.push({ start: node.getStart(source), end: node.getEnd(), wrapper: '__vgaiMixer' });
-    else if (isUseAnimations(node)) sites.push({ start: node.getStart(source), end: node.getEnd(), wrapper: '__vgaiAnimations' });
+    if (isMixerConstruction(node)) sites.push({ start: node.getStart(source), end: node.getEnd(), wrapper: '__volterMixer' });
+    else if (isUseAnimations(node)) sites.push({ start: node.getStart(source), end: node.getEnd(), wrapper: '__volterAnimations' });
     ts.forEachChild(node, visit);
   };
   visit(source);
@@ -54,7 +54,7 @@ export function stampAnimation(code: string, file: string, relativeFile: string)
     const key = `${relativeFile}:${line + 1}:${character + 1}`;
     out = `${out.slice(0, site.start)}${site.wrapper}(${out.slice(site.start, site.end)}, ${JSON.stringify(key)})${out.slice(site.end)}`;
   }
-  return `import { __vgaiMixer, __vgaiAnimations } from ${JSON.stringify(ANIMATION_LIVE_MODULE_ID)};\n${out}`;
+  return `import { __volterMixer, __volterAnimations } from ${JSON.stringify(ANIMATION_LIVE_MODULE_ID)};\n${out}`;
 }
 
 export function animationStampPlugin(services: AnimationServingServices): Plugin {
@@ -65,7 +65,7 @@ export function animationStampPlugin(services: AnimationServingServices): Plugin
     return roots.some((root) => file.startsWith(root + sep) || file.startsWith(root + '/'));
   };
   return {
-    name: 'vgai-three-animation',
+    name: 'volter-three-animation',
     enforce: 'pre',
     resolveId(id) {
       return id === ANIMATION_LIVE_MODULE_ID ? VIRTUAL_ID : null;

@@ -2,20 +2,20 @@ MIT License
 
 Copyright (c) 2026 Volter AI, Inc.
 
-THIS SUBTREE IS NOT AGPL. It sits inside `packages/editor`, which is
+THIS SUBTREE IS NOT AGPL. It sits inside `packages/game-editor`, which is
 AGPL-3.0-only, and it is deliberately excluded from that grant and licensed MIT
 instead — because every file here is COPIED, byte for byte, into projects that
-are not ours. `vgai add <id>` copies a capability's declared files into a user's
-game; `npm run capabilities:sync` copies the same bytes into the MIT starter
-template (`packages/editor/template/`). The copy becomes the project's, editing
+are not ours. `volter-game-editor add <id>` copies a capability's declared files into a user's
+game, and the MIT starter template (`packages/game-editor/template/`) carries
+the same bytes for the capabilities it starts with. The copy becomes the project's, editing
 it is the entire point (the shadcn model), and the person who edits it must be
 able to relicense their game under any terms they choose. Source that lands in
 someone's game under the editor's copyleft would be a trap, so it is MIT at the
 source: the licence of the file does not change on the way in.
 
-The AGPL continues to govern the rest of `packages/editor` — the editor
+The AGPL continues to govern the rest of `packages/game-editor` — the editor
 application that does the copying. See LICENSE.md at the repository root for
-the per-package map, and `packages/editor/template/LICENSE` for the template's
+the per-package map, and `packages/game-editor/template/LICENSE` for the template's
 own copy of this grant.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

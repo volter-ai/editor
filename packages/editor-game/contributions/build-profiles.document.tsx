@@ -3,7 +3,7 @@
  * as a center document: the build-role targets, the manifest fields a build
  * reads, and the Build trigger. A document rather than a dialog because the
  * configuration is a persistent authored surface (it writes
- * `vgai.project.json` through the history service) someone tunes and re-runs,
+ * `volter.project.json` through the history service) someone tunes and re-runs,
  * and because a modal would block the viewport while a build streams.
  *
  * It ships with `@volter/editor-game`, so a folder of models has no Build Profiles tab

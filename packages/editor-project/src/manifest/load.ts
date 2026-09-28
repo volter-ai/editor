@@ -51,7 +51,7 @@ export type ResolvedAdapter =
       readonly identity: 'ingest-three' | 'ingest-pixi' | 'ingest-react';
       readonly surface: 'three' | 'canvas' | 'dom';
       /**
-       * Project-relative ES module declaring `window.vgaiGame` beside a
+       * Project-relative ES module declaring `window.volterGame` beside a
        * pristine copy. OPTIONAL rather than required-and-possibly-undefined
        * (the shape its siblings above use) because most ingested games have
        * nothing to say about it, and requiring the key would only make every
@@ -122,17 +122,17 @@ export interface ResolvedGameManifest {
           | undefined;
       }
     | undefined;
-  /** D18 — read by the debug-bridge installer to gate `?vgai-debug=1` in production builds. */
+  /** D18 — read by the debug-bridge installer to gate `?volter-debug=1` in production builds. */
   readonly debug: { readonly allowInProduction: boolean } | undefined;
   /** D15 — read by `mount-manifest.ts`'s boot-time seeding reader (gates
-   *  whether `ctx.random` is seeded from `defaultSeed`/`?vgai-seed=`), the
+   *  whether `ctx.random` is seeded from `defaultSeed`/`?volter-seed=`), the
    *  gameplay-rng-ban burn-down scan, and the dev-mode Math.random phase
    *  trap.. */
   readonly determinism:
     | { readonly seededRandom: boolean; readonly defaultSeed?: number | undefined }
     | undefined;
-  /** W3d (F11 perf gates) — read by `vgai perf --assert-budget`
-   *  (packages/vgai-cli/src/perf.ts, assertBudget): each set metric is
+  /** W3d (F11 perf gates) — read by `volter perf --assert-budget`
+   *  (packages/volter-cli/src/perf.ts, assertBudget): each set metric is
    *  compared against the seeded headless perf run's measured value and any
    *  exceedance fails the gate with a per-metric table + nonzero exit. */
   readonly budget:
@@ -146,7 +146,7 @@ export interface ResolvedGameManifest {
     | undefined;
   /** Learner-facing metadata on shipped example projects; read by the editor
    *  server's registry surface (`GET /__editor/examples`,
-   *  packages/editor/server/editor-server.ts) to generate the
+   *  packages/editor-core/server/editor-server.ts) to generate the
    *  gallery/wizard/Learn-catalog registries. */
   readonly learn: LearnMetadata | undefined;
 }
@@ -257,7 +257,7 @@ function checkEngineVersionPin(version: string): void {
  * carried through as-is (their consumers are the runtime/CLI, T3.2/T3.3);
  * `description` (T3.3
  * slice 3) is carried through as-is — its consumer today is
- * `resolveIngestDescriptor` (packages/editor/src/ingest/resolve-three.ts), which
+ * `resolveIngestDescriptor` (packages/editor-game/src/ingest/resolve-three.ts), which
  * threads an ingest-three root's description into `IngestGame.description`.
  */
 function resolveRoot(root: AdapterRoot): ResolvedAdapterRoot {

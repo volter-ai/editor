@@ -2,7 +2,7 @@
  * W2c (F13) — Game-tab device preset dropdown. Chrome-device-mode-style:
  * picking a preset constrains the game mount to that device's CSS resolution
  * + DPR (letterboxed/scaled by `GamePanel`), phone/tablet presets add the
- * safe-area overlay + `--vgai-safe-area-inset-*` CSS vars and auto-enable
+ * safe-area overlay + `--volter-safe-area-inset-*` CSS vars and auto-enable
  * pointer-as-touch. State lives in `../device-preview.ts`; this component is
  * pure UI over it.
  */
@@ -30,18 +30,18 @@ export function DevicePresetPicker({
   const isFit = active.kind === 'fit';
 
   return (
-    <div className="vgai-playbar-popover-anchor">
+    <div className="volter-playbar-popover-anchor">
       <Button
         ref={ref}
         variant="ghost"
         size="comfortable"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? 'vgai-device-preset-menu' : undefined}
+        aria-controls={open ? 'volter-device-preset-menu' : undefined}
         data-testid="device-preset-picker"
         onClick={() => setOpen((value) => !value)}
         title={
-          'Device preview — constrain the game to a device resolution + DPR. Phone/tablet presets show the safe area, set --vgai-safe-area-inset-top/right/bottom/left CSS vars on the game mount, and send mouse input as touch.'
+          'Device preview — constrain the game to a device resolution + DPR. Phone/tablet presets show the safe area, set --volter-safe-area-inset-top/right/bottom/left CSS vars on the game mount, and send mouse input as touch.'
         }
       >
         <EditorIcon icon={faMobileScreenButton} size="md" />
@@ -49,9 +49,9 @@ export function DevicePresetPicker({
       </Button>
       {open && (
         <AnchoredMenu
-          id="vgai-device-preset-menu"
+          id="volter-device-preset-menu"
           anchorRef={ref}
-          className="vgai-resolution-menu"
+          className="volter-resolution-menu"
           gap={4}
           onDismiss={() => setOpen(false)}
         >

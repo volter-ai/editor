@@ -1,7 +1,7 @@
 /**
  * The `piecesFromModules` FINDER: every project module under the selection's `include` globs
  * that renders `@volter/dawproject` elements is a `piece` document, opened in the Piece document
- * (`piece.document.tsx`). Select it in `vgai.adapter.ts`:
+ * (`piece.document.tsx`). Select it in `volter.adapter.ts`:
  *
  *   documents: { find: [{ finder: 'piecesFromModules', include: ['src/music/**\/*.tsx'] }] }
  *

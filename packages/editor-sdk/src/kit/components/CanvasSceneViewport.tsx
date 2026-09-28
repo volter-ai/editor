@@ -66,7 +66,7 @@ import {
   frameForId,
   rectFrame,
   rectForId,
-  snapPointToFrame,
+  snapPivotPoint,
   spatialHandlesForId,
 } from '@volter/editor-sdk/kit/components/world-overlay-gestures';
 import { pickCandidates } from '@volter/editor-sdk/kit/authoring/layered-pick';
@@ -720,8 +720,8 @@ export function CanvasSceneControls({
       ) : null}
       <FloatingToolbar
         label="2D scene display"
-        className="vgai-viewport-toolbar vgai-viewport-toolbar-right"
-        data-vgai-canvas-navigation-ignore="true"
+        className="volter-viewport-toolbar volter-viewport-toolbar-right"
+        data-volter-canvas-navigation-ignore="true"
       >
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
@@ -729,8 +729,8 @@ export function CanvasSceneControls({
       </FloatingToolbar>
       <FloatingToolbar
         label="2D scene navigation"
-        className="vgai-canvas-scene-navigation"
-        data-vgai-canvas-navigation-ignore="true"
+        className="volter-canvas-scene-navigation"
+        data-volter-canvas-navigation-ignore="true"
       >
         <IconButton
           aria-label="Center view"
@@ -899,13 +899,13 @@ function CanvasSceneViewMenu({
           <MenuSubmenu label="Grid" data-testid="canvas-scene-grid-submenu">
             {gridStates.map((entry) => (
               <MenuItem key={entry.label} role="menuitemradio" aria-checked={entry.on} onSelect={act(entry.pick)}>
-                <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
+                <span className="volter-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
                 {entry.label}
               </MenuItem>
             ))}
             <MenuSeparator />
             <MenuItem data-testid="canvas-scene-toggle-grid" onSelect={act(toggleGrid)}>
-              <span className="vgai-menu-check" />
+              <span className="volter-menu-check" />
               Toggle Grid
             </MenuItem>
           </MenuSubmenu>
@@ -917,7 +917,7 @@ function CanvasSceneViewMenu({
               // Godot's menu closes on a checked item too (`hide_on_checkable_item_selection`).
               onSelect={act(entry.toggle)}
             >
-              <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
+              <span className="volter-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
               {entry.label.startsWith('Show ') ? entry.label : `Show ${entry.label}`}
             </MenuItem>
           ))}
@@ -937,22 +937,22 @@ function CanvasSceneViewMenu({
                 aria-checked={drafting[key]}
                 onSelect={act(() => setViewDrafting(documentId, { [key]: !drafting[key] }))}
               >
-                <span className="vgai-menu-check">{drafting[key] && <EditorIcon icon={faCheck} size="xs" />}</span>
+                <span className="volter-menu-check">{drafting[key] && <EditorIcon icon={faCheck} size="xs" />}</span>
                 {label}
               </MenuItem>
             ))}
           </MenuSubmenu>
           <MenuSeparator />
           <MenuItem disabled={!hasSelection} onSelect={act(onCenterSelection)}>
-            <span className="vgai-menu-check" />
+            <span className="volter-menu-check" />
             Center Selection
           </MenuItem>
           <MenuItem disabled={!hasSelection} onSelect={act(onFrameSelection)}>
-            <span className="vgai-menu-check" />
+            <span className="volter-menu-check" />
             Frame Selection
           </MenuItem>
           <MenuItem disabled={canvasSceneGuides(view).length === 0} onSelect={act(() => clearCanvasSceneGuides(view))}>
-            <span className="vgai-menu-check" />
+            <span className="volter-menu-check" />
             Clear Guides
           </MenuItem>
         </AnchoredMenu>
@@ -1051,13 +1051,16 @@ function CanvasSceneModeLayer({
     return grid.pixel ? { x: Math.round(snapped.x), y: Math.round(snapped.y) } : snapped;
   };
   /** Where the pivot goes for a point: snapped to its node's sides and centre as a dragged pivot is. */
-  const pivotPoint = (id: string, point: { x: number; y: number }, free: boolean) => {
-    const choice = store.smartSnap;
-    if (!adapter || free || !choice.enabled || (!choice.sides && !choice.center)) return point;
+  const pivotPoint = (id: string, point: { x: number; y: number }, invert: boolean) => {
+    if (!adapter) return point;
     const rect = rectForId(adapter, id);
-    const frame = frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null);
-    if (!frame) return point;
-    return snapPointToFrame(point, frame, choice.sides, choice.center, EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01));
+    return snapPivotPoint(point, frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null), {
+      invert,
+      smart: store.smartSnap,
+      gridOn: store.snapEnabled,
+      grid: store.snap2D,
+      threshold: EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01),
+    });
   };
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
@@ -1086,8 +1089,8 @@ function CanvasSceneModeLayer({
         : undefined;
       if (!id || !provider || !handle) return;
       event.currentTarget.setPointerCapture(event.pointerId);
-      const at = (next: { clientX: number; clientY: number; altKey: boolean }) => {
-        const point = pivotPoint(id, worldAt(next.clientX, next.clientY), next.altKey);
+      const at = (next: { clientX: number; clientY: number; metaKey: boolean; ctrlKey: boolean }) => {
+        const point = pivotPoint(id, worldAt(next.clientX, next.clientY), next.metaKey || next.ctrlKey);
         return [point.x, point.y, 0] as const;
       };
       provider.preview(id, handle.id, at(event));
@@ -1130,7 +1133,7 @@ function CanvasSceneModeLayer({
   return (
     <div
       data-testid={`canvas-scene-${mode}-layer`}
-      data-vgai-canvas-navigation-ignore="true"
+      data-volter-canvas-navigation-ignore="true"
       onPointerDown={onPointerDown}
       // Above the selection hit layer (z50), below the viewport toolbars.
       style={{ position: 'absolute', inset: 0, zIndex: 60, cursor: mode === 'pan' ? 'grab' : mode === 'list' ? 'context-menu' : 'crosshair' }}

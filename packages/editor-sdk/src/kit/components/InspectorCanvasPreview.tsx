@@ -30,6 +30,6 @@ export function InspectorCanvasPreview({
   }, [capture, previewKey, size]);
 
   return url ? (
-    <img src={url} alt="Selected object preview" className="vgai-component-thumbnail" />
+    <img src={url} alt="Selected object preview" className="volter-component-thumbnail" />
   ) : null;
 }

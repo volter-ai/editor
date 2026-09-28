@@ -2,14 +2,9 @@
  * `npm run server` entry point — boots the Colyseus multiplayer server
  * (rooms.ts's registry, on ws://localhost:2567).
  *
- * The project runs it as its `server` configuration (`vgai.project.json`), and Play starts it
+ * The project runs it as its `server` configuration (`volter.project.json`), and Play starts it
  * through `play + server`, before the game's client half (`src/net/`) joins `game_room`. Both
  * arrive with the `server` addition; a project without it keeps these rooms and has neither.
- *
- * This is the standalone counterpart to the two existing harnesses that already start
- * `startColyseus` (colyseus-setup.ts): the e2e showcase's
- * `startColyseusServer` (packages/editor/e2e/helpers/colyseus.ts) and the
- * unit-test in-process loopback (packages/editor/test/helpers/colyseus-loopback.ts).
  *
  * Run via `npm run server`, which invokes tsx against `server/tsconfig.json`
  * (not the app `tsconfig.json` at the project root) — `@colyseus/schema`'s
@@ -29,9 +24,9 @@
 import { startColyseus } from './colyseus-setup.js';
 import { rooms } from './rooms.js';
 
-// The editor's `server` configuration sets VGAI_ROOM_MONITOR so its Network inspector can read
+// The editor's `server` configuration sets VOLTER_ROOM_MONITOR so its Network inspector can read
 // the server's side through Colyseus Monitor; a production start leaves it unset.
-const handle = await startColyseus({ rooms, monitor: process.env['VGAI_ROOM_MONITOR'] === '1' }).catch((err: NodeJS.ErrnoException) => {
+const handle = await startColyseus({ rooms, monitor: process.env['VOLTER_ROOM_MONITOR'] === '1' }).catch((err: NodeJS.ErrnoException) => {
   // The refusal below already says everything a reader needs; a raw stack
   // around it would be noise.
   if (err?.code !== 'EADDRINUSE') throw err;
@@ -43,7 +38,7 @@ const handle = await startColyseus({ rooms, monitor: process.env['VGAI_ROOM_MONI
   console.error(
     'Colyseus: the server port is already in use — this server did not start.\n' +
       '  Another `npm run server` in a second terminal is the likely holder. Stop\n' +
-      '  whatever holds the port and re-run (`vgai sessions` lists live editors).',
+      '  whatever holds the port and re-run (`volter-game-editor sessions` lists live editors).',
   );
   process.exit(1);
 });

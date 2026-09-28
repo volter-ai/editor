@@ -113,7 +113,7 @@ export function AssetSlotPicker({
       {note && (
         <span
           data-testid={`${testId}-note`}
-          style={{ fontSize: 'var(--vgai-font-sm)', color: themeVars.content.muted }}
+          style={{ fontSize: 'var(--volter-font-sm)', color: themeVars.content.muted }}
         >
           {note}
         </span>

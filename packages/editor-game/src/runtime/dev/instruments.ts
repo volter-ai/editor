@@ -21,7 +21,7 @@
  * game's own camera writes never fight it because the game keeps rendering
  * through its own canvas untouched. Per the non-redundancy rule that governs
  * this list, a control the editor's own chrome furnishes gets no instrument;
- * agents reach that camera through the editor half of `vgai eval`, not the
+ * agents reach that camera through the editor half of `volter-game-editor eval`, not the
  * game registry.
  *
  * ── THE DOOR ────────────────────────────────────────────────────────────────

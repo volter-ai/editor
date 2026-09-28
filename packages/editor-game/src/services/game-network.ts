@@ -445,9 +445,9 @@ function observeMatchmaking(input: RequestInfo | URL, response: Response): void 
 
 /** Install once at editor boot (`network-observer.service.ts`). Idempotent. */
 export function installGameNetwork(): void {
-  const host = window as unknown as { __vgaiNetworkObserver?: boolean } & typeof window;
-  if (host.__vgaiNetworkObserver) return;
-  host.__vgaiNetworkObserver = true;
+  const host = window as unknown as { __volterNetworkObserver?: boolean } & typeof window;
+  if (host.__volterNetworkObserver) return;
+  host.__volterNetworkObserver = true;
   const Orig = window.WebSocket;
   if (typeof Orig === 'function') {
     const Observed = class extends Orig {
@@ -574,7 +574,7 @@ async function roomCall(method: string, args: unknown[], what: string, roomId?: 
   const query = new URLSearchParams({ roomId: roomId ?? mirror.roomId, method, args: JSON.stringify(args) });
   const response = await fetch(`${monitorApi(mirror)}/room/call?${query}`);
   if (response.status === 404) {
-    throw new Error(`The room server serves no Monitor view, so ${what} has nowhere to go (its \`server\` configuration sets VGAI_ROOM_MONITOR=1).`);
+    throw new Error(`The room server serves no Monitor view, so ${what} has nowhere to go (its \`server\` configuration sets VOLTER_ROOM_MONITOR=1).`);
   }
   if (!response.ok) throw new Error(`The room server refused ${what} (${response.status}).`);
 }

@@ -12,13 +12,13 @@ import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence'
 import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { activateLiveDocument } from '@volter/editor-sdk/kit/live-document';
-import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 import { activeIngest, type IngestLifecycleControl } from './active-ingest';
 import { readIngestGameContract } from './game-contract-realm';
 
 /**
  * The play-state control surface for the CURRENT ingest session (F17/F21):
- * mounts are COLD by doctrine — the adapter sets `window.__vgaiMountCold`
+ * mounts are COLD by doctrine — the adapter sets `window.__volterMountCold`
  * before the game's entry executes, and a session-driven game may defer its
  * side-effects (backend connection, narrative, audio) until the first
  * `play()`. Everything is contract-first (game-contract.ts): `lifecycle.start`
@@ -72,9 +72,9 @@ export function setIngestPlaying(playing: boolean): void {
  */
 export function resetIngestPlaySurface(): void {
   setIngestPlaying(false);
-  const w = window as unknown as { __vgaiMountCold?: boolean; __vgaiIngestPlayed?: boolean };
-  delete w.__vgaiMountCold;
-  delete w.__vgaiIngestPlayed;
+  const w = window as unknown as { __volterMountCold?: boolean; __volterIngestPlayed?: boolean };
+  delete w.__volterMountCold;
+  delete w.__volterIngestPlayed;
 }
 
 /**
@@ -90,7 +90,7 @@ export interface IngestLifecycleFallback {
 }
 
 function runContractLifecycleEffect(
-  contract: VgaiGameContract,
+  contract: VolterGameContract,
   member: 'start' | 'pause' | 'resume',
   run: () => void,
 ): void {
@@ -132,7 +132,7 @@ export function bindIngestLifecycle(
       runContractLifecycleEffect(contract, 'start', () => declared.start?.());
       return;
     }
-    window.dispatchEvent(new CustomEvent('vgai:ingest-play'));
+    window.dispatchEvent(new CustomEvent('volter:ingest-play'));
   };
 
   const hasPause = typeof declared?.pause === 'function';
@@ -209,7 +209,7 @@ function fanOutSiblingPause(paused: boolean): void {
  * either from its own entry, or from the host-added module the manifest names
  * in `ingest.contractShim`, which the mount imports first.
  */
-export function activeIngestContract(): VgaiGameContract | null {
+export function activeIngestContract(): VolterGameContract | null {
   return readIngestGameContract();
 }
 
@@ -247,9 +247,9 @@ export function getIngestPlayControl(): IngestPlayControl | null {
       // Late-constructed game clients must not re-defer: the flag records
       // that play already happened this session — and makes ▶-after-⏸ a
       // RESUME, so `lifecycle.start` fires at most once per mount.
-      const w = window as unknown as { __vgaiIngestPlayed?: boolean };
-      if (w.__vgaiIngestPlayed) return release();
-      w.__vgaiIngestPlayed = true;
+      const w = window as unknown as { __volterIngestPlayed?: boolean };
+      if (w.__volterIngestPlayed) return release();
+      w.__volterIngestPlayed = true;
       lifecycle.start();
       // A mount ends HELD (see `ingestContentTimeForMode`), so the first ▶ is
       // ALSO the release of that hold — same path every later ▶ takes.

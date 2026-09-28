@@ -6,7 +6,7 @@ import {
 } from './bound-shader';
 import { GODOT_4_SOURCE_AUTHORITIES } from './source-authority';
 
-export const GODOT_BOUND_PROGRAM_PROTOCOL = 'vgai.godot-bound-program' as const;
+export const GODOT_BOUND_PROGRAM_PROTOCOL = 'volter.godot-bound-program' as const;
 export const GODOT_BOUND_PROGRAM_VERSION = 12 as const;
 
 export interface GodotBoundProgramIdentity {

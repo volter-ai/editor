@@ -12,7 +12,7 @@
  * which fires at once when one is already registered) rather than for a React
  * mount.
  *
- * It reports its failure to the editor console — `vgai console` is what reads
+ * It reports its failure to the editor console — `volter-game-editor console` is what reads
  * it — rather than leaving a stopped surface with no reason on it.
  */
 import { onShellStore } from '@volter/editor-sdk/kit/shell-store-door';

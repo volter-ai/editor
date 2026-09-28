@@ -157,7 +157,7 @@ export function openKindDocument(
  * `presentation()` above. An entry's id is the whole address; which editor
  * opens it, and what that document's id turns out to be, are this module's
  * rules and the presenter no longer holds either. Registered at module load,
- * the shape `packages/game/src/story-documents/three-story-documents.tsx:239`
+ * the shape `packages/editor-game/src/three/story-documents/three-story-documents.tsx:239`
  * uses.
  *
  * SETTLING is the two waits an explicit address needs, and they are separate

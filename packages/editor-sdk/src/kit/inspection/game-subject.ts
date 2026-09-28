@@ -32,7 +32,7 @@ export const GAME_SUBJECT_ID = 'game';
 
 /** The live facts the subject shows. Read at describe time, never captured. */
 export interface GameSubjectFacts {
-  /** The project's display name (`vgai.project.json`'s `name`). */
+  /** The project's display name (`volter.project.json`'s `name`). */
   readonly projectName: string | null;
   /**
    * The inspected seat's name, and ONLY when more than one seat is live —

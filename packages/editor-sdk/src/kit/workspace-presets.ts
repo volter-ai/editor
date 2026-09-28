@@ -103,7 +103,7 @@ export interface EditorWorkspaceDescriptor {
 
 /**
  * The workspaces EVERY project gets — the host's own. Every other workspace is
- * a package's `workspace.layout` contribution (Game ships with `@vgai/game`;
+ * a package's `workspace.layout` contribution (Game ships with `@volter/editor-game`;
  * Model, Sculpt and Texture with `@volter/editor-blender`), registered through
  * {@link registerContributedWorkspace} and listed by {@link editorWorkspaces}.
  * Animate and Design stay here until their packages exist (WORK.md §The
@@ -281,7 +281,7 @@ export function workspaceApplies(id: EditorWorkspaceId): boolean {
  * The workspace a project opens in when this checkout has none recorded, in
  * order of who said it:
  *
- *  1. THE PROJECT — its `editor.workspace` in `vgai.adapter.ts`, or an imported
+ *  1. THE PROJECT — its `editor.workspace` in `volter.adapter.ts`, or an imported
  *     arrangement's id, when the project's shape meets it;
  *  2. THE PRODUCT — `frame/product.ts`'s `workspace`. A product is
  *     composition-scoped (ARCHITECTURE-CORE §The target shape, rule 3), and

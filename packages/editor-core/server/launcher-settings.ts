@@ -1,10 +1,10 @@
 /**
  * Launcher settings — the small set of preferences that belong to the PERSON,
  * not to any one project, and therefore cannot live in a project's
- * `vgai.project.json` (unit G5).
+ * `volter.project.json` (unit G5).
  *
  * Today that is exactly one preference: "Reopen last project on launch". It is
- * stored next to the recents list in `~/.vgai/`, because the two are the same
+ * stored next to the recents list in `~/.volter/`, because the two are the same
  * kind of state — launcher memory, machine-local, survives every project — and
  * splitting them across two homes would be arbitrary.
  *
@@ -29,7 +29,7 @@ export const DEFAULT_LAUNCHER_SETTINGS: LauncherSettings = {
   reopenLastProject: false,
 };
 
-export const LAUNCHER_SETTINGS_PATH = join(homedir(), '.vgai', 'launcher.json');
+export const LAUNCHER_SETTINGS_PATH = join(homedir(), '.volter', 'launcher.json');
 
 /**
  * Project a raw parsed file onto the settings shape.

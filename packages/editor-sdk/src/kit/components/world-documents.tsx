@@ -214,7 +214,7 @@ export function RootDocumentContent({
   // component that mounts two: a canvas world's `<Application>` was torn down
   // and rebuilt every time an unrelated dom story was saved. It lives with
   // the dom mount now, as `DesignTimeMount.reprojectWhen`
-  // (`@vgai/dom`'s `reprojectWhenStoriesRepublish`), which the stack binds per
+  // (`@volter/editor-game`'s `reprojectWhenStoriesRepublish`), which the stack binds per
   // medium and applies only to that medium's candidates
   // (`design-time-layers.ts:717-742`) — and which re-projects rather than
   // remounting, so the board no longer blinks through empty on the way.
@@ -241,7 +241,7 @@ export function RootDocumentContent({
     <div
       ref={containerRef}
       data-testid={`world-document:${descriptor.worldId}`}
-      data-vgai-backdrop-color={
+      data-volter-backdrop-color={
         active
           ? isBabylonScene
             ? '#111827'
@@ -250,7 +250,7 @@ export function RootDocumentContent({
               : REACT_DESIGN_CANVAS_COLOR
           : undefined
       }
-      data-vgai-backdrop-policy={active ? 'dark-frost' : undefined}
+      data-volter-backdrop-policy={active ? 'dark-frost' : undefined}
       onPointerDown={() => setActiveScope('viewport')}
       style={{
         // DOM component documents are Storybook/Figma-style boards. A Canvas

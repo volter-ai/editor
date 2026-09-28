@@ -22,7 +22,7 @@ import { isPathInside } from './server-utils';
  * every shipped npm package, and it turns "this host has no local library"
  * into a filesystem error about a disk the reader does not have.
  */
-export const LOCAL_ASSET_LIBRARY_ROOT_ENV = 'VGAI_ASSET_LIBRARY_ROOT';
+export const LOCAL_ASSET_LIBRARY_ROOT_ENV = 'VOLTER_ASSET_LIBRARY_ROOT';
 
 /**
  * The checkout's own committed catalog index, or `null` when this process is
@@ -36,7 +36,7 @@ export const LOCAL_ASSET_LIBRARY_ROOT_ENV = 'VGAI_ASSET_LIBRARY_ROOT';
  * Existence is checked once, here, so callers get an honest `null` instead of
  * a path that only resolves in one realm.
  *
- * The 20 MB index is deliberately NOT shipped in `@vgai/editor`'s `files`: it
+ * The 20 MB index is deliberately NOT shipped in `@volter/editor-core`'s `files`: it
  * indexes ~34k assets whose BYTES live on that SSD, so a registry install that
  * carried the index would still be unable to deliver a single one of them. The
  * cloud-hosted slice is the non-checkout answer (`cloud-asset-library`).
@@ -102,7 +102,7 @@ export function requireLocalAssetLibraryRoot(): string {
   if (!root) {
     throw new Error(
       `No asset library root. Set ${LOCAL_ASSET_LIBRARY_ROOT_ENV}=<path to your ` +
-        'vgai-asset-library> (or pass --root=<path>).',
+        'volter-asset-library> (or pass --root=<path>).',
     );
   }
   return root;

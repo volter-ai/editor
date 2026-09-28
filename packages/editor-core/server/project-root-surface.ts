@@ -37,7 +37,7 @@ import {
  * spelling fails `RootAdapterSchema` loudly at load, naming the canonical
  * value — so there is nothing for this probe to translate.
  *
- * Deliberately dependency-light (no Zod, no `@vgai/project/manifest/load`) — same
+ * Deliberately dependency-light (no Zod, no `@volter/editor-project/manifest/load`) — same
  * bar a vite-config-time file holds: a best-effort identity probe, not
  * manifest validation. A malformed manifest never crashes a transform/HMR
  * hook; it degrades to "no declared regions", which the resolver answers as
@@ -73,18 +73,18 @@ interface CachedManifestRoots {
     readonly adapter?: unknown;
   }>;
   /** The project's regions in the resolver's vocabulary: one per declared
-   *  root, carrying whatever `include` globs its `vgai.adapter.ts` states. */
+   *  root, carrying whatever `include` globs its `volter.adapter.ts` states. */
   readonly regions: readonly RegionBinding[];
   /** The adapter declares a `regions` binding this tier could not read
    *  statically — reported, never read as "declares nothing". */
   readonly includesUnreadable: boolean;
 }
 
-/** Cache: absolute directory -> nearest ancestor `vgai.project.json`'s parsed
+/** Cache: absolute directory -> nearest ancestor `volter.project.json`'s parsed
  *  roots (or `null` if none exists above it). Cached both ways (hit and
  *  miss), the same pattern the source-authoring integration's serving plugin
  *  `nearestManifestExcludesIngestReact` uses for the identical walk — no
- *  invalidation on manifest edit; a `vgai.project.json` edit already triggers
+ *  invalidation on manifest edit; a `volter.project.json` edit already triggers
  *  `classifyProjectHotUpdate`'s `'restart'` kind, so a stale in-process
  *  cache here is no worse than the existing precedent. */
 const manifestRootsCache = new Map<string, CachedManifestRoots | null>();
@@ -97,8 +97,8 @@ const manifestRootsCache = new Map<string, CachedManifestRoots | null>();
  * them. An INGEST root's are not: the racing-game's manifest lives in the
  * editor's in-tree registry while the game it mounts is vendored at
  * `vendor/games/racing-game/src/`, six levels away — measured, no
- * `vgai.project.json` is an ancestor of ANY of that game's 45 `.tsx` files, so
- * the walk answers "no project" and every declaration in its `vgai.adapter.ts`
+ * `volter.project.json` is an ancestor of ANY of that game's 45 `.tsx` files, so
+ * the walk answers "no project" and every declaration in its `volter.adapter.ts`
  * is unreadable for exactly the files it is about.
  *
  * The claim is read from the manifest, not guessed: a root's `entry` (and an
@@ -173,7 +173,7 @@ function nearestManifestRoots(dir: string): CachedManifestRoots | null {
 }
 
 /** Join the manifest's roots to the `include` globs the project's own
- *  `vgai.adapter.ts` declares for them — the resolver's region vocabulary. */
+ *  `volter.adapter.ts` declares for them — the resolver's region vocabulary. */
 function cachedRoots(dir: string, roots: CachedManifestRoots['roots']): CachedManifestRoots {
   const declared = adapterRegionIncludes(dir);
   const regions: RegionBinding[] = [];
@@ -196,7 +196,7 @@ function cachedRoots(dir: string, roots: CachedManifestRoots['roots']): CachedMa
 
 /**
  * Resolve the declared surface for ONE project file by walking up to the
- * nearest `vgai.project.json` and matching the file against a root's `entry`
+ * nearest `volter.project.json` and matching the file against a root's `entry`
  * path EXACTLY (resolved absolute). Returns `undefined` — "ambiguous, fall
  * back to the substring probe" — when no manifest is reachable, no root's
  * `entry` matches this exact file (e.g. an imported component that isn't
@@ -210,7 +210,7 @@ export function declaredSurfaceForProjectFile(file: string): DeclaredRootSurface
 
 /**
  * The resolver's `regionOfEntry` for this tier: walk up to the nearest
- * `vgai.project.json` and match `file` against a root's `entry` path EXACTLY
+ * `volter.project.json` and match `file` against a root's `entry` path EXACTLY
  * (resolved absolute). `undefined` when no manifest is reachable, no root's
  * `entry` is this exact file, or the matching root's adapter shape resolves to
  * no surface. Never throws over manifest CONTENT; only a genuine filesystem
@@ -248,7 +248,7 @@ export interface ModuleGraphLike {
   getModuleById(id: string): ModuleNodeLike | undefined;
   /**
    * One physical project file can have several module nodes: mount isolation
-   * gives every instance its own `?vgai-mount=` URL. Surface ownership is a
+   * gives every instance its own `?volter-mount=` URL. Surface ownership is a
    * property of the source file, so the adapter must visit every variant.
    */
   getModulesByFile?(file: string): Set<ModuleNodeLike> | undefined;
@@ -275,12 +275,12 @@ function moduleVariants(graph: ModuleGraphLike, id: string, file: string): Modul
  * is why the `?? importer.id` fallback below can hand back something that is
  * not a path at all. Every caller of this set treats a member as a file:
  * `regionOfEntry` resolves it absolute and walks up looking for the
- * `vgai.project.json` that owns it.
+ * `volter.project.json` that owns it.
  *
  * MEASURED 2026-09-21 (WORK.md step 3 P1), in a live session: a product's
- * `vgai:contributions/@volter/editor-blender` module imports that package's
- * contributions, so `\0vgai:contributions/@volter/editor-blender` arrived here as an
- * importer, `resolve()` made it `<cwd>/\0vgai:contributions/@vgai`, and the
+ * `volter:contributions/@volter/editor-blender` module imports that package's
+ * contributions, so `\0volter:contributions/@volter/editor-blender` arrived here as an
+ * importer, `resolve()` made it `<cwd>/\0volter:contributions/@volter`, and the
  * manifest walk's `readFileSync` threw `The argument 'path' must be a string,
  * Uint8Array, or URL without null bytes`. That is a 500 from the OID plugin on
  * every contribution of that package, which the editor reported as "the editor
@@ -356,7 +356,7 @@ export function declaredSurfaceForProjectFileViaGraph(
 }
 
 /** Test-only: clear the manifest cache between cases that plant/replace a
- *  `vgai.project.json` at the same path. */
+ *  `volter.project.json` at the same path. */
 export function resetDeclaredSurfaceCacheForTest(): void {
   manifestRootsCache.clear();
   resetAdapterRegionIncludesCacheForTest();
@@ -374,7 +374,7 @@ export function resetDeclaredSurfaceCacheForTest(): void {
 // printed anywhere.
 //
 // The reasons, and what each earns:
-//   1. No `vgai.project.json` above the file at all (ingest, ad-hoc source, the
+//   1. No `volter.project.json` above the file at all (ingest, ad-hoc source, the
 //      editor's own `ui-editor/editable-components/*.tsx`). NOT diagnosable —
 //      there is no project to be wrong about, and warning here would fire on
 //      every non-project file. Silent by design.
@@ -561,7 +561,7 @@ function whyOf(answer: FileRegionAnswer): string {
     return `is declared onto the \`${answer.regionId}\` region's \`three\` surface in ${ADAPTER_MODULE_FILENAME}`;
   }
   if (answer.via === 'root-entry')
-    return 'is declared as a `three` root entry in vgai.project.json';
+    return 'is declared as a `three` root entry in volter.project.json';
   return 'is reached only from a `three` root';
 }
 
@@ -644,7 +644,7 @@ export function resolveOidSurface(
           'HUD/overlay modules that import `@react-three/fiber` only for `addEffect`/`useFrame`: ' +
           `declare them onto this root's \`dom\` surface with a \`mounts\` entry in ` +
           `${ADAPTER_MODULE_FILENAME}, or give them a \`dom\` root of their own in ` +
-          'vgai.project.json. If this file really does author R3F content, render an R3F element ' +
+          'volter.project.json. If this file really does author R3F content, render an R3F element ' +
           `in it. Roots considered: ${manifest ? describeRoots(manifest) : '(none)'}.`,
       });
     }
@@ -731,7 +731,7 @@ export function resolveOidSurface(
     diagnostics.push({
       code: 'OID001',
       message:
-        `${absFile} is inside the project at ${join(manifest.manifestDir, 'vgai.project.json')} but ` +
+        `${absFile} is inside the project at ${join(manifest.manifestDir, 'volter.project.json')} but ` +
         'no region reaches it and none declares it, so the source-id attribute it carries is a ' +
         `DEFAULT, not a decision${unresolvableClause(evidence)}. Import it from a region entry (directly or ` +
         'transitively), give it a root, or declare it via a region `include` glob in ' +
@@ -759,7 +759,7 @@ export function resolveOidSurface(
  * involved. Called by `server/project-validation.ts`'s `validateSource`, which
  * runs on every project source write and reports through the three surfaces
  * issue #103 established — the terminal, the editor console (the `server-log`
- * SSE event), and `/__editor/state` (what `vgai status` prints).
+ * SSE event), and `/__editor/state` (what the editor's `status` command prints).
  *
  * Excludes `OID001`/`OID002` by construction: both need graph reach to be true,
  * and without a graph EVERY non-entry file looks unreachable — a warning on
@@ -799,7 +799,7 @@ export function oidSurfaceSourceConflicts(
     diagnostics.push({
       code: 'OID003',
       message:
-        `${absFile} is declared as a \`${direct}\` root entry in vgai.project.json, but the file ` +
+        `${absFile} is declared as a \`${direct}\` root entry in volter.project.json, but the file ` +
         `${evidenceSummary(evidence)}. The manifest wins (\`data-oid\` is stamped), so any R3F ` +
         'element here will not resolve to a selection. Declare a `three` root for the R3F part.',
     });
@@ -815,7 +815,7 @@ const reportedDiagnostics = new Set<string>();
  * Print a decision's diagnostics to the dev server's terminal, once per
  * (file, code). `[ui-oid]` is the prefix the OID plugin's existing warnings
  * already use, so this lands in the same place an author is already reading
- * when `vgai edit` is running.
+ * when the editor's `edit` command is running.
  */
 export function reportOidSurfaceDiagnostics(
   decision: OidSurfaceDecision,

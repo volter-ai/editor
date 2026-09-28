@@ -21,7 +21,7 @@
  * `--reflink` on btrfs/xfs), which costs ~1 MB and under a second for a
  * 143 MB / 1,479-file tree.
  *
- * OFF unless `VGAI_DEP_CACHE` is set, so a user's single `create` behaves
+ * OFF unless `VOLTER_DEP_CACHE` is set, so a user's single `create` behaves
  * exactly as before. The dev box turns it on for every agent via the harness
  * env. Every failure path falls back to a normal `npm install`: this can make
  * an install cheaper, never wrong.
@@ -60,21 +60,21 @@ export function stripProjectLocalDependencyCaches(nodeModules: string): void {
 
 export interface DepCacheEnv {
   /** Enable flag. Unset/empty/`0`/`false` disables the cache entirely. */
-  VGAI_DEP_CACHE?: string;
-  /** Store location override. Defaults to `~/.cache/vgai/dep-store`. */
-  VGAI_DEP_CACHE_DIR?: string;
+  VOLTER_DEP_CACHE?: string;
+  /** Store location override. Defaults to `~/.cache/volter/dep-store`. */
+  VOLTER_DEP_CACHE_DIR?: string;
 }
 
 /** `true` when the caller opted in. Anything falsy-looking is off — an unset var must never enable a cache. */
 export function isDepCacheEnabled(env: DepCacheEnv): boolean {
-  const raw = env.VGAI_DEP_CACHE?.trim().toLowerCase();
+  const raw = env.VOLTER_DEP_CACHE?.trim().toLowerCase();
   return raw !== undefined && raw !== '' && raw !== '0' && raw !== 'false';
 }
 
 export function depStoreDir(env: DepCacheEnv): string {
-  const override = env.VGAI_DEP_CACHE_DIR?.trim();
+  const override = env.VOLTER_DEP_CACHE_DIR?.trim();
   if (override) return resolve(override);
-  return join(homedir(), '.cache', 'vgai', 'dep-store');
+  return join(homedir(), '.cache', 'volter', 'dep-store');
 }
 
 interface KeyInputs {

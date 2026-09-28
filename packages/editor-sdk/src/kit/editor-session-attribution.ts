@@ -23,20 +23,20 @@
  * under 'collaboration and presence' and named a door for it that the host
  * does not need, because nothing here is a lane's: a page identifies itself
  * and stamps its writes whether or not anyone else is connected. TWO sibling
- * packages read it (`@vgai/collaboration` takes the guest flag,
- * `@vgai/game` takes the write stamp), which by the rule `@vgai/dom` was
+ * packages read it (the collaboration package takes the guest flag,
+ * `@volter/editor-game` takes the write stamp), which by the rule `@volter/editor-game` was
  * landed on means it lives in neither. `WORK.md` §THE FINAL AUDIT.
  */
-const participantKey = 'vgai.collaboration.participant.v1';
-const remoteShareKey = 'vgai.collaboration.remote-share.v1';
+const participantKey = 'volter.collaboration.participant.v1';
+const remoteShareKey = 'volter.collaboration.remote-share.v1';
 const bootstrap = (
   globalThis as typeof globalThis & {
-    __VGAI_EDITOR_PRESENCE_BOOTSTRAP__?: {
+    __VOLTER_EDITOR_PRESENCE_BOOTSTRAP__?: {
       participantId?: string;
       displayName?: string;
     };
   }
-).__VGAI_EDITOR_PRESENCE_BOOTSTRAP__;
+).__VOLTER_EDITOR_PRESENCE_BOOTSTRAP__;
 
 function storedParticipantId(): string {
   if (bootstrap?.participantId) return bootstrap.participantId;

@@ -124,7 +124,7 @@ export function shouldHandleEditorClipboard(): boolean {
  *
  * MEASURED 2026-09-21 on the Blender Model document, whose Outliner adapter
  * publishes its selection in Blender's own row ids: with the Sphere selected
- * and highlighted in the panel, `vgai.edit.delete` ran, found
+ * and highlighted in the panel, `volter.edit.delete` ran, found
  * `store.selectedEntityIds` empty and deleted nothing — X and Shift+D were
  * dead for every object on that document. `activeSelectionIds` is what
  * `editor.status()` already reports and what the hierarchy panel already
@@ -370,7 +370,7 @@ export function nudgeSelection(store: ShellStore, dx: number, dy: number): void 
 // ---------------------------------------------------------------------------
 // No binding below spells a literal key. Each names a LOGICAL ACTION and
 // `keymap-presets.ts` supplies the chords the active keymap assigns it, so
-// `vgai` and `blender` are two tables rather than two code paths. See that
+// `volter` and `blender` are two tables rather than two code paths. See that
 // module's header for the ruling, the collision resolutions, and the boundary
 // against play-mode input isolation (which this seam does not touch).
 
@@ -424,7 +424,7 @@ function bind(
  * The action TABLE is filled by the same pass, and it is filled whoever owns
  * the keyboard: under the frame the chord rows below go unread (the host
  * dispatcher is never installed — `hotkeys.ts`) while the table is what every
- * `vgai.*` VS Code command dispatches into.
+ * `volter.*` VS Code command dispatches into.
  */
 function registerKeymapBindings(build: () => HotkeyBinding[]): () => void {
   const runBuild = (): { rows: HotkeyBinding[]; actions: (() => void)[] } => {
@@ -568,7 +568,7 @@ export function registerEditorShellHotkeys(
         setAuthoringSelection(a, collectAllNodeIds(a));
       },
     }),
-    // Blender's Alt+A. Unbound in the vgai table, where Escape is the deselect
+    // Blender's Alt+A. Unbound in the volter table, where Escape is the deselect
     // (and carries the scope-exit verb with it); this one only clears.
     ...bind('edit.deselectAll', {
       scope: AUTHORING_SELECTION_SCOPES,
@@ -628,7 +628,7 @@ export function registerEditorShellHotkeys(
       // AND UNDER THE FRAME THAT FALLTHROUGH DOES NOT EXIST, which is why the two
       // gates differ (found by walk 2's beat 17, 2026-09-20). VS Code's keybinding
       // service preventDefaults every rule whose `when` RESOLVES, before the command
-      // it names decides anything — so with a `vgai.edit.exitScopeOrDeselect` rule on
+      // it names decides anything — so with a `volter.edit.exitScopeOrDeselect` rule on
       // Escape, play-mode's `window` listener never sees an Escape that is not already
       // `defaultPrevented`. A `frameEnabled` that returned false during play therefore
       // produced neither outcome: the command refused ("the editor has no live handler
@@ -647,7 +647,7 @@ export function registerEditorShellHotkeys(
         // (the `when` above), so it is the deselect it always was; under the frame
         // it is also the Escape that ends a run, through the registry every lane
         // registers into — the same door `stop` reaches, never play-mode by name
-        // (the editor does not import `@vgai/game`).
+        // (the editor does not import `@volter/editor-game`).
         if (store.playState !== 'stopped') {
           stopAllLiveSessions();
           return;

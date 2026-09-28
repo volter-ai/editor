@@ -104,7 +104,7 @@ export const PROJECT_ROOT_ABSOLUTE_DIRS: readonly string[] = [
 const NEVER_PROJECT_PREFIXES = [
   '/@',
   '/__editor',
-  '/__vgai',
+  '/__volter',
   '/project-game-static',
   '/game-static',
   '/node_modules/',
@@ -327,7 +327,7 @@ export function projectRootAbsoluteAssetsPlugin(getProjectRoot: () => string | u
   let editorDirs: EditorServingDirs = { publicDir: undefined, root: process.cwd() };
   const handler = createProjectRootAbsoluteHandler(getProjectRoot, () => editorDirs);
   return {
-    name: 'vgai-project-root-absolute-assets',
+    name: 'volter-project-root-absolute-assets',
     // Ahead of `vite:resolve`, whose root-relative rule is the defect.
     enforce: 'pre',
     configResolved(config) {

@@ -3,9 +3,9 @@
  * uncommitted?" and "has this session ever run the game at all?", plus the
  * cheap project reads behind them.
  *
- * WHY THIS LIVES IN THE SDK. It started in the CLI, wired to `vgai status`
+ * WHY THIS LIVES IN THE SDK. It started in the CLI, wired to the editor's `status` command
  * alone — and a measured 17-minute blind build ran the editor and
- * `eval` while invoking `vgai status` ZERO times. The mechanisms were right;
+ * `eval` while invoking the editor's `status` command ZERO times. The mechanisms were right;
  * the delivery assumption ("a building agent polls status constantly") was
  * false. Routing the SAME banners through the surfaces a build actually
  * crosses means two processes must compose them — the CLI and the editor dev
@@ -181,7 +181,7 @@ export function commitCadenceBanner(work: UncommittedWork | null): string | null
 /**
  * The same tripwire as ONE line, at every step including the loud one.
  *
- * For channels whose output is parsed rather than read — `vgai eval` prints a
+ * For channels whose output is parsed rather than read — the editor's `eval` command prints a
  * game's own JSON, and a fifteen-line block dropped beside it corrupts more
  * than it warns. Same sentence as the notice step of the banner (`cadenceLine`
  * is the single source); the only thing dropped is the block.
@@ -271,7 +271,7 @@ export function readUncommittedWork(
 const SKIP_DIRS = new Set([
   'node_modules',
   '.git',
-  '.vgai',
+  '.volter',
   '.agents',
   '.claude',
   '.github',
@@ -300,7 +300,7 @@ const MAX_FILES_WALKED = 4000;
  *
  * `src/` plus the manifest and package.json — the files whose change means
  * "the build is different now". Deliberately NOT the whole tree: a screenshot
- * landing in `.vgai/`, a log line, or a `node_modules` touch is not a source
+ * landing in `.volter/`, a log line, or a `node_modules` touch is not a source
  * change, and treating it as one would make the banner cry wolf on its own
  * evidence.
  */
@@ -347,7 +347,7 @@ export function newestSourceMtime(projectRoot: string): number | null {
   };
 
   walk(join(projectRoot, 'src'));
-  for (const file of ['vgai.project.json', 'package.json']) {
+  for (const file of ['volter.project.json', 'package.json']) {
     const full = join(projectRoot, file);
     if (existsSync(full)) consider(full);
   }
@@ -461,7 +461,7 @@ export function unplayedSessionTier(
   newestEvidence: number | null,
   now: number,
   /** Does the project declare anything to play? A MODELS project (no roots)
-   *  has no game to run; the nag sent one to `vgai play`, which refused,
+   *  has no game to run; the nag sent one to the editor's `play` command, which refused,
    *  and the refusal sat on the console (blind lantern round, 2026-09-06). */
   playable = true,
 ): TripwireTier {
@@ -589,7 +589,7 @@ export function advanceTripwireGate(
  * announced once across three editor-server restarts, while the agent went on
  * to batch-commit all 23 files at the end. The gate above is correct and the
  * process holding it is not: an editor server restarts (a crash, a config
- * change, `vgai restart`) far more often than a dirty batch resolves, and each
+ * change, the editor's `restart` command) far more often than a dirty batch resolves, and each
  * restart re-armed at `announced: 'silent'`, so a batch that had already been
  * noticed simply got noticed AGAIN at the same tier — never escalated. The
  * loudest step of the escalation was unreachable by construction for exactly
@@ -623,14 +623,14 @@ interface PersistedGate {
 /**
  * Where the gate lives, project-relative.
  *
- * Under `.vgai/` beside the other machine-local caches (`check-idioms.json`),
+ * Under `.volter/` beside the other machine-local caches (`check-idioms.json`),
  * and inside a directory `newestSourceMtime` already skips — so the file the
  * tripwire writes can never read as a source change and make the tripwire cry
  * wolf on its own output. It is gitignored in the scaffold for the same
  * reason it must never count: a gate write that dirtied the tree would add a
  * file to the very `fileCount` it is reporting.
  */
-export const TRIPWIRE_GATE_PATH = join('.vgai', 'tripwire-gate.json');
+export const TRIPWIRE_GATE_PATH = join('.volter', 'tripwire-gate.json');
 
 function gateFilePath(projectRoot: string): string {
   return join(projectRoot, TRIPWIRE_GATE_PATH);

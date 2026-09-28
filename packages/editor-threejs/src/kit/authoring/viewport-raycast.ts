@@ -4,7 +4,7 @@
  * `editor-viewport.ts`'s former `_raycastEntity` so EVERY threejs-backed
  * authoring adapter whose live objects sit in `store.objectMap` reuses the
  * exact same logic:
- *   - first-party `VgaiSceneAuthoringAdapter` (edit mode's focused world),
+ *   - first-party `VolterSceneAuthoringAdapter` (edit mode's focused world),
  *   - `ThreeAuthoringAdapter` (any live three tree — bare ingest
  *     mode AND the three child of a multi-world PLAY composite).
  *

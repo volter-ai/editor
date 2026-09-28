@@ -139,7 +139,7 @@ import {
   frameAngle,
   frameForId,
   rectFrame,
-  snapPointToFrame,
+  snapPivotPoint,
   frameHandlePosition,
   frameIsTurned,
   frameResizePatch,
@@ -1788,7 +1788,7 @@ export function RootSelectionOverlay({
   }, [adapter, store, transformModeAware, view]);
 
   const startGroupGesture = useCallback(
-    (kind: 'rotate' | 'native-scale', e: ReactPointerEvent): boolean => {
+    (kind: 'rotate' | 'native-scale', e: ReactPointerEvent, axis: 'x' | 'y' | 'both' = 'both'): boolean => {
       const group = nativeGroup();
       if (!group) return false;
       const frame = frameForId(adapter, group.primary.id);
@@ -1807,7 +1807,7 @@ export function RootSelectionOverlay({
         ...(group.pivot ? { groupCenter: group.pivot } : {}),
         ...(frame ? { startAngleDeg: (frameAngle(frame) * 180) / Math.PI } : {}),
         ...(kind === 'native-scale'
-          ? { nativeScaleAxis: 'both' as const, nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom }
+          ? { nativeScaleAxis: axis, nativeHandleSpan: NATIVE_GIZMO_LENGTH_PX / pan.zoom }
           : {}),
       };
       return true;
@@ -1885,7 +1885,7 @@ export function RootSelectionOverlay({
       if (e.button !== 0) return;
       const selected = store.selectedEntityIds;
       if (selected.size > 1) {
-        startGroupGesture('native-scale', e);
+        startGroupGesture('native-scale', e, axis);
         return;
       }
       if (selected.size !== 1) return;
@@ -1958,17 +1958,17 @@ export function RootSelectionOverlay({
     pivot: boolean;
   } | null>(null);
 
-  /** Where a pivot lands: smart snapping's Node Sides and Node Center pull it onto its own node's
-   *  sides and centre lines (Godot's), unless Alt frees it. */
+  /** Where a pivot lands: `snapPivotPoint`, Godot's pivot drag. */
   const snapPivot = useCallback(
-    (id: string, local: { x: number; y: number }, free: boolean): { x: number; y: number } => {
-      const choice = store.smartSnap;
-      if (free || !choice.enabled || (!choice.sides && !choice.center)) return local;
+    (id: string, local: { x: number; y: number }, invert: boolean): { x: number; y: number } => {
       const rect = rectForId(adapter, id);
-      const frame = frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null);
-      if (!frame) return local;
-      const zoom = Math.max(view.get().zoom, 0.01);
-      return snapPointToFrame(local, frame, choice.sides, choice.center, EDGE_SNAP_THRESHOLD_PX / zoom);
+      return snapPivotPoint(local, frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null), {
+        invert,
+        smart: store.smartSnap,
+        gridOn: store.snapEnabled,
+        grid: store.snap2D,
+        threshold: EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01),
+      });
     },
     [adapter, store, view],
   );
@@ -1996,7 +1996,7 @@ export function RootSelectionOverlay({
       const drag = spatialDragRef.current;
       if (!drag) return;
       const pointer = toHostLocal(e.clientX, e.clientY);
-      const local = drag.pivot ? snapPivot(drag.id, pointer, e.altKey) : pointer;
+      const local = drag.pivot ? snapPivot(drag.id, pointer, e.metaKey || e.ctrlKey) : pointer;
       drag.provider.preview(drag.id, drag.handleId, [local.x, local.y, 0]);
       bumpGesture();
     },
@@ -2010,7 +2010,7 @@ export function RootSelectionOverlay({
       if (!drag) return;
       releaseCapturedPointer(e);
       const pointer = toHostLocal(e.clientX, e.clientY);
-      const local = drag.pivot ? snapPivot(drag.id, pointer, e.altKey) : pointer;
+      const local = drag.pivot ? snapPivot(drag.id, pointer, e.metaKey || e.ctrlKey) : pointer;
       void drag.provider.commit(drag.id, drag.handleId, [local.x, local.y, 0]);
       bumpGesture();
     },
@@ -2120,8 +2120,9 @@ export function RootSelectionOverlay({
             gesture.origRect,
             gesture.context,
             gesture.moveAxis,
-            // Alignment is smart snapping's, beside the grid's step (Godot's two toggles).
-            !store.smartSnap.enabled,
+            // Alignment is smart snapping's, beside the grid's step (Godot's two toggles); Cmd
+            // inverts it, as Godot's `snap_point` reads `smart_snap_active ^ Cmd`.
+            store.smartSnap.enabled === (e.metaKey || e.ctrlKey),
             EDGE_SNAP_THRESHOLD_PX / Math.max(pan.zoom, 0.01),
             {
               x: nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
@@ -2129,7 +2130,8 @@ export function RootSelectionOverlay({
             },
             store.smartSnap,
           );
-          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free.
+          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free: Godot's
+          // move names no node to `snap_point`, so it snaps however the node is turned.
           const pixel = (v: number): number => (store.snap2D.pixel ? Math.round(v) : v);
           if (patch['originX'] !== undefined) patch['originX'] = pixel(snapped.position.x);
           if (patch['originY'] !== undefined) patch['originY'] = pixel(snapped.position.y);
@@ -2158,21 +2160,30 @@ export function RootSelectionOverlay({
       } else if (gesture.kind === 'rotate') {
         const absolute =
           gesture.nativeOrigin && gesture.startAngleDeg !== undefined && !store.snap2D.relative;
+        // Godot's `snap_angle`: a 2D turn snaps when (Smart Snap or Use Rotation Snap) XOR Cmd, so a
+        // Select-mode Cmd-drag snaps with both off and Cmd frees a snapped one.
+        const snapTurn =
+          (store.smartSnap.enabled || store.rotationSnap) !== (e.metaKey || e.ctrlKey);
         patch = computeRotatePatch(
           gesture.center!,
           gesture.startLocal,
           local,
-          // A 2D rotation steps under its own switch (Godot's Use Rotation Snap).
-          gesture.nativeOrigin ? absolute || !store.rotationSnap || e.altKey : e.altKey,
+          gesture.nativeOrigin ? absolute || !snapTurn : e.altKey,
           gesture.nativeOrigin ? store.snap2D.rotationStep : 15,
         );
-        if (absolute && store.rotationSnap && !e.altKey && patch['rotate'] !== undefined) {
+        if (absolute && snapTurn && patch['rotate'] !== undefined) {
           // Godot's Configure Snap: the angle lands on the step from the rotation offset.
           const step = store.snap2D.rotationStep;
           const offset = store.snap2D.rotationOffset;
           const start = gesture.startAngleDeg!;
           const angle = start + patch['rotate'];
-          patch = { rotate: Math.round((angle - offset) / step) * step + offset - start };
+          // The owner lands the node's LOCAL rotation on the step (Godot's `snap_angle` on
+          // `_edit_get_rotation()`), which is the angle on screen only under an unturned parent.
+          patch = {
+            rotate: Math.round((angle - offset) / step) * step + offset - start,
+            rotationStep: step,
+            rotationOffset: offset,
+          };
         }
         // About a temporary pivot the node turns around that point: its origin moves by the turn.
         const pivot = gesture.groupCenter ?? (gesture.nativeOrigin ? temporaryPivot(view) : null);
@@ -2228,6 +2239,9 @@ export function RootSelectionOverlay({
             gesture.kind === 'rotate'
               ? {
                   rotate: patch['rotate'] ?? 0,
+                  ...(patch['rotationStep'] !== undefined
+                    ? { rotationStep: patch['rotationStep'], rotationOffset: patch['rotationOffset'] ?? 0 }
+                    : {}),
                   ...(c
                     ? {
                         originX: c.x + ox * Math.cos(turn) - oy * Math.sin(turn),
@@ -2867,6 +2881,10 @@ export function RootSelectionOverlay({
         })
       : null;
   const nativeGizmoSpan = NATIVE_GIZMO_LENGTH_PX / pan.zoom;
+  // Godot draws a multi-selection's x and y scale handles at its first node; each scales the whole
+  // selection along its axis.
+  const groupFirstId = transformModeAware && selectedIds.size > 1 ? [...selectedIds][0]! : null;
+  const groupGizmoOrigin = groupFirstId ? (boxEditForId(adapter, groupFirstId)?.gizmoOrigin?.(groupFirstId) ?? null) : null;
   const referencePoint = single ? single.ownerBoxEdit.referencePoint?.(single.id) : null;
   const spacingBands = single?.spacingBands ?? [];
 
@@ -3093,6 +3111,30 @@ export function RootSelectionOverlay({
             }}
           />
         ) : null}
+        {groupGizmoOrigin &&
+          transformArms(transformModeAware, store.transformMode, 'scale') &&
+          showAxisGizmo &&
+          axisGizmos &&
+          (['x', 'y'] as const).map((axis) => (
+            <div
+              key={axis}
+              data-testid={`world-2d-group-scale-${axis}`}
+              title={axis === 'x' ? 'Scale the selection on X' : 'Scale the selection on Y'}
+              style={{
+                ...handleStyle(
+                  nativeScaleHandlePoint(axis, groupGizmoOrigin, nativeGizmoSpan),
+                  axis === 'x' ? 'ew-resize' : 'ns-resize',
+                ),
+                transform: `scale(${chromeScale})`,
+                transformOrigin: 'center',
+                background: axis === 'x' ? '#ef5350' : '#66bb6a',
+              }}
+              onPointerDown={(event) => startNativeScaleGesture(axis, event)}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerCancel}
+            />
+          ))}
         {singleRect && singleOwnerBoxEdit && (
           <>
             {/* B-fix (D1-visual + D4 review): the B3 spacing bands render
@@ -3377,7 +3419,11 @@ export function RootSelectionOverlay({
                 <div
                   data-testid="world-rotate-handle"
                   aria-label="Rotate selection"
-                  title="Rotate selection (15° snap, Alt for free rotation)"
+                  title={
+                    transformModeAware
+                      ? 'Rotate selection (snaps under Smart Snap or Use Rotation Snap; Cmd inverts)'
+                      : 'Rotate selection (15° snap, Alt for free rotation)'
+                  }
                   style={{
                     ...rotateHandleStyle(singleRect),
                     ...(transformModeAware && !axisGizmos

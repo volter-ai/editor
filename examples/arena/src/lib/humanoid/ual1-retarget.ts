@@ -89,7 +89,7 @@ import {
 // Extracted from UAL1_Standard.glb (Quaternius Universal Animation Library 1,
 // Standard mannequin) via examples/top-down-strategy's materialized copy at
 // public/asset-library/local/ual1-standard-a7c52883/UAL1_Standard.glb (key
-// local:a7c5288306d9e98cb7dbdbd2, sha256 in .vgai/assets.json). 65 joints,
+// local:a7c5288306d9e98cb7dbdbd2, sha256 in .volter/assets.json). 65 joints,
 // topologically ordered (parent row precedes child), by walking skins[0].joints
 // from its root. Translation is METRES (glTF native), rotation is the local
 // rest quaternion [x,y,z,w] — both already Blender-exported (Khronos glTF

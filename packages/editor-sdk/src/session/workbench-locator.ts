@@ -1,7 +1,7 @@
 /**
  * WHICH CODE-OSS WORKBENCH A PROJECT OPENS IN — one declaration, one resolver.
  *
- * `vgai edit` is the workbench. The workbench itself is not in this repository
+ * the editor's `edit` command is the workbench. The workbench itself is not in this repository
  * and is not published to a registry yet, so the one thing a project must state
  * is WHERE the bytes are:
  *
@@ -9,23 +9,23 @@
  * { "workbench": "/Users/me/volter/code-oss-releases/393f0b98ade1" }
  * ```
  *
- * in `<project>/.vgai/workbench.json`. `--workbench <dir>` overrides it for one
+ * in `<project>/.volter/workbench.json`. `--workbench <dir>` overrides it for one
  * invocation. There is deliberately NO env var, NO setting and NO search path:
  * a machine-local path that decides which editor a person gets belongs in the
- * project's own machine-local file, where `vgai status` can report it and a
+ * project's own machine-local file, where the editor's `status` command can report it and a
  * second person can read it, not in whichever shell happened to start the
  * session.
  *
  * AND A PRODUCT THAT IS INSTALLED CARRIES ITS OWN (B2, 2026-09-21). A person
- * who has just run `npx @vgai/model-editor create my-models` has no release on
+ * who has just run `npx @volter/model-editor create my-models` has no release on
  * their machine and no reason to have one, so the third step of the resolution
- * is the PRODUCT'S declaration — `package.json#vgai.product.workbench`, the
+ * is the PRODUCT'S declaration — `package.json#volter.product.workbench`, the
  * published release those bytes are (ARCHITECTURE-CORE §The target shape: one
  * product number per release, pinning the fork, the kit, the API and its
- * media). It is fetched once into `~/.vgai/workbenches/<tag>/` and then
+ * media). It is fetched once into `~/.volter/workbenches/<tag>/` and then
  * DECLARED in this project's own file like any other, so the sentence above
  * still holds where it matters: the record of which workbench this machine
- * opens this project in is the project's file, always, and `~/.vgai/workbenches`
+ * opens this project in is the project's file, always, and `~/.volter/workbenches`
  * is a byte cache keyed by a release tag that decides nothing.
  *
  * ONE DIRECTORY, TWO KINDS, and the marker file decides:
@@ -40,7 +40,7 @@
  * fork any more: it is OVERLAID on a checkout at a pin, the kit's half and ONE
  * product's half together (ARCHITECTURE-CORE §The target shape, rule 6). So a
  * workbench carries a product the way it carries a commit — a release states it
- * in `BUILD.json`, a checkout in the `.vgai-overlay.json` the overlay writes —
+ * in `BUILD.json`, a checkout in the `.volter-overlay.json` the overlay writes —
  * and opening a project in a workbench built for the OTHER product is refused
  * by name. It has to be: the mismatch is invisible otherwise. The page mounts,
  * the session serves this project's product entry into it, and what the person
@@ -75,7 +75,7 @@ import {
 } from './product-locator';
 
 /** Where a project declares its workbench, relative to the project root. */
-export const WORKBENCH_LOCATOR_PATH = '.vgai/workbench.json';
+export const WORKBENCH_LOCATOR_PATH = '.volter/workbench.json';
 
 /** The release's own record, written beside the tarball by
  *  `scripts/workbench/build-release.mjs`. */
@@ -83,7 +83,7 @@ const RELEASE_RECORD = 'BUILD.json';
 /** The REH launcher inside a fork checkout — the marker that says "sources". */
 const SOURCES_LAUNCHER = join('scripts', 'code-server.sh');
 /** What `scripts/workbench/overlay.mjs` leaves in a checkout it has overlaid. */
-const OVERLAY_RECORD = '.vgai-overlay.json';
+const OVERLAY_RECORD = '.volter-overlay.json';
 
 /** What the session reports about the workbench it is running. */
 export interface WorkbenchIdentity {
@@ -93,7 +93,7 @@ export interface WorkbenchIdentity {
   /** The Code-OSS fork commit these bytes are. */
   readonly commit: string;
   /** The product whose workbench half is overlaid on them — `model-editor`,
-   *  `game-editor`. Reported beside the commit by `vgai status`. */
+   *  `game-editor`. Reported beside the commit by the editor's `status` command. */
   readonly product: string;
 }
 
@@ -160,7 +160,7 @@ export function readWorkbenchDeclaration(projectRoot: string): string | null {
  * file behind.
  */
 export function writeWorkbenchDeclaration(projectRoot: string, workbenchDir: string): void {
-  mkdirSync(join(projectRoot, '.vgai'), { recursive: true });
+  mkdirSync(join(projectRoot, '.volter'), { recursive: true });
   writeFileSync(
     join(projectRoot, WORKBENCH_LOCATOR_PATH),
     `${JSON.stringify({ workbench: resolve(workbenchDir) }, null, 2)}\n`,
@@ -172,7 +172,7 @@ export function writeWorkbenchDeclaration(projectRoot: string, workbenchDir: str
  * frame. Spelled here so the CLI's launch line and the session's tab bijection
  * cannot disagree about it.
  *
- * `?project=<id>` is the one boot param the vgai editor carries; the session's
+ * `?project=<id>` is the one boot param the Volter editor carries; the session's
  * one-origin proxy redirects it to the workbench's own `?folder=`, and
  * `frame-proxy.ts` says why it must be a redirect.
  */
@@ -191,7 +191,7 @@ function machinePlatform(): string {
  * the exact fix. Both kinds are refused by NAME rather than fallen back from: a
  * boot that silently was not the workbench you named measures nothing.
  *
- * `expectedProduct` is the product the PROJECT resolves to (`@vgai/game-editor`
+ * `expectedProduct` is the product the PROJECT resolves to (`@volter/game-editor`
  * → `game-editor`). Passing it is how a caller asks "is this workbench this
  * project's?"; omitting it reads the workbench without judging it, which is what
  * `<product> create --workbench <dir>` does, having no installed project yet.
@@ -218,7 +218,7 @@ export function resolveWorkbench(dir: string, expectedProduct?: string): Resolve
         `serves into it. ${
           resolved.kind === 'sources'
             ? `Re-overlay the checkout:\n  node scripts/workbench/dev.mjs --checkout ${root} --product ${expectedProduct}`
-            : `Name a ${expectedProduct} release in .vgai/workbench.json, or cut one:\n  node scripts/workbench/build-release.mjs --product ${expectedProduct} --platform ${machinePlatform()} --checkout <fork dir>`
+            : `Name a ${expectedProduct} release in .volter/workbench.json, or cut one:\n  node scripts/workbench/build-release.mjs --product ${expectedProduct} --platform ${machinePlatform()} --checkout <fork dir>`
         }`,
     );
   }
@@ -287,8 +287,8 @@ function resolveRelease(dir: string): ResolvedWorkbench {
  * A fork checkout. The commit is the working tree's, read with git: a checkout
  * has no file that states it, and a stale one would name bytes nobody is
  * running. The PRODUCT is the overlay's own record — a checkout with none has
- * no vgai tier in it at all, and that is refused here rather than left to
- * surface as a workbench where `VGAI: Open Workspace` does not exist.
+ * no volter tier in it at all, and that is refused here rather than left to
+ * surface as a workbench where `Volter: Open Workspace` does not exist.
  */
 function resolveSources(dir: string): ResolvedWorkbench {
   let commit: string;
@@ -304,7 +304,7 @@ function resolveSources(dir: string): ResolvedWorkbench {
   const marker = join(dir, OVERLAY_RECORD);
   if (!existsSync(marker)) {
     throw new Error(
-      `${dir} is a Code-OSS checkout with no vgai overlay: ${OVERLAY_RECORD} is not there, so nothing of the ` +
+      `${dir} is a Code-OSS checkout with no volter overlay: ${OVERLAY_RECORD} is not there, so nothing of the ` +
         'editor is compiled into it and the workbench would come up as plain Code-OSS. Overlay and compile it:\n' +
         `  node scripts/workbench/dev.mjs --checkout ${dir} --product <model-editor|game-editor>`,
     );
@@ -347,10 +347,10 @@ const RELEASE_REPO = 'volter-ai/code-oss';
  * not a decision: two projects on the same release share one 723 MB directory,
  * a second `create` consults no network, and a release is immutable, so a tag
  * that is here is the tag that was published. Which workbench a project opens
- * in is still recorded in the PROJECT (`.vgai/workbench.json`, written the
+ * in is still recorded in the PROJECT (`.volter/workbench.json`, written the
  * moment this resolves) — nothing ever searches this directory.
  */
-export const WORKBENCH_CACHE_ROOT = join(homedir(), '.vgai', 'workbenches');
+export const WORKBENCH_CACHE_ROOT = join(homedir(), '.volter', 'workbenches');
 
 /** Which of the three steps answered. */
 export type WorkbenchSource = 'flag' | 'declaration' | 'release';
@@ -377,10 +377,10 @@ export interface WorkbenchFetchIO {
  * one answered:
  *
  *   1. `--workbench <dir>` — one launch, writes nothing.
- *   2. `<project>/.vgai/workbench.json` — this machine's record for this project.
+ *   2. `<project>/.volter/workbench.json` — this machine's record for this project.
  *   3. the PRODUCT's declared release — fetched once, then written into (2).
  *
- * Step 3 is what makes `npx @vgai/model-editor create my-models` open something
+ * Step 3 is what makes `npx @volter/model-editor create my-models` open something
  * on a machine that has never built anything, and it is why the CLI resolves
  * the product BEFORE the workbench.
  */
@@ -464,7 +464,7 @@ function apiHeaders(token: string | null): Record<string, string> {
   return {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'vgai-workbench-locator',
+    'User-Agent': 'volter-workbench-locator',
     ...(token === null ? {} : { Authorization: `Bearer ${token}` }),
   };
 }
@@ -485,7 +485,7 @@ function tokenDoors(): string {
 /**
  * FETCH ONE PUBLISHED RELEASE into `dir`, atomically: everything lands in a
  * sibling `.partial` directory and is renamed into place at the end, so a
- * directory under `~/.vgai/workbenches` either is a whole workbench or is not
+ * directory under `~/.volter/workbenches` either is a whole workbench or is not
  * there. Any failure — a refused download, a sha that does not match the
  * product's pin, a tar that dies — deletes the partial and refuses.
  */

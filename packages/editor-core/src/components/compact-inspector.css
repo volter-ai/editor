@@ -14,25 +14,25 @@
    mini card. A horizontal, wrapping row of compact ghost icon buttons under a
    hairline rule, so it reads as a table of contents rather than a toolbar of
    commands. */
-.vgai-inspector-icon-strip {
+.volter-inspector-icon-strip {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--vgai-space-1);
-  padding: var(--vgai-space-1) var(--vgai-space-2);
-  border-bottom: 1px solid var(--vgai-structural-divider);
+  gap: var(--volter-space-1);
+  padding: var(--volter-space-1) var(--volter-space-2);
+  border-bottom: 1px solid var(--volter-structural-divider);
 }
-.vgai-inspector-icon-strip .vgai-btn[data-variant="ghost"] {
-  color: var(--vgai-content-dim);
+.volter-inspector-icon-strip .volter-btn[data-variant="ghost"] {
+  color: var(--volter-content-dim);
 }
-.vgai-inspector-icon-strip .vgai-btn[data-variant="ghost"]:hover:not(:disabled) {
-  color: var(--vgai-content-primary);
+.volter-inspector-icon-strip .volter-btn[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--volter-content-primary);
 }
 
 /* The PROPERTIES presentation — Blender's Properties editor: a vertical TAB
    RAIL down the area's whole left edge, and everything else (the breadcrumb,
    the datablock row, the one open section) in the column beside it. */
-.vgai-inspector-properties {
+.volter-inspector-properties {
   display: flex;
   align-items: stretch;
   /* The rail runs the AREA's whole left edge in the reference, so the split
@@ -51,18 +51,18 @@
    for 377 more device rows (188.5 CSS) to the bottom of the editor. Below
    its 14 tabs there is still rail.
    SCOPED TO THE PRESENTATION THAT ASKED FOR IT. The panel already stamps
-   `data-vgai-inspector-presentation`, so the narrow column, the mini card
+   `data-volter-inspector-presentation`, so the narrow column, the mini card
    and the pill are untouched — the other three presentations have no rail
    to stretch and a filling scroll container would change where their
    content sits. */
-[data-vgai-inspector-presentation="properties"] {
+[data-volter-inspector-presentation="properties"] {
   flex: 1 1 auto;
   /* A scroll container in a column flex parent will not shrink past its
      content without this, which is how the panel would gain the height and
      lose the scroll in the same edit. */
   min-height: 0;
 }
-[data-vgai-inspector-presentation="properties"] > .vgai-inspector-properties-fill {
+[data-volter-inspector-presentation="properties"] > .volter-inspector-properties-fill {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -112,22 +112,22 @@
 
    The rail sticks to the top of the scrolling column so a long section body
    never scrolls the tabs away. */
-.vgai-inspector-properties-rail {
+.volter-inspector-properties-rail {
   display: flex;
   flex-direction: column;
-  gap: var(--vgai-stroke-resting);
-  padding-top: var(--vgai-space-4);
+  gap: var(--volter-stroke-resting);
+  padding-top: var(--volter-space-4);
   /* The rail's only gutter is one device-independent pixel on the LEFT: a tab
      runs flush to the body edge (x 2847..2900 inside a 2845..2900 column). */
-  padding-left: var(--vgai-stroke-resting);
+  padding-left: var(--volter-stroke-resting);
   /* The open tab's plate rounds 2 CSS px on its leading corners and nothing on
      its trailing ones. It is named here rather than written into the rule
      below because it is a MEASURED constant of this frame with no rung in the
      material's shape scale (Blender rounds every widget at 4). */
-  --vgai-properties-tab-plate-radius: 2px;
+  --volter-properties-tab-plate-radius: 2px;
   width: 28px;
   box-sizing: border-box;
-  background: var(--vgai-surface-shell);
+  background: var(--volter-surface-shell);
   position: sticky;
   top: 0;
   align-self: stretch;
@@ -142,7 +142,7 @@
    The rail's flex `gap` already contributes one device-independent pixel on
    each side of this element, so it owns 6.5 of the 8.5 itself. No ink: the
    gap IS the separator in the reference. */
-.vgai-inspector-properties-rail-separator {
+.volter-inspector-properties-rail-separator {
   flex: 0 0 auto;
   height: 6.5px;
 }
@@ -152,7 +152,7 @@
    `[data-size="compact"]` sets the height and `[data-icon="true"][data-size]`
    sets the width to the compact control height (20), which is why an earlier
    cut of this rule left 20x20 tabs with 7 px of rail showing beside them. */
-.vgai-inspector-properties-rail .vgai-btn[data-icon][data-size] {
+.volter-inspector-properties-rail .volter-btn[data-icon][data-size] {
   width: 27px;
   height: 27px;
   min-width: 0;
@@ -160,25 +160,25 @@
   padding: 0;
   border-radius: 0;
 }
-.vgai-inspector-properties-rail .vgai-btn[data-variant="ghost"] {
-  color: var(--vgai-content-dim);
-  background: var(--vgai-surface-chrome);
+.volter-inspector-properties-rail .volter-btn[data-variant="ghost"] {
+  color: var(--volter-content-dim);
+  background: var(--volter-surface-chrome);
 }
-.vgai-inspector-properties-rail .vgai-btn[data-variant="ghost"]:hover:not(:disabled) {
-  color: var(--vgai-content-primary);
+.volter-inspector-properties-rail .volter-btn[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--volter-content-primary);
 }
 /* The open tab IS the panel — Blender gives it the body's own fill so the two
    read as one surface rather than as a lit tab. */
-.vgai-inspector-properties-rail .vgai-btn[aria-selected="true"],
-.vgai-inspector-properties-rail .vgai-btn[data-variant="ghost"][aria-selected="true"] {
-  color: var(--vgai-content-primary);
-  background: var(--vgai-surface-panel);
+.volter-inspector-properties-rail .volter-btn[aria-selected="true"],
+.volter-inspector-properties-rail .volter-btn[data-variant="ghost"][aria-selected="true"] {
+  color: var(--volter-content-primary);
+  background: var(--volter-surface-panel);
 }
 /* …AND IT IS A PLATE, not the whole cell: 25 CSS px inside the 27, rounded on
    the LEFT and flat on the right where it runs into the body.
 
    The inset is the canonical control's OWN transparent 1 px border, which
-   `.vgai-btn` already carries on every button — `background-clip: padding-box`
+   `.volter-btn` already carries on every button — `background-clip: padding-box`
    simply stops painting over it, and 27 - 2 is Blender's 25. (Clipping to the
    CONTENT box instead paints 23: measured live, y 214..236 inside a cell at
    211.5..238.5, because block padding would take a second pixel off each end.)
@@ -186,10 +186,10 @@
    corners come out one pixel tighter, which is why the measured 2 is written
    as 2 plus the border it loses. Specificity has to outrank the tab-box rule
    above, which zeroes the radius. */
-.vgai-inspector-properties-rail .vgai-btn[data-icon][data-size][aria-selected="true"] {
-  --vgai-plate-corner: calc(var(--vgai-properties-tab-plate-radius) + var(--vgai-stroke-resting));
+.volter-inspector-properties-rail .volter-btn[data-icon][data-size][aria-selected="true"] {
+  --volter-plate-corner: calc(var(--volter-properties-tab-plate-radius) + var(--volter-stroke-resting));
   background-clip: padding-box;
-  border-radius: var(--vgai-plate-corner) 0 0 var(--vgai-plate-corner);
+  border-radius: var(--volter-plate-corner) 0 0 var(--volter-plate-corner);
 }
 /* THE RAIL'S ALPHA, and why the open tab is the exception. A category token is
    the glyph's INK at full opacity (`theme.ts`'s category docblock); Blender's
@@ -201,15 +201,15 @@
    `properties-modifier.png`, #6286d1 closed in `properties-object.png`), and
    the Data tab a third time (#00d3a2 / #05ae87).
 
-   Keyed on `[data-vgai-tone]` rather than on the button, so it reaches ONLY a
+   Keyed on `[data-volter-tone]` rather than on the button, so it reaches ONLY a
    glyph whose set gives it a category: Font Awesome carries no tone, so every
    Classic rail is byte-identical to before this rule — its tabs already
-   separate open from closed through `--vgai-content-dim`/`-primary` above,
+   separate open from closed through `--volter-content-dim`/`-primary` above,
    which a toned glyph's own `color` overrides. */
-.vgai-inspector-properties-rail .vgai-btn [data-vgai-tone] {
+.volter-inspector-properties-rail .volter-btn [data-volter-tone] {
   opacity: 0.8;
 }
-.vgai-inspector-properties-rail .vgai-btn[aria-selected="true"] [data-vgai-tone] {
+.volter-inspector-properties-rail .volter-btn[aria-selected="true"] [data-volter-tone] {
   opacity: 1;
 }
 /* THE PROPERTIES IDENTITY — Blender's two opening rows (the component's own
@@ -219,7 +219,7 @@
    the card at 200).
 
    THE INSET IS THE BODY'S, ONCE. This row sits INSIDE
-   `.vgai-inspector-properties-body`, which already spends the measured 8 CSS
+   `.volter-inspector-properties-body`, which already spends the measured 8 CSS
    on every side, so its own 8 doubled it: measured live before this rule, the
    body starts at x 1450.5 and the breadcrumb's glyph landed at 1466.5 — 16 —
    while the cards below it landed at 1458.5. The same doubling the bands unit
@@ -232,45 +232,45 @@
    the pair. `modeling-edit-none.png`'s Modifier tab confirms the middle gap
    from the other side: no datablock row there, and `Add Modifier` starts at
    the same y=140. Ours ran 8 / 2 / 0. */
-.vgai-inspector-identity[data-vgai-identity-layout="properties"] {
+.volter-inspector-identity[data-volter-identity-layout="properties"] {
   display: flex;
   flex-direction: column;
-  gap: var(--vgai-space-8);
-  padding: var(--vgai-space-1) 0 var(--vgai-space-5);
+  gap: var(--volter-space-8);
+  padding: var(--volter-space-1) 0 var(--volter-space-5);
 }
 /* Glyph to name, INK TO INK: `properties-modifier.png` runs the glyph out at
    x=107 and starts `Cube` at x=127 — 20 device px, 10 CSS. Our glyph box
    carries ~1.5 CSS of its own bearing each side, so the gap token that lands
    on 10 is 8 (measured after: 9.5). It was 4. */
-.vgai-inspector-breadcrumb {
+.volter-inspector-breadcrumb {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-4);
-  min-height: var(--vgai-control-default-height);
+  gap: var(--volter-space-4);
+  min-height: var(--volter-control-default-height);
 }
 /* THE CHAIN IS A NAME IN PLAIN INK. Blender's breadcrumb inks its glyph, its
    datablock names and its `>` at 229 on every one of the three tab frames —
    the muted grey we used belongs to the pin (155) and to nothing else on the
    row. Tail ellipsis, like every other name in the chrome; the head-ellipsis
    this rule carried was for the file path, which is now the row's tooltip. */
-.vgai-inspector-breadcrumb-chain {
+.volter-inspector-breadcrumb-chain {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--vgai-font-base);
-  color: var(--vgai-content-primary);
+  font-size: var(--volter-font-base);
+  color: var(--volter-content-primary);
 }
 /* The datablock row is ONE composite: the wells share a border, so the pair
    reads as a single 20 px control the way Blender's does rather than as two
    floating boxes. */
-.vgai-inspector-datablock {
+.volter-inspector-datablock {
   display: flex;
   align-items: stretch;
   min-width: 0;
 }
-.vgai-inspector-datablock-kind {
+.volter-inspector-datablock-kind {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -279,46 +279,46 @@
      holds a glyph AND the datablock caret. We draw no caret (nothing here
      picks a datablock), so the width is stated as what the segment IS: the
      row's own height plus the column the caret would occupy. */
-  min-width: calc(var(--vgai-control-default-height) + var(--vgai-space-5));
-  height: var(--vgai-control-default-height);
-  background: var(--vgai-widget-menu);
-  color: var(--vgai-content-primary);
-  border: var(--vgai-stroke-resting) solid var(--vgai-border-1);
-  border-radius: var(--vgai-radius-sm) 0 0 var(--vgai-radius-sm);
+  min-width: calc(var(--volter-control-default-height) + var(--volter-space-5));
+  height: var(--volter-control-default-height);
+  background: var(--volter-widget-menu);
+  color: var(--volter-content-primary);
+  border: var(--volter-stroke-resting) solid var(--volter-border-1);
+  border-radius: var(--volter-radius-sm) 0 0 var(--volter-radius-sm);
   border-right: 0;
   /* The well is a widget, so it takes the widget emboss like the name field
      beside it — and it has to say so itself, because it is neither a
-     `.vgai-btn` nor an `.vgai-input`. Blender draws the pair's emboss as one
+     `.volter-btn` nor an `.volter-input`. Blender draws the pair's emboss as one
      unbroken line (`properties-data-edit.png` y 180..181 runs the full width
      of the row, well and field together). */
-  box-shadow: var(--vgai-widget-emboss-shadow);
+  box-shadow: var(--volter-widget-emboss-shadow);
 }
-.vgai-inspector-datablock .vgai-input,
-.vgai-inspector-datablock [data-testid="ingest-name"] {
-  border-radius: 0 var(--vgai-radius-sm) var(--vgai-radius-sm) 0;
+.volter-inspector-datablock .volter-input,
+.volter-inspector-datablock [data-testid="ingest-name"] {
+  border-radius: 0 var(--volter-radius-sm) var(--volter-radius-sm) 0;
 }
 /* A READ-ONLY name still gets the well. `SubjectNameField` renders plain text
    rather than an `<input>` there, on the standing rule that a readonly input
    invites typing that vanishes — but Blender's datablock row always shows the
    field, and a glyph well glued to bare text reads as a broken control rather
    than as a name you cannot rename. Same box, no caret. */
-.vgai-inspector-datablock [data-testid="ingest-name"][data-readonly="true"] {
+.volter-inspector-datablock [data-testid="ingest-name"][data-readonly="true"] {
   display: flex;
   align-items: center;
-  height: var(--vgai-control-default-height);
-  padding: 0 var(--vgai-space-3);
-  background: var(--vgai-input-surface, var(--vgai-bg-inset));
-  border: var(--vgai-stroke-resting) solid var(--vgai-input-border, var(--vgai-border-1));
+  height: var(--volter-control-default-height);
+  padding: 0 var(--volter-space-3);
+  background: var(--volter-input-surface, var(--volter-bg-inset));
+  border: var(--volter-stroke-resting) solid var(--volter-input-border, var(--volter-border-1));
   box-sizing: border-box;
   /* It is a `div` standing in for the field, so it restates the field's
-     paint — and the emboss is part of that paint. `--vgai-input-shadow`
+     paint — and the emboss is part of that paint. `--volter-input-shadow`
      already carries it for the real `<input>` (`theme.ts`'s
      `inputShadowValue`); this rule reads the same token for the same reason
-     it restates `--vgai-input-surface` and `--vgai-input-border`. */
-  box-shadow: var(--vgai-input-shadow, none);
+     it restates `--volter-input-surface` and `--volter-input-border`. */
+  box-shadow: var(--volter-input-shadow, none);
 }
 
-.vgai-inspector-properties-body {
+.volter-inspector-properties-body {
   flex: 1 1 auto;
   min-width: 0;
   /* THE PANEL REGION'S INSET. Blender's Properties editor lays its panels in
@@ -332,7 +332,7 @@
      our column scrolls through a different mechanism. The inset lives HERE
      rather than on the card so a section that draws bare content (no
      sub-panels) lands on the same column as one that draws cards. */
-  padding: var(--vgai-space-4);
+  padding: var(--volter-space-4);
 }
 
 /* EVERY SECTION IN THIS REGION IS A CARD. Blender draws a Properties panel as
@@ -349,24 +349,24 @@
    own shape in the reference (its Outliner and its viewport draw no such
    box), and scoping it here leaves the narrow column — every other skin's
    default, and every bounded design-system host — pixel-identical. */
-.vgai-inspector-properties-body .vgai-section {
-  background: var(--vgai-surface-section);
-  border: var(--vgai-stroke-resting) solid var(--vgai-surface-section-edge);
-  border-radius: var(--vgai-radius-sm);
-  margin-bottom: var(--vgai-space-1);
+.volter-inspector-properties-body .volter-section {
+  background: var(--volter-surface-section);
+  border: var(--volter-stroke-resting) solid var(--volter-surface-section-edge);
+  border-radius: var(--volter-radius-sm);
+  margin-bottom: var(--volter-space-1);
   overflow: hidden;
 }
 /* The header is part of the card, not a slab above it: one fill, and the
    divider between stacked sections is the gap plus the outline. */
-.vgai-inspector-properties-body .vgai-section-header {
+.volter-inspector-properties-body .volter-section-header {
   background: transparent;
 }
-.vgai-inspector-properties-body .vgai-section:last-child {
+.volter-inspector-properties-body .volter-section:last-child {
   margin-bottom: 0;
 }
 
 /* THE PANEL COLUMN IS INSET ONCE. A contributed section's own frame
-   (`theme.css`'s `.vgai-inspector-tool-section`) adds the narrow column's
+   (`theme.css`'s `.volter-inspector-tool-section`) adds the narrow column's
    8 px pad, a 1 px rule and a 4 px lift — and in this presentation that
    doubled the inset (measured live: the body starts at x 1450.5 with its own
    8 px pad, and the first card's border still landed at 1466.5) and drew a
@@ -375,7 +375,7 @@
    at x 58 — 16 device px, 8 CSS, symmetric about the column's centre 333 —
    and y 180..199 between the datablock row and that card is plain panel
    fill, no rule. */
-.vgai-inspector-properties-body .vgai-inspector-tool-section {
+.volter-inspector-properties-body .volter-inspector-tool-section {
   padding: 0;
   margin-top: 0;
   border-top: 0;
@@ -408,12 +408,12 @@
    (x 553..572, y 223..230, #909090 on a 3 CSS px pitch) is its panel-REORDER
    handle. This stack does not reorder, and an inert handle promises a gesture
    that does not exist. */
-.vgai-inspector-properties-body .vgai-section-glyph {
+.volter-inspector-properties-body .volter-section-glyph {
   display: none;
 }
-.vgai-inspector-properties-body .vgai-section-trigger {
-  gap: var(--vgai-space-3);
-  padding-inline: var(--vgai-space-2) var(--vgai-space-4);
+.volter-inspector-properties-body .volter-section-trigger {
+  gap: var(--volter-space-3);
+  padding-inline: var(--volter-space-2) var(--volter-space-4);
   font-weight: 400;
   /* The band mark's INK measures 5.5x9.5 CSS in the reference (the closed
      `>` on `properties-object.png`, x 95..105 / y 783..801 at 2x; the open
@@ -421,13 +421,13 @@
      own `xs` rung inked 4x6 here — the squat mark a 3x crop shows beside
      Blender's. `lg` is the rung whose ink lands at 5.4x8.9; no skin that
      declares nothing moves, because the fallback IS `xs`. */
-  --vgai-section-disclosure-size: var(--vgai-icon-lg);
+  --volter-section-disclosure-size: var(--volter-icon-lg);
 }
 
 /* The MINI card — the space-tight fallback. Preview (or kind glyph) on top,
    then name + eye, then the icon strip, then the open-for-edit. It fills its
    viewport-island host; the host owns WHERE it sits. */
-.vgai-mini-inspector {
+.volter-mini-inspector {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -438,18 +438,18 @@
   pointer-events: auto;
 }
 
-.vgai-mini-inspector-minimize {
+.volter-mini-inspector-minimize {
   position: absolute;
-  top: var(--vgai-space-1);
-  right: var(--vgai-space-1);
+  top: var(--volter-space-1);
+  right: var(--volter-space-1);
   z-index: 1;
-  color: var(--vgai-content-dim);
+  color: var(--volter-content-dim);
 }
 
 /* The preview square — the primary EXPAND gesture (clicking the box restores
    the column). A subject with no preview shows a quiet kind glyph in the same
    footprint, so no-preview subjects do not reflow the card. */
-.vgai-mini-inspector-preview {
+.volter-mini-inspector-preview {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -458,63 +458,63 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--vgai-bg-inset);
-  color: var(--vgai-content-dim);
+  background: var(--volter-bg-inset);
+  color: var(--volter-content-dim);
   cursor: pointer;
 }
-.vgai-mini-inspector-preview[aria-label] {
+.volter-mini-inspector-preview[aria-label] {
   cursor: pointer;
 }
-.vgai-mini-inspector-preview:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-mini-inspector-preview:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: -2px;
 }
-.vgai-mini-inspector-preview .vgai-editor-icon {
-  font-size: var(--vgai-font-xl, 24px);
+.volter-mini-inspector-preview .volter-editor-icon {
+  font-size: var(--volter-font-xl, 24px);
 }
 
-.vgai-mini-inspector-identity {
+.volter-mini-inspector-identity {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-2);
-  padding: var(--vgai-space-2);
+  gap: var(--volter-space-2);
+  padding: var(--volter-space-2);
 }
 
-.vgai-mini-inspector-actions {
+.volter-mini-inspector-actions {
   display: flex;
   justify-content: flex-end;
-  padding: 0 var(--vgai-space-2) var(--vgai-space-2);
+  padding: 0 var(--volter-space-2) var(--volter-space-2);
 }
 
 /* The PILL — the floor. One line: thumb-glyph + name + expand, plus a clear
    affordance (the only deselect a minimized box can reach). */
-.vgai-inspector-pill {
+.volter-inspector-pill {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-1);
+  gap: var(--volter-space-1);
   width: 100%;
   height: 100%;
-  padding: var(--vgai-space-1);
+  padding: var(--volter-space-1);
 }
-.vgai-inspector-pill-open {
+.volter-inspector-pill-open {
   display: flex;
   align-items: center;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
   min-width: 0;
   flex: 1;
   height: 100%;
   border: 0;
   background: transparent;
-  color: var(--vgai-content-primary);
+  color: var(--volter-content-primary);
   cursor: pointer;
   text-align: left;
 }
-.vgai-inspector-pill-open:focus-visible {
-  outline: var(--vgai-focus-ring);
+.volter-inspector-pill-open:focus-visible {
+  outline: var(--volter-focus-ring);
   outline-offset: 2px;
-  border-radius: var(--vgai-radius-full);
+  border-radius: var(--volter-radius-full);
 }
-.vgai-inspector-pill-thumb {
+.volter-inspector-pill-thumb {
   position: relative;
   width: 42px;
   height: 42px;
@@ -523,17 +523,17 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: var(--vgai-radius-full);
-  background: var(--vgai-bg-inset);
-  border: 1px solid var(--vgai-boundary-default);
-  color: var(--vgai-content-dim);
+  border-radius: var(--volter-radius-full);
+  background: var(--volter-bg-inset);
+  border: 1px solid var(--volter-boundary-default);
+  color: var(--volter-content-dim);
   pointer-events: none;
 }
-.vgai-inspector-pill-name {
+.volter-inspector-pill-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--vgai-font-md);
+  font-size: var(--volter-font-md);
   font-weight: 600;
 }

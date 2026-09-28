@@ -38,7 +38,7 @@
  *
  * The mount id is BAKED IN at transform time rather than discovered at runtime
  * from `import.meta.url`. Reading the module's own url would have worked —
- * every project module under a mount already carries `?vgai-mount=<id>` — and
+ * every project module under a mount already carries `?volter-mount=<id>` — and
  * it needed no parameter. It was rejected because it silently constrains the
  * prelude to ES-MODULE evaluation forever: `import.meta` is a SyntaxError in a
  * `new Function` body, so any future non-module evaluation path would break at
@@ -52,8 +52,8 @@
  * a weaker fallback realm.
  */
 export function gameGlobalsPrelude(mountId?: string): string {
-  const realm = `(__vgaiHost.__vgaiGameRealm?__vgaiHost.__vgaiGameRealm(${JSON.stringify(mountId ?? '')}):null)`;
-  return PRELUDE_HEAD.replace('__VGAI_REALM__', realm);
+  const realm = `(__volterHost.__volterGameRealm?__volterHost.__volterGameRealm(${JSON.stringify(mountId ?? '')}):null)`;
+  return PRELUDE_HEAD.replace('__VOLTER_REALM__', realm);
 }
 
 const PRELUDE_HEAD =
@@ -64,30 +64,30 @@ const PRELUDE_HEAD =
   // shadow. This is lifecycle instrumentation, not a security sandbox:
   // arbitrary same-realm code can reach the same constructor, which is why
   // the architecture does not claim a browsing-context boundary.
-  "const __vgaiHost=({}).constructor.constructor('return globalThis')()," +
-  '__vgaiR=__VGAI_REALM__,' +
-  '__vgaiGlobal=((__vgaiR&&__vgaiR.globalThis)||__vgaiHost.__vgaiGameWindow||__vgaiHost),' +
-  'globalThis=__vgaiGlobal,' +
-  '__vgaiSched=((__vgaiR&&__vgaiR.timers)||__vgaiHost.__vgaiGameTimers||__vgaiHost),' +
+  "const __volterHost=({}).constructor.constructor('return globalThis')()," +
+  '__volterR=__VOLTER_REALM__,' +
+  '__volterGlobal=((__volterR&&__volterR.globalThis)||__volterHost.__volterGameWindow||__volterHost),' +
+  'globalThis=__volterGlobal,' +
+  '__volterSched=((__volterR&&__volterR.timers)||__volterHost.__volterGameTimers||__volterHost),' +
   // Bind or pass through UNCHANGED. `.bind` is not optional for a real window
   // method — a bare call would hand it an `undefined` receiver ("Illegal
   // invocation"), the same trap `gated-globals.ts`'s `set` trap records — but
   // an environment missing the API entirely (a Node-side transpile test, a
   // worker) must degrade at the CALL site, not explode at module load.
-  '__vgaiBind=function(n){var f=__vgaiSched[n];' +
-  "return typeof f==='function'?f.bind(__vgaiSched):f;}," +
-  'console=((__vgaiR&&__vgaiR.console)||__vgaiHost.__vgaiGameConsole||__vgaiHost.console),' +
-  'window=((__vgaiR&&__vgaiR.window)||__vgaiHost.__vgaiGameWindow||__vgaiGlobal.window),' +
-  'document=((__vgaiR&&__vgaiR.document)||__vgaiHost.__vgaiGameDocument||__vgaiGlobal.document),' +
-  '__vgaiWindowBind=function(n){var f=window&&window[n];' +
+  '__volterBind=function(n){var f=__volterSched[n];' +
+  "return typeof f==='function'?f.bind(__volterSched):f;}," +
+  'console=((__volterR&&__volterR.console)||__volterHost.__volterGameConsole||__volterHost.console),' +
+  'window=((__volterR&&__volterR.window)||__volterHost.__volterGameWindow||__volterGlobal.window),' +
+  'document=((__volterR&&__volterR.document)||__volterHost.__volterGameDocument||__volterGlobal.document),' +
+  '__volterWindowBind=function(n){var f=window&&window[n];' +
   "return typeof f==='function'?f.bind(window):f;}," +
   'localStorage=(window&&window.localStorage),' +
   'sessionStorage=(window&&window.sessionStorage),' +
   'location=(window&&window.location),' +
-  "addEventListener=__vgaiWindowBind('addEventListener')," +
-  "removeEventListener=__vgaiWindowBind('removeEventListener')," +
-  "dispatchEvent=__vgaiWindowBind('dispatchEvent')," +
-  // PROJECT-SCOPED fetch: `__vgaiProjectFetch`, when a host installs one,
+  "addEventListener=__volterWindowBind('addEventListener')," +
+  "removeEventListener=__volterWindowBind('removeEventListener')," +
+  "dispatchEvent=__volterWindowBind('dispatchEvent')," +
+  // PROJECT-SCOPED fetch: `__volterProjectFetch`, when a host installs one,
   // answers a root-absolute `fetch('/shaders/…')` from project code against
   // the project's own files; everywhere else this binds the host's own fetch (bound
   // to the REAL global: native fetch called on a proxied window receiver
@@ -103,14 +103,14 @@ const PRELUDE_HEAD =
   // bridge mints a NEW hook over a new url map, which an already-evaluated
   // module would never see. Reading the host's property on every call keeps
   // every module on the current bridge, with the same host-fetch fallback.
-  'fetch=function(){var f=__vgaiHost.__vgaiProjectFetch;' +
-  'return f?f.apply(null,arguments):__vgaiHost.fetch.apply(__vgaiHost,arguments)},' +
-  "setTimeout=__vgaiBind('setTimeout')," +
-  "clearTimeout=__vgaiBind('clearTimeout')," +
-  "setInterval=__vgaiBind('setInterval')," +
-  "clearInterval=__vgaiBind('clearInterval')," +
-  "requestAnimationFrame=__vgaiBind('requestAnimationFrame')," +
-  "cancelAnimationFrame=__vgaiBind('cancelAnimationFrame');\n";
+  'fetch=function(){var f=__volterHost.__volterProjectFetch;' +
+  'return f?f.apply(null,arguments):__volterHost.fetch.apply(__volterHost,arguments)},' +
+  "setTimeout=__volterBind('setTimeout')," +
+  "clearTimeout=__volterBind('clearTimeout')," +
+  "setInterval=__volterBind('setInterval')," +
+  "clearInterval=__volterBind('clearInterval')," +
+  "requestAnimationFrame=__volterBind('requestAnimationFrame')," +
+  "cancelAnimationFrame=__volterBind('cancelAnimationFrame');\n";
 
 /** The no-mount prelude — the constant every existing consumer already uses. */
 export const GAME_GLOBALS_PRELUDE = gameGlobalsPrelude();

@@ -4,7 +4,7 @@
  *
  * `public/` is the shipped game's assets; `references/` is reference material
  * that lives in the project and is deliberately NOT shipped (see
- * `@vgai/sdk/output-roots` for the writer's half of the same rule). Both are
+ * `@volter/editor-sdk/project/output-roots` for the writer's half of the same rule). Both are
  * ordinary directories of ordinary files — there is no reference database, no
  * import step, and no copy into `public/` to make something appear.
  *

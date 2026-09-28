@@ -7,10 +7,10 @@
  * into another checkout is what the worktree board does whether or not a
  * session is shared, and the only surface that ever called these is
  * `components/VersionControlSection.tsx`. The SHARE half of that file is the
- * collaboration lane's and lives in `@vgai/collaboration`.
+ * collaboration lane's and lives in the collaboration package.
  *
  * The status shape is declared ONCE, in `api/git-wire.ts`, which the editor
- * server and the `vgai` CLI read too.
+ * server and the `volter` CLI read too.
  */
 
 import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';

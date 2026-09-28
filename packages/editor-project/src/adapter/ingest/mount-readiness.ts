@@ -9,7 +9,7 @@
  * this game ready?" was the guess: the host polled draw counts, watched a
  * scene's child count stop growing, and waited fixed windows.
  *
- * The declaration is `window.vgaiGame.ready` ({@link VgaiGameReady} in
+ * The declaration is `window.volterGame.ready` ({@link VolterGameReady} in
  * `game-contract.ts`) for a self-booting game, and MOUNT COMPLETION for a
  * host-mounted (exported-composition) root — the host runs that mount, so it
  * answers the question without the game writing a line. The measured waits
@@ -38,7 +38,7 @@ export type ReadinessSource = 'declared' | 'measured';
 
 /**
  * The three blockers a mount that never reached a live world can have. Carried
- * on the report so a reader (status bar, `vgai status`, the Console line) can
+ * on the report so a reader (status bar, the editor's `status` command, the Console line) can
  * branch without re-parsing the sentence.
  */
 export type MountFailureKind =
@@ -115,7 +115,7 @@ export function describeMountFailure(input: MountFailureInput): MountFailureDesc
       pageErrors: [],
       message:
         `Ingest game "${gameId}" DECLARED A READINESS SIGNAL AND STILL PRODUCED NO CAPTURABLE ` +
-        `RENDER: it stated \`window.vgaiGame.ready\`, but the capture window (${budget}) expired ` +
+        `RENDER: it stated \`window.volterGame.ready\`, but the capture window (${budget}) expired ` +
         "before the editor's three saw a render, and nothing was thrown. (The host awaits " +
         '`ready` only after the first captured render, so whether it resolved was not observed.) ' +
         "Nothing is wrong with the host's wait — the likely blocker is whatever the game's own " +
@@ -132,7 +132,7 @@ export function describeMountFailure(input: MountFailureInput): MountFailureDesc
       `Ingest game "${gameId}" DECLARED NO READINESS SIGNAL, and the MEASURED fallback wait ` +
       `expired: the editor's three saw no render within ${budget} and nothing was thrown, so ` +
       'the host has no way to tell a slow boot from a stopped one. Recovery: declare ' +
-      '`window.vgaiGame.ready` (a promise resolved when the game has built its world) so this ' +
+      '`window.volterGame.ready` (a promise resolved when the game has built its world) so this ' +
       'question stops being measured — or, if the game genuinely needs longer on screen, raise ' +
       `"captureTimeoutMs" in the root's ingest block. ${VISIBLE_TIME_CLAUSE} ` +
       `Underlying wait: ${cause}`,

@@ -26,7 +26,7 @@ export { connectEvents, connectTabPresence, reportTabRoute } from './editor-pres
 // ---------------------------------------------------------------------------
 
 // `./api/agents` is DELIBERATELY NOT RE-EXPORTED HERE (phase 1 unit 22). It is
-// the page-side client for the coding-harness routes, and `@vgai/agents`'s
+// the page-side client for the coding-harness routes, and `@volter/agents`'s
 // modules have always imported `@editor/api/agents` directly rather than
 // through this barrel — so the family's claim above ("every name was exported
 // from here before the split and still is") was already not how its one

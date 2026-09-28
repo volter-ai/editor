@@ -40,7 +40,7 @@ export interface ExampleInfo {
  *  scaffold registry. Browser mode derives the list from what THIS build
  *  actually stages: the runtime bundle's per-root dispatch keys name every
  *  bundled example, and each one's manifest (with its FT-5 `learn` block) is
- *  served at `/examples/<id>/vgai.project.json` — so the gallery lists
+ *  served at `/examples/<id>/volter.project.json` — so the gallery lists
  *  exactly the projects `?project=<id>` can open, never a curated id that
  *  drifted from the build (the dead `editor-tutorial` link, measured on
  *  production 2026-08-27, was exactly that drift). */
@@ -58,7 +58,7 @@ export async function listExamples(): Promise<ExampleInfo[]> {
 }
 
 /** One template-registry entry (G1, FT-3): mirrors `TemplateRegistryEntry` in
- *  create-vgai-project/templates, served by `GET /__editor/templates` from the
+ *  create-volter-project/templates, served by `GET /__editor/templates` from the
  *  same `templates.json` the CLI reads. */
 export interface TemplateInfo {
   id: string;

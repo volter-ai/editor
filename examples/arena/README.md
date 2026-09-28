@@ -1,6 +1,6 @@
 # First Person Arena
 
-A premium first-person arena sample built as VGAI's counterpart to Unreal's
+A premium first-person arena sample built as Volter's counterpart to Unreal's
 First Person template and Arena Shooter variant. It is intentionally a complete,
 bright game slice rather than a mechanics test room.
 
@@ -22,7 +22,7 @@ npm run dev
 ```
 
 Playtest it live: direct the resident tester by goal from the session
-(`vgai eval 'return game.command("bot.goal", "<behavior>")'` — the
+(`volter-game-editor eval 'return game.command("bot.goal", "<behavior>")'` — the
 repertoire lives in `src/bot/behaviors.ts`), arrange situations with the
 declared cheats, and read the emitted events. Play exercises ordinary
 gameplay through the real input bindings and writes the persisted play log

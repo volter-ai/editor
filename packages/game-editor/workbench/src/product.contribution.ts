@@ -8,7 +8,7 @@
  *
  *  It is the counterpart of `packages/game-editor/src/index.ts`, which composes the SAME
  *  product in the editor's own realm. There is exactly one piece of workbench code that is a
- *  game editor's and not any editor's, and it is `vgaiGameSkew.ts` beside this file: what the
+ *  game editor's and not any editor's, and it is `volterGameSkew.ts` beside this file: what the
  *  frame must answer for a GAME layout — immersive Play, the semantic dock commands, and the
  *  surface-keyboard probe. Everything else a game editor draws is the kit's.
  *
@@ -19,19 +19,19 @@
  *
  *  IT DOES SHIP ONE STYLESHEET, and only one: `media/game-cover.css`, this product's own
  *  opening splash. It spells Classic's palette because the cover paints before any theme is
- *  registered at all — see that file's header, and `vgaiProduct.ts`'s `cover`.
+ *  registered at all — see that file's header, and `volterProduct.ts`'s `cover`.
  *--------------------------------------------------------------------------------------------*/
 
 import './media/game-cover.css';
 import { $ } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { localize } from '../../../../nls.js';
-import { registerVgaiProduct, type VgaiProductCover, type VgaiProductCoverContext, type VgaiProductMountContext } from '../../vgai/browser/vgaiProduct.js';
-import { VgaiGameSkew, type VgaiGameBridge } from './vgaiGameSkew.js';
+import { registerVolterProduct, type VolterProductCover, type VolterProductCoverContext, type VolterProductMountContext } from '../../volter/browser/volterProduct.js';
+import { VolterGameSkew, type VolterGameBridge } from './volterGameSkew.js';
 
 /** What this product reads off the mount to know its Game document is open and drawn — a
- *  MIRROR of the kit's `VgaiDocumentsBridge`, declared here for the same reason
- *  `VgaiGameBridge` is: a product declares the shape it expects (`vgaiProduct.ts`'s header),
+ *  MIRROR of the kit's `VolterDocumentsBridge`, declared here for the same reason
+ *  `VolterGameBridge` is: a product declares the shape it expects (`volterProduct.ts`'s header),
  *  and a door this build's kit does not have reads as missing rather than as a crash. */
 interface DocumentsRegistry {
 	whenRestored?(): Promise<void>;
@@ -73,13 +73,13 @@ const GAME_OPEN_BUDGET_MS = 60_000;
  *  cover it drew. Set by `cover`, cleared by the handle's `dispose`. */
 let splash: { say(text: string): void } | undefined;
 
-registerVgaiProduct({
+registerVolterProduct({
 	id: 'game-editor',
 	layout: {
 		sidebarWidth: 260,
 		containers: [
 			{
-				id: 'workbench.view.vgai',
+				id: 'workbench.view.volter',
 				title: 'Game',
 				location: 'sidebar',
 				views: [
@@ -88,39 +88,39 @@ registerVgaiProduct({
 				],
 			},
 			{
-				id: 'workbench.view.vgai.inspector',
+				id: 'workbench.view.volter.inspector',
 				title: 'Inspector',
 				location: 'auxiliarybar',
 				views: [{ part: 'properties', title: 'Inspector', weight: 100 }],
 			},
 		],
 	},
-	title: localize('vgaiGameTitle', "Volter Game Editor"),
+	title: localize('volterGameTitle', "Volter Game Editor"),
 	// The workbench's own trust prompt, in this product's words: a game project runs its own
 	// code the moment it opens — its contributions from its `node_modules`, its dev server, and
 	// the game itself in the pane.
-	trustSentence: localize('vgaiGameTrustRequest', "Volter Game Editor runs this project's own code — its editor contributions, its dev server and its game. Trust this folder to open it."),
+	trustSentence: localize('volterGameTrustRequest', "Volter Game Editor runs this project's own code — its editor contributions, its dev server and its game. Trust this folder to open it."),
 	// THIS PRODUCT'S OWN SPLASH (F4). The kit owns the cover's mechanism — when it goes up,
 	// that it comes away whole, what a refusal looks like; this is the picture inside it, in
 	// Classic's own palette and this product's own words, drawn with no image to fetch so the
 	// first painted frame is already this.
-	cover(host: HTMLElement, context: VgaiProductCoverContext): VgaiProductCover {
-		const root = $('.vgai-game-cover');
+	cover(host: HTMLElement, context: VolterProductCoverContext): VolterProductCover {
+		const root = $('.volter-game-cover');
 		// THE MARK, built as ELEMENTS. Not `innerHTML` — the page carries a Trusted Types
 		// policy and the workbench's own code never assigns markup — and not a file either,
 		// because an image to fetch is a frame to wait for.
-		const mark = $.SVG<SVGElement>('svg', { class: 'vgai-game-cover-mark', viewBox: '0 0 48 48', 'aria-hidden': 'true' });
+		const mark = $.SVG<SVGElement>('svg', { class: 'volter-game-cover-mark', viewBox: '0 0 48 48', 'aria-hidden': 'true' });
 		mark.append(
 			$.SVG<SVGElement>('rect', { x: '4', y: '4', width: '40', height: '40', rx: '9', fill: '#242424', stroke: '#333333' }),
 			$.SVG<SVGElement>('path', { d: 'M20 16 L34 24 L20 32 Z', fill: '#579eff' }),
 		);
-		const title = $('.vgai-game-cover-title');
-		title.textContent = localize('vgaiGameCoverTitle', "Game");
-		const folder = $('.vgai-game-cover-folder');
+		const title = $('.volter-game-cover-title');
+		title.textContent = localize('volterGameCoverTitle', "Game");
+		const folder = $('.volter-game-cover-folder');
 		folder.textContent = context.folderName;
-		const state = $('.vgai-game-cover-state');
-		state.textContent = localize('vgaiGameCoverStarting', "Starting the editor…");
-		root.append(mark, title, folder, $('.vgai-game-cover-rail'), state);
+		const state = $('.volter-game-cover-state');
+		state.textContent = localize('volterGameCoverStarting', "Starting the editor…");
+		root.append(mark, title, folder, $('.volter-game-cover-rail'), state);
 		host.appendChild(root);
 		splash = { say: (text: string) => { state.textContent = text; } };
 		return {
@@ -134,7 +134,7 @@ registerVgaiProduct({
 	// mount resolving is the EDITOR being assembled — the project's own modules still have to
 	// load and the scene still has to draw, and the editor's own "No document open yet" is
 	// what a person would otherwise watch in that window.
-	async ready(context: VgaiProductMountContext): Promise<void> {
+	async ready(context: VolterProductMountContext): Promise<void> {
 		const registry = context.mount['documents'] as DocumentsRegistry | undefined;
 		// A bridge without the door is a MISSING door: with nothing to watch, the mount
 		// resolving is the answer, which is what this product did before `ready` existed.
@@ -144,7 +144,7 @@ registerVgaiProduct({
 		if (registry.list().length === 0) { return; }
 		const open = (): boolean => openDocument(registry);
 		if (!open()) {
-			splash?.say(localize('vgaiGameCoverWaiting', "Opening the game…"));
+			splash?.say(localize('volterGameCoverWaiting', "Opening the game…"));
 			await new Promise<void>((resolve, reject) => {
 				let unsubscribe: (() => void) | undefined;
 				let timer: number | undefined;
@@ -158,7 +158,7 @@ registerVgaiProduct({
 				};
 				timer = mainWindow.setTimeout(() => {
 					stop();
-					reject(new Error(localize('vgaiGameCoverTimedOut', "No document opened within {0}s. The project's own modules load through the editor session; `volter-game-editor console` is where it says why.", Math.round(GAME_OPEN_BUDGET_MS / 1000))));
+					reject(new Error(localize('volterGameCoverTimedOut', "No document opened within {0}s. The project's own modules load through the editor session; `volter-game-editor console` is where it says why.", Math.round(GAME_OPEN_BUDGET_MS / 1000))));
 				}, GAME_OPEN_BUDGET_MS);
 				unsubscribe = registry.subscribe?.(() => { if (open()) { stop(); resolve(); } });
 				// One more read after subscribing: the document can land between the check
@@ -169,16 +169,16 @@ registerVgaiProduct({
 		// DRAWN, not merely registered — the pane paints the active document on the frame
 		// after the registry names it, so the cover lifts onto the game and not onto the empty
 		// pane it was covering.
-		splash?.say(localize('vgaiGameCoverDrawing', "Drawing…"));
+		splash?.say(localize('volterGameCoverDrawing', "Drawing…"));
 		await new Promise<void>((resolve) => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
 	},
-	mount(context: VgaiProductMountContext): void {
-		// THE GAME SKEW'S THREE FRAME ANSWERS (vgaiGameSkew.ts, U2). The bridge publishes its
+	mount(context: VolterProductMountContext): void {
+		// THE GAME SKEW'S THREE FRAME ANSWERS (volterGameSkew.ts, U2). The bridge publishes its
 		// half beside the kit's doors; a bridge without it is a missing door rather than a
 		// crash, which is the same rule every other door here follows.
-		const bridge = context.mount['game'] as VgaiGameBridge | undefined;
+		const bridge = context.mount['game'] as VolterGameBridge | undefined;
 		if (!bridge) { return; }
-		context.store.add(context.instantiationService.createInstance(VgaiGameSkew, bridge, {
+		context.store.add(context.instantiationService.createInstance(VolterGameSkew, bridge, {
 			pane: context.ids.pane,
 			hierarchyView: context.ids.hierarchyView,
 			inspectorView: context.ids.inspectorView,

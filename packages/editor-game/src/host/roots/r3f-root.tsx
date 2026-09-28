@@ -208,7 +208,7 @@ function threeWorldAdapter(id: string, component: ComponentType, runtime: R3FRun
         Fragment,
         null,
         content,
-        createElement(MountEffectsReady, { key: 'vgai-mount-effects-ready' }),
+        createElement(MountEffectsReady, { key: 'volter-mount-effects-ready' }),
       );
       // A reconcile-time crash (e.g. a missing `extend` catalogue entry)
       // surfaces as an uncaught window error and `onCreated` never fires —

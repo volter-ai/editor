@@ -611,7 +611,7 @@ export const COMPASS_CLUSTER_TOP_PX =
  * at the same pixels.
  */
 export const GRAZING_FADE_GLSL = /* glsl */ `
-float vgaiGrazingFade(vec3 worldPosition, vec3 eye, vec3 planeNormal, float amount) {
+float volterGrazingFade(vec3 worldPosition, vec3 eye, vec3 planeNormal, float amount) {
   vec3 toEye = eye - worldPosition;
   float toEyeLength = max(length(toEye), 1e-6);
   float graze = 1.0 - abs(dot(toEye / toEyeLength, planeNormal));
@@ -686,10 +686,10 @@ function applyAxisGrazingFade(
       )
       .replace(
         'gl_FragColor = vec4( diffuseColor.rgb, alpha );',
-        'gl_FragColor = vec4( diffuseColor.rgb, alpha * vgaiGrazingFade( vAxisWorld, cameraPosition, uPlaneNormal, uGrazingFade ) );',
+        'gl_FragColor = vec4( diffuseColor.rgb, alpha * volterGrazingFade( vAxisWorld, cameraPosition, uPlaneNormal, uGrazingFade ) );',
       );
   };
-  material.customProgramCacheKey = () => 'vgai-axis-grazing-fade';
+  material.customProgramCacheKey = () => 'volter-axis-grazing-fade';
 }
 
 const _gridView = new THREE.Vector3();
@@ -824,7 +824,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         // Blender's own grazing-angle profile, transcribed from its frames
         // (see GRAZING_FADE_GLSL above). Without it this lattice reads the
         // same ink at the front of the frame and at the horizon.
-        fade *= vgaiGrazingFade(vWorld, cameraPosition, uPlaneNormal, uGrazingFade);
+        fade *= volterGrazingFade(vWorld, cameraPosition, uPlaneNormal, uGrazingFade);
         float alpha = line * fade * uOpacity;
         if (alpha <= 0.002) discard;
         // WHICH level a fragment belongs to is the major's SHARE of the
@@ -1731,7 +1731,7 @@ export class EditorViewport {
       this._vertexSnapIndicator,
     ];
 
-    // D12 (B4) — publish the camera/canvas seam `VgaiSceneAuthoringAdapter.pickable`
+    // D12 (B4) — publish the camera/canvas seam `VolterSceneAuthoringAdapter.pickable`
     // needs (it has no other way to reach them). Cleared in `dispose()`.
     if (this._publishPickContext) {
       this._installPickContext(this.camera);
@@ -2363,8 +2363,8 @@ export class EditorViewport {
       // two competing selection languages and obscures the draggable handle.
       if ([...this._constraintHelpers.values()].some((helper) => helper.presents(obj))) continue;
       // Nor over an object whose document draws its overlay itself, selection colour included
-      // (`userData.vgaiOwnOverlay`: a Blender camera, light or empty).
-      if (obj.userData['vgaiOwnOverlay']) continue;
+      // (`userData.volterOwnOverlay`: a Blender camera, light or empty).
+      if (obj.userData['volterOwnOverlay']) continue;
       add(
         `selection:${id}`,
         new SelectionBrackets(obj, {
@@ -2759,9 +2759,9 @@ export class EditorViewport {
   }
 
   /** A light the editor draws a helper for: not one whose document draws its own overlay
-   *  (`userData.vgaiOwnOverlay`, the way `vgaiOwnMaterial` keeps a material its owner's). */
+   *  (`userData.volterOwnOverlay`, the way `volterOwnMaterial` keeps a material its owner's). */
   private _nativeLight(object: THREE.Object3D): THREE.Light | null {
-    if (object.userData['vgaiOwnOverlay']) return null;
+    if (object.userData['volterOwnOverlay']) return null;
     return (object as THREE.Light).isLight ? (object as THREE.Light) : null;
   }
 
@@ -2939,7 +2939,7 @@ export class EditorViewport {
   }
 
   private _nativeCamera(object: THREE.Object3D): THREE.Camera | null {
-    if (object.userData['vgaiOwnOverlay']) return null;
+    if (object.userData['volterOwnOverlay']) return null;
     if ((object as THREE.Camera).isCamera) return object as THREE.Camera;
     const owned = getUserData(object, '_camera');
     return owned?.isCamera ? owned : null;
@@ -3733,7 +3733,7 @@ export class EditorViewport {
   }
 
   /** The helper groups on screen now (`setHelper`), for a pick that lets a helper stand for the
-   *  object it draws (`userData.vgaiPicksAs`). */
+   *  object it draws (`userData.volterPicksAs`). */
   visibleHelpers(): THREE.Object3D[] {
     return [...this._helpers.values()].filter((helper) => helper.visible && helper.parent !== null);
   }
@@ -5587,10 +5587,10 @@ export class EditorViewport {
           ownMaterial &&
           mesh.material &&
           !Array.isArray(mesh.material) &&
-          !mesh.userData['vgaiOwnMaterial']
+          !mesh.userData['volterOwnMaterial']
         ) {
           mesh.material = (mesh.material as THREE.Material).clone();
-          mesh.userData['vgaiOwnMaterial'] = true;
+          mesh.userData['volterOwnMaterial'] = true;
         }
         const material = mesh.material as
           | (THREE.MeshBasicMaterial & { _color?: THREE.Color | undefined })
@@ -5603,7 +5603,7 @@ export class EditorViewport {
           // translucent); three caches it like the colour, so the cache is dropped too.
           // Handles only: the drag's axis lines (the `helper` family) keep three's own.
           if (handles) {
-            const base = (material.userData['vgaiBaseOpacity'] ??= material.opacity) as number;
+            const base = (material.userData['volterBaseOpacity'] ??= material.opacity) as number;
             material.opacity = base * (this._gizmoLook.opacity ?? 1);
             (material as { _opacity?: number | undefined })._opacity = undefined;
           }
@@ -6169,7 +6169,7 @@ export class EditorViewport {
           pointerEvents: 'none',
           zIndex: zIndex.sticky,
         });
-        // INSIDE the theme scope, never document.body: the `--vgai-*` tokens
+        // INSIDE the theme scope, never document.body: the `--volter-*` tokens
         // live on `#editor-chrome-root` (deliberately not `:root`), so a
         // body-parented div resolves both colors to nothing and the rubber
         // band is INVISIBLE — three human passes marqueed blind, reading the
@@ -6348,7 +6348,7 @@ export class EditorViewport {
 
     // D12 (B4) — topmost-first layered pick: the composite's non-threejs
     // children (react/pixi design-time layers) are tried topmost-first before
-    // falling through to the three raycast (now `VgaiSceneAuthoringAdapter
+    // falling through to the three raycast (now `VolterSceneAuthoringAdapter
     // .pickable`) — see `pickTopmost`'s doc comment. Note: an INTERACTIVE
     // layer (session `interactive` toggle, B1) is mutually exclusive with this
     // walk running at all, by construction — its `pointer-events:auto` DOM
@@ -6499,7 +6499,7 @@ export class EditorViewport {
       background: themeVars.accent.muted,
       zIndex: zIndex.base,
     });
-    // Same class as the marquee band: `--vgai-*` resolves only under
+    // Same class as the marquee band: `--volter-*` resolves only under
     // `#editor-chrome-root`, so a body-parented overlay draws with NO border
     // or fill — the drag-to-viewport highlight has been invisible.
     (document.getElementById('editor-chrome-root') ?? document.body).appendChild(overlay);

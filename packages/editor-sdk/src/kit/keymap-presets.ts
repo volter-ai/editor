@@ -16,7 +16,7 @@ export type { EditorKeyActionId, KeyChord } from '@volter/editor-sdk/looks';
  * The ruling (docs/ARCHITECTURE-CORE.md §Editor chrome, the "Workspaces are
  * task-named layout memories" bullet, final sentence): *"Keymaps are
  * orthogonal to workspaces: a `keymap` setting selects the binding table
- * (`vgai` default; `blender` — G/R/S, A, Alt+A, `.` frame) through one
+ * (`volter` default; `blender` — G/R/S, A, Alt+A, `.` frame) through one
  * indirection at the action-registry/hotkey seam."*
  *
  * ONE INDIRECTION means exactly this: nothing in the editor spells a literal
@@ -45,7 +45,7 @@ export type { EditorKeyActionId, KeyChord } from '@volter/editor-sdk/looks';
  * narrow what a running game receives.
  */
 
-/** Any registered keymap's id: the editor's own `vgai`, or one a package
+/** Any registered keymap's id: the editor's own `volter`, or one a package
  *  contributes (`@volter/editor-sdk/looks`, `KeymapContribution`). */
 export type EditorKeymapId = string;
 
@@ -59,8 +59,8 @@ export interface EditorKeymapDescriptor {
  *  a package's contribution (Blender's ships with `@volter/editor-blender`). */
 const BUILT_IN_KEYMAPS: readonly EditorKeymapDescriptor[] = Object.freeze([
   {
-    id: 'vgai',
-    title: 'vgai',
+    id: 'volter',
+    title: 'volter',
     description: "The editor's own bindings: W/E/R gizmo modes, Ctrl+A select all, F frames.",
   },
 ] satisfies readonly EditorKeymapDescriptor[]);
@@ -106,7 +106,7 @@ export function registerContributedKeymap(contribution: KeymapContribution): () 
       title: contribution.title,
       description: contribution.description,
     },
-    table: Object.freeze({ ...VGAI_KEYMAP, ...contribution.bindings }) as EditorKeymapTable,
+    table: Object.freeze({ ...VOLTER_KEYMAP, ...contribution.bindings }) as EditorKeymapTable,
     navigation: contribution.navigation ?? null,
   };
   contributedKeymaps.set(contribution.id, entry);
@@ -134,11 +134,11 @@ export function isEditorKeymapId(value: unknown): value is EditorKeymapId {
 export type EditorKeymapTable = Readonly<Record<EditorKeyActionId, readonly KeyChord[]>>;
 
 /**
- * The vgai table reproduces the bindings the editor shipped before keymaps
+ * The volter table reproduces the bindings the editor shipped before keymaps
  * existed, chord for chord. It is the regression bar: any change here is a
  * change to the default editor, not to a keymap.
  */
-const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
+const VOLTER_KEYMAP: EditorKeymapTable = Object.freeze({
   'edit.undo': [{ key: 'z', mod: true }],
   // Ctrl+Y mirrors Ctrl+Shift+Z (Windows convention).
   'edit.redo': [
@@ -153,7 +153,7 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   'edit.wrap': [{ key: 'g', mod: true, alt: true }],
   'edit.unwrap': [{ key: 'g', mod: true, shift: true }],
   'edit.selectAll': [{ key: 'a', mod: true }],
-  // No dedicated chord: Escape is the vgai deselect, and it carries the
+  // No dedicated chord: Escape is the volter deselect, and it carries the
   // scope-exit semantics too (`edit.exitScopeOrDeselect`). An empty chord list
   // registers no binding; the printed hint falls back to Escape's.
   'edit.deselectAll': [],
@@ -219,7 +219,7 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
 // The setting
 // ---------------------------------------------------------------------------
 
-export const DEFAULT_EDITOR_KEYMAP: EditorKeymapId = 'vgai';
+export const DEFAULT_EDITOR_KEYMAP: EditorKeymapId = 'volter';
 
 let cachedKeymap: EditorKeymapId | null = null;
 let settingsSyncInstalled = false;
@@ -242,7 +242,7 @@ function projectScopedKeymap(): unknown {
 /**
  * A keymap a PACKAGE contributes is project-scoped: it exists only where that
  * package is declared, so only the project may select it — its adapter
- * (`editor: { keymap: blenderKeymap }`) or its own `.vgai/settings.json`. The
+ * (`editor: { keymap: blenderKeymap }`) or its own `.volter/settings.json`. The
  * USER layer chooses among the editor's own, because a cross-project default
  * naming a skew's bindings is how a models project's G/R/S reached a game
  * project that merely happens to declare the same package.
@@ -342,7 +342,7 @@ export function activeKeymapNavigation(): KeymapNavigation {
 /** A named table, for a surface that must show a keymap it is not running.
  *  An unregistered id answers the editor's own table. */
 export function keymapTable(id: EditorKeymapId): EditorKeymapTable {
-  return contributedKeymaps.get(id)?.table ?? VGAI_KEYMAP;
+  return contributedKeymaps.get(id)?.table ?? VOLTER_KEYMAP;
 }
 
 // ---------------------------------------------------------------------------

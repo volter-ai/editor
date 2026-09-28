@@ -369,17 +369,17 @@ export function ViewportFurniture({
         aria-hidden="true"
         style={{
           position: 'absolute',
-          top: 'var(--vgai-space-3)',
+          top: 'var(--volter-space-3)',
           // Clear of the tool rail at the stage's left edge (Blender's text
           // starts past its toolbar): the rail is one control wide plus its
           // own inset.
-          left: 'calc(var(--vgai-space-4) + var(--vgai-control-comfortable-height) * 2 + var(--vgai-space-4))',
+          left: 'calc(var(--volter-space-4) + var(--volter-control-comfortable-height) * 2 + var(--volter-space-4))',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--vgai-space-1)',
-          fontSize: 'var(--vgai-font-sm)',
+          gap: 'var(--volter-space-1)',
+          fontSize: 'var(--volter-font-sm)',
           color: overlayInk,
-          textShadow: 'var(--vgai-content-text-shadow, none)',
+          textShadow: 'var(--volter-content-text-shadow, none)',
           pointerEvents: 'none',
           userSelect: 'none',
         }}
@@ -396,7 +396,7 @@ export function ViewportFurniture({
               // The column's own rows keep the block's line step; the block
               // itself stands off the lines above it. See
               // `STATISTICS_BLOCK_OFFSET`.
-              rowGap: 'var(--vgai-space-1)',
+              rowGap: 'var(--volter-space-1)',
               marginTop: spaceVar[STATISTICS_BLOCK_OFFSET],
             }}
           >
@@ -412,15 +412,15 @@ export function ViewportFurniture({
       ) : null}
       {chrome.viewName === 'menu' ? (
         <div
-          className="vgai-viewport-view-pill"
+          className="volter-viewport-view-pill"
           style={{
             position: 'absolute',
-            top: 'var(--vgai-viewport-overlay-top, var(--vgai-space-4))',
+            top: 'var(--volter-viewport-overlay-top, var(--volter-space-4))',
             // Past the shelf rail when it draws anything, as the view text is; at the edge when
-            // it is empty (`data-vgai-stage-rail`, `workspace-surfaces.css`).
+            // it is empty (`data-volter-stage-rail`, `workspace-surfaces.css`).
             left:
-              'var(--vgai-stage-name-left, calc(var(--vgai-space-4) + var(--vgai-control-comfortable-height) * 2 + var(--vgai-space-4)))',
-            zIndex: 'calc(var(--vgai-z-dropdown, 1000) - 1)',
+              'var(--volter-stage-name-left, calc(var(--volter-space-4) + var(--volter-control-comfortable-height) * 2 + var(--volter-space-4)))',
+            zIndex: 'calc(var(--volter-z-dropdown, 1000) - 1)',
             pointerEvents: 'auto',
           }}
         >
@@ -433,7 +433,7 @@ export function ViewportFurniture({
         <button
           type="button"
           data-testid="viewport-view-name"
-          className="vgai-viewport-gizmo-label"
+          className="volter-viewport-gizmo-label"
           aria-label={drawn === 'perspective' ? 'Switch to orthographic' : 'Switch to perspective'}
           onClick={() => {
             const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
@@ -447,13 +447,13 @@ export function ViewportFurniture({
             transform: 'translateX(50%)',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 'var(--vgai-space-1)',
+            gap: 'var(--volter-space-1)',
             padding: 0,
             border: 0,
             background: 'none',
-            fontSize: 'var(--vgai-font-sm)',
+            fontSize: 'var(--volter-font-sm)',
             color: overlayInk,
-            textShadow: 'var(--vgai-content-text-shadow, none)',
+            textShadow: 'var(--volter-content-text-shadow, none)',
             cursor: 'pointer',
             pointerEvents: 'auto',
           }}
@@ -475,7 +475,7 @@ export function ViewportFurniture({
         role="toolbar"
         aria-label="Navigation"
         aria-orientation="vertical"
-        className="vgai-chrome-island vgai-viewport-navigation"
+        className="volter-chrome-island volter-viewport-navigation"
         style={{
           position: 'absolute',
           top: CLUSTER_TOP,
@@ -487,17 +487,17 @@ export function ViewportFurniture({
           // 2836); at 12 it is 9.0.
           // UNGATED, like every other number this cluster carries: its 28 and
           // 16 are Blender's for every skin already (`theme.css`'s
-          // `.vgai-viewport-navigation` block, no palette selector), and the
+          // `.volter-viewport-navigation` block, no palette selector), and the
           // estate's `css-style-identity-selector` gate forbids one anyway.
-          right: 'var(--vgai-space-6)',
+          right: 'var(--volter-space-6)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--vgai-space-1)',
+          gap: 'var(--volter-space-1)',
           // Blender's capsule is exactly as wide as its buttons: it insets
           // only along the column.
-          padding: 'var(--vgai-space-1) 0',
-          borderRadius: 'var(--vgai-radius-full)',
-          background: 'var(--vgai-island-surface, var(--vgai-surface-overlay))',
+          padding: 'var(--volter-space-1) 0',
+          borderRadius: 'var(--volter-radius-full)',
+          background: 'var(--volter-island-surface, var(--volter-surface-overlay))',
           pointerEvents: 'auto',
         }}
       >

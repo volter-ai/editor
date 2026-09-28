@@ -72,7 +72,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   const projectRoot = ingestGameDomProjectRoot(folderId);
   if (!projectRoot) {
     editorConsole.error(
-      `React ingest "${folderId}": no __VGAI_ENGINE_ROOT__ available to resolve its entry`,
+      `React ingest "${folderId}": no __VOLTER_ENGINE_ROOT__ available to resolve its entry`,
       'ingest',
     );
     return;
@@ -95,7 +95,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   // F26: same cold-mount announcement as the other ingest routes — the react
   // world's entry executes in the editor realm and may declare the game
   // contract to defer its session until ▶. Opt-in, never demanded.
-  (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
+  (window as unknown as { __volterMountCold?: boolean }).__volterMountCold = true;
   const { createGameRuntime } = await import('../runtime/create-runtime');
   const specs = await resolveAllRoots(game.manifest, projectRoot);
   const w = gameContainer.clientWidth;
@@ -155,7 +155,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   const coverage = domMountCoverage(adapter);
   recordMountCoverage(coverage);
 
-  publishIngestHook('__vgaiIngestReact', {
+  publishIngestHook('__volterIngestReact', {
     gameId: folderId,
     worldId: game.worldId,
     ...ingestHookEvidence(adapter),
@@ -169,7 +169,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
     domEvidence: () => reactDomEvidence(root, adapter),
     // D-L1: honest `typeof === 'function'` check on the REAL session
     // control this route just installed above — never an independent
-    // literal `true` (mirrors `__vgaiSiblingMounts`'s identical discipline).
+    // literal `true` (mirrors `__volterSiblingMounts`'s identical discipline).
     setPausedPresent: typeof lifecycle.setPaused === 'function',
   });
 }
@@ -177,7 +177,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
 /**
  * D-Y2 (slice S2) — the manifest-route sibling of {@link mountDomIngestRoot}: an
  * EXTERNAL-FOLDER `ingest-react` world (the opened project's OWN
- * `vgai.project.json`, not the in-tree `ingest/games/<id>` fixture registry)
+ * `volter.project.json`, not the in-tree `ingest/games/<id>` fixture registry)
  * enters the same react ingest session. Exactly the same roots-path recipe
  * (one-element `resolveAllRoots` + roots-path `createGameRuntime`) and the same
  * `DomAuthoringAdapter` D-K4 wiring — only the SOURCE of
@@ -215,7 +215,7 @@ export async function mountDomIngestRootFromManifest(
 
   // F26: same cold-mount announcement the vendored route makes — an
   // external-folder game may declare the game contract too.
-  (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
+  (window as unknown as { __volterMountCold?: boolean }).__volterMountCold = true;
   const { createGameRuntime } = await import('../runtime/create-runtime');
   const specs = await resolveAllRoots({ ...manifest, roots: [world] }, projectRoot);
   const w = gameContainer.clientWidth;
@@ -260,7 +260,7 @@ export async function mountDomIngestRootFromManifest(
   const coverage = domMountCoverage(adapter);
   recordMountCoverage(coverage);
 
-  publishIngestHook('__vgaiIngestReact', {
+  publishIngestHook('__volterIngestReact', {
     worldId: world.id,
     ...ingestHookEvidence(adapter),
     noAuthoring: false,

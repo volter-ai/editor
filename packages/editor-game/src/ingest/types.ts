@@ -5,7 +5,7 @@
  *
  * It is the common contract every discovery frontend builds:
  * `ingest/surface-three.ts`'s glob-based discovery of the in-tree fixture games
- * under `ingest/games/<id>/vgai.project.json`, `binding-resolver.ts`'s
+ * under `ingest/games/<id>/volter.project.json`, `binding-resolver.ts`'s
  * `resolveIngestDescriptor` (an arbitrary project folder's manifest, mounted
  * through the dev server), and `ingest/discovery-public-ingest.ts` (a game
  * served out of the repo's public dir, by id).

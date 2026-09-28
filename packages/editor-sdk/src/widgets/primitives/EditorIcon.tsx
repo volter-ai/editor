@@ -19,12 +19,12 @@ export type EditorIconTone = 'current' | 'primary' | 'muted' | 'dim' | 'accent' 
 // text shrank every glyph with it — under Blender's density the chrome drew
 // 10–11 px glyphs where Blender draws 14.
 const SIZE: Record<EditorIconSize, string> = {
-  xs: 'var(--vgai-icon-xs)',
-  sm: 'var(--vgai-icon-sm)',
-  md: 'var(--vgai-icon-md)',
-  lg: 'var(--vgai-icon-lg)',
-  xl: 'var(--vgai-icon-xl)',
-  '2xl': 'var(--vgai-icon-2xl)',
+  xs: 'var(--volter-icon-xs)',
+  sm: 'var(--volter-icon-sm)',
+  md: 'var(--volter-icon-md)',
+  lg: 'var(--volter-icon-lg)',
+  xl: 'var(--volter-icon-xl)',
+  '2xl': 'var(--volter-icon-2xl)',
 };
 
 const TONE: Record<EditorIconTone, string | undefined> = {
@@ -67,7 +67,7 @@ export function EditorIcon({
     // quiet rail), status (`danger`) — and that always wins; `current` is the
     // default, i.e. the site said nothing, so the glyph's category speaks.
     const siteToned = tone !== 'current';
-    const categoryInk = glyph.tone ? `var(--vgai-category-${glyph.tone}, currentColor)` : undefined;
+    const categoryInk = glyph.tone ? `var(--volter-category-${glyph.tone}, currentColor)` : undefined;
     // With a `tonedPath` the category tints only that path and the body stays
     // `currentColor` — Blender's operator marks tint the OPERATED element and
     // leave the cube neutral. Without one, the category is the whole glyph's
@@ -86,7 +86,7 @@ export function EditorIcon({
         // rides out as a DOM marker: a set with no tone for this name (Font
         // Awesome's, every Classic surface) carries no attribute and no rule
         // keyed on it can reach it.
-        data-vgai-tone={siteToned ? undefined : glyph.tone}
+        data-volter-tone={siteToned ? undefined : glyph.tone}
         className={className}
         aria-hidden={label ? undefined : (svgProps['aria-hidden'] ?? 'true')}
         aria-label={label}

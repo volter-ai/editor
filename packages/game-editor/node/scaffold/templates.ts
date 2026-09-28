@@ -2,7 +2,7 @@
  * G1 — typed loader for the template registry (`templates.json`).
  *
  * Templates are a small curated registry of pointers — each entry references
- * either a composition template in `packages/editor/template/` (`source:
+ * either a composition template in `packages/game-editor/template/` (`source:
  * "template:<id>"`) or a promoted example (`source: "example:<id>"`), plus
  * display metadata. The sibling `templates.json` is the SINGLE source of
  * truth; the CLI, the editor server (`GET /__editor/templates`), and the New

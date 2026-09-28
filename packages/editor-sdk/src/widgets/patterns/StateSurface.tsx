@@ -29,12 +29,12 @@ export function StateSurface({
       role={props.role ?? defaultRole}
       data-tone={tone}
       data-compact={compact || undefined}
-      className={className ? `vgai-state-surface ${className}` : 'vgai-state-surface'}
+      className={className ? `volter-state-surface ${className}` : 'volter-state-surface'}
     >
-      {icon && <div className="vgai-state-surface-icon">{icon}</div>}
-      <strong className="vgai-state-surface-title">{title}</strong>
-      {description && <div className="vgai-state-surface-description">{description}</div>}
-      {action && <div className="vgai-state-surface-action">{action}</div>}
+      {icon && <div className="volter-state-surface-icon">{icon}</div>}
+      <strong className="volter-state-surface-title">{title}</strong>
+      {description && <div className="volter-state-surface-description">{description}</div>}
+      {action && <div className="volter-state-surface-action">{action}</div>}
     </div>
   );
 }

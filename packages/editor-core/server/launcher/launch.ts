@@ -26,7 +26,7 @@ export async function launch(folder: string, launching: LaunchingProduct, option
   const project = realpathSync(resolve(folder));
   const product = resolveProductForProject(project);
   if (product.name !== launching.packageName) throw new Error(`${project} declares ${product.name}, not ${launching.displayName}.`);
-  const port = resolveEditorPortPreference(project, options.port, process.env['VGAI_EDITOR_PORT']);
+  const port = resolveEditorPortPreference(project, options.port, process.env['VOLTER_EDITOR_PORT']);
   await waitForPendingEditorLaunch(project);
   const sessions = await verifiedSessions(port);
   const verdict = classifyProjectSession(sessions, project);
@@ -60,10 +60,10 @@ export async function launch(folder: string, launching: LaunchingProduct, option
   try {
     child = spawn(process.execPath, [entry], {
       cwd: project, detached: true, stdio: ['ignore', log, log],
-      env: { ...process.env, VGAI_CLI_ENTRY: resolve(process.argv[1]!),
-        VGAI_PROJECT: project, VGAI_PRODUCT_DIR: product.dir, VGAI_EDITOR_PORT: String(port),
-        VGAI_WORKBENCH_DIR: workbench.dir, VGAI_FRAME_PORT: String(framePort), VGAI_FRAME_PROXY_PORT: String(proxyPort),
-        ...(options.noOpen ? { VGAI_NO_OPEN: '1' } : {}),
+      env: { ...process.env, VOLTER_CLI_ENTRY: resolve(process.argv[1]!),
+        VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_EDITOR_PORT: String(port),
+        VOLTER_WORKBENCH_DIR: workbench.dir, VOLTER_FRAME_PORT: String(framePort), VOLTER_FRAME_PROXY_PORT: String(proxyPort),
+        ...(options.noOpen ? { VOLTER_NO_OPEN: '1' } : {}),
       },
     });
   } catch (error) {
@@ -100,7 +100,7 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
   const code = await new Promise<number | null>((done, fail) => {
     const child = spawn(process.execPath, [entry], {
       cwd: project, stdio: ['ignore', 'inherit', 'inherit'],
-      env: { ...process.env, VGAI_PROJECT: project, VGAI_PRODUCT_DIR: product.dir, VGAI_NO_OPEN: '1', VGAI_PREPARE: '1' },
+      env: { ...process.env, VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_NO_OPEN: '1', VOLTER_PREPARE: '1' },
     });
     child.once('error', fail);
     child.once('exit', done);

@@ -1,7 +1,7 @@
 /**
  * The play log's NAMING scheme, defined once. The dev server mints the files
- * in `routes/logs.ts`, and every downstream reader (`vgai status`'s
- * play-error banner, `@vgai/sdk/build-discipline`'s evidence walk, the
+ * in `routes/logs.ts`, and every downstream reader (the editor's `status` command's
+ * play-error banner, editor-core's `server/support/project/build-discipline.ts`'s evidence walk, the
  * pruner, the session catalog) sorts them lexicographically and expects
  * chronological order. Moved here from `server/recent-projects-store.ts`
  * (which re-exports for its existing importers) so the browser build can
@@ -21,7 +21,7 @@ export function slugify(name: string): string {
  *  name, punctuation only) — an unnamed run and an unnameable one are the
  *  same case, and both must fall back to the unnamed filename exactly.
  *
- *  The bound comes from `@vgai/sdk`'s run-name module rather than a literal
+ *  The bound comes from editor-core's `run-name` module rather than a literal
  *  here: a playtest run derives its own name against the same ceiling, and two
  *  copies of "40" is how the derived name and the filename it lands in start
  *  disagreeing. */
@@ -35,8 +35,8 @@ export function playRunSlug(name: string | null | undefined): string | null {
  * A play session's JSONL filename.
  *
  * `play-<stamp>-<sequence>.jsonl` unchanged when the run is unnamed — that
- * shape is depended on by the newest-log readers (`vgai status`'s play-error
- * banner, `@vgai/sdk/build-discipline`'s evidence walk) and by the pruner, all
+ * shape is depended on by the newest-log readers (the editor's `status` command's play-error
+ * banner, editor-core's `server/support/project/build-discipline.ts`'s evidence walk) and by the pruner, all
  * of which sort lexicographically and expect chronological order.
  *
  * An OPTIONAL name is appended AFTER the sequence for exactly that reason: the

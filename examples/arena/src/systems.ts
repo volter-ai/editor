@@ -7,7 +7,7 @@
  *
  * The arena's own readings and setup functions are ordinary exports of the
  * modules that own them (`src/prefabs/Player.tsx`, `src/prefabs/Enemy.tsx`,
- * `src/arena-state.ts`), reached through `vgai eval`'s
+ * `src/arena-state.ts`), reached through `volter-game-editor eval`'s
  * `game.run(({ modules }) => …)`.
  */
 

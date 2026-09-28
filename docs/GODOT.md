@@ -2,8 +2,8 @@
 
 The Godot lane translates a Godot project into a game this editor opens: its scenes become React
 components, its scripts become ordinary TypeScript, and what Godot's API means at runtime comes
-from a copied capability. The owner called its turn on 2026-09-25. It came back from vgai-engine's
-tag `archive/godot-lane-2026-09-19` (vgai-engine `6499489cb`); nothing here was re-derived.
+from a copied capability. The owner called its turn on 2026-09-25. It came back from volter-engine's
+tag `archive/godot-lane-2026-09-19` (volter-engine `6499489cb`); nothing here was re-derived.
 
 ## The lane's law (owner, 2026-09-27)
 
@@ -95,7 +95,7 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 
 | Date | Commit | Reviewed against | Verdict |
 | --- | --- | --- | --- |
-| 2026-09-27 | `69edd5ae` | vgai-engine's ten rows (before these rulings) | baseline: all ten fail. Compat owns the main loop and physics stepping (`scene-tree.ts` `godot_main_iteration`, the paused `<Physics>` in `main.tsx`), class-name registries (`CLASS_MOUNTS`, `godot_node_class_mount`), a spawn host and a mirrored canvas tree; emit dispatches on class names (`switch (className)` in `idiomatic-scene-syntax.ts`, `GODOT_ELEMENTS[className]`); lowering special-cases `AnimationTree`; the emitted `world.tsx` exports `debug`; claim records store one digest as both sides. The baseline the conformance work starts from. |
+| 2026-09-27 | `69edd5ae` | volter-engine's ten rows (before these rulings) | baseline: all ten fail. Compat owns the main loop and physics stepping (`scene-tree.ts` `godot_main_iteration`, the paused `<Physics>` in `main.tsx`), class-name registries (`CLASS_MOUNTS`, `godot_node_class_mount`), a spawn host and a mirrored canvas tree; emit dispatches on class names (`switch (className)` in `idiomatic-scene-syntax.ts`, `GODOT_ELEMENTS[className]`); lowering special-cases `AnimationTree`; the emitted `world.tsx` exports `debug`; claim records store one digest as both sides. The baseline the conformance work starts from. |
 | 2026-09-27 | `d3afcb62` | §The lane's law | regressed: every row and both rulings still fail; new since `69edd5ae`: the SceneTree's timers, tweens and deletion queue driven per frame from `useGodotTree` (`advance.tsx`, which the ratchet's scheduler rule skips); the emitted world's `useFrame` running input, camera and canvas work; spawning's `SPAWNERS` registry, stand-ins, `flushSync` in `add_child` and the emitted `rootScript` static; reachability decided in emit (`reachable-capabilities.ts`). |
 | 2026-09-27 | `5c36cca7` | §The lane's law | regressed: every row and both rulings still fail; new since `d3afcb62`: row 6 again (the reverted reachability leaves 29 unreached compat modules in the game); ruling 1, ports of Godot's renderer into three's shader chunks (the gles3 additive light passes, `world-environment.ts`; `scene.glsl`'s diffuse and specular modes, rim, backlight, grow, distance fade and gles3's depth-draw rule, `base-material-3d.ts`) and of `CPUParticles3D::convert_from_particles` (`gpu-particles-3d.ts`, `particle-process-material.ts`); row 2, emit deciding material transparency, `depthWrite` and `specularIntensity` (`scene-family-elements.ts`). Not counted as new but still failing: the root Window's per-frame canvas drawing (moved from the world), the added-scenes state (the spawner registry moved into node state). The emit judged was made from the working tree with uncommitted script-typing changes. |
 | 2026-09-28 | `7ba339e1` | §The lane's law | regressed: every row and both rulings still fail (the shader-chunk ports, emit's material decisions, the particle port and the unreached modules are gone); new since `5c36cca7`: reachability as a phase after emit that rewrites the accepted plan (`reachability.ts`, `withoutCapabilityCopies`); lowering inferring a loop's element type (`elementTypedIterable`); emit deciding a scene root's ref (`rootRef`) and the transform override (`exportName === 'set_transform'`); the plan collecting scripts' signals (`scriptSignals`); lowering comparing built-in type names (`ARRAY_INDEXED`); `FontFile` bound to compat's text-server port (`font-file.ts`, `label.ts`); a generated ternary dispatch for `load(path)`. |
@@ -307,9 +307,9 @@ that port's dependency closure.
 
 ## The intended architecture
 
-> Superseded in part by §The lane's law (2026-09-27): the evidence law and the acceptance below are retired; the lane's own review rows replace vgai-engine's ten.
+> Superseded in part by §The lane's law (2026-09-27): the evidence law and the acceptance below are retired; the lane's own review rows replace volter-engine's ten.
 
-The design is vgai-engine `docs/ARCHITECTURE-CORE.md` §Foreign games and §Migration compiler
+The design is volter-engine `docs/ARCHITECTURE-CORE.md` §Foreign games and §Migration compiler
 reference architecture, at the tag. In short:
 
 - One compile-time pipeline: an immutable project and toolchain snapshot, the official Godot
@@ -338,7 +338,7 @@ uses.
 
 ## What was built (measured 2026-09-25)
 
-**The compiler has the ruled shape.** vgai-engine's 2026-09-03 series (`ca737bcbd` onward) deleted
+**The compiler has the ruled shape.** volter-engine's 2026-09-03 series (`ca737bcbd` onward) deleted
 the handwritten translator (`lang36`/`lang40`, `translate.ts`, `surface.ts`). Production lowering
 now goes official bound nodes → `TargetTsSyntax` → TypeScript's printer, behind accepted/refused
 plans. No blind review has run on it.
@@ -375,7 +375,7 @@ Godot 3 exporter meets the 4.7 contract. Five declare 4.6, and no 4.6 frontend i
 by the retired translator. They import names the 09-03 lifecycle refactor removed, and they inline
 what row 8 forbids (`components/scene-runtime.ts`, `sampleCurve`, per-scene particle simulators).
 
-**The frontend is pinned.** vgai-engine's 09-15 record found no way to tell which of eight exporter
+**The frontend is pinned.** volter-engine's 09-15 record found no way to tell which of eight exporter
 builds was authoritative. The answer was already on disk: each build's `identity.json` records its
 exporter-source digest. The restored source matched `-current`, `-full` and `-multiplayer`. Only
 `-full` enables every engine module, which a game's scripts need (GridMap, CSG, navigation), and
@@ -587,7 +587,7 @@ removed (609 of 612 modules, with `godot-runtime`, `character`, `sprite` and the
 modules remain: `node-process.ts`, `react-lifecycle.tsx` and `signal.ts`. `signal.ts` keys a
 connection by reference identity until a conformant `callable.ts` supplies Godot's Callable
 equality. Everything else is rebuilt class by class from the closure. The Godot source is the
-authority; the old module at the tag is a reference (vgai-engine
+authority; the old module at the tag is a reference (volter-engine
 `archive/godot-lane-2026-09-19:packages/editor/catalog/project-source/src/lib/godot-compat/`).
 
 **First class through the instrument: `Vector3`.** 413 cases agree bit-exactly with official Godot

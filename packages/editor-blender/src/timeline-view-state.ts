@@ -10,8 +10,8 @@
  * is about the DRAWING.
  *
  * WHAT DRIVES IT IS NOT A SESSION VERB. U8's ruling 1 (2026-09-19): every view
- * publishes `vgai.<view>.<verb>` commands through `@volter/editor-sdk/views`, one
- * table behind the frame's command service and standalone `vgai edit`'s
+ * publishes `volter.<view>.<verb>` commands through `@volter/editor-sdk/views`, one
+ * table behind the frame's command service and standalone `volter-model-editor edit`'s
  * session verb — so this view adds no `blender-*` verb of its own.
  *
  * It imports NOTHING, for the reason the node and UV stores do: the view and

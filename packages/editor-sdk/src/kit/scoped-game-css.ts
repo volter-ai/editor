@@ -1,6 +1,6 @@
 /**
  * The client half of SCOPED GAME CSS — fetch the open project's page-level
- * stylesheet (already rewritten into `@scope ([data-vgai-game-styles])` by
+ * stylesheet (already rewritten into `@scope ([data-volter-game-styles])` by
  * `@volter/editor-sdk/session/scoped-game-css`), install it ONCE, and report honestly when
  * there is nothing to install.
  *
@@ -47,7 +47,7 @@ export interface ScopedGameStylesState {
 const NOTHING_DECLARED: ScopedGameStylesState = { installed: false, sources: [], note: null };
 
 /** `data-*` marker on the one installed element, so a re-install can find it. */
-const STYLE_ELEMENT_MARKER = 'data-vgai-scoped-game-css';
+const STYLE_ELEMENT_MARKER = 'data-volter-scoped-game-css';
 
 /** Per-project memo: the fetch+install runs once per open project, not per card. */
 let pending: { projectRoot: string; state: Promise<ScopedGameStylesState> } | null = null;

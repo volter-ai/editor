@@ -1,7 +1,7 @@
 /**
  * Manifest-backed project detection for the play path — T3.3 slice 2 part C.
  *
- * The dev server serves the project's RAW `vgai.project.json` at `/vgai.project.json`
+ * The dev server serves the project's RAW `volter.project.json` at `/volter.project.json`
  * (editor-server.ts's project-file-serving middleware, mirroring how it
  * with no view synthesis — the browser parses it itself through the PURE half
  * of the manifest loader (`loadGameManifest`,
@@ -49,7 +49,7 @@ function manifestAbsent(where: string): Error {
  * classifiable ({@link isManifestAbsence}).
  */
 export async function fetchGameManifest(): Promise<ResolvedGameManifest> {
-  const url = servedUrl('/vgai.project.json');
+  const url = servedUrl('/volter.project.json');
   const res = await fetch(url);
   if (res.status === 404) throw manifestAbsent(url);
   if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status} ${res.statusText}`);
@@ -70,7 +70,7 @@ export async function fetchGameManifest(): Promise<ResolvedGameManifest> {
 }
 
 /**
- * A1 (edit mode, defect 2): fetch the RAW, UN-validated `vgai.project.json` JSON
+ * A1 (edit mode, defect 2): fetch the RAW, UN-validated `volter.project.json` JSON
  * — or `null` when the project genuinely has none (the route 404s). Unlike
  * {@link fetchGameManifest}, this NEVER throws on a schema violation: edit mode
  * must tolerate a manifest with ONE bad world (e.g. an unknown `kind`) by
@@ -81,7 +81,7 @@ export async function fetchGameManifest(): Promise<ResolvedGameManifest> {
  * `null`) is the only case that synthesizes a single-world game.
  */
 export async function fetchRawGameManifest(): Promise<unknown | null> {
-  const url = servedUrl('/vgai.project.json');
+  const url = servedUrl('/volter.project.json');
   const res = await fetch(url);
   if (!res.ok) return null;
   // A 404 is not the only way this route says "no manifest". A dev server with

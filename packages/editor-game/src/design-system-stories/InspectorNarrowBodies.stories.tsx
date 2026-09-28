@@ -73,10 +73,10 @@ function RailColumn({ children }: { readonly children: ReactNode }) {
         width: RAIL_WIDTH,
         height: 600,
         display: 'flex',
-        border: '1px solid var(--vgai-border-2)',
+        border: '1px solid var(--volter-border-2)',
         borderRadius: 8,
         overflow: 'hidden',
-        background: 'var(--vgai-bg-1)',
+        background: 'var(--volter-bg-1)',
       }}
     >
       {children}

@@ -3,7 +3,7 @@
  * `Scene` (the subject, not its entry file — see SCENE_DOCUMENT_TITLE),
  * closeable and discoverable in Content, content = the world root's stage.
  *
- * Transcribed from the Scene half of vgai's `components/CenterDocuments.tsx`.
+ * Transcribed from the Scene half of Volter's `components/CenterDocuments.tsx`.
  * The kit keeps the other half (`@volter/editor-core/components/CenterDocuments`
  * `useCenterDocuments`): it binds the Game document's tab, reports the
  * live/stopped edge and closes every document on session teardown. What moved
@@ -195,7 +195,7 @@ export class ViewportErrorBoundary extends Component<
     editorConsole.error(`Viewport failed to start: ${error.message}`, 'editor');
     // Keep the component stack in the browser console for developer diagnosis.
     // biome-ignore lint/suspicious/noConsole: renderer startup failures need their React component stack in developer tools as well as the user-facing editor Console entry
-    console.error('[vgai] Viewport failed to start', error, info.componentStack);
+    console.error('[volter] Viewport failed to start', error, info.componentStack);
 
     if (isTransientRendererStartupFailure(error) && this.autoRetryCount < MAX_AUTO_RETRIES) {
       this.clearPendingRetry();
@@ -251,7 +251,7 @@ export class ViewportErrorBoundary extends Component<
         </div>
         <Button
           type="button"
-          className="vgai-btn"
+          className="volter-btn"
           data-testid="retry-viewport"
           onClick={this.handleManualRetry}
         >

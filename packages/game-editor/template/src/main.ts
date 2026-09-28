@@ -1,7 +1,7 @@
 /**
  * Standalone entry point: this game's own boot, in its own libraries.
  *
- * Every root `vgai.project.json` declares gets one layer in `#game-canvas`,
+ * Every root `volter.project.json` declares gets one layer in `#game-canvas`,
  * stacked by `zOrder`. A `three` root's entry default-exports a React Three
  * Fiber component and renders inside `<Canvas>`; a `dom` root's entry
  * default-exports a React component and renders with react-dom, in a layer
@@ -19,8 +19,8 @@
 import { Canvas } from '@react-three/fiber';
 import { type ComponentType, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { manifestEntryModules, mountCanvasRoot } from 'virtual:vgai-manifest-entries';
-import manifest from '../vgai.project.json';
+import { manifestEntryModules, mountCanvasRoot } from 'virtual:volter-manifest-entries';
+import manifest from '../volter.project.json';
 
 interface DeclaredRoot {
   readonly id: string;

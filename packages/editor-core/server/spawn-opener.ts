@@ -37,7 +37,7 @@ export function spawnOpener(cmd: string, cmdArgs: string[], fallback?: () => voi
   try {
     child = spawn(cmd, cmdArgs, { stdio: ['ignore', 'ignore', 'pipe'], detached: true });
   } catch (err) {
-    console.error(`vgai: auto-open via ${cmd} failed: ${(err as Error).message}`);
+    console.error(`volter: auto-open via ${cmd} failed: ${(err as Error).message}`);
     fallback?.();
     return;
   }
@@ -53,14 +53,14 @@ export function spawnOpener(cmd: string, cmdArgs: string[], fallback?: () => voi
   });
 
   child.on('error', (err) => {
-    console.error(`vgai: auto-open via ${cmd} failed to launch: ${err.message}`);
+    console.error(`volter: auto-open via ${cmd} failed to launch: ${err.message}`);
     fallback?.();
   });
 
   child.on('exit', (code) => {
     if (code !== null && code !== 0) {
       const stderr = Buffer.concat(stderrChunks).toString('utf8').trim();
-      console.error(`vgai: auto-open via ${cmd} exited ${code}: ${stderr}`);
+      console.error(`volter: auto-open via ${cmd} exited ${code}: ${stderr}`);
       fallback?.();
     }
   });

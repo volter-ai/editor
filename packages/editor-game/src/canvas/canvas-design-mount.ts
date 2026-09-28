@@ -120,7 +120,7 @@ function createDesignGame(): GameInternal {
  * which part of the unbounded authored plane is visible. */
 function createDesignCanvas(): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.dataset['vgaiCanvasSceneSurface'] = 'true';
+  canvas.dataset['volterCanvasSceneSurface'] = 'true';
   canvas.style.position = 'absolute';
   canvas.style.inset = '0';
   canvas.style.width = '100%';

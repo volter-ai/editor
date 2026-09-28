@@ -5,7 +5,7 @@
  * Which surface does launching the editor land on? The design fixes the order:
  *
  *   1. An EXPLICIT target always wins, and it is always the SESSION —
- *      `vgai edit <path>` / `VGAI_PROJECT` / the project browser all re-root
+ *      the editor's `edit <path>` command / `VOLTER_PROJECT` / the project browser all re-root
  *      the server, and the client asks it (rung 1b below). The hub never
  *      renders. (Already true before G5; preserved here as the first rung so
  *      the whole ladder reads in one place.)
@@ -94,12 +94,12 @@ export function resolveBootTarget(input: BootRoutingInput): BootTarget {
  * open. Everything else — an unreachable/failed `/__editor/project`, a
  * malformed answer, a server that IS serving a project whose manifest it could
  * not read — is "could not determine", and reading that as "no project" is what
- * dropped a project-serving session's tab onto the hub while `vgai status` was
+ * dropped a project-serving session's tab onto the hub while the editor's `status` command was
  * still naming the project on that very port.
  *
  * Two failure shapes, kept apart because their remedies are:
  * - `'unreadable'` — the server named the project it serves AND why it could
- *   not describe it (a broken `vgai.project.json`, typically). Nothing is
+ *   not describe it (a broken `volter.project.json`, typically). Nothing is
  *   flaky about it; retrying is a waste and the hub is a lie. Fail loudly,
  *   naming the path and the reason.
  * - `'unknown'`    — the ask itself failed (server mid-restart, a request lost
@@ -334,7 +334,7 @@ export function hubRequestedFromSearch(search: string): boolean {
  *    the URL names the project instead.
  *
  * 2. `?ingest=`. A vendored game is a PROJECT — every one carries its own
- *    `vgai.project.json` — so opening one is opening a project, and it opens
+ *    `volter.project.json` — so opening one is opening a project, and it opens
  *    through the session like every other (the gallery's Imported group
  *    re-roots the server at the game's manifest folder; the manifest ingest
  *    route mounts it). A param that names the MECHANISM ("ingest") rather than
@@ -369,7 +369,7 @@ export function assertNoRemovedBootParams(search: string): void {
   if (ingest !== null) {
     throw new Error(
       `Editor boot: \`?ingest=${ingest}\` — REMOVED. A vendored game carries its own ` +
-        '`vgai.project.json`, so it IS a project, and there is ONE boot param for opening a ' +
+        '`volter.project.json`, so it IS a project, and there is ONE boot param for opening a ' +
         'project. A param naming the MECHANISM rather than the thing being opened is what the ' +
         'legacy-removal doctrine forbids (docs/ARCHITECTURE-CORE.md §Vocabulary "how content ' +
         'opens").\n' +

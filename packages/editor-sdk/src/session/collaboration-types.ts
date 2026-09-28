@@ -133,7 +133,7 @@ export interface CollaborationPresence {
 
 export interface CollaborationParticipant {
   participantId: string;
-  /** Verified VGAI account authority. Null only for local-only host/agent
+  /** Verified Volter account authority. Null only for local-only host/agent
    * participants that did not enter through a public share gateway. */
   account: { id: string; email: string; name?: string } | null;
   displayName: string;

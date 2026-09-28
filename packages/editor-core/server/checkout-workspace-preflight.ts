@@ -21,7 +21,7 @@
  * + `threejs-runtime` + `game-runtime`) returning `null` on every source
  * checkout in the estate, because its first line asked for
  * `packages/engine/package.json` and that package no longer exists — measured
- * with the five links present AND with `@vgai/project`'s link deleted, both
+ * with the five links present AND with `@volter/editor-project`'s link deleted, both
  * `null`. A guard that can be switched off by a rename is not a guard, so the
  * question it asks is now the monorepo's own self-description.
  */
@@ -177,7 +177,7 @@ export function editorResolutionTopology(engineRoot: string, projectPath?: strin
 function repairMessage(engineRoot: string, detail: string): string {
   return (
     `Editor startup refused: source-checkout workspace identity is split. ${detail}\n` +
-    `Vite resolves shared @vgai modules from ${engineRoot}/node_modules, so continuing could ` +
+    `Vite resolves shared @volter modules from ${engineRoot}/node_modules, so continuing could ` +
     'render a game with a different debug registry identity. Recreate this ' +
     "checkout's node_modules with scripts/worktree-node-modules-shim.mjs as documented in " +
     'docs/LOCAL-DEV.md; never symlink the whole node_modules directory.'
@@ -232,7 +232,7 @@ function engineLinkError(
  * checkout's Vite dedupe. A project-local SYMLINK is different: it is an
  * explicit checkout selection, and if it names another checkout the active
  * server must restart there rather than compose both graphs. Check every
- * workspace member, not a hand-maintained `@vgai` subset.
+ * workspace member, not a hand-maintained `@volter` subset.
  */
 function projectLinkError(
   normalizedRoot: string,

@@ -1,6 +1,6 @@
 /**
  * THE MOCK GENERATIVE CONTROL PLANE — the editor server's dev twin of the
- * managed generation service. Moved here from `@vgai/generative-gateway`
+ * managed generation service. Moved here from `@volter/generative-gateway`
  * (archived at `archive/launch-scope-2026-09-20`, launch-scope sweep,
  * 2026-09-20) because `account-service.ts` is the one remaining consumer and
  * an editor file may not import across a package that no longer exists.
@@ -129,7 +129,7 @@ function validUsageKind(value: unknown): value is AccountUsageEntry['kind'] {
 /**
  * In-memory HTTP-shaped account/billing service for local development. It is
  * intentionally explicit about being a zero-charge mock and also implements
- * the gateway's production `VGAI_AUTH` service-binding contract.
+ * the gateway's production `VOLTER_AUTH` service-binding contract.
  */
 export function createMockGenerativeControlPlane(
   options: MockGenerativeControlPlaneOptions = {},

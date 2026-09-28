@@ -2,11 +2,11 @@
  * The `bake` CONFIGURATION KIND (ARCHITECTURE-CORE §The project model): a
  * build-role configuration that bakes one project-authored Object3D module
  * into a GLB — the bake capability's own `project.bake.module` tool, run by
- * the host as a build. Declare one in `vgai.project.json`:
+ * the host as a build. Declare one in `volter.project.json`:
  *
  *   { "id": "cube-glb", "kind": "bake", "modulePath": "src/models/cube.ts", "name": "cube" }
  *
- * and `vgai build cage-glb` (or Export) bakes it. This module is a plain
+ * and Build Profiles (Export) bakes it. This module is a plain
  * object the HOST registers; it mounts no UI.
  */
 

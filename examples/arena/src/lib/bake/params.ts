@@ -1,7 +1,7 @@
 /**
  * Reading a declared params schema as tuning controls.
  *
- * The parameterization contract (the `vgai-3d-assets` skill,
+ * The parameterization contract (the `volter-3d-assets` skill,
  * "Parametric asset libs") says a
  * parametric asset lib exports a PAIR — a declared parameter object and the
  * function that takes it — and that any tuning UI is DERIVED from that

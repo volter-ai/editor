@@ -64,7 +64,7 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
 /**
  * The project-relative runtime WORLD entries shared by dependency discovery
  * and source warmup, for the project rooted at
- * `projectRoot` — every `roots[].entry` its OWN `vgai.project.json` declares
+ * `projectRoot` — every `roots[].entry` its OWN `volter.project.json` declares
  * (default-adapter, code-authored roots; scene-only roots have no `entry`
  * and contribute nothing here — their gameplay code is registered
  * elsewhere, reached transitively from whichever world DOES declare an
@@ -83,7 +83,7 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
  * (SERVER package) import chain reaches `@colyseus/core` -> `@pm2/io`, a
  * package esbuild's prebundle step cannot resolve an entry for (confirmed
  * empirically, not theoretically: a direct `vite.optimizeDeps` run scoped to
- * `index.html`-style discovery against `packages/editor/template` throws
+ * `index.html`-style discovery against `packages/game-editor/template` throws
  * `Failed to resolve entry for package "@pm2/io"` from inside
  * `@colyseus/core/build/Stats.mjs`'s own `import("@pm2/io")` — this is
  * `packaged.ts`'s ORIGINAL reason for `noDiscovery: true`, verified still
@@ -117,7 +117,7 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
  *
  * ## Discovery and warmup lifetimes
  *
- * Dependency discovery computes this ONCE from the boot-time `VGAI_PROJECT`,
+ * Dependency discovery computes this ONCE from the boot-time `VOLTER_PROJECT`,
  * exactly like `engineSrc`/`resolve.alias` in `packaged.ts`; those settings
  * are baked into Vite's `createServer` call. Checkout-dev source warmup also
  * calls this helper after `onProjectOpened`, so a switched-to project warms
@@ -125,7 +125,7 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
  * discovery configuration.
  *
  * Never throws: an absent/unparseable manifest (no project open yet, a
- * pre-Phase-B project, a broken `vgai.project.json`) degrades to `[]` — the
+ * pre-Phase-B project, a broken `volter.project.json`) degrades to `[]` — the
  * SAFEST fallback, not a guess. Per Vite's own `optimizeDeps.entries`
  * resolution (`computeEntries` in vite's dep-scanner), a truthy-but-empty
  * array short-circuits the `**\/*.html` crawl fallback WITHOUT crawling
@@ -234,11 +234,11 @@ function browserStoryEntries(projectRoot: string): string[] {
  * The editor dynamic-imports a project's tool CONTRIBUTIONS (`src/contributions/
  * *.utility.tsx` cockpit cells, `*.document.tsx`, `*.inspector.tsx`, …) into
  * the browser, and those pull ordinary siblings (`src/tools/
- * dev-cockpit.utility.tsx` → `./tuning` → `@vgai/sdk/tools`). None of that
+ * dev-cockpit.utility.tsx` → `./tuning` → `@volter/editor-sdk/tools/registry`). None of that
  * hangs off any `roots[].entry`, so scoping the crawl to world entries alone
- * left `@vgai/sdk/tools` undiscovered until the first cockpit mount —
+ * left `@volter/editor-sdk/tools/registry` undiscovered until the first cockpit mount —
  * measured 2026-08-09 on a live session: "✨ new dependencies optimized:
- * @vgai/sdk/tools" → "optimized dependencies changed. reloading", a full
+ * @volter/editor-sdk/tools/registry" → "optimized dependencies changed. reloading", a full
  * editor reload minutes into authoring, which dropped the in-flight play
  * command (the exact class the C3 entries-scoping exists to prevent).
  *
@@ -301,7 +301,7 @@ function browserToolEntries(projectRoot: string): string[] {
  * `!` makes `isDynamicPattern` true and routes ALL of them through `glob()`,
  * whose unconditional `**\/node_modules/**` ignore then drops the engine-source
  * crawl entries (`computeRuntimeSourceCrawlEntries` — they live in the project's
- * own `node_modules/@vgai/<runtime package>/src`). Nothing reports it: the boot succeeds,
+ * own `node_modules/@volter/<runtime package>/src`). Nothing reports it: the boot succeeds,
  * `exclude` still holds, and cold-start discovery just quietly stops reaching
  * the engine's graph — one optimizer wave and tab reload at a time, the exact
  * class those entries exist to prevent. Measured with the real predicate
@@ -319,7 +319,7 @@ function browserToolEntries(projectRoot: string): string[] {
  *
  * The specials come from the ROOT segment of the path, not from the parts this
  * module builds, so spelling every under-root entry root-RELATIVE removes them
- * from the string Vite tests: `resolve(root, 'node_modules/@vgai/project/src/
+ * from the string Vite tests: `resolve(root, 'node_modules/@volter/editor-project/src/
  * loader.ts')` is the same file with no pattern syntax in the entry at all.
  * Entries outside the Vite root (the dev server's project entries) keep their
  * absolute spelling — Vite accepts absolute non-glob entries — because a
@@ -377,7 +377,7 @@ export function computeDevOptimizeDepsEntries(
   //
   // ...AND ITS COMPOSED PACKAGES' CONTRIBUTIONS, HANDED OVER, because the crawl
   // cannot walk to them: the product names each package as a SYNTHESIZED module
-  // (`vgai:contributions/<name>`), which hangs off no file, so the esbuild
+  // (`volter:contributions/<name>`), which hangs off no file, so the esbuild
   // scanner never sees the `import()` rows inside it. That is the same blindness
   // `vite-plugin-module-doorways.ts`'s header records for the other synthesized
   // module, cured the same way — from the same declaration the browser is
@@ -426,15 +426,15 @@ function bareSpecifiersOf(moduleSource: string): string[] {
  * ## The gap this closes
  *
  * `packaged.ts` serves five MODULE DOORWAYS that exist only in memory —
- * `/__vgai-react-world-runtime`, `/__vgai-r3f-runtime`,
- * `/__vgai-canvas-runtime`, `/__vgai-three-ingest-runtime`,
- * `/__vgai-story-runtime`
+ * `/__volter-react-world-runtime`, `/__volter-r3f-runtime`,
+ * `/__volter-canvas-runtime`, `/__volter-three-ingest-runtime`,
+ * `/__volter-story-runtime`
  * (see `vite-plugin-module-doorways.ts` for why the editor must reach react /
  * fiber / `@pixi/react` / `@storybook/react` through the PROJECT's Vite graph
  * rather than its own prebuilt SPA copy). Being synthesized, they hang off NO file on disk, so no
  * `optimizeDeps.entries` value can ever crawl them: the boot scan starts at the
  * project's world entries, tool contributions and stories, none of which import
- * a `/__vgai-*` URL. The editor requests them at the FIRST Play mount / story
+ * a `/__volter-*` URL. The editor requests them at the FIRST Play mount / story
  * preview instead — mid-session — and Vite answers a newly-seen bare specifier
  * by re-running the optimizer and hard-reloading the controlling tab
  * ("optimized dependencies changed. reloading"), which drops the in-flight
@@ -460,7 +460,7 @@ export const EDITOR_RUNTIME_MODULE_SPECIFIERS: readonly string[] = [
 ].sort();
 
 /**
- * The vgai RUNTIME packages a project installs — the contract and the two
+ * The volter RUNTIME packages a project installs — the contract and the two
  * shipped twins. All three are source-served whole (never prebundled), for the
  * one-singleton reason the crawl-entry doc below states.
  */
@@ -505,7 +505,7 @@ function packageNameOf(specifier: string): string {
  * resolving its `package.json`, which every package exposes.
  */
 export function specifierResolvesFrom(fromDir: string, specifier: string): boolean {
-  const require = createRequire(join(fromDir, '__vgai-resolve__.js'));
+  const require = createRequire(join(fromDir, '__volter-resolve__.js'));
   try {
     require.resolve(specifier);
     return true;
@@ -568,7 +568,7 @@ function packageSubpathFile(srcDir: string, subpath: string): string | null {
 
 /**
  * Engine subpaths the browser loads LAZILY — a scaffolded project's own client
- * modules (`@vgai/game-runtime/runtime/mount-game`, the loader,
+ * modules (`@volter/game-runtime/runtime/mount-game`, the loader,
  * the input/scene/asset readers), reached only after the editor shell is up
  * and therefore outside the world-entry/tool/story crawl.
  *
@@ -579,7 +579,7 @@ function packageSubpathFile(srcDir: string, subpath: string): string | null {
  * module-scoped registry it reaches (the debug registry's game-scoped slot among
  * them) while the canonical import is served as source — two registries, one of
  * which silently answers `null` for a game the other holds.
- * (`exclude: ['@vgai/game-runtime']` does not stop it: the scanner tests the
+ * (`exclude: ['@volter/game-runtime']` does not stop it: the scanner tests the
  * RAW specifier, and this list used to be written in an alias spelling that
  * check never sees. Measured on a live packaged session:
  * eight prebundled engine modules in `.vite/deps/_metadata.json`.)
@@ -604,7 +604,7 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
  *
  * `packaged.ts` `exclude`s each runtime package, and Vite's dep SCANNER checks
  * `exclude` against the raw specifier BEFORE it resolves anything — so an
- * `import … from '@vgai/game-runtime/canvas-react'` is externalized on sight and the
+ * `import … from '@volter/game-runtime/canvas-react'` is externalized on sight and the
  * engine's own source graph is never crawled at all. That graph is then served
  * as source and its bare imports are discovered one browser request at a time,
  * each a fresh optimizer wave. Naming the engine FILES as entries walks that
@@ -618,7 +618,7 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
  * would otherwise fire the first time the asset lane loads a glTF.
  *
  * Paths are built the way `packaged.ts`'s own alias resolves them
- * (`@vgai/game-runtime/x` -> `<that package's src>/x`), not through its
+ * (`@volter/game-runtime/x` -> `<that package's src>/x`), not through its
  * `exports` map, because that alias is what Vite actually applies. A subpath
  * that does not exist in the installed engine contributes nothing.
  */
@@ -715,8 +715,8 @@ export function computeUnresolvableRuntimeImports(
 /**
  * A PACKAGE's contributions, as crawl entries (WORKBENCH.md §Package or copy;
  * ARCHITECTURE-CORE §The universal editor). On a real install a skew package
- * (`@volter/editor-blender`, `@vgai/game`) sits under the project's `node_modules`, and
- * the editor imports its `package.json#vgai.contributions` modules by
+ * (`@volter/editor-blender`, `@volter/editor-game`) sits under the project's `node_modules`, and
+ * the editor imports its `package.json#volter.contributions` modules by
  * absolute path. Vite's scanner never walks a graph that starts under
  * `node_modules`, so every bare import those modules reach — the mesh kit's
  * `@react-three/drei`, and through it the CommonJS `stats.js` — is served
@@ -782,8 +782,8 @@ export function computePackageContributionCrawlEntries(
     let contributions: unknown;
     try {
       contributions = (
-        JSON.parse(readFileSync(manifestPath, 'utf-8')) as { vgai?: { contributions?: unknown } }
-      ).vgai?.contributions;
+        JSON.parse(readFileSync(manifestPath, 'utf-8')) as { volter?: { contributions?: unknown } }
+      ).volter?.contributions;
     } catch {
       continue;
     }

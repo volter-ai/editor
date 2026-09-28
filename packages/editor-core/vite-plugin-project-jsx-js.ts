@@ -1,5 +1,5 @@
 /**
- * The `vgai-project-jsx-in-js` transform — JSX inside plain `.js` PROJECT
+ * The `volter-project-jsx-in-js` transform — JSX inside plain `.js` PROJECT
  * files, the CRA-era React idiom most of the OSS React/R3F corpus ships.
  *
  * create-react-app's babel pipeline allowed JSX in `.js`; esbuild does not,
@@ -16,7 +16,7 @@
  *      the same files;
  *   3. `sourceLoader` in `server/project-validation.ts` — the
  *      validate-on-change parse mirrors what the dev server will serve, or a
- *      servable file reds `vgai status`.
+ *      servable file reds the editor's `status` command.
  *
  * Scope is deliberately the SAME predicate the globals shadow uses
  * (`shouldShadowGameGlobals`) — "is this a project-owned `/src/` module" is
@@ -43,7 +43,7 @@ const JSX_LIKELY = /<[A-Za-z/>]/;
  */
 export function projectJsxInJsPlugin(getRoots: () => Iterable<string>): Plugin {
   return {
-    name: 'vgai-project-jsx-in-js',
+    name: 'volter-project-jsx-in-js',
     // Ahead of the prelude/mount/creation-site transforms: they assume the
     // module body is valid JS, which a JSX-bearing `.js` file is not yet.
     enforce: 'pre',

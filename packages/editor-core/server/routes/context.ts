@@ -155,7 +155,7 @@ export interface RouteContext {
   unplayedGate: TripwireGate;
 
   // ---- The live session's own vitals -----------------------------------
-  /** The unresolved error/warning ledger every `vgai` command reprints. */
+  /** The unresolved error/warning ledger every `volter` command reprints. */
   readonly consoleLedger: ConsoleLedger;
   /** Per-file validation state, as the watchers computed it. */
   readonly projectValidation: Map<string, { errors: string[]; at: number }>;

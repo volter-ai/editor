@@ -2,9 +2,9 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { defineConfig } from 'vite';
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
-import manifest from './vgai.project.json';
+import manifest from './volter.project.json';
 
-/** A vgai runtime package served as SOURCE, the way the editor serves it. */
+/** A Volter runtime package served as SOURCE, the way the editor serves it. */
 const packageSource = (name: string) =>
   path.join(path.dirname(createRequire(import.meta.url).resolve(`${name}/package.json`)), 'src');
 

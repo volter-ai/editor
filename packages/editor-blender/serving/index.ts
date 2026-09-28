@@ -1,5 +1,5 @@
 /**
- * `@volter/editor-blender`'s server half (`package.json#vgai.serving`, the project-serving door in
+ * `@volter/editor-blender`'s server half (`package.json#volter.serving`, the project-serving door in
  * `@volter/editor-sdk/session/project-serving`): the routes the Blender in the tab reads and
  * writes through.
  */

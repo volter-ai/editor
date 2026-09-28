@@ -3,38 +3,38 @@
    the message across the full width, the actions on their own row beneath,
    right-aligned — and an OPAQUE surface, because it sits over whatever is
    there (measured: the conversation composer). */
-.vgai-notifications {
+.volter-notifications {
   position: fixed;
-  right: var(--vgai-space-4);
-  bottom: calc(var(--vgai-status-bar-height, 28px) + var(--vgai-space-4));
+  right: var(--volter-space-4);
+  bottom: calc(var(--volter-status-bar-height, 28px) + var(--volter-space-4));
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--vgai-space-2);
-  width: min(420px, calc(100vw - 2 * var(--vgai-space-4)));
-  z-index: var(--vgai-z-toast, 1100);
+  gap: var(--volter-space-2);
+  width: min(420px, calc(100vw - 2 * var(--volter-space-4)));
+  z-index: var(--volter-z-toast, 1100);
   pointer-events: none;
 }
-.vgai-notifications .vgai-notification {
+.volter-notifications .volter-notification {
   width: 100%;
   flex-wrap: wrap;
   pointer-events: auto;
-  background-color: var(--vgai-surface-raised);
+  background-color: var(--volter-surface-raised);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  box-shadow: var(--vgai-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.35));
+  box-shadow: var(--volter-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.35));
 }
-.vgai-notifications .vgai-notification .vgai-banner-content {
+.volter-notifications .volter-notification .volter-banner-content {
   flex: 1 1 0;
   min-width: 0;
 }
-.vgai-notifications .vgai-notification .vgai-banner-actions {
+.volter-notifications .volter-notification .volter-banner-actions {
   flex: 1 1 100%;
   justify-content: flex-end;
-  margin-top: var(--vgai-space-2);
+  margin-top: var(--volter-space-2);
 }
-.vgai-notification-detail {
+.volter-notification-detail {
   display: block;
-  margin-top: var(--vgai-space-1);
-  color: var(--vgai-content-muted);
+  margin-top: var(--volter-space-1);
+  color: var(--volter-content-muted);
 }

@@ -54,7 +54,7 @@
  * the artifacts → delete the journal. A process that dies mid-write leaves the
  * journal, and {@link settleVendoredWrite} — called by every `/__ingest-source/*`
  * handler before it reads or writes the game — completes it. The journal lives
- * in `<game>/.vgai/`, the host-state directory the verifier already excludes and
+ * in `<game>/.volter/`, the host-state directory the verifier already excludes and
  * git already ignores, so it is never itself a diff.
  *
  * ## Why every path here is bytes, not text
@@ -117,7 +117,7 @@ export const LOCKS_DIR = ['vendor', 'games'];
  * `verify-unaltered.mjs` excludes for every game. Writing here is never a diff,
  * so it is never recorded.
  */
-const HOST_STATE_DIRS = ['.vgai', 'logs'];
+const HOST_STATE_DIRS = ['.volter', 'logs'];
 
 /** `verify-unaltered.mjs`'s `DEFAULT_EXCLUDED_DIRS`, applied when a lock
  *  declares no `excluded` block of its own. */
@@ -352,17 +352,17 @@ interface PendingVendoredWrite {
 }
 
 function journalPathFor(target: VendoredTarget): string {
-  return join(target.gameDir, '.vgai', 'vendored-lock-write.json');
+  return join(target.gameDir, '.volter', 'vendored-lock-write.json');
 }
 
 function hostStateDir(target: VendoredTarget): string {
-  return join(target.gameDir, '.vgai');
+  return join(target.gameDir, '.volter');
 }
 
 /**
  * Write `content` to `path` through a rename, staging the temporary file in the
  * game's own host-state directory so a torn write is never visible AS A FILE to
- * the verifier's directory walk (which excludes `.vgai/`) or to git.
+ * the verifier's directory walk (which excludes `.volter/`) or to git.
  */
 function writeThroughRename(path: string, content: Buffer, stageDir: string): void {
   mkdirSync(stageDir, { recursive: true });
@@ -437,7 +437,7 @@ export function settleVendoredWrite(target: VendoredTarget): boolean {
  * red gate nobody could explain.
  */
 function inScratch<T>(body: (dir: string) => T): T {
-  const dir = mkdtempSync(join(tmpdir(), 'vgai-vendored-record-'));
+  const dir = mkdtempSync(join(tmpdir(), 'volter-vendored-record-'));
   try {
     return body(dir);
   } finally {

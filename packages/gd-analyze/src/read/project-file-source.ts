@@ -37,7 +37,7 @@ function walkFiles(root: string, at: string = root, acc: string[] = []): string[
       if (['.git', '.github', '.import', '.godot', 'node_modules', 'export'].includes(entry.name)) {
         continue;
       }
-      if (entry.name === 'tmp' && path.basename(at) === '.vgai') continue;
+      if (entry.name === 'tmp' && path.basename(at) === '.volter') continue;
       walkFiles(root, path.join(at, entry.name), acc);
     } else if (entry.isFile()) {
       acc.push(path.join(at, entry.name));

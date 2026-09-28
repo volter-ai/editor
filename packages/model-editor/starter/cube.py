@@ -36,7 +36,7 @@ either way.
 
 Run it through the session's Blender, from this project:
 
-    npm run --silent vgai -- blender-mcp        # the transport an agent drives
+    npm run --silent volter -- blender-mcp        # the transport an agent drives
     # or, in a live editor session:
     # editor.blender('blender-execute', { code: open('src/models/cube.py').read() })
 

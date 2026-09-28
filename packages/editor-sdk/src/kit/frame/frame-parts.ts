@@ -1,7 +1,7 @@
 /**
  * WHETHER THE WORKBENCH IS SHOWING A PART — the one fact about the Code-OSS frame's layout a page
  * module needs without importing the bridge. The bridge records each part as the workbench offers
- * or withdraws it (`bridge.tsx`'s `offerVgaiPart`); `null` means there is no frame, and the
+ * or withdraws it (`bridge.tsx`'s `offerVolterPart`); `null` means there is no frame, and the
  * editor's panels are in the page.
  */
 let framed = false;

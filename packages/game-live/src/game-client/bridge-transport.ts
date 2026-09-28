@@ -2,7 +2,7 @@
  * The transport seam `GameClient` (`client.ts`) drives (#140). Two
  * implementations answer the identical contract below:
  *  - `PageTransport` (`client.ts`) — Playwright's `page.evaluate` against
- *    `window.__vgai`, for a standalone game page the caller drives itself.
+ *    `window.__volter`, for a standalone game page the caller drives itself.
  *  - `RelayTransport` (`relay-transport.ts`) — the editor dev-server's
  *    session wire (`POST /__editor/command`, `bridge-call`/
  *    `bridge-screenshot` ops), driving the SAME live session a human already
@@ -65,7 +65,7 @@ export interface BridgeTransport {
    *    values work here exactly like any ordinary `page.evaluate` callback.
    *  - `RelayTransport` (`relay-transport.ts`) ships `src` over the wire and
    *    reconstructs it with `new Function` INSIDE the editor page, against
-   *    an in-page shim (`packages/editor/src/playwright-shim.ts`) — closure
+   *    an in-page shim (`packages/editor-game/src/host/playwright-shim.ts`) — closure
    *    capture over anything outside the step's own body does NOT survive
    *    that trip (the same limitation class as Playwright's own `evaluate`
    *    serialization).

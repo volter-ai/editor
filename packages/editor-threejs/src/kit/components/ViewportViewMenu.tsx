@@ -86,7 +86,7 @@ export function ViewportViewMenu({
   };
 
   return (
-    <div ref={anchor} className="vgai-viewport-popover-anchor">
+    <div ref={anchor} className="volter-viewport-popover-anchor">
       {label === undefined ? (
         <Tooltip text={projection === 'perspective' ? 'Perspective' : 'Orthographic'}>
           <IconButton

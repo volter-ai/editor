@@ -4,7 +4,7 @@ Volter Editor is this whole stack. It is a Code-OSS distribution built per produ
 **integrations** that each make one tool a document kind, and thin **products** that
 compose integrations for a purpose. Games stay their own code; the editor reaches them
 through adapters and contributions. The rulings this follows were made on
-`volter-ai/vgai-engine` (`docs/ARCHITECTURE-CORE.md` §The target shape, owner direction
+`volter-ai/volter-engine` (`docs/ARCHITECTURE-CORE.md` §The target shape, owner direction
 2026-09-20) and transfer here with the packages.
 
 ## The rows
@@ -24,7 +24,7 @@ Rules:
 3. Dependencies point down: product → integration → kit/SDK → project contract.
 4. **The code side is unopinionated.** A game's own modules (its world, scenes, prefabs,
    components) are plain library code and import nothing of the editor. What the editor
-   needs to know about a game is declared editor-side: `vgai.adapter.ts` and
+   needs to know about a game is declared editor-side: `volter.adapter.ts` and
    `src/contributions/`. The game is idiomatic code in its own libraries (XState's
    `createActor`, React Three Fiber components); the editor and its adapters make it the
    engine (owner ruling, 2026-09-24). A game never calls a registration API so the editor can
@@ -60,9 +60,9 @@ Rules:
 
 ## Doors
 
-- `package.json#vgai.contributions`: an integration's browser half (documents, inspectors,
+- `package.json#volter.contributions`: an integration's browser half (documents, inspectors,
   services), mounted by the product that composes it.
-- `package.json#vgai.serving`: an integration's server half, a built Node module whose
+- `package.json#volter.serving`: an integration's server half, a built Node module whose
   `servingPlugins(services)` joins the project's Vite. `services` are the kit's region decision,
   recorded writes and collaboration record (`@volter/editor-sdk/session/project-serving`); the
   module may also answer the kit's source questions (dialect evidence, authoring diagnostics,

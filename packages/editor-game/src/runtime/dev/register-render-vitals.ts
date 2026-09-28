@@ -3,7 +3,7 @@
  * game's own debug registry (`runtime/debug-registry.ts`), so a running game
  * explains its own frame cost through the SAME seam every other reading and
  * verb uses — `game.state('render.vitals')` / `game.command('render.census')`
- * through `vgai eval`, and `game.providers()`/`game.commands()` to discover
+ * through `volter-game-editor eval`, and `game.providers()`/`game.commands()` to discover
  * them without being told they exist.
  *
  * Engine-owned and first-party, seeded by BOTH three-root mount paths — a game
@@ -175,7 +175,7 @@ export function registerRenderVitals(
         'Meshes grouped by shared (geometry, material) identity, largest group first — the ' +
         'instancing shortlist for a draw-call diet. `structural` is the same scan keyed by ' +
         'VALUE instead of object identity: what would collapse under a <Frozen> wrapper ' +
-        '(vgai add static-batch) even when every mesh carries its own inline material.',
+        '(volter-game-editor add static-batch) even when every mesh carries its own inline material.',
       args: z.tuple([]),
       locus: 'client',
     },

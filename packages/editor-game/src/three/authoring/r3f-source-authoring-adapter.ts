@@ -215,13 +215,13 @@ const isHiddenProp = (name: string): boolean =>
   HIDDEN_PROPS.has(name) ||
   /^on[A-Z]/.test(name) ||
   name.startsWith('userData-') ||
-  // The editor's OWN injected identity props (`__vgaiOid`, `__vgaiLabel` —
+  // The editor's OWN injected identity props (`__volterOid`, `__volterLabel` —
   // `oid-transform.ts`'s callsite stamp). They never reach here today, because
   // attrs are read from the file on disk while the stamp exists only in the
   // transformed module — but they are the one prop family whose removal would
   // break instance identity outright, so the guard is stated rather than
   // inferred from that layering.
-  name.startsWith('__vgai');
+  name.startsWith('__volter');
 
 /** Owned by the Transform section at the top of the panel, and by the Name
  *  field in the header — listing them again showed the same value twice. */
@@ -498,7 +498,7 @@ const R3F_CREATE_PRESETS: Record<string, string> = {
  * no props to configure yet, so the hand-rolled loader component would be a
  * copy of the library's with nothing added — and a component is what an author
  * writes THEMSELVES once the model needs behavior, by editing this callsite.
- * Deliberately NOT a vgai wrapper or a runtime indirection: the inserted line is
+ * Deliberately NOT a volter wrapper or a runtime indirection: the inserted line is
  * the line a human would write, and every later edit is drei's own API.
  */
 const MODEL_EXTENSION_RE = /\.(glb|gltf)$/i;
@@ -958,7 +958,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       // system, positively. Asking it by ATTEMPTING the read routes an
       // ordinary absence through the source backend's failure path, which
       // ANNOUNCES before it throws — so every project that simply never ran
-      // `vgai add reflections` carried a permanent unresolved console error
+      // `volter-game-editor add reflections` carried a permanent unresolved console error
       // about a file it is not supposed to have (runhuman pass 92, on the
       // strategy example). The catch swallowed the exception; it could not
       // swallow the report.
@@ -1029,7 +1029,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
    * different keys on the SAME object. `@volter/editor-react`'s `serving/ui-oid-plugin.ts`'s transform stamps a
    * host element inside a component definition with BOTH
    * `userData-oid="<this element, in the definition file>"` AND
-   * `userData-authoringInstance={__vgaiOid}` (the callsite oid, passed in as a
+   * `userData-authoringInstance={__volterOid}` (the callsite oid, passed in as a
    * prop). `oidOf` deliberately prefers the callsite — that is what makes an
    * instance select and write as one authoring object — so the definition entry
    * is only reachable by reading the raw `oid` key here.

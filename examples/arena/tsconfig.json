@@ -48,7 +48,7 @@
   },
   "include": [
     "src",
-    "vgai.adapter.ts"
+    "volter.adapter.ts"
   ],
   "exclude": [
     "src/tools",

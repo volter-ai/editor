@@ -62,7 +62,7 @@
  * between a caller and the live library object.
  */
 
-import type { VgaiGameSystemEmpty } from './ingest/game-contract';
+import type { VolterGameSystemEmpty } from './ingest/game-contract';
 
 /**
  * `absent(reason)` — THE WHOLE-SLOT counterpart of the four per-member policies
@@ -85,9 +85,9 @@ import type { VgaiGameSystemEmpty } from './ingest/game-contract';
  *
  * ## It is a CONSTRUCTOR for the shape that already exists, not a second one
  *
- * The returned value IS `VgaiGameSystemEmpty` — the plain
+ * The returned value IS `VolterGameSystemEmpty` — the plain
  * `{ present: false, evidence }` record an INGESTED game declares on
- * `window.vgaiGame.systems.systemAdapters`, validated by the same single
+ * `window.volterGame.systems.systemAdapters`, validated by the same single
  * projection (`ingest/contract-system-adapters.ts`). There is one shape law, not
  * two: a foreign game cannot import this helper and must stay able to write the
  * record by hand, so nothing here may brand the runtime value. What the helper
@@ -106,7 +106,7 @@ import type { VgaiGameSystemEmpty } from './ingest/game-contract';
  *   terms. "no netcode anywhere in `src/`" is a finished answer a reviewer can
  *   re-run; "not implemented yet" is a plan, and is rejected here.
  */
-export function absent(reason: string): VgaiGameSystemEmpty {
+export function absent(reason: string): VolterGameSystemEmpty {
   if (typeof reason !== 'string' || reason.trim() === '') {
     throw new Error(
       'absent(): an absence needs evidence — say what was searched and what was found ' +

@@ -13,7 +13,7 @@
  * that was asked to stop and did* — the same judgement the workbench makes
  * about its own (`onUnexpectedError` returns early on `isCancellationError`)
  * and the same one the Fetch and Streams specs make (`AbortError`). It is
- * applied identically to OUR rejections and to anyone else's: a vgai fetch
+ * applied identically to OUR rejections and to anyone else's: a volter fetch
  * abandoned because the document moved on is exactly as much of a non-event.
  *
  * ## What made it necessary

@@ -1,5 +1,5 @@
 /**
- * The frozen shape of `window.__vgai`, the in-page debug bridge installed by
+ * The frozen shape of `window.__volter`, the in-page debug bridge installed by
  * the engine (`packages/editor-game/src/runtime/debug-bridge.ts`, Task 2.1 —
  * landing concurrently with this package). This module declares that shape
  * independently; it never imports the engine package, so this package can be
@@ -23,7 +23,7 @@ export interface DebugCommandInfo {
 /** Run-4 friction #5: `seq` is a registry-lifetime monotonic counter (never
  *  reset, never shared by two events — unlike `tick`, which a debug-command
  *  emission and a fenced consumer's snapshot can legitimately collide on).
- *  Mirrors `@vgai/project`'s `TickStampedEvent` (`adapter/system-adapter.ts`)
+ *  Mirrors `@volter/editor-project`'s `TickStampedEvent` (`adapter/system-adapter.ts`)
  *  — this package never imports the engine (see the module doc above), so
  *  the shape is declared here from the same contract. */
 export interface TickStampedEvent {
@@ -48,20 +48,20 @@ export interface DebugBridgeInput {
   /** Schedule a virtual actuation for a specific tick, applied
    *  at the start of that tick's input phase. Declared here for the
    *  bridge↔wire coverage-parity gate — type-shape completeness with
-   *  `runtime/debug-bridge.ts`'s `VgaiDebugInputHandle` — this package still
+   *  `runtime/debug-bridge.ts`'s `VolterDebugInputHandle` — this package still
    *  exposes no client-side convenience wrapper around it (deliberately
    *  parked; see `GameInput` in `client.ts`), this is pure type-shape
    *  mirroring. */
   scheduleActionAtTick(tick: number, action: string, value: VirtualActionValue): void;
   /** Pointer-dispatch op — mirrors `runtime/debug-bridge.ts`'s
-   *  `VgaiDebugInputHandle.injectPointerDelta`: accumulates a synthetic
+   *  `VolterDebugInputHandle.injectPointerDelta`: accumulates a synthetic
    *  pointer delta for a named test source (sums within a frame, clears each
    *  frame). Declared here for type-shape completeness with the bridge, same
    *  precedent as `scheduleActionAtTick` above — no client-side convenience
    *  wrapper in `client.ts` (deliberately parked). */
   injectPointerDelta(sourceId: string, delta: { x: number; y: number }): void;
   /** Pointer-dispatch op — mirrors `runtime/debug-bridge.ts`'s
-   *  `VgaiDebugInputHandle.injectPointerPosition`: sets a synthetic absolute
+   *  `VolterDebugInputHandle.injectPointerPosition`: sets a synthetic absolute
    *  pointer position for a named test source (last-write-wins, persists
    *  until changed). Same type-shape-only precedent as `scheduleActionAtTick`. */
   injectPointerPosition(sourceId: string, value: { x: number; y: number }): void;
@@ -84,7 +84,7 @@ export interface DebugSnapshot {
     tick: number;
     /**
      * Issue #175 — the REAL engine `GameLoop.liveness` behind this session
-     * (mirrors `@vgai/game-runtime`'s `GameLoopLiveness`; this package never
+     * (mirrors `@volter/game-runtime`'s `GameLoopLiveness`; this package never
      * imports the engine — see the module doc above — so the union is
      * declared here from the same contract). `'loop-starved'` means no recent
      * host rAF callback was observed. It may reflect the current visibility
@@ -101,9 +101,9 @@ export interface DebugSnapshot {
   pageErrors: string[];
 }
 
-/** `window.__vgai`'s shape (version 1, frozen — see the build plan's ground
+/** `window.__volter`'s shape (version 1, frozen — see the build plan's ground
  *  rule 4). */
-export interface VgaiBridgeHandle {
+export interface VolterBridgeHandle {
   version: 1;
   providers(): ProviderInfo[];
   state(name: string): unknown;
@@ -128,10 +128,10 @@ export interface VgaiBridgeHandle {
   holdFor(action: string, simSeconds: number, worldId?: string): Promise<VirtualActionResult>;
 }
 
-// Deliberately no `declare global { interface Window { __vgai } }` here:
+// Deliberately no `declare global { interface Window { __volter } }` here:
 // the engine's own debug-bridge module (landing concurrently) is the real
-// installer and may declare its own global augmentation for `window.__vgai`.
+// installer and may declare its own global augmentation for `window.__volter`.
 // Two independent ambient declarations of the same global member are only
 // safe if structurally identical, and this package must not assume that —
-// every access reaches through an explicit `window as { __vgai?: ... }` cast
+// every access reaches through an explicit `window as { __volter?: ... }` cast
 // at the `page.evaluate()` boundary instead (see client.ts).

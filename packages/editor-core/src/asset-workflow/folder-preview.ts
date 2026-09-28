@@ -203,7 +203,7 @@ function ingestListing(
   next: PendingDir[],
 ): void {
   for (const asset of assets) {
-    if (asset.name.startsWith('.')) continue; // hidden, including .vgai
+    if (asset.name.startsWith('.')) continue; // hidden, including .volter
     const path = entry.dir ? `${entry.dir}/${asset.name}` : asset.name;
     if (asset.type === 'directory') {
       if (entry.depth + 1 > state.maxDepth) state.truncated = true;
@@ -231,7 +231,7 @@ function ingestListing(
 /**
  * Breadth-first scan of `folderPath` (relative to `root`) producing a
  * deterministic preview summary. Hidden entries (leading '.', including
- * `.vgai`) are skipped entirely; safety caps bound depth and listing count.
+ * `.volter`) are skipped entirely; safety caps bound depth and listing count.
  */
 export async function collectFolderPreview(
   root: string,

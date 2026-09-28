@@ -40,7 +40,7 @@ export function CameraInfo() {
     <EditorSurface
       variant="overlay"
       border
-      className="vgai-camera-info vgai-chrome-island vgai-glass-island"
+      className="volter-camera-info volter-chrome-island volter-glass-island"
       data-island-scale="compact"
     >
       <Inline gap={8} align="center" style={{ whiteSpace: 'nowrap' }}>

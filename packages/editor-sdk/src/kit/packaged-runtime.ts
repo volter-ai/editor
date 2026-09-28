@@ -1,6 +1,6 @@
 /**
  * Runtime detection of the PACKAGED editor server (`packages/editor/server/
- * packaged.ts` — a `@vgai/editor` npm package with NO monorepo checkout on
+ * packaged.ts` — a `@volter/editor-core` npm package with NO monorepo checkout on
  * disk) from editor CLIENT code. Needed because a react world's mount
  * (`react-mount-runtime.ts`'s `resolveReactRootMountRuntime`) must resolve its
  * `react`/`react-dom/client` from the
@@ -40,7 +40,7 @@
  *
  * Both halves were bought by one measured failure. A `.catch(() => false)`
  * latch turned a single unreachable fetch — a mount landing in the window
- * while `vgai edit` restarts its dev server, which it does on any
+ * while the editor's `edit` command restarts its dev server, which it does on any
  * server-file change — into a page where EVERY doorway
  * (`three-ingest-runtime`, `canvas-entry-runtime`, `r3f-entry-runtime`,
  * the two story runtimes, `binding-resolver`'s react

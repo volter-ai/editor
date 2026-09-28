@@ -11,10 +11,10 @@ export function WorkspaceUtilitySurface({
   const Content = utility.Content;
   return (
     <div
-      className="vgai-dock-panel vgai-regular-panel-portal"
+      className="volter-dock-panel volter-regular-panel-portal"
       data-testid={testId ?? `bottom-panel-utility-${utility.id}`}
       data-editor-hotkey-scope="workspace"
-      data-vgai-noselect="true"
+      data-volter-noselect="true"
     >
       <Content />
     </div>

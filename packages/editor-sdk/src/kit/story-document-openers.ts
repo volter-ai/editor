@@ -4,7 +4,7 @@
  *
  * It lives here, in the host's story estate (the registry, discovery, the
  * declared medium, the arg descriptors, the three mount), and NOT in the
- * documents, because the documents are a contribution: `@vgai/game` registers
+ * documents, because the documents are a contribution: `@volter/editor-game` registers
  * openers for these ids, the host asks for them, and neither side imports the
  * other. A build that does not carry that package simply has no opener, which
  * every call site already handles — `null` is the same answer an undeclared

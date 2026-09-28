@@ -240,13 +240,13 @@ const fieldStyle: CSSProperties = { display: 'grid', gap: 5 };
 const fieldLabelStyle: CSSProperties = {
   color: text[1],
   fontWeight: 600,
-  fontSize: 'var(--vgai-font-sm)',
+  fontSize: 'var(--volter-font-sm)',
 };
 const optionalStyle: CSSProperties = { color: text[3], fontWeight: 400, marginLeft: 5 };
 const descriptionStyle: CSSProperties = {
   display: 'block',
   color: text[2],
-  fontSize: 'var(--vgai-font-sm)',
+  fontSize: 'var(--volter-font-sm)',
   lineHeight: 1.4,
 };
 const controlLayoutStyle: CSSProperties = {
@@ -256,7 +256,7 @@ const controlLayoutStyle: CSSProperties = {
 const fieldsetStyle: CSSProperties = {
   margin: 0,
   padding: 14,
-  border: '1px solid var(--vgai-boundary-default)',
-  borderRadius: 'var(--vgai-radius-md)',
+  border: '1px solid var(--volter-boundary-default)',
+  borderRadius: 'var(--volter-radius-md)',
 };
 const legendStyle: CSSProperties = { padding: '0 6px', color: text[1], fontWeight: 600 };

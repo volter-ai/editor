@@ -73,7 +73,7 @@ export function createThreeSelectionOutline(
   // A CRISP LINE NEEDS ITS COLOUR UNSCALED. postprocessing's composite multiplies the edge colour
   // by the edge value and uses that value again as alpha, so a partial edge darkens (Blender's
   // orange read brown) and a strength above one pushes the colour past itself (it read white).
-  // Under `vgaiCrisp` the colour is divided back out of the edge value, leaving only the alpha
+  // Under `volterCrisp` the colour is divided back out of the edge value, leaving only the alpha
   // to follow the edge; the editor's own halo keeps the library's composite. And the library
   // draws an edge only OUTSIDE the silhouette (it scales the edge by the mask, which is zero on
   // the selection); Blender's detect marks the pixels on both sides of it, so a crisp line keeps
@@ -84,15 +84,15 @@ export function createThreeSelectionOutline(
   if (shader.includes(stock) && shader.includes(outsideOnly)) {
     (effect as unknown as { setFragmentShader(source: string): void }).setFragmentShader(
       shader
-        .replace('uniform float edgeStrength;', 'uniform float edgeStrength;uniform float vgaiCrisp;')
-        .replace(outsideOnly, 'edge*=(edgeStrength*(vgaiCrisp>0.5?1.0:mask.x)*pulse);')
+        .replace('uniform float edgeStrength;', 'uniform float edgeStrength;uniform float volterCrisp;')
+        .replace(outsideOnly, 'edge*=(edgeStrength*(volterCrisp>0.5?1.0:mask.x)*pulse);')
         .replace(
           stock,
-          `${stock}if(vgaiCrisp>0.5){float vgaiSum=edge.x+edge.y;if(vgaiSum>0.0)color/=vgaiSum;edge=min(edge,vec2(1.0));}`,
+          `${stock}if(volterCrisp>0.5){float volterSum=edge.x+edge.y;if(volterSum>0.0)color/=volterSum;edge=min(edge,vec2(1.0));}`,
         ),
     );
     // Any `{ value }` is a uniform to three; no runtime three import in this module.
-    effect.uniforms.set('vgaiCrisp', { value: 0 } as THREE.Uniform<number>);
+    effect.uniforms.set('volterCrisp', { value: 0 } as THREE.Uniform<number>);
   }
   // THE EDITOR'S OWN OVERLAYS DO NOT HIDE THE SELECTION. The effect measures what stands in
   // front of the selected object with a depth pass under an override material, which writes
@@ -199,14 +199,14 @@ type OutlineColors = {
  * step where its are smoothed. Visibility is the stock material's: the least visible of the
  * pixels looked at.
  */
-const BLENDER_OUTLINE_DETECT = /* glsl */ `uniform lowp sampler2D inputBuffer;uniform vec2 texelSize;uniform float vgaiReach;
+const BLENDER_OUTLINE_DETECT = /* glsl */ `uniform lowp sampler2D inputBuffer;uniform vec2 texelSize;uniform float volterReach;
 varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;
 void main(){
   vec2 uv=(vUv0+vUv1)*0.5;
   vec2 c=texture2D(inputBuffer,uv).rg;
   float edge=0.0;float visibility=1.0;
   for(int i=1;i<=2;i++){
-    if(float(i)>vgaiReach||edge>0.0)break;
+    if(float(i)>volterReach||edge>0.0)break;
     vec2 o=texelSize*float(i);
     vec2 s0=texture2D(inputBuffer,uv+vec2(o.x,0.0)).rg;vec2 s1=texture2D(inputBuffer,uv-vec2(o.x,0.0)).rg;
     vec2 s2=texture2D(inputBuffer,uv+vec2(0.0,o.y)).rg;vec2 s3=texture2D(inputBuffer,uv-vec2(0.0,o.y)).rg;
@@ -256,9 +256,9 @@ function paintOutline(effect: OutlineEffect): void {
   }
   // Half the width on each side of the silhouette's edge: Blender's 4 device px is its
   // `do_thick_outlines` reach of 2.
-  detect.uniforms['vgaiReach'] = { value: Math.max(1, Math.round(width / 2)) } as THREE.IUniform<number>;
+  detect.uniforms['volterReach'] = { value: Math.max(1, Math.round(width / 2)) } as THREE.IUniform<number>;
   effect.edgeStrength = crisp ? 8 : 5;
-  const crispUniform = effect.uniforms.get('vgaiCrisp');
+  const crispUniform = effect.uniforms.get('volterCrisp');
   if (crispUniform) crispUniform.value = crisp ? 1 : 0;
   effect.xRay = form?.hidden ?? true;
 }

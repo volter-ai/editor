@@ -136,7 +136,7 @@ function _updateContactPoints(group: THREE.Group, contacts: Float32Array | null)
 }
 
 /**
- * e2e hook (mirrors the world root's stage's `__vgaiViewport`): mechanical state for
+ * e2e hook (mirrors the world root's stage's `__volterViewport`): mechanical state for
  * The question this answers — is the Rapier debug wireframe live in the
  * game scene with real geometry, and how many contact markers are drawn.
  */
@@ -167,7 +167,7 @@ function _stateForE2E(): {
   };
 }
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>)['__vgaiPhysicsDebug'] = _stateForE2E;
+  (window as unknown as Record<string, unknown>)['__volterPhysicsDebug'] = _stateForE2E;
 }
 
 function _teardown(): void {

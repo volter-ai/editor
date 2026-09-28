@@ -1,7 +1,7 @@
 /**
  * The wire vocabulary of the EDITOR-SURFACE probe — the scoped editor-chrome
- * door (`packages/editor/src/editor-document-probe.ts` implements it,
- * `@vgai/live`'s `editor.document` binds it, and that module's header carries
+ * door (`packages/editor-sdk/src/kit/editor-document-probe.ts` implements it,
+ * `@volter/editor-live`'s `editor.document` binds it, and that module's header carries
  * the design decision and the scope contract).
  *
  * Deliberately NOT a page-automation vocabulary: there is no navigation, no
@@ -15,7 +15,7 @@
  * this door, and the reason it is a vocabulary rather than a free selector.
  *
  * Every name here resolves to ONE live element the person is looking at, found
- * by a stamp that surface's own owner wrote (`data-vgai-part` on the element
+ * by a stamp that surface's own owner wrote (`data-volter-part` on the element
  * the workbench handed over for a registered view; the document surface's own
  * `data-testid`), never by walking the page for a class that looks right. A
  * name whose surface is not on screen is REFUSED by name — an agent learns the
@@ -28,11 +28,11 @@
  *    rail, each on its own. Both are INSIDE `document`; they exist as names so
  *    a selector that also matches in the content (`button`, `[role=tab]`) can
  *    be aimed without an index.
- *  - `rail` — the Properties view (`vgai.properties`): its vertical tab rail,
+ *  - `rail` — the Properties view (`volter.properties`): its vertical tab rail,
  *    the active tab's sections and their fields.
- *  - `outliner` — the Outliner view (`vgai.outliner`): its rows, their
+ *  - `outliner` — the Outliner view (`volter.outliner`): its rows, their
  *    expand/eye/camera controls, and its header.
- *  - `content` — the Content view (`vgai.content`): its categories and asset
+ *  - `content` — the Content view (`volter.content`): its categories and asset
  *    rows.
  *
  *  - `utility` — the utility view showing in the panel (a contribution's
@@ -90,7 +90,7 @@ export interface DocumentQueryStep extends ScopedStep {
   limit?: number;
   /**
    * Style property names to resolve on each match — standard
-   * (`backgroundColor`, `borderInlineStartWidth`) or custom (`--vgai-…`).
+   * (`backgroundColor`, `borderInlineStartWidth`) or custom (`--volter-…`).
    *
    * Ask for the STANDARD property to learn what a surface PAINTS: a theme
    * token is an expression (`color-mix(…)`), and the element that uses it is

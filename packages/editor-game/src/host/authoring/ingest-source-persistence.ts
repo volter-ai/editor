@@ -772,7 +772,7 @@ export class IngestSourcePersistence {
     const history = this.history!;
     const descriptor = history.registry.registerProject(
       'overlay',
-      '.vgai/ingest-live-objects',
+      '.volter/ingest-live-objects',
       'Ingested game objects',
     );
     const driver: ResourceDriver = {
@@ -813,7 +813,7 @@ export class IngestSourcePersistence {
 /**
  * Report a refusal where the user can see it, once per gesture.
  *
- * A WARNING, not a log line, because of where each one goes: `vgai status`
+ * A WARNING, not a log line, because of where each one goes: `volter-game-editor status`
  * surfaces `sessionWarnings` and shows nothing at all for `log`. A refused
  * write was invisible to every door the product has — the user's edit did not
  * reach their file and the only explanation lived in a panel nobody could read

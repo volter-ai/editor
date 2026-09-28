@@ -277,7 +277,7 @@ export function gameStaticPlugin(repoRoot: string): Plugin {
   const vendorRoot = resolve(repoRoot, 'vendor/games');
   const gameIds = discoverVendoredGameIds(vendorRoot);
   return {
-    name: 'vgai-game-static',
+    name: 'volter-game-static',
     configureServer(server) {
       // AHEAD of Vite: the id-carrying `/vendor/games/<id>/…` route.
       server.middlewares.use(async (req, res, next) => {

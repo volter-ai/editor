@@ -1,7 +1,7 @@
 /**
  * THE WORKBENCH'S WORKSPACE STORAGE, as the frame hands it over at mount: Code-OSS's own
  * `IStorageService` at `StorageScope.WORKSPACE`, which the web workbench keeps in the project's
- * folder (`.vgai/workbench-storage.json`, the fork's `workspaceStorageUrl`). A host without the
+ * folder (`.volter/workbench-storage.json`, the fork's `workspaceStorageUrl`). A host without the
  * frame installs none, and the project-local layer keeps its own file.
  */
 export interface WorkspaceStorageProvider {

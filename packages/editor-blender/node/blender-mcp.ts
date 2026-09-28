@@ -6,7 +6,7 @@
  * No modeling happens in this process. `execute_blender_code`,
  * `get_scene_info`, `get_object_info` and `get_viewport_screenshot` become
  * `blender-*` control commands answered by the tab's worker
- * (`packages/blender/contributions/blender.command.ts`, the engine's own
+ * (`packages/editor-blender/contributions/blender.command.ts`, the engine's own
  * `workspace.command` contribution); the screenshot is the tab
  * photographing its own Model document. The 24 integration tools answer as
  * an add-on with no integrations, exactly as the Python server did.
@@ -108,7 +108,7 @@ function projectRelative(project: string, absolute: string): string | null {
 /**
  * The worker's filesystem is the only place a script's outputs exist; this
  * mirrors them to disk. Roots: the project (a script's `public/models/x.glb`
- * lands in the project) plus any `VGAI_BLENDER_MIRROR_ROOTS` (colon-separated
+ * lands in the project) plus any `VOLTER_BLENDER_MIRROR_ROOTS` (colon-separated
  * absolute paths — the replay harness names its run directory). Only files
  * whose size or mtime changed since the last mirror are read back, and only
  * files the SESSION owns are listed at all — a project file it merely read
@@ -117,7 +117,7 @@ function projectRelative(project: string, absolute: string): string | null {
  * THIS IS THE DOOR THAT RECORDS, because it is the door a session's bytes
  * enter the project through. MEASURED 2026-09-18: a script's
  * `export_scene.gltf` to `<project>/public/models/lantern.glb` landed here and
- * `.vgai/provenance.json` was never created — the one state
+ * `.volter/provenance.json` was never created — the one state
  * `scripts/validate-project-provenance.mjs` calls fatal, and the opposite of
  * the doctrine that a generated artifact enters `public/` through a door that
  * records it atomically. So a file this lands under `public/` is POSTed to the
@@ -131,7 +131,7 @@ function projectRelative(project: string, absolute: string): string | null {
  * transport uses that same session boundary as the other product commands;
  * it never creates a second ledger writer in the MCP process.
  *
- * Everything else the session owns — `.vgai/tmp/*.png`, a `.blend`, a replay
+ * Everything else the session owns — `.volter/tmp/*.png`, a `.blend`, a replay
  * harness's run directory outside the project — is mirrored with a plain write
  * and deliberately NOT recorded: the ledger is about what the project SHIPS,
  * and `public/` is what ships.
@@ -232,7 +232,7 @@ class TabSession {
   #origin: string | null = null;
   #port: number | null = null;
   /** A replay starts with a fresh model once; ordinary agent sessions persist. */
-  #freshSessionPending = Boolean(process.env['VGAI_BLENDER_FRESH_SESSION']);
+  #freshSessionPending = Boolean(process.env['VOLTER_BLENDER_FRESH_SESSION']);
   constructor(
     private readonly project: string,
     private readonly ensureEditor: () => Promise<void>,
@@ -308,7 +308,7 @@ export async function serveBlenderMcp(
   const defaults = blenderDefaults as Record<string, string>;
   const mirror = new Mirror(project, [
     project,
-    ...(process.env['VGAI_BLENDER_MIRROR_ROOTS'] ?? '')
+    ...(process.env['VOLTER_BLENDER_MIRROR_ROOTS'] ?? '')
       .split(':')
       .filter((root) => root.startsWith('/')),
   ], `${command} blender-mcp`);

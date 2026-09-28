@@ -64,7 +64,7 @@ function notifyAudioChanged(
  *     Network, and runtime status. {@link getInspectedSystems} follows the
  *     explicit Inspect selector (and the normal click-to-focus gesture).
  *   - "the instance I ADDRESSED" — the CLI session wire
- *     (`vgai eval`/`e2e` → `command-listener.ts`). With one instance the two
+ *     (the editor's `eval` command/`e2e` → `command-listener.ts`). With one instance the two
  *     coincide, which is exactly why a single `let` worked and why nothing
  *     noticed it was implicit; with several, resolving an addressed command
  *     through editor focus would let a bot drive whichever game the user last
@@ -264,7 +264,7 @@ export class InstanceResolutionError extends Error {
 /**
  * Resolve an ADDRESSED instance's adapters for the session wire.
  *
- * The rule deliberately mirrors `vgai edit`'s session selection rather than
+ * The rule deliberately mirrors the editor's `edit` command's session selection rather than
  * inventing a second one: take the unambiguous case silently, refuse the
  * ambiguous one BY NAME, and never guess.
  *

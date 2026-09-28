@@ -12,7 +12,7 @@ export function isProjectScratchPath(filename: string, roots: Iterable<string>):
   }
   if (!owner) return false;
   const [directory, child] = path.relative(owner, file).split(path.sep);
-  return directory === '.vgai' && child === 'tmp';
+  return directory === '.volter' && child === 'tmp';
 }
 
 /**

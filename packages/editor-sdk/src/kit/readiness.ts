@@ -9,7 +9,7 @@
  *     the mount, so mount completion IS readiness; no game code is needed and
  *     the answer is `declared` for every first-party project by construction.
  *   · `contract-ready` — a SELF-BOOTING game that declares
- *     `window.vgaiGame.ready` (`@volter/editor-project/adapter/ingest/game-contract`). Also
+ *     `window.volterGame.ready` (`@volter/editor-project/adapter/ingest/game-contract`). Also
  *     `declared`: the game stated it.
  *   · `measured-wait` — a self-booting game that declares nothing. The measured
  *     waits remain (they are the documented fallback), and this is the whole
@@ -17,7 +17,7 @@
  *     stated this" is a visible fact rather than silence.
  *
  * Published as the `readiness` facet of `/__editor/state`
- * (`command-listener.ts`'s `collectState`), which is what `vgai status` reads.
+ * (`command-listener.ts`'s `collectState`), which is what the editor's `status` command reads.
  */
 
 import type {
@@ -108,6 +108,6 @@ export function measuredReadinessWarning(): string | null {
   return (
     `${measured.length} of ${entries.length} root(s) have NO readiness declaration ` +
     `(${measured.map((entry) => entry.rootId).join(', ')}) — the host is measuring instead. ` +
-    'A self-booting game states it with `window.vgaiGame.ready`.'
+    'A self-booting game states it with `window.volterGame.ready`.'
   );
 }

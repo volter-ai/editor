@@ -78,7 +78,7 @@ export interface BackdropStops {
  */
 export function paletteBackdropStops(): BackdropStops {
   const root =
-    typeof document === 'undefined' ? null : document.querySelector('[data-vgai-palette]');
+    typeof document === 'undefined' ? null : document.querySelector('[data-volter-palette]');
   if (!root) return { bottom: GRADIENT_BOTTOM.clone(), top: GRADIENT_TOP.clone() };
   const style = getComputedStyle(root);
   const canvas = document.createElement('canvas');
@@ -91,15 +91,15 @@ export function paletteBackdropStops(): BackdropStops {
     // their CSS colors over the shell; Three.Color has no alpha channel.
     context.fillStyle = fallback.getStyle();
     context.fillRect(0, 0, 1, 1);
-    context.fillStyle = style.getPropertyValue('--vgai-surface-shell').trim();
+    context.fillStyle = style.getPropertyValue('--volter-surface-shell').trim();
     context.fillRect(0, 0, 1, 1);
     context.fillStyle = value;
     context.fillRect(0, 0, 1, 1);
     const [r, g, b] = context.getImageData(0, 0, 1, 1).data;
     return new THREE.Color().setRGB(r! / 255, g! / 255, b! / 255, THREE.SRGBColorSpace);
   };
-  const panel = read('--vgai-surface-panel', GRADIENT_BOTTOM);
-  const raised = read('--vgai-surface-raised', GRADIENT_TOP);
+  const panel = read('--volter-surface-panel', GRADIENT_BOTTOM);
+  const raised = read('--volter-surface-raised', GRADIENT_TOP);
   // A background texture is not tone-mapped, so what is authored here is
   // what the screen shows. The small lift keeps the ground a step above the
   // panel it sits beside (Blender's viewport is lighter than its editors).
@@ -112,14 +112,14 @@ export function paletteBackdropStops(): BackdropStops {
 
 /**
  * Fires when the palette the backdrop follows changes. The theme installer
- * stamps its root with `data-vgai-palette` / `data-vgai-material` on every
+ * stamps its root with `data-volter-palette` / `data-volter-material` on every
  * switch, so the DOM is the contract here — a document stage never imports
  * the shell's preference store (its closure is pinned,
  * `scripts/validate-editor-closure.mjs`). Returns the unsubscribe.
  */
 export function watchPaletteBackdrop(onChange: () => void): () => void {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return () => {};
-  const root = document.querySelector('[data-vgai-palette]');
+  const root = document.querySelector('[data-volter-palette]');
   if (!root) return () => {};
   const observer = new MutationObserver(() => {
     onChange();
@@ -127,7 +127,7 @@ export function watchPaletteBackdrop(onChange: () => void): () => void {
   });
   observer.observe(root, {
     attributes: true,
-    attributeFilter: ['data-vgai-palette', 'data-vgai-material'],
+    attributeFilter: ['data-volter-palette', 'data-volter-material'],
   });
   return () => observer.disconnect();
 }
@@ -248,7 +248,7 @@ export function applyGridDistanceFade(material: THREE.Material, gridSize: number
       );
   };
   // Distinct fade bands must not share one cached program.
-  material.customProgramCacheKey = () => `vgai-grid-fade:${fadeStart}:${fadeEnd}`;
+  material.customProgramCacheKey = () => `volter-grid-fade:${fadeStart}:${fadeEnd}`;
 }
 
 export interface StandardViewportDressingOptions {
@@ -302,7 +302,7 @@ export function applyStandardViewportDressing(
     // document stage is lit by its view's presentation instead (`StagePresentationRig`, and
     // `StageHost` turns this key off); a stage without a presentation still gets this one.
     const key = new THREE.DirectionalLight(0xfff3dd, 1.9);
-    key.name = 'vgai:standard-dressing-key';
+    key.name = 'volter:standard-dressing-key';
     key.position.set(6, 10, -4);
     key.castShadow = true;
     // `userData.editorHelper` keeps it out of hierarchy walks and picks;
@@ -336,7 +336,7 @@ export function applyStandardViewportDressing(
     gridMaterial.opacity = 0.35;
     gridMaterial.depthWrite = false;
     applyGridDistanceFade(gridMaterial, size);
-    helper.name = 'vgai:standard-dressing-grid';
+    helper.name = 'volter:standard-dressing-grid';
     // Just below the ground line so content standing exactly on y=0 never
     // z-fights the grid lines; centred on the content's own footprint.
     helper.position.set(centre[0], -0.02, centre[1]);
@@ -402,7 +402,7 @@ const LIGHT_DISTANCE = 12;
  * else on the page fills.
  */
 const GODOT_FILMIC = /* glsl */ `
-vec3 vgaiHable( vec3 x ) {
+vec3 volterHable( vec3 x ) {
 	const float A = 0.22 * 4.0;
 	const float B = 0.30 * 2.0;
 	const float C = 0.10;
@@ -413,7 +413,7 @@ vec3 vgaiHable( vec3 x ) {
 }
 vec3 CustomToneMapping( vec3 color ) {
 	color *= toneMappingExposure;
-	return clamp( vgaiHable( max( vec3( 0.0 ), color ) ) / vgaiHable( vec3( 1.0 ) ), 0.0, 1.0 );
+	return clamp( volterHable( max( vec3( 0.0 ), color ) ) / volterHable( vec3( 1.0 ) ), 0.0, 1.0 );
 }`;
 {
   const chunk = THREE.ShaderChunk.tonemapping_pars_fragment;
@@ -548,7 +548,7 @@ function fadingFloorMaterial(): THREE.MeshStandardMaterial {
         `#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - smoothstep(${(half * 0.3).toFixed(1)}, ${(half * 0.95).toFixed(1)}, length(vFloorPlane));`,
       );
   };
-  material.customProgramCacheKey = () => 'vgai-fading-floor';
+  material.customProgramCacheKey = () => 'volter-fading-floor';
   return material;
 }
 
@@ -597,19 +597,19 @@ export class StagePresentationRig {
 
   /** `onReady`: an environment image arrived after the apply that asked for it; draw again. */
   constructor(scene: THREE.Scene, private readonly onReady?: () => void) {
-    this.group.name = 'vgai:stage-presentation-rig';
+    this.group.name = 'volter:stage-presentation-rig';
     // Kept out of hierarchy walks and picks, like every editor helper.
     this.group.userData['editorHelper'] = true;
     this.group.add(this.ambient);
     scene.add(this.group);
-    this.previewGroup.name = 'vgai:stage-preview-rig';
+    this.previewGroup.name = 'volter:stage-preview-rig';
     this.previewGroup.userData['editorHelper'] = true;
-    this.sun.name = 'vgai:preview-sun';
+    this.sun.name = 'volter:preview-sun';
     this.sun.userData['editorHelper'] = true;
     this.previewGroup.add(this.sun, this.sun.target);
     this.previewGroup.visible = false;
     scene.add(this.previewGroup);
-    this.floor.name = 'vgai:preview-floor';
+    this.floor.name = 'volter:preview-floor';
     this.floor.userData['editorHelper'] = true;
     this.floor.receiveShadow = true;
     // Transparent now (its fade), so it is sorted with the grid: drawn first, under it.
@@ -1017,7 +1017,7 @@ export class StagePresentationRig {
     this.ambient.intensity = preset.ambient.intensity;
     for (const spec of preset.lights) {
       const light = new THREE.DirectionalLight(spec.color, spec.intensity);
-      light.name = `vgai:studio-light:${preset.id}`;
+      light.name = `volter:studio-light:${preset.id}`;
       light.castShadow = spec.castShadow === true;
       light.userData['editorHelper'] = true;
       this.group.add(light);

@@ -882,7 +882,7 @@ function OptimizeActions({ entry, onApplied }: { entry: AssetBudgetEntry; onAppl
       {lodCandidates.length > 0 ? (
         <div style={{ display: 'flex', gap: spaceVar[2], marginTop: spaceVar[3] }}>
           <Select
-            className="vgai-select"
+            className="volter-select"
             aria-label="LOD base node"
             data-testid="asset-budget-op-lod-node"
             value={chosenLodNode}

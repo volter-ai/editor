@@ -38,23 +38,23 @@ import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails'
 export type AssetGlyphKind = AssetCapabilityKind | 'component' | 'folder';
 
 /**
- * Per-kind category colors. Defined in theme.css's `.vgai-editor-theme`
- * block; the `--vgai-` prefix keeps them under the design-system migration
+ * Per-kind category colors. Defined in theme.css's `.volter-editor-theme`
+ * block; the `--volter-` prefix keeps them under the design-system migration
  * guard's dangling-variable check, so a definition can no longer be deleted
  * without failing the unit gate (which is exactly how the earlier `--asset-*`
  * spelling silently became invisible glyphs).
  */
 export const assetIconColors: Record<AssetGlyphKind, string> = {
-  folder: 'var(--vgai-asset-icon-folder)',
-  model: 'var(--vgai-asset-icon-model)',
-  prefab: 'var(--vgai-asset-icon-prefab)',
-  component: 'var(--vgai-asset-icon-component)',
-  audio: 'var(--vgai-asset-icon-audio)',
-  image: 'var(--vgai-asset-icon-image)',
-  video: 'var(--vgai-asset-icon-video)',
-  json: 'var(--vgai-asset-icon-json)',
-  unknown: 'var(--vgai-asset-icon-unknown)',
-  source: 'var(--vgai-asset-icon-source)',
+  folder: 'var(--volter-asset-icon-folder)',
+  model: 'var(--volter-asset-icon-model)',
+  prefab: 'var(--volter-asset-icon-prefab)',
+  component: 'var(--volter-asset-icon-component)',
+  audio: 'var(--volter-asset-icon-audio)',
+  image: 'var(--volter-asset-icon-image)',
+  video: 'var(--volter-asset-icon-video)',
+  json: 'var(--volter-asset-icon-json)',
+  unknown: 'var(--volter-asset-icon-unknown)',
+  source: 'var(--volter-asset-icon-source)',
 };
 
 export const assetIconMap: Record<AssetGlyphKind, typeof faFolder> = {
@@ -102,7 +102,7 @@ export interface ModelThumbnailSource {
 }
 
 /**
- * Resolve a model asset's thumbnail: `.vgai/thumbnails.json` manifest entry
+ * Resolve a model asset's thumbnail: `.volter/thumbnails.json` manifest entry
  * first, otherwise a live offscreen render through the shared queue at the
  * given priority.
  */
@@ -188,7 +188,7 @@ export function ModelThumbnail({ url }: { url: string }) {
         }}
       >
         <div
-          className="vgai-anim-spin"
+          className="volter-anim-spin"
           style={{
             width: 16,
             height: 16,
@@ -246,7 +246,7 @@ export function AudioAssetThumb({ url, name }: { url: string; name: string }) {
             style={{
               flex: 1,
               height: `${12 + amplitude * 88}%`,
-              background: 'var(--vgai-asset-icon-audio)',
+              background: 'var(--volter-asset-icon-audio)',
               opacity: active && played ? 1 : 0.28,
               borderRadius: 1,
             }}
@@ -278,7 +278,7 @@ export function TypedAssetThumbnail({
         width={cell ? '78%' : 52}
         height={cell ? '78%' : 44}
       >
-        <rect width="64" height="48" rx="4" fill="var(--vgai-bg-inset)" />
+        <rect width="64" height="48" rx="4" fill="var(--volter-bg-inset)" />
         {Array.from({ length: 16 }, (_, index) => (
           <rect
             key={index}
@@ -300,7 +300,7 @@ export function TypedAssetThumbnail({
       width={cell ? '66%' : 48}
       height={cell ? '72%' : 44}
     >
-      <rect x="5" y="3" width="42" height="42" rx="4" fill="var(--vgai-bg-inset)" stroke={color} />
+      <rect x="5" y="3" width="42" height="42" rx="4" fill="var(--volter-bg-inset)" stroke={color} />
       <path d="M13 15h26M13 23h18M13 31h22" stroke={color} strokeWidth="3" strokeLinecap="round" />
     </svg>
   );

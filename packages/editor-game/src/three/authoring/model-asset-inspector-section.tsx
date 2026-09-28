@@ -329,11 +329,11 @@ function MaterialsBody({
           />
         </FieldRow>
       </FieldGroup>
-      <div className="vgai-model-inspector-list">
+      <div className="volter-model-inspector-list">
         {materials.map(({ material, rowKey }) => (
-          <EditorSurface key={rowKey} variant="raised" border className="vgai-model-inspector-row">
+          <EditorSurface key={rowKey} variant="raised" border className="volter-model-inspector-row">
             <span
-              className="vgai-model-material-swatch"
+              className="volter-model-material-swatch"
               style={{ background: material.color ?? undefined }}
               aria-hidden="true"
             />
@@ -381,7 +381,7 @@ function SourceBody({
   return (
     <>
       {sourceContribution ? (
-        <div className="vgai-model-inspector-actions">
+        <div className="volter-model-inspector-actions">
           <Button
             type="button"
             variant="ghost"
@@ -583,16 +583,16 @@ function NativeMaterialsBody({
   readonly materials: Object3DNodeInspection['materials'];
 }) {
   return (
-    <div className="vgai-model-inspector-list">
+    <div className="volter-model-inspector-list">
       {materials.map((material) => (
         <EditorSurface
           key={material.id}
           variant="raised"
           border
-          className="vgai-model-inspector-row"
+          className="volter-model-inspector-row"
         >
           <span
-            className="vgai-model-material-swatch"
+            className="volter-model-material-swatch"
             style={{ background: material.color ?? undefined }}
             aria-hidden="true"
           />

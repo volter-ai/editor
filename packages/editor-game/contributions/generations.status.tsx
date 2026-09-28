@@ -38,7 +38,7 @@ export default function GenerationsStatus() {
       type="button"
       variant="ghost"
       size="compact"
-      className="vgai-status-action"
+      className="volter-status-action"
       data-testid="status-generations"
       aria-label={`Generations, ${unseen} unseen, ${running} running`}
       title={`${unseen} unseen generation results, ${running} running — open Generations`}

@@ -71,7 +71,7 @@ function pathAndQuery(name: string): { path: string; query: string } | null {
   // keeps this pure (no `window.location` read) and works for both forms.
   let parsed: URL;
   try {
-    parsed = new URL(name, 'http://vgai.invalid');
+    parsed = new URL(name, 'http://volter.invalid');
   } catch {
     return null;
   }
@@ -114,12 +114,12 @@ function projectModuleFetch(
   // fresh `?t=` URL (`stories/story-discovery.ts`), and a board refresh may
   // overlap this Play mount window. Counting that intentional reload as a
   // cross-root split makes a healthy multi-root game report an error even
-  // though every root entry still shares the one `vgai-mount` epoch.
+  // though every root entry still shares the one `volter-mount` epoch.
   if (STORY_MODULE_PATTERN.test(path)) return null;
   // The project's adapter is the same shape: a binding table the editor reads
   // WITHOUT booting the game (`project-adapter.ts`'s `importAdapterModule`), fresh
   // `?t=` on every read, and imported by no root.
-  if (path.endsWith('/vgai.adapter.ts')) return null;
+  if (path.endsWith('/volter.adapter.ts')) return null;
   if (isNonModuleQuery(query)) return null;
   // The mount id is not a variant of a module — it names WHICH INSTANCE's copy
   // this is, and per-instance module graphs are the isolation working (see
@@ -255,7 +255,7 @@ export function endProjectModuleSplitWatch(projectRoot: string): readonly Projec
 }
 
 /** What the last closed mount window found — `[]` on a healthy mount. Read by
- *  `command-listener.ts`'s `collectState` so `vgai status` carries it. */
+ *  `command-listener.ts`'s `collectState` so the editor's `status` command carries it. */
 export function getProjectModuleSplitReports(): readonly ProjectModuleSplit[] {
   return reports;
 }

@@ -8,7 +8,7 @@ dist/
 dist-node/
 dist-server/
 dist-config/
-.vgai/
+.volter/
 
 # TypeScript incremental build caches
 .tsbuildinfo/

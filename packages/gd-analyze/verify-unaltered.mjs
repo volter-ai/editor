@@ -25,7 +25,7 @@
  *         npm run verify-unaltered -w @volter/gd-analyze
  *
  * Optional diagnostic root. Ordinary verification runs never set it:
- *   VGAI_GD_FIXTURES_ROOT — where the locks and fixture trees are read from
+ *   VOLTER_GD_FIXTURES_ROOT — where the locks and fixture trees are read from
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -33,7 +33,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const FIXTURES_ROOT =
-  process.env.VGAI_GD_FIXTURES_ROOT ||
+  process.env.VOLTER_GD_FIXTURES_ROOT ||
   join(dirname(fileURLToPath(import.meta.url)), 'test', 'fixtures');
 
 function sha256(path) {

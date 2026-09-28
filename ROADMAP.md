@@ -3,15 +3,15 @@
 Open work for both products this repository ships, the model editor and the game editor: one
 `## <id>: <title>` section each, with its `Status:` (planned, active, proposed) and the `Completion:` lines
 that define done. What shipped and each release's known limits are in [`WORK.md`](WORK.md); the design
-records these items cite (`docs/WORK.md`, `docs/ARCHITECTURE-CORE.md`) remain in `volter-ai/vgai-engine`,
+records these items cite (`docs/WORK.md`, `docs/ARCHITECTURE-CORE.md`) remain in `volter-ai/volter-engine`,
 where the game editor came from.
 
 ## browser-parity: The fifteen references and the five new ones, scored through the browser
 
 Status: active
 The historical local-backend baseline is 15 of 15 models and 137 of 137 observed APIs (company
-`projects/modeler-launch.md`); the battery and its scoreboard are vgai-engine's
-`packages/blender-engine/bench/battery`. A browser replay (vgai-engine `docs/WORK.md` §Blender in the tab is Blender)
+`projects/modeler-launch.md`); the battery and its scoreboard are volter-engine's
+`packages/blender-engine/bench/battery`. A browser replay (volter-engine `docs/WORK.md` §Blender in the tab is Blender)
 replayed every recorded call of the ten-model battery and the five scene models through the editor, geometry
 bit-exact apart from named mechanisms; it is not a score on the parity scoreboard, and it does not name the five
 hard recordings of the original fifteen.
@@ -23,8 +23,8 @@ Completion:
 Status: active
 Design and measurements: [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md) (ARCHITECTURE.md rule 6: a component is themable only when it can be themed into each of several real targets). An independent judge passes all four; Blender's judged objections are closed by Blender's own rules, and a blind walk of a fresh Blender model has its defects fixed. Unity's Move handle is at Unity's own 80-point size.
 Completion:
-- The stage's chrome is the look's to state (its view text, tool strip, pills and readout), so Unreal's row of top pills, Godot's "⋮ Perspective" pill and Unity's "Persp" label can be drawn, and Unreal passes a judge that sees the page capture with its overlay pass (it failed on 2026-09-26 for this).
-- Unreal's thin Move shafts, Unity's outline band on the HeroBox (10 device px for a stated ~4) and Godot's navigation gizmo under the shading pill are closed or named as limits.
+- What the fifth judged round still reads as foreign is closed or named as a limit. Unreal: a globe where it writes `Global`, and its `☰` menu. Godot: its `Transform` menu. Unity: `Shaded` before `Gizmos`, with `Gizmos` at the bar's right, and its `Persp` label faint over a bright sky. All three: the combined transform tool, a fifth tool none of them has.
+- Unreal's thin Move shafts are closed or named as a limit.
 - Blender's Rendered mode and Unreal's capability row are accepted, and the world stage is seen on a project with a world.
 
 ## game-editor-gaps: The game editor's remaining walks and gates
@@ -37,7 +37,7 @@ Completion:
 ## canvas-editor: A canvas (Pixi) root authored in the editor, at parity with its nearest products
 
 Status: active
-The owner brought the canvas lane back into scope (vgai-engine's `packages/canvas`, held at
+The owner brought the canvas lane back into scope (volter-engine's `packages/canvas`, held at
 `archive/launch-scope-2026-09-20`). The bar for every UI capability is parity with its nearest real
 product, learned from that product's own UI: Figma for the design canvas, Godot's 2D editor for a game's
 2D scene. Each product's panel structure (every panel, what it owns, which controls are shortcuts to a
@@ -61,15 +61,15 @@ Completion:
 ## project-model-program: The project shape and settings layers on Code-OSS
 
 Status: active
-Source: vgai-engine `docs/WORK.md` §Project shape and the four settings layers, as re-cut for Code-OSS (U6, U7).
+Source: volter-engine `docs/WORK.md` §Project shape and the four settings layers, as re-cut for Code-OSS (U6, U7).
 Chrome derives from declared kinds; nothing enumerates the shapes.
 Completion:
-- The project-local sections live in the workbench's workspace storage scope, and that scope lives in the project's folder: the fork's `workspaceStorageUrl` (volter-ai/code-oss `50214fb5`) keeps it in `.vgai/workbench-storage.json`, and the frame hands the scope to the kit at mount. Walked on the pinned game workbench: a layout change survives `close` (even one made just before it) and a rename of the project's folder. Remaining: the same reading from a second browser.
+- The project-local sections live in the workbench's workspace storage scope, and that scope lives in the project's folder: the fork's `workspaceStorageUrl` (volter-ai/code-oss `50214fb5`) keeps it in `.volter/workbench-storage.json`, and the frame hands the scope to the kit at mount. Walked on the pinned game workbench: a layout change survives `close` (even one made just before it) and a rename of the project's folder. Remaining: the same reading from a second browser.
 
 ## design-skew: Design, a product skew
 
 Status: planned (the owner took it after `canvas-editor` and `netcode`)
-Source: vgai-engine `docs/WORK.md` §Design. An editable page preview and a Figma-shaped canvas tab as the
+Source: volter-engine `docs/WORK.md` §Design. An editable page preview and a Figma-shaped canvas tab as the
 `website` preset; today its DOM root is read-only, its Pages list is empty, and a `page` has no document editor.
 The `pasteboard` capability its list needs is archived (`archive/launch-scope-2026-09-20`) and is restored first.
 Completion:
@@ -79,7 +79,7 @@ Completion:
 ## zero-magic-conversion: Zero-magic conversion, as native as possible
 
 Status: active
-Source: vgai-engine `docs/WORK.md` §P0 (propagation waits for the owner). The pattern is proven in one place first, through sighted owner
+Source: volter-engine `docs/WORK.md` §P0 (propagation waits for the owner). The pattern is proven in one place first, through sighted owner
 passes; until the owner calls it settled, every propagation wave is recorded, not running.
 Completion:
 - The owner calls the pattern settled, then each recorded wave runs and is measured.
@@ -87,7 +87,7 @@ Completion:
 ## editor-and-contributions: Editor and bundled contributions punchlist
 
 Status: planned
-Source: vgai-engine `docs/WORK.md` §P2, each item with its own measurement.
+Source: volter-engine `docs/WORK.md` §P2, each item with its own measurement.
 Completion:
 - A model task no longer pays the game template's ceremony; the skill no longer front-loads.
 - Grok's two clean Blender-lane runs are run in the modeling bench.
@@ -99,7 +99,7 @@ Completion:
 ## assets-networking-services: Assets, networking and services
 
 Status: proposed
-Source: vgai-engine `docs/WORK.md` §P4.
+Source: volter-engine `docs/WORK.md` §P4.
 Completion:
 - SSD catalog integrity: SHA-256, duplicate and conflict reports, pack identity.
 - Preview usefulness reviewed on representative compositions; AmbientCG in the local catalog; the Sketchfab CC0 acquisition decided by the owner.
@@ -108,8 +108,8 @@ Completion:
 ## after-launch-lanes: The lines parked for after the first launch
 
 Status: proposed; after the first launch, by the owner's launch rule
-Source: vgai-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/vgai-engine` and comes back from it, never re-derived:
-- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into VGAI: Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`); Godot has come back (§godot-lane)
+Source: volter-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/volter-engine` and comes back from it, never re-derived:
+- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into Volter: Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`); Godot has come back (§godot-lane)
 - the example games (`archive/examples-2026-09-19`); `arena` has already come back
 - the built capabilities held out of the first launch's scope (`archive/launch-scope-2026-09-20`), not unfinished work: several are back in this repository (game audio, the ingest door, collaboration, the asset library, the multiplayer template's Colyseus server); back in scope is the netcode (`netcode` above); still only at the tag are the IK, ragdoll, terrain, HUD, sprite and stylized capabilities, the AI generation providers (Fal, Tripo, World Labs, OpenRouter) and the learn site
 Completion:
@@ -118,7 +118,7 @@ Completion:
 ## godot-lane: The Godot import lane
 
 Status: active; conforming to the owner's 2026-09-27 rulings before ports resume (docs/GODOT.md §The lane's law)
-Restored from vgai-engine `archive/godot-lane-2026-09-19` into `packages/gd-analyze`. The law, the design, what was built and the order of work are [docs/GODOT.md](docs/GODOT.md). `platformer-3d-godot4` imports and plays in the game editor; the six Godot 4.x starter kits import as far as their named refusals; the Godot 3 games wait on a 3.x frontend. A blind review on 2026-09-27 failed the architecture on every row: compat had regrown into a Godot engine under a bit-exact evidence gate, which the rulings retire.
+Restored from volter-engine `archive/godot-lane-2026-09-19` into `packages/gd-analyze`. The law, the design, what was built and the order of work are [docs/GODOT.md](docs/GODOT.md). `platformer-3d-godot4` imports and plays in the game editor; the six Godot 4.x starter kits import as far as their named refusals; the Godot 3 games wait on a 3.x frontend. A blind review on 2026-09-27 failed the architecture on every row: compat had regrown into a Godot engine under a bit-exact evidence gate, which the rulings retire.
 Completion:
 - A context-free reviewer passes every row of docs/GODOT.md §The lane's law on the lane.
 - Every game in the frozen corpus freshly translates from its pin, builds, boots in the game editor with a silent console, and a blind walk, side by side with the original in official Godot, reports that it plays like the original.

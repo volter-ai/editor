@@ -107,7 +107,7 @@ export function initGitRepo(targetDir: string, projectName: string): GitInitResu
   // global/system configuration and not something the fresh repo introduced.
   const authorFallback = hasCommitterIdentity(targetDir)
     ? []
-    : ['-c', 'user.name=vgai', '-c', 'user.email=scaffold@vgai'];
+    : ['-c', 'user.name=volter', '-c', 'user.email=scaffold@volter'];
 
   const steps: Array<{ label: string; args: string[] }> = [
     { label: 'git init', args: ['init', '--quiet'] },

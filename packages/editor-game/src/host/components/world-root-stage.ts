@@ -454,7 +454,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   // DEV/e2e hook: lets the per-game feature matrix assert the viewport camera
   // reframes (view presets / focus / orbit) on an ingested scene.
   if (import.meta.env.DEV) {
-    (window as unknown as Record<string, unknown>)['__vgaiViewport'] = viewport;
+    (window as unknown as Record<string, unknown>)['__volterViewport'] = viewport;
   }
 
   // --- Composer rebuild ---

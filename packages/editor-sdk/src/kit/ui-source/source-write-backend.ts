@@ -465,7 +465,7 @@ async function readJsonResponse<T>(res: Response, url: string): Promise<T> {
  * So under the frame the apply goes through `projectFiles`, which is
  * `IFileService`/`ITextFileService` over the workspace folder: the open model
  * is updated in place and saved, no reload fires, and the redo future
- * survives. Standalone `vgai edit` is untouched — `frameOwned()` is false and
+ * survives. Standalone the editor's `edit` command is untouched — `frameOwned()` is false and
  * every call is the same POST it always was.
  *
  * THE GUARD SURVIVES THE MOVE. `/__ui-source/apply`'s `ifMatchSha` is real

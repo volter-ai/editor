@@ -58,7 +58,7 @@ export class LiveGameplayRecording {
 
   /** Reconstruct one full canvas + HUD frame without presenting a replay UI.
    * Accepts the original project recording’s replayPath or its basename.
-   * Copies outside .vgai/recordings are archival, not served by this API. */
+   * Copies outside .volter/recordings are archival, not served by this API. */
   async captureReplay(replayPath: string, positionMs: number): Promise<GameplayReplayCapture> {
     return this.#client.captureGameplayReplay(replayPath, positionMs);
   }

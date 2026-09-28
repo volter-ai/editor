@@ -23,7 +23,7 @@
  * (`seatTester`) and gives it back (`releaseTester`); it never reasons about
  * the rule itself.
  *
- * No vgai import anywhere: the tester's hands are the project's own input
+ * No volter import anywhere: the tester's hands are the project's own input
  * store (`src/input.ts`), typed through `tester-run.ts`'s narrow
  * `TesterInputTarget`.
  */

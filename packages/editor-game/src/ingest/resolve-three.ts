@@ -32,8 +32,8 @@ import type { IngestGame } from './types';
  *
  *  - A THREE ingest's teardown disposes the R3F root, so a remount MUST
  *    re-evaluate the entry — `remountEpochs: true` gives every `load()` its
- *    own `?vgai-ingest-remount=` buster (see `INGEST_REMOUNT_QUERY` for why
- *    it is deliberately NOT `vgai-mount`, whose realm-keying and subgraph
+ *    own `?volter-ingest-remount=` buster (see `INGEST_REMOUNT_QUERY` for why
+ *    it is deliberately NOT `volter-mount`, whose realm-keying and subgraph
  *    stamping the ingest readers cannot follow; an ingest's `load` IS its
  *    mount). A bare URL made stop → ▶ a NO-OP: browser module identity is
  *    per-URL, the already-evaluated entry's top-level boot did not re-run,

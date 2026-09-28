@@ -65,9 +65,9 @@ export function TransportStrip({ transport }: { transport: StageTransportHandle 
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 'var(--vgai-space-2)',
-        padding: 'var(--vgai-space-1) var(--vgai-space-3)',
-        borderTop: `var(--vgai-stroke-resting) solid ${themeVars.boundary.default}`,
+        gap: 'var(--volter-space-2)',
+        padding: 'var(--volter-space-1) var(--volter-space-3)',
+        borderTop: `var(--volter-stroke-resting) solid ${themeVars.boundary.default}`,
         background: themeVars.surface.raised,
       }}
     >
@@ -133,7 +133,7 @@ export function TransportStrip({ transport }: { transport: StageTransportHandle 
         </select>
       ) : null}
 
-      <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--vgai-space-1)' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--volter-space-1)' }}>
         <input
           type="checkbox"
           checked={loop}

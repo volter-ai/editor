@@ -7,7 +7,7 @@
  * difficult situations, and judge the mechanic under test. It says nothing
  * about HOW. REWRITE THIS FILE WHOLE in the game's own vocabulary: rename it,
  * split it into several faces, and structure it the way THIS game's studio
- * would. The error below holds `vgai console` red until you do; delete it
+ * would. The error below holds `volter-game-editor console` red until you do; delete it
  * with the stub.
  *
  * Make the controller's current owner and the tester's repertoire legible.
@@ -54,7 +54,7 @@ export function match(
 // Module-scope on purpose: fires the moment the editor loads this game's
 // contributions, so the demand is visible before anyone opens the panel.
 const unfinished =
-  "VGAI_STUB_UNIMPLEMENTED: src/contributions/tester.inspector.tsx — imagine this game's tester helper surface and rewrite the file whole (its header says how).";
+  "VOLTER_STUB_UNIMPLEMENTED: src/contributions/tester.inspector.tsx — imagine this game's tester helper surface and rewrite the file whole (its header says how).";
 
 // biome-ignore lint/suspicious/noConsole: unopened starter obligations remain visible in the editor console
 console.error(unfinished);

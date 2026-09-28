@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-export const hintStyle: CSSProperties = { color: 'var(--vgai-content-muted)', fontSize: 11 };
+export const hintStyle: CSSProperties = { color: 'var(--volter-content-muted)', fontSize: 11 };
 export const fieldLabelStyle: CSSProperties = { fontSize: 12, fontWeight: 600 };
 export const inputStyle: CSSProperties = { width: '100%', minWidth: 0, boxSizing: 'border-box' };
 
@@ -36,10 +36,10 @@ export function BuilderSliderRow({
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        style={{ width: '100%', minWidth: 0, accentColor: 'var(--vgai-accent)' }}
+        style={{ width: '100%', minWidth: 0, accentColor: 'var(--volter-accent)' }}
       />
       <input
-        className="vgai-input"
+        className="volter-input"
         type="number"
         min={min}
         max={max}

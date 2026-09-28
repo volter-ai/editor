@@ -4,21 +4,21 @@ import { defineConfig } from 'vite';
 // Config-relative TS imports get bundled the same way — that is what lets the
 // project's executable Zod schemas reach the build-time check below.
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
-import manifest from './vgai.project.json';
+import manifest from './volter.project.json';
 
-/** A vgai runtime package served as SOURCE, the way the editor serves it. */
+/** A Volter runtime package served as SOURCE, the way the editor serves it. */
 const packageSource = (name: string) =>
   path.join(path.dirname(createRequire(import.meta.url).resolve(`${name}/package.json`)), 'src');
 
 /**
  * Run-4 dry-run friction #2 — auto-detect drvfs the SAME way the editor dev
- * server does (`packages/editor/server/server-utils.ts`'s
+ * server does (`packages/editor-core/server/server-utils.ts`'s
  * `resolveWatcherPollOptions`, and `dev.ts`'s own `projectOnDrvfs` check):
  * on WSL, a project living on a Windows drive (`/mnt/<drive>/…`) never fires
  * inotify, so without polling this standalone server (`npm run dev:standalone`)
  * silently misses every external file edit — the same failure mode
  * `dev.ts`'s comment documents for the editor. Before this fix, this file
- * read ONLY `VGAI_WATCH_POLL`, so a project on drvfs polled in the editor
+ * read ONLY `VOLTER_WATCH_POLL`, so a project on drvfs polled in the editor
  * but NOT in the standalone server — the two disagreed for no reason a
  * developer could see.
  *
@@ -26,11 +26,11 @@ const packageSource = (name: string) =>
  * contract, so this
  * duplicates the tiny drvfs check rather than reaching across a package
  * boundary that doesn't exist here — same contract as the editor's own
- * helper: `VGAI_WATCH_POLL=0` forces polling off anywhere, `=1`/`=<ms>`
+ * helper: `VOLTER_WATCH_POLL=0` forces polling off anywhere, `=1`/`=<ms>`
  * forces it on with that interval, unset auto-enables on a drvfs mount.
  */
 function resolveWatchOption(): { usePolling: true; interval: number } | undefined {
-  const raw = process.env['VGAI_WATCH_POLL'];
+  const raw = process.env['VOLTER_WATCH_POLL'];
   if (raw !== undefined && raw !== '') {
     if (raw === '0') return undefined;
     const ms = Number(raw);
@@ -68,7 +68,7 @@ export default defineConfig({
   //
   // This project has no `@vitejs/plugin-react`; Vite's built-in esbuild does
   // the JSX transform, and it picks the runtime from the tsconfig nearest the
-  // FILE. That covers `src/**`, but the vgai runtime packages are served as
+  // FILE. That covers `src/**`, but the Volter runtime packages are served as
   // source out of their installed directories (see the aliases below), where
   // the project's tsconfig does not reach — so their `.tsx` compiled with the CLASSIC runtime, emitting
   // bare `React.createElement` calls into a module that never imports React.
@@ -97,7 +97,7 @@ export default defineConfig({
     // example modules (or injected by the JSX transform, like the React
     // runtimes) so Vite does not discover them at runtime, re-optimize, and
     // hard-reload the standalone runtime the first time a game selects them —
-    // that mid-session reload resets `window.__vgaiScene`/the menu out from
+    // that mid-session reload resets `window.__volterScene`/the menu out from
     // under whatever is driving the page (the dep-optimize-reload flake the
     // 04 spec hit: the first cold select of `editor-tutorial` reloaded on
     // `react/jsx-dev-runtime`). Verified against a cold scaffold: with these
@@ -146,20 +146,20 @@ export default defineConfig({
     // WSL when the project lives on a Windows drive (/mnt/c, drvfs: inotify
     // never fires there), or edits to src/data/ or src/ generally silently never
     // hot-reload into the running game.
-    // `VGAI_WATCH_POLL` is an explicit override (`=0` off anywhere, `=1`/
+    // `VOLTER_WATCH_POLL` is an explicit override (`=0` off anywhere, `=1`/
     // `=<ms>` on anywhere) — see `resolveWatchOption` above, which the
     // EDITOR dev server's own auto-detect mirrors, so one behavior covers
     // both surfaces without the developer having to set anything. Safe to
     // enable here: this standalone server only watches the project tree,
     // which is small.
     //
-    // VGAI_NO_WATCH=1 (set by a harness driving this page):
+    // VOLTER_NO_WATCH=1 (set by a harness driving this page):
     // disable watching entirely — a mid-run Vite reload resets
-    // `window.__vgai`/whatever is driving the standalone page out from under
+    // `window.__volter`/whatever is driving the standalone page out from under
     // an in-flight run (the hollowstone reload-kills-the-run
     // lesson). Mutually exclusive with the poll option (same `server.watch`
     // key) — NO_WATCH wins when both would otherwise apply.
-    ...(process.env['VGAI_NO_WATCH']
+    ...(process.env['VOLTER_NO_WATCH']
       ? { watch: null }
       : // Watch source; never watch output: a build (`npm run build`,
         // `vercel build`) rewriting dist/ or .vercel/output/ inside the

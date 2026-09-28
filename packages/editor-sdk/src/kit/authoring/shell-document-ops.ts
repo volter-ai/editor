@@ -103,7 +103,7 @@ export function activeSaveFailure(store: ShellDocumentState): string | null {
 
 /**
  * The creation-site anchor for the CURRENT selection, as the control
- * API reports it (`vgai status` / `vgai eval`'s `editor.status()`).
+ * API reports it (the editor's `status` command / the editor's `eval` command's `editor.status()`).
  *
  * `null` has one meaning and one only: there is nothing to ask about — no
  * selection, or an active adapter that indexes no creation sites. Whenever the
@@ -125,7 +125,7 @@ export function activeSelectionCreationSite(store: ShellDocumentState): NodeCrea
  * Reported beside the anchor because the anchor alone cannot answer it — two
  * subjects at the same kind of `file:line` can belong to different lanes with
  * different correctness contracts. A caller sweeping the hierarchy for one
- * subject per lane reads this per row; `vgai doctor`'s edit-write walk is that
+ * subject per lane reads this per row; a probe's edit-write walk is that
  * caller, and it is what makes the walk exhaustive over the kinds a world has
  * instead of stopping at whichever row answered first.
  *

@@ -33,7 +33,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
   const readRepositoryPresence = createRepositoryPresenceReader();
 
   const validControlSecret = (req: Request): boolean => {
-    const supplied = Buffer.from(req.header('x-vgai-editor-control') ?? '');
+    const supplied = Buffer.from(req.header('x-volter-editor-control') ?? '');
     const expected = Buffer.from(processControlSecret());
     return supplied.length === expected.length && timingSafeEqual(supplied, expected);
   };
@@ -67,14 +67,14 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
     const launch = worktreeEditorLaunchCommand({
       targetProject,
       targetWorktreeRoot,
-      inheritedCliEntry: process.env['VGAI_CLI_ENTRY'],
+      inheritedCliEntry: process.env['VOLTER_CLI_ENTRY'],
     });
     const env = { ...process.env };
-    delete env['VGAI_PROJECT'];
-    delete env['VGAI_EDITOR_PORT'];
-    delete env['VGAI_NO_OPEN'];
-    delete env['VGAI_RESTART_ON_SOURCE_CHANGE'];
-    env['VGAI_DETACH_AFTER_READY'] = '1';
+    delete env['VOLTER_PROJECT'];
+    delete env['VOLTER_EDITOR_PORT'];
+    delete env['VOLTER_NO_OPEN'];
+    delete env['VOLTER_RESTART_ON_SOURCE_CHANGE'];
+    env['VOLTER_DETACH_AFTER_READY'] = '1';
     await new Promise<void>((resolveLaunch, rejectLaunch) => {
       execFile(
         launch.command,
@@ -116,7 +116,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
       headers: {
         'Content-Type': 'application/json',
         Origin: `http://127.0.0.1:${session.port}`,
-        ...(session.controlSecret ? { 'x-vgai-editor-control': session.controlSecret } : {}),
+        ...(session.controlSecret ? { 'x-volter-editor-control': session.controlSecret } : {}),
       },
       body: JSON.stringify({ open: true }),
     });
@@ -158,7 +158,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(session.controlSecret ? { 'x-vgai-editor-control': session.controlSecret } : {}),
+        ...(session.controlSecret ? { 'x-volter-editor-control': session.controlSecret } : {}),
       },
       body: JSON.stringify(intent),
     });
@@ -380,7 +380,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
         cache: 'no-store',
         signal: AbortSignal.timeout(1_000),
         ...(session.controlSecret
-          ? { headers: { 'x-vgai-editor-control': session.controlSecret } }
+          ? { headers: { 'x-volter-editor-control': session.controlSecret } }
           : {}),
       });
       const identity = (await response.json().catch(() => null)) as {

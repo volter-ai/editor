@@ -24,6 +24,7 @@ export const MOUNTED_ROOT_BASE_SHAPE = defineSeamShape<MountedRootBase>()({
   setPaused: { optional: true, kind: 'function', required: 'effect' },
   step: { optional: true, kind: 'function', required: 'effect' },
   resize: { optional: true, kind: 'function', required: 'effect' },
+  hitTest: { optional: true, kind: 'function', required: 'operation' },
   dispose: { optional: false, kind: 'function', required: 'effect' },
   disposeComplete: { optional: true, kind: 'value', required: 'effect' },
   authoring: { optional: true, kind: 'value', required: 'operation' },

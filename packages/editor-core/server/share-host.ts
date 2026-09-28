@@ -83,7 +83,7 @@ function probeHealthViaAddress(
         host: address,
         servername: hostname,
         headers: { host: hostname },
-        path: '/__vgai_share/health',
+        path: '/__volter_share/health',
         method: 'HEAD',
         timeout: 5_000,
       },
@@ -91,7 +91,7 @@ function probeHealthViaAddress(
         response.resume();
         resolveProbe({
           ok: (response.statusCode ?? 0) >= 200 && (response.statusCode ?? 0) < 300,
-          ready: response.headers['x-vgai-share-gateway'] === 'ready',
+          ready: response.headers['x-volter-share-gateway'] === 'ready',
           status: response.statusCode ?? 0,
         });
       },
@@ -112,12 +112,12 @@ async function defaultTunnelHealthProbe(publicUrl: string): Promise<ShareTunnelH
   for (let attempt = 0; attempt < 10; attempt++) {
     const startedAt = Date.now();
     try {
-      const response = await fetch(`${publicUrl.replace(/\/$/, '')}/__vgai_share/health`, {
+      const response = await fetch(`${publicUrl.replace(/\/$/, '')}/__volter_share/health`, {
         method: 'HEAD',
         cache: 'no-store',
         signal: AbortSignal.timeout(5_000),
       });
-      if (response.ok && response.headers.get('x-vgai-share-gateway') === 'ready') {
+      if (response.ok && response.headers.get('x-volter-share-gateway') === 'ready') {
         return {
           checkedAt: new Date().toISOString(),
           latencyMs: Math.max(0, Date.now() - startedAt),
@@ -248,7 +248,7 @@ export class ShareHost {
     const hostName = hostAccount.user.name ?? hostAccount.user.email;
     const gateway = await createSessionShareGateway({
       targetPort: this.targetPort,
-      hmrPort: Number(process.env['VGAI_HMR_PORT']) || editorHmrPort(this.targetPort),
+      hmrPort: Number(process.env['VOLTER_HMR_PORT']) || editorHmrPort(this.targetPort),
       claimSecret: this.claimSecret,
       now: this.now,
       display: {
@@ -364,7 +364,7 @@ export class ShareHost {
       authorize: async () => {
         const current = await this.account.collaborationAccountSession();
         const handoff = await createCollaborationAccountHandoff(current, {
-          callbackUrl: `${publicUrl}/__vgai_share/callback`,
+          callbackUrl: `${publicUrl}/__volter_share/callback`,
           sessionId: this.sessionId,
           invitationId: id,
         });
@@ -381,14 +381,14 @@ export class ShareHost {
     if (record.recipientEmail) {
       try {
         const deliveryHandoff = await createCollaborationAccountHandoff(host, {
-          callbackUrl: `${publicUrl}/__vgai_share/callback`,
+          callbackUrl: `${publicUrl}/__volter_share/callback`,
           sessionId: this.sessionId,
           invitationId: id,
         });
         const delivered = await deliverCollaborationInvitation(host, {
           emailAddress: record.recipientEmail,
           redirectUrl: invitationUrl,
-          callbackUrl: `${publicUrl}/__vgai_share/callback`,
+          callbackUrl: `${publicUrl}/__volter_share/callback`,
           sessionId: this.sessionId,
           invitationId: id,
           deliveryAuthorization: deliveryHandoff.deliveryAuthorization,

@@ -72,7 +72,7 @@ export function parseByteRange(
 
 export function projectGameStaticPlugin(getProjectRoot: () => string | undefined): Plugin {
   return {
-    name: 'vgai-project-game-static',
+    name: 'volter-project-game-static',
     configureServer(server) {
       server.middlewares.use('/project-game-static', async (req, res, next) => {
         const projectRoot = getProjectRoot();

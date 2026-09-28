@@ -395,7 +395,7 @@ function collectPresence(): {
  *
  * THE HOST'S HALF ONLY. The four capability-GRADING families
  * (`rootCoverage`, `systemCoverage`, `projectCoverage`, `authoringCoverage`)
- * used to be listed here; they are `@vgai/game`'s now
+ * used to be listed here; they are `@volter/editor-game`'s now
  * (`contributions/coverage.service.ts`) and declare their own reusable keys
  * on `session.reportFacet`, which {@link reusableFacetKeys} reads back. Both
  * blockers P5b measured against that move are gone: the facet registry
@@ -479,14 +479,14 @@ export function collectState(
     // that it happened at all.
     moduleSplits: getProjectModuleSplitReports().map((s) => ({ path: s.path, urls: [...s.urls] })),
     // The project's own ADAPTER, resolved (project-adapter.ts): which module
-    // supplied the binding table (`vgai.adapter.ts`, or the declared native
+    // supplied the binding table (`volter.adapter.ts`, or the declared native
     // default), the regions derived for it, and its scene table. `null` means
     // NOBODY HAS LOOKED YET — deliberately distinct from a loaded adapter with
     // an empty table, which is a real (and gradable) answer.
     adapter: projectAdapterFacet(),
     // DECLARED READINESS, per root (`readiness.ts`). One row per mounted root
     // saying WHO answers "is this ready" — the host's own completed mount, the
-    // game's `window.vgaiGame.ready`, or a host-side measured wait. `[]` means
+    // game's `window.volterGame.ready`, or a host-side measured wait. `[]` means
     // nothing has mounted, which is not "nothing is ready".
     readiness: readinessFacet().map((entry) => ({ ...entry })),
     // The ONE sentence for a project whose readiness is entirely measured. It
@@ -503,7 +503,7 @@ export function collectState(
     presence: collectPresence(),
     // Target-blaster friction #3 (#146 ledger): the play-verify loop's error
     // channel — the same current-run-fenced uncaught-error list the relay
-    // snapshot carries (see collectPlayRunPageErrors), so `vgai status` answers
+    // snapshot carries (see collectPlayRunPageErrors), so the editor's `status` command answers
     // "did anything go wrong since play started" without a second command.
     // [] while stopped or when nothing threw.
     pageErrors: collectPlayRunPageErrors(),
@@ -606,14 +606,14 @@ export function collectState(
  * Two things must happen and neither used to: the caller is told what killed
  * its command (rather than timing out against a message about the tab), and
  * the failure is logged so it reaches `editorConsole` — which is what
- * `collectSessionErrors` reads, and therefore what `vgai status` prints. The
+ * `collectSessionErrors` reads, and therefore what the editor's `status` command prints. The
  * browser's own `unhandledrejection` path did the second job only for the
  * FIRST occurrence, because the console capture dedupes an identical message.
  */
 export function commandThrewResult(cmd: EditorCommand, error: unknown): CommandResult {
   const message = error instanceof Error ? error.message : String(error);
   const text = `editor command "${String(cmd['type'])}" threw: ${message}`;
-  // biome-ignore lint/suspicious/noConsole: this IS the loud leg — editorConsole is fed by the console, and it is what `vgai status` prints.
+  // biome-ignore lint/suspicious/noConsole: this IS the loud leg — editorConsole is fed by the console, and it is what the editor's `status` command prints.
   console.error(text, error);
   return { ok: false, error: text };
 }
@@ -635,12 +635,12 @@ function inPlayRun(timestamp: number): boolean {
   return window.endedAt === null || timestamp <= window.endedAt;
 }
 
-/** #146 — uncaught page errors from the CURRENT play run, for `vgai status`
- *  and for `@vgai/game`'s `bridge-call` snapshot, which imports it from here
+/** #146 — uncaught page errors from the CURRENT play run, for the editor's `status` command
+ *  and for `@volter/editor-game`'s `bridge-call` snapshot, which imports it from here
  *  (the two must report the same set; the facet moves when Play does).
  *  Reads the editor console's 'runtime'-source error entries
  *  (fed by `installEditorConsoleCapture`'s window error/unhandledrejection
- *  capture — the same events, same message format as `window.__vgai`'s own
+ *  capture — the same events, same message format as `window.__volter`'s own
  *  pageErrors ring buffer), fenced to the play run. Same 100-cap as the bridge
  *  (`PAGE_ERROR_CAP`), keeping the most recent. */
 export function collectPlayRunPageErrors(): string[] {
@@ -703,7 +703,7 @@ function summarizeEntries(entries: readonly ConsoleEntry[]): { count: number; re
  *
  *  Measured defect this closes: a human watching the editor's browser console
  *  saw real errors — Content-tab story previews throwing `useRapier must be
- *  used within <Physics>` — while `vgai status` reported `consoleErrors:
+ *  used within <Physics>` — while the editor's `status` command reported `consoleErrors:
  *  {count: 0}` and `pageErrors: []`. Nothing was wrong with either facet: both
  *  are fenced to a play run, and the ONLY funnel from a raw `console.error`
  *  into the store was play-mode's patch, installed at play start and removed at
@@ -815,7 +815,7 @@ export async function handleCommand(
   // A video export OWNS the paused run it is stepping frame by frame, so no
   // other command may touch it mid-export. `stop` is the one exception and
   // falls THROUGH: the export's cancel handle lives with the verb that
-  // started it (`@vgai/game`'s `play.command.ts`), and its `stop` handler
+  // started it (`@volter/editor-game`'s `play.command.ts`), and its `stop` handler
   // aborts the controller before tearing the run down. The FLAG stays host
   // state (`gameplay-export-state.ts`) because two surfaces outside that verb
   // read it — this prologue and the PlayBar's transport ownership.
@@ -838,7 +838,7 @@ export async function handleCommand(
     // `ThreeHostContext` not carrying an `EditorStore` — true, internal, and
     // about a mechanism the reader was never using. MEASURED on the
     // bubbo-bubbo canvas ingest: the real cause was a capture window spent on
-    // a hidden tab, and `vgai play` reported the resolver's contract note,
+    // a hidden tab, and the editor's `play` command reported the resolver's contract note,
     // naming neither the game nor the reason. A failed mount is the answer to
     // "why can't I play this", whichever lane failed.
     const failures = getMountFailureReports();
@@ -1050,16 +1050,16 @@ export async function handleCommand(
     case 'toggle-console':
       toggleConsoleUtility();
       break;
-    // RELOAD THIS PAGE — `@vgai/live`'s `page.reload()` and P20's prescribed
+    // RELOAD THIS PAGE — `@volter/game-live`'s `page.reload()` and P20's prescribed
     // recovery. Deliberately NOT routed through `page-script`: that verb is
     // gated on a mounted game surface, and the one thing a reload has to fix —
     // a page whose module-scope loaders and page-lifetime asset caches hold
     // bytes that have since changed on disk — is just as real with play
     // stopped, and just as real in a product that has no game at all.
     //
-    // It is the HOST's for that last reason. It was a `@vgai/game` command
+    // It is the HOST's for that last reason. It was a `@volter/editor-game` command
     // contribution until walk 5, so `page.reload()` answered `unknown command
-    // type "page-reload"` in the model editor, which declares no `@vgai/game`.
+    // type "page-reload"` in the model editor, which declares no `@volter/editor-game`.
     //
     // Scheduled for the NEXT task rather than run inline, so this handler can
     // return and the caller's ack can travel before the navigation tears the
@@ -1100,7 +1100,7 @@ export async function handleCommand(
       // this line's reason and it is retired: a Blender editor AREA is an
       // EDITOR GROUP, not a drawer view (orchestrator ruling 2026-09-19), so
       // the node editor and the UV editor are `workspace.document`
-      // contributions the workspace opens into `vgai:area:<id>`
+      // contributions the workspace opens into `volter:area:<id>`
       // (`workspace-areas.ts`) and the drawer keeps only the utilities that
       // are not Blender areas.
       return { ok: true, data: { workspace: id, applied } };
@@ -1233,7 +1233,7 @@ export async function handleCommand(
     }
     case 'run-command': {
       // `editor.command(id, args)` — the ONE door to a command by id (U8's
-      // ruling 1: "so `vgai eval` reaches it through the frame's command
+      // ruling 1: "so the editor's `eval` command reaches it through the frame's command
       // service"). Under the frame that IS `ICommandService`; standalone it is
       // the views registry, and `editor-commands.ts` owns both arms plus
       // the refusal that names the id shape that would have worked.
@@ -1391,7 +1391,7 @@ export async function handleCommand(
     // inspector's identity row, and a dozen structure icons there would be
     // either a UI redesign or a list of actions nobody can see — both worse
     // than transcribing what the component verbs already established for
-    // exactly this gap (`@vgai/game/contributions/component-verbs.command.ts`,
+    // exactly this gap (`@volter/editor-game/contributions/component-verbs.command.ts`,
     // which is where `extract-component`/`fork-component` live now).
     //
     // `id`/`ids` default to the current selection, the menu's own subject. An
@@ -1757,7 +1757,7 @@ export function connectCommandListener(
    */
   history?: HistoryCommands,
 ): () => void {
-  // Browser mode (Phase A2): the `vgai` CLI control channel is server-only (it
+  // Browser mode (Phase A2): the `volter` CLI control channel is server-only (it
   // is an SSE command stream + state POSTs to `/__editor/*`, which do not exist
   // without a Node server). Skip it — otherwise the EventSource retry-loops
   // against a 404 and every `reportEditorState` POSTs into the void.
@@ -1800,7 +1800,7 @@ export function connectCommandListener(
   let playSettleTimer: ReturnType<typeof setTimeout> | null = null;
   let playCommandContentVersion: number | null = null;
   let playCommandContentTimer: ReturnType<typeof setTimeout> | null = null;
-  // A tombstone stops POSTing snapshots too. `vgai status` reads the server's
+  // A tombstone stops POSTing snapshots too. the editor's `status` command reads the server's
   // last snapshot, so a corpse that kept reporting would keep MINTING
   // fresh-looking state for a session that no longer exists — the exact
   // impersonation the tombstone latch exists to end.
@@ -1894,7 +1894,7 @@ export function connectCommandListener(
    * current in the background.
    *
    * This is the path every interaction takes. The immediate POST is what keeps
-   * the "UI Play/Stop is visible to `vgai status` immediately" contract and
+   * the "UI Play/Stop is visible to the editor's `status` command immediately" contract and
    * every other same-tick freshness promise in this file — playState, loop
    * liveness, selection, save state, presence and the error channels are all
    * derived fresh here. What it does NOT do is re-walk the hierarchy and
@@ -1954,7 +1954,7 @@ export function connectCommandListener(
   const scheduleStateReport = (needsFullRefresh: boolean) => {
     // One editor action commonly emits several store notifications. Collapse
     // that synchronous burst into one current snapshot without delaying it a
-    // frame — UI Play/Stop must be visible to `vgai status` immediately even
+    // frame — UI Play/Stop must be visible to the editor's `status` command immediately even
     // though no relayed command caused the transition.
     if (needsFullRefresh) storeReportNeedsFullRefresh = true;
     if (storeReportScheduled) return;
@@ -1975,7 +1975,7 @@ export function connectCommandListener(
   const reportExternalChange = () => scheduleStateReport(true);
   const unsubscribeStoreReport = store.subscribe(reportStoreChange);
   // R1 — restart-required transitions don't flow through the store (they
-  // have their own listener set in play-mode.ts), but `vgai status` readers
+  // have their own listener set in play-mode.ts), but the editor's `status` command readers
   // need `restartRequired` fresh even when NO editor command caused the
   // change (an external agent editing an R3F entry mid-play is exactly the
   // silent-staleness case R1 closes). Re-POST state on every transition.
@@ -1983,13 +1983,13 @@ export function connectCommandListener(
   // Same reason, for the ingest capture wait: it starts and ends outside any
   // store notification (a mount awaiting its game's first frame), and on a
   // hidden tab it can hold for as long as the human is away. Without this the
-  // server's snapshot would predate the wait entirely, so `vgai status` would
+  // server's snapshot would predate the wait entirely, so the editor's `status` command would
   // answer "nothing is ingested" for a mount that is very much in flight. The
   // wait's OTHER transition — parked↔running as the tab hides and shows —
   // already re-POSTs through `reportPresence`'s `visibilitychange` listener.
   // Same reason again, for the project's ADAPTER: it loads asynchronously at
   // editor init and on project switches, outside any store notification. The
-  // adapter facet is the proof that a project's `vgai.adapter.ts` (or the
+  // adapter facet is the proof that a project's `volter.adapter.ts` (or the
   // declared native default) loaded at all, so a snapshot that predates the
   // load would answer "no adapter" for one that is loaded and live.
   const unsubscribeAdapterReport = subscribeProjectAdapter(reportExternalChange);
@@ -2136,7 +2136,7 @@ export function connectCommandListener(
   window.addEventListener('blur', reportPresence);
 
   // pageErrors freshness (target-blaster friction #3): a runtime error
-  // between commands must reach the server snapshot too, or `vgai status`
+  // between commands must reach the server snapshot too, or the editor's `status` command
   // reads stale-clean. Deferred a tick so the boot-installed error-capture
   // listener (`installEditorConsoleCapture`, which feeds editorConsole — the
   // list collectPlayRunPageErrors/collectSessionErrors read) runs FIRST regardless of

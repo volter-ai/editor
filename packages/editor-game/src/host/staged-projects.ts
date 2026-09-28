@@ -20,5 +20,5 @@ export function isSafeIngestId(id: string): boolean {
 }
 
 export function publicIngestManifestUrl(id: string): string {
-  return `${PUBLIC_INGEST_BASE}${id}/vgai.project.json`;
+  return `${PUBLIC_INGEST_BASE}${id}/volter.project.json`;
 }

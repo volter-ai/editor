@@ -88,7 +88,7 @@ export type {
   RunTicksOptions,
   TickStampedEvent,
   ValueTier,
-  VgaiBridgeHandle,
+  VolterBridgeHandle,
   VirtualActionResult,
   VirtualActionValue,
 } from './types.js';

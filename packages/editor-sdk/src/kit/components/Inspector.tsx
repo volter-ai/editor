@@ -81,7 +81,7 @@ function NoAuthoringInspector({
       style={{
         padding: 12,
         color: themeVars.semantic.warning,
-        fontSize: 'var(--vgai-font-md)',
+        fontSize: 'var(--volter-font-md)',
         lineHeight: 1.5,
       }}
     >
@@ -117,9 +117,9 @@ function NoAuthoringInspector({
   if (presentation === 'card') {
     return (
       <div
-        className="vgai-mini-inspector"
+        className="volter-mini-inspector"
         data-testid="inspector-panel"
-        data-vgai-inspector-presentation="card"
+        data-volter-inspector-presentation="card"
         onPointerDown={() => setActiveScope('inspector')}
       >
         {expandRow}
@@ -131,7 +131,7 @@ function NoAuthoringInspector({
     <Panel
       name="Inspector (nothing to author)"
       hideHeader
-      className="vgai-content-frost"
+      className="volter-content-frost"
       data-testid="inspector-panel"
       onPointerDown={() => setActiveScope('inspector')}
     >
@@ -248,10 +248,10 @@ export function InspectorShownAsCard({ surface }: { readonly surface: Inspection
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          gap: 'var(--vgai-space-3)',
-          padding: 'var(--vgai-space-4)',
+          gap: 'var(--volter-space-3)',
+          padding: 'var(--volter-space-4)',
           color: themeVars.content.muted,
-          fontSize: 'var(--vgai-font-md)',
+          fontSize: 'var(--volter-font-md)',
           lineHeight: 1.5,
         }}
       >

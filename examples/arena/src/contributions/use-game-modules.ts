@@ -9,7 +9,7 @@
  * `*.utility.tsx`, `*.document.tsx`), in the game's own vocabulary, added
  * when there is something to show. A contribution is ordinary React
  * reading the game's own exported modules through this hook; agents reach
- * the same modules through `vgai eval`'s
+ * the same modules through `volter-game-editor eval`'s
  * `game.run(async ({ modules }) => await modules('src/sim/host.ts'))` — `modules` is an
  * ASYNC RESOLVER taking a served path, never a table: the `await` is not
  * optional, and reading a member off the unawaited promise throws a message

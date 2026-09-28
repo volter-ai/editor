@@ -1,12 +1,12 @@
 /**
  * THE EDITOR CONSOLE - and the one thing to know before wiring it into a host.
  *
- * THE BOTTOM BAR'S ERROR COUNT AND THE SET `vgai console` PRINTS ARE ONE SET.
+ * THE BOTTOM BAR'S ERROR COUNT AND THE SET the editor's `console` command PRINTS ARE ONE SET.
  * The status bar, the Console panel and the Console utility's badge all read
- * this store; `vgai console` reads the SERVER's ledger; and `console-sync.ts`
+ * this store; the editor's `console` command reads the SERVER's ledger; and `console-sync.ts`
  * is the only thing that makes them the same set, by forwarding every error and
  * warning captured here to that ledger. An error the bottom bar counts MUST be
- * an error `vgai console` prints and exits non-zero on - that equality IS the
+ * an error the editor's `console` command prints and exits non-zero on - that equality IS the
  * loudness convention, not an implementation detail of it.
  *
  * So `installEditorConsoleCapture()` is HALF of an act and never a whole one. A
@@ -177,7 +177,7 @@ class EditorConsole {
 export const editorConsole = new EditorConsole();
 
 // Test-only hook (e2e) — the window mirror A4(f) anticipates: direct read access to console entries without DOM-scraping
-// `ConsolePanel` (which has no per-entry testids). Same ad-hoc `window.__vgai*`
+// `ConsolePanel` (which has no per-entry testids). Same ad-hoc `window.__volter*`
 // convention as every other dev-only hook in `test-window.ts`.
 //
 // Guarded on `window`: this module is now imported by `three-authoring-adapter.ts`
@@ -187,7 +187,7 @@ export const editorConsole = new EditorConsole();
 // test body runs — so the guard belongs here at the source rather than as a
 // `vi.mock` repeated in every importing test file.
 if (typeof window !== 'undefined') {
-  (window as unknown as { __vgaiEditorConsole?: EditorConsole })['__vgaiEditorConsole'] =
+  (window as unknown as { __volterEditorConsole?: EditorConsole })['__volterEditorConsole'] =
     editorConsole;
 }
 
@@ -203,6 +203,19 @@ const ERROR_ATTRIBUTION_CAP = 4000;
  *  object, a revoked proxy) must not take the console down with it. */
 function safeString(value: unknown): string {
   try {
+    // An Error prints with its stack, as the browser's own console prints one: the throw that
+    // explains a failure is only useful where it says where it threw.
+    // Duck-typed: an Error from the game's own realm is not `instanceof` this one's.
+    const error = value as { stack?: unknown; message?: unknown } | null;
+    if (
+      typeof value === 'object' &&
+      error !== null &&
+      typeof error.stack === 'string' &&
+      error.stack !== '' &&
+      typeof error.message === 'string'
+    ) {
+      return error.stack.includes(error.message) ? error.stack : `${String(value)}\n${error.stack}`;
+    }
     return String(value);
   } catch {
     return Object.prototype.toString.call(value);
@@ -240,7 +253,7 @@ function inspectArg(value: unknown): string {
  * "React does not recognize the `%s` prop on a DOM element…" with `%s`
  * UNINTERPOLATED and the prop name riding in a later argument — which the
  * summary's per-message truncation (`command-listener.ts`) then cut off
- * entirely. `vgai status` is the one channel agents are told to trust, and it
+ * entirely. the editor's `status` command is the one channel agents are told to trust, and it
  * was delivering evidence with the identifying detail amputated.
  *
  * Behaviour follows the WHATWG console Formatter: directives are consumed
@@ -289,7 +302,7 @@ export function formatConsoleArgs(args: readonly unknown[]): string {
 /**
  * React 19 prints a DEV warning's component tree through the browser's own
  * console task stack, never as an argument — so a duplicate-key or
- * setState-in-effect warning reached `vgai console` as one sentence with no
+ * setState-in-effect warning reached the editor's `console` command as one sentence with no
  * hint of WHICH list. `captureOwnerStack()` is React's door to that tree and
  * is only populated while React itself is calling `console.error`, which is
  * exactly when this wrapper runs. Appended for React's warning shapes only;
@@ -343,7 +356,7 @@ export function formatAttributedError(
  *    funnel from a raw `console.error` into this store — and it is installed at
  *    play START and removed at play STOP. So an editor-frame error outside play
  *    (measured: Content-tab story previews throwing `useRapier must be used
- *    within <Physics>`) reached this store never, and `vgai status` answered
+ *    within <Physics>`) reached this store never, and the editor's `status` command answered
  *    `consoleErrors: {count: 0}` to a console full of red.
  * 2. Play-mode's patch is installed LATER, so it sits OUTSIDE this one: it
  *    captures whatever `console.error` currently is (this wrapper) as its
@@ -432,7 +445,7 @@ export function installEditorConsoleCapture(): () => void {
    * installs that patch. Without this read, every such row landed in the
    * ledger as editor-owned noise, telling an agent to fix editor code for a
    * warning the game's own library printed. The label changes; the loudness
-   * does not — a game-sourced warning still gates `vgai` exit-0 exactly like
+   * does not — a game-sourced warning still gates `volter` exit-0 exactly like
    * an editor one (severity decides, never source), because exempting a
    * source would teach the gate to find less.
    */

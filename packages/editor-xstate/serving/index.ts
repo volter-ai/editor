@@ -1,5 +1,5 @@
 /**
- * `@volter/editor-xstate`'s server half (`package.json#vgai.serving`, the project-serving door in
+ * `@volter/editor-xstate`'s server half (`package.json#volter.serving`, the project-serving door in
  * `@volter/editor-sdk/session/project-serving`): the machine identity stamp and the
  * `/__xstate-source/*` routes.
  */

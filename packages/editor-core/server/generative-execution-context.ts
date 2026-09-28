@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { ProjectProviderExecution } from '@volter/editor-sdk/tools/types';
 
-export const GENERATIVE_EXECUTION_RECORDER = Symbol.for('vgai.generative-execution-recorder.v1');
+export const GENERATIVE_EXECUTION_RECORDER = Symbol.for('volter.generative-execution-recorder.v1');
 
 type ExecutionFacts = ProjectProviderExecution;
 

@@ -1,5 +1,5 @@
 /**
- * Honest play-state reporting for the control API (`vgai status`) — the
+ * Honest play-state reporting for the control API (the editor's `status` command) — the
  * derivation half of the SimCity ledger's S-1 "false-alive ingest status".
  *
  * ## The defect this closes
@@ -82,7 +82,7 @@ export function deriveReportedPlayState(facts: LiveSurfaceFacts): ReportedPlaySt
 /**
  * True when the editor is reporting a world that FAILED to mount and has no
  * live session to replace it. Consumers surface this as the "dead game" signal
- * (`vgai status`'s `mountFailures`, the status bar's mount-failure item)
+ * (the editor's `status` command's `mountFailures`, the status bar's mount-failure item)
  * rather than making a reader diff two other fields to notice.
  */
 export function hasDeadMount(facts: LiveSurfaceFacts): boolean {

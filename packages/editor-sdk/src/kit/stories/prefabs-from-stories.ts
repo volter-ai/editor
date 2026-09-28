@@ -12,7 +12,7 @@
  * and the host fills nothing: `FinderInput.stories` is gone with it.
  *
  * The finder NAME is unchanged, because it is a project's own declaration
- * (`{ finder: 'prefabsFromStories' }` in every `vgai.adapter.ts`). A build
+ * (`{ finder: 'prefabsFromStories' }` in every `volter.adapter.ts`). A build
  * without this package leaves that selection unregistered, which the host
  * already reports as a standing note rather than a throw.
  *
@@ -29,15 +29,15 @@
  * EXTRACTION, not a new rule. The join implemented here is the one the editor
  * already runs:
  *   - the match + same-source-directory tiebreak:
- *     `packages/editor/src/stories/story-registry.ts:162-186`
+ *     `packages/editor-sdk/src/kit/stories/story-registry.ts:162-186`
  *     (`componentPreviewStories`) and `:148-159` (`pickComponentPreviewStory`);
  *   - the default-story preference: `story-registry.ts:118-123`
  *     (`isDeclaredDefaultStory`);
  *   - the admission rule "a component with no story is not a Content entry at
- *     all": `packages/editor/src/components/AssetBrowser.tsx`, the
+ *     all": `packages/editor-core/src/components/AssetBrowser.tsx`, the
  *     `browserEntries` content scope (`if (!previewStory) return []`).
  * `meta.component`'s identity NAME is read live by
- * `packages/editor/src/stories/compose-project-stories.ts:130` /
+ * `packages/editor-sdk/src/kit/stories/compose-project-stories.ts:130` /
  * `:185` (`componentIdentityName`) — this finder consumes that answer rather
  * than re-deriving it, so both sides of the join agree by construction.
  *

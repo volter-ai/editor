@@ -9,14 +9,14 @@
  *
  * CONSEQUENCE, and the convention that follows from it: component sheets load
  * BEFORE theme.css, so at equal specificity a canonical control rule in
- * theme.css (`.vgai-btn[data-size]`, `.vgai-dialog-*`) WINS over a component's
+ * theme.css (`.volter-btn[data-size]`, `.volter-dialog-*`) WINS over a component's
  * restyle of the same element, silently. A component that must override a
  * canonical control's geometry scopes its rule under its own root
- * (`.vgai-conversation-tray-root .vgai-btn.vgai-conversation-tray`), which
+ * (`.volter-conversation-tray-root .volter-btn.volter-conversation-tray`), which
  * outranks the canonical rule by specificity regardless of load order. Never
  * re-order these imports for one component, and never reach for !important.
  *
- * Type is INHERITED from the theme root (`.vgai-editor-theme` declares the
+ * Type is INHERITED from the theme root (`.volter-editor-theme` declares the
  * font family, size, line-height and colour). A component declares only what
  * differs; a `font-family` restated on a component is redundant, not safe. */
 @import "./components/ConsolePanel.css";

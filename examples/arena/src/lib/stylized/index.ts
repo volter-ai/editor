@@ -203,7 +203,7 @@ export function animeMaterial(options: AnimeMaterialOptions = {}): THREE.MeshToo
       `,
     );
   };
-  material.customProgramCacheKey = () => 'vgai-anime-material-v1';
+  material.customProgramCacheKey = () => 'volter-anime-material-v1';
   return material;
 }
 

@@ -188,7 +188,7 @@ function viewOwnerLabel(view: Container): string | undefined {
  * on a 20 000-node `@pixi/react` world blocked the main thread for 199.5
  * SECONDS in one synchronous run, 69% of all profiler samples inside this
  * search, because `parentRenderGroup` reaches an array of every node in the
- * tree and the search walked it once per unlabeled node. `vgai play`,
+ * tree and the search walked it once per unlabeled node. `volter-game-editor play`,
  * `screenshot` and `stop` all timed out against a tab that was heartbeating
  * normally the whole time.
  */

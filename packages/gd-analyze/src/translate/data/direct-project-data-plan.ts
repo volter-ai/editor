@@ -82,7 +82,7 @@ interface MutablePackageManifest {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   optionalDependencies?: Record<string, string>;
-  vgai?: unknown;
+  volter?: unknown;
   [key: string]: unknown;
 }
 
@@ -107,7 +107,7 @@ function slugify(name: string): string {
 
 function appId(name: string): string {
   const compact = name.toLowerCase().replace(/[^a-z0-9]/gu, '');
-  return `com.vgai.import.${compact || 'game'}`;
+  return `com.volter.import.${compact || 'game'}`;
 }
 
 function frozenTemplateText(toolchain: GodotImportToolchainSnapshot, projectPath: string): string {
@@ -163,7 +163,7 @@ function applyFrozenDependencyDeclarations(
  * (`server/`, which an import does not carry) and its manifest validator's schema library.
  */
 const TEMPLATE_PACKAGES_NOT_CARRIED = ['@colyseus/schema', '@colyseus/sdk', '@colyseus/ws-transport', 'colyseus', 'zod'] as const;
-/** The template's packages only the editor's files use (`vgai.adapter.ts`, `vite.config.ts`): development dependencies. */
+/** The template's packages only the editor's files use (`volter.adapter.ts`, `vite.config.ts`): development dependencies. */
 const EDITOR_FILE_PACKAGES = ['@volter/editor-project'] as const;
 
 function plannedPackageManifest(
@@ -194,14 +194,14 @@ function plannedPackageManifest(
     }
   }
   manifest.scripts = {
-    vgai: 'volter-game-editor',
+    volter: 'volter-game-editor',
     dev: 'volter-game-editor edit .',
     'dev:standalone': 'vite',
     build: 'vite build',
     preview: 'vite preview',
     typecheck: 'tsc --noEmit',
   };
-  delete manifest.vgai;
+  delete manifest.volter;
   const merged = planCapabilityPackageJson(
     Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`),
     toolchain.capabilities,
@@ -319,7 +319,7 @@ export function planDirectGodotProjectData(
         toolchainDigest: toolchain.digest,
         worldModule: worldModule(composition),
         manifest: {
-          $schema: './node_modules/@volter/editor-project/schemas/vgai-project.schema.json',
+          $schema: './node_modules/@volter/editor-project/schemas/volter-project.schema.json',
           manifestVersion: 2,
           name: project.projectName,
           appId: appId(project.projectName),

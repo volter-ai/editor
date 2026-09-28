@@ -2,40 +2,40 @@
    action slot — every projection heads a section the same way — so a block's
    verb sits at the top of its BODY, where it reads identically in the card
    and the column. */
-.vgai-model-inspector-actions {
+.volter-model-inspector-actions {
   display: flex;
   justify-content: flex-end;
-  padding: var(--vgai-space-2) var(--vgai-space-3) 0;
+  padding: var(--volter-space-2) var(--volter-space-3) 0;
 }
 
-.vgai-model-inspector-row > div {
+.volter-model-inspector-row > div {
   display: grid;
   min-width: 0;
 }
 
-.vgai-model-inspector-list {
+.volter-model-inspector-list {
   display: grid;
   max-height: 360px;
-  gap: var(--vgai-space-2);
+  gap: var(--volter-space-2);
   overflow: auto;
 }
 
-.vgai-model-inspector-row {
+.volter-model-inspector-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--vgai-space-3);
-  padding: var(--vgai-space-3);
+  gap: var(--volter-space-3);
+  padding: var(--volter-space-3);
 }
 
-.vgai-model-inspector-row:has(.vgai-model-material-swatch) {
+.volter-model-inspector-row:has(.volter-model-material-swatch) {
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
-.vgai-model-material-swatch {
-  width: var(--vgai-control-default-height);
-  height: var(--vgai-control-default-height);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
-  border-radius: var(--vgai-radius-sm);
-  background-color: var(--vgai-surface-inset);
+.volter-model-material-swatch {
+  width: var(--volter-control-default-height);
+  height: var(--volter-control-default-height);
+  border: var(--volter-stroke-resting) solid var(--volter-boundary-strong);
+  border-radius: var(--volter-radius-sm);
+  background-color: var(--volter-surface-inset);
 }

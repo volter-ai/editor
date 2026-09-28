@@ -110,7 +110,7 @@ export interface FastForwardClock {
 /** Converts a `simSeconds` budget into an exact tick count using the game's
  *  OWN observed `simSeconds`/`tick` ratio — not a hardcoded constant, since a
  *  project may run a non-default fixed timestep (see `simulate-cinematic`'s
- *  `vgai-simulate-fixed-dt` precedent); measuring beats assuming. Falls back
+ *  `volter-simulate-fixed-dt` precedent); measuring beats assuming. Falls back
  *  to `DEFAULT_FIXED_DT` only when `observed.tick` is still `0` (nothing to
  *  measure from yet — a fresh page that hasn't ticked once). A `simTicks`
  *  budget passes straight through, unaffected by any of this. */

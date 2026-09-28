@@ -1,6 +1,6 @@
 // The project manifest's FILENAME. There is exactly ONE.
 //
-// The manifest is `vgai.project.json`, and NOTHING reads a second spelling
+// The manifest is `volter.project.json`, and NOTHING reads a second spelling
 // (the legacy-removal doctrine, `docs/ARCHITECTURE-CORE.md` §Vocabulary). Two
 // accepted names is the defect, not the convenience: both get written, and
 // copies of the "try both" probe spread into modules that agree with the real
@@ -8,7 +8,7 @@
 //
 // The removed name REJECTS LOUDLY, naming the exact one-line fix — never
 // silently ignored, never redirected. A directory
-// carrying only `vgai.game.json` is an error with a `git mv` in the message,
+// carrying only `volter.game.json` is an error with a `git mv` in the message,
 // not a project that quietly fails to open.
 //
 // This module is the ONE place either literal is spelled out, and it is
@@ -17,10 +17,10 @@
 // `assertNoRemovedManifestFilename`).
 
 /** The manifest filename. Every reader reads it; every writer writes it. */
-export const MANIFEST_FILENAME = 'vgai.project.json';
+export const MANIFEST_FILENAME = 'volter.project.json';
 
 /** The removed filename. Read by nothing — its only job is the error message. */
-export const REMOVED_MANIFEST_FILENAME = 'vgai.game.json';
+export const REMOVED_MANIFEST_FILENAME = 'volter.game.json';
 
 /** True for the manifest filename (basename comparison). */
 export function isManifestFilename(name: string): boolean {
@@ -28,7 +28,7 @@ export function isManifestFilename(name: string): boolean {
 }
 
 /**
- * The verbatim rejection an on-disk `vgai.game.json` earns — the one-line fix
+ * The verbatim rejection an on-disk `volter.game.json` earns — the one-line fix
  * spelled out, per the removed-format contract. Shared by the Node
  * (`./locate`) and browser (storage-backend) halves so a project author sees
  * the same sentence wherever the stale name is found.

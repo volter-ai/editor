@@ -128,7 +128,7 @@ function readColor(value: unknown): string | undefined {
  * arrived inside a `.glb` has no URL at all. Stamping the path we were handed
  * is what lets the slot read back the same string the picker offered.
  */
-const ASSET_PATH_KEY = 'vgaiAssetPath';
+const ASSET_PATH_KEY = 'volterAssetPath';
 
 /** Textures THIS module loaded. Only these are disposed on reassign/clear —
  *  a texture that came from a GLB or the game's own code may be shared by

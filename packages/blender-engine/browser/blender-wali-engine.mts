@@ -245,9 +245,9 @@ export async function startWaliBlenderEngine(
       // `--python-use-system-env` below is what makes Blender read the
       // variable at all.
       PYTHONPATH: `${RESOURCES}/python/lib/numpy313.zip:${RESOURCES}/python/lib/wheels313.zip`,
-      VGAI_SESSION_ROOT: SESSION_ROOT,
+      VOLTER_SESSION_ROOT: SESSION_ROOT,
       // THE ARENA'S DOOR ON THIS SKEW. See `readArena`.
-      VGAI_EXPORT_BUFFER_PATH: ARENA_PATH,
+      VOLTER_EXPORT_BUFFER_PATH: ARENA_PATH,
     },
     threadPoolSize: workers.pool,
     // Blender talks to nothing. The editor's own routes are this worker's, not
@@ -260,13 +260,13 @@ export async function startWaliBlenderEngine(
   const say = (text: string) => {
     for (const line of text.split('\n')) {
       if (line === '') continue;
-      if (line.startsWith('@@VGAI-READY ')) readyLine = line.slice('@@VGAI-READY '.length);
+      if (line.startsWith('@@VOLTER-READY ')) readyLine = line.slice('@@VOLTER-READY '.length);
       // BLENDER'S OWN STREAMS ARE PAGE OUTPUT, NOT EDITOR-CONSOLE CONDITIONS
       // -- the same rule as the standalone engine, and for the same measured
       // reason: only the session's own named conditions belong in the set an
       // agent must drive to zero.
       options.log(
-        line.startsWith('@@VGAI-WARN') || line.startsWith('@@VGAI-ERROR') ? 'error' : 'log',
+        line.startsWith('@@VOLTER-WARN') || line.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
         line,
       );
     }
@@ -304,7 +304,7 @@ export async function startWaliBlenderEngine(
         // only defensible because the CALLER can degrade VISIBLY; without this
         // the degrade is silent, and before it existed the notice reached a
         // nested worker's devtools console and nothing else.
-        onDiagnostic: (message: string) => options.log('error', `@@VGAI-ERROR ${message}`),
+        onDiagnostic: (message: string) => options.log('error', `@@VOLTER-ERROR ${message}`),
       },
     )
     .then(
@@ -316,7 +316,7 @@ export async function startWaliBlenderEngine(
       },
     )
     .finally(() => {
-      if (ended !== null) options.log('error', `@@VGAI-ERROR the Blender program ended: ${ended}`);
+      if (ended !== null) options.log('error', `@@VOLTER-ERROR the Blender program ended: ${ended}`);
     });
 
   while (readyLine === null) {
@@ -352,7 +352,7 @@ export async function startWaliBlenderEngine(
     readArena: () => filesystem.readFile(ARENA_PATH),
     bootMs,
     // The module's memory is the program worker's and no door reports it.
-    // Null rather than zero: `vgai status` prints "unreported", which is true,
+    // Null rather than zero: `volter-model-editor status` prints "unreported", which is true,
     // where a zero would be a measurement that was never taken.
     memoryBytes: () => null,
     // There is no packed payload on this skew: Blender's runtime tree is

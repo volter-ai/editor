@@ -17,7 +17,7 @@ import type { AssetCatalog } from './asset-types';
  * lives here (ARCHITECTURE-CORE §The editor protocol, "Zero inference").
  */
 export const THUMBNAIL_PROFILE = {
-  version: 'vgai-thumbnail-v2',
+  version: 'volter-thumbnail-v2',
   width: 256,
   height: 256,
   background: 'neutral',
@@ -72,10 +72,10 @@ export const thumbnailManifestSchema = z
   .strict();
 export type ThumbnailManifest = z.infer<typeof thumbnailManifestSchema>;
 
-export const THUMBNAIL_MANIFEST_PATH = '.vgai/thumbnails.json';
+export const THUMBNAIL_MANIFEST_PATH = '.volter/thumbnails.json';
 
 /**
- * The three OUTCOMES of reading `.vgai/thumbnails.json`, which used to be one
+ * The three OUTCOMES of reading `.volter/thumbnails.json`, which used to be one
  * `null`.
  *
  * `absent` and `unreadable` are opposite instructions and collapsing them lost

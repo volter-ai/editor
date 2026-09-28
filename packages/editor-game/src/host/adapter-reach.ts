@@ -116,7 +116,7 @@ export const CAPTURE_GAP: CapabilityGap = {
  * it as a false alarm and stops trusting the instrument, which is the exact
  * failure this module's header forbids.
  *
- * MEASURED 2026-09-19 on a `--template game` scaffold, standalone `vgai edit`
+ * MEASURED 2026-09-19 on a `--template game` scaffold, standalone `volter-game-editor edit`
  * (it is NOT frame-specific): `hierarchy.roots()` passed, ten `hierarchy
  * .node()` calls passed, and the walk still failed — three of the default
  * scene's nodes report a `parentId` their listed parent does not claim. What

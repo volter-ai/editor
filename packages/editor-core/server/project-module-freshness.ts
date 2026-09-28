@@ -3,7 +3,7 @@
  * fresh as the file watcher happens to be.
  *
  * The problem, measured on the blind modeling bench (2026-09-05): an agent
- * edits `src/models/barrel.ts` and runs `vgai screenshot src/models/barrel.ts`
+ * edits `src/models/barrel.ts` and runs the editor's `screenshot src/models/barrel.ts` command
  * in the same breath. The look verb's Node half loads the module through
  * Vite's SSR runner, whose module graph is invalidated by the FILE WATCHER —
  * and the watcher's change event lands seconds after the write (FSEvents on

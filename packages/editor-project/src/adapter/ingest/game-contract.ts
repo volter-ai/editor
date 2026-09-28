@@ -1,6 +1,6 @@
 /**
  * The game→host contract: ONE pre-defined interface an external game may
- * declare on `window.vgaiGame` to let the editor work with it like native
+ * declare on `window.volterGame` to let the editor work with it like native
  * content. Capabilities are by PRESENCE — every field is optional, and a game
  * that declares nothing runs exactly as before (doctrine: adaptation enables
  * editor features; it never bends a game around host internals). This file is
@@ -28,7 +28,7 @@ import { GAME_SCENES_SHAPE } from './game-contract-seams';
 
 /**
  * Session lifecycle endpoints. Declaring `start` means "I support cold
- * mount": when the host sets `window.__vgaiMountCold` before the game's entry
+ * mount": when the host sets `window.__volterMountCold` before the game's entry
  * executes, the game may defer its session side-effects (backend connections,
  * narrative, audio) and render a quiet, inspectable scene; the host calls
  * `start()` — at most once per mount — when the user presses ▶. Declaring
@@ -38,7 +38,7 @@ import { GAME_SCENES_SHAPE } from './game-contract-seams';
  * declared. Host consumers see only the bound control; they never mix one
  * declared half with a fallback half.
  */
-export interface VgaiGameLifecycle {
+export interface VolterGameLifecycle {
   start?(): void;
   pause?(): void;
   resume?(): void;
@@ -66,10 +66,10 @@ export interface VgaiGameLifecycle {
   dispose?(): void;
 }
 
-/** One of the game's own scenes, as {@link VgaiGameScenes} lists it. `id` is the
+/** One of the game's own scenes, as {@link VolterGameScenes} lists it. `id` is the
  *  game's OWN identifier for it — the string `current()` reports and `goTo()`
  *  takes — and `label` is what a person reads. */
-export interface VgaiGameScene {
+export interface VolterGameScene {
   id: string;
   label: string;
 }
@@ -82,7 +82,7 @@ export interface VgaiGameScene {
  * vocabulary for "the design-time states a world can be put into": stories.
  * So this is projected onto the ordinary `StoriesProvider`
  * (`adapter/authoring.ts`) by the host's canvas ingest mount
- * (`packages/editor/src/authoring/contract-scenes-stories.ts`), WORLD-LEVEL —
+ * (`packages/editor-game/src/host/authoring/contract-scenes-stories.ts`), WORLD-LEVEL —
  * the same scope the react world adapter's stories have — so the inspector's
  * story picker lists a game's screens and switching one runs the game's own
  * navigation call. Nothing else is invented: there is no host-side scene model,
@@ -92,9 +92,9 @@ export interface VgaiGameScene {
  * here reports no stories provider at all — a named absence in the coverage
  * report, never an empty picker.
  */
-export interface VgaiGameScenes {
+export interface VolterGameScenes {
   /** Every scene a player can be sent to right now, in the game's own order. */
-  list(): VgaiGameScene[];
+  list(): VolterGameScene[];
   /** The scene the game currently has up, by its own id; `null` when it has
    *  none yet (a game whose entry has not resolved, a boot screen the game does
    *  not name). */
@@ -118,7 +118,7 @@ export interface VgaiGameScenes {
  * `argsJsonSchema` is therefore DOCUMENTATION for listing surfaces, not a
  * gate — a verb validates its own arguments and throws its own errors.
  */
-export interface VgaiGameCommand {
+export interface VolterGameCommand {
   name: string;
   description?: string;
   /** JSON-Schema projection of the argument list, when the game declares one. */
@@ -131,7 +131,7 @@ export interface VgaiGameCommand {
  * shape. `tier` carries the same meaning as the first-party one: `observable`
  * is a value the game already computes, `assisted` is one the shim derives.
  */
-export interface VgaiGameStateProvider {
+export interface VolterGameStateProvider {
   name: string;
   tier?: 'observable' | 'assisted';
   read(): unknown;
@@ -144,7 +144,7 @@ export interface VgaiGameStateProvider {
  * captured render tree, so a system-driven game can say what its content is
  * without pretending its scene graph is authored truth.
  */
-export interface VgaiGameHierarchyGroup {
+export interface VolterGameHierarchyGroup {
   id: string;
   label: string;
   count: number;
@@ -155,8 +155,8 @@ export interface VgaiGameHierarchyGroup {
  * editor never polls or guesses when a game's model changed; a dynamic game
  * subscribes its ordinary authoring hierarchy to the same truth it reads.
  */
-export interface VgaiGameHierarchyProvider {
-  (): VgaiGameHierarchyGroup[];
+export interface VolterGameHierarchyProvider {
+  (): VolterGameHierarchyGroup[];
   subscribe?(listener: () => void): () => void;
 }
 
@@ -178,13 +178,13 @@ export interface VgaiGameHierarchyProvider {
  * member here is a promise the host must already keep. A member nothing reads
  * would be a shim author implementing a hook that is never called.
  */
-export interface VgaiGameSystems {
+export interface VolterGameSystems {
   /** Verbs, enumerated by `game.commands()` and run by `game.command(...)`. */
-  commands?: VgaiGameCommand[];
+  commands?: VolterGameCommand[];
   /** State reads, enumerated by `game.providers()` and read by `game.state(...)`. */
-  state?: VgaiGameStateProvider[];
+  state?: VolterGameStateProvider[];
   /** Semantic hierarchy groups from the game's own model, recomputed on read. */
-  hierarchy?: VgaiGameHierarchyProvider;
+  hierarchy?: VolterGameHierarchyProvider;
   /**
    * The game's own {@link SystemAdapters} slots — the ingest-realm equivalent
    * of a first-party world's `ctx.registerSystemAdapter`. Read and projected by
@@ -192,7 +192,7 @@ export interface VgaiGameSystems {
    * ingested game's physics/audio/navigation/networking reach the editor's
    * ordinary panels through the SAME registry a native world publishes to.
    */
-  systemAdapters?: VgaiGameSystemAdapters;
+  systemAdapters?: VolterGameSystemAdapters;
 }
 
 /**
@@ -212,7 +212,7 @@ export interface VgaiGameSystems {
  * is a fabrication (it implies a connection that could exist), which the
  * anti-shim rule forbids. The absence is stated, never simulated.
  */
-export interface VgaiGameSystemEmpty {
+export interface VolterGameSystemEmpty {
   /** Always `false` — the discriminant that separates this from an adapter. */
   present: false;
   /**
@@ -226,14 +226,14 @@ export interface VgaiGameSystemEmpty {
 
 /**
  * The declarable `SystemAdapters` slots, each either a real implementation or a
- * positively-answered {@link VgaiGameSystemEmpty}.
+ * positively-answered {@link VolterGameSystemEmpty}.
  *
  * `debug` is deliberately NOT here: it is already the projection of
  * `commands`/`state` above (`contract-debug-adapter.ts`), and a second door onto
  * the same slot would let a game declare two different debug planes with no rule
  * for which wins.
  */
-export interface VgaiGameSystemAdapters {
+export interface VolterGameSystemAdapters {
   /**
    * In the SURFACE'S OWN vocabulary: a three-surface game declares the node-id
    * keyed `PhysicsAdapter`, a canvas-surface game the display-object keyed
@@ -242,12 +242,12 @@ export interface VgaiGameSystemAdapters {
    * for the wrong surface as MALFORMED by name rather than binding a shape
    * nothing on that lane can call).
    */
-  physics?: PhysicsCarrier | VgaiGameSystemEmpty;
-  networking?: NetworkingAdapter | VgaiGameSystemEmpty;
-  navigation?: NavigationAdapter | VgaiGameSystemEmpty;
-  audio?: AudioAdapter | VgaiGameSystemEmpty;
-  camera?: CameraAdapter | VgaiGameSystemEmpty;
-  renderDebug?: RenderDebugAdapter | VgaiGameSystemEmpty;
+  physics?: PhysicsCarrier | VolterGameSystemEmpty;
+  networking?: NetworkingAdapter | VolterGameSystemEmpty;
+  navigation?: NavigationAdapter | VolterGameSystemEmpty;
+  audio?: AudioAdapter | VolterGameSystemEmpty;
+  camera?: CameraAdapter | VolterGameSystemEmpty;
+  renderDebug?: RenderDebugAdapter | VolterGameSystemEmpty;
 }
 
 /**
@@ -274,9 +274,9 @@ export interface VgaiGameSystemAdapters {
  * readiness is reported, so "nobody stated it" is a visible fact rather than
  * an invisible default.
  */
-export type VgaiGameReady = Promise<unknown> | (() => Promise<unknown> | unknown);
+export type VolterGameReady = Promise<unknown> | (() => Promise<unknown> | unknown);
 
-export interface VgaiGameContract {
+export interface VolterGameContract {
   /** Bump only on breaking shape changes; additive endpoints keep version 1. */
   contractVersion: 1;
   /**
@@ -297,7 +297,7 @@ export interface VgaiGameContract {
    * about authoring order, and the game's author knows the real answer.
    *
    * Declaring nothing keeps the measured answer, reported as `measured` (see
-   * `packages/editor/src/presentation-surface.ts`, the one reader).
+   * `packages/editor-sdk/src/kit/presentation-surface.ts`, the one reader).
    */
   presentation?: HTMLCanvasElement;
   /**
@@ -314,21 +314,21 @@ export interface VgaiGameContract {
    * structurally (`isScene`) in {@link readGameWorld}.
    */
   world?: object;
-  /** The game's own readiness signal — see {@link VgaiGameReady}. */
-  ready?: VgaiGameReady;
-  lifecycle?: VgaiGameLifecycle;
+  /** The game's own readiness signal — see {@link VolterGameReady}. */
+  ready?: VolterGameReady;
+  lifecycle?: VolterGameLifecycle;
   /**
    * The game's own scenes. Absent means "this game declared no scene surface" —
    * the mount then supplies no stories provider at all, and the coverage report
    * says so by name.
    */
-  scenes?: VgaiGameScenes;
+  scenes?: VolterGameScenes;
   /**
    * The game's own systems. Absent means "this game declared no system
    * surface" — every dependent editor surface then shows a named absence, not
    * an empty pretend-palette.
    */
-  systems?: VgaiGameSystems;
+  systems?: VolterGameSystems;
 }
 
 /**
@@ -344,9 +344,9 @@ export interface VgaiGameContract {
  */
 export function readGameContract(
   scope: Window | null | undefined = typeof window === 'undefined' ? null : window,
-): VgaiGameContract | null {
-  const declared = (scope as unknown as { vgaiGame?: VgaiGameContract } | null | undefined)
-    ?.vgaiGame;
+): VolterGameContract | null {
+  const declared = (scope as unknown as { volterGame?: VolterGameContract } | null | undefined)
+    ?.volterGame;
   if (!declared || declared.contractVersion !== 1) return null;
   return declared;
 }
@@ -357,7 +357,7 @@ export function readGameContract(
  *  omitted slot and a malformed one). */
 export interface GameScenesReading {
   /** The callable surface, or `null` when nothing usable was declared. */
-  readonly scenes: VgaiGameScenes | null;
+  readonly scenes: VolterGameScenes | null;
   /** Why a DECLARED surface was refused, in the words the host prints. */
   readonly malformed: string | null;
 }
@@ -366,17 +366,17 @@ export interface GameScenesReading {
  *  projection, so a declaration missing any cannot be honoured. */
 const SCENES_REQUIRED_MEMBERS = Object.entries(GAME_SCENES_SHAPE)
   .filter(([, spec]) => !spec.optional)
-  .map(([member]) => member as keyof VgaiGameScenes);
+  .map(([member]) => member as keyof VolterGameScenes);
 
 /**
- * Read the declared {@link VgaiGameScenes}, refusing a malformed one BY NAME.
+ * Read the declared {@link VolterGameScenes}, refusing a malformed one BY NAME.
  *
  * The shape check is the same honesty `projectContractSystemAdapters` applies to
  * a declared system slot: a `scenes: {}` would otherwise register as a
  * capability and light up a story picker over an object with no methods. Nothing
  * here CALLS a declared endpoint — presence and type only.
  */
-export function readGameScenes(contract: VgaiGameContract | null | undefined): GameScenesReading {
+export function readGameScenes(contract: VolterGameContract | null | undefined): GameScenesReading {
   const declared: unknown = contract?.scenes;
   if (declared === undefined || declared === null) return { scenes: null, malformed: null };
   if (typeof declared !== 'object') {
@@ -394,7 +394,7 @@ export function readGameScenes(contract: VgaiGameContract | null | undefined): G
       malformed: `declared a scenes surface missing required member(s): ${missing.join(', ')}`,
     };
   }
-  return { scenes: declared as VgaiGameScenes, malformed: null };
+  return { scenes: declared as VolterGameScenes, malformed: null };
 }
 
 /** What {@link readGameReady} found. `ready: null` with `malformed: null` ⇒ the
@@ -411,7 +411,7 @@ export interface GameReadyReading {
 }
 
 /**
- * Read the declared {@link VgaiGameReady}, refusing a malformed one BY NAME.
+ * Read the declared {@link VolterGameReady}, refusing a malformed one BY NAME.
  *
  * Both legal forms normalize to one call: a promise is wrapped, a function is
  * invoked lazily (once, when the host asks — which in the ingest mount is only
@@ -424,7 +424,7 @@ export interface GameReadyReading {
  * failure is what separates "crashed before ready" from "never became ready"
  * in the mount-failure report (`mount-readiness.ts`).
  */
-export function readGameReady(contract: VgaiGameContract | null | undefined): GameReadyReading {
+export function readGameReady(contract: VolterGameContract | null | undefined): GameReadyReading {
   const declared: unknown = contract?.ready;
   if (declared === undefined || declared === null) return { ready: null, malformed: null };
   if (typeof declared === 'function') {
@@ -449,7 +449,7 @@ export interface GameWorldReading {
 }
 
 /**
- * Read the declared {@link VgaiGameContract.world}, refusing a malformed one BY
+ * Read the declared {@link VolterGameContract.world}, refusing a malformed one BY
  * NAME.
  *
  * STRUCTURAL (`isScene === true`), for two reasons: this file imports no
@@ -457,7 +457,7 @@ export interface GameWorldReading {
  * runs in is exactly the check that silently answers `false` for a good scene —
  * turning a correct declaration into an unexplained fall-back to first-render.
  */
-export function readGameWorld(contract: VgaiGameContract | null | undefined): GameWorldReading {
+export function readGameWorld(contract: VolterGameContract | null | undefined): GameWorldReading {
   const declared: unknown = contract?.world;
   if (declared === undefined || declared === null) return { world: null, malformed: null };
   if (typeof declared !== 'object' || (declared as { isScene?: unknown }).isScene !== true) {
@@ -477,7 +477,7 @@ export interface GamePresentationReading {
 }
 
 /**
- * Read the declared {@link VgaiGameContract.presentation} canvas, refusing a
+ * Read the declared {@link VolterGameContract.presentation} canvas, refusing a
  * malformed one BY NAME.
  *
  * The shape check is STRUCTURAL (`tagName === 'CANVAS'` plus a `getContext`),
@@ -487,7 +487,7 @@ export interface GamePresentationReading {
  * name, never by accident.
  */
 export function readGamePresentation(
-  contract: VgaiGameContract | null | undefined,
+  contract: VolterGameContract | null | undefined,
 ): GamePresentationReading {
   const declared: unknown = contract?.presentation;
   if (declared === undefined || declared === null) return { canvas: null, malformed: null };

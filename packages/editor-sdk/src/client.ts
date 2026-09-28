@@ -54,7 +54,7 @@ import type {
 
 // The editor's default origin, spelled out because this package deliberately
 // does not depend on `@volter/editor-project`. `DEFAULT_EDITOR_PORT` in
-// `packages/project/src/manifest/editor-port.ts` is the owner of the number and
+// `packages/editor-project/src/manifest/editor-port.ts` is the owner of the number and
 // of the never-`localhost` rule; keep this in step with it.
 const DEFAULT_URL = 'http://127.0.0.1:20173';
 
@@ -65,7 +65,7 @@ const DEFAULT_URL = 'http://127.0.0.1:20173';
  * `/__editor/command` has always answered `{ ok: false, error, code }` and
  * this client has always dropped the `code` on the floor, so every caller that
  * wanted to react to a specific refusal had to substring-match an English
- * sentence. `vgai screenshot`'s loop-recovery fallback is the first caller that
+ * sentence. the editor's `screenshot` command's loop-recovery fallback is the first caller that
  * genuinely must branch (`BRIDGE_SCREENSHOT_STALE` has a working recovery;
  * "not in play mode" does not), and a fallback keyed on prose would fire on
  * the wrong failure the first time someone rewords the message.
@@ -84,7 +84,7 @@ export class EditorCommandError extends Error {
    * the receipt window closing unanswered, a beating-but-dead tab, and no tab
    * present at all. The last four can fail in milliseconds.
    *
-   * A caller that converges by retrying (`vgai restart`) needs the distinction
+   * A caller that converges by retrying (the editor's `restart` command) needs the distinction
    * because a refusal the editor ANSWERED may go differently next time, while
    * a command the relay abandoned tells you nothing new on a second identical
    * attempt — and when the abandonment was a 120s budget, re-running it three
@@ -124,7 +124,7 @@ const UNDICI_DEFAULT_HEADERS_TIMEOUT_MS = 300_000;
 /**
  * Ceiling on {@link EditorClient.getUnresolvedConsole}. The CLI drains this
  * on every verb, including ones that never wait for a command envelope, so
- * a silent hang here would become a silent hang on `vgai sessions`. The
+ * a silent hang here would become a silent hang on the editor's `sessions` command. The
  * server route is a plain in-process GET; 1.5s is already longer than it
  * should ever take.
  */
@@ -194,7 +194,7 @@ export interface EditorEnvelopeObservation {
 /**
  * The GAME DEBUG PLANE, as a contribution's client sees it.
  *
- * Deliberately the same two words `@vgai/live`'s session binding uses
+ * Deliberately the same two words `@volter/editor-live`'s session binding uses
  * (`game.state(name)` / `game.command(name, ...args)`), because it is the same
  * plane: whatever the running game registered through `ctx.debug` — a provider
  * read by name, a command invoked by name. A tool contribution that wants the
@@ -437,22 +437,22 @@ export class EditorClient {
 
   // --- Play control ---
 
-  /** `opts.seed` (D15/T-D15.6, objection-4 fix) — `vgai play --seed <n>`'s
+  /** `opts.seed` (D15/T-D15.6, objection-4 fix) — the editor's `play --seed <n>` command's
    *  explicit config leg, relayed as `cmd['seed']`; `handleCommand`'s
    *  `'play'` case threads it into `enterPlayMode`'s highest-precedence seed
-   *  argument (beats manifest.determinism.defaultSeed/?vgai-seed=). Omitted,
+   *  argument (beats manifest.determinism.defaultSeed/?volter-seed=). Omitted,
    *  boot seeding falls back to that precedence unchanged.
    *
-   *  `opts.name` (`vgai play --name <text>`) — an OPTIONAL label for this run,
+   *  `opts.name` (the editor's `play --name <text>` command) — an OPTIONAL label for this run,
    *  relayed as `cmd['name']` and slugified server-side into the run's
    *  `logs/play-*.jsonl` filename and its session-journal line. Findability
    *  only: no registry, no uniqueness, no lookup verb — grep and `ls` are the
    *  query engine. Omitted, the filename keeps its exact unnamed shape. */
-  /*  `opts.record` (`vgai play --record <name>`) — NAMES this run's recording
+  /*  `opts.record` (the editor's `play --record <name>` command) — NAMES this run's recording
    *  file. It does not ENABLE recording: every relayed play records, with no
-   *  flag (see `@vgai/game`'s `src/play/play-recording.ts`). Omitted, the clip is named for
+   *  flag (see `@volter/editor-game`'s `src/play/play-recording.ts`). Omitted, the clip is named for
    *  the durable Gameplay Session; named, it becomes an explicit keepsake in
-   *  `.vgai/recordings/<name>.webm`. */
+   *  `.volter/recordings/<name>.webm`. */
   async play(opts?: {
     seed?: number;
     name?: string | null;
@@ -585,9 +585,9 @@ export class EditorClient {
   }
 
   /**
-   * Unit 4 (live-front-door wave) — capture the RUNNING GAME (`vgai
-   * screenshot`'s wire leg). Sends the SAME `bridge-screenshot` relay op
-   * `@vgai/live`'s `RelayTransport.screenshot` (and therefore
+   * Unit 4 (live-front-door wave) — capture the RUNNING GAME (the editor's
+   * `screenshot`'s wire leg). Sends the SAME `bridge-screenshot` relay op
+   * `@volter/game-live`'s `RelayTransport.screenshot` (and therefore
    * `game.screenshot()` on the relay path) already sends, so all three
    * surfaces composite the identical full game stack — canvas(es) plus the
    * HUD/react DOM layers — rather than any of them inventing a second,
@@ -605,8 +605,8 @@ export class EditorClient {
    * refuses it with `BRIDGE_SCREENSHOT_STALE` rather than pass it off as
    * current. Setting this asks the relay to render exactly ONE deterministic
    * tick (`runTicks(1, {render:'last'})`) first — the same escape
-   * `@vgai/live`'s `RelayTransport.screenshot` has always used, which is why
-   * `vgai eval` could recover these frames while `vgai screenshot` could not.
+   * `@volter/game-live`'s `RelayTransport.screenshot` has always used, which is why
+   * the editor's `eval` command could recover these frames while the editor's `screenshot` command could not.
    * Off by default: a caller who does not ask must never be handed a frame
    * that only exists because the capture drove the game.
    */
@@ -742,8 +742,8 @@ export class EditorClient {
         ...source,
         ...options,
       },
-      // Photographing changes nothing, and this is the relay `vgai screenshot
-      // <module>` / `project.bake.preview` rides — the lane where a momentary
+      // Photographing changes nothing, and this is the relay the editor's `screenshot
+      // <module>` command and `project.bake.preview` ride — the lane where a momentary
       // transport failure cost a cold agent three probe modules.
       { retryTransport: true },
     );
@@ -758,11 +758,11 @@ export class EditorClient {
   }
 
   /**
-   * A project-defined labeled shot set (`vgai screenshot <target> --shots <set>`):
+   * A project-defined labeled shot set (the editor's `screenshot <target> --shots <set>` command):
    * the DEFINITION travels with the command (project data — see
    * `AssetPreviewShotSetDefinition`; the CLI resolves it from the registered
    * `project.<set>.previewShots` tool), and the editor's generic
-   * capture engine renders it — see `packages/editor/src/asset-preview.ts`'s
+   * capture engine renders it — see `packages/editor-threejs/src/kit/asset-preview.ts`'s
    * `captureShotSetAssetPreview`. Throws (via `command`'s `{ok:false}`
    * unwrap) with a clear message naming the missing joint(s) when the asset
    * lacks a bone the definition requires.
@@ -792,8 +792,8 @@ export class EditorClient {
   }
 
   /**
-   * B8.4 — score the asset against a reference GLB (`vgai screenshot
-   * <model.glb> --compare <ref.glb>`): matched orthographic front + side silhouettes
+   * B8.4 — score the asset against a reference GLB (the editor's `screenshot
+   * <model.glb> --compare <ref.glb>` command): matched orthographic front + side silhouettes
    * (equal-height bounding-box framing, both yaw-normalized to face the
    * camera), per-view IoU numbers, and overlay evidence images. The
    * reference GLB's raw bytes travel base64 in the command; the editor
@@ -815,7 +815,7 @@ export class EditorClient {
   }
 
   /**
-   * The STORY lane (`vgai screenshot <file>.stories.tsx`): every CSF export of
+   * The STORY lane (the editor's `screenshot <file>.stories.tsx` command): every CSF export of
    * one project story file rendered in the live session's DOM and captured
    * through the same composite leg {@link captureGame} uses, returned as
    * per-export images plus one variant sheet. `options.story` narrows to a
@@ -984,9 +984,9 @@ export class EditorClient {
    * Run ONE command by id — the door to everything the command palette lists.
    *
    * Under the Code-OSS frame this is the workbench's own `ICommandService`, so
-   * any command id works: a view's `vgai.<view>.<verb>`, an editor action's
-   * `vgai.action.<id>`, or one of VS Code's own. Standalone `vgai edit` has no
-   * command service and answers the `vgai.<view>.<verb>` shape directly off
+   * any command id works: a view's `volter.<view>.<verb>`, an editor action's
+   * `volter.action.<id>`, or one of VS Code's own. Standalone the editor's `edit` command has no
+   * command service and answers the `volter.<view>.<verb>` shape directly off
    * the views registry, refusing anything else BY NAME.
    *
    * The result is whatever the command answered — a view verb's state, or
@@ -1186,7 +1186,7 @@ export class EditorClient {
    * {@link captureActiveDocument} photographs. NOT play-mode gated, and NOT
    * page automation: a target outside the active document's container is
    * refused by name. Design and scope contract:
-   * `packages/editor/src/editor-document-probe.ts`.
+   * `packages/editor-sdk/src/kit/editor-document-probe.ts`.
    */
   async documentProbe(step: DocumentProbeStep): Promise<DocumentProbeResult> {
     return this.command<DocumentProbeResult>({ type: 'document-probe', step });
@@ -1194,7 +1194,7 @@ export class EditorClient {
 
   /**
    * Run a wire-carried step against the ACTIVE document's published context
-   * (`packages/editor/src/document-context-registry.ts`) — the REPL door over
+   * (`packages/editor-sdk/src/kit/document-context-registry.ts`) — the REPL door over
    * an open document, in Edit mode. `src` is the step's own `toString()`;
    * same serialization contract as `page-script` (no closures survive).
    */
@@ -1203,7 +1203,7 @@ export class EditorClient {
    * `blender-object-info`, `blender-screenshot-view`, `blender-read-file`,
    * `blender-write-file`, `blender-list-files`, `blender-start`,
    * `blender-status`): Blender runs in the editor tab's worker, and
-   * `vgai blender-mcp` is transport onto these. `blender-status` is the only
+   * `volter blender-mcp` is transport onto these. `blender-status` is the only
    * one that creates nothing — it answers whether this tab already has a
    * session, which is how a caller survives an editor restart.
    */
@@ -1311,7 +1311,7 @@ export class EditorClient {
 
   // --- Registered project tools ---
 
-  /** List tools explicitly registered in `package.json#vgai.tools`.
+  /** List tools explicitly registered in `package.json#volter.tools`.
    * The editor server loads callable metadata in Node; modules never enter the
    * editor browser merely because they were listed. */
   async listProjectTools(): Promise<ProjectToolCatalog> {
@@ -1544,12 +1544,12 @@ export class EditorClient {
     // Every one of this client's twelve routes funnels through here, so this is
     // where "did the editor server answer?" is asked — the same question, and
     // the same JSON-content-type rule, that
-    // `packages/editor/src/editor-server-response.ts` owns on the browser side.
+    // `packages/editor-sdk/src/kit/editor-server-response.ts` owns on the browser side.
     // It is asked again rather than imported because THIS package is published
     // and depends on neither `@volter/editor-project` nor the editor bundle (see
     // `DEFAULT_URL` above for that policy).
     //
-    // Not theoretical here: `baseUrl` is whatever `--url`/`VGAI_EDITOR_URL`
+    // Not theoretical here: `baseUrl` is whatever `--url`/`VOLTER_EDITOR_URL`
     // says, so the CLI is routinely pointed at a SHARE TUNNEL or a static host
     // — both of which answer `200 text/html` for a route nothing serves, and
     // `res.json()` then died as `Unexpected token '<'`, naming neither the URL

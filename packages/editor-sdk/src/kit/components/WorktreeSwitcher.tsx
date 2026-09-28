@@ -110,7 +110,7 @@ function DelegateTaskForm({
     };
   }, [isolation, sourceVersion]);
   return (
-    <div className="vgai-worktree-delegate" role="group" aria-label="Delegate task">
+    <div className="volter-worktree-delegate" role="group" aria-label="Delegate task">
       <Text as="div" variant="label">
         Delegate task
       </Text>
@@ -256,7 +256,7 @@ function WorktreePresence({ worktree }: { worktree: EditorWorktree }) {
   const visible = participants.slice(0, 3);
   return (
     <span
-      className="vgai-worktree-presence"
+      className="volter-worktree-presence"
       role="img"
       aria-label={participants
         .map((participant) => `${participant.displayName}, ${participant.status}`)
@@ -265,10 +265,10 @@ function WorktreePresence({ worktree }: { worktree: EditorWorktree }) {
       {visible.map((participant) => (
         <span
           key={participant.participantId}
-          className="vgai-worktree-avatar"
+          className="volter-worktree-avatar"
           data-kind={participant.kind}
           data-status={participant.status}
-          style={{ '--vgai-participant-color': participant.color } as CSSProperties}
+          style={{ '--volter-participant-color': participant.color } as CSSProperties}
           title={`${participant.displayName} · ${participant.kind} · ${participant.status}`}
           aria-hidden="true"
         >
@@ -276,7 +276,7 @@ function WorktreePresence({ worktree }: { worktree: EditorWorktree }) {
         </span>
       ))}
       {participants.length > visible.length && (
-        <span className="vgai-worktree-avatar vgai-worktree-avatar-more" aria-hidden="true">
+        <span className="volter-worktree-avatar volter-worktree-avatar-more" aria-hidden="true">
           +{participants.length - visible.length}
         </span>
       )}
@@ -417,7 +417,7 @@ export function WorktreeSwitcher() {
     matchingWorktrees.length > 0 || matchingBranches.length > 0;
 
   return (
-    <div className="vgai-worktree-switcher">
+    <div className="volter-worktree-switcher">
       {/* A GLYPH, NOT A LABEL, and the measurement is why. This trigger used
           to draw the current branch name beside the icon: 204 CSS px of the
           top bar's left end, ellipsized at 1728 ("worktree-agent-ad85b645…"),
@@ -432,7 +432,7 @@ export function WorktreeSwitcher() {
           made the block cost what Blender's costs.) */}
       <MenuTrigger
         ref={triggerRef}
-        className="vgai-worktree-trigger"
+        className="volter-worktree-trigger"
         aria-label={
           knowsBranch
             ? `Branches and worktrees, current branch ${currentLabel}${current?.dirty ? ', uncommitted changes' : ''}`
@@ -462,7 +462,7 @@ export function WorktreeSwitcher() {
         }}
       >
         <EditorIcon icon={faCodeBranch} />
-        {current?.dirty && <span className="vgai-worktree-dirty-dot" aria-hidden="true" />}
+        {current?.dirty && <span className="volter-worktree-dirty-dot" aria-hidden="true" />}
         {current && <WorktreePresence worktree={current} />}
       </MenuTrigger>
 
@@ -472,11 +472,11 @@ export function WorktreeSwitcher() {
           align="start"
           clamp
           autoFocusFirst={false}
-          className="vgai-worktree-menu"
+          className="volter-worktree-menu"
           aria-label="Branches and worktrees"
           onDismiss={() => setOpen(false)}
         >
-          <div className="vgai-worktree-search">
+          <div className="volter-worktree-search">
             <TextInput
               autoFocus
               aria-label="Find a branch"
@@ -498,23 +498,23 @@ export function WorktreeSwitcher() {
           </div>
 
           <MenuSeparator />
-          <div className="vgai-worktree-results">
+          <div className="volter-worktree-results">
             {loading && state.worktrees.length === 0 && (
-              <Text as="div" variant="caption" tone="dim" className="vgai-worktree-empty">
+              <Text as="div" variant="caption" tone="dim" className="volter-worktree-empty">
                 Loading branches…
               </Text>
             )}
             {visibleWorktrees.length > 0 && (
               <section aria-label="Worktrees">
-                <Text as="div" variant="caption" tone="dim" className="vgai-worktree-section-label">
+                <Text as="div" variant="caption" tone="dim" className="volter-worktree-section-label">
                   Worktrees
                 </Text>
                 {visibleWorktrees.map((worktree) => {
                   const label = worktree.branch ?? 'Detached HEAD';
                   return (
-                    <div key={worktree.worktreeId} className="vgai-worktree-row-shell">
+                    <div key={worktree.worktreeId} className="volter-worktree-row-shell">
                       <MenuItem
-                        className="vgai-worktree-menu-item"
+                        className="volter-worktree-menu-item"
                         data-current={worktree.current || undefined}
                         disabled={worktree.current || !worktree.project || busy !== null}
                         aria-current={worktree.current ? 'true' : undefined}
@@ -527,17 +527,17 @@ export function WorktreeSwitcher() {
                           )
                         }
                       >
-                        <span className="vgai-worktree-row-icon">
+                        <span className="volter-worktree-row-icon">
                           {worktree.current && <EditorIcon icon={faCheck} />}
                         </span>
-                        <span className="vgai-worktree-row-copy">
-                          <span className="vgai-worktree-row-title">
+                        <span className="volter-worktree-row-copy">
+                          <span className="volter-worktree-row-title">
                             {label}
                             {worktree.dirty && (
-                              <span className="vgai-worktree-dirty-dot" aria-hidden="true" />
+                              <span className="volter-worktree-dirty-dot" aria-hidden="true" />
                             )}
                           </span>
-                          <span className="vgai-worktree-row-detail">
+                          <span className="volter-worktree-row-detail">
                             {busy === worktree.worktreeId ? 'Opening…' : worktreeDetail(worktree)}
                           </span>
                         </span>
@@ -589,7 +589,7 @@ export function WorktreeSwitcher() {
                   );
                 })}
                 {hiddenWorktrees > 0 && (
-                  <Text as="div" variant="caption" tone="dim" className="vgai-worktree-more">
+                  <Text as="div" variant="caption" tone="dim" className="volter-worktree-more">
                     {hiddenWorktrees} more worktrees — search to narrow
                   </Text>
                 )}
@@ -598,13 +598,13 @@ export function WorktreeSwitcher() {
 
             {visibleBranches.length > 0 && (
               <section aria-label="Local branches">
-                <Text as="div" variant="caption" tone="dim" className="vgai-worktree-section-label">
+                <Text as="div" variant="caption" tone="dim" className="volter-worktree-section-label">
                   Local branches
                 </Text>
                 {visibleBranches.map((branch) => (
                   <MenuItem
                     key={branch.name}
-                    className="vgai-worktree-menu-item"
+                    className="volter-worktree-menu-item"
                     disabled={busy !== null}
                     onSelect={() =>
                       void run(
@@ -614,17 +614,17 @@ export function WorktreeSwitcher() {
                       )
                     }
                   >
-                    <span className="vgai-worktree-row-icon" />
-                    <span className="vgai-worktree-row-copy">
-                      <span className="vgai-worktree-row-title">{branch.name}</span>
-                      <span className="vgai-worktree-row-detail">
+                    <span className="volter-worktree-row-icon" />
+                    <span className="volter-worktree-row-copy">
+                      <span className="volter-worktree-row-title">{branch.name}</span>
+                      <span className="volter-worktree-row-detail">
                         {busy === branch.name ? 'Creating worktree…' : 'Open in a new worktree'}
                       </span>
                     </span>
                   </MenuItem>
                 ))}
                 {hiddenBranches > 0 && (
-                  <Text as="div" variant="caption" tone="dim" className="vgai-worktree-more">
+                  <Text as="div" variant="caption" tone="dim" className="volter-worktree-more">
                     {hiddenBranches} more {candidate ? 'matches' : 'branches'} — search to narrow
                   </Text>
                 )}
@@ -632,7 +632,7 @@ export function WorktreeSwitcher() {
             )}
 
             {!loading && !hasMatches && !candidate && (
-              <Text as="div" variant="caption" tone="dim" className="vgai-worktree-empty">
+              <Text as="div" variant="caption" tone="dim" className="volter-worktree-empty">
                 No branches found.
               </Text>
             )}
@@ -642,7 +642,7 @@ export function WorktreeSwitcher() {
             <>
               <MenuSeparator />
               <MenuItem
-                className="vgai-worktree-create-command"
+                className="volter-worktree-create-command"
                 disabled={busy !== null}
                 onSelect={() =>
                   void run(
@@ -652,10 +652,10 @@ export function WorktreeSwitcher() {
                   )
                 }
               >
-                <span className="vgai-worktree-row-icon">+</span>
-                <span className="vgai-worktree-row-copy">
-                  <span className="vgai-worktree-row-title">Create branch “{candidate}”</span>
-                  <span className="vgai-worktree-row-detail">
+                <span className="volter-worktree-row-icon">+</span>
+                <span className="volter-worktree-row-copy">
+                  <span className="volter-worktree-row-title">Create branch “{candidate}”</span>
+                  <span className="volter-worktree-row-detail">
                     {busy === 'create'
                       ? 'Creating worktree…'
                       : `From ${currentLabel}, in a new worktree`}
@@ -683,7 +683,7 @@ export function WorktreeSwitcher() {
                   type="button"
                   variant="ghost"
                   size="compact"
-                  className="vgai-worktree-delegate-open"
+                  className="volter-worktree-delegate-open"
                   onClick={() => setDelegateOpen(true)}
                 >
                   Delegate to agent…
@@ -700,7 +700,7 @@ export function WorktreeSwitcher() {
               variant="caption"
               tone="danger"
               role="alert"
-              className="vgai-worktree-error"
+              className="volter-worktree-error"
             >
               {error}
             </Text>

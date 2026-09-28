@@ -131,7 +131,7 @@ const OFFICIAL_SOURCE_PATCH = join(PACKAGE_ROOT, 'godot-frontend/official-source
 const sourceRoot = resolve(sourceRootArg);
 const sourceArchive = resolve(sourceArchiveArg);
 const outDir = resolve(
-  argument('--out-dir') ?? join(PACKAGE_ROOT, '../../.vgai/tmp/godot-bound-exporter'),
+  argument('--out-dir') ?? join(PACKAGE_ROOT, '../../.volter/tmp/godot-bound-exporter'),
 );
 // A pinned exporter is named by its digest; rebuilding over it would silently change the binary
 // a pin (and every builder using it) names. A new build goes to a new directory.
@@ -153,8 +153,8 @@ if (sourceTreeSha256 !== SOURCE_TREE_SHA256) {
 }
 
 const exporterSha256 = exporterSourceSha256(OFFICIAL_SOURCE_PATCH);
-const temp = mkdtempSync(join(tmpdir(), 'vgai-godot-bound-exporter-module-'));
-const buildRoot = mkdtempSync(join(dirname(sourceRoot), '.vgai-godot-bound-exporter-build-'));
+const temp = mkdtempSync(join(tmpdir(), 'volter-godot-bound-exporter-module-'));
+const buildRoot = mkdtempSync(join(dirname(sourceRoot), '.volter-godot-bound-exporter-build-'));
 const buildSource = join(buildRoot, 'source');
 const customModules = join(temp, 'modules');
 const generatedModule = join(customModules, basename(MODULE_ROOT));
@@ -164,11 +164,11 @@ writeFileSync(
   join(generatedModule, 'build_identity.gen.h'),
   [
     '#pragma once',
-    `#define VGAI_GODOT_SOURCE_REVISION "${REVISION}"`,
-    `#define VGAI_GODOT_SOURCE_TREE_SHA256 "${SOURCE_TREE_SHA256}"`,
-    `#define VGAI_GODOT_SOURCE_ARCHIVE_SHA256 "${SOURCE_ARCHIVE_SHA256}"`,
-    `#define VGAI_GODOT_EXPORTER_SOURCE_SHA256 "${exporterSha256}"`,
-    `#define VGAI_GODOT_EXPORTER_BUILD_OPTIONS "${BUILD_OPTIONS}"`,
+    `#define VOLTER_GODOT_SOURCE_REVISION "${REVISION}"`,
+    `#define VOLTER_GODOT_SOURCE_TREE_SHA256 "${SOURCE_TREE_SHA256}"`,
+    `#define VOLTER_GODOT_SOURCE_ARCHIVE_SHA256 "${SOURCE_ARCHIVE_SHA256}"`,
+    `#define VOLTER_GODOT_EXPORTER_SOURCE_SHA256 "${exporterSha256}"`,
+    `#define VOLTER_GODOT_EXPORTER_BUILD_OPTIONS "${BUILD_OPTIONS}"`,
     '',
   ].join('\n'),
 );
@@ -233,7 +233,7 @@ try {
   chmodSync(outputBinary, 0o755);
   const executableSha256 = sha256(readFileSync(outputBinary));
   const identity = {
-    protocol: 'vgai.godot-bound-exporter-build',
+    protocol: 'volter.godot-bound-exporter-build',
     protocolVersion: 1,
     sourceRevision: REVISION,
     sourceTreeSha256: SOURCE_TREE_SHA256,

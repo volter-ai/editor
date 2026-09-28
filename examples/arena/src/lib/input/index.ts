@@ -2,7 +2,7 @@
  * THIS GAME'S OWN INPUT — one store, its bindings read from the game's own
  * `.inputmap.json`, its devices attached by `<InputRig />` and ticked from the
  * world's own frame, and read by mechanics (`gameInput.isPressed('jump')`).
- * The session input door (`game.input.hold/tap` from `vgai eval`) reaches this
+ * The session input door (`game.input.hold/tap` from `volter-game-editor eval`) reaches this
  * SAME store through the entry's `debug.input` export (`src/world.tsx`), so an
  * agent's virtual press and a human's key land in one place.
  *
@@ -292,7 +292,7 @@ class GameInput {
     // A refused lock (no user activation, the browser's re-lock cooldown) leaves the mouse dead
     // for aiming; say so rather than fail silently.
     void Promise.resolve(element.requestPointerLock()).catch((error: unknown) => {
-      // biome-ignore lint/suspicious/noConsole: the one channel a refused lock has — vgai status reads the console
+      // biome-ignore lint/suspicious/noConsole: the one channel a refused lock has — volter-game-editor status reads the console
       console.warn('[input] pointer lock refused:', error);
     });
   }
@@ -381,7 +381,7 @@ export function ensureInputMap(url: string = INPUT_MAP_URL): void {
   void gameInput.loadMap(url).catch((error) => {
     // A transient failure must not be permanent: the next ensure retries.
     mapRequested = false;
-    // biome-ignore lint/suspicious/noConsole: the one loud channel a failed binding load has — vgai status reads the console
+    // biome-ignore lint/suspicious/noConsole: the one loud channel a failed binding load has — volter-game-editor status reads the console
     console.error(`[input] failed to load ${url}:`, error);
   });
 }

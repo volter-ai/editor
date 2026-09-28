@@ -1,15 +1,15 @@
 Copyright 2026 Volter AI, Inc.
 
-The files in this package were imported from volter-ai/vgai-engine at commit
+The files in this package were imported from volter-ai/volter-engine at commit
 09c2749ce. LICENSE contains the AGPL-3.0-only license they retain.
 
-  packages/game/src, packages/game/contributions (@vgai/game)
+  packages/game/src, packages/game/contributions
     -> src, contributions
-  packages/dom/src, packages/dom/contributions (@vgai/dom)
+  packages/dom/src, packages/dom/contributions
     -> src/react, contributions/react
   packages/threejs/src except viewport/ and capture/, packages/threejs/contributions
-  (@vgai/threejs) -> src/three, contributions/three
-  host modules of packages/editor/src (@vgai/editor) -> src/host, including
+  -> src/three, contributions/three
+  host modules of packages/editor/src -> src/host, including
   gameplay-export.ts and document-preview-three.ts, and the world-root stage
   (components/world-root-stage.ts and the modules it draws with)
   src/host/components/world-root-stage-binding.tsx is transcribed from the
@@ -18,6 +18,6 @@ The files in this package were imported from volter-ai/vgai-engine at commit
   contributions/scene-document.service.ts from the Scene document half of
   packages/editor/src/components/CenterDocuments.tsx
 
-src/host/sdk/tools.ts was imported from packages/vgai-sdk/src/tools.ts, part of
-the Apache-2.0 @vgai/sdk package, and retains that license. It re-exports the
+src/host/sdk/tools.ts was imported from src/tools.ts of the Apache-2.0 SDK
+package of volter-ai/volter-engine, and retains that license. It re-exports the
 Apache-2.0 tool contract of @volter/editor-sdk.

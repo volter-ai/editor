@@ -760,7 +760,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
     // A custom JSX tag is not necessarily a reusable component boundary. Importer runtimes use a
     // project-local component as the native ENTITY constructor (for example `<UnityNode>` creates
     // one Unity GameObject) and declare that with the existing `authoringRoot` mark. Keep it an
-    // ordinary entity here. A real prefab root can carry the same mark plus `vgaiComponentRoot`;
+    // ordinary entity here. A real prefab root can carry the same mark plus `volterComponentRoot`;
     // the hierarchy mark projection applies that explicit component identity afterwards.
     const instanceRoot =
       isComponentInstanceRoot(object) && getUserData(object, 'authoringRoot') !== true;

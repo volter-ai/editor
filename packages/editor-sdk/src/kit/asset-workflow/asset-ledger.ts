@@ -1,5 +1,5 @@
 /**
- * The project-owned asset provenance ledger — `.vgai/assets.json` (D-AP3).
+ * The project-owned asset provenance ledger — `.volter/assets.json` (D-AP3).
  *
  * Assets follow the capability model: the asset library is the SOURCE, a
  * project owns its COPIES. Every materialization — the editor's Library-panel
@@ -12,7 +12,7 @@
  * The ledger is the license/attribution record and the drift input. Comparing a
  * file's current hash to `sourceHash` distinguishes "the user edited their copy"
  * (legitimate; git reports it) from "the library moved" (reported, never
- * auto-applied — there is deliberately no `vgai asset update`).
+ * auto-applied — there is deliberately no `volter asset update`).
  *
  * ANTI-SHIM: `license` and `sourceHash` are OPTIONAL and are recorded only when
  * the library actually supplied them. We never hash the bytes we just wrote and
@@ -28,7 +28,7 @@ import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-pat
 import { z } from 'zod';
 
 /** Project-relative location of the ledger. */
-export const ASSET_LEDGER_PATH = '.vgai/assets.json';
+export const ASSET_LEDGER_PATH = '.volter/assets.json';
 
 /** The library's asset identity: `source:id` (see `onlineAssetKey`). */
 export function assetKey(source: string, id: string): string {

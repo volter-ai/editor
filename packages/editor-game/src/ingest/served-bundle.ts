@@ -3,13 +3,13 @@
  *
  * `public/ingest/<id>/` holds games vendored as build output rather than as
  * source (CLAUDE.md, "Repo layout"). Those folders carry their own
- * `vgai.project.json`, so `vgai edit public/ingest/<id>` opens them like any
+ * `volter.project.json`, so `volter-game-editor edit public/ingest/<id>` opens them like any
  * other project — and the manifest ingest route then built the entry's import
  * url with `fsImportPath`, i.e. `/@fs/<abs>/…`, putting a file that lives in
  * VITE'S OWN `public/` DIRECTORY into Vite's module graph.
  *
  * That is the one thing Vite refuses outright. Measured on this route
- * (2026-08-20, `vgai edit public/ingest/tanks`, identically for `simcity`):
+ * (2026-08-20, `volter-game-editor edit public/ingest/tanks`, identically for `simcity`):
  *
  *   [vite] Internal Server Error
  *   Cannot import non-asset file /ingest/tanks/three-r170.module.js which is
@@ -27,7 +27,7 @@
  * not stop being served because the door that opened it was a session rather
  * than a `?project=` id, so the LOCAL route resolves the same way: by URL.
  *
- * The `__VGAI_ENGINE_ROOT__` read is the exact inverse of
+ * The `__VOLTER_ENGINE_ROOT__` read is the exact inverse of
  * `imported-gallery.ts`'s `importedProjectPath` (gallery card → absolute folder);
  * this is absolute folder → served URL.
  */
@@ -36,7 +36,7 @@ import { importServedModule } from '../host/browser-transpile';
 import { ensureServedBundleRuntimeModules } from '../host/served-bundle-runtime-modules';
 import { bootDeclaredDocument, declaresClassicEntry, readDeclaredBoot } from './served-html-boot';
 
-declare const __VGAI_ENGINE_ROOT__: string;
+declare const __VOLTER_ENGINE_ROOT__: string;
 
 function withoutTrailingSlash(path: string): string {
   return path.endsWith('/') ? path.slice(0, -1) : path;
@@ -52,8 +52,8 @@ function withoutTrailingSlash(path: string): string {
  * checkout, not about the game.
  */
 export function servedProjectBaseUrl(projectRoot: string): string | undefined {
-  if (typeof __VGAI_ENGINE_ROOT__ !== 'string' || !__VGAI_ENGINE_ROOT__) return undefined;
-  const publicRoot = `${withoutTrailingSlash(__VGAI_ENGINE_ROOT__)}/public/`;
+  if (typeof __VOLTER_ENGINE_ROOT__ !== 'string' || !__VOLTER_ENGINE_ROOT__) return undefined;
+  const publicRoot = `${withoutTrailingSlash(__VOLTER_ENGINE_ROOT__)}/public/`;
   const dir = `${withoutTrailingSlash(projectRoot)}/`;
   if (!dir.startsWith(publicRoot) || dir === publicRoot) return undefined;
   return `/${dir.slice(publicRoot.length)}`;

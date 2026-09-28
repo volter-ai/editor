@@ -152,7 +152,7 @@ export async function discoverProjectStories(
  * instead of one guaranteed-to-fail one (that failure was invisible to this
  * function's own try/catch, since a browser reports a failed `/@fs/` fetch
  * as a page-level network error regardless of how the JS that triggered it
- * handles the rejection — see `check-vgai-generated-project-p2p.ts`, which
+ * handles the rejection — see `check-volter-generated-project-p2p.ts`, which
  * caught this as a generated-project "browser error").
  */
 export async function loadProjectPreviewAnnotations(

@@ -1,5 +1,5 @@
 import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
-import { VgaiLogo } from '@volter/editor-sdk/kit/components/VgaiLogo';
+import { VolterLogo } from '@volter/editor-sdk/kit/components/VolterLogo';
 
 /**
  * How long the wait has been going on, once it has stopped being instant.
@@ -30,34 +30,34 @@ export function StartupLoadingScreen({ wait }: StartupLoadingScreenProps = {}) {
       aria-live="polite"
       aria-label="Opening project"
       data-testid="startup-loading-screen"
-      className="vgai-splash"
+      className="volter-splash"
     >
-      <div className="vgai-splash-stack">
-        <div aria-hidden="true" className="vgai-splash-logo">
+      <div className="volter-splash-stack">
+        <div aria-hidden="true" className="volter-splash-logo">
           {/* §5-R cinematic boot: the mark is the key-lit subject — hub
            * empty-state scale, blooming in the splash's key light. */}
-          <VgaiLogo size={72} />
+          <VolterLogo size={72} />
         </div>
 
-        <div className="vgai-splash-title">{EDITOR_BRAND.name}</div>
+        <div className="volter-splash-title">{EDITOR_BRAND.name}</div>
 
-        <div aria-hidden="true" className="vgai-splash-progress" />
+        <div aria-hidden="true" className="volter-splash-progress" />
 
         {wait ? (
           <>
-            <div className="vgai-splash-status" data-testid="startup-wait-status">
+            <div className="volter-splash-status" data-testid="startup-wait-status">
               {`Asking the server which project it serves — ${wait.seconds}s`}
             </div>
-            <div className="vgai-splash-note">
+            <div className="volter-splash-note">
               Still trying. The first boot of a fresh checkout can take a while, so this keeps
               asking until the server answers.
             </div>
             {wait.detail ? (
-              <div className="vgai-splash-note">Last attempt: {wait.detail}</div>
+              <div className="volter-splash-note">Last attempt: {wait.detail}</div>
             ) : null}
           </>
         ) : (
-          <div className="vgai-splash-status">Opening project…</div>
+          <div className="volter-splash-status">Opening project…</div>
         )}
       </div>
     </main>

@@ -19,7 +19,7 @@
  * discovery and association.
  *
  * A `dom` subject is deliberately not an arm: a React world's own states come
- * from `@vgai/dom`'s adapter, which publishes its own `StoriesProvider`
+ * from `@volter/editor-game`'s adapter, which publishes its own `StoriesProvider`
  * against the board it mounts. This source answers for the two surfaces whose
  * adapters used to construct the CSF provider by hand.
  */

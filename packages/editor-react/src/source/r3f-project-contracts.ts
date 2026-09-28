@@ -2,10 +2,10 @@
  * Project-local R3F component contract discovery.
  *
  * This deliberately follows ordinary TypeScript/React modules instead of
- * asking game source to register components with vgai. Relative imports,
+ * asking game source to register components with volter. Relative imports,
  * named/default exports, aliases, and re-exports are enough for the editor to
  * understand the shared-component shape coding models normally produce.
- * External packages remain conservative: vgai never guesses at their runtime
+ * External packages remain conservative: volter never guesses at their runtime
  * scene ownership.
  */
 import { existsSync, readFileSync, statSync } from 'node:fs';
@@ -419,7 +419,7 @@ export function r3fAuthoringDiagnostics(
       if (
         /^[A-Z]/.test(tag) &&
         contract?.root === 'single' &&
-        // A package component vgai knows only through the built-in table is not
+        // A package component volter knows only through the built-in table is not
         // a hierarchy row of its own — `<RigidBody>` never receives the editor's
         // stamp, so its props are attributed to the node it wraps
         // (`collapsedWrappersOf`). Naming it would name nothing.

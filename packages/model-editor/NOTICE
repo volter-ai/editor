@@ -8,8 +8,8 @@ Bundled dependency license texts are preserved in BUNDLED_NOTICES.
 The workbench and engine source/distribution reviews remain separate.
 
 The launcher helpers and modeling starter were transferred from the AGPL-3.0-only
-@vgai/cli and @vgai/editor packages. Workbench contributions were transferred
-from @vgai/model-editor. Provenance is recorded in editor-product.json and
+CLI and editor packages of volter-ai/volter-engine. Workbench contributions were
+transferred from its model-editor package. Provenance is recorded in editor-product.json and
 editor-workbench.json in the repository provenance directory.
 
 The Blender MCP transport and tool declarations were transferred from the

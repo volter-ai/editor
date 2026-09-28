@@ -4,7 +4,7 @@
  *
  * THE GAME REGISTERS NOTHING (ARCHITECTURE.md rule 4). A module writes idiomatic XState
  * (`createMachine`, `setup().createMachine`, `createActor`, `useMachine`); in the editor's served
- * graph only, each machine it declares is wrapped by `__vgaiMachine(machine, key)`, the same way
+ * graph only, each machine it declares is wrapped by `__volterMachine(machine, key)`, the same way
  * `@volter/editor-react` stamps JSX with its source identity. The wrapper lets the machine report
  * each actor that starts from it and each transition it takes, to a registry the Machine document
  * reads (`src/live-actors.ts`). A standalone build never passes through this plugin, so the game
@@ -40,9 +40,9 @@ export function stampMachines(code: string, file: string, relativeFile: string):
   for (const call of [...calls].sort((a, b) => b.call.getStart(source) - a.call.getStart(source))) {
     const start = call.call.getStart(source);
     const end = call.call.getEnd();
-    out = `${out.slice(0, start)}__vgaiMachine(${out.slice(start, end)}, ${JSON.stringify(call.key)})${out.slice(end)}`;
+    out = `${out.slice(0, start)}__volterMachine(${out.slice(start, end)}, ${JSON.stringify(call.key)})${out.slice(end)}`;
   }
-  return `import { __vgaiMachine } from ${JSON.stringify(LIVE_MODULE_ID)};\n${out}`;
+  return `import { __volterMachine } from ${JSON.stringify(LIVE_MODULE_ID)};\n${out}`;
 }
 
 export function xstatePlugin(services: ProjectServingServices): Plugin {
@@ -55,7 +55,7 @@ export function xstatePlugin(services: ProjectServingServices): Plugin {
     return current !== undefined && file.startsWith(current + sep);
   };
   return {
-    name: 'vgai-xstate',
+    name: 'volter-xstate',
     enforce: 'pre',
     resolveId(id) {
       return id === LIVE_MODULE_ID ? VIRTUAL_ID : null;
@@ -116,8 +116,8 @@ export function xstatePlugin(services: ProjectServingServices): Plugin {
             // The same attribution every editor source write carries: the share's authenticated
             // participant wins over a claimed one, and a stale revision is refused.
             const claimed = body['participantId'];
-            const trusted = req.headers['x-vgai-share-participant-id'];
-            const role = req.headers['x-vgai-share-role'];
+            const trusted = req.headers['x-volter-share-participant-id'];
+            const role = req.headers['x-volter-share-role'];
             if (typeof trusted === 'string' && typeof claimed === 'string' && trusted !== claimed) {
               throw new Error('The authenticated share participant does not match the source mutation author.');
             }

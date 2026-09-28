@@ -6,6 +6,7 @@
  * `@editor/*` alias until those modules move too. Nothing here is host API.
  */
 
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import {
   type CaptureFlatness,
@@ -51,7 +52,7 @@ import { captureLiveCanvasFrame } from './live-frames';
  *
  *  BOTH legs read a canvas, and a canvas is only readable after its frame when
  *  its WebGL context was created with `preserveDrawingBuffer: true`. Every
- *  canvas the vgai RUNTIME mounts sets it (`@volter/editor-game/runtime/create-runtime`,
+ *  canvas the volter RUNTIME mounts sets it (`@volter/editor-game/runtime/create-runtime`,
  *  D5 §1/§4); a canvas an INGESTED game created is the game's own and usually
  *  does not, which read as a silently BLACK screenshot over a perfectly
  *  healthy running game. {@link liveCanvasFrame} is the answer for that
@@ -102,8 +103,8 @@ function screenshotResult(
  * and the play log whose event timestamps convert an event into an offset.
  *
  * THIS USED TO BE A REFUSAL, AND THE REFUSAL WAS THE DEFECT (2026-08-29,
- * cold fox #3). Because `vgai play` always records, refusing the still made
- * `vgai screenshot` dead for the rest of the session — and the look lane's
+ * cold fox #3). Because `volter-game-editor play` always records, refusing the still made
+ * `volter-game-editor screenshot` dead for the rest of the session — and the look lane's
  * questions ("is the ear proportion right", "is the fox sunk into the
  * ground") are exactly the ones a still DOES answer. The refusal was
  * discouraging a wrong question by making a right one impossible, and the
@@ -160,7 +161,7 @@ export async function handleBridgeScreenshot(
   // Same reachability rule `handleBridgeCall` uses, and for the same reason:
   // an ingested game's mount IS the running game, so it never creates a
   // first-party play session and `isPlayModeActive()` alone made
-  // `vgai screenshot` permanently unusable against ingest. Loosening the gate
+  // `volter-game-editor screenshot` permanently unusable against ingest. Loosening the gate
   // costs nothing in honesty — the ingest mount renders into the very
   // container `getInstanceContainer()` returns (`play-mode.ts`'s
   // `getGameContainer` is shared with the ingest mount paths), and when there is
@@ -171,10 +172,10 @@ export async function handleBridgeScreenshot(
   // TRUE. `hasLiveDebugPlane()` covers an ingest that publishes a debug plane
   // projected from a declared contract — which a canvas ingest has no way to
   // do (`mount-canvas-ingest-root.ts` publishes `setActiveSystems({})`), so
-  // `vgai screenshot` answered "not in play mode" over a mounted, running,
+  // `volter-game-editor screenshot` answered "not in play mode" over a mounted, running,
   // self-ticking game whose play state the mount had itself set to `playing`.
   // A lying refusal is worse than a missing feature: it sends the reader to
-  // `vgai play`, which is not the thing that was wrong. The question this gate
+  // `volter-game-editor play`, which is not the thing that was wrong. The question this gate
   // asks is "is a game surface live here", and a live ingest is one.
   if (!isPlayModeActive() && !hasLiveDebugPlane() && !isIngestActive()) return notPlayingResult();
   // Capture the ADDRESSED seat, not always the primary. `game.instance(id)`
@@ -230,6 +231,7 @@ export async function handleBridgeScreenshot(
     try {
       const composite = await capturePlayComposite(container, {
         canvasFrame: captureLiveCanvasFrame,
+        projectRoot: getCurrentProject()?.rootPath,
         // The DECLARED medium, from the adapter's region table. `undefined`
         // (no table loaded yet) leaves the compositor-settle heuristic on its
         // own canvas count, exactly as before.

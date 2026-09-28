@@ -19,7 +19,7 @@ interface GuardState {
 
 // The editor bundle and source-served runtime can load this helper separately
 // while sharing Three. Installation belongs to the actual prototype identity.
-const GUARD_STATE = Symbol.for('vgai.audio-pose-guard');
+const GUARD_STATE = Symbol.for('volter.audio-pose-guard');
 type AudioPrototype = {
   updateMatrixWorld: UpdateMatrixWorld;
   [GUARD_STATE]?: GuardState;

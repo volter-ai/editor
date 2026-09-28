@@ -26,7 +26,7 @@ export function createHmrRegistrationGroup(
   hot: HmrRegistrationContext | undefined,
   key: string,
 ): HmrRegistrationGroup {
-  const persistedKey = `vgai:registration-group:${key}`;
+  const persistedKey = `volter:registration-group:${key}`;
   // Test runners and non-Vite hosts can expose a partial `import.meta.hot`
   // shim without `data`. In that case the group still owns its local
   // registrations, but there is no cross-refresh persistence to maintain.

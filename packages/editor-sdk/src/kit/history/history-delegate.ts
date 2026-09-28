@@ -16,7 +16,7 @@
  *
  * 2. **IN** — the DELEGATE, the frame's own undo, because the editor has undo
  *    affordances that are not the keyboard: its Edit menu's "Undo <label>",
- *    the palette, `vgai eval`'s undo verb. Every one of them must reach the
+ *    the palette, the editor's `eval` command's undo verb. Every one of them must reach the
  *    ONE stack. Without it the Edit menu still names the step (the label comes
  *    from the last recorded entry) while the click refuses, which is worse
  *    than no menu item at all.
@@ -69,7 +69,7 @@ export interface HistoryElement {
  * The keyboard door has `invoke` (frame → editor); this is the other
  * direction, and it exists because the editor has undo AFFORDANCES that are
  * not the keyboard: its Edit menu's "Undo <label>", the command palette, and
- * `vgai eval`'s undo verb all call the same `edit.undo` action. Under the
+ * the editor's `eval` command's undo verb all call the same `edit.undo` action. Under the
  * frame that action must reach the ONE stack, not walk a cursor nobody is
  * driving — so the frame installs its own undo here and every one of those
  * affordances keeps working, unchanged, against VS Code's service.

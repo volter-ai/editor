@@ -4,7 +4,7 @@
  * tick IS frame work. Everything else about the tester (its doors, its run
  * state, its repertoire) is plain application code in
  * `src/bot/tester-station.ts`, reached directly as a running module by the
- * Tester contribution and `vgai eval`.
+ * Tester contribution and `volter-game-editor eval`.
  *
  * The tester's hands run in the INPUT phase — before everything. Fiber sorts
  * `useFrame` callbacks ascending, and this world's own behavior hooks sit at

@@ -48,8 +48,8 @@
  *   exists precisely to keep `NumberInput`/`ColorInput` off `EditorContext`).
  *   Don't add re-exports here that import the editor store, adapters, or
  *   server code.
- * - The CLASSES these components paint with (`vgai-btn`, `vgai-input`,
- *   `vgai-menu`, …) are declared by the host's own `theme.css`, which stays
+ * - The CLASSES these components paint with (`volter-btn`, `volter-input`,
+ *   `volter-menu`, …) are declared by the host's own `theme.css`, which stays
  *   in `packages/editor/src` because it is the editor's chrome sheet — the
  *   TOKENS those rules read are installed at runtime from `theme.ts` here
  *   (`editorThemeVariables`).

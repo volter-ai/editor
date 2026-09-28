@@ -47,21 +47,21 @@ export function ErrorBanner({
   }, [copied]);
 
   return (
-    <div role="alert" className="vgai-error-card vgai-shell-rise">
-      <div className="vgai-error-card-icon" aria-hidden="true">
+    <div role="alert" className="volter-error-card volter-shell-rise">
+      <div className="volter-error-card-icon" aria-hidden="true">
         <EditorIcon icon={faTriangleExclamation} />
       </div>
-      <div className="vgai-error-card-body">
+      <div className="volter-error-card-body">
         {startup ? (
-          <h1 className="vgai-error-card-title">
+          <h1 className="volter-error-card-title">
             {error.recovery?.title ?? 'Couldn’t open this project'}
           </h1>
         ) : (
-          error.recovery && <div className="vgai-error-card-title">{error.recovery.title}</div>
+          error.recovery && <div className="volter-error-card-title">{error.recovery.title}</div>
         )}
-        {error.recovery && <p className="vgai-error-card-guidance">{error.recovery.guidance}</p>}
+        {error.recovery && <p className="volter-error-card-guidance">{error.recovery.guidance}</p>}
         <div
-          className="vgai-error-card-message"
+          className="volter-error-card-message"
           data-testid={startup ? 'project-startup-error-details' : undefined}
         >
           {error.message}
@@ -69,9 +69,9 @@ export function ErrorBanner({
         {command && (
           <div>
             {startup && (
-              <div className="vgai-error-card-recovery-label">RUN FROM THE PROJECT FOLDER</div>
+              <div className="volter-error-card-recovery-label">RUN FROM THE PROJECT FOLDER</div>
             )}
-            <div className="vgai-error-card-command">
+            <div className="volter-error-card-command">
               <code
                 data-testid={
                   startup ? 'project-startup-recovery-command' : 'project-screen-recovery-command'
@@ -94,12 +94,12 @@ export function ErrorBanner({
             </div>
           </div>
         )}
-        <div className="vgai-error-card-actions">
+        <div className="volter-error-card-actions">
           {onRetry && (
             <Button
               type="button"
               variant="primary"
-              className="vgai-shell-cta"
+              className="volter-shell-cta"
               data-testid="retry-project-detection"
               onClick={onRetry}
             >
@@ -110,7 +110,7 @@ export function ErrorBanner({
             <Button
               type="button"
               variant="ghost"
-              className="vgai-shell-cta"
+              className="volter-shell-cta"
               aria-label="Dismiss error"
               onClick={onDismiss}
             >

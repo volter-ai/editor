@@ -649,7 +649,7 @@ function main() {
   const roleIndexes = new Map(roles.map((role, index) => [role, index]));
   const precisionIndexes = new Map(precisions.map((precision, index) => [precision, index]));
   const manifest = {
-    protocol: 'vgai.godot-classdb-source-index',
+    protocol: 'volter.godot-classdb-source-index',
     protocolVersion: 2,
     rowProtocol: '[member,owner,locations,specialCase,accessors,method]',
     engineVersion: VERSION,

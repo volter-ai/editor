@@ -304,9 +304,9 @@ class VisibilityRangeLOD extends LOD {
  * @godot GeometryInstance3D (protocol)
  * @source scene/3d/visual_instance_3d.cpp:252
  */
-export function GodotVisibilityRange({ children, begin, beginMargin, end, endMargin, fadeMode, __vgaiOid }: GodotVisibilityRangeProps): ReactElement {
+export function GodotVisibilityRange({ children, begin, beginMargin, end, endMargin, fadeMode, __volterOid }: GodotVisibilityRangeProps): ReactElement {
   const [lod] = useState(() => new VisibilityRangeLOD());
-  godot_element_callsite(lod, __vgaiOid);
+  godot_element_callsite(lod, __volterOid);
   // The node's element is the child R3F attached before this effect: its range set as it mounts.
   useLayoutEffect(() => {
     for (const child of lod.children) {
@@ -329,6 +329,6 @@ export interface GodotVisibilityRangeProps {
   readonly fadeMode?: number;
   readonly children?: ReactNode;
   /** The editor's callsite address (`godot_element_callsite`); its label is dropped. */
-  readonly __vgaiOid?: string;
-  readonly __vgaiLabel?: string;
+  readonly __volterOid?: string;
+  readonly __volterLabel?: string;
 }

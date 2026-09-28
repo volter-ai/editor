@@ -280,7 +280,7 @@ export class CollaborationSession {
       this.revisions.length = 0;
       this.audit.length = 0;
       this.events.length = 0;
-      console.warn(`[vgai-editor] Quarantined corrupt collaboration state at ${quarantined}.`);
+      console.warn(`[volter-editor] Quarantined corrupt collaboration state at ${quarantined}.`);
     }
   }
 
@@ -841,7 +841,7 @@ export class CollaborationSession {
       } catch (error) {
         // biome-ignore lint/suspicious/noConsole: the dev server's terminal is its own report channel; a failed history write must not take the session down.
         console.error(
-          `[vgai-editor] Collaboration history write failed: ${error instanceof Error ? error.message : String(error)}`,
+          `[volter-editor] Collaboration history write failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }, 25);
@@ -914,20 +914,20 @@ export class CollaborationSession {
  * must be process-owned too; canonical project roots remain the per-room key.
  */
 const collaborationSessionScope = globalThis as typeof globalThis & {
-  __VGAI_COLLABORATION_SESSIONS__?: Map<string, CollaborationSession>;
+  __VOLTER_COLLABORATION_SESSIONS__?: Map<string, CollaborationSession>;
 };
 // `const`, not `let`: a `let` typed `Map | undefined` cannot carry its
 // narrowing into `collaborationSession` below (a closure may observe a later
 // assignment), so every use inside the function was a type error.
 const sessions: Map<string, CollaborationSession> =
-  collaborationSessionScope.__VGAI_COLLABORATION_SESSIONS__ ?? new Map();
-collaborationSessionScope.__VGAI_COLLABORATION_SESSIONS__ = sessions;
+  collaborationSessionScope.__VOLTER_COLLABORATION_SESSIONS__ ?? new Map();
+collaborationSessionScope.__VOLTER_COLLABORATION_SESSIONS__ = sessions;
 
 export function collaborationSession(projectRoot: string): CollaborationSession {
   const root = canonicalProjectRoot(projectRoot);
   let session = sessions.get(root);
   if (!session) {
-    session = new CollaborationSession(join(root, '.vgai', 'collaboration.json'));
+    session = new CollaborationSession(join(root, '.volter', 'collaboration.json'));
     sessions.set(root, session);
   }
   return session;

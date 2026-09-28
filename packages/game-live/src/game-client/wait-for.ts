@@ -203,9 +203,9 @@ export interface HeartbeatState {
 }
 
 /** The liveness line this prints to stdout — greppable, and
- *  stable so a human tailing a long run can `grep vgai-heartbeat`. */
+ *  stable so a human tailing a long run can `grep volter-heartbeat`. */
 export function formatHeartbeatLine(testTitle: string, simSeconds: number, tick: number): string {
-  return `vgai-heartbeat ${testTitle} simSeconds=${simSeconds} tick=${tick}`;
+  return `volter-heartbeat ${testTitle} simSeconds=${simSeconds} tick=${tick}`;
 }
 
 /**

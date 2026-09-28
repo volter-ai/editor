@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  THE BLENDER LOOK'S PRODUCT ICON THEME — WORK.md §The core is Code-OSS U8.
  *
- *  The editor's own glyphs (`@vgai/blender`'s `blender.icons.json`, 346 of them, traced from
+ *  The editor's own glyphs (`@volter/editor-blender`'s `blender.icons.json`, 346 of them, traced from
  *  Blender's `release/datafiles/icons_svg/*.svg` by `blender-icon-trace.mjs`) paint inside OUR
  *  panels through `EditorIcon`, and always did. What they never reached is the FRAME's own
  *  marks — the twisties in a tree, the close on a view, the panel's chevrons — because those
@@ -65,7 +65,7 @@ import opentype from 'opentype.js';
 import svgpath from 'svgpath';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-// The product's OWN extension: the font is traced from `@vgai/blender`'s glyphs and only the
+// The product's OWN extension: the font is traced from `@volter/editor-blender`'s glyphs and only the
 // model editor ships a theme that selects it (P3, 2026-09-21).
 const OUT_DIR = join(REPO_ROOT, 'packages/model-editor/workbench/extensions/theme-blender/producticons');
 const FONT_PATH = join(OUT_DIR, 'blender-icons.otf');
@@ -216,7 +216,7 @@ function assertDrawable(glyphs) {
 function main() {
 	const args = parseArgs(process.argv);
 	const iconsPath = join(REPO_ROOT, ICONS_REL);
-	if (!existsSync(iconsPath)) { throw new Error(`the icon set is not at ${iconsPath} — @vgai/blender is what carries it.`); }
+	if (!existsSync(iconsPath)) { throw new Error(`the icon set is not at ${iconsPath} — @volter/editor-blender is what carries it.`); }
 	const raw = readFileSync(iconsPath);
 	const sha = createHash('sha256').update(raw).digest('hex');
 	const set = JSON.parse(raw.toString('utf8'));

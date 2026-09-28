@@ -127,8 +127,8 @@ export interface ExtrasInput {
  * as that draw is done.
  */
 function standDownInOverridePasses(object: THREE.Object3D): void {
-  if (!(object as THREE.Mesh).isMesh || object.userData['vgaiOverrideStandDown']) return;
-  object.userData['vgaiOverrideStandDown'] = true;
+  if (!(object as THREE.Mesh).isMesh || object.userData['volterOverrideStandDown']) return;
+  object.userData['volterOverrideStandDown'] = true;
   const own = object.onBeforeRender.bind(object);
   const ownAfter = object.onAfterRender.bind(object);
   const placed = new THREE.Matrix4();
@@ -202,7 +202,7 @@ export class ExtrasOverlay {
       const previous = this.drawn.get(object.name);
       const stands = input.presented(object.name);
       if (previous?.key === key) {
-        for (const part of previous.parts) part.userData['vgaiPicksAs'] = stands;
+        for (const part of previous.parts) part.userData['volterPicksAs'] = stands;
         continue;
       }
       if (previous) this.remove(previous.parts);
@@ -214,7 +214,7 @@ export class ExtrasOverlay {
       else if (empty) this.empty(empty, matrix, color, picture);
       const parts = group.children.filter((child) => !before.has(child));
       for (const part of parts) {
-        part.userData['vgaiPicksAs'] = stands;
+        part.userData['volterPicksAs'] = stands;
         part.traverse(standDownInOverridePasses);
       }
       this.drawn.set(object.name, { key, parts });
@@ -230,7 +230,7 @@ export class ExtrasOverlay {
     for (const part of parts) {
       part.removeFromParent();
       (part as THREE.Mesh).geometry?.dispose();
-      if (part.userData['vgaiOwnMaterial']) ((part as THREE.Mesh).material as THREE.Material).dispose();
+      if (part.userData['volterOwnMaterial']) ((part as THREE.Mesh).material as THREE.Material).dispose();
     }
   }
 
@@ -603,13 +603,13 @@ export class ExtrasOverlay {
         )
         .replace('#include <alphatest_fragment>', blends ? '#include <alphatest_fragment>' : '#include <alphatest_fragment>\ndiffuseColor.a = 1.0;');
     };
-    material.customProgramCacheKey = () => `vgai-blender-image:${settings.premultiplied}:${blends}`;
+    material.customProgramCacheKey = () => `volter-blender-image:${settings.premultiplied}:${blends}`;
     const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
     quad.matrixAutoUpdate = false;
     quad.matrix.copy(pose);
     quad.renderOrder = settings.depth === 'FRONT' ? 1000 : settings.depth === 'BACK' ? -1000 : 0;
     // Its material is its own (the picture and its opacity), freed with the quad.
-    quad.userData['vgaiOwnMaterial'] = true;
+    quad.userData['volterOwnMaterial'] = true;
     hideUnless(quad, true);
     this.empties.add(quad);
   }

@@ -60,7 +60,7 @@ export async function executeProjectAssetOperation(
   switch (operation.type) {
     case 'create-folder': {
       const folder = validPath(operation.path);
-      const marker = `${folder}/.vgai-folder`;
+      const marker = `${folder}/.volter-folder`;
       if (await dependencies.backend.exists(folder))
         throw new Error(`Folder already exists: ${folder}.`);
       return files.write(marker, '', { label: `Create folder ${folder}` });

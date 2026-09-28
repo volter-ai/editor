@@ -7,7 +7,7 @@
  * Colyseus room as an unowned "ghost" player that nothing ever removes. So the
  * tab has to supervise its server.
  *
- * The graceful case (a clean `vgai close` sends a `tab-close` push) is handled
+ * The graceful case (a clean the editor's `close` command sends a `tab-close` push) is handled
  * elsewhere (tab-lifecycle-client.ts). This module is the UNGRACEFUL case that
  * push never reaches.
  *
@@ -258,7 +258,7 @@ export function forgetLeaseFailures(state: LeaseWatchState, now: number): LeaseW
  *      this now-stale tab to yield to.
  *
  *  Everything else is the same lease. In particular a reading that reports NO
- *  project on the SAME pid — a transiently unreadable `vgai.project.json` save
+ *  project on the SAME pid — a transiently unreadable `volter.project.json` save
  *  on our own still-live server — is absence of evidence, NOT a takeover; the
  *  pid positively identifies it as our own process. A `null` pid on either side
  *  (a server too old to report one) is likewise treated conservatively. */

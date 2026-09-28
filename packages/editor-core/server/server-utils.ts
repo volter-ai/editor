@@ -204,12 +204,12 @@ export function isServableFsExtension(ext: string): boolean {
 
 /** `/@fs` is a module transport, not a general project-file browser. Keep the
  * private editor/Git estates and dotenv variants out even when their final
- * suffix (for example `.vgai/session.json` or `.env.production.json`) would
+ * suffix (for example `.volter/session.json` or `.env.production.json`) would
  * otherwise pass the source-extension allowlist. */
 export function isServableFsPath(path: string): boolean {
   return !path.split(/[\\/]+/).some((segment) => {
     const normalized = segment.toLowerCase();
-    return normalized === '.vgai' || normalized === '.git' || normalized.startsWith('.env');
+    return normalized === '.volter' || normalized === '.git' || normalized.startsWith('.env');
   });
 }
 
@@ -228,39 +228,39 @@ export function isServableFsPath(path: string): boolean {
  * Measured 2026-08-20: the missing-module 404 below fired on
  * `react_jsx-dev-runtime.js` and `react-dom_client.js` mid-optimization, so the
  * editor shell never got React, the page sat on "Opening project…" forever, and
- * `vgai doctor` waited out its whole budget for a play control that could never
+ * A probe waited out its whole budget for a play control that could never
  * mount. */
 export function isViteDepCachePath(path: string): boolean {
   return path.split(/[\\/]+/).some((segment) => segment.toLowerCase().startsWith('.vite'));
 }
 
-/** WRITABLE project-root `.vgai` paths — the provenance ledger only.
+/** WRITABLE project-root `.volter` paths — the provenance ledger only.
  * Session ownership, collaboration persistence, catalogs and future private
  * metadata must never become reachable merely because they share a directory.
  *
- * Deliberately NARROWER than {@link isReadableVgaiPath}: run evidence below is
+ * Deliberately NARROWER than {@link isReadableVolterPath}: run evidence below is
  * readable and not writable, because its project-owned Node helper files real
  * invocations and letting the panel write would let it invent a run nothing
  * ran. */
-export function isPublicVgaiLedgerPath(path: string): boolean {
-  return path === '.vgai/provenance.json';
+export function isPublicVolterLedgerPath(path: string): boolean {
+  return path === '.volter/provenance.json';
 }
 
 /** Project-root editor metadata/cache paths the browser may regenerate. */
-export function isWritableVgaiEditorPath(path: string): boolean {
+export function isWritableVolterEditorPath(path: string): boolean {
   return (
-    isPublicVgaiLedgerPath(path) ||
-    path === '.vgai/thumbnails.json' ||
-    /^\.vgai\/cache\/document-previews\/[a-f0-9]{64}\.png$/.test(path)
+    isPublicVolterLedgerPath(path) ||
+    path === '.volter/thumbnails.json' ||
+    /^\.volter\/cache\/document-previews\/[a-f0-9]{64}\.png$/.test(path)
   );
 }
 
-/** READABLE project-root `.vgai` paths — the public ledger only.
+/** READABLE project-root `.volter` paths — the public ledger only.
  *
- * Every other `.vgai/` file stays unreachable, which is why this is an
+ * Every other `.volter/` file stays unreachable, which is why this is an
  * allowlist of literals rather than a prefix. */
-export function isReadableVgaiPath(path: string): boolean {
-  return isWritableVgaiEditorPath(path);
+export function isReadableVolterPath(path: string): boolean {
+  return isWritableVolterEditorPath(path);
 }
 
 export const PROJECT_RESOURCE_EXTENSIONS: ReadonlySet<string> = new Set([
@@ -313,7 +313,7 @@ export const PROJECT_RESOURCE_EXTENSIONS: ReadonlySet<string> = new Set([
  * `/__ui-source/*` seam.
  */
 export function isWritableProjectResourcePath(path: string): boolean {
-  if (path === '.vgai/thumbnails.json') return true;
+  if (path === '.volter/thumbnails.json') return true;
   if (!path || path.startsWith('/') || path.includes('\\') || path.includes('\0')) return false;
   const segments = path.split('/');
   if (
@@ -431,7 +431,7 @@ export function isAllowedEditorOrigin(
  * `node_modules` — Node's own resolution algorithm, rooted at `fromDir` (a
  * project directory), not at wherever this server process's own code lives.
  *
- * Why: a project that pins `@vgai/game-runtime@0.3.0` must be served ITS 0.3.0
+ * Why: a project that pins `@volter/game-runtime@0.3.0` must be served ITS 0.3.0
  * source, never a copy baked into whatever package happens to be running the
  * editor server — otherwise the exact version-skew class the pin exists to
  * kill (an editor silently serving a different engine version than the one
@@ -470,7 +470,7 @@ export function resolveBindHost(
   env: NodeJS.ProcessEnv = process.env,
   platform: NodeJS.Platform = process.platform,
 ): string {
-  const explicitHost = env['VGAI_EDITOR_HOST'] || env['EDITOR_HOST'];
+  const explicitHost = env['VOLTER_EDITOR_HOST'] || env['EDITOR_HOST'];
   if (explicitHost) return explicitHost;
 
   const isWsl = platform === 'linux' && Boolean(env['WSL_INTEROP'] || env['WSL_DISTRO_NAME']);
@@ -482,9 +482,9 @@ export function resolveBindHost(
  *
  * `portEnvVar` is REQUIRED because the editor servers do not read the
  * same variable, and the message used to hardcode the wrong one. `dev.ts` (what
- * `npm run dev` runs) honours only `VGAI_EDITOR_PORT`;
- * `packaged.ts` honours `PORT` then `VGAI_EDITOR_PORT`. The old text
- * said "set PORT / VGAI_EDITOR_HOST" for both — so on the most common path
+ * `npm run dev` runs) honours only `VOLTER_EDITOR_PORT`;
+ * `packaged.ts` honours `PORT` then `VOLTER_EDITOR_PORT`. The old text
+ * said "set PORT / VOLTER_EDITOR_HOST" for both — so on the most common path
  * it named a variable `dev.ts` ignores, and offered a HOST variable as the way
  * out of a PORT conflict. Following it verbatim reproduces the exact error it
  * was printed to resolve (confirmed 2026-07-30: `PORT=5311 npm run dev` bound
@@ -500,7 +500,7 @@ export function friendlyListenError(
     return (
       `Port ${port} is already in use on ${host}. ` +
       `Another editor instance may already be running — stop it, or set ${portEnvVar} ` +
-      `to a free port (or VGAI_EDITOR_HOST to a different address) and try again.`
+      `to a free port (or VOLTER_EDITOR_HOST to a different address) and try again.`
     );
   }
   if (err.code === 'EACCES') {
@@ -554,11 +554,11 @@ export type ManifestWriteValidation =
 
 /**
  * Validate a `POST /__editor/manifest` request body. The route HARD-CODES the
- * write destination (`join(projectRoot, 'vgai.project.json')`) — this function
+ * write destination (`join(projectRoot, 'volter.project.json')`) — this function
  * never returns a path, only a green light + the (already-string, already-
  * valid-JSON) content to write, so there is no way for a caller to derive the
  * destination from user input even by accident. Rejects: no project open,
- * any `path` other than the literal `'vgai.project.json'` (traversal, a
+ * any `path` other than the literal `'volter.project.json'` (traversal, a
  * different filename, an absolute path — all rejected identically), a
  * non-string `content`, and content that fails to `JSON.parse`.
  */
@@ -570,11 +570,11 @@ export function validateManifestWrite(
   if (projectRoot === engineRoot) {
     return { ok: false, status: 400, error: 'No project open.' };
   }
-  if (body.path !== undefined && body.path !== 'vgai.project.json') {
+  if (body.path !== undefined && body.path !== 'volter.project.json') {
     return {
       ok: false,
       status: 400,
-      error: "Invalid path — only 'vgai.project.json' may be written.",
+      error: "Invalid path — only 'volter.project.json' may be written.",
     };
   }
   if (typeof body.content !== 'string') {
@@ -685,7 +685,7 @@ export function classifyProjectSrcPath(relPath: string): 'tools' | 'stories' | n
  * project add nothing: `<projectRoot>/src` already covers them.
  *
  * Pure over an already-parsed manifest so it is unit-testable with no disk;
- * the caller reads and parses `vgai.project.json` itself. Every returned path
+ * the caller reads and parses `volter.project.json` itself. Every returned path
  * is absolute and de-duplicated, and a nested directory is dropped when an
  * ancestor is already in the set so nothing is scanned twice.
  */
@@ -765,7 +765,7 @@ function sourceTreeOf(entryPath: string): string {
  * that made drvfs stat-flood starve the event loop (dev.ts field note
  * 2026-07-10).
  *
- * Same env contract as dev.ts's poller: `VGAI_WATCH_POLL=0` forces off
+ * Same env contract as dev.ts's poller: `VOLTER_WATCH_POLL=0` forces off
  * anywhere, `=1` forces on (default 1000ms interval), `=<ms>` forces on with
  * that interval. Unset: auto-enable iff `root` sits on a drvfs mount
  * (linux + `/mnt/<drive>/`). Pass `root: null` to opt out of auto-detection
@@ -777,7 +777,7 @@ export function resolveWatcherPollOptions(
   env: Record<string, string | undefined> = process.env,
   platform: NodeJS.Platform = process.platform,
 ): { usePolling: true; interval: number } | Record<string, never> {
-  const raw = env['VGAI_WATCH_POLL'];
+  const raw = env['VOLTER_WATCH_POLL'];
   if (raw !== undefined && raw !== '') {
     if (raw === '0') return {};
     const ms = Number(raw);
@@ -824,7 +824,7 @@ export { type CommandResult, relayCommandTimeoutMs };
  * The long budgets above are for the WORK — a game's async `setup()`, a
  * teardown chain, a sheet of rasterized stories. They were also, silently,
  * the budget for DELIVERY: a tab that stopped answering the SSE command
- * channel altogether made `vgai play` sit for the full 120 seconds and then
+ * channel altogether made the editor's `play` command sit for the full 120 seconds and then
  * report "Command timed out — editor connected but did not respond", a
  * sentence that names no cause and no remedy (this file's own note above
  * records the same message sending a real investigation looking for a dead
@@ -889,7 +889,7 @@ export function relayCommandAckDeadlineMs(type: unknown): number | null {
  * handler's `failCommandsOwnedBy`, and the receipt window when it finds the
  * socket already gone — and because a THIRD place, in another package, reads
  * it: the CLI decides a play is safe to resend by matching a fragment of this
- * sentence (`vgai-cli/src/play-retry.ts`, `TRANSIENT_RELAY_ERRORS`). Drift
+ * sentence (`volter-cli/src/play-retry.ts`, `TRANSIENT_RELAY_ERRORS`). Drift
  * between copies would not fail a build or a type check; it would silently
  * turn a retryable disconnect into a dead end. `play-retry.test.ts` pins the
  * cross-package half by running this exact string through that matcher.
@@ -958,7 +958,7 @@ export interface UnacknowledgedCommandContext {
  * genuinely blocked thread (queued, will run, do not resend), `'answered'` is
  * a responsive tab whose command listener is not running (queued behind
  * nothing — a reload is the actual remedy). Both stay NON-transient for
- * `vgai-cli`'s resend matcher: neither is a lost command.
+ * `volter-cli`'s resend matcher: neither is a lost command.
  */
 export function unacknowledgedCommandMessage(context: UnacknowledgedCommandContext): string {
   const waited = (context.waitedMs / 1000).toFixed(0);
@@ -1009,7 +1009,7 @@ export function unacknowledgedCommandMessage(context: UnacknowledgedCommandConte
  * module loads, while the listener that actually executes commands attaches
  * much later (`connectCommandListener`, once the whole React graph is up). So a
  * page can beat, hold a live socket, count as PRESENT and BLESSED — and be
- * unable to run anything. During the incident this comes from, `vgai status`
+ * unable to run anything. During the incident this comes from, the editor's `status` command
  * answered happily for eight minutes about a session in exactly that state; the
  * only way to learn the truth was to issue a command and watch it hang.
  *
@@ -1026,7 +1026,7 @@ export interface CommandListenerFacts {
   readonly lastReceiptAt: number | null;
 }
 
-/** The standing health verdict `vgai status` prints per tab. */
+/** The standing health verdict the editor's `status` command prints per tab. */
 export type CommandListenerHealth = 'ready' | 'not attached' | `silent since ${string}`;
 
 /**
@@ -1042,7 +1042,7 @@ export type CommandListenerHealth = 'ready' | 'not attached' | `silent since ${s
  * The grace before "silent" is {@link RELAY_DELIVERY_ACK_MS}, deliberately the
  * same window the relay itself waits for a receipt: a command relayed 50ms ago
  * has not had time to be acknowledged, and calling that silence would make the
- * field cry wolf on every healthy `vgai play`.
+ * field cry wolf on every healthy the editor's `play` command.
  */
 export function commandListenerHealth(
   facts: CommandListenerFacts,
@@ -1072,7 +1072,7 @@ export function commandListenerHealth(
  *  unsuppressable "Failed to load resource: 400" console error for every
  *  non-2xx subresource, so an editor panel's 700 ms `bot.status` poll flooded
  *  the editor console (~1.4 lines/s, all play long) — the exact channel the
- *  dev-tools warning backstop and `vgai status` report from — and no
+ *  dev-tools warning backstop and the editor's `status` command report from — and no
  *  try/catch on the caller can silence the browser's own network log. The
  *  timeout stays 504: no-editor/no-answer is a genuine gateway condition,
  *  and rare enough that its console line is signal. */
@@ -1120,7 +1120,7 @@ export function commandResponseFor(
  * distribution. The result selects link-vs-registry scaffold dependencies and
  * the packaged React runtime path; both distributions can create projects.
  *
- * A packaged (`node_modules`-installed) `@vgai/editor`'s `engineRoot` is the
+ * A packaged (`node_modules`-installed) `@volter/editor-core`'s `engineRoot` is the
  * EDITOR PACKAGE's own root instead of a monorepo checkout root (see
  * `packaged.ts` is constructed with `engineRoot: editorPackageRoot`; its
  * separate `scaffoldRoot` points at the npm installation that contains the

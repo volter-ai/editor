@@ -27,7 +27,7 @@ export interface ConfigurationKindRegistration<
 > {
   readonly kind: T['kind'];
   /** Where a configuration of this kind surfaces and which verb starts it:
-   *  `run` (the transport, `vgai run`) or `build` (Export, `vgai build`). */
+   *  `run` (the transport) or `build` (Build Profiles, Export). */
   readonly role: ConfigurationRole;
   /** The declaration's full shape, envelope included; `.strict()`. */
   readonly schema: ZodType<T>;

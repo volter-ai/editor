@@ -26,7 +26,7 @@ function widenNotifyScope(current: NotifyScope, incoming: NotifyScope): NotifySc
 
 /**
  * Which persistence regime the current play session exposes. D19 makes play
- * edits ephemeral for every world count, and since the `.vgai/` overlay
+ * edits ephemeral for every world count, and since the `.volter/` overlay
  * sidecar was deleted outright (2026-08-02) `ephemeral` is the ONLY regime
  * there is. `null` while not playing.
  */
@@ -588,7 +588,7 @@ export class ShellStore implements ShellDocumentState {
    *
    * The other question has its own door and only one caller may use it:
    * `reported-play-state.ts`'s `deriveReportedPlayState`, which resolves the
-   * live session slots and is what `collectState` (`vgai status`) reports. If
+   * live session slots and is what `collectState` (the editor's `status` command) reports. If
    * you are about to send this value outside the editor, you want that instead.
    */
   get playState(): 'stopped' | 'playing' | 'paused' {

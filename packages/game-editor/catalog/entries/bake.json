@@ -26,7 +26,7 @@
       "three-bvh-csg": "^0.0.18",
       "three-mesh-bvh": "^0.9.12"
     },
-    "vgaiTools": ["./src/tools/bake-module.tool.ts", "./src/tools/bake-preview.tool.ts"]
+    "volterTools": ["./src/tools/bake-module.tool.ts", "./src/tools/bake-preview.tool.ts"]
   },
   "requires": [],
   "skills": [],

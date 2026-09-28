@@ -1,4 +1,4 @@
-// T3.1 slice 1 — the game manifest schema (`vgai.project.json`).
+// T3.1 slice 1 — the game manifest schema (`volter.project.json`).
 //
 // This is the serialized form of the Game's root list for the adjudicated
 // field list this file implements exactly. `load.ts` is this schema's runtime
@@ -18,7 +18,7 @@
 import { z } from 'zod';
 
 /**
- * Current on-disk `vgai.project.json` format. Exported so editor/server
+ * Current on-disk `volter.project.json` format. Exported so editor/server
  * compatibility checks do not duplicate the schema's literal value.
  */
 export const GAME_MANIFEST_VERSION = 2 as const;
@@ -40,7 +40,7 @@ export const GAME_MANIFEST_VERSION = 2 as const;
 // All three surfaces are legal as a BARE adapter string: each names a root the
 // editor itself mounts from an `entry` module — `three` through the R3F lane
 // (`editor-game/src/host/roots/r3f-root.tsx`), `canvas` through the Pixi lane
-// (`@vgai/game-runtime/canvas-react`), `dom` through the React lane. In every case the
+// (`@volter/game-runtime/canvas-react`), `dom` through the React lane. In every case the
 // entry's document is its own TSX source. A root the engine does NOT mount
 // arrives as an `{ ingest }` root or a `{ module }` adapter the project
 // supplies, both of which name their `surface` explicitly.
@@ -134,11 +134,11 @@ export const RootAdapterSchema = z
                 .optional()
                 .describe(
                   "Project-relative path to a HOST-ADDED ES module that declares this game's " +
-                    '`window.vgaiGame` contract (adapter/ingest/game-contract.ts) WITHOUT editing a ' +
+                    '`window.volterGame` contract (adapter/ingest/game-contract.ts) WITHOUT editing a ' +
                     'vendored byte — the pristine-copy door. The host imports it immediately BEFORE ' +
                     "the game's own entry module, in the editor's realm. " +
                     'TIMING CONTRACT, which a shim author must obey: because it runs before the ' +
-                    'game`s entry, it MUST assign `window.vgaiGame` SYNCHRONOUSLY at top level. ' +
+                    'game`s entry, it MUST assign `window.volterGame` SYNCHRONOUSLY at top level. ' +
                     'Anything that needs the game`s own modules must be LAZY: a dynamic `import()` ' +
                     'INSIDE each verb/provider closure, resolved at call time. Importing a game module ' +
                     'eagerly from the shim would evaluate it ahead of the game`s own entry and reorder ' +
@@ -173,7 +173,7 @@ export const RootAdapterSchema = z
                     'landed in, and refuses "outside the level" rather than writing data the game ' +
                     'would read back wrong). It NEVER fabricates: a record it cannot address, or ' +
                     'a property it does not model, is a named refusal. ' +
-                    'An object is anchored to a record by carrying `userData.vgaiRecordIndex` — ' +
+                    'An object is anchored to a record by carrying `userData.volterRecordIndex` — ' +
                     'the game declares that identity itself (a recorded patch or a shim); the ' +
                     'host never infers one.',
                 ),
@@ -383,7 +383,7 @@ export const LearnMetadataSchema = z
       .optional()
       .describe(
         'Optional Learn-site lesson URL that teaches this project 1:1 ' +
-          '(e.g. https://vgai-learn.pages.dev/manual/physics/joints/)',
+          '(e.g. https://example.com/manual/physics/joints/)',
       ),
   })
   .strict()
@@ -395,7 +395,7 @@ export const LearnMetadataSchema = z
 export type LearnMetadata = z.infer<typeof LearnMetadataSchema>;
 
 // ---------------------------------------------------------------------------
-// Game manifest (vgai.project.json)
+// Game manifest (volter.project.json)
 // ---------------------------------------------------------------------------
 
 /** The envelope of one run configuration; the kind's schema takes the rest. */
@@ -531,7 +531,7 @@ export const GameManifestSchema = z
       .describe(
         "The project's run configurations — its ENTRYPOINTS beyond the host mount (`play`): each an " +
           'id and a registered kind (`process`, `compound`, and whatever a capability registers) with ' +
-          "that kind's own fields. The editor's transport, `vgai run <id>` and a harness start the same declaration.",
+          "that kind's own fields. The editor's transport and a harness start the same declaration.",
       ),
     resolution: z
       .object({
@@ -568,7 +568,7 @@ export const GameManifestSchema = z
         allowInProduction: z
           .boolean()
           .describe(
-            'Allow the ?vgai-debug=1 introspection bridge and debug-command invocation in ' +
+            'Allow the ?volter-debug=1 introspection bridge and debug-command invocation in ' +
               'production builds. Default false: the bridge only installs in dev builds. The ' +
               'runtime reader is the debug-bridge installer (D18).',
           ),
@@ -576,8 +576,8 @@ export const GameManifestSchema = z
       .strict()
       .optional()
       .describe(
-        'Debug-bridge production gating (D18) — governs whether ?vgai-debug=1 installs ' +
-          'window.__vgai outside dev builds.',
+        'Debug-bridge production gating (D18) — governs whether ?volter-debug=1 installs ' +
+          'window.__volter outside dev builds.',
       ),
     determinism: z
       .object({
@@ -588,7 +588,7 @@ export const GameManifestSchema = z
               'named-stream seeded PRNG) rather than raw ' +
               'Math.random/Date.now/performance.now. Three runtime enforcers key off this flag: ' +
               'the boot-time seeding reader (mount-manifest.ts seeds ctx.random from ' +
-              'defaultSeed/?vgai-seed=/explicit config, in that precedence, only when true), the ' +
+              'defaultSeed/?volter-seed=/explicit config, in that precedence, only when true), the ' +
               'gameplay-rng-ban burn-down scan (test/gameplay-rng-ban.test.ts — lints this ' +
               "project's src/ for raw RNG/wall-clock calls), and the dev-mode Math.random phase " +
               'trap (runtime/gameplay-rng-trap.ts — warns once per call site during a gameplay ' +
@@ -601,7 +601,7 @@ export const GameManifestSchema = z
           .optional()
           .describe(
             'The seed ctx.random boots from when seededRandom is true, unless overridden by ' +
-              '?vgai-seed=<int> (the query param always wins over this manifest default) or an ' +
+              '?volter-seed=<int> (the query param always wins over this manifest default) or an ' +
               'even higher-precedence explicit config value a host passes directly. Optional — ' +
               "omit to fall back to the runtime's own fixed default seed.",
           ),
@@ -621,7 +621,7 @@ export const GameManifestSchema = z
           .optional()
           .describe(
             'Maximum allowed p95 of per-frame CPU time (ms) across the measured frames of a ' +
-              '`vgai perf` seeded headless run. CPU-side only: headless runs rasterize under ' +
+              '`volter perf` seeded headless run. CPU-side only: headless runs rasterize under ' +
               'SwiftShader, so this is main-thread frame cost, NOT real GPU frame time. ' +
               'Machine-dependent — prefer the baseline-diff tolerance band for regression ' +
               'gating and use this as a coarse absolute ceiling.',
@@ -632,7 +632,7 @@ export const GameManifestSchema = z
           .optional()
           .describe(
             "Maximum allowed p95 of the profiler's `physics` phase time (ms) per fixed-step " +
-              'frame in a `vgai perf` run. Same CPU-timing caveats as frameCpuMsP95.',
+              'frame in a `volter perf` run. Same CPU-timing caveats as frameCpuMsP95.',
           ),
         maxEntities: z
           .number()
@@ -642,7 +642,7 @@ export const GameManifestSchema = z
           .describe(
             'Maximum allowed entity-tagged scene-graph nodes (nodes carrying ' +
               "userData.entityId) summed across the game's three/canvas worlds at the end " +
-              'of a `vgai perf` run. Exact and deterministic under a seed — no tolerance band.',
+              'of a `volter perf` run. Exact and deterministic under a seed — no tolerance band.',
           ),
         maxDrawCalls: z
           .number()
@@ -650,7 +650,7 @@ export const GameManifestSchema = z
           .positive()
           .optional()
           .describe(
-            'Maximum allowed renderer draw calls in any measured frame of a `vgai perf` run ' +
+            'Maximum allowed renderer draw calls in any measured frame of a `volter perf` run ' +
               "(the profiler's per-frame render.drawCalls, from renderer.info). Exact and " +
               'deterministic under a seed.',
           ),
@@ -660,7 +660,7 @@ export const GameManifestSchema = z
           .positive()
           .optional()
           .describe(
-            'Maximum allowed rendered triangles in any measured frame of a `vgai perf` run ' +
+            'Maximum allowed rendered triangles in any measured frame of a `volter perf` run ' +
               "(the profiler's per-frame render.triangles, from renderer.info). Exact and " +
               'deterministic under a seed.',
           ),
@@ -675,7 +675,7 @@ export const GameManifestSchema = z
       .optional()
       .describe(
         'Performance budget (W3d, F11 perf regression gates) asserted by ' +
-          '`vgai perf --assert-budget`: a seeded, fixed-step headless run samples the engine ' +
+          '`volter perf --assert-budget`: a seeded, fixed-step headless run samples the engine ' +
           'profiler and fails (nonzero exit) when any metric here is exceeded. Only ' +
           'headlessly-measurable metrics are budgetable; real GPU frame time is not (SwiftShader).',
       ),
@@ -685,6 +685,6 @@ export const GameManifestSchema = z
     ),
   })
   .strict()
-  .describe('Game manifest (vgai.project.json) — the complete v2 project configuration');
+  .describe('Game manifest (volter.project.json) — the complete v2 project configuration');
 
 export type GameManifest = z.infer<typeof GameManifestSchema>;

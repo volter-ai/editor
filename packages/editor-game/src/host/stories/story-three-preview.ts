@@ -150,7 +150,7 @@ export interface MountedStoryObject3D {
 
 /** The name of the wrapper `<group>` every story is rendered into, so its root
  *  `Object3D` can be extracted unambiguously from fiber's scene. */
-export const PREVIEW_ROOT_NAME = 'vgai:story-preview-root';
+export const PREVIEW_ROOT_NAME = 'volter:story-preview-root';
 
 /** How long to wait for fiber's first commit before giving up. The LAST-RESORT
  *  ceiling only: a reconcile-time crash is now caught by

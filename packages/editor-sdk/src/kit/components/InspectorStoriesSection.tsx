@@ -59,7 +59,7 @@ export function InspectorStoriesSection({
         <div
           data-testid="ingest-stories-none"
           style={{
-            fontSize: 'var(--vgai-font-base)',
+            fontSize: 'var(--volter-font-base)',
             color: themeVars.content.dim,
             fontStyle: 'italic',
           }}

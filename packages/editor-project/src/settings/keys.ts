@@ -1,16 +1,16 @@
 /**
- * THE SETTINGS KEY TABLE — every setting there is, as ONE dotted `vgai.*` name
+ * THE SETTINGS KEY TABLE — every setting there is, as ONE dotted `volter.*` name
  * per leaf, with the type and the sentence a person reads beside it.
  *
  * ## Why it exists, and why it is DERIVED
  *
  * Under the Code-OSS frame (ARCHITECTURE-CORE §The core is Code-OSS, U7) the
  * settings layers are the configuration service's, and a configuration service
- * speaks FLAT DOTTED KEYS — `vgai.appearance.palette` — while
+ * speaks FLAT DOTTED KEYS — `volter.appearance.palette` — while
  * `schema.ts`'s document is a nested object. Something has to be the one place
  * those two spellings meet, and the same table is what the fork's
  * `contributes.configuration` is generated from, so VS Code's Settings editor
- * shows every vgai setting with the description its `.describe()` call already
+ * shows every volter setting with the description its `.describe()` call already
  * carries.
  *
  * It is DERIVED from {@link EditorSettingsSchema} rather than written, for the
@@ -20,27 +20,27 @@
  * invisible in the one settings UI rather than loud. The walk is over the JSON
  * Schema Zod itself produces (`z.toJSONSchema`) — the SAME derivation
  * `scripts/generate-schema.ts` commits as
- * `packages/project/schemas/vgai-settings.schema.json`, which is what the
+ * `packages/editor-project/schemas/volter-settings.schema.json`, which is what the
  * fork's generator reads. One derivation, three consumers: this table, the
  * committed schema a person's editor autocompletes against, and the frame's
  * configuration contribution.
  *
- * ## The `vgai.` prefix is part of the key, everywhere
+ * ## The `volter.` prefix is part of the key, everywhere
  *
  * Not a thing the frame adds on the way in. One spelling in the door
  * (`EditorHost.settings`), in `.vscode/settings.json`, in the Settings editor,
- * and in what `vgai eval` prints — because the moment there are two, a reader
+ * and in what the editor's `eval` command prints — because the moment there are two, a reader
  * has to know which side of which seam they are on to know which to type.
  */
 import { z } from 'zod';
 import { type EditorSettings, EditorSettingsSchema } from './schema';
 
 /** The namespace every settings key carries. */
-export const SETTINGS_KEY_PREFIX = 'vgai';
+export const SETTINGS_KEY_PREFIX = 'volter';
 
 /** What a key is, and what the Settings editor shows for it. */
 export interface SettingsKeyDescriptor {
-  /** The dotted name, prefix included: `vgai.appearance.palette`. */
+  /** The dotted name, prefix included: `volter.appearance.palette`. */
   readonly key: string;
   /** The path into the settings document: `['appearance', 'palette']`. */
   readonly path: readonly string[];

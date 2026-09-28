@@ -1,6 +1,6 @@
 /**
  * The ONE redaction pass for values recorded to a project's on-disk ledgers
- * (`.vgai/provenance.json`, `.vgai/generations.json`).
+ * (`.volter/provenance.json`, `.volter/generations.json`).
  *
  * Secret-shaped keys, signed URL queries, inline data-URLs and binary bodies
  * are replaced before a byte reaches disk. This lives in exactly one module

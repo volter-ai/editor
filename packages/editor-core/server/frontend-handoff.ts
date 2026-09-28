@@ -158,7 +158,7 @@ export async function mintFrontendHandoff(options: {
       `Volter Harness registered no live receipt for runtime ${options.runtimeSessionId}, so there is nothing for the Chat view to attach to.`,
     );
   }
-  const clientId = `vgai-editor-${process.pid}-${randomUUID().slice(0, 8)}`;
+  const clientId = `volter-editor-${process.pid}-${randomUUID().slice(0, 8)}`;
   // THERE ARE TWO HTTP SERVERS IN A SUPERCODE RUNTIME, and a MANAGED runtime's receipt
   // points at the one WITHOUT the mint door. Measured against supercode 0.4.36 on
   // 2026-09-21, on a runtime started through `startManagedRuntime`:

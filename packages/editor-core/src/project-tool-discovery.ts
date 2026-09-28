@@ -20,7 +20,7 @@
  * the open project changes, and
  * re-discover on server-watched editor-lane add/unlink events (W6a).
  * Edit-HMR stays where it was — tool-loader's own module-level
- * `vgai:script-update` listener.
+ * `volter:script-update` listener.
  */
 
 import { connectToolFileEvents } from '@volter/editor-sdk/kit/asset-events';

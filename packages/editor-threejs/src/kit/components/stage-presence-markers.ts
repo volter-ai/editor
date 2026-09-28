@@ -57,7 +57,7 @@ interface RemoteRayMarker {
 
 /**
  * Remote-camera labels paint into a DETACHED canvas, and a 2D context cannot
- * resolve `var(--vgai-…)` — so the theme's value has to be read off the live
+ * resolve `var(--volter-…)` — so the theme's value has to be read off the live
  * theme root before it reaches `fillStyle`. Before a theme is installed (unit
  * environments), fall back to the default theme's own value rather than a raw
  * literal, so the label never depends on a color the theme contract doesn't own.
@@ -65,7 +65,7 @@ interface RemoteRayMarker {
 function contentOnAccentColor(): string {
   const root = document.querySelector(`.${EDITOR_THEME_CLASS}`);
   const resolved = root
-    ? getComputedStyle(root).getPropertyValue('--vgai-content-on-accent').trim()
+    ? getComputedStyle(root).getPropertyValue('--volter-content-on-accent').trim()
     : '';
   return resolved || graphiteDarkEditorTheme.color.content.onAccent;
 }

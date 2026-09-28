@@ -5,7 +5,7 @@
  * ensure-driven opens) long after any launching CLI process has exited. The
  * CLI imports this module; it does not carry its own copy — the old
  * "no editor-package dependency" premise stopped being true when the CLI
- * grew six editor-server imports and an `@vgai/editor` dependency, and the
+ * grew six editor-server imports and an `@volter/editor-core` dependency, and the
  * two ladders had already drifted (`-g` background support on one side
  * only).
  */
@@ -32,7 +32,7 @@ function isWSL(): boolean {
 const AGENT_WORKTREE_MARKER = '/.claude/worktrees/';
 
 /** Env override for the placement decision (`1` background, `0` foreground). */
-export const TAB_BACKGROUND_ENV = 'VGAI_TAB_BACKGROUND';
+export const TAB_BACKGROUND_ENV = 'VOLTER_TAB_BACKGROUND';
 
 export interface TabOpenPlacementInput {
   /**
@@ -49,15 +49,15 @@ export interface TabOpenPlacementInput {
  * Decide whether this session's ONE tab should open behind the human's
  * current window instead of stealing focus.
  *
- * Measured (owner, three times in one day): every builder/reviewer `vgai edit`
+ * Measured (owner, three times in one day): every builder/reviewer the editor's `edit` command
  * auto-opened a FOREGROUND tab on the one display, so the owner kept ending up
  * looking at an agent's session instead of their own. A session rooted in an
  * agent worktree therefore opens in the BACKGROUND; the human flow — a normal
  * checkout, or a scaffolded game anywhere else — keeps foreground, because for
- * a person the whole point of `vgai edit` is that the editor comes up in front
+ * a person the whole point of the editor's `edit` command is that the editor comes up in front
  * of them.
  *
- * `VGAI_TAB_BACKGROUND` overrides in BOTH directions: `1` backgrounds a tab
+ * `VOLTER_TAB_BACKGROUND` overrides in BOTH directions: `1` backgrounds a tab
  * that would have been foreground, `0` foregrounds one inside a worktree (an
  * agent deliberately showing the owner something).
  *
@@ -100,7 +100,7 @@ export function openBrowserUrl(browserUrl: string, options?: OpenBrowserUrlOptio
     const interop = process.env['WSL_INTEROP'];
     if (interop && !existsSync(interop)) {
       console.error(
-        `[vgai-editor] cannot open a browser from this shell — the WSL interop socket ` +
+        `[volter-editor] cannot open a browser from this shell — the WSL interop socket ` +
           `(${interop}) is gone, so Windows executables cannot launch. Open ${browserUrl} ` +
           'from any regular terminal or browser instead.',
       );

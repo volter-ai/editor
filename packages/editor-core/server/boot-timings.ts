@@ -3,7 +3,7 @@
  * its own start-up, emitted when the first browser tab's control channel
  * arrives (`editor-server.ts`, beside `client-connected`).
  *
- * WHY IT EXISTS. `vgai edit` prints two lines — `Editor ready at …` and
+ * WHY IT EXISTS. the editor's `edit` command prints two lines — `Editor ready at …` and
  * `Editor page connected …` — and the gap between them is the largest stage of
  * opening a project, with nothing recording it anywhere. Measured 2026-08-20 on
  * an imported Unity FPS port (528 source files): dev-server readiness was 8s and

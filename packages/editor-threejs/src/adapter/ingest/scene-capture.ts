@@ -17,7 +17,7 @@
  *     that captures `(scene, camera, renderer)` on the first real frame.
  *
  * This is the hardened, typed form of the `ingest-study` spike
- * (`docs/ingest-study-spike/vgai-ingest-adapter.js`), proven against an
+ * (`docs/ingest-study-spike/volter-ingest-adapter.js`), proven against an
  * unmodified `three.js/examples/games_fps` game.
  *
  * DOM-backed addon renderers use ordinary prototype methods instead. The host
@@ -112,12 +112,12 @@ export interface SceneCaptureOptions {
    * Identity, not shape, is the discriminator: a host renderer and a game
    * renderer are the same class, both built after install, both drawing real
    * scenes. The host is the only party that knows which is which, so it says
-   * so (`@vgai/threejs/viewport/renderer-ownership`).
+   * so (`@volter/editor-threejs/viewport/renderer-ownership`).
    */
   isHostRenderer?: (renderer: unknown) => boolean;
   /**
    * The game's OWN declared world, read from its contract
-   * (`window.vgaiGame` — the host passes a reader, never a cached value, because
+   * (`window.volterGame` — the host passes a reader, never a cached value, because
    * the contract is declared by the game's modules and may not exist yet when
    * the trap installs).
    *
@@ -135,8 +135,8 @@ export interface SceneCaptureOptions {
    * render-to-texture warm-up that happens to draw first is adopted as the game
    * forever, and the real world that renders one frame later reaches no reader
    * at all. This is that reader. It never changes which world is adopted — it
-   * makes the ambiguity a recorded fact (`packages/editor/src/world-adoption.ts`
-   * publishes it to `vgai status`).
+   * makes the ambiguity a recorded fact (`packages/editor-sdk/src/kit/world-adoption.ts`
+   * publishes it to the editor's `status` command).
    *
    * Post-processing games legitimately render several (scene, camera) pairs per
    * frame, so alternates are INFORMATION, never an error. Host renders are
@@ -411,7 +411,7 @@ export function installSceneCapture(
 
   // Stash the real render fn per-instance under a unique symbol so multiple
   // renderers (editor's + game's) never collide.
-  const REAL = Symbol('vgai.realRender');
+  const REAL = Symbol('volter.realRender');
 
   let captured: CapturedRuntime | null = null;
   let drawCount = 0;
@@ -439,7 +439,7 @@ export function installSceneCapture(
   // prototype getter/setter. The constructor's `this.setAnimationLoop = realFn` hits
   // our SETTER (the instance has no own property yet) and we stash realFn per-instance;
   // the GETTER returns a wrapper that records each non-null callback before forwarding.
-  const REAL_SAL = Symbol('vgai.realSetAnimationLoop');
+  const REAL_SAL = Symbol('volter.realSetAnimationLoop');
   const loopCallbacks = new WeakMap<object, (time: number) => void>();
   const loopedRenderers = new Set<object>();
   /** Visibility clock of the in-flight `waitForCapture`, if any. */
@@ -788,7 +788,7 @@ export function installSceneCapture(
         waiters.push(wrapped);
         waitingVisibility = opts.visibility ?? documentVisibilityClock();
         opts.onWait?.(captureWindow);
-        // A waiter that starts already-hidden (the normal `vgai play` path
+        // A waiter that starts already-hidden (the normal the editor's `play` command path
         // against a backgrounded tab) must not wait for a human to foreground
         // it. Pump any loop the game has already registered.
         queueMicrotask(pumpHiddenLoops);

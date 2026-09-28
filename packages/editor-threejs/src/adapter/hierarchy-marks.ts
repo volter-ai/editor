@@ -102,7 +102,7 @@
  * ## What is NOT built-internal
  *
  * A node your game means as content — even one a class rather than JSX
- * constructs — is content. `vgaiBuiltInternal` is not "the editor cannot write
+ * constructs — is content. `volterBuiltInternal` is not "the editor cannot write
  * this"; that question is `TransformProvider.editability`'s, answered per
  * channel with a sentence. This mark answers "is this implementation", and
  * getting it wrong hides real content.
@@ -124,12 +124,12 @@ import { getObjectMark, setObjectMark } from '../ecs/object-marks';
  * the instance is already named by `node.name`, and the editor prints both.
  */
 export function markComponentRoot(node: THREE.Object3D, name: string): void {
-  setObjectMark(node, 'vgaiComponentRoot', name);
+  setObjectMark(node, 'volterComponentRoot', name);
 }
 
 /** The component name `node` is the root of, or `undefined` for an ordinary node. */
 export function componentRootName(node: THREE.Object3D | null | undefined): string | undefined {
-  const name = getObjectMark(node, 'vgaiComponentRoot');
+  const name = getObjectMark(node, 'volterComponentRoot');
   return typeof name === 'string' && name ? name : undefined;
 }
 
@@ -145,12 +145,12 @@ export function isComponentRoot(node: THREE.Object3D | null | undefined): boolea
  * the seam and not a sweep.
  */
 export function markBuiltInternal(node: THREE.Object3D): void {
-  setObjectMark(node, 'vgaiBuiltInternal', true);
+  setObjectMark(node, 'volterBuiltInternal', true);
 }
 
 /** Whether `node` itself carries the implementation mark. Ancestry is the
  *  CALLER's walk — see this module's header for why the mark is subtree-scoped
  *  but not restamped onto descendants. */
 export function isBuiltInternal(node: THREE.Object3D | null | undefined): boolean {
-  return getObjectMark(node, 'vgaiBuiltInternal') === true;
+  return getObjectMark(node, 'volterBuiltInternal') === true;
 }

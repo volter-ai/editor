@@ -4,7 +4,7 @@
  * ## Why this exists
  *
  * A canvas is only `drawImage`-able after its frame when its WebGL context was
- * created with `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME
+ * created with `preserveDrawingBuffer: true`. Every canvas the volter RUNTIME
  * mounts sets it; a canvas a GAME created is the game's own and almost never
  * does. Two different mechanisms recover those pixels, one per substrate:
  *

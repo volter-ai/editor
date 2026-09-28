@@ -1,6 +1,6 @@
 /**
  * Node's client for the deployed `cloud-asset-library` Worker: it reads
- * `VGAI_CLOUD_ASSET_URL` and resolves variants through GraphQL, neither of
+ * `VOLTER_CLOUD_ASSET_URL` and resolves variants through GraphQL, neither of
  * which a browser bundle can do — so the FETCHING here is genuinely its own.
  *
  * What the worker RETURNS is not. `CloudAssetObject`/`CloudAssetFile`/
@@ -18,7 +18,7 @@ import type {
   CloudAssetRecord,
 } from '@volter/editor-sdk/kit/asset-workflow/cloud-asset-client';
 
-export const DEFAULT_CLOUD_ASSET_BASE_URL = 'https://vgai-asset-library.aaron-0ed.workers.dev';
+export const DEFAULT_CLOUD_ASSET_BASE_URL = 'https://volter-asset-library.aaron-0ed.workers.dev';
 
 export type {
   CloudAssetFile,
@@ -38,7 +38,7 @@ const graphqlAssetCache = new Map<
 >();
 
 export function getCloudAssetBaseUrl(): string {
-  return (process.env['VGAI_CLOUD_ASSET_URL'] ?? DEFAULT_CLOUD_ASSET_BASE_URL).replace(/\/+$/, '');
+  return (process.env['VOLTER_CLOUD_ASSET_URL'] ?? DEFAULT_CLOUD_ASSET_BASE_URL).replace(/\/+$/, '');
 }
 
 export async function loadCloudAssetManifest(): Promise<CloudAssetManifestResponse | null> {

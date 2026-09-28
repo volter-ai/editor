@@ -138,7 +138,7 @@ export function decideStaticBatchAdvisory(
     `are repeats of ${grouped(structural.familyCount)} structural families, ` +
     `${where}. If that scenery is mount-static — nothing under it moves, re-colours or ` +
     `unmounts after mount — one wrapper collapses it to a few draws: wrap it in ` +
-    `${fix}…</Frozen>  (vgai add static-batch). Reactive scenery goes outside the wrapper, ` +
+    `${fix}…</Frozen>  (volter-game-editor add static-batch). Reactive scenery goes outside the wrapper, ` +
     `and a subtree that must stay unbatched declares it: userData={{ staticBatch: false }}.`;
 
   return { drawCalls, collapsible, subtree, fix, message };
@@ -150,14 +150,14 @@ export function decideStaticBatchAdvisory(
  * along with everything else on the console. Same mechanism, and the same
  * reason, as dev-tools' unconfigured-section warning.
  */
-const WARNED_KEY = '__vgaiStaticBatchAdvised';
+const WARNED_KEY = '__volterStaticBatchAdvised';
 
 function alreadyWarned(): boolean {
   return (globalThis as unknown as Record<string, boolean | undefined>)[WARNED_KEY] === true;
 }
 
 /**
- * The console IS this advisory's channel: `vgai status` reports console
+ * The console IS this advisory's channel: `volter-game-editor status` reports console
  * warnings, which is where a building agent already looks. An in-editor
  * banner would be one nobody opens, and a provider would be one nobody reads
  * without already knowing to ask.

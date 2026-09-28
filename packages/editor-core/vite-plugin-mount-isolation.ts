@@ -1,5 +1,5 @@
 /**
- * The `vgai-mount-isolation` transform — propagates a mount id from a root
+ * The `volter-mount-isolation` transform — propagates a mount id from a root
  * entry's url through the whole project-owned import subtree, so two mounts of
  * one project get separate module instances (and therefore separate
  * module-level state) while still sharing every PACKAGE.
@@ -10,7 +10,7 @@
  * has to be unit-testable without booting Vite.
  *
  * ORDERING. This must run BEFORE Vite's own import-analysis, which is what
- * resolves `./state?vgai-mount=3` to `/src/state.ts?vgai-mount=3`. A plugin's
+ * resolves `./state?volter-mount=3` to `/src/state.ts?volter-mount=3`. A plugin's
  * default `transform` slot is already ahead of it, so no `enforce` is needed —
  * but note the direction, because running after import-analysis would mean
  * rewriting already-resolved urls and fighting Vite for the module graph.
@@ -23,7 +23,7 @@
  * THE ISOLATE QUERY is the same hook, a different key. Isolation imports a
  * vendor screen class; that class imports navigation → main; main calls
  * `init()` at module scope and boots the live game onto document.body.
- * `vgai-isolate=1` keys a separate graph, stamps through relative imports
+ * `volter-isolate=1` keys a separate graph, stamps through relative imports
  * (including vendor/games, which the mount-id shadow predicate does not
  * own), and silences that `init();`. Play still loads the unstamped entry.
  */
@@ -63,7 +63,7 @@ function applyMountIsolationTransform(
     // Fail closed: a query that cannot be honoured must not serve the
     // source-declared key under the caller's requested id.
     const rewritten = rewriteEntrypointSelectionKey(next, file, override.selection, override.key);
-    if (!rewritten.ok) throw new Error(`vgai-mount-isolation: ${rewritten.reason}`);
+    if (!rewritten.ok) throw new Error(`volter-mount-isolation: ${rewritten.reason}`);
     next = rewritten.source;
   }
   // Isolation is its own graph: the query is the scope (vendor `main.ts`
@@ -100,13 +100,13 @@ function applyMountIsolationTransform(
     !['raw', 'url', 'worker', 'sharedworker', 'inline', 'init'].some((key) => query.has(key))
   ) {
     const shadowed = shouldShadowGameGlobals(file, roots);
-    const realm = shadowed ? '__vgaiR' : '__vgaiLoadedModuleRealm';
+    const realm = shadowed ? '__volterR' : '__volterLoadedModuleRealm';
     const marker = `\n;${realm}?.recordModuleUrl(import.meta.url);\n`;
     if (!next.includes(marker)) {
       if (!shadowed) {
         // Capture the realm before top-level await. A late completion must
         // not recreate an instance that Stop already disposed.
-        next = `const ${realm}=({}).constructor.constructor('return globalThis')().__vgaiGameRealm?.(${JSON.stringify(mountId)});\n${next}`;
+        next = `const ${realm}=({}).constructor.constructor('return globalThis')().__volterGameRealm?.(${JSON.stringify(mountId)});\n${next}`;
       }
       next += marker;
     }
@@ -116,7 +116,7 @@ function applyMountIsolationTransform(
 
 export function mountIsolationPlugin(getRoots: () => Iterable<string>): Plugin {
   return {
-    name: 'vgai-mount-isolation',
+    name: 'volter-mount-isolation',
     async buildStart() {
       await initLexer();
     },

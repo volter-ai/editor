@@ -11,7 +11,7 @@
  * the move and two after; nothing here is new.
  *
  * THE VERB NAMES ITSELF. Both refusals used to spell `capture-asset-preview`
- * unconditionally, so a bad `--azimuth` on `vgai screenshot <module>.stories.tsx`
+ * unconditionally, so a bad `--azimuth` on the editor's `screenshot <module>.stories.tsx` command
  * refused in the name of a command the caller never ran. The verb is a
  * parameter now, which the extraction is what made visible.
  */

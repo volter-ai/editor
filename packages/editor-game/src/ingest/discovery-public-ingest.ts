@@ -3,7 +3,7 @@
  *
  * The three sibling of `surface-canvas.ts` (the pixi lane, which is the idiom
  * benchmark this file is modelled on): a game vendored under
- * `public/ingest/<id>/` carries its own declarative `vgai.project.json`, and
+ * `public/ingest/<id>/` carries its own declarative `volter.project.json`, and
  * its id resolves it into the SAME `IngestGame` descriptor every other three
  * ingest route produces. Adding a fourth vendored game is a folder plus a
  * manifest — no edit to this file, no per-game page, no branch anywhere.
@@ -81,7 +81,7 @@ function readVendoredIngestRoot(
   const roots = declaredRoots(manifest);
   if (roots.length !== 1) {
     throw new Error(
-      `vendored ingest discovery: "${folderId}/vgai.project.json" must declare exactly one root ` +
+      `vendored ingest discovery: "${folderId}/volter.project.json" must declare exactly one root ` +
         `(found ${roots.length}).`,
     );
   }
@@ -92,7 +92,7 @@ function readVendoredIngestRoot(
     root.adapter.identity !== expect.identity
   ) {
     throw new Error(
-      `vendored ingest discovery: "${folderId}/vgai.project.json" must declare one ` +
+      `vendored ingest discovery: "${folderId}/volter.project.json" must declare one ` +
         `${expect.surface} { ingest } root (found surface "${root.surface}", adapter identity ` +
         `"${root.adapter.identity}").`,
     );
@@ -161,7 +161,7 @@ export function buildPublicCanvasIngestGame(
 }
 
 /**
- * Resolve a vendored game id against `public/ingest/<id>/vgai.project.json`.
+ * Resolve a vendored game id against `public/ingest/<id>/volter.project.json`.
  *
  * `null` means "no such vendored three ingest" (no manifest served at that
  * path) — the caller falls through to its own unknown-id report. A manifest

@@ -53,7 +53,7 @@ import type { ChannelValue } from '@volter/editor-sdk/kit/creation-site-edit';
  * that carries none: that object is unanchored, with its reason, and its edits
  * stay live-only (the anti-shim rule).
  */
-export const DATA_RECORD_KEY = 'vgaiRecordIndex';
+export const DATA_RECORD_KEY = 'volterRecordIndex';
 
 /** The record index a live object declares, or `null` when it declares none. */
 export function dataRecordIndexOf(object: unknown): number | null {

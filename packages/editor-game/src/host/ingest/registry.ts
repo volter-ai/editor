@@ -47,7 +47,7 @@ import type { ResolvedAdapter, ResolvedAdapterRoot } from '@volter/editor-projec
 import { loadGameManifest, type ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 
 /** The one manifest glob. Every in-tree ingest fixture, whatever its surface. */
-const manifestModules = import.meta.glob('./games/*/vgai.project.json', {
+const manifestModules = import.meta.glob('./games/*/volter.project.json', {
   eager: true,
   import: 'default',
 }) as Record<string, unknown>;
@@ -58,7 +58,7 @@ const manifestModules = import.meta.glob('./games/*/vgai.project.json', {
  * the editor's realm. `.d.ts` is excluded: an ambient declaration file
  * is not a module and must never become a dynamic-import chunk.
  *
- * `vgai.adapter.ts` is excluded too, and for a different reason: it is not a
+ * `volter.adapter.ts` is excluded too, and for a different reason: it is not a
  * GAME module at all. It is host-realm DECLARATION (see {@link adapterModules}),
  * read without booting anything, and a manifest that named it as an `entry` or
  * a `contractShim` would be nonsense — so it is not in the set those fields
@@ -68,15 +68,15 @@ export const entryModules = import.meta.glob([
   './games/*/*.js',
   './games/*/*.ts',
   '!./games/*/*.d.ts',
-  '!./games/*/vgai.adapter.ts',
+  '!./games/*/volter.adapter.ts',
 ]) as Record<string, () => Promise<unknown>>;
 
 /**
- * THE ADAPTER GLOB — one `vgai.adapter.ts` per ingest game, keyed by game id.
+ * THE ADAPTER GLOB — one `volter.adapter.ts` per ingest game, keyed by game id.
  *
  * ARCHITECTURE-CORE §The editor protocol: "Placement follows REALM: game-realm
  * code (a shim that runs inside the game) lives with the game's bundle;
- * host-realm declaration (`vgai.adapter.ts`) lives where the host can import it
+ * host-realm declaration (`volter.adapter.ts`) lives where the host can import it
  * as a real module — a repo-vendored bundle's adapter file lives in the host's
  * in-tree registry, never inside the verbatim-served bundle." This directory IS
  * that registry, so it holds BOTH populations:
@@ -86,7 +86,7 @@ export const entryModules = import.meta.glob([
  *     its bytes are served verbatim from `public/ingest/<id>/` and hashed by
  *     `vendor/games/verify-unaltered.mjs`, so nothing host-owned may go there.
  *
- * A folder with no `vgai.project.json` is invisible to {@link manifestModules}
+ * A folder with no `volter.project.json` is invisible to {@link manifestModules}
  * and therefore to {@link discoverIngestEntries} — the second population adds no
  * fixtures, only declarations.
  *
@@ -98,18 +98,18 @@ export const entryModules = import.meta.glob([
  * be used to fix that file"). Vite resolves the glob statically in dev and in
  * a production build alike, so no generated dispatch table is needed.
  */
-const adapterModules = import.meta.glob('./games/*/vgai.adapter.ts') as Record<
+const adapterModules = import.meta.glob('./games/*/volter.adapter.ts') as Record<
   string,
   () => Promise<unknown>
 >;
 
 /** The adapter module's filename — the contract's ONE spelling, host side. */
-const ADAPTER_FILENAME = 'vgai.adapter.ts';
+const ADAPTER_FILENAME = 'volter.adapter.ts';
 
 /** This directory's repo path, so a published `modulePath` names a real file. */
 const REGISTRY_REPO_DIR = 'packages/editor/src/ingest/games';
 
-const ADAPTER_KEY_RE = /^\.\/games\/([^/]+)\/vgai\.adapter\.ts$/;
+const ADAPTER_KEY_RE = /^\.\/games\/([^/]+)\/volter\.adapter\.ts$/;
 
 /**
  * THE LOOKUP KEY IS THE GAME ID; THE STORAGE KEY IS THE FOLDER NAME. What makes
@@ -124,8 +124,8 @@ const ADAPTER_KEY_RE = /^\.\/games\/([^/]+)\/vgai\.adapter\.ts$/;
  *
  * The invariant is therefore `folder id === the id that game's manifest
  * declares`, for BOTH populations this registry serves — in-tree fixtures
- * (`./games/<id>/vgai.project.json`) and public bundles
- * (`public/ingest/<id>/vgai.project.json`, whose registry folder holds only the
+ * (`./games/<id>/volter.project.json`) and public bundles
+ * (`public/ingest/<id>/volter.project.json`, whose registry folder holds only the
  * adapter file). It is guarded ONCE, statically, in
  * `packages/editor/test/ingest-adapter-modules.test.ts`, which reads both id
  * spaces off disk — the only realm that can, since `public/` is outside the
@@ -167,7 +167,7 @@ export const assetUrls = import.meta.glob('./games/*/assets/**', {
   import: 'default',
 }) as Record<string, string>;
 
-const MANIFEST_KEY_RE = /^\.\/games\/([^/]+)\/vgai\.project\.json$/;
+const MANIFEST_KEY_RE = /^\.\/games\/([^/]+)\/volter\.project\.json$/;
 
 /** Folder-relative glob key for a file inside a discovered game's folder. */
 export function gameFileKey(folderId: string, relPath: string): string {
@@ -206,14 +206,14 @@ function buildEntry(folderId: string, raw: unknown): IngestEntry {
   const roots = declaredRoots(manifest);
   if (roots.length !== 1) {
     throw new Error(
-      `ingest registry: "${folderId}/vgai.project.json" must declare exactly one root ` +
+      `ingest registry: "${folderId}/volter.project.json" must declare exactly one root ` +
         `(found ${roots.length}).`,
     );
   }
   const root = roots[0]!;
   if (root.adapter.type !== 'ingest') {
     throw new Error(
-      `ingest registry: "${folderId}/vgai.project.json"'s root must be an { ingest } root ` +
+      `ingest registry: "${folderId}/volter.project.json"'s root must be an { ingest } root ` +
         `(found adapter identity "${root.adapter.identity}").`,
     );
   }

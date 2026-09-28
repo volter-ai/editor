@@ -201,10 +201,10 @@ export function StoryComponentThumbnail({
   }, [component.surface, height, key, story, width]);
 
   return url ? (
-    <img src={url} alt={`${component.name} preview`} className="vgai-component-thumbnail" />
+    <img src={url} alt={`${component.name} preview`} className="volter-component-thumbnail" />
   ) : (
     <span
-      className="vgai-component-thumbnail-fallback"
+      className="volter-component-thumbnail-fallback"
       data-component-preview={captureFailed ? 'failed' : 'capturing-story'}
     >
       <TypedAssetThumbnail kind="component" name={component.name} />

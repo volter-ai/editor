@@ -67,7 +67,7 @@ export function AssetEditorStatus() {
   useSyncExternalStore(subscribeAssetEditorContext, assetEditorContextVersion);
   const context = getActiveAssetEditorContext();
   return context?.status ? (
-    <span className="vgai-status-copy" data-testid="status-asset-editor" data-status-tone="muted">
+    <span className="volter-status-copy" data-testid="status-asset-editor" data-status-tone="muted">
       {context.status}
     </span>
   ) : null;

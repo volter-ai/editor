@@ -138,7 +138,7 @@ export function InstanceInspectorPicker() {
   const warning = (diagnostics?.loop.firedWhileHeld ?? 0) > 0;
 
   return (
-    <div className="vgai-playbar-popover-anchor">
+    <div className="volter-playbar-popover-anchor">
       <Button
         ref={ref}
         variant="ghost"

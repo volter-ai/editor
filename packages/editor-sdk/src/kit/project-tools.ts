@@ -55,7 +55,7 @@ export async function refreshProjectTools(): Promise<ProjectToolCatalog> {
       contributions: [],
       loadErrors: [
         {
-          sourcePath: 'package.json#vgai.tools',
+          sourcePath: 'package.json#volter.tools',
           message: error instanceof Error ? error.message : String(error),
         },
       ],

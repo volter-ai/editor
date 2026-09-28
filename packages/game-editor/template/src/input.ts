@@ -3,7 +3,7 @@
  * held. Mechanics read it directly ({@link actionPressed}); the QA tester
  * actuates it ({@link setVirtualAction}); the session input door
  * reaches the SAME store by importing this running module through
- * `game.run(({ modules }) => ...)`. No vgai import anywhere — input is
+ * `game.run(({ modules }) => ...)`. No volter import anywhere — input is
  * application state, and the host merely gives the developer access to the
  * module instance the game already uses.
  *

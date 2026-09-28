@@ -10,14 +10,14 @@
  * asset namespace is untouched — a look is not an export
  * (ARCHITECTURE-CORE §Agent surface, the look-verb decision).
  *
- * The PNGs land under `<project>/.vgai/screenshots/` — the same
- * machine-written-evidence namespace `vgai screenshot` already writes to,
+ * The PNGs land under `<project>/.volter/screenshots/` — the same
+ * machine-written-evidence namespace `volter-game-editor screenshot` already writes to,
  * beside the run artifacts and the session file, and gitignored like the rest of
  * it.
  *
  * A live session is REQUIRED and cannot be worked around: Node has no GPU, so
  * "build the model here, photograph it there" is the whole shape of this
- * tool. With no session it refuses by name and points at `vgai edit`, rather
+ * tool. With no session it refuses by name and points at `volter-game-editor edit`, rather
  * than building an Object3D nobody will ever see.
  */
 
@@ -47,7 +47,7 @@ export const NO_EDITOR_SESSION_ERROR: ToolErrorDefinition = {
   code: 'NO_EDITOR_SESSION',
   summary:
     'No live editor session for this project — rasterization happens in the editor, so a look ' +
-    'is impossible without one. Run `vgai edit <project>`.',
+    'is impossible without one. Run `volter-game-editor edit <project>`.',
   data: z.object({ projectRoot: z.string(), reason: z.string() }),
 };
 
@@ -155,7 +155,7 @@ export function orbitShotSet(frames: number): {
 export const BakePreviewResultSchema = z.object({
   directory: z
     .string()
-    .describe('Project-relative directory the PNGs were written to, under .vgai/screenshots/.'),
+    .describe('Project-relative directory the PNGs were written to, under .volter/screenshots/.'),
   files: z
     .array(z.string())
     .describe(
@@ -326,7 +326,7 @@ export const tool = defineTool({
     'builder to get a native THREE.Object3D, exports it to an IN-MEMORY GLB, and hands those ' +
     "bytes to the live editor session's Asset Lab for the standard four-view contact sheet — " +
     'or, with `orbit`, for that many evenly spaced headings around the subject. ' +
-    'The PNGs are written under <project>/.vgai/screenshots/. Nothing is written under ' +
+    'The PNGs are written under <project>/.volter/screenshots/. Nothing is written under ' +
     'public/, no provenance record is created, and no GLB reaches disk — this is the read-only ' +
     'sibling of project.bake.module, for looking at a builder while iterating on it.',
   input: BakePreviewInputSchema,
@@ -348,7 +348,7 @@ export const tool = defineTool({
   permission: {
     risk: 'read',
     summary:
-      'Imports and runs a project module, then writes look-only PNGs under .vgai/screenshots/. ' +
+      'Imports and runs a project module, then writes look-only PNGs under .volter/screenshots/. ' +
       'Never touches the project asset namespace.',
   },
   async impl(input, ctx) {
@@ -371,7 +371,7 @@ export const tool = defineTool({
       throw new ToolError(
         NO_EDITOR_SESSION_ERROR.code,
         'project.bake.preview renders through the live editor session (Node has no GPU), and ' +
-          `none is open for this project. Run \`vgai edit ${projectRoot}\` first. (${reason})`,
+          `none is open for this project. Run \`volter-game-editor edit ${projectRoot}\` first. (${reason})`,
         { projectRoot, reason },
       );
     }
@@ -424,7 +424,7 @@ export const tool = defineTool({
     const capture = orbit ?? (await session.editor.assetPreview(source, options));
 
     const directory = join(
-      '.vgai',
+      '.volter',
       'screenshots',
       `${bakePreviewSlug(input.modulePath, input.exportName)}-${new Date()
         .toISOString()

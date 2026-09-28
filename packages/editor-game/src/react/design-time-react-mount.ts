@@ -146,7 +146,7 @@ async function seedRootViewportFromManifest(): Promise<void> {
   const current = getRootCanvasViewport();
   if (current.width !== null || current.height !== null) return;
   try {
-    const text = await readProjectTextFile('vgai.project.json');
+    const text = await readProjectTextFile('volter.project.json');
     if (!text) return;
     const manifest = JSON.parse(text) as {
       resolution?: { width?: unknown; height?: unknown };
@@ -282,7 +282,7 @@ export async function mountReactDesignLayer(
   // The join is by component NAME, not function identity, and that is
   // measured rather than assumed: a story module is imported at its own
   // `/@fs/<path>?t=<now>` url (`story-discovery.ts`) while a root entry is
-  // imported at the mount epoch's `?vgai-mount=<n>` url
+  // imported at the mount epoch's `?volter-mount=<n>` url
   // (`project-module-url.ts`), and browser ES-module identity is per-url — so
   // the component object a story's meta holds is never the object the entry
   // loader returns. `pickComponentPreviewStory` (`story-registry.ts`) is the
@@ -328,7 +328,7 @@ export async function mountReactDesignLayer(
     // names an action that cannot be taken. Opening on the first story is that
     // board's documented behaviour, not a degraded one. Measured on the
     // repo-vendored `racing-game` ingest, whose manifest declares one ingest
-    // root and no dom root: a permanent unresolvable warning on every `vgai`
+    // root and no dom root: a permanent unresolvable warning on every `volter`
     // command, for a board that was working exactly as designed.
     if (candidate.path && !defaultPortableStory) {
       editorConsole.warn(
@@ -512,8 +512,8 @@ export async function mountReactDesignLayer(
       designTokens: () => {
         const content = board.activeContent();
         const scopeElement =
-          content.closest?.('[data-vgai-game-styles]') ??
-          content.querySelector?.('[data-vgai-game-styles]') ??
+          content.closest?.('[data-volter-game-styles]') ??
+          content.querySelector?.('[data-volter-game-styles]') ??
           content;
         return getDesignTokens(
           getComputedStyle(scopeElement) as unknown as Parameters<typeof getDesignTokens>[0],

@@ -3,7 +3,7 @@
  *
  * WHY IT IS A SEPARATE OBJECT, and why the verbs are these, is recorded once
  * in the implementation's header
- * (`packages/editor/src/editor-document-probe.ts`); the short version is that
+ * (`packages/editor-sdk/src/kit/editor-document-probe.ts`); the short version is that
  * `game.page()` is play-mode-gated and rooted at the GAME container, so an
  * editor surface that is not a running game could be neither read nor driven
  * through the product.
@@ -28,7 +28,7 @@
  * active; `editor.hierarchy()` / `editor.inspect()` keep answering what those
  * panels RESOLVED, where this door answers what they DREW.
  *
- * A field on `LiveEditor` rather than methods on it, so `vgai eval --list`
+ * A field on `LiveEditor` rather than methods on it, so the editor's `eval --list` command
  * shows the verbs as one named surface — the same reason `game.input`
  * and `game.events` are instance fields.
  */
@@ -90,13 +90,13 @@ export class LiveEditorDocument {
    * `styles` additionally resolves named properties per match — and resolving
    * is the point, because a theme token is an expression until an element
    * paints it. Ask for the standard property to learn the colour a person
-   * sees; ask for a `--vgai-…` custom property to learn what a rule WOULD
+   * sees; ask for a `--volter-…` custom property to learn what a rule WOULD
    * paint, which is the only way to measure a `:hover` colour (`:hover` is a
    * browser state no synthetic event can enter, so there is deliberately no
    * hover verb on this door).
    *
-   *   await editor.document.query('.vgai-tree-row', {
-   *     styles: ['backgroundColor', '--vgai-widget-regular-hover'],
+   *   await editor.document.query('.volter-tree-row', {
+   *     styles: ['backgroundColor', '--volter-widget-regular-hover'],
    *   });
    */
   async query(

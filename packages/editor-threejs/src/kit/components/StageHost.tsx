@@ -1327,17 +1327,17 @@ export function Object3DDocumentViewport({
           }
           // AN OBJECT DRAWN BY A HELPER is picked through it: a document that draws an object's
           // overlay itself (a Blender camera's wire, a light's icon) marks each part with the
-          // object it stands for (`userData.vgaiPicksAs`), and the nearer hit wins, as Blender's
+          // object it stands for (`userData.volterPicksAs`), and the nearer hit wins, as Blender's
           // pick over its whole drawing does.
-          // Only helpers that say they can be picked (`userData.vgaiPickable`) are asked, and a
+          // Only helpers that say they can be picked (`userData.volterPickable`) are asked, and a
           // part is hit only where it is shown (three's raycast reads layers, not `visible`).
-          const pickable = viewport.visibleHelpers().filter((helper) => helper.userData['vgaiPickable'] === true);
+          const pickable = viewport.visibleHelpers().filter((helper) => helper.userData['volterPickable'] === true);
           for (const hit of raycaster.intersectObjects(pickable, true)) {
             let proxy: THREE.Object3D | null = null;
             let shown = true;
             for (let object: THREE.Object3D | null = hit.object; object; object = object.parent) {
               if (!object.visible) shown = false;
-              proxy ??= (object.userData['vgaiPicksAs'] as THREE.Object3D | undefined) ?? null;
+              proxy ??= (object.userData['volterPicksAs'] as THREE.Object3D | undefined) ?? null;
             }
             if (!shown) continue;
             const id = proxy ? idOf(proxy) : null;
@@ -1402,7 +1402,7 @@ export function Object3DDocumentViewport({
           // Under a group of the stage's own, which the view's presentation shows only while it
           // lights by the document's studio; the document keeps its say over what is inside.
           const viewLockedHolder = new THREE.Group();
-          viewLockedHolder.name = 'vgai:document-studio';
+          viewLockedHolder.name = 'volter:document-studio';
           viewLockedHolder.add(dressingViewLocked);
           camera.add(viewLockedHolder);
           host.documentStudio = viewLockedHolder;
@@ -2373,8 +2373,8 @@ export function Object3DDocumentViewport({
   const viewport = (
     <div
       data-testid="tool-object3d-authoring"
-      data-vgai-chromeless={chromeless || undefined}
-      className={studioStage ? 'vgai-object3d-studio-stage' : undefined}
+      data-volter-chromeless={chromeless || undefined}
+      className={studioStage ? 'volter-object3d-studio-stage' : undefined}
       style={{
         position: chromeless || hasShell ? 'relative' : 'absolute',
         // Inside the Asset Editor shell the stage fills its own box exactly;
@@ -2446,20 +2446,20 @@ export function Object3DDocumentViewport({
               top: 0,
               display: 'flex',
               justifyContent: 'center',
-              padding: 'var(--vgai-space-3)',
+              padding: 'var(--volter-space-3)',
               pointerEvents: 'none',
             }}
           >
             <div
-              className="vgai-chrome-island"
+              className="volter-chrome-island"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'var(--vgai-space-3)',
+                gap: 'var(--volter-space-3)',
                 maxWidth: '80%',
-                padding: 'var(--vgai-space-2) var(--vgai-space-3)',
-                borderRadius: 'var(--vgai-radius-md)',
-                border: `var(--vgai-stroke-resting) solid ${themeVars.semantic.danger}`,
+                padding: 'var(--volter-space-2) var(--volter-space-3)',
+                borderRadius: 'var(--volter-radius-md)',
+                border: `var(--volter-stroke-resting) solid ${themeVars.semantic.danger}`,
                 background: themeVars.surface.raised,
                 color: themeVars.semantic.danger,
                 pointerEvents: 'auto',
@@ -2530,7 +2530,7 @@ export function Object3DDocumentViewport({
       selection={readSelection}
       fill
     >
-      <div className="vgai-object3d-asset-workspace">
+      <div className="volter-object3d-asset-workspace">
         {viewport}
         {/* Where the deleted preview strip was. It draws nothing until this
             stage's transport has a subject, so a document with nothing to show

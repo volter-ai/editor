@@ -33,7 +33,7 @@
  * `server/project-validation.ts` parses every `src/` write, and
  * `server/editor-server.ts` prints `✖ Invalid project file`, broadcasts it to
  * every tab, and holds it in `/__editor/state`'s `projectValidation` (what
- * `vgai status` reads) until the file saves clean again. Recovery therefore
+ * the editor's `status` command reads) until the file saves clean again. Recovery therefore
  * needs nothing here: this module holds no state to clear.
  */
 
@@ -46,7 +46,7 @@ export interface ViteErrorLike {
   readonly message?: string;
   readonly frame?: string;
   /** Vite's module id: an absolute path, possibly `/@fs`-prefixed and
-   *  possibly carrying the `?vgai-mount=N` query `project-module-url.ts`
+   *  possibly carrying the `?volter-mount=N` query `project-module-url.ts`
    *  minted. */
   readonly id?: string;
   readonly loc?: { readonly file?: string; readonly line?: number; readonly column?: number };
@@ -61,7 +61,7 @@ export type ViteErrorOwner = 'project' | 'editor';
  * Both forms are normalized here because BOTH occur: `loc.file` is a plain
  * absolute path, while `id` is the URL the browser asked for — which for a
  * project module outside the Vite root is the `/@fs`-prefixed, query-carrying
- * string `project-module-url.ts` builds (`fsImportPath` + `?vgai-mount=N`).
+ * string `project-module-url.ts` builds (`fsImportPath` + `?volter-mount=N`).
  * Undoing exactly that construction is why the two `/@fs` shapes below mirror
  * `fsImportPath`'s own posix/Windows split.
  */

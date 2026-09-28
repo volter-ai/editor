@@ -11,7 +11,7 @@
  *   `blender.style.ts`   export const point = 'workspace.style';   export const style: StyleContribution
  *
  * The editor registers what a project's declared packages contribute beside
- * its own built-ins — Look, Animate and Design as workspaces, the vgai keymap,
+ * its own built-ins — Look, Animate and Design as workspaces, the volter keymap,
  * the Classic/Glass/Maya/Substance bundles — and never asks which package is
  * open: a build without the Blender look has no Model workspace.
  */
@@ -421,7 +421,7 @@ export type StageShadingModeId =
 
 /**
  * A glyph's CATEGORY — the colour channel a set may carry per glyph, painted
- * as `var(--vgai-category-<tone>, currentColor)` so a palette that names no
+ * as `var(--volter-category-<tone>, currentColor)` so a palette that names no
  * `color.category` group paints the glyph exactly as a monochrome one.
  *
  * The vocabulary is Blender's Properties-tab rail read as data: that rail

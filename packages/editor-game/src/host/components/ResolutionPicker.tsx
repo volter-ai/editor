@@ -42,14 +42,14 @@ export function ResolutionPicker({
   const label = isFill ? 'Fill' : `${resolution.width}×${resolution.height}`;
 
   return (
-    <div className="vgai-playbar-popover-anchor">
+    <div className="volter-playbar-popover-anchor">
       <Button
         ref={ref}
         variant="ghost"
         size="comfortable"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={open ? 'vgai-resolution-picker-menu' : undefined}
+        aria-controls={open ? 'volter-resolution-picker-menu' : undefined}
         onClick={() => setOpen((value) => !value)}
         title={title}
       >
@@ -63,9 +63,9 @@ export function ResolutionPicker({
       </Button>
       {open && (
         <AnchoredMenu
-          id="vgai-resolution-picker-menu"
+          id="volter-resolution-picker-menu"
           anchorRef={ref}
-          className="vgai-resolution-menu"
+          className="volter-resolution-menu"
           gap={4}
           onDismiss={() => setOpen(false)}
         >

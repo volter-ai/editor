@@ -223,7 +223,7 @@ export function ShadowListEditor({
                     // Standard checkbox size via the shared class (I-30: this
                     // was the one checkbox in the codebase with its own 10px
                     // explicit dimensions).
-                    className="vgai-checkbox"
+                    className="volter-checkbox"
                     data-testid={`${testId}-inset-${i}`}
                     checked={shadow.inset}
                     disabled={disabled}

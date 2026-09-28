@@ -50,7 +50,7 @@ export type IblOverrideShader = Parameters<MeshStandardMaterial['onBeforeCompile
  * lives here, so a per-consumer name would be a string two files have to agree
  * on with nothing checking that they do.
  */
-export const IBL_WORLD_POSITION = 'vgaiIblWorldPosition';
+export const IBL_WORLD_POSITION = 'volterIblWorldPosition';
 
 /**
  * Three's own IBL chunk with `getIBLIrradiance`/`getIBLRadiance` renamed to

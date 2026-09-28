@@ -44,7 +44,7 @@ export function installUtilityAutoOpen(history: HistoryService): () => void {
     if (failing && !hadSourceFailure) {
       // The one place every rolled-back write is named for the DOOR: the
       // screen narrates it (a toast, the document's own message), and
-      // `vgai console` must say the same — measured silent before this line.
+      // the editor's `console` command must say the same — measured silent before this line.
       editorConsole.error(`Source write rolled back: ${error.message} (${error.code})`, 'history');
       if (activeChromeRegions().drawer !== 'hidden') showWorkspaceUtility(CONSOLE_UTILITY_ID);
     }

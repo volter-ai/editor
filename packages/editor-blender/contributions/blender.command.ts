@@ -9,7 +9,7 @@
  *
  * These left `command-listener.ts`'s switch (and their rows left
  * `command-table.ts`) when Blender's editor half left the host — WORK.md
- * §The workbench, item D. `vgai blender-mcp` is transport only: every
+ * §The workbench, item D. `volter blender-mcp` is transport only: every
  * `execute_blender_code`, `get_scene_info`, `get_object_info` and
  * `get_viewport_screenshot` still arrives as the same `blender-*` command
  * through the same relay, and is answered here instead of there.
@@ -93,7 +93,7 @@ export const commands: CommandContribution['commands'] = {
   'blender-rig': verb('none', 60_000),
   'blender-action-clip': verb('none', 120_000),
   // THE NODE VIEW'S OWN ACTIONS as a session verb — the keyboard ruling's
-  // `vgai.*`-command-per-action pattern, and the only way the drawer's view
+  // `volter.*`-command-per-action pattern, and the only way the drawer's view
   // can be read or driven at all: `editor.document.*` is scoped to the active
   // CENTER document by its own contract, and a utility is not one. Read-only
   // over the MODEL: `look` and the view transform are inspection state, and a

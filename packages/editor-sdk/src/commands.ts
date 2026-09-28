@@ -1,6 +1,6 @@
 /**
  * THE COMMAND POINT — a package contributes session commands (WORKBENCH.md
- * §Contribution points, `command`): the verbs `vgai eval` / `vgai <verb>` and
+ * §Contribution points, `command`): the verbs the editor's `eval` command / `volter <verb>` and
  * every agent ride through the editor's ONE relay (`POST /__editor/command`),
  * answered in the page by the editor's own switch for the host's vocabulary
  * and by a contributed handler for a package's.

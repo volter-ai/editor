@@ -184,8 +184,8 @@ export function PixiIsolationSceneContent({
       ref={containerRef}
       data-testid="scene-document-pixi-isolation"
       data-document-id={documentId}
-      data-vgai-backdrop-color={active ? CANVAS_SCENE_BACKGROUND : undefined}
-      data-vgai-backdrop-policy={active ? 'dark-frost' : undefined}
+      data-volter-backdrop-color={active ? CANVAS_SCENE_BACKGROUND : undefined}
+      data-volter-backdrop-policy={active ? 'dark-frost' : undefined}
       onPointerDown={() => setActiveScope('viewport')}
       style={{
         position: 'absolute',

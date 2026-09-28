@@ -22,7 +22,7 @@
  *    words "lost" and "reopening" are gone: neither was ever a fact about a
  *    tab.
  *
- * NOTHING IN THE BACKGROUND OPENS A TAB (owner, 2026-08-10). `vgai edit` opens
+ * NOTHING IN THE BACKGROUND OPENS A TAB (owner, 2026-08-10). the editor's `edit` command opens
  * one; that is the whole list. The reconciler used to open whenever the table
  * went empty, on a budget a tab's own appearance RESET — so "open → tab
  * appears → you close it → open" ran forever, and it spent a night reopening
@@ -132,7 +132,7 @@ export interface TabLifecycleController {
    *  at all, or a channel with no command listener behind it. See
    *  `tab-presence.ts`'s `tabUnresponsive` for the two stages and their budgets. */
   unresponsive(): TabRecord[];
-  /** One row per present tab — what `vgai status` prints. */
+  /** One row per present tab — what the editor's `status` command prints. */
   report(): TabPresenceReport[];
   /** One row per RECENTLY DEPARTED tab — the only place `closed` and
    *  `crashed` can be said, because both are verdicts about a tab that is no
@@ -316,7 +316,7 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // A page that connected and never attached a command listener cannot act
       // on `tab-refocus` or `tab-adopt`: it buffers them for a consumer that is
       // never coming (`index.html`'s bootstrap), so adopting it again leaves
-      // the session holding a tab where, as `vgai status` says, "no command
+      // the session holding a tab where, as the editor's `status` command says, "no command
       // will complete". `tab-reload` is the one message the bootstrap acts on
       // without the module graph.
       //
@@ -332,7 +332,7 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // the run (measured 2026-09-15: `client-disconnected` code 1001, a
       // deliberate unload, with the model's command still in flight).
       //
-      // Once per page-load, and only from an explicit `vgai edit`, so a
+      // Once per page-load, and only from an explicit the editor's `edit` command, so a
       // document that cannot boot is never put in a reload loop.
       const anyHealthy = [...state.tabs.values()].some(
         (tab) => tab.listenerThisEpoch && tab.connected,
@@ -362,16 +362,16 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // that just ended — so the branch below answered `focused` for a page
       // that is gone, and the CLI printed "Editor already open on this
       // project" and exited 0 having opened nothing. MEASURED twice on walk 5,
-      // each time by quitting the browser and running `vgai edit .`
-      // immediately: `vgai status` in the same breath read
+      // each time by quitting the browser and running the editor's `edit .` command
+      // immediately: the editor's `status` command in the same breath read
       //
       //     tab 7b08ccd5: CLOSED 7.4s — its page sent a close beacon 7.4s ago
       //                   and no new page-load is beating
       //
-      // and `vgai edit` said the editor was already open. A second run ~30 s
+      // and the editor's `edit` command said the editor was already open. A second run ~30 s
       // later, once the record had aged out of `presentTabs`, opened the tab
       // normally — so the defect was a WINDOW, which is exactly the window a
-      // person or an agent reaches for `vgai edit` in.
+      // person or an agent reaches for the editor's `edit` command in.
       //
       // The verdict this asks is the SAME ONE the status line prints
       // (`tabState`), so the two can no longer disagree about whether there is
@@ -398,7 +398,7 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
         // "Editor already open on this project", exit 0).
         //
         // MEASURED 2026-09-19 against a page stalled before React mounts (the
-        // wedge in WORK.md §"The editor tab can wedge in a state `vgai edit`
+        // wedge in WORK.md §"The editor tab can wedge in a state the editor's `edit` command
         // cannot self-heal"): for the WHOLE `listenerBudgetMs` — two minutes —
         // this branch answered
         //
@@ -431,11 +431,11 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // cannot run; waiting is the answer once it has been used.
       // …and a tab that said goodbye is not present either, for the reason the
       // blessed branch above states: `tabPresent` keeps a closed tab for its
-      // whole grace, which is the same window that made `vgai edit` report a
+      // whole grace, which is the same window that made the editor's `edit` command report a
       // tab it did not have.
       if (presentTabs(state, at, config).some((tab) => !saidGoodbye(tab))) return 'arriving';
       if (!open || !maintain) return 'noop';
-      // An explicit `vgai edit` is the ONLY thing that opens a tab. Nothing in
+      // An explicit the editor's `edit` command is the ONLY thing that opens a tab. Nothing in
       // the reconcile loop opens one: a tab you closed stays closed.
       options.openUrl(options.editorUrl);
       return 'opening';
@@ -459,14 +459,14 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
      * guard's `server-gone` path — main-thread timers Chrome throttles to once
      * a minute in a long-hidden tab — and the tab's Blender engine worker (one
      * engine thread plus a 16-thread pthread pool) stayed at 100%+ CPU for
-     * minutes after `vgai close`, with the box swapping.
+     * minutes after the editor's `close` command, with the box swapping.
      *
      * So the sleep is gone and a real wait takes its place: every tab PRESENT
      * when the end was announced has to send a `session-ended` goodbye
      * (`src/tab-lifecycle-client.ts`, the same beacon route `pagehide` uses),
      * bounded at {@link SESSION_END_ACK_BUDGET_MS}. The bound is the point —
      * a page that cannot answer must not hold the shutdown open — and the
-     * journal says which of the two happened, so `vgai close` can print it
+     * journal says which of the two happened, so the editor's `close` command can print it
      * instead of the operator having to find the CPU themselves.
      */
     async notifySessionEnded() {

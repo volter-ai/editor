@@ -4,7 +4,7 @@
  * (`catalog/project-source/src/tools/module-source.ts`), and deliberately the
  * SAME contract: a project TypeScript module whose export builds a native
  * `THREE.Object3D`. `project.bake.module` / `project.bake.preview` /
- * `vgai screenshot <module>` already define that contract; the live modeling
+ * the editor's `screenshot <module>` command already define that contract; the live modeling
  * document opens the same thing, so a module that bakes opens, and a module
  * that opens bakes (docs/BLENDER-PARITY.md §The model file).
  *

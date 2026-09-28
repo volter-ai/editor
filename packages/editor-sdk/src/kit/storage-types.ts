@@ -9,7 +9,7 @@
  * Scope — this interface deliberately covers ONLY what reduces to file
  * operations. Three editor concerns do not, and are handled elsewhere:
  *   - native folder dialogs / "reveal in OS file manager" → `HostCapabilities`
- *   - the `vgai` CLI control channel (SSE + command RPC) → server-only, dropped
+ *   - the `volter` CLI control channel (SSE + command RPC) → server-only, dropped
  *     in a pure-browser editor
  *   - `export` / packaging (spawns a build) → a client-side bundler in-browser
  *
@@ -119,7 +119,7 @@ export interface HostCapabilities {
  * Is `backend` rooted at the project's `public/` folder rather than the project
  * root? The session's HTTP tier (`http`) is, and so is the Code-OSS frame's
  * file door (`frame:<tier>`), which is always the `public/` view. A reader of
- * project-root files (`vgai.project.json`, `.vgai/`) reaches them through the
+ * project-root files (`volter.project.json`, `.volter/`) reaches them through the
  * dev server's own routes when this is true.
  */
 export function isPublicRootedBackend(backend: StorageBackend): boolean {

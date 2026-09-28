@@ -62,7 +62,7 @@ export interface HierarchyPanelSnapshot {
   readonly isExpanded: (row: HierarchyNodeRow) => boolean;
   /** True for a row that exists only because internals were revealed. */
   readonly isInternal: (id: string) => boolean;
-  /** True for a row carrying `vgaiComponentRoot`. */
+  /** True for a row carrying `volterComponentRoot`. */
   readonly isComponentRoot: (id: string) => boolean;
   /** How many children this row's view FOLDED AWAY as implementation. */
   readonly foldedInternalCount: (id: string) => number;

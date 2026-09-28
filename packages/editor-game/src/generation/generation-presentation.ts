@@ -219,7 +219,7 @@ export function generationModelLabel(job: GenerationJob): string {
 }
 
 export function generationRouteLabel(job: GenerationJob): string {
-  if (job.mode === 'managed') return 'VGAI subscription';
+  if (job.mode === 'managed') return 'Volter subscription';
   if (job.mode === 'direct') return 'Your provider key';
   return 'Mock';
 }

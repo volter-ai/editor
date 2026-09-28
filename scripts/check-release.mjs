@@ -26,7 +26,6 @@ for (const name of packages) {
   assert.ok(existsSync(join(root, 'packages', folder, 'LICENSE')), `${name} has no LICENSE`);
   for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
     for (const [dependency, version] of Object.entries(manifest[field] ?? {})) {
-      assert.ok(!dependency.startsWith('@vgai/'), `${name} retains ${dependency}`);
       if (manifests.has(dependency) || dependency.startsWith('@volter/')) {
         assert.ok(packages.includes(dependency), `${name} reaches excluded package ${dependency}`);
         if (!(field === 'peerDependencies' && version === '*')) {

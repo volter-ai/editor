@@ -60,10 +60,10 @@ export type ProjectFilePresence = 'present' | 'absent' | 'unreachable';
  * A 200 that is really the SPA FALLBACK, not the file.
  *
  * MEASURED, dev server, project root `public/ingest/cuberun/` (which owns no
- * `vgai.adapter.ts`):
+ * `volter.adapter.ts`):
  *
- *   curl -sI /vgai.adapter.ts   -> 200, Content-Type: text/html      (index.html)
- *   curl -sI /vgai.project.json -> 200, Content-Type: application/json; charset=utf-8
+ *   curl -sI /volter.adapter.ts   -> 200, Content-Type: text/html      (index.html)
+ *   curl -sI /volter.project.json -> 200, Content-Type: application/json; charset=utf-8
  *
  * The fallback serves the editor's own `index.html`, so it is identifiable by
  * the one thing it cannot hide: it is an HTML DOCUMENT. Nothing this probe is

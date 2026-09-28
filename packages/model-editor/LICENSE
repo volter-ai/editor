@@ -1,25 +1,9 @@
-                    NOTICE — ONE SUBTREE IS EXCLUDED FROM THIS GRANT
+                                  NOTICE
 
-`packages/editor` is licensed under the GNU Affero General Public License,
-version 3 only, whose text follows — with ONE exception, stated here because a
-reader who finds our code inside their own MIT game needs to find this line.
-`packages/editor/catalog/project-source/` IS NOT UNDER THE AGPL. It is
-licensed MIT (`packages/editor/catalog/project-source/LICENSE`, the same text
-the starter template carries), and it is excluded from the grant below.
-
-That subtree is the CAPABILITY DISTRIBUTION: source whose whole purpose is to
-be copied, byte for byte, out of this package and into projects that are not
-ours. `vgai add <id>` copies a capability's declared files into a user's game,
-and `npm run capabilities:sync` copies the same bytes into the MIT starter
-template (`packages/editor/template/`) — the two copies are identical, which
-`capabilities:sync -- --check` proves file by file. The copy becomes the
-project's, editing it is the entire point, and a person must be able to
-relicense their game under any terms they choose. So the licence is attached at
-the source: the file does not change licence on the way into a game, because it
-was never AGPL to begin with.
-
-Everything else in `packages/editor` — the editor application that does the
-copying — is governed by the AGPL text below.
+`packages/model-editor` is licensed under the GNU Affero General Public License,
+version 3 only, whose text follows. The capability distribution that is copied
+into users' games is not part of this package: it is
+`packages/game-editor/catalog/project-source/`, licensed MIT.
 
 --------------------------------------------------------------------------
 

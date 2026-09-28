@@ -20,7 +20,7 @@
  * mechanism html-to-image libraries rely on).
  *
  * A canvas is only readable this late when its WebGL context was created with
- * `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME mounts sets it
+ * `preserveDrawingBuffer: true`. Every canvas the volter RUNTIME mounts sets it
  * (`@volter/editor-game/runtime/create-runtime`), so first-party play reads directly. A
  * canvas an INGESTED game created is its own — racing-game's `<Canvas>` passes
  * no `gl` prop, so fiber's `false` default applies and this read returns black.
@@ -43,7 +43,7 @@ export interface OverlaySvg {
   overlayCount: number;
 }
 
-const ROOT_SURFACE_SELECTOR = '[data-vgai-root-surface="true"]';
+const ROOT_SURFACE_SELECTOR = '[data-volter-root-surface="true"]';
 
 // A DOM root is also marked as a surface. Its descendant canvases are UI
 // content (for example a 3D die), not additional host surfaces. Keep their
@@ -51,7 +51,7 @@ const ROOT_SURFACE_SELECTOR = '[data-vgai-root-surface="true"]';
 export function isRootCanvas(canvas: HTMLCanvasElement): boolean {
   return (
     canvas.matches(ROOT_SURFACE_SELECTOR) ||
-    canvas.closest('[data-vgai-canvas-scene="true"]') !== null
+    canvas.closest('[data-volter-canvas-scene="true"]') !== null
   );
 }
 
@@ -241,7 +241,7 @@ export interface CaptureOptions {
    * Same-frame pixels for a canvas this process cannot read back late.
    *
    * A WebGL canvas is only `drawImage`-able after its frame if its context was
-   * created with `preserveDrawingBuffer: true`. Every canvas the vgai runtime
+   * created with `preserveDrawingBuffer: true`. Every canvas the Volter runtime
    * mounts sets it; a canvas an INGESTED game created does not, so reading it
    * here — several paint boundaries after its frame — yields black. The caller
    * supplies this when it has a seam that can copy the buffer inside the
@@ -261,6 +261,15 @@ export interface CaptureOptions {
    * language, so omitting them turns a styled panel into browser-default HTML.
    */
   readonly includeDocumentStyles?: boolean | undefined;
+  /**
+   * The open project's root. A native game styles its DOM with CSS its modules
+   * import, and Vite serves each of those as a `<style>` in the EDITOR document,
+   * outside the container the clone is taken from; the game path re-inlines the
+   * ones whose source file is under this root. Absent, every served stylesheet
+   * outside `node_modules` counts (in the packaged editor that is only project
+   * CSS; a source checkout also serves its own).
+   */
+  readonly projectRoot?: string | undefined;
   /**
    * Crop the photograph to the union of painted pixels plus padding, on a
    * backdrop of the container's own background.
@@ -353,7 +362,7 @@ function canvasDataUrl(document: Document, pixels: CanvasImageSource): string | 
  * dynamically installed scoped game CSS all present the same interface.
  * Cross-origin sheets refuse `cssRules`; skipping those preserves the normal
  * browser security boundary instead of making capture itself fail. */
-function documentStylesCssText(document: Document): string {
+function sheetsCssText(document: Document, sheets: Iterable<CSSStyleSheet>): string {
   const seen = new Set<CSSStyleSheet>();
   const read = (sheet: CSSStyleSheet): string => {
     if (seen.has(sheet)) return '';
@@ -376,7 +385,27 @@ function documentStylesCssText(document: Document): string {
       return '';
     }
   };
-  return Array.from(document.styleSheets, read).filter(Boolean).join('\n');
+  return Array.from(sheets, read).filter(Boolean).join('\n');
+}
+
+function documentStylesCssText(document: Document): string {
+  return sheetsCssText(document, Array.from(document.styleSheets));
+}
+
+/** The project's own module stylesheets as Vite serves them: a sheet whose
+ *  owner carries `data-vite-dev-id` naming a source file outside `node_modules`
+ *  (and under `projectRoot`, when given). See {@link CaptureOptions.projectRoot}. */
+function projectModuleStylesCssText(document: Document, projectRoot: string | undefined): string {
+  const root = projectRoot?.replace(/\\/g, '/').replace(/\/$/, '');
+  const sheets = Array.from(document.styleSheets).filter((sheet) => {
+    const owner = sheet.ownerNode;
+    const id = owner instanceof Element ? owner.getAttribute('data-vite-dev-id') : null;
+    if (!id) return false;
+    const file = (id.split('?')[0] ?? id).replace(/\\/g, '/');
+    if (file.includes('/node_modules/')) return false;
+    return root ? file.startsWith(`${root}/`) : true;
+  });
+  return sheets.length === 0 ? '' : sheetsCssText(document, sheets);
 }
 
 /** SVG images cannot fetch external fonts, even ones already loaded by the page.
@@ -512,7 +541,7 @@ export function rootSurfaceBackdrops(container: HTMLElement): HTMLElement[] {
  * the tree. The ancestor walk cannot see it; the overlay leg clones it opaque
  * and paints it over the canvas the canvas leg just drew.
  *
- * MEASURED (`vgai screenshot editor` of the Game document in play, the
+ * MEASURED (the editor's `screenshot editor` command of the Game document in play, the
  * starter cube and daylight sky on screen): the whole game region came back
  * flat `rgb(36,36,36)` with every ancestor already cleared — the overlay leg
  * rasterized alone read that grey at the canvas centre and the SVG carried no
@@ -570,7 +599,7 @@ function paintsOpaqueWithin(element: Element, container: HTMLElement): element i
  * A detached clone has no ancestors, so anything an ancestor paints is simply
  * gone — and in this editor the panel fill is DELIBERATELY an ancestor's:
  * `components/workspace-surfaces.css` says in as many words that interior
- * wrappers (`.vgai-dock-document-content`, the element every document capture
+ * wrappers (`.volter-dock-document-content`, the element every document capture
  * and the document probe resolve as "the document") paint NOTHING, because
  * the surface AROUND them carries the fill for every theme.
  *
@@ -826,6 +855,17 @@ export function buildOverlaySvg(
     gameStyles.textContent = gameCss;
     wrapper.appendChild(gameStyles);
   }
+  // …and the stylesheets the game's own MODULES imported, for the same reason:
+  // Vite serves each one as a `<style>` in the editor document, so the detached
+  // clone of a HUD styled by an imported `.css` file would photograph unstyled.
+  if (!includeDocumentStyles) {
+    const moduleCss = projectModuleStylesCssText(container.ownerDocument, options?.projectRoot);
+    if (moduleCss) {
+      const moduleStyles = container.ownerDocument.createElement('style');
+      moduleStyles.textContent = moduleCss;
+      wrapper.appendChild(moduleStyles);
+    }
+  }
   for (const el of overlays) {
     const clone = el.cloneNode(true) as Element;
     // Clear the backgrounds that paint BEHIND a root-surface canvas before any
@@ -1011,7 +1051,7 @@ function layerFailure(layer: CaptureLayer, error: unknown): CaptureLayerError {
  * capture time.
  *
  * `warning` is the ONE place the sentence is spelled. Every surface that
- * shows this (the `vgai screenshot` verb, the `/__vgai/screenshot` poke, the
+ * shows this (the the editor's `screenshot` command verb, the `/__volter/screenshot` poke, the
  * relay transport behind `game.screenshot()`) lives in a different package,
  * and three copies of a sentence is three sentences that drift — so the layer
  * holding the pixels writes the words and the rest print them verbatim.
@@ -1639,6 +1679,7 @@ export async function drawPlayCompositeFrame(
       // text in a doubled box. See {@link buildOverlaySvg}'s `rasterSize`.
       const overlay = buildOverlaySvg(container, width / scaleX, height / scaleY, {
         includeDocumentStyles: options?.includeDocumentStyles,
+        projectRoot: options?.projectRoot,
         documentCssText: options?.includeDocumentStyles
           ? await embeddedDocumentStyles(container.ownerDocument)
           : undefined,

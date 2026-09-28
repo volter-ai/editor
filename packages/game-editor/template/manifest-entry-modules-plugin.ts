@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite';
 
-const MANIFEST_ENTRIES_ID = 'virtual:vgai-manifest-entries';
+const MANIFEST_ENTRIES_ID = 'virtual:volter-manifest-entries';
 const RESOLVED_MANIFEST_ENTRIES_ID = `\0${MANIFEST_ENTRIES_ID}`;
 
 function collectManifestEntries(manifest: unknown): string[] {
@@ -20,7 +20,7 @@ function collectManifestEntries(manifest: unknown): string[] {
 
   for (const entry of entries) {
     if (entry.startsWith('/') || entry.includes('\\') || entry.split('/').includes('..')) {
-      throw new Error(`vgai.project.json world entry must be project-relative: ${entry}`);
+      throw new Error(`volter.project.json world entry must be project-relative: ${entry}`);
     }
   }
 
@@ -55,7 +55,7 @@ export function renderManifestEntryModule(manifest: unknown): string {
 
 export function manifestEntryModulesPlugin(manifest: unknown): Plugin {
   return {
-    name: 'vgai:manifest-entry-modules',
+    name: 'volter:manifest-entry-modules',
     resolveId(id) {
       return id === MANIFEST_ENTRIES_ID ? RESOLVED_MANIFEST_ENTRIES_ID : undefined;
     },

@@ -3,9 +3,9 @@
  *
  * Two feeders exist today and they are peers, not layers: the game's own
  * declared system surface (`contract-debug-adapter.ts`, from
- * `window.vgaiGame.systems`) and its adapter module's observation table
+ * `window.volterGame.systems`) and its adapter module's observation table
  * (`observation-debug-adapter.ts`). Both project onto the ONE runtime door the
- * editor and `vgai eval` already read (`SystemAdapters.debug`), so the merge
+ * editor and `volter-game-editor eval` already read (`SystemAdapters.debug`), so the merge
  * belongs here rather than in a second slot — a consumer must not be able to
  * tell a name's provenance, which is the whole point of both projections.
  *

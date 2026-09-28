@@ -1,12 +1,12 @@
 /**
- * SAME-FRAME PIXELS for an ingested game's canvas — the reason `vgai
+ * SAME-FRAME PIXELS for an ingested game's canvas — the reason `volter-game-editor
  * screenshot` no longer returns black over a running ingest.
  *
  * ## The failure
  *
  * `composite-screenshot.ts` reads a game's canvas with `drawImage`, and that
  * only works on a WebGL canvas whose context was created with
- * `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME mounts sets it
+ * `preserveDrawingBuffer: true`. Every canvas the volter RUNTIME mounts sets it
  * (`@volter/editor-game/runtime/create-runtime`), which is why the composite leg has always
  * worked for first-party play. An INGESTED game creates its own canvas: the
  * racing-game's `<Canvas>` passes no `gl` prop, so fiber's default

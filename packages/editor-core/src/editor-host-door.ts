@@ -390,7 +390,7 @@ export function installEditorHostDoor(): void {
     // core is Code-OSS, "the storage backends → file system providers"). The
     // door's paths are PROJECT-RELATIVE, the same spelling `history` hands
     // over, so the frame resolves both against one workspace folder — which is
-    // what lets a vgai write land on the URI Monaco already holds and stop
+    // what lets a volter write land on the URI Monaco already holds and stop
     // being an EXTERNAL change (U4's redo open, closed in U5).
     files: {
       setProvider: setFilesProvider,
@@ -403,11 +403,11 @@ export function installEditorHostDoor(): void {
     },
     // THE SETTINGS, for the Code-OSS frame (ARCHITECTURE-CORE §The core is
     // Code-OSS: "the settings layers and settings UI → the configuration
-    // service"). Keys are the flat `vgai.*` names the settings schema derives
+    // service"). Keys are the flat `volter.*` names the settings schema derives
     // (`@volter/editor-project/settings/keys`), the same spelling `.vscode/settings.json`
     // and the Settings editor use — never a second one the frame translates.
     // `inspect` is the member that carries the ADAPTER layer, which is the
-    // service's own MEMORY target under the frame and this project's `vgai
+    // service's own MEMORY target under the frame and this project's `volter
     // .adapter.ts` standalone.
     settings: {
       setProvider: setSettingsProvider,
@@ -426,7 +426,7 @@ export function installEditorHostDoor(): void {
     // THE KEYBOARD, for the Code-OSS frame (ARCHITECTURE-CORE §The core is
     // Code-OSS rule 3). The frame reads the ACTION table and the keymap
     // TABLES — never a chord the frame spells itself — so `keymap-presets.ts`
-    // stays the one place a chord is written, `vgai` and `blender` alike.
+    // stays the one place a chord is written, `volter` and `blender` alike.
     keyboard: {
       actions: () => registeredKeyActions().map(({ id, scope }) => ({ id, scope })),
       keymaps: () =>

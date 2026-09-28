@@ -2,17 +2,17 @@
  * WHICH PRODUCT OPENS THIS PROJECT — one declaration, one resolver.
  *
  * A PRODUCT is the running program (ARCHITECTURE-CORE §The target shape, rule
- * 4): `@vgai/game-editor` and `@vgai/model-editor` each stitch packages onto
+ * 4): `@volter/game-editor` and `@volter/model-editor` each stitch packages onto
  * the editor kit in code and each carry a `bin`. **Which product runs is never
  * a switch** — there is no `--product` flag, no id in the manifest, no setting,
  * the same way a folder never names which VS Code opens it and a `.blend` never
  * names Blender.
  *
  * So the resolution is a DEPENDENCY resolution, exactly as
- * `assertEditorProjectInstalled` resolves `@vgai/editor`: the project's
- * `dependencies` ∪ `devDependencies` are read, each `@vgai/*` among them is
+ * `assertEditorProjectInstalled` resolves `@volter/editor-core`: the project's
+ * `dependencies` ∪ `devDependencies` are read, each `@volter/*` among them is
  * resolved from the project, and the one whose `package.json` carries
- * `vgai.product` is the product. A project's `package.json` naming a product as
+ * `volter.product` is the product. A project's `package.json` naming a product as
  * a devDependency is the person's convenience — what `npm run dev` launches —
  * and not a rule about the project.
  *
@@ -35,7 +35,7 @@ import { pathToFileURL } from 'node:url';
 /** The manifest key a product declares. A DECLARATION, not a config: it says
  *  what this package IS so the CLI and the session can find its entry without
  *  running it (ARCHITECTURE-CORE §The target shape, rule 8). */
-export const PRODUCT_DECLARATION_KEY = 'vgai.product';
+export const PRODUCT_DECLARATION_KEY = 'volter.product';
 
 /** Light or dark — the two the workbench's own `ColorScheme` has plain names
  *  for, and the only two a product needs to state (a high-contrast scheme is a
@@ -58,8 +58,8 @@ export type ProductColorTheme = 'dark' | 'light';
  * single one of them is extracted. Both come out of that script's own
  * `BUILD.json`, and it prints this block to paste.
  *
- * A machine that has already fetched it keeps it in `~/.vgai/workbenches/<tag>`
- * and a project that has one names it in `.vgai/workbench.json`, so this is
+ * A machine that has already fetched it keeps it in `~/.volter/workbenches/<tag>`
+ * and a project that has one names it in `.volter/workbench.json`, so this is
  * consulted exactly once per machine per release — see
  * `workbench-locator.ts`'s `resolveWorkbenchForProject`.
  */
@@ -72,9 +72,9 @@ export interface ProductWorkbench {
 
 /** A product package, as everything outside it needs to know it. */
 export interface ProductIdentity {
-  /** The package name — `@vgai/game-editor`. */
+  /** The package name — `@volter/game-editor`. */
   readonly name: string;
-  /** Its version, reported beside the workbench by `vgai status`. */
+  /** Its version, reported beside the workbench by the editor's `status` command. */
   readonly version: string;
   /**
    * The command a person types to run it — the ONE key of its package.json
@@ -82,13 +82,13 @@ export interface ProductIdentity {
    * names this, because the kit itself has no command of its own.
    */
   readonly command: string;
-  /** The name a person sees — `vgai.product.displayName` (`Volter Game Editor`). */
+  /** The name a person sees — `volter.product.displayName` (`Volter Game Editor`). */
   readonly displayName: string;
   /** Its package root, absolute. */
   readonly dir: string;
   /**
    * Its ONE source entry, package-relative and POSIX (`./src/index.ts`). That
-   * entry IS the product's frame entry: it composes and re-exports `mountVgai`,
+   * entry IS the product's frame entry: it composes and re-exports `mountVolter`,
    * which is the name the fork's contribution reads off the served module.
    */
   readonly entry: string;
@@ -103,7 +103,7 @@ export interface ProductIdentity {
    * landed. The supported door is `IWorkbenchConstructionOptions
    * .initialColorTheme`, which is read out of the PAGE CONFIG, before any
    * extension or setting is available; the session's proxy injects it
-   * (`packages/editor/server/frame-proxy.ts`).
+   * (`packages/editor-core/server/frame-proxy.ts`).
    *
    * It is a DECLARATION and not a setting (ARCHITECTURE-CORE §The target
    * shape, rule 8): it says what the product IS, the same way `entry` does, and
@@ -135,21 +135,21 @@ export const PRODUCT_INSTALL_LINES = [
  * This is the ONE place the two product names are spelled outside the products
  * themselves; the CLI and the session quote it rather than keeping a copy.
  */
-export const PRODUCT_CREATE_LINES = ['  npx @volter/editor create <name>'] as const;
+export const PRODUCT_CREATE_LINES = ['  npx @volter/editor-core create <name>'] as const;
 
 interface ProductManifestShape {
   private?: unknown;
   name?: unknown;
   version?: unknown;
   bin?: unknown;
-  vgai?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown } };
+  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown } };
 }
 
 const PRODUCT_COLOR_THEMES: readonly ProductColorTheme[] = ['dark', 'light'];
 
 /**
  * Read one product package's declaration, or `null` when the manifest is not a
- * product's. Throws when it declares `vgai.product` and the declaration is
+ * product's. Throws when it declares `volter.product` and the declaration is
  * unusable — a half-written product must be named, never skipped.
  */
 export function readProductManifest(packageDir: string): ProductIdentity | null {
@@ -160,7 +160,7 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
   } catch {
     return null;
   }
-  const declared = manifest.vgai?.product;
+  const declared = manifest.volter?.product;
   if (declared === undefined) return null;
   const entry = declared.entry;
   if (typeof entry !== 'string' || !entry.startsWith('./'))
@@ -226,7 +226,7 @@ const SHA256_HEX = /^[0-9a-f]{64}$/;
 /**
  * REQUIRED, like `entry` and `colorTheme`, and for the sharpest reason of the
  * three: a product that does not say which workbench it is cannot be INSTALLED
- * — `npx @vgai/<product> create <name>` on a machine with nothing else on it
+ * — `npx @volter/<product> create <name>` on a machine with nothing else on it
  * has no other way to find the bytes it runs in, and the person is left writing
  * a path to a directory they would have to build first. There is no default to
  * invent (the tag names a fork commit nobody can guess), so an unstated one is
@@ -234,7 +234,7 @@ const SHA256_HEX = /^[0-9a-f]{64}$/;
  */
 function readProductWorkbench(manifestPath: string, declared: unknown): ProductWorkbench {
   const example =
-    '  "vgai": { "product": { "workbench": { "release": "<product>-<fork sha 12>-<platform>", ' +
+    '  "volter": { "product": { "workbench": { "release": "<product>-<fork sha 12>-<platform>", ' +
     '"tarballSha256": "<64 hex>" } } }\n' +
     '`node scripts/workbench/build-release.mjs --publish --out <release dir>` cuts the release ' +
     'and prints exactly that block.';
@@ -270,7 +270,7 @@ function readProductWorkbench(manifestPath: string, declared: unknown): ProductW
 }
 
 /**
- * A product's SHORT id — `@vgai/model-editor` → `model-editor`.
+ * A product's SHORT id — `@volter/model-editor` → `model-editor`.
  *
  * It is the product's own `product({ id })`, the directory its workbench half
  * lives in (`packages/<id>/workbench`), the `--product` flag the overlay and the
@@ -291,8 +291,8 @@ export function productEntryPath(product: ProductIdentity, fromDir: string): str
   return relative.split('\\').join('/');
 }
 
-/** Every `@vgai/*` this project declares, in either section, sorted. */
-function declaredVgaiPackages(projectRoot: string): string[] {
+/** Every `@volter/*` this project declares, in either section, sorted. */
+function declaredVolterPackages(projectRoot: string): string[] {
   let manifest: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
   try {
     manifest = JSON.parse(
@@ -335,9 +335,9 @@ function locatePackage(projectRoot: string, name: string): string | null {
 }
 
 /**
- * THE PACKAGES A PRODUCT COMPOSES — the `vgai:contributions/<name>` imports of the product's
- * entry (`package.json#vgai.product.entry`), each resolved from the product's own install and
- * declaring `package.json#vgai.contributions`.
+ * THE PACKAGES A PRODUCT COMPOSES — the `volter:contributions/<name>` imports of the product's
+ * entry (`package.json#volter.product.entry`), each resolved from the product's own install and
+ * declaring `package.json#volter.contributions`.
  *
  * COMPOSITIONS ARE CODE (ARCHITECTURE-CORE §The target shape, rule 8): that import IS the
  * composition, so it is what is read. The product's `dependencies` are not: they also carry
@@ -350,26 +350,26 @@ export function productComposedPackages(product: ProductIdentity): string[] {
   let entry: string;
   try {
     const manifest = JSON.parse(readFileSync(join(product.dir, 'package.json'), 'utf8')) as {
-      vgai?: { product?: { entry?: unknown } };
+      volter?: { product?: { entry?: unknown } };
     };
-    const path = manifest.vgai?.product?.entry;
+    const path = manifest.volter?.product?.entry;
     if (typeof path !== 'string') return [];
     entry = readFileSync(join(product.dir, path), 'utf8');
   } catch {
     return [];
   }
   const found: string[] = [];
-  for (const [, name] of entry.matchAll(/\bfrom\s+['"]vgai:contributions\/([^'"]+)['"]/g)) {
+  for (const [, name] of entry.matchAll(/\bfrom\s+['"]volter:contributions\/([^'"]+)['"]/g)) {
     if (!name || found.includes(name)) continue;
     const dir = locatePackage(product.dir, name);
     if (dir === null) continue;
-    let dependency: { vgai?: { contributions?: unknown } };
+    let dependency: { volter?: { contributions?: unknown } };
     try {
       dependency = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as typeof dependency;
     } catch {
       continue;
     }
-    if (Array.isArray(dependency.vgai?.contributions)) found.push(name);
+    if (Array.isArray(dependency.volter?.contributions)) found.push(name);
   }
   return found;
 }
@@ -377,7 +377,7 @@ export function productComposedPackages(product: ProductIdentity): string[] {
 /** The products this project declares AND resolves, in declaration order. */
 export function declaredProducts(projectRoot: string): ProductIdentity[] {
   const found: ProductIdentity[] = [];
-  for (const name of declaredVgaiPackages(projectRoot)) {
+  for (const name of declaredVolterPackages(projectRoot)) {
     const dir = locatePackage(projectRoot, name);
     if (dir === null) continue;
     const product = readProductManifest(dir);

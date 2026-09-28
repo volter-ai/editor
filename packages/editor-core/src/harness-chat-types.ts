@@ -6,7 +6,7 @@ import type { RemoteUiFrame } from '@volter-ai-dev/supercode-ui/host';
  *
  * Supercode owns harness, session, transcript, and runtime semantics. This
  * wire mirrors its frontend state instead of inventing a second state
- * machine; VGAI adds only editor-specific presentation and context.
+ * machine; Volter adds only editor-specific presentation and context.
  */
 
 export type JsonValue =
@@ -152,7 +152,7 @@ export interface HarnessChatError {
 }
 
 export interface HarnessChatSnapshot {
-  schema: 'vgai.harness-chat.v4';
+  schema: 'volter.harness-chat.v4';
   /** Identifies the editor-server process that issued this snapshot. */
   serverInstanceId: string | null;
   revision: number;
@@ -185,7 +185,7 @@ export interface HarnessChatSnapshot {
   terminalCommand: string | null;
 }
 
-/** VGAI's one editor-host extension. Every reusable messenger mutation uses
+/** Volter's one editor-host extension. Every reusable messenger mutation uses
  * SupercodeUiIntent unchanged through the intent route. */
 export type HarnessChatHostAction = {
   type: 'restore';
@@ -210,7 +210,7 @@ export function unavailableHarnessChatSnapshot(
   options?: { code?: string; recoverable?: boolean },
 ): HarnessChatSnapshot {
   return {
-    schema: 'vgai.harness-chat.v4',
+    schema: 'volter.harness-chat.v4',
     serverInstanceId: null,
     revision: 0,
     workspaceGeneration: 0,

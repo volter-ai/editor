@@ -20,7 +20,7 @@ import {
   walkOidTree,
 } from '../../react/react-world-authoring-adapter';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 
 type ReadableDomRoot = OverlayElement & DomElementLike & { readonly ownerDocument?: Document };
 
@@ -50,7 +50,7 @@ function iframeDocumentRoot(hostEl: HTMLElement): ReadableDomRoot | null {
 
 function resolveGameDomRoot(
   hostEl: HTMLElement,
-  declaredRoot: VgaiGameContract['root'] | undefined,
+  declaredRoot: VolterGameContract['root'] | undefined,
 ): ReadableDomRoot | null {
   if (isReadableDomRoot(declaredRoot)) return declaredRoot;
   return iframeDocumentRoot(hostEl) ?? (isReadableDomRoot(hostEl) ? hostEl : null);
@@ -143,7 +143,7 @@ export function withDetectedDomSurface(args: {
   primary: AuthoringAdapter;
   worldId: string;
   hostEl: HTMLElement;
-  declaredRoot?: VgaiGameContract['root'];
+  declaredRoot?: VolterGameContract['root'];
   store: EditorShellStore;
 }): AuthoringAdapter {
   const gameRoot = resolveGameDomRoot(args.hostEl, args.declaredRoot);
@@ -158,7 +158,7 @@ export function withDetectedDomSurface(args: {
   // refuse every detected DOM sibling before the ingest could mount.
   const domUiJournalId = `${args.worldId}/dom-ui`;
   const liveUiRoot: DomElementLike & OidElementLike = {
-    tagName: 'vgai-dom-surface',
+    tagName: 'volter-dom-surface',
     id: '',
     className: '',
     get children() {

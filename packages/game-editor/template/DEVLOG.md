@@ -16,5 +16,5 @@ every small edit. Put the newest entry first and cover:
 Evidence linked here is durable project material. Review the actual candidate
 captures, reject unclear or unrepresentative frames, and watch each selected
 clip from beginning to end. Copy only the chosen media out of the bounded
-`.vgai/` run history into `media/screenshots/` or `media/clips/` before linking
+`.volter/` run history into `media/screenshots/` or `media/clips/` before linking
 it here. Never cite an unreviewed capture merely because it is the latest one.

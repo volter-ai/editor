@@ -11,7 +11,7 @@
  *  tarball and its `BUILD.json` as a GitHub Release on the fork's own repository, tagged
  *  `<product>-<fork sha 12>-<editor sha 12>-<platform>` — both source revisions,
  *  immutable, refused by name on a tag that exists. That tag and the tarball's sha256 are what a
- *  product declares in `package.json#vgai.product.workbench`, and what `npx @volter/editor
+ *  product declares in `package.json#volter.product.workbench`, and what `npx @volter/editor-core
  *  create <name>` fetches when the machine has no workbench at all. The publish step prints the
  *  declaration to paste.
  *
@@ -20,9 +20,9 @@
  *  records every tier it carries; `--publish` refuses such a release, because the fork's GitHub
  *  Releases are public and the tier is the package's own code.
  *
- *  TRIGGER: you are cutting the bytes a project's `.vgai/workbench.json` will name. This is not
+ *  TRIGGER: you are cutting the bytes a project's `.volter/workbench.json` will name. This is not
  *  a script you run on a laptop that is also doing something else — it is the heaviest thing in
- *  the estate. It was `vgai/build-reh-web.sh` inside the fork until P3 (2026-09-21); it is here
+ *  the estate. It was `volter/build-reh-web.sh` inside the fork until P3 (2026-09-21); it is here
  *  because the thing it builds is OURS overlaid on upstream, and the overlay is this
  *  repository's (ARCHITECTURE-CORE §The target shape, rule 6).
  *
@@ -99,7 +99,7 @@ function fail(message) {
 
 /** Both source owners participate in release identity: an editor overlay can change
  *  without changing the upstream fork. This is
- *  the string a product declares in `package.json#vgai.product.workbench.release`, so it is
+ *  the string a product declares in `package.json#volter.product.workbench.release`, so it is
  *  derived from `BUILD.json`'s own fields and never typed twice. */
 function releaseTag(record) {
 	return `${record.product}-${record.commit.slice(0, 12)}-${record.editorSource.revision.slice(0, 12)}-${record.platform}`;
@@ -224,7 +224,7 @@ function publishRelease(dir, dryRun) {
   Declare it — this is what makes \`npx @volter/${record.product} create <name>\` open with nothing
   else on the machine (packages/${record.product}/package.json):
 
-      "vgai": {
+      "volter": {
         "product": {
           "workbench": {
             "release": "${tag}",
@@ -237,13 +237,13 @@ function publishRelease(dir, dryRun) {
 
 const args = parseArgs(process.argv);
 if (args.publishOnly) {
-	publishRelease(resolve(args.out ?? join(REPO_ROOT, '.vgai/releases')), args.dryRun);
+	publishRelease(resolve(args.out ?? join(REPO_ROOT, '.volter/releases')), args.dryRun);
 	process.exit(0);
 }
 const pin = assertAtPin(resolve(args.checkout));
 const checkout = resolve(args.checkout);
-const out = resolve(args.out ?? join(REPO_ROOT, '.vgai/releases'));
-const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? '/tmp', `vgai-workbench-build-${args.product}`));
+const out = resolve(args.out ?? join(REPO_ROOT, '.volter/releases'));
+const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? '/tmp', `volter-workbench-build-${args.product}`));
 const clone = join(work, 'code-oss');
 const packageDir = join(work, `vscode-reh-web-${args.platform}`);
 const tarball = join(out, `vscode-reh-web-${args.platform}-${pin.commit.slice(0, 12)}-${args.product}.tar.gz`);
@@ -300,7 +300,7 @@ step(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--che
 // commit alone is NOT the build identity: a new editor overlay otherwise loads
 // last release's JavaScript at the same URL. Use upstream's BUILD_SOURCEVERSION
 // hook for a composition fingerprint; keep both actual source SHAs in BUILD.json.
-const overlay = args.dryRun ? null : JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8'));
+const overlay = args.dryRun ? null : JSON.parse(readFileSync(join(clone, '.volter-overlay.json'), 'utf8'));
 const assetVersion = overlay ? createHash('sha1').update(JSON.stringify({
 	product: args.product,
 	codeOss: pin.commit,
@@ -352,8 +352,8 @@ if (!args.dryRun) {
 		product: args.product,
 		commit: pin.commit,
 		assetVersion,
-		editorSource: JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8')).editorSource,
-		lookTiers: JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8')).lookTiers,
+		editorSource: JSON.parse(readFileSync(join(clone, '.volter-overlay.json'), 'utf8')).editorSource,
+		lookTiers: JSON.parse(readFileSync(join(clone, '.volter-overlay.json'), 'utf8')).lookTiers,
 		codeOssVersion: JSON.parse(readFileSync(join(clone, 'package.json'), 'utf8')).version,
 		node: process.version,
 		builtAt: new Date().toISOString(),
@@ -380,7 +380,7 @@ console.log(`
   ${buildRecord}
 
   Use it:  extract the tarball beside BUILD.json, then name that directory in
-           <project>/.vgai/workbench.json — docs/CODE-OSS.md §Boot, WEB + SERVER.
+           <project>/.volter/workbench.json — docs/CODE-OSS.md §Boot, WEB + SERVER.
            tar -xzf ${tarball} -C ${out}
 `);
 

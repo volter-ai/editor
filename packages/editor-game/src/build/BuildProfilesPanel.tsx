@@ -1,7 +1,7 @@
 /**
  * THE BUILD PROFILES PANEL — the configuration surface the `build-profiles`
  * document draws: the project's build-role configurations as a target list,
- * the name/resolution/app-id fields it writes back into `vgai.project.json`
+ * the name/resolution/app-id fields it writes back into `volter.project.json`
  * through the project's file history, the Build trigger, and the finished
  * build's report. The LOG is not here: it streams into the Build Output tab
  * (the native Output panel’s Build channel), which is the whole point of the split — a
@@ -49,7 +49,7 @@ interface ProjectConfig {
   appId: string;
 }
 
-const MANIFEST_PATH = 'vgai.project.json';
+const MANIFEST_PATH = 'volter.project.json';
 
 const DEFAULT_CONFIG: ProjectConfig = {
   name: 'My Game',
@@ -216,7 +216,7 @@ export function BuildProfilesPanel() {
         <div style={fieldRowStyle}>
           <label style={labelStyle}>Name</label>
           <TextInput
-            className="vgai-input"
+            className="volter-input"
             style={{ flex: 1 }}
             value={config.name}
             onChange={(e) => updateConfig({ name: e.target.value })}
@@ -228,7 +228,7 @@ export function BuildProfilesPanel() {
           <div style={{ display: 'flex', alignItems: 'center', gap: spaceVar[2], flex: 1 }}>
             <TextInput
               type="number"
-              className="vgai-input"
+              className="volter-input"
               style={{ width: 0, flex: 1 }}
               value={config.resolution.width}
               onChange={(e) => {
@@ -239,7 +239,7 @@ export function BuildProfilesPanel() {
             <span style={{ fontSize: fontSizeVar.sm, color: text[3] }}>&times;</span>
             <TextInput
               type="number"
-              className="vgai-input"
+              className="volter-input"
               style={{ width: 0, flex: 1 }}
               value={config.resolution.height}
               onChange={(e) => {
@@ -253,7 +253,7 @@ export function BuildProfilesPanel() {
         <div style={fieldRowStyle}>
           <label style={labelStyle}>App ID</label>
           <TextInput
-            className="vgai-input"
+            className="volter-input"
             style={{ flex: 1 }}
             value={config.appId}
             onChange={(e) => updateConfig({ appId: e.target.value })}
@@ -309,7 +309,7 @@ export function BuildProfilesPanel() {
                 <a
                   href={getDownloadUrl(artifact)}
                   download={artifact}
-                  className="vgai-btn"
+                  className="volter-btn"
                   data-variant="secondary"
                   data-size="default"
                   style={{
@@ -394,7 +394,7 @@ function BuildReportSummary({ report }: { report: BuildReport }) {
                   position: 'absolute',
                   inset: 0,
                   width: `${Math.max(2, (file.bytes / largest) * 100)}%`,
-                  background: 'color-mix(in srgb, var(--vgai-accent) 16%, transparent)',
+                  background: 'color-mix(in srgb, var(--volter-accent) 16%, transparent)',
                 }}
               />
               <div

@@ -4,7 +4,7 @@
  * segment. No imports, so the editor server and the browser share it.
  */
 export function globToRegExp(glob: string): RegExp {
-  const GLOBSTAR = '__VGAI_GLOBSTAR__';
+  const GLOBSTAR = '__VOLTER_GLOBSTAR__';
   const escaped = glob
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*\//g, GLOBSTAR)

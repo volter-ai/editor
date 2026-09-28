@@ -96,7 +96,7 @@ export const commands: CommandContribution['commands'] = {
       }
       // D15/T-D15.5 (review objection 2's fix) — resolved through the SAME
       // per-world `DebugRegistry.getVirtualInputTarget(worldId?)` the debug
-      // bridge's `window.__vgai.input.*` calls, instead of the old
+      // bridge's `window.__volter.input.*` calls, instead of the old
       // `Game.input` (always the DEFAULT world only) — an explicit
       // `cmd['worldId']` reaches that world specifically; omitted resolves
       // to the same default both doors now share. Throws
@@ -217,7 +217,7 @@ export const commands: CommandContribution['commands'] = {
   // session's `GameInternal.runTicks` through `getPlayRuntimeAccess()`'s
   // `runTicks` accessor (itself backed by the SAME
   // `DebugRegistry.getRunTicksTarget()` the bridge's
-  // `window.__vgai.runTicks` calls — one implementation, byte-identical
+  // `window.__volter.runTicks` calls — one implementation, byte-identical
   // behavior across doors, D17). `runTicks` itself throws a structured
   // `DebugError` (`RUN_TICKS_PAUSED`) while paused — never a silent no-op —
   // which `structuredErrorResult` below carries through as `data.code`.

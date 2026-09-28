@@ -16,7 +16,7 @@
  * TypeScript geometry module. The bpy scripts that authored a `.blend` are
  * ordinary project files beside it (`src/models/<name>.py`); this document
  * does not run them, a person or an agent does, through the session's Blender
- * (`vgai blender-mcp`).
+ * (`volter blender-mcp`).
  *
  * WITHOUT AN ENTRY it is still the document `blender-start` presents into: a
  * project that lists no `.blend` of its own gets one Model document at the

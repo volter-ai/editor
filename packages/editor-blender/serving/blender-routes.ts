@@ -1,5 +1,5 @@
 /**
- * `@volter/editor-blender`'s server half (`package.json#vgai.serving`): the routes the Blender
+ * `@volter/editor-blender`'s server half (`package.json#volter.serving`): the routes the Blender
  * in the tab needs from the session — the engine's WebAssembly build, the file spool its
  * transports move bytes through, the project's files as Blender reads them, and the two ways
  * bytes it produced reach the project (a shipped output, the session's `.blend`). They were
@@ -55,7 +55,7 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
   // octet-stream; the requester GETs it once and it is gone. The spool keeps PATH AUTHORITY
   // WITH THE REQUESTER: the page never names a destination on disk, only an id the caller
   // minted.
-  const transferRoot = join(tmpdir(), 'vgai-blender-transfer');
+  const transferRoot = join(tmpdir(), 'volter-blender-transfer');
   const transferPath = (id: string): string => join(transferRoot, id);
   // Every id is a uuid minted by a caller in a PREVIOUS process, so nothing live is here yet:
   // clearing once at startup bounds what a failed transfer can leave.
@@ -261,7 +261,7 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
       handle: async (_req, res, url) => {
         const relPath = url.searchParams.get('path') ?? '';
         const scratchDocument =
-          isContainedRelativePath(relPath) && relPath.startsWith('.vgai/tmp/') && relPath.endsWith('.blend');
+          isContainedRelativePath(relPath) && relPath.startsWith('.volter/tmp/') && relPath.endsWith('.blend');
         if (!services.isProjectOwnedPath(relPath) && !scratchDocument) {
           json(res, { error: 'Not a project-owned path.' }, 400);
           return;
@@ -410,7 +410,7 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
   ];
 
   return {
-    name: 'vgai-blender-routes',
+    name: 'volter-blender-routes',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://local');

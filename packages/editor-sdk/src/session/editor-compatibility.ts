@@ -94,9 +94,9 @@ interface ProjectIdentity {
  * source compiles against. An INGEST root has no such source: the game is
  * foreign, unmodified, and reaches the host through the adapter seam, so
  * there is nothing in it that a `@volter/editor-project` version could break — and
- * nothing `vgai upgrade` could rewrite if the pin did complain. Found
+ * nothing an upgrade could rewrite if the pin did complain. Found
  * source-mounting SimCity: the project scaffolded at an older pin, and the
- * editor refused to open it with "run vgai upgrade", an instruction that
+ * editor refused to open it with an instruction to upgrade the project, that
  * could not be carried out because the project has no engine surface to
  * upgrade.
  *
@@ -107,7 +107,7 @@ interface ProjectIdentity {
  * does compile against the pinned API, so the pin means exactly what it says.
  *
  * Note what this does NOT exempt: the manifest FORMAT version. The editor
- * reads `vgai.project.json` for every project, ingest or not, so a v1
+ * reads `volter.project.json` for every project, ingest or not, so a v1
  * manifest is still an upgrade this editor genuinely requires.
  */
 export function usesNoPinnedEngineApi(project: ProjectIdentity): boolean {

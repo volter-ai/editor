@@ -4,13 +4,13 @@
  * sources and are GPL-2.0-or-later artwork (see "GPL PATHS, DELIBERATELY"
  * below, `blender-icon-trace.mjs`, and the provenance file
  * `blender.icons.traced.json`); the other 149 are drawn HERE in Blender's
- * IDIOM. That mixture is why `@vgai/blender` is
+ * IDIOM. That mixture is why `@volter/editor-blender` is
  * `AGPL-3.0-only AND GPL-3.0-or-later` (`packages/blender/LICENSE`).
  * The idiom is what a screenshot conveys: a 16-unit grid, monochrome filled
  * silhouettes, ~1.3-unit strokes rendered as filled capsules with round ends,
  * no outline around a fill, optical size ~12 units inside the 16 box.
  *
- * Run `node packages/blender/contributions/blender-icons.source.mjs` to rewrite
+ * Run `node packages/editor-blender/contributions/blender-icons.source.mjs` to rewrite
  * the JSON. The JSON is the artifact the style bundle imports; THIS is where a
  * glyph is edited, because a path `d` is not a thing a person edits by hand.
  *
@@ -2464,7 +2464,7 @@ g(
  * and the outliner tints a row's type glyph the same way. Each name below is
  * a category the palette inks (`EditorTheme.color.category`, where every
  * value's source coordinates are recorded); a glyph paints
- * `var(--vgai-category-<tone>, currentColor)`, so under a palette that names
+ * `var(--volter-category-<tone>, currentColor)`, so under a palette that names
  * no category group it paints exactly as it did monochrome.
  *
  * A NAME, NOT A SITE. A tone here tints EVERY site that asks for this icon
@@ -2507,7 +2507,7 @@ g(
  *    glyph — and an explicit site tone wins by contract. A tone there would
  *    never paint.
  */
-/** The union `IconCategoryTone` declares (`@vgai/editor-sdk/looks`), and the
+/** The union `IconCategoryTone` declares (`@volter/editor-sdk/looks`), and the
  *  reason `blender.style.ts` may narrow this JSON with an assertion: a tone
  *  outside it never reaches the artifact. */
 const TONES = ['object', 'modifier', 'material', 'tool', 'operator', 'data', 'scene', 'collection', 'select'];
@@ -2752,7 +2752,7 @@ g(
     dataVertex(10, 20),
 );
 
-// The Outliner's DATABLOCK row (`@vgai/blender`'s datablock hierarchy) —
+// The Outliner's DATABLOCK row (`@volter/editor-blender`'s datablock hierarchy) —
 // the same MESH_DATA mark the Properties rail's Data tab draws, under its own
 // name because the two sites composite differently: `outliner.png`'s data
 // glyph is #07b189 over the row's #272727 and `properties-object.png`'s tab is
@@ -2783,7 +2783,7 @@ g('outliner-data', glyphs['properties-data'].path);
  * justify one shape.
  *
  * GPL PATHS, DELIBERATELY — AND THE PACKAGE'S SPDX SAYS SO. Blender's icon
- * sources are GPL-2.0-or-later, and `@vgai/blender` is
+ * sources are GPL-2.0-or-later, and `@volter/editor-blender` is
  * `AGPL-3.0-only AND GPL-3.0-or-later` (`packages/blender/LICENSE`, whose
  * notice block names this set, its provenance file and the §13 combination):
  * our code is AGPL, these 197 paths are Blender's artwork conveyed as GPL-3.0,

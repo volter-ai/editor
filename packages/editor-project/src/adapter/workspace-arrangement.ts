@@ -1,6 +1,6 @@
 /** The editor's OWN captured dock arrangements (Animate, Look), shared data used by
  * imported layout components. A package's workspace ships its own beside its
- * layout contribution (`@vgai/blender`'s `model-arrangement.json`). */
+ * layout contribution (`@volter/editor-blender`'s `model-arrangement.json`). */
 
 /**
  * ONE EDITOR AREA of a workspace, and the document that fills it.
@@ -25,8 +25,8 @@
  */
 export interface WorkspaceAreaContribution {
   /** Stable area id, scoped to the workspace. BOTH hosts key an editor group by
-   *  it: the dock's group id is `vgai:area:<id>`, and under the Code-OSS frame
-   *  it is the key of `vgaiDocuments.ts`'s `Map<areaId, IEditorGroup>` — the
+   *  it: the dock's group id is `volter:area:<id>`, and under the Code-OSS frame
+   *  it is the key of `volterDocuments.ts`'s `Map<areaId, IEditorGroup>` — the
    *  group `IEditorGroupsService.addGroup` created from this area's `place`
    *  (WORK.md §THE TIMELINE item 1, landed 2026-09-20). */
   readonly id: string;

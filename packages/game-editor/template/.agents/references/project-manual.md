@@ -1,4 +1,4 @@
-# Detailed VGAI game project reference
+# Detailed Volter game project reference
 
 This is the procedural reference behind the compact project `AGENTS.md`
 router. Load only the section the current decision needs. The source files
@@ -23,7 +23,7 @@ registry supplies their semantics.
 ## Starting a game
 
 Read the brief, create the first `ROADMAP.md` arc, inspect
-`vgai.project.json`, then start the editor immediately:
+`volter.project.json`, then start the editor immediately:
 
 ```bash
 npm run dev
@@ -46,12 +46,12 @@ has one `status:` and one `Summary:`; do not add acceptance criteria yet.
 finishes, covering what changed, why, important decisions, the live playtest
 outcome, and what remains. Link only evidence you inspected. Copy selected
 screenshots into `media/screenshots/` and selected short clips into
-`media/clips/`; bounded `.vgai/` history is working material, not a permanent
+`media/clips/`; bounded `.volter/` history is working material, not a permanent
 journal attachment.
 
 ## Source architecture
 
-Read `vgai.project.json` and `src/main.ts` first. Every manifest root has one
+Read `volter.project.json` and `src/main.ts` first. Every manifest root has one
 adapter and lifecycle. Its entry is the source document: TSX for a Three or
 Canvas root, JSX for a DOM root. Do not call `createRoot`, `hydrateRoot`, or
 `ReactDOM.render` inside a root component: mounting belongs to `src/main.ts`
@@ -92,7 +92,7 @@ genuine exception with a reason.
 The world node is the entity. Behavior on an R3F root is an ordinary React
 component using `useFrame`; physics is ordinary `@react-three/rapier` JSX.
 Use the ecosystem library directly. No mirror tree, gameplay registry, or
-vgai phase vocabulary belongs in game code.
+volter phase vocabulary belongs in game code.
 
 ## Playable slices
 
@@ -191,7 +191,7 @@ project inherits may error and these three throw until they are rewritten:
 - Analytics shows game-specific charts and metrics from the selected recorded
   Gameplay Session, using the editor's existing playback controls.
 
-All three stubs emit `VGAI_STUB_UNIMPLEMENTED`, which makes the live console and
+All three stubs emit `VOLTER_STUB_UNIMPLEMENTED`, which makes the live console and
 `check-idioms` report remaining work. Rewrite the files whole in the game's
 vocabulary.
 
@@ -226,12 +226,12 @@ Build charts from the selected log at the shared cursor.
 Record motion while Play runs:
 
 ```bash
-npm run --silent vgai -- eval 'return editor.recording.start({ fps: 30 })'
+npm run --silent volter -- eval 'return editor.recording.start({ fps: 30 })'
 # direct tester goals and advance with game.waitSimTime(...)
-npm run --silent vgai -- eval 'return editor.recording.stop()'
+npm run --silent volter -- eval 'return editor.recording.stop()'
 ```
 
-Recordings are standard WebM files under `.vgai/recordings/`. Use ordinary
+Recordings are standard WebM files under `.volter/recordings/`. Use ordinary
 `ffprobe`/`ffmpeg` to inspect and trim them.
 
 ## Game data
@@ -258,7 +258,7 @@ small set of authored parameters; the generated table is build output.
 
 ## UI roots
 
-A player HUD is a `dom` root in `vgai.project.json`, default-exporting an
+A player HUD is a `dom` root in `volter.project.json`, default-exporting an
 ordinary React component. It reads the project's own React context/store and
 uses normal React subscriptions. Do not mount a second React root from project
 code, and do not use Drei `Html` for a HUD—it is absent from clean composite
@@ -266,7 +266,7 @@ captures.
 
 `src/main.ts` mounts the roots the manifest declares for the standalone game,
 and the editor mounts the same entries itself. The source component itself
-stays free of vgai runtime context.
+stays free of Volter runtime context.
 
 ## Capabilities and assets
 
@@ -274,8 +274,8 @@ Capabilities are optional standard libraries copied into the project. Before
 writing reusable plumbing, list what already exists:
 
 ```bash
-npm run --silent vgai -- add
-npm run --silent vgai -- add <id>
+npm run --silent volter -- add
+npm run --silent volter -- add <id>
 ```
 
 The copied source under `src/lib/` is project-owned and editable. Use its
@@ -283,7 +283,7 @@ native library API; do not wrap Three, Rapier, Pixi, React, Colyseus, or XState
 behind another programming model.
 
 For 3D, 2D, animation, humanoid, environment, or generated assets, load the
-matching `.agents/skills/vgai-*` skill before acting. The 3D asset floor is a
+matching `.agents/skills/volter-*` skill before acting. The 3D asset floor is a
 named prefab component, a colocated story, named nodes, and inspected visual
 evidence. Provider generation must go through the provider-native skill and
 `ctx.projectOutputs.write(...)`; never spend funds by calling a provider ad
@@ -291,7 +291,7 @@ hoc.
 
 Repeatable creative sequences are flat scripts under
 `scripts/<task>/steps/`, with a README at each meaningful step and
-intermediates under `.vgai/tmp/<task>/`. Helpers under `src/lib/<domain>/` are
+intermediates under `.volter/tmp/<task>/`. Helpers under `src/lib/<domain>/` are
 only for reusable, purely mechanical operations—not workflow runners,
 registries, or auto-judges.
 
@@ -322,9 +322,8 @@ After every slice:
 ```bash
 npm run check-idioms
 npm run typecheck
-npm run validate
 npm run validate-manifest
-npm run --silent vgai -- status
+npm run --silent volter -- status
 ```
 
 Then verify through the live editor-owned session:
@@ -341,7 +340,7 @@ Then verify through the live editor-owned session:
 8. Inspect hierarchy and Content: prefabs appear as prefabs, repeated
    primitives are collapsed under their owner, and independent entities are
    not hidden in scenery.
-9. `npm run --silent vgai -- console` must be silent. Any unresolved warning/error is
+9. `npm run --silent volter -- console` must be silent. Any unresolved warning/error is
    remaining work or must be explicitly acknowledged with an honest reason.
 10. Commit the verified slice immediately. When the arc finishes, update
     `DEVLOG.md` with the judged result and reviewed media.

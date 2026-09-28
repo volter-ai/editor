@@ -29,7 +29,7 @@
  * its width. **RULED 2026-09-19 (orchestrator): a Blender editor AREA is an
  * editor group; the drawer holds utilities.** The UV editor is not a utility
  * at all now — it is a `workspace.document` this workspace opens into
- * `vgai:area:uv`, LEFT of the model document at Blender's own 786/1571, and
+ * `volter:area:uv`, LEFT of the model document at Blender's own 786/1571, and
  * under the frame the layout host puts the same document in a second VS Code
  * editor group. Nothing is deviating and nothing is owed to U10 here.
  *

@@ -117,10 +117,10 @@ export function FolderPreviewTile({ root, folderPath, revision }: FolderPreviewT
 
   if (summary.totalAssets === 0) {
     return (
-      <div className="vgai-folder-preview" data-testid="folder-preview-empty" aria-hidden="true">
-        <div className="vgai-folder-preview__empty">
-          <EditorIcon icon={faFolderOpen} className="vgai-folder-preview__empty-glyph" />
-          <span className="vgai-folder-preview__empty-caption">Empty</span>
+      <div className="volter-folder-preview" data-testid="folder-preview-empty" aria-hidden="true">
+        <div className="volter-folder-preview__empty">
+          <EditorIcon icon={faFolderOpen} className="volter-folder-preview__empty-glyph" />
+          <span className="volter-folder-preview__empty-caption">Empty</span>
         </div>
       </div>
     );
@@ -132,28 +132,28 @@ export function FolderPreviewTile({ root, folderPath, revision }: FolderPreviewT
   // still faded in and counted so the tile reflects the resolved summary.
   if (summary.items.length === 0) {
     return (
-      <div className="vgai-folder-preview" data-testid="folder-preview-plain" aria-hidden="true">
-        <div className="vgai-folder-preview__fallback">
+      <div className="volter-folder-preview" data-testid="folder-preview-plain" aria-hidden="true">
+        <div className="volter-folder-preview__fallback">
           <AssetIcon kind="folder" />
         </div>
-        <span className="vgai-folder-preview__count">{count}</span>
+        <span className="volter-folder-preview__count">{count}</span>
       </div>
     );
   }
 
   return (
-    <div className="vgai-folder-preview" data-testid="folder-preview" aria-hidden="true">
-      <div className="vgai-folder-preview__grid" data-count={summary.items.length}>
+    <div className="volter-folder-preview" data-testid="folder-preview" aria-hidden="true">
+      <div className="volter-folder-preview__grid" data-count={summary.items.length}>
         {summary.items.map((item) => (
-          <div key={item.path} className="vgai-folder-preview__cell">
+          <div key={item.path} className="volter-folder-preview__cell">
             <FolderPreviewCell root={root} item={item} />
           </div>
         ))}
       </div>
-      <span className="vgai-folder-preview__chip">
+      <span className="volter-folder-preview__chip">
         <EditorIcon icon={faFolder} />
       </span>
-      <span className="vgai-folder-preview__count">{count}</span>
+      <span className="volter-folder-preview__count">{count}</span>
     </div>
   );
 }
