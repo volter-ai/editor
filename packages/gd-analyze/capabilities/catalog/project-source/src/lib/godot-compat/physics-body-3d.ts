@@ -10,9 +10,9 @@
  *
  * Rapier keeps one set of locked axes where Godot keeps a body's `locked_axis` beside a rigid
  * body's `lock_rotation` (which switches it to `BODY_MODE_RIGID_LINEAR`, rigid_body_3d.cpp:295), so
- * each body's locks are one record here, seeded once from what the scene declared, and every change
- * writes both to Rapier: a rotation is enabled unless `lock_rotation` holds or its axis is locked.
- * Only a dynamic body with mass declares locks (Rapier reads every axis of any other as locked).
+ * each body's locks are one record here, seeded once from what the scene authored (its `userData`),
+ * and every change writes both to Rapier: a rotation is enabled unless `lock_rotation` holds or its
+ * axis is locked.
  */
 
 import { ActiveHooks } from '@dimforge/rapier3d-compat';
@@ -71,20 +71,15 @@ export function remove_collision_exception_with(self: object, body: object): voi
 }
 
 /**
- * The node's locks, seeded when first asked for from its body: the axes the scene declared
- * (`enabledRotations` / `enabledTranslations`) and its authored `lock_rotation` (`lockRotations`,
- * stated in its `userData`), read before anything this module writes.
+ * The node's locks, seeded when first asked for from what the scene authored: its `locked_axis`
+ * bits and `lock_rotation`, which the scene states in its `userData` (`axis_lock`, `lock_rotation`)
+ * beside Rapier's own props, since Rapier merges them and cannot report them back.
  */
 function locksOf(entity: object): Locks {
   let locks = LOCKS.get(entity);
   if (locks === undefined) {
-    const body = godot_collision_object_body(entity);
-    const rotation = ((entity as { readonly userData?: Readonly<Record<string, unknown>> }).userData ?? {})['lock_rotation'] === true;
-    // Rapier's authored `lockRotations` hides which rotations the axis locks hold; the plan refuses the pair.
-    // Only a dynamic body with mass declares locks: Rapier reads a kinematic, fixed or massless body's
-    // every axis as locked, where Godot's `locked_axis` is clear.
-    const declared = body === undefined || !body.isDynamic() || body.mass() === 0 ? 0 : declaredLocks(body) & (rotation ? 7 : 63);
-    locks = { axes: declared, rotation };
+    const data = (entity as { readonly userData?: Readonly<Record<string, unknown>> }).userData ?? {};
+    locks = { axes: Number(data['axis_lock'] ?? 0) | 0, rotation: data['lock_rotation'] === true };
     LOCKS.set(entity, locks);
   }
   return locks;
@@ -142,14 +137,4 @@ export function godot_physics_body_3d_lock_rotation(self: object, lock: boolean)
  */
 export function godot_physics_body_3d_rotation_locked(self: object): boolean {
   return locksOf(godot_node_entity(self)).rotation;
-}
-
-/** The locks the scene declared, read from the body's effective mass and inertia. */
-function declaredLocks(body: NonNullable<ReturnType<typeof godot_collision_object_body>>): number {
-  const inverse = body.effectiveInvMass();
-  const inertia = body.effectiveWorldInvInertia();
-  return (
-    (inverse.x === 0 ? 1 : 0) | (inverse.y === 0 ? 2 : 0) | (inverse.z === 0 ? 4 : 0) |
-    (inertia.m11 === 0 ? 8 : 0) | (inertia.m22 === 0 ? 16 : 0) | (inertia.m33 === 0 ? 32 : 0)
-  );
 }

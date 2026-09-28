@@ -443,6 +443,9 @@ function bodyProps(
   }
   if (locks.linear.includes(false)) props.set('enabledTranslations', dataExpression(locks.linear));
   if (locks.angular.includes(false)) props.set('enabledRotations', dataExpression(locks.angular));
+  // Rapier merges its locks, so compat reads Godot's own (`locked_axis`, `BodyAxis` bits) from userData.
+  const axes = [...locks.linear, ...locks.angular].reduce((bits, enabled, index) => (enabled ? bits : bits | (1 << index)), 0);
+  if (axes !== 0) data['axis_lock'] = axes;
   // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData` for compat: Rapier
   // merges it with the axis locks, which it then cannot report back, so the pair has no form.
   if (data['lock_rotation'] === true) {
@@ -668,6 +671,10 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     }
     // A prop the prefab states that the instance's values leave out (an override back to Godot's
     // default) is Rapier's default for it, or the prefab's would stand.
+    // Rapier applies lockRotations after enabledRotations, and clearing it clears every rotation lock.
+    if (own.has('lockRotations') && !instance.has('lockRotations') && instance.has('enabledRotations')) {
+      throw new Error(`${at}: clearing the instanced ${rootClass}'s lock_rotation beside an angular axis lock has no idiomatic form`);
+    }
     for (const prop of own.keys()) {
       if (instance.has(prop)) continue;
       const reset = RAPIER_BODY_DEFAULTS[prop];
