@@ -353,14 +353,20 @@ emitter prints:
    plan records which scripts create them; the owner's component steps them from its own
    `useFrame` (and physics step), as a three.js component calls a tween library's `update`, and
    the binding takes its owner as an argument (a column of the call-shape table, never a
-   "current script" held in compat). So there is no tree-wide list and no per-frame scheduler. A
-   caller with no component to own them (a static function, a script on a RefCounted or a
-   Resource, a node made by `Class.new()`, which React does not render) is refused by name. A
-   tree-made timer or tween stops with its owner, where Godot's outlives a freed node; an owner
-   that unmounts with a timer still pending and connected reports it (`console.error`), so the
-   difference is never silent. `queue_free` of an instantiated scene is React's own deferral, a
-   batched state update committed after the frame's callbacks; a node written in a scene file is
-   freed as a binding over three's object graph (step 7); there is no deletion queue.
+   "current script" held in compat). So there is no tree-wide list and no per-frame scheduler. An
+   instance, its own code or its script ancestors', owns them, and one made before the instance
+   mounts (between `instantiate` and `add_child`, or in `_init`) waits for its component. A
+   caller with no component to own them is refused by name: a script no node or autoload runs (a
+   RefCounted or Resource script) by the plan, a static function by compat. A node made by
+   `Class.new()`, which React never renders, steps none of its own, which is stated where it is
+   bound. A tree-made timer or tween stops with its owner, where Godot's outlives a freed node; an
+   owner that unmounts with a timer still pending and connected reports it (`console.error`), so
+   that difference is never silent. An owner steps its own after its `_process`, where Godot
+   steps every timer after every node's, so a timeout's effect on another node's `_process` can
+   land a frame apart. `queue_free` is JavaScript's own deferral, a microtask as `call_deferred`
+   is, which frees the node after the frame's callbacks (R3F runs them in one task); where a stall
+   runs several physics steps in one frame, Godot frees between them and this after them. There
+   is no deletion queue.
 7. **What stays dynamic is bindings.** A path computed at run time, groups, `add_child` of an
    instantiated scene, `queue_free` and `get_tree()` stay compat's, as bindings over three's
    object graph and React state, not a tree compat keeps, and only where a script uses them. The

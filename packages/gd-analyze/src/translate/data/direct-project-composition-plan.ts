@@ -252,11 +252,41 @@ function autoloadReferenceClosure(
   return [...references.values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
+/**
+ * The script at `resPath` and its script ancestors: an instance runs code from every one of them, so
+ * it owns the timers and tweens any of them makes.
+ */
+function scriptChain(project: BoundGodotProject, resPath: string): readonly string[] {
+  const script = project.scripts.find((candidate) => candidate.resPath === resPath);
+  return [resPath, ...(script?.inheritance.scriptAncestors ?? [])];
+}
+
+/** Whether an instance of the script at `resPath` makes timers or tweens, its own or inherited. */
+function ownsTimedChain(project: BoundGodotProject, modulesByPath: ReadonlyMap<string, OfficialBoundScriptModulePlan>, resPath: string): boolean {
+  return scriptChain(project, resPath).some((path) => modulesByPath.get(path)?.ownsTimed === true);
+}
+
+/**
+ * A script that makes timers or tweens must run on a node or an autoload, whose component steps
+ * them (docs/GODOT.md §The emitted game's shape, step 6): one no attached script or autoload has in
+ * its chain (a RefCounted or Resource script, an inner helper) is refused by name.
+ */
+function unownedTimed(project: BoundGodotProject, modules: readonly OfficialBoundScriptModulePlan[], diagnostics: DirectGodotCompositionDiagnostic[]): void {
+  const held = new Set<string>();
+  for (const module of modules) if (module.attachments.length > 0) for (const path of scriptChain(project, module.resPath)) held.add(path);
+  for (const autoload of project.entrypoints.autoloads) if (autoload.kind === 'script') for (const path of scriptChain(project, autoload.resPath)) held.add(path);
+  for (const module of modules) {
+    if (!module.ownsTimed || held.has(module.resPath)) continue;
+    diagnostics.push({ at: module.resPath, message: 'makes timers or tweens, but no node or autoload runs it, so no component steps them' });
+  }
+}
+
 function scriptInstance(
   module: OfficialBoundScriptModulePlan,
   attachment: BoundGodotScriptAttachment,
   fields: ReadonlyMap<string, ScriptAttachmentFieldInitializationPlan>,
   autoloadReferences: readonly DirectGodotAutoloadReferencePlan[],
+  ownsTimed: boolean,
   diagnostics: DirectGodotCompositionDiagnostic[],
 ): DirectGodotScriptInstancePlan | undefined {
   const at = `${attachment.documentPath}#${attachment.nodePath}`;
@@ -284,7 +314,7 @@ function scriptInstance(
     generatedClass: targetClass,
     fields: fields.get(key)?.fields ?? [],
     lifecycle: module.lifecycle,
-    ownsTimed: module.ownsTimed,
+    ownsTimed,
     autoloadReferences,
   };
 }
@@ -314,6 +344,7 @@ function scriptInstances(
         attachment,
         fields,
         autoloadReferenceClosure(project, module, modulesByPath, diagnostics),
+        ownsTimedChain(project, modulesByPath, module.resPath),
         diagnostics,
       );
       if (planned !== undefined) instances.push(planned);
@@ -520,7 +551,7 @@ function scriptAutoloads(
       scriptResPath: autoload.resPath,
       generatedClass: targetClass,
       lifecycle: module.lifecycle,
-      ownsTimed: module.ownsTimed,
+      ownsTimed: ownsTimedChain(project, modules, autoload.resPath),
       autoloadReferences: autoloadReferenceClosure(project, module, modules, diagnostics),
     });
   }
@@ -767,6 +798,7 @@ export function planDirectGodotProjectComposition(
   const fieldPlans = indexFieldPlans(fields, diagnostics);
   const plannedSourceModules = sourceModules(code, diagnostics);
   const instances = scriptInstances(project, code.scriptModules, modules, fieldPlans, diagnostics);
+  unownedTimed(project, code.scriptModules, diagnostics);
   const composedScenes = attachScriptInstances(project, scenes.scenes, instances, diagnostics);
   const autoloads = scriptAutoloads(project, modules, diagnostics);
   validateAutoloadReferences(instances, autoloads, diagnostics);

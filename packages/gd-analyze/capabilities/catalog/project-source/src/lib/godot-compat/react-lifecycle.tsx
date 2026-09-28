@@ -51,7 +51,7 @@ import { set_visible } from './node-3d';
 import { set_meta } from './object';
 import { godot_collision_object_node } from './collision-object-3d';
 import { type GodotSignal, isRetainedGodotSignal } from './signal';
-import { godot_owned_hold, godot_owned_release } from './scene-tree';
+import { godot_owned_release } from './scene-tree';
 
 /**
  * The node an element's ref holds: its object, or for a `@react-three/rapier` body (whose ref is
@@ -220,8 +220,6 @@ export function useGodotScript<Instance extends object>(
     // The node's Godot object is its script instance (`get_node`, signals, `is`).
     godot_node_adopt(native, { binding: { owner: instance } });
     script.current = instance;
-    // The component holds the instance: what its script makes (timers, tweens) it steps.
-    godot_owned_hold(instance);
     return () => {
       script.current = null;
       // What the script made (its timers and tweens) goes with it.
