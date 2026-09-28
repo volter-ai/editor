@@ -77,10 +77,39 @@ patterns the review keeps finding against the baseline committed at `HEAD`, rule
 when a count grows: a Godot class name (from the pinned API dump) used as a `case`, compared with
 `===`/`!==`, or used as a table or `Map` key in emit, lowering or compat; class-mount registries;
 time and stepping primitives in compat; exported declarations the emitted world carries beyond its
-component. Moving a finding between files passes; editing the working baseline does not. Conformance work lowers the baseline in the
+component; the pipeline's phases called outside `import-project.ts`; emit deciding by a setter's
+name or by walking the project's other scenes; lowering comparing a built-in type's name. Moving a finding between files passes; editing the working baseline does not. Conformance work lowers the baseline in the
 same commit that removes a pattern. The reviewer judges; the ratchet stops the slow creep a
 reviewer run only at milestones misses: the 09-26 regrowth was about 300 commits, each locally
 reasonable.
+
+**How a lane lands** (owner, 2026-09-28, after three regressed reviews in a row: new findings
+arrived faster than reviews cleared them, because lanes were briefed to clear refusals and merged
+without a check of the shapes the review hunts).
+
+1. Every lane's brief carries the law and this checklist, and the lane checks its own diff
+   against it before committing:
+   - read, analyze, plan, emit and materialize each own their concern: analysis types values,
+     the plan decides every idiom, prop, ref and artifact, lowering selects rules for the types
+     analysis gives, and emit prints; none of them re-derives what an earlier phase decided;
+   - no Godot class or built-in type name selects behaviour in emit, lowering or compat, and no
+     setter name selects it in emit; a mapping is a plan-time data table;
+   - nothing of Godot's implementation is ported (its servers, renderer, particle, text or
+     physics internals, update order or storage); the library's own idiom gives the behaviour,
+     and looking like three.js rather than like Godot's renderer is acceptable;
+   - compat keeps no clock, scheduler, registry, spawn host or mirrored tree, and never drives
+     other nodes' work from the frame;
+   - the output is what a three.js or R3F developer would write: no generated dispatchers or
+     helpers, nothing for tooling;
+   - no record, capture or comparison of Godot's output is kept.
+2. Before a lane's commits merge to `godot`, one read-only skeptic who did not write the diff
+   reviews that lane's diff alone against §The lane's law with the brief's checklist
+   (`docs/GODOT-REVIEW.md` §The brief, its diff scoped to the lane's commits). A finding is fixed
+   before the merge, not after.
+3. A `regressed` verdict of the periodic review holds new game work: its findings are fixed and
+   the review re-run until the verdict is `holds` or `pass`, then game work resumes.
+4. The rows that fail by the emitted game's shape (the compat hooks a scene is written against,
+   rows 4 and 5) are their own track with their own plan (below), not a lane's side effect.
 
 **Decide from the law.** A design question the law answers is decided by whoever meets it,
 without asking: the answer is what the rulings and rows imply. Only a genuine conflict between
